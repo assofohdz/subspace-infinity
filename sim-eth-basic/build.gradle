@@ -6,8 +6,8 @@ apply plugin: 'idea'
 mainClassName='example.Main'
 
 repositories {
-    jcenter()
     mavenLocal()
+    jcenter()
 }
 
 ext.jmeVersion = "[3.1,)" 
@@ -35,7 +35,8 @@ dependencies {
     compile "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
  
     // We definitely want a UI
-    compile "com.simsilica:lemur:[1.8,)"
+    //compile "com.simsilica:lemur:[1.8,)"
+    compile "com.simsilica:lemur:1.8.2-SNAPSHOT"
     compile "com.simsilica:lemur-proto:[1.6,)"
 
     // And our base code for sim-etheral, SiO2, etc.

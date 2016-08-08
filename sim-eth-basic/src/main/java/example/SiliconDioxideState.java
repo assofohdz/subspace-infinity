@@ -36,72 +36,49 @@
 
 package example;
 
-import com.jme3.app.*;
-import com.jme3.app.state.ScreenshotAppState;
-import com.jme3.math.ColorRGBA;
-import com.jme3.material.Material;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
-import com.jme3.texture.Texture;
-
-import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.lemur.OptionPanelState;
-import com.simsilica.lemur.anim.AnimationState;
-import com.simsilica.lemur.style.BaseStyles;
+import com.jme3.app.Application;
+import com.jme3.app.state.BaseAppState;
+import com.jme3.math.*;
+import com.jme3.scene.*;
 
 /**
- *  The main bootstrap class for the SimEthereal networking example
- *  game. 
+ *  Just a spinning silicon dioxide molecule.
  *
  *  @author    Paul Speed
  */
-public class Main extends SimpleApplication {
+public class SiliconDioxideState extends BaseAppState {
 
     private Node logo;
 
-    public static void main( String... args ) {
-        System.out.println("SimEthereal Example");
-        
-        Main main = new Main();
-        main.start();
+    public SiliconDioxideState() {
     }
-
-    public Main() {
-        super(new StatsAppState(), new DebugKeysAppState(), new BasicProfilerState(false),
-              new AnimationState(), // from Lemur
-              new OptionPanelState(), // from Lemur
-              new SiliconDioxideState(),
-              new MainMenuState(),
-              new ScreenshotAppState("", System.currentTimeMillis())); 
-    }
-        
-    public void simpleInitApp() {        
-        
-        setPauseOnLostFocus(false);
-        //setDisplayFps(false);
-        //setDisplayStatView(false);
-        
-        GuiGlobals.initialize(this);
- 
-        GuiGlobals globals = GuiGlobals.getInstance();
-        BaseStyles.loadGlassStyle();
-        globals.getStyles().setDefaultStyle("glass");
-        
-        // Just load a sample object for the background for now
-        /*logo = new Node("LogoHolder");
-        Spatial molecule = assetManager.loadModel("Models/simsilica.j3o");
+    
+    @Override   
+    protected void initialize( Application app ) {
+        logo = new Node("LogoHolder");
+        Spatial molecule = app.getAssetManager().loadModel("Models/simsilica.j3o");
         molecule.center();
         logo.attachChild(molecule);
         logo.setLocalScale(0.5f);
-        rootNode.attachChild(logo);
-        
+    }
+ 
+    @Override   
+    protected void cleanup( Application app ) {
     }
     
-    public void simpleUpdate( float tpf ) {
-        logo.rotate(0, tpf, 0);*/
+    @Override   
+    protected void onEnable() {
+        Node root = ((Main)getApplication()).getRootNode();
+        root.attachChild(logo);
+    }
+ 
+    @Override
+    public void update( float tpf ) {
+        logo.rotate(0, tpf, 0);
+    }
+    
+    @Override   
+    protected void onDisable() {
+        logo.removeFromParent();
     }
 }
-
-
