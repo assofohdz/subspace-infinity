@@ -1,0 +1,58 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+mainClassName='example.Main'
+
+repositories {
+    jcenter()
+    mavenLocal()
+}
+
+ext.jmeVersion = "[3.1,)" 
+
+project(":assets") {
+    apply plugin: "java"
+    
+    buildDir = rootProject.file("build/assets")
+    
+    sourceSets {
+        main {
+            resources {
+                srcDir '.'
+            }
+        }
+    }    
+}
+
+
+dependencies {
+ 
+    // Need at least basic JME
+    compile "org.jmonkeyengine:jme3-core:$jmeVersion"
+    compile "org.jmonkeyengine:jme3-desktop:$jmeVersion"
+    compile "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
+ 
+    // We definitely want a UI
+    compile "com.simsilica:lemur:[1.8,)"
+    compile "com.simsilica:lemur-proto:[1.6,)"
+
+    // And our base code for sim-etheral, SiO2, etc.
+    // (many of these need to be built locally and 'gradle install'ed as of this writing)
+    compile "com.simsilica:sio2:[1.0,)"
+    compile "com.simsilica:sim-math:[1.0,)"
+    compile "com.simsilica:sim-ethereal:[1.0,)"    
+
+    // Standard utility stuff
+    compile 'com.google.guava:guava:19.0'
+    compile 'org.slf4j:slf4j-api:1.7.13'
+    runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.5'
+    
+    runtime project(':assets')    
+}
+
+task wrapper(type: Wrapper) {
+}
+
+
