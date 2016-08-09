@@ -50,6 +50,8 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.anim.AnimationState;
 import com.simsilica.lemur.style.BaseStyles;
+import com.simsilica.state.DebugHudState;
+import com.simsilica.util.LogAdapter;
 
 /**
  *  The main bootstrap class for the SimEthereal networking example
@@ -63,6 +65,9 @@ public class Main extends SimpleApplication {
 
     public static void main( String... args ) {
         System.out.println("SimEthereal Example");
+
+        // Make sure JUL logging goes to our log4j configuration
+        LogAdapter.initialize();
         
         Main main = new Main();
         main.start();
@@ -72,6 +77,7 @@ public class Main extends SimpleApplication {
         super(new StatsAppState(), new DebugKeysAppState(), new BasicProfilerState(false),
               new AnimationState(), // from Lemur
               new OptionPanelState(), // from Lemur
+              new DebugHudState(), // SiO2 utility class
               new SiliconDioxideState(),
               new MainMenuState(),
               new ScreenshotAppState("", System.currentTimeMillis())); 

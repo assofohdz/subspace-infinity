@@ -36,6 +36,8 @@
 
 package example;
 
+import org.slf4j.*;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.*;
@@ -52,6 +54,8 @@ import com.simsilica.lemur.style.ElementId;
  */
 public class MainMenuState extends BaseAppState {
 
+    static Logger log = LoggerFactory.getLogger(MainMenuState.class);
+
     private Container mainWindow;
     
     // For joining a server
@@ -63,6 +67,71 @@ public class MainMenuState extends BaseAppState {
     private TextField hostDescription;
 
     public MainMenuState() {
+    }
+    
+    protected void showError( String title, String error ) {
+        getState(OptionPanelState.class).show(title, error);    
+    }
+ 
+    protected int parseInt( String title, String sInt ) {
+        sInt = sInt.trim();
+        if( sInt.length() == 0 ) {
+            showError(title + " Error", "Please specify a port.\nDefault is " + GameConstants.DEFAULT_PORT);
+            return -1;
+        }
+        try {
+            return Integer.parseInt(sInt);
+        } catch( Exception e ) {
+            log.error("Error parsing port:" + sInt, e);
+            showError(title + " Error", "Invalid port:" + sInt + "\n" 
+                      + e.getClass().getSimpleName() + ":" + e.getMessage());
+            return -1;
+        }   
+    }
+ 
+    protected void connect() {
+        log.info("Connect... host:" + connectHost.getText() + "  port:" + connectPort.getText());
+
+        // Validate the parameters        
+        String host = connectHost.getText().trim();
+        if( host.length() == 0 ) {
+            showError("Connect Error", "Please specify a host.");
+            return;
+        }
+        int port = parseInt("Connect", connectPort.getText());        
+
+        // Add the state that will manage our remote connection and create
+        // the game states and so on.
+        getStateManager().attach(new ConnectState(host, port));
+        
+        // Disable ourselves
+        setEnabled(false);
+    }
+    
+    protected void host() {
+        log.info("Host a game on port:" + hostPort.getText());
+        log.info("Description:");
+        log.info(hostDescription.getText());
+        
+        // Validate the parameters
+        int port = parseInt("Hosting", hostPort.getText());
+
+        try {
+            // Add the state to manage the hosting environment.  It will launch
+            // a self-connecting ConnectState on its own.        
+            getStateManager().attach(new HostState(port, hostDescription.getText()));
+        
+            // Disable ourselves
+            setEnabled(false);
+        } catch( RuntimeException e ) {
+            log.error("Error attaching host state", e);
+            String message = "Error hosting game on port:" + port;
+            Throwable cause = e.getCause();
+            if( cause != null ) {
+                message += "\n" + cause.getClass().getSimpleName() + ":" + cause.getMessage();
+            }
+            showError("Hosting", message);             
+        }
     }
     
     @Override   
@@ -84,8 +153,8 @@ public class MainMenuState extends BaseAppState {
         props.addChild(new Label("Connect to host:"));
         connectHost = props.addChild(new TextField("localhost"), 1);
         props.addChild(new Label("On port:"));
-        connectPort = props.addChild(new TextField("4269"), 1);
-        joinPanel.addChild(new Button("Connect"));
+        connectPort = props.addChild(new TextField(String.valueOf(GameConstants.DEFAULT_PORT)), 1);
+        joinPanel.addChild(new ActionButton(new CallMethodAction("Connect", this, "connect")));
  
         Container hostPanel = mainWindow.addChild(new Container());
         hostPanel.setInsets(new Insets3f(10, 10, 10, 10));
@@ -94,12 +163,12 @@ public class MainMenuState extends BaseAppState {
         props = hostPanel.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last)));
         props.setBackground(null);
         props.addChild(new Label("Host on port:"));
-        hostPort = props.addChild(new TextField("4269"), 1);
+        hostPort = props.addChild(new TextField(String.valueOf(GameConstants.DEFAULT_PORT)), 1);
         
         hostPanel.addChild(new Label("Server Description"));
-        hostDescription = hostPanel.addChild(new TextField("This server is mine.\nThere are many like it\nbut this one is mine."));
+        hostDescription = hostPanel.addChild(new TextField("This a game server.\nThere are many like it\nbut this one is mine."));
         hostDescription.setSingleLine(false);
-        hostPanel.addChild(new Button("Begin Hosting"));
+        hostPanel.addChild(new ActionButton(new CallMethodAction("Begin Hosting", this, "host")));
          
            
         // Calculate a standard scale and position from the app's camera
