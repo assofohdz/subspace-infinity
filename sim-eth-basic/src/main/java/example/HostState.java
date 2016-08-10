@@ -45,8 +45,11 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
+import com.jme3.scene.Node;
 
+import com.simsilica.lemur.*;
 import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.style.ElementId;
 import com.simsilica.state.DebugHudState;
 import com.simsilica.state.DebugHudState.Location;
 
@@ -62,19 +65,47 @@ public class HostState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(HostState.class);
 
     private GameServer gameServer;
+    private int port;
 
     private VersionedHolder<String> hostingState;
     private VersionedHolder<String> connectionCount;
     
     private ConnectionListener connectionListener = new ConnectionObserver();
     
+    private Container hostWindow;
+    
     public HostState( int port, String description ) {
         try {
+            this.port = port;
             this.gameServer = new GameServer(port, description);
             gameServer.getServer().addConnectionListener(connectionListener);
         } catch( IOException e ) {
             throw new RuntimeException("Error creating server", e);
         }       
+    }
+
+    protected void joinGame() {
+        log.info("joinGame()");
+        getStateManager().attach(new ConnectState("127.0.0.1", port));
+        setEnabled(false); // hide our window        
+    }
+
+    protected void stopHosting() {
+        log.info("stopHosting()");        
+        if( gameServer.getServer().isRunning() && !gameServer.getServer().getConnections().isEmpty() ) {
+            String msg = "Really kick all " + gameServer.getServer().getConnections().size() + " connections?"; 
+            getState(OptionPanelState.class).show("Disconnect", msg,
+                                                  new CallMethodAction("Yes", this, "detach"),
+                                                  new EmptyAction("No"),
+                                                  new EmptyAction("Cancel"));            
+        } else {
+            // Just detach
+            detach();
+        } 
+    }
+    
+    protected void detach() {
+        getStateManager().detach(this);
     }
 
     @Override   
@@ -91,24 +122,40 @@ public class HostState extends BaseAppState {
         
         connectionCount = getState(DebugHudState.class).createDebugValue("Connections", Location.Right);
         resetConnectionCount();
+        
+        hostWindow = new Container();
+        
+        // For now just something simple
+        hostWindow.addChild(new Label("Hosting Control", new ElementId("title")));
+        hostWindow.addChild(new ActionButton(new CallMethodAction("Join Game", this, "joinGame")));
+        hostWindow.addChild(new ActionButton(new CallMethodAction("Stop Hosting", this, "stopHosting")));       
     }    
 
     @Override   
     protected void cleanup( Application app ) {
-        gameServer.close();
+        gameServer.close("Shutting down.");
         hostingState.setObject("Offline");
         
         // And remove the debug messages anyway
         getState(DebugHudState.class).removeDebugValue("Hosting");
         getState(DebugHudState.class).removeDebugValue("Connections");
+        
+        // And re-enable the main menu
+        getState(MainMenuState.class).setEnabled(true);
     }
     
     @Override   
     protected void onEnable() {
+        Node gui = ((Main)getApplication()).getGuiNode();
+ 
+        int height = getApplication().getCamera().getHeight();
+        hostWindow.setLocalTranslation(10, height - 10, 0);       
+        gui.attachChild(hostWindow);    
     }
     
     @Override   
     protected void onDisable() {
+        hostWindow.removeFromParent();
     }
  
     protected void resetConnectionCount() {

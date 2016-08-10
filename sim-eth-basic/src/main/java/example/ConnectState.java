@@ -205,7 +205,7 @@ public class ConnectState extends BaseAppState {
     
     private class ConnectionObserver implements ClientStateListener, ErrorListener<Client> {
         public void clientConnected( final Client c ) {
-            log.trace("clientConnected(" + c + ")");
+            log.info("clientConnected(" + c + ")");
             getApplication().enqueue(new Callable() {
                     public Object call() {
                         connected();
@@ -215,7 +215,7 @@ public class ConnectState extends BaseAppState {
         }
  
         public void clientDisconnected( final Client c, final DisconnectInfo info ) {
-            log.trace("clientDisconnected(" + c + ", " + info + ")");        
+            log.info("clientDisconnected(" + c + ", " + info + ")");        
             getApplication().enqueue(new Callable() {
                     public Object call() {
                         disconnected(info);

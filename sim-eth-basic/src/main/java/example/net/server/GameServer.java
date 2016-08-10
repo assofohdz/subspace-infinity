@@ -40,6 +40,7 @@ import java.io.*;
 
 import org.slf4j.*;
 
+import com.jme3.network.HostedConnection;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
 import com.jme3.network.service.rmi.RmiHostedService;
@@ -111,12 +112,18 @@ public class GameServer {
     }
  
     /**
-     *  Closes the network host, stops all systems, and finally terminates
-     *  them.  The GameServer is not restartable at this point.
+     *  Kicks all current connection, closes the network host, stops all systems, and 
+     *  finally terminates them.  The GameServer is not restartable at this point.
      */   
-    public void close() {
-        log.info("Stopping game server...");
+    public void close( String kickMessage ) {
+        log.info("Stopping game server..." + kickMessage);
         loop.stop();
+        
+        if( kickMessage != null ) {
+            for( HostedConnection conn : server.getConnections() ) {
+                conn.close(kickMessage);
+            }
+        }
         server.close();
         
         // The GameLoop dying should have already stopped the game systems
@@ -125,6 +132,14 @@ public class GameServer {
             systems.terminate();
         }
         log.info("Game server stopped.");
+    }
+    
+    /**
+     *  Closes the network host, stops all systems, and finally terminates
+     *  them.  The GameServer is not restartable at this point.
+     */   
+    public void close() {
+        close(null);
     }
     
     /**
