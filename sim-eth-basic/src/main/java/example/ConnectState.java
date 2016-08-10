@@ -50,6 +50,7 @@ import com.jme3.network.ErrorListener;
 
 import com.simsilica.lemur.Action;
 import com.simsilica.lemur.Button;
+import com.simsilica.lemur.OptionPanel;
 import com.simsilica.lemur.OptionPanelState;
 
 import example.net.client.GameClient;
@@ -71,15 +72,21 @@ public class ConnectState extends BaseAppState {
     private Connector connector;
     private Thread renderThread;
  
-    private boolean closing;
+    private OptionPanel connectingPanel;
+ 
+    private volatile boolean closing;
     
     public ConnectState( String host, int port ) {
-        this.host = host;
+        this.host = host; 
         this.port = port;
     }
 
     @Override   
     protected void initialize( Application app ) {
+ 
+        connectingPanel = new OptionPanel("Connecting...", new ExitAction("Cancel", true));    
+        getState(OptionPanelState.class).show(connectingPanel);
+    
         this.renderThread = Thread.currentThread();
         connector = new Connector();
         connector.start();
@@ -91,9 +98,18 @@ public class ConnectState extends BaseAppState {
         if( client != null ) {
             client.close();
         }
-        
+
+        // Close the connecting panel if it's still open
+        closeConnectingPanel();
+ 
         // And re-enable the main menu
         getState(MainMenuState.class).setEnabled(true);
+    }
+ 
+    protected void closeConnectingPanel() {
+        if( getState(OptionPanelState.class).getCurrent() == connectingPanel ) {
+            getState(OptionPanelState.class).close();
+        }        
     }
     
     @Override   
@@ -135,6 +151,7 @@ public class ConnectState extends BaseAppState {
     }
     
     protected void setClient( final GameClient client ) {
+        log.info("Connection established:" + client);
         if( isRenderThread() ) {
             this.client = client;
         } else {
@@ -149,10 +166,12 @@ public class ConnectState extends BaseAppState {
 
     protected void connected() {
         log.info("connected()");
+        closeConnectingPanel();
     }
     
     protected void disconnected( DisconnectInfo info ) {
         log.info("disconnected(" + info + ")");
+        closeConnectingPanel();
         if( closing ) {
             return;
         }        
@@ -160,21 +179,25 @@ public class ConnectState extends BaseAppState {
             showError("Disconnect", info.reason, info.error, true);
         } else {
             showError("Disconnected", "Unknown error", null, true);
-        }
-        
+        }        
     }
 
     private class ExitAction extends Action {
         private boolean close;
         
         public ExitAction( boolean close ) {
-            super("Ok");
+            this("Ok", close);
+        }
+        
+        public ExitAction( String name, boolean close ) {
+            super(name);
             this.close = close;
         }
  
         public void execute( Button source ) {
             if( close ) {
                 log.info("Detaching ConnectionState");
+                closing = true;
                 getStateManager().detach(ConnectState.this);
             }
         }                    
@@ -217,14 +240,23 @@ public class ConnectState extends BaseAppState {
             try {
                 log.info("Creating game client for:" + host + " " + port);            
                 GameClient client = new GameClient(host, port);
+                if( closing ) {
+                    return;
+                }
                 setClient(client);
                 client.getClient().addClientStateListener(connectionObserver);
                 client.getClient().addErrorListener(connectionObserver);
+                if( closing ) {
+                    return;
+                }
                 
                 log.info("Starting client...");
                 client.start();                
                 log.info("Client started.");
             } catch( IOException e ) {
+                if( closing ) {
+                    return;
+                }
                 showError("Error Connecting", e, true);
             }
         }
