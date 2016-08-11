@@ -86,7 +86,7 @@ public class HostState extends BaseAppState {
 
     protected void joinGame() {
         log.info("joinGame()");
-        getStateManager().attach(new ConnectState(this, "127.0.0.1", port));
+        getStateManager().attach(new ConnectionState(this, "127.0.0.1", port));
         setEnabled(false); // hide our window        
     }
 

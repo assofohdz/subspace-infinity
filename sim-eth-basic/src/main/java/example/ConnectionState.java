@@ -61,9 +61,9 @@ import example.net.client.GameClient;
  *
  *  @author    Paul Speed
  */
-public class ConnectState extends BaseAppState {
+public class ConnectionState extends BaseAppState {
 
-    static Logger log = LoggerFactory.getLogger(ConnectState.class);
+    static Logger log = LoggerFactory.getLogger(ConnectionState.class);
 
     private AppState parent;
 
@@ -79,7 +79,7 @@ public class ConnectState extends BaseAppState {
  
     private volatile boolean closing;
     
-    public ConnectState( AppState parent, String host, int port ) {
+    public ConnectionState( AppState parent, String host, int port ) {
         this.parent = parent;
         this.host = host; 
         this.port = port;
@@ -94,6 +94,12 @@ public class ConnectState extends BaseAppState {
     
     public boolean join( String userName ) {
         log.info("join(" + userName + ")");
+ 
+        userName = userName.trim();
+        if( userName.length() == 0 ) {
+            showError("Join Error", "Please specify a player name for use in game.", null, false);
+            return false;
+        }
         
         return true;        
     }

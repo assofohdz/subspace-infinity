@@ -48,7 +48,7 @@ import com.simsilica.lemur.style.ElementId;
 /**
  *  A basic "login" state that provides a simple UI for logging in
  *  once a connection has been established.  This just manages the UI
- *  and calls back to the ConnectState to do the actual 'work'.
+ *  and calls back to the ConnectionState to do the actual 'work'.
  *
  *  @author    Paul Speed
  */
@@ -63,13 +63,13 @@ public class LoginState extends BaseAppState {
     protected void join() {
         
         String name = nameField.getText().trim();
-        if( getState(ConnectState.class).join(nameField.getText()) ) {
+        if( getState(ConnectionState.class).join(nameField.getText()) ) {
             getStateManager().detach(this);
         }
     }
  
     protected void cancel() {
-        getState(ConnectState.class).disconnect();
+        getState(ConnectionState.class).disconnect();
         getStateManager().detach(this);
     }
     

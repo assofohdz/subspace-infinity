@@ -107,7 +107,7 @@ public class MainMenuState extends BaseAppState {
 
         // Add the state that will manage our remote connection and create
         // the game states and so on.
-        getStateManager().attach(new ConnectState(this, host, port));
+        getStateManager().attach(new ConnectionState(this, host, port));
         
         // Disable ourselves
         setEnabled(false);
@@ -123,7 +123,7 @@ public class MainMenuState extends BaseAppState {
 
         try {
             // Add the state to manage the hosting environment.  It will launch
-            // a self-connecting ConnectState on its own.        
+            // a self-connecting ConnectionState on its own.        
             getStateManager().attach(new HostState(port, hostDescription.getText()));
         
             // Disable ourselves
