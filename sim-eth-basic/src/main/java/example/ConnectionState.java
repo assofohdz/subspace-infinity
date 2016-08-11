@@ -55,6 +55,7 @@ import com.simsilica.lemur.Action;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.OptionPanel;
 import com.simsilica.lemur.OptionPanelState;
+import com.simsilica.state.CompositeAppState;
 
 import example.net.client.GameClient;
 
@@ -63,7 +64,7 @@ import example.net.client.GameClient;
  *
  *  @author    Paul Speed
  */
-public class ConnectionState extends BaseAppState {
+public class ConnectionState extends CompositeAppState {
 
     static Logger log = LoggerFactory.getLogger(ConnectionState.class);
 
@@ -115,7 +116,7 @@ public class ConnectionState extends BaseAppState {
     }
     
     protected void onLoggedOn() {
-        getStateManager().attach(new GameSessionState());
+        addChild(new GameSessionState(), true);
     } 
 
     @Override   

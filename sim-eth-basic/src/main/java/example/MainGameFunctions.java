@@ -36,51 +36,24 @@
 
 package example;
 
-import com.jme3.app.Application;
-
-import com.simsilica.event.EventBus;
-import com.simsilica.lemur.GuiGlobals;
+import com.jme3.input.KeyInput;
+import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
-import com.simsilica.state.CompositeAppState;
+
 
 /**
- *  The core state that manages the game session.  This has several
- *  child app states whose lifecycles are directly linked to this one.
+ *  Defines a set of global game functions and some default key/control
+ *  mappings.
  *
  *  @author    Paul Speed
  */
-public class GameSessionState extends CompositeAppState {
+public class MainGameFunctions {
 
-    public GameSessionState() {
-        // super(); add normal states on the super-constructor
-     
-        // Add states that need to support enable/disable independent of
-        // the outer state using addChild().
-        addChild(new InGameMenuState(false), true);
-    }
- 
-    public void disconnect() {
-        // Remove ourselves
-        getStateManager().detach(this);
-    }
+    public static final String IN_GAME = "In Game";
+    public static final FunctionId F_IN_GAME_MENU = new FunctionId(IN_GAME, "Menu");
     
-    @Override   
-    protected void initialize( Application app ) {
-        super.initialize(app);
-        
-        EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
-
-        InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
-        inputMapper.activateGroup(MainGameFunctions.IN_GAME);            
-    }
+    public static void initializeDefaultMappings( InputMapper inputMapper ) {
     
-    @Override   
-    protected void cleanup( Application app ) {
-        super.cleanup(app);
-        
-        InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
-        inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);        
-        
-        EventBus.publish(GameSessionEvent.sessionEnded, new GameSessionEvent());
+        inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
     }
 }

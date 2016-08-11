@@ -174,7 +174,10 @@ public class MainMenuState extends BaseAppState {
         hostDescription = hostPanel.addChild(new TextField("This a game server.\nThere are many like it\nbut this one is mine."));
         hostDescription.setSingleLine(false);
         hostPanel.addChild(new ActionButton(new CallMethodAction("Begin Hosting", this, "host")));
-         
+ 
+ 
+        ActionButton exit = mainWindow.addChild(new ActionButton(new CallMethodAction("Exit Game", app, "stop")));
+        exit.setInsets(new Insets3f(10, 10, 10, 10)); 
            
         // Calculate a standard scale and position from the app's camera
         // height

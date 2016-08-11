@@ -96,11 +96,18 @@ public class Main extends SimpleApplication {
         BaseStyles.loadGlassStyle();
         globals.getStyles().setDefaultStyle("glass");
  
+        MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
+ 
         // Since we've added the background spinning widget here, we'll        
         // also register events to enable/disable it.
         EventBus.addListener(new GameListener(), 
                              GameSessionEvent.sessionStarted,
                              GameSessionEvent.sessionEnded);
+ 
+        // Get rid of the default close mapping in InputManager
+        if( inputManager.hasMapping(INPUT_MAPPING_EXIT) ) {
+            inputManager.deleteMapping(INPUT_MAPPING_EXIT);
+        }
                        
     }
     
