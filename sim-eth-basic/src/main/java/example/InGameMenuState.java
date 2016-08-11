@@ -71,6 +71,13 @@ public class InGameMenuState extends BaseAppState {
         sessionActions.add(new CallMethodAction("Exit", this, "exitGame"));
     }
 
+    /**
+     *  Returns the tabbed panel used in the in-game menu.  This lets other
+     *  states potentially add their own in-game menu tabs.
+     */ 
+    public TabbedPanel getTabs() {
+        return tabs;
+    }
 
     protected void disconnect() {
         log.info("disconnect()");        
