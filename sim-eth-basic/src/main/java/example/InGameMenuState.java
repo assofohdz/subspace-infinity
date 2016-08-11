@@ -84,6 +84,12 @@ public class InGameMenuState extends BaseAppState {
     
     protected void exitGame() {
         log.info("exitGame()");
+        getState(OptionPanelState.class).show("Exit Game?", "Really exit the whole game?", 
+                                              new CallMethodAction("Yes", 
+                                                            getApplication(), 
+                                                            "stop"),
+                                              new EmptyAction("No"),
+                                              new EmptyAction("Cancel"));
     }
  
     public List<Action> getSessionActions() {
