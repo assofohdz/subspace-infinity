@@ -69,6 +69,11 @@ public class MainMenuState extends BaseAppState {
     public MainMenuState() {
     }
     
+    public float getStandardScale() {
+        int height = getApplication().getCamera().getHeight();        
+        return height / 720f;
+    }
+    
     protected void showError( String title, String error ) {
         getState(OptionPanelState.class).show(title, error);    
     }
@@ -102,7 +107,7 @@ public class MainMenuState extends BaseAppState {
 
         // Add the state that will manage our remote connection and create
         // the game states and so on.
-        getStateManager().attach(new ConnectState(host, port));
+        getStateManager().attach(new ConnectState(this, host, port));
         
         // Disable ourselves
         setEnabled(false);
@@ -176,7 +181,7 @@ public class MainMenuState extends BaseAppState {
         int height = app.getCamera().getHeight();        
         Vector3f pref = mainWindow.getPreferredSize().clone();
         
-        float standardScale = (height / 720f);
+        float standardScale = getStandardScale();
         pref.multLocal(1.5f * standardScale);
  
         // With a slight bias toward the top        

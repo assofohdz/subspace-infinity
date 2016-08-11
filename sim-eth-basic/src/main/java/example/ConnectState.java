@@ -42,6 +42,7 @@ import java.util.concurrent.Callable;
 import org.slf4j.*;
 
 import com.jme3.app.Application;
+import com.jme3.app.state.AppState;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.network.Client;
 import com.jme3.network.ClientStateListener;
@@ -64,6 +65,8 @@ public class ConnectState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(ConnectState.class);
 
+    private AppState parent;
+
     private String host;
     private int port;
     
@@ -76,9 +79,23 @@ public class ConnectState extends BaseAppState {
  
     private volatile boolean closing;
     
-    public ConnectState( String host, int port ) {
+    public ConnectState( AppState parent, String host, int port ) {
+        this.parent = parent;
         this.host = host; 
         this.port = port;
+    }
+
+    public void disconnect() {
+        log.info("disconnect()");
+        closing = true;
+        log.info("Detaching ConnectionState");
+        getStateManager().detach(this);
+    }
+    
+    public boolean join( String userName ) {
+        log.info("join(" + userName + ")");
+        
+        return true;        
     }
 
     @Override   
@@ -102,8 +119,8 @@ public class ConnectState extends BaseAppState {
         // Close the connecting panel if it's still open
         closeConnectingPanel();
  
-        // And re-enable the main menu
-        getState(MainMenuState.class).setEnabled(true);
+        // And re-enable the parent
+        parent.setEnabled(true);
     }
  
     protected void closeConnectingPanel() {
@@ -164,13 +181,15 @@ public class ConnectState extends BaseAppState {
         }
     }
 
-    protected void connected() {
-        log.info("connected()");
+    protected void onConnected() {
+        log.info("onConnected()");
         closeConnectingPanel();
+        
+        getStateManager().attach(new LoginState());
     }
     
-    protected void disconnected( DisconnectInfo info ) {
-        log.info("disconnected(" + info + ")");
+    protected void onDisconnected( DisconnectInfo info ) {
+        log.info("onDisconnected(" + info + ")");
         closeConnectingPanel();
         if( closing ) {
             return;
@@ -196,9 +215,7 @@ public class ConnectState extends BaseAppState {
  
         public void execute( Button source ) {
             if( close ) {
-                log.info("Detaching ConnectionState");
-                closing = true;
-                getStateManager().detach(ConnectState.this);
+                disconnect();
             }
         }                    
     }
@@ -208,7 +225,7 @@ public class ConnectState extends BaseAppState {
             log.info("clientConnected(" + c + ")");
             getApplication().enqueue(new Callable() {
                     public Object call() {
-                        connected();
+                        onConnected();
                         return null;
                     }
                 });
@@ -218,7 +235,7 @@ public class ConnectState extends BaseAppState {
             log.info("clientDisconnected(" + c + ", " + info + ")");        
             getApplication().enqueue(new Callable() {
                     public Object call() {
-                        disconnected(info);
+                        onDisconnected(info);
                         return null;
                     }
                 });
