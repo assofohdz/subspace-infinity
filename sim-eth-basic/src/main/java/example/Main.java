@@ -46,6 +46,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 
+import com.simsilica.event.EventBus;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.anim.AnimationState;
@@ -94,19 +95,23 @@ public class Main extends SimpleApplication {
         GuiGlobals globals = GuiGlobals.getInstance();
         BaseStyles.loadGlassStyle();
         globals.getStyles().setDefaultStyle("glass");
-        
-        // Just load a sample object for the background for now
-        /*logo = new Node("LogoHolder");
-        Spatial molecule = assetManager.loadModel("Models/simsilica.j3o");
-        molecule.center();
-        logo.attachChild(molecule);
-        logo.setLocalScale(0.5f);
-        rootNode.attachChild(logo);
-        
+ 
+        // Since we've added the background spinning widget here, we'll        
+        // also register events to enable/disable it.
+        EventBus.addListener(new GameListener(), 
+                             GameSessionEvent.sessionStarted,
+                             GameSessionEvent.sessionEnded);
+                       
     }
     
-    public void simpleUpdate( float tpf ) {
-        logo.rotate(0, tpf, 0);*/
+    private class GameListener {
+        public void sessionStarted( GameSessionEvent event ) {
+            stateManager.getState(SiliconDioxideState.class).setEnabled(false);
+        }
+        
+        public void sessionEnded( GameSessionEvent event ) {
+            stateManager.getState(SiliconDioxideState.class).setEnabled(true);
+        }
     }
 }
 

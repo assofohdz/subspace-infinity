@@ -41,6 +41,8 @@ import java.util.concurrent.Callable;
 
 import org.slf4j.*;
 
+import com.google.common.base.Strings;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.AppState;
 import com.jme3.app.state.BaseAppState;
@@ -95,14 +97,26 @@ public class ConnectionState extends BaseAppState {
     public boolean join( String userName ) {
         log.info("join(" + userName + ")");
  
-        userName = userName.trim();
-        if( userName.length() == 0 ) {
+        if( userName != null ) {
+            userName = userName.trim();
+        }
+        
+        if( Strings.isNullOrEmpty(userName) ) {
             showError("Join Error", "Please specify a player name for use in game.", null, false);
             return false;
         }
         
+        // So here we'd login and then when we get a response from the 
+        // server that we are logged in then we'd launch the game state and
+        // so on... for now we'll just do it directly.
+        onLoggedOn();
+         
         return true;        
     }
+    
+    protected void onLoggedOn() {
+        getStateManager().attach(new GameSessionState());
+    } 
 
     @Override   
     protected void initialize( Application app ) {

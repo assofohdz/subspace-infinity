@@ -66,8 +66,8 @@ public class LoginState extends BaseAppState {
         if( getState(ConnectionState.class).join(nameField.getText()) ) {
             getStateManager().detach(this);
         }
-    }
- 
+    } 
+        
     protected void cancel() {
         getState(ConnectionState.class).disconnect();
         getStateManager().detach(this);
