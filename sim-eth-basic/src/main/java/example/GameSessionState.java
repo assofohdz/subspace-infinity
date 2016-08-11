@@ -37,6 +37,7 @@
 package example;
 
 import com.jme3.app.Application;
+import com.jme3.math.ColorRGBA;
 
 import com.simsilica.event.EventBus;
 import com.simsilica.lemur.GuiGlobals;
@@ -52,7 +53,8 @@ import com.simsilica.state.CompositeAppState;
 public class GameSessionState extends CompositeAppState {
 
     public GameSessionState() {
-        // super(); add normal states on the super-constructor
+        // add normal states on the super-constructor
+        super(new MessageState()); 
      
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
@@ -70,17 +72,24 @@ public class GameSessionState extends CompositeAppState {
         
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
 
+        getState(MessageState.class).addMessage("> You have joined the game.", ColorRGBA.Yellow);
+
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);            
     }
     
     @Override   
     protected void cleanup( Application app ) {
-        super.cleanup(app);
         
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);        
         
         EventBus.publish(GameSessionEvent.sessionEnded, new GameSessionEvent());
+ 
+        // The below will fail because there is no message state anymore... so
+        // it wouldn't show the message anyway.       
+        // getState(MessageState.class).addMessage("> You have left the game.", ColorRGBA.Yellow);
+                
+        super.cleanup(app);
     }
 }
