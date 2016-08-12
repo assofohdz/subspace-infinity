@@ -34,21 +34,57 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package example;
+package example.view;
 
+import com.jme3.app.Application;
+import com.jme3.app.state.BaseAppState;
+import com.jme3.scene.Spatial;
+import com.jme3.texture.Texture;
+import com.jme3.util.SkyFactory;
+
+import example.Main;
 
 /**
  *
  *
  *  @author    Paul Speed
  */
-public class GameConstants {
+public class SkyState extends BaseAppState {
 
-    public static final String GAME_NAME = "SimEtheral Example";
-    public static final int PROTOCOL_VERSION = 42;
+    private Spatial sky;
 
-    public static final int DEFAULT_PORT = 4269;
+    public SkyState() {
+    }
     
+    @Override
+    protected void initialize( Application app ) {
+
+        Texture texture1 = app.getAssetManager().loadTexture("Textures/galaxy+Z.jpg");
+        Texture texture2 = app.getAssetManager().loadTexture("Textures/galaxy-Z.jpg"); 
+        Texture texture3 = app.getAssetManager().loadTexture("Textures/galaxy+X.jpg"); 
+        Texture texture4 = app.getAssetManager().loadTexture("Textures/galaxy-X.jpg"); 
+        Texture texture5 = app.getAssetManager().loadTexture("Textures/galaxy+Y.jpg"); 
+        Texture texture6 = app.getAssetManager().loadTexture("Textures/galaxy-Y.jpg");
+ 
+        sky = SkyFactory.createSky(app.getAssetManager(),
+                                   texture1, texture2,
+                                   texture3, texture4,
+                                   texture5, texture6);    
+    }
+
+    @Override
+    protected void cleanup( Application app ) {
+    }
     
-    public static final int GRID_CELL_SIZE = 32;
+    @Override
+    protected void onEnable() {
+        ((Main)getApplication()).getRootNode().attachChild(sky);
+    }
+    
+    @Override
+    protected void onDisable() {
+        sky.removeFromParent();
+    }
 }
+
+

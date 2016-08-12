@@ -54,6 +54,8 @@ import com.simsilica.lemur.style.BaseStyles;
 import com.simsilica.state.DebugHudState;
 import com.simsilica.util.LogAdapter;
 
+import example.view.PlayerMovementFunctions;
+
 /**
  *  The main bootstrap class for the SimEthereal networking example
  *  game. 
@@ -81,6 +83,7 @@ public class Main extends SimpleApplication {
               new DebugHudState(), // SiO2 utility class
               new SiliconDioxideState(),
               new MainMenuState(),
+              //new FlyCamAppState(), // temporary
               new ScreenshotAppState("", System.currentTimeMillis())); 
     }
         
@@ -97,6 +100,7 @@ public class Main extends SimpleApplication {
         globals.getStyles().setDefaultStyle("glass");
  
         MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
+        PlayerMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
  
         // Since we've added the background spinning widget here, we'll        
         // also register events to enable/disable it.

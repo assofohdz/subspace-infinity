@@ -46,6 +46,9 @@ import com.simsilica.state.CompositeAppState;
 
 import example.net.GameSessionListener;
 import example.net.client.GameSessionClientService;
+import example.view.PlayerMovementState;
+import example.view.SkyState;
+import example.view.SpaceGridState;
 
 /**
  *  The core state that manages the game session.  This has several
@@ -59,7 +62,12 @@ public class GameSessionState extends CompositeAppState {
 
     public GameSessionState() {
         // add normal states on the super-constructor
-        super(new MessageState()); 
+        super(new MessageState(),
+              new SkyState(),
+              new PlayerMovementState(),
+              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)) 
+              //new SpaceGridState(2, 10, ColorRGBA.White) 
+              ); 
      
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
@@ -84,7 +92,8 @@ public class GameSessionState extends CompositeAppState {
         getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
-        inputMapper.activateGroup(MainGameFunctions.IN_GAME);            
+        inputMapper.activateGroup(MainGameFunctions.IN_GAME);
+        
     }
     
     @Override   
@@ -101,6 +110,18 @@ public class GameSessionState extends CompositeAppState {
                 
         super.cleanup(app);
     }
+
+    @Override
+    protected void onEnable() {
+        super.onEnable();
+        GuiGlobals.getInstance().setCursorEventsEnabled(false);
+    }            
+
+    @Override
+    protected void onDisable() {
+        super.onEnable();
+        GuiGlobals.getInstance().setCursorEventsEnabled(true);
+    }            
     
     /**
      *  Notified by the server about game-session related events.

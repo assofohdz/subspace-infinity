@@ -50,6 +50,8 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.ElementId;
 
+import example.view.PlayerMovementState;
+
 /**
  *
  *
@@ -64,7 +66,9 @@ public class InGameMenuState extends BaseAppState {
 
     private List<Action> sessionActions = new ArrayList<>();
     private Container sessionButtons;
-    
+
+    private boolean movementState = false;
+
     public InGameMenuState( boolean enabled ) {
         setEnabled(enabled);        
         sessionActions.add(new CallMethodAction("Disconnect", this, "disconnect"));
@@ -147,10 +151,21 @@ public class InGameMenuState extends BaseAppState {
     protected void onEnable() {
         Node gui = ((Main)getApplication()).getGuiNode();
         gui.attachChild(mainWindow);
+ 
+        if( getState(PlayerMovementState.class) != null ) {
+            // Save the enabled state of the PlayerMovementState so that we
+            // can restore it if the menu is closed.
+            this.movementState = getState(PlayerMovementState.class).isEnabled();        
+            getState(PlayerMovementState.class).setEnabled(false);
+        }
     }
     
     @Override   
     protected void onDisable() {
         mainWindow.removeFromParent();
+        
+        if( getState(PlayerMovementState.class) != null ) {
+            getState(PlayerMovementState.class).setEnabled(movementState);
+        }
     }
 }

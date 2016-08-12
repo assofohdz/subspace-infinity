@@ -70,6 +70,9 @@ public class SiliconDioxideState extends BaseAppState {
     protected void onEnable() {
         Node root = ((Main)getApplication()).getRootNode();
         root.attachChild(logo);
+        
+        getApplication().getCamera().setLocation(new Vector3f(0, 0, 10));
+        getApplication().getCamera().lookAtDirection(new Vector3f(0, 0, -1), Vector3f.UNIT_Y);
     }
  
     @Override
