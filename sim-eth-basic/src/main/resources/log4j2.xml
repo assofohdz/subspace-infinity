@@ -16,7 +16,7 @@
   <Loggers>
     <Logger name="example" level="DEBUG"/>
     <Logger name="com.simsilica.sim" level="TRACE"/>
-    <Logger name="com.simsilica.lemur.CallMethodAction" level="TRACE"/>
+    <!-- <Logger name="com.simsilica.lemur.CallMethodAction" level="TRACE"/> -->
     <Root level="INFO">
       <AppenderRef ref="RollingFile"/>
       <AppenderRef ref="STDOUT"/>

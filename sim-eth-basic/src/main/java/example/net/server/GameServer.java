@@ -77,8 +77,8 @@ public class GameServer {
                                            port, port);
         
         server.getServices().addServices(new RpcHostedService(),
-                                         new RmiHostedService()
-                                         //new AccountHostedService(),
+                                         new RmiHostedService(),
+                                         new AccountHostedService(description)
                                          //new ArenaHost(),
                                          //new ChatHost((short)-2));
                                          );

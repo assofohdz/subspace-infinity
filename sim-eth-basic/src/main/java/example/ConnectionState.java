@@ -57,6 +57,8 @@ import com.simsilica.lemur.OptionPanel;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.state.CompositeAppState;
 
+import example.net.AccountSessionListener;
+import example.net.client.AccountClientService;
 import example.net.client.GameClient;
 
 /**
@@ -110,12 +112,17 @@ public class ConnectionState extends CompositeAppState {
         // So here we'd login and then when we get a response from the 
         // server that we are logged in then we'd launch the game state and
         // so on... for now we'll just do it directly.
-        onLoggedOn();
+        client.getService(AccountClientService.class).login(userName);
+        //onLoggedOn();
          
         return true;        
     }
     
-    protected void onLoggedOn() {
+    protected void onLoggedOn( boolean loggedIn ) {
+        if( !loggedIn ) {
+            // We'd want to present an error... but right now this will
+            // never happen.
+        }
         addChild(new GameSessionState(), true);
     } 
 
@@ -205,8 +212,15 @@ public class ConnectionState extends CompositeAppState {
     protected void onConnected() {
         log.info("onConnected()");
         closeConnectingPanel();
+ 
+        // Add our client listeners
+        client.getService(AccountClientService.class).addAccountSessionListener(new AccountObserver());
+
+        String serverInfo = client.getService(AccountClientService.class).getServerInfo();
+ 
+        log.debug("Server info:" + serverInfo); 
         
-        getStateManager().attach(new LoginState());
+        getStateManager().attach(new LoginState(serverInfo));
     }
     
     protected void onDisconnected( DisconnectInfo info ) {
@@ -266,6 +280,18 @@ public class ConnectionState extends CompositeAppState {
             log.error("Connection error", t);
             showError("Connection Error", t, true);
         }           
+    }
+
+    private class AccountObserver implements AccountSessionListener {
+    
+        public void notifyLoginStatus( final boolean loggedIn ) {
+            getApplication().enqueue(new Callable() {
+                    public Object call() {
+                        onLoggedOn(loggedIn);
+                        return null;
+                    }
+                 });   
+        }
     }
 
     private class Connector extends Thread {
