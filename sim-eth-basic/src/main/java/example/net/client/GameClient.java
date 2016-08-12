@@ -67,13 +67,8 @@ public class GameClient {
         log.info("Adding services...");                                             
         client.getServices().addServices(new RpcClientService(),
                                          new RmiClientService(),
-                                         new AccountClientService()//,
-                                         //new EntityClientService(),
-                                         //new ArenaClient(),                   
-                                         //new ChatClient((short)-2),
-                                         //new EtherealClient(ESpaceConstants.OBJECT_PROTOCOL,
-                                         //                   ESpaceConstants.ZONE_GRID,
-                                         //                   ESpaceConstants.ZONE_RADIUS));
+                                         new AccountClientService(),
+                                         new GameSessionClientService()
                                          );
     }
 

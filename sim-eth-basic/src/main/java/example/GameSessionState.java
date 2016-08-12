@@ -44,6 +44,9 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.state.CompositeAppState;
 
+import example.net.GameSessionListener;
+import example.net.client.GameSessionClientService;
+
 /**
  *  The core state that manages the game session.  This has several
  *  child app states whose lifecycles are directly linked to this one.
@@ -51,6 +54,8 @@ import com.simsilica.state.CompositeAppState;
  *  @author    Paul Speed
  */
 public class GameSessionState extends CompositeAppState {
+
+    private GameSessionObserver gameSessionObserver = new GameSessionObserver();
 
     public GameSessionState() {
         // add normal states on the super-constructor
@@ -72,7 +77,11 @@ public class GameSessionState extends CompositeAppState {
         
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
 
+        // Add a self-message because we're too late to have caught the
+        // player joined message for ourselves.  (Please we'd want it to look like this, anyway.)
         getState(MessageState.class).addMessage("> You have joined the game.", ColorRGBA.Yellow);
+
+        getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);            
@@ -91,5 +100,18 @@ public class GameSessionState extends CompositeAppState {
         // getState(MessageState.class).addMessage("> You have left the game.", ColorRGBA.Yellow);
                 
         super.cleanup(app);
+    }
+    
+    /**
+     *  Notified by the server about game-session related events.
+     */
+    private class GameSessionObserver implements GameSessionListener {
+        public void playerJoined( int clientId, String playerName ){
+            getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);  
+        }
+    
+        public void playerLeft( int clientId, String playerName ) {
+            getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
+        }
     }
 }

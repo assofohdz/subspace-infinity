@@ -78,9 +78,8 @@ public class GameServer {
         
         server.getServices().addServices(new RpcHostedService(),
                                          new RmiHostedService(),
-                                         new AccountHostedService(description)
-                                         //new ArenaHost(),
-                                         //new ChatHost((short)-2));
+                                         new AccountHostedService(description),
+                                         new GameSessionHostedService()
                                          );
         
         this.systems = new GameSystemManager();

@@ -50,6 +50,7 @@ import com.jme3.network.Client;
 import com.jme3.network.ClientStateListener;
 import com.jme3.network.ClientStateListener.DisconnectInfo;
 import com.jme3.network.ErrorListener;
+import com.jme3.network.service.ClientService;
 
 import com.simsilica.lemur.Action;
 import com.simsilica.lemur.Button;
@@ -88,6 +89,10 @@ public class ConnectionState extends CompositeAppState {
         this.parent = parent;
         this.host = host; 
         this.port = port;
+    }
+
+    public <T extends ClientService> T getService( Class<T> type ) {
+        return client.getService(type);
     }
 
     public void disconnect() {

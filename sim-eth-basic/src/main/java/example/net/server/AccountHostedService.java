@@ -46,6 +46,8 @@ import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
+import com.simsilica.event.EventBus;
+
 import example.net.AccountSession;
 import example.net.AccountSessionListener;
 
@@ -72,7 +74,7 @@ public class AccountHostedService extends AbstractHostedConnectionService {
         this.serverInfo = serverInfo;
     }
     
-    public String getPlayerName( HostedConnection conn ) {
+    public static String getPlayerName( HostedConnection conn ) {
         return conn.getAttribute(ATTRIBUTE_PLAYER_NAME);   
     }
  
@@ -102,6 +104,12 @@ public class AccountHostedService extends AbstractHostedConnectionService {
     @Override   
     public void stopHostingOnConnection( HostedConnection conn ) {
         log.debug("stopHostingOnConnection(" + conn + ")");
+        String playerName = getPlayerName(conn);
+        if( playerName != null ) {
+            log.debug("publishing playerLoggedOff event for:" + conn);
+            // Was really logged on before
+            EventBus.publish(AccountEvent.playerLoggedOff, new AccountEvent(conn, playerName));            
+        }
     }
  
     /**
@@ -141,7 +149,11 @@ public class AccountHostedService extends AbstractHostedConnectionService {
             conn.setAttribute(ATTRIBUTE_PLAYER_NAME, playerName);
             
             // And let them know they were successful
-            getCallback().notifyLoginStatus(true);            
+            getCallback().notifyLoginStatus(true);
+            
+            log.debug("publishing playerLoggedOn event for:" + conn);
+            // Notify 'logged in' only after we've told the player themselves            
+            EventBus.publish(AccountEvent.playerLoggedOn, new AccountEvent(conn, playerName));            
         }
     }    
 }
