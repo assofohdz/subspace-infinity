@@ -72,7 +72,9 @@ public class GameSessionClientService extends AbstractClientService
     
     @Override
     public void move( Quaternion dir, Vector3f thrust ) {
-        log.info("move(" + dir + ", " + thrust + ")");
+        if( log.isTraceEnabled() ) {
+            log.trace("move(" + dir + ", " + thrust + ")");
+        }
         getDelegate().move(dir, thrust);
     }
 

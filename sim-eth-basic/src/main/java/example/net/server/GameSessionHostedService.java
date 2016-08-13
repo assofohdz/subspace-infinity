@@ -199,7 +199,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
  
         @Override   
         public void move( Quaternion rotation, Vector3f thrust ) {
-            log.info("move(" + rotation + ", " + thrust + ")");
+            if( log.isTraceEnabled() ) {
+                log.trace("move(" + rotation + ", " + thrust + ")");
+            }
             
             // Need to forward this to the game world
         }

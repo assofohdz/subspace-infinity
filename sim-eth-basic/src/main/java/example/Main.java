@@ -112,6 +112,13 @@ public class Main extends SimpleApplication {
         if( inputManager.hasMapping(INPUT_MAPPING_EXIT) ) {
             inputManager.deleteMapping(INPUT_MAPPING_EXIT);
         }
+ 
+        /*
+        Spatial test = assetManager.loadModel("Models/fighter.j3o");
+        Texture texture = assetManager.loadTexture("Textures/ship1.png");
+        Material mat = globals.createMaterial(texture, false).getMaterial();
+        test.setMaterial(mat);
+        rootNode.attachChild(test);*/
                        
     }
     

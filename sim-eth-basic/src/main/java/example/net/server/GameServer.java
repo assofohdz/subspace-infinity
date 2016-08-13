@@ -50,6 +50,7 @@ import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 
 import example.GameConstants;
+import example.sim.*;
 
 /**
  *  The main GameServer that manages the back end game services, hosts
@@ -86,6 +87,7 @@ public class GameServer {
         this.loop = new GameLoop(systems);
         
         // Add the various game services to the GameSystemManager
+        systems.addSystem(new SimplePhysics());
         
         // Add any hosted services that require those systems to already
         // exist
