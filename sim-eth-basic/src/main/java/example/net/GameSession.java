@@ -37,6 +37,7 @@
 package example.net;
 
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.network.service.rmi.Asynchronous;
 
 
@@ -54,5 +55,5 @@ public interface GameSession {
      *  state is continuous, it doesn't need to be reliable.  
      */
     @Asynchronous(reliable=false)
-    public void move( Quaternion rotation, float speed );   
+    public void move( Quaternion rotation, Vector3f thrust );   
 }

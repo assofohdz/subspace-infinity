@@ -42,9 +42,12 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.MessageConnection;
 import com.jme3.network.Server;
+import com.jme3.network.serializing.Serializer;
+import com.jme3.network.serializing.serializers.FieldSerializer;
 import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
@@ -78,6 +81,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         // We do not autohost because we want to host only when the
         // player is actually logged on.
         setAutoHost(false);
+        
+        // Make sure that quaternions are registered with the serializer
+        Serializer.registerClass(Quaternion.class, new FieldSerializer());
     }
 
     
@@ -192,8 +198,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         } 
  
         @Override   
-        public void move( Quaternion rotation, float speed ) {
-            log.info("move(" + rotation + ", " + speed + ")");
+        public void move( Quaternion rotation, Vector3f thrust ) {
+            log.info("move(" + rotation + ", " + thrust + ")");
             
             // Need to forward this to the game world
         }

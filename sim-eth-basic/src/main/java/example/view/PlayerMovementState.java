@@ -36,6 +36,8 @@
 
 package example.view;
 
+import org.slf4j.*;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.FastMath;
@@ -50,6 +52,10 @@ import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 
+import example.ConnectionState;
+import example.net.GameSession;
+import example.net.client.GameSessionClientService;
+
 /**
  *
  *
@@ -57,6 +63,8 @@ import com.simsilica.lemur.input.StateFunctionListener;
  */
 public class PlayerMovementState extends BaseAppState
                                  implements AnalogFunctionListener, StateFunctionListener {
+
+    static Logger log = LoggerFactory.getLogger(PlayerMovementState.class);
 
     private InputMapper inputMapper;
     private Camera camera;
@@ -70,6 +78,10 @@ public class PlayerMovementState extends BaseAppState
     private double side;
     private double elevation;
     private double speed = 3.0;
+ 
+    private Vector3f thrust = new Vector3f(); // not a direction, just 3 values
+    
+    private GameSession session;
 
     public PlayerMovementState() {
     }
@@ -125,6 +137,12 @@ public class PlayerMovementState extends BaseAppState
         // of alternate ways this could have been done.
         inputMapper.addStateListener(this,
                                      PlayerMovementFunctions.F_BOOST);
+                                     
+        // Grab the game session
+        session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        if( session == null ) {
+            throw new RuntimeException("PlayerMovementState requires an active game session.");
+        }
     }
 
     @Override
@@ -159,15 +177,32 @@ public class PlayerMovementState extends BaseAppState
         GuiGlobals.getInstance().setCursorEventsEnabled(true);        
     }
 
+    private long nextSendTime = 0;
+    private long sendFrequency = 1000000000L / 20; // 20 times a second, every 50 ms
+     
     @Override
     public void update( float tpf ) {
+
+        long time = System.nanoTime();
+        if( time > nextSendTime ) {
+            nextSendTime = time + sendFrequency;
+            
+            Quaternion rot = camera.getRotation();
+
+            thrust.x = (float)(forward * speed);
+            thrust.y = (float)(elevation * speed); 
+            thrust.z = (float)(side * speed);
+            
+            session.move(rot, thrust);
+        } 
+            
     
         // 'integrate' camera position based on the current move, strafe,
         // and elevation speeds.
         if( forward != 0 || side != 0 || elevation != 0 ) {
-            Vector3f loc = camera.getLocation();
-            
+            Vector3f loc = camera.getLocation();            
             Quaternion rot = camera.getRotation();
+
             Vector3f move = rot.mult(Vector3f.UNIT_Z).multLocal((float)(forward * speed * tpf)); 
             Vector3f strafe = rot.mult(Vector3f.UNIT_X).multLocal((float)(side * speed * tpf));
             

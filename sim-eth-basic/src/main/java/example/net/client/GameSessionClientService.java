@@ -42,6 +42,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.*;
 
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.network.service.AbstractClientService;
 import com.jme3.network.service.ClientServiceManager;
 import com.jme3.network.service.rmi.RmiClientService;
@@ -70,9 +71,9 @@ public class GameSessionClientService extends AbstractClientService
     }
     
     @Override
-    public void move( Quaternion dir, float speed ) {
-        log.info("move(" + dir + ", " + speed + ")");
-        delegate.move(dir, speed);
+    public void move( Quaternion dir, Vector3f thrust ) {
+        log.info("move(" + dir + ", " + thrust + ")");
+        getDelegate().move(dir, thrust);
     }
 
     private GameSession getDelegate() {
