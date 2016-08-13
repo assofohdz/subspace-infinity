@@ -47,7 +47,11 @@ public interface PhysicsListener {
 
     public void beginFrame( SimTime time );
  
+    public void addBody( Body body );
+    
     public void updateBody( Body body );
+ 
+    public void removeBody( Body body );
     
     public void endFrame( SimTime time ); 
     

@@ -46,6 +46,8 @@ import com.jme3.network.Server;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rpc.RpcHostedService;
 
+import com.simsilica.ethereal.EtherealHost;
+
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 
@@ -72,6 +74,7 @@ public class GameServer {
         this.description = description;
 
         this.systems = new GameSystemManager();
+        this.loop = new GameLoop(systems);
         
         // Create the SpiderMonkey server and setup our standard
         // initial hosted services 
@@ -85,13 +88,22 @@ public class GameServer {
                                          new GameSessionHostedService(systems)
                                          );
         
-        this.loop = new GameLoop(systems);
+        // Add the SimEtheral host that will serve object sync updates to
+        // the clients. 
+        EtherealHost ethereal = new EtherealHost(GameConstants.OBJECT_PROTOCOL, 
+                                                 GameConstants.ZONE_GRID,
+                                                 GameConstants.ZONE_RADIUS);
+        server.getServices().addService(ethereal);
         
-        // Add the various game services to the GameSystemManager
+        // Add the various game services to the GameSystemManager 
         systems.register(SimplePhysics.class, new SimplePhysics());
         
         // Add any hosted services that require those systems to already
         // exist
+ 
+        // Add a system that will forward physics changes to the Ethereal 
+        // zone manager       
+        systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
         
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later

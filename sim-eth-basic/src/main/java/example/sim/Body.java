@@ -36,7 +36,7 @@
 
 package example.sim;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.simsilica.mathd.*;
 
@@ -51,14 +51,15 @@ import com.simsilica.mathd.*;
  */
 public class Body {
 
-    private static AtomicInteger nextBodyId = new AtomicInteger(42);
+    private static AtomicLong nextBodyId = new AtomicLong(42);
 
-    public int bodyId = nextBodyId.getAndIncrement();
+    public final Long bodyId = nextBodyId.getAndIncrement();
     
     public Vec3d pos = new Vec3d();
     public Vec3d velocity = new Vec3d();
     public Vec3d acceleration = new Vec3d();
     public double radius = 1;
+    public AaBBox bounds = new AaBBox(radius);
     
     public Quatd orientation = new Quatd();
     public volatile ControlDriver driver;
@@ -78,6 +79,10 @@ public class Body {
         pos.addScaledVectorLocal(velocity, stepTime);
  
 //System.out.println(bodyId + " pos:" + pos + "   dir:" + orientation.mult(new Vec3d(0, 0, 1)));        
-        // That's it.  That's a physics engine.   
+        // That's it.  That's a physics engine.
+        
+        // Update the bounds since it's easy to do here and helps
+        // other things know where the object is for real
+        bounds.setCenter(pos);   
     }
 }

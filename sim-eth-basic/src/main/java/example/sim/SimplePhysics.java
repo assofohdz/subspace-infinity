@@ -54,7 +54,7 @@ public class SimplePhysics extends AbstractGameSystem {
     // Single threaded.... we'll have to take care when adding/removing
     // items.
     private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
-    private Map<Integer, Body> index = new ConcurrentHashMap<>();
+    private Map<Long, Body> index = new ConcurrentHashMap<>();
     
     private ConcurrentLinkedQueue<Body> toAdd = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Body> toRemove = new ConcurrentLinkedQueue<>();
@@ -86,7 +86,7 @@ public class SimplePhysics extends AbstractGameSystem {
         result.driver = driver;
         toAdd.add(result);
         index.put(result.bodyId, result);
-        return result.bodyId;       
+        return result.bodyId.intValue();       
     }
     
     public boolean removeBody( int id ) {
@@ -109,12 +109,18 @@ public class SimplePhysics extends AbstractGameSystem {
             Body body = null;
             while( (body = toAdd.poll()) != null ) {
                 bodies.add(body);
+                for( PhysicsListener l : listeners.getArray() ) {
+                    l.addBody(body);
+                }
             }
         }
         if( !toRemove.isEmpty() ) { 
             Body body = null;
             while( (body = toRemove.poll()) != null ) {
                 bodies.remove(body);
+                for( PhysicsListener l : listeners.getArray() ) {
+                    l.removeBody(body);
+                }
             }
         } 
     }

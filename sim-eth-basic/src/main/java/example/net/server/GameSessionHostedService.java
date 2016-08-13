@@ -54,8 +54,11 @@ import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
 import com.simsilica.event.EventBus;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.GameSystemManager;
 import com.simsilica.sim.SimTime;
+
+import com.simsilica.ethereal.EtherealHost;
 
 import example.net.GameSession;
 import example.net.GameSessionListener;
@@ -144,6 +147,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             playersArray = null;
         }
         session.initialize();
+ 
+        // Setup to start using SimEthereal synching
+        getService(EtherealHost.class).startHostingOnConnection(conn);
+        getService(EtherealHost.class).setConnectionObject(conn, (long)session.bodyId, new Vec3d());       
         
         // Notify all of our sessions
         for( GameSessionImpl player : players ) {
@@ -222,19 +229,30 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
      *  everything out to all of the clients over UDP.
      */
     private class NaivePhysicsSender implements PhysicsListener {
-    
+ 
+        @Override   
         public void beginFrame( SimTime time ) {
         }
  
+        @Override   
+        public void addBody( Body body ) {                
+        }
+        
+        @Override   
+        public void removeBody( Body body ) {
+        }
+ 
+        @Override   
         public void updateBody( Body body ) {
             // Lots of garbage created here but it's temporary
             Quaternion orientation = body.orientation.toQuaternion();
             Vector3f pos = body.pos.toVector3f();
             for( GameSessionImpl session : getPlayerArray() ) {
-                session.updateObject(body.bodyId, orientation, pos);   
+                session.updateObject(body.bodyId.intValue(), orientation, pos);   
             }
         }
     
+        @Override   
         public void endFrame( SimTime time ) {
         }         
     }
