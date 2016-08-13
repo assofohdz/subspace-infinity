@@ -196,6 +196,7 @@ public class SpaceGridState extends BaseAppState {
     }
  
     public void update( float tpf ) {
+        /*
         Camera cam = getApplication().getCamera();
         Vector3f pos = cam.getLocation();
         if( pos.x < 0 ) {
@@ -213,7 +214,7 @@ public class SpaceGridState extends BaseAppState {
         } else if( pos.z >= cellSize ) {
             pos.z -= cellSize;
         }
-        cam.setLocation(pos);
+        cam.setLocation(pos);*/
     }
     
     @Override

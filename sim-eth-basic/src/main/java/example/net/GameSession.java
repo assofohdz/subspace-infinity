@@ -50,6 +50,11 @@ import com.jme3.network.service.rmi.Asynchronous;
 public interface GameSession {
  
     /**
+     *  Returns the ID of the player object.
+     */
+    public int getPlayerObject();
+ 
+    /**
      *  Sends information to the game back end about the current
      *  movement state of the player from user input.  Because this
      *  state is continuous, it doesn't need to be reliable.  

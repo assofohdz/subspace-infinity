@@ -90,6 +90,10 @@ public class ConnectionState extends CompositeAppState {
         this.host = host; 
         this.port = port;
     }
+    
+    public int getClientId() {
+        return client.getClient().getId();
+    }
 
     public <T extends ClientService> T getService( Class<T> type ) {
         return client.getService(type);

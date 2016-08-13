@@ -55,9 +55,12 @@ import com.jme3.network.service.rmi.RmiRegistry;
 
 import com.simsilica.event.EventBus;
 import com.simsilica.sim.GameSystemManager;
+import com.simsilica.sim.SimTime;
 
 import example.net.GameSession;
 import example.net.GameSessionListener;
+import example.sim.Body;
+import example.sim.PhysicsListener;
 import example.sim.ShipDriver;
 import example.sim.SimplePhysics;
 
@@ -82,6 +85,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     private AccountObserver accountObserver = new AccountObserver();
 
     private List<GameSessionImpl> players = new CopyOnWriteArrayList<>();
+    // FIXME: remove array when we get rid of the naive listener
+    private volatile GameSessionImpl[] playersArray = null;
  
     public GameSessionHostedService( GameSystemManager gameSystems ) {
     
@@ -118,6 +123,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         if( physics == null ) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
+        physics.addPhysicsListener(new NaivePhysicsSender());
     }
  
     @Override
@@ -131,8 +137,13 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         // Expose the session as an RMI resource to the client
         RmiRegistry rmi = rmiService.getRmiRegistry(conn);
         rmi.share(session, GameSession.class);
-        
-        players.add(session);
+ 
+        // FIXME: remove sync when we get rid of the naive listener
+        synchronized( players ) {       
+            players.add(session);
+            playersArray = null;
+        }
+        session.initialize();
         
         // Notify all of our sessions
         for( GameSessionImpl player : players ) {
@@ -150,7 +161,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         
         GameSessionImpl session = getGameSession(conn);
         if( session != null ) {
-            players.remove(session);
+            // FIXME: remove sync when we get rid of the naive listener
+            synchronized( players ) {
+                players.remove(session);
+                playersArray = null;
+            }
  
             // Notify all of our sessions
             for( GameSessionImpl player : players ) {
@@ -170,6 +185,24 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // when we've stopped hosting our service on it.
         }   
     }
+    
+    private GameSessionImpl[] getPlayerArray() {
+        // Copy the reference so we're sure we are returning
+        // what we null-check.
+        GameSessionImpl[] result = playersArray;
+        if( result != null ) {
+            return result;
+        }
+        
+        synchronized(players) {
+            // Check again
+            if( playersArray == null ) {
+                playersArray = new GameSessionImpl[players.size()];
+                playersArray = players.toArray(playersArray);
+            }
+            return playersArray;
+        }
+    }
 
     private class AccountObserver {
         
@@ -182,6 +215,28 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             log.debug("onPlayerLoggedOff()");
             stopHostingOnConnection(event.getConnection());   
         }
+    }
+
+    /**
+     *  A naive implementation of a physics listener that just blasts
+     *  everything out to all of the clients over UDP.
+     */
+    private class NaivePhysicsSender implements PhysicsListener {
+    
+        public void beginFrame( SimTime time ) {
+        }
+ 
+        public void updateBody( Body body ) {
+            // Lots of garbage created here but it's temporary
+            Quaternion orientation = body.orientation.toQuaternion();
+            Vector3f pos = body.pos.toVector3f();
+            for( GameSessionImpl session : getPlayerArray() ) {
+                session.updateObject(body.bodyId, orientation, pos);   
+            }
+        }
+    
+        public void endFrame( SimTime time ) {
+        }         
     }
  
     /**
@@ -202,11 +257,38 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.bodyId = physics.createBody(shipDriver);
         }
  
+        public void initialize() {
+        }
+ 
         public void close() {
             // Remove out physics body
             physics.removeBody(bodyId);
         }
  
+        @Override
+        public int getPlayerObject() {
+
+            // Cheat and tell this player about the other players by
+            // sending late join messages
+            // FIXME - this is a big hack because we're using it as the side-effect
+            // of a remote get.                       
+            for( GameSessionImpl player : players ) {
+                playerJoined(player);          
+            }   
+
+            return bodyId;
+        }
+
+        @Override   
+        public void move( Quaternion rotation, Vector3f thrust ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("move(" + rotation + ", " + thrust + ")");
+            }
+            
+            // Need to forward this to the game world
+            shipDriver.applyMovementState(rotation, thrust);
+        }
+        
         public void playerJoined( GameSessionImpl player ) {            
             getCallback().playerJoined(player.conn.getId(),
                                        AccountHostedService.getPlayerName(player.conn),
@@ -219,6 +301,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                                      player.bodyId);
         } 
  
+        public void updateObject( int bodyId, Quaternion orientation, Vector3f pos ) {
+            getCallback().updateObject(bodyId, orientation, pos);
+        }   
+ 
         protected GameSessionListener getCallback() {
             if( callback == null ) {
                 RmiRegistry rmi = rmiService.getRmiRegistry(conn);
@@ -230,15 +316,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             return callback;
         } 
  
-        @Override   
-        public void move( Quaternion rotation, Vector3f thrust ) {
-            if( log.isTraceEnabled() ) {
-                log.trace("move(" + rotation + ", " + thrust + ")");
-            }
-            
-            // Need to forward this to the game world
-            shipDriver.applyMovementState(rotation, thrust);
-        }
     }    
 }
 

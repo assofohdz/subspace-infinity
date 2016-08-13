@@ -71,6 +71,11 @@ public class GameSessionClientService extends AbstractClientService
     }
     
     @Override
+    public int getPlayerObject() {
+        return getDelegate().getPlayerObject();
+    }
+    
+    @Override
     public void move( Quaternion dir, Vector3f thrust ) {
         if( log.isTraceEnabled() ) {
             log.trace("move(" + dir + ", " + thrust + ")");
@@ -149,6 +154,13 @@ public class GameSessionClientService extends AbstractClientService
                 l.playerJoined(clientId, playerName, shipId);
             }
         }
+        
+        @Override   
+        public void updateObject( int bodyId, Quaternion orientation, Vector3f pos ) {
+            for( GameSessionListener l : listeners ) {
+                l.updateObject(bodyId, orientation, pos);
+            }
+        }   
         
         @Override   
         public void playerLeft( int clientId, String playerName, int shipId  ) {

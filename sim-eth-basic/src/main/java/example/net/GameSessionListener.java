@@ -36,6 +36,7 @@
 
 package example.net;
 
+import com.jme3.math.*;
 import com.jme3.network.service.rmi.Asynchronous;
 
 /**
@@ -51,6 +52,15 @@ public interface GameSessionListener {
      */
     @Asynchronous   
     public void playerJoined( int clientId, String playerName, int shipId );
+    
+    /**
+     *  Temporary call that updates a ship's position.  This is the naive
+     *  way to do networking where everything is just blasted out all the time.
+     *  We'll at least use UDP to be timely... which means we'll also end up
+     *  dropping packets.
+     */
+    @Asynchronous(reliable=false)   
+    public void updateObject( int bodyId, Quaternion orientation, Vector3f pos );   
     
     /**
      *  Called when an existing player has left the game.

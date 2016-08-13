@@ -116,6 +116,11 @@ public class PlayerMovementState extends BaseAppState
         return camera.getRotation();
     }
 
+    public void updatePlayerPosition( float x, float y, float z ) {
+        // Really the job of a camera state.
+        camera.setLocation(new Vector3f(x, y, z));
+    }
+
     @Override
     protected void initialize( Application app ) {
         this.camera = app.getCamera();
@@ -189,14 +194,15 @@ public class PlayerMovementState extends BaseAppState
             
             Quaternion rot = camera.getRotation();
 
-            thrust.x = (float)(forward * speed);
+            // Z is forward
+            thrust.x = (float)(side * speed);
             thrust.y = (float)(elevation * speed); 
-            thrust.z = (float)(side * speed);
+            thrust.z = (float)(forward * speed);
             
             session.move(rot, thrust);
         } 
             
-    
+        /*
         // 'integrate' camera position based on the current move, strafe,
         // and elevation speeds.
         if( forward != 0 || side != 0 || elevation != 0 ) {
@@ -212,7 +218,7 @@ public class PlayerMovementState extends BaseAppState
                         
             loc = loc.add(move).add(strafe).add(elev);
             camera.setLocation(loc); 
-        }
+        }*/
     }
  
     /**

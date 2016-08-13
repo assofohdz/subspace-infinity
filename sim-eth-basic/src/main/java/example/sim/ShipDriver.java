@@ -65,11 +65,21 @@ public class ShipDriver implements ControlDriver {
     } 
  
     private double applyThrust( double v, double thrust, double tpf ) {
-        if( v < thrust ) {
+        if( thrust > 0 ) {
+            // Accelerate
             v = Math.min(thrust, v + pickup * tpf);
-        } else if( v > thrust ) {
-            v = Math.max(-thrust, v - pickup * tpf);
-        }   
+        } else if( thrust < 0 ) {
+            // Decelerate
+            v = Math.max(thrust, v - pickup * tpf);
+        } else {
+            if( v > 0 ) {
+                // Fall to zero
+                v = Math.max(0, v - pickup * tpf);
+            } else {
+                // Rist to zero
+                v = Math.min(0, v + pickup * tpf);
+            }
+        }
         return v;
     }
     

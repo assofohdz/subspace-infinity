@@ -36,8 +36,10 @@
 
 package example;
 
+import org.slf4j.*;
+
 import com.jme3.app.Application;
-import com.jme3.math.ColorRGBA;
+import com.jme3.math.*;
 
 import com.simsilica.event.EventBus;
 import com.simsilica.lemur.GuiGlobals;
@@ -46,6 +48,7 @@ import com.simsilica.state.CompositeAppState;
 
 import example.net.GameSessionListener;
 import example.net.client.GameSessionClientService;
+import example.view.ModelViewState;
 import example.view.PlayerMovementState;
 import example.view.SkyState;
 import example.view.SpaceGridState;
@@ -58,12 +61,20 @@ import example.view.SpaceGridState;
  */
 public class GameSessionState extends CompositeAppState {
 
+    static Logger log = LoggerFactory.getLogger(GameSessionState.class);
+
     private GameSessionObserver gameSessionObserver = new GameSessionObserver();
+
+    // Temporary reference FIXME
+    private PlayerMovementState us;
+    private int clientId;
+    private int shipId;
 
     public GameSessionState() {
         // add normal states on the super-constructor
         super(new MessageState(),
               new SkyState(),
+              new ModelViewState(),
               new PlayerMovementState(),
               new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)) 
               //new SpaceGridState(2, 10, ColorRGBA.White) 
@@ -72,6 +83,10 @@ public class GameSessionState extends CompositeAppState {
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
         addChild(new InGameMenuState(false), true);
+    }
+ 
+    public int getShipId() {
+        return shipId;
     }
  
     public void disconnect() {
@@ -93,7 +108,12 @@ public class GameSessionState extends CompositeAppState {
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
-        
+ 
+        // Temporary FIXME
+        clientId = getState(ConnectionState.class).getClientId();
+        us = getState(PlayerMovementState.class);
+        shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayerObject();
+        log.info("Player object:" + shipId);
     }
     
     @Override   
@@ -127,12 +147,24 @@ public class GameSessionState extends CompositeAppState {
      *  Notified by the server about game-session related events.
      */
     private class GameSessionObserver implements GameSessionListener {
+ 
+        @Override
         public void playerJoined( int clientId, String playerName, int shipId ){
-            getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);  
+            getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
         }
     
+        @Override
         public void playerLeft( int clientId, String playerName, int shipId ) {
             getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
+        }
+        
+        @Override
+        public void updateObject( int objectId, Quaternion orientation, Vector3f pos ) {
+            //System.out.println("updateObject(" + objectId + ", " + orientation + ", " + pos + ")");
+            //System.out.println("   dir:" + orientation.mult(Vector3f.UNIT_Z));
+            if( objectId == shipId ) {
+                us.updatePlayerPosition(pos.x, pos.y, pos.z);
+            } 
         }
     }
 }
