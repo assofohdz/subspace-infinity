@@ -58,8 +58,23 @@ public class SimplePhysics extends AbstractGameSystem {
     
     private ConcurrentLinkedQueue<Body> toAdd = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Body> toRemove = new ConcurrentLinkedQueue<>();
+ 
+    private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
     
     public SimplePhysics() {
+    }
+ 
+    /**
+     *  Adds a listener that will be notified about physics related updates.
+     *  This is not a thread safe method call so must be called during setup
+     *  or from the physics/simulation thread.
+     */   
+    public void addPhysicsListener( PhysicsListener l ) {
+        listeners.add(l);
+    }
+
+    public void removePhysicsListener( PhysicsListener l ) {
+        listeners.remove(l);
     }
     
     public int createBody() {
@@ -106,6 +121,10 @@ public class SimplePhysics extends AbstractGameSystem {
 
     @Override
     public void update( SimTime time ) {
+ 
+        for( PhysicsListener l : listeners.getArray() ) {
+            l.beginFrame(time);
+        }
         
         updateBodyList();
  
@@ -123,7 +142,16 @@ public class SimplePhysics extends AbstractGameSystem {
             b.integrate(tpf);
         }
  
-        // Publish the results       
+        // Publish the results
+        for( PhysicsListener l : listeners.getArray() ) {
+            for( Body b : bodies.getArray() ) {
+                l.updateBody(b);
+            }
+        }
+               
+        for( PhysicsListener l : listeners.getArray() ) {
+            l.endFrame(time);
+        }
     }
     
 }
