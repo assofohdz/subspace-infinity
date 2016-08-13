@@ -127,11 +127,11 @@ public class GameSessionState extends CompositeAppState {
      *  Notified by the server about game-session related events.
      */
     private class GameSessionObserver implements GameSessionListener {
-        public void playerJoined( int clientId, String playerName ){
+        public void playerJoined( int clientId, String playerName, int shipId ){
             getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);  
         }
     
-        public void playerLeft( int clientId, String playerName ) {
+        public void playerLeft( int clientId, String playerName, int shipId ) {
             getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
         }
     }

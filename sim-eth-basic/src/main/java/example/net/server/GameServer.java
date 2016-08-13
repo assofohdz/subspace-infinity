@@ -70,6 +70,8 @@ public class GameServer {
     
     public GameServer( int port, String description ) throws IOException {
         this.description = description;
+
+        this.systems = new GameSystemManager();
         
         // Create the SpiderMonkey server and setup our standard
         // initial hosted services 
@@ -80,14 +82,13 @@ public class GameServer {
         server.getServices().addServices(new RpcHostedService(),
                                          new RmiHostedService(),
                                          new AccountHostedService(description),
-                                         new GameSessionHostedService()
+                                         new GameSessionHostedService(systems)
                                          );
         
-        this.systems = new GameSystemManager();
         this.loop = new GameLoop(systems);
         
         // Add the various game services to the GameSystemManager
-        systems.addSystem(new SimplePhysics());
+        systems.register(SimplePhysics.class, new SimplePhysics());
         
         // Add any hosted services that require those systems to already
         // exist

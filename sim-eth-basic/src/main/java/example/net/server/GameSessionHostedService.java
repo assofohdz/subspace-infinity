@@ -54,9 +54,12 @@ import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
 import com.simsilica.event.EventBus;
+import com.simsilica.sim.GameSystemManager;
 
 import example.net.GameSession;
 import example.net.GameSessionListener;
+import example.sim.ShipDriver;
+import example.sim.SimplePhysics;
 
 /**
  *  Provides game session management for connected players.  This is where
@@ -72,12 +75,18 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     private static final String ATTRIBUTE_SESSION = "game.session";
 
+    private GameSystemManager gameSystems;
+    private SimplePhysics physics;
+
     private RmiHostedService rmiService;
     private AccountObserver accountObserver = new AccountObserver();
 
     private List<GameSessionImpl> players = new CopyOnWriteArrayList<>();
  
-    public GameSessionHostedService() {
+    public GameSessionHostedService( GameSystemManager gameSystems ) {
+    
+        this.gameSystems = gameSystems;
+    
         // We do not autohost because we want to host only when the
         // player is actually logged on.
         setAutoHost(false);
@@ -99,7 +108,18 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         // Register ourselves to listen for global account events
         EventBus.addListener(accountObserver, AccountEvent.playerLoggedOn, AccountEvent.playerLoggedOff);
     }
-    
+
+    @Override
+    public void start() {
+        super.start();
+            
+        // Get the physics system... it's not available yet when onInitialize() is called.
+        physics = gameSystems.get(SimplePhysics.class);
+        if( physics == null ) {
+            throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
+        }
+    }
+ 
     @Override
     public void startHostingOnConnection( HostedConnection conn ) {
         
@@ -171,19 +191,32 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
  
         private HostedConnection conn;
         private GameSessionListener callback;
+        private int bodyId;
+        private ShipDriver shipDriver;
         
         public GameSessionImpl( HostedConnection conn ) {
             this.conn = conn;
+            
+            // Create a ship for the player
+            this.shipDriver = new ShipDriver(); 
+            this.bodyId = physics.createBody(shipDriver);
+        }
+ 
+        public void close() {
+            // Remove out physics body
+            physics.removeBody(bodyId);
         }
  
         public void playerJoined( GameSessionImpl player ) {            
             getCallback().playerJoined(player.conn.getId(),
-                                       AccountHostedService.getPlayerName(player.conn));
+                                       AccountHostedService.getPlayerName(player.conn),
+                                       player.bodyId);
         } 
 
         public void playerLeft( GameSessionImpl player ) {
             getCallback().playerLeft(player.conn.getId(),
-                                     AccountHostedService.getPlayerName(player.conn));
+                                     AccountHostedService.getPlayerName(player.conn),
+                                     player.bodyId);
         } 
  
         protected GameSessionListener getCallback() {
@@ -204,6 +237,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
             
             // Need to forward this to the game world
+            shipDriver.applyMovementState(rotation, thrust);
         }
     }    
 }

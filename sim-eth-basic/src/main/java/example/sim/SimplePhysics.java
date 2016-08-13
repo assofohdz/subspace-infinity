@@ -63,7 +63,12 @@ public class SimplePhysics extends AbstractGameSystem {
     }
     
     public int createBody() {
+        return createBody(null);        
+    }
+        
+    public int createBody( ControlDriver driver ) {
         Body result = new Body();
+        result.driver = driver;
         toAdd.add(result);
         index.put(result.bodyId, result);
         return result.bodyId;       

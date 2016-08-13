@@ -44,7 +44,8 @@ import com.simsilica.mathd.*;
  *  A physical body in space.  These are modeled as a "point mass"
  *  in the sense that their orientation does not integrate, nor does
  *  it affect integration.  ie: there is no rotational acceleration
- *  or velocity.  Rotation is kept because it's convenient.
+ *  or velocity (at least not yet and there won't ever be in the true
+ *  physics sense).  Rotation is kept because it's convenient.
  *
  *  @author    Paul Speed
  */
@@ -54,12 +55,12 @@ public class Body {
 
     public int bodyId = nextBodyId.getAndIncrement();
     
-    public Quatd rotation = new Quatd();
     public Vec3d pos = new Vec3d();
     public Vec3d velocity = new Vec3d();
     public Vec3d acceleration = new Vec3d();
     public double radius = 1;
     
+    public Quatd orientation = new Quatd();
     public volatile ControlDriver driver;
     
     public Body() {
@@ -75,7 +76,8 @@ public class Body {
         
         // Integrate position
         pos.addScaledVectorLocal(velocity, stepTime);
-        
+ 
+//System.out.println(bodyId + " pos:" + pos + "   dir:" + orientation.mult(new Vec3d(0, 0, 1)));        
         // That's it.  That's a physics engine.   
     }
 }

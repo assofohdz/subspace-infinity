@@ -143,18 +143,18 @@ public class GameSessionClientService extends AbstractClientService
     private class GameSessionCallback implements GameSessionListener {
  
         @Override   
-        public void playerJoined( int clientId, String playerName ) {
+        public void playerJoined( int clientId, String playerName, int shipId ) {
             log.debug("playerJoined(" + clientId + ", " + playerName + ")");
             for( GameSessionListener l : listeners ) {
-                l.playerJoined(clientId, playerName);
+                l.playerJoined(clientId, playerName, shipId);
             }
         }
         
         @Override   
-        public void playerLeft( int clientId, String playerName ) {
+        public void playerLeft( int clientId, String playerName, int shipId  ) {
             log.debug("playerLeft(" + clientId + ", " + playerName + ")");
             for( GameSessionListener l : listeners ) {
-                l.playerLeft(clientId, playerName);
+                l.playerLeft(clientId, playerName, shipId);
             }
         }
     }
