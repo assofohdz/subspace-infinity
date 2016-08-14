@@ -56,6 +56,10 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.ethereal.EtherealClient;
 import com.simsilica.ethereal.SharedObject;
 import com.simsilica.ethereal.SharedObjectListener;
+import com.simsilica.ethereal.TimeSource; 
+
+import com.simsilica.mathd.trans.PositionTransition;
+import com.simsilica.mathd.trans.TransitionBuffer;
 
 import example.ConnectionState;
 import example.GameSessionState;
@@ -83,6 +87,7 @@ public class ModelViewState extends BaseAppState {
     private Map<Integer, Spatial> models = new HashMap<>();
     private SafeArrayList<ObjectInfo> objects = new SafeArrayList<>(ObjectInfo.class); 
 
+    private TimeSource timeSource;
     private SharedObjectUpdater objectUpdater = new SharedObjectUpdater();
 
     public ModelViewState() {
@@ -102,6 +107,16 @@ public class ModelViewState extends BaseAppState {
  
         // Add a listener to receive efficient object updates.   
         getState(ConnectionState.class).getService(EtherealClient.class).addObjectListener(objectUpdater);
+        
+        // Retrieve the time source from the network connection
+        // The time source will give us a time in recent history that we should be
+        // viewing.  This currently defaults to -100 ms but could vary (someday) depending
+        // on network connectivity.
+        // For more information on this interpolation approach, see the Valve networking
+        // articles at:
+        // https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
+        // https://developer.valvesoftware.com/wiki/Latency_Compensating_Methods_in_Client/Server_In-game_Protocol_Design_and_Optimization
+        this.timeSource = getState(ConnectionState.class).getService(EtherealClient.class).getTimeSource();
         
         // Still need this listener because it's the only way we know things
         // like player name which we might use later.
@@ -134,6 +149,7 @@ public class ModelViewState extends BaseAppState {
         
         // If the ship is our ship then we'll hide it else it looks bad.
         if( info.shipId == getState(GameSessionState.class).getShipId() ) {
+            info.localPlayerShip = true;
             model.setCullHint(Spatial.CullHint.Always);
         }
     }
@@ -161,10 +177,13 @@ public class ModelViewState extends BaseAppState {
                 removeModel(id);
             }
         }
-        
+ 
+        // Grab a consistent time for this frame
+        long time = timeSource.getTime();
+         
         // Update all of the models
         for( ObjectInfo info : objects.getArray() ) {
-            info.updateSpatial();
+            info.updateSpatial(time);
         }
     }
 
@@ -213,24 +232,58 @@ public class ModelViewState extends BaseAppState {
     private class ObjectInfo {
         int shipId;
         Spatial spatial;
+        boolean visible;
+        boolean localPlayerShip;
         
         volatile Vector3f updatePos;
         volatile Quaternion updateRot;
         
+        TransitionBuffer<PositionTransition> buffer;
+        
         public ObjectInfo( int shipId ) {
             this.shipId = shipId;
+            // A history of 12 should give us about 200 ms of history
+            // through which to interpolate.  12 * 1/60 = 12/60 = 1/5 = 200 ms.
+            this.buffer = new TransitionBuffer<>(12);
+            
+            // The first valid history entry will turn us visible
+            setVisible(false);
+        }
+ 
+        protected void setVisible( boolean f ) {
+            if( this.visible == f ) {
+                return;
+            }
+            this.visible = f;
+            if( visible && !localPlayerShip ) {
+                spatial.setCullHint(Spatial.CullHint.Inherit);
+            } else {
+                spatial.setCullHint(Spatial.CullHint.Always);
+            }
         }
         
-        public void updateSpatial() {
-            Vector3f pos = updatePos;
-            Quaternion rot = updateRot;
-            if( pos == null || rot == null ) {
-                return; // no update info yet
-            }
-            
-            spatial.setLocalTranslation(pos);
-            spatial.setLocalRotation(rot);
+        public void updateSpatial( long time ) {
+ 
+            // Look back in the brief history that we've kept and
+            // pull an interpolated value.  To do this, we grab the
+            // span of time that contains the time we want.  PositionTransition
+            // represents a starting and an ending pos+rot over a span of time.
+            PositionTransition trans = buffer.getTransition(time);
+            if( trans != null ) {
+                spatial.setLocalTranslation(trans.getPosition(time, true));
+                spatial.setLocalRotation(trans.getRotation(time, true));
+                setVisible(trans.getVisibility(time));
+            }            
+        }
+                
+        public void addFrame( long endTime, Vector3f pos, Quaternion quat, boolean visible ) {
+            PositionTransition trans = new PositionTransition(endTime, pos, quat, visible);
+            buffer.addTransition(trans);
         }        
+ 
+        public PositionTransition getFrame( long time ) {
+            return buffer.getTransition(time);        
+        }
     }
      
     private class GameSessionObserver implements GameSessionListener {
@@ -260,7 +313,7 @@ public class ModelViewState extends BaseAppState {
         private long frameTime;
     
         public SharedObjectUpdater() {
-        }
+        } 
         
         @Override
         public void beginFrame( long time ) {
@@ -278,8 +331,12 @@ public class ModelViewState extends BaseAppState {
             
             ObjectInfo info = getObjectInfo(obj.getEntityId().intValue(), true); 
             if( info != null ) {
-                info.updatePos = obj.getWorldPosition().toVector3f();
-                info.updateRot = obj.getWorldRotation().toQuaternion(); 
+                Vector3f pos = obj.getWorldPosition().toVector3f();
+                Quaternion quat = obj.getWorldRotation().toQuaternion();                
+                info.updatePos = pos;
+                info.updateRot = quat;
+ 
+                info.addFrame(frameTime, pos, quat, true);
             }
             
         }
@@ -290,7 +347,22 @@ public class ModelViewState extends BaseAppState {
                 log.trace("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId());
             }
             
-            toRemove.add(obj.getEntityId().intValue());
+            ObjectInfo info = getObjectInfo(obj.getEntityId().intValue(), true);
+            if( info != null ) {
+                // The object has been removed in the 'now' but we need to keep
+                // it until it's history is used up. 
+                info.addFrame(frameTime,  
+                              obj.getWorldPosition().toVector3f(), 
+                              obj.getWorldRotation().toQuaternion(),
+                              false);
+ 
+                // Note that we don't actually delay removal here but if we had
+                // an ES then the actual entity removal would come later.  We
+                // build everything as if we did, though, and that also means
+                // we support history-buffered visibility.
+              
+                toRemove.add(obj.getEntityId().intValue());
+            }
         }
 
         @Override
