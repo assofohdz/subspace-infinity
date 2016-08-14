@@ -157,6 +157,10 @@ public class ModelViewState extends BaseAppState {
     protected void removeModel( int id ) {
         log.info("removeModel(" + id + ")");
         ObjectInfo info = index.remove(id);
+        if( info != null ) {
+            // Remove it from our iteration list
+            objects.remove(info);
+        }
         Spatial spatial = models.remove(id);
         if( spatial != null ) {
             spatial.removeFromParent();
@@ -180,7 +184,7 @@ public class ModelViewState extends BaseAppState {
  
         // Grab a consistent time for this frame
         long time = timeSource.getTime();
-         
+
         // Update all of the models
         for( ObjectInfo info : objects.getArray() ) {
             info.updateSpatial(time);
