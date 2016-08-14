@@ -129,7 +129,7 @@ public class GameConstants {
      *  A total zone radius of (1, 1, 1) means the player can see a total of 27
      *  zones including the zone they are in.
      */           
-    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 0);
+    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
 }
 
 

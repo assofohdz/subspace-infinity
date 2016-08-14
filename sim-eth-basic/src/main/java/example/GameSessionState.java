@@ -68,7 +68,7 @@ public class GameSessionState extends CompositeAppState {
     // Temporary reference FIXME
     private PlayerMovementState us;
     private int clientId;
-    private int shipId;
+    private int shipId = -1;
 
     public GameSessionState() {
         // add normal states on the super-constructor
@@ -97,6 +97,7 @@ public class GameSessionState extends CompositeAppState {
     @Override   
     protected void initialize( Application app ) {
         super.initialize(app);
+        log.info("initialize()");
         
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
 
@@ -114,6 +115,7 @@ public class GameSessionState extends CompositeAppState {
         us = getState(PlayerMovementState.class);
         shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayerObject();
         log.info("Player object:" + shipId);
+        us.setShipId(shipId);
     }
     
     @Override   
@@ -157,14 +159,6 @@ public class GameSessionState extends CompositeAppState {
         public void playerLeft( int clientId, String playerName, int shipId ) {
             getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
         }
-        
-        @Override
-        public void updateObject( int objectId, Quaternion orientation, Vector3f pos ) {
-            //System.out.println("updateObject(" + objectId + ", " + orientation + ", " + pos + ")");
-            //System.out.println("   dir:" + orientation.mult(Vector3f.UNIT_Z));
-            if( objectId == shipId ) {
-                us.updatePlayerPosition(pos.x, pos.y, pos.z);
-            } 
-        }
     }
+    
 }

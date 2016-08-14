@@ -126,7 +126,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         if( physics == null ) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
-        physics.addPhysicsListener(new NaivePhysicsSender());
+        //physics.addPhysicsListener(new NaivePhysicsSender());
     }
  
     @Override
@@ -168,6 +168,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         
         GameSessionImpl session = getGameSession(conn);
         if( session != null ) {
+            
+            session.close();
+        
             // FIXME: remove sync when we get rid of the naive listener
             synchronized( players ) {
                 players.remove(session);
@@ -225,39 +228,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     }
 
     /**
-     *  A naive implementation of a physics listener that just blasts
-     *  everything out to all of the clients over UDP.
-     */
-    private class NaivePhysicsSender implements PhysicsListener {
- 
-        @Override   
-        public void beginFrame( SimTime time ) {
-        }
- 
-        @Override   
-        public void addBody( Body body ) {                
-        }
-        
-        @Override   
-        public void removeBody( Body body ) {
-        }
- 
-        @Override   
-        public void updateBody( Body body ) {
-            // Lots of garbage created here but it's temporary
-            Quaternion orientation = body.orientation.toQuaternion();
-            Vector3f pos = body.pos.toVector3f();
-            for( GameSessionImpl session : getPlayerArray() ) {
-                session.updateObject(body.bodyId.intValue(), orientation, pos);   
-            }
-        }
-    
-        @Override   
-        public void endFrame( SimTime time ) {
-        }         
-    }
- 
-    /**
      *  The connection-specific 'host' for the GameSession.
      */ 
     private class GameSessionImpl implements GameSession {
@@ -279,6 +249,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         }
  
         public void close() {
+            log.debug("Closing game session for:" + conn);        
             // Remove out physics body
             physics.removeBody(bodyId);
         }
@@ -318,10 +289,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                                      AccountHostedService.getPlayerName(player.conn),
                                      player.bodyId);
         } 
- 
-        public void updateObject( int bodyId, Quaternion orientation, Vector3f pos ) {
-            getCallback().updateObject(bodyId, orientation, pos);
-        }   
  
         protected GameSessionListener getCallback() {
             if( callback == null ) {

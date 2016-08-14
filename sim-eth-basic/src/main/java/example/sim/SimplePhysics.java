@@ -89,9 +89,9 @@ public class SimplePhysics extends AbstractGameSystem {
         return result.bodyId.intValue();       
     }
     
-    public boolean removeBody( int id ) {
+    public boolean removeBody( long id ) {
         Body body = index.remove(id);
-        if( body == null ) {
+        if( body == null ) {        
             return false;
         }
         toRemove.add(body);

@@ -44,6 +44,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.scene.Spatial;
 
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -53,6 +54,7 @@ import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 
 import example.ConnectionState;
+import example.GameSessionState;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;
 
@@ -83,9 +85,21 @@ public class PlayerMovementState extends BaseAppState
     
     private GameSession session;
 
+    // For now we'll do this here but really we probably want a separate camera state
+    private int shipId = -1;
+    private ModelViewState models;  
+
     public PlayerMovementState() {
     }
 
+    public void setShipId( int shipId ) {
+        this.shipId = shipId;
+    }
+    
+    public int getShipId() {
+        return shipId;
+    }
+    
     public void setPitch( double pitch ) {
         this.pitch = pitch;
         updateFacing();
@@ -116,13 +130,11 @@ public class PlayerMovementState extends BaseAppState
         return camera.getRotation();
     }
 
-    public void updatePlayerPosition( float x, float y, float z ) {
-        // Really the job of a camera state.
-        camera.setLocation(new Vector3f(x, y, z));
-    }
-
     @Override
     protected void initialize( Application app ) {
+        
+        log.info("initialize()");
+    
         this.camera = app.getCamera();
         
         if( inputMapper == null )
@@ -148,6 +160,8 @@ public class PlayerMovementState extends BaseAppState
         if( session == null ) {
             throw new RuntimeException("PlayerMovementState requires an active game session.");
         }
+ 
+        this.models = getState(ModelViewState.class);       
     }
 
     @Override
@@ -165,6 +179,8 @@ public class PlayerMovementState extends BaseAppState
 
     @Override
     protected void onEnable() {
+        log.info("onEnable()");
+    
         // Make sure our input group is enabled
         inputMapper.activateGroup(PlayerMovementFunctions.G_MOVEMENT);
         
@@ -201,6 +217,12 @@ public class PlayerMovementState extends BaseAppState
             
             session.move(rot, thrust);
         } 
+ 
+        // Update the camera position from the ship spatial
+        Spatial spatial = models.getModel(shipId);
+        if( spatial != null ) {
+            camera.setLocation(spatial.getWorldTranslation());
+        }
             
         /*
         // 'integrate' camera position based on the current move, strafe,

@@ -156,13 +156,6 @@ public class GameSessionClientService extends AbstractClientService
         }
         
         @Override   
-        public void updateObject( int bodyId, Quaternion orientation, Vector3f pos ) {
-            for( GameSessionListener l : listeners ) {
-                l.updateObject(bodyId, orientation, pos);
-            }
-        }   
-        
-        @Override   
         public void playerLeft( int clientId, String playerName, int shipId  ) {
             log.debug("playerLeft(" + clientId + ", " + playerName + ")");
             for( GameSessionListener l : listeners ) {

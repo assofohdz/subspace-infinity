@@ -53,6 +53,10 @@ import com.jme3.util.SafeArrayList;
 
 import com.simsilica.lemur.GuiGlobals;
 
+import com.simsilica.ethereal.EtherealClient;
+import com.simsilica.ethereal.SharedObject;
+import com.simsilica.ethereal.SharedObjectListener;
+
 import example.ConnectionState;
 import example.GameSessionState;
 import example.Main;
@@ -72,20 +76,37 @@ public class ModelViewState extends BaseAppState {
     
     private GameSessionObserver gameSessionObserver = new GameSessionObserver();
     private Map<Integer, ObjectInfo> index = new ConcurrentHashMap<>();
+    private Map<Integer, PlayerInfo> playerIndex = new ConcurrentHashMap<>();
     private ConcurrentLinkedQueue<ObjectInfo> toAdd = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Integer> toRemove = new ConcurrentLinkedQueue<>();   
 
     private Map<Integer, Spatial> models = new HashMap<>();
     private SafeArrayList<ObjectInfo> objects = new SafeArrayList<>(ObjectInfo.class); 
 
+    private SharedObjectUpdater objectUpdater = new SharedObjectUpdater();
+
     public ModelViewState() {
+    }
+
+    public Spatial getModel( Integer id ) {
+        ObjectInfo info = index.get(id);
+        if( info == null ) {
+            return null;
+        }
+        return info.spatial;
     }
 
     @Override
     protected void initialize( Application app ) {
         modelRoot = new Node();
-    
-        getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);                
+ 
+        // Add a listener to receive efficient object updates.   
+        getState(ConnectionState.class).getService(EtherealClient.class).addObjectListener(objectUpdater);
+        
+        // Still need this listener because it's the only way we know things
+        // like player name which we might use later.
+        getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
+                        
     }
 
     @Override
@@ -104,7 +125,7 @@ public class ModelViewState extends BaseAppState {
     
     protected void addModel( ObjectInfo info ) {
  
-        Spatial model = createShip(info.clientId, info.playerName, info.shipId); 
+        Spatial model = createShip(-1, "", info.shipId); 
         models.put(info.shipId, model);       
         modelRoot.attachChild(model);
         
@@ -118,6 +139,7 @@ public class ModelViewState extends BaseAppState {
     }
     
     protected void removeModel( int id ) {
+        log.info("removeModel(" + id + ")");
         ObjectInfo info = index.remove(id);
         Spatial spatial = models.remove(id);
         if( spatial != null ) {
@@ -165,19 +187,37 @@ public class ModelViewState extends BaseAppState {
         
         return result;
     }
-     
-    private class ObjectInfo {
+
+    protected ObjectInfo getObjectInfo( int shipId, boolean create ) {
+        ObjectInfo result = index.get(shipId);
+        if( result == null && create ) {
+            result = new ObjectInfo(shipId);
+            index.put(shipId, result);
+            toAdd.add(result);
+        }
+        return result;
+    }
+ 
+    private class PlayerInfo {
         int clientId;
         String playerName;
+        int shipId;
+        
+        public PlayerInfo( int clientId, String playerName, int shipId ) {
+            this.clientId = clientId;
+            this.playerName = playerName;
+            this.shipId = shipId;
+        }
+    }
+     
+    private class ObjectInfo {
         int shipId;
         Spatial spatial;
         
         volatile Vector3f updatePos;
         volatile Quaternion updateRot;
         
-        public ObjectInfo( int clientId, String playerName, int shipId ) {
-            this.clientId = clientId;
-            this.playerName = playerName;
+        public ObjectInfo( int shipId ) {
             this.shipId = shipId;
         }
         
@@ -197,25 +237,67 @@ public class ModelViewState extends BaseAppState {
  
         @Override
         public void playerJoined( int clientId, String playerName, int shipId ){
-            ObjectInfo info = new ObjectInfo(clientId, playerName, shipId);
-            index.put(shipId, info); 
-            toAdd.add(info);
+            log.info("playerJoined(" + clientId + ", " + playerName + ", " + shipId + ")");
+            playerIndex.put(shipId, new PlayerInfo(clientId, playerName, shipId));        
         }
     
         @Override
         public void playerLeft( int clientId, String playerName, int shipId ) {           
-            toRemove.add(shipId);
+            log.info("playerLeft(" + clientId + ", " + playerName + ", " + shipId + ")");        
+            playerIndex.remove(shipId);
+        }
+    }
+    
+    /**
+     *  Updates our local object views... could/should be split out into
+     *  a separate class but it's convenient here for now.  When this code
+     *  moves to an ES, we'll break this all apart but for now we are modifying
+     *  spatials directly (essentially) and so this is the easiest way.  
+     */
+    private class SharedObjectUpdater implements SharedObjectListener {
+    
+        // Time of the current frame.
+        private long frameTime;
+    
+        public SharedObjectUpdater() {
         }
         
         @Override
-        public void updateObject( int objectId, Quaternion orientation, Vector3f pos ) {
-            ObjectInfo info = index.get(objectId);
-            if( info != null ) {
-                info.updatePos = pos;
-                info.updateRot = orientation;
+        public void beginFrame( long time ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("** beginFrame(" + time + ")");
+            }    
+            this.frameTime = time;
+        }
+    
+        @Override
+        public void objectUpdated( SharedObject obj ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("****** Object moved[t=" + frameTime + "]:" + obj.getEntityId() + "  pos:" + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());    
             }
+            
+            ObjectInfo info = getObjectInfo(obj.getEntityId().intValue(), true); 
+            if( info != null ) {
+                info.updatePos = obj.getWorldPosition().toVector3f();
+                info.updateRot = obj.getWorldRotation().toQuaternion(); 
+            }
+            
+        }
+
+        @Override
+        public void objectRemoved( SharedObject obj ) {
+            if( log.isTraceEnabled() ) {
+                log.trace("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId());
+            }
+            
+            toRemove.add(obj.getEntityId().intValue());
+        }
+
+        @Override
+        public void endFrame() {
+            log.trace("** endFrame()");    
+            this.frameTime = -1;
         }
     }
 }
-
 

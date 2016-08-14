@@ -122,7 +122,6 @@ public class ConnectionState extends CompositeAppState {
         // server that we are logged in then we'd launch the game state and
         // so on... for now we'll just do it directly.
         client.getService(AccountClientService.class).login(userName);
-        //onLoggedOn();
          
         return true;        
     }

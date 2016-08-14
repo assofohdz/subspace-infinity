@@ -36,6 +36,8 @@
 
 package example.net.client;
 
+import java.io.IOException;
+
 import org.slf4j.*;
 
 import com.jme3.network.Client;
@@ -43,7 +45,9 @@ import com.jme3.network.Network;
 import com.jme3.network.service.ClientService;
 import com.jme3.network.service.rpc.RpcClientService;
 import com.jme3.network.service.rmi.RmiClientService;
-import java.io.IOException;
+
+import com.simsilica.ethereal.EtherealClient;
+import com.simsilica.ethereal.TimeSource;
 
 import example.GameConstants;
 
@@ -68,13 +72,16 @@ public class GameClient {
         client.getServices().addServices(new RpcClientService(),
                                          new RmiClientService(),
                                          new AccountClientService(),
-                                         new GameSessionClientService()
+                                         new GameSessionClientService(),
+                                         new EtherealClient(GameConstants.OBJECT_PROTOCOL,
+                                                            GameConstants.ZONE_GRID,
+                                                            GameConstants.ZONE_RADIUS)                                         
                                          );
     }
 
-    /*public TimeSource getTimeSource() {
+    public TimeSource getTimeSource() {
         return client.getServices().getService(EtherealClient.class).getTimeSource();
-    }*/
+    }
 
     public Client getClient() {
         return client;
