@@ -36,6 +36,8 @@
 
 package example;
 
+import java.util.prefs.Preferences;
+
 import com.jme3.app.*;
 import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.math.ColorRGBA;
@@ -44,6 +46,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 
 import com.simsilica.event.EventBus;
@@ -66,13 +69,41 @@ public class Main extends SimpleApplication {
 
     private Node logo;
 
-    public static void main( String... args ) {
+    public static void main( String... args ) throws Exception {
         System.out.println("SimEthereal Example");
 
         // Make sure JUL logging goes to our log4j configuration
         LogAdapter.initialize();
         
         Main main = new Main();
+        
+        AppSettings settings = new AppSettings(true);
+ 
+        // Set some defaults that will get overwritten if
+        // there were previously saved settings from the last time the user
+        // ran.       
+        settings.setWidth(1280);
+        settings.setHeight(720);
+        settings.setVSync(true);
+        
+        settings.load("SimEthereal Example");
+        settings.setTitle("SimEthereal Example");
+        settings.setSettingsDialogImage("/sim-eth-basic-splash-512.png");
+        settings.setUseJoysticks(true);
+        /*
+        try {
+            BufferedImage[] icons = new BufferedImage[] {
+                    ImageIO.read( TreeEditor.class.getResource( "/-icon-128.png" ) ),
+                    ImageIO.read( TreeEditor.class.getResource( "/-icon-32.png" ) ),
+                    ImageIO.read( TreeEditor.class.getResource( "/-icon-16.png" ) )
+                };
+            settings.setIcons(icons);
+        } catch( IOException e ) {
+            log.warn( "Error loading globe icons", e );
+        }*/        
+        
+        main.setSettings(settings);
+        
         main.start();
     }
 
