@@ -57,6 +57,7 @@ public class MessageState extends BaseAppState {
     public static final ElementId MESSAGE_LABEL_ID = new ElementId("message.label");
  
     private Node messageRoot;
+    private Vector3f offset = new Vector3f();
  
     private SafeArrayList<Message> messages = new SafeArrayList<>(Message.class);
  
@@ -81,6 +82,19 @@ public class MessageState extends BaseAppState {
         messageRoot.attachChild(label);
         refreshLayout();
         return label;
+    }
+ 
+    /**
+     *  Moves the messages up from the bottom of the screen to allow
+     *  stuff to be display below.
+     */
+    public void setMessageRootOffset( Vector3f offset ) {
+        this.offset.set(offset);
+        resetMessageRootLocation();
+    }
+    
+    public Vector3f getMessageRootOffset() {
+        return offset;
     }
     
     @Override
@@ -128,15 +142,21 @@ public class MessageState extends BaseAppState {
     protected void onEnable() {
         Node gui = ((Main)getApplication()).getGuiNode();
         gui.attachChild(messageRoot);
-        
-        // Set a small margin for the messages
-        messageRoot.setLocalTranslation(5, 5, 0);
+        resetMessageRootLocation();
     }
     
     @Override
     protected void onDisable() {
         messageRoot.removeFromParent();
     }           
+ 
+    protected void resetMessageRootLocation() {
+        // Set a small margin for the messages
+        messageRoot.setLocalTranslation(5, 5, 0);
+        
+        // And move by the current offset
+        messageRoot.move(offset);
+    }
  
     protected void refreshLayout() {
         int height = getApplication().getCamera().getHeight();

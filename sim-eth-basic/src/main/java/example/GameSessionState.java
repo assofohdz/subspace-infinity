@@ -73,6 +73,7 @@ public class GameSessionState extends CompositeAppState {
     public GameSessionState() {
         // add normal states on the super-constructor
         super(new MessageState(),
+              new CommandConsoleState(),
               new SkyState(),
               new ModelViewState(),
               new PlayerMovementState(),

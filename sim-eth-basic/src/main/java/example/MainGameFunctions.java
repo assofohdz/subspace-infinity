@@ -52,8 +52,13 @@ public class MainGameFunctions {
     public static final String IN_GAME = "In Game";
     public static final FunctionId F_IN_GAME_MENU = new FunctionId(IN_GAME, "Menu");
     
+    public static final FunctionId F_COMMAND_CONSOLE = new FunctionId(IN_GAME, "Command Console");
+    
     public static void initializeDefaultMappings( InputMapper inputMapper ) {
     
         inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
+        
+        inputMapper.map(F_COMMAND_CONSOLE, KeyInput.KEY_RETURN);
+        inputMapper.map(F_COMMAND_CONSOLE, KeyInput.KEY_NUMPADENTER);
     }
 }
