@@ -47,11 +47,14 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 
 import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.input.AnalogFunctionListener;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
+
+import com.simsilica.state.DebugHudState;
 
 import example.ConnectionState;
 import example.GameSessionState;
@@ -88,6 +91,10 @@ public class PlayerMovementState extends BaseAppState
     // For now we'll do this here but really we probably want a separate camera state
     private int shipId = -1;
     private ModelViewState models;  
+    
+    private Vector3f lastPosition = new Vector3f();
+    private VersionedHolder<String> positionDisplay;
+    private VersionedHolder<String> speedDisplay; 
 
     public PlayerMovementState() {
     }
@@ -137,8 +144,9 @@ public class PlayerMovementState extends BaseAppState
     
         this.camera = app.getCamera();
         
-        if( inputMapper == null )
+        if( inputMapper == null ) {
             inputMapper = GuiGlobals.getInstance().getInputMapper();
+        }
         
         // Most of the movement functions are treated as analog.        
         inputMapper.addAnalogListener(this,
@@ -161,7 +169,13 @@ public class PlayerMovementState extends BaseAppState
             throw new RuntimeException("PlayerMovementState requires an active game session.");
         }
  
-        this.models = getState(ModelViewState.class);       
+        this.models = getState(ModelViewState.class);
+ 
+        if( getState(DebugHudState.class) != null ) {
+            DebugHudState debug = getState(DebugHudState.class);
+            this.positionDisplay = debug.createDebugValue("Position", DebugHudState.Location.Top);
+            this.speedDisplay = debug.createDebugValue("Speed", DebugHudState.Location.Top); 
+        }
     }
 
     @Override
@@ -198,12 +212,43 @@ public class PlayerMovementState extends BaseAppState
         GuiGlobals.getInstance().setCursorEventsEnabled(true);        
     }
 
+    double speedAverage = 0;
+    long lastSpeedTime = 0;
+    protected void updateShipLocation( Vector3f loc ) {
+        
+        String s = String.format("%.2f, %.2f, %.2f", loc.x, loc.y, loc.z);
+        positionDisplay.setObject(s);
+ 
+        long time = System.nanoTime();
+        if( lastSpeedTime != 0 ) {
+            // Let's go ahead and calculate speed
+            double speed = loc.subtract(lastPosition).length();
+            
+            // And de-integrate it based on the time delta
+            speed = speed * 1000000000.0 / (time - lastSpeedTime);
+
+            // A slight smoothing of the value
+            speedAverage = (speedAverage * 2 + speed) / 3;
+             
+            s = String.format("%.2f", speedAverage);
+            speedDisplay.setObject(s);       
+        }
+        lastPosition.set(loc);
+        lastSpeedTime = time;
+    }
+
     private long nextSendTime = 0;
     private long sendFrequency = 1000000000L / 20; // 20 times a second, every 50 ms
      
     @Override
     public void update( float tpf ) {
 
+        // Update the camera position from the ship spatial
+        Spatial spatial = models.getModel(shipId);
+        if( spatial != null ) {
+            camera.setLocation(spatial.getWorldTranslation());
+        }
+            
         long time = System.nanoTime();
         if( time > nextSendTime ) {
             nextSendTime = time + sendFrequency;
@@ -216,14 +261,17 @@ public class PlayerMovementState extends BaseAppState
             thrust.z = (float)(forward * speed);
             
             session.move(rot, thrust);
-        } 
  
-        // Update the camera position from the ship spatial
-        Spatial spatial = models.getModel(shipId);
-        if( spatial != null ) {
-            camera.setLocation(spatial.getWorldTranslation());
-        }
-            
+            // Only update the position/speed display 20 times a second
+            //if( spatial != null ) {                
+            //    updateShipLocation(spatial.getWorldTranslation());
+            //}
+        } 
+
+            if( spatial != null ) {                
+                updateShipLocation(spatial.getWorldTranslation());
+            }
+ 
         /*
         // 'integrate' camera position based on the current move, strafe,
         // and elevation speeds.

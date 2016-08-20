@@ -45,7 +45,7 @@ dependencies {
     compile "com.simsilica:sio2:[1.0,)"
     compile "com.simsilica:sim-math:[1.0,)"
     //compile "com.simsilica:sim-ethereal:[1.1,)"    
-    compile "com.simsilica:sim-ethereal:1.1.1"
+    compile "com.simsilica:sim-ethereal:1.2.1-SNAPSHOT"
 
     // Standard utility stuff
     compile 'com.google.guava:guava:19.0'
