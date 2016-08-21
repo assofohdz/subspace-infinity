@@ -62,6 +62,7 @@ import com.simsilica.ethereal.EtherealHost;
 
 import example.net.GameSession;
 import example.net.GameSessionListener;
+import example.net.chat.server.ChatHostedService;
 import example.sim.Body;
 import example.sim.PhysicsListener;
 import example.sim.ShipDriver;
@@ -151,6 +152,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         // Setup to start using SimEthereal synching
         getService(EtherealHost.class).startHostingOnConnection(conn);
         getService(EtherealHost.class).setConnectionObject(conn, (long)session.bodyId, new Vec3d());       
+ 
+        // Start hosting on the chat server also
+        String name = AccountHostedService.getPlayerName(conn);
+        getService(ChatHostedService.class).startHostingOnConnection(conn, name);
         
         // Notify all of our sessions
         for( GameSessionImpl player : players ) {
@@ -170,6 +175,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         if( session != null ) {
             
             session.close();
+
+            // Remove this connection from the chat service also.
+            // Note: the chat service will have to take care that it
+            // might get two such calls if the connection is being closed. 
+            getService(ChatHostedService.class).stopHostingOnConnection(conn);
         
             // FIXME: remove sync when we get rid of the naive listener
             synchronized( players ) {

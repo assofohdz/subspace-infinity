@@ -50,6 +50,7 @@ import com.simsilica.ethereal.EtherealClient;
 import com.simsilica.ethereal.TimeSource;
 
 import example.GameConstants;
+import example.net.chat.client.ChatClientService;
 
 /**
  *
@@ -73,6 +74,7 @@ public class GameClient {
                                          new RmiClientService(),
                                          new AccountClientService(),
                                          new GameSessionClientService(),
+                                         new ChatClientService(GameConstants.CHAT_CHANNEL),
                                          new EtherealClient(GameConstants.OBJECT_PROTOCOL,
                                                             GameConstants.ZONE_GRID,
                                                             GameConstants.ZONE_RADIUS)                                         

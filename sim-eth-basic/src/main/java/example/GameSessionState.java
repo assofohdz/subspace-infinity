@@ -48,6 +48,8 @@ import com.simsilica.state.CompositeAppState;
 
 import example.net.GameSessionListener;
 import example.net.client.GameSessionClientService;
+import example.net.chat.ChatSessionListener;
+import example.net.chat.client.ChatClientService;
 import example.view.ModelViewState;
 import example.view.PlayerMovementState;
 import example.view.SkyState;
@@ -64,6 +66,8 @@ public class GameSessionState extends CompositeAppState {
     static Logger log = LoggerFactory.getLogger(GameSessionState.class);
 
     private GameSessionObserver gameSessionObserver = new GameSessionObserver();
+    private ChatSessionObserver chatSessionObserver = new ChatSessionObserver();
+    private ChatCommandEntry    chatEntry = new ChatCommandEntry();
 
     // Temporary reference FIXME
     private PlayerMovementState us;
@@ -108,6 +112,10 @@ public class GameSessionState extends CompositeAppState {
 
         getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
 
+        // Setup the chat related services
+        getState(ConnectionState.class).getService(ChatClientService.class).addChatSessionListener(chatSessionObserver);
+        getState(CommandConsoleState.class).setCommandEntry(chatEntry);
+
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
  
@@ -130,6 +138,8 @@ public class GameSessionState extends CompositeAppState {
         // The below will fail because there is no message state anymore... so
         // it wouldn't show the message anyway.       
         // getState(MessageState.class).addMessage("> You have left the game.", ColorRGBA.Yellow);
+
+        getChild(CommandConsoleState.class).setCommandEntry(null);
                 
         super.cleanup(app);
     }
@@ -152,14 +162,51 @@ public class GameSessionState extends CompositeAppState {
     private class GameSessionObserver implements GameSessionListener {
  
         @Override
-        public void playerJoined( int clientId, String playerName, int shipId ){
-            getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
+        public void playerJoined( int clientId, String playerName, int shipId ) {
+            // The chat listener does this job now
+            //getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
         }
     
         @Override
         public void playerLeft( int clientId, String playerName, int shipId ) {
+            // The chat listener does this job now
+            //getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
+        }
+    }
+ 
+    /**
+     *  Hooks into the CommandConsoleState to forward messages to the
+     *  chat service.
+     */
+    private class ChatCommandEntry implements CommandEntry {
+        @Override
+        public void runCommand( String cmd ) {
+            getState(ConnectionState.class).getService(ChatClientService.class).sendMessage(cmd);
+        }
+    } 
+    
+    /**
+     *  Notified by the server about chat-releated events.
+     */
+    private class ChatSessionObserver implements ChatSessionListener {
+    
+        @Override
+        public void playerJoined( int clientId, String playerName ) {
+            getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
+        }
+ 
+        @Override
+        public void newMessage( int clientId, String playerName, String message ) {
+            message = message.trim();
+            if( message.length() == 0 ) {
+                return;
+            }
+            getState(MessageState.class).addMessage(playerName + " said:" + message, ColorRGBA.White);  
+        }
+    
+        @Override
+        public void playerLeft( int clientId, String playerName ) {
             getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
         }
     }
-    
 }

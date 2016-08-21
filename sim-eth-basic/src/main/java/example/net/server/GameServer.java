@@ -52,6 +52,7 @@ import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 
 import example.GameConstants;
+import example.net.chat.server.ChatHostedService;
 import example.sim.*;
 
 /**
@@ -82,10 +83,15 @@ public class GameServer {
                                            GameConstants.PROTOCOL_VERSION,
                                            port, port);
         
+        // Create a separate channel to do chat stuff so it doesn't interfere
+        // with any real game stuff.
+        server.addChannel(port + 1);
+        
         server.getServices().addServices(new RpcHostedService(),
                                          new RmiHostedService(),
                                          new AccountHostedService(description),
-                                         new GameSessionHostedService(systems)
+                                         new GameSessionHostedService(systems),
+                                         new ChatHostedService(GameConstants.CHAT_CHANNEL)
                                          );
         
         // Add the SimEtheral host that will serve object sync updates to

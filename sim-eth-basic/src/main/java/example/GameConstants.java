@@ -54,6 +54,13 @@ public class GameConstants {
     public static final String GAME_NAME = "SimEtheral Example";
     public static final int PROTOCOL_VERSION = 42;
     public static final int DEFAULT_PORT = 4269;
+ 
+    /**
+     *  We add an extra channel on the client->server connection to send
+     *  chat related messages.  This is its own separate TCP socket that
+     *  avoids tying up the main connection.
+     */
+    public static final int CHAT_CHANNEL = 0;
         
     public static final int GRID_CELL_SIZE = 32;
     
