@@ -167,6 +167,7 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     }
 
     protected void postMessage( ChatSessionImpl from, String message ) {
+        log.info("chat> " + from.name + " said:" + message);
         for( ChatSessionImpl chatter : players ) {
             chatter.newMessage(from.conn.getId(), from.name, message);
         }
