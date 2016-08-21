@@ -37,6 +37,7 @@
 package example;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
@@ -59,9 +60,10 @@ public class MessageState extends BaseAppState {
     private Node messageRoot;
     private Vector3f offset = new Vector3f();
  
+    private ConcurrentLinkedQueue<Message> pendingMessages = new ConcurrentLinkedQueue<>();
     private SafeArrayList<Message> messages = new SafeArrayList<>(Message.class);
  
-    private float fadeRate = 1/8f; // 8 seconds
+    private float fadeRate = 1/15f; // 15 seconds
     
     public MessageState() {
     }
@@ -78,10 +80,15 @@ public class MessageState extends BaseAppState {
     }
     
     public <T extends Panel> T addMessage( T label ) {
-        messages.add(0, new Message(label));
-        messageRoot.attachChild(label);
-        refreshLayout();
+        Message msg = new Message(label);
+        pendingMessages.add(msg);
         return label;
+    }        
+        
+    protected void displayMessage( Message msg ) {    
+        messages.add(0, msg);
+        messageRoot.attachChild(msg.label);
+        refreshLayout();
     }
  
     /**
@@ -132,6 +139,12 @@ public class MessageState extends BaseAppState {
     public void update( float tpf ) {
 
         //addTestMessages(tpf);
+        
+        // Add any pending messages
+        Message msg = null;
+        while( (msg = pendingMessages.poll()) != null ) {
+            displayMessage(msg);
+        }
         
         for( Message m : messages.getArray() ) {
             m.update(tpf);
