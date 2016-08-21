@@ -77,7 +77,6 @@ public class GameSessionState extends CompositeAppState {
     public GameSessionState() {
         // add normal states on the super-constructor
         super(new MessageState(),
-              new CommandConsoleState(),
               new SkyState(),
               new ModelViewState(),
               new PlayerMovementState(),
@@ -88,6 +87,7 @@ public class GameSessionState extends CompositeAppState {
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
         addChild(new InGameMenuState(false), true);
+        addChild(new CommandConsoleState(), true);
     }
  
     public int getShipId() {
