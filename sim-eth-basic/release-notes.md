@@ -1,3 +1,9 @@
+Version 3
+----------
+* Added ability to configure a server message on the stand-alone
+    server but also include a decent default.
+    
+
 Version 2
 ----------
 * Added a simple chat service.

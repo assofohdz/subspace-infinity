@@ -169,7 +169,31 @@ public class GameServer {
      */
     public static void main( String... args ) throws Exception {
  
-        GameServer gs = new GameServer(GameConstants.DEFAULT_PORT, "Dedicated Server");
+        StringWriter sOut = new StringWriter();
+        PrintWriter out = new PrintWriter(sOut);
+        boolean hasDescription = false;
+        for( int i = 0; i < args.length; i++ ) {
+            if( "-m".equals(args[i]) ) {
+                out.println(args[++i]);
+                hasDescription = true;
+            }
+        }
+        if( !hasDescription ) {
+            // Put a default description in
+            out.println("Dedicated Server");
+            out.println();
+            out.println("In game:");
+            out.println("WASD + mouse to fly");
+            out.println("Enter to open chat bar");
+            out.println("F5 to toggle stats");
+            out.println("Esc to open in-game help");
+            out.println("PrtScrn to save a screen shot");
+        }
+        
+        out.close();
+        String desc = sOut.toString();
+ 
+        GameServer gs = new GameServer(GameConstants.DEFAULT_PORT, desc);
         gs.start();                
                                                            
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
