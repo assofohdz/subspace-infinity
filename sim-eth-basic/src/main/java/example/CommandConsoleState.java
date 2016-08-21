@@ -70,12 +70,25 @@ public class CommandConsoleState extends BaseAppState {
     private Label prompt;
     private TextField entry;
     
+    private CommandEntry shell = new DefaultCommandEntry();
+    
     public CommandConsoleState() {
+    }
+ 
+    public void setCommandEntry( CommandEntry commandEntry ) {
+        if( commandEntry == null ) {
+            commandEntry = new DefaultCommandEntry();
+        }
+        this.shell = commandEntry;
+    }
+    
+    public CommandEntry getCommandEntry() {
+        return shell;
     }
  
     public void toggleConsole() {
         setEnabled(!isEnabled());
-    }
+    } 
         
     @Override
     protected void initialize( Application app ) {
@@ -137,7 +150,8 @@ public class CommandConsoleState extends BaseAppState {
             // For now just clear the text and send it to the console
             String text = entry.getText();
             entry.setText("");
-            getState(MessageState.class).addMessage(text, ColorRGBA.White);
+            //getState(MessageState.class).addMessage(text, ColorRGBA.White);
+            shell.runCommand(text);
         
             setEnabled(false);
         }
@@ -151,4 +165,11 @@ public class CommandConsoleState extends BaseAppState {
         }
     }
                 
+    private class DefaultCommandEntry implements CommandEntry {
+        
+        @Override
+        public void runCommand( String cmd ) {
+            getState(MessageState.class).addMessage(cmd, ColorRGBA.White);    
+        }
+    }
 }
