@@ -47,11 +47,13 @@ import com.jme3.asset.AssetManager;
 import com.jme3.math.*;
 import com.jme3.renderer.Camera;
 import com.jme3.material.Material;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.texture.Texture;
 import com.jme3.util.SafeArrayList;
 
-import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.*;
+import com.simsilica.lemur.style.ElementId;
 
 import com.simsilica.ethereal.EtherealClient;
 import com.simsilica.ethereal.SharedObject;
@@ -77,6 +79,8 @@ public class ModelViewState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(ModelViewState.class);
 
     private Node modelRoot;
+    private Node hudLabelRoot;
+    private Camera camera;
     
     private GameSessionObserver gameSessionObserver = new GameSessionObserver();
     private Map<Integer, ObjectInfo> index = new ConcurrentHashMap<>();
@@ -89,6 +93,7 @@ public class ModelViewState extends BaseAppState {
 
     private TimeSource timeSource;
     private SharedObjectUpdater objectUpdater = new SharedObjectUpdater();
+
 
     public ModelViewState() {
     }
@@ -104,6 +109,9 @@ public class ModelViewState extends BaseAppState {
     @Override
     protected void initialize( Application app ) {
         modelRoot = new Node();
+        hudLabelRoot = new Node("HUD labels");
+        
+        this.camera = app.getCamera();
  
         // Add a listener to receive efficient object updates.   
         getState(ConnectionState.class).getService(EtherealClient.class).addObjectListener(objectUpdater);
@@ -131,11 +139,13 @@ public class ModelViewState extends BaseAppState {
     @Override
     protected void onEnable() {
         ((Main)getApplication()).getRootNode().attachChild(modelRoot);
+        ((Main)getApplication()).getGuiNode().attachChild(hudLabelRoot);
     }
 
     @Override
     protected void onDisable() {
         modelRoot.removeFromParent();
+        hudLabelRoot.removeFromParent();
     }
     
     protected void addModel( ObjectInfo info ) {
@@ -160,6 +170,7 @@ public class ModelViewState extends BaseAppState {
         if( info != null ) {
             // Remove it from our iteration list
             objects.remove(info);
+            info.dispose();
         }
         Spatial spatial = models.remove(id);
         if( spatial != null ) {
@@ -238,6 +249,12 @@ public class ModelViewState extends BaseAppState {
         Spatial spatial;
         boolean visible;
         boolean localPlayerShip;
+ 
+        // Keep a HUD label.  Why not?  Normally I'd do this in a 
+        // separate state/system but this isn't an ES so let's just
+        // grow the spaghetti!
+        Label shipLabel;
+        float labelOffset = 0.1f;
         
         volatile Vector3f updatePos;
         volatile Quaternion updateRot;
@@ -250,8 +267,16 @@ public class ModelViewState extends BaseAppState {
             // through which to interpolate.  12 * 1/60 = 12/60 = 1/5 = 200 ms.
             this.buffer = new TransitionBuffer<>(12);
             
+            this.shipLabel = new Label("Ship", new ElementId("ship.label"));
+            shipLabel.setColor(ColorRGBA.Green);
+            shipLabel.setShadowColor(ColorRGBA.Black);
+            
             // The first valid history entry will turn us visible
             setVisible(false);
+        }
+ 
+        public void setPlayerName( String playerName ) {
+            shipLabel.setText(playerName);
         }
  
         protected void setVisible( boolean f ) {
@@ -261,9 +286,34 @@ public class ModelViewState extends BaseAppState {
             this.visible = f;
             if( visible && !localPlayerShip ) {
                 spatial.setCullHint(Spatial.CullHint.Inherit);
+                shipLabel.setCullHint(Spatial.CullHint.Inherit);
             } else {
                 spatial.setCullHint(Spatial.CullHint.Always);
+                shipLabel.setCullHint(Spatial.CullHint.Always);
             }
+        }
+        
+        protected void updateLabelPos( Vector3f shipPos ) {
+            if( !visible || localPlayerShip ) {
+                return;
+            }
+            Vector3f camRelative = shipPos.subtract(camera.getLocation());
+            float distance = camera.getDirection().dot(camRelative);
+            if( distance < 0 ) {
+                // It's behind us
+                shipLabel.removeFromParent();
+                return;
+            }
+            
+            // Calculate the ship's position on screen
+            //Vector3f screen1 = camera.getScreenCoordinates(shipPos);
+            Vector3f screen2 = camera.getScreenCoordinates(shipPos.add(0, labelOffset, 0));
+            
+            Vector3f pref = shipLabel.getPreferredSize();
+            shipLabel.setLocalTranslation(screen2.x - pref.x * 0.5f, screen2.y + pref.y, screen2.z);
+            if( shipLabel.getParent() == null ) {
+                hudLabelRoot.attachChild(shipLabel);
+            }               
         }
         
         public void updateSpatial( long time ) {
@@ -277,6 +327,8 @@ public class ModelViewState extends BaseAppState {
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
                 setVisible(trans.getVisibility(time));
+                
+                updateLabelPos(spatial.getWorldTranslation());
             }            
         }
                 
@@ -288,6 +340,11 @@ public class ModelViewState extends BaseAppState {
         public PositionTransition getFrame( long time ) {
             return buffer.getTransition(time);        
         }
+        
+        public void dispose() {
+            spatial.removeFromParent();
+            shipLabel.removeFromParent();
+        }
     }
      
     private class GameSessionObserver implements GameSessionListener {
@@ -295,7 +352,10 @@ public class ModelViewState extends BaseAppState {
         @Override
         public void playerJoined( int clientId, String playerName, int shipId ){
             log.info("playerJoined(" + clientId + ", " + playerName + ", " + shipId + ")");
-            playerIndex.put(shipId, new PlayerInfo(clientId, playerName, shipId));        
+            playerIndex.put(shipId, new PlayerInfo(clientId, playerName, shipId));
+            
+            ObjectInfo shipInfo = getObjectInfo(shipId, true);
+            shipInfo.setPlayerName(playerName);          
         }
     
         @Override
