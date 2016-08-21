@@ -52,7 +52,7 @@ import com.simsilica.ethereal.zone.ZoneGrid;
 public class GameConstants {
 
     public static final String GAME_NAME = "SimEtheral Example";
-    public static final int PROTOCOL_VERSION = 42;
+    public static final int PROTOCOL_VERSION = 43;
     public static final int DEFAULT_PORT = 4269;
  
     /**
