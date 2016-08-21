@@ -2,6 +2,8 @@ Version 3
 ----------
 * Added ability to configure a server message on the stand-alone
     server but also include a decent default.
+* Added a build target that will add a server script tn the distribution 
+    for running a stand-alone server.
     
 
 Version 2
