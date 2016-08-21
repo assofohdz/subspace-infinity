@@ -73,6 +73,7 @@ public class CommandConsoleState extends BaseAppState {
     private CommandEntry shell = new DefaultCommandEntry();
     
     public CommandConsoleState() {
+        setEnabled(false);
     }
  
     public void setCommandEntry( CommandEntry commandEntry ) {
@@ -96,7 +97,7 @@ public class CommandConsoleState extends BaseAppState {
         entryPanel = new Container(new SpringGridLayout(Axis.X, Axis.Y, FillMode.Last, FillMode.None),
                                    new ElementId("console.container"));
         prompt = entryPanel.addChild(new Label(">", PROMPT_LABEL_ID));
-        entry = entryPanel.addChild(new TextField("this is a bunch of text I waonder why things don't work", TEXT_ENTRY_ID));
+        entry = entryPanel.addChild(new TextField("", TEXT_ENTRY_ID));
         
         // Register to catch the return key from the ext component. 
         entry.getActionMap().put(new KeyAction(KeyInput.KEY_RETURN), new NewLine());
