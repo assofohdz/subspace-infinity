@@ -47,6 +47,7 @@ import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rpc.RpcHostedService;
 
 import com.simsilica.ethereal.EtherealHost;
+import com.simsilica.ethereal.NetworkStateListener;
 
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
@@ -161,6 +162,26 @@ public class GameServer {
     public void close() {
         close(null);
     }
+ 
+    /**
+     *  Logs the current connection statistics for each connection.
+     */   
+    public void logStats() {
+            
+        EtherealHost host = server.getServices().getService(EtherealHost.class);
+        
+        for( HostedConnection conn : server.getConnections() ) {
+            log.info("Client[" + conn.getId() + "] address:" + conn.getAddress());            
+            NetworkStateListener listener = host.getStateListener(conn);
+            if( listener == null ) {
+                log.info("[" + conn.getId() + "] No stats");
+                continue;
+            }
+            log.info("[" + conn.getId() + "] Ping time: " + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
+            String miss = String.format("%.02f", listener.getConnectionStats().getAckMissPercent());
+            log.info("[" + conn.getId() + "] Ack miss: " + miss + "%");
+        }
+    }
     
     /**
      *  Allow running a basic dedicated server from the command line using
@@ -204,6 +225,8 @@ public class GameServer {
             }
             if( "exit".equals(line) ) {
                 break;
+            } else if( "stats".equals(line) ) {
+                gs.logStats();
             } else {
                 System.err.println("Unknown command:" + line);
             }

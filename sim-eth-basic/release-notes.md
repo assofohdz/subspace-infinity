@@ -4,6 +4,8 @@ Version 3
     server but also include a decent default.
 * Added a build target that will add a server script tn the distribution 
     for running a stand-alone server.
+* Added a "stats" command to the command console of the headless server
+    that dumps the connection stats for all currently connected players.    
     
 
 Version 2
