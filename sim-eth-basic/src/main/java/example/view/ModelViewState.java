@@ -124,7 +124,7 @@ public class ModelViewState extends BaseAppState {
         // articles at:
         // https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
         // https://developer.valvesoftware.com/wiki/Latency_Compensating_Methods_in_Client/Server_In-game_Protocol_Design_and_Optimization
-        this.timeSource = getState(ConnectionState.class).getService(EtherealClient.class).getTimeSource();
+        this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         
         // Still need this listener because it's the only way we know things
         // like player name which we might use later.

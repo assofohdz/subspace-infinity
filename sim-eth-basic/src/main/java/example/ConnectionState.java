@@ -58,6 +58,9 @@ import com.simsilica.lemur.OptionPanel;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.state.CompositeAppState;
 
+import com.simsilica.ethereal.EtherealClient;
+import com.simsilica.ethereal.TimeSource;
+
 import example.net.AccountSessionListener;
 import example.net.client.AccountClientService;
 import example.net.client.GameClient;
@@ -93,6 +96,10 @@ public class ConnectionState extends CompositeAppState {
     
     public int getClientId() {
         return client.getClient().getId();
+    }
+
+    public TimeSource getRemoteTimeSource() {    
+        return getService(EtherealClient.class).getTimeSource();        
     }
 
     public <T extends ClientService> T getService( Class<T> type ) {

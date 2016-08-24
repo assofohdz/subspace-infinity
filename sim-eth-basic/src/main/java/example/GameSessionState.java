@@ -46,6 +46,9 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.state.CompositeAppState;
 
+import com.simsilica.ethereal.TimeSource;
+
+import example.debug.TimeSequenceState;
 import example.net.GameSessionListener;
 import example.net.client.GameSessionClientService;
 import example.net.chat.ChatSessionListener;
@@ -77,10 +80,11 @@ public class GameSessionState extends CompositeAppState {
     public GameSessionState() {
         // add normal states on the super-constructor
         super(new MessageState(),
+              new TimeState(), // Has to be before any visuals that might need it.
               new SkyState(),
               new ModelViewState(),
               new PlayerMovementState(),
-              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)) 
+              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f))
               //new SpaceGridState(2, 10, ColorRGBA.White) 
               ); 
      
@@ -88,6 +92,9 @@ public class GameSessionState extends CompositeAppState {
         // the outer state using addChild().
         addChild(new InGameMenuState(false), true);
         addChild(new CommandConsoleState(), true);
+        
+        // For popping up a time sync debug panel
+        addChild(new TimeSequenceState(), true); 
     }
  
     public int getShipId() {
@@ -111,6 +118,10 @@ public class GameSessionState extends CompositeAppState {
         getState(MessageState.class).addMessage("> You have joined the game.", ColorRGBA.Yellow);
 
         getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
+
+        // Give the time state its time source
+        TimeSource timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+        getState(TimeState.class).setTimeSource(timeSource);
 
         // Setup the chat related services
         getState(ConnectionState.class).getService(ChatClientService.class).addChatSessionListener(chatSessionObserver);

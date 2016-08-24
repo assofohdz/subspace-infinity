@@ -5,7 +5,9 @@ Version 3
 * Added a build target that will add a server script tn the distribution 
     for running a stand-alone server.
 * Added a "stats" command to the command console of the headless server
-    that dumps the connection stats for all currently connected players.    
+    that dumps the connection stats for all currently connected players.
+* Added a TimeState for other states that want to get a consistent frame time.    
+* Added a debug TimeSequenceState that can pop-up a time sync debug display.
     
 
 Version 2

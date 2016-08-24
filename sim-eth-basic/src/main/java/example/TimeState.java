@@ -36,33 +36,74 @@
 
 package example;
 
-import com.jme3.input.KeyInput;
-import com.simsilica.lemur.input.FunctionId;
-import com.simsilica.lemur.input.InputMapper;
+import com.jme3.app.Application;
+import com.jme3.app.state.BaseAppState;
+
+import com.simsilica.ethereal.TimeSource;
 
 
 /**
- *  Defines a set of global game functions and some default key/control
- *  mappings.
+ *  Provides a consistent frame time to the classes that want it.
+ *  Time inevitably marches forward except in the case of this state.
+ *  When update() is called, the frame time is locked such that getTime()
+ *  will return the same value until after the next update().  This makes
+ *  sure that small inter-frame time differences don't creep into interpolated
+ *  visuals.
+ *
+ *  For a simple game example like this, it isn't really necessary but it's
+ *  a good pattern to follow.
  *
  *  @author    Paul Speed
  */
-public class MainGameFunctions {
+public class TimeState extends BaseAppState {
 
-    public static final String IN_GAME = "In Game";
-    public static final FunctionId F_IN_GAME_MENU = new FunctionId(IN_GAME, "Menu");
+    private TimeSource timeSource;
+    private long frameTime;
+    private long realTime;
+
+    public TimeState() {
+    }
     
-    public static final FunctionId F_COMMAND_CONSOLE = new FunctionId(IN_GAME, "Command Console");
+    public TimeState( TimeSource timeSource ) {
+        this.timeSource = timeSource;
+    }
  
-    public static final FunctionId F_TIME_DEBUG = new FunctionId(IN_GAME, "Time Debug");
+    public void setTimeSource( TimeSource timeSource ) {
+        this.timeSource = timeSource;
+    }
     
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
+    public TimeSource getTimeSource() {
+        return timeSource;
+    }
     
-        inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
+    public long getTime() {
+        return frameTime; 
+    }
+    
+    public long getRealTime() {
+        return realTime;
+    }
+    
+    public void update( float tpf ) {
+        if( timeSource != null ) {
+            this.frameTime = timeSource.getTime();
+            this.realTime = System.nanoTime();
+        }
+    }
 
-        inputMapper.map(F_TIME_DEBUG, KeyInput.KEY_F7);
-        
-        inputMapper.map(F_COMMAND_CONSOLE, KeyInput.KEY_RETURN);
-        inputMapper.map(F_COMMAND_CONSOLE, KeyInput.KEY_NUMPADENTER);
+    @Override
+    protected void initialize( Application app ) {
+    }
+
+    @Override
+    protected void cleanup( Application app ) {
+    }
+
+    @Override
+    protected void onEnable() {
+    }
+
+    @Override
+    protected void onDisable() {
     }
 }
