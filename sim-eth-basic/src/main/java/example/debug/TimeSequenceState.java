@@ -37,6 +37,7 @@
 package example.debug;
 
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
@@ -51,6 +52,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.shape.Line;
+import com.jme3.util.BufferUtils;
 
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.InputMapper;
@@ -102,6 +104,14 @@ public class TimeSequenceState extends BaseAppState {
     private Geometry realTime;
     private Geometry offsetTime;
 
+    // Keep track of the delta between current time and 'frame time'.
+    // We need a consistent base do track ups and downs in the drift.
+    private long driftLock;
+    private boolean resetDrift;
+
+    private Graph driftGraph;
+    private Geometry driftGeom;
+
     public TimeSequenceState() {
         setEnabled(false);        
     }
@@ -135,6 +145,17 @@ public class TimeSequenceState extends BaseAppState {
  
         realTime = createTimeMarker(ColorRGBA.Yellow);
         offsetTime = createTimeMarker(ColorRGBA.Magenta); 
+ 
+        driftGraph = new Graph(ColorRGBA.Green, cam.getWidth());
+        
+        driftGeom = new Geometry("drift", driftGraph.mesh);
+        Material mat = GuiGlobals.getInstance().createMaterial(ColorRGBA.White, false).getMaterial();
+        mat.setBoolean("VertexColor", true);
+        driftGeom.setMaterial(mat);
+        driftGeom.setLocalTranslation(root.getLocalTranslation().negate());
+        driftGeom.move(0, cam.getHeight() * 0.75f, -10);
+        driftGeom.setLocalScale(1, 10f/1000000, 1); // 1 ms = 10 pixels
+        root.attachChild(driftGeom);
                 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.addDelegate(MainGameFunctions.F_TIME_DEBUG, this, "toggleEnabled");
@@ -152,7 +173,9 @@ public class TimeSequenceState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        ((Main)getApplication()).getGuiNode().attachChild(root);       
+        ((Main)getApplication()).getGuiNode().attachChild(root);
+        resetDrift = true;
+        driftGraph.reset();                
     }
 
     @Override
@@ -186,6 +209,15 @@ public class TimeSequenceState extends BaseAppState {
         for( SequenceEntry e : sequences ) {
             e.updateMesh();
         }
+
+        if( resetDrift ) {
+            driftLock = timeState.getTime() - System.nanoTime();
+            resetDrift = false;               
+        }        
+        // Calculate this frame's relative drift
+        long drift = timeState.getTime() - System.nanoTime() - driftLock;
+        //System.out.println("Drift:" + drift);
+        driftGraph.addValue(drift);
     }
  
     protected Geometry createTimeMarker( ColorRGBA color ) {
@@ -299,4 +331,134 @@ public class TimeSequenceState extends BaseAppState {
             //geom.updateModelBound();              
         }
     }
+    
+    private class Graph {
+        private ColorRGBA color;
+        private int size;
+        private int frameIndex = 0;
+        private long[] frames;
+        private long updateInterval = 1000000L; // once a millisecond
+        private long lastUpdate = 0;
+        
+        private Mesh mesh;
+
+        public Graph( ColorRGBA color ) {
+            this(color, 1280);
+        }
+                
+        public Graph( ColorRGBA color, int size ) {
+            this.color = color;
+            setFrameCount(size);
+        }
+ 
+        public void reset() {
+            frameIndex = 0;
+            Arrays.fill(frames, 0);
+        }
+        
+        /**
+         *  Sets the number of frames to display and track.  By default
+         *  this is 1280.
+         */
+        public final void setFrameCount( int size ) {
+            if( this.size == size ) {
+                return;
+            }
+        
+            this.size = size;
+            this.frames = new long[size];
+    
+            createMesh();
+            
+            if( frameIndex >= size ) {
+                frameIndex = 0;
+            }       
+        }
+    
+        public int getFrameCount() {
+            return size;
+        }
+
+        /**
+         *  Sets the number of nanoseconds to wait before updating the
+         *  mesh.  By default this is once a millisecond, ie: 1000000 nanoseconds.
+         */
+        public void setUpdateInterval( long nanos ) {
+            this.updateInterval = nanos;
+        }
+    
+        public long getUpdateInterval() {
+            return updateInterval;
+        }
+
+        /**
+         *  Returns the mesh that contains the bar chart of tracked frame
+         *  timings.
+         */
+        public Mesh getMesh() {
+            return mesh;
+        }
+
+        protected final void createMesh() {
+            if( mesh == null ) {
+                mesh = new Mesh();
+                mesh.setMode(Mesh.Mode.Lines);
+            }
+        
+            mesh.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(size * 2 * 3));
+
+            FloatBuffer cb = BufferUtils.createFloatBuffer(size * 2 * 4);
+            for( int i = 0; i < size; i++ ) {
+                // For each index we add 2 colors, one for each line
+                // endpoint for one layers.
+                cb.put(0.5f).put(0.5f).put(0.5f).put(1);
+                cb.put(1).put(1).put(1).put(1);
+            }         
+            mesh.setBuffer(Type.Color, 4, cb);
+        }
+    
+        protected void updateMesh() {
+            FloatBuffer pb = (FloatBuffer)mesh.getBuffer(Type.Position).getData();
+            pb.rewind();
+            FloatBuffer cb = (FloatBuffer)mesh.getBuffer(Type.Color).getData();
+            cb.rewind();
+             
+            for( int i = 0; i < size; i++ ) {
+                float t = frames[i];
+                
+                pb.put(i-1).put(0).put(-1);
+                pb.put(i).put(t).put(0);
+ 
+                int tail = frameIndex + 2;
+ 
+                if( i >= frameIndex && i <= tail ) {
+                    cb.put(0.0f).put(0.0f).put(0.0f).put(1);
+                    cb.put(0.0f).put(0.0f).put(0.0f).put(1);
+                } else if( frames[i] == 0 ) {
+                    cb.put(0.5f).put(0.5f).put(0.5f).put(1);
+                    cb.put(0.75f).put(0.75f).put(0.75f).put(1);
+                } else {
+                    cb.put(color.r * 0.5f).put(color.g * 0.5f).put(color.b * 0.5f).put(color.a);
+                    cb.put(color.r).put(color.g).put(color.b).put(color.a);
+                }
+            }
+            mesh.setBuffer(Type.Position, 3, pb);
+            mesh.setBuffer(Type.Color, 4, cb);
+        }
+
+        public void addValue( long value ) {
+            long time = System.nanoTime();
+            frames[frameIndex] = value;
+            frameIndex++;
+            if( frameIndex >= size ) {
+                frameIndex = 0;
+            }
+            if( time - lastUpdate > updateInterval ) {
+                updateMesh();
+                lastUpdate = time;
+            } 
+        }
+    }      
 }
+
+
