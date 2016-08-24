@@ -210,12 +210,13 @@ public class TimeSequenceState extends BaseAppState {
             e.updateMesh();
         }
 
+        long time = timeState.getRealTime();
         if( resetDrift ) {
-            driftLock = timeState.getTime() - System.nanoTime();
+            driftLock = frame - time;
             resetDrift = false;               
         }        
         // Calculate this frame's relative drift
-        long drift = timeState.getTime() - System.nanoTime() - driftLock;
+        long drift = frame - time - driftLock;
         //System.out.println("Drift:" + drift);
         driftGraph.addValue(drift);
     }
