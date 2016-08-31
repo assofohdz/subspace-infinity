@@ -180,6 +180,7 @@ public class GameServer {
             log.info("[" + conn.getId() + "] Ping time: " + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
             String miss = String.format("%.02f", listener.getConnectionStats().getAckMissPercent());
             log.info("[" + conn.getId() + "] Ack miss: " + miss + "%");
+            log.info("[" + conn.getId() + "] Average msg size: " + listener.getConnectionStats().getAverageMessageSize() + " bytes");
         }
     }
     
