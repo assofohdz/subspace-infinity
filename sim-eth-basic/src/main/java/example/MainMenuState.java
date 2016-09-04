@@ -202,6 +202,7 @@ public class MainMenuState extends BaseAppState {
     protected void onEnable() {
         Node gui = ((Main)getApplication()).getGuiNode();
         gui.attachChild(mainWindow);
+        GuiGlobals.getInstance().requestFocus(mainWindow);
     }
     
     @Override   

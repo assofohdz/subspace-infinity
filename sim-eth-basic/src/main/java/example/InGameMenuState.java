@@ -151,7 +151,8 @@ public class InGameMenuState extends BaseAppState {
     protected void onEnable() {
         Node gui = ((Main)getApplication()).getGuiNode();
         gui.attachChild(mainWindow);
- 
+        GuiGlobals.getInstance().requestFocus(mainWindow);
+
         if( getState(PlayerMovementState.class) != null ) {
             // Save the enabled state of the PlayerMovementState so that we
             // can restore it if the menu is closed.

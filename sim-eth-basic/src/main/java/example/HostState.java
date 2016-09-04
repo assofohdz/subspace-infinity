@@ -151,6 +151,7 @@ public class HostState extends BaseAppState {
         int height = getApplication().getCamera().getHeight();
         hostWindow.setLocalTranslation(10, height - 10, 0);       
         gui.attachChild(hostWindow);    
+        GuiGlobals.getInstance().requestFocus(hostWindow);
     }
     
     @Override   

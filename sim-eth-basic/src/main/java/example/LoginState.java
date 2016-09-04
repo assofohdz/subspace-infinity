@@ -131,6 +131,7 @@ public class LoginState extends BaseAppState {
         Node root = ((Main)getApplication()).getGuiNode();
         root.attachChild(loginPanel);
         root.attachChild(serverInfoPanel);
+        GuiGlobals.getInstance().requestFocus(loginPanel);
     }
  
     @Override   
