@@ -36,15 +36,24 @@
 
 package example;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.base.Joiner;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.input.KeyNames;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 
 import com.simsilica.lemur.*;
+import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
+import com.simsilica.lemur.input.InputMapper.Mapping;
 import com.simsilica.lemur.style.ElementId;
 
+import example.view.PlayerMovementFunctions;
 import example.view.PlayerMovementState;
 
 /**
@@ -57,7 +66,7 @@ public class HelpState extends BaseAppState {
     private Container helpWindow;
     private boolean movementState = false;
     
-    private String[][] keyHelp = {
+    private String[][] keyHelpStrings = {
         {"F1", 
          "Opens this help window."},
         {"WASD + mouse",
@@ -79,6 +88,24 @@ public class HelpState extends BaseAppState {
         {"F7",
          "Toggles network timing stats."} 
     };
+    
+    private KeyHelp[] keyHelp = {
+        new KeyHelp(MainGameFunctions.F_IN_GAME_HELP, "Opens this help window."),
+        new KeyHelp(PlayerMovementFunctions.F_X_ROTATE, "Rotates left/right."),
+        new KeyHelp(PlayerMovementFunctions.F_Y_ROTATE, "Rotates up/down."),
+        new KeyHelp(PlayerMovementFunctions.F_THRUST, "Flies forward and back."),
+        new KeyHelp(PlayerMovementFunctions.F_STRAFE, "Flies side to side."),
+        new KeyHelp(PlayerMovementFunctions.F_ELEVATE, "Flies up or down."),
+        new KeyHelp(MainGameFunctions.F_COMMAND_CONSOLE, 
+            "Opens the in-game chat bar.  Type chat messages",
+            "and hit enter to send.",
+            "Hit enter or esc to close."),
+        new KeyHelp(MainGameFunctions.F_IN_GAME_MENU, "Opens the in-game menu."),
+        new KeyHelp("PrtScrn", "Takes a screen shot."),
+        new KeyHelp("F5", "Toggles display stats."),
+        new KeyHelp("F6", "Toggles rendering frame timings."),
+        new KeyHelp(MainGameFunctions.F_TIME_DEBUG, "Toggles network timing stats.") 
+    };
 
     public HelpState() {
         setEnabled(false);
@@ -95,6 +122,9 @@ public class HelpState extends BaseAppState {
     @Override 
     protected void initialize( Application app ) {
         
+        InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
+        inputMapper.addDelegate(MainGameFunctions.F_IN_GAME_HELP, this, "toggleEnabled");
+ 
         helpWindow = new Container();
         Label title = helpWindow.addChild(new Label("In-Game Help", new ElementId("title"))); 
         //title.setFontSize(24);
@@ -105,7 +135,17 @@ public class HelpState extends BaseAppState {
         sub.addChild(new Label("Key Bindings")); 
 
         Container keys = sub.addChild(new Container());
-        
+ 
+        Joiner commas = Joiner.on(", ");
+        Joiner lines = Joiner.on("\n"); 
+        for( KeyHelp help : keyHelp ) {
+            help.updateKeys(inputMapper);
+            String s = commas.join(help.keyNames);
+            keys.addChild(new Label(s, new ElementId("help.key.label")));
+            s = lines.join(help.description);
+            keys.addChild(new Label(s, new ElementId("help.description.label")), 1);                     
+        }       
+/*        
         for( String[] help : keyHelp ) {
             keys.addChild(new Label(help[0], new ElementId("help.key.label")));
             StringBuilder sb = new StringBuilder();
@@ -116,12 +156,31 @@ public class HelpState extends BaseAppState {
                 sb.append(help[i]);
             }
             keys.addChild(new Label(sb.toString(), new ElementId("help.description.label")), 1);
-        }
+        }*/
 
         helpWindow.addChild(new ActionButton(new CallMethodAction("Done", this, "close")));
                 
-        InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
-        inputMapper.addDelegate(MainGameFunctions.F_IN_GAME_HELP, this, "toggleEnabled");
+        System.out.println("All InputMapper function mappings:");       
+        for( FunctionId id : inputMapper.getFunctionIds() ) {
+            System.out.println(id);
+            System.out.println("  mappings:");
+            for( Mapping m : inputMapper.getMappings(id) ) {
+                System.out.println("    " + m);
+                Object o = m.getPrimaryActivator();
+                if( o instanceof Integer ) {
+                    Integer keyCode = (Integer)o;
+                    System.out.println("      primary:" + KeyNames.getName(keyCode));                    
+                } else {
+                    System.out.println("      primary:" + o);
+                }
+                for( Object mod : m.getModifiers() ) {
+                    if( mod instanceof Integer ) {
+                        Integer keyCode = (Integer)mod;
+                        System.out.println("      modifier:" + KeyNames.getName(keyCode));                    
+                    }
+                }
+            }
+        }
     }
     
     @Override 
@@ -166,6 +225,51 @@ public class HelpState extends BaseAppState {
         
         if( getState(PlayerMovementState.class) != null ) {        
             getState(PlayerMovementState.class).setEnabled(movementState);
+        }
+    }
+    
+    private class KeyHelp {
+        FunctionId function;
+        String[] keyNames;
+        String[] description;
+        
+        public KeyHelp( FunctionId function, String... description ) {
+            this.function = function;
+            this.description = description;
+        }
+        
+        public KeyHelp( String keys, String... description ) {
+            this.keyNames = new String[] { keys };
+            this.description = description;
+        } 
+        
+        public void updateKeys( InputMapper inputMapper ) {
+            if( function == null ) {
+                return;
+            }
+            
+            List<String> names = new ArrayList<>();
+            
+            for( Mapping m : inputMapper.getMappings(function) ) {
+                Object o = m.getPrimaryActivator();
+                if( !(o instanceof Integer) ) {
+                    // Not a key mapping
+                    continue;
+                }
+                                
+                Integer primary = (Integer)o;
+                
+                StringBuilder sb = new StringBuilder(KeyNames.getName(primary));
+                for( Object mod : m.getModifiers() ) {
+                    if( mod instanceof Integer ) {
+                        sb.append("+");
+                        sb.append(KeyNames.getName((Integer)mod));
+                    }
+                }
+                names.add(sb.toString());               
+            }
+            keyNames = new String[names.size()];
+            keyNames = names.toArray(keyNames); 
         }
     }
 }
