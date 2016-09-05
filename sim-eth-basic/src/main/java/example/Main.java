@@ -121,8 +121,8 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {        
         
         setPauseOnLostFocus(false);
-        //setDisplayFps(false);
-        //setDisplayStatView(false);
+        setDisplayFps(false);
+        setDisplayStatView(false);
         
         GuiGlobals.initialize(this);
  
