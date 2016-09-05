@@ -70,7 +70,8 @@ public class InGameMenuState extends BaseAppState {
     private boolean movementState = false;
 
     public InGameMenuState( boolean enabled ) {
-        setEnabled(enabled);        
+        setEnabled(enabled);
+        sessionActions.add(new CallMethodAction("Resume", this, "resume"));         
         sessionActions.add(new CallMethodAction("Disconnect", this, "disconnect"));
         sessionActions.add(new CallMethodAction("Exit", this, "exitGame"));
     }
@@ -83,6 +84,10 @@ public class InGameMenuState extends BaseAppState {
         return tabs;
     }
 
+    protected void resume() {
+        setEnabled(false);
+    }
+    
     protected void disconnect() {
         log.info("disconnect()");        
         getState(OptionPanelState.class).show("Disconnect?", "Really disconnect?", 

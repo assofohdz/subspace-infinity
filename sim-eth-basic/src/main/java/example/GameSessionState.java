@@ -95,6 +95,8 @@ public class GameSessionState extends CompositeAppState {
         
         // For popping up a time sync debug panel
         addChild(new TimeSequenceState(), true); 
+
+        addChild(new HelpState(), true); 
     }
  
     public int getShipId() {

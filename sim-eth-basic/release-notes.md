@@ -8,6 +8,8 @@ Version 3
     that dumps the connection stats for all currently connected players.
 * Added a TimeState for other states that want to get a consistent frame time.    
 * Added a debug TimeSequenceState that can pop-up a time sync debug display.
+* Added "Resume" menu item to the In-Game menu.
+* Added an in-game "Help" pop-up mapping to the F1 key.
     
 
 Version 2
