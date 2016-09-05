@@ -55,6 +55,7 @@ import com.jme3.scene.shape.Line;
 import com.jme3.util.BufferUtils;
 
 import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.Label;
 import com.simsilica.lemur.input.InputMapper;
 
 import example.Main;
@@ -63,6 +64,7 @@ import example.TimeState;
 
 import com.simsilica.ethereal.Statistics;
 import com.simsilica.ethereal.Statistics.Sequence;
+import com.simsilica.ethereal.Statistics.Tracker;
 
 
 
@@ -112,6 +114,10 @@ public class TimeSequenceState extends BaseAppState {
     private Graph driftGraph;
     private Geometry driftGeom;
 
+    private Graph msgGraph;
+    private Geometry msgGeom;
+    private Tracker msgSize;
+
     public TimeSequenceState() {
         setEnabled(false);        
     }
@@ -125,6 +131,7 @@ public class TimeSequenceState extends BaseAppState {
         
         this.timeState = getState(TimeState.class);
         this.frameTime = Statistics.getSequence("frameTime", true);
+        this.msgSize = Statistics.getTracker("messageSize", 5, true);
 
         this.root = new Node("TimeSequenceHud");
  
@@ -135,6 +142,8 @@ public class TimeSequenceState extends BaseAppState {
             root.attachChild(e.geom);
             e.geom.setLocalTranslation(0, offset, 0);
             e.geom.setLocalScale(1, 10, 1);
+            e.label.setLocalTranslation(50, offset + 15, 0);
+            root.attachChild(e.label);
             
             offset += 10;
         }
@@ -142,6 +151,10 @@ public class TimeSequenceState extends BaseAppState {
         Camera cam = app.getCamera();        
         
         root.setLocalTranslation(cam.getWidth() - 200, cam.getHeight() - 100, 0);
+ 
+        Node graphRoot = new Node("graphRoot");
+        graphRoot.setLocalTranslation(root.getLocalTranslation().negate());
+        root.attachChild(graphRoot);
  
         realTime = createTimeMarker(ColorRGBA.Yellow);
         offsetTime = createTimeMarker(ColorRGBA.Magenta); 
@@ -152,10 +165,30 @@ public class TimeSequenceState extends BaseAppState {
         Material mat = GuiGlobals.getInstance().createMaterial(ColorRGBA.White, false).getMaterial();
         mat.setBoolean("VertexColor", true);
         driftGeom.setMaterial(mat);
-        driftGeom.setLocalTranslation(root.getLocalTranslation().negate());
-        driftGeom.move(0, cam.getHeight() * 0.75f, -10);
+        driftGeom.setLocalTranslation(0, cam.getHeight() * 0.75f, -10);
         driftGeom.setLocalScale(1, 10f/1000000, 1); // 1 ms = 10 pixels
-        root.attachChild(driftGeom);
+        graphRoot.attachChild(driftGeom);
+
+        Label label;
+        label = new Label("time drift");
+        label.setFontSize(10);
+        label.setLocalTranslation(0, cam.getHeight() * 0.75f, -10);
+        graphRoot.attachChild(label);
+
+        msgGraph = new Graph(ColorRGBA.Blue, cam.getWidth());
+        
+        msgGeom = new Geometry("msgSize", msgGraph.mesh);
+        mat = GuiGlobals.getInstance().createMaterial(ColorRGBA.White, false).getMaterial();
+        mat.setBoolean("VertexColor", true);
+        msgGeom.setMaterial(mat);
+        msgGeom.setLocalTranslation(0, cam.getHeight() * 0.80f, -10);
+        msgGeom.setLocalScale(1, 50f/1500, 1); // 50 pixels = 1500 bytes
+        graphRoot.attachChild(msgGeom);
+
+        label = new Label("avg msg size");
+        label.setFontSize(10);
+        label.setLocalTranslation(0, cam.getHeight() * 0.80f, -10);
+        graphRoot.attachChild(label);
                 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.addDelegate(MainGameFunctions.F_TIME_DEBUG, this, "toggleEnabled");
@@ -176,6 +209,7 @@ public class TimeSequenceState extends BaseAppState {
         ((Main)getApplication()).getGuiNode().attachChild(root);
         resetDrift = true;
         driftGraph.reset();                
+        msgGraph.reset();                
     }
 
     @Override
@@ -219,6 +253,9 @@ public class TimeSequenceState extends BaseAppState {
         long drift = frame - time - driftLock;
         //System.out.println("Drift:" + drift);
         driftGraph.addValue(drift);
+ 
+        long averageMessageSize = msgSize.get();
+        msgGraph.addValue(averageMessageSize);
     }
  
     protected Geometry createTimeMarker( ColorRGBA color ) {
@@ -241,6 +278,7 @@ public class TimeSequenceState extends BaseAppState {
         private Mesh mesh;
         private Geometry geom;
         private Material mat;
+        private Label label;
         
         public SequenceEntry( String name, ColorRGBA color ) {
             this(name, color, 12);
@@ -250,7 +288,10 @@ public class TimeSequenceState extends BaseAppState {
             this.name = name;
             this.sequence = Statistics.getSequence(name, true);
             this.times = new long[size];
-            this.color = color;            
+            this.color = color;
+            this.label = new Label(name);
+            label.setFontSize(10);
+            label.setColor(color);            
         }
         
         private int next( int i ) {
@@ -296,7 +337,7 @@ public class TimeSequenceState extends BaseAppState {
             pos.rewind();
             FloatBuffer colors = (FloatBuffer)cb.getData();
             colors.rewind();
- 
+
             int index = end;           
             for( int i = 0; i < times.length; i++, index = next(index) ) {
                 float time = ((times[index] - baseTime) / 1000000) / 3;
@@ -331,6 +372,7 @@ public class TimeSequenceState extends BaseAppState {
             //mesh.updateBound();
             //geom.updateModelBound();              
         }
+        
     }
     
     private class Graph {
