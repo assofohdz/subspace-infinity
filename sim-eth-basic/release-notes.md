@@ -10,6 +10,8 @@ Version 3
 * Added a debug TimeSequenceState that can pop-up a time sync debug display.
 * Added "Resume" menu item to the In-Game menu.
 * Added an in-game "Help" pop-up mapping to the F1 key.
+* Added Gamepad mapping so "select" button will now open the in-game menu.
+* Added Gamepad mapping so the HAT will strafe/elevate. 
     
 
 Version 2

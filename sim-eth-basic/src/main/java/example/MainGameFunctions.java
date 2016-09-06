@@ -37,6 +37,7 @@
 package example;
 
 import com.jme3.input.KeyInput;
+import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
@@ -61,6 +62,8 @@ public class MainGameFunctions {
     public static void initializeDefaultMappings( InputMapper inputMapper ) {
     
         inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
+        inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_SELECT); // the normal one
+        inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_BUTTON8); // just in case it's not a gamepad
         inputMapper.map(F_IN_GAME_HELP, KeyInput.KEY_F1);
 
         inputMapper.map(F_TIME_DEBUG, KeyInput.KEY_F7);

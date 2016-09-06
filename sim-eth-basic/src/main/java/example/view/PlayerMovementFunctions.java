@@ -93,6 +93,8 @@ public class PlayerMovementFunctions {
             inputMapper.map(F_STRAFE, Axis.JOYSTICK_LEFT_X);
             inputMapper.map(F_STRAFE, KeyInput.KEY_D);
             inputMapper.map(F_STRAFE, InputState.Negative, KeyInput.KEY_A);
+            
+            inputMapper.map(F_STRAFE, Axis.JOYSTICK_HAT_X);
         }
 
         if( !inputMapper.hasMappings(F_ELEVATE) ) {
@@ -100,6 +102,8 @@ public class PlayerMovementFunctions {
             // one "axis".
             inputMapper.map(F_ELEVATE, KeyInput.KEY_Q);
             inputMapper.map(F_ELEVATE, InputState.Negative, KeyInput.KEY_Z);
+            
+            inputMapper.map(F_ELEVATE, Axis.JOYSTICK_HAT_Y);
         } 
 
         if( !inputMapper.hasMappings(F_X_ROTATE) ) {
