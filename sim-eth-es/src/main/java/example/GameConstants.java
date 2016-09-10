@@ -61,6 +61,12 @@ public class GameConstants {
      *  avoids tying up the main connection.
      */
     public static final int CHAT_CHANNEL = 0;
+    
+    /**
+     *  Send entity-related messages over a separate channel to avoid 
+     *  clogging up the main channels.
+     */
+    public static final int ES_CHANNEL = 1; 
         
     public static final int GRID_CELL_SIZE = 32;
     

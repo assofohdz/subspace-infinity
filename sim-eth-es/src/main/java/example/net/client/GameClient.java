@@ -49,6 +49,9 @@ import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.ethereal.EtherealClient;
 import com.simsilica.ethereal.TimeSource;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.es.client.EntityDataClientService;
+
 import example.GameConstants;
 import example.net.chat.client.ChatClientService;
 
@@ -62,6 +65,7 @@ public class GameClient {
     static Logger log = LoggerFactory.getLogger(GameClient.class);
 
     private Client client;
+    private EntityData ed;
     
     public GameClient( String host, int port ) throws IOException {
         log.info("Connecting to:" + host + " " + port);
@@ -74,11 +78,16 @@ public class GameClient {
                                          new RmiClientService(),
                                          new AccountClientService(),
                                          new GameSessionClientService(),
+                                         new EntityDataClientService(GameConstants.ES_CHANNEL),
                                          new ChatClientService(GameConstants.CHAT_CHANNEL),
                                          new EtherealClient(GameConstants.OBJECT_PROTOCOL,
                                                             GameConstants.ZONE_GRID,
                                                             GameConstants.ZONE_RADIUS)                                         
                                          );
+
+        // Can grab this even before started but you won't be able to retrieve
+        // entities until the connection has been fully setup.
+        this.ed = client.getServices().getService(EntityDataClientService.class).getEntityData();                                         
     }
 
     public TimeSource getTimeSource() {
@@ -87,6 +96,10 @@ public class GameClient {
 
     public Client getClient() {
         return client;
+    }
+
+    public EntityData getEntityData() {
+        return ed;
     }
 
     public void start() {

@@ -49,6 +49,11 @@ import com.jme3.network.service.rpc.RpcHostedService;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.es.base.DefaultEntityData;
+import com.simsilica.es.server.EntityDataHostedService;
+import com.simsilica.es.server.EntityUpdater; // from SiO2
+
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 
@@ -87,6 +92,9 @@ public class GameServer {
         // Create a separate channel to do chat stuff so it doesn't interfere
         // with any real game stuff.
         server.addChannel(port + 1);
+
+        // And a separate channel for ES stuff
+        server.addChannel(port + 2);
         
         server.getServices().addServices(new RpcHostedService(),
                                          new RmiHostedService(),
@@ -111,6 +119,13 @@ public class GameServer {
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
         systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
+ 
+        // Setup our entity data and the hosting service
+        DefaultEntityData ed = new DefaultEntityData();
+        server.getServices().addService(new EntityDataHostedService(GameConstants.ES_CHANNEL, ed));
+        
+        // Add it to the game systems so that we send updates properly
+        systems.addSystem(new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));
         
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later
