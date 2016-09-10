@@ -48,6 +48,11 @@ import com.jme3.network.service.rmi.RmiRegistry;
 
 import com.simsilica.event.EventBus;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.Name;
+import com.simsilica.es.server.EntityDataHostedService;
+
 import example.net.AccountSession;
 import example.net.AccountSessionListener;
 
@@ -65,10 +70,12 @@ public class AccountHostedService extends AbstractHostedConnectionService {
 
     private static final String ATTRIBUTE_SESSION = "account.session";
     private static final String ATTRIBUTE_PLAYER_NAME = "account.playerName";
+    private static final String ATTRIBUTE_PLAYER_ENTITY = "account.playerEntity";
 
     private RmiHostedService rmiService;
  
     private String serverInfo;
+    private EntityData ed;
     
     public AccountHostedService( String serverInfo ) {
         this.serverInfo = serverInfo;
@@ -85,9 +92,18 @@ public class AccountHostedService extends AbstractHostedConnectionService {
         this.rmiService = getService(RmiHostedService.class);
         if( rmiService == null ) {
             throw new RuntimeException("AccountHostedService requires an RMI service.");
-        }
+        }        
     }
-    
+ 
+    @Override
+    public void start() {    
+        EntityDataHostedService eds = getService(EntityDataHostedService.class);
+        if( eds == null ) {
+            throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
+        }
+        this.ed = eds.getEntityData();
+    }
+   
     @Override
     public void startHostingOnConnection( HostedConnection conn ) {
         
@@ -119,6 +135,7 @@ public class AccountHostedService extends AbstractHostedConnectionService {
  
         private HostedConnection conn;
         private AccountSessionListener callback;
+        private EntityId player;
         
         public AccountSessionImpl( HostedConnection conn ) {
             this.conn = conn;
@@ -147,6 +164,12 @@ public class AccountHostedService extends AbstractHostedConnectionService {
         public void login( String playerName ) {
             log.info("login(" + playerName + ")");
             conn.setAttribute(ATTRIBUTE_PLAYER_NAME, playerName);
+ 
+            // Create the player entity
+            player = ed.createEntity();
+            conn.setAttribute(ATTRIBUTE_PLAYER_ENTITY, player);
+            ed.setComponents(player, new Name(playerName));
+            log.info("Created player entity:" + player + " for:" + playerName);
             
             // And let them know they were successful
             getCallback().notifyLoginStatus(true);

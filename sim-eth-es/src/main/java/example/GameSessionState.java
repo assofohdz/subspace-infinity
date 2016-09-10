@@ -54,6 +54,7 @@ import example.net.client.GameSessionClientService;
 import example.net.chat.ChatSessionListener;
 import example.net.chat.client.ChatClientService;
 import example.view.ModelViewState;
+import example.view.PlayerListState;
 import example.view.PlayerMovementState;
 import example.view.SkyState;
 import example.view.SpaceGridState;
@@ -97,6 +98,7 @@ public class GameSessionState extends CompositeAppState {
         addChild(new TimeSequenceState(), true); 
 
         addChild(new HelpState(), true); 
+        addChild(new PlayerListState(), true); 
     }
  
     public int getShipId() {
