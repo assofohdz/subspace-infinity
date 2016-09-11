@@ -86,7 +86,6 @@ public class ModelViewState extends BaseAppState {
     
     private Node modelRoot;
     private Node hudLabelRoot;
-    private Camera camera;
     
     private MobContainer mobs;
 
@@ -104,10 +103,7 @@ public class ModelViewState extends BaseAppState {
     @Override
     protected void initialize( Application app ) {
         modelRoot = new Node();
-        hudLabelRoot = new Node("HUD labels");
         
-        this.camera = app.getCamera();
- 
         // Retrieve the time source from the network connection
         // The time source will give us a time in recent history that we should be
         // viewing.  This currently defaults to -100 ms but could vary (someday) depending
@@ -132,13 +128,11 @@ public class ModelViewState extends BaseAppState {
         mobs.start();
     
         ((Main)getApplication()).getRootNode().attachChild(modelRoot);
-        ((Main)getApplication()).getGuiNode().attachChild(hudLabelRoot);
     }
 
     @Override
     protected void onDisable() {
         modelRoot.removeFromParent();
-        hudLabelRoot.removeFromParent();
         
         mobs.stop();
         mobs = null;
