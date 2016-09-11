@@ -84,6 +84,10 @@ public class AccountHostedService extends AbstractHostedConnectionService {
     public static String getPlayerName( HostedConnection conn ) {
         return conn.getAttribute(ATTRIBUTE_PLAYER_NAME);   
     }
+
+    public static EntityId getPlayerEntity( HostedConnection conn ) {
+        return conn.getAttribute(ATTRIBUTE_PLAYER_ENTITY);   
+    }
  
     @Override
     protected void onInitialize( HostedServiceManager s ) {
@@ -120,11 +124,16 @@ public class AccountHostedService extends AbstractHostedConnectionService {
     @Override   
     public void stopHostingOnConnection( HostedConnection conn ) {
         log.debug("stopHostingOnConnection(" + conn + ")");
-        String playerName = getPlayerName(conn);
-        if( playerName != null ) {
+        AccountSessionImpl account = conn.getAttribute(ATTRIBUTE_SESSION);
+        if( account != null ) {
+            String playerName = getPlayerName(conn);        
             log.debug("publishing playerLoggedOff event for:" + conn);
             // Was really logged on before
-            EventBus.publish(AccountEvent.playerLoggedOff, new AccountEvent(conn, playerName));            
+            EventBus.publish(AccountEvent.playerLoggedOff, new AccountEvent(conn, playerName, account.player));
+                                                            
+            // clear the account session info
+            account.dispose();
+            conn.setAttribute(ATTRIBUTE_SESSION, account);            
         }
     }
  
@@ -176,7 +185,13 @@ public class AccountHostedService extends AbstractHostedConnectionService {
             
             log.debug("publishing playerLoggedOn event for:" + conn);
             // Notify 'logged in' only after we've told the player themselves            
-            EventBus.publish(AccountEvent.playerLoggedOn, new AccountEvent(conn, playerName));            
+            EventBus.publish(AccountEvent.playerLoggedOn, new AccountEvent(conn, playerName, player));            
+        }
+        
+        public void dispose() {
+            // The player is the ship is the entity... so we need to delete
+            // the ship
+            ed.removeEntity(player);
         }
     }    
 }

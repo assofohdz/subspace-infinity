@@ -62,6 +62,7 @@ import com.simsilica.sim.GameSystemManager;
 
 import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
+import example.es.*;
 import example.sim.*;
 
 /**
@@ -130,8 +131,16 @@ public class GameServer {
         // Add it to the game systems so that we send updates properly
         systems.addSystem(new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));
 
+        // Add another publisher to post object updates to our server-side
+        // BodyPosition components.  This will also make BodyPosition available
+        // on the clients.
+        systems.addSystem(new BodyPositionPublisher());
+
         // Register some custom serializers
         registerSerializers();
+        
+        // Make the EntityData available to other systems
+        systems.register(EntityData.class, ed);
         
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later
@@ -140,6 +149,8 @@ public class GameServer {
     
     protected void registerSerializers() {
         Serializer.registerClass(Name.class, new FieldSerializer());
+        
+        Serializer.registerClass(BodyPosition.class, new FieldSerializer());
     }      
     
     public Server getServer() {
