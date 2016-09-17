@@ -85,7 +85,6 @@ public class ModelViewState extends BaseAppState {
     private TimeSource timeSource;
     
     private Node modelRoot;
-    private Node hudLabelRoot;
     
     private MobContainer mobs;
 
