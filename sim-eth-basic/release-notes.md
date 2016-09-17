@@ -1,3 +1,9 @@
+Version 4 (unreleased)
+----------
+* Converted ModelViewState to use TimeState instead of calling the TimeSource
+    directly.
+    
+
 Version 3
 ----------
 * Added ability to configure a server message on the stand-alone
