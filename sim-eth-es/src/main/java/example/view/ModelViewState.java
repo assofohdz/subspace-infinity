@@ -68,6 +68,7 @@ import com.simsilica.mathd.trans.TransitionBuffer;
 import example.ConnectionState;
 import example.GameSessionState;
 import example.Main;
+import example.TimeState;
 import example.es.BodyPosition;
 import example.net.GameSessionListener;
 import example.net.client.GameSessionClientService;
@@ -82,7 +83,7 @@ public class ModelViewState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(ModelViewState.class);
 
     private EntityData ed;
-    private TimeSource timeSource;
+    private TimeState timeState;
     
     private Node modelRoot;
     
@@ -111,7 +112,11 @@ public class ModelViewState extends BaseAppState {
         // articles at:
         // https://developer.valvesoftware.com/wiki/Source_Multiplayer_Networking
         // https://developer.valvesoftware.com/wiki/Latency_Compensating_Methods_in_Client/Server_In-game_Protocol_Design_and_Optimization
-        this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+        //this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+        // 
+        // We now grab time from the TimeState which wraps the TimeSource to give
+        // consistent timings over the whole frame
+        this.timeState = getState(TimeState.class);
     
         this.ed = getState(ConnectionState.class).getEntityData();
     }
@@ -141,7 +146,7 @@ public class ModelViewState extends BaseAppState {
     public void update( float tpf ) {
  
         // Grab a consistent time for this frame
-        long time = timeSource.getTime();
+        long time = timeState.getTime();
 
         // Update all of the models
         mobs.update();
