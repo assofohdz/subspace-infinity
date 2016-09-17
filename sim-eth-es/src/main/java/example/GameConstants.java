@@ -67,7 +67,11 @@ public class GameConstants {
      *  clogging up the main channels.
      */
     public static final int ES_CHANNEL = 1; 
-        
+ 
+    /**
+     *  The size of the rendered space-grid cells.  This is just a visualization
+     *  setting but it's best if it is at least a multiple/factor of the gridSize.
+     */       
     public static final int GRID_CELL_SIZE = 32;
     
     // To allow players to see farther in space, we'll use a larger grid
