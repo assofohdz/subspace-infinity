@@ -34,41 +34,42 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package example.sim;
+package example.es;
 
-import com.simsilica.mathd.*;
-import com.simsilica.es.*;
+import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityData;
 
-import example.es.*;
 
 /**
- *  Utility methods for creating the common game entities used by 
- *  the simulation.  In cases where a game entity may have multiple
- *  specific componnets or dependencies used to create it, it can be
- *  more convenient to have a centralized factory method.  Especially
- *  if those objects are widely used.  For entities with only a few
- *  components or that are created by one system and only consumed by
- *  one other, then this is not necessarily true.
+ *  For visible game objects, this is the type of object.
  *
  *  @author    Paul Speed
  */
-public class GameEntities {
-
-    public static EntityId createShip( EntityId parent, EntityData ed ) {
-        EntityId result = ed.createEntity();
-        Name name = ed.getComponent(parent, Name.class);
-        ed.setComponent(result, name);
-        ed.setComponents(result, ObjectTypes.shipType(ed),
-                         new MassProperties(1/50.0), new SphereShape(3, new Vec3d()));
-        
-        return result;
+public class ObjectType implements EntityComponent {
+    
+    private int type;
+ 
+    protected ObjectType() {
     }
     
-    public static EntityId createGravSphere( Vec3d pos, double radius, EntityData ed ) {
-        EntityId result = ed.createEntity();
-        ed.setComponents(result, ObjectTypes.gravSphereType(ed), 
-                         new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0)), 
-                         new SphereShape(radius, new Vec3d()));
-        return result;         
+    public ObjectType( int type ) {
+        this.type = type;
     }
+    
+    public static ObjectType create( String typeName, EntityData ed ) {
+        return new ObjectType(ed.getStrings().getStringId(typeName, true));
+    }
+    
+    public int getType() {
+        return type;
+    }
+    
+    public String getTypeName( EntityData ed ) {
+        return ed.getStrings().getString(type);                 
+    }
+ 
+    @Override   
+    public String toString() {
+        return getClass().getSimpleName() + "[type=" + type + "]";
+    }     
 }

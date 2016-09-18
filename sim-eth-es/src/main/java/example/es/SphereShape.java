@@ -49,6 +49,12 @@ public class SphereShape implements EntityComponent {
     
     private double radius;
     private Vec3d offset;
+ 
+    /**
+     *  For SpiderMonkey serialization purposes.
+     */   
+    protected SphereShape() {
+    }
     
     /**
      *  Creates a new sphere collision shape with the specified

@@ -49,6 +49,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.material.Material;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
+import com.jme3.scene.shape.*;
 import com.jme3.texture.Texture;
 import com.jme3.util.SafeArrayList;
 
@@ -69,7 +70,7 @@ import example.ConnectionState;
 import example.GameSessionState;
 import example.Main;
 import example.TimeState;
-import example.es.BodyPosition;
+import example.es.*;
 import example.net.GameSessionListener;
 import example.net.client.GameSessionClientService;
 
@@ -86,18 +87,17 @@ public class ModelViewState extends BaseAppState {
     private TimeState timeState;
     
     private Node modelRoot;
+ 
+    private Map<EntityId, Spatial> modelIndex = new HashMap<>();
     
     private MobContainer mobs;
+    private ModelContainer models;
 
     public ModelViewState() {
     }
 
     public Spatial getModel( EntityId id ) {
-        Mob mob = mobs.getObject(id);
-        if( mob == null ) {
-            return null;
-        }
-        return mob.spatial;
+        return modelIndex.get(id);
     }
 
     @Override
@@ -118,7 +118,7 @@ public class ModelViewState extends BaseAppState {
         // consistent timings over the whole frame
         this.timeState = getState(TimeState.class);
     
-        this.ed = getState(ConnectionState.class).getEntityData();        
+        this.ed = getState(ConnectionState.class).getEntityData();
     }
 
     @Override
@@ -129,7 +129,9 @@ public class ModelViewState extends BaseAppState {
     protected void onEnable() {
         
         mobs = new MobContainer(ed);
-        mobs.start();
+        models = new ModelContainer(ed);
+        mobs.start(); 
+        models.start();
     
         ((Main)getApplication()).getRootNode().attachChild(modelRoot);
     }
@@ -137,9 +139,11 @@ public class ModelViewState extends BaseAppState {
     @Override
     protected void onDisable() {
         modelRoot.removeFromParent();
-        
-        mobs.stop();
+
+        models.stop();
+        mobs.stop();        
         mobs = null;
+        models = null;        
     }
 
     @Override
@@ -149,6 +153,7 @@ public class ModelViewState extends BaseAppState {
         long time = timeState.getTime();
 
         // Update all of the models
+        models.update();
         mobs.update();
         for( Mob mob : mobs.getArray() ) {
             mob.updateSpatial(time);
@@ -172,6 +177,70 @@ public class ModelViewState extends BaseAppState {
         
         return result;
     }
+
+    protected Spatial createGravSphere( Entity entity ) {
+        
+        SphereShape shape = ed.getComponent(entity.getId(), SphereShape.class);
+        float radius = shape == null ? 1 : (float)shape.getRadius();
+                 
+        GuiGlobals globals = GuiGlobals.getInstance(); 
+        Sphere sphere = new Sphere(40, 40, radius);
+        sphere.setTextureMode(Sphere.TextureMode.Projected);
+        sphere.scaleTextureCoordinates(new Vector2f(60, 40));
+        Geometry geom = new Geometry("test", sphere);
+        Texture texture = globals.loadTexture("Textures/gravsphere.png", true, true);
+        Material mat = globals.createMaterial(texture, false).getMaterial();
+        geom.setMaterial(mat);
+        
+        geom.setLocalTranslation(16, 16, 16);
+        geom.rotate(-FastMath.HALF_PI, 0, 0);
+        
+        return geom;
+    }
+
+    protected Spatial createModel( Entity entity ) {
+        // Check to see if one already exists
+        Spatial result = modelIndex.get(entity.getId());
+        if( result != null ) {
+            return result;
+        }
+        
+        // Else figure out what type to create... 
+        ObjectType type = entity.get(ObjectType.class);
+        String typeName = type.getTypeName(ed);
+        switch( typeName ) {
+            case ObjectTypes.SHIP:
+                result = createShip(entity);
+                break;
+            case ObjectTypes.GRAV_SPHERE:
+                result = createGravSphere(entity);
+                break;
+            default:
+                throw new RuntimeException("Unknown spatial type:" + typeName); 
+        }
+        
+        // Add it to the index
+        modelIndex.put(entity.getId(), result);
+ 
+        modelRoot.attachChild(result);       
+        
+        return result;        
+    }
+
+    protected void updateModel( Spatial spatial, Entity entity, boolean updatePosition ) {
+        if( updatePosition ) {
+            Position pos = entity.get(Position.class);
+            
+            // I like to move it... move it...
+            spatial.setLocalTranslation(pos.getLocation().toVector3f());
+            spatial.setLocalRotation(pos.getFacing().toQuaternion());
+        }
+    }
+    
+    protected void removeModel( Spatial spatial, Entity entity ) { 
+        modelIndex.remove(entity.getId());
+        spatial.removeFromParent();
+    }
     
     private class Mob {
         Entity entity;
@@ -184,8 +253,8 @@ public class ModelViewState extends BaseAppState {
         public Mob( Entity entity ) {
             this.entity = entity;
 
-            this.spatial = createShip(entity);
-            modelRoot.attachChild(spatial);
+            this.spatial = createModel(entity); //createShip(entity);
+            //modelRoot.attachChild(spatial);
  
             BodyPosition bodyPos = entity.get(BodyPosition.class);
             // BodyPosition requires special management to make
@@ -221,6 +290,7 @@ public class ModelViewState extends BaseAppState {
         }
         
         protected void updateComponents() {
+            updateModel(spatial, entity, false);
         }
         
         protected void setVisible( boolean f ) {
@@ -239,14 +309,16 @@ public class ModelViewState extends BaseAppState {
             }
         }
         
-        public void dispose() {
-            spatial.removeFromParent();
+        public void dispose() { 
+            if( models.getObject(entity.getId()) == null ) {
+                removeModel(spatial, entity);
+            }
         }
     }
     
     private class MobContainer extends EntityContainer<Mob> {
         public MobContainer( EntityData ed ) {
-            super(ed, BodyPosition.class);
+            super(ed, ObjectType.class, BodyPosition.class);
         }
     
         @Override     
@@ -271,5 +343,37 @@ System.out.println("MobContainer.addObject(" + e + ")");
         }            
     }
 
+    /**
+     *  Contains the static objects... care needs to be taken that if
+     *  an object exists in both the MobContainer and this one that the
+     *  MobContainer takes precedence.
+     */
+    private class ModelContainer extends EntityContainer<Spatial> {
+        public ModelContainer( EntityData ed ) {
+            super(ed, ObjectType.class, Position.class);
+        }
+        
+        @Override       
+        protected Spatial addObject( Entity e ) {
+System.out.println("ModelContainer.addObject(" + e + ")");
+            Spatial result = createModel(e);
+            updateObject(result, e);
+            return result;        
+        }
+    
+        @Override       
+        protected void updateObject( Spatial object, Entity e ) {
+System.out.println("MobContainer.updateObject(" + e + ")");        
+            updateModel(object, e, true);
+        }
+    
+        @Override       
+        protected void removeObject( Spatial object, Entity e ) {
+            if( mobs.getObject(e.getId()) == null ) {
+                removeModel(object, e);
+            }
+        }            
+        
+    }
 }
 

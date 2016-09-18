@@ -141,6 +141,9 @@ public class GameServer {
         
         // Make the EntityData available to other systems
         systems.register(EntityData.class, ed);
+ 
+        // Add a system for creating the basic "world" entities
+        systems.addSystem(new BasicEnvironment());
         
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later
@@ -151,6 +154,9 @@ public class GameServer {
         Serializer.registerClass(Name.class, new FieldSerializer());
         
         Serializer.registerClass(BodyPosition.class, new FieldSerializer());
+        Serializer.registerClass(ObjectType.class, new FieldSerializer());
+        Serializer.registerClass(Position.class, new FieldSerializer());
+        Serializer.registerClass(SphereShape.class, new FieldSerializer());
     }      
     
     public Server getServer() {
