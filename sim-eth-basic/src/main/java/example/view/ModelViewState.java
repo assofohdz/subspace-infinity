@@ -155,6 +155,12 @@ public class ModelViewState extends BaseAppState {
     
     protected void addModel( ObjectInfo info ) {
  
+        // Look up the name for the player
+        PlayerInfo playerInfo = playerIndex.get(info.shipId);
+        if( playerInfo != null ) {
+            info.setPlayerName(playerInfo.playerName);
+        }
+ 
         Spatial model = createShip(-1, "", info.shipId); 
         models.put(info.shipId, model);       
         modelRoot.attachChild(model);
@@ -165,8 +171,10 @@ public class ModelViewState extends BaseAppState {
         // If the ship is our ship then we'll hide it else it looks bad.
         if( info.shipId == getState(GameSessionState.class).getShipId() ) {
             info.localPlayerShip = true;
-            model.setCullHint(Spatial.CullHint.Always);
         }
+        
+        // Set the cull hint based on the visibility setting
+        info.resetVisibility();
     }
     
     protected void removeModel( int id ) {
@@ -289,6 +297,13 @@ public class ModelViewState extends BaseAppState {
                 return;
             }
             this.visible = f;
+            resetVisibility();
+        }
+ 
+        protected void resetVisibility() {
+            if( spatial == null ) {
+                return;
+            }
             if( visible && !localPlayerShip ) {
                 spatial.setCullHint(Spatial.CullHint.Inherit);
                 shipLabel.setCullHint(Spatial.CullHint.Inherit);
@@ -358,9 +373,16 @@ public class ModelViewState extends BaseAppState {
         public void playerJoined( int clientId, String playerName, int shipId ){
             log.info("playerJoined(" + clientId + ", " + playerName + ", " + shipId + ")");
             playerIndex.put(shipId, new PlayerInfo(clientId, playerName, shipId));
-            
-            ObjectInfo shipInfo = getObjectInfo(shipId, true);
-            shipInfo.setPlayerName(playerName);          
+ 
+            // See if the ship already exists and if so, set its name... this is
+            // just in case we get the join message after we receive position
+            // updates.
+            // But don't force-create the ship or we'll end up with misplaced
+            // ghosts.
+            ObjectInfo shipInfo = getObjectInfo(shipId, false);
+            if( shipInfo != null ) {
+                shipInfo.setPlayerName(playerName);
+            }          
         }
     
         @Override
@@ -399,15 +421,12 @@ public class ModelViewState extends BaseAppState {
             }
             
             ObjectInfo info = getObjectInfo(obj.getEntityId().intValue(), true); 
-            if( info != null ) {
-                Vector3f pos = obj.getWorldPosition().toVector3f();
-                Quaternion quat = obj.getWorldRotation().toQuaternion();                
-                info.updatePos = pos;
-                info.updateRot = quat;
+            Vector3f pos = obj.getWorldPosition().toVector3f();
+            Quaternion quat = obj.getWorldRotation().toQuaternion();                
+            info.updatePos = pos;
+            info.updateRot = quat;
  
-                info.addFrame(frameTime, pos, quat, true);
-            }
-            
+            info.addFrame(frameTime, pos, quat, true);
         }
 
         @Override
@@ -416,7 +435,7 @@ public class ModelViewState extends BaseAppState {
                 log.trace("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId());
             }
             
-            ObjectInfo info = getObjectInfo(obj.getEntityId().intValue(), true);
+            ObjectInfo info = getObjectInfo(obj.getEntityId().intValue(), false);
             if( info != null ) {
                 // The object has been removed in the 'now' but we need to keep
                 // it until it's history is used up. 

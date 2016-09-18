@@ -2,6 +2,8 @@ Version 4 (unreleased)
 ----------
 * Converted ModelViewState to use TimeState instead of calling the TimeSource
     directly.
+* Fixed some ship model creation bugs that caused ghost ships to appear when
+    connecting after another ship was already connected but out of range.
     
 
 Version 3
