@@ -41,6 +41,8 @@ import java.io.IOException;
 import org.slf4j.*;
 
 import com.jme3.network.Client;
+import com.jme3.network.Message;
+import com.jme3.network.MessageListener;
 import com.jme3.network.Network;
 import com.jme3.network.service.ClientService;
 import com.jme3.network.service.rpc.RpcClientService;
@@ -72,6 +74,9 @@ public class GameClient {
         this.client = Network.connectToServer(GameConstants.GAME_NAME,
                                               GameConstants.PROTOCOL_VERSION,
                                               host, port);
+ 
+        client.addMessageListener(new MessageDebugger());
+        
  
         log.info("Adding services...");                                             
         client.getServices().addServices(new RpcClientService(),
@@ -124,6 +129,25 @@ public class GameClient {
         log.info("close()");
         if( client.isStarted() ) {
             client.close();
+        }
+    }
+    
+    private class MessageDebugger implements MessageListener<Client> {
+        Logger log = LoggerFactory.getLogger("diagnostics.MessageDebugger");
+        private boolean objectStateStarted = false;
+        
+        public MessageDebugger() {
+        }
+                
+        public void messageReceived( Client source, Message m ) {
+            if( m instanceof com.simsilica.ethereal.net.ObjectStateMessage ) {
+                if( !objectStateStarted ) {
+                    log.info("Object state updates started.");
+                    objectStateStarted = true;
+                }
+            } else if( log.isInfoEnabled() ) {
+                log.info("Received:" + m);
+            }
         }
     }                                               
 }
