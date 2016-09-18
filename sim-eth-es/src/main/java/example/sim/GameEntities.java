@@ -34,37 +34,32 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package example.net;
+package example.sim;
 
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
-import com.jme3.network.service.rmi.Asynchronous;
+import com.simsilica.mathd.*;
+import com.simsilica.es.*;
 
-import com.simsilica.es.EntityId;
+import example.es.*;
 
 /**
- *  The client's view of the 'game'.  Provides necessary access to the
- *  general game interaction and possibly game or player state.
+ *  Utility methods for creating the common game entities used by 
+ *  the simulation.  In cases where a game entity may have multiple
+ *  specific componnets or dependencies used to create it, it can be
+ *  more convenient to have a centralized factory method.  Especially
+ *  if those objects are widely used.  For entities with only a few
+ *  components or that are created by one system and only consumed by
+ *  one other, then this is not necessarily true.
  *
  *  @author    Paul Speed
  */
-public interface GameSession {
- 
-    /**
-     *  Returns the ID of the ship entity.
-     */
-    public EntityId getShip();
+public class GameEntities {
 
-    /**
-     *  Returns the ID of the player entity.
-     */
-    public EntityId getPlayer();
- 
-    /**
-     *  Sends information to the game back end about the current
-     *  movement state of the player from user input.  Because this
-     *  state is continuous, it doesn't need to be reliable.  
-     */
-    @Asynchronous(reliable=false)
-    public void move( Quaternion rotation, Vector3f thrust );   
+    public static EntityId createShip( EntityId parent, EntityData ed ) {
+        EntityId result = ed.createEntity();
+        Name name = ed.getComponent(parent, Name.class);
+        ed.setComponent(result, name);
+        ed.setComponents(result, new MassProperties(1/50.0), new SphereShape(3, new Vec3d()));
+        
+        return result;
+    }
 }

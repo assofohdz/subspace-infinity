@@ -60,12 +60,16 @@ import com.simsilica.sim.SimTime;
 
 import com.simsilica.ethereal.EtherealHost;
 
+import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.server.EntityDataHostedService;
 
+import example.es.Position;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
 import example.sim.Body;
+import example.sim.GameEntities;
 import example.sim.PhysicsListener;
 import example.sim.ShipDriver;
 import example.sim.SimplePhysics;
@@ -85,7 +89,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     private static final String ATTRIBUTE_SESSION = "game.session";
 
     private GameSystemManager gameSystems;
-    private SimplePhysics physics;
+    private EntityData ed;
+    private SimplePhysics physics;    
 
     private RmiHostedService rmiService;
     private AccountObserver accountObserver = new AccountObserver();
@@ -122,12 +127,18 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     public void start() {
         super.start();
             
+        EntityDataHostedService eds = getService(EntityDataHostedService.class);
+        if( eds == null ) {
+            throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
+        }
+        this.ed = eds.getEntityData();
+        
         // Get the physics system... it's not available yet when onInitialize() is called.
         physics = gameSystems.get(SimplePhysics.class);
         if( physics == null ) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
-        //physics.addPhysicsListener(new NaivePhysicsSender());
+        //physics.addPhysicsListener(new NaivePhysicsSender());        
     }
  
     @Override
@@ -152,7 +163,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
  
         // Setup to start using SimEthereal synching
         getService(EtherealHost.class).startHostingOnConnection(conn);
-        getService(EtherealHost.class).setConnectionObject(conn, session.entityId.getId(), new Vec3d());       
+        getService(EtherealHost.class).setConnectionObject(conn, session.shipEntity.getId(), new Vec3d());       
  
         // Start hosting on the chat server also
         String name = AccountHostedService.getPlayerName(conn);
@@ -213,21 +224,28 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
  
         private HostedConnection conn;
         private GameSessionListener callback;
-        private EntityId entityId;
+        private EntityId playerEntity;
+        private EntityId shipEntity;
         private ShipDriver shipDriver;
         
-        public GameSessionImpl( EntityId entityId, HostedConnection conn ) {
-            this.entityId = entityId;
+        public GameSessionImpl( EntityId playerEntity, HostedConnection conn ) {
+            this.playerEntity = playerEntity;
             this.conn = conn;
             
             // Create a ship for the player
             this.shipDriver = new ShipDriver();
             
+            this.shipEntity = GameEntities.createShip(playerEntity, ed);
+            
             // Set the ship driver directly on the Body.  This could
             // also have been managed with a component-based system but 
             // that will wait.
-            Body body = physics.getBody(entityId, true);
-            body.driver = shipDriver;
+            physics.setControlDriver(shipEntity, shipDriver);
+            
+            // Set the position when we want the ship to actually appear
+            // in space 'for real'.
+            ed.setComponent(shipEntity, new Position(1, 1, 1));
+System.out.println("Set position on:" + shipEntity);            
         }
  
         public void initialize() {
@@ -235,15 +253,25 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
  
         public void close() {
             log.debug("Closing game session for:" + conn);        
-            // Remove out physics body
-            physics.removeBody(entityId);
+            // Remove our physics body
+            //physics.removeBody(shipEntity);
+            // Physics body is now removed as a side-effect of the entity
+            // going away.
+            
+            // Remove the ship we created
+            ed.removeEntity(shipEntity);
         }
  
         @Override
-        public EntityId getPlayerObject() {
-            return entityId;
+        public EntityId getPlayer() {
+            return playerEntity;
         }
 
+        @Override
+        public EntityId getShip() {
+            return shipEntity;
+        }
+        
         @Override   
         public void move( Quaternion rotation, Vector3f thrust ) {
             if( log.isTraceEnabled() ) {

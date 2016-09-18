@@ -55,12 +55,16 @@ import example.es.*;
 public class SimplePhysics extends AbstractGameSystem {
 
     private EntityData ed;
+    private BodyContainer bodies;
     
     // Single threaded.... we'll have to take care when adding/removing
     // items.
-    private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
+    //private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
     private Map<EntityId, Body> index = new ConcurrentHashMap<>();
-    
+    private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>(); 
+ 
+    // Still need these to manage physics listener notifications in a 
+    // thread-consistent way   
     private ConcurrentLinkedQueue<Body> toAdd = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Body> toRemove = new ConcurrentLinkedQueue<>();
  
@@ -82,7 +86,25 @@ public class SimplePhysics extends AbstractGameSystem {
         listeners.remove(l);
     }
  
-    public Body getBody( EntityId entityId, boolean create ) {
+    public Body getBody( EntityId entityId ) {
+        return index.get(entityId);
+    }
+ 
+    public void setControlDriver( EntityId entityId, ControlDriver driver ) {
+        synchronized(this) {
+            driverIndex.put(entityId, driver);
+            Body current = getBody(entityId);
+            if( current != null ) {
+                current.driver = driver;
+            }
+        }
+    }
+    
+    public ControlDriver getControlDriver( EntityId entityId ) {
+        return driverIndex.get(entityId);
+    }
+ 
+    protected Body createBody( EntityId entityId, double invMass, double radius, boolean create ) {
         Body result = index.get(entityId);
         if( result == null && create ) {
             synchronized(this) {
@@ -91,14 +113,21 @@ public class SimplePhysics extends AbstractGameSystem {
                     return result;
                 }
                 result = new Body(entityId);
+                result.radius = radius;
+                result.invMass = invMass;
+                
+                // Hookup the driver if it has one waiting
+                result.driver = driverIndex.get(entityId);
+                
+                // Set it up to be managed by physics
                 toAdd.add(result);
                 index.put(entityId, result);         
             }
         }
         return result;
     }
-    
-    public boolean removeBody( EntityId entityId ) {
+ 
+    protected boolean removeBody( EntityId entityId ) {
         Body result = index.remove(entityId);
         if( result != null ) {
             toRemove.add(result);
@@ -117,11 +146,11 @@ public class SimplePhysics extends AbstractGameSystem {
     protected void terminate() {
     }
 
-    private void updateBodyList() {
+    private void fireBodyListListeners() {
         if( !toAdd.isEmpty() ) {
             Body body = null;
             while( (body = toAdd.poll()) != null ) {
-                bodies.add(body);
+                //bodies.add(body);
                 for( PhysicsListener l : listeners.getArray() ) {
                     l.addBody(body);
                 }
@@ -130,7 +159,7 @@ public class SimplePhysics extends AbstractGameSystem {
         if( !toRemove.isEmpty() ) { 
             Body body = null;
             while( (body = toRemove.poll()) != null ) {
-                bodies.remove(body);
+                //bodies.remove(body);
                 for( PhysicsListener l : listeners.getArray() ) {
                     l.removeBody(body);
                 }
@@ -139,13 +168,29 @@ public class SimplePhysics extends AbstractGameSystem {
     }
 
     @Override
+    public void start() {
+        bodies = new BodyContainer(ed);
+        bodies.start();
+    }
+
+    @Override
+    public void stop() {
+        bodies.stop();
+        bodies = null;
+    }
+
+    @Override
     public void update( SimTime time ) {
  
         for( PhysicsListener l : listeners.getArray() ) {
             l.beginFrame(time);
         }
+ 
+        // Update the entity list       
+        bodies.update();
         
-        updateBodyList();
+        // Fire off any pending add/remove events 
+        fireBodyListListeners();
  
         double tpf = time.getTpf();
  
@@ -182,18 +227,30 @@ public class SimplePhysics extends AbstractGameSystem {
             super(ed, Position.class, MassProperties.class, SphereShape.class);
         }
         
+        @Override     
+        protected Body[] getArray() {
+            return super.getArray();
+        }
+    
+        @Override     
         protected Body addObject( Entity e ) {
-            Body newBody = getBody(e.getId(), true);
+            MassProperties mass = e.get(MassProperties.class);
+            SphereShape shape = e.get(SphereShape.class);
+ 
+            // Right now only works for CoG-centered shapes                   
+            Body newBody = createBody(e.getId(), mass.getInverseMass(), shape.getRadius(), true);
             
             Position pos = e.get(Position.class);
             newBody.setPosition(pos);
             return newBody;
         }
     
+        @Override     
         protected void updateObject( Body object, Entity e ) {
             // We don't support live-updating mass or shape right now
         }
     
+        @Override     
         protected void removeObject( Body object, Entity e ) {
             removeBody(e.getId());
         }    

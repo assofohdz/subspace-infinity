@@ -118,7 +118,7 @@ public class ModelViewState extends BaseAppState {
         // consistent timings over the whole frame
         this.timeState = getState(TimeState.class);
     
-        this.ed = getState(ConnectionState.class).getEntityData();
+        this.ed = getState(ConnectionState.class).getEntityData();        
     }
 
     @Override
@@ -200,8 +200,10 @@ public class ModelViewState extends BaseAppState {
             // always lag the player's turning.
             if( entity.getId().getId() == getState(GameSessionState.class).getShipId().getId() ) {
                 this.localPlayerShip = true;
-                spatial.setCullHint(Spatial.CullHint.Always);
             }
+ 
+            // Starts invisible until we know otherwise           
+            resetVisibility();
         }
  
         public void updateSpatial( long time ) {
@@ -226,6 +228,10 @@ public class ModelViewState extends BaseAppState {
                 return;
             }
             this.visible = f;
+            resetVisibility();
+        }
+        
+        protected void resetVisibility() {        
             if( visible && !localPlayerShip ) {
                 spatial.setCullHint(Spatial.CullHint.Inherit);
             } else {
@@ -250,6 +256,7 @@ public class ModelViewState extends BaseAppState {
     
         @Override       
         protected Mob addObject( Entity e ) {
+System.out.println("MobContainer.addObject(" + e + ")");        
             return new Mob(e);
         }
     

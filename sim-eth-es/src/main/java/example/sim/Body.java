@@ -60,6 +60,7 @@ public class Body {
     public Vec3d velocity = new Vec3d();
     public Vec3d acceleration = new Vec3d();
     public double radius = 1;
+    public double invMass = 1;
     public AaBBox bounds = new AaBBox(radius);
     
     public Quatd orientation = new Quatd();

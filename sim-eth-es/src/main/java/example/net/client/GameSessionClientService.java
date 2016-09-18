@@ -73,8 +73,13 @@ public class GameSessionClientService extends AbstractClientService
     }
     
     @Override
-    public EntityId getPlayerObject() {
-        return getDelegate().getPlayerObject();
+    public EntityId getShip() {
+        return getDelegate().getShip();
+    }
+    
+    @Override
+    public EntityId getPlayer() {
+        return getDelegate().getPlayer();
     }
     
     @Override

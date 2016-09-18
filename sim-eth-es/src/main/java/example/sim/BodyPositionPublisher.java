@@ -94,7 +94,7 @@ public class BodyPositionPublisher extends AbstractGameSystem
         
         // Note: we could have also initialized the body position here but
         // we've already done it in SimplePhysics's EntityContainer.
-        ed.setComponent(body.bodyId, bPos);        
+        ed.setComponent(body.bodyId, bPos);
     }
     
     @Override

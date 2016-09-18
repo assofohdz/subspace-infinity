@@ -79,6 +79,8 @@ public class GameSessionState extends CompositeAppState {
     // Temporary reference FIXME
     private PlayerMovementState us;
     private int clientId;
+    
+    private EntityId playerId;
     private EntityId shipId;
 
     public GameSessionState() {
@@ -141,7 +143,8 @@ public class GameSessionState extends CompositeAppState {
         // Temporary FIXME
         clientId = getState(ConnectionState.class).getClientId();
         us = getState(PlayerMovementState.class);
-        shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayerObject();
+        playerId = getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayer();
+        shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getShip();
         log.info("Player object:" + shipId);
         us.setShipId(shipId);
     }
