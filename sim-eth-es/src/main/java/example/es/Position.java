@@ -59,11 +59,11 @@ public class Position implements EntityComponent {
     //private long cellId;
     
     public Position() {
-        this(0, 0);
+        this(0, 0, 0);
     }
     
-    public Position( double x, double y ) {
-        this(new Vec3d(x, y, 0), new Quatd());
+    public Position( double x, double y, double z ) {
+        this(new Vec3d(x, y, z), new Quatd());
     }
     
     public Position( Vec3d loc ) {
