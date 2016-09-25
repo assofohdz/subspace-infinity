@@ -167,7 +167,11 @@ public class ModelViewState extends BaseAppState {
         Spatial ship = assetManager.loadModel("Models/fighter.j3o");
         ship.center();
         Texture texture = assetManager.loadTexture("Textures/ship1.png");
-        Material mat = GuiGlobals.getInstance().createMaterial(texture, false).getMaterial();
+        //Material mat = GuiGlobals.getInstance().createMaterial(texture, false).getMaterial();
+        Material mat = new Material(getApplication().getAssetManager(), "MatDefs/FogUnshaded.j3md");
+        mat.setTexture("ColorMap", texture);
+        mat.setColor("FogColor", new ColorRGBA(0, 0, 0.1f, 1));        
+        mat.setFloat("FogDepth", 64);        
         ship.setMaterial(mat);
  
         Node result = new Node("ship:" + entity.getId());
@@ -189,7 +193,11 @@ public class ModelViewState extends BaseAppState {
         sphere.scaleTextureCoordinates(new Vector2f(60, 40));
         Geometry geom = new Geometry("test", sphere);
         Texture texture = globals.loadTexture("Textures/gravsphere.png", true, true);
-        Material mat = globals.createMaterial(texture, false).getMaterial();
+        //Material mat = globals.createMaterial(texture, false).getMaterial();
+        Material mat = new Material(getApplication().getAssetManager(), "MatDefs/FogUnshaded.j3md");
+        mat.setTexture("ColorMap", texture);
+        mat.setColor("FogColor", new ColorRGBA(0, 0, 0.1f, 1));        
+        mat.setFloat("FogDepth", 256);        
         geom.setMaterial(mat);
         
         geom.setLocalTranslation(16, 16, 16);
