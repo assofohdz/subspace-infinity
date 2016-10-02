@@ -48,6 +48,11 @@ import com.jme3.network.serializing.serializers.FieldSerializer;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rpc.RpcHostedService;
 
+// To test something
+import com.jme3.network.service.AbstractHostedService;
+import com.jme3.network.service.HostedServiceManager;
+import com.jme3.network.service.serializer.ServerSerializerRegistrationsService;
+
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 
@@ -99,6 +104,20 @@ public class GameServer {
 
         // And a separate channel for ES stuff
         server.addChannel(port + 2);
+        
+        // Do some rearranging of the service ordering because we want
+        // to add a delay to see if we can recreate an issue a user is
+        // seeing.        
+        //ServerSerializerRegistrationsService regSvc = server.getServices().getService(ServerSerializerRegistrationsService.class);        
+        //server.getServices().removeService(regSvc);
+        //server.getServices().addService(new DelayService());
+        //server.getServices().addService(regSvc);
+        
+        // Adding a delay for the connectionAdded right after the serializer registration
+        // service gets to run let's the client get a small break in the buffer that should
+        // generally prevent the RpcCall messages from coming too quickly and getting processed
+        // before the SerializerRegistrationMessage has had a chance to process.
+        server.getServices().addService(new DelayService());
         
         server.getServices().addServices(new RpcHostedService(),
                                          new RmiHostedService(),
@@ -276,6 +295,41 @@ public class GameServer {
         }
         
         gs.close();
+    }
+    
+    // Just for debugging something
+    private class DelayService extends AbstractHostedService {
+
+        private void safeSleep( long ms ) {
+            try {
+                Thread.sleep(ms);
+            } catch( InterruptedException e ) {
+                throw new RuntimeException("Checked exceptions are lame", e);
+            }
+        }
+
+        @Override
+        protected void onInitialize( HostedServiceManager serviceManager ) {
+            System.out.println("DelayService.onInitialize()");
+            //safeSleep(2000);
+            //System.out.println("DelayService.delay done");
+        }
+        
+        @Override
+        public void start() {
+            System.out.println("DelayService.start()");
+            //safeSleep(2000);
+            //System.out.println("DelayService.delay done");
+        }
+                
+        @Override
+        public void connectionAdded(Server server, HostedConnection hc) {
+            // Just in case
+            super.connectionAdded(server, hc);
+            System.out.println("DelayService.connectionAdded(" + hc + ")");
+            safeSleep(2000);
+            System.out.println("DelayService.delay done");
+        }
     }
 }
 
