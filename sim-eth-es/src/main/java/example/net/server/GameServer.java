@@ -327,7 +327,7 @@ public class GameServer {
             // Just in case
             super.connectionAdded(server, hc);
             System.out.println("DelayService.connectionAdded(" + hc + ")");
-            safeSleep(2000);
+            safeSleep(500);
             System.out.println("DelayService.delay done");
         }
     }
