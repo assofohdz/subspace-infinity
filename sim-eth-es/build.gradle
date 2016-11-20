@@ -33,6 +33,7 @@ dependencies {
     compile "org.jmonkeyengine:jme3-core:$jmeVersion"
     compile "org.jmonkeyengine:jme3-desktop:$jmeVersion"
     compile "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
+    compile "org.jmonkeyengine:jme3-networking:3.1.0-beta2-SNAPSHOT"
  
     // We definitely want a UI
     //compile "com.simsilica:lemur:[1.8,)"
@@ -58,14 +59,12 @@ dependencies {
 task wrapper(type: Wrapper) {
 }
 
-/*
-This actually exits immediately since there is no standard input stream
 task runServer(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     main = "example.net.server.GameServer"
     jvmArgs '-Dlog4j.configurationFile=server-log4j2.xml'
+    standardInput = System.in
 }
-*/
 
 // Create a custom server start script in the distribution
 task serverStartScript(type: CreateStartScripts) {
