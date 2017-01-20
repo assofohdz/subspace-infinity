@@ -10,7 +10,7 @@ repositories {
     jcenter()
 }
 
-ext.jmeVersion = "[3.1,)" 
+ext.jmeVersion = "3.1.0-beta2-SNAPSHOT" 
 
 project(":assets") {
     apply plugin: "java"
@@ -26,27 +26,32 @@ project(":assets") {
     }    
 }
 
-
 dependencies {
  
     // Need at least basic JME
-    compile "org.jmonkeyengine:jme3-core:$jmeVersion"
+    compile("org.jmonkeyengine:jme3-core:$jmeVersion") {
+        // For some reason if I don't do this then it picks up alpha4 instead
+        // of beta2-SNAPSHOT.
+        force = true
+    }
     compile "org.jmonkeyengine:jme3-desktop:$jmeVersion"
     compile "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
-    compile "org.jmonkeyengine:jme3-networking:3.1.0-beta2-SNAPSHOT"
+    compile("org.jmonkeyengine:jme3-networking:$jmeVersion") {
+        force = true;
+    }
  
     // We definitely want a UI
     //compile "com.simsilica:lemur:[1.8,)"
-    compile "com.simsilica:lemur:1.9.1-SNAPSHOT"
+    compile "com.simsilica:lemur:1.9.1"
     //compile "com.simsilica:lemur-proto:[1.6,)"
-    compile "com.simsilica:lemur-proto:1.7.2-SNAPSHOT"
+    compile "com.simsilica:lemur-proto:1.7.2"
 
     // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
-    compile "com.simsilica:sio2:1.0.3-SNAPSHOT"
-    compile "com.simsilica:sim-math:1.0.2-SNAPSHOT"
+    compile "com.simsilica:sio2:1.0.3"
+    compile "com.simsilica:sim-math:1.0.2"
     //compile "com.simsilica:sim-ethereal:[1.1,)"    
-    compile "com.simsilica:sim-ethereal:1.2.1-SNAPSHOT"
+    compile "com.simsilica:sim-ethereal:1.2.1"
 
     // Standard utility stuff
     compile 'com.google.guava:guava:19.0'
