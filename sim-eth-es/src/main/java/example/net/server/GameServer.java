@@ -89,6 +89,9 @@ public class GameServer {
     public GameServer( int port, String description ) throws IOException {
         this.description = description;
 
+        // Make sure we are running with a fresh serializer registry
+        Serializer.initialize();
+
         this.systems = new GameSystemManager();
         this.loop = new GameLoop(systems);
         
