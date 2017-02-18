@@ -36,7 +36,7 @@ dependencies {
  
     // We definitely want a UI
     compile "com.simsilica:lemur:1.9.1"
-    compile "com.simsilica:lemur-proto:1.7.2"
+    compile "com.simsilica:lemur-proto:1.8.1"
 
     // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
