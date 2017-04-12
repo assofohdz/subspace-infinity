@@ -46,8 +46,9 @@ dependencies {
 
     // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
-    compile "com.simsilica:sio2:1.0.3"
+    compile "com.simsilica:sio2:1.1.0"
     compile "com.simsilica:sim-math:1.0.2"
+//    compile "com.simsilica:sim-math:1.1.1"  // break sim-ethereal 1.2.1
     compile "com.simsilica:sim-ethereal:1.2.1"
 
     // Standard utility stuff
