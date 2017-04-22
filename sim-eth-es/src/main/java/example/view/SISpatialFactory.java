@@ -1,0 +1,204 @@
+package example.view;
+
+import com.jme3.asset.AssetManager;
+import com.jme3.effect.ParticleEmitter;
+import com.jme3.effect.ParticleMesh;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.shape.Quad;
+import com.jme3.texture.plugins.AWTLoader;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityData;
+import example.ConnectionState;
+import example.es.ObjectType;
+import example.es.ObjectTypes;
+/**
+ *
+ * @author Asser
+ */
+public class SISpatialFactory implements ModelFactory {
+
+    private AssetManager assets;
+    private EntityData ed;
+
+    public final static float bulletSize = 0.25f;
+    public final static float bombSize = 0.5f;
+    public final static float bountySize = 0.5f;
+    public final static float shipSize = 1f;
+
+    private EffectFactory ef;
+
+    public SISpatialFactory() {
+    }
+
+    @Override
+    public void setState(ModelViewState state) {
+        this.assets = state.getApplication().getAssetManager();
+        this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
+        
+        
+        this.assets.registerLoader(AWTLoader.class, "bm2");
+        
+    }
+
+    @Override
+    public Spatial createModel(Entity e) {
+        ObjectType type = e.get(ObjectType.class);
+        if (ObjectTypes.SHIP.equals(type.getTypeName(ed))) {
+            //Right now, only the shark is supported
+            return createShip();
+        }
+        if (ObjectTypes.THRUST.equals(type.getTypeName(ed))) {
+            //Create a particle emitter:
+            return createParticleEmitter(e);
+        }
+        if (ObjectTypes.BULLET.equals(type.getTypeName(ed))) {
+            //Create bullet
+            return createBullet(e);
+        }
+        if (ObjectTypes.BOMB.equals(type.getTypeName(ed))) {
+            //Create bomb
+            return createBomb(e);
+        }
+        if (ObjectTypes.EXPLOSION.equals(type.getTypeName(ed))) {
+            //Create explosion
+            return createExplosion(e);
+        }
+        if (ObjectTypes.BOUNTY.equals(type.getTypeName(ed))) {
+            //Create bounty
+            return createBounty(e);
+        } else {
+            throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
+        }
+    }
+
+    private Spatial createShip() {
+        Quad quad = new Quad(shipSize, shipSize);
+        //<-- Move into the material?
+        float halfSize = shipSize * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Ship", quad);
+        Material mat = assets.loadMaterial("Materials/ShipMaterial.j3m");
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        
+        return geom;
+    }
+
+    private Spatial createParticleEmitter(Entity e) {
+        Spatial result = null;
+        ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); //will be overriden in switch
+        switch (e.get((ObjectType.class)).getTypeName(ed)) {
+            //Create a thrust particle emitter
+            case ObjectTypes.THRUST:
+                result = createThrustEmitter(particleEmitter, e);
+        }
+        return result;
+    }
+
+    private Spatial createThrustEmitter(ParticleEmitter thrustEffect, Entity e) {
+
+        Material smokeMat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        smokeMat.setTexture("Texture", assets.loadTexture("Effects/Smoke/Smoke.png"));
+
+        thrustEffect = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 250);
+        thrustEffect.setGravity(0, 0, 0);
+        thrustEffect.setMaterial(smokeMat);
+        thrustEffect.setImagesX(15);
+        thrustEffect.setImagesY(1); // 2x
+        thrustEffect.setEndColor(ColorRGBA.Black);
+        thrustEffect.setStartColor(ColorRGBA.Orange);
+        thrustEffect.setStartSize(0.1f);
+        thrustEffect.setEndSize(0f);
+        thrustEffect.setHighLife(0.25f); //Fits the decay
+        thrustEffect.setLowLife(0.1f);
+        thrustEffect.setNumParticles(1);
+
+        return thrustEffect;
+    }
+
+    private Spatial createBomb(Entity e) {
+        Quad quad = new Quad(bombSize, bombSize);
+        //<-- Move into the material?
+        float halfSize = bombSize * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Bomb", quad);
+        Material mat = assets.loadMaterial("Materials/BombMaterial.j3m");
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+
+    private Spatial createBullet(Entity e) {
+        Quad quad = new Quad(bulletSize, bulletSize);
+        //<-- Move into the material?
+        float halfSize = bulletSize * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Bullet", quad);
+        Material mat = assets.loadMaterial("Materials/BulletMaterial.j3m");
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+
+    private Spatial createExplosion(Entity e) {
+
+        return ef.createExplosion();
+
+//        /** Explosion effect. Uses Texture from jme3-test-data library! */ 
+//        Material debrisMat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+//        debrisMat.setTexture("Texture", assets.loadTexture("Effects/Explosion/Debris.png"));
+//        
+//        ParticleEmitter debrisEffect = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 10);
+//        debrisEffect.setMaterial(debrisMat);
+//        debrisEffect.setImagesX(3); debrisEffect.setImagesY(3); // 3x3 texture animation
+//        debrisEffect.setRotateSpeed(4);
+//        debrisEffect.setSelectRandomImage(true);
+//        debrisEffect.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 4, 0));
+//        debrisEffect.setStartColor(new ColorRGBA(1f, 1f, 1f, 1f));
+//        debrisEffect.setGravity(0f,6f,0f);
+//        debrisEffect.getParticleInfluencer().setVelocityVariation(.60f);
+//        //debrisEffect.setNumParticles(1);
+//        return debrisEffect;
+    }
+
+    private Spatial createBounty(Entity e) {
+        Quad quad = new Quad(bountySize, bountySize);
+        //<-- Move into the material?
+        float halfSize = bountySize * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Bounty", quad);
+        Material mat = assets.loadMaterial("Materials/BountyMaterial.j3m");
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+}

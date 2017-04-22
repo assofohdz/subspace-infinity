@@ -33,7 +33,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example.sim;
 
 import java.util.*;
@@ -45,126 +44,141 @@ import com.simsilica.es.*;
 import com.simsilica.sim.*;
 
 import example.es.*;
+import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.dynamics.World;
+import org.dyn4j.geometry.Circle;
+import org.dyn4j.geometry.MassType;
 
 /**
- *  Just a basic physics simulation that integrates acceleration, 
- *  velocity, and position on "point masses".
+ * Just a basic physics simulation that integrates acceleration, velocity, and
+ * position on "point masses".
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class SimplePhysics extends AbstractGameSystem {
 
     private EntityData ed;
     private BodyContainer bodies;
-    
+
     // Single threaded.... we'll have to take care when adding/removing
     // items.
     //private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
     private Map<EntityId, Body> index = new ConcurrentHashMap<>();
-    private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>(); 
- 
+    private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
+
     // Still need these to manage physics listener notifications in a 
     // thread-consistent way   
     private ConcurrentLinkedQueue<Body> toAdd = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Body> toRemove = new ConcurrentLinkedQueue<>();
- 
+
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
-    
+
+    private World world;
+
     public SimplePhysics() {
     }
- 
+
     /**
-     *  Adds a listener that will be notified about physics related updates.
-     *  This is not a thread safe method call so must be called during setup
-     *  or from the physics/simulation thread.
-     */   
-    public void addPhysicsListener( PhysicsListener l ) {
+     * Adds a listener that will be notified about physics related updates. This
+     * is not a thread safe method call so must be called during setup or from
+     * the physics/simulation thread.
+     */
+    public void addPhysicsListener(PhysicsListener l) {
         listeners.add(l);
     }
 
-    public void removePhysicsListener( PhysicsListener l ) {
+    public void removePhysicsListener(PhysicsListener l) {
         listeners.remove(l);
     }
- 
-    public Body getBody( EntityId entityId ) {
+
+    public Body getBody(EntityId entityId) {
         return index.get(entityId);
     }
- 
-    public void setControlDriver( EntityId entityId, ControlDriver driver ) {
-        synchronized(this) {
+
+    public void setControlDriver(EntityId entityId, ControlDriver driver) {
+        synchronized (this) {
             driverIndex.put(entityId, driver);
             Body current = getBody(entityId);
-            if( current != null ) {
+            if (current != null) {
                 current.driver = driver;
             }
         }
     }
-    
-    public ControlDriver getControlDriver( EntityId entityId ) {
+
+    public ControlDriver getControlDriver(EntityId entityId) {
         return driverIndex.get(entityId);
     }
- 
-    protected Body createBody( EntityId entityId, double invMass, double radius, boolean create ) {
+
+    protected Body createBody(EntityId entityId, double invMass, double radius, boolean create) {
         Body result = index.get(entityId);
-        if( result == null && create ) {
-            synchronized(this) {
+        if (result == null && create) {
+            synchronized (this) {
                 result = index.get(entityId);
-                if( result != null ) {
+                if (result != null) {
                     return result;
                 }
                 result = new Body(entityId);
-                result.radius = radius;
+                result.radiusLocal = radius;
                 result.invMass = invMass;
-                
+
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
-                
+
+                // Set it up to be managed by Dyn4j
+                BodyFixture fixture = new BodyFixture(new Circle(radius));
+                result.addFixture(fixture);
+                result.setMassType(MassType.NORMAL);
+                world.addBody(result);
+
                 // Set it up to be managed by physics
                 toAdd.add(result);
-                index.put(entityId, result);         
+                index.put(entityId, result);
             }
         }
         return result;
     }
- 
-    protected boolean removeBody( EntityId entityId ) {
+
+    protected boolean removeBody(EntityId entityId) {
         Body result = index.remove(entityId);
-        if( result != null ) {
+        if (result != null) {
             toRemove.add(result);
             return true;
         }
         return false;
     }
-    
+
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        if( ed == null ) {
+        if (ed == null) {
             throw new RuntimeException("SimplePhysics system requires an EntityData object.");
         }
+
+        world = new World();
+        world.setGravity(World.ZERO_GRAVITY);
     }
-    
+
     protected void terminate() {
     }
 
     private void fireBodyListListeners() {
-        if( !toAdd.isEmpty() ) {
+        if (!toAdd.isEmpty()) {
             Body body = null;
-            while( (body = toAdd.poll()) != null ) {
+            while ((body = toAdd.poll()) != null) {
                 //bodies.add(body);
-                for( PhysicsListener l : listeners.getArray() ) {
+                for (PhysicsListener l : listeners.getArray()) {
                     l.addBody(body);
                 }
             }
         }
-        if( !toRemove.isEmpty() ) { 
+        if (!toRemove.isEmpty()) {
             Body body = null;
-            while( (body = toRemove.poll()) != null ) {
+            while ((body = toRemove.poll()) != null) {
                 //bodies.remove(body);
-                for( PhysicsListener l : listeners.getArray() ) {
+                for (PhysicsListener l : listeners.getArray()) {
                     l.removeBody(body);
                 }
             }
-        } 
+        }
     }
 
     @Override
@@ -180,82 +194,84 @@ public class SimplePhysics extends AbstractGameSystem {
     }
 
     @Override
-    public void update( SimTime time ) {
- 
-        for( PhysicsListener l : listeners.getArray() ) {
+    public void update(SimTime time) {
+
+        for (PhysicsListener l : listeners.getArray()) {
             l.beginFrame(time);
         }
- 
+
         // Update the entity list       
         bodies.update();
-        
+
         // Fire off any pending add/remove events 
         fireBodyListListeners();
- 
+
         double tpf = time.getTpf();
- 
-        // Apply control driver changes
-        for( Body b : bodies.getArray() ) {
-            if( b.driver != null ) {
+
+        // Apply control driver changes (apply forces onto Dyn4j bodies)
+        for (Body b : bodies.getArray()) {
+            if (b.driver != null) {
                 b.driver.update(tpf, b);
             }
         }
- 
-        // Integrate
-        for( Body b : bodies.getArray() ) {
+
+        world.update(tpf);
+
+        // Integrate (get info from Dyn4j bodies)
+        for (Body b : bodies.getArray()) {
             b.integrate(tpf);
         }
- 
+
         // Publish the results
-        for( PhysicsListener l : listeners.getArray() ) {
-            for( Body b : bodies.getArray() ) {
+        for (PhysicsListener l : listeners.getArray()) {
+            for (Body b : bodies.getArray()) {
                 l.updateBody(b);
             }
         }
-               
-        for( PhysicsListener l : listeners.getArray() ) {
+
+        for (PhysicsListener l : listeners.getArray()) {
             l.endFrame(time);
         }
     }
 
     /**
-     *  Maps the appropriate entities to physics bodies.
+     * Maps the appropriate entities to physics bodies.
      */
     private class BodyContainer extends EntityContainer<Body> {
- 
-        public BodyContainer( EntityData ed ) {
+
+        public BodyContainer(EntityData ed) {
             super(ed, Position.class, MassProperties.class, SphereShape.class);
         }
-        
-        @Override     
+
+        @Override
         protected Body[] getArray() {
             return super.getArray();
         }
-    
-        @Override     
-        protected Body addObject( Entity e ) {
+
+        @Override
+        protected Body addObject(Entity e) {
             MassProperties mass = e.get(MassProperties.class);
             SphereShape shape = e.get(SphereShape.class);
- 
+
             // Right now only works for CoG-centered shapes                   
             Body newBody = createBody(e.getId(), mass.getInverseMass(), shape.getRadius(), true);
-            
+
             Position pos = e.get(Position.class);
             newBody.setPosition(pos);
+
             return newBody;
         }
-    
-        @Override     
-        protected void updateObject( Body object, Entity e ) {
+
+        @Override
+        protected void updateObject(Body object, Entity e) {
             // We don't support live-updating mass or shape right now
         }
-    
-        @Override     
-        protected void removeObject( Body object, Entity e ) {
+
+        @Override
+        protected void removeObject(Body object, Entity e) {
             removeBody(e.getId());
-        }    
-               
-    }    
+            world.removeBody(object);
+        }
+
+    }
 }
-
-

@@ -66,6 +66,11 @@ public class SphereShape implements EntityComponent {
         this.offset = centerOffset;
     }
     
+    public SphereShape(double radius){
+        this.radius = radius;
+        this.offset = new Vec3d();
+    }
+    
     public double getRadius() {
         return radius;
     }

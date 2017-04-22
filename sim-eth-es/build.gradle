@@ -1,3 +1,4 @@
+
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'eclipse'
@@ -8,9 +9,11 @@ mainClassName='example.Main'
 repositories {
     mavenLocal()
     jcenter()
+    maven { url "https://jitpack.io" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots"}
 }
 
-ext.jmeVersion = "3.1.0-beta3" 
+ext.jmeVersion = "3.1.0-stable"
 
 project(":assets") {
     apply plugin: "java"
@@ -28,6 +31,9 @@ project(":assets") {
 
 dependencies {
  
+    //Mapeditor format support
+    compile 'org.mapeditor:libtiled:0.17-SNAPSHOT'
+    
     // Need at least basic JME
     compile("org.jmonkeyengine:jme3-core:$jmeVersion") {
         // For some reason if I don't do this then it picks up alpha4 instead
@@ -44,19 +50,26 @@ dependencies {
     compile "com.simsilica:lemur:1.9.1"
     compile "com.simsilica:lemur-proto:1.8.1"
 
-    // And our base code for sim-etheral, SiO2, etc.
+// And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
     compile "com.simsilica:sio2:1.1.0"
-    compile "com.simsilica:sim-math:1.0.2"
-//    compile "com.simsilica:sim-math:1.1.1"  // break sim-ethereal 1.2.1
-    compile "com.simsilica:sim-ethereal:1.2.1"
+    compile "com.simsilica:sim-math:1.1.1"
+    compile "com.simsilica:sim-ethereal:1.2.2-SNAPSHOT"
 
     // Standard utility stuff
     compile 'com.google.guava:guava:19.0'
     compile 'org.slf4j:slf4j-api:1.7.13'
     runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.5'
     
+    //Dyn4j
+    compile 'org.dyn4j:dyn4j:3.2.3'
+    
+    //HSQLDB
+    runtime 'org.hsqldb:hsqldb:2.3.4'
+    
     runtime project(':assets')    
+    
+    compile 'junit:junit:4.12'
 }
 
 task wrapper(type: Wrapper) {

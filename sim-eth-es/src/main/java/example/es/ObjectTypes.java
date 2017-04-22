@@ -33,27 +33,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example.es;
 
 import com.simsilica.es.EntityData;
 
 /**
- *  Factory methods for the common object types.  Because we run the
- *  string names through the EntityData's string index we can't just
- *  have normal constants.
+ * Factory methods for the common object types. Because we run the string names
+ * through the EntityData's string index we can't just have normal constants.
  *
- *  @author    Paul Speed
- */ 
+ * @author Paul Speed
+ */
 public class ObjectTypes {
+
     public static final String SHIP = "ship";
     public static final String GRAV_SPHERE = "gravSphere";
-    
-    public static ObjectType shipType( EntityData ed ) {
+    public static final String THRUST = "thrust";
+    public static final String EXPLOSION = "explosion";
+    public static final String BULLET = "bullet";
+    public static final String BOMB = "bomb";
+    public static final String BOUNTY = "bounty";
+
+    public static ObjectType shipType(EntityData ed) {
         return ObjectType.create(SHIP, ed);
     }
-    
-    public static ObjectType gravSphereType( EntityData ed ) {
+
+    public static ObjectType gravSphereType(EntityData ed) {
         return ObjectType.create(GRAV_SPHERE, ed);
+    }
+
+    public static ObjectType thrust(EntityData ed) {
+        return ObjectType.create(THRUST, ed);
+    }
+
+    public static ObjectType explosion(EntityData ed) {
+        return ObjectType.create(EXPLOSION, ed);
+    }
+
+    public static ObjectType bullet(EntityData ed) {
+        return ObjectType.create(BULLET, ed);
+    }
+
+    public static ObjectType bounty(EntityData ed) {
+        return ObjectType.create(BOUNTY, ed);
+    }
+
+    public static ObjectType bomb(EntityData ed) {
+        return ObjectType.create(BOMB, ed);
     }
 }

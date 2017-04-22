@@ -36,6 +36,8 @@
 
 package example.sim;
 
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 
@@ -67,8 +69,50 @@ public class GameEntities {
     public static EntityId createGravSphere( Vec3d pos, double radius, EntityData ed ) {
         EntityId result = ed.createEntity();
         ed.setComponents(result, ObjectTypes.gravSphereType(ed), 
-                         new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0)), 
+                         new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0)),  //TODO: Test angle
                          new SphereShape(radius, new Vec3d()));
         return result;         
+    }
+    
+    public static EntityId createBounty(Vec3d pos, EntityData ed) {
+        EntityId result = ed.createEntity();
+        ed.setComponents(result, ObjectTypes.bounty(ed),
+                new Position(pos),
+                new Bounty(10),
+                new SphereShape(0.1, new Vec3d()),
+                new Decay(1000));
+        return result;
+    }
+
+    public static EntityId createBountySpawner(Vec3d pos, double radius, EntityData ed) {
+        EntityId result = ed.createEntity();
+        ed.setComponents(result,
+                //Possible to add model if we want the players to be able to see the spawner
+                new Position(pos),
+                new Spawner(50, Spawner.SpawnType.Bounties),
+                new SphereShape(radius));
+        return result;
+    }
+
+    public static EntityId createBullet(Vec3d location, double rotation, Vec3d linearVelocity, long decayMillis, EntityData ed) {
+        EntityId lastBullet = ed.createEntity();
+        ed.setComponents(lastBullet, ObjectTypes.bullet(ed),
+                new Position(location, new Quatd(new Quaternion().fromAngleAxis((float) rotation, Vector3f.UNIT_Z))),
+                new PhysicsForce(linearVelocity),
+                new Decay(decayMillis),
+                new MassProperties(1 / 50.0),  //for physics
+                new SphereShape(0.25f, new Vec3d())); //for physics
+        return lastBullet;
+    }
+
+    public static EntityId createBomb(Vec3d location, double rotation, Vec3d linearVelocity, long decayMillis, EntityData ed) {
+        EntityId lastBomb = ed.createEntity();
+        ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
+                new Position(location, new Quatd(new Quaternion().fromAngleAxis((float) rotation, Vector3f.UNIT_Z))),
+                new PhysicsForce(linearVelocity),
+                new Decay(decayMillis),
+                new MassProperties(1 / 50.0),  //for physics
+                new SphereShape(0.25f, new Vec3d())); //for physics
+        return lastBomb;
     }
 }

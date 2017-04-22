@@ -83,11 +83,11 @@ public class GameSessionClientService extends AbstractClientService
     }
     
     @Override
-    public void move( Quaternion dir, Vector3f thrust ) {
+    public void move( Vector3f thrust ) {
         if( log.isTraceEnabled() ) {
-            log.trace("move(" + dir + ", " + thrust + ")");
+            log.trace("move(" + thrust + ")");
         }
-        getDelegate().move(dir, thrust);
+        getDelegate().move(thrust);
     }
 
     private GameSession getDelegate() {
@@ -146,6 +146,11 @@ public class GameSessionClientService extends AbstractClientService
     public void start() {
         log.debug("start()");
         super.start();
+    }
+
+    @Override
+    public void attack(String attackType) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     /**

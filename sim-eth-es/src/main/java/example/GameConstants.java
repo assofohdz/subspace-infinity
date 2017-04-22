@@ -147,6 +147,7 @@ public class GameConstants {
      *  zones including the zone they are in.
      */           
     public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
+    public static double PHYSICS_SCALE = 1.0;
 }
 
 

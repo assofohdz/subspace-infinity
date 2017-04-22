@@ -244,8 +244,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             
             // Set the position when we want the ship to actually appear
             // in space 'for real'.
-            ed.setComponent(shipEntity, new Position(1, 1, 1));
-System.out.println("Set position on:" + shipEntity);            
+            ed.setComponent(shipEntity, new Position(0, 0, 0));
+            System.out.println("Set position on:" + shipEntity);            
         }
  
         public void initialize() {
@@ -273,13 +273,13 @@ System.out.println("Set position on:" + shipEntity);
         }
         
         @Override   
-        public void move( Quaternion rotation, Vector3f thrust ) {
+        public void move( Vector3f thrust ) {
             if( log.isTraceEnabled() ) {
-                log.trace("move(" + rotation + ", " + thrust + ")");
+                log.trace("move(" + thrust + ")");
             }
             
             // Need to forward this to the game world
-            shipDriver.applyMovementState(rotation, thrust);
+            shipDriver.applyMovementState(thrust);
         }
         
         protected GameSessionListener getCallback() {
@@ -292,6 +292,11 @@ System.out.println("Set position on:" + shipEntity);
             }
             return callback;
         } 
+
+        @Override
+        public void attack(String attackType) {
+            
+        }
  
     }    
 }

@@ -1,0 +1,14 @@
+Material My Material : MatDefs/AnimateOnceSpriteShader.j3md {
+    MaterialParameters {
+        AniTexMap : Flip Textures/Subspace/explode0.bm2
+        numTilesX : 7
+        numTilesY : 1
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

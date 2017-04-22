@@ -59,8 +59,7 @@ public class ShipDriver implements ControlDriver {
     // The velocity in ship space, not world space    
     private Vec3d velocity = new Vec3d();
 
-    public void applyMovementState( Quaternion orientation, Vector3f thrust ) {
-        this.orientation = orientation;
+    public void applyMovementState( Vector3f thrust ) {
         this.thrust = thrust;
     } 
  
@@ -93,12 +92,12 @@ public class ShipDriver implements ControlDriver {
         
         velocity.x = applyThrust(velocity.x, vec.x, stepTime);
         velocity.y = applyThrust(velocity.y, vec.y, stepTime);
-        velocity.z = applyThrust(velocity.z, vec.z, stepTime);
+        //velocity.z = applyThrust(velocity.z, vec.z, stepTime); //Disabled z-thrust in order to stay in the x-y plane
  
         // Setup the current world rotation of the body 
         body.orientation.set(quat.getX(), quat.getY(), quat.getZ(), quat.getW());
         
         // Apply the accelerated velocity oriented into world space       
-        body.velocity = body.orientation.mult(velocity, body.velocity);                        
+        body.velocity3d = body.orientation.mult(velocity, body.velocity3d);
     }
 }

@@ -66,5 +66,15 @@ public interface GameSession {
      *  state is continuous, it doesn't need to be reliable.  
      */
     @Asynchronous(reliable=false)
-    public void move( Quaternion rotation, Vector3f thrust );   
+    public void move( Vector3f thrust );   
+    
+    /**
+     *  Sends information to the game back end about the current
+     *  shooting state of the player from user input.  Because this
+     *  state is continuous, it doesn't need to be reliable.
+     * @param attackType
+     */
+    @Asynchronous(reliable=false)
+    public void attack(String attackType);   
+    
 }

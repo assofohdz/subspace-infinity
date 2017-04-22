@@ -60,6 +60,7 @@ import com.simsilica.state.DebugHudState;
 
 import example.ConnectionState;
 import example.GameSessionState;
+import example.es.AttackTypes;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;
 
@@ -74,13 +75,7 @@ public class PlayerMovementState extends BaseAppState
     static Logger log = LoggerFactory.getLogger(PlayerMovementState.class);
 
     private InputMapper inputMapper;
-    private Camera camera;
     private double turnSpeed = 2.5;  // one half complete revolution in 2.5 seconds
-    private double yaw = FastMath.PI;
-    private double pitch;
-    private double maxPitch = FastMath.HALF_PI;
-    private double minPitch = -FastMath.HALF_PI;
-    private Quaternion cameraFacing = new Quaternion().fromAngles((float)pitch, (float)yaw, 0);
     private double forward;
     private double side;
     private double elevation;
@@ -97,6 +92,7 @@ public class PlayerMovementState extends BaseAppState
     private Vector3f lastPosition = new Vector3f();
     private VersionedHolder<String> positionDisplay;
     private VersionedHolder<String> speedDisplay; 
+    private double rotate;
 
     public PlayerMovementState() {
     }
@@ -108,63 +104,25 @@ public class PlayerMovementState extends BaseAppState
     public EntityId getShipId() {
         return shipId;
     }
-    
-    public void setPitch( double pitch ) {
-        this.pitch = pitch;
-        updateFacing();
-    }
-
-    public double getPitch() {
-        return pitch;
-    }
-    
-    public void setYaw( double yaw ) {
-        this.yaw = yaw;
-        updateFacing();
-    }
-    
-    public double getYaw() {
-        return yaw;
-    }
-
-    public void setRotation( Quaternion rotation ) {
-        // Do our best
-        float[] angle = rotation.toAngles(null);
-        this.pitch = angle[0];
-        this.yaw = angle[1];
-        updateFacing();
-    }
-    
-    public Quaternion getRotation() {
-        return camera.getRotation();
-    }
 
     @Override
     protected void initialize( Application app ) {
         
         log.info("initialize()");
     
-        this.camera = app.getCamera();
-        
         if( inputMapper == null ) {
             inputMapper = GuiGlobals.getInstance().getInputMapper();
         }
         
         // Most of the movement functions are treated as analog.        
         inputMapper.addAnalogListener(this,
-                                      PlayerMovementFunctions.F_Y_ROTATE,
-                                      PlayerMovementFunctions.F_X_ROTATE,
                                       PlayerMovementFunctions.F_THRUST,
-                                      PlayerMovementFunctions.F_ELEVATE,
-                                      PlayerMovementFunctions.F_STRAFE);
-
-        // Only run mode is treated as a 'state' or a trinary value.
-        // (Positive, Off, Negative) and in this case we only care about
-        // Positive and Off.  See PlayerMovementFunctions for a description
-        // of alternate ways this could have been done.
+                                      PlayerMovementFunctions.F_TURN);
+        
         inputMapper.addStateListener(this,
-                                     PlayerMovementFunctions.F_BOOST);
-                                     
+                                     PlayerMovementFunctions.F_BOMB,
+                                     PlayerMovementFunctions.F_SHOOT);
+
         // Grab the game session
         session = getState(ConnectionState.class).getService(GameSessionClientService.class);
         if( session == null ) {
@@ -184,13 +142,11 @@ public class PlayerMovementState extends BaseAppState
     protected void cleanup(Application app) {
 
         inputMapper.removeAnalogListener(this,
-                                         PlayerMovementFunctions.F_Y_ROTATE,
-                                         PlayerMovementFunctions.F_X_ROTATE,
                                          PlayerMovementFunctions.F_THRUST,
-                                         PlayerMovementFunctions.F_ELEVATE,
-                                         PlayerMovementFunctions.F_STRAFE);
+                                         PlayerMovementFunctions.F_TURN);
         inputMapper.removeStateListener(this,
-                                        PlayerMovementFunctions.F_BOOST);
+                                        PlayerMovementFunctions.F_BOMB,
+                                        PlayerMovementFunctions.F_SHOOT);
     }
 
     @Override
@@ -247,22 +203,19 @@ public class PlayerMovementState extends BaseAppState
 
         // Update the camera position from the ship spatial
         Spatial spatial = models.getModel(shipId);
-        if( spatial != null ) {
-            camera.setLocation(spatial.getWorldTranslation());
-        }
-            
+        
         long time = System.nanoTime();
         if( time > nextSendTime ) {
             nextSendTime = time + sendFrequency;
             
-            Quaternion rot = camera.getRotation();
+            //Quaternion rot = camera.getRotation();
 
             // Z is forward
-            thrust.x = (float)(side * speed);
-            thrust.y = (float)(elevation * speed); 
-            thrust.z = (float)(forward * speed);
+            thrust.x = (float)(rotate * speed);
+            thrust.y = (float)(forward * speed); 
+            //thrust.z = (float)(forward * speed); //Disabled to keep movement to the x,y-plane
             
-            session.move(rot, thrust);
+            session.move(thrust);
  
             // Only update the position/speed display 20 times a second
             //if( spatial != null ) {                
@@ -298,20 +251,13 @@ public class PlayerMovementState extends BaseAppState
      */
     @Override
     public void valueChanged( FunctionId func, InputState value, double tpf ) {
- 
-        // Change the speed based on the current run mode
-        // Another option would have been to use the value
-        // directly:
-        //    speed = 3 + value.asNumber() * 5
-        //...but I felt it was slightly less clear here.   
-        boolean b = value == InputState.Positive;
-        if( func == PlayerMovementFunctions.F_BOOST ) {
-            if( b ) {
-                speed = 10;
-            } else {
-                speed = 3;
-            }
-        }
+        if (value == InputState.Positive) {
+            if (func == PlayerMovementFunctions.F_SHOOT) {
+                session.attack(AttackTypes.BULLET);
+            } else if (func == PlayerMovementFunctions.F_BOMB) {
+                session.attack(AttackTypes.BOMB);
+            } 
+        } 
     }
 
     /**
@@ -319,39 +265,11 @@ public class PlayerMovementState extends BaseAppState
      */
     @Override
     public void valueActive( FunctionId func, double value, double tpf ) {
- 
-        // Setup rotations and movements speeds based on current
-        // axes states.    
-        if( func == PlayerMovementFunctions.F_Y_ROTATE ) {
-            pitch += -value * tpf * turnSpeed;
-            if( pitch < minPitch )
-                pitch = minPitch;
-            if( pitch > maxPitch )
-                pitch = maxPitch;
-        } else if( func == PlayerMovementFunctions.F_X_ROTATE ) {
-            yaw += -value * tpf * turnSpeed;
-            if( yaw < 0 )
-                yaw += Math.PI * 2;
-            if( yaw > Math.PI * 2 )
-                yaw -= Math.PI * 2;
-        } else if( func == PlayerMovementFunctions.F_THRUST ) {
+        if( func == PlayerMovementFunctions.F_THRUST ) {
             this.forward = value;
-            return;
-        } else if( func == PlayerMovementFunctions.F_STRAFE ) {
-            this.side = -value;
-            return;
-        } else if( func == PlayerMovementFunctions.F_ELEVATE ) {
-            this.elevation = value;
-            return;
-        } else {
-            return;
-        }
-        updateFacing();        
-    }
-
-    protected void updateFacing() {
-        cameraFacing.fromAngles((float)pitch, (float)yaw, 0);
-        camera.setRotation(cameraFacing);
+        } else if (func == PlayerMovementFunctions.F_TURN) {
+            this.rotate = value;
+        }    
     }
 }
 
