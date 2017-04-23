@@ -45,4 +45,6 @@ package example.sim;
 public interface ControlDriver {
 
     public void update( double stepTime, Body body );
+    
+    public void updatePhysicsBody( double stepTime, Body body );
 }

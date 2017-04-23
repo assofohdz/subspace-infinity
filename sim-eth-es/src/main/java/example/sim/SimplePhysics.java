@@ -47,6 +47,7 @@ import example.es.*;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Circle;
+import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.MassType;
 
 /**
@@ -127,7 +128,8 @@ public class SimplePhysics extends AbstractGameSystem {
                 // Set it up to be managed by Dyn4j
                 BodyFixture fixture = new BodyFixture(new Circle(radius));
                 result.addFixture(fixture);
-                result.setMassType(MassType.NORMAL);
+                result.setMass(MassType.NORMAL);
+                result.setUserData(entityId);
                 world.addBody(result);
 
                 // Set it up to be managed by physics
@@ -211,7 +213,8 @@ public class SimplePhysics extends AbstractGameSystem {
         // Apply control driver changes (apply forces onto Dyn4j bodies)
         for (Body b : bodies.getArray()) {
             if (b.driver != null) {
-                b.driver.update(tpf, b);
+                //b.driver.update(tpf, b);
+                b.driver.updatePhysicsBody(tpf, b);
             }
         }
 
@@ -219,7 +222,8 @@ public class SimplePhysics extends AbstractGameSystem {
 
         // Integrate (get info from Dyn4j bodies)
         for (Body b : bodies.getArray()) {
-            b.integrate(tpf);
+            //b.integrate(tpf);
+            b.syncronizePhysicsBody();
         }
 
         // Publish the results
@@ -258,6 +262,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
             Position pos = e.get(Position.class);
             newBody.setPosition(pos);
+            newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j Body
 
             return newBody;
         }

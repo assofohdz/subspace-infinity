@@ -201,6 +201,49 @@ public class ModelViewState extends BaseAppState {
 
         return geom;
     }
+    
+    
+
+    protected Spatial createBomb(Entity entity) {
+        //Node information:
+        Node result = new Node("bomb:" + entity.getId());
+        result.setUserData("bombId", entity.getId().getId());
+        
+        //Spatial information:
+        Spatial bomb = factory.createModel(entity);
+        result.attachChild(bomb);
+
+        attachCoordinateAxes(result);
+        return result;
+    }
+
+    protected Spatial createBullet(Entity entity) {
+        //Node information:
+        Node result = new Node("bullet:" + entity.getId());
+        result.setUserData("bulletId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial bullet = factory.createModel(entity);
+        result.attachChild(bullet);
+        
+        return result;
+    }
+
+    protected Spatial createBounty(Entity entity) {
+        //Node information:
+        Node result = new Node("bounty:" + entity.getId());
+        result.setUserData("bountyId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial bounty = factory.createModel(entity);
+        result.attachChild(bounty);
+        
+        attachCoordinateAxes(result);
+        
+        return result;
+    }
 
     protected Spatial createModel(Entity entity) {
         // Check to see if one already exists
@@ -219,13 +262,21 @@ public class ModelViewState extends BaseAppState {
             case ObjectTypes.GRAV_SPHERE:
                 result = createGravSphere(entity);
                 break;
+            case ObjectTypes.BULLET:
+                result = createBullet(entity);
+                break;
+            case ObjectTypes.BOUNTY:
+                result = createBounty(entity);
+                break;
+            case ObjectTypes.BOMB:
+                result = createBomb(entity);
+                break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
         }
 
         // Add it to the index
         modelIndex.put(entity.getId(), result);
-
         modelRoot.attachChild(result);
 
         return result;
@@ -238,6 +289,8 @@ public class ModelViewState extends BaseAppState {
             // I like to move it... move it...
             spatial.setLocalTranslation(pos.getLocation().toVector3f());
             spatial.setLocalRotation(pos.getFacing().toQuaternion());
+            
+            log.info("Position ("+spatial.getName()+"): "+spatial.getWorldTranslation());
         }
     }
 
@@ -291,6 +344,7 @@ public class ModelViewState extends BaseAppState {
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
                 setVisible(trans.getVisibility(time));
+            log.info("PositionTransition ("+spatial.getName()+"): "+spatial.getWorldTranslation());
             }
         }
 
@@ -414,28 +468,5 @@ public class ModelViewState extends BaseAppState {
 
     public ModelViewState(SISpatialFactory siSpatialFactory) {
         this.factory = siSpatialFactory;
-    }
-
-    protected Spatial createBomb(Entity entity) {
-        //Spatial information:
-        Spatial bomb = factory.createModel(entity);
-        //Node information:
-        Node result = new Node("bomb:" + entity.getId());
-        result.setUserData("bombId", entity.getId().getId());
-        result.attachChild(bomb);
-
-        attachCoordinateAxes(result);
-        return result;
-    }
-
-    protected Spatial createBullet(Entity entity) {
-        //Spatial information:
-        Spatial bullet = factory.createModel(entity);
-        //Node information:
-        Node result = new Node("bullet:" + entity.getId());
-        result.setUserData("bulletId", entity.getId().getId());
-        result.attachChild(bullet);
-
-        return result;
     }
 }

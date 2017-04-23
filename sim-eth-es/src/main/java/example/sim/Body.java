@@ -33,65 +33,80 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example.sim;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.*;
+import example.GameConstants;
 
 import example.es.Position;
+import org.dyn4j.geometry.Transform;
 
 /**
- *  A physical body in space.  These are modeled as a "point mass"
- *  in the sense that their orientation does not integrate, nor does
- *  it affect integration.  ie: there is no rotational acceleration
- *  or velocity (at least not yet and there won't ever be in the true
- *  physics sense).  Rotation is kept because it's convenient.
+ * A physical body in space. These are modeled as a "point mass" in the sense
+ * that their orientation does not integrate, nor does it affect integration.
+ * ie: there is no rotational acceleration or velocity (at least not yet and
+ * there won't ever be in the true physics sense). Rotation is kept because it's
+ * convenient.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
-public class Body extends org.dyn4j.dynamics.Body{
+public class Body extends org.dyn4j.dynamics.Body {
 
     public final EntityId bodyId;
-    
+
     public Vec3d pos = new Vec3d();
     public Vec3d velocity3d = new Vec3d();
     public Vec3d acceleration = new Vec3d();
     public double radiusLocal = 1;
     public double invMass = 1;
     public AaBBox bounds = new AaBBox(radiusLocal);
-    
+
     public Quatd orientation = new Quatd();
-    public volatile ControlDriver driver; 
- 
-    public Body( EntityId bodyId ) {
+    public volatile ControlDriver driver;
+
+    public Body(EntityId bodyId) {
         this.bodyId = bodyId;
     }
-    
-    public Body( EntityId bodyId, double x, double y, double z ) {
+
+    public Body(EntityId bodyId, double x, double y, double z) {
         this.bodyId = bodyId;
         pos.set(x, y, z);
     }
-    
-    public void setPosition( Position pos ) {
+
+    public void setPosition(Position pos) {
         this.pos.set(pos.getLocation());
         this.orientation.set(pos.getFacing());
     }
- 
-    public void integrate( double stepTime ) {
+
+    public void integrate(double stepTime) {
         // Integrate velocity
         velocity3d.addScaledVectorLocal(acceleration, stepTime);
-        
+
         // Integrate position
         pos.addScaledVectorLocal(velocity3d, stepTime);
- 
+
 //System.out.println(bodyId + " pos:" + pos + "   dir:" + orientation.mult(new Vec3d(0, 0, 1)));        
         // That's it.  That's a physics engine.
-        
         // Update the bounds since it's easy to do here and helps
         // other things know where the object is for real
-        bounds.setCenter(pos);   
+        bounds.setCenter(pos);
+    }
+
+    public void syncronizePhysicsBody() {
+        Transform position = this.getTransform();
+
+        // setting 3d position based on internal physics 2d position
+        pos.set(position.getTranslationX() * GameConstants.PHYSICS_SCALE, position.getTranslationY() * GameConstants.PHYSICS_SCALE, 0);
+        orientation.fromAngles(0, 0, this.getTransform().getRotation());
+        
+        // setting 3d velocity based on internal physics 2d velocity
+        velocity3d.set(velocity.x, velocity.y, 0.0d);
+
+        // Update the bounds since it's easy to do here and helps
+        // other things know where the object is for real
+        bounds.setCenter(pos);
     }
 }

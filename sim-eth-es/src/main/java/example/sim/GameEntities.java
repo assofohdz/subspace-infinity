@@ -61,7 +61,7 @@ public class GameEntities {
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
         ed.setComponents(result, ObjectTypes.shipType(ed),
-                         new MassProperties(1/50.0), new SphereShape(3, new Vec3d()));
+                         new MassProperties(1 / 50.0), new SphereShape(0.25f, new Vec3d()));
         
         return result;
     }
@@ -94,10 +94,10 @@ public class GameEntities {
         return result;
     }
 
-    public static EntityId createBullet(Vec3d location, double rotation, Vec3d linearVelocity, long decayMillis, EntityData ed) {
+    public static EntityId createBullet(Vec3d location, Quatd facing, Vec3d linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBullet = ed.createEntity();
         ed.setComponents(lastBullet, ObjectTypes.bullet(ed),
-                new Position(location, new Quatd(new Quaternion().fromAngleAxis((float) rotation, Vector3f.UNIT_Z))),
+                new Position(location, facing),
                 new PhysicsForce(linearVelocity),
                 new Decay(decayMillis),
                 new MassProperties(1 / 50.0),  //for physics
@@ -105,10 +105,10 @@ public class GameEntities {
         return lastBullet;
     }
 
-    public static EntityId createBomb(Vec3d location, double rotation, Vec3d linearVelocity, long decayMillis, EntityData ed) {
+    public static EntityId createBomb(Vec3d location, Quatd facing, Vec3d linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
-                new Position(location, new Quatd(new Quaternion().fromAngleAxis((float) rotation, Vector3f.UNIT_Z))),
+                new Position(location, facing),
                 new PhysicsForce(linearVelocity),
                 new Decay(decayMillis),
                 new MassProperties(1 / 50.0),  //for physics
