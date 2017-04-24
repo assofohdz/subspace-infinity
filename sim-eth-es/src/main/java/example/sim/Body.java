@@ -101,10 +101,10 @@ public class Body extends org.dyn4j.dynamics.Body {
         // setting 3d position based on internal physics 2d position
         pos.set(position.getTranslationX() * GameConstants.PHYSICS_SCALE, position.getTranslationY() * GameConstants.PHYSICS_SCALE, 0);
         orientation.fromAngles(0, 0, this.getTransform().getRotation());
-        
+
         // setting 3d velocity based on internal physics 2d velocity
         velocity3d.set(velocity.x, velocity.y, 0.0d);
-
+        
         // Update the bounds since it's easy to do here and helps
         // other things know where the object is for real
         bounds.setCenter(pos);

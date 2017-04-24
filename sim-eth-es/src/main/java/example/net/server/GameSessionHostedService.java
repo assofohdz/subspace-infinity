@@ -59,6 +59,7 @@ import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
+import com.simsilica.mathd.trans.PositionTransition;
 import example.GameConstants;
 import example.es.AttackTypes;
 import example.es.BodyPosition;
@@ -67,9 +68,11 @@ import example.es.Position;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
+import example.sim.Body;
 import example.sim.GameEntities;
 import example.sim.ShipDriver;
 import example.sim.SimplePhysics;
+import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -241,7 +244,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
             // Set the position when we want the ship to actually appear
             // in space 'for real'.
-            ed.setComponent(shipEntity, new Position(0, 0, 0));
+            ed.setComponent(shipEntity, new Position());
             System.out.println("Set position on:" + shipEntity);
         }
 
@@ -290,11 +293,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             return callback;
         }
 
+        
         /**
-         * Attack method that calculates attack. TODO: Should return attackinfo
-         * on success/modifiers etc.
-         *
-         * @param attackType
+         * Attack method that calculates attack. 
+         * TODO: Should return attackinfo on success/modifiers etc.
+         * @param attackType 
          */
         @Override
         public void attack(String attackType) {
@@ -303,26 +306,30 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
 
             // Ship position:
-            example.sim.Body b = physics.getBody(shipEntity);
+            Body shipBody = physics.getBody(shipEntity);
+            
+            Transform shipTransform = shipBody.getTransform();
+            
+            //Bomb velocity:
+            Vector2 attackVel = new Vector2(0, 1);
+            attackVel.rotate(shipTransform.getRotation());
+            attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
+            //TODO: multiply by ship speed (account for direction)
 
-            //Bomb position (2d first to be able to rotate the direction)
-            Vector2 attack2d = new Vector2(0, 1);
-            attack2d.rotate(b.getTransform().getRotation());
-            Vec3d attackPos = new Vec3d(attack2d.x, attack2d.y, 0); //TODO: missing z as arena
-            attackPos = attackPos.mult(GameConstants.PROJECTILEOFFSET);
-            attackPos = attackPos.add(b.pos);
+            //Bomb position
+            Vector2 attackPos = new Vector2(0, 1);
+            attackPos.rotate(shipTransform.getRotation());
+            attackPos.multiply(GameConstants.PROJECTILEOFFSET);
+            attackPos.add(shipTransform.getTranslationX(), shipTransform.getTranslationY());
 
-            Vec3d attackVelocity = new Vec3d(attack2d.x, attack2d.y, 0);
-            attackVelocity = attackVelocity.mult(GameConstants.BASEPROJECTILESPEED); // Multiply by base projectile speed
+            Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
 
             switch (attackType) {
                 case AttackTypes.BOMB:
-                    attackVelocity.mult(GameConstants.BOMBPROJECTILESPEED);
-                    GameEntities.createBomb(attackPos, b.orientation, attackVelocity, GameConstants.BULLETDECAY, ed);
+                    GameEntities.createBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
                     break;
                 case AttackTypes.BULLET:
-                    attackVelocity.mult(GameConstants.BULLETPROJECTILESPEED);
-                    GameEntities.createBullet(attackPos, b.orientation, attackVelocity, GameConstants.BULLETDECAY, ed);
+                    GameEntities.createBullet(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
                     break;
             }
 

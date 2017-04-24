@@ -33,7 +33,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example.sim;
 
 import com.jme3.math.Quaternion;
@@ -42,42 +41,42 @@ import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 
 import example.es.*;
+import org.dyn4j.geometry.Vector2;
 
 /**
- *  Utility methods for creating the common game entities used by 
- *  the simulation.  In cases where a game entity may have multiple
- *  specific componnets or dependencies used to create it, it can be
- *  more convenient to have a centralized factory method.  Especially
- *  if those objects are widely used.  For entities with only a few
- *  components or that are created by one system and only consumed by
- *  one other, then this is not necessarily true.
+ * Utility methods for creating the common game entities used by the simulation.
+ * In cases where a game entity may have multiple specific componnets or
+ * dependencies used to create it, it can be more convenient to have a
+ * centralized factory method. Especially if those objects are widely used. For
+ * entities with only a few components or that are created by one system and
+ * only consumed by one other, then this is not necessarily true.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class GameEntities {
 
-    public static EntityId createShip( EntityId parent, EntityData ed ) {
+    public static EntityId createShip(EntityId parent, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
         ed.setComponents(result, ObjectTypes.shipType(ed),
-                         new MassProperties(1 / 50.0), new SphereShape(0.25f, new Vec3d()));
-        
+                new MassProperties(1 / 50.0), new SphereShape(1f, new Vec3d()));
+
         return result;
     }
-    
-    public static EntityId createGravSphere( Vec3d pos, double radius, EntityData ed ) {
+
+    public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed) {
         EntityId result = ed.createEntity();
-        ed.setComponents(result, ObjectTypes.gravSphereType(ed), 
-                         new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0)),  //TODO: Test angle
-                         new SphereShape(radius, new Vec3d()));
-        return result;         
+        ed.setComponents(result, ObjectTypes.gravSphereType(ed),
+                new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0), 0.0), //TODO: Test angle
+                new SphereShape(radius, new Vec3d()));
+        return result;
     }
-    
+
     public static EntityId createBounty(Vec3d pos, EntityData ed) {
         EntityId result = ed.createEntity();
         ed.setComponents(result, ObjectTypes.bounty(ed),
-                new Position(pos),
+                new Position(pos, new Quatd(), 0.0),
                 new Bounty(10),
                 new SphereShape(0.1, new Vec3d()),
                 new Decay(1000));
@@ -88,31 +87,33 @@ public class GameEntities {
         EntityId result = ed.createEntity();
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
-                new Position(pos),
+                new Position(pos, new Quatd(), 0.0),
                 new Spawner(50, Spawner.SpawnType.Bounties),
                 new SphereShape(radius));
         return result;
     }
 
-    public static EntityId createBullet(Vec3d location, Quatd facing, Vec3d linearVelocity, long decayMillis, EntityData ed) {
-        EntityId lastBullet = ed.createEntity();
-        ed.setComponents(lastBullet, ObjectTypes.bullet(ed),
-                new Position(location, facing),
-                new PhysicsForce(linearVelocity),
-                new Decay(decayMillis),
-                new MassProperties(1 / 50.0),  //for physics
-                new SphereShape(0.25f, new Vec3d())); //for physics
-        return lastBullet;
-    }
-
-    public static EntityId createBomb(Vec3d location, Quatd facing, Vec3d linearVelocity, long decayMillis, EntityData ed) {
+    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
-                new Position(location, facing),
-                new PhysicsForce(linearVelocity),
+                new Position(location, quatd, rotation),
+                new PhysicsForce(new Vec3d(linearVelocity.x, linearVelocity.y, 0)),
+                //new CollisionShape(0.01f), //TODO: CollisionShape not needed since Dyn4j handles physics now
                 new Decay(decayMillis),
-                new MassProperties(1 / 50.0),  //for physics
-                new SphereShape(0.25f, new Vec3d())); //for physics
+                new MassProperties(1 / 50.0), //for physics
+                new SphereShape(0.5f, new Vec3d())); //for physics
+        return lastBomb;
+    }
+
+    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
+        EntityId lastBomb = ed.createEntity();
+        ed.setComponents(lastBomb, ObjectTypes.bullet(ed),
+                new Position(location, quatd, rotation),
+                new PhysicsForce(new Vec3d(linearVelocity.x, linearVelocity.y, 0)),
+                //new CollisionShape(0.01f), //TODO: CollisionShape not needed since Dyn4j handles physics now
+                new Decay(decayMillis),
+                new MassProperties(1 / 50.0), //for physics
+                new SphereShape(0.5f, new Vec3d())); //for physics
         return lastBomb;
     }
 }

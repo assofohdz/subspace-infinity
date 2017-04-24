@@ -49,6 +49,7 @@ import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Transform;
 
 /**
  * Just a basic physics simulation that integrates acceleration, velocity, and
@@ -75,6 +76,7 @@ public class SimplePhysics extends AbstractGameSystem {
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
 
     private World world;
+    private ProjectilesContainer projectiles;
 
     public SimplePhysics() {
     }
@@ -187,12 +189,18 @@ public class SimplePhysics extends AbstractGameSystem {
     public void start() {
         bodies = new BodyContainer(ed);
         bodies.start();
+
+        projectiles = new ProjectilesContainer(ed);
+        projectiles.start();
     }
 
     @Override
     public void stop() {
         bodies.stop();
         bodies = null;
+
+        projectiles.stop();
+        projectiles = null;
     }
 
     @Override
@@ -204,6 +212,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
         // Update the entity list       
         bodies.update();
+        projectiles.update();
 
         // Fire off any pending add/remove events 
         fireBodyListListeners();
@@ -213,8 +222,7 @@ public class SimplePhysics extends AbstractGameSystem {
         // Apply control driver changes (apply forces onto Dyn4j bodies)
         for (Body b : bodies.getArray()) {
             if (b.driver != null) {
-                //b.driver.update(tpf, b);
-                b.driver.updatePhysicsBody(tpf, b);
+                b.driver.update(tpf, b);
             }
         }
 
@@ -261,9 +269,11 @@ public class SimplePhysics extends AbstractGameSystem {
             Body newBody = createBody(e.getId(), mass.getInverseMass(), shape.getRadius(), true);
 
             Position pos = e.get(Position.class);
-            newBody.setPosition(pos);
-            newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j Body
+            newBody.setPosition(pos);   //ES position
 
+            //Transform t = new Transform();
+            newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
+            newBody.getTransform().setRotation(pos.getRotation());
             return newBody;
         }
 
@@ -276,6 +286,49 @@ public class SimplePhysics extends AbstractGameSystem {
         protected void removeObject(Body object, Entity e) {
             removeBody(e.getId());
             world.removeBody(object);
+        }
+
+    }
+
+    /**
+     * Applies forces to physical bodies
+     */
+    private class ProjectilesContainer extends EntityContainer<Body> {
+
+        public ProjectilesContainer(EntityData ed) {
+            super(ed, BodyPosition.class, PhysicsForce.class);
+        }
+
+        /**
+         * Once an entity has a bodyposition it is in the physical world. When
+         * it recieves a physicsforce, we can then apply it to the body
+         *
+         * @param e the entity
+         * @return the body of the entity
+         */
+        @Override
+        protected Body addObject(Entity e) {
+            PhysicsForce pf = e.get(PhysicsForce.class);
+
+            Body b = getBody(e.getId());
+
+            //b.applyForce(pf.getForce());
+            //b.applyTorque(pf.getTorque());
+            b.setLinearVelocity(pf.getForce().getForce());
+
+            ed.removeComponent(e.getId(), PhysicsForce.class);
+
+            return b;
+        }
+
+        @Override
+        protected void updateObject(Body object, Entity e) {
+            // Nothing happens here
+        }
+
+        @Override
+        protected void removeObject(Body object, Entity e) {
+            // Nothing happens here (there is potentially an explosion)
         }
 
     }

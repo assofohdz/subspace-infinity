@@ -100,19 +100,11 @@ public class ShipDriver implements ControlDriver {
 
         // Apply the accelerated velocity oriented into world space       
         body.velocity3d = body.orientation.mult(velocity, body.velocity3d);
-    }
-
-    /**
-     *
-     * @param stepTime
-     * @param body
-     */
-    @Override
-    public void updatePhysicsBody(double stepTime, Body body) {
-        Vector3f vec = thrust;
+        
+        //Update physics
         Vector2 linVel = new Vector2(0, vec.y);
         //Angular since we want the ship to stop rotating right away if player releases the rotate keys        
-        body.setAngularVelocity(thrust.x);                  
+        body.setAngularVelocity(thrust.x);
         double rotation = body.getTransform().getRotation(); //Is the rotation from last frame
         linVel.rotate(rotation);
         body.applyForce(linVel);

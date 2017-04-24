@@ -149,9 +149,9 @@ public class GameConstants {
     public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
     public static double PHYSICS_SCALE = 1.0;
     public static double BASEPROJECTILESPEED = 5;
-    public static double BOMBPROJECTILESPEED = 1;
-    public static double BULLETPROJECTILESPEED = 1;
-    public static double PROJECTILEOFFSET = 1;
+    public static double BOMBPROJECTILESPEED = 1000;
+    public static double BULLETPROJECTILESPEED = 5;
+    public static double PROJECTILEOFFSET = 3;
     public static long BULLETDECAY = 1500;
 }
 

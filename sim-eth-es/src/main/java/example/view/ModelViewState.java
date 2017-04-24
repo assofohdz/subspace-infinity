@@ -290,7 +290,7 @@ public class ModelViewState extends BaseAppState {
             spatial.setLocalTranslation(pos.getLocation().toVector3f());
             spatial.setLocalRotation(pos.getFacing().toQuaternion());
             
-            log.info("Position ("+spatial.getName()+"): "+spatial.getWorldTranslation());
+            log.info("Position ("+spatial.getName()+"): "+spatial.getLocalTranslation()+", "+pos.getFacing());
         }
     }
 
@@ -344,7 +344,7 @@ public class ModelViewState extends BaseAppState {
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
                 setVisible(trans.getVisibility(time));
-            log.info("PositionTransition ("+spatial.getName()+"): "+spatial.getWorldTranslation());
+                log.info("PositionTransition ("+spatial.getName()+"): "+spatial.getLocalTranslation() + ", "+spatial.getLocalRotation());
             }
         }
 
@@ -390,7 +390,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected Mob addObject(Entity e) {
-            System.out.println("MobContainer.addObject(" + e + ")");
+            System.out.println("MobContainer.addObject(" + e + ")");            
             return new Mob(e);
         }
 
