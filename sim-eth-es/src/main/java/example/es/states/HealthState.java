@@ -23,16 +23,16 @@ import org.slf4j.LoggerFactory;
  *  
  *  @author    Paul Speed
  */
-public class HealthService extends AbstractGameSystem {
+public class HealthState extends AbstractGameSystem {
  
-    static Logger log = LoggerFactory.getLogger(HealthService.class);
+    static Logger log = LoggerFactory.getLogger(HealthState.class);
  
     private EntityData ed;    
     private EntitySet living;
     private EntitySet changes;
     private Map<EntityId, Integer> health = new HashMap<EntityId, Integer>();
        
-    public HealthService() {
+    public HealthState() {
     }
     
     @Override

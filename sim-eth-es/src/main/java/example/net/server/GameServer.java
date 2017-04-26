@@ -67,9 +67,10 @@ import com.simsilica.sim.GameSystemManager;
 import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
 import example.es.*;
+import example.es.states.AttackState;
 import example.es.states.BountyState;
 import example.es.states.DecayState;
-import example.es.states.HealthService;
+import example.es.states.HealthState;
 import example.sim.*;
 
 /**
@@ -144,9 +145,11 @@ public class GameServer {
         // exist
         systems.register(DecayState.class, new DecayState());
         //Add system to monitor health changes
-        systems.register(HealthService.class, new HealthService());
+        systems.register(HealthState.class, new HealthState());
         //Add system to monitor and spawn bounties
         systems.register(BountyState.class, new BountyState());
+        //Add system to attack and add health changes
+        systems.register(AttackState.class, new AttackState());
 
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

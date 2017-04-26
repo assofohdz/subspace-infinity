@@ -54,13 +54,14 @@ import org.dyn4j.geometry.Vector2;
  * @author Paul Speed
  */
 public class GameEntities {
-
+    
     public static EntityId createShip(EntityId parent, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
         ed.setComponents(result, ObjectTypes.shipType(ed),
                 new MassProperties(1 / 50.0), new SphereShape(1f, new Vec3d()));
+        ed.setComponent(result, new HitPoints(100));
 
         return result;
     }

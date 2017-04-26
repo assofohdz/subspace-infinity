@@ -61,6 +61,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.mathd.trans.PositionTransition;
 import example.GameConstants;
+import example.es.AttackType;
 import example.es.AttackTypes;
 import example.es.BodyPosition;
 
@@ -304,34 +305,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("Bomb");
             }
-
-            // Ship position:
-            Body shipBody = physics.getBody(shipEntity);
             
-            Transform shipTransform = shipBody.getTransform();
-            
-            //Bomb velocity:
-            Vector2 attackVel = new Vector2(0, 1);
-            attackVel.rotate(shipTransform.getRotation());
-            attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
-            //TODO: multiply by ship speed (account for direction)
-
-            //Bomb position
-            Vector2 attackPos = new Vector2(0, 1);
-            attackPos.rotate(shipTransform.getRotation());
-            attackPos.multiply(GameConstants.PROJECTILEOFFSET);
-            attackPos.add(shipTransform.getTranslationX(), shipTransform.getTranslationY());
-
-            Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
-
-            switch (attackType) {
-                case AttackTypes.BOMB:
-                    GameEntities.createBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
-                    break;
-                case AttackTypes.BULLET:
-                    GameEntities.createBullet(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
-                    break;
-            }
+            ed.setComponent(shipEntity, AttackTypes.create(attackType, ed));
 
             // Play the sound effect
             //shoot.playInstance();

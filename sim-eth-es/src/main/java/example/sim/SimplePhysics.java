@@ -61,6 +61,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
     private EntityData ed;
     private BodyContainer bodies;
+    private EntitySet projectiles2;
 
     // Single threaded.... we'll have to take care when adding/removing
     // items.
@@ -76,7 +77,6 @@ public class SimplePhysics extends AbstractGameSystem {
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
 
     private World world;
-    private ProjectilesContainer projectiles;
 
     public SimplePhysics() {
     }
@@ -159,9 +159,14 @@ public class SimplePhysics extends AbstractGameSystem {
 
         world = new World();
         world.setGravity(World.ZERO_GRAVITY);
+        
+        projectiles2 = ed.getEntities(ObjectType.class, PhysicsForce.class);
     }
 
     protected void terminate() {
+        // Release the entity set we grabbed previously
+        projectiles2.release();
+        projectiles2 = null;
     }
 
     private void fireBodyListListeners() {
@@ -189,18 +194,12 @@ public class SimplePhysics extends AbstractGameSystem {
     public void start() {
         bodies = new BodyContainer(ed);
         bodies.start();
-
-        projectiles = new ProjectilesContainer(ed);
-        projectiles.start();
     }
 
     @Override
     public void stop() {
         bodies.stop();
         bodies = null;
-
-        projectiles.stop();
-        projectiles = null;
     }
 
     @Override
@@ -212,7 +211,6 @@ public class SimplePhysics extends AbstractGameSystem {
 
         // Update the entity list       
         bodies.update();
-        projectiles.update();
 
         // Fire off any pending add/remove events 
         fireBodyListListeners();
@@ -225,6 +223,8 @@ public class SimplePhysics extends AbstractGameSystem {
                 b.driver.update(tpf, b);
             }
         }
+        
+        applyProjectileVelocities();
 
         world.update(tpf);
 
@@ -290,46 +290,16 @@ public class SimplePhysics extends AbstractGameSystem {
 
     }
 
-    /**
-     * Applies forces to physical bodies
-     */
-    private class ProjectilesContainer extends EntityContainer<Body> {
-
-        public ProjectilesContainer(EntityData ed) {
-            super(ed, BodyPosition.class, PhysicsForce.class);
-        }
-
-        /**
-         * Once an entity has a bodyposition it is in the physical world. When
-         * it recieves a physicsforce, we can then apply it to the body
-         *
-         * @param e the entity
-         * @return the body of the entity
-         */
-        @Override
-        protected Body addObject(Entity e) {
+    private void applyProjectileVelocities() {
+        projectiles2.applyChanges();
+        for (Entity e : projectiles2) {
             PhysicsForce pf = e.get(PhysicsForce.class);
 
             Body b = getBody(e.getId());
 
-            //b.applyForce(pf.getForce());
-            //b.applyTorque(pf.getTorque());
             b.setLinearVelocity(pf.getForce().getForce());
 
             ed.removeComponent(e.getId(), PhysicsForce.class);
-
-            return b;
         }
-
-        @Override
-        protected void updateObject(Body object, Entity e) {
-            // Nothing happens here
-        }
-
-        @Override
-        protected void removeObject(Body object, Entity e) {
-            // Nothing happens here (there is potentially an explosion)
-        }
-
     }
 }
