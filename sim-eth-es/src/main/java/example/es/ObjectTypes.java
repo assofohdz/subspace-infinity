@@ -53,7 +53,7 @@ public class ObjectTypes {
     public static final String BOMB = "bomb";
     public static final String BOUNTY = "bounty";
 
-    public static ObjectType shipType(EntityData ed) {
+    public static ObjectType ship(EntityData ed) {
         return ObjectType.create(SHIP, ed);
     }
 

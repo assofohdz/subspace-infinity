@@ -66,6 +66,7 @@ import example.es.AttackTypes;
 import example.es.BodyPosition;
 
 import example.es.Position;
+import example.es.states.AttackState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
@@ -306,8 +307,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("Bomb");
             }
             
-            ed.setComponent(shipEntity, AttackTypes.create(attackType, ed));
-
+            gameSystems.get(AttackState.class).attack(shipEntity, AttackTypes.create(attackType, ed));
+            
             // Play the sound effect
             //shoot.playInstance();
         }

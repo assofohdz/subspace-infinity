@@ -15,18 +15,15 @@ public class PhysicsForce implements EntityComponent {
 
     private Force force;
     private Torque torque;
+    private Vector2 velocity;
 
     public PhysicsForce() {
     }
 
-    public PhysicsForce(Vec3d force) {
-        this.force = new Force(force.x, force.y);
-        this.torque = new Torque();
-    }
-
-    public PhysicsForce(Force force, Torque torque) {
+    public PhysicsForce(Force force, Torque torque, Vector2 velocity) {
         this.force = force;
         this.torque = torque;
+        this.velocity = velocity;
     }
 
     public Force getForce() {
@@ -36,9 +33,13 @@ public class PhysicsForce implements EntityComponent {
     public Torque getTorque() {
         return torque;
     }
+    
+    public Vector2 getVelocity() {
+        return velocity;
+    }
 
     @Override
     public String toString() {
-        return "PhysicsForce{" + "force=" + force + ", torque=" + torque + '}';
+        return "PhysicsForce{" + "force=" + force + ", torque=" + torque + ", velocity=" + velocity + '}';
     }
 }

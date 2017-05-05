@@ -2,6 +2,7 @@ package example.es.states;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
@@ -23,7 +24,7 @@ import org.dyn4j.geometry.Vector2;
  * General app state that watches entities with a AttackType component and
  * HitPoints. It performs the attack if there is enough hitpoints and then
  * removes the attacktype component.
- * 
+ *
  * The attacker must have a physical body (BodyPosition)
  *
  * @author Asser Fahrenholz
@@ -34,49 +35,11 @@ public class AttackState extends AbstractGameSystem {
     private EntitySet entities;
     private Object gameSystems;
     private SimplePhysics physics;
+    private SimTime time;
 
     @Override
     public void update(SimTime tpf) {
-        entities.applyChanges();
-        for (Entity e : entities) {
-            AttackType at = e.get(AttackType.class); //The type of attack to perform
-            HitPoints hp = e.get(HitPoints.class); //The current health of the attacker
-
-            //Derive how much health it will take to perform the given attack
-            //Perform the attack
-            // Attacking body:
-            Body shipBody = physics.getBody(e.getId());
-
-            Transform shipTransform = shipBody.getTransform();
-
-            //Bomb velocity:
-            Vector2 attackVel = new Vector2(0, 1);
-            attackVel.rotate(shipTransform.getRotation());
-            attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
-            //TODO: multiply by ship speed (account for direction)
-
-            //Bomb position
-            Vector2 attackPos = new Vector2(0, 1);
-            attackPos.rotate(shipTransform.getRotation());
-            attackPos.multiply(GameConstants.PROJECTILEOFFSET);
-            attackPos.add(shipTransform.getTranslationX(), shipTransform.getTranslationY());
-
-            Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
-
-            switch (at.getTypeName(ed)) {
-                case AttackTypes.BOMB:
-                    GameEntities.createBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
-                    break;
-                case AttackTypes.BULLET:
-                    GameEntities.createBullet(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
-                    break;
-            }
-
-            //Create a buff/healthchange component because attacking takes health
-            ed.setComponents(e.getId(), new Buff(e.getId(), tpf.getTime()), new HealthChange(0)); //TODO: change in health not set
-
-            ed.removeComponent(e.getId(), AttackType.class);
-        }
+        time = tpf;
     }
 
     @Override
@@ -89,7 +52,7 @@ public class AttackState extends AbstractGameSystem {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
 
-        entities = ed.getEntities(BodyPosition.class, HitPoints.class, AttackType.class);
+        entities = ed.getEntities(BodyPosition.class, HitPoints.class, AttackType.class); //This filters the entities that are allowed to perform attacks
     }
 
     @Override
@@ -97,6 +60,46 @@ public class AttackState extends AbstractGameSystem {
         // Release the entity set we grabbed previously
         entities.release();
         entities = null;
+    }
+
+    public void attack(EntityId eId, AttackType type) {
+        Entity e = ed.getEntity(eId, HitPoints.class);
+        SimTime localTime = time; //Copy incase someone else is writing to it
+        HitPoints hp = e.get(HitPoints.class); //The current health of the attacker
+
+        //Derive how much health it will take to perform the given attack
+        //Perform the attack
+        // Attacking body:
+        Body shipBody = physics.getBody(e.getId());
+
+        Transform shipTransform = shipBody.getTransform();
+
+        //Bomb velocity:
+        Vector2 attackVel = new Vector2(0, 1);
+        attackVel.rotate(shipTransform.getRotation());
+        attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
+        attackVel.add(shipBody.getLinearVelocity()); //Add ships velocity to account for direction of ship and rotation
+
+        //Bomb position
+        Vector2 attackPos = new Vector2(0, 1);
+        attackPos.rotate(shipTransform.getRotation());
+        attackPos.multiply(GameConstants.PROJECTILEOFFSET);
+        attackPos.add(shipTransform.getTranslationX(), shipTransform.getTranslationY());
+
+        Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
+
+        switch (type.getTypeName(ed)) {
+            case AttackTypes.BOMB:
+                GameEntities.createBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
+                break;
+            case AttackTypes.BULLET:
+                GameEntities.createBullet(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
+                break;
+        }
+
+        //Create a buff/healthchange component because attacking takes health
+        EntityId buffEntity = ed.createEntity();
+        ed.setComponents(buffEntity, new Buff(e.getId(), localTime.getTime()), new HealthChange(0)); //TODO: change in health not set
     }
 
 }

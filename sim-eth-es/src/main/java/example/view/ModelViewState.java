@@ -344,7 +344,7 @@ public class ModelViewState extends BaseAppState {
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
                 setVisible(trans.getVisibility(time));
-                log.info("PositionTransition ("+spatial.getName()+"): "+spatial.getLocalTranslation() + ", "+spatial.getLocalRotation());
+                log.info(spatial.getName() + ": "+trans.toString());
             }
         }
 

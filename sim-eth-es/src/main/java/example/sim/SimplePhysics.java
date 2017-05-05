@@ -44,12 +44,15 @@ import com.simsilica.es.*;
 import com.simsilica.sim.*;
 
 import example.es.*;
+import example.view.ModelViewState;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Transform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Just a basic physics simulation that integrates acceleration, velocity, and
@@ -59,9 +62,11 @@ import org.dyn4j.geometry.Transform;
  */
 public class SimplePhysics extends AbstractGameSystem {
 
+    static Logger log = LoggerFactory.getLogger(SimplePhysics.class);
+
     private EntityData ed;
     private BodyContainer bodies;
-    private EntitySet projectiles2;
+    private EntitySet projectiles;
 
     // Single threaded.... we'll have to take care when adding/removing
     // items.
@@ -121,17 +126,16 @@ public class SimplePhysics extends AbstractGameSystem {
                     return result;
                 }
                 result = new Body(entityId);
-                result.radiusLocal = radius;
-                result.invMass = invMass;
+                result.radiusLocal = radius; //TODO: This radius isn't used
+                result.invMass = invMass; //TODO: Mass isn't used
 
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
 
                 // Set it up to be managed by Dyn4j
-                BodyFixture fixture = new BodyFixture(new Circle(radius));
+                BodyFixture fixture = new BodyFixture(new Circle(radius)); //TODO: Could be a different shape
                 result.addFixture(fixture);
                 result.setMass(MassType.NORMAL);
-                result.setUserData(entityId);
                 world.addBody(result);
 
                 // Set it up to be managed by physics
@@ -159,14 +163,14 @@ public class SimplePhysics extends AbstractGameSystem {
 
         world = new World();
         world.setGravity(World.ZERO_GRAVITY);
-        
-        projectiles2 = ed.getEntities(ObjectType.class, PhysicsForce.class);
+
+        projectiles = ed.getEntities(ObjectType.class, PhysicsForce.class);
     }
 
     protected void terminate() {
         // Release the entity set we grabbed previously
-        projectiles2.release();
-        projectiles2 = null;
+        projectiles.release();
+        projectiles = null;
     }
 
     private void fireBodyListListeners() {
@@ -211,6 +215,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
         // Update the entity list       
         bodies.update();
+        applyProjectileVelocities();
 
         // Fire off any pending add/remove events 
         fireBodyListListeners();
@@ -223,8 +228,6 @@ public class SimplePhysics extends AbstractGameSystem {
                 b.driver.update(tpf, b);
             }
         }
-        
-        applyProjectileVelocities();
 
         world.update(tpf);
 
@@ -234,6 +237,7 @@ public class SimplePhysics extends AbstractGameSystem {
             b.syncronizePhysicsBody();
         }
 
+        //Updating physics listeners
         // Publish the results
         for (PhysicsListener l : listeners.getArray()) {
             for (Body b : bodies.getArray()) {
@@ -291,15 +295,19 @@ public class SimplePhysics extends AbstractGameSystem {
     }
 
     private void applyProjectileVelocities() {
-        projectiles2.applyChanges();
-        for (Entity e : projectiles2) {
-            PhysicsForce pf = e.get(PhysicsForce.class);
+        projectiles.applyChanges();
+        for (Entity e : projectiles) {
+            if (bodies.getObject(e.getId()) != null) {
+                PhysicsForce pf = e.get(PhysicsForce.class);
 
-            Body b = getBody(e.getId());
+                Body b = getBody(e.getId());
 
-            b.setLinearVelocity(pf.getForce().getForce());
+                b.setLinearVelocity(pf.getVelocity());
+                b.applyForce(pf.getForce().getForce());
+                b.applyTorque(pf.getTorque());
 
-            ed.removeComponent(e.getId(), PhysicsForce.class);
+                ed.removeComponent(e.getId(), PhysicsForce.class);
+            }
         }
     }
 }

@@ -41,6 +41,8 @@ import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 
 import example.es.*;
+import org.dyn4j.dynamics.Force;
+import org.dyn4j.dynamics.Torque;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -59,7 +61,7 @@ public class GameEntities {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
-        ed.setComponents(result, ObjectTypes.shipType(ed),
+        ed.setComponents(result, ObjectTypes.ship(ed),
                 new MassProperties(1 / 50.0), new SphereShape(1f, new Vec3d()));
         ed.setComponent(result, new HitPoints(100));
 
@@ -98,7 +100,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
                 new Position(location, quatd, rotation),
-                new PhysicsForce(new Vec3d(linearVelocity.x, linearVelocity.y, 0)),
+                new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
                 //new CollisionShape(0.01f), //TODO: CollisionShape not needed since Dyn4j handles physics now
                 new Decay(decayMillis),
                 new MassProperties(1 / 50.0), //for physics
@@ -110,7 +112,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bullet(ed),
                 new Position(location, quatd, rotation),
-                new PhysicsForce(new Vec3d(linearVelocity.x, linearVelocity.y, 0)),
+                new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
                 //new CollisionShape(0.01f), //TODO: CollisionShape not needed since Dyn4j handles physics now
                 new Decay(decayMillis),
                 new MassProperties(1 / 50.0), //for physics

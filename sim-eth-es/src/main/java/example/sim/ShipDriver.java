@@ -38,8 +38,6 @@ package example.sim;
 import com.jme3.math.*;
 
 import com.simsilica.mathd.*;
-import example.GameConstants;
-import example.es.AttackTypes;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -63,7 +61,7 @@ public class ShipDriver implements ControlDriver {
     public void applyMovementState(Vector3f thrust) {
         this.thrust = thrust;
     }
-
+    
     private double applyThrust(double v, double thrust, double tpf) {
         if (thrust > 0) {
             // Accelerate
