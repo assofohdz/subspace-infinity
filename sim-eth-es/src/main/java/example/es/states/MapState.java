@@ -1,7 +1,14 @@
 package example.es.states;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import example.es.ArenaId;
+import example.es.BodyPosition;
+import example.es.HitPoints;
+import example.sim.GameEntities;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -23,8 +30,14 @@ public class MapState extends AbstractGameSystem {
 
     private TMXMapReader reader;
     private Map map;
+    private EntityData ed;
+    private EntitySet entities;
+    
+    
+    
     @Override
     protected void initialize() {
+        /*
         // Arrange
         reader = new TMXMapReader();
         // Assert
@@ -35,12 +48,23 @@ public class MapState extends AbstractGameSystem {
         } catch (Exception ex) {
             Logger.getLogger(MapState.class.getName()).log(Level.SEVERE, null, ex);
         }
+        */
+        this.ed = getSystem(EntityData.class);
+        
+        
+        entities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
+        
+        //TODO: Handle all arenas in a managed list
+        EntityId arenaId = GameEntities.createArena(0, ed); //Create first arena
     }
 
     @Override
     protected void terminate() {
         //Release reader object
         reader = null;
+        // Release the entity set we grabbed previously
+        entities.release();
+        entities = null;
     }
     
     @Override

@@ -62,6 +62,10 @@ import com.simsilica.ethereal.SharedObjectListener;
 import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.*;
+import com.simsilica.lemur.event.CursorButtonEvent;
+import com.simsilica.lemur.event.CursorEventControl;
+import com.simsilica.lemur.event.DefaultCursorListener;
+import com.simsilica.lemur.event.DefaultMouseListener;
 
 import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
@@ -201,14 +205,12 @@ public class ModelViewState extends BaseAppState {
 
         return geom;
     }
-    
-    
 
     protected Spatial createBomb(Entity entity) {
         //Node information:
         Node result = new Node("bomb:" + entity.getId());
         result.setUserData("bombId", entity.getId().getId());
-        
+
         //Spatial information:
         Spatial bomb = factory.createModel(entity);
         result.attachChild(bomb);
@@ -226,7 +228,7 @@ public class ModelViewState extends BaseAppState {
         //Spatial information:
         Spatial bullet = factory.createModel(entity);
         result.attachChild(bullet);
-        
+
         return result;
     }
 
@@ -239,9 +241,9 @@ public class ModelViewState extends BaseAppState {
         //Spatial information:
         Spatial bounty = factory.createModel(entity);
         result.attachChild(bounty);
-        
+
         attachCoordinateAxes(result);
-        
+
         return result;
     }
 
@@ -271,6 +273,9 @@ public class ModelViewState extends BaseAppState {
             case ObjectTypes.BOMB:
                 result = createBomb(entity);
                 break;
+            case ObjectTypes.ARENA:
+                result = createArena(entity);
+                break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
         }
@@ -289,14 +294,37 @@ public class ModelViewState extends BaseAppState {
             // I like to move it... move it...
             spatial.setLocalTranslation(pos.getLocation().toVector3f());
             spatial.setLocalRotation(pos.getFacing().toQuaternion());
-            
-            log.info("Position ("+spatial.getName()+"): "+spatial.getLocalTranslation()+", "+pos.getFacing());
+
+            //log.info("Position ("+spatial.getName()+"): "+spatial.getLocalTranslation()+", "+pos.getFacing());
         }
     }
 
     protected void removeModel(Spatial spatial, Entity entity) {
         modelIndex.remove(entity.getId());
         spatial.removeFromParent();
+    }
+
+    private Spatial createArena(Entity entity) {
+        //Node information:
+        Node result = new Node("arena:" + entity.getId());
+        result.setUserData("arenaId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial arena = factory.createModel(entity);
+
+        CursorEventControl.addListenersToSpatial(arena, new DefaultCursorListener() {
+            @Override
+            protected void click(CursorButtonEvent event, Spatial target, Spatial capture) {
+                System.out.println("I've been clicked:" + target);
+                //TODO: Create ray to intersect from Camera to Arena
+            }
+        });
+        result.attachChild(arena);
+
+        attachCoordinateAxes(result);
+
+        return result;
     }
 
     private class Mob {
@@ -344,7 +372,7 @@ public class ModelViewState extends BaseAppState {
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
                 setVisible(trans.getVisibility(time));
-                log.info(spatial.getName() + ": "+trans.toString());
+                //log.info(spatial.getName() + ": "+trans.toString());
             }
         }
 
@@ -367,7 +395,7 @@ public class ModelViewState extends BaseAppState {
             } else {
                 spatial.setCullHint(Spatial.CullHint.Always);
             }
-            */
+             */
         }
 
         public void dispose() {
@@ -390,7 +418,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected Mob addObject(Entity e) {
-            System.out.println("MobContainer.addObject(" + e + ")");            
+            System.out.println("MobContainer.addObject(" + e + ")");
             return new Mob(e);
         }
 

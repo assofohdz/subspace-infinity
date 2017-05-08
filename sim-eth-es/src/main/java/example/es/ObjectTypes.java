@@ -52,6 +52,7 @@ public class ObjectTypes {
     public static final String BULLET = "bullet";
     public static final String BOMB = "bomb";
     public static final String BOUNTY = "bounty";
+    public static final String ARENA = "arena";
 
     public static ObjectType ship(EntityData ed) {
         return ObjectType.create(SHIP, ed);
@@ -79,5 +80,9 @@ public class ObjectTypes {
 
     public static ObjectType bomb(EntityData ed) {
         return ObjectType.create(BOMB, ed);
+    }
+    
+    public static ObjectType arena(EntityData ed) {
+        return ObjectType.create(ARENA, ed);
     }
 }

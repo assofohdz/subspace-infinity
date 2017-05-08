@@ -4,18 +4,21 @@ import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
+import com.jme3.texture.Texture;
 import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import example.ConnectionState;
 import example.es.ObjectType;
 import example.es.ObjectTypes;
+
 /**
  *
  * @author Asser
@@ -30,6 +33,8 @@ public class SISpatialFactory implements ModelFactory {
     public final static float bountySize = 0.5f;
     public final static float shipSize = 1f;
 
+    public final static int arenaSize = 25;
+
     private EffectFactory ef;
 
     public SISpatialFactory() {
@@ -39,10 +44,9 @@ public class SISpatialFactory implements ModelFactory {
     public void setState(ModelViewState state) {
         this.assets = state.getApplication().getAssetManager();
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
-        
-        
+
         this.assets.registerLoader(AWTLoader.class, "bm2");
-        
+
     }
 
     @Override
@@ -51,26 +55,23 @@ public class SISpatialFactory implements ModelFactory {
         if (ObjectTypes.SHIP.equals(type.getTypeName(ed))) {
             //Right now, only the shark is supported
             return createShip();
-        }
-        if (ObjectTypes.THRUST.equals(type.getTypeName(ed))) {
+        } else if (ObjectTypes.THRUST.equals(type.getTypeName(ed))) {
             //Create a particle emitter:
             return createParticleEmitter(e);
-        }
-        if (ObjectTypes.BULLET.equals(type.getTypeName(ed))) {
+        } else if (ObjectTypes.BULLET.equals(type.getTypeName(ed))) {
             //Create bullet
             return createBullet(e);
-        }
-        if (ObjectTypes.BOMB.equals(type.getTypeName(ed))) {
+        } else if (ObjectTypes.BOMB.equals(type.getTypeName(ed))) {
             //Create bomb
             return createBomb(e);
-        }
-        if (ObjectTypes.EXPLOSION.equals(type.getTypeName(ed))) {
+        } else if (ObjectTypes.EXPLOSION.equals(type.getTypeName(ed))) {
             //Create explosion
             return createExplosion(e);
-        }
-        if (ObjectTypes.BOUNTY.equals(type.getTypeName(ed))) {
+        } else if (ObjectTypes.BOUNTY.equals(type.getTypeName(ed))) {
             //Create bounty
             return createBounty(e);
+        } else if (ObjectTypes.ARENA.equals(type.getTypeName(ed))) {
+            return createArena(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
@@ -91,7 +92,7 @@ public class SISpatialFactory implements ModelFactory {
         Material mat = assets.loadMaterial("Materials/ShipMaterial.j3m");
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-        
+
         return geom;
     }
 
@@ -201,4 +202,35 @@ public class SISpatialFactory implements ModelFactory {
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
+
+    private Spatial createArena(Entity e) {
+        Quad quad = new Quad(arenaSize, arenaSize);
+        //<-- Move into the material?
+        float halfSize = arenaSize * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        Geometry geom = new Geometry("Arena", quad);
+
+        //Material mat = new Material(assets, "Common/MatDefs/Light/Lighting.j3md");
+        //mat.setBoolean("UseMaterialColors", true);
+        //mat.setColor("Ambient", ColorRGBA.Green);
+        //mat.setColor("Diffuse", ColorRGBA.Green);
+        //geom.setMaterial(mat);
+        //mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        //geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        //Texture monkeyTex = assets.loadTexture("Interface/Logo/Monkey.jpg"); 
+        //mat.setTexture("ColorMap", monkeyTex); 
+        //geom.setMaterial(mat);
+        //geom.setCullHint(Spatial.CullHint.Always); //always invisible
+
+        Material mat = new Material(assets, "Common/MatDefs/Misc/ShowNormals.j3md");
+        geom.setMaterial(mat);
+
+        return geom;
+    }
+
 }

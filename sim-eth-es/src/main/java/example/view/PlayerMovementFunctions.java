@@ -36,11 +36,14 @@
 package example.view;
 
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
 import com.simsilica.lemur.input.Axis;
 import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Defines a set of player movement functions and their default control
@@ -51,6 +54,7 @@ import com.simsilica.lemur.input.InputState;
 public class PlayerMovementFunctions {
 
     public static final String G_MOVEMENT = "Movement";
+    public static final String G_MAP = "Map";
 
     public static final FunctionId F_THRUST = new FunctionId(G_MOVEMENT, "Thrust");
 
@@ -65,6 +69,8 @@ public class PlayerMovementFunctions {
      */
     public static final FunctionId F_STOP = new FunctionId(G_MOVEMENT, "Stop");
     public static final FunctionId F_SHOOT = new FunctionId(G_MOVEMENT, "Shoot");
+    public static final FunctionId F_MOUSELEFTCLICK = new FunctionId(G_MAP, "UpdateTile");
+    public static final FunctionId F_MOUSERIGHTCLICK = new FunctionId(G_MAP, "RemoveTile");
     public static final FunctionId F_BOMB = new FunctionId(G_MOVEMENT, "Bomb");
 
     public static void initializeDefaultMappings(InputMapper inputMapper) {
@@ -91,6 +97,14 @@ public class PlayerMovementFunctions {
 
         if (!inputMapper.hasMappings(F_STOP)) {
             inputMapper.map(F_STOP, KeyInput.KEY_SPACE);
+        }
+        
+        if (!inputMapper.hasMappings(F_MOUSELEFTCLICK)) {
+            inputMapper.map(F_MOUSELEFTCLICK, Button.MOUSE_BUTTON1);
+        }
+        
+        if (!inputMapper.hasMappings(F_MOUSERIGHTCLICK)) {
+            inputMapper.map(F_MOUSERIGHTCLICK, Button.MOUSE_BUTTON2);
         }
     }
 }

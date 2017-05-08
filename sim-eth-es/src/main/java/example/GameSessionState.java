@@ -49,6 +49,7 @@ import com.simsilica.state.CompositeAppState;
 import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.EntityId;
+import com.simsilica.lemur.event.MouseAppState;
 
 import example.debug.TimeSequenceState;
 import example.net.GameSessionListener;
@@ -150,6 +151,8 @@ public class GameSessionState extends CompositeAppState {
         shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getShip();
         log.info("Player object:" + shipId);
         us.setShipId(shipId);
+        
+        addChild(new MouseAppState(app));
     }
     
     @Override   
@@ -172,13 +175,13 @@ public class GameSessionState extends CompositeAppState {
     @Override
     protected void onEnable() {
         super.onEnable();
-        GuiGlobals.getInstance().setCursorEventsEnabled(false);
+        //GuiGlobals.getInstance().setCursorEventsEnabled(false);
     }            
 
     @Override
     protected void onDisable() {
         super.onEnable();
-        GuiGlobals.getInstance().setCursorEventsEnabled(true);
+        //GuiGlobals.getInstance().setCursorEventsEnabled(true);
     }            
     
     /**

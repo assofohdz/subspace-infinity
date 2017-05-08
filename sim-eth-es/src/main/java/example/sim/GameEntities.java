@@ -56,7 +56,7 @@ import org.dyn4j.geometry.Vector2;
  * @author Paul Speed
  */
 public class GameEntities {
-    
+
     public static EntityId createShip(EntityId parent, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
@@ -118,5 +118,15 @@ public class GameEntities {
                 new MassProperties(1 / 50.0), //for physics
                 new SphereShape(0.5f, new Vec3d())); //for physics
         return lastBomb;
+    }
+
+    public static EntityId createArena(int arenaId, EntityData ed) {
+        EntityId lastArena = ed.createEntity();
+        
+        ed.setComponents(lastArena, ObjectTypes.arena(ed),
+                new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0.0)
+                );
+        
+        return lastArena;
     }
 }
