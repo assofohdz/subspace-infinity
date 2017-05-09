@@ -54,7 +54,8 @@ dependencies {
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
     compile "com.simsilica:sio2:1.1.0"
     compile "com.simsilica:sim-math:1.1.1"
-    compile "com.simsilica:sim-ethereal:1.2.2-SNAPSHOT"
+    //compile "com.simsilica:sim-ethereal:1.2.2"
+    compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
 
     // Standard utility stuff
     compile 'com.google.guava:guava:19.0'

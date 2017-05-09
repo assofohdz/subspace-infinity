@@ -213,19 +213,8 @@ public class SISpatialFactory implements ModelFactory {
             -halfSize, halfSize, 0
         });
         //-->
+        quad.updateBound();
         Geometry geom = new Geometry("Arena", quad);
-
-        //Material mat = new Material(assets, "Common/MatDefs/Light/Lighting.j3md");
-        //mat.setBoolean("UseMaterialColors", true);
-        //mat.setColor("Ambient", ColorRGBA.Green);
-        //mat.setColor("Diffuse", ColorRGBA.Green);
-        //geom.setMaterial(mat);
-        //mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-        //geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-        //Texture monkeyTex = assets.loadTexture("Interface/Logo/Monkey.jpg"); 
-        //mat.setTexture("ColorMap", monkeyTex); 
-        //geom.setMaterial(mat);
-        //geom.setCullHint(Spatial.CullHint.Always); //always invisible
 
         Material mat = new Material(assets, "Common/MatDefs/Misc/ShowNormals.j3md");
         geom.setMaterial(mat);
