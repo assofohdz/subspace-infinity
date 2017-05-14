@@ -8,6 +8,8 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.GameConstants;
+import example.PhysicsConstants;
+import example.ViewConstants;
 import example.es.AttackType;
 import example.es.AttackTypes;
 import example.es.BodyPosition;
@@ -62,7 +64,9 @@ public class AttackState extends AbstractGameSystem {
         entities = null;
     }
 
+    //TODO: Make private and instead of calling directly, create an attack entity (much like the buff entity)
     public void attack(EntityId eId, AttackType type) {
+        //TODO: Check cooldown
         Entity e = ed.getEntity(eId, HitPoints.class);
         SimTime localTime = time; //Copy incase someone else is writing to it
         HitPoints hp = e.get(HitPoints.class); //The current health of the attacker
@@ -77,13 +81,18 @@ public class AttackState extends AbstractGameSystem {
         //Bomb velocity:
         Vector2 attackVel = new Vector2(0, 1);
         attackVel.rotate(shipTransform.getRotation());
-        attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
+        attackVel.multiply(GameConstants.BASEPROJECTILESPEED);
+        if (type.getTypeName(ed).equals(AttackTypes.BOMB)) {
+            attackVel.multiply(GameConstants.BOMBPROJECTILESPEED);
+        } else if (type.getTypeName(ed).equals(AttackTypes.BULLET)) {
+            attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
+        }
         attackVel.add(shipBody.getLinearVelocity()); //Add ships velocity to account for direction of ship and rotation
 
         //Bomb position
         Vector2 attackPos = new Vector2(0, 1);
         attackPos.rotate(shipTransform.getRotation());
-        attackPos.multiply(GameConstants.PROJECTILEOFFSET);
+        attackPos.multiply(PhysicsConstants.PROJECTILEOFFSET);
         attackPos.add(shipTransform.getTranslationX(), shipTransform.getTranslationY());
 
         Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z

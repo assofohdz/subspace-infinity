@@ -1,29 +1,23 @@
 package example.es.states;
 
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.ArenaId;
-import example.es.BodyPosition;
-import example.es.HitPoints;
+import example.es.MapTileType;
+import example.es.MapTileTypes;
+import example.es.Position;
 import example.sim.GameEntities;
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static junit.framework.TestCase.assertEquals;
 import tiled.io.TMXMapReader;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import org.dyn4j.geometry.Rectangle;
 import tiled.core.Map;
-import tiled.core.TileLayer;
 
 /**
- *
+ * State 
  * @author Asser
  */
 public class MapState extends AbstractGameSystem {
@@ -31,8 +25,7 @@ public class MapState extends AbstractGameSystem {
     private TMXMapReader reader;
     private Map map;
     private EntityData ed;
-    private EntitySet entities;
-    
+    private EntitySet arenaEntities, mapTileEntities;
     
     
     @Override
@@ -52,7 +45,10 @@ public class MapState extends AbstractGameSystem {
         this.ed = getSystem(EntityData.class);
         
         
-        entities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
+        arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
+        
+        mapTileEntities = ed.getEntities(MapTileType.class, Position.class); //Do not really care about the physics here (SimplePhysics handles that)
+        
         
         //TODO: Handle all arenas in a managed list
         EntityId arenaId = GameEntities.createArena(0, ed); //Create first arena
@@ -63,15 +59,40 @@ public class MapState extends AbstractGameSystem {
         //Release reader object
         reader = null;
         // Release the entity set we grabbed previously
-        entities.release();
-        entities = null;
+        arenaEntities.release();
+        arenaEntities = null;
+        
+        
+        mapTileEntities.release();
+        mapTileEntities = null;
     }
     
     @Override
     public void update(SimTime tpf) {
+        mapTileEntities.applyChanges();
         
+        for (Entity e : mapTileEntities.getAddedEntities()) {
+            
+            
+            //TODO: Check if e is next to a removed entity as well
+        }
+        
+        for (Entity e : mapTileEntities.getRemovedEntities()) {
+            
+            
+            
+            //TODO: Check if e is next to an added entity as well
+        }
     }
     
+    public void editMap(double x, double y){
+        
+        //TODO: Different shapes and different types
+        GameEntities.createMapTile(MapTileTypes.tile(ed), new Vec3d(Math.round(x-0.5)+0.5, Math.round(y-0.5)+0.5, 0), ed, new Rectangle(1,1)); //TODO: Account for actual arena (z-pos)
+    }
+    
+    
+    /*
     private File getFileFromResources(String filename) throws URISyntaxException {
         // Need to load files with their absolute paths, since they might refer to
         // tileset files that are expected to be in the same directory as the TMX file.
@@ -98,4 +119,5 @@ public class MapState extends AbstractGameSystem {
         assertEquals(3, map.getLayerCount());
         assertNotNull(((TileLayer)map.getLayer(0)).getTileAt(0, 0));
     }
+    */
 }

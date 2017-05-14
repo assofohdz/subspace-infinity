@@ -68,13 +68,19 @@ public interface GameSession {
     public void move(Vector3f thrust);
 
     /**
-     * Sends information to the game back end about the current shooting state
-     * of the player from user input. Because this state is continuous, it
-     * doesn't need to be reliable.
+     * Sends information about the player wanting to attack
      *
      * @param attackType
      */
     @Asynchronous(reliable = false)
     public void attack(String attackType);
+    
+    /**
+     * Sends information about editing a map tile
+     * @param x x-coordinate
+     * @param y y-coordinate
+     */
+    @Asynchronous(reliable = false)
+    public void editMap(double x, double y);
 
 }

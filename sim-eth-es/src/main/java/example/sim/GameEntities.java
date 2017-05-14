@@ -39,10 +39,16 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
+import example.GameConstants;
+import example.PhysicsConstants;
+import example.ViewConstants;
 
 import example.es.*;
+import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Torque;
+import org.dyn4j.geometry.Circle;
+import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -53,17 +59,22 @@ import org.dyn4j.geometry.Vector2;
  * entities with only a few components or that are created by one system and
  * only consumed by one other, then this is not necessarily true.
  *
- * @author Paul Speed
  */
 public class GameEntities {
 
+    //TODO: All constants should come through the parameters - for now, they come from the constants
+    //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
+    
     public static EntityId createShip(EntityId parent, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
-        ed.setComponents(result, ObjectTypes.ship(ed),
-                new MassProperties(1 / 50.0), new SphereShape(1f, new Vec3d()));
-        ed.setComponent(result, new HitPoints(100));
+        ed.setComponents(result,
+                ObjectTypes.ship(ed),
+                new MassProperties(1 / PhysicsConstants.SHIPMASS),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS))), //for Dyn4j physics
+                new SphereShape(PhysicsConstants.SHIPSIZERADIUS, new Vec3d())); //for simple physics
+        ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;
     }
@@ -71,7 +82,7 @@ public class GameEntities {
     public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed) {
         EntityId result = ed.createEntity();
         ed.setComponents(result, ObjectTypes.gravSphereType(ed),
-                new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0), 0.0), //TODO: Test angle
+                new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0), 0.0), //TODO: Test angle                
                 new SphereShape(radius, new Vec3d()));
         return result;
     }
@@ -79,10 +90,11 @@ public class GameEntities {
     public static EntityId createBounty(Vec3d pos, EntityData ed) {
         EntityId result = ed.createEntity();
         ed.setComponents(result, ObjectTypes.bounty(ed),
-                new Position(pos, new Quatd(), 0.0),
-                new Bounty(10),
-                new SphereShape(0.1, new Vec3d()),
-                new Decay(1000));
+                new Position(pos, new Quatd(), 0f),
+                new Bounty(GameConstants.BOUNTYVALUE),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BOUNTYSIZERADIUS))),
+                new SphereShape(ViewConstants.BOUNTYSIZE, new Vec3d()),
+                new Decay(GameConstants.BOUNTYDECAY));
         return result;
     }
 
@@ -90,8 +102,8 @@ public class GameEntities {
         EntityId result = ed.createEntity();
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
-                new Position(pos, new Quatd(), 0.0),
-                new Spawner(50, Spawner.SpawnType.Bounties),
+                new Position(pos, new Quatd(), 0f),
+                new Spawner(GameConstants.BOUNTYMAXCOUNT, Spawner.SpawnType.Bounties),
                 new SphereShape(radius));
         return result;
     }
@@ -101,10 +113,10 @@ public class GameEntities {
         ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
-                //new CollisionShape(0.01f), //TODO: CollisionShape not needed since Dyn4j handles physics now
                 new Decay(decayMillis),
-                new MassProperties(1 / 50.0), //for physics
-                new SphereShape(0.5f, new Vec3d())); //for physics
+                new MassProperties(1 / PhysicsConstants.BOMBMASS), //for physics
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BOMBSIZERADIUS))), //for Dyn4j physics
+                new SphereShape(PhysicsConstants.BOMBSIZERADIUS, new Vec3d())); //for physics
         return lastBomb;
     }
 
@@ -113,20 +125,32 @@ public class GameEntities {
         ed.setComponents(lastBomb, ObjectTypes.bullet(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
-                //new CollisionShape(0.01f), //TODO: CollisionShape not needed since Dyn4j handles physics now
                 new Decay(decayMillis),
-                new MassProperties(1 / 50.0), //for physics
-                new SphereShape(0.5f, new Vec3d())); //for physics
+                new MassProperties(1 / PhysicsConstants.BULLETMASS), //for physics
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BULLETSIZERADIUS))), //for Dyn4j physics
+                new SphereShape(PhysicsConstants.BULLETSIZERADIUS, new Vec3d())); //for Simple Physics
         return lastBomb;
     }
 
-    public static EntityId createArena(int arenaId, EntityData ed) {
+    public static EntityId createArena(int arenaId, EntityData ed) { //TODO: Should have Position as a parameter in case we want to create more than one arena
         EntityId lastArena = ed.createEntity();
-        
+
         ed.setComponents(lastArena, ObjectTypes.arena(ed),
-                new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0.0)
-                );
-        
+                new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0f)
+        );
+
         return lastArena;
+    }
+
+    public static EntityId createMapTile(MapTileType mapTileType, Vec3d location, EntityData ed, Convex c) {
+        EntityId lastMapTile = ed.createEntity();
+
+        ed.setComponents(lastMapTile, ObjectTypes.mapTile(ed),
+                new Position(location, new Quatd(), 0f), 
+                mapTileType, //TODO: Should be parameterized
+                new MassProperties(PhysicsConstants.MAPTILEMASS), //for Physics
+                new PhysicsShape(new BodyFixture(c))); //for physics - for now, only 1 by 1 tiles created (square)
+
+        return lastMapTile;
     }
 }

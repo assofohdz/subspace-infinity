@@ -155,6 +155,14 @@ public class GameSessionClientService extends AbstractClientService
         }
         getDelegate().attack(attackType);
     }
+    
+    @Override
+    public void editMap(double x, double y){
+        if (log.isTraceEnabled()) {
+            log.trace("edit map");
+        }
+        getDelegate().editMap(x, y); 
+    }
 
     /**
      * Shared with the server over RMI so that it can notify us about account

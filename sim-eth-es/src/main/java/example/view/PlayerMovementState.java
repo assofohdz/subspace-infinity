@@ -39,14 +39,23 @@ import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.input.InputManager;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 
 import com.simsilica.es.EntityId;
 
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.event.CursorButtonEvent;
+import com.simsilica.lemur.event.CursorListener;
+import com.simsilica.lemur.event.CursorMotionEvent;
+import com.simsilica.lemur.event.DefaultCursorListener;
 import com.simsilica.lemur.input.AnalogFunctionListener;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
@@ -261,7 +270,7 @@ public class PlayerMovementState extends BaseAppState
                 session.attack(AttackTypes.BULLET);
             } else if (func == PlayerMovementFunctions.F_BOMB) {
                 session.attack(AttackTypes.BOMB);
-            } 
+            }
         }
     }
 
@@ -274,6 +283,6 @@ public class PlayerMovementState extends BaseAppState
             this.forward = value;
         } else if (func == PlayerMovementFunctions.F_TURN) {
             this.rotate = value;
-        } 
+        }
     }
 }

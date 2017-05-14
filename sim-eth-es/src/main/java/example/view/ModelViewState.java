@@ -43,8 +43,9 @@ import org.slf4j.*;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.asset.AssetManager;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.math.*;
-import com.jme3.renderer.Camera;
 import com.jme3.material.Material;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
@@ -66,6 +67,7 @@ import com.simsilica.lemur.event.CursorButtonEvent;
 import com.simsilica.lemur.event.CursorEventControl;
 import com.simsilica.lemur.event.DefaultCursorListener;
 import com.simsilica.lemur.event.DefaultMouseListener;
+import com.simsilica.mathd.Vec3d;
 
 import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
@@ -75,8 +77,6 @@ import example.GameSessionState;
 import example.Main;
 import example.TimeState;
 import example.es.*;
-import example.net.GameSessionListener;
-import example.net.client.GameSessionClientService;
 
 /**
  * Displays the models for the various physics objects.
@@ -276,6 +276,9 @@ public class ModelViewState extends BaseAppState {
             case ObjectTypes.ARENA:
                 result = createArena(entity);
                 break;
+            case ObjectTypes.MAPTILE:
+                result = createMapTile(entity);
+                break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
         }
@@ -313,13 +316,28 @@ public class ModelViewState extends BaseAppState {
         //Spatial information:
         Spatial arena = factory.createModel(entity);
 
-        CursorEventControl.addListenersToSpatial(arena, new DefaultCursorListener() {
-            @Override
-            protected void click(CursorButtonEvent event, Spatial target, Spatial capture) {
-                System.out.println("I've been clicked:" + target);
-                //TODO: Create ray to intersect from Camera to Arena
-            }
-        });
+        //TODO: Should probably add an input state as the listener and then overwrite the click there, to be able to directly send the input to the session there
+        CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
+
+        result.attachChild(arena);
+
+        attachCoordinateAxes(result);
+
+        return result;
+    }
+
+    private Spatial createMapTile(Entity entity) {
+        //Node information:
+        Node result = new Node("maptile:" + entity.getId());
+        result.setUserData("mapTileId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial arena = factory.createModel(entity);
+
+        //TODO: Maybe we could use a listener on every map tile?
+        //CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
+
         result.attachChild(arena);
 
         attachCoordinateAxes(result);

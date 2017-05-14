@@ -45,9 +45,11 @@ import com.simsilica.sim.*;
 
 import example.es.*;
 import example.view.ModelViewState;
+import org.dyn4j.collision.Fixture;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.geometry.Circle;
+import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Transform;
@@ -117,7 +119,7 @@ public class SimplePhysics extends AbstractGameSystem {
         return driverIndex.get(entityId);
     }
 
-    protected Body createBody(EntityId entityId, double invMass, double radius, boolean create) {
+    protected Body createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
         Body result = index.get(entityId);
         if (result == null && create) {
             synchronized (this) {
@@ -126,16 +128,22 @@ public class SimplePhysics extends AbstractGameSystem {
                     return result;
                 }
                 result = new Body(entityId);
-                result.radiusLocal = radius; //TODO: This radius isn't used
-                result.invMass = invMass; //TODO: Mass isn't used
+                //result.radiusLocal = radius; //TODO: This radius isn't used
+                //result.invMass = invMass; //TODO: Mass isn't used
 
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
-
+                
                 // Set it up to be managed by Dyn4j
-                BodyFixture fixture = new BodyFixture(new Circle(radius)); //TODO: Could be a different shape
-                result.addFixture(fixture);
-                result.setMass(MassType.NORMAL);
+                result.addFixture(fixture.getShape()); //TODO: Not sure if positioning of shapes is correct (ie map tiles)
+
+                if (invMass == 0) {
+                    result.setMass(MassType.INFINITE);
+                    
+                } else {
+                    result.setMass(MassType.NORMAL);
+                }
+
                 world.addBody(result);
 
                 // Set it up to be managed by physics
@@ -215,7 +223,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
         // Update the entity list       
         bodies.update();
-        applyProjectileVelocities();
+        applyProjectileForces();
 
         // Fire off any pending add/remove events 
         fireBodyListListeners();
@@ -256,7 +264,7 @@ public class SimplePhysics extends AbstractGameSystem {
     private class BodyContainer extends EntityContainer<Body> {
 
         public BodyContainer(EntityData ed) {
-            super(ed, Position.class, MassProperties.class, SphereShape.class);
+            super(ed, Position.class, MassProperties.class, PhysicsShape.class);
         }
 
         @Override
@@ -267,13 +275,14 @@ public class SimplePhysics extends AbstractGameSystem {
         @Override
         protected Body addObject(Entity e) {
             MassProperties mass = e.get(MassProperties.class);
-            SphereShape shape = e.get(SphereShape.class);
+            PhysicsShape ps = e.get(PhysicsShape.class);
+            //SphereShape shape = e.get(SphereShape.class);
 
             // Right now only works for CoG-centered shapes                   
-            Body newBody = createBody(e.getId(), mass.getInverseMass(), shape.getRadius(), true);
+            Body newBody = createBody(e.getId(), mass.getInverseMass(), ps.getFixture(), true);
 
             Position pos = e.get(Position.class);
-            newBody.setPosition(pos);   //ES position
+            newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
 
             //Transform t = new Transform();
             newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
@@ -294,7 +303,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
     }
 
-    private void applyProjectileVelocities() {
+    private void applyProjectileForces() {
         projectiles.applyChanges();
         for (Entity e : projectiles) {
             if (bodies.getObject(e.getId()) != null) {

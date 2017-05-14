@@ -136,6 +136,7 @@ public class MessageState extends BaseAppState {
         }
     }
        
+    @Override
     public void update( float tpf ) {
 
         //addTestMessages(tpf);

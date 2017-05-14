@@ -67,6 +67,7 @@ import example.es.BodyPosition;
 
 import example.es.Position;
 import example.es.states.AttackState;
+import example.es.states.MapState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
@@ -304,13 +305,24 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         @Override
         public void attack(String attackType) {
             if (log.isTraceEnabled()) {
-                log.trace("Bomb");
+                log.trace("Attack");
             }
             
             gameSystems.get(AttackState.class).attack(shipEntity, AttackTypes.create(attackType, ed));
             
             // Play the sound effect
             //shoot.playInstance();
+        }
+
+        @Override
+        public void editMap(double x, double y) {
+            //Create a map entity
+            
+            if (log.isTraceEnabled()) {
+                log.trace("Map edit");
+            }
+            
+            gameSystems.get(MapState.class).editMap(x, y);
         }
     }
 }

@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.*;
 import example.GameConstants;
+import example.PhysicsConstants;
 
 import example.es.Position;
 import org.dyn4j.geometry.Transform;
@@ -98,8 +99,14 @@ public class Body extends org.dyn4j.dynamics.Body {
     public void syncronizePhysicsBody() {
         Transform position = this.getTransform();
 
-        // setting 3d position based on internal physics 2d position
-        pos.set(position.getTranslationX() * GameConstants.PHYSICS_SCALE, position.getTranslationY() * GameConstants.PHYSICS_SCALE, 0);
+        // setting 3d position based on Dyn4j physics 2d position
+        pos.set(
+                position.getTranslationX() * PhysicsConstants.PHYSICS_SCALE, 
+                position.getTranslationY() * PhysicsConstants.PHYSICS_SCALE,
+                0);
+        
+        
+        
         orientation.fromAngles(0, 0, this.getTransform().getRotation());
 
         // setting 3d velocity based on internal physics 2d velocity

@@ -147,12 +147,21 @@ public class GameConstants {
      *  zones including the zone they are in.
      */           
     public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 0);
-    public static double PHYSICS_SCALE = 1.0;
-    public static double BASEPROJECTILESPEED = 5;
-    public static double BOMBPROJECTILESPEED = 1000;
-    public static double BULLETPROJECTILESPEED = 5;
-    public static double PROJECTILEOFFSET = 3;
-    public static long BULLETDECAY = 1500;
+    
+    
+    
+    
+    //Properties
+    public final static double BASEPROJECTILESPEED = 1;
+    public final static double BOMBPROJECTILESPEED = 25;
+    public final static double BULLETPROJECTILESPEED = 50;
+    
+    //Decays
+    public final static long BULLETDECAY = 1500;
+    public final static long BOUNTYDECAY = 1000;
+    public final static int SHIPHEALTH = 100;
+    public final static int BOUNTYVALUE = 10;
+    public final static int BOUNTYMAXCOUNT = 50;
 }
 
 

@@ -16,6 +16,8 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import example.ConnectionState;
+import example.GameConstants;
+import example.ViewConstants;
 import example.es.ObjectType;
 import example.es.ObjectTypes;
 
@@ -27,13 +29,6 @@ public class SISpatialFactory implements ModelFactory {
 
     private AssetManager assets;
     private EntityData ed;
-
-    public final static float bulletSize = 0.25f;
-    public final static float bombSize = 0.5f;
-    public final static float bountySize = 0.5f;
-    public final static float shipSize = 1f;
-
-    public final static int arenaSize = 25;
 
     private EffectFactory ef;
 
@@ -72,15 +67,17 @@ public class SISpatialFactory implements ModelFactory {
             return createBounty(e);
         } else if (ObjectTypes.ARENA.equals(type.getTypeName(ed))) {
             return createArena(e);
+        } else if (ObjectTypes.MAPTILE.equals(type.getTypeName(ed))) {
+            return createMapTile(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
     }
 
     private Spatial createShip() {
-        Quad quad = new Quad(shipSize, shipSize);
+        Quad quad = new Quad(ViewConstants.SHIPSIZE, ViewConstants.SHIPSIZE);
         //<-- Move into the material?
-        float halfSize = shipSize * 0.5f;
+        float halfSize = ViewConstants.SHIPSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,
@@ -129,9 +126,9 @@ public class SISpatialFactory implements ModelFactory {
     }
 
     private Spatial createBomb(Entity e) {
-        Quad quad = new Quad(bombSize, bombSize);
+        Quad quad = new Quad(ViewConstants.BOMBSIZE, ViewConstants.BOMBSIZE);
         //<-- Move into the material?
-        float halfSize = bombSize * 0.5f;
+        float halfSize = ViewConstants.BOMBSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,
@@ -147,9 +144,9 @@ public class SISpatialFactory implements ModelFactory {
     }
 
     private Spatial createBullet(Entity e) {
-        Quad quad = new Quad(bulletSize, bulletSize);
+        Quad quad = new Quad(ViewConstants.BULLETSIZE, ViewConstants.BULLETSIZE);
         //<-- Move into the material?
-        float halfSize = bulletSize * 0.5f;
+        float halfSize = ViewConstants.BULLETSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,
@@ -186,9 +183,9 @@ public class SISpatialFactory implements ModelFactory {
     }
 
     private Spatial createBounty(Entity e) {
-        Quad quad = new Quad(bountySize, bountySize);
+        Quad quad = new Quad(ViewConstants.BOUNTYSIZE, ViewConstants.BOUNTYSIZE);
         //<-- Move into the material?
-        float halfSize = bountySize * 0.5f;
+        float halfSize = ViewConstants.BOUNTYSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,
@@ -204,9 +201,9 @@ public class SISpatialFactory implements ModelFactory {
     }
 
     private Spatial createArena(Entity e) {
-        Quad quad = new Quad(arenaSize, arenaSize);
+        Quad quad = new Quad(ViewConstants.ARENASIZE, ViewConstants.ARENASIZE);
         //<-- Move into the material?
-        float halfSize = arenaSize * 0.5f;
+        float halfSize = ViewConstants.ARENASIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,
@@ -215,11 +212,35 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Arena", quad);
-
-        Material mat = new Material(assets, "Common/MatDefs/Misc/ShowNormals.j3md");
+        geom.setCullHint(Spatial.CullHint.Always);
+        Material mat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
+        
         geom.setMaterial(mat);
 
         return geom;
     }
 
+    private Spatial createMapTile(Entity e) {
+        //SquareShape s = e.get(SquareShape.class);
+        
+        Quad quad = new Quad(ViewConstants.MAPTILESIZE,ViewConstants.MAPTILESIZE);
+        //<-- Move into the material?
+        
+        float halfSize = ViewConstants.MAPTILESIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Arena", quad);
+
+        Material mat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Yellow);
+        geom.setMaterial(mat);
+
+        return geom;
+    }
 }

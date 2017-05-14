@@ -14,6 +14,10 @@ public class CameraState extends BaseAppState{
 
     private static final float DISTANCETOPLANE = 30;
     private Camera camera;
+
+    public Camera getCamera() {
+        return camera;
+    }
     private ModelViewState models;
     private Spatial playerShip;
     

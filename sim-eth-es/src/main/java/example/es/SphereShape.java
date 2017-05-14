@@ -41,9 +41,9 @@ import com.simsilica.mathd.Vec3d;
 
 
 /**
+ *  Used for physical moving bodies
  *
- *
- *  @author    Paul Speed
+ *  @author    Asser Fahrenholz
  */
 public class SphereShape implements EntityComponent {
     
