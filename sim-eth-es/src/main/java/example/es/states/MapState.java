@@ -1,6 +1,7 @@
 package example.es.states;
 
 import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -12,12 +13,15 @@ import example.es.MapTileType;
 import example.es.MapTileTypes;
 import example.es.Position;
 import example.sim.GameEntities;
+import java.util.concurrent.ConcurrentHashMap;
 import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Rectangle;
+import org.dyn4j.geometry.Vector2;
 import tiled.core.Map;
 
 /**
- * State 
+ * State
+ *
  * @author Asser
  */
 public class MapState extends AbstractGameSystem {
@@ -25,9 +29,10 @@ public class MapState extends AbstractGameSystem {
     private TMXMapReader reader;
     private Map map;
     private EntityData ed;
-    private EntitySet arenaEntities, mapTileEntities;
-    
-    
+    private EntitySet arenaEntities;
+    private BodyContainer mapTiles;
+    private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
+
     @Override
     protected void initialize() {
         /*
@@ -41,17 +46,26 @@ public class MapState extends AbstractGameSystem {
         } catch (Exception ex) {
             Logger.getLogger(MapState.class.getName()).log(Level.SEVERE, null, ex);
         }
-        */
+         */
         this.ed = getSystem(EntityData.class);
-        
-        
+
         arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
-        
-        mapTileEntities = ed.getEntities(MapTileType.class, Position.class); //Do not really care about the physics here (SimplePhysics handles that)
-        
-        
+
+
         //TODO: Handle all arenas in a managed list
         EntityId arenaId = GameEntities.createArena(0, ed); //Create first arena
+    }
+
+    public EntityId getEntityId(Vector2 coord) {
+        return index.get(coord);
+    }
+
+    protected boolean removeMapTileCoord(Vector2 vector2) {
+        EntityId result = index.remove(vector2);
+        if (result != null) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -61,37 +75,39 @@ public class MapState extends AbstractGameSystem {
         // Release the entity set we grabbed previously
         arenaEntities.release();
         arenaEntities = null;
-        
-        
-        mapTileEntities.release();
-        mapTileEntities = null;
     }
-    
+
     @Override
     public void update(SimTime tpf) {
-        mapTileEntities.applyChanges();
-        
-        for (Entity e : mapTileEntities.getAddedEntities()) {
+        mapTiles.update();
+    }
+
+    @Override
+    public void start() {
+        mapTiles = new MapState.BodyContainer(ed);
+        mapTiles.start();
+    }
+
+    @Override
+    public void stop() {
+        mapTiles.stop();
+        mapTiles = null;
+    }
+
+    public void editMap(double x, double y) {
+        Vector2 coordinates = new Vector2(Math.round(x - 0.5) + 0.5, Math.round(y - 0.5) + 0.5);
+
+        if (index.containsKey(coordinates)) {
+            //TODO: There's already a tile there, attempt to change it or remove it
             
+            //For now, just remove it
+            ed.removeEntity(index.get(coordinates));
             
-            //TODO: Check if e is next to a removed entity as well
-        }
-        
-        for (Entity e : mapTileEntities.getRemovedEntities()) {
-            
-            
-            
-            //TODO: Check if e is next to an added entity as well
+        } else {
+            GameEntities.createMapTile(MapTileTypes.solid(ed), new Vec3d(coordinates.x, coordinates.y, 0), ed, new Rectangle(1, 1)); //TODO: Account for actual arena (z-pos)
         }
     }
-    
-    public void editMap(double x, double y){
-        
-        //TODO: Different shapes and different types
-        GameEntities.createMapTile(MapTileTypes.tile(ed), new Vec3d(Math.round(x-0.5)+0.5, Math.round(y-0.5)+0.5, 0), ed, new Rectangle(1,1)); //TODO: Account for actual arena (z-pos)
-    }
-    
-    
+
     /*
     private File getFileFromResources(String filename) throws URISyntaxException {
         // Need to load files with their absolute paths, since they might refer to
@@ -119,5 +135,39 @@ public class MapState extends AbstractGameSystem {
         assertEquals(3, map.getLayerCount());
         assertNotNull(((TileLayer)map.getLayer(0)).getTileAt(0, 0));
     }
-    */
+     */
+    private class BodyContainer extends EntityContainer<Vector2> {
+
+        public BodyContainer(EntityData ed) {
+            super(ed, Position.class, MapTileType.class);
+        }
+
+        @Override
+        protected Vector2[] getArray() {
+            return super.getArray();
+        }
+
+        @Override
+        protected Vector2 addObject(Entity e) {
+            Position pos = e.get(Position.class);
+            Vector2 result = new Vector2(pos.getLocation().x, pos.getLocation().y);
+            
+            index.put(result, e.getId());
+            
+            return result;
+        }
+
+        @Override
+        protected void updateObject(Vector2 object, Entity e) {
+            //Does not support mass updating tiles right now
+            
+            //TODO: Perhaps MapTileType could switch
+        }
+
+        @Override
+        protected void removeObject(Vector2 object, Entity e) {
+            removeMapTileCoord(object);
+        }
+
+    }
 }

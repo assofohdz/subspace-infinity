@@ -119,7 +119,7 @@ public class SimplePhysics extends AbstractGameSystem {
         return driverIndex.get(entityId);
     }
 
-    protected Body createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
+     protected Body createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
         Body result = index.get(entityId);
         if (result == null && create) {
             synchronized (this) {

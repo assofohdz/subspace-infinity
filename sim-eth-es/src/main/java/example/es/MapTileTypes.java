@@ -9,16 +9,17 @@ import com.simsilica.es.EntityData;
  */
 public class MapTileTypes {
 
-    public static final String TILE = "tile";
+    public static final String SOLID = "tile";
+    public static final String PASSABLE = "passable";
 
-    public static MapTileType tile(EntityData ed) {
-        return MapTileType.create(TILE, ed);
+    public static MapTileType solid(EntityData ed) {
+        return MapTileType.create(SOLID, ed);
     }
     
     public static MapTileType create(String mapTileType, EntityData ed){
         switch(mapTileType){
-            case TILE : 
-                return tile(ed);
+            case SOLID : 
+                return solid(ed);
         }
         return null;
     }
