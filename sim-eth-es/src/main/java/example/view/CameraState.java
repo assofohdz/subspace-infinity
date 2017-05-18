@@ -12,7 +12,7 @@ import com.simsilica.lemur.event.BaseAppState;
  */
 public class CameraState extends BaseAppState{
 
-    private static final float DISTANCETOPLANE = 30;
+    private static final float DISTANCETOPLANE = 60;
     private Camera camera;
 
     public Camera getCamera() {

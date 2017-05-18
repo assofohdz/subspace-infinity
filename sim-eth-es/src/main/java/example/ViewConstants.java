@@ -18,6 +18,9 @@ public class ViewConstants {
     public final static float SHIPSIZE = 2f;
     public final static float MAPTILESIZE = 1f;
     
+    
+    public final static float EXPLOSION2SIZE = 2f;
+    
     //Game
     public final static int ARENASIZE = 25;
 }

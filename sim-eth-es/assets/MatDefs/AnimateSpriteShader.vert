@@ -7,6 +7,7 @@ uniform int m_numTilesY;
 uniform float m_Speed; 
 uniform int m_numTilesOffsetX;
 uniform int m_numTilesOffsetY;
+uniform float m_StartTime;
 
 attribute vec3 inPosition; //The view
 attribute vec2 inTexCoord;
@@ -16,7 +17,7 @@ varying vec2 texCoordAni; //parameter to calculate the correct texture coordinat
 void main(){
     gl_Position = g_WorldViewProjectionMatrix * vec4(inPosition, 1.0);
     
-    float tileDistance = float(g_Time*m_Speed);
+    float tileDistance = float((g_Time-m_StartTime)*m_Speed);
     int selectedTileX = int(mod(float(tileDistance), m_numTilesX));
     int selectedTileY = m_numTilesOffsetY;
 

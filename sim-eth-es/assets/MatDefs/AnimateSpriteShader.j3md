@@ -7,6 +7,7 @@ MaterialDef AnimateSpriteShader {
         Int numTilesOffsetX
         Int numTilesOffsetY
         Texture2D AniTexMap
+        Float StartTime
     }
     Technique {
         VertexShader GLSL120 :   MatDefs/AnimateSpriteShader.vert

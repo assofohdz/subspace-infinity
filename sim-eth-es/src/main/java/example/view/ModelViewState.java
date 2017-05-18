@@ -177,7 +177,7 @@ public class ModelViewState extends BaseAppState {
         //To let the camerastate known which spatial is the player
         this.playerSpatial = ship;
 
-        attachCoordinateAxes(result); //To debug
+        //attachCoordinateAxes(result); //To debug
 
         return result;
     }
@@ -215,7 +215,7 @@ public class ModelViewState extends BaseAppState {
         Spatial bomb = factory.createModel(entity);
         result.attachChild(bomb);
 
-        attachCoordinateAxes(result);
+        //attachCoordinateAxes(result);
         return result;
     }
 
@@ -231,6 +231,19 @@ public class ModelViewState extends BaseAppState {
 
         return result;
     }
+    
+    protected Spatial createExplosion2(Entity entity) {
+        //Node information:
+        Node result = new Node("explosion2:" + entity.getId());
+        result.setUserData("explosion2Id", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial bullet = factory.createModel(entity);
+        result.attachChild(bullet);
+
+        return result;
+    }    
 
     protected Spatial createBounty(Entity entity) {
         //Node information:
@@ -242,7 +255,7 @@ public class ModelViewState extends BaseAppState {
         Spatial bounty = factory.createModel(entity);
         result.attachChild(bounty);
 
-        attachCoordinateAxes(result);
+        //attachCoordinateAxes(result);
 
         return result;
     }
@@ -278,6 +291,9 @@ public class ModelViewState extends BaseAppState {
                 break;
             case ObjectTypes.MAPTILE:
                 result = createMapTile(entity);
+                break;
+            case ObjectTypes.EXPLOSION2:
+                result = createExplosion2(entity);                
                 break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
@@ -321,7 +337,7 @@ public class ModelViewState extends BaseAppState {
 
         result.attachChild(arena);
 
-        attachCoordinateAxes(result);
+        //attachCoordinateAxes(result);
 
         return result;
     }
@@ -340,7 +356,7 @@ public class ModelViewState extends BaseAppState {
 
         result.attachChild(arena);
 
-        attachCoordinateAxes(result);
+        //attachCoordinateAxes(result);
 
         return result;
     }

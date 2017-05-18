@@ -33,7 +33,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example.sim;
 
 import com.simsilica.es.*;
@@ -43,46 +42,66 @@ import com.simsilica.sim.*;
 import example.es.*;
 
 /**
- *  Creates a bunch of base entities in the environment.
+ * Creates a bunch of base entities in the environment.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class BasicEnvironment extends AbstractGameSystem {
 
     private EntityData ed;
-    
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        if( ed == null ) {
+        if (ed == null) {
             throw new RuntimeException("SimplePhysics system requires an EntityData object.");
         }
     }
-    
+
     @Override
     protected void terminate() {
     }
 
     @Override
     public void start() {
-    
+
         // Create some built in objects
         double spacing = 256;
-        double offset = -2 * spacing + spacing * 0.5; 
-        for( int x = 0; x < 4; x++ ) {
-            for( int y = 0; y < 4; y++ ) {
-                for( int z = 0; z < 4; z++ ) {
+        double offset = -2 * spacing + spacing * 0.5;
+        for (int x = 0; x < 4; x++) {
+            for (int y = 0; y < 4; y++) {
+                for (int z = 0; z < 4; z++) {
                     Vec3d pos = new Vec3d(offset + x * spacing, offset + y * spacing, offset + z * spacing);
                     GameEntities.createGravSphere(pos, 10, ed);
                 }
             }
         }
+
+        GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);
+        
+        GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
+
+        GameEntities.createExplosion2(new Vec3d(-5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
+        
+        GameEntities.createExplosion2(new Vec3d(5,-5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
+        
+        GameEntities.createExplosion2(new Vec3d(-5,-5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
+        
+        
+        
+        for (int x = -4; x < 4; x++) {
+            for (int y = -4; y < 4; y++) {
+                Vec3d pos = new Vec3d(x, y, 0); 
+                GameEntities.createBounty(pos, ed);
+
+            }
+        }
     }
-    
+
     @Override
     public void stop() {
         // For now at least, we won't be reciprocal, ie: we won't remove
         // all of the stuff we added.
     }
-    
+
 }

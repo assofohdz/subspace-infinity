@@ -15,6 +15,7 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.sun.glass.ui.Application;
 import example.ConnectionState;
 import example.GameConstants;
 import example.ViewConstants;
@@ -31,6 +32,8 @@ public class SISpatialFactory implements ModelFactory {
     private EntityData ed;
 
     private EffectFactory ef;
+    
+    private ModelViewState state;
 
     public SISpatialFactory() {
     }
@@ -41,6 +44,8 @@ public class SISpatialFactory implements ModelFactory {
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
 
         this.assets.registerLoader(AWTLoader.class, "bm2");
+        
+        this.state = state;
 
     }
 
@@ -69,6 +74,8 @@ public class SISpatialFactory implements ModelFactory {
             return createArena(e);
         } else if (ObjectTypes.MAPTILE.equals(type.getTypeName(ed))) {
             return createMapTile(e);
+        } else if (ObjectTypes.EXPLOSION2.equals(type.getTypeName(ed))) {
+            return createExplosion2(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
@@ -195,6 +202,7 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Bounty", quad);
         Material mat = assets.loadMaterial("Materials/BountyMaterial.j3m");
+        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -214,7 +222,7 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("Arena", quad);
         geom.setCullHint(Spatial.CullHint.Always);
         Material mat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
-        
+
         geom.setMaterial(mat);
 
         return geom;
@@ -222,17 +230,17 @@ public class SISpatialFactory implements ModelFactory {
 
     private Spatial createMapTile(Entity e) {
         //SquareShape s = e.get(SquareShape.class);
-        
-        Quad quad = new Quad(ViewConstants.MAPTILESIZE,ViewConstants.MAPTILESIZE);
+
+        Quad quad = new Quad(ViewConstants.MAPTILESIZE, ViewConstants.MAPTILESIZE);
         //<-- Move into the material?
-        
+
         float halfSize = ViewConstants.MAPTILESIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,
             -halfSize, halfSize, 0
         });
-        
+
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Arena", quad);
@@ -241,6 +249,25 @@ public class SISpatialFactory implements ModelFactory {
         mat.setColor("Color", ColorRGBA.Yellow);
         geom.setMaterial(mat);
 
+        return geom;
+    }
+
+    private Spatial createExplosion2(Entity e) {
+        Quad quad = new Quad(ViewConstants.EXPLOSION2SIZE, ViewConstants.EXPLOSION2SIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.EXPLOSION2SIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Bomb", quad);
+        Material mat = assets.loadMaterial("Materials/Explode2Material.j3m");
+        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 }

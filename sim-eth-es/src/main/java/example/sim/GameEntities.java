@@ -153,4 +153,15 @@ public class GameEntities {
 
         return lastMapTile;
     }
+    
+    //Explosion is for now only visual, so only object type and position
+    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed){
+        EntityId lastExplosion = ed.createEntity();
+        
+        ed.setComponents(lastExplosion, 
+                ObjectTypes.explosion2(ed),
+                new Position(location, quat, 0f));
+                
+        return lastExplosion;
+    }
 }
