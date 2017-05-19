@@ -164,4 +164,17 @@ public class GameEntities {
                 
         return lastExplosion;
     }
+    
+    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, Convex wormholeArea, EntityData ed){
+        EntityId lastWormhole = ed.createEntity();
+        
+        ed.setComponents(lastWormhole, 
+                ObjectTypes.blackhole(ed),
+                new Position(location, new Quatd(), 0f),
+                new MassProperties(PhysicsConstants.WARPMASS),
+                new Warp(targetAreaRadius, targetLocation, wormholeArea),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
+                
+        return lastWormhole;
+    }
 }

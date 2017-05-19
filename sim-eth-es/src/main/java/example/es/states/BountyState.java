@@ -67,12 +67,20 @@ public class BountyState extends AbstractGameSystem {
             SphereShape c = e.get(SphereShape.class);
             if (bountyCount.containsKey(e.getId()) && bountyCount.get(e.getId()) < s.getMaxCount()) {
                 spawnRandomBounty(p.getLocation(), c.getRadius());
-                bountyCount.put(e.getId(), bountyCount.get(e.getId())+1);
+                bountyCount.put(e.getId(), bountyCount.get(e.getId()) + 1);
             } else {
                 spawnRandomBounty(p.getLocation(), c.getRadius());
                 bountyCount.put(e.getId(), 1);
             }
         }
+    }
+
+    @Override
+    public void start() {
+    }
+
+    @Override
+    public void stop() {
     }
 
     private EntityId spawnRandomBounty(Vec3d spawnCenter, double radius) {

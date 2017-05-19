@@ -51,8 +51,6 @@ public class MapState extends AbstractGameSystem {
 
         arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
 
-
-        //TODO: Handle all arenas in a managed list
         EntityId arenaId = GameEntities.createArena(0, ed); //Create first arena
     }
 

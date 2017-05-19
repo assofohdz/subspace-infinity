@@ -40,6 +40,8 @@ import com.simsilica.mathd.*;
 import com.simsilica.sim.*;
 
 import example.es.*;
+import org.dyn4j.geometry.Circle;
+import org.dyn4j.geometry.Vector2;
 
 /**
  * Creates a bunch of base entities in the environment.
@@ -77,17 +79,16 @@ public class BasicEnvironment extends AbstractGameSystem {
             }
         }
 
-        GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);
+        //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);
         
         GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
 
-        GameEntities.createExplosion2(new Vec3d(-5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
-        
-        GameEntities.createExplosion2(new Vec3d(5,-5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
-        
-        GameEntities.createExplosion2(new Vec3d(-5,-5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
-        
-        
+        GameEntities.createWormhole(new Vec3d(-5,-5,0), 
+                10, 
+                new Vec3d(10,10,0), 
+                5, 
+                new Circle(5),
+                ed);
         
         for (int x = -4; x < 4; x++) {
             for (int y = -4; y < 4; y++) {

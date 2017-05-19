@@ -244,6 +244,19 @@ public class ModelViewState extends BaseAppState {
 
         return result;
     }    
+    
+    protected Spatial createWormhole(Entity entity) {
+        //Node information:
+        Node result = new Node("wormhole:" + entity.getId());
+        result.setUserData("wormholeId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial bullet = factory.createModel(entity);
+        result.attachChild(bullet);
+
+        return result;
+    }    
 
     protected Spatial createBounty(Entity entity) {
         //Node information:
@@ -294,6 +307,9 @@ public class ModelViewState extends BaseAppState {
                 break;
             case ObjectTypes.EXPLOSION2:
                 result = createExplosion2(entity);                
+                break;
+            case ObjectTypes.WORMHOLE:
+                result = createWormhole(entity);                
                 break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);

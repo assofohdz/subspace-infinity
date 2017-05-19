@@ -19,7 +19,8 @@ void main(){
     
     float tileDistance = float((g_Time-m_StartTime)*m_Speed);
     int selectedTileX = int(mod(float(tileDistance), m_numTilesX))+m_numTilesOffsetX;
-    int selectedTileY = m_numTilesY - (int(mod(float(tileDistance / m_numTilesX), m_numTilesY))+m_numTilesOffsetY);
+    int selectedTileY = (m_numTilesY-1) - (int(mod(float(tileDistance / m_numTilesX), m_numTilesY))+m_numTilesOffsetY);
+    //int selectedTileY = (m_numTilesY-1)- m_numTilesOffsetY;
 
     texCoordAni.x = (float(float(inTexCoord.x/m_numTilesX) + float(selectedTileX)/float(m_numTilesX)));
     texCoordAni.y = (float(float(inTexCoord.y/m_numTilesY) + float(selectedTileY)/float(m_numTilesY)));

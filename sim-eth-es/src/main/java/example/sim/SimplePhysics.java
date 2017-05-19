@@ -41,18 +41,18 @@ import java.util.concurrent.*;
 import com.jme3.util.SafeArrayList;
 
 import com.simsilica.es.*;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.*;
 
 import example.es.*;
-import example.view.ModelViewState;
-import org.dyn4j.collision.Fixture;
+import org.dyn4j.collision.manifold.Manifold;
+import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.World;
-import org.dyn4j.geometry.Circle;
-import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Mass;
+import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.MassType;
-import org.dyn4j.geometry.Transform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class SimplePhysics extends AbstractGameSystem {
+public class SimplePhysics extends AbstractGameSystem implements CollisionListener {
 
     static Logger log = LoggerFactory.getLogger(SimplePhysics.class);
 
@@ -74,6 +74,7 @@ public class SimplePhysics extends AbstractGameSystem {
     // items.
     //private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
     private Map<EntityId, Body> index = new ConcurrentHashMap<>();
+    private Map<org.dyn4j.dynamics.Body, EntityId> reverseIndex = new ConcurrentHashMap<>();
     private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
 
     // Still need these to manage physics listener notifications in a 
@@ -119,7 +120,7 @@ public class SimplePhysics extends AbstractGameSystem {
         return driverIndex.get(entityId);
     }
 
-     protected Body createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
+    protected Body createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
         Body result = index.get(entityId);
         if (result == null && create) {
             synchronized (this) {
@@ -133,13 +134,13 @@ public class SimplePhysics extends AbstractGameSystem {
 
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
-                
+
                 // Set it up to be managed by Dyn4j
                 result.addFixture(fixture.getShape()); //TODO: Not sure if positioning of shapes is correct (ie map tiles)
 
                 if (invMass == 0) {
                     result.setMass(MassType.INFINITE);
-                    
+
                 } else {
                     result.setMass(MassType.NORMAL);
                 }
@@ -149,6 +150,7 @@ public class SimplePhysics extends AbstractGameSystem {
                 // Set it up to be managed by physics
                 toAdd.add(result);
                 index.put(entityId, result);
+                reverseIndex.put(result, entityId);
             }
         }
         return result;
@@ -157,6 +159,7 @@ public class SimplePhysics extends AbstractGameSystem {
     protected boolean removeBody(EntityId entityId) {
         Body result = index.remove(entityId);
         if (result != null) {
+            reverseIndex.remove(result);
             toRemove.add(result);
             return true;
         }
@@ -171,6 +174,7 @@ public class SimplePhysics extends AbstractGameSystem {
 
         world = new World();
         world.setGravity(World.ZERO_GRAVITY);
+        world.addListener(this);
 
         projectiles = ed.getEntities(ObjectType.class, PhysicsForce.class);
     }
@@ -258,13 +262,70 @@ public class SimplePhysics extends AbstractGameSystem {
         }
     }
 
+    //Collision detected by the broadphase
+    @Override
+    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2) {
+
+        ConcurrentHashMap<String, EntityComponent> userData1 = (ConcurrentHashMap<String, EntityComponent>) body1.getUserData();
+        ConcurrentHashMap<String, EntityComponent> userData2 = (ConcurrentHashMap<String, EntityComponent>) body2.getUserData();
+
+        ObjectType ot1 = (ObjectType) userData1.get("ObjectType");
+        ObjectType ot2 = (ObjectType) userData1.get("ObjectType");
+
+        if (ot1.getTypeName(ed).equals(ObjectTypes.WORMHOLE)) {
+            EntityId wormholeId = reverseIndex.get(body1);
+            EntityId eId2 = reverseIndex.get(body2);
+            
+            Warp warp = ed.getComponent(wormholeId, Warp.class);
+            
+            //ed.setComponent(eId2, new Position(warp.getTargetLocation(),new Quatd(), 0f));
+            body2.getTransform().setTranslation(warp.getTargetLocation().x, warp.getTargetLocation().y);
+            
+            return false;
+            
+        }
+
+        if (ot2.getTypeName(ed).equals(ObjectTypes.WORMHOLE)) {
+            //Warp the other motherfucker
+            EntityId wormholeId = reverseIndex.get(body2);
+            EntityId eId1 = reverseIndex.get(body1);
+            
+            Warp warp = ed.getComponent(wormholeId, Warp.class);
+            
+            //ed.setComponent(eId1, new Position(warp.getTargetLocation(),new Quatd(), 0f));
+            body1.getTransform().setTranslation(warp.getTargetLocation().x, warp.getTargetLocation().y);
+            
+            return false;
+        }
+
+        return true; //Default, keep processing this event
+    }
+
+    //Collision detected by narrowphase
+    @Override
+    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Penetration penetration) {
+        return true; //Default, keep processing this event
+    }
+
+    //Contact manifold created by the manifold solver
+    @Override
+    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
+        return true; //Default, keep processing this event
+    }
+
+    //Contact constraint created
+    @Override
+    public boolean collision(ContactConstraint contactConstraint) {
+        return true; //Default, keep processing this event
+    }
+
     /**
      * Maps the appropriate entities to physics bodies.
      */
     private class BodyContainer extends EntityContainer<Body> {
 
         public BodyContainer(EntityData ed) {
-            super(ed, Position.class, MassProperties.class, PhysicsShape.class);
+            super(ed, ObjectType.class, Position.class, MassProperties.class, PhysicsShape.class);
         }
 
         @Override
@@ -276,6 +337,7 @@ public class SimplePhysics extends AbstractGameSystem {
         protected Body addObject(Entity e) {
             MassProperties mass = e.get(MassProperties.class);
             PhysicsShape ps = e.get(PhysicsShape.class);
+            ObjectType ot = e.get(ObjectType.class);
             //SphereShape shape = e.get(SphereShape.class);
 
             // Right now only works for CoG-centered shapes                   
@@ -287,6 +349,10 @@ public class SimplePhysics extends AbstractGameSystem {
             //Transform t = new Transform();
             newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
             newBody.getTransform().setRotation(pos.getRotation());
+
+            ConcurrentHashMap<String, EntityComponent> userData = new ConcurrentHashMap<String, EntityComponent>();
+            userData.put("ObjectType", ot);
+            newBody.setUserData(userData);
             return newBody;
         }
 
@@ -319,4 +385,6 @@ public class SimplePhysics extends AbstractGameSystem {
             }
         }
     }
+
+    //TODO: Add a collision listener that we can use to intercept the collisions
 }

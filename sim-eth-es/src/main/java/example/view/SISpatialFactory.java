@@ -76,6 +76,8 @@ public class SISpatialFactory implements ModelFactory {
             return createMapTile(e);
         } else if (ObjectTypes.EXPLOSION2.equals(type.getTypeName(ed))) {
             return createExplosion2(e);
+        } else if (ObjectTypes.WORMHOLE.equals(type.getTypeName(ed))) {
+            return createWormhole(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
@@ -265,6 +267,25 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
         Material mat = assets.loadMaterial("Materials/Explode2Material.j3m");
+        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+    
+    private Spatial createWormhole(Entity e) {
+        Quad quad = new Quad(ViewConstants.WORMHOLESIZE, ViewConstants.WORMHOLESIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.WORMHOLESIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Bomb", quad);
+        Material mat = assets.loadMaterial("Materials/WormholeMaterial.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
