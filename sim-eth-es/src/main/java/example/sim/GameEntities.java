@@ -72,8 +72,8 @@ public class GameEntities {
         ed.setComponents(result,
                 ObjectTypes.ship(ed),
                 new MassProperties(1 / PhysicsConstants.SHIPMASS),
-                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS))), //for Dyn4j physics
-                new SphereShape(PhysicsConstants.SHIPSIZERADIUS, new Vec3d())); //for simple physics
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS)))); //for Dyn4j physics
+                
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;
@@ -103,8 +103,7 @@ public class GameEntities {
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
                 new Position(pos, new Quatd(), 0f),
-                new Spawner(GameConstants.BOUNTYMAXCOUNT, Spawner.SpawnType.Bounties),
-                new SphereShape(radius));
+                new Spawner(GameConstants.BOUNTYMAXCOUNT, Spawner.SpawnType.Bounties));
         return result;
     }
 
@@ -115,8 +114,8 @@ public class GameEntities {
                 new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 new MassProperties(1 / PhysicsConstants.BOMBMASS), //for physics
-                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BOMBSIZERADIUS))), //for Dyn4j physics
-                new SphereShape(PhysicsConstants.BOMBSIZERADIUS, new Vec3d())); //for physics
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BOMBSIZERADIUS)))); //for Dyn4j physics
+                
         return lastBomb;
     }
 
@@ -127,8 +126,8 @@ public class GameEntities {
                 new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 new MassProperties(1 / PhysicsConstants.BULLETMASS), //for physics
-                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BULLETSIZERADIUS))), //for Dyn4j physics
-                new SphereShape(PhysicsConstants.BULLETSIZERADIUS, new Vec3d())); //for Simple Physics
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BULLETSIZERADIUS)))); //for Dyn4j physics
+                
         return lastBomb;
     }
 
@@ -165,14 +164,14 @@ public class GameEntities {
         return lastExplosion;
     }
     
-    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, Convex wormholeArea, EntityData ed){
+    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed){
         EntityId lastWormhole = ed.createEntity();
         
         ed.setComponents(lastWormhole, 
                 ObjectTypes.blackhole(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.WARPMASS),
-                new Warp(targetAreaRadius, targetLocation, wormholeArea),
+                new Wormhole(targetAreaRadius, targetLocation, radius, force),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
                 
         return lastWormhole;

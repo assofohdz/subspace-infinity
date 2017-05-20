@@ -81,15 +81,11 @@ public class BasicEnvironment extends AbstractGameSystem {
 
         //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);
         
-        GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
+        //GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
 
-        GameEntities.createWormhole(new Vec3d(-5,-5,0), 
-                10, 
-                new Vec3d(10,10,0), 
-                5, 
-                new Circle(5),
-                ed);
+        GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, new Vec3d(10,10,0), 5, 5000, ed);
         
+        /*
         for (int x = -4; x < 4; x++) {
             for (int y = -4; y < 4; y++) {
                 Vec3d pos = new Vec3d(x, y, 0); 
@@ -97,6 +93,7 @@ public class BasicEnvironment extends AbstractGameSystem {
 
             }
         }
+        */
     }
 
     @Override

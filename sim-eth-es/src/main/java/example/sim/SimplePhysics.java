@@ -35,6 +35,7 @@
  */
 package example.sim;
 
+import com.jme3.math.Vector3f;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -44,15 +45,20 @@ import com.simsilica.es.*;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.*;
+import example.PhysicsConstants;
 
 import example.es.*;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
+import org.dyn4j.dynamics.Force;
+import org.dyn4j.dynamics.Torque;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Vector2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,13 +74,12 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private EntityData ed;
     private BodyContainer bodies;
-    private EntitySet projectiles;
+    private EntitySet appliedForces;
 
     // Single threaded.... we'll have to take care when adding/removing
     // items.
     //private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
     private Map<EntityId, Body> index = new ConcurrentHashMap<>();
-    private Map<org.dyn4j.dynamics.Body, EntityId> reverseIndex = new ConcurrentHashMap<>();
     private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
 
     // Still need these to manage physics listener notifications in a 
@@ -85,6 +90,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
 
     private World world;
+
+    private SimTime time;
 
     public SimplePhysics() {
     }
@@ -129,14 +136,12 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                     return result;
                 }
                 result = new Body(entityId);
-                //result.radiusLocal = radius; //TODO: This radius isn't used
-                //result.invMass = invMass; //TODO: Mass isn't used
 
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
 
                 // Set it up to be managed by Dyn4j
-                result.addFixture(fixture.getShape()); //TODO: Not sure if positioning of shapes is correct (ie map tiles)
+                result.addFixture(fixture.getShape());
 
                 if (invMass == 0) {
                     result.setMass(MassType.INFINITE);
@@ -150,7 +155,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 // Set it up to be managed by physics
                 toAdd.add(result);
                 index.put(entityId, result);
-                reverseIndex.put(result, entityId);
             }
         }
         return result;
@@ -159,7 +163,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     protected boolean removeBody(EntityId entityId) {
         Body result = index.remove(entityId);
         if (result != null) {
-            reverseIndex.remove(result);
             toRemove.add(result);
             return true;
         }
@@ -176,13 +179,13 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         world.setGravity(World.ZERO_GRAVITY);
         world.addListener(this);
 
-        projectiles = ed.getEntities(ObjectType.class, PhysicsForce.class);
+        appliedForces = ed.getEntities(ObjectType.class, PhysicsForce.class);
     }
 
     protected void terminate() {
         // Release the entity set we grabbed previously
-        projectiles.release();
-        projectiles = null;
+        appliedForces.release();
+        appliedForces = null;
     }
 
     private void fireBodyListListeners() {
@@ -220,6 +223,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     @Override
     public void update(SimTime time) {
+
+        this.time = time;
 
         for (PhysicsListener l : listeners.getArray()) {
             l.beginFrame(time);
@@ -266,35 +271,52 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     @Override
     public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2) {
 
-        ConcurrentHashMap<String, EntityComponent> userData1 = (ConcurrentHashMap<String, EntityComponent>) body1.getUserData();
-        ConcurrentHashMap<String, EntityComponent> userData2 = (ConcurrentHashMap<String, EntityComponent>) body2.getUserData();
+        Entity one = (Entity) body1.getUserData();
+        Entity two = (Entity) body2.getUserData();
 
-        ObjectType ot1 = (ObjectType) userData1.get("ObjectType");
-        ObjectType ot2 = (ObjectType) userData1.get("ObjectType");
+        ObjectType ot1 = one.get(ObjectType.class);
+        ObjectType ot2 = two.get(ObjectType.class);
+//TODO Not working because of infinate mass .. once we get 'inside' infinite mass we cannot move
+        if (ot1.getTypeName(ed).equals(ObjectTypes.WORMHOLE) && !ot2.getTypeName(ed).equals(ObjectTypes.WORMHOLE)) {
+            EntityId wormholeId = one.getId();
+            EntityId eId2 = two.getId();
 
-        if (ot1.getTypeName(ed).equals(ObjectTypes.WORMHOLE)) {
-            EntityId wormholeId = reverseIndex.get(body1);
-            EntityId eId2 = reverseIndex.get(body2);
-            
-            Warp warp = ed.getComponent(wormholeId, Warp.class);
-            
-            //ed.setComponent(eId2, new Position(warp.getTargetLocation(),new Quatd(), 0f));
-            body2.getTransform().setTranslation(warp.getTargetLocation().x, warp.getTargetLocation().y);
-            
+            Wormhole warp = ed.getComponent(wormholeId, Wormhole.class);
+            Position wormholePos = ed.getComponent(wormholeId, Position.class);
+
+            Vector2 bodyTranslation = body2.getTransform().getTranslation();
+            Vec3d bodyEntityLocation = new Vec3d(bodyTranslation.x, bodyTranslation.y, 0); //TODO: Arena setting?
+            if (fixture1.getShape().getRadius() != PhysicsConstants.WARPSIZERADIUS) {
+                //start applying gravity to other entity
+
+                PhysicsForce pf = getAppliedGravity(time.getTpf(), warp, wormholePos.getLocation(), bodyEntityLocation);
+
+                ed.setComponent(eId2, pf);
+            } else {
+                //Beam me up Scotty!
+                //TODO: Place blink animation at old and new location
+                body2.getTransform().setTranslation(warp.getTargetLocation().x, warp.getTargetLocation().y);
+            }
             return false;
-            
         }
 
-        if (ot2.getTypeName(ed).equals(ObjectTypes.WORMHOLE)) {
-            //Warp the other motherfucker
-            EntityId wormholeId = reverseIndex.get(body2);
-            EntityId eId1 = reverseIndex.get(body1);
-            
-            Warp warp = ed.getComponent(wormholeId, Warp.class);
-            
-            //ed.setComponent(eId1, new Position(warp.getTargetLocation(),new Quatd(), 0f));
-            body1.getTransform().setTranslation(warp.getTargetLocation().x, warp.getTargetLocation().y);
-            
+        if (ot2.getTypeName(ed).equals(ObjectTypes.WORMHOLE) && !ot1.getTypeName(ed).equals(ObjectTypes.WORMHOLE)) {
+            EntityId wormholeId = two.getId();
+            EntityId eId2 = one.getId();
+
+            Wormhole warp = ed.getComponent(wormholeId, Wormhole.class);
+            Position wormholePos = ed.getComponent(wormholeId, Position.class);
+
+            Vector2 bodyTranslation = body1.getTransform().getTranslation();
+            Vec3d bodyEntityLocation = new Vec3d(bodyTranslation.x, bodyTranslation.y, 0); //TODO: Arena setting?
+            if (fixture2.getShape().getRadius() != PhysicsConstants.WARPSIZERADIUS) {
+                PhysicsForce pf = getAppliedGravity(time.getTpf(), warp, wormholePos.getLocation(), bodyEntityLocation);
+
+                ed.setComponent(eId2, pf);
+            } else {
+                //Beam me out of here
+                body1.getTransform().setTranslation(warp.getTargetLocation().x, warp.getTargetLocation().y);
+            }
             return false;
         }
 
@@ -338,7 +360,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             MassProperties mass = e.get(MassProperties.class);
             PhysicsShape ps = e.get(PhysicsShape.class);
             ObjectType ot = e.get(ObjectType.class);
-            //SphereShape shape = e.get(SphereShape.class);
 
             // Right now only works for CoG-centered shapes                   
             Body newBody = createBody(e.getId(), mass.getInverseMass(), ps.getFixture(), true);
@@ -346,13 +367,22 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             Position pos = e.get(Position.class);
             newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
 
-            //Transform t = new Transform();
             newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
             newBody.getTransform().setRotation(pos.getRotation());
 
-            ConcurrentHashMap<String, EntityComponent> userData = new ConcurrentHashMap<String, EntityComponent>();
-            userData.put("ObjectType", ot);
-            newBody.setUserData(userData);
+            switch (ot.getTypeName(ed)) {
+                case ObjectTypes.WORMHOLE:
+                    //Add gravity circle here
+                    Wormhole wormhole = ed.getComponent(e.getId(), Wormhole.class);
+
+                    newBody.addFixture(new Circle(wormhole.getDistance()));
+                    break;
+                default:
+                    break;
+            }
+
+            newBody.setUserData(e);
+
             return newBody;
         }
 
@@ -369,22 +399,49 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     }
 
+    //TODO: Make PhysicsForces entities instead of components, so that one target entity can have multiple forces working on them at any given time
     private void applyProjectileForces() {
-        projectiles.applyChanges();
-        for (Entity e : projectiles) {
+        appliedForces.applyChanges();
+        for (Entity e : appliedForces) {
             if (bodies.getObject(e.getId()) != null) {
                 PhysicsForce pf = e.get(PhysicsForce.class);
 
                 Body b = getBody(e.getId());
 
-                b.setLinearVelocity(pf.getVelocity());
-                b.applyForce(pf.getForce().getForce());
-                b.applyTorque(pf.getTorque());
-
+                Force f = pf.getForce();
+                Torque t = pf.getTorque();
+                Vector2 linearVel = pf.getVelocity();
+                if (f.getForce().getMagnitudeSquared() > 0f) {
+                    b.applyForce(f);
+                }
+                if (t.getTorque() > 0) {
+                    b.applyTorque(t);
+                }
+                if (linearVel.getMagnitudeSquared() > 0) {
+                    b.setLinearVelocity(pf.getVelocity());
+                }
+                
                 ed.removeComponent(e.getId(), PhysicsForce.class);
             }
         }
     }
 
-    //TODO: Add a collision listener that we can use to intercept the collisions
+    private PhysicsForce getAppliedGravity(double tpf, Wormhole wormhole, Vec3d wormholeLocation, Vec3d bodyLocation) {
+        //TODO: Mass of body should be a factor?
+        Vec3d difference = wormholeLocation.subtract(bodyLocation);
+        Vec3d gravity = difference.normalize().multLocal(tpf);
+        double distance = difference.length();
+
+        double wormholeGravity = wormhole.getForce();
+        double gravityDistance = wormhole.getDistance();
+
+        gravity.multLocal(wormholeGravity);
+        gravity.multLocal(gravityDistance / distance);
+
+        Force force = new Force(gravity.x, gravity.y);
+
+        PhysicsForce pf = new PhysicsForce(force, new Torque(), new Vector2());
+
+        return pf;
+    }
 }

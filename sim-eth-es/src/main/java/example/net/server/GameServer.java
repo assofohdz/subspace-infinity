@@ -72,6 +72,7 @@ import example.es.states.BountyState;
 import example.es.states.DecayState;
 import example.es.states.HealthState;
 import example.es.states.MapState;
+import example.es.states.WormholeState;
 import example.sim.*;
 
 /**
@@ -153,7 +154,7 @@ public class GameServer {
         systems.register(AttackState.class, new AttackState());
         //Add system to handle maps
         systems.register(MapState.class, new MapState());
-
+        
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
         systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));

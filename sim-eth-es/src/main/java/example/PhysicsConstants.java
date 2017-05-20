@@ -30,6 +30,4 @@ public class PhysicsConstants {
     
     //View
     public final static double PROJECTILEOFFSET = 3;
-    
-    ;
 }

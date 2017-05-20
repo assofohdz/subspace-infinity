@@ -7,34 +7,38 @@ package example.es;
 
 import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
-import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Vector2;
 
 /**
  *
  * @author Asser
  */
-public class Warp implements EntityComponent{
+public class Wormhole implements EntityComponent{
     
     double targetAreaRadius; //The uncertainty of where you pop up
     Vec3d targetLocation; //The target area for warping to
-    Convex convex;
+    double distance;
+    double force;
 
-    public Warp(double targetAreaRadius, Vec3d targetLocation, Convex convex) {
+    public Wormhole(double targetAreaRadius, Vec3d targetLocation, double distance, double force) {
         this.targetAreaRadius = targetAreaRadius;
         this.targetLocation = targetLocation;
-        this.convex = convex;
+        this.distance = distance;
+        this.force = force;
     }
 
+    public double getDistance() {
+        return distance;
+    }
+
+    public double getForce() {
+        return force;
+    }
+    
     public double getTargetAreaRadius() {
         return targetAreaRadius;
     }
 
     public Vec3d getTargetLocation() {
         return targetLocation;
-    }
-    
-    public Convex getConvex() {
-        return convex;
     }
 }
