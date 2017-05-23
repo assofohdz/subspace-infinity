@@ -10,6 +10,7 @@ import com.simsilica.sim.SimTime;
 import example.GameConstants;
 import example.PhysicsConstants;
 import example.ViewConstants;
+import example.es.Attack;
 import example.es.AttackType;
 import example.es.AttackTypes;
 import example.es.BodyPosition;
@@ -35,12 +36,27 @@ public class AttackState extends AbstractGameSystem {
 
     private EntityData ed;
     private EntitySet entities;
+    private EntitySet attacks;
     private Object gameSystems;
     private SimplePhysics physics;
     private SimTime time;
+    
+    
 
     @Override
     public void update(SimTime tpf) {
+        
+        if (attacks.applyChanges()) {
+            for (Entity e : attacks.getAddedEntities()) {
+                //TODO: Check entities able to attack (cooldown as well as energi)
+                Attack a = e.get(Attack.class);
+                AttackType at = e.get(AttackType.class);
+                this.attack(a, at);
+                
+                ed.removeEntity(e.getId()); //Attack has been processed, now remove it
+            }
+        }
+        
         time = tpf;
     }
 
@@ -54,7 +70,9 @@ public class AttackState extends AbstractGameSystem {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
 
-        entities = ed.getEntities(BodyPosition.class, HitPoints.class, AttackType.class); //This filters the entities that are allowed to perform attacks
+        entities = ed.getEntities(BodyPosition.class, HitPoints.class); //This filters the entities that are allowed to perform attacks
+        
+        attacks = ed.getEntities(Attack.class, AttackType.class);
     }
 
     @Override
@@ -62,11 +80,18 @@ public class AttackState extends AbstractGameSystem {
         // Release the entity set we grabbed previously
         entities.release();
         entities = null;
+        
+        attacks.release();
+        attacks = null;
+    }
+    
+    private void attack(Attack a, AttackType at){
+        EntityId owner = a.getOwner();
+        
+        this.attack(owner, at);
     }
 
-    //TODO: Make private and instead of calling directly, create an attack entity (much like the buff entity)
-    public void attack(EntityId eId, AttackType type) {
-        //TODO: Check cooldown
+    private void attack(EntityId eId, AttackType type) {
         Entity e = ed.getEntity(eId, HitPoints.class);
         SimTime localTime = time; //Copy incase someone else is writing to it
         HitPoints hp = e.get(HitPoints.class); //The current health of the attacker

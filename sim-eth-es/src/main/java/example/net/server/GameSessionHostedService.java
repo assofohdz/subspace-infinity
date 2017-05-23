@@ -61,6 +61,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.mathd.trans.PositionTransition;
 import example.GameConstants;
+import example.es.Attack;
 import example.es.AttackType;
 import example.es.AttackTypes;
 import example.es.BodyPosition;
@@ -307,11 +308,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("Attack");
             }
-            
-            gameSystems.get(AttackState.class).attack(shipEntity, AttackTypes.create(attackType, ed));
-            
+            //gameSystems.get(AttackState.class).attack(shipEntity, AttackTypes.create(attackType, ed));
             // Play the sound effect
             //shoot.playInstance();
+            GameEntities.createAttack(shipEntity, attackType, ed);
         }
 
         @Override

@@ -64,7 +64,6 @@ public class GameEntities {
 
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
-    
     public static EntityId createShip(EntityId parent, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
@@ -73,7 +72,7 @@ public class GameEntities {
                 ObjectTypes.ship(ed),
                 new MassProperties(1 / PhysicsConstants.SHIPMASS),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS)))); //for Dyn4j physics
-                
+
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;
@@ -115,7 +114,7 @@ public class GameEntities {
                 new Decay(decayMillis),
                 new MassProperties(1 / PhysicsConstants.BOMBMASS), //for physics
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BOMBSIZERADIUS)))); //for Dyn4j physics
-                
+
         return lastBomb;
     }
 
@@ -127,7 +126,7 @@ public class GameEntities {
                 new Decay(decayMillis),
                 new MassProperties(1 / PhysicsConstants.BULLETMASS), //for physics
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BULLETSIZERADIUS)))); //for Dyn4j physics
-                
+
         return lastBomb;
     }
 
@@ -145,35 +144,44 @@ public class GameEntities {
         EntityId lastMapTile = ed.createEntity();
 
         ed.setComponents(lastMapTile, ObjectTypes.mapTile(ed),
-                new Position(location, new Quatd(), 0f), 
+                new Position(location, new Quatd(), 0f),
                 mapTileType, //TODO: Should be parameterized
                 new MassProperties(PhysicsConstants.MAPTILEMASS), //for Physics
                 new PhysicsShape(new BodyFixture(c))); //for physics - for now, only 1 by 1 tiles created (square)
 
         return lastMapTile;
     }
-    
+
     //Explosion is for now only visual, so only object type and position
-    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed){
+    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed) {
         EntityId lastExplosion = ed.createEntity();
-        
-        ed.setComponents(lastExplosion, 
+
+        ed.setComponents(lastExplosion,
                 ObjectTypes.explosion2(ed),
                 new Position(location, quat, 0f));
-                
+
         return lastExplosion;
     }
-    
-    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed){
+
+    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
-        
-        ed.setComponents(lastWormhole, 
+
+        ed.setComponents(lastWormhole,
                 ObjectTypes.blackhole(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.WARPMASS),
                 new Wormhole(targetAreaRadius, targetLocation, radius, force),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
-                
+
         return lastWormhole;
+    }
+
+    public static EntityId createAttack(EntityId owner, String attackType, EntityData ed) {
+        EntityId lastAttack = ed.createEntity();
+        ed.setComponents(lastAttack,
+                new Attack(owner),
+                AttackTypes.create(attackType, ed));
+
+        return lastAttack;
     }
 }
