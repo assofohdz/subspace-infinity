@@ -33,27 +33,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package example.es;
 
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 
+
 /**
- * Factory methods for the common object types. Because we run the string names
- * through the EntityData's string index we can't just have normal constants.
- *
- * @author Paul Speed
+ *  For players, this is the type of ship they currently are playing
  */
-public class AttackTypes {
-
-    public static final String BULLET = "bullet";
-    public static final String BOMB = "bomb";
-
+public class ShipType implements EntityComponent {
     
-    public static AttackType bullet(EntityData ed) {
-        return AttackType.create(BULLET, ed);
+    private int type;
+ 
+    protected ShipType() {
     }
-
-    public static AttackType bomb(EntityData ed) {
-        return AttackType.create(BOMB, ed);
+    
+    public ShipType( int type ) {
+        this.type = type;
     }
+    
+    public static ShipType create( String typeName, EntityData ed ) {
+        return new ShipType(ed.getStrings().getStringId(typeName, true));
+    }
+    
+    public int getType() {
+        return type;
+    }
+    
+    public String getTypeName( EntityData ed ) {
+        return ed.getStrings().getString(type);                 
+    }
+ 
+    @Override   
+    public String toString() {
+        return getClass().getSimpleName() + "[type=" + type + "]";
+    }     
 }

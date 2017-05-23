@@ -1,6 +1,7 @@
 package example.es;
 
 import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Torque;
@@ -15,15 +16,19 @@ public class PhysicsForce implements EntityComponent {
 
     private Force force;
     private Torque torque;
-    private Vector2 velocity;
+    private EntityId target;
 
     public PhysicsForce() {
     }
 
-    public PhysicsForce(Force force, Torque torque, Vector2 velocity) {
+    public PhysicsForce(EntityId target, Force force, Torque torque) {
         this.force = force;
         this.torque = torque;
-        this.velocity = velocity;
+        this.target = target;
+    }
+
+    public EntityId getTarget() {
+        return target;
     }
 
     public Force getForce() {
@@ -33,13 +38,9 @@ public class PhysicsForce implements EntityComponent {
     public Torque getTorque() {
         return torque;
     }
-    
-    public Vector2 getVelocity() {
-        return velocity;
-    }
 
     @Override
     public String toString() {
-        return "PhysicsForce{" + "force=" + force + ", torque=" + torque + ", velocity=" + velocity + '}';
+        return "PhysicsForce{" + "force=" + force + ", torque=" + torque + ", target=" + target + '}';
     }
 }

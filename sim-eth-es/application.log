@@ -1,29 +1,29 @@
-16:45:43,904 WARN  [prefs] Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
-16:45:45,164 INFO  [JmeSystem] Running on jMonkeyEngine 3.1-stable
+23:13:55,541 WARN  [prefs] Could not open/create prefs root node Software\JavaSoft\Prefs at root 0x80000002. Windows RegCreateKeyEx(...) returned error code 5.
+23:13:56,961 INFO  [JmeSystem] Running on jMonkeyEngine 3.1-stable
  * Branch: HEAD
  * Git Hash: af04bf9
  * Build Date: 2017-02-13
-16:45:45,920 INFO  [LwjglContext] LWJGL 2.9.3 context running on thread jME3 Main
+23:13:57,721 INFO  [LwjglContext] LWJGL 2.9.3 context running on thread jME3 Main
  * Graphics Adapter: C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvd3dumx,C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvwgf2umx,C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvwgf2umx,C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvwgf2umx
  * Driver Version: 21.21.13.7878
  * Scaling Factor: 1
-16:45:45,964 INFO  [GLRenderer] OpenGL Renderer Information
+23:13:57,764 INFO  [GLRenderer] OpenGL Renderer Information
  * Vendor: NVIDIA Corporation
  * Renderer: GeForce GTX 780/PCIe/SSE2
  * OpenGL Version: 4.5.0 NVIDIA 378.78
  * GLSL Version: 4.50 NVIDIA
  * Profile: Compatibility
-16:45:45,988 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
-16:45:45,988 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
-16:45:45,988 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
-16:45:45,989 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
-16:45:45,989 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
-16:45:45,990 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
-16:45:45,992 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
-16:45:46,014 WARN  [DefaultControllerEnvironment] Found unknown Windows version: Windows 10
-16:45:46,015 INFO  [DefaultControllerEnvironment] Attempting to use default windows plug-in.
-16:45:46,015 INFO  [DefaultControllerEnvironment] Loading: net.java.games.input.DirectAndRawInputEnvironmentPlugin
-16:45:46,223 INFO  [ALAudioRenderer] Audio Renderer Information
+23:13:57,788 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
+23:13:57,788 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
+23:13:57,788 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
+23:13:57,789 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
+23:13:57,789 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
+23:13:57,790 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
+23:13:57,792 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
+23:13:57,814 WARN  [DefaultControllerEnvironment] Found unknown Windows version: Windows 10
+23:13:57,815 INFO  [DefaultControllerEnvironment] Attempting to use default windows plug-in.
+23:13:57,815 INFO  [DefaultControllerEnvironment] Loading: net.java.games.input.DirectAndRawInputEnvironmentPlugin
+23:13:58,027 INFO  [ALAudioRenderer] Audio Renderer Information
  * Device: OpenAL Soft
  * Vendor: OpenAL Community
  * Renderer: OpenAL Soft
@@ -31,715 +31,366 @@
  * Supported channels: 64
  * ALC extensions: ALC_ENUMERATE_ALL_EXT ALC_ENUMERATION_EXT ALC_EXT_CAPTURE ALC_EXT_DEDICATED ALC_EXT_disconnect ALC_EXT_EFX ALC_EXT_thread_local_context ALC_SOFT_loopback
  * AL extensions: AL_EXT_ALAW AL_EXT_DOUBLE AL_EXT_EXPONENT_DISTANCE AL_EXT_FLOAT32 AL_EXT_IMA4 AL_EXT_LINEAR_DISTANCE AL_EXT_MCFORMATS AL_EXT_MULAW AL_EXT_MULAW_MCFORMATS AL_EXT_OFFSET AL_EXT_source_distance_model AL_LOKI_quadriphonic AL_SOFT_buffer_samples AL_SOFT_buffer_sub_data AL_SOFTX_deferred_updates AL_SOFT_direct_channels AL_SOFT_loop_points AL_SOFT_source_latency
-16:45:46,223 WARN  [ALAudioRenderer] Pausing audio device not supported.
-16:45:46,224 INFO  [ALAudioRenderer] Audio effect extension version: 1.0
-16:45:46,224 INFO  [ALAudioRenderer] Audio max auxiliary sends: 4
-16:45:46,290 INFO  [GuiGlobals] Initializing GuiGlobals with:com.simsilica.lemur.GuiGlobals@56ff6570
-16:45:46,298 INFO  [GuiGlobals] Lemur build date:20161119
-16:45:46,298 INFO  [BaseStyles] loadStyleResource(com/simsilica/lemur/style/base/glass-styles.groovy)
-16:45:46,583 INFO  [BaseStyles] Loading base resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur/1.9.1/4cf0982db2f5e436577ac723607c8a5d432ac3f1/lemur-1.9.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
-16:45:46,951 INFO  [BaseStyles] Loading extension resources for:com/simsilica/lemur/style/base/glass-styles.groovy
-16:45:46,952 INFO  [BaseStyles] Loading extension resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur-proto/1.8.1/c6635fe7ce1dc9abe7283f175c0e62ab3a905fec/lemur-proto-1.8.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
-16:45:48,357 INFO  [MainMenuState] Host a game on port:4271
-16:45:48,358 INFO  [MainMenuState] Description:
-16:45:48,358 INFO  [MainMenuState] This a game server.
+23:13:58,027 WARN  [ALAudioRenderer] Pausing audio device not supported.
+23:13:58,028 INFO  [ALAudioRenderer] Audio effect extension version: 1.0
+23:13:58,028 INFO  [ALAudioRenderer] Audio max auxiliary sends: 4
+23:13:58,093 INFO  [GuiGlobals] Initializing GuiGlobals with:com.simsilica.lemur.GuiGlobals@20925e9b
+23:13:58,102 INFO  [GuiGlobals] Lemur build date:20161119
+23:13:58,103 INFO  [BaseStyles] loadStyleResource(com/simsilica/lemur/style/base/glass-styles.groovy)
+23:13:58,395 INFO  [BaseStyles] Loading base resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur/1.9.1/4cf0982db2f5e436577ac723607c8a5d432ac3f1/lemur-1.9.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
+23:13:58,765 INFO  [BaseStyles] Loading extension resources for:com/simsilica/lemur/style/base/glass-styles.groovy
+23:13:58,765 INFO  [BaseStyles] Loading extension resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur-proto/1.8.1/c6635fe7ce1dc9abe7283f175c0e62ab3a905fec/lemur-proto-1.8.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
+23:13:59,835 INFO  [MainMenuState] Host a game on port:4271
+23:13:59,835 INFO  [MainMenuState] Description:
+23:13:59,835 INFO  [MainMenuState] This a game server.
 There are many like it
 but this one is mine.
-16:45:48,429 INFO  [GameServer] Initializing game systems...
-16:45:48,429 TRACE [GameSystemManager] initialize()
-16:45:48,430 TRACE [GameSystemManager] initializing:com.simsilica.sim.TaskDispatcher@477cbbca
-16:45:48,430 TRACE [GameSystemManager] initializing:example.sim.SimplePhysics@34fae956
-16:45:48,525 TRACE [GameSystemManager] initializing:example.es.states.DecayState@45b4ebef
-16:45:48,525 TRACE [GameSystemManager] initializing:example.es.states.HealthState@778a3c97
-16:45:48,526 TRACE [GameSystemManager] initializing:example.es.states.BountyState@78dc1d05
-16:45:48,527 TRACE [GameSystemManager] initializing:example.es.states.AttackState@77da749a
-16:45:48,527 TRACE [GameSystemManager] initializing:example.es.states.MapState@165b2222
-16:45:48,529 TRACE [GameSystemManager] initializing:example.net.server.ZoneNetworkSystem@73b6e13a
-16:45:48,529 TRACE [GameSystemManager] initializing:com.simsilica.es.server.EntityUpdater@2f46a0fe
-16:45:48,529 TRACE [GameSystemManager] initializing:example.sim.BodyPositionPublisher@6043dd06
-16:45:48,529 TRACE [GameSystemManager] initializing:example.sim.BasicEnvironment@56164b0e
-16:45:48,529 INFO  [GameServer] Starting game server...
-16:45:48,529 TRACE [GameSystemManager] start()
-16:45:48,529 TRACE [GameSystemManager] starting:com.simsilica.sim.TaskDispatcher@477cbbca
-16:45:48,529 TRACE [GameSystemManager] starting:example.sim.SimplePhysics@34fae956
-16:45:48,531 TRACE [GameSystemManager] starting:example.es.states.DecayState@45b4ebef
-16:45:48,531 TRACE [GameSystemManager] starting:example.es.states.HealthState@778a3c97
-16:45:48,531 TRACE [GameSystemManager] starting:example.es.states.BountyState@78dc1d05
-16:45:48,531 TRACE [GameSystemManager] starting:example.es.states.AttackState@77da749a
-16:45:48,531 TRACE [GameSystemManager] starting:example.es.states.MapState@165b2222
-16:45:48,532 TRACE [GameSystemManager] starting:example.net.server.ZoneNetworkSystem@73b6e13a
-16:45:48,532 TRACE [GameSystemManager] starting:com.simsilica.es.server.EntityUpdater@2f46a0fe
-16:45:48,532 TRACE [GameSystemManager] starting:example.sim.BodyPositionPublisher@6043dd06
-16:45:48,532 TRACE [GameSystemManager] starting:example.sim.BasicEnvironment@56164b0e
-16:45:48,556 INFO  [StateCollector] Starting state collector.
-16:45:48,556 INFO  [GameServer] Game server started.
-16:45:49,857 INFO  [HostState] joinGame()
-16:45:49,865 INFO  [ConnectionState] Creating game client for:127.0.0.1 4271
-16:45:49,866 INFO  [GameClient] Connecting to:127.0.0.1 4271
-16:45:49,875 INFO  [SerializerRegistrationsMessage] Skipping registration of SerializerRegistrationsMessage.
-16:45:49,877 INFO  [GameClient] Adding services...
-16:45:49,887 DEBUG [AccountClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
-16:45:49,888 DEBUG [AccountClientService] Sharing session callback.
-16:45:49,888 DEBUG [GameSessionClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
-16:45:49,888 DEBUG [GameSessionClientService] Sharing session callback.
-16:45:49,892 DEBUG [ChatClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.simsilica.es.client.EntityDataClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.chat.client.ChatClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
-16:45:49,892 DEBUG [ChatClientService] Sharing session callback.
-16:45:49,897 INFO  [SharedObjectUpdater] onInitialize()
-16:45:49,897 INFO  [ConnectionState] Connection established:example.net.client.GameClient@56adbb42
-16:45:49,898 INFO  [ConnectionState] Starting client...
-16:45:49,898 INFO  [GameClient] start()
-16:45:49,900 INFO  [ConnectionState] Client started.
-16:45:49,907 INFO  [MessageDebugger] Received:com.jme3.network.message.SerializerRegistrationsMessage@11d5260e
-16:45:49,907 INFO  [SerializerRegistrationsMessage] Skipping registration as registry is locked, presumably by a local server process.
-16:45:49,946 INFO  [ConnectionState] Connection established:example.net.client.GameClient@56adbb42
-16:45:50,406 DEBUG [AccountHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:65174]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:45:50,409 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
-16:45:50,410 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
-16:45:50,413 DEBUG [AccountClientService] start()
-16:45:50,413 DEBUG [AccountClientService] delegate:RemoteObject[#1, example.net.AccountSession]
-16:45:50,413 DEBUG [GameSessionClientService] start()
-16:45:50,413 DEBUG [ChatClientService] start()
-16:45:50,414 INFO  [SharedObjectUpdater] start()
-16:45:50,415 INFO  [ConnectionState] clientConnected(com.jme3.network.base.DefaultClient@730f9bad)
-16:45:50,418 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[65], [BodyPosition[null]]], ComponentData[EntityId[66], [BodyPosition[null]]]]]
-16:45:50,424 INFO  [ConnectionState] onConnected()
-16:45:50,426 INFO  [MessageDebugger] Received:RpcResponseMessage[#0, result=This a game server.
+23:13:59,908 INFO  [GameServer] Initializing game systems...
+23:13:59,908 TRACE [GameSystemManager] initialize()
+23:13:59,909 TRACE [GameSystemManager] initializing:com.simsilica.sim.TaskDispatcher@56106b70
+23:13:59,909 TRACE [GameSystemManager] initializing:example.sim.SimplePhysics@191145
+23:14:00,007 TRACE [GameSystemManager] initializing:example.es.states.DecayState@4cd53f22
+23:14:00,007 TRACE [GameSystemManager] initializing:example.es.states.HealthState@2c98f083
+23:14:00,008 TRACE [GameSystemManager] initializing:example.es.states.BountyState@4c96efec
+23:14:00,009 TRACE [GameSystemManager] initializing:example.es.states.AttackState@a80c39d
+23:14:00,009 TRACE [GameSystemManager] initializing:example.es.states.MapState@5e4c7133
+23:14:00,010 TRACE [GameSystemManager] initializing:example.net.server.ZoneNetworkSystem@31e6ec15
+23:14:00,010 TRACE [GameSystemManager] initializing:com.simsilica.es.server.EntityUpdater@55358943
+23:14:00,011 TRACE [GameSystemManager] initializing:example.sim.BodyPositionPublisher@684dbf3f
+23:14:00,011 TRACE [GameSystemManager] initializing:example.sim.BasicEnvironment@67d4109f
+23:14:00,011 INFO  [GameServer] Starting game server...
+23:14:00,011 TRACE [GameSystemManager] start()
+23:14:00,011 TRACE [GameSystemManager] starting:com.simsilica.sim.TaskDispatcher@56106b70
+23:14:00,011 TRACE [GameSystemManager] starting:example.sim.SimplePhysics@191145
+23:14:00,013 TRACE [GameSystemManager] starting:example.es.states.DecayState@4cd53f22
+23:14:00,013 TRACE [GameSystemManager] starting:example.es.states.HealthState@2c98f083
+23:14:00,013 TRACE [GameSystemManager] starting:example.es.states.BountyState@4c96efec
+23:14:00,013 TRACE [GameSystemManager] starting:example.es.states.AttackState@a80c39d
+23:14:00,013 TRACE [GameSystemManager] starting:example.es.states.MapState@5e4c7133
+23:14:00,014 TRACE [GameSystemManager] starting:example.net.server.ZoneNetworkSystem@31e6ec15
+23:14:00,014 TRACE [GameSystemManager] starting:com.simsilica.es.server.EntityUpdater@55358943
+23:14:00,014 TRACE [GameSystemManager] starting:example.sim.BodyPositionPublisher@684dbf3f
+23:14:00,014 TRACE [GameSystemManager] starting:example.sim.BasicEnvironment@67d4109f
+23:14:00,037 INFO  [StateCollector] Starting state collector.
+23:14:00,038 INFO  [GameServer] Game server started.
+23:14:00,852 INFO  [HostState] joinGame()
+23:14:00,859 INFO  [ConnectionState] Creating game client for:127.0.0.1 4271
+23:14:00,860 INFO  [GameClient] Connecting to:127.0.0.1 4271
+23:14:00,933 INFO  [SerializerRegistrationsMessage] Skipping registration of SerializerRegistrationsMessage.
+23:14:00,936 INFO  [GameClient] Adding services...
+23:14:00,948 DEBUG [AccountClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
+23:14:00,948 DEBUG [AccountClientService] Sharing session callback.
+23:14:00,949 DEBUG [GameSessionClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
+23:14:00,949 DEBUG [GameSessionClientService] Sharing session callback.
+23:14:00,952 DEBUG [ChatClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.simsilica.es.client.EntityDataClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.chat.client.ChatClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
+23:14:00,952 DEBUG [ChatClientService] Sharing session callback.
+23:14:00,956 INFO  [SharedObjectUpdater] onInitialize()
+23:14:00,956 INFO  [ConnectionState] Connection established:example.net.client.GameClient@5851afac
+23:14:00,957 INFO  [ConnectionState] Starting client...
+23:14:00,958 INFO  [GameClient] start()
+23:14:00,959 INFO  [ConnectionState] Client started.
+23:14:00,966 INFO  [MessageDebugger] Received:com.jme3.network.message.SerializerRegistrationsMessage@5626d3ed
+23:14:00,967 INFO  [SerializerRegistrationsMessage] Skipping registration as registry is locked, presumably by a local server process.
+23:14:01,020 INFO  [ConnectionState] Connection established:example.net.client.GameClient@5851afac
+23:14:01,465 DEBUG [AccountHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:64206]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:01,469 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
+23:14:01,469 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
+23:14:01,472 DEBUG [AccountClientService] start()
+23:14:01,472 DEBUG [AccountClientService] delegate:RemoteObject[#1, example.net.AccountSession]
+23:14:01,472 DEBUG [GameSessionClientService] start()
+23:14:01,472 DEBUG [ChatClientService] start()
+23:14:01,472 INFO  [SharedObjectUpdater] start()
+23:14:01,474 INFO  [ConnectionState] clientConnected(com.jme3.network.base.DefaultClient@57aa0216)
+23:14:01,477 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[65], [BodyPosition[null]]], ComponentData[EntityId[66], [BodyPosition[null]]]]]
+23:14:01,485 INFO  [ConnectionState] onConnected()
+23:14:01,487 INFO  [MessageDebugger] Received:RpcResponseMessage[#0, result=This a game server.
 There are many like it
 but this one is mine.]
-16:45:50,426 DEBUG [ConnectionState] Server info:This a game server.
+23:14:01,487 DEBUG [ConnectionState] Server info:This a game server.
 There are many like it
 but this one is mine.
-16:45:50,874 INFO  [ConnectionState] join(Asser)
-16:45:50,875 INFO  [AccountHostedService] login(Asser)
-16:45:50,875 INFO  [AccountHostedService] Created player entity:EntityId[67] for:Asser
-16:45:50,876 DEBUG [AccountHostedService] publishing playerLoggedOn event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:65174]], fast=UdpEndpoint[1, /127.0.0.1:50177] ]
-16:45:50,876 DEBUG [GameSessionHostedService] onPlayerLoggedOn()
-16:45:50,876 DEBUG [GameSessionHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:65174]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:45:50,876 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=1, procId=0, args.length=1]
-16:45:50,878 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
-16:45:50,878 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
-16:45:50,879 DEBUG [ChatHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:65174]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:45:50,880 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
-16:45:50,881 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
-16:45:50,894 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[68], [BodyPosition[null]]]]]
-16:45:50,894 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[68], BodyPosition[null], class example.es.BodyPosition]]]
-16:45:50,907 INFO  [MessageDebugger] Object state updates started.
-16:45:51,020 INFO  [PlayerMovementState] initialize()
-16:45:51,020 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[65], [ObjectType[type=2], BodyPosition[null]]], ComponentData[EntityId[66], [ObjectType[type=2], BodyPosition[null]]], ComponentData[EntityId[68], [ObjectType[type=3], BodyPosition[null]]]]]
-16:45:51,021 INFO  [PlayerMovementState] onEnable()
-16:45:51,025 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[0], [ObjectType[type=0], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[1], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[2], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[3], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[4], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[5], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[6], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[7], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[8], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[9], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[10], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[11], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[12], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[13], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[14], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[15], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[16], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[17], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[18], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[19], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[20], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
-16:45:51,029 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[21], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[22], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[23], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[24], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[25], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[26], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[27], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[28], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[29], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[30], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[31], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[32], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[33], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[34], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[35], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[36], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[37], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[38], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[39], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[40], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[41], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
-16:45:51,030 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[42], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[43], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[44], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[45], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[46], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[47], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[48], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[49], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[50], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[51], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[52], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[53], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[54], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[55], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[56], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[57], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[58], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[59], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[60], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[61], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[62], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
-16:45:51,030 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[63], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[64], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[65], [ObjectType[type=2], Position{location=Vec3[-10.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[66], [ObjectType[type=2], Position{location=Vec3[10.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[68], [ObjectType[type=3], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
-16:45:51,030 INFO  [MessageDebugger] Received:EntityDataMessage[3, [ComponentData[EntityId[68], [Name[Asser], BodyPosition[null]]]]]
-16:45:51,031 INFO  [PlayerMovementState] initialize()
-16:45:51,032 INFO  [PlayerMovementState] onEnable
-16:45:51,068 INFO  [GameSessionState] initialize()
-16:45:51,069 DEBUG [GameSessionClientService] delegate:RemoteObject[#2, example.net.GameSession]
-16:45:51,070 INFO  [MessageDebugger] Received:RpcResponseMessage[#1, result=EntityId[67]]
-16:45:51,070 INFO  [MessageDebugger] Received:RpcResponseMessage[#2, result=EntityId[68]]
-16:45:51,070 INFO  [GameSessionState] Player object:EntityId[68]
-16:45:51,093 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=arena]
-16:45:51,094 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=gravSphere]
-16:45:51,095 INFO  [MessageDebugger] Received:ReturnComponentsMessage[2, EntityId[1], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,122 INFO  [MessageDebugger] Received:ReturnComponentsMessage[3, EntityId[2], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,126 INFO  [MessageDebugger] Received:ReturnComponentsMessage[4, EntityId[3], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,129 INFO  [MessageDebugger] Received:ReturnComponentsMessage[5, EntityId[4], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,134 INFO  [MessageDebugger] Received:ReturnComponentsMessage[6, EntityId[5], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,139 INFO  [MessageDebugger] Received:ReturnComponentsMessage[7, EntityId[6], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,144 INFO  [MessageDebugger] Received:ReturnComponentsMessage[8, EntityId[7], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,149 INFO  [MessageDebugger] Received:ReturnComponentsMessage[9, EntityId[8], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,153 INFO  [MessageDebugger] Received:ReturnComponentsMessage[10, EntityId[9], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,156 INFO  [MessageDebugger] Received:ReturnComponentsMessage[11, EntityId[10], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,160 INFO  [MessageDebugger] Received:ReturnComponentsMessage[12, EntityId[11], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,163 INFO  [MessageDebugger] Received:ReturnComponentsMessage[13, EntityId[12], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,167 INFO  [MessageDebugger] Received:ReturnComponentsMessage[14, EntityId[13], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,170 INFO  [MessageDebugger] Received:ReturnComponentsMessage[15, EntityId[14], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,174 INFO  [MessageDebugger] Received:ReturnComponentsMessage[16, EntityId[15], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,178 INFO  [MessageDebugger] Received:ReturnComponentsMessage[17, EntityId[16], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,181 INFO  [MessageDebugger] Received:ReturnComponentsMessage[18, EntityId[17], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,184 INFO  [MessageDebugger] Received:ReturnComponentsMessage[19, EntityId[18], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,188 INFO  [MessageDebugger] Received:ReturnComponentsMessage[20, EntityId[19], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,191 INFO  [MessageDebugger] Received:ReturnComponentsMessage[21, EntityId[20], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,194 INFO  [MessageDebugger] Received:ReturnComponentsMessage[22, EntityId[21], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,197 INFO  [MessageDebugger] Received:ReturnComponentsMessage[23, EntityId[22], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,200 INFO  [MessageDebugger] Received:ReturnComponentsMessage[24, EntityId[23], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,202 INFO  [MessageDebugger] Received:ReturnComponentsMessage[25, EntityId[24], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,204 INFO  [MessageDebugger] Received:ReturnComponentsMessage[26, EntityId[25], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,206 INFO  [MessageDebugger] Received:ReturnComponentsMessage[27, EntityId[26], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,208 INFO  [MessageDebugger] Received:ReturnComponentsMessage[28, EntityId[27], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,210 INFO  [MessageDebugger] Received:ReturnComponentsMessage[29, EntityId[28], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,212 INFO  [MessageDebugger] Received:ReturnComponentsMessage[30, EntityId[29], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,214 INFO  [MessageDebugger] Received:ReturnComponentsMessage[31, EntityId[30], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,216 INFO  [MessageDebugger] Received:ReturnComponentsMessage[32, EntityId[31], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,217 INFO  [MessageDebugger] Received:ReturnComponentsMessage[33, EntityId[32], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,220 INFO  [MessageDebugger] Received:ReturnComponentsMessage[34, EntityId[33], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,222 INFO  [MessageDebugger] Received:ReturnComponentsMessage[35, EntityId[34], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,225 INFO  [MessageDebugger] Received:ReturnComponentsMessage[36, EntityId[35], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,228 INFO  [MessageDebugger] Received:ReturnComponentsMessage[37, EntityId[36], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,230 INFO  [MessageDebugger] Received:ReturnComponentsMessage[38, EntityId[37], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,232 INFO  [MessageDebugger] Received:ReturnComponentsMessage[39, EntityId[38], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,235 INFO  [MessageDebugger] Received:ReturnComponentsMessage[40, EntityId[39], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,237 INFO  [MessageDebugger] Received:ReturnComponentsMessage[41, EntityId[40], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,239 INFO  [MessageDebugger] Received:ReturnComponentsMessage[42, EntityId[41], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,240 INFO  [MessageDebugger] Received:ReturnComponentsMessage[43, EntityId[42], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,242 INFO  [MessageDebugger] Received:ReturnComponentsMessage[44, EntityId[43], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,243 INFO  [MessageDebugger] Received:ReturnComponentsMessage[45, EntityId[44], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,244 INFO  [MessageDebugger] Received:ReturnComponentsMessage[46, EntityId[45], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,246 INFO  [MessageDebugger] Received:ReturnComponentsMessage[47, EntityId[46], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,247 INFO  [MessageDebugger] Received:ReturnComponentsMessage[48, EntityId[47], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,248 INFO  [MessageDebugger] Received:ReturnComponentsMessage[49, EntityId[48], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,251 INFO  [MessageDebugger] Received:ReturnComponentsMessage[50, EntityId[49], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,253 INFO  [MessageDebugger] Received:ReturnComponentsMessage[51, EntityId[50], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,254 INFO  [MessageDebugger] Received:ReturnComponentsMessage[52, EntityId[51], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,256 INFO  [MessageDebugger] Received:ReturnComponentsMessage[53, EntityId[52], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,257 INFO  [MessageDebugger] Received:ReturnComponentsMessage[54, EntityId[53], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,259 INFO  [MessageDebugger] Received:ReturnComponentsMessage[55, EntityId[54], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,262 INFO  [MessageDebugger] Received:ReturnComponentsMessage[56, EntityId[55], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,263 INFO  [MessageDebugger] Received:ReturnComponentsMessage[57, EntityId[56], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,265 INFO  [MessageDebugger] Received:ReturnComponentsMessage[58, EntityId[57], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,266 INFO  [MessageDebugger] Received:ReturnComponentsMessage[59, EntityId[58], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,269 INFO  [MessageDebugger] Received:ReturnComponentsMessage[60, EntityId[59], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,270 INFO  [MessageDebugger] Received:ReturnComponentsMessage[61, EntityId[60], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,271 INFO  [MessageDebugger] Received:ReturnComponentsMessage[62, EntityId[61], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,273 INFO  [MessageDebugger] Received:ReturnComponentsMessage[63, EntityId[62], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,274 INFO  [MessageDebugger] Received:ReturnComponentsMessage[64, EntityId[63], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,275 INFO  [MessageDebugger] Received:ReturnComponentsMessage[65, EntityId[64], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-16:45:51,277 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=blackhole]
-16:45:51,313 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=ship]
-16:45:54,594 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[70], [ObjectType[type=4], Position{location=Vec3[-2.7784068867594502, 1.1315719913499351, 0.0], facing=Quatd[0.0, 0.0, 0.558036439767462, 0.8298164446982574], rotation=1.1840353071795864}]]]]
-16:45:54,594 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[70], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[70], Position{location=Vec3[-2.7784068867594502, 1.1315719913499351, 0.0], facing=Quatd[0.0, 0.0, 0.558036439767462, 0.8298164446982574], rotation=1.1840353071795864}, class example.es.Position]]]
-16:45:54,608 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=bomb]
-16:45:54,610 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:45:54,611 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[70], [BodyPosition[null]]]]]
-16:45:54,611 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[70], [ObjectType[type=4], BodyPosition[null]]]]]
-16:45:54,611 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[70], BodyPosition[null], class example.es.BodyPosition]]]
-16:45:56,110 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[72], [ObjectType[type=5], Position{location=Vec3[-37.12260437011719, 15.119059562683105, 0.0], facing=Quatd[-0.0, -0.0, -0.11951949065872301, -0.9928318545215395], rotation=0.0}]]]]
-16:45:56,110 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[72], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[72], Position{location=Vec3[-37.12260437011719, 15.119059562683105, 0.0], facing=Quatd[-0.0, -0.0, -0.11951949065872301, -0.9928318545215395], rotation=0.0}, class example.es.Position], EntityChange[EntityId[70], null, class example.es.ObjectType], EntityChange[EntityId[70], null, class example.es.Position], EntityChange[EntityId[70], null, class example.es.BodyPosition]]]
-16:45:56,125 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=explosion2]
-16:45:56,148 DEBUG [SharedObjectUpdater] No entity yet for:70
-16:45:56,148 DEBUG [SharedObjectUpdater] ****** Object removed[t=84052768237120]:70
-16:45:56,149 DEBUG [SharedObjectUpdater] No entity for removed object for:70
-16:45:58,126 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[72], null, class example.es.ObjectType], EntityChange[EntityId[72], null, class example.es.Position]]]
-16:46:01,526 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[74], [ObjectType[type=4], Position{location=Vec3[1.5476179256093578, -2.5699958669874525, 0.0], facing=Quatd[0.0, 0.0, -0.9635002047212594, 0.2677075932843356], rotation=-2.599566666666667}]]]]
-16:46:01,526 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[74], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[74], Position{location=Vec3[1.5476179256093578, -2.5699958669874525, 0.0], facing=Quatd[0.0, 0.0, -0.9635002047212594, 0.2677075932843356], rotation=-2.599566666666667}, class example.es.Position]]]
-16:46:01,543 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:01,543 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[74], [BodyPosition[null]]]]]
-16:46:01,544 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[74], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:01,544 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[74], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:01,810 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[77], [ObjectType[type=4], Position{location=Vec3[1.5476179256093578, -2.5699958669874525, 0.0], facing=Quatd[0.0, 0.0, -0.9635002047212594, 0.2677075932843356], rotation=-2.599566666666667}]]]]
-16:46:01,811 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[77], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[77], Position{location=Vec3[1.5476179256093578, -2.5699958669874525, 0.0], facing=Quatd[0.0, 0.0, -0.9635002047212594, 0.2677075932843356], rotation=-2.599566666666667}, class example.es.Position]]]
-16:46:01,826 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:01,827 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[77], [BodyPosition[null]]]]]
-16:46:01,828 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[77], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:01,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[77], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:03,026 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[79], [ObjectType[type=5], Position{location=Vec3[-8.59824275970459, -31.419509887695312, 0.0], facing=Quatd[-0.0, -0.0, -0.0565422762542837, -0.9984002058272946], rotation=0.0}]]]]
-16:46:03,027 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[79], Position{location=Vec3[-8.59824275970459, -31.419509887695312, 0.0], facing=Quatd[-0.0, -0.0, -0.0565422762542837, -0.9984002058272946], rotation=0.0}, class example.es.Position], EntityChange[EntityId[74], null, class example.es.ObjectType], EntityChange[EntityId[74], null, class example.es.Position], EntityChange[EntityId[74], null, class example.es.BodyPosition]]]
-16:46:03,054 DEBUG [SharedObjectUpdater] No entity yet for:74
-16:46:03,054 DEBUG [SharedObjectUpdater] No entity yet for:74
-16:46:03,054 DEBUG [SharedObjectUpdater] ****** Object removed[t=84059685118370]:74
-16:46:03,054 DEBUG [SharedObjectUpdater] No entity for removed object for:74
-16:46:03,060 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[81], [ObjectType[type=4], Position{location=Vec3[2.3349261218479507, -1.883645403336862, 0.0], facing=Quatd[0.0, 0.0, -0.9021867326424966, 0.4313456843922938], rotation=-2.249625}]]]]
-16:46:03,060 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[81], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[81], Position{location=Vec3[2.3349261218479507, -1.883645403336862, 0.0], facing=Quatd[0.0, 0.0, -0.9021867326424966, 0.4313456843922938], rotation=-2.249625}, class example.es.Position]]]
-16:46:03,076 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:03,076 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[81], [BodyPosition[null]]]]]
-16:46:03,077 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[81], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:03,077 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[81], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:03,327 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[83], [ObjectType[type=5], Position{location=Vec3[-8.814990997314453, -31.745450973510742, 0.0], facing=Quatd[-0.0, -0.0, -0.9748017041344939, -0.2230731665093021], rotation=0.0}]]]]
-16:46:03,327 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[83], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[83], Position{location=Vec3[-8.814990997314453, -31.745450973510742, 0.0], facing=Quatd[-0.0, -0.0, -0.9748017041344939, -0.2230731665093021], rotation=0.0}, class example.es.Position], EntityChange[EntityId[77], null, class example.es.ObjectType], EntityChange[EntityId[77], null, class example.es.Position], EntityChange[EntityId[77], null, class example.es.BodyPosition]]]
-16:46:03,358 DEBUG [SharedObjectUpdater] No entity yet for:77
-16:46:03,358 DEBUG [SharedObjectUpdater] No entity yet for:77
-16:46:03,358 DEBUG [SharedObjectUpdater] ****** Object removed[t=84059985122794]:77
-16:46:03,358 DEBUG [SharedObjectUpdater] No entity for removed object for:77
-16:46:03,393 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[85], [ObjectType[type=4], Position{location=Vec3[2.3349261218479507, -1.883645403336862, 0.0], facing=Quatd[0.0, 0.0, -0.9021867326424966, 0.4313456843922938], rotation=-2.249625}]]]]
-16:46:03,393 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[85], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[85], Position{location=Vec3[2.3349261218479507, -1.883645403336862, 0.0], facing=Quatd[0.0, 0.0, -0.9021867326424966, 0.4313456843922938], rotation=-2.249625}, class example.es.Position]]]
-16:46:03,410 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:03,410 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[85], [BodyPosition[null]]]]]
-16:46:03,410 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[85], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:03,410 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[85], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:04,376 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[88], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:04,377 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[88], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[88], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:04,393 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:04,393 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[88], [BodyPosition[null]]]]]
-16:46:04,393 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[88], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:04,393 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[88], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:04,577 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[90], [ObjectType[type=5], Position{location=Vec3[13.153397560119629, 14.151829719543457, 0.0], facing=Quatd[0.0, 0.0, 0.986834099707343, 0.16173577110459453], rotation=0.0}]]]]
-16:46:04,577 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[90], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[90], Position{location=Vec3[13.153397560119629, 14.151829719543457, 0.0], facing=Quatd[0.0, 0.0, 0.986834099707343, 0.16173577110459453], rotation=0.0}, class example.es.Position], EntityChange[EntityId[81], null, class example.es.ObjectType], EntityChange[EntityId[81], null, class example.es.Position], EntityChange[EntityId[81], null, class example.es.BodyPosition]]]
-16:46:04,621 DEBUG [SharedObjectUpdater] No entity yet for:81
-16:46:04,621 DEBUG [SharedObjectUpdater] ****** Object removed[t=84061235154775]:81
-16:46:04,621 DEBUG [SharedObjectUpdater] No entity for removed object for:81
-16:46:04,860 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[92], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:04,860 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[92], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[92], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:04,876 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:04,877 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[92], [BodyPosition[null]]]]]
-16:46:04,877 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[92], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:04,877 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[92], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:04,893 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[94], [ObjectType[type=5], Position{location=Vec3[13.085389137268066, 13.83305835723877, 0.0], facing=Quatd[-0.0, -0.0, -0.7038289260877337, -0.7103695114531504], rotation=0.0}]]]]
-16:46:04,893 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[94], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[94], Position{location=Vec3[13.085389137268066, 13.83305835723877, 0.0], facing=Quatd[-0.0, -0.0, -0.7038289260877337, -0.7103695114531504], rotation=0.0}, class example.es.Position], EntityChange[EntityId[85], null, class example.es.ObjectType], EntityChange[EntityId[85], null, class example.es.Position], EntityChange[EntityId[85], null, class example.es.BodyPosition]]]
-16:46:04,924 DEBUG [SharedObjectUpdater] No entity yet for:85
-16:46:04,924 DEBUG [SharedObjectUpdater] No entity yet for:85
-16:46:04,924 DEBUG [SharedObjectUpdater] ****** Object removed[t=84061551836948]:85
-16:46:04,924 DEBUG [SharedObjectUpdater] No entity for removed object for:85
-16:46:05,043 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], null, class example.es.ObjectType], EntityChange[EntityId[79], null, class example.es.Position]]]
-16:46:05,243 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[96], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:05,243 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[96], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[96], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:05,260 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:05,260 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[96], [BodyPosition[null]]]]]
-16:46:05,260 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[96], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:05,260 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[96], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:05,343 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[83], null, class example.es.ObjectType], EntityChange[EntityId[83], null, class example.es.Position]]]
-16:46:05,560 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[99], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:05,560 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[99], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[99], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:05,576 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:05,577 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[99], [BodyPosition[null]]]]]
-16:46:05,577 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[99], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:05,577 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[99], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:05,877 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[101], [ObjectType[type=5], Position{location=Vec3[-4.155102729797363, 8.275005340576172, 0.0], facing=Quatd[0.0, 0.0, 0.5083918590354523, 0.8611258431068463], rotation=0.0}]]]]
-16:46:05,877 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[101], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[101], Position{location=Vec3[-4.155102729797363, 8.275005340576172, 0.0], facing=Quatd[0.0, 0.0, 0.5083918590354523, 0.8611258431068463], rotation=0.0}, class example.es.Position], EntityChange[EntityId[88], null, class example.es.ObjectType], EntityChange[EntityId[88], null, class example.es.Position], EntityChange[EntityId[88], null, class example.es.BodyPosition]]]
-16:46:05,883 DEBUG [SharedObjectUpdater] No entity yet for:88
-16:46:05,883 DEBUG [SharedObjectUpdater] No entity yet for:88
-16:46:05,883 DEBUG [SharedObjectUpdater] No entity yet for:88
-16:46:05,934 DEBUG [SharedObjectUpdater] ****** Object removed[t=84062535196222]:88
-16:46:05,934 DEBUG [SharedObjectUpdater] No entity for removed object for:88
-16:46:05,960 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[103], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:05,960 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[103], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[103], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:05,977 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:05,977 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[103], [BodyPosition[null]]]]]
-16:46:05,977 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[103], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:05,977 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[103], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:06,260 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[106], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:06,260 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[106], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[106], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:06,276 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:06,277 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[106], [BodyPosition[null]]]]]
-16:46:06,277 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[106], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:06,277 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[106], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:06,360 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[108], [ObjectType[type=5], Position{location=Vec3[-4.154265880584717, 8.275768280029297, 0.0], facing=Quatd[-0.0, -0.0, -0.3595415698736609, -0.9331290690642875], rotation=0.0}]]]]
-16:46:06,360 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[108], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[108], Position{location=Vec3[-4.154265880584717, 8.275768280029297, 0.0], facing=Quatd[-0.0, -0.0, -0.3595415698736609, -0.9331290690642875], rotation=0.0}, class example.es.Position], EntityChange[EntityId[92], null, class example.es.ObjectType], EntityChange[EntityId[92], null, class example.es.Position], EntityChange[EntityId[92], null, class example.es.BodyPosition]]]
-16:46:06,386 DEBUG [SharedObjectUpdater] No entity yet for:92
-16:46:06,386 DEBUG [SharedObjectUpdater] No entity yet for:92
-16:46:06,387 DEBUG [SharedObjectUpdater] ****** Object removed[t=84063018536684]:92
-16:46:06,387 DEBUG [SharedObjectUpdater] No entity for removed object for:92
-16:46:06,576 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[90], null, class example.es.ObjectType], EntityChange[EntityId[90], null, class example.es.Position]]]
-16:46:06,676 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[110], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:06,677 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[110], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[110], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:06,693 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:06,693 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[110], [BodyPosition[null]]]]]
-16:46:06,693 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[110], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:06,693 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[110], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:06,743 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[112], [ObjectType[type=5], Position{location=Vec3[-4.1552510261535645, 8.275961875915527, 0.0], facing=Quatd[0.0, 0.0, 0.5264703007652375, -0.8501935205658537], rotation=0.0}]]]]
-16:46:06,743 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[112], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[112], Position{location=Vec3[-4.1552510261535645, 8.275961875915527, 0.0], facing=Quatd[0.0, 0.0, 0.5264703007652375, -0.8501935205658537], rotation=0.0}, class example.es.Position], EntityChange[EntityId[96], null, class example.es.ObjectType], EntityChange[EntityId[96], null, class example.es.Position], EntityChange[EntityId[96], null, class example.es.BodyPosition]]]
-16:46:06,789 DEBUG [SharedObjectUpdater] No entity yet for:96
-16:46:06,789 DEBUG [SharedObjectUpdater] ****** Object removed[t=84063401875671]:96
-16:46:06,789 DEBUG [SharedObjectUpdater] No entity for removed object for:96
-16:46:06,910 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[94], null, class example.es.ObjectType], EntityChange[EntityId[94], null, class example.es.Position]]]
-16:46:07,060 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[114], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:07,060 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[114], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[114], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:07,076 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:07,077 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[114], [BodyPosition[null]]]]]
-16:46:07,077 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[114], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:07,077 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[116], [ObjectType[type=5], Position{location=Vec3[-4.939794540405273, 8.180391311645508, 0.0], facing=Quatd[-0.0, -0.0, -0.16952602157527855, -0.9855257114905012], rotation=0.0}]]]]
-16:46:07,077 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[114], BodyPosition[null], class example.es.BodyPosition], EntityChange[EntityId[116], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[116], Position{location=Vec3[-4.939794540405273, 8.180391311645508, 0.0], facing=Quatd[-0.0, -0.0, -0.16952602157527855, -0.9855257114905012], rotation=0.0}, class example.es.Position], EntityChange[EntityId[99], null, class example.es.ObjectType], EntityChange[EntityId[99], null, class example.es.Position], EntityChange[EntityId[99], null, class example.es.BodyPosition]]]
-16:46:07,093 DEBUG [SharedObjectUpdater] No entity yet for:99
-16:46:07,093 DEBUG [SharedObjectUpdater] No entity yet for:99
-16:46:07,093 DEBUG [SharedObjectUpdater] No entity yet for:99
-16:46:07,143 DEBUG [SharedObjectUpdater] ****** Object removed[t=84063735213619]:99
-16:46:07,144 DEBUG [SharedObjectUpdater] No entity for removed object for:99
-16:46:07,476 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[117], [ObjectType[type=5], Position{location=Vec3[-4.940189838409424, 8.180831909179688, 0.0], facing=Quatd[0.0, 0.0, -0.9076349598982906, 0.41976038351710665], rotation=0.0}]]]]
-16:46:07,477 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[117], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[117], Position{location=Vec3[-4.940189838409424, 8.180831909179688, 0.0], facing=Quatd[0.0, 0.0, -0.9076349598982906, 0.41976038351710665], rotation=0.0}, class example.es.Position], EntityChange[EntityId[103], null, class example.es.ObjectType], EntityChange[EntityId[103], null, class example.es.Position], EntityChange[EntityId[103], null, class example.es.BodyPosition]]]
-16:46:07,497 DEBUG [SharedObjectUpdater] No entity yet for:103
-16:46:07,497 DEBUG [SharedObjectUpdater] No entity yet for:103
-16:46:07,497 DEBUG [SharedObjectUpdater] ****** Object removed[t=84064135219820]:103
-16:46:07,497 DEBUG [SharedObjectUpdater] No entity for removed object for:103
-16:46:07,776 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[118], [ObjectType[type=5], Position{location=Vec3[-4.940239906311035, 8.180856704711914, 0.0], facing=Quatd[0.0, 0.0, -0.8457094512147526, 0.5336436302684049], rotation=0.0}]]]]
-16:46:07,777 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[118], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[118], Position{location=Vec3[-4.940239906311035, 8.180856704711914, 0.0], facing=Quatd[0.0, 0.0, -0.8457094512147526, 0.5336436302684049], rotation=0.0}, class example.es.Position], EntityChange[EntityId[106], null, class example.es.ObjectType], EntityChange[EntityId[106], null, class example.es.Position], EntityChange[EntityId[106], null, class example.es.BodyPosition]]]
-16:46:07,800 DEBUG [SharedObjectUpdater] No entity yet for:106
-16:46:07,800 DEBUG [SharedObjectUpdater] No entity yet for:106
-16:46:07,800 DEBUG [SharedObjectUpdater] ****** Object removed[t=84064435225749]:106
-16:46:07,800 DEBUG [SharedObjectUpdater] No entity for removed object for:106
-16:46:07,893 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[101], null, class example.es.ObjectType], EntityChange[EntityId[101], null, class example.es.Position]]]
-16:46:08,193 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[119], [ObjectType[type=5], Position{location=Vec3[-4.940211772918701, 8.180868148803711, 0.0], facing=Quatd[0.0, 0.0, 0.3546593500320398, -0.9349955857836181], rotation=0.0}]]]]
-16:46:08,193 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[119], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[119], Position{location=Vec3[-4.940211772918701, 8.180868148803711, 0.0], facing=Quatd[0.0, 0.0, 0.3546593500320398, -0.9349955857836181], rotation=0.0}, class example.es.Position], EntityChange[EntityId[110], null, class example.es.ObjectType], EntityChange[EntityId[110], null, class example.es.Position], EntityChange[EntityId[110], null, class example.es.BodyPosition]]]
-16:46:08,204 DEBUG [SharedObjectUpdater] No entity yet for:110
-16:46:08,204 DEBUG [SharedObjectUpdater] No entity yet for:110
-16:46:08,204 DEBUG [SharedObjectUpdater] No entity yet for:110
-16:46:08,254 DEBUG [SharedObjectUpdater] ****** Object removed[t=84064851898561]:110
-16:46:08,254 DEBUG [SharedObjectUpdater] No entity for removed object for:110
-16:46:08,376 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[108], null, class example.es.ObjectType], EntityChange[EntityId[108], null, class example.es.Position]]]
-16:46:08,576 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[120], [ObjectType[type=5], Position{location=Vec3[-4.940686225891113, 8.180658340454102, 0.0], facing=Quatd[0.0, 0.0, 0.711399115764861, 0.7027882313250371], rotation=0.0}]]]]
-16:46:08,576 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[120], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[120], Position{location=Vec3[-4.940686225891113, 8.180658340454102, 0.0], facing=Quatd[0.0, 0.0, 0.711399115764861, 0.7027882313250371], rotation=0.0}, class example.es.Position], EntityChange[EntityId[114], null, class example.es.ObjectType], EntityChange[EntityId[114], null, class example.es.Position], EntityChange[EntityId[114], null, class example.es.BodyPosition]]]
-16:46:08,608 DEBUG [SharedObjectUpdater] No entity yet for:114
-16:46:08,608 DEBUG [SharedObjectUpdater] No entity yet for:114
-16:46:08,609 DEBUG [SharedObjectUpdater] ****** Object removed[t=84065235237247]:114
-16:46:08,609 DEBUG [SharedObjectUpdater] No entity for removed object for:114
-16:46:08,760 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[112], null, class example.es.ObjectType], EntityChange[EntityId[112], null, class example.es.Position]]]
-16:46:09,093 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[116], null, class example.es.ObjectType], EntityChange[EntityId[116], null, class example.es.Position]]]
-16:46:09,476 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[117], null, class example.es.ObjectType], EntityChange[EntityId[117], null, class example.es.Position]]]
-16:46:09,776 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[118], null, class example.es.ObjectType], EntityChange[EntityId[118], null, class example.es.Position]]]
-16:46:10,210 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[119], null, class example.es.ObjectType], EntityChange[EntityId[119], null, class example.es.Position]]]
-16:46:10,576 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[120], null, class example.es.ObjectType], EntityChange[EntityId[120], null, class example.es.Position]]]
-16:46:11,126 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[122], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,127 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[122], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[122], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,143 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,143 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[122], [BodyPosition[null]]]]]
-16:46:11,143 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[122], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,143 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[122], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:11,276 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[125], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,276 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[125], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[125], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,293 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,293 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[125], [BodyPosition[null]]]]]
-16:46:11,293 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[125], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,293 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[125], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:11,410 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[128], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,410 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[128], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[128], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,426 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,426 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[128], [BodyPosition[null]]]]]
-16:46:11,426 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[128], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,427 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[128], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:11,561 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[131], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,561 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[131], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[131], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,577 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,577 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[131], [BodyPosition[null]]]]]
-16:46:11,577 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[131], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,577 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[131], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:11,677 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[134], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,677 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[134], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[134], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,693 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,693 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[134], [BodyPosition[null]]]]]
-16:46:11,694 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[134], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[134], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:11,793 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[137], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,794 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[137], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[137], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,810 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,810 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[137], [BodyPosition[null]]]]]
-16:46:11,810 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[137], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,810 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[137], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:11,943 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[140], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:11,943 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[140], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[140], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:11,964 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:11,964 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[140], [BodyPosition[null]]]]]
-16:46:11,964 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[140], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:11,964 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[140], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,043 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[143], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,043 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[143], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[143], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,060 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,060 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[143], [BodyPosition[null]]]]]
-16:46:12,060 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[143], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,060 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[143], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,177 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[146], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,177 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[146], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[146], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,193 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,194 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[146], [BodyPosition[null]]]]]
-16:46:12,194 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[146], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,194 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[146], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,293 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[149], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,293 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[149], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[149], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,310 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,310 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[149], [BodyPosition[null]]]]]
-16:46:12,310 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[149], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,311 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[149], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,410 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[152], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,410 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[152], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[152], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,426 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,427 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[152], [BodyPosition[null]]]]]
-16:46:12,427 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[152], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,427 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[152], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,560 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[155], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,560 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[155], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[155], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,576 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,577 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[155], [BodyPosition[null]]]]]
-16:46:12,577 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[155], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,577 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[155], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,627 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[157], [ObjectType[type=5], Position{location=Vec3[-4.159543037414551, 8.273218154907227, 0.0], facing=Quatd[0.0, 0.0, 0.7204974610939228, 0.6934575751675163], rotation=0.0}]]]]
-16:46:12,627 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[157], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[157], Position{location=Vec3[-4.159543037414551, 8.273218154907227, 0.0], facing=Quatd[0.0, 0.0, 0.7204974610939228, 0.6934575751675163], rotation=0.0}, class example.es.Position], EntityChange[EntityId[122], null, class example.es.ObjectType], EntityChange[EntityId[122], null, class example.es.Position], EntityChange[EntityId[122], null, class example.es.BodyPosition]]]
-16:46:12,647 DEBUG [SharedObjectUpdater] No entity yet for:122
-16:46:12,647 DEBUG [SharedObjectUpdater] No entity yet for:122
-16:46:12,647 DEBUG [SharedObjectUpdater] ****** Object removed[t=84069285368014]:122
-16:46:12,647 DEBUG [SharedObjectUpdater] No entity for removed object for:122
-16:46:12,676 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[159], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,677 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[159], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[159], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,693 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,693 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[159], [BodyPosition[null]]]]]
-16:46:12,693 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[159], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,693 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[159], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,776 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[161], [ObjectType[type=5], Position{location=Vec3[-4.154074192047119, 8.274006843566895, 0.0], facing=Quatd[-0.0, -0.0, -0.8750563129446772, -0.4840211247204684], rotation=0.0}]]]]
-16:46:12,777 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[161], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[161], Position{location=Vec3[-4.154074192047119, 8.274006843566895, 0.0], facing=Quatd[-0.0, -0.0, -0.8750563129446772, -0.4840211247204684], rotation=0.0}, class example.es.Position], EntityChange[EntityId[125], null, class example.es.ObjectType], EntityChange[EntityId[125], null, class example.es.Position], EntityChange[EntityId[125], null, class example.es.BodyPosition]]]
-16:46:12,798 DEBUG [SharedObjectUpdater] No entity yet for:125
-16:46:12,798 DEBUG [SharedObjectUpdater] No entity yet for:125
-16:46:12,798 DEBUG [SharedObjectUpdater] ****** Object removed[t=84069435370527]:125
-16:46:12,798 DEBUG [SharedObjectUpdater] No entity for removed object for:125
-16:46:12,810 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[163], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:12,810 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[163], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[163], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:12,826 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:12,827 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[163], [BodyPosition[null]]]]]
-16:46:12,827 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[163], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:12,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[163], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:12,910 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[165], [ObjectType[type=5], Position{location=Vec3[-4.153844356536865, 8.276588439941406, 0.0], facing=Quatd[0.0, 0.0, 0.9036124322359111, -0.4283509919548468], rotation=0.0}]]]]
-16:46:12,910 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[165], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[165], Position{location=Vec3[-4.153844356536865, 8.276588439941406, 0.0], facing=Quatd[0.0, 0.0, 0.9036124322359111, -0.4283509919548468], rotation=0.0}, class example.es.Position], EntityChange[EntityId[128], null, class example.es.ObjectType], EntityChange[EntityId[128], null, class example.es.Position], EntityChange[EntityId[128], null, class example.es.BodyPosition]]]
-16:46:12,950 DEBUG [SharedObjectUpdater] No entity yet for:128
-16:46:12,950 DEBUG [SharedObjectUpdater] ****** Object removed[t=84069568705827]:128
-16:46:12,950 DEBUG [SharedObjectUpdater] No entity for removed object for:128
-16:46:13,077 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[166], [ObjectType[type=5], Position{location=Vec3[-14.435016632080078, -5.232030868530273, 0.0], facing=Quatd[0.0, 0.0, 0.04340591203670638, -0.9990575192651633], rotation=0.0}]]]]
-16:46:13,077 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[166], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[166], Position{location=Vec3[-14.435016632080078, -5.232030868530273, 0.0], facing=Quatd[0.0, 0.0, 0.04340591203670638, -0.9990575192651633], rotation=0.0}, class example.es.Position], EntityChange[EntityId[131], null, class example.es.ObjectType], EntityChange[EntityId[131], null, class example.es.Position], EntityChange[EntityId[131], null, class example.es.BodyPosition]]]
-16:46:13,101 DEBUG [SharedObjectUpdater] No entity yet for:131
-16:46:13,101 DEBUG [SharedObjectUpdater] No entity yet for:131
-16:46:13,101 DEBUG [SharedObjectUpdater] ****** Object removed[t=84069735374952]:131
-16:46:13,101 DEBUG [SharedObjectUpdater] No entity for removed object for:131
-16:46:13,193 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[167], [ObjectType[type=5], Position{location=Vec3[-2.882361650466919, 10.532831192016602, 0.0], facing=Quatd[0.0, 0.0, -0.8241124195399435, 0.5664262705419127], rotation=0.0}]]]]
-16:46:13,193 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[167], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[167], Position{location=Vec3[-2.882361650466919, 10.532831192016602, 0.0], facing=Quatd[0.0, 0.0, -0.8241124195399435, 0.5664262705419127], rotation=0.0}, class example.es.Position], EntityChange[EntityId[134], null, class example.es.ObjectType], EntityChange[EntityId[134], null, class example.es.Position], EntityChange[EntityId[134], null, class example.es.BodyPosition]]]
-16:46:13,202 DEBUG [SharedObjectUpdater] No entity yet for:134
-16:46:13,202 DEBUG [SharedObjectUpdater] No entity yet for:134
-16:46:13,202 DEBUG [SharedObjectUpdater] No entity yet for:134
-16:46:13,252 DEBUG [SharedObjectUpdater] ****** Object removed[t=84069852043038]:134
-16:46:13,252 DEBUG [SharedObjectUpdater] No entity for removed object for:134
-16:46:13,293 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[168], [ObjectType[type=5], Position{location=Vec3[1.708309531211853, 9.183341979980469, 0.0], facing=Quatd[0.0, 0.0, 0.14007429051675652, 0.9901409965940344], rotation=0.0}]]]]
-16:46:13,294 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[168], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[168], Position{location=Vec3[1.708309531211853, 9.183341979980469, 0.0], facing=Quatd[0.0, 0.0, 0.14007429051675652, 0.9901409965940344], rotation=0.0}, class example.es.Position], EntityChange[EntityId[137], null, class example.es.ObjectType], EntityChange[EntityId[137], null, class example.es.Position], EntityChange[EntityId[137], null, class example.es.BodyPosition]]]
-16:46:13,303 DEBUG [SharedObjectUpdater] No entity yet for:137
-16:46:13,303 DEBUG [SharedObjectUpdater] No entity yet for:137
-16:46:13,303 DEBUG [SharedObjectUpdater] No entity yet for:137
-16:46:13,353 DEBUG [SharedObjectUpdater] ****** Object removed[t=84069952044513]:137
-16:46:13,353 DEBUG [SharedObjectUpdater] No entity for removed object for:137
-16:46:13,443 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[169], [ObjectType[type=5], Position{location=Vec3[0.38359951972961426, 11.059112548828125, 0.0], facing=Quatd[0.0, 0.0, -0.4919427136946225, 0.8706275704586725], rotation=0.0}]]]]
-16:46:13,443 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[169], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[169], Position{location=Vec3[0.38359951972961426, 11.059112548828125, 0.0], facing=Quatd[0.0, 0.0, -0.4919427136946225, 0.8706275704586725], rotation=0.0}, class example.es.Position], EntityChange[EntityId[140], null, class example.es.ObjectType], EntityChange[EntityId[140], null, class example.es.Position], EntityChange[EntityId[140], null, class example.es.BodyPosition]]]
-16:46:13,454 DEBUG [SharedObjectUpdater] No entity yet for:140
-16:46:13,454 DEBUG [SharedObjectUpdater] No entity yet for:140
-16:46:13,454 DEBUG [SharedObjectUpdater] No entity yet for:140
-16:46:13,504 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070102066591]:140
-16:46:13,504 DEBUG [SharedObjectUpdater] No entity for removed object for:140
-16:46:13,543 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[170], [ObjectType[type=5], Position{location=Vec3[-11.68266487121582, -10.483325958251953, 0.0], facing=Quatd[0.0, 0.0, -0.48726549761026716, 0.8732538776544992], rotation=0.0}]]]]
-16:46:13,543 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[170], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[170], Position{location=Vec3[-11.68266487121582, -10.483325958251953, 0.0], facing=Quatd[0.0, 0.0, -0.48726549761026716, 0.8732538776544992], rotation=0.0}, class example.es.Position], EntityChange[EntityId[143], null, class example.es.ObjectType], EntityChange[EntityId[143], null, class example.es.Position], EntityChange[EntityId[143], null, class example.es.BodyPosition]]]
-16:46:13,555 DEBUG [SharedObjectUpdater] No entity yet for:143
-16:46:13,555 DEBUG [SharedObjectUpdater] No entity yet for:143
-16:46:13,555 DEBUG [SharedObjectUpdater] No entity yet for:143
-16:46:13,605 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070202062648]:143
-16:46:13,605 DEBUG [SharedObjectUpdater] No entity for removed object for:143
-16:46:13,693 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[171], [ObjectType[type=5], Position{location=Vec3[-9.743464469909668, -8.598806381225586, 0.0], facing=Quatd[0.0, 0.0, 0.6240881379083887, -0.7813539506024398], rotation=0.0}]]]]
-16:46:13,693 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[171], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[171], Position{location=Vec3[-9.743464469909668, -8.598806381225586, 0.0], facing=Quatd[0.0, 0.0, 0.6240881379083887, -0.7813539506024398], rotation=0.0}, class example.es.Position], EntityChange[EntityId[146], null, class example.es.ObjectType], EntityChange[EntityId[146], null, class example.es.Position], EntityChange[EntityId[146], null, class example.es.BodyPosition]]]
-16:46:13,706 DEBUG [SharedObjectUpdater] No entity yet for:146
-16:46:13,706 DEBUG [SharedObjectUpdater] No entity yet for:146
-16:46:13,706 DEBUG [SharedObjectUpdater] No entity yet for:146
-16:46:13,756 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070352064860]:146
-16:46:13,756 DEBUG [SharedObjectUpdater] No entity for removed object for:146
-16:46:13,810 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[172], [ObjectType[type=5], Position{location=Vec3[-12.338226318359375, -13.053593635559082, 0.0], facing=Quatd[-0.0, -0.0, -0.7168454516023349, -0.6972320980255029], rotation=0.0}]]]]
-16:46:13,810 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[172], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[172], Position{location=Vec3[-12.338226318359375, -13.053593635559082, 0.0], facing=Quatd[-0.0, -0.0, -0.7168454516023349, -0.6972320980255029], rotation=0.0}, class example.es.Position], EntityChange[EntityId[149], null, class example.es.ObjectType], EntityChange[EntityId[149], null, class example.es.Position], EntityChange[EntityId[149], null, class example.es.BodyPosition]]]
-16:46:13,857 DEBUG [SharedObjectUpdater] No entity yet for:149
-16:46:13,857 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070468732946]:149
-16:46:13,857 DEBUG [SharedObjectUpdater] No entity for removed object for:149
-16:46:13,926 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[173], [ObjectType[type=5], Position{location=Vec3[10.0, 10.0, 0.0], facing=Quatd[-0.0, -0.0, -0.9596747879219053, -0.2811126134257339], rotation=0.0}]]]]
-16:46:13,927 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[173], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[173], Position{location=Vec3[10.0, 10.0, 0.0], facing=Quatd[-0.0, -0.0, -0.9596747879219053, -0.2811126134257339], rotation=0.0}, class example.es.Position], EntityChange[EntityId[152], null, class example.es.ObjectType], EntityChange[EntityId[152], null, class example.es.Position], EntityChange[EntityId[152], null, class example.es.BodyPosition]]]
-16:46:13,959 DEBUG [SharedObjectUpdater] No entity yet for:152
-16:46:13,959 DEBUG [SharedObjectUpdater] No entity yet for:152
-16:46:13,959 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070585401334]:152
-16:46:13,959 DEBUG [SharedObjectUpdater] No entity for removed object for:152
-16:46:14,076 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[174], [ObjectType[type=5], Position{location=Vec3[-9.944117546081543, -8.537851333618164, 0.0], facing=Quatd[0.0, 0.0, 0.28683798936122423, 0.9579791061704896], rotation=0.0}]]]]
-16:46:14,077 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[174], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[174], Position{location=Vec3[-9.944117546081543, -8.537851333618164, 0.0], facing=Quatd[0.0, 0.0, 0.28683798936122423, 0.9579791061704896], rotation=0.0}, class example.es.Position], EntityChange[EntityId[155], null, class example.es.ObjectType], EntityChange[EntityId[155], null, class example.es.Position], EntityChange[EntityId[155], null, class example.es.BodyPosition]]]
-16:46:14,111 DEBUG [SharedObjectUpdater] No entity yet for:155
-16:46:14,111 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070735403546]:155
-16:46:14,111 DEBUG [SharedObjectUpdater] No entity for removed object for:155
-16:46:14,193 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[175], [ObjectType[type=5], Position{location=Vec3[-6.118682384490967, -4.703935623168945, 0.0], facing=Quatd[0.0, 0.0, 0.7137388733019459, 0.700411893629505], rotation=0.0}]]]]
-16:46:14,193 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[175], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[175], Position{location=Vec3[-6.118682384490967, -4.703935623168945, 0.0], facing=Quatd[0.0, 0.0, 0.7137388733019459, 0.700411893629505], rotation=0.0}, class example.es.Position], EntityChange[EntityId[159], null, class example.es.ObjectType], EntityChange[EntityId[159], null, class example.es.Position], EntityChange[EntityId[159], null, class example.es.BodyPosition]]]
-16:46:14,212 DEBUG [SharedObjectUpdater] No entity yet for:159
-16:46:14,212 DEBUG [SharedObjectUpdater] No entity yet for:159
-16:46:14,212 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070852072234]:159
-16:46:14,212 DEBUG [SharedObjectUpdater] No entity for removed object for:159
-16:46:14,326 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[176], [ObjectType[type=5], Position{location=Vec3[-2.538327217102051, -1.5756169557571411, 0.0], facing=Quatd[0.0, 0.0, -0.9490778117794202, 0.3150417546738645], rotation=0.0}]]]]
-16:46:14,327 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[176], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[176], Position{location=Vec3[-2.538327217102051, -1.5756169557571411, 0.0], facing=Quatd[0.0, 0.0, -0.9490778117794202, 0.3150417546738645], rotation=0.0}, class example.es.Position], EntityChange[EntityId[163], null, class example.es.ObjectType], EntityChange[EntityId[163], null, class example.es.Position], EntityChange[EntityId[163], null, class example.es.BodyPosition]]]
-16:46:14,364 DEBUG [SharedObjectUpdater] No entity yet for:163
-16:46:14,364 DEBUG [SharedObjectUpdater] ****** Object removed[t=84070985407233]:163
-16:46:14,364 DEBUG [SharedObjectUpdater] No entity for removed object for:163
-16:46:14,643 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[157], null, class example.es.ObjectType], EntityChange[EntityId[157], null, class example.es.Position]]]
-16:46:14,793 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[161], null, class example.es.ObjectType], EntityChange[EntityId[161], null, class example.es.Position]]]
-16:46:14,926 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[165], null, class example.es.ObjectType], EntityChange[EntityId[165], null, class example.es.Position]]]
-16:46:15,093 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[166], null, class example.es.ObjectType], EntityChange[EntityId[166], null, class example.es.Position]]]
-16:46:15,210 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[167], null, class example.es.ObjectType], EntityChange[EntityId[167], null, class example.es.Position]]]
-16:46:15,260 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[178], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,260 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[178], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[178], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:15,276 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:15,277 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[178], [BodyPosition[null]]]]]
-16:46:15,277 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[178], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:15,277 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[178], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:15,293 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[168], null, class example.es.ObjectType], EntityChange[EntityId[168], null, class example.es.Position]]]
-16:46:15,410 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[181], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,410 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[181], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[181], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:15,426 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:15,427 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[181], [BodyPosition[null]]]]]
-16:46:15,427 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[181], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:15,427 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[181], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:15,443 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[169], null, class example.es.ObjectType], EntityChange[EntityId[169], null, class example.es.Position]]]
-16:46:15,526 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[184], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,527 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[184], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[184], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:15,543 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:15,543 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[184], [BodyPosition[null]]]]]
-16:46:15,543 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[184], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:15,543 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[184], BodyPosition[null], class example.es.BodyPosition], EntityChange[EntityId[170], null, class example.es.ObjectType], EntityChange[EntityId[170], null, class example.es.Position]]]
-16:46:15,643 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[187], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,643 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[187], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[187], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:15,660 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:15,660 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[187], [BodyPosition[null]]]]]
-16:46:15,660 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[187], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:15,660 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[187], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:15,710 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[171], null, class example.es.ObjectType], EntityChange[EntityId[171], null, class example.es.Position]]]
-16:46:15,777 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[190], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,777 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[190], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[190], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:15,793 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:15,794 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[190], [BodyPosition[null]]]]]
-16:46:15,794 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[190], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:15,794 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[190], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:15,810 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[172], null, class example.es.ObjectType], EntityChange[EntityId[172], null, class example.es.Position]]]
-16:46:15,860 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[193], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,860 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[193], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[193], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:15,877 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:15,877 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[193], [BodyPosition[null]]]]]
-16:46:15,877 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[193], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:15,877 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[193], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:15,927 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[173], null, class example.es.ObjectType], EntityChange[EntityId[173], null, class example.es.Position]]]
-16:46:15,993 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[196], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:15,993 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[196], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[196], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:16,010 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:16,010 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[196], [BodyPosition[null]]]]]
-16:46:16,010 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[196], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:16,010 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[196], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:16,077 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[174], null, class example.es.ObjectType], EntityChange[EntityId[174], null, class example.es.Position]]]
-16:46:16,094 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[199], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:16,094 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[199], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[199], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:16,110 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:16,110 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[199], [BodyPosition[null]]]]]
-16:46:16,110 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[199], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:16,110 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[199], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:16,193 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[175], null, class example.es.ObjectType], EntityChange[EntityId[175], null, class example.es.Position]]]
-16:46:16,210 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[202], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:16,210 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[202], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[202], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:16,227 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:16,227 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[202], [BodyPosition[null]]]]]
-16:46:16,227 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[202], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:16,227 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[202], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:16,327 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[205], [ObjectType[type=4], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
-16:46:16,327 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[176], null, class example.es.ObjectType], EntityChange[EntityId[176], null, class example.es.Position], EntityChange[EntityId[205], ObjectType[type=4], class example.es.ObjectType], EntityChange[EntityId[205], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
-16:46:16,343 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
-16:46:16,344 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[205], [BodyPosition[null]]]]]
-16:46:16,344 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[205], [ObjectType[type=4], BodyPosition[null]]]]]
-16:46:16,344 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[205], BodyPosition[null], class example.es.BodyPosition]]]
-16:46:16,760 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[207], [ObjectType[type=5], Position{location=Vec3[-4.1556267738342285, 8.27552318572998, 0.0], facing=Quatd[0.0, 0.0, 0.5079822743988358, 0.86136752254574], rotation=0.0}]]]]
-16:46:16,760 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[207], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[207], Position{location=Vec3[-4.1556267738342285, 8.27552318572998, 0.0], facing=Quatd[0.0, 0.0, 0.5079822743988358, 0.86136752254574], rotation=0.0}, class example.es.Position], EntityChange[EntityId[178], null, class example.es.ObjectType], EntityChange[EntityId[178], null, class example.es.Position], EntityChange[EntityId[178], null, class example.es.BodyPosition]]]
-16:46:16,780 DEBUG [SharedObjectUpdater] No entity yet for:178
-16:46:16,780 DEBUG [SharedObjectUpdater] No entity yet for:178
-16:46:16,780 DEBUG [SharedObjectUpdater] ****** Object removed[t=84073418792709]:178
-16:46:16,780 DEBUG [SharedObjectUpdater] No entity for removed object for:178
-16:46:16,926 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[208], [ObjectType[type=5], Position{location=Vec3[-14.434772491455078, -5.232052803039551, 0.0], facing=Quatd[0.0, 0.0, -0.9735584534531916, 0.22843803910432647], rotation=0.0}]]]]
-16:46:16,927 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[208], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[208], Position{location=Vec3[-14.434772491455078, -5.232052803039551, 0.0], facing=Quatd[0.0, 0.0, -0.9735584534531916, 0.22843803910432647], rotation=0.0}, class example.es.Position], EntityChange[EntityId[181], null, class example.es.ObjectType], EntityChange[EntityId[181], null, class example.es.Position], EntityChange[EntityId[181], null, class example.es.BodyPosition]]]
-16:46:16,931 DEBUG [SharedObjectUpdater] No entity yet for:181
-16:46:16,931 DEBUG [SharedObjectUpdater] No entity yet for:181
-16:46:16,931 DEBUG [SharedObjectUpdater] No entity yet for:181
-16:46:16,981 DEBUG [SharedObjectUpdater] ****** Object removed[t=84073585461833]:181
-16:46:16,981 DEBUG [SharedObjectUpdater] No entity for removed object for:181
-16:46:17,027 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[209], [ObjectType[type=5], Position{location=Vec3[-2.1201984882354736, 10.50088119506836, 0.0], facing=Quatd[0.0, 0.0, 0.8837757727305594, -0.46791065764150175], rotation=0.0}]]]]
-16:46:17,027 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[209], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[209], Position{location=Vec3[-2.1201984882354736, 10.50088119506836, 0.0], facing=Quatd[0.0, 0.0, 0.8837757727305594, -0.46791065764150175], rotation=0.0}, class example.es.Position], EntityChange[EntityId[184], null, class example.es.ObjectType], EntityChange[EntityId[184], null, class example.es.Position], EntityChange[EntityId[184], null, class example.es.BodyPosition]]]
-16:46:17,032 DEBUG [SharedObjectUpdater] No entity yet for:184
-16:46:17,032 DEBUG [SharedObjectUpdater] No entity yet for:184
-16:46:17,032 DEBUG [SharedObjectUpdater] No entity yet for:184
-16:46:17,082 DEBUG [SharedObjectUpdater] ****** Object removed[t=84073685463308]:184
-16:46:17,082 DEBUG [SharedObjectUpdater] No entity for removed object for:184
-16:46:17,143 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[210], [ObjectType[type=5], Position{location=Vec3[-0.31395667791366577, 12.164076805114746, 0.0], facing=Quatd[0.0, 0.0, 0.12433722332836003, 0.9922400187933329], rotation=0.0}]]]]
-16:46:17,143 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[210], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[210], Position{location=Vec3[-0.31395667791366577, 12.164076805114746, 0.0], facing=Quatd[0.0, 0.0, 0.12433722332836003, 0.9922400187933329], rotation=0.0}, class example.es.Position], EntityChange[EntityId[187], null, class example.es.ObjectType], EntityChange[EntityId[187], null, class example.es.Position], EntityChange[EntityId[187], null, class example.es.BodyPosition]]]
-16:46:17,183 DEBUG [SharedObjectUpdater] No entity yet for:187
-16:46:17,183 DEBUG [SharedObjectUpdater] ****** Object removed[t=84073802131696]:187
-16:46:17,183 DEBUG [SharedObjectUpdater] No entity for removed object for:187
-16:46:17,277 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[211], [ObjectType[type=5], Position{location=Vec3[1.928320288658142, 11.128870010375977, 0.0], facing=Quatd[-0.0, -0.0, -0.07385263203183609, -0.997269165642842], rotation=0.0}]]]]
-16:46:17,277 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[211], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[211], Position{location=Vec3[1.928320288658142, 11.128870010375977, 0.0], facing=Quatd[-0.0, -0.0, -0.07385263203183609, -0.997269165642842], rotation=0.0}, class example.es.Position], EntityChange[EntityId[190], null, class example.es.ObjectType], EntityChange[EntityId[190], null, class example.es.Position], EntityChange[EntityId[190], null, class example.es.BodyPosition]]]
-16:46:17,284 DEBUG [SharedObjectUpdater] No entity yet for:190
-16:46:17,284 DEBUG [SharedObjectUpdater] No entity yet for:190
-16:46:17,284 DEBUG [SharedObjectUpdater] No entity yet for:190
-16:46:17,334 DEBUG [SharedObjectUpdater] ****** Object removed[t=84073935466995]:190
-16:46:17,335 DEBUG [SharedObjectUpdater] No entity for removed object for:190
-16:46:17,360 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[212], [ObjectType[type=5], Position{location=Vec3[6.838531970977783, 9.355818748474121, 0.0], facing=Quatd[0.0, 0.0, -0.0451079857371973, 0.9989821167682297], rotation=0.0}]]]]
-16:46:17,360 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[212], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[212], Position{location=Vec3[6.838531970977783, 9.355818748474121, 0.0], facing=Quatd[0.0, 0.0, -0.0451079857371973, 0.9989821167682297], rotation=0.0}, class example.es.Position], EntityChange[EntityId[193], null, class example.es.ObjectType], EntityChange[EntityId[193], null, class example.es.Position], EntityChange[EntityId[193], null, class example.es.BodyPosition]]]
-16:46:17,385 DEBUG [SharedObjectUpdater] No entity yet for:193
-16:46:17,385 DEBUG [SharedObjectUpdater] No entity yet for:193
-16:46:17,385 DEBUG [SharedObjectUpdater] ****** Object removed[t=84074018801558]:193
-16:46:17,385 DEBUG [SharedObjectUpdater] No entity for removed object for:193
-16:46:17,510 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[213], [ObjectType[type=5], Position{location=Vec3[-7.0385565757751465, -7.4218549728393555, 0.0], facing=Quatd[-0.0, -0.0, -0.6614938704529023, -0.74995057127336], rotation=0.0}]]]]
-16:46:17,510 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[213], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[213], Position{location=Vec3[-7.0385565757751465, -7.4218549728393555, 0.0], facing=Quatd[-0.0, -0.0, -0.6614938704529023, -0.74995057127336], rotation=0.0}, class example.es.Position], EntityChange[EntityId[196], null, class example.es.ObjectType], EntityChange[EntityId[196], null, class example.es.Position], EntityChange[EntityId[196], null, class example.es.BodyPosition]]]
-16:46:17,536 DEBUG [SharedObjectUpdater] No entity yet for:196
-16:46:17,536 DEBUG [SharedObjectUpdater] No entity yet for:196
-16:46:17,536 DEBUG [SharedObjectUpdater] ****** Object removed[t=84074168803770]:196
-16:46:17,536 DEBUG [SharedObjectUpdater] No entity for removed object for:196
-16:46:17,610 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[214], [ObjectType[type=5], Position{location=Vec3[4.5882344245910645, 7.698951244354248, 0.0], facing=Quatd[-0.0, -0.0, -0.629737149803868, -0.7768082917663153], rotation=0.0}]]]]
-16:46:17,610 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[214], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[214], Position{location=Vec3[4.5882344245910645, 7.698951244354248, 0.0], facing=Quatd[-0.0, -0.0, -0.629737149803868, -0.7768082917663153], rotation=0.0}, class example.es.Position], EntityChange[EntityId[199], null, class example.es.ObjectType], EntityChange[EntityId[199], null, class example.es.Position], EntityChange[EntityId[199], null, class example.es.BodyPosition]]]
-16:46:17,636 DEBUG [SharedObjectUpdater] No entity yet for:199
-16:46:17,636 DEBUG [SharedObjectUpdater] No entity yet for:199
-16:46:17,636 DEBUG [SharedObjectUpdater] ****** Object removed[t=84074268805546]:199
-16:46:17,636 DEBUG [SharedObjectUpdater] No entity for removed object for:199
-16:46:17,727 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[215], [ObjectType[type=5], Position{location=Vec3[-2.5756452083587646, -6.2067060470581055, 0.0], facing=Quatd[-0.0, -0.0, -0.9377557117751975, -0.3472955874078921], rotation=0.0}]]]]
-16:46:17,727 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[215], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[215], Position{location=Vec3[-2.5756452083587646, -6.2067060470581055, 0.0], facing=Quatd[-0.0, -0.0, -0.9377557117751975, -0.3472955874078921], rotation=0.0}, class example.es.Position], EntityChange[EntityId[202], null, class example.es.ObjectType], EntityChange[EntityId[202], null, class example.es.Position], EntityChange[EntityId[202], null, class example.es.BodyPosition]]]
-16:46:17,737 DEBUG [SharedObjectUpdater] No entity yet for:202
-16:46:17,738 DEBUG [SharedObjectUpdater] No entity yet for:202
-16:46:17,738 DEBUG [SharedObjectUpdater] No entity yet for:202
-16:46:17,787 DEBUG [SharedObjectUpdater] ****** Object removed[t=84074385473632]:202
-16:46:17,788 DEBUG [SharedObjectUpdater] No entity for removed object for:202
-16:46:17,843 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[216], [ObjectType[type=5], Position{location=Vec3[1.057850956916809, 0.18777260184288025, 0.0], facing=Quatd[0.0, 0.0, -0.7932947051812677, 0.6088378361529165], rotation=0.0}]]]]
-16:46:17,843 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[216], ObjectType[type=5], class example.es.ObjectType], EntityChange[EntityId[216], Position{location=Vec3[1.057850956916809, 0.18777260184288025, 0.0], facing=Quatd[0.0, 0.0, -0.7932947051812677, 0.6088378361529165], rotation=0.0}, class example.es.Position], EntityChange[EntityId[205], null, class example.es.ObjectType], EntityChange[EntityId[205], null, class example.es.Position], EntityChange[EntityId[205], null, class example.es.BodyPosition]]]
-16:46:17,887 DEBUG [SharedObjectUpdater] No entity yet for:205
-16:46:17,888 DEBUG [SharedObjectUpdater] ****** Object removed[t=84074502142020]:205
-16:46:17,888 DEBUG [SharedObjectUpdater] No entity for removed object for:205
-16:46:18,777 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[207], null, class example.es.ObjectType], EntityChange[EntityId[207], null, class example.es.Position]]]
-16:46:18,943 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[208], null, class example.es.ObjectType], EntityChange[EntityId[208], null, class example.es.Position]]]
-16:46:19,043 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[209], null, class example.es.ObjectType], EntityChange[EntityId[209], null, class example.es.Position]]]
-16:46:19,160 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[210], null, class example.es.ObjectType], EntityChange[EntityId[210], null, class example.es.Position]]]
-16:46:19,293 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[211], null, class example.es.ObjectType], EntityChange[EntityId[211], null, class example.es.Position]]]
-16:46:19,376 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[212], null, class example.es.ObjectType], EntityChange[EntityId[212], null, class example.es.Position]]]
-16:46:19,526 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[213], null, class example.es.ObjectType], EntityChange[EntityId[213], null, class example.es.Position]]]
-16:46:19,626 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[214], null, class example.es.ObjectType], EntityChange[EntityId[214], null, class example.es.Position]]]
-16:46:19,726 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[215], null, class example.es.ObjectType], EntityChange[EntityId[215], null, class example.es.Position]]]
-16:46:19,843 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[216], null, class example.es.ObjectType], EntityChange[EntityId[216], null, class example.es.Position]]]
-16:46:20,850 INFO  [GameServer] Stopping game server...Shutting down.
-16:46:20,851 TRACE [GameSystemManager] stop()
-16:46:20,851 TRACE [GameSystemManager] stopping:com.simsilica.sim.TaskDispatcher@477cbbca
-16:46:20,851 TRACE [GameSystemManager] stopping:example.sim.SimplePhysics@34fae956
-16:46:20,851 TRACE [GameSystemManager] stopping:example.es.states.DecayState@45b4ebef
-16:46:20,851 TRACE [GameSystemManager] stopping:example.es.states.HealthState@778a3c97
-16:46:20,851 TRACE [GameSystemManager] stopping:example.es.states.BountyState@78dc1d05
-16:46:20,851 TRACE [GameSystemManager] stopping:example.es.states.AttackState@77da749a
-16:46:20,851 TRACE [GameSystemManager] stopping:example.es.states.MapState@165b2222
-16:46:20,851 TRACE [GameSystemManager] stopping:example.net.server.ZoneNetworkSystem@73b6e13a
-16:46:20,851 TRACE [GameSystemManager] stopping:com.simsilica.es.server.EntityUpdater@2f46a0fe
-16:46:20,851 TRACE [GameSystemManager] stopping:example.sim.BodyPositionPublisher@6043dd06
-16:46:20,851 TRACE [GameSystemManager] stopping:example.sim.BasicEnvironment@56164b0e
-16:46:20,852 TRACE [GameSystemManager] terminate()
-16:46:20,852 TRACE [GameSystemManager] terminating:com.simsilica.sim.TaskDispatcher@477cbbca
-16:46:20,852 TRACE [GameSystemManager] terminating:example.sim.SimplePhysics@34fae956
-16:46:20,852 TRACE [GameSystemManager] terminating:example.es.states.DecayState@45b4ebef
-16:46:20,852 TRACE [GameSystemManager] terminating:example.es.states.HealthState@778a3c97
-16:46:20,852 TRACE [GameSystemManager] terminating:example.es.states.BountyState@78dc1d05
-16:46:20,852 TRACE [GameSystemManager] terminating:example.es.states.AttackState@77da749a
-16:46:20,852 TRACE [GameSystemManager] terminating:example.es.states.MapState@165b2222
-16:46:20,852 TRACE [GameSystemManager] terminating:example.net.server.ZoneNetworkSystem@73b6e13a
-16:46:20,852 TRACE [GameSystemManager] terminating:com.simsilica.es.server.EntityUpdater@2f46a0fe
-16:46:20,852 TRACE [GameSystemManager] terminating:example.sim.BodyPositionPublisher@6043dd06
-16:46:20,852 TRACE [GameSystemManager] terminating:example.sim.BasicEnvironment@56164b0e
-16:46:20,853 INFO  [StateCollector] Shuttong down state collector.
-16:46:20,854 ERROR [DefaultClient] Connection terminated, reason:Shutting down..
-16:46:20,854 DEBUG [AccountHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:46:20,854 DEBUG [AccountHostedService] publishing playerLoggedOff event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ]
-16:46:20,854 INFO  [SharedObjectUpdater] stop()
-16:46:20,855 DEBUG [GameSessionHostedService] onPlayerLoggedOff()
-16:46:20,855 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:46:20,855 DEBUG [GameSessionHostedService] Closing game session for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ]
-16:46:20,857 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:46:20,857 INFO  [ConnectionState] clientDisconnected(com.jme3.network.base.DefaultClient@730f9bad, DisconnectInfo[Shutting down., null])
-16:46:20,857 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:46:20,857 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:50177] ])
-16:46:20,858 INFO  [MessageDebugger] Received:com.jme3.network.message.DisconnectMessage[reason=Shutting down., type=Kick]
-16:46:20,858 INFO  [GameServer] Game server stopped.
-16:46:20,859 INFO  [GameClient] close()
-16:46:20,854 ERROR [ConnectionState] Connection error
+23:14:02,152 INFO  [ConnectionState] join(Asser)
+23:14:02,153 INFO  [AccountHostedService] login(Asser)
+23:14:02,153 INFO  [AccountHostedService] Created player entity:EntityId[67] for:Asser
+23:14:02,154 DEBUG [AccountHostedService] publishing playerLoggedOn event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:64206]], fast=UdpEndpoint[1, /127.0.0.1:54018] ]
+23:14:02,154 DEBUG [GameSessionHostedService] onPlayerLoggedOn()
+23:14:02,154 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=1, procId=0, args.length=1]
+23:14:02,154 DEBUG [GameSessionHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:64206]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:02,156 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
+23:14:02,157 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
+23:14:02,159 DEBUG [ChatHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:64206]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:02,160 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
+23:14:02,160 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
+23:14:02,164 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[68], [BodyPosition[null]]]]]
+23:14:02,164 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[68], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:02,194 INFO  [MessageDebugger] Object state updates started.
+23:14:02,301 INFO  [PlayerMovementState] initialize()
+23:14:02,302 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[65], [ObjectType[type=2], BodyPosition[null]]], ComponentData[EntityId[66], [ObjectType[type=3], BodyPosition[null]]], ComponentData[EntityId[68], [ObjectType[type=4], BodyPosition[null]]]]]
+23:14:02,302 INFO  [PlayerMovementState] onEnable()
+23:14:02,305 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[0], [ObjectType[type=0], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[1], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[2], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[3], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[4], [ObjectType[type=1], Position{location=Vec3[-384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[5], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[6], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[7], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[8], [ObjectType[type=1], Position{location=Vec3[-384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[9], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[10], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[11], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[12], [ObjectType[type=1], Position{location=Vec3[-384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[13], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[14], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[15], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[16], [ObjectType[type=1], Position{location=Vec3[-384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[17], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[18], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[19], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[20], [ObjectType[type=1], Position{location=Vec3[-128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
+23:14:02,308 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[21], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[22], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[23], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[24], [ObjectType[type=1], Position{location=Vec3[-128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[25], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[26], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[27], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[28], [ObjectType[type=1], Position{location=Vec3[-128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[29], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[30], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[31], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[32], [ObjectType[type=1], Position{location=Vec3[-128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[33], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[34], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[35], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[36], [ObjectType[type=1], Position{location=Vec3[128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[37], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[38], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[39], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[40], [ObjectType[type=1], Position{location=Vec3[128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[41], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
+23:14:02,309 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[42], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[43], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[44], [ObjectType[type=1], Position{location=Vec3[128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[45], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[46], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[47], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[48], [ObjectType[type=1], Position{location=Vec3[128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[49], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[50], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[51], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[52], [ObjectType[type=1], Position{location=Vec3[384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[53], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[54], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[55], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[56], [ObjectType[type=1], Position{location=Vec3[384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[57], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[58], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[59], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[60], [ObjectType[type=1], Position{location=Vec3[384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[61], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[62], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
+23:14:02,309 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[63], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[64], [ObjectType[type=1], Position{location=Vec3[384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[65], [ObjectType[type=2], Position{location=Vec3[-10.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[66], [ObjectType[type=3], Position{location=Vec3[10.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[68], [ObjectType[type=4], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
+23:14:02,309 INFO  [MessageDebugger] Received:EntityDataMessage[3, [ComponentData[EntityId[68], [Name[Asser], BodyPosition[null]]]]]
+23:14:02,312 INFO  [PlayerMovementState] initialize()
+23:14:02,312 INFO  [PlayerMovementState] onEnable
+23:14:02,344 INFO  [GameSessionState] initialize()
+23:14:02,345 DEBUG [GameSessionClientService] delegate:RemoteObject[#2, example.net.GameSession]
+23:14:02,346 INFO  [MessageDebugger] Received:RpcResponseMessage[#1, result=EntityId[67]]
+23:14:02,346 INFO  [MessageDebugger] Received:RpcResponseMessage[#2, result=EntityId[68]]
+23:14:02,346 INFO  [GameSessionState] Player object:EntityId[68]
+23:14:02,370 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=arena]
+23:14:02,371 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=gravSphere]
+23:14:02,372 INFO  [MessageDebugger] Received:ReturnComponentsMessage[2, EntityId[1], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,396 INFO  [MessageDebugger] Received:ReturnComponentsMessage[3, EntityId[2], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,401 INFO  [MessageDebugger] Received:ReturnComponentsMessage[4, EntityId[3], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,404 INFO  [MessageDebugger] Received:ReturnComponentsMessage[5, EntityId[4], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,408 INFO  [MessageDebugger] Received:ReturnComponentsMessage[6, EntityId[5], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,411 INFO  [MessageDebugger] Received:ReturnComponentsMessage[7, EntityId[6], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,416 INFO  [MessageDebugger] Received:ReturnComponentsMessage[8, EntityId[7], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,420 INFO  [MessageDebugger] Received:ReturnComponentsMessage[9, EntityId[8], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,423 INFO  [MessageDebugger] Received:ReturnComponentsMessage[10, EntityId[9], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,427 INFO  [MessageDebugger] Received:ReturnComponentsMessage[11, EntityId[10], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,430 INFO  [MessageDebugger] Received:ReturnComponentsMessage[12, EntityId[11], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,434 INFO  [MessageDebugger] Received:ReturnComponentsMessage[13, EntityId[12], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,439 INFO  [MessageDebugger] Received:ReturnComponentsMessage[14, EntityId[13], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,442 INFO  [MessageDebugger] Received:ReturnComponentsMessage[15, EntityId[14], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,447 INFO  [MessageDebugger] Received:ReturnComponentsMessage[16, EntityId[15], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,451 INFO  [MessageDebugger] Received:ReturnComponentsMessage[17, EntityId[16], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,455 INFO  [MessageDebugger] Received:ReturnComponentsMessage[18, EntityId[17], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,460 INFO  [MessageDebugger] Received:ReturnComponentsMessage[19, EntityId[18], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,464 INFO  [MessageDebugger] Received:ReturnComponentsMessage[20, EntityId[19], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,468 INFO  [MessageDebugger] Received:ReturnComponentsMessage[21, EntityId[20], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,472 INFO  [MessageDebugger] Received:ReturnComponentsMessage[22, EntityId[21], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,474 INFO  [MessageDebugger] Received:ReturnComponentsMessage[23, EntityId[22], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,478 INFO  [MessageDebugger] Received:ReturnComponentsMessage[24, EntityId[23], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,482 INFO  [MessageDebugger] Received:ReturnComponentsMessage[25, EntityId[24], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,485 INFO  [MessageDebugger] Received:ReturnComponentsMessage[26, EntityId[25], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,488 INFO  [MessageDebugger] Received:ReturnComponentsMessage[27, EntityId[26], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,490 INFO  [MessageDebugger] Received:ReturnComponentsMessage[28, EntityId[27], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,493 INFO  [MessageDebugger] Received:ReturnComponentsMessage[29, EntityId[28], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,495 INFO  [MessageDebugger] Received:ReturnComponentsMessage[30, EntityId[29], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,497 INFO  [MessageDebugger] Received:ReturnComponentsMessage[31, EntityId[30], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,500 INFO  [MessageDebugger] Received:ReturnComponentsMessage[32, EntityId[31], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,502 INFO  [MessageDebugger] Received:ReturnComponentsMessage[33, EntityId[32], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,504 INFO  [MessageDebugger] Received:ReturnComponentsMessage[34, EntityId[33], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,506 INFO  [MessageDebugger] Received:ReturnComponentsMessage[35, EntityId[34], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,508 INFO  [MessageDebugger] Received:ReturnComponentsMessage[36, EntityId[35], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,511 INFO  [MessageDebugger] Received:ReturnComponentsMessage[37, EntityId[36], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,513 INFO  [MessageDebugger] Received:ReturnComponentsMessage[38, EntityId[37], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,516 INFO  [MessageDebugger] Received:ReturnComponentsMessage[39, EntityId[38], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,519 INFO  [MessageDebugger] Received:ReturnComponentsMessage[40, EntityId[39], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,522 INFO  [MessageDebugger] Received:ReturnComponentsMessage[41, EntityId[40], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,525 INFO  [MessageDebugger] Received:ReturnComponentsMessage[42, EntityId[41], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,527 INFO  [MessageDebugger] Received:ReturnComponentsMessage[43, EntityId[42], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,528 INFO  [MessageDebugger] Received:ReturnComponentsMessage[44, EntityId[43], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,529 INFO  [MessageDebugger] Received:ReturnComponentsMessage[45, EntityId[44], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,531 INFO  [MessageDebugger] Received:ReturnComponentsMessage[46, EntityId[45], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,533 INFO  [MessageDebugger] Received:ReturnComponentsMessage[47, EntityId[46], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,535 INFO  [MessageDebugger] Received:ReturnComponentsMessage[48, EntityId[47], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,536 INFO  [MessageDebugger] Received:ReturnComponentsMessage[49, EntityId[48], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,537 INFO  [MessageDebugger] Received:ReturnComponentsMessage[50, EntityId[49], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,539 INFO  [MessageDebugger] Received:ReturnComponentsMessage[51, EntityId[50], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,541 INFO  [MessageDebugger] Received:ReturnComponentsMessage[52, EntityId[51], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,543 INFO  [MessageDebugger] Received:ReturnComponentsMessage[53, EntityId[52], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,544 INFO  [MessageDebugger] Received:ReturnComponentsMessage[54, EntityId[53], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,546 INFO  [MessageDebugger] Received:ReturnComponentsMessage[55, EntityId[54], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,547 INFO  [MessageDebugger] Received:ReturnComponentsMessage[56, EntityId[55], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,549 INFO  [MessageDebugger] Received:ReturnComponentsMessage[57, EntityId[56], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,551 INFO  [MessageDebugger] Received:ReturnComponentsMessage[58, EntityId[57], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,552 INFO  [MessageDebugger] Received:ReturnComponentsMessage[59, EntityId[58], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,553 INFO  [MessageDebugger] Received:ReturnComponentsMessage[60, EntityId[59], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,556 INFO  [MessageDebugger] Received:ReturnComponentsMessage[61, EntityId[60], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,557 INFO  [MessageDebugger] Received:ReturnComponentsMessage[62, EntityId[61], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,559 INFO  [MessageDebugger] Received:ReturnComponentsMessage[63, EntityId[62], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,560 INFO  [MessageDebugger] Received:ReturnComponentsMessage[64, EntityId[63], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,562 INFO  [MessageDebugger] Received:ReturnComponentsMessage[65, EntityId[64], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+23:14:02,564 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=WORMHOLE]
+23:14:02,602 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=over5]
+23:14:02,614 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=ship]
+23:14:04,030 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[70], [ObjectType[type=6], Position{location=Vec3[2.4261363996264733, -1.7646138870607062, 0.0], facing=Quatd[0.0, 0.0, -0.8911241857957384, 0.4537595018177386], rotation=-2.1996333333333333}]]]]
+23:14:04,030 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[70], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[70], Position{location=Vec3[2.4261363996264733, -1.7646138870607062, 0.0], facing=Quatd[0.0, 0.0, -0.8911241857957384, 0.4537595018177386], rotation=-2.1996333333333333}, class example.es.Position]]]
+23:14:04,036 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=bomb]
+23:14:04,046 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:04,047 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[70], [BodyPosition[null]]]]]
+23:14:04,047 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[70], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:04,047 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[70], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:05,546 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[91], [ObjectType[type=7], Position{location=Vec3[21.3846492767334, 11.955732345581055, 0.0], facing=Quatd[0.0, 0.0, 0.22520743844133692, 0.974310838321473], rotation=0.0}]]]]
+23:14:05,547 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[91], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[91], Position{location=Vec3[21.3846492767334, 11.955732345581055, 0.0], facing=Quatd[0.0, 0.0, 0.22520743844133692, 0.974310838321473], rotation=0.0}, class example.es.Position], EntityChange[EntityId[70], null, class example.es.BodyPosition], EntityChange[EntityId[70], null, class example.es.Position], EntityChange[EntityId[70], null, class example.es.ObjectType]]]
+23:14:05,553 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=explosion2]
+23:14:05,575 DEBUG [SharedObjectUpdater] No entity yet for:70
+23:14:05,575 DEBUG [SharedObjectUpdater] No entity yet for:70
+23:14:05,575 DEBUG [SharedObjectUpdater] ****** Object removed[t=107342206347892]:70
+23:14:05,575 DEBUG [SharedObjectUpdater] No entity for removed object for:70
+23:14:05,897 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[93], [ObjectType[type=6], Position{location=Vec3[2.4261363996264733, -1.7646138870607062, 0.0], facing=Quatd[0.0, 0.0, -0.8911241857957384, 0.4537595018177386], rotation=-2.1996333333333333}]]]]
+23:14:05,897 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[93], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[93], Position{location=Vec3[2.4261363996264733, -1.7646138870607062, 0.0], facing=Quatd[0.0, 0.0, -0.8911241857957384, 0.4537595018177386], rotation=-2.1996333333333333}, class example.es.Position]]]
+23:14:05,913 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:05,913 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[93], [BodyPosition[null]]]]]
+23:14:05,914 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[93], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:05,914 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[93], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:06,846 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[115], [ObjectType[type=6], Position{location=Vec3[1.796417705950207, -2.402682547851171, 0.0], facing=Quatd[0.0, 0.0, -0.948918906602945, 0.31552006067993754], rotation=-2.4995833333333337}]]]]
+23:14:06,847 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[115], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[115], Position{location=Vec3[1.796417705950207, -2.402682547851171, 0.0], facing=Quatd[0.0, 0.0, -0.948918906602945, 0.31552006067993754], rotation=-2.4995833333333337}, class example.es.Position]]]
+23:14:06,863 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:06,863 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[115], [BodyPosition[null]]]]]
+23:14:06,864 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[115], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:06,864 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[115], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:07,413 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[137], [ObjectType[type=7], Position{location=Vec3[21.384716033935547, 11.95582389831543, 0.0], facing=Quatd[0.0, 0.0, -0.6368592542951657, 0.7709800841906395], rotation=0.0}]]]]
+23:14:07,413 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[137], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[137], Position{location=Vec3[21.384716033935547, 11.95582389831543, 0.0], facing=Quatd[0.0, 0.0, -0.6368592542951657, 0.7709800841906395], rotation=0.0}, class example.es.Position], EntityChange[EntityId[93], null, class example.es.BodyPosition], EntityChange[EntityId[93], null, class example.es.Position], EntityChange[EntityId[93], null, class example.es.ObjectType]]]
+23:14:07,443 DEBUG [SharedObjectUpdater] No entity yet for:93
+23:14:07,443 DEBUG [SharedObjectUpdater] No entity yet for:93
+23:14:07,443 DEBUG [SharedObjectUpdater] ****** Object removed[t=107344073055032]:93
+23:14:07,443 DEBUG [SharedObjectUpdater] No entity for removed object for:93
+23:14:07,563 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[91], null, class example.es.Position], EntityChange[EntityId[91], null, class example.es.ObjectType]]]
+23:14:08,346 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[146], [ObjectType[type=7], Position{location=Vec3[-15.84454345703125, -16.38825035095215, 0.0], facing=Quatd[0.0, 0.0, 0.19314689443129032, -0.9811698513364279], rotation=0.0}]]]]
+23:14:08,347 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[146], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[146], Position{location=Vec3[-15.84454345703125, -16.38825035095215, 0.0], facing=Quatd[0.0, 0.0, 0.19314689443129032, -0.9811698513364279], rotation=0.0}, class example.es.Position], EntityChange[EntityId[115], null, class example.es.BodyPosition], EntityChange[EntityId[115], null, class example.es.Position], EntityChange[EntityId[115], null, class example.es.ObjectType]]]
+23:14:08,350 DEBUG [SharedObjectUpdater] No entity yet for:115
+23:14:08,350 DEBUG [SharedObjectUpdater] No entity yet for:115
+23:14:08,350 DEBUG [SharedObjectUpdater] No entity yet for:115
+23:14:08,401 DEBUG [SharedObjectUpdater] ****** Object removed[t=107345006429220]:115
+23:14:08,401 DEBUG [SharedObjectUpdater] No entity for removed object for:115
+23:14:09,346 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[148], [ObjectType[type=6], Position{location=Vec3[-1.5879391355389012, -2.545279808159403, 0.0], facing=Quatd[0.0, 0.0, 0.9613601309394417, 0.2752938405415194], rotation=2.583801973846253}]]]]
+23:14:09,346 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[148], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[148], Position{location=Vec3[-1.5879391355389012, -2.545279808159403, 0.0], facing=Quatd[0.0, 0.0, 0.9613601309394417, 0.2752938405415194], rotation=2.583801973846253}, class example.es.Position]]]
+23:14:09,363 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:09,363 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[148], [BodyPosition[null]]]]]
+23:14:09,363 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[148], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:09,363 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[148], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:09,429 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[137], null, class example.es.Position], EntityChange[EntityId[137], null, class example.es.ObjectType]]]
+23:14:10,363 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[146], null, class example.es.Position], EntityChange[EntityId[146], null, class example.es.ObjectType]]]
+23:14:10,863 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[173], [ObjectType[type=7], Position{location=Vec3[-38.80705261230469, -7.437520503997803, 0.0], facing=Quatd[-0.0, -0.0, -0.44640868085486624, -0.8948291958007507], rotation=0.0}]]]]
+23:14:10,863 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[173], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[173], Position{location=Vec3[-38.80705261230469, -7.437520503997803, 0.0], facing=Quatd[-0.0, -0.0, -0.44640868085486624, -0.8948291958007507], rotation=0.0}, class example.es.Position], EntityChange[EntityId[148], null, class example.es.BodyPosition], EntityChange[EntityId[148], null, class example.es.Position], EntityChange[EntityId[148], null, class example.es.ObjectType]]]
+23:14:10,874 DEBUG [SharedObjectUpdater] No entity yet for:148
+23:14:10,874 DEBUG [SharedObjectUpdater] No entity yet for:148
+23:14:10,874 DEBUG [SharedObjectUpdater] No entity yet for:148
+23:14:10,926 DEBUG [SharedObjectUpdater] ****** Object removed[t=107347523153472]:148
+23:14:10,926 DEBUG [SharedObjectUpdater] No entity for removed object for:148
+23:14:11,046 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[175], [ObjectType[type=6], Position{location=Vec3[-2.8967412456327803, -0.7803141392092334, 0.0], facing=Quatd[0.0, 0.0, 0.793758374151021, 0.6082332147006835], rotation=1.8339269738462534}]]]]
+23:14:11,046 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[175], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[175], Position{location=Vec3[-2.8967412456327803, -0.7803141392092334, 0.0], facing=Quatd[0.0, 0.0, 0.793758374151021, 0.6082332147006835], rotation=1.8339269738462534}, class example.es.Position]]]
+23:14:11,063 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:11,063 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[175], [BodyPosition[null]]]]]
+23:14:11,063 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[175], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:11,063 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[175], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:11,546 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[178], [ObjectType[type=6], Position{location=Vec3[-2.8967412456327803, -0.7803141392092334, 0.0], facing=Quatd[0.0, 0.0, 0.793758374151021, 0.6082332147006835], rotation=1.8339269738462534}]]]]
+23:14:11,547 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[178], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[178], Position{location=Vec3[-2.8967412456327803, -0.7803141392092334, 0.0], facing=Quatd[0.0, 0.0, 0.793758374151021, 0.6082332147006835], rotation=1.8339269738462534}, class example.es.Position]]]
+23:14:11,563 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:11,563 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[178], [BodyPosition[null]]]]]
+23:14:11,564 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[178], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:11,564 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[178], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:12,296 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[181], [ObjectType[type=6], Position{location=Vec3[-2.4536523710596407, -1.7261489049306848, 0.0], facing=Quatd[0.0, 0.0, 0.8875198500062487, 0.46076948232807896], rotation=2.18386864051292}]]]]
+23:14:12,296 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[181], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[181], Position{location=Vec3[-2.4536523710596407, -1.7261489049306848, 0.0], facing=Quatd[0.0, 0.0, 0.8875198500062487, 0.46076948232807896], rotation=2.18386864051292}, class example.es.Position]]]
+23:14:12,313 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:12,313 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[181], [BodyPosition[null]]]]]
+23:14:12,313 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[181], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:12,313 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[181], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:12,546 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[188], [ObjectType[type=7], Position{location=Vec3[-38.30135726928711, -10.317486763000488, 0.0], facing=Quatd[0.0, 0.0, -0.4647968815694155, 0.8854173359966173], rotation=0.0}]]]]
+23:14:12,546 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[188], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[188], Position{location=Vec3[-38.30135726928711, -10.317486763000488, 0.0], facing=Quatd[0.0, 0.0, -0.4647968815694155, 0.8854173359966173], rotation=0.0}, class example.es.Position], EntityChange[EntityId[175], null, class example.es.BodyPosition], EntityChange[EntityId[175], null, class example.es.Position], EntityChange[EntityId[175], null, class example.es.ObjectType]]]
+23:14:12,594 DEBUG [SharedObjectUpdater] No entity yet for:175
+23:14:12,595 DEBUG [SharedObjectUpdater] ****** Object removed[t=107349206539023]:175
+23:14:12,595 DEBUG [SharedObjectUpdater] No entity for removed object for:175
+23:14:12,863 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[173], null, class example.es.Position], EntityChange[EntityId[173], null, class example.es.ObjectType]]]
+23:14:13,047 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[206], [ObjectType[type=7], Position{location=Vec3[-38.30135726928711, -10.317486763000488, 0.0], facing=Quatd[-0.0, -0.0, -0.6339576136775378, -0.7733677935240656], rotation=0.0}]]]]
+23:14:13,047 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[206], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[206], Position{location=Vec3[-38.30135726928711, -10.317486763000488, 0.0], facing=Quatd[-0.0, -0.0, -0.6339576136775378, -0.7733677935240656], rotation=0.0}, class example.es.Position], EntityChange[EntityId[178], null, class example.es.BodyPosition], EntityChange[EntityId[178], null, class example.es.Position], EntityChange[EntityId[178], null, class example.es.ObjectType]]]
+23:14:13,049 DEBUG [SharedObjectUpdater] No entity yet for:178
+23:14:13,049 DEBUG [SharedObjectUpdater] No entity yet for:178
+23:14:13,049 DEBUG [SharedObjectUpdater] No entity yet for:178
+23:14:13,100 DEBUG [SharedObjectUpdater] ****** Object removed[t=107349706546698]:178
+23:14:13,100 DEBUG [SharedObjectUpdater] No entity for removed object for:178
+23:14:13,813 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[207], [ObjectType[type=7], Position{location=Vec3[-10.449812889099121, -42.515708923339844, 0.0], facing=Quatd[-0.0, -0.0, -0.6695920985514412, -0.7427290364308354], rotation=0.0}]]]]
+23:14:13,813 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[207], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[207], Position{location=Vec3[-10.449812889099121, -42.515708923339844, 0.0], facing=Quatd[-0.0, -0.0, -0.6695920985514412, -0.7427290364308354], rotation=0.0}, class example.es.Position], EntityChange[EntityId[181], null, class example.es.BodyPosition], EntityChange[EntityId[181], null, class example.es.Position], EntityChange[EntityId[181], null, class example.es.ObjectType]]]
+23:14:13,856 DEBUG [SharedObjectUpdater] No entity yet for:181
+23:14:13,856 DEBUG [SharedObjectUpdater] ****** Object removed[t=107350473224371]:181
+23:14:13,856 DEBUG [SharedObjectUpdater] No entity for removed object for:181
+23:14:14,563 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[188], null, class example.es.Position], EntityChange[EntityId[188], null, class example.es.ObjectType]]]
+23:14:14,979 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[209], [ObjectType[type=6], Position{location=Vec3[2.0272742519773446, -2.2113704138542003, 0.0], facing=Quatd[0.0, 0.0, -0.9319665957760325, 0.3625441550454693], rotation=-2.3996}]]]]
+23:14:14,980 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[209], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[209], Position{location=Vec3[2.0272742519773446, -2.2113704138542003, 0.0], facing=Quatd[0.0, 0.0, -0.9319665957760325, 0.3625441550454693], rotation=-2.3996}, class example.es.Position]]]
+23:14:14,996 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:14,996 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[209], [BodyPosition[null]]]]]
+23:14:14,997 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[209], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:14,997 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[209], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:15,063 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[206], null, class example.es.Position], EntityChange[EntityId[206], null, class example.es.ObjectType]]]
+23:14:15,813 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[207], null, class example.es.Position], EntityChange[EntityId[207], null, class example.es.ObjectType]]]
+23:14:16,496 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[237], [ObjectType[type=7], Position{location=Vec3[-13.451436996459961, -0.022921377792954445, 0.0], facing=Quatd[0.0, 0.0, -0.8611297683335364, 0.5083852103374271], rotation=0.0}]]]]
+23:14:16,496 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[237], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[237], Position{location=Vec3[-13.451436996459961, -0.022921377792954445, 0.0], facing=Quatd[0.0, 0.0, -0.8611297683335364, 0.5083852103374271], rotation=0.0}, class example.es.Position], EntityChange[EntityId[209], null, class example.es.BodyPosition], EntityChange[EntityId[209], null, class example.es.Position], EntityChange[EntityId[209], null, class example.es.ObjectType]]]
+23:14:16,529 DEBUG [SharedObjectUpdater] No entity yet for:209
+23:14:16,529 DEBUG [SharedObjectUpdater] No entity yet for:209
+23:14:16,529 DEBUG [SharedObjectUpdater] ****** Object removed[t=107353156628583]:209
+23:14:16,529 DEBUG [SharedObjectUpdater] No entity for removed object for:209
+23:14:16,613 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[239], [ObjectType[type=6], Position{location=Vec3[1.547617925609359, -2.569995866987452, 0.0], facing=Quatd[0.0, 0.0, -0.9635002047212595, 0.26770759328433585], rotation=-2.5995666666666666}]]]]
+23:14:16,613 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[239], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[239], Position{location=Vec3[1.547617925609359, -2.569995866987452, 0.0], facing=Quatd[0.0, 0.0, -0.9635002047212595, 0.26770759328433585], rotation=-2.5995666666666666}, class example.es.Position]]]
+23:14:16,629 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:16,630 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[239], [BodyPosition[null]]]]]
+23:14:16,630 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[239], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:16,630 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[239], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:17,863 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[258], [ObjectType[type=6], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}]]]]
+23:14:17,863 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[258], ObjectType[type=6], class example.es.ObjectType], EntityChange[EntityId[258], Position{location=Vec3[1.914237480155892, -2.3099123077654746, 0.0], facing=Quatd[0.0, 0.0, -0.9407366180964676, 0.3391380476626309], rotation=-2.4495916666666666}, class example.es.Position]]]
+23:14:17,879 INFO  [HealthState] Applying 0 to:Entity[EntityId[68], values=[HitPoints[100]]] result:HitPoints[100]
+23:14:17,880 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[258], [BodyPosition[null]]]]]
+23:14:17,880 INFO  [MessageDebugger] Received:EntityDataMessage[1, [ComponentData[EntityId[258], [ObjectType[type=6], BodyPosition[null]]]]]
+23:14:17,880 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[258], BodyPosition[null], class example.es.BodyPosition]]]
+23:14:18,113 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[267], [ObjectType[type=7], Position{location=Vec3[-8.59826374053955, -31.419496536254883, 0.0], facing=Quatd[-0.0, -0.0, -0.7224814150388195, -0.6913903419368144], rotation=0.0}]]]]
+23:14:18,113 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[267], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[267], Position{location=Vec3[-8.59826374053955, -31.419496536254883, 0.0], facing=Quatd[-0.0, -0.0, -0.7224814150388195, -0.6913903419368144], rotation=0.0}, class example.es.Position], EntityChange[EntityId[239], null, class example.es.BodyPosition], EntityChange[EntityId[239], null, class example.es.Position], EntityChange[EntityId[239], null, class example.es.ObjectType]]]
+23:14:18,145 DEBUG [SharedObjectUpdater] No entity yet for:239
+23:14:18,145 DEBUG [SharedObjectUpdater] No entity yet for:239
+23:14:18,145 DEBUG [SharedObjectUpdater] ****** Object removed[t=107354773352805]:239
+23:14:18,145 DEBUG [SharedObjectUpdater] No entity for removed object for:239
+23:14:18,513 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[237], null, class example.es.Position], EntityChange[EntityId[237], null, class example.es.ObjectType]]]
+23:14:19,380 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[295], [ObjectType[type=7], Position{location=Vec3[-4.9401774406433105, 8.180837631225586, 0.0], facing=Quatd[-0.0, -0.0, -0.3597771840285956, -0.9330382510124942], rotation=0.0}]]]]
+23:14:19,380 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[295], ObjectType[type=7], class example.es.ObjectType], EntityChange[EntityId[295], Position{location=Vec3[-4.9401774406433105, 8.180837631225586, 0.0], facing=Quatd[-0.0, -0.0, -0.3597771840285956, -0.9330382510124942], rotation=0.0}, class example.es.Position], EntityChange[EntityId[258], null, class example.es.BodyPosition], EntityChange[EntityId[258], null, class example.es.Position], EntityChange[EntityId[258], null, class example.es.ObjectType]]]
+23:14:19,408 DEBUG [SharedObjectUpdater] No entity yet for:258
+23:14:19,408 DEBUG [SharedObjectUpdater] No entity yet for:258
+23:14:19,408 DEBUG [SharedObjectUpdater] ****** Object removed[t=107356040044775]:258
+23:14:19,408 DEBUG [SharedObjectUpdater] No entity for removed object for:258
+23:14:20,130 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[267], null, class example.es.Position], EntityChange[EntityId[267], null, class example.es.ObjectType]]]
+23:14:21,380 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[295], null, class example.es.Position], EntityChange[EntityId[295], null, class example.es.ObjectType]]]
+23:14:21,610 INFO  [GameServer] Stopping game server...Shutting down.
+23:14:21,610 TRACE [GameSystemManager] stop()
+23:14:21,610 TRACE [GameSystemManager] stopping:com.simsilica.sim.TaskDispatcher@56106b70
+23:14:21,610 TRACE [GameSystemManager] stopping:example.sim.SimplePhysics@191145
+23:14:21,610 TRACE [GameSystemManager] stopping:example.es.states.DecayState@4cd53f22
+23:14:21,610 TRACE [GameSystemManager] stopping:example.es.states.HealthState@2c98f083
+23:14:21,610 TRACE [GameSystemManager] stopping:example.es.states.BountyState@4c96efec
+23:14:21,610 TRACE [GameSystemManager] stopping:example.es.states.AttackState@a80c39d
+23:14:21,610 TRACE [GameSystemManager] stopping:example.es.states.MapState@5e4c7133
+23:14:21,610 TRACE [GameSystemManager] stopping:example.net.server.ZoneNetworkSystem@31e6ec15
+23:14:21,610 TRACE [GameSystemManager] stopping:com.simsilica.es.server.EntityUpdater@55358943
+23:14:21,610 TRACE [GameSystemManager] stopping:example.sim.BodyPositionPublisher@684dbf3f
+23:14:21,610 TRACE [GameSystemManager] stopping:example.sim.BasicEnvironment@67d4109f
+23:14:21,610 TRACE [GameSystemManager] terminate()
+23:14:21,611 TRACE [GameSystemManager] terminating:com.simsilica.sim.TaskDispatcher@56106b70
+23:14:21,611 TRACE [GameSystemManager] terminating:example.sim.SimplePhysics@191145
+23:14:21,611 TRACE [GameSystemManager] terminating:example.es.states.DecayState@4cd53f22
+23:14:21,611 TRACE [GameSystemManager] terminating:example.es.states.HealthState@2c98f083
+23:14:21,611 TRACE [GameSystemManager] terminating:example.es.states.BountyState@4c96efec
+23:14:21,611 TRACE [GameSystemManager] terminating:example.es.states.AttackState@a80c39d
+23:14:21,611 TRACE [GameSystemManager] terminating:example.es.states.MapState@5e4c7133
+23:14:21,611 TRACE [GameSystemManager] terminating:example.net.server.ZoneNetworkSystem@31e6ec15
+23:14:21,611 TRACE [GameSystemManager] terminating:com.simsilica.es.server.EntityUpdater@55358943
+23:14:21,611 TRACE [GameSystemManager] terminating:example.sim.BodyPositionPublisher@684dbf3f
+23:14:21,611 TRACE [GameSystemManager] terminating:example.sim.BasicEnvironment@67d4109f
+23:14:21,611 INFO  [StateCollector] Shuttong down state collector.
+23:14:21,612 ERROR [DefaultClient] Connection terminated, reason:Shutting down..
+23:14:21,612 DEBUG [AccountHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:21,612 DEBUG [AccountHostedService] publishing playerLoggedOff event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ]
+23:14:21,612 DEBUG [GameSessionHostedService] onPlayerLoggedOff()
+23:14:21,612 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:21,612 INFO  [SharedObjectUpdater] stop()
+23:14:21,613 DEBUG [GameSessionHostedService] Closing game session for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ]
+23:14:21,614 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:21,614 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:21,614 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:54018] ])
+23:14:21,614 INFO  [ConnectionState] clientDisconnected(com.jme3.network.base.DefaultClient@57aa0216, DisconnectInfo[Shutting down., null])
+23:14:21,615 INFO  [MessageDebugger] Received:com.jme3.network.message.DisconnectMessage[reason=Shutting down., type=Kick]
+23:14:21,616 INFO  [GameServer] Game server stopped.
+23:14:21,616 INFO  [GameClient] close()
+23:14:21,612 ERROR [ConnectionState] Connection error
 com.jme3.network.kernel.ConnectorException: Connector closed.
 	at com.jme3.network.base.ConnectorAdapter.run(ConnectorAdapter.java:161) [jme3-networking-3.1.0-stable.jar:3.1-stable]
-16:46:20,854 ERROR [ConnectionState] Connection error
+23:14:21,612 ERROR [ConnectionState] Connection error
 com.jme3.network.kernel.ConnectorException: Connector closed.
 	at com.jme3.network.base.ConnectorAdapter.run(ConnectorAdapter.java:161) [jme3-networking-3.1.0-stable.jar:3.1-stable]
-16:46:20,855 ERROR [ConnectionState] Connection error
+23:14:21,614 ERROR [ConnectionState] Connection error
 com.jme3.network.kernel.ConnectorException: Connection is closed:/127.0.0.1:4273
 	at com.jme3.network.kernel.tcp.SocketConnector.checkClosed(SocketConnector.java:81) ~[jme3-networking-3.1.0-stable.jar:3.1-stable]
 	at com.jme3.network.kernel.tcp.SocketConnector.write(SocketConnector.java:140) ~[jme3-networking-3.1.0-stable.jar:3.1-stable]
 	at com.jme3.network.base.ConnectorAdapter$WriterThread.write(ConnectorAdapter.java:197) [jme3-networking-3.1.0-stable.jar:3.1-stable]
 	at com.jme3.network.base.ConnectorAdapter$WriterThread.run(ConnectorAdapter.java:208) [jme3-networking-3.1.0-stable.jar:3.1-stable]
-16:46:20,859 INFO  [PlayerMovementState] onDisable
+23:14:21,617 INFO  [PlayerMovementState] onDisable

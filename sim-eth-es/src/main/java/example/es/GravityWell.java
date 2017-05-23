@@ -12,14 +12,14 @@ import com.simsilica.mathd.Vec3d;
  *
  * @author Asser
  */
-public class Wormhole implements EntityComponent{
+public class GravityWell implements EntityComponent{
     
     double targetAreaRadius; //The uncertainty of where you pop up
     Vec3d targetLocation; //The target area for warping to
     double distance;
     double force;
 
-    public Wormhole(double targetAreaRadius, Vec3d targetLocation, double distance, double force) {
+    public GravityWell(double targetAreaRadius, Vec3d targetLocation, double distance, double force) {
         this.targetAreaRadius = targetAreaRadius;
         this.targetLocation = targetLocation;
         this.distance = distance;

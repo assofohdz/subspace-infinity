@@ -32,7 +32,7 @@ public class SISpatialFactory implements ModelFactory {
     private EntityData ed;
 
     private EffectFactory ef;
-    
+
     private ModelViewState state;
 
     public SISpatialFactory() {
@@ -44,7 +44,7 @@ public class SISpatialFactory implements ModelFactory {
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
 
         this.assets.registerLoader(AWTLoader.class, "bm2");
-        
+
         this.state = state;
 
     }
@@ -76,6 +76,8 @@ public class SISpatialFactory implements ModelFactory {
             return createMapTile(e);
         } else if (ObjectTypes.EXPLOSION2.equals(type.getTypeName(ed))) {
             return createExplosion2(e);
+        } else if (ObjectTypes.OVER5.equals(type.getTypeName(ed))) {
+            return createOver5(e);
         } else if (ObjectTypes.WORMHOLE.equals(type.getTypeName(ed))) {
             return createWormhole(e);
         } else {
@@ -272,7 +274,28 @@ public class SISpatialFactory implements ModelFactory {
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
-    
+
+    private Spatial createOver5(Entity e) {
+
+        Quad quadOver5 = new Quad(ViewConstants.OVER5SIZE, ViewConstants.OVER5SIZE);
+        //<-- Move into the material?
+        float halfSizeOver5 = ViewConstants.OVER5SIZE * 0.5f;
+        quadOver5.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSizeOver5, -halfSizeOver5, 0,
+            halfSizeOver5, -halfSizeOver5, 0,
+            halfSizeOver5, halfSizeOver5, 0,
+            -halfSizeOver5, halfSizeOver5, 0
+        });
+        //-->
+        quadOver5.updateBound();
+        Geometry geomOver5 = new Geometry("Wormhole", quadOver5);
+        Material matOver5 = assets.loadMaterial("Materials/Over5Material.j3m");
+        matOver5.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        geomOver5.setMaterial(matOver5);
+        geomOver5.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geomOver5;
+
+    }
+
     private Spatial createWormhole(Entity e) {
         Quad quad = new Quad(ViewConstants.WORMHOLESIZE, ViewConstants.WORMHOLESIZE);
         //<-- Move into the material?
@@ -284,7 +307,7 @@ public class SISpatialFactory implements ModelFactory {
         });
         //-->
         quad.updateBound();
-        Geometry geom = new Geometry("Bomb", quad);
+        Geometry geom = new Geometry("Wormhole", quad);
         Material mat = assets.loadMaterial("Materials/WormholeMaterial.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);

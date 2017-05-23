@@ -26,7 +26,8 @@ public class PhysicsConstants {
     public final static double BOMBMASS = 50;
     public final static double BULLETMASS = 5;
     public final static double MAPTILEMASS = 0; //Infinite mass
-    public final static double WARPMASS = 0;
+    public final static double WORMHOLEMASS = 0;
+    public final static double OVER5MASS = 0;
     
     //View
     public final static double PROJECTILEOFFSET = 3;

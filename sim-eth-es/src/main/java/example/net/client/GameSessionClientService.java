@@ -151,7 +151,7 @@ public class GameSessionClientService extends AbstractClientService
     @Override
     public void attack(String attackType) {
         if (log.isTraceEnabled()) {
-            log.trace("attack shoot");
+            log.trace("attack shoot: "+attackType);
         }
         getDelegate().attack(attackType);
     }
@@ -159,7 +159,7 @@ public class GameSessionClientService extends AbstractClientService
     @Override
     public void editMap(double x, double y){
         if (log.isTraceEnabled()) {
-            log.trace("edit map");
+            log.trace("edit map @("+x+","+y+")");
         }
         getDelegate().editMap(x, y); 
     }

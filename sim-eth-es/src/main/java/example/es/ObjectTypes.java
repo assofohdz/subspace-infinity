@@ -55,7 +55,6 @@ public class ObjectTypes {
     public static final String ARENA = "arena";
     public static final String MAPTILE = "maptile";
     public static final String EXPLOSION2 = "explosion2";
-    public static final String WORMHOLE = "blackhole";
 
     public static ObjectType ship(EntityData ed) {
         return ObjectType.create(SHIP, ed);
@@ -97,7 +96,14 @@ public class ObjectTypes {
         return ObjectType.create(EXPLOSION2, ed);
     }
     
-    public static ObjectType blackhole(EntityData ed) {
+    public static final String WORMHOLE = "WORMHOLE";
+    public static final String OVER5 = "over5";
+    
+    public static ObjectType wormhole(EntityData ed) {
         return ObjectType.create(WORMHOLE, ed);
+    }
+
+    public static ObjectType over5(EntityData ed) {
+        return ObjectType.create(OVER5, ed);
     }
 }

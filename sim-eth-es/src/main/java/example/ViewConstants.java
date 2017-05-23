@@ -21,6 +21,7 @@ public class ViewConstants {
     
     public final static float EXPLOSION2SIZE = 2f;
     public final static float WORMHOLESIZE = 4f;
+    public final static float OVER5SIZE = 4f;
     
     //Game
     public final static int ARENASIZE = 25;

@@ -18,13 +18,11 @@ import example.es.ObjectType;
 import example.es.ObjectTypes;
 import example.es.PhysicsForce;
 import example.es.Position;
-import example.es.Wormhole;
+import example.es.GravityWell;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Torque;
-import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Vector2;
 
 /**
  *
@@ -43,7 +41,7 @@ public class WormholeState extends AbstractGameSystem {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        ComponentFilter wormholeFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.blackhole(ed).getType());
+        ComponentFilter wormholeFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.wormhole(ed).getType());
         ComponentFilter shipsFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.ship(ed).getType());
         ComponentFilter bombsFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.bomb(ed).getType());
         ComponentFilter bulletsFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.bullet(ed).getType());
@@ -89,7 +87,7 @@ public class WormholeState extends AbstractGameSystem {
             Vec3d bodyEntityLocation = new Vec3d(bodyEntity.get(BodyPosition.class).getFrame(time.getFrame()).getPosition(time.getTime()));
 
             for (Entity wormholeEntity : wormholes) {
-                Wormhole wormhole = wormholeEntity.get(Wormhole.class);
+                GravityWell wormhole = wormholeEntity.get(GravityWell.class);
                 Vec3d wormholeLocation = new Vec3d(wormholeEntity.get(BodyPosition.class).getFrame(time.getFrame()).getPosition(time.getTime()));
                 
                 double gravityDistance = wormhole.getDistance();
@@ -107,7 +105,7 @@ public class WormholeState extends AbstractGameSystem {
 
                     Force force = new Force(gravity.x, gravity.y);
 
-                    PhysicsForce pf = new PhysicsForce(force, new Torque(), new Vector2());
+                    PhysicsForce pf = new PhysicsForce(bodyEntity.getId(), force, new Torque());
 
                     bodyEntity.set(pf);
                 }

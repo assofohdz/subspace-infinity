@@ -64,12 +64,13 @@ public class GameEntities {
 
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
-    public static EntityId createShip(EntityId parent, EntityData ed) {
+    public static EntityId createShip(EntityId parent, String shipType, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
         ed.setComponents(result,
                 ObjectTypes.ship(ed),
+                ShipType.create(shipType, ed),
                 new MassProperties(1 / PhysicsConstants.SHIPMASS),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS)))); //for Dyn4j physics
 
@@ -110,7 +111,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
                 new Position(location, quatd, rotation),
-                new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
+                new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 new MassProperties(1 / PhysicsConstants.BOMBMASS), //for physics
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BOMBSIZERADIUS)))); //for Dyn4j physics
@@ -122,7 +123,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bullet(ed),
                 new Position(location, quatd, rotation),
-                new PhysicsForce(new Force(), new Torque(), new Vector2(linearVelocity.x, linearVelocity.y)),
+                new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 new MassProperties(1 / PhysicsConstants.BULLETMASS), //for physics
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.BULLETSIZERADIUS)))); //for Dyn4j physics
@@ -159,7 +160,7 @@ public class GameEntities {
         ed.setComponents(lastExplosion,
                 ObjectTypes.explosion2(ed),
                 new Position(location, quat, 0f),
-                new Decay(ViewConstants.EXPLOSION2DECAY));
+                new Decay(ViewConstants.EXPLOSION2DECAY)); 
 
         return lastExplosion;
     }
@@ -168,10 +169,10 @@ public class GameEntities {
         EntityId lastWormhole = ed.createEntity();
 
         ed.setComponents(lastWormhole,
-                ObjectTypes.blackhole(ed),
+                ObjectTypes.wormhole(ed),
                 new Position(location, new Quatd(), 0f),
-                new MassProperties(PhysicsConstants.WARPMASS),
-                new Wormhole(targetAreaRadius, targetLocation, radius, force),
+                new MassProperties(PhysicsConstants.WORMHOLEMASS),
+                new GravityWell(targetAreaRadius, targetLocation, radius, force),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
 
         return lastWormhole;
@@ -181,8 +182,29 @@ public class GameEntities {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
-                AttackTypes.create(attackType, ed));
+                AttackType.create(attackType, ed));
 
         return lastAttack;
+    }
+    
+    public static EntityId createForce(EntityId owner, Force force, Torque torque, EntityData ed){
+        EntityId lastForce = ed.createEntity();
+        ed.setComponents(lastForce, 
+                new PhysicsForce(owner, force, torque)); 
+        
+        return lastForce;
+    }
+    
+    public static EntityId createOver5(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed) {
+        EntityId lastWormhole = ed.createEntity();
+
+        ed.setComponents(lastWormhole, 
+                ObjectTypes.over5(ed),
+                new Position(location, new Quatd(), 0f),
+                new MassProperties(PhysicsConstants.OVER5MASS),
+                new GravityWell(targetAreaRadius, targetLocation, radius, force),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
+
+        return lastWormhole;
     }
 }

@@ -178,7 +178,6 @@ public class ModelViewState extends BaseAppState {
         this.playerSpatial = ship;
 
         //attachCoordinateAxes(result); //To debug
-
         return result;
     }
 
@@ -231,7 +230,7 @@ public class ModelViewState extends BaseAppState {
 
         return result;
     }
-    
+
     protected Spatial createExplosion2(Entity entity) {
         //Node information:
         Node result = new Node("explosion2:" + entity.getId());
@@ -243,8 +242,8 @@ public class ModelViewState extends BaseAppState {
         result.attachChild(bullet);
 
         return result;
-    }    
-    
+    }
+
     protected Spatial createWormhole(Entity entity) {
         //Node information:
         Node result = new Node("wormhole:" + entity.getId());
@@ -252,11 +251,11 @@ public class ModelViewState extends BaseAppState {
         //result.setUserData(LayerComparator.LAYER, 1);
 
         //Spatial information:
-        Spatial bullet = factory.createModel(entity);
-        result.attachChild(bullet);
+        Spatial gravityWell = factory.createModel(entity);
+        result.attachChild(gravityWell);
 
         return result;
-    }    
+    }
 
     protected Spatial createBounty(Entity entity) {
         //Node information:
@@ -269,7 +268,6 @@ public class ModelViewState extends BaseAppState {
         result.attachChild(bounty);
 
         //attachCoordinateAxes(result);
-
         return result;
     }
 
@@ -306,10 +304,13 @@ public class ModelViewState extends BaseAppState {
                 result = createMapTile(entity);
                 break;
             case ObjectTypes.EXPLOSION2:
-                result = createExplosion2(entity);                
+                result = createExplosion2(entity);
                 break;
             case ObjectTypes.WORMHOLE:
-                result = createWormhole(entity);                
+                result = createWormhole(entity);
+                break;
+            case ObjectTypes.OVER5:
+                result = createOver5(entity);
                 break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
@@ -348,13 +349,11 @@ public class ModelViewState extends BaseAppState {
         //Spatial information:
         Spatial arena = factory.createModel(entity);
 
-        //TODO: Should probably add an input state as the listener and then overwrite the click there, to be able to directly send the input to the session there
         CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
 
         result.attachChild(arena);
 
         //attachCoordinateAxes(result);
-
         return result;
     }
 
@@ -369,10 +368,21 @@ public class ModelViewState extends BaseAppState {
 
         //TODO: Maybe we could use a listener on every map tile?
         //CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
-
         result.attachChild(arena);
 
         //attachCoordinateAxes(result);
+        return result;
+    }
+
+    protected Spatial createOver5(Entity entity) {
+        //Node information:
+        Node result = new Node("over5:" + entity.getId());
+        result.setUserData("over5Id", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial gravityWell = factory.createModel(entity);
+        result.attachChild(gravityWell);
 
         return result;
     }

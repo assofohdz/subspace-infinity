@@ -67,6 +67,7 @@ import example.es.AttackTypes;
 import example.es.BodyPosition;
 
 import example.es.Position;
+import example.es.ShipTypes;
 import example.es.states.AttackState;
 import example.es.states.MapState;
 import example.net.GameSession;
@@ -239,7 +240,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Create a ship for the player
             this.shipDriver = new ShipDriver();
 
-            this.shipEntity = GameEntities.createShip(playerEntity, ed);
+            //TODO: Let player choose the ship
+            this.shipEntity = GameEntities.createShip(playerEntity, ShipTypes.SHARK, ed);
 
             // Set the ship driver directly on the Body.  This could
             // also have been managed with a component-based system but 
