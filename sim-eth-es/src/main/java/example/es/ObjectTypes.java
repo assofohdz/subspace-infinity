@@ -55,6 +55,7 @@ public class ObjectTypes {
     public static final String ARENA = "arena";
     public static final String MAPTILE = "maptile";
     public static final String EXPLOSION2 = "explosion2";
+    public static final String OVER1 = "over1";
 
     public static ObjectType ship(EntityData ed) {
         return ObjectType.create(SHIP, ed);
@@ -105,5 +106,8 @@ public class ObjectTypes {
 
     public static ObjectType over5(EntityData ed) {
         return ObjectType.create(OVER5, ed);
+    }
+    public static ObjectType over1(EntityData ed) {
+        return ObjectType.create(OVER1, ed);
     }
 }

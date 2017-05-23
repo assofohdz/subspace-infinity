@@ -80,6 +80,8 @@ public class SISpatialFactory implements ModelFactory {
             return createOver5(e);
         } else if (ObjectTypes.WORMHOLE.equals(type.getTypeName(ed))) {
             return createWormhole(e);
+        } else if (ObjectTypes.OVER1.equals(type.getTypeName(ed))) {
+            return createOver1(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
@@ -309,6 +311,25 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Wormhole", quad);
         Material mat = assets.loadMaterial("Materials/WormholeMaterial.j3m");
+        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+
+    private Spatial createOver1(Entity e) {
+        Quad quad = new Quad(ViewConstants.OVER1SIZE, ViewConstants.OVER1SIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.OVER1SIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Over1", quad);
+        Material mat = assets.loadMaterial("Materials/Over1Material.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);

@@ -292,7 +292,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             Vector2 bodyTranslation = body2.getTransform().getTranslation();
             Vec3d bodyEntityLocation = new Vec3d(bodyTranslation.x, bodyTranslation.y, 0); //TODO: Arena setting?
-            if (fixture1.getShape().getRadius() != PhysicsConstants.WARPSIZERADIUS) {
+            if (fixture1.getShape().getRadius() != PhysicsConstants.WORMHOLESIZERADIUS) {
                 //start applying gravity to other entity
 
                 Force force = getWormholeGravityOnBody(time.getTpf(), warp, wormholePos.getLocation(), bodyEntityLocation);
@@ -315,7 +315,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             Vector2 bodyTranslation = body1.getTransform().getTranslation();
             Vec3d bodyEntityLocation = new Vec3d(bodyTranslation.x, bodyTranslation.y, 0); //TODO: Arena setting?
-            if (fixture2.getShape().getRadius() != PhysicsConstants.WARPSIZERADIUS) {
+            if (fixture2.getShape().getRadius() != PhysicsConstants.WORMHOLESIZERADIUS) {
 
                 Force force = getWormholeGravityOnBody(time.getTpf(), warp, wormholePos.getLocation(), bodyEntityLocation);
 

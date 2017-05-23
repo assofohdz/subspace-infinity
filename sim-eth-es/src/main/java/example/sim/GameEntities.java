@@ -173,7 +173,7 @@ public class GameEntities {
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.WORMHOLEMASS),
                 new GravityWell(targetAreaRadius, targetLocation, radius, force),
-                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WORMHOLESIZERADIUS))));
 
         return lastWormhole;
     }
@@ -203,7 +203,20 @@ public class GameEntities {
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.OVER5MASS),
                 new GravityWell(targetAreaRadius, targetLocation, radius, force),
-                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WARPSIZERADIUS))));
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER5SIZERADIUS))));
+
+        return lastWormhole;
+    }
+    
+    //Rotating asteroid
+    public static EntityId createOver1(Vec3d location, EntityData ed) {
+        EntityId lastWormhole = ed.createEntity();
+
+        ed.setComponents(lastWormhole, 
+                ObjectTypes.over1(ed),
+                new Position(location, new Quatd(), 0f),
+                new MassProperties(PhysicsConstants.OVER1MASS),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER1SIZERADIUS))));
 
         return lastWormhole;
     }

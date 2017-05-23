@@ -312,6 +312,9 @@ public class ModelViewState extends BaseAppState {
             case ObjectTypes.OVER5:
                 result = createOver5(entity);
                 break;
+            case ObjectTypes.OVER1:
+                result = createOver1(entity);
+                break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
         }
@@ -378,6 +381,19 @@ public class ModelViewState extends BaseAppState {
         //Node information:
         Node result = new Node("over5:" + entity.getId());
         result.setUserData("over5Id", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial gravityWell = factory.createModel(entity);
+        result.attachChild(gravityWell);
+
+        return result;
+    }
+
+    private Spatial createOver1(Entity entity) {
+        //Node information:
+        Node result = new Node("over1:" + entity.getId());
+        result.setUserData("over1Id", entity.getId().getId());
         //result.setUserData(LayerComparator.LAYER, 1);
 
         //Spatial information:
