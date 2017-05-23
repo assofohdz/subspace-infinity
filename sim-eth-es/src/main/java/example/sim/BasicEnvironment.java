@@ -85,6 +85,8 @@ public class BasicEnvironment extends AbstractGameSystem {
 
         GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, new Vec3d(10,10,0), 5, 5000, ed);
         
+        GameEntities.createWormhole(new Vec3d(10,-10,0), 5, new Vec3d(-10,10,0), 5, -5000, ed);
+        
         /*
         for (int x = -4; x < 4; x++) {
             for (int y = -4; y < 4; y++) {

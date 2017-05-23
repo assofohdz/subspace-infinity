@@ -158,7 +158,8 @@ public class GameEntities {
 
         ed.setComponents(lastExplosion,
                 ObjectTypes.explosion2(ed),
-                new Position(location, quat, 0f));
+                new Position(location, quat, 0f),
+                new Decay(ViewConstants.EXPLOSION2DECAY));
 
         return lastExplosion;
     }

@@ -24,4 +24,5 @@ public class ViewConstants {
     
     //Game
     public final static int ARENASIZE = 25;
+    public final static long EXPLOSION2DECAY = 2000;
 }
