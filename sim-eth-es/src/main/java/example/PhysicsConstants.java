@@ -15,7 +15,7 @@ public class PhysicsConstants {
     public static double PHYSICS_SCALE = 1;
     
     //Radius
-    public final static double BULLETSIZERADIUS = 0.25f;
+    public final static double BULLETSIZERADIUS = 0.125f;
     public final static double BOMBSIZERADIUS = 0.5f;
     public final static double BOUNTYSIZERADIUS = 0.5f;
     public final static double SHIPSIZERADIUS = 1f;
@@ -34,4 +34,7 @@ public class PhysicsConstants {
     
     //View
     public final static double PROJECTILEOFFSET = 3;
+    
+    //Forces
+    public final static float SHIPTHRUST = 10;
 }

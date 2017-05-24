@@ -44,6 +44,7 @@ import example.PhysicsConstants;
 import example.ViewConstants;
 
 import example.es.*;
+import java.util.HashSet;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Torque;
@@ -119,6 +120,15 @@ public class GameEntities {
         return lastBomb;
     }
 
+    public static EntityId createdDelaydBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed) {
+
+        EntityId lastDelayedBomb = GameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
+
+        ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents));
+
+        return lastDelayedBomb;
+    }
+
     public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
         ed.setComponents(lastBomb, ObjectTypes.bullet(ed),
@@ -160,7 +170,7 @@ public class GameEntities {
         ed.setComponents(lastExplosion,
                 ObjectTypes.explosion2(ed),
                 new Position(location, quat, 0f),
-                new Decay(ViewConstants.EXPLOSION2DECAY)); 
+                new Decay(ViewConstants.EXPLOSION2DECAY));
 
         return lastExplosion;
     }
@@ -172,7 +182,8 @@ public class GameEntities {
                 ObjectTypes.wormhole(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.WORMHOLEMASS),
-                new GravityWell(targetAreaRadius, targetLocation, radius, force),
+                new GravityWell(radius, force),
+                new Warp(targetAreaRadius, targetLocation),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WORMHOLESIZERADIUS))));
 
         return lastWormhole;
@@ -186,33 +197,34 @@ public class GameEntities {
 
         return lastAttack;
     }
-    
-    public static EntityId createForce(EntityId owner, Force force, Torque torque, EntityData ed){
+
+    public static EntityId createForce(EntityId owner, Force force, Torque torque, EntityData ed) {
         EntityId lastForce = ed.createEntity();
-        ed.setComponents(lastForce, 
-                new PhysicsForce(owner, force, torque)); 
-        
+        ed.setComponents(lastForce,
+                new PhysicsForce(owner, force, torque));
+
         return lastForce;
     }
-    
+
     public static EntityId createOver5(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
 
-        ed.setComponents(lastWormhole, 
+        ed.setComponents(lastWormhole,
                 ObjectTypes.over5(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.OVER5MASS),
-                new GravityWell(targetAreaRadius, targetLocation, radius, force),
+                new GravityWell(radius, force),
+                new Warp(targetAreaRadius, targetLocation),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER5SIZERADIUS))));
 
         return lastWormhole;
     }
-    
+
     //Rotating asteroid
     public static EntityId createOver1(Vec3d location, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
 
-        ed.setComponents(lastWormhole, 
+        ed.setComponents(lastWormhole,
                 ObjectTypes.over1(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.OVER1MASS),

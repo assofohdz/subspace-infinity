@@ -14,6 +14,7 @@ import com.simsilica.es.EntityComponent;
 public class Guns implements EntityComponent{
     
     int cooldown;
+    int cost;
     
     
 }

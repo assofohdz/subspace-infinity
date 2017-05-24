@@ -47,6 +47,7 @@ public class AttackTypes {
 
     public static final String BULLET = "bullet";
     public static final String BOMB = "bomb";
+    public static final String GRAVITYBOMB = "delayedBomb";
 
     
     public static AttackType bullet(EntityData ed) {
@@ -55,5 +56,9 @@ public class AttackTypes {
 
     public static AttackType bomb(EntityData ed) {
         return AttackType.create(BOMB, ed);
+    }
+
+    public static AttackType delayedBomb(EntityData ed) {
+        return AttackType.create(GRAVITYBOMB, ed);      
     }
 }

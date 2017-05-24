@@ -1,6 +1,7 @@
 package example.es.states;
 
 import com.simsilica.es.Entity;
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -15,11 +16,15 @@ import example.es.AttackType;
 import example.es.AttackTypes;
 import example.es.BodyPosition;
 import example.es.Buff;
+import example.es.GravityWell;
 import example.es.HealthChange;
 import example.es.HitPoints;
+import example.es.ObjectType;
+import example.es.PhysicsVelocity;
 import example.sim.Body;
 import example.sim.GameEntities;
 import example.sim.SimplePhysics;
+import java.util.HashSet;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
@@ -40,23 +45,22 @@ public class AttackState extends AbstractGameSystem {
     private Object gameSystems;
     private SimplePhysics physics;
     private SimTime time;
-    
-    
+    private HealthState health;
 
     @Override
     public void update(SimTime tpf) {
-        
+
         if (attacks.applyChanges()) {
             for (Entity e : attacks.getAddedEntities()) {
-                //TODO: Check entities able to attack (cooldown as well as energi)
+                //TODO: Check entities able to attack (cooldown as well as energi and get type of attack)
                 Attack a = e.get(Attack.class);
                 AttackType at = e.get(AttackType.class);
                 this.attack(a, at);
-                
+
                 ed.removeEntity(e.getId()); //Attack has been processed, now remove it
             }
         }
-        
+
         time = tpf;
     }
 
@@ -69,9 +73,10 @@ public class AttackState extends AbstractGameSystem {
         if (physics == null) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
+        
+        health = getSystem(HealthState.class);
 
         entities = ed.getEntities(BodyPosition.class, HitPoints.class); //This filters the entities that are allowed to perform attacks
-        
         attacks = ed.getEntities(Attack.class, AttackType.class);
     }
 
@@ -80,14 +85,14 @@ public class AttackState extends AbstractGameSystem {
         // Release the entity set we grabbed previously
         entities.release();
         entities = null;
-        
+
         attacks.release();
         attacks = null;
     }
-    
-    private void attack(Attack a, AttackType at){
+
+    private void attack(Attack a, AttackType at) {
         EntityId owner = a.getOwner();
-        
+
         this.attack(owner, at);
     }
 
@@ -104,22 +109,12 @@ public class AttackState extends AbstractGameSystem {
         Transform shipTransform = shipBody.getTransform();
 
         //Bomb velocity:
-        Vector2 attackVel = new Vector2(0, 1);
-        attackVel.rotate(shipTransform.getRotation());
-        attackVel.multiply(GameConstants.BASEPROJECTILESPEED);
-        if (type.getTypeName(ed).equals(AttackTypes.BOMB)) {
-            attackVel.multiply(GameConstants.BOMBPROJECTILESPEED);
-        } else if (type.getTypeName(ed).equals(AttackTypes.BULLET)) {
-            attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
-        }
-        attackVel.add(shipBody.getLinearVelocity()); //Add ships velocity to account for direction of ship and rotation
-
-        //Bomb position
-        Vector2 attackPos = new Vector2(0, 1);
-        attackPos.rotate(shipTransform.getRotation());
-        attackPos.multiply(PhysicsConstants.PROJECTILEOFFSET);
-        attackPos.add(shipTransform.getTranslationX(), shipTransform.getTranslationY());
-
+        Vector2 attackVel = this.getAttackVelocity(shipTransform.getRotation(), type, shipBody.getLinearVelocity());
+        
+        //Position
+        Vector2 attackPos = this.getAttackPosition(shipTransform.getRotation(), shipTransform.getTranslation());
+        
+        //Convert to Vec3d because that's what the rest of sim-eth-es uses
         Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
 
         switch (type.getTypeName(ed)) {
@@ -129,11 +124,39 @@ public class AttackState extends AbstractGameSystem {
             case AttackTypes.BULLET:
                 GameEntities.createBullet(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
                 break;
+            case AttackTypes.GRAVITYBOMB:
+                HashSet<EntityComponent> delayedComponents = new HashSet<>();
+                delayedComponents.add(new GravityWell(5, 10000));             //Suck everything in
+                delayedComponents.add(new PhysicsVelocity(new Vector2(0.0))); //Freeze the bomb
+                GameEntities.createdDelaydBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, GameConstants.BULLETDECAY - 500, delayedComponents, ed);
+                break;
         }
 
         //Create a buff/healthchange component because attacking takes health
         EntityId buffEntity = ed.createEntity();
         ed.setComponents(buffEntity, new Buff(e.getId(), localTime.getTime()), new HealthChange(0)); //TODO: change in health not set
+    }
+    
+    private Vector2 getAttackVelocity(double rotation, AttackType type, Vector2 linearVelocity){
+        Vector2 attackVel = new Vector2(0, 1);
+        attackVel.rotate(rotation);
+        attackVel.multiply(GameConstants.BASEPROJECTILESPEED);
+        if (type.getTypeName(ed).equals(AttackTypes.BOMB)) {
+            attackVel.multiply(GameConstants.BOMBPROJECTILESPEED);
+        } else if (type.getTypeName(ed).equals(AttackTypes.BULLET)) {
+            attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
+        }
+        attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+        
+        return attackVel;
+    }
+    
+    private Vector2 getAttackPosition(double rotation, Vector2 translation){
+        Vector2 attackPos = new Vector2(0, 1);
+        attackPos.rotate(rotation);
+        attackPos.multiply(PhysicsConstants.PROJECTILEOFFSET);
+        attackPos.add(translation.x, translation.y);
+        return attackPos;
     }
 
 }

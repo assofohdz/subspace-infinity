@@ -154,6 +154,8 @@ public class GameServer {
         systems.register(AttackState.class, new AttackState());
         //Add system to handle maps
         systems.register(MapState.class, new MapState());
+        //Add system to keep track of wormholes
+        systems.register(WormholeState.class, new WormholeState());
         
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

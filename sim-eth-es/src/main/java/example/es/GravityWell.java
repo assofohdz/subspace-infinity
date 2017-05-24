@@ -12,16 +12,12 @@ import com.simsilica.mathd.Vec3d;
  *
  * @author Asser
  */
-public class GravityWell implements EntityComponent{
-    
-    double targetAreaRadius; //The uncertainty of where you pop up
-    Vec3d targetLocation; //The target area for warping to
+public class GravityWell implements EntityComponent {
+
     double distance;
     double force;
 
-    public GravityWell(double targetAreaRadius, Vec3d targetLocation, double distance, double force) {
-        this.targetAreaRadius = targetAreaRadius;
-        this.targetLocation = targetLocation;
+    public GravityWell(double distance, double force) {
         this.distance = distance;
         this.force = force;
     }
@@ -33,12 +29,5 @@ public class GravityWell implements EntityComponent{
     public double getForce() {
         return force;
     }
-    
-    public double getTargetAreaRadius() {
-        return targetAreaRadius;
-    }
 
-    public Vec3d getTargetLocation() {
-        return targetLocation;
-    }
 }

@@ -12,7 +12,7 @@ package example;
 public class ViewConstants {
     
     //Sizes
-    public final static float BULLETSIZE = 0.5f;
+    public final static float BULLETSIZE = 0.25f;
     public final static float BOMBSIZE = 1f;
     public final static float BOUNTYSIZE = 1f;
     public final static float SHIPSIZE = 2f;

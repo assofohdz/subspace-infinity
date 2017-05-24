@@ -56,6 +56,8 @@ public class ObjectTypes {
     public static final String MAPTILE = "maptile";
     public static final String EXPLOSION2 = "explosion2";
     public static final String OVER1 = "over1";
+    public static final String OVER5 = "over5";
+    public static final String WORMHOLE = "wormhole";
 
     public static ObjectType ship(EntityData ed) {
         return ObjectType.create(SHIP, ed);
@@ -84,22 +86,19 @@ public class ObjectTypes {
     public static ObjectType bomb(EntityData ed) {
         return ObjectType.create(BOMB, ed);
     }
-    
+
     public static ObjectType arena(EntityData ed) {
         return ObjectType.create(ARENA, ed);
     }
-    
+
     public static ObjectType mapTile(EntityData ed) {
         return ObjectType.create(MAPTILE, ed);
     }
-    
+
     public static ObjectType explosion2(EntityData ed) {
         return ObjectType.create(EXPLOSION2, ed);
     }
-    
-    public static final String WORMHOLE = "WORMHOLE";
-    public static final String OVER5 = "over5";
-    
+
     public static ObjectType wormhole(EntityData ed) {
         return ObjectType.create(WORMHOLE, ed);
     }
@@ -107,6 +106,7 @@ public class ObjectTypes {
     public static ObjectType over5(EntityData ed) {
         return ObjectType.create(OVER5, ed);
     }
+
     public static ObjectType over1(EntityData ed) {
         return ObjectType.create(OVER1, ed);
     }

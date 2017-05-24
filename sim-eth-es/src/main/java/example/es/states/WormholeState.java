@@ -1,28 +1,20 @@
 package example.es.states;
 
-import com.jme3.math.Vector3f;
-import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.es.filter.FieldFilter;
-import com.simsilica.es.filter.OrFilter;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.es.BodyPosition;
-import example.es.MassProperties;
-import example.es.ObjectType;
-import example.es.ObjectTypes;
-import example.es.PhysicsForce;
-import example.es.Position;
 import example.es.GravityWell;
+import example.sim.Body;
+import example.sim.SimplePhysics;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-import org.dyn4j.dynamics.Force;
-import org.dyn4j.dynamics.Torque;
+import org.dyn4j.geometry.Circle;
+import org.dyn4j.geometry.Vector2;
 
 /**
  *
@@ -33,38 +25,29 @@ public class WormholeState extends AbstractGameSystem {
     private SimTime time;
 
     private EntityData ed;
-    private EntitySet wormholes;
-    private EntitySet bodies;
-    private java.util.Map<EntityId, HashSet<EntityId>> wormholeMap;
+    private EntitySet gravityWells;
+    //A set to map from the pulling gravity wells to a pushing gravity well
+    private java.util.Map<EntityId, Vector2> wormholeLinks;
+    private SimplePhysics simplePhysics;
+    private HashSet<EntityId> pushingWells, pullingWells;
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        ComponentFilter wormholeFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.wormhole(ed).getType());
-        ComponentFilter shipsFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.ship(ed).getType());
-        ComponentFilter bombsFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.bomb(ed).getType());
-        ComponentFilter bulletsFilter = FieldFilter.create(ObjectType.class, "type", ObjectTypes.bullet(ed).getType());
-        
-        ComponentFilter filter = OrFilter.create(
-                ObjectType.class, 
-                shipsFilter, 
-                bombsFilter, 
-                bulletsFilter,
-                wormholeFilter);
-        
-        bodies = ed.getEntities(filter, ObjectType.class); //Any object that has a body position can be moved in space
+        this.simplePhysics = getSystem(SimplePhysics.class);
 
-        wormholeMap = new ConcurrentHashMap<>();
+        gravityWells = ed.getEntities(GravityWell.class); //Any object that has a body position can be moved in space
+
+        wormholeLinks = new ConcurrentHashMap<>();
+        pushingWells = new HashSet<>();
+        pullingWells = new HashSet<>();
     }
 
     @Override
     protected void terminate() {
-        bodies.release();
-        wormholes.release();
-
-        bodies = null;
-        wormholes = null;
+        gravityWells.release();
+        gravityWells = null;
     }
 
     @Override
@@ -78,42 +61,69 @@ public class WormholeState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
-        wormholes.applyChanges();
-        bodies.applyChanges();
-        
         time = tpf;
 
-        for (Entity bodyEntity : bodies.getChangedEntities()) {
-            Vec3d bodyEntityLocation = new Vec3d(bodyEntity.get(BodyPosition.class).getFrame(time.getFrame()).getPosition(time.getTime()));
+        if (gravityWells.applyChanges()) {
+            applyGravities();
+        }
+    }
 
-            for (Entity wormholeEntity : wormholes) {
-                GravityWell wormhole = wormholeEntity.get(GravityWell.class);
-                Vec3d wormholeLocation = new Vec3d(wormholeEntity.get(BodyPosition.class).getFrame(time.getFrame()).getPosition(time.getTime()));
+    private void applyGravities() {
+        //Handle entities that has gravity added
+        for (Entity e : gravityWells) {
+            Body b = simplePhysics.getBody(e.getId());
+            if (b != null && !(pushingWells.contains(e.getId()) || pullingWells.contains(e.getId()))) {
+                GravityWell gravity = ed.getComponent(e.getId(), GravityWell.class);
+
+                b.addFixture(new Circle(gravity.getDistance()));
                 
-                double gravityDistance = wormhole.getDistance();
+                if (gravity.getForce() < 0) {
+                    pushingWells.add(e.getId());
 
-                if (isNearby(wormholeLocation, bodyEntityLocation, gravityDistance)) {
-                    Vec3d difference = wormholeLocation.subtract(bodyEntityLocation);
+                    if (pullingWells.size() > 0) {
+                        //Create link from random pulling well to this well
+                        wormholeLinks.put(getRandomObject(pullingWells), b.getTransform().getTranslation());
+                    }
 
-                    Vec3d gravity = difference.normalize().multLocal(time.getTpf());
+                } else {
+                    pullingWells.add(e.getId());
 
-                    double distance = difference.length();
-                    double wormholeGravity = wormhole.getForce();
-
-                    gravity.multLocal(wormholeGravity);
-                    gravity.multLocal(gravityDistance / distance);
-
-                    Force force = new Force(gravity.x, gravity.y);
-
-                    PhysicsForce pf = new PhysicsForce(bodyEntity.getId(), force, new Torque());
-
-                    bodyEntity.set(pf);
+                    //Check if we can find a wormhole to fit on the other end
+                    if (pushingWells.size() > 0) {
+                        //Create link from this well to a random pushing well
+                        wormholeLinks.put(e.getId(), simplePhysics.getBody(getRandomObject(pushingWells)).getTransform().getTranslation());
+                    }
                 }
+            }
+        }
+        //TODO: Handle changing and removing gravities on entities
+
+        for (Entity e : gravityWells.getRemovedEntities()) {
+            if (pullingWells.contains(e.getId()) && wormholeLinks.containsKey(e.getId())) {
+                wormholeLinks.remove(e.getId());
+                pullingWells.remove(e.getId());
             }
         }
     }
 
-    private boolean isNearby(Vec3d a, Vec3d b, double distance) {
-        return a.distanceSq(b) <= distance * distance;
+    private <T extends Object> T getRandomObject(Collection<T> from) {
+        Random rnd = new Random();
+        int i = rnd.nextInt(from.size());
+        return (T) from.toArray()[i];
+    }
+
+    public Vector2 getWarpTargetLocation(EntityId sourceWormholeEntityId) {
+        if (wormholeLinks.containsKey(sourceWormholeEntityId)) {
+            return wormholeLinks.get(sourceWormholeEntityId);
+        }
+        return null;
+    }
+    
+    public boolean isPushingWell(EntityId eId){
+        return pushingWells.contains(eId);
+    }
+    
+    public boolean isPullingWell(EntityId eId){
+        return pullingWells.contains(eId);
     }
 }

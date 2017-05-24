@@ -110,4 +110,12 @@ public class HealthState extends AbstractGameSystem {
         // Clear our health book-keeping map.
         health.clear();  
     }
+    
+    public boolean hasHealth(EntityId eId){
+        return health.containsKey(eId);
+    }
+    
+    public int getHealth(EntityId eId){
+        return health.get(eId);
+    }
 }

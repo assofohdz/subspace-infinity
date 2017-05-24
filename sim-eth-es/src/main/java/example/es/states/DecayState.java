@@ -65,4 +65,13 @@ public class DecayState extends AbstractGameSystem {
         entities.release();
         entities = null;
     }
+
+    @Override
+    public void start() {
+
+    }
+
+    @Override
+    public void stop() {
+    }
 }
