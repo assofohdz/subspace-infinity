@@ -11,9 +11,8 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.es.ArenaId;
 import example.es.Delay;
-import example.sim.GameEntities;
+import java.util.Iterator;
 
 /**
  *
@@ -22,20 +21,20 @@ import example.sim.GameEntities;
 public class DelayState extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet delayEntities;
+    private EntitySet entities;
 
     @Override
     public void update(SimTime tpf) {
-        if(delayEntities.applyChanges())
-        {
-            for(Entity e : delayEntities.getAddedEntities()){
-                Delay d = e.get(Delay.class);
-                
-                if (tpf.getTime() > d.getScheduledTime()) {
-                    ed.setComponents(e.getId(), (EntityComponent[]) d.getComponentSet().toArray());
-                    
-                    ed.removeComponent(e.getId(), Delay.class);
+        entities.applyChanges();
+        for (Entity e : entities) {
+            Delay d = e.get(Delay.class);
+            if (d.getPercent() >= 1.0) {
+                Iterator<EntityComponent> componentIterator = d.getDelayedComponents().iterator();
+                while(componentIterator.hasNext()){
+                    ed.setComponent(e.getId(), componentIterator.next());
                 }
+
+                ed.removeComponent(e.getId(), Delay.class);
             }
         }
     }
@@ -44,15 +43,15 @@ public class DelayState extends AbstractGameSystem {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        delayEntities = ed.getEntities(Delay.class); //This filters all entities that have delayed components
+        entities = ed.getEntities(Delay.class); //This filters all entities that have delayed components
     }
 
     @Override
     protected void terminate() {
-        delayEntities.release();;
-        delayEntities = null;
+        entities.release();
+        entities = null;
     }
-    
+
     @Override
     public void start() {
 

@@ -70,6 +70,7 @@ import example.es.*;
 import example.es.states.AttackState;
 import example.es.states.BountyState;
 import example.es.states.DecayState;
+import example.es.states.DelayState;
 import example.es.states.HealthState;
 import example.es.states.MapState;
 import example.es.states.WormholeState;
@@ -156,6 +157,8 @@ public class GameServer {
         systems.register(MapState.class, new MapState());
         //Add system to keep track of wormholes
         systems.register(WormholeState.class, new WormholeState());
+        //Add system to enable delayed component logic
+        systems.register(DelayState.class, new DelayState());
         
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

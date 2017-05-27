@@ -155,13 +155,17 @@ public class GameConstants {
     public final static double BASEPROJECTILESPEED = 1;
     public final static double BOMBPROJECTILESPEED = 25;
     public final static double BULLETPROJECTILESPEED = 50;
+    public final static double GRAVBOMBPROJECTILESPEED = 35;
     
     //Decays
     public final static long BULLETDECAY = 1500;
+    
     public final static long BOUNTYDECAY = 1000;
     public final static int SHIPHEALTH = 100;
     public final static int BOUNTYVALUE = 10;
     public final static int BOUNTYMAXCOUNT = 50;
+    
+    public final static long GRAVBOMBDELAY = 1000;
 }
 
 

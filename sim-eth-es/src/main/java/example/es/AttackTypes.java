@@ -47,7 +47,7 @@ public class AttackTypes {
 
     public static final String BULLET = "bullet";
     public static final String BOMB = "bomb";
-    public static final String GRAVITYBOMB = "delayedBomb";
+    public static final String GRAVITYBOMB = "gravityBomb";
 
     
     public static AttackType bullet(EntityData ed) {

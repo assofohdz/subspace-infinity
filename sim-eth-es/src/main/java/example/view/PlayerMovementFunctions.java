@@ -72,6 +72,7 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_MOUSELEFTCLICK = new FunctionId(G_MAP, "UpdateTile");
     public static final FunctionId F_MOUSERIGHTCLICK = new FunctionId(G_MAP, "RemoveTile");
     public static final FunctionId F_BOMB = new FunctionId(G_MOVEMENT, "Bomb");
+    public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, "GravBomb");
 
     public static void initializeDefaultMappings(InputMapper inputMapper) {
 
@@ -105,6 +106,10 @@ public class PlayerMovementFunctions {
         
         if (!inputMapper.hasMappings(F_MOUSERIGHTCLICK)) {
             inputMapper.map(F_MOUSERIGHTCLICK, Button.MOUSE_BUTTON2);
+        }
+        
+        if (!inputMapper.hasMappings(F_GRAVBOMB)) {
+            inputMapper.map(F_GRAVBOMB, KeyInput.KEY_LSHIFT);
         }
     }
 }

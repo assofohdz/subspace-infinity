@@ -429,7 +429,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     }
 
     private void applyVelocities() {
-        for (Entity e : velocityEntities.getAddedEntities()) {
+        for (Entity e : velocityEntities) {
             if (this.getBody(e.getId()) != null) {
                 Body b = getBody(e.getId());
 

@@ -37,7 +37,7 @@ public class DecayState extends AbstractGameSystem {
             if (d.getPercent() >= 1.0) {
                 ObjectType t = ed.getComponent(e.getId(), ObjectType.class);
 
-                if (t != null && t.getTypeName(ed).equals(ObjectTypes.BOMB)) {
+                if (t != null && t.getTypeName(ed).equals(ObjectTypes.BOMB)) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
                     Position pos = ed.getComponent(e.getId(), Position.class);
                     BodyPosition bodyPos = ed.getComponent(e.getId(), BodyPosition.class);
 

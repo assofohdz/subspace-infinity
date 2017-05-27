@@ -133,7 +133,8 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_BOMB,
                 PlayerMovementFunctions.F_SHOOT,
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
-                PlayerMovementFunctions.F_MOUSERIGHTCLICK);
+                PlayerMovementFunctions.F_MOUSERIGHTCLICK,
+                PlayerMovementFunctions.F_GRAVBOMB);
 
         // Grab the game session
         session = getState(ConnectionState.class).getService(GameSessionClientService.class);
@@ -160,7 +161,8 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_BOMB,
                 PlayerMovementFunctions.F_SHOOT,
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
-                PlayerMovementFunctions.F_MOUSERIGHTCLICK);
+                PlayerMovementFunctions.F_MOUSERIGHTCLICK,
+                PlayerMovementFunctions.F_GRAVBOMB);
     }
 
     @Override
@@ -270,6 +272,8 @@ public class PlayerMovementState extends BaseAppState
                 session.attack(AttackTypes.BULLET);
             } else if (func == PlayerMovementFunctions.F_BOMB) {
                 session.attack(AttackTypes.BOMB);
+            } else if (func == PlayerMovementFunctions.F_GRAVBOMB) {
+                session.attack(AttackTypes.GRAVITYBOMB);
             }
         }
     }

@@ -73,7 +73,7 @@ public class AttackState extends AbstractGameSystem {
         if (physics == null) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
-        
+
         health = getSystem(HealthState.class);
 
         entities = ed.getEntities(BodyPosition.class, HitPoints.class); //This filters the entities that are allowed to perform attacks
@@ -110,10 +110,10 @@ public class AttackState extends AbstractGameSystem {
 
         //Bomb velocity:
         Vector2 attackVel = this.getAttackVelocity(shipTransform.getRotation(), type, shipBody.getLinearVelocity());
-        
+
         //Position
         Vector2 attackPos = this.getAttackPosition(shipTransform.getRotation(), shipTransform.getTranslation());
-        
+
         //Convert to Vec3d because that's what the rest of sim-eth-es uses
         Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
 
@@ -128,7 +128,7 @@ public class AttackState extends AbstractGameSystem {
                 HashSet<EntityComponent> delayedComponents = new HashSet<>();
                 delayedComponents.add(new GravityWell(5, 10000));             //Suck everything in
                 delayedComponents.add(new PhysicsVelocity(new Vector2(0.0))); //Freeze the bomb
-                GameEntities.createdDelaydBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, GameConstants.BULLETDECAY - 500, delayedComponents, ed);
+                GameEntities.createdDelaydBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
                 break;
         }
 
@@ -136,8 +136,8 @@ public class AttackState extends AbstractGameSystem {
         EntityId buffEntity = ed.createEntity();
         ed.setComponents(buffEntity, new Buff(e.getId(), localTime.getTime()), new HealthChange(0)); //TODO: change in health not set
     }
-    
-    private Vector2 getAttackVelocity(double rotation, AttackType type, Vector2 linearVelocity){
+
+    private Vector2 getAttackVelocity(double rotation, AttackType type, Vector2 linearVelocity) {
         Vector2 attackVel = new Vector2(0, 1);
         attackVel.rotate(rotation);
         attackVel.multiply(GameConstants.BASEPROJECTILESPEED);
@@ -145,13 +145,15 @@ public class AttackState extends AbstractGameSystem {
             attackVel.multiply(GameConstants.BOMBPROJECTILESPEED);
         } else if (type.getTypeName(ed).equals(AttackTypes.BULLET)) {
             attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
+        } else if (type.getTypeName(ed).equals(AttackTypes.GRAVITYBOMB)) {
+            attackVel.multiply(GameConstants.GRAVBOMBPROJECTILESPEED);
         }
         attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
-        
+
         return attackVel;
     }
-    
-    private Vector2 getAttackPosition(double rotation, Vector2 translation){
+
+    private Vector2 getAttackPosition(double rotation, Vector2 translation) {
         Vector2 attackPos = new Vector2(0, 1);
         attackPos.rotate(rotation);
         attackPos.multiply(PhysicsConstants.PROJECTILEOFFSET);

@@ -1,33 +1,36 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package example.es;
 
 import com.simsilica.es.EntityComponent;
 import java.util.HashSet;
 
 /**
+ * Represents a time-to-live for an entity.
  *
- * @author Asser
+ * @author Asser Fahrenholz
  */
 public class Delay implements EntityComponent {
 
-    long scheduledTime;
-    HashSet<EntityComponent> componentSet;
-
-    public Delay(long scheduledTime, HashSet<EntityComponent> componentSet) {
-        this.componentSet = componentSet;
-        this.scheduledTime = scheduledTime;
+    private long start;
+    private long delta;
+    private HashSet<EntityComponent> delayedComponents;
+    
+    public Delay(long deltaMillis, HashSet<EntityComponent> delayedComponents) {
+        this.start = System.nanoTime();
+        this.delta = deltaMillis * 1000000;
+        this.delayedComponents = delayedComponents;
     }
 
-    public HashSet<EntityComponent> getComponentSet() {
-        return componentSet;
+    public double getPercent() {
+        long time = System.nanoTime();
+        return (double) (time - start) / delta;
     }
 
-    public long getScheduledTime() {
-        return scheduledTime;
+    public HashSet<EntityComponent> getDelayedComponents() {
+        return delayedComponents;
     }
 
+    @Override
+    public String toString() {
+        return "Delay[" + (delta / 1000000.0) + " ms]";
+    }
 }
