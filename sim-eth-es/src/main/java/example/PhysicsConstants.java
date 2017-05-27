@@ -29,7 +29,7 @@ public class PhysicsConstants {
     public final static double BULLETMASS = 5;
     public final static double MAPTILEMASS = 0; //Infinite mass
     public final static double WORMHOLEMASS = 0;
-    public final static double OVER1MASS = 0;
+    public final static double OVER1MASS = 10;
     public final static double OVER5MASS = 0;
     
     //View

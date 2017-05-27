@@ -88,7 +88,13 @@ public class BasicEnvironment extends AbstractGameSystem {
         GameEntities.createOver5(new Vec3d(10,-10,0), 5, new Vec3d(-10,10,0), 5, -5000, ed);
         
         GameEntities.createOver1(new Vec3d(10,10,0), ed);
-        
+        GameEntities.createOver1(new Vec3d(11,10,0), ed);
+        GameEntities.createOver1(new Vec3d(12,10,0), ed);
+        GameEntities.createOver1(new Vec3d(13,10,0), ed);
+        GameEntities.createOver1(new Vec3d(10,9,0), ed);
+        GameEntities.createOver1(new Vec3d(10,8,0), ed);
+        GameEntities.createOver1(new Vec3d(10,7,0), ed);
+       
         /*
         for (int x = -4; x < 4; x++) {
             for (int y = -4; y < 4; y++) {

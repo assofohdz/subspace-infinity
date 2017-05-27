@@ -7,7 +7,8 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.GravityWell;
-import example.sim.Body;
+import example.sim.SimpleBody;
+import example.sim.EntityCollisionListener;
 import example.sim.SimplePhysics;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,7 +21,7 @@ import org.dyn4j.geometry.Vector2;
  *
  * @author Asser
  */
-public class WormholeState extends AbstractGameSystem {
+public class WormholeState extends AbstractGameSystem implements EntityCollisionListener{
 
     private SimTime time;
 
@@ -38,7 +39,7 @@ public class WormholeState extends AbstractGameSystem {
         this.simplePhysics = getSystem(SimplePhysics.class);
 
         gravityWells = ed.getEntities(GravityWell.class); //Any object that has a body position can be moved in space
-
+        
         wormholeLinks = new ConcurrentHashMap<>();
         pushingWells = new HashSet<>();
         pullingWells = new HashSet<>();
@@ -71,7 +72,7 @@ public class WormholeState extends AbstractGameSystem {
     private void applyGravities() {
         //Handle entities that has gravity added
         for (Entity e : gravityWells) {
-            Body b = simplePhysics.getBody(e.getId());
+            SimpleBody b = simplePhysics.getBody(e.getId());
             if (b != null && !(pushingWells.contains(e.getId()) || pullingWells.contains(e.getId()))) {
                 GravityWell gravity = ed.getComponent(e.getId(), GravityWell.class);
 
@@ -125,5 +126,16 @@ public class WormholeState extends AbstractGameSystem {
     
     public boolean isPullingWell(EntityId eId){
         return pullingWells.contains(eId);
+    }
+
+    @Override
+    public void collision(EntityId eId1, EntityId eId2) {
+        if (isPushingWell(eId1)) {
+            
+        }
+    }
+    
+    public boolean hasGravity(EntityId eId){
+        return isPullingWell(eId) || isPullingWell(eId);
     }
 }

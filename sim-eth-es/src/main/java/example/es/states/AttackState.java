@@ -21,7 +21,7 @@ import example.es.HealthChange;
 import example.es.HitPoints;
 import example.es.ObjectType;
 import example.es.PhysicsVelocity;
-import example.sim.Body;
+import example.sim.SimpleBody;
 import example.sim.GameEntities;
 import example.sim.SimplePhysics;
 import java.util.HashSet;
@@ -104,7 +104,7 @@ public class AttackState extends AbstractGameSystem {
         //Derive how much health it will take to perform the given attack
         //Perform the attack
         // Attacking body:
-        Body shipBody = physics.getBody(e.getId());
+        SimpleBody shipBody = physics.getBody(e.getId());
 
         Transform shipTransform = shipBody.getTransform();
 
@@ -126,9 +126,9 @@ public class AttackState extends AbstractGameSystem {
                 break;
             case AttackTypes.GRAVITYBOMB:
                 HashSet<EntityComponent> delayedComponents = new HashSet<>();
-                delayedComponents.add(new GravityWell(5, 10000));             //Suck everything in
-                delayedComponents.add(new PhysicsVelocity(new Vector2(0.0))); //Freeze the bomb
-                GameEntities.createdDelaydBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
+                delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE));             //Suck everything in
+                delayedComponents.add(new PhysicsVelocity(new Vector2(0,0))); //Freeze the bomb
+                GameEntities.createDelayedBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
                 break;
         }
 

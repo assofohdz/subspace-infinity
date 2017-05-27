@@ -155,7 +155,7 @@ public class GameConstants {
     public final static double BASEPROJECTILESPEED = 1;
     public final static double BOMBPROJECTILESPEED = 25;
     public final static double BULLETPROJECTILESPEED = 50;
-    public final static double GRAVBOMBPROJECTILESPEED = 35;
+    public final static double GRAVBOMBPROJECTILESPEED = 15;
     
     //Decays
     public final static long BULLETDECAY = 1500;
@@ -166,6 +166,8 @@ public class GameConstants {
     public final static int BOUNTYMAXCOUNT = 50;
     
     public final static long GRAVBOMBDELAY = 1000;
+    public final static long GRAVBOMBDECAY = 4000;
+    public final static double GRAVBOMBWORMHOLEFORCE = 5000;
 }
 
 

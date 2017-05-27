@@ -214,7 +214,7 @@ public class ModelViewState extends BaseAppState {
         Spatial bomb = factory.createModel(entity);
         result.attachChild(bomb);
 
-        //attachCoordinateAxes(result);
+        attachCoordinateAxes(result);
         return result;
     }
 

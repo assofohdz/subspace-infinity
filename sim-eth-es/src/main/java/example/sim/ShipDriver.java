@@ -62,7 +62,7 @@ public class ShipDriver implements ControlDriver {
     public void applyMovementState(Vector3f thrust) {
         this.thrust = thrust;
     }
-    
+
     private double applyThrust(double v, double thrust, double tpf) {
         if (thrust > 0) {
             // Accelerate
@@ -83,7 +83,7 @@ public class ShipDriver implements ControlDriver {
     }
 
     @Override
-    public void update(double stepTime, Body body) {
+    public void update(double stepTime, SimpleBody body) {
 
         // Grab local versions of the player settings in case another
         // thread sets them while we are calculating.
@@ -99,11 +99,11 @@ public class ShipDriver implements ControlDriver {
 
         // Apply the accelerated velocity oriented into world space       
         body.velocity3d = body.orientation.mult(velocity, body.velocity3d);
-        
+
         //Update physics
         //TODO: Should depend on the ship type that is being controlled
         Vector2 linVel = new Vector2(0, vec.y * PhysicsConstants.SHIPTHRUST);
-        //Angular since we want the ship to stop rotating right away if player releases the rotate keys        
+        //Velocity since we want the ship to stop rotating right away if player releases the rotate keys        
         body.setAngularVelocity(vec.x);
         double rotation = body.getTransform().getRotation(); //Is the rotation from last frame
         linVel.rotate(rotation);

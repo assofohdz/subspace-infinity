@@ -54,7 +54,7 @@ import org.dyn4j.geometry.Transform;
  *
  * @author Paul Speed
  */
-public class Body extends org.dyn4j.dynamics.Body {
+public class SimpleBody extends org.dyn4j.dynamics.Body {
 
     public final EntityId bodyId;
 
@@ -68,11 +68,11 @@ public class Body extends org.dyn4j.dynamics.Body {
     public Quatd orientation = new Quatd();
     public volatile ControlDriver driver;
 
-    public Body(EntityId bodyId) {
+    public SimpleBody(EntityId bodyId) {
         this.bodyId = bodyId;
     }
 
-    public Body(EntityId bodyId, double x, double y, double z) {
+    public SimpleBody(EntityId bodyId, double x, double y, double z) {
         this.bodyId = bodyId;
         pos.set(x, y, z);
     }
@@ -99,19 +99,18 @@ public class Body extends org.dyn4j.dynamics.Body {
     public void syncronizePhysicsBody() {
         Transform position = this.getTransform();
 
+        // setting 3d velocity based on internal physics 2d velocity
+        velocity3d.set(velocity.x, velocity.y, 0.0d);
+        
         // setting 3d position based on Dyn4j physics 2d position
-        pos.set(
-                position.getTranslationX() * PhysicsConstants.PHYSICS_SCALE, 
+        pos.set(position.getTranslationX() * PhysicsConstants.PHYSICS_SCALE,
                 position.getTranslationY() * PhysicsConstants.PHYSICS_SCALE,
                 0);
         
         
-        
+
         orientation.fromAngles(0, 0, this.getTransform().getRotation());
 
-        // setting 3d velocity based on internal physics 2d velocity
-        velocity3d.set(velocity.x, velocity.y, 0.0d);
-        
         // Update the bounds since it's easy to do here and helps
         // other things know where the object is for real
         bounds.setCenter(pos);

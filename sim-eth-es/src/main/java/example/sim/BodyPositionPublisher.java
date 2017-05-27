@@ -82,7 +82,7 @@ public class BodyPositionPublisher extends AbstractGameSystem
     }
 
     @Override
-    public void addBody(Body body) {
+    public void addBody(SimpleBody body) {
 
         // The server side needs hardly any backlog.  We'll use 3 just in case
         // but 2 (even possibly 1) should be fine.  If we ever need to rewind
@@ -95,13 +95,13 @@ public class BodyPositionPublisher extends AbstractGameSystem
     }
 
     @Override
-    public void updateBody(Body body) {
+    public void updateBody(SimpleBody body) {
         BodyPosition pos = ed.getComponent(body.bodyId, BodyPosition.class);
         pos.addFrame(time.getTime(), body.pos.toVector3f(), body.orientation.toQuaternion(), true);
     }
 
     @Override
-    public void removeBody(Body body) {
+    public void removeBody(SimpleBody body) {
         // Give one last position update with the visibility shut off
         //BodyPosition pos = ed.getComponent(body.bodyId, BodyPosition.class);
         //pos.addFrame(time.getTime(), body.pos.toVector3f(), body.orientation.toQuaternion(), false);

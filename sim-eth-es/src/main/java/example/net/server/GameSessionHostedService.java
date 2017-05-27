@@ -73,7 +73,7 @@ import example.es.states.MapState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
-import example.sim.Body;
+import example.sim.SimpleBody;
 import example.sim.GameEntities;
 import example.sim.ShipDriver;
 import example.sim.SimplePhysics;
