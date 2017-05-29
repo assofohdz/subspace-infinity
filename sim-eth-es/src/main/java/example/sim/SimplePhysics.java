@@ -48,7 +48,7 @@ import com.simsilica.sim.*;
 import example.PhysicsConstants;
 
 import example.es.*;
-import example.es.states.WormholeState;
+import example.es.states.GravityState;
 import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
@@ -102,7 +102,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private SimTime time;
 
-    private WormholeState wormholeState;
+    private GravityState wormholeState;
 
     public SimplePhysics() {
     }
@@ -180,6 +180,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         return false;
     }
 
+    @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
         if (ed == null) {
@@ -195,10 +196,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         gravityEntities = ed.getEntities(GravityWell.class);
 
-        wormholeState = this.getSystem(WormholeState.class);
+        wormholeState = this.getSystem(GravityState.class);
 
     }
 
+    @Override
     protected void terminate() {
         // Release the entity set we grabbed previously
         forceEntities.release();
@@ -314,34 +316,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
-        if (wormholeState.hasGravity(one)) {
-            return checkAndApplyGravity(one, two, body1, body2, fixture1);
-        }
-
-        if (wormholeState.hasGravity(two)) {
-            return checkAndApplyGravity(two, one, body2, body1, fixture2);
-        }
         return true; //Default, keep processing this event
-    }
-
-    private boolean checkAndApplyGravity(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body, Fixture wormholeFixture) {
-        Vec3d wormholeLocation = new Vec3d(wormholeBody.getTransform().getTranslationX(), wormholeBody.getTransform().getTranslationY(), 0);
-        Vec3d bodyLocation = new Vec3d(body.getTransform().getTranslation().x, body.getTransform().getTranslation().y, 0); //TODO: Arena setting?
-
-        //TODO: Find a better check than this
-        if (wormholeFixture.getShape().getRadius() != PhysicsConstants.WORMHOLESIZERADIUS) {
-            GravityWell gravityWell = ed.getComponent(wormholeEntityId, GravityWell.class);
-            //start applying gravity to other entity
-            Force force = getWormholeGravityOnBody(time.getTpf(), gravityWell, wormholeLocation, bodyLocation);
-            GameEntities.createForce(bodyEntityId, force, new Torque(), ed);
-
-        } else if (wormholeState.isPullingWell(wormholeEntityId)) {
-            //Beam me up Scotty!
-            //TODO: Place blink animation at old and new location
-            Vector2 newTranslation = wormholeState.getWarpTargetLocation(wormholeEntityId);
-            body.getTransform().setTranslation(newTranslation);
-        }
-        return false;
     }
 
     //Contact constraint created
@@ -435,19 +410,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         }
     }
 
-    private Force getWormholeGravityOnBody(double tpf, GravityWell wormhole, Vec3d wormholeLocation, Vec3d bodyLocation) {
-        Vec3d difference = wormholeLocation.subtract(bodyLocation);
-        Vec3d gravity = difference.normalize().multLocal(tpf);
-        double distance = difference.length();
+    public void addCollisionListener(CollisionListener cl) {
+        world.addListener(cl);
+    }
 
-        double wormholeGravity = wormhole.getForce();
-        double gravityDistance = wormhole.getDistance();
-
-        gravity.multLocal(wormholeGravity);
-        gravity.multLocal(gravityDistance / distance);
-
-        Force force = new Force(gravity.x, gravity.y);
-
-        return force;
+    public void removeCollisionListener(CollisionListener cl) {
+        world.removeListener(cl);
     }
 }

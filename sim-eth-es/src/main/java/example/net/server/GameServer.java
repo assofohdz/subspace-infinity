@@ -73,7 +73,8 @@ import example.es.states.DecayState;
 import example.es.states.DelayState;
 import example.es.states.HealthState;
 import example.es.states.MapState;
-import example.es.states.WormholeState;
+import example.es.states.GravityState;
+import example.es.states.WarpState;
 import example.sim.*;
 
 /**
@@ -156,7 +157,9 @@ public class GameServer {
         //Add system to handle maps
         systems.register(MapState.class, new MapState());
         //Add system to keep track of wormholes
-        systems.register(WormholeState.class, new WormholeState());
+        systems.register(GravityState.class, new GravityState());
+        //Add system to keep track of warping
+        systems.register(WarpState.class, new WarpState());
         //Add system to enable delayed component logic
         systems.register(DelayState.class, new DelayState());
         

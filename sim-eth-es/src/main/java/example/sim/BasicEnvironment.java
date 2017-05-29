@@ -79,13 +79,13 @@ public class BasicEnvironment extends AbstractGameSystem {
             }
         }
 
-        //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);
+        //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);0
         
         //GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
 
-        GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, new Vec3d(10,10,0), 5, 5000, ed);
+        GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, new Vec3d(10,10,0), 5, 5000, GravityWell.PULL, new Vec3d(10,-10,0), ed);
         
-        GameEntities.createOver5(new Vec3d(10,-10,0), 5, new Vec3d(-10,10,0), 5, -5000, ed);
+        GameEntities.createOver5(new Vec3d(10,-10,0), 5, 5000, GravityWell.PUSH, ed);
         
         GameEntities.createOver1(new Vec3d(10,10,0), ed);
         GameEntities.createOver1(new Vec3d(11,10,0), ed);

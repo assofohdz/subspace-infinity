@@ -126,7 +126,7 @@ public class AttackState extends AbstractGameSystem {
                 break;
             case AttackTypes.GRAVITYBOMB:
                 HashSet<EntityComponent> delayedComponents = new HashSet<>();
-                delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE));             //Suck everything in
+                delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
                 delayedComponents.add(new PhysicsVelocity(new Vector2(0,0))); //Freeze the bomb
                 GameEntities.createDelayedBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
                 break;

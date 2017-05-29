@@ -176,16 +176,17 @@ public class GameEntities {
         return lastExplosion;
     }
 
-    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed) {
+    public static EntityId createWormhole(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
 
         ed.setComponents(lastWormhole,
                 ObjectTypes.wormhole(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.WORMHOLEMASS),
-                new GravityWell(radius, force),
-                new Warp(targetAreaRadius, targetLocation),
-                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WORMHOLESIZERADIUS))));
+                new GravityWell(radius, force, gravityType),
+                new WarpTouch(targetAreaRadius, targetLocation),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.WORMHOLESIZERADIUS))),
+                new WarpTouch(warpTargetLocation));
 
         return lastWormhole;
     }
@@ -207,15 +208,14 @@ public class GameEntities {
         return lastForce;
     }
 
-    public static EntityId createOver5(Vec3d location, double radius, Vec3d targetLocation, double targetAreaRadius, double force, EntityData ed) {
+    public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
 
         ed.setComponents(lastWormhole,
                 ObjectTypes.over5(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.OVER5MASS),
-                new GravityWell(radius, force),
-                new Warp(targetAreaRadius, targetLocation),
+                new GravityWell(radius, force, gravityType),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER5SIZERADIUS))));
 
         return lastWormhole;

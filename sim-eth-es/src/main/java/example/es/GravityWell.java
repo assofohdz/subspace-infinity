@@ -5,6 +5,7 @@
  */
 package example.es;
 
+import com.jme3.math.FastMath;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 
@@ -14,12 +15,18 @@ import com.simsilica.mathd.Vec3d;
  */
 public class GravityWell implements EntityComponent {
 
-    double distance;
-    double force;
+    public final static String PULL = "pull";
+    public final static String PUSH = "push";
+    
+    private double distance;
+    private double force;
+    private String gravityType;
+    
 
-    public GravityWell(double distance, double force) {
+    public GravityWell(double distance, double force, String gravityType) {
         this.distance = distance;
-        this.force = force;
+        this.force = Math.abs(force);
+        this.gravityType = gravityType;
     }
 
     public double getDistance() {
@@ -28,6 +35,10 @@ public class GravityWell implements EntityComponent {
 
     public double getForce() {
         return force;
+    }
+
+    public String getGravityType() {
+        return gravityType;
     }
 
 }
