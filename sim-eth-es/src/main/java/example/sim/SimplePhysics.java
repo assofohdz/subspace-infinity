@@ -151,6 +151,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
 
+                
+                
                 // Set it up to be managed by Dyn4j
                 result.addFixture(fixture.getShape());
 
@@ -341,6 +343,14 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         @Override
         protected SimpleBody addObject(Entity e) {
+            /**
+             * TODO: A Body flagged as a Bullet will be checked for tunneling
+             * depending on the CCD setting in the world's Settings. Use this if
+             * the body is a fast moving body, but be careful as this will incur
+             * a performance hit.
+             */
+
+            //TODO: Have gravity state and warpstate listen for body creations instead of relying on same info that SimplePhysics relies on in their containers
             MassProperties mass = e.get(MassProperties.class);
             PhysicsShape ps = e.get(PhysicsShape.class);
 
@@ -382,10 +392,10 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 SimpleBody b = getBody(target);
 
                 Force f = pf.getForce();
-                Torque t = pf.getTorque();
+
+                Vector2 worldCoords = pf.getForceWorldCoords();
                 //These are accumulated until they are processed, so we accept that there can be many forces/torques acting on the same body
-                b.applyForce(f);
-                b.applyTorque(t);
+                b.applyForce(f.getForce(), worldCoords);
 
                 ed.removeEntity(e.getId());
             }

@@ -15,16 +15,20 @@ import org.dyn4j.geometry.Vector2;
 public class PhysicsForce implements EntityComponent {
 
     private Force force;
-    private Torque torque;
     private EntityId target;
+    private Vector2 forceWorldCoords;
 
     public PhysicsForce() {
     }
 
-    public PhysicsForce(EntityId target, Force force, Torque torque) {
+    public PhysicsForce(EntityId target, Force force, Vector2 forceWorldCoords) {
         this.force = force;
-        this.torque = torque;
         this.target = target;
+        this.forceWorldCoords = forceWorldCoords;
+    }
+
+    public Vector2 getForceWorldCoords() {
+        return forceWorldCoords;
     }
 
     public EntityId getTarget() {
@@ -35,12 +39,8 @@ public class PhysicsForce implements EntityComponent {
         return force;
     }
 
-    public Torque getTorque() {
-        return torque;
-    }
-
     @Override
     public String toString() {
-        return "PhysicsForce{" + "force=" + force + ", torque=" + torque + ", target=" + target + '}';
+        return "PhysicsForce{" + "force=" + force + ", target=" + target + ", forceWorldCoords=" + forceWorldCoords + '}';
     }
 }

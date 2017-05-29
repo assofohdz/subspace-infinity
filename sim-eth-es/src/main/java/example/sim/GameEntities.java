@@ -50,6 +50,7 @@ import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Torque;
 import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.Convex;
+import org.dyn4j.geometry.Mass;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -200,17 +201,16 @@ public class GameEntities {
         return lastAttack;
     }
 
-    public static EntityId createForce(EntityId owner, Force force, Torque torque, EntityData ed) {
+    public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,
-                new PhysicsForce(owner, force, torque));
+                new PhysicsForce(owner, force, forceWorldCoords));
 
         return lastForce;
     }
 
     public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed) {
-        EntityId lastWormhole = ed.createEntity();
-
+        EntityId lastWormhole = ed.createEntity(); 
         ed.setComponents(lastWormhole,
                 ObjectTypes.over5(ed),
                 new Position(location, new Quatd(), 0f),

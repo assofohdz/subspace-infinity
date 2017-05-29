@@ -24,6 +24,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
+import org.dyn4j.collision.manifold.ManifoldPoint;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
@@ -114,14 +115,14 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
     public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
-
+        
         if (wells.getObject(one) == fixture1 || wells.getObject(two) == fixture2) {
             if (wells.getObject(one) == fixture1) {
-                createWormholeForce(one, two, body1, body2);
+                createWormholeForce(one, two, body1, body2, manifold.getPoints().get(0));
             }
 
             if (wells.getObject(two) == fixture2) {
-                createWormholeForce(two, one, body2, body1);
+                createWormholeForce(two, one, body2, body1, manifold.getPoints().get(0));
 
             }
             return false;
@@ -130,20 +131,22 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         return true; //Default, keep processing this event
     }
 
-    private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body) {
+    private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body, ManifoldPoint mp) {
         Vec3d wormholeLocation = new Vec3d(wormholeBody.getTransform().getTranslationX(), wormholeBody.getTransform().getTranslationY(), 0);
         Vec3d bodyLocation = new Vec3d(body.getTransform().getTranslation().x, body.getTransform().getTranslation().y, 0); //TODO: Arena setting?
-
+        
         GravityWell gravityWell = ed.getComponent(wormholeEntityId, GravityWell.class);
         //start applying gravity to other entity
         Force force = getWormholeGravityOnBody(time.getTpf(), gravityWell, wormholeLocation, bodyLocation);
-        GameEntities.createForce(bodyEntityId, force, new Torque(), ed);
+        GameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
     }
 
     //Contact constraint created
     @Override
     public boolean collision(ContactConstraint contactConstraint) {
         return true; //Default, keep processing this event
+        
+        
     }
 
     private Force getWormholeGravityOnBody(double tpf, GravityWell wormhole, Vec3d wormholeLocation, Vec3d bodyLocation) {

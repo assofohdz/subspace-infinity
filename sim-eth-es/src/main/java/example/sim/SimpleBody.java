@@ -97,19 +97,17 @@ public class SimpleBody extends org.dyn4j.dynamics.Body {
     }
 
     public void syncronizePhysicsBody() {
-        Transform position = this.getTransform();
-
         // setting 3d velocity based on internal physics 2d velocity
         velocity3d.set(velocity.x, velocity.y, 0.0d);
         
         // setting 3d position based on Dyn4j physics 2d position
-        pos.set(position.getTranslationX() * PhysicsConstants.PHYSICS_SCALE,
-                position.getTranslationY() * PhysicsConstants.PHYSICS_SCALE,
+        pos.set(transform.getTranslationX() * PhysicsConstants.PHYSICS_SCALE,
+                transform.getTranslationY() * PhysicsConstants.PHYSICS_SCALE,
                 0);
         
         
 
-        orientation.fromAngles(0, 0, this.getTransform().getRotation());
+        orientation.fromAngles(0, 0, transform.getRotation());
 
         // Update the bounds since it's easy to do here and helps
         // other things know where the object is for real
