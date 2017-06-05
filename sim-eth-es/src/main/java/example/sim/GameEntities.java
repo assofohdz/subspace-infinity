@@ -111,7 +111,7 @@ public class GameEntities {
 
     public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
-        
+
         ed.setComponents(lastBomb, ObjectTypes.bomb(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
@@ -126,7 +126,7 @@ public class GameEntities {
 
         EntityId lastDelayedBomb = GameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
 
-        ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents));
+        ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
 
         return lastDelayedBomb;
     }
@@ -152,6 +152,19 @@ public class GameEntities {
 
         return lastArena;
     }
+    
+    public static EntityId createTileInfo(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed){
+        EntityId lastTileInfo = ed.createEntity();
+        
+        ed.setComponents(lastTileInfo, ObjectTypes.mapTile(ed),
+                new Position(location, new Quatd(), 0f),
+                new TileInfo(tileSet, tileIndex), //Tile set and tile index
+                new MassProperties(invMass),
+                new PhysicsShape(new BodyFixture(c)));
+        
+        return lastTileInfo;
+    }
+    
 
     public static EntityId createMapTile(MapTileType mapTileType, Vec3d location, EntityData ed, Convex c) {
         EntityId lastMapTile = ed.createEntity();
@@ -196,7 +209,7 @@ public class GameEntities {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
-                AttackType.create(attackType, ed));
+                ProjectileType.create(attackType, ed));
 
         return lastAttack;
     }
@@ -210,27 +223,54 @@ public class GameEntities {
     }
 
     public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed) {
-        EntityId lastWormhole = ed.createEntity(); 
-        ed.setComponents(lastWormhole,
+        EntityId lastOver5 = ed.createEntity();
+        ed.setComponents(lastOver5,
                 ObjectTypes.over5(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.OVER5MASS),
                 new GravityWell(radius, force, gravityType),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER5SIZERADIUS))));
 
-        return lastWormhole;
+        return lastOver5;
     }
 
-    //Rotating asteroid
+    /**
+     * Small asteroid with animation
+     * @param location the Vec3d position of the asteroid
+     * @param ed the entitydata set to create the entity in
+     * @return the entityid of the created entity
+     */
     public static EntityId createOver1(Vec3d location, EntityData ed) {
-        EntityId lastWormhole = ed.createEntity();
+        EntityId lastOver1 = ed.createEntity();
 
-        ed.setComponents(lastWormhole,
+        ed.setComponents(lastOver1,
                 ObjectTypes.over1(ed),
                 new Position(location, new Quatd(), 0f),
                 new MassProperties(PhysicsConstants.OVER1MASS),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER1SIZERADIUS))));
 
-        return lastWormhole;
+        return lastOver1;
+    }
+
+    public static EntityId createWarpEffect(Vec3d location, EntityData ed) {
+        EntityId lastWarpTo = ed.createEntity();
+
+        ed.setComponents(lastWarpTo,
+                ObjectTypes.warp(ed),
+                new Position(location, new Quatd(), 0f),
+                new Decay(ViewConstants.WARPDECAY));
+
+        return lastWarpTo;
+    }
+
+    public static EntityId createRepelEffect(Vec3d location, EntityData ed) {
+        EntityId lastWarpTo = ed.createEntity();
+
+        ed.setComponents(lastWarpTo,
+                ObjectTypes.warp(ed),
+                new Position(location, new Quatd(), 0f),
+                new Decay(ViewConstants.REPELDECAY));
+
+        return lastWarpTo;
     }
 }

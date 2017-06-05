@@ -173,6 +173,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         return force;
     }
 
+    //Gravity wells that either exert a pull or a push on other bodies
     private class GravityWells extends EntityContainer<BodyFixture> {
 
         public GravityWells(EntityData ed) {

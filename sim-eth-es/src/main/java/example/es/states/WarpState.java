@@ -14,6 +14,7 @@ import example.es.PhysicsShape;
 import example.es.Position;
 import example.es.WarpTo;
 import example.es.WarpTouch;
+import example.sim.GameEntities;
 import example.sim.SimplePhysics;
 import java.util.HashSet;
 import org.dyn4j.collision.manifold.Manifold;
@@ -82,9 +83,18 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
             for (Entity e : warpToEntities) {
                 Body b = simplePhysics.getBody(e.getId());
                 if (b != null) {
+                    
                     Vec3d targetLocation = ed.getComponent(e.getId(), WarpTo.class).getTargetLocation();
 
-                    simplePhysics.getBody(e.getId()).getTransform().setTranslation(targetLocation.x, targetLocation.y);
+                    Vector2 originalLocation = b.getTransform().getTranslation();
+                    Vec3d origLocationVec3d = new Vec3d(originalLocation.x, originalLocation.y, 1);
+                    
+                    b.getTransform().setTranslation(targetLocation.x, targetLocation.y);
+                    
+                    GameEntities.createWarpEffect(origLocationVec3d, ed);
+                    GameEntities.createWarpEffect(targetLocation, ed);
+                    
+                    ed.removeComponent(e.getId(), WarpTo.class);
                 }
             }
         }
@@ -109,12 +119,14 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
         if ((warpers.getObject(one) != null && warpers.getObject(one).getWarpFixture() == fixture1) || (warpers.getObject(two) != null && warpers.getObject(two).getWarpFixture() == fixture2)) {
             if (warpers.getObject(one) != null && warpers.getObject(one).getWarpFixture() == fixture1) {
                 Vector2 targetLocation = warpers.getObject(one).getTargetLocation();
-                body2.getTransform().setTranslation(targetLocation);
+                WarpTo warpTo = new WarpTo(new Vec3d(targetLocation.x, targetLocation.y, 1));
+                ed.setComponent(two, warpTo);
             }
 
             if (warpers.getObject(two) != null && warpers.getObject(two).getWarpFixture() == fixture2) {
                 Vector2 targetLocation = warpers.getObject(two).getTargetLocation();
-                body1.getTransform().setTranslation(targetLocation);
+                WarpTo warpTo = new WarpTo(new Vec3d(targetLocation.x, targetLocation.y, 1));
+                ed.setComponent(one, warpTo);
             }
             return false;
         }
@@ -156,6 +168,7 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
 
     }
 
+    //Entities that upon touched will warp the other body away
     private class Warpers extends EntityContainer<WarpFixture> {
 
         public Warpers(EntityData ed) {
@@ -174,7 +187,6 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
             Body b = simplePhysics.getBody(e.getId());
             BodyFixture bf = b.getFixture(0);
 
-            //return new Vector2(wt.getTargetLocation().x, wt.getTargetLocation().y);
             Vector2 targetLocation = new Vector2(wt.getTargetLocation().x, wt.getTargetLocation().y);
 
             return new WarpFixture(targetLocation, bf);

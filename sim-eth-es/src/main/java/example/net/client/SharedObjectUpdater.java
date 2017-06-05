@@ -157,7 +157,7 @@ public class SharedObjectUpdater extends AbstractClientService
     @Override
     public void objectRemoved( SharedObject obj ) {
         if( log.isDebugEnabled() ) {
-            log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId());
+            //log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId());
         }
         EntityId id = new EntityId(obj.getEntityId());
         Entity entity = entities.getEntity(id);
@@ -175,7 +175,7 @@ public class SharedObjectUpdater extends AbstractClientService
             }
         } else {
             if( log.isDebugEnabled() ) {            
-                log.debug("Setting entity to invisible for:" + obj.getEntityId());
+                //log.debug("Setting entity to invisible for:" + obj.getEntityId());
             }
             pos.addFrame(frameTime,  
                          obj.getWorldPosition().toVector3f(), 

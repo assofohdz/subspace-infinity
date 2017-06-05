@@ -73,6 +73,8 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_MOUSERIGHTCLICK = new FunctionId(G_MAP, "RemoveTile");
     public static final FunctionId F_BOMB = new FunctionId(G_MOVEMENT, "Bomb");
     public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, "GravBomb");
+    public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, "Repel");
+    public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, "Mine");
 
     public static void initializeDefaultMappings(InputMapper inputMapper) {
 
@@ -88,6 +90,14 @@ public class PlayerMovementFunctions {
             inputMapper.map(F_THRUST, InputState.Negative, KeyInput.KEY_S);
         }
 
+        if (!inputMapper.hasMappings(F_REPEL)) {
+            inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT, KeyInput.KEY_LCONTROL);
+        }
+
+        if (!inputMapper.hasMappings(F_MINE)) {
+            inputMapper.map(F_MINE, KeyInput.KEY_TAB, KeyInput.KEY_LSHIFT);
+        }
+        
         if (!inputMapper.hasMappings(F_SHOOT)) {
             inputMapper.map(F_SHOOT, KeyInput.KEY_LCONTROL);
         }
@@ -99,17 +109,18 @@ public class PlayerMovementFunctions {
         if (!inputMapper.hasMappings(F_STOP)) {
             inputMapper.map(F_STOP, KeyInput.KEY_SPACE);
         }
-        
+
         if (!inputMapper.hasMappings(F_MOUSELEFTCLICK)) {
             inputMapper.map(F_MOUSELEFTCLICK, Button.MOUSE_BUTTON1);
         }
-        
+
         if (!inputMapper.hasMappings(F_MOUSERIGHTCLICK)) {
             inputMapper.map(F_MOUSERIGHTCLICK, Button.MOUSE_BUTTON2);
         }
-        
+
         if (!inputMapper.hasMappings(F_GRAVBOMB)) {
             inputMapper.map(F_GRAVBOMB, KeyInput.KEY_LSHIFT);
         }
+
     }
 }

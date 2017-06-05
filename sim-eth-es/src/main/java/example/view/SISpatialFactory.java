@@ -4,20 +4,18 @@ import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
-import com.jme3.texture.Texture;
+import com.jme3.texture.Image;
+import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-import com.sun.glass.ui.Application;
 import example.ConnectionState;
-import example.GameConstants;
 import example.ViewConstants;
 import example.es.ObjectType;
 import example.es.ObjectTypes;
@@ -34,19 +32,20 @@ public class SISpatialFactory implements ModelFactory {
     private EffectFactory ef;
 
     private ModelViewState state;
+    private ClientMapState clientMapState;
 
     public SISpatialFactory() {
     }
 
     @Override
     public void setState(ModelViewState state) {
+        this.state = state;
         this.assets = state.getApplication().getAssetManager();
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
 
         this.assets.registerLoader(AWTLoader.class, "bm2");
 
-        this.state = state;
-
+        this.clientMapState = state.getApplication().getStateManager().getState(ClientMapState.class);
     }
 
     @Override
@@ -82,6 +81,10 @@ public class SISpatialFactory implements ModelFactory {
             return createWormhole(e);
         } else if (ObjectTypes.OVER1.equals(type.getTypeName(ed))) {
             return createOver1(e);
+        } else if (ObjectTypes.WARP.equals(type.getTypeName(ed))) {
+            return createWarp(e);
+        } else if (ObjectTypes.REPEL.equals(type.getTypeName(ed))) {
+            return createRepel(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
@@ -249,12 +252,19 @@ public class SISpatialFactory implements ModelFactory {
 
         //-->
         quad.updateBound();
-        Geometry geom = new Geometry("Arena", quad);
+        Geometry geom = new Geometry("MapTile", quad);
 
         Material mat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", ColorRGBA.Yellow);
+        
+        Image image = clientMapState.getImage(e.getId());
+        Texture2D tex2D = new Texture2D(image);
+        
+        mat.setTexture("ColorMap", tex2D);
+        
         geom.setMaterial(mat);
 
+        
         return geom;
     }
 
@@ -272,6 +282,7 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("Bomb", quad);
         Material mat = assets.loadMaterial("Materials/Explode2Material.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -330,6 +341,44 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Over1", quad);
         Material mat = assets.loadMaterial("Materials/Over1Material.j3m");
+        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+
+    private Spatial createWarp(Entity e) {
+        Quad quad = new Quad(ViewConstants.WARPSIZE, ViewConstants.WARPSIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.WARPSIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Warp", quad);
+        Material mat = assets.loadMaterial("Materials/WarpMaterial.j3m");
+        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+
+    private Spatial createRepel(Entity e) {
+        Quad quad = new Quad(ViewConstants.REPELSIZE, ViewConstants.REPELSIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.REPELSIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Repel", quad);
+        Material mat = assets.loadMaterial("Materials/RepelMaterial.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);

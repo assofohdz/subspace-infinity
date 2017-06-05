@@ -315,6 +315,12 @@ public class ModelViewState extends BaseAppState {
             case ObjectTypes.OVER1:
                 result = createOver1(entity);
                 break;
+            case ObjectTypes.WARP:
+                result = createWarp(entity);
+                break;
+            case ObjectTypes.REPEL:
+                result = createRepel(entity);
+                break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
         }
@@ -394,6 +400,32 @@ public class ModelViewState extends BaseAppState {
         //Node information:
         Node result = new Node("over1:" + entity.getId());
         result.setUserData("over1Id", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial gravityWell = factory.createModel(entity);
+        result.attachChild(gravityWell);
+
+        return result;
+    }
+
+    private Spatial createWarp(Entity entity) {
+        //Node information:
+        Node result = new Node("warp:" + entity.getId());
+        result.setUserData("warpId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial gravityWell = factory.createModel(entity);
+        result.attachChild(gravityWell);
+
+        return result;
+    }
+
+    private Spatial createRepel(Entity entity) {
+        //Node information:
+        Node result = new Node("repel:" + entity.getId());
+        result.setUserData("repelId", entity.getId().getId());
         //result.setUserData(LayerComparator.LAYER, 1);
 
         //Spatial information:
@@ -494,7 +526,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected Mob addObject(Entity e) {
-            System.out.println("MobContainer.addObject(" + e + ")");
+            //System.out.println("MobContainer.addObject(" + e + ")");
             return new Mob(e);
         }
 
@@ -522,7 +554,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected Spatial addObject(Entity e) {
-            System.out.println("ModelContainer.addObject(" + e + ")");
+            //System.out.println("ModelContainer.addObject(" + e + ")");
             Spatial result = createModel(e);
             updateObject(result, e);
             return result;
@@ -530,7 +562,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Spatial object, Entity e) {
-            System.out.println("MobContainer.updateObject(" + e + ")");
+            //System.out.println("MobContainer.updateObject(" + e + ")");
             updateModel(object, e, true);
         }
 

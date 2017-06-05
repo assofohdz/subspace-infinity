@@ -12,8 +12,8 @@ import example.GameConstants;
 import example.PhysicsConstants;
 import example.ViewConstants;
 import example.es.Attack;
-import example.es.AttackType;
-import example.es.AttackTypes;
+import example.es.ProjectileType;
+import example.es.ProjectileTypes;
 import example.es.BodyPosition;
 import example.es.Buff;
 import example.es.GravityWell;
@@ -54,7 +54,7 @@ public class AttackState extends AbstractGameSystem {
             for (Entity e : attacks.getAddedEntities()) {
                 //TODO: Check entities able to attack (cooldown as well as energi and get type of attack)
                 Attack a = e.get(Attack.class);
-                AttackType at = e.get(AttackType.class);
+                ProjectileType at = e.get(ProjectileType.class);
                 this.attack(a, at);
 
                 ed.removeEntity(e.getId()); //Attack has been processed, now remove it
@@ -77,7 +77,7 @@ public class AttackState extends AbstractGameSystem {
         health = getSystem(HealthState.class);
 
         entities = ed.getEntities(BodyPosition.class, HitPoints.class); //This filters the entities that are allowed to perform attacks
-        attacks = ed.getEntities(Attack.class, AttackType.class);
+        attacks = ed.getEntities(Attack.class, ProjectileType.class);
     }
 
     @Override
@@ -90,13 +90,13 @@ public class AttackState extends AbstractGameSystem {
         attacks = null;
     }
 
-    private void attack(Attack a, AttackType at) {
+    private void attack(Attack a, ProjectileType at) {
         EntityId owner = a.getOwner();
 
         this.attack(owner, at);
     }
 
-    private void attack(EntityId eId, AttackType type) {
+    private void attack(EntityId eId, ProjectileType type) {
         Entity e = ed.getEntity(eId, HitPoints.class);
         SimTime localTime = time; //Copy incase someone else is writing to it
         HitPoints hp = e.get(HitPoints.class); //The current health of the attacker
@@ -118,16 +118,16 @@ public class AttackState extends AbstractGameSystem {
         Vec3d attackPosVec3d = new Vec3d(attackPos.x, attackPos.y, 0); //TODO: missing arena as z
 
         switch (type.getTypeName(ed)) {
-            case AttackTypes.BOMB:
+            case ProjectileTypes.BOMB:
                 GameEntities.createBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
                 break;
-            case AttackTypes.BULLET:
+            case ProjectileTypes.BULLET:
                 GameEntities.createBullet(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.BULLETDECAY, ed);
                 break;
-            case AttackTypes.GRAVITYBOMB:
+            case ProjectileTypes.GRAVITYBOMB:
                 HashSet<EntityComponent> delayedComponents = new HashSet<>();
                 delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
-                delayedComponents.add(new PhysicsVelocity(new Vector2(0,0))); //Freeze the bomb
+                delayedComponents.add(new PhysicsVelocity(new Vector2(0, 0))); //Freeze the bomb
                 GameEntities.createDelayedBomb(attackPosVec3d, shipBody.orientation, shipTransform.getRotation(), attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
                 break;
         }
@@ -137,18 +137,28 @@ public class AttackState extends AbstractGameSystem {
         ed.setComponents(buffEntity, new Buff(e.getId(), localTime.getTime()), new HealthChange(0)); //TODO: change in health not set
     }
 
-    private Vector2 getAttackVelocity(double rotation, AttackType type, Vector2 linearVelocity) {
+    private Vector2 getAttackVelocity(double rotation, ProjectileType type, Vector2 linearVelocity) {
         Vector2 attackVel = new Vector2(0, 1);
+
         attackVel.rotate(rotation);
+
         attackVel.multiply(GameConstants.BASEPROJECTILESPEED);
-        if (type.getTypeName(ed).equals(AttackTypes.BOMB)) {
+
+        if (type.getTypeName(ed).equals(ProjectileTypes.BOMB)) {
             attackVel.multiply(GameConstants.BOMBPROJECTILESPEED);
-        } else if (type.getTypeName(ed).equals(AttackTypes.BULLET)) {
+            attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+
+        } else if (type.getTypeName(ed).equals(ProjectileTypes.BULLET)) {
             attackVel.multiply(GameConstants.BULLETPROJECTILESPEED);
-        } else if (type.getTypeName(ed).equals(AttackTypes.GRAVITYBOMB)) {
+            attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+
+        } else if (type.getTypeName(ed).equals(ProjectileTypes.GRAVITYBOMB)) {
             attackVel.multiply(GameConstants.GRAVBOMBPROJECTILESPEED);
+            attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+
+        } else if (type.getTypeName(ed).equals(ProjectileTypes.MINE)) {
+            attackVel.multiply(0); //A mine stands still
         }
-        attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
 
         return attackVel;
     }

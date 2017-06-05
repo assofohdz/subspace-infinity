@@ -23,8 +23,13 @@ public class ViewConstants {
     public final static float WORMHOLESIZE = 4f;
     public final static float OVER1SIZE = 1f;
     public final static float OVER5SIZE = 4f;
+    public final static float WARPSIZE = 3f;
+    public final static float REPELSIZE = 4f;
     
     //Game
     public final static int ARENASIZE = 25;
     public final static long EXPLOSION2DECAY = 2000;
+    public final static long WARPDECAY = 800;
+    public final static long REPELDECAY = 800;
+
 }

@@ -30,8 +30,18 @@ public class DelayState extends AbstractGameSystem {
             Delay d = e.get(Delay.class);
             if (d.getPercent() >= 1.0) {
                 Iterator<EntityComponent> componentIterator = d.getDelayedComponents().iterator();
-                while(componentIterator.hasNext()){
-                    ed.setComponent(e.getId(), componentIterator.next());
+                switch (d.getType()) {
+                    case Delay.REMOVE:
+                        while (componentIterator.hasNext()) {
+                            ed.removeComponent(e.getId(), componentIterator.next().getClass());
+                        }
+                        break;
+                    case Delay.SET:
+
+                        while (componentIterator.hasNext()) {
+                            ed.setComponent(e.getId(), componentIterator.next());
+                        }
+                        break;
                 }
 
                 ed.removeComponent(e.getId(), Delay.class);

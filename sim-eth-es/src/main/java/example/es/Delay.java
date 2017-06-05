@@ -10,14 +10,20 @@ import java.util.HashSet;
  */
 public class Delay implements EntityComponent {
 
+    public final static String SET = "set";
+    public final static String REMOVE = "remove";
+    
+    
     private long start;
     private long delta;
     private HashSet<EntityComponent> delayedComponents;
+    private String type;
     
-    public Delay(long deltaMillis, HashSet<EntityComponent> delayedComponents) {
+    public Delay(long deltaMillis, HashSet<EntityComponent> delayedComponents, String type) {
         this.start = System.nanoTime();
         this.delta = deltaMillis * 1000000;
         this.delayedComponents = delayedComponents;
+        this.type = type;
     }
 
     public double getPercent() {
@@ -27,6 +33,10 @@ public class Delay implements EntityComponent {
 
     public HashSet<EntityComponent> getDelayedComponents() {
         return delayedComponents;
+    }
+
+    public String getType() {
+        return type;
     }
 
     @Override

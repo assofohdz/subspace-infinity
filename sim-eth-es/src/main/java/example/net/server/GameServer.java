@@ -72,8 +72,9 @@ import example.es.states.BountyState;
 import example.es.states.DecayState;
 import example.es.states.DelayState;
 import example.es.states.HealthState;
-import example.es.states.MapState;
+import example.es.states.ArenaState;
 import example.es.states.GravityState;
+import example.es.states.ServerMapState;
 import example.es.states.WarpState;
 import example.sim.*;
 
@@ -154,8 +155,10 @@ public class GameServer {
         systems.register(BountyState.class, new BountyState());
         //Add system to attack and add health changes
         systems.register(AttackState.class, new AttackState());
-        //Add system to handle maps
-        systems.register(MapState.class, new MapState());
+        //Add system to arenas
+        systems.register(ArenaState.class, new ArenaState());
+        //Add system to handle maps and tilesets
+        systems.register(ServerMapState.class, new ServerMapState());
         //Add system to keep track of wormholes
         systems.register(GravityState.class, new GravityState());
         //Add system to keep track of warping
@@ -200,6 +203,8 @@ public class GameServer {
         Serializer.registerClass(ObjectType.class, new FieldSerializer());
         Serializer.registerClass(Position.class, new FieldSerializer());
         Serializer.registerClass(SphereShape.class, new FieldSerializer());
+        
+        Serializer.registerClass(TileInfo.class, new FieldSerializer());
     }
 
     public Server getServer() {

@@ -62,14 +62,15 @@ import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.mathd.trans.PositionTransition;
 import example.GameConstants;
 import example.es.Attack;
-import example.es.AttackType;
-import example.es.AttackTypes;
+import example.es.ProjectileType;
+import example.es.ProjectileTypes;
 import example.es.BodyPosition;
 
 import example.es.Position;
 import example.es.ShipTypes;
 import example.es.states.AttackState;
-import example.es.states.MapState;
+import example.es.states.ArenaState;
+import example.es.states.ServerMapState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
@@ -324,7 +325,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("Map edit");
             }
             
-            gameSystems.get(MapState.class).editMap(x, y);
+            gameSystems.get(ServerMapState.class).editMap(x, y);
         }
     }
 }

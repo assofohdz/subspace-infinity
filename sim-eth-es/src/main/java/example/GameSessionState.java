@@ -39,6 +39,7 @@ package example;
 import org.slf4j.*;
 
 import com.jme3.app.Application;
+import com.jme3.app.state.VideoRecorderAppState;
 import com.jme3.math.*;
 
 import com.simsilica.event.EventBus;
@@ -57,6 +58,7 @@ import example.net.client.GameSessionClientService;
 import example.net.chat.ChatSessionListener;
 import example.net.chat.client.ChatClientService;
 import example.view.CameraState;
+import example.view.ClientMapState;
 import example.view.HudLabelState;
 import example.view.MapEditorState;
 import example.view.ModelViewState;
@@ -92,6 +94,7 @@ public class GameSessionState extends CompositeAppState {
         super(new MessageState(),
               new TimeState(), // Has to be before any visuals that might need it.
               new SkyState(),
+              new ClientMapState(),
               new ModelViewState(new SISpatialFactory()),
               new PlayerMovementState(),
               new CameraState(),
