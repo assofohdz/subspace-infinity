@@ -15,7 +15,6 @@ import example.es.MapTileType;
 import example.es.MapTileTypes;
 import example.es.Position;
 import example.es.TileInfo;
-import example.map.BitMapLoader;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.GameEntities;
@@ -52,7 +51,6 @@ public class ArenaState extends AbstractGameSystem {
 
         AssetManager am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
-        am.registerLoader(BitMapLoader.class, "bmp");
         am.registerLoader(LevelLoader.class, "lvl");
 
     }

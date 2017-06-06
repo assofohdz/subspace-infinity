@@ -255,7 +255,7 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("MapTile", quad);
 
         Material mat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Yellow);
+        //mat.setColor("Color", ColorRGBA.Yellow);
         
         Image image = clientMapState.getImage(e.getId());
         Texture2D tex2D = new Texture2D(image);

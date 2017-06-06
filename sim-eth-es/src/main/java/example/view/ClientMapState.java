@@ -12,7 +12,6 @@ import com.simsilica.es.EntityId;
 import example.ConnectionState;
 import example.es.Position;
 import example.es.TileInfo;
-import example.map.BitMapLoader;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import java.awt.Graphics2D;
@@ -48,7 +47,6 @@ public class ClientMapState extends BaseAppState {
 
         this.am = app.getAssetManager();
 
-        //am.registerLoader(BitMapLoader.class, "bmp");
         am.registerLoader(LevelLoader.class, "lvl");
 
         imgLoader = new AWTLoader();
@@ -107,13 +105,18 @@ public class ClientMapState extends BaseAppState {
             if (img instanceof BufferedImage) {
                 return (BufferedImage) img;
             }
-
+            
+            int width = img.getWidth(null);
+            int height = img.getHeight(null);
+            
             // Create a buffered image with transparency
-            BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+            BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
             // Draw the image on to the buffered image
             Graphics2D bGr = bimage.createGraphics();
-            bGr.drawImage(img, 0, 0, null);
+            bGr.drawImage(img, 0, 0, null);                          //No flip
+            //bGr.drawImage(img, 0 + width, 0, -width, height, null);  //Horisontal flip
+            //bGr.drawImage(img, 0, 0 + height, width, -height, null);   //Vertical flip
             bGr.dispose();
 
             // Return the buffered image
@@ -144,8 +147,9 @@ public class ClientMapState extends BaseAppState {
                 levelFiles.put(tileSet, lf);
 
             }
-            java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[ti.getTileIndex()];
+            java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[ti.getTileIndex()-1];
             Image jmeOutputImage = imgLoader.load(this.toBufferedImage(awtInputImage), true);
+            
 
             imageMap.put(new TileKey(ti.getTileSet(), ti.getTileIndex()), jmeOutputImage);
 

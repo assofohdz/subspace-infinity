@@ -16,7 +16,6 @@ import example.es.MapTileType;
 import example.es.MapTileTypes;
 import example.es.Position;
 import example.es.TileInfo;
-import example.map.BitMapLoader;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.GameEntities;
@@ -47,12 +46,11 @@ public class ServerMapState extends AbstractGameSystem {
 
         am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
-        am.registerLoader(BitMapLoader.class, "bmp");
         am.registerLoader(LevelLoader.class, "lvl");
 
         String mapFile = "Maps/twbd.lvl";
 
-        createEntitiesFromMap(loadMap(mapFile));
+        createEntitiesFromMap(loadMap(mapFile), 0);
     }
 
     public LevelFile loadMap(String mapFile) {
@@ -60,15 +58,47 @@ public class ServerMapState extends AbstractGameSystem {
         return map;
     }
 
-    public void createEntitiesFromMap(LevelFile map) {
+    public void createEntitiesFromMap(LevelFile map, int arenaOffset) {
         short[][] tiles = map.getMap();
 
-        for (int i = 0; i < tiles.length; i++) {
-            for (int j = 0; j < tiles[i].length; j++) {
-                short s = tiles[i][j];
+        for (int xpos = 0; xpos < tiles.length; xpos++) {
+            for (int ypos = tiles[xpos].length - 1; ypos >= 0; ypos--) {
+                short s = tiles[xpos][ypos];
                 if (s != 0) {
                     //TODO: Check on the short and only create the map tiles, not the extras (asteroids, wormholes etc.)
-                    Vec3d location = new Vec3d(i, j, 0);
+                    /*
+                    Row 2, tile 1 - Border tile
+                    Row 9, tile 10 - Vertical warpgate (Mostly open)
+                    Row 9, tile 11 - Vertical warpgate (Frequently open)
+                    Row 9, tile 12 - Vertical warpgate (Frequently closed)
+                    Row 9, tile 13 - Vertical warpgate (Mostly closed)
+                    Row 9, tile 14 - Horizontal warpgate (Mostly open)
+                    Row 9, tile 15 - Horizontal warpgate (Frequently open)
+                    Row 9, tile 16 - Horizontal warpgate (Frequently closed)
+                    Row 9, tile 17 - Horizontal warpgate (Mostly closed)
+                    Row 9, tile 18 - Flag for turf
+                    Row 9, tile 19 - Safezone
+                    Row 10, tile 1 - Soccer goal (leave blank if you want)
+                    Row 10, tile 2 - Flyover tile
+                    Row 10, tile 3 - Flyover tile
+                    Row 10, tile 4 - Flyover tile
+                    Row 10, tile 5 - Flyunder (opaque) tile
+                    Row 10, tile 6 - Flyunder (opaque) tile
+                    Row 10, tile 7 - Flyunder (opaque) tile
+                    Row 10, tile 8 - Flyunder (opaque) tile
+                    Row 10, tile 9 - Flyunder (opaque) tile
+                    Row 10, tile 10 - Flunder (opaque) tile
+                    Row 10, tile 11 - Flyunder (opaque) tile
+                    Row 10, tile 12 - Flyunder (opaque) tile
+                    Row 10, tile 13 - Flyunder (black = transparent) tile
+                    Row 10, tile 14 - Flyunder (black = transparent) tile
+                    Row 10, tile 15 - Flyunder (black = transparent) tile
+                    Row 10, tile 16 - Flyunder (black = transparent) tile
+                    Row 10, tile 17 - Flyunder (black = transparent) tile
+                    Row 10, tile 18 - Flyunder (black = transparent) tile
+                    Row 10, tile 19 - Flyunder (black = transparent) tile
+                     */
+                    Vec3d location = new Vec3d(xpos, -ypos, 0);
                     switch (s) {
                         case 216:
                             GameEntities.createOver1(location, ed);
@@ -80,7 +110,7 @@ public class ServerMapState extends AbstractGameSystem {
                             //Station
                             break;
                         case 220:
-                            GameEntities.createWormhole(location, s, new Vec3d(0,0,0), s, s, GravityWell.PULL, location, ed);
+                            GameEntities.createWormhole(location, s, new Vec3d(0, 0, 0), s, s, GravityWell.PULL, location, ed);
                             break;
                         default:
                             GameEntities.createTileInfo(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//
