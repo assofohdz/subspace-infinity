@@ -22,6 +22,7 @@ public class PhysicsConstants {
     public final static double WORMHOLESIZERADIUS = 0.1;
     public final static double OVER5SIZERADIUS = 0.1;
     public final static double OVER1SIZERADIUS = 0.5;
+    public final static double OVER2SIZERADIUS = 1;
     
     //Weights
     public final static double SHIPMASS = 50;
@@ -30,6 +31,7 @@ public class PhysicsConstants {
     public final static double MAPTILEMASS = 0; //Infinite mass
     public final static double WORMHOLEMASS = 0;
     public final static double OVER1MASS = 10;
+    public final static double OVER2MASS = 40;
     public final static double OVER5MASS = 0;
     
     //View

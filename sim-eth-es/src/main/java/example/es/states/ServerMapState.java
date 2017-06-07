@@ -6,25 +6,20 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.es.ArenaId;
 import example.es.GravityWell;
 import example.es.MapTileType;
 import example.es.MapTileTypes;
 import example.es.Position;
-import example.es.TileInfo;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.GameEntities;
 import java.util.concurrent.ConcurrentHashMap;
-import org.dyn4j.geometry.Convex;
 import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Rectangle;
 import org.dyn4j.geometry.Vector2;
-import tiled.core.Map;
 
 /**
  * State
@@ -35,7 +30,6 @@ public class ServerMapState extends AbstractGameSystem {
 
     private TMXMapReader reader;
     private EntityData ed;
-    private BodyContainer mapTiles;
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
 
@@ -105,6 +99,7 @@ public class ServerMapState extends AbstractGameSystem {
                             break;
                         case 217:
                             //Medium asteroid
+                            GameEntities.createOver2(location, ed);
                             break;
                         case 219:
                             //Station
@@ -141,19 +136,14 @@ public class ServerMapState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
-        mapTiles.update();
     }
 
     @Override
     public void start() {
-        mapTiles = new ServerMapState.BodyContainer(ed);
-        mapTiles.start();
     }
 
     @Override
     public void stop() {
-        mapTiles.stop();
-        mapTiles = null;
     }
 
     public void editMap(double x, double y) {
@@ -166,40 +156,8 @@ public class ServerMapState extends AbstractGameSystem {
             ed.removeEntity(index.get(coordinates));
 
         } else {
-            GameEntities.createMapTile(MapTileTypes.solid(ed), new Vec3d(coordinates.x, coordinates.y, 0), ed, new Rectangle(1, 1)); //TODO: Account for actual arena (z-pos)
-        }
-    }
-
-    private class BodyContainer extends EntityContainer<Vector2> {
-
-        public BodyContainer(EntityData ed) {
-            super(ed, Position.class, MapTileType.class);
-        }
-
-        @Override
-        protected Vector2[] getArray() {
-            return super.getArray();
-        }
-
-        @Override
-        protected Vector2 addObject(Entity e) {
-            Position pos = e.get(Position.class);
-            Vector2 result = new Vector2(pos.getLocation().x, pos.getLocation().y);
-
-            index.put(result, e.getId());
-
-            return result;
-        }
-
-        @Override
-        protected void updateObject(Vector2 object, Entity e) {
-            //Does not support mass updating tiles right now
-            //TODO: Perhaps MapTileType could switch
-        }
-
-        @Override
-        protected void removeObject(Vector2 object, Entity e) {
-            removeMapTileCoord(object);
+            //GameEntities.createTileInfo(tileSet, 0, Vec3d.UNIT_X, c, y, ed)
+            //GameEntities.createMapTile(MapTileTypes.solid(ed), new Vec3d(coordinates.x, coordinates.y, 0), ed, new Rectangle(1, 1)); //TODO: Account for actual arena (z-pos)
         }
     }
 }

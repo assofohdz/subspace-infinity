@@ -194,6 +194,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
             BodyFixture bodyFixture = new BodyFixture(new Circle(gw.getDistance()));
 
             bodyFixture.setUserData(e.getId());
+            bodyFixture.setSensor(true);
 
             b.addFixture(bodyFixture);
 

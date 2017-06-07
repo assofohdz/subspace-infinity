@@ -55,7 +55,9 @@ import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
+import org.dyn4j.dynamics.ContinuousDetectionMode;
 import org.dyn4j.dynamics.Force;
+import org.dyn4j.dynamics.Settings;
 import org.dyn4j.dynamics.Torque;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.dynamics.contact.ContactConstraint;
@@ -81,6 +83,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private EntityData ed;
     private BodyContainer bodies;
+    private MapContainer mapTiles;
     private EntitySet forceEntities;
     private EntitySet velocityEntities;
     private EntitySet gravityEntities;
@@ -89,6 +92,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     // items.
     //private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
     private Map<EntityId, SimpleBody> index = new ConcurrentHashMap<>();
+    private Map<EntityId, SimpleBody> mapIndex = new ConcurrentHashMap<>();
     private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
 
     // Still need these to manage physics listener notifications in a 
@@ -99,6 +103,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
 
     private World world;
+    private Settings physicsSettings;
 
     private SimTime time;
 
@@ -138,6 +143,33 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         return driverIndex.get(entityId);
     }
 
+    protected SimpleBody createMapTile(EntityId entityId, BodyFixture fixture, boolean create) {
+        SimpleBody result = mapIndex.get(entityId);
+        if (result == null && create) {
+            synchronized (this) {
+                result = mapIndex.get(entityId);
+                if (result != null) {
+                    return result;
+                }
+                result = new SimpleBody(entityId);
+
+                // Hookup the driver if it has one waiting
+                result.driver = driverIndex.get(entityId);
+
+                // Set it up to be managed by Dyn4j
+                result.addFixture(fixture.getShape());
+
+                result.setMass(MassType.INFINITE);
+
+                world.addBody(result);
+
+                // Set it up to be managed by physics
+                mapIndex.put(entityId, result);
+            }
+        }
+        return result;
+    }
+
     protected SimpleBody createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
         SimpleBody result = index.get(entityId);
         if (result == null && create) {
@@ -151,14 +183,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
 
-                
-                
                 // Set it up to be managed by Dyn4j
                 result.addFixture(fixture.getShape());
 
                 if (invMass == 0) {
                     result.setMass(MassType.INFINITE);
-
                 } else {
                     result.setMass(MassType.NORMAL);
                 }
@@ -181,6 +210,14 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         }
         return false;
     }
+    
+    protected boolean removeMapTile(EntityId entityId) {
+        SimpleBody result = mapIndex.remove(entityId);
+        if (result != null) {
+            return true;
+        }
+        return false;
+    }
 
     @Override
     protected void initialize() {
@@ -189,7 +226,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             throw new RuntimeException("SimplePhysics system requires an EntityData object.");
         }
 
+        physicsSettings = new Settings();
+        physicsSettings.setContinuousDetectionMode(ContinuousDetectionMode.NONE);
+
         world = new World();
+        world.setSettings(physicsSettings);
         world.setGravity(World.ZERO_GRAVITY);
         world.addListener(this);
 
@@ -240,12 +281,18 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     public void start() {
         bodies = new BodyContainer(ed);
         bodies.start();
+
+        mapTiles = new MapContainer(ed);
+        mapTiles.start();
     }
 
     @Override
     public void stop() {
         bodies.stop();
         bodies = null;
+
+        mapTiles.stop();
+        mapTiles = null;
     }
 
     @Override
@@ -325,6 +372,55 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     @Override
     public boolean collision(ContactConstraint contactConstraint) {
         return true; //Default, keep processing this event
+    }
+
+    private class MapContainer extends EntityContainer<SimpleBody> {
+
+        public MapContainer(EntityData ed) {
+            super(ed, Position.class, TileInfo.class, PhysicsShape.class);
+        }
+
+        @Override
+        protected SimpleBody[] getArray() {
+            return super.getArray();
+        }
+
+        @Override
+        protected SimpleBody addObject(Entity e) {
+            /**
+             * TODO: A Body flagged as a Bullet will be checked for tunneling
+             * depending on the CCD setting in the world's Settings. Use this if
+             * the body is a fast moving body, but be careful as this will incur
+             * a performance hit.
+             */
+
+            PhysicsShape ps = e.get(PhysicsShape.class);
+
+            // Right now only works for CoG-centered shapes                   
+            SimpleBody newBody = createMapTile(e.getId(), ps.getFixture(), true);
+
+            Position pos = e.get(Position.class);
+            newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
+
+            newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
+            newBody.getTransform().setRotation(pos.getRotation());
+
+            newBody.setUserData(e.getId());
+
+            return newBody;
+        }
+
+        @Override
+        protected void updateObject(SimpleBody object, Entity e) {
+            // We don't support live-updating mass or shape right now
+        }
+
+        @Override
+        protected void removeObject(SimpleBody object, Entity e) {
+            removeMapTile(e.getId());
+            world.removeBody(object);
+        }
+
     }
 
     /**

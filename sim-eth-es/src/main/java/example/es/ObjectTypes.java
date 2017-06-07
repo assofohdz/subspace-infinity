@@ -56,6 +56,7 @@ public class ObjectTypes {
     public static final String MAPTILE = "maptile";
     public static final String EXPLOSION2 = "explosion2";
     public static final String OVER1 = "over1";
+    public static final String OVER2 = "over2";
     public static final String OVER5 = "over5";
     public static final String WORMHOLE = "wormhole";
     public static final String WARP = "warp";
@@ -119,5 +120,9 @@ public class ObjectTypes {
     
     public static ObjectType repel(EntityData ed){
         return ObjectType.create(REPEL, ed);
+    }
+    
+    public static ObjectType over2(EntityData ed){
+        return ObjectType.create(OVER2, ed);
     }
 }

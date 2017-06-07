@@ -99,8 +99,8 @@ public class GameSessionState extends CompositeAppState {
               new PlayerMovementState(),
               new CameraState(),
               new HudLabelState(),
-              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-              new MapEditorState()
+              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f))
+              //new MapEditorState()
               //new SpaceGridState(2, 10, ColorRGBA.White) 
               ); 
      

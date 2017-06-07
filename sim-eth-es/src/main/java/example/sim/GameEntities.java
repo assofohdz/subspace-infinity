@@ -152,20 +152,19 @@ public class GameEntities {
 
         return lastArena;
     }
-    
-    public static EntityId createTileInfo(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed){
+
+    public static EntityId createTileInfo(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed) {
         EntityId lastTileInfo = ed.createEntity();
-        
+
         ed.setComponents(lastTileInfo, ObjectTypes.mapTile(ed),
                 new Position(location, new Quatd(), 0f),
                 new TileInfo(tileSet, tileIndex), //Tile set and tile index
-                new MassProperties(invMass),
                 new PhysicsShape(new BodyFixture(c)));
-        
+
         return lastTileInfo;
     }
-    
 
+    /*
     public static EntityId createMapTile(MapTileType mapTileType, Vec3d location, EntityData ed, Convex c) {
         EntityId lastMapTile = ed.createEntity();
 
@@ -177,7 +176,7 @@ public class GameEntities {
 
         return lastMapTile;
     }
-
+     */
     //Explosion is for now only visual, so only object type and position
     public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed) {
         EntityId lastExplosion = ed.createEntity();
@@ -236,6 +235,7 @@ public class GameEntities {
 
     /**
      * Small asteroid with animation
+     *
      * @param location the Vec3d position of the asteroid
      * @param ed the entitydata set to create the entity in
      * @return the entityid of the created entity
@@ -250,6 +250,25 @@ public class GameEntities {
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER1SIZERADIUS))));
 
         return lastOver1;
+    }
+
+    /**
+     * Medium asteroid with animation
+     *
+     * @param location the Vec3d position of the asteroid
+     * @param ed the entitydata set to create the entity in
+     * @return the entityid of the created entity
+     */
+    public static EntityId createOver2(Vec3d location, EntityData ed) {
+        EntityId lastOver2 = ed.createEntity();
+
+        ed.setComponents(lastOver2,
+                ObjectTypes.over2(ed),
+                new Position(location, new Quatd(), 0f),
+                new MassProperties(PhysicsConstants.OVER2MASS),
+                new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.OVER2SIZERADIUS))));
+
+        return lastOver2;
     }
 
     public static EntityId createWarpEffect(Vec3d location, EntityData ed) {

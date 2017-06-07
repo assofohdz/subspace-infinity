@@ -105,10 +105,10 @@ public class ClientMapState extends BaseAppState {
             if (img instanceof BufferedImage) {
                 return (BufferedImage) img;
             }
-            
+
             int width = img.getWidth(null);
             int height = img.getHeight(null);
-            
+
             // Create a buffered image with transparency
             BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
@@ -137,23 +137,24 @@ public class ClientMapState extends BaseAppState {
 
             TileInfo ti = e.get(TileInfo.class);
             String tileSet = ti.getTileSet();
+            short tileIndex = ti.getTileIndex();
 
-            if (imageMap.containsKey(new TileKey(ti.getTileSet(), ti.getTileIndex()))) {
-                return imageMap.get(new TileKey(ti.getTileSet(), ti.getTileIndex()));
+            if (!imageMap.containsKey(new TileKey(ti.getTileSet(), ti.getTileIndex()))) {
+
+                if (!levelFiles.containsKey(tileSet)) {
+                    LevelFile lf = loadMap(tileSet); //TODO: Should be done in a non-intrusive way
+                    levelFiles.put(tileSet, lf);
+
+                }
+
+                java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
+                Image jmeOutputImage = imgLoader.load(this.toBufferedImage(awtInputImage), true);
+
+                imageMap.put(new TileKey(tileSet, tileIndex), jmeOutputImage);
+
             }
 
-            if (!levelFiles.containsKey(tileSet)) {
-                LevelFile lf = loadMap(tileSet); //TODO: Should be done in a non-intrusive way
-                levelFiles.put(tileSet, lf);
-
-            }
-            java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[ti.getTileIndex()-1];
-            Image jmeOutputImage = imgLoader.load(this.toBufferedImage(awtInputImage), true);
-            
-
-            imageMap.put(new TileKey(ti.getTileSet(), ti.getTileIndex()), jmeOutputImage);
-
-            return jmeOutputImage;
+            return imageMap.get(new TileKey(tileSet, tileIndex));
         }
 
         @Override
