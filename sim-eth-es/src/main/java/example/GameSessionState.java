@@ -93,15 +93,14 @@ public class GameSessionState extends CompositeAppState {
         // add normal states on the super-constructor
         super(new MessageState(),
               new TimeState(), // Has to be before any visuals that might need it.
-              new SkyState(),
               new ClientMapState(),
-              new ModelViewState(new SISpatialFactory()),
+              new SkyState(),
               new PlayerMovementState(),
               new CameraState(),
               new HudLabelState(),
-              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f))
+              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+              new ModelViewState(new SISpatialFactory())
               //new MapEditorState()
-              //new SpaceGridState(2, 10, ColorRGBA.White) 
               ); 
      
         // Add states that need to support enable/disable independent of

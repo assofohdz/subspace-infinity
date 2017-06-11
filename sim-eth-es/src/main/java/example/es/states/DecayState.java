@@ -1,20 +1,16 @@
 package example.es.states;
 
-import com.jme3.app.Application;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.lemur.event.BaseAppState;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.ConnectionState;
 import example.es.BodyPosition;
 import example.es.Decay;
-import example.es.ObjectType;
-import example.es.ObjectTypes;
+import example.es.ViewType;
+import example.es.ViewTypes;
 import example.es.Position;
 import example.sim.GameEntities;
 
@@ -35,9 +31,9 @@ public class DecayState extends AbstractGameSystem {
         for (Entity e : entities) {
             Decay d = e.get(Decay.class);
             if (d.getPercent() >= 1.0) {
-                ObjectType t = ed.getComponent(e.getId(), ObjectType.class);
+                ViewType t = ed.getComponent(e.getId(), ViewType.class);
 
-                if (t != null && t.getTypeName(ed).equals(ObjectTypes.BOMB)) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
+                if (t != null && t.getTypeName(ed).equals(ViewTypes.BOMB)) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
                     Position pos = ed.getComponent(e.getId(), Position.class);
                     BodyPosition bodyPos = ed.getComponent(e.getId(), BodyPosition.class);
 

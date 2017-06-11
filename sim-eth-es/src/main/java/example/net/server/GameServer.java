@@ -67,7 +67,7 @@ import com.simsilica.sim.GameSystemManager;
 import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
 import example.es.*;
-import example.es.states.AttackState;
+import example.es.states.AttackProjectileState;
 import example.es.states.BountyState;
 import example.es.states.DecayState;
 import example.es.states.DelayState;
@@ -154,7 +154,7 @@ public class GameServer {
         //Add system to monitor and spawn bounties
         systems.register(BountyState.class, new BountyState());
         //Add system to attack and add health changes
-        systems.register(AttackState.class, new AttackState());
+        systems.register(AttackProjectileState.class, new AttackProjectileState());
         //Add system to arenas
         systems.register(ArenaState.class, new ArenaState());
         //Add system to handle maps and tilesets
@@ -200,7 +200,7 @@ public class GameServer {
         Serializer.registerClass(Name.class, new FieldSerializer());
 
         Serializer.registerClass(BodyPosition.class, new FieldSerializer());
-        Serializer.registerClass(ObjectType.class, new FieldSerializer());
+        Serializer.registerClass(ViewType.class, new FieldSerializer());
         Serializer.registerClass(Position.class, new FieldSerializer());
         Serializer.registerClass(SphereShape.class, new FieldSerializer());
         

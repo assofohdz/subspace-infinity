@@ -1,20 +1,25 @@
 package example.es.states;
 
+import com.jme3.network.HostedConnection;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.es.GravityWell;
-import example.es.MassProperties;
+import example.es.BodyPosition;
+import example.es.PhysicsMassType;
 import example.es.PhysicsShape;
 import example.es.Position;
 import example.es.WarpTo;
 import example.es.WarpTouch;
+import example.net.server.AccountHostedService;
+import example.net.server.ZoneNetworkSystem;
 import example.sim.GameEntities;
+import example.sim.SimpleBody;
 import example.sim.SimplePhysics;
 import java.util.HashSet;
 import org.dyn4j.collision.manifold.Manifold;
@@ -46,7 +51,7 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
         this.simplePhysics = getSystem(SimplePhysics.class);
 
         warpTouchEntities = ed.getEntities(WarpTouch.class);
-        warpToEntities = ed.getEntities(WarpTo.class);
+        warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
 
     }
 
@@ -81,20 +86,32 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
 
         if (warpToEntities.applyChanges()) {
             for (Entity e : warpToEntities) {
-                Body b = simplePhysics.getBody(e.getId());
-                if (b != null) {
-                    
+                SimpleBody body = simplePhysics.getBody(e.getId());
+                if (body != null) {
+                    BodyPosition pos = e.get(BodyPosition.class);
                     Vec3d targetLocation = ed.getComponent(e.getId(), WarpTo.class).getTargetLocation();
 
-                    Vector2 originalLocation = b.getTransform().getTranslation();
+                    Vector2 originalLocation = body.getTransform().getTranslation();
                     Vec3d origLocationVec3d = new Vec3d(originalLocation.x, originalLocation.y, 1);
-                    
-                    b.getTransform().setTranslation(targetLocation.x, targetLocation.y);
-                    
+
+                    //Right now, this is how I translate the ship (and everything else) to the new location
+                    body.getTransform().setTranslation(targetLocation.x, targetLocation.y);
+
+                    //This is how it 'could also be done?'
+                    /*
+                    HostedConnection hc = getSystem(AccountHostedService.class).getHostedConnection(e.getId());
+                    if (hc != null) {
+                        getSystem(EtherealHost.class).setConnectionObject(getSystem(AccountHostedService.class).getHostedConnection(e.getId()), e.getId().getId(), targetLocation);
+                    }
+                     */
+                    //getStateListener(hc).setSelf(selfId, initialPosition);
                     GameEntities.createWarpEffect(origLocationVec3d, ed);
                     GameEntities.createWarpEffect(targetLocation, ed);
-                    
+
                     ed.removeComponent(e.getId(), WarpTo.class);
+                }
+                else{
+                    throw new RuntimeException("Entity has a body position, but no physical body");
                 }
             }
         }
@@ -172,7 +189,7 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
     private class Warpers extends EntityContainer<WarpFixture> {
 
         public Warpers(EntityData ed) {
-            super(ed, WarpTouch.class, Position.class, MassProperties.class, PhysicsShape.class);
+            super(ed, WarpTouch.class, Position.class, PhysicsMassType.class, PhysicsShape.class);
         }
 
         @Override

@@ -162,7 +162,7 @@ public class ModelViewState extends BaseAppState {
         for (Mob mob : mobs.getArray()) {
             mob.updateSpatial(time);
         }
-        log.info("TPF: "+Float.toString(tpf));
+        
     }
 
     protected Spatial createShip(Entity entity) {
@@ -215,7 +215,7 @@ public class ModelViewState extends BaseAppState {
         Spatial bomb = factory.createModel(entity);
         result.attachChild(bomb);
 
-        attachCoordinateAxes(result);
+        //attachCoordinateAxes(result);
         return result;
     }
 
@@ -280,49 +280,49 @@ public class ModelViewState extends BaseAppState {
         }
 
         // Else figure out what type to create... 
-        ObjectType type = entity.get(ObjectType.class);
+        ViewType type = entity.get(ViewType.class);
         String typeName = type.getTypeName(ed);
         switch (typeName) {
-            case ObjectTypes.SHIP:
+            case ViewTypes.SHIP:
                 result = createShip(entity);
                 break;
-            case ObjectTypes.GRAV_SPHERE:
+            case ViewTypes.GRAV_SPHERE:
                 result = createGravSphere(entity);
                 break;
-            case ObjectTypes.BULLET:
+            case ViewTypes.BULLET:
                 result = createBullet(entity);
                 break;
-            case ObjectTypes.BOUNTY:
+            case ViewTypes.BOUNTY:
                 result = createBounty(entity);
                 break;
-            case ObjectTypes.BOMB:
+            case ViewTypes.BOMB:
                 result = createBomb(entity);
                 break;
-            case ObjectTypes.ARENA:
+            case ViewTypes.ARENA:
                 result = createArena(entity);
                 break;
-            case ObjectTypes.MAPTILE:
+            case ViewTypes.MAPTILE:
                 result = createMapTile(entity);
                 break;
-            case ObjectTypes.EXPLOSION2:
+            case ViewTypes.EXPLOSION2:
                 result = createExplosion2(entity);
                 break;
-            case ObjectTypes.WORMHOLE:
+            case ViewTypes.WORMHOLE:
                 result = createWormhole(entity);
                 break;
-            case ObjectTypes.OVER5:
+            case ViewTypes.OVER5:
                 result = createOver5(entity);
                 break;
-            case ObjectTypes.OVER1:
+            case ViewTypes.OVER1:
                 result = createOver1(entity);
                 break;
-            case ObjectTypes.WARP:
+            case ViewTypes.WARP:
                 result = createWarp(entity);
                 break;
-            case ObjectTypes.REPEL:
+            case ViewTypes.REPEL:
                 result = createRepel(entity);
                 break;
-            case ObjectTypes.OVER2:
+            case ViewTypes.OVER2:
                 result = createOver2(entity);
                 break;
             default:
@@ -533,7 +533,7 @@ public class ModelViewState extends BaseAppState {
     private class MobContainer extends EntityContainer<Mob> {
 
         public MobContainer(EntityData ed) {
-            super(ed, ObjectType.class, BodyPosition.class);
+            super(ed, ViewType.class, BodyPosition.class);
         }
 
         @Override
@@ -566,7 +566,7 @@ public class ModelViewState extends BaseAppState {
     private class ModelContainer extends EntityContainer<Spatial> {
 
         public ModelContainer(EntityData ed) {
-            super(ed, ObjectType.class, Position.class);
+            super(ed, ViewType.class, Position.class);
         }
 
         @Override

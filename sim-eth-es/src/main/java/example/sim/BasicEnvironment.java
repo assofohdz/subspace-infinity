@@ -83,10 +83,11 @@ public class BasicEnvironment extends AbstractGameSystem {
         
         //GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
 
-        GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, new Vec3d(10,10,0), 5, 5000, GravityWell.PULL, new Vec3d(10,-10,0), ed);
+        GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(10,-10,0), ed);
         
         GameEntities.createOver5(new Vec3d(10,-10,0), 5, 5000, GravityWell.PUSH, ed);
         
+        /*
         GameEntities.createOver1(new Vec3d(10,10,0), ed);
         GameEntities.createOver1(new Vec3d(11,10,0), ed);
         GameEntities.createOver1(new Vec3d(12,10,0), ed);
@@ -94,7 +95,7 @@ public class BasicEnvironment extends AbstractGameSystem {
         GameEntities.createOver1(new Vec3d(10,9,0), ed);
         GameEntities.createOver1(new Vec3d(10,8,0), ed);
         GameEntities.createOver1(new Vec3d(10,7,0), ed);
-       
+        */
         /*
         for (int x = -4; x < 4; x++) {
             for (int y = -4; y < 4; y++) {
@@ -104,6 +105,9 @@ public class BasicEnvironment extends AbstractGameSystem {
             }
         }
         */
+        
+        GameEntities.createWormhole(new Vec3d(-10,10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-512,512,0), ed);
+        
     }
 
     @Override

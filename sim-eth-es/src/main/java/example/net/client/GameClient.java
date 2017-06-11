@@ -70,6 +70,7 @@ public class GameClient {
     private EntityData ed;
 
     public GameClient(String host, int port) throws IOException {
+        
         log.info("Connecting to:" + host + " " + port);
         this.client = Network.connectToServer(GameConstants.GAME_NAME,
                 GameConstants.PROTOCOL_VERSION,

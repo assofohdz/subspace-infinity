@@ -17,8 +17,9 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import example.ConnectionState;
 import example.ViewConstants;
-import example.es.ObjectType;
-import example.es.ObjectTypes;
+import example.es.TileInfo;
+import example.es.ViewType;
+import example.es.ViewTypes;
 
 /**
  *
@@ -50,42 +51,42 @@ public class SISpatialFactory implements ModelFactory {
 
     @Override
     public Spatial createModel(Entity e) {
-        ObjectType type = e.get(ObjectType.class);
-        if (ObjectTypes.SHIP.equals(type.getTypeName(ed))) {
+        ViewType type = e.get(ViewType.class);
+        if (ViewTypes.SHIP.equals(type.getTypeName(ed))) {
             //Right now, only the shark is supported
             return createShip();
-        } else if (ObjectTypes.THRUST.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.THRUST.equals(type.getTypeName(ed))) {
             //Create a particle emitter:
             return createParticleEmitter(e);
-        } else if (ObjectTypes.BULLET.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.BULLET.equals(type.getTypeName(ed))) {
             //Create bullet
             return createBullet(e);
-        } else if (ObjectTypes.BOMB.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.BOMB.equals(type.getTypeName(ed))) {
             //Create bomb
             return createBomb(e);
-        } else if (ObjectTypes.EXPLOSION.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.EXPLOSION.equals(type.getTypeName(ed))) {
             //Create explosion
             return createExplosion(e);
-        } else if (ObjectTypes.BOUNTY.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.BOUNTY.equals(type.getTypeName(ed))) {
             //Create bounty
             return createBounty(e);
-        } else if (ObjectTypes.ARENA.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.ARENA.equals(type.getTypeName(ed))) {
             return createArena(e);
-        } else if (ObjectTypes.MAPTILE.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.MAPTILE.equals(type.getTypeName(ed))) {
             return createMapTile(e);
-        } else if (ObjectTypes.EXPLOSION2.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.EXPLOSION2.equals(type.getTypeName(ed))) {
             return createExplosion2(e);
-        } else if (ObjectTypes.OVER5.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.OVER5.equals(type.getTypeName(ed))) {
             return createOver5(e);
-        } else if (ObjectTypes.WORMHOLE.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.WORMHOLE.equals(type.getTypeName(ed))) {
             return createWormhole(e);
-        } else if (ObjectTypes.OVER1.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.OVER1.equals(type.getTypeName(ed))) {
             return createOver1(e);
-        } else if (ObjectTypes.WARP.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.WARP.equals(type.getTypeName(ed))) {
             return createWarp(e);
-        } else if (ObjectTypes.REPEL.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.REPEL.equals(type.getTypeName(ed))) {
             return createRepel(e);
-        } else if (ObjectTypes.OVER2.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.OVER2.equals(type.getTypeName(ed))) {
             return createOver2(e);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
@@ -114,9 +115,9 @@ public class SISpatialFactory implements ModelFactory {
     private Spatial createParticleEmitter(Entity e) {
         Spatial result = null;
         ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); //will be overriden in switch
-        switch (e.get((ObjectType.class)).getTypeName(ed)) {
+        switch (e.get((ViewType.class)).getTypeName(ed)) {
             //Create a thrust particle emitter
-            case ObjectTypes.THRUST:
+            case ViewTypes.THRUST:
                 result = createThrustEmitter(particleEmitter, e);
         }
         return result;
@@ -261,6 +262,11 @@ public class SISpatialFactory implements ModelFactory {
         //mat.setColor("Color", ColorRGBA.Yellow);
         
         Image image = clientMapState.getImage(e.getId());
+        TileInfo ti = e.get(TileInfo.class);
+        if (image == null) {
+            throw new RuntimeException("Image not loaded for tile: "+ti);
+        }
+        
         Texture2D tex2D = new Texture2D(image);
         mat.setTexture("ColorMap", tex2D);
 

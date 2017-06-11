@@ -88,7 +88,7 @@ public class Main extends SimpleApplication {
         
         settings.load("Subspace: Infinity");
         settings.setTitle("Subspace: Infinity");
-        settings.setSettingsDialogImage("/sim-eth-es-splash-512.png");
+        settings.setSettingsDialogImage("/subspace-since-1995-splash.jpg");
         settings.setUseJoysticks(true);
         /*
         try {

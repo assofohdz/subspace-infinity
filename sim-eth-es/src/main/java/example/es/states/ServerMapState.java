@@ -2,17 +2,12 @@ package example.es.states;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
-import com.simsilica.es.Entity;
-import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.GravityWell;
-import example.es.MapTileType;
-import example.es.MapTileTypes;
-import example.es.Position;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.GameEntities;
@@ -42,9 +37,11 @@ public class ServerMapState extends AbstractGameSystem {
 
         am.registerLoader(LevelLoader.class, "lvl");
 
-        String mapFile = "Maps/twbd.lvl";
-
-        createEntitiesFromMap(loadMap(mapFile), 0);
+        //createEntitiesFromMap(loadMap("Maps/twbd.lvl"), new Vec3d(0,0,0));
+        //createEntitiesFromMap(loadMap("Maps/extreme.lvl"), new Vec3d(-1024,0,0));
+        createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-1024,1024,0));
+        //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,1024,0));
+        
     }
 
     public LevelFile loadMap(String mapFile) {
@@ -52,7 +49,8 @@ public class ServerMapState extends AbstractGameSystem {
         return map;
     }
 
-    public void createEntitiesFromMap(LevelFile map, int arenaOffset) {
+    
+    public void createEntitiesFromMap(LevelFile map, Vec3d arenaOffset) {
         short[][] tiles = map.getMap();
 
         for (int xpos = 0; xpos < tiles.length; xpos++) {
@@ -92,7 +90,7 @@ public class ServerMapState extends AbstractGameSystem {
                     Row 10, tile 18 - Flyunder (black = transparent) tile
                     Row 10, tile 19 - Flyunder (black = transparent) tile
                      */
-                    Vec3d location = new Vec3d(xpos, -ypos, 0);
+                    Vec3d location = new Vec3d(xpos, -ypos, 0).add(arenaOffset);
                     switch (s) {
                         case 216:
                             GameEntities.createOver1(location, ed);
@@ -105,10 +103,10 @@ public class ServerMapState extends AbstractGameSystem {
                             //Station
                             break;
                         case 220:
-                            GameEntities.createWormhole(location, s, new Vec3d(0, 0, 0), s, s, GravityWell.PULL, location, ed);
+                            GameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0,0,0), ed);
                             break;
                         default:
-                            GameEntities.createTileInfo(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//
+                            GameEntities.createMapTile(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//
                             break;
                     }
                 }

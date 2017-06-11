@@ -8,39 +8,29 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.PhysicsConstants;
 import example.es.GravityWell;
-import example.es.MassProperties;
+import example.es.PhysicsMassType;
 import example.es.PhysicsShape;
 import example.es.Position;
 import example.es.WarpTouch;
-import example.sim.SimpleBody;
-import example.sim.EntityCollisionListener;
+import example.sim.CollisionFilters;
 import example.sim.GameEntities;
 import example.sim.SimplePhysics;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.manifold.ManifoldPoint;
-import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.Force;
-import org.dyn4j.dynamics.Torque;
-import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Circle;
-import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Vector2;
 
 /**
  *
  * @author Asser
  */
-public class GravityState extends AbstractGameSystem implements CollisionListener {
+public class GravityState extends AbstractGameSystem {
 
     private SimTime time;
 
@@ -49,6 +39,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
     //A set to map from the pulling gravity wells to a pushing gravity well
     private SimplePhysics simplePhysics;
     private HashSet<EntityId> pushingWells, pullingWells;
+    private HashSet<BodyFixture> gravityFixtures = new HashSet<>();
     private GravityWells wells;
 
     @Override
@@ -58,7 +49,6 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         this.simplePhysics = getSystem(SimplePhysics.class);
 
         gravityWells = ed.getEntities(GravityWell.class, Position.class);
-
 
         pushingWells = new HashSet<>();
         pullingWells = new HashSet<>();
@@ -73,15 +63,12 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
 
     @Override
     public void start() {
-        simplePhysics.addCollisionListener(this);
-
         wells = new GravityWells(ed);
         wells.start();
     }
 
     @Override
     public void stop() {
-        simplePhysics.removeCollisionListener(this);
 
         wells.stop();
         wells = null;
@@ -100,53 +87,31 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         return (T) from.toArray()[i];
     }
 
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-        return true;
+    public boolean isWormholeFixture(BodyFixture gravityFixture) {
+        return gravityFixtures.contains(gravityFixture);
     }
 
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }
-
-    //Contact manifold created by the manifold solver
-    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
+    public void collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
-        
-        if (wells.getObject(one) == fixture1 || wells.getObject(two) == fixture2) {
-            if (wells.getObject(one) == fixture1) {
-                createWormholeForce(one, two, body1, body2, manifold.getPoints().get(0));
-            }
 
-            if (wells.getObject(two) == fixture2) {
-                createWormholeForce(two, one, body2, body1, manifold.getPoints().get(0));
-
-            }
-            return false;
+        if (wells.getObject(one) == fixture1) {
+            createWormholeForce(one, two, body1, body2, manifold.getPoints().get(0), tpf);
         }
 
-        return true; //Default, keep processing this event
+        if (wells.getObject(two) == fixture2) {
+            createWormholeForce(two, one, body2, body1, manifold.getPoints().get(0), tpf);
+        }
     }
 
-    private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body, ManifoldPoint mp) {
+    private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body, ManifoldPoint mp, double tpf) {
         Vec3d wormholeLocation = new Vec3d(wormholeBody.getTransform().getTranslationX(), wormholeBody.getTransform().getTranslationY(), 0);
-        Vec3d bodyLocation = new Vec3d(body.getTransform().getTranslation().x, body.getTransform().getTranslation().y, 0); //TODO: Arena setting?
-        
+        Vec3d bodyLocation = new Vec3d(body.getTransform().getTranslation().x, body.getTransform().getTranslation().y, 0);
+
         GravityWell gravityWell = ed.getComponent(wormholeEntityId, GravityWell.class);
         //start applying gravity to other entity
-        Force force = getWormholeGravityOnBody(time.getTpf(), gravityWell, wormholeLocation, bodyLocation);
+        Force force = getWormholeGravityOnBody(tpf, gravityWell, wormholeLocation, bodyLocation);
         GameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
-    }
-
-    //Contact constraint created
-    @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-        return true; //Default, keep processing this event
-        
-        
     }
 
     private Force getWormholeGravityOnBody(double tpf, GravityWell wormhole, Vec3d wormholeLocation, Vec3d bodyLocation) {
@@ -177,7 +142,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
     private class GravityWells extends EntityContainer<BodyFixture> {
 
         public GravityWells(EntityData ed) {
-            super(ed, GravityWell.class, Position.class, MassProperties.class, PhysicsShape.class);
+            super(ed, GravityWell.class, Position.class, PhysicsMassType.class, PhysicsShape.class);
         }
 
         @Override
@@ -195,19 +160,22 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
 
             bodyFixture.setUserData(e.getId());
             bodyFixture.setSensor(true);
+            //bodyFixture.setFilter(CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY);
+            //b.setBullet(true);
 
             b.addFixture(bodyFixture);
+            
 
             switch (gw.getGravityType()) {
                 case GravityWell.PULL:
                     pullingWells.add(e.getId());
-                    
+
                     break;
                 case GravityWell.PUSH:
                     pushingWells.add(e.getId());
-
                     break;
             }
+            gravityFixtures.add(bodyFixture);
 
             return bodyFixture;
 
@@ -224,6 +192,8 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
             pushingWells.remove(e.getId());
             pullingWells.remove(e.getId());
 
+            gravityFixtures.remove(object);
+            
             ed.removeComponent(e.getId(), WarpTouch.class);
 
         }

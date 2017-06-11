@@ -33,7 +33,9 @@ public class TileInfo implements EntityComponent{
     public short getTileIndex() {
         return tileIndex;
     }
-    
-    
-    
+
+    @Override
+    public String toString() {
+        return "TileInfo{" + "tileSet=" + tileSet + ", tileIndex=" + tileIndex + '}';
+    }
 }

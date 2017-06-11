@@ -11,8 +11,6 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.ArenaId;
-import example.es.MapTileType;
-import example.es.MapTileTypes;
 import example.es.Position;
 import example.es.TileInfo;
 import example.map.LevelFile;

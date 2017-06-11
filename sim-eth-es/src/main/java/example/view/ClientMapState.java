@@ -138,8 +138,9 @@ public class ClientMapState extends BaseAppState {
             TileInfo ti = e.get(TileInfo.class);
             String tileSet = ti.getTileSet();
             short tileIndex = ti.getTileIndex();
+            TileKey key = new TileKey(tileSet, tileIndex);
 
-            if (!imageMap.containsKey(new TileKey(ti.getTileSet(), ti.getTileIndex()))) {
+            if (!imageMap.containsKey(key)) {
 
                 if (!levelFiles.containsKey(tileSet)) {
                     LevelFile lf = loadMap(tileSet); //TODO: Should be done in a non-intrusive way
@@ -150,11 +151,11 @@ public class ClientMapState extends BaseAppState {
                 java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
                 Image jmeOutputImage = imgLoader.load(this.toBufferedImage(awtInputImage), true);
 
-                imageMap.put(new TileKey(tileSet, tileIndex), jmeOutputImage);
+                imageMap.put(key, jmeOutputImage);
 
             }
 
-            return imageMap.get(new TileKey(tileSet, tileIndex));
+            return imageMap.get(key);
         }
 
         @Override

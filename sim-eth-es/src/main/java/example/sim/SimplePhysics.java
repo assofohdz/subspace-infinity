@@ -83,7 +83,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private EntityData ed;
     private BodyContainer bodies;
-    private MapContainer mapTiles;
     private EntitySet forceEntities;
     private EntitySet velocityEntities;
     private EntitySet gravityEntities;
@@ -107,7 +106,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private SimTime time;
 
-    private GravityState wormholeState;
+    private GravityState gravityState;
 
     public SimplePhysics() {
     }
@@ -143,34 +142,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         return driverIndex.get(entityId);
     }
 
-    protected SimpleBody createMapTile(EntityId entityId, BodyFixture fixture, boolean create) {
-        SimpleBody result = mapIndex.get(entityId);
-        if (result == null && create) {
-            synchronized (this) {
-                result = mapIndex.get(entityId);
-                if (result != null) {
-                    return result;
-                }
-                result = new SimpleBody(entityId);
-
-                // Hookup the driver if it has one waiting
-                result.driver = driverIndex.get(entityId);
-
-                // Set it up to be managed by Dyn4j
-                result.addFixture(fixture.getShape());
-
-                result.setMass(MassType.INFINITE);
-
-                world.addBody(result);
-
-                // Set it up to be managed by physics
-                mapIndex.put(entityId, result);
-            }
-        }
-        return result;
-    }
-
-    protected SimpleBody createBody(EntityId entityId, double invMass, BodyFixture fixture, boolean create) {
+    protected SimpleBody createBody(EntityId entityId, String massType, BodyFixture fixture, boolean create) {
         SimpleBody result = index.get(entityId);
         if (result == null && create) {
             synchronized (this) {
@@ -186,12 +158,28 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 // Set it up to be managed by Dyn4j
                 result.addFixture(fixture.getShape());
 
-                if (invMass == 0) {
-                    result.setMass(MassType.INFINITE);
-                } else {
-                    result.setMass(MassType.NORMAL);
+                switch (massType) {
+                    case PhysicsMassTypes.FIXED_ANGULAR_VELOCITY:
+                        result.setMass(MassType.FIXED_ANGULAR_VELOCITY);
+                        break;
+                    case PhysicsMassTypes.FIXED_LINEAR_VELOCITY:
+                        result.setMass(MassType.FIXED_LINEAR_VELOCITY);
+                        break;
+                    case PhysicsMassTypes.INFINITE:
+                        result.setMass(MassType.INFINITE);
+                        break;
+                    case PhysicsMassTypes.NORMAL:
+                        result.setMass(MassType.NORMAL);
+                        break;
+                    case PhysicsMassTypes.NORMAL_BULLET:
+                        result.setMass(MassType.NORMAL);
+                        result.setBullet(true);
+                        break;
+                        
                 }
 
+                
+                
                 world.addBody(result);
 
                 // Set it up to be managed by physics
@@ -210,7 +198,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         }
         return false;
     }
-    
+
     protected boolean removeMapTile(EntityId entityId) {
         SimpleBody result = mapIndex.remove(entityId);
         if (result != null) {
@@ -232,6 +220,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         world = new World();
         world.setSettings(physicsSettings);
         world.setGravity(World.ZERO_GRAVITY);
+
         world.addListener(this);
 
         forceEntities = ed.getEntities(PhysicsForce.class);
@@ -239,7 +228,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         gravityEntities = ed.getEntities(GravityWell.class);
 
-        wormholeState = this.getSystem(GravityState.class);
+        gravityState = this.getSystem(GravityState.class);
 
     }
 
@@ -257,15 +246,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     }
 
     private void fireBodyListListeners() {
-        if (!toAdd.isEmpty()) {
-            SimpleBody body = null;
-            while ((body = toAdd.poll()) != null) {
-                //bodies.add(body);
-                for (PhysicsListener l : listeners.getArray()) {
-                    l.addBody(body);
-                }
-            }
-        }
         if (!toRemove.isEmpty()) {
             SimpleBody body = null;
             while ((body = toRemove.poll()) != null) {
@@ -275,6 +255,16 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 }
             }
         }
+        if (!toAdd.isEmpty()) {
+            SimpleBody body = null;
+            while ((body = toAdd.poll()) != null) {
+                //bodies.add(body);
+                for (PhysicsListener l : listeners.getArray()) {
+                    l.addBody(body);
+                }
+            }
+        }
+
     }
 
     @Override
@@ -282,8 +272,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         bodies = new BodyContainer(ed);
         bodies.start();
 
-        mapTiles = new MapContainer(ed);
-        mapTiles.start();
     }
 
     @Override
@@ -291,8 +279,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         bodies.stop();
         bodies = null;
 
-        mapTiles.stop();
-        mapTiles = null;
     }
 
     @Override
@@ -365,6 +351,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
+        if (gravityState.isWormholeFixture(fixture1) || gravityState.isWormholeFixture(fixture2)) {
+            gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
+            return false;
+        }
+
         return true; //Default, keep processing this event
     }
 
@@ -374,62 +365,13 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         return true; //Default, keep processing this event
     }
 
-    private class MapContainer extends EntityContainer<SimpleBody> {
-
-        public MapContainer(EntityData ed) {
-            super(ed, Position.class, TileInfo.class, PhysicsShape.class);
-        }
-
-        @Override
-        protected SimpleBody[] getArray() {
-            return super.getArray();
-        }
-
-        @Override
-        protected SimpleBody addObject(Entity e) {
-            /**
-             * TODO: A Body flagged as a Bullet will be checked for tunneling
-             * depending on the CCD setting in the world's Settings. Use this if
-             * the body is a fast moving body, but be careful as this will incur
-             * a performance hit.
-             */
-
-            PhysicsShape ps = e.get(PhysicsShape.class);
-
-            // Right now only works for CoG-centered shapes                   
-            SimpleBody newBody = createMapTile(e.getId(), ps.getFixture(), true);
-
-            Position pos = e.get(Position.class);
-            newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
-
-            newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
-            newBody.getTransform().setRotation(pos.getRotation());
-
-            newBody.setUserData(e.getId());
-
-            return newBody;
-        }
-
-        @Override
-        protected void updateObject(SimpleBody object, Entity e) {
-            // We don't support live-updating mass or shape right now
-        }
-
-        @Override
-        protected void removeObject(SimpleBody object, Entity e) {
-            removeMapTile(e.getId());
-            world.removeBody(object);
-        }
-
-    }
-
     /**
      * Maps the appropriate entities to physics bodies.
      */
     private class BodyContainer extends EntityContainer<SimpleBody> {
 
         public BodyContainer(EntityData ed) {
-            super(ed, Position.class, MassProperties.class, PhysicsShape.class);
+            super(ed, Position.class, PhysicsMassType.class, PhysicsShape.class);
         }
 
         @Override
@@ -447,11 +389,12 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
              */
 
             //TODO: Have gravity state and warpstate listen for body creations instead of relying on same info that SimplePhysics relies on in their containers
-            MassProperties mass = e.get(MassProperties.class);
             PhysicsShape ps = e.get(PhysicsShape.class);
+            
+            PhysicsMassType pmt = e.get(PhysicsMassType.class);
 
             // Right now only works for CoG-centered shapes                   
-            SimpleBody newBody = createBody(e.getId(), mass.getInverseMass(), ps.getFixture(), true);
+            SimpleBody newBody = createBody(e.getId(), pmt.getTypeName(ed), ps.getFixture(), true);
 
             Position pos = e.get(Position.class);
             newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
@@ -460,6 +403,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             newBody.getTransform().setRotation(pos.getRotation());
 
             newBody.setUserData(e.getId());
+
+            newBody.setLinearDamping(0.3);
 
             return newBody;
         }
@@ -506,11 +451,13 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 PhysicsVelocity pv = e.get(PhysicsVelocity.class);
 
                 b.setLinearVelocity(pv.getVelocity());
+                //b.setAsleep(false);
+                /*
                 if (pv.getVelocity().equals(new Vector2(0, 0))) {
                     b.setAsleep(true); //Clear all forces/torques/velocities
                     b.setAsleep(false);
                 }
-
+                */
                 ed.removeComponent(e.getId(), PhysicsVelocity.class);
             }
         }
@@ -522,5 +469,19 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     public void removeCollisionListener(CollisionListener cl) {
         world.removeListener(cl);
+    }
+
+    /**
+     * Removes and adds the entity. This ensures that listeners now that this
+     * body has been reset
+     *
+     * @param eId the EntityId
+     */
+    public void resetBody(EntityId eId) {
+        SimpleBody body = getBody(eId);
+        body.syncronizePhysicsBody();
+        toRemove.add(body);
+        toAdd.add(body);
+        fireBodyListListeners();
     }
 }
