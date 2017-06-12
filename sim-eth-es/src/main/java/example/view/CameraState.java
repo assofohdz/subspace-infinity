@@ -49,7 +49,11 @@ public class CameraState extends BaseAppState{
         }
         else //Probably a crude way to do it - should be handled properly
         {
-            this.playerShip = models.getPlayerSpatial();
+            this.playerShip = models.getPlayerSpatial(); 
         }
+    }
+    
+    public void setPlayerShip(Spatial s){
+        this.playerShip = s;
     }
 }

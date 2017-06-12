@@ -1,7 +1,9 @@
 package example.es;
 
+
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
+import java.awt.Color;
 
 
 /**
@@ -11,7 +13,10 @@ import com.simsilica.es.EntityData;
  */
 public class ViewType implements EntityComponent {
     
+    //Translates into the texture
     private int type;
+    //Translates into the color overlay
+    private Color color;
  
     protected ViewType() {
     }

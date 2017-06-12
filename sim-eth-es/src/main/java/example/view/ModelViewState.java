@@ -162,7 +162,7 @@ public class ModelViewState extends BaseAppState {
         for (Mob mob : mobs.getArray()) {
             mob.updateSpatial(time);
         }
-        
+
     }
 
     protected Spatial createShip(Entity entity) {
@@ -174,9 +174,6 @@ public class ModelViewState extends BaseAppState {
         result.setUserData("entityId", entity.getId().getId());
         result.attachChild(ship);
         //result.setUserData(LayerComparator.LAYER, 0);
-
-        //To let the camerastate known which spatial is the player
-        this.playerSpatial = ship;
 
         //attachCoordinateAxes(result); //To debug
         return result;
@@ -272,10 +269,10 @@ public class ModelViewState extends BaseAppState {
         return result;
     }
 
-    protected Spatial createModel(Entity entity) {
+    protected Spatial createModel(Entity entity, boolean forceUpdate) {
         // Check to see if one already exists
         Spatial result = modelIndex.get(entity.getId());
-        if (result != null) {
+        if (result != null && !forceUpdate) {
             return result;
         }
 
@@ -283,7 +280,14 @@ public class ModelViewState extends BaseAppState {
         ViewType type = entity.get(ViewType.class);
         String typeName = type.getTypeName(ed);
         switch (typeName) {
-            case ViewTypes.SHIP:
+            case ViewTypes.SHIP_SHARK:
+            case ViewTypes.SHIP_WARBIRD:
+            case ViewTypes.SHIP_JAVELIN:
+            case ViewTypes.SHIP_SPIDER:
+            case ViewTypes.SHIP_LEVI:
+            case ViewTypes.SHIP_LANCASTER:
+            case ViewTypes.SHIP_WEASEL:
+            case ViewTypes.SHIP_TERRIER:
                 result = createShip(entity);
                 break;
             case ViewTypes.GRAV_SPHERE:
@@ -363,7 +367,6 @@ public class ModelViewState extends BaseAppState {
         Spatial arena = factory.createModel(entity);
 
         //CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
-
         result.attachChild(arena);
 
         //attachCoordinateAxes(result);
@@ -464,7 +467,7 @@ public class ModelViewState extends BaseAppState {
         public Mob(Entity entity) {
             this.entity = entity;
 
-            this.spatial = createModel(entity); //createShip(entity);
+            this.spatial = createModel(entity, false); //createShip(entity);
             //modelRoot.attachChild(spatial);
 
             BodyPosition bodyPos = entity.get(BodyPosition.class);
@@ -480,6 +483,9 @@ public class ModelViewState extends BaseAppState {
             // always lag the player's turning.
             if (entity.getId().getId() == getState(GameSessionState.class).getShipId().getId()) {
                 this.localPlayerShip = true;
+
+                //To let the camerastate known which spatial is the player
+                playerSpatial = spatial;
             }
 
             // Starts invisible until we know otherwise           
@@ -503,6 +509,19 @@ public class ModelViewState extends BaseAppState {
 
         protected void updateComponents() {
             updateModel(spatial, entity, false);
+
+            if (this.localPlayerShip) {
+                Spatial tempSpatial = this.spatial;
+
+                this.spatial = createShip(entity);
+                getState(CameraState.class).setPlayerShip(spatial);
+
+                // Add it to the index
+                modelIndex.put(entity.getId(), spatial);
+                modelRoot.attachChild(spatial);
+                
+                tempSpatial.removeFromParent();
+            }
         }
 
         protected void setVisible(boolean f) {
@@ -549,6 +568,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Mob object, Entity e) {
+
             object.updateComponents();
         }
 
@@ -572,7 +592,7 @@ public class ModelViewState extends BaseAppState {
         @Override
         protected Spatial addObject(Entity e) {
             //System.out.println("ModelContainer.addObject(" + e + ")");
-            Spatial result = createModel(e);
+            Spatial result = createModel(e, false);
             updateObject(result, e);
             return result;
         }
@@ -592,7 +612,7 @@ public class ModelViewState extends BaseAppState {
 
     }
 
-    Spatial getPlayerSpatial() {
+    public Spatial getPlayerSpatial() {
         return playerSpatial;
     }
 

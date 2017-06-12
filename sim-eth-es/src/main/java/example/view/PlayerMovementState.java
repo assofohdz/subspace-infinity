@@ -136,7 +136,17 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
                 PlayerMovementFunctions.F_REPEL,
-                PlayerMovementFunctions.F_MINE);
+                PlayerMovementFunctions.F_MINE,
+                PlayerMovementFunctions.F_WARBIRD,
+                PlayerMovementFunctions.F_JAVELIN,
+                PlayerMovementFunctions.F_SPIDER,
+                PlayerMovementFunctions.F_LEVI,
+                PlayerMovementFunctions.F_TERRIER,
+                PlayerMovementFunctions.F_WEASEL,
+                PlayerMovementFunctions.F_LANC,
+                PlayerMovementFunctions.F_SHARK);
+        
+        
 
         // Grab the game session
         session = getState(ConnectionState.class).getService(GameSessionClientService.class);
@@ -166,7 +176,15 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
                 PlayerMovementFunctions.F_REPEL,
-                PlayerMovementFunctions.F_MINE);
+                PlayerMovementFunctions.F_MINE,
+                PlayerMovementFunctions.F_WARBIRD,
+                PlayerMovementFunctions.F_JAVELIN,
+                PlayerMovementFunctions.F_SPIDER,
+                PlayerMovementFunctions.F_LEVI,
+                PlayerMovementFunctions.F_TERRIER,
+                PlayerMovementFunctions.F_WEASEL,
+                PlayerMovementFunctions.F_LANC,
+                PlayerMovementFunctions.F_SHARK);
     }
 
     @Override
@@ -176,6 +194,7 @@ public class PlayerMovementState extends BaseAppState
         // Make sure our input group is enabled
         inputMapper.activateGroup(PlayerMovementFunctions.G_MOVEMENT);
         inputMapper.activateGroup(PlayerMovementFunctions.G_MAP);
+        inputMapper.activateGroup(PlayerMovementFunctions.G_SHIPSELECTION);
 
         // And kill the cursor
         // GuiGlobals.getInstance().setCursorEventsEnabled(false);
@@ -188,6 +207,7 @@ public class PlayerMovementState extends BaseAppState
     protected void onDisable() {
         inputMapper.deactivateGroup(PlayerMovementFunctions.G_MOVEMENT);
         inputMapper.deactivateGroup(PlayerMovementFunctions.G_MAP);
+        inputMapper.deactivateGroup(PlayerMovementFunctions.G_SHIPSELECTION);
         //GuiGlobals.getInstance().setCursorEventsEnabled(true);        
     }
 
@@ -283,6 +303,22 @@ public class PlayerMovementState extends BaseAppState
                 session.attack(ProjectileTypes.REPEL);
             } else if (func == PlayerMovementFunctions.F_MINE) {
                 session.attack(ProjectileTypes.MINE);
+            } else if (func == PlayerMovementFunctions.F_WARBIRD) {
+                session.chooseShip((byte)1);
+            }else if (func == PlayerMovementFunctions.F_JAVELIN) {
+                session.chooseShip((byte)2);
+            }else if (func == PlayerMovementFunctions.F_SPIDER) {
+                session.chooseShip((byte)3);
+            }else if (func == PlayerMovementFunctions.F_LEVI) {
+                session.chooseShip((byte)4);
+            }else if (func == PlayerMovementFunctions.F_TERRIER) {
+                session.chooseShip((byte)5);
+            }else if (func == PlayerMovementFunctions.F_WEASEL) {
+                session.chooseShip((byte)6);
+            }else if (func == PlayerMovementFunctions.F_LANC) {
+                session.chooseShip((byte)7);
+            }else if (func == PlayerMovementFunctions.F_SHARK) {
+                session.chooseShip((byte)8);
             }
         }
     }

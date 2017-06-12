@@ -10,7 +10,14 @@ import com.simsilica.es.EntityData;
  */
 public class ViewTypes {
 
-    public static final String SHIP = "ship";
+    public static final String SHIP_SHARK = "ship_shark";
+    public static final String SHIP_WARBIRD = "ship_warbird";
+    public static final String SHIP_JAVELIN = "ship_javelin";
+    public static final String SHIP_SPIDER = "ship_spider";
+    public static final String SHIP_LEVI = "ship_leviathan";
+    public static final String SHIP_TERRIER = "ship_terrier";
+    public static final String SHIP_WEASEL = "ship_weasel";
+    public static final String SHIP_LANCASTER = "ship_lancaster";
     public static final String GRAV_SPHERE = "gravSphere";
     public static final String THRUST = "thrust";
     public static final String EXPLOSION = "explosion";
@@ -27,10 +34,35 @@ public class ViewTypes {
     public static final String WARP = "warp";
     public static final String REPEL = "repel";
 
-    public static ViewType ship(EntityData ed) {
-        return ViewType.create(SHIP, ed);
+    /*
+    The different ships
+    */
+    public static ViewType ship_warbird(EntityData ed) {
+        return ViewType.create(SHIP_WARBIRD, ed);
+    }
+    public static ViewType ship_javelin(EntityData ed) {
+        return ViewType.create(SHIP_JAVELIN, ed);
+    }
+    public static ViewType ship_spider(EntityData ed) {
+        return ViewType.create(SHIP_SPIDER, ed);
+    }
+    public static ViewType ship_levi(EntityData ed) {
+        return ViewType.create(SHIP_LEVI, ed);
+    }
+    public static ViewType ship_terrier(EntityData ed) {
+        return ViewType.create(SHIP_TERRIER, ed);
+    }
+    public static ViewType ship_weasel(EntityData ed) {
+        return ViewType.create(SHIP_WEASEL, ed);
+    }
+    public static ViewType ship_lanc(EntityData ed) {
+        return ViewType.create(SHIP_LANCASTER, ed);
+    }
+    public static ViewType ship_shark(EntityData ed) {
+        return ViewType.create(SHIP_SHARK, ed);
     }
 
+    
     public static ViewType gravSphereType(EntityData ed) {
         return ViewType.create(GRAV_SPHERE, ed);
     }

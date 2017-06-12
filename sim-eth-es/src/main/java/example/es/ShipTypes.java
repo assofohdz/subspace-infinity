@@ -26,7 +26,7 @@ public class ShipTypes {
         return ShipType.create(WARBIRD, ed);
     }
 
-    public static ShipType javeling(EntityData ed) {
+    public static ShipType javelin(EntityData ed) {
         return ShipType.create(JAVELIN, ed);
     }
 

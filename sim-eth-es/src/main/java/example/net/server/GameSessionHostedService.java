@@ -71,6 +71,7 @@ import example.es.ShipTypes;
 import example.es.states.AttackProjectileState;
 import example.es.states.ArenaState;
 import example.es.states.ServerMapState;
+import example.es.states.ShipState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
@@ -242,7 +243,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.shipDriver = new ShipDriver();
 
             //TODO: Let player choose the ship
-            this.shipEntity = GameEntities.createShip(playerEntity, ShipTypes.SHARK, ed);
+            this.shipEntity = GameEntities.createShip(playerEntity, ed);
 
             // Set the ship driver directly on the Body.  This could
             // also have been managed with a component-based system but 
@@ -326,6 +327,15 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
             
             gameSystems.get(ServerMapState.class).editMap(x, y);
+        }
+
+        @Override
+        public void chooseShip(byte ship) {
+            if (log.isTraceEnabled()) {
+                log.trace("Choose ship:"+ship);
+            }
+            
+            gameSystems.get(ShipState.class).requestShipChange(shipEntity, ship);
         }
     }
 }

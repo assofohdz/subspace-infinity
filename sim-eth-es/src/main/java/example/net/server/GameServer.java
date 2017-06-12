@@ -75,6 +75,7 @@ import example.es.states.HealthState;
 import example.es.states.ArenaState;
 import example.es.states.GravityState;
 import example.es.states.ServerMapState;
+import example.es.states.ShipState;
 import example.es.states.WarpState;
 import example.sim.*;
 
@@ -165,6 +166,8 @@ public class GameServer {
         systems.register(WarpState.class, new WarpState());
         //Add system to enable delayed component logic
         systems.register(DelayState.class, new DelayState());
+        //Add system to keep track of ships:
+        systems.register(ShipState.class, new ShipState());
         
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

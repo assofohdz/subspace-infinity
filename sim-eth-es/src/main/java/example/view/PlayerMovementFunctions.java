@@ -55,6 +55,7 @@ public class PlayerMovementFunctions {
 
     public static final String G_MOVEMENT = "Movement";
     public static final String G_MAP = "Map";
+    public static final String G_SHIPSELECTION = "Ship";
 
     public static final FunctionId F_THRUST = new FunctionId(G_MOVEMENT, "Thrust");
 
@@ -75,6 +76,15 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, "GravBomb");
     public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, "Repel");
     public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, "Mine");
+    
+    public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, "Warbird");
+    public static final FunctionId F_JAVELIN = new FunctionId(G_SHIPSELECTION, "Javelin");
+    public static final FunctionId F_SPIDER = new FunctionId(G_SHIPSELECTION, "Spider");
+    public static final FunctionId F_LEVI = new FunctionId(G_SHIPSELECTION, "Leviathan");
+    public static final FunctionId F_TERRIER = new FunctionId(G_SHIPSELECTION, "Terrier");
+    public static final FunctionId F_LANC = new FunctionId(G_SHIPSELECTION, "Lancaster");
+    public static final FunctionId F_WEASEL = new FunctionId(G_SHIPSELECTION, "Weasel");
+    public static final FunctionId F_SHARK = new FunctionId(G_SHIPSELECTION, "Shark");
 
     public static void initializeDefaultMappings(InputMapper inputMapper) {
 
@@ -121,6 +131,33 @@ public class PlayerMovementFunctions {
         if (!inputMapper.hasMappings(F_GRAVBOMB)) {
             inputMapper.map(F_GRAVBOMB, KeyInput.KEY_LSHIFT);
         }
-
+        
+        /**
+         * Ship selection keys
+         */
+        if (!inputMapper.hasMappings(F_WARBIRD)) {
+            inputMapper.map(F_WARBIRD, KeyInput.KEY_1);
+        }
+        if (!inputMapper.hasMappings(F_JAVELIN)) {
+            inputMapper.map(F_JAVELIN, KeyInput.KEY_2);
+        }
+        if (!inputMapper.hasMappings(F_SPIDER)) {
+            inputMapper.map(F_SPIDER, KeyInput.KEY_3);
+        }
+        if (!inputMapper.hasMappings(F_LEVI)) {
+            inputMapper.map(F_LEVI, KeyInput.KEY_4);
+        }
+        if (!inputMapper.hasMappings(F_TERRIER)) {
+            inputMapper.map(F_TERRIER, KeyInput.KEY_5);
+        }
+        if (!inputMapper.hasMappings(F_WEASEL)) {
+            inputMapper.map(F_WEASEL, KeyInput.KEY_6);
+        }
+        if (!inputMapper.hasMappings(F_LANC)) {
+            inputMapper.map(F_LANC, KeyInput.KEY_7);
+        }
+        if (!inputMapper.hasMappings(F_SHARK)) {
+            inputMapper.map(F_SHARK, KeyInput.KEY_8);
+        }
     }
 }

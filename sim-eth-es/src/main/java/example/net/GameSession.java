@@ -83,4 +83,7 @@ public interface GameSession {
     @Asynchronous(reliable = false)
     public void editMap(double x, double y);
 
+    @Asynchronous(reliable = false)
+    public void chooseShip(byte ship);
+    
 }

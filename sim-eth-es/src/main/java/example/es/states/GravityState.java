@@ -160,8 +160,7 @@ public class GravityState extends AbstractGameSystem {
 
             bodyFixture.setUserData(e.getId());
             bodyFixture.setSensor(true);
-            //bodyFixture.setFilter(CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY);
-            //b.setBullet(true);
+            bodyFixture.setFilter(CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY);
 
             b.addFixture(bodyFixture);
             

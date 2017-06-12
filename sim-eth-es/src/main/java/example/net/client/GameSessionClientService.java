@@ -164,6 +164,14 @@ public class GameSessionClientService extends AbstractClientService
         getDelegate().editMap(x, y); 
     }
 
+    @Override
+    public void chooseShip(byte ship) {
+        if (log.isTraceEnabled()) {
+            log.trace("choose ship: "+ship);
+        }
+        getDelegate().chooseShip(ship);
+    }
+
     /**
      * Shared with the server over RMI so that it can notify us about account
      * related stuff.

@@ -52,10 +52,7 @@ public class SISpatialFactory implements ModelFactory {
     @Override
     public Spatial createModel(Entity e) {
         ViewType type = e.get(ViewType.class);
-        if (ViewTypes.SHIP.equals(type.getTypeName(ed))) {
-            //Right now, only the shark is supported
-            return createShip();
-        } else if (ViewTypes.THRUST.equals(type.getTypeName(ed))) {
+        if (ViewTypes.THRUST.equals(type.getTypeName(ed))) {
             //Create a particle emitter:
             return createParticleEmitter(e);
         } else if (ViewTypes.BULLET.equals(type.getTypeName(ed))) {
@@ -88,12 +85,28 @@ public class SISpatialFactory implements ModelFactory {
             return createRepel(e);
         } else if (ViewTypes.OVER2.equals(type.getTypeName(ed))) {
             return createOver2(e);
+        } else if (ViewTypes.SHIP_WARBIRD.equals(type.getTypeName(ed))) {
+            return createShip(1);
+        } else if (ViewTypes.SHIP_JAVELIN.equals(type.getTypeName(ed))) {
+            return createShip(2);
+        } else if (ViewTypes.SHIP_SPIDER.equals(type.getTypeName(ed))) {
+            return createShip(3);
+        } else if (ViewTypes.SHIP_LEVI.equals(type.getTypeName(ed))) {
+            return createShip(4);
+        } else if (ViewTypes.SHIP_TERRIER.equals(type.getTypeName(ed))) {
+            return createShip(5);
+        } else if (ViewTypes.SHIP_WEASEL.equals(type.getTypeName(ed))) {
+            return createShip(6);
+        } else if (ViewTypes.SHIP_LANCASTER.equals(type.getTypeName(ed))) {
+            return createShip(7);
+        } else if (ViewTypes.SHIP_SHARK.equals(type.getTypeName(ed))) {
+            return createShip(8);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
     }
 
-    private Spatial createShip() {
+    private Spatial createShip(int ship) {
         Quad quad = new Quad(ViewConstants.SHIPSIZE, ViewConstants.SHIPSIZE);
         //<-- Move into the material?
         float halfSize = ViewConstants.SHIPSIZE * 0.5f;
@@ -106,6 +119,34 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Ship", quad);
         Material mat = assets.loadMaterial("Materials/ShipMaterial.j3m");
+
+        switch (ship) {
+            case 1:
+                mat.setInt("numTilesOffsetY", 31);
+                break;
+            case 2:
+                mat.setInt("numTilesOffsetY", 27);
+                break;
+            case 3:
+                mat.setInt("numTilesOffsetY", 23);
+                break;
+            case 4:
+                mat.setInt("numTilesOffsetY", 19);
+                break;
+            case 5:
+                mat.setInt("numTilesOffsetY", 15);
+                break;
+            case 6:
+                mat.setInt("numTilesOffsetY", 11);
+                break;
+            case 7:
+                mat.setInt("numTilesOffsetY", 7);
+                break;
+            case 8:
+                mat.setInt("numTilesOffsetY", 3);
+                break;
+        }
+
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
@@ -115,6 +156,7 @@ public class SISpatialFactory implements ModelFactory {
     private Spatial createParticleEmitter(Entity e) {
         Spatial result = null;
         ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); //will be overriden in switch
+
         switch (e.get((ViewType.class)).getTypeName(ed)) {
             //Create a thrust particle emitter
             case ViewTypes.THRUST:
@@ -260,13 +302,13 @@ public class SISpatialFactory implements ModelFactory {
         Material mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
 
         //mat.setColor("Color", ColorRGBA.Yellow);
-        
         Image image = clientMapState.getImage(e.getId());
-        TileInfo ti = e.get(TileInfo.class);
+        TileInfo ti = e.get(TileInfo.class
+        );
         if (image == null) {
-            throw new RuntimeException("Image not loaded for tile: "+ti);
+            throw new RuntimeException("Image not loaded for tile: " + ti);
         }
-        
+
         Texture2D tex2D = new Texture2D(image);
         mat.setTexture("ColorMap", tex2D);
 

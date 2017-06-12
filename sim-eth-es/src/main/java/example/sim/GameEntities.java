@@ -66,13 +66,13 @@ public class GameEntities {
 
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
-    public static EntityId createShip(EntityId parent, String shipType, EntityData ed) {
+    public static EntityId createShip(EntityId parent, EntityData ed) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
         ed.setComponents(result,
-                ViewTypes.ship(ed),
-                ShipType.create(shipType, ed),
+                ViewTypes.ship_warbird(ed),
+                ShipTypes.warbird(ed),
                 PhysicsMassTypes.normal(ed),
                 new PhysicsShape(new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS)), CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS)); //for Dyn4j physics
 
