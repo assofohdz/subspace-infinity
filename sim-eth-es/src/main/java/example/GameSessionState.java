@@ -58,13 +58,15 @@ import example.net.client.GameSessionClientService;
 import example.net.chat.ChatSessionListener;
 import example.net.chat.client.ChatClientService;
 import example.view.CameraState;
-import example.view.ClientMapState;
+import example.view.FlagStateClient;
+import example.view.MapStateClient;
 import example.view.HudLabelState;
 import example.view.MapEditorState;
 import example.view.ModelViewState;
 import example.view.PlayerListState;
 import example.view.PlayerMovementState;
 import example.view.SISpatialFactory;
+import example.view.ShipFrequencyStateClient;
 import example.view.SkyState;
 import example.view.SpaceGridState;
 
@@ -93,12 +95,14 @@ public class GameSessionState extends CompositeAppState {
         // add normal states on the super-constructor
         super(new MessageState(),
               new TimeState(), // Has to be before any visuals that might need it.
-              new ClientMapState(),
+              new MapStateClient(),
               new SkyState(),
               new PlayerMovementState(),
               new CameraState(),
               new HudLabelState(),
               new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+              new ShipFrequencyStateClient(),
+              new FlagStateClient(),
               new ModelViewState(new SISpatialFactory())
               //new MapEditorState()
               ); 

@@ -106,7 +106,7 @@ public class BasicEnvironment extends AbstractGameSystem {
         }
         */
         
-        GameEntities.createWormhole(new Vec3d(-10,10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-512,512,0), ed);
+        GameEntities.createWormhole(new Vec3d(-10,10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-512,700,0), ed);
         
     }
 

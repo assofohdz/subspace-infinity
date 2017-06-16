@@ -98,6 +98,7 @@ public class ModelViewState extends BaseAppState {
     private ModelContainer models;
     private SISpatialFactory factory;
     private Spatial playerSpatial;
+    private EntityId localPlayerEntityId;
 
     public Spatial getModel(EntityId id) {
         return modelIndex.get(id);
@@ -269,10 +270,10 @@ public class ModelViewState extends BaseAppState {
         return result;
     }
 
-    protected Spatial createModel(Entity entity, boolean forceUpdate) {
+    protected Spatial createModel(Entity entity) {
         // Check to see if one already exists
         Spatial result = modelIndex.get(entity.getId());
-        if (result != null && !forceUpdate) {
+        if (result != null) {
             return result;
         }
 
@@ -280,6 +281,10 @@ public class ModelViewState extends BaseAppState {
         ViewType type = entity.get(ViewType.class);
         String typeName = type.getTypeName(ed);
         switch (typeName) {
+            case ViewTypes.FLAG_OURS:
+            case ViewTypes.FLAG_THEIRS:
+                result = createFlag(entity);
+                break;
             case ViewTypes.SHIP_SHARK:
             case ViewTypes.SHIP_WARBIRD:
             case ViewTypes.SHIP_JAVELIN:
@@ -455,6 +460,19 @@ public class ModelViewState extends BaseAppState {
         return result;
     }
 
+    private Spatial createFlag(Entity entity) {
+        //Node information:
+        Node result = new Node("flag:" + entity.getId());
+        result.setUserData("flagId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        Spatial flag = factory.createModel(entity);
+        result.attachChild(flag);
+
+        return result;
+    }
+
     private class Mob {
 
         Entity entity;
@@ -467,7 +485,7 @@ public class ModelViewState extends BaseAppState {
         public Mob(Entity entity) {
             this.entity = entity;
 
-            this.spatial = createModel(entity, false); //createShip(entity);
+            this.spatial = createModel(entity); //createShip(entity);
             //modelRoot.attachChild(spatial);
 
             BodyPosition bodyPos = entity.get(BodyPosition.class);
@@ -482,7 +500,9 @@ public class ModelViewState extends BaseAppState {
             // shown else it looks bad.  A) it's ugly.  B) the model will
             // always lag the player's turning.
             if (entity.getId().getId() == getState(GameSessionState.class).getShipId().getId()) {
+
                 this.localPlayerShip = true;
+                localPlayerEntityId = entity.getId();
 
                 //To let the camerastate known which spatial is the player
                 playerSpatial = spatial;
@@ -511,6 +531,28 @@ public class ModelViewState extends BaseAppState {
             updateModel(spatial, entity, false);
 
             if (this.localPlayerShip) {
+                ViewType type = entity.get(ViewType.class);
+                int i = 0;
+                if (ViewTypes.SHIP_WARBIRD.equals(type.getTypeName(ed))) {
+                    i = 31;
+                } else if (ViewTypes.SHIP_JAVELIN.equals(type.getTypeName(ed))) {
+                    i = 27;
+                } else if (ViewTypes.SHIP_SPIDER.equals(type.getTypeName(ed))) {
+                    i = 23;
+                } else if (ViewTypes.SHIP_LEVI.equals(type.getTypeName(ed))) {
+                    i = 19;
+                } else if (ViewTypes.SHIP_TERRIER.equals(type.getTypeName(ed))) {
+                    i = 15;
+                } else if (ViewTypes.SHIP_WEASEL.equals(type.getTypeName(ed))) {
+                    i = 11;
+                } else if (ViewTypes.SHIP_LANCASTER.equals(type.getTypeName(ed))) {
+                    i = 7;
+                } else if (ViewTypes.SHIP_SHARK.equals(type.getTypeName(ed))) {
+                    i = 3;
+                }
+
+                factory.setShipMaterialVariables(playerSpatial, i);
+                /*
                 Spatial tempSpatial = this.spatial;
 
                 this.spatial = createShip(entity);
@@ -519,8 +561,9 @@ public class ModelViewState extends BaseAppState {
                 // Add it to the index
                 modelIndex.put(entity.getId(), spatial);
                 modelRoot.attachChild(spatial);
-                
+
                 tempSpatial.removeFromParent();
+                 */
             }
         }
 
@@ -592,7 +635,7 @@ public class ModelViewState extends BaseAppState {
         @Override
         protected Spatial addObject(Entity e) {
             //System.out.println("ModelContainer.addObject(" + e + ")");
-            Spatial result = createModel(e, false);
+            Spatial result = createModel(e);
             updateObject(result, e);
             return result;
         }
@@ -610,6 +653,10 @@ public class ModelViewState extends BaseAppState {
             }
         }
 
+    }
+
+    public EntityId getPlayerEntityId() {
+        return localPlayerEntityId;
     }
 
     public Spatial getPlayerSpatial() {
@@ -641,5 +688,18 @@ public class ModelViewState extends BaseAppState {
 
     public ModelViewState(SISpatialFactory siSpatialFactory) {
         this.factory = siSpatialFactory;
+    }
+
+    /**
+     * Updates the flag model to show if local player frequency owns it
+     *
+     * @param flagEntity the flag entity
+     * @param teamFlag boolean indicating if this client owns it
+     */
+    public void updateFlagModel(Entity flagEntity, boolean teamFlag) {
+        Spatial tempSpatial = modelIndex.get(flagEntity.getId());
+        if (tempSpatial != null) {
+            factory.setFlagMaterialVariables(tempSpatial, teamFlag ? 0 : 1);
+        }
     }
 }

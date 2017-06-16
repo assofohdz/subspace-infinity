@@ -15,7 +15,7 @@ import example.es.ViewTypes;
  *
  * @author Asser
  */
-public class ShipState extends AbstractGameSystem {
+public class GateState extends AbstractGameSystem {
 
     private Ships shipContainer;
     private EntityData ed;

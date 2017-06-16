@@ -35,7 +35,7 @@ public class PhysicsMassTypes {
      * Indicates that the mass is normal, but we want CCD enabled
      */
     public static final String NORMAL_BULLET = "Normal_bullet";
-    
+
     public static PhysicsMassType normal(EntityData ed) {
         return PhysicsMassType.create(NORMAL, ed);
     }
@@ -52,7 +52,8 @@ public class PhysicsMassTypes {
         return PhysicsMassType.create(FIXED_LINEAR_VELOCITY, ed);
     }
 
-    public static PhysicsMassType normal_bullet(EntityData ed){
+    public static PhysicsMassType normal_bullet(EntityData ed) {
         return PhysicsMassType.create(NORMAL_BULLET, ed);
     }
+
 }

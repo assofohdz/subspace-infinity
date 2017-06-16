@@ -21,7 +21,7 @@ import org.dyn4j.geometry.Vector2;
  *
  * @author Asser
  */
-public class ServerMapState extends AbstractGameSystem {
+public class MapStateServer extends AbstractGameSystem {
 
     private TMXMapReader reader;
     private EntityData ed;
@@ -58,7 +58,7 @@ public class ServerMapState extends AbstractGameSystem {
                 short s = tiles[xpos][ypos];
                 if (s != 0) {
                     //TODO: Check on the short and only create the map tiles, not the extras (asteroids, wormholes etc.)
-                    /*
+/*  TILE    STATUS
                     Row 2, tile 1 - Border tile
                     Row 9, tile 10 - Vertical warpgate (Mostly open)
                     Row 9, tile 11 - Vertical warpgate (Frequently open)
@@ -68,7 +68,7 @@ public class ServerMapState extends AbstractGameSystem {
                     Row 9, tile 15 - Horizontal warpgate (Frequently open)
                     Row 9, tile 16 - Horizontal warpgate (Frequently closed)
                     Row 9, tile 17 - Horizontal warpgate (Mostly closed)
-                    Row 9, tile 18 - Flag for turf
+     170    DONE    Row 9, tile 18 - Flag for turf
                     Row 9, tile 19 - Safezone
                     Row 10, tile 1 - Soccer goal (leave blank if you want)
                     Row 10, tile 2 - Flyover tile
@@ -92,6 +92,10 @@ public class ServerMapState extends AbstractGameSystem {
                      */
                     Vec3d location = new Vec3d(xpos, -ypos, 0).add(arenaOffset);
                     switch (s) {
+                        case 170:
+                            //Turf flag
+                            GameEntities.createCaptureTheFlag(location, ed);
+                            break;
                         case 216:
                             GameEntities.createOver1(location, ed);
                             break;

@@ -17,6 +17,7 @@ public class ViewConstants {
     public final static float BOUNTYSIZE = 1f;
     public final static float SHIPSIZE = 2f;
     public final static float MAPTILESIZE = 1f;
+    public final static float FLAGSIZE = 1;
     
     
     public final static float EXPLOSION2SIZE = 2f;

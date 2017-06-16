@@ -23,6 +23,7 @@ public class PhysicsConstants {
     public final static double OVER5SIZERADIUS = 0.1;
     public final static double OVER1SIZERADIUS = 0.5;
     public final static double OVER2SIZERADIUS = 1;
+    public final static double FLAGSIZERADIUS = 0.5;
     
     //Weights
     public final static double SHIPMASS = 50;

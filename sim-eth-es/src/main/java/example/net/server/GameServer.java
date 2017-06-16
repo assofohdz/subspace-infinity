@@ -73,9 +73,10 @@ import example.es.states.DecayState;
 import example.es.states.DelayState;
 import example.es.states.HealthState;
 import example.es.states.ArenaState;
+import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
-import example.es.states.ServerMapState;
-import example.es.states.ShipState;
+import example.es.states.MapStateServer;
+import example.es.states.ShipFrequencyStateServer;
 import example.es.states.WarpState;
 import example.sim.*;
 
@@ -159,7 +160,7 @@ public class GameServer {
         //Add system to arenas
         systems.register(ArenaState.class, new ArenaState());
         //Add system to handle maps and tilesets
-        systems.register(ServerMapState.class, new ServerMapState());
+        systems.register(MapStateServer.class, new MapStateServer());
         //Add system to keep track of wormholes
         systems.register(GravityState.class, new GravityState());
         //Add system to keep track of warping
@@ -167,7 +168,9 @@ public class GameServer {
         //Add system to enable delayed component logic
         systems.register(DelayState.class, new DelayState());
         //Add system to keep track of ships:
-        systems.register(ShipState.class, new ShipState());
+        systems.register(ShipFrequencyStateServer.class, new ShipFrequencyStateServer());
+        //Add system to keep track of flags and their frequency
+        systems.register(FlagStateServer.class, new FlagStateServer());
         
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
@@ -208,6 +211,10 @@ public class GameServer {
         Serializer.registerClass(SphereShape.class, new FieldSerializer());
         
         Serializer.registerClass(TileInfo.class, new FieldSerializer());
+        
+        Serializer.registerClass(ShipType.class, new FieldSerializer());
+        Serializer.registerClass(Frequency.class, new FieldSerializer());
+        Serializer.registerClass(Flag.class, new FieldSerializer());
     }
 
     public Server getServer() {

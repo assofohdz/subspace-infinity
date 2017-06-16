@@ -28,7 +28,7 @@ import tiled.core.Map;
  *
  * @author Asser
  */
-public class ClientMapState extends BaseAppState {
+public class MapStateClient extends BaseAppState {
 
     private TMXMapReader reader;
     private Map map;
@@ -77,7 +77,7 @@ public class ClientMapState extends BaseAppState {
     @Override
     protected void onEnable() {
 
-        tileImages = new ClientMapState.BodyContainer(ed);
+        tileImages = new MapStateClient.BodyContainer(ed);
         tileImages.start();
     }
 

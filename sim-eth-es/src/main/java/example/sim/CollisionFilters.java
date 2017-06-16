@@ -21,8 +21,9 @@ public class CollisionFilters {
     private static final long COLLISION_CATEGORY_DYNAMICS_PLAYERS = 4;
     private static final long COLLISION_CATEGORY_DYNAMICS_PROJECTILES = 8;
     private static final long COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS = 16;
+    private static final long COLLISION_CATEGORY_SENSOR_FLAGS = 32;
     private static final long COLLISION_CATEGORY_ALL = Long.MAX_VALUE;
-    
+
     /**
      * Static bodies collides with all dynamics
      */
@@ -30,26 +31,33 @@ public class CollisionFilters {
             COLLISION_CATEGORY_DYNAMICS_PLAYERS | COLLISION_CATEGORY_DYNAMICS_PROJECTILES | COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS);
 
     /**
-     * Gravities collidie with all dynamics 
+     * Gravities collides with all dynamics
      */
     public static final CategoryFilter FILTER_CATEGORY_STATIC_GRAVITY = new CategoryFilter(COLLISION_CATEGORY_STATIC_GRAVITY,
             COLLISION_CATEGORY_DYNAMICS_PLAYERS | COLLISION_CATEGORY_DYNAMICS_PROJECTILES | COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS);
-    
+
     /**
      * Dynamic players collide with everything except other players
      */
     public static final CategoryFilter FILTER_CATEGORY_DYNAMIC_PLAYERS = new CategoryFilter(COLLISION_CATEGORY_DYNAMICS_PLAYERS,
-            COLLISION_CATEGORY_STATIC_GRAVITY | COLLISION_CATEGORY_DYNAMICS_PROJECTILES | COLLISION_CATEGORY_STATIC_BODIES | COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS);
-    
+            COLLISION_CATEGORY_STATIC_GRAVITY | COLLISION_CATEGORY_DYNAMICS_PROJECTILES | COLLISION_CATEGORY_STATIC_BODIES | COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS |
+            COLLISION_CATEGORY_SENSOR_FLAGS);
+
     /**
      * Dynamic projectiles collide with everything except other projectiles
      */
     public static final CategoryFilter FILTER_CATEGORY_DYNAMIC_PROJECTILES = new CategoryFilter(COLLISION_CATEGORY_DYNAMICS_PROJECTILES,
             COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS | COLLISION_CATEGORY_DYNAMICS_PLAYERS | COLLISION_CATEGORY_STATIC_GRAVITY | COLLISION_CATEGORY_STATIC_BODIES);
-    
+
     /**
      * Dynamic map objects collide with everything
      */
     public static final CategoryFilter FILTER_CATEGORY_DYNAMIC_MAPOBJECTS = new CategoryFilter(COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS,
             COLLISION_CATEGORY_ALL);
+
+    /**
+     * Flags collide only with players
+     */
+    public static final CategoryFilter FILTER_CATEGORY_SENSOR_FLAGS = new CategoryFilter(COLLISION_CATEGORY_SENSOR_FLAGS,
+            COLLISION_CATEGORY_DYNAMICS_PLAYERS);
 }

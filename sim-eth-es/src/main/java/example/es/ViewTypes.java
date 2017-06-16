@@ -33,36 +33,44 @@ public class ViewTypes {
     public static final String WORMHOLE = "wormhole";
     public static final String WARP = "warp";
     public static final String REPEL = "repel";
+    public static final String FLAG_OURS = "flag_ours";
+    public static final String FLAG_THEIRS = "flag_theirs";
 
     /*
     The different ships
-    */
+     */
     public static ViewType ship_warbird(EntityData ed) {
         return ViewType.create(SHIP_WARBIRD, ed);
     }
+
     public static ViewType ship_javelin(EntityData ed) {
         return ViewType.create(SHIP_JAVELIN, ed);
     }
+
     public static ViewType ship_spider(EntityData ed) {
         return ViewType.create(SHIP_SPIDER, ed);
     }
+
     public static ViewType ship_levi(EntityData ed) {
         return ViewType.create(SHIP_LEVI, ed);
     }
+
     public static ViewType ship_terrier(EntityData ed) {
         return ViewType.create(SHIP_TERRIER, ed);
     }
+
     public static ViewType ship_weasel(EntityData ed) {
         return ViewType.create(SHIP_WEASEL, ed);
     }
+
     public static ViewType ship_lanc(EntityData ed) {
         return ViewType.create(SHIP_LANCASTER, ed);
     }
+
     public static ViewType ship_shark(EntityData ed) {
         return ViewType.create(SHIP_SHARK, ed);
     }
 
-    
     public static ViewType gravSphereType(EntityData ed) {
         return ViewType.create(GRAV_SPHERE, ed);
     }
@@ -110,16 +118,24 @@ public class ViewTypes {
     public static ViewType over1(EntityData ed) {
         return ViewType.create(OVER1, ed);
     }
-    
-    public static ViewType warp(EntityData ed){
+
+    public static ViewType warp(EntityData ed) {
         return ViewType.create(WARP, ed);
     }
-    
-    public static ViewType repel(EntityData ed){
+
+    public static ViewType repel(EntityData ed) {
         return ViewType.create(REPEL, ed);
     }
-    
-    public static ViewType over2(EntityData ed){
+
+    public static ViewType over2(EntityData ed) {
         return ViewType.create(OVER2, ed);
+    }
+    
+    public static ViewType flag_ours(EntityData ed){
+        return ViewType.create(FLAG_OURS, ed);
+    }
+    
+    public static ViewType flag_theirs(EntityData ed){
+        return ViewType.create(FLAG_THEIRS, ed);
     }
 }

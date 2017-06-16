@@ -70,8 +70,8 @@ import example.es.Position;
 import example.es.ShipTypes;
 import example.es.states.AttackProjectileState;
 import example.es.states.ArenaState;
-import example.es.states.ServerMapState;
-import example.es.states.ShipState;
+import example.es.states.MapStateServer;
+import example.es.states.ShipFrequencyStateServer;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
@@ -326,7 +326,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("Map edit");
             }
             
-            gameSystems.get(ServerMapState.class).editMap(x, y);
+            gameSystems.get(MapStateServer.class).editMap(x, y);
         }
 
         @Override
@@ -335,7 +335,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("Choose ship:"+ship);
             }
             
-            gameSystems.get(ShipState.class).requestShipChange(shipEntity, ship);
+            gameSystems.get(ShipFrequencyStateServer.class).requestShipChange(shipEntity, ship);
         }
     }
 }

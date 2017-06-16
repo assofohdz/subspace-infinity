@@ -7,6 +7,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
@@ -33,7 +34,7 @@ public class SISpatialFactory implements ModelFactory {
     private EffectFactory ef;
 
     private ModelViewState state;
-    private ClientMapState clientMapState;
+    private MapStateClient clientMapState;
 
     public SISpatialFactory() {
     }
@@ -46,7 +47,7 @@ public class SISpatialFactory implements ModelFactory {
 
         this.assets.registerLoader(AWTLoader.class, "bm2");
 
-        this.clientMapState = state.getApplication().getStateManager().getState(ClientMapState.class);
+        this.clientMapState = state.getApplication().getStateManager().getState(MapStateClient.class);
     }
 
     @Override
@@ -86,24 +87,65 @@ public class SISpatialFactory implements ModelFactory {
         } else if (ViewTypes.OVER2.equals(type.getTypeName(ed))) {
             return createOver2(e);
         } else if (ViewTypes.SHIP_WARBIRD.equals(type.getTypeName(ed))) {
-            return createShip(1);
+            return createShip(31);
         } else if (ViewTypes.SHIP_JAVELIN.equals(type.getTypeName(ed))) {
-            return createShip(2);
+            return createShip(27);
         } else if (ViewTypes.SHIP_SPIDER.equals(type.getTypeName(ed))) {
-            return createShip(3);
+            return createShip(23);
         } else if (ViewTypes.SHIP_LEVI.equals(type.getTypeName(ed))) {
-            return createShip(4);
+            return createShip(19);
         } else if (ViewTypes.SHIP_TERRIER.equals(type.getTypeName(ed))) {
-            return createShip(5);
+            return createShip(15);
         } else if (ViewTypes.SHIP_WEASEL.equals(type.getTypeName(ed))) {
-            return createShip(6);
+            return createShip(11);
         } else if (ViewTypes.SHIP_LANCASTER.equals(type.getTypeName(ed))) {
             return createShip(7);
         } else if (ViewTypes.SHIP_SHARK.equals(type.getTypeName(ed))) {
-            return createShip(8);
+            return createShip(3);
+        } else if (ViewTypes.FLAG_OURS.equals(type.getTypeName(ed))) {
+            return createFlag(0);
+        } else if (ViewTypes.FLAG_THEIRS.equals(type.getTypeName(ed))) {
+            return createFlag(1);
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
+    }
+
+    private Spatial createFlag(int flag) {
+        Quad quad = new Quad(ViewConstants.FLAGSIZE, ViewConstants.FLAGSIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.FLAGSIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Flag", quad);
+        Material mat = assets.loadMaterial("Materials/FlagMaterial.j3m");
+
+        geom.setMaterial(mat);
+        //mat.setInt("numTilesOffsetY", flag);
+        setFlagMaterialVariables(geom, flag);
+
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+
+        return geom;
+    }
+
+    public void setFlagMaterialVariables(Spatial s, int flag) {
+        Geometry geom;
+        if (s instanceof Geometry) {
+            geom = (Geometry) s;
+        } else {
+            geom = (Geometry) ((Node) s).getChild("Flag");
+        }
+
+        Material mat = geom.getMaterial();
+        mat.setInt("numTilesOffsetY", flag);
+        geom.setMaterial(mat);
     }
 
     private Spatial createShip(int ship) {
@@ -120,37 +162,26 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("Ship", quad);
         Material mat = assets.loadMaterial("Materials/ShipMaterial.j3m");
 
-        switch (ship) {
-            case 1:
-                mat.setInt("numTilesOffsetY", 31);
-                break;
-            case 2:
-                mat.setInt("numTilesOffsetY", 27);
-                break;
-            case 3:
-                mat.setInt("numTilesOffsetY", 23);
-                break;
-            case 4:
-                mat.setInt("numTilesOffsetY", 19);
-                break;
-            case 5:
-                mat.setInt("numTilesOffsetY", 15);
-                break;
-            case 6:
-                mat.setInt("numTilesOffsetY", 11);
-                break;
-            case 7:
-                mat.setInt("numTilesOffsetY", 7);
-                break;
-            case 8:
-                mat.setInt("numTilesOffsetY", 3);
-                break;
-        }
-
         geom.setMaterial(mat);
+        setShipMaterialVariables(geom, ship);
+        //mat.setInt("numTilesOffsetY", ship);
+
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         return geom;
+    }
+
+    public void setShipMaterialVariables(Spatial s, int ship) {
+        Geometry geom;
+        if (s instanceof Geometry) {
+            geom = (Geometry) s; //From createShip
+        } 
+        else {
+            geom = (Geometry) ((Node) s).getChild("Ship"); //From ModelViewState
+        }
+        Material mat = geom.getMaterial();
+        mat.setInt("numTilesOffsetY", ship);
+        geom.setMaterial(mat);
     }
 
     private Spatial createParticleEmitter(Entity e) {

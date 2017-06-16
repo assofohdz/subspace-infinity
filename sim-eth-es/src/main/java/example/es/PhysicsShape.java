@@ -13,9 +13,8 @@ public class PhysicsShape implements EntityComponent {
     BodyFixture fixture;
 
     //Doesn't need empty serialization constructor because it will not be sent to client
-    public PhysicsShape(BodyFixture fixture, CategoryFilter collisionFilter) {
+    public PhysicsShape(BodyFixture fixture) {
         this.fixture = fixture;
-        this.fixture.setFilter(collisionFilter);
     }
 
     public BodyFixture getFixture() {

@@ -48,7 +48,9 @@ import com.simsilica.sim.*;
 import example.PhysicsConstants;
 
 import example.es.*;
+import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
+import org.dyn4j.collision.Filter;
 import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
@@ -107,6 +109,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     private SimTime time;
 
     private GravityState gravityState;
+    private FlagStateServer flagState;
 
     public SimplePhysics() {
     }
@@ -154,9 +157,9 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
-
+                
                 // Set it up to be managed by Dyn4j
-                result.addFixture(fixture.getShape());
+                result.addFixture(fixture);
 
                 switch (massType) {
                     case PhysicsMassTypes.FIXED_ANGULAR_VELOCITY:
@@ -175,11 +178,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                         result.setMass(MassType.NORMAL);
                         result.setBullet(true);
                         break;
-                        
                 }
 
-                
-                
                 world.addBody(result);
 
                 // Set it up to be managed by physics
@@ -229,6 +229,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         gravityEntities = ed.getEntities(GravityWell.class);
 
         gravityState = this.getSystem(GravityState.class);
+        flagState = this.getSystem(FlagStateServer.class);
 
     }
 
@@ -335,24 +336,31 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     //Collision detected by the broadphase
     @Override
     public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2) {
+        //Default, keep processing this event
 
-        return true; //Default, keep processing this event
+        return true;
     }
 
     //Collision detected by narrowphase
     @Override
     public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true; //Default, keep processing this event
+        return true;
     }
 
     //Contact manifold created by the manifold solver
     @Override
     public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
+
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
         if (gravityState.isWormholeFixture(fixture1) || gravityState.isWormholeFixture(fixture2)) {
             gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
+            return false;
+        }
+
+        if (flagState.isFlag(one) || flagState.isFlag(two)) {
+            flagState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
             return false;
         }
 
@@ -390,7 +398,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             //TODO: Have gravity state and warpstate listen for body creations instead of relying on same info that SimplePhysics relies on in their containers
             PhysicsShape ps = e.get(PhysicsShape.class);
-            
+
             PhysicsMassType pmt = e.get(PhysicsMassType.class);
 
             // Right now only works for CoG-centered shapes                   
@@ -457,7 +465,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                     b.setAsleep(true); //Clear all forces/torques/velocities
                     b.setAsleep(false);
                 }
-                */
+                 */
                 ed.removeComponent(e.getId(), PhysicsVelocity.class);
             }
         }
