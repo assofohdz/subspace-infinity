@@ -137,6 +137,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_GRAVBOMB,
                 PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
+                PlayerMovementFunctions.F_WARP,
                 PlayerMovementFunctions.F_WARBIRD,
                 PlayerMovementFunctions.F_JAVELIN,
                 PlayerMovementFunctions.F_SPIDER,
@@ -177,6 +178,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_GRAVBOMB,
                 PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
+                PlayerMovementFunctions.F_WARP,
                 PlayerMovementFunctions.F_WARBIRD,
                 PlayerMovementFunctions.F_JAVELIN,
                 PlayerMovementFunctions.F_SPIDER,
@@ -319,6 +321,8 @@ public class PlayerMovementState extends BaseAppState
                 session.chooseShip((byte)7);
             }else if (func == PlayerMovementFunctions.F_SHARK) {
                 session.chooseShip((byte)8);
+            }else if (func == PlayerMovementFunctions.F_WARP) {
+                session.warp();
             }
         }
     }

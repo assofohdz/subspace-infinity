@@ -72,6 +72,7 @@ import example.es.states.AttackProjectileState;
 import example.es.states.ArenaState;
 import example.es.states.MapStateServer;
 import example.es.states.ShipFrequencyStateServer;
+import example.es.states.WarpState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
@@ -336,6 +337,15 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
             
             gameSystems.get(ShipFrequencyStateServer.class).requestShipChange(shipEntity, ship);
+        }
+
+        @Override
+        public void warp() {
+            if (log.isTraceEnabled()) {
+                log.trace("Warp");
+            }
+            
+            gameSystems.get(WarpState.class).requestWarpToCenter(shipEntity);
         }
     }
 }

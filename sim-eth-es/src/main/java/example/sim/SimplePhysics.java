@@ -355,13 +355,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         EntityId two = (EntityId) body2.getUserData();
 
         if (gravityState.isWormholeFixture(fixture1) || gravityState.isWormholeFixture(fixture2)) {
-            gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-            return false;
+            return gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
         }
 
         if (flagState.isFlag(one) || flagState.isFlag(two)) {
-            flagState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-            return false;
+            return flagState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
         }
 
         return true; //Default, keep processing this event

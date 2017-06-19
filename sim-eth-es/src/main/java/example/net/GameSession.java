@@ -74,9 +74,10 @@ public interface GameSession {
      */
     @Asynchronous(reliable = false)
     public void attack(String attackType);
-    
+
     /**
      * Sends information about editing a map tile
+     *
      * @param x x-coordinate
      * @param y y-coordinate
      */
@@ -85,5 +86,7 @@ public interface GameSession {
 
     @Asynchronous(reliable = false)
     public void chooseShip(byte ship);
-    
+
+    @Asynchronous(reliable = false)
+    public void warp();
 }

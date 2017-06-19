@@ -172,6 +172,15 @@ public class GameSessionClientService extends AbstractClientService
         getDelegate().chooseShip(ship);
     }
 
+    @Override
+    public void warp() {
+        
+        if (log.isTraceEnabled()) {
+            log.trace("warp");
+        }
+        getDelegate().warp();
+    }
+
     /**
      * Shared with the server over RMI so that it can notify us about account
      * related stuff.

@@ -8,8 +8,10 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import example.GameConstants;
 import example.es.ArenaId;
 import example.es.Position;
 import example.es.TileInfo;
@@ -22,6 +24,8 @@ import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Rectangle;
 import org.dyn4j.geometry.Vector2;
 import tiled.core.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * State to keep track of different arenas. Arenas are composed of a tileset and
@@ -31,12 +35,12 @@ import tiled.core.Map;
  */
 public class ArenaState extends AbstractGameSystem {
 
-    private TMXMapReader reader;
     private Map map;
     private EntityData ed;
     private EntitySet arenaEntities;
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
+    static Logger log = LoggerFactory.getLogger(ArenaState.class);
 
     @Override
     protected void initialize() {
@@ -61,7 +65,6 @@ public class ArenaState extends AbstractGameSystem {
     @Override
     protected void terminate() {
         //Release reader object
-        reader = null;
         // Release the entity set we grabbed previously
         arenaEntities.release();
         arenaEntities = null;
@@ -69,6 +72,8 @@ public class ArenaState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+        
+        arenaEntities.applyChanges();
     }
 
     @Override

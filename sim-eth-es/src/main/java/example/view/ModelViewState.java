@@ -73,6 +73,7 @@ import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import example.ConnectionState;
+import example.GameConstants;
 import example.GameSessionState;
 import example.Main;
 import example.TimeState;
@@ -163,6 +164,8 @@ public class ModelViewState extends BaseAppState {
         for (Mob mob : mobs.getArray()) {
             mob.updateSpatial(time);
         }
+        
+        //log.info("worldToZone("+playerSpatial.getWorldTranslation()+") ="+GameConstants.ZONE_GRID.worldToZone(new Vec3d(playerSpatial.getWorldTranslation())));
 
     }
 

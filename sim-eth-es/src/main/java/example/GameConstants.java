@@ -83,13 +83,13 @@ public class GameConstants {
     // zones in a player's view, there is considerably more management involved
     // with each new zone, more network messages, etc..  Finding the sweet spot
     // will depend largely on the game.
-    private static final int gridSize = 64;
+    public static final int GRID_SIZE = 64;
     
     /**
      *  The 3D zone grid definition that defines how space is broken
      *  up into network zones.  
      */
-    public static final ZoneGrid ZONE_GRID = new ZoneGrid(gridSize, gridSize, gridSize);
+    public static final ZoneGrid ZONE_GRID = new ZoneGrid(GRID_SIZE, GRID_SIZE, GRID_SIZE);
  
     public static final float MAX_OBJECT_RADIUS = 5;
     
@@ -102,7 +102,7 @@ public class GameConstants {
      *  borders as objects cross zone boundaries.
      */   
     public static final Vec3Bits POSITION_BITS = new Vec3Bits(-MAX_OBJECT_RADIUS, 
-                                                              gridSize + MAX_OBJECT_RADIUS,
+                                                              GRID_SIZE + MAX_OBJECT_RADIUS,
                                                               16);
  
     /** 

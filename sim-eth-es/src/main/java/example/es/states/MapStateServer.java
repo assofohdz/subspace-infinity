@@ -5,15 +5,19 @@ import com.jme3.system.JmeSystem;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import example.GameConstants;
 import example.es.GravityWell;
+import example.es.WarpTo;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.GameEntities;
 import java.util.concurrent.ConcurrentHashMap;
 import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Rectangle;
+import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -27,6 +31,8 @@ public class MapStateServer extends AbstractGameSystem {
     private EntityData ed;
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
+    public static final int MAP_SIZE = 1024;
+    private static final int HALF = 512;
 
     @Override
     protected void initialize() {
@@ -37,11 +43,20 @@ public class MapStateServer extends AbstractGameSystem {
 
         am.registerLoader(LevelLoader.class, "lvl");
 
-        //createEntitiesFromMap(loadMap("Maps/twbd.lvl"), new Vec3d(0,0,0));
-        //createEntitiesFromMap(loadMap("Maps/extreme.lvl"), new Vec3d(-1024,0,0));
-        createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-1024,1024,0));
-        //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,1024,0));
-        
+        createEntitiesFromMap(loadMap("Maps/twbd.lvl"), new Vec3d(0,0,0));
+        //createEntitiesFromMap(loadMap("Maps/extreme.lvl"), new Vec3d(-MAP_SIZE,0,0));
+        //createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
+        //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
+    }
+
+    public Vector2 getCenterOfArena(double currentXCoord, double currentYCoord) {
+        double xArenaCoord = Math.floor(currentXCoord / MAP_SIZE);
+        double yArenaCoord = Math.floor(currentYCoord / MAP_SIZE);
+
+        double centerOfArenaX = currentXCoord < 0 ? xArenaCoord - HALF : xArenaCoord + HALF;
+        double centerOfArenaY = currentYCoord < 0 ? yArenaCoord - HALF : yArenaCoord + HALF;
+
+        return new Vector2(centerOfArenaX, centerOfArenaY);
     }
 
     public LevelFile loadMap(String mapFile) {
@@ -49,7 +64,6 @@ public class MapStateServer extends AbstractGameSystem {
         return map;
     }
 
-    
     public void createEntitiesFromMap(LevelFile map, Vec3d arenaOffset) {
         short[][] tiles = map.getMap();
 
@@ -107,7 +121,7 @@ public class MapStateServer extends AbstractGameSystem {
                             //Station
                             break;
                         case 220:
-                            GameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0,0,0), ed);
+                            GameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
                             break;
                         default:
                             GameEntities.createMapTile(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//

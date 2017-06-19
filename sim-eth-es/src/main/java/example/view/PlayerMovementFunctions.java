@@ -76,6 +76,8 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, "GravBomb");
     public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, "Repel");
     public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, "Mine");
+    public static final FunctionId F_WARP = new FunctionId(G_MOVEMENT, "Warp");
+    
     
     public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, "Warbird");
     public static final FunctionId F_JAVELIN = new FunctionId(G_SHIPSELECTION, "Javelin");
@@ -130,6 +132,10 @@ public class PlayerMovementFunctions {
 
         if (!inputMapper.hasMappings(F_GRAVBOMB)) {
             inputMapper.map(F_GRAVBOMB, KeyInput.KEY_LSHIFT);
+        }
+        
+        if (!inputMapper.hasMappings(F_WARP)) {
+            inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
         }
         
         /**
