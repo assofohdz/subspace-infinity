@@ -97,7 +97,9 @@ public class BodyPositionPublisher extends AbstractGameSystem
     @Override
     public void updateBody(SimpleBody body) {
         BodyPosition pos = ed.getComponent(body.bodyId, BodyPosition.class);
-        pos.addFrame(time.getTime(), body.pos.toVector3f(), body.orientation.toQuaternion(), true);
+        if (pos != null) {
+            pos.addFrame(time.getTime(), body.pos.toVector3f(), body.orientation.toQuaternion(), true);
+        }
     }
 
     @Override
