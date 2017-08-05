@@ -106,9 +106,74 @@ public class SISpatialFactory implements ModelFactory {
             return createFlag(0);
         } else if (ViewTypes.FLAG_THEIRS.equals(type.getTypeName(ed))) {
             return createFlag(1);
+        } else if (ViewTypes.MOB.equals(type.getTypeName(ed))) {
+            return createMob();
+        } else if (ViewTypes.TOWER.equals(type.getTypeName(ed))) {
+            return createTower();
+        } else if (ViewTypes.BASE.equals(type.getTypeName(ed))) {
+            return createBase();
         } else {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
+    }
+    private Spatial createBase() {
+        Quad quad = new Quad(ViewConstants.BASESIZE, ViewConstants.BASESIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.BASESIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Base", quad);
+        Material mat = assets.loadMaterial("Materials/BaseMaterial.j3m");
+        //mat.setColor("Color", ColorRGBA.Yellow);
+        
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+    
+    private Spatial createMob() {
+        Quad quad = new Quad(ViewConstants.MOBSIZE, ViewConstants.MOBSIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.MOBSIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Mob", quad);
+        Material mat = assets.loadMaterial("Materials/MobMaterial.j3m");
+        //mat.setColor("Color", ColorRGBA.Yellow);
+        
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
+    }
+    
+    private Spatial createTower() {
+        Quad quad = new Quad(ViewConstants.TOWERSIZE, ViewConstants.TOWERSIZE);
+        //<-- Move into the material?
+        float halfSize = ViewConstants.TOWERSIZE * 0.5f;
+        quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
+            halfSize, -halfSize, 0,
+            halfSize, halfSize, 0,
+            -halfSize, halfSize, 0
+        });
+        //-->
+        quad.updateBound();
+        Geometry geom = new Geometry("Tower", quad);
+        Material mat = assets.loadMaterial("Materials/TowerMaterial.j3m");
+        //mat.setColor("Color", ColorRGBA.Yellow);
+        
+        geom.setMaterial(mat);
+        geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return geom;
     }
 
     private Spatial createFlag(int flag) {
@@ -167,7 +232,6 @@ public class SISpatialFactory implements ModelFactory {
         //mat.setInt("numTilesOffsetY", ship);
 
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-
         return geom;
     }
 

@@ -91,17 +91,19 @@ public class GravityState extends AbstractGameSystem {
         return gravityFixtures.contains(gravityFixture);
     }
 
-    public void collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
+    public boolean collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
         if (wells.getObject(one) == fixture1) {
             createWormholeForce(one, two, body1, body2, manifold.getPoints().get(0), tpf);
-        }
-
-        if (wells.getObject(two) == fixture2) {
+        } else if (wells.getObject(two) == fixture2) {
             createWormholeForce(two, one, body2, body1, manifold.getPoints().get(0), tpf);
+        } else {
+            return true;
         }
+         
+        return false;
     }
 
     private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body, ManifoldPoint mp, double tpf) {

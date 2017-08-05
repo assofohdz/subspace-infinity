@@ -42,6 +42,7 @@ import java.util.concurrent.*;
 import com.jme3.util.SafeArrayList;
 
 import com.simsilica.es.*;
+import com.simsilica.es.filter.OrFilter;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.*;
@@ -85,6 +86,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private EntityData ed;
     private BodyContainer bodies;
+    private StaticContainer statics;
     private EntitySet forceEntities;
     private EntitySet velocityEntities;
     private EntitySet gravityEntities;
@@ -93,6 +95,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     // items.
     //private SafeArrayList<Body> bodies = new SafeArrayList<>(Body.class);
     private Map<EntityId, SimpleBody> index = new ConcurrentHashMap<>();
+    private Map<EntityId, SimpleBody> indexStatic = new ConcurrentHashMap<>();
     private Map<EntityId, SimpleBody> mapIndex = new ConcurrentHashMap<>();
     private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
 
@@ -128,7 +131,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     }
 
     public SimpleBody getBody(EntityId entityId) {
-        return index.get(entityId);
+        if (index.containsKey(entityId)) {
+            return index.get(entityId);
+        } else {
+            return indexStatic.get(entityId);
+        }
     }
 
     public void setControlDriver(EntityId entityId, ControlDriver driver) {
@@ -157,7 +164,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
                 // Hookup the driver if it has one waiting
                 result.driver = driverIndex.get(entityId);
-                
+
                 // Set it up to be managed by Dyn4j
                 result.addFixture(fixture);
 
@@ -185,6 +192,30 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 // Set it up to be managed by physics
                 toAdd.add(result);
                 index.put(entityId, result);
+            }
+        }
+        return result;
+    }
+
+    protected SimpleBody createStatic(EntityId entityId, String massType, BodyFixture fixture, boolean create) {
+        SimpleBody result = indexStatic.get(entityId);
+        if (result == null && create) {
+            synchronized (this) {
+                result = indexStatic.get(entityId);
+                if (result != null) {
+                    return result;
+                }
+                result = new SimpleBody(entityId);
+
+                // Set it up to be managed by Dyn4j
+                result.addFixture(fixture);
+
+                result.setMass(MassType.INFINITE);
+
+                world.addBody(result);
+
+                // Set it up to be managed by physics
+                indexStatic.put(entityId, result);
             }
         }
         return result;
@@ -273,12 +304,18 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         bodies = new BodyContainer(ed);
         bodies.start();
 
+        statics = new StaticContainer(ed);
+        statics.start();
+
     }
 
     @Override
     public void stop() {
         bodies.stop();
         bodies = null;
+
+        statics.stop();
+        statics = null;
 
     }
 
@@ -293,6 +330,9 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         // Update the entity list       
         bodies.update();
+        statics.update();
+        
+        
         if (forceEntities.applyChanges()) {
             applyForces();
         }
@@ -355,13 +395,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         EntityId two = (EntityId) body2.getUserData();
 
         if (gravityState.isWormholeFixture(fixture1) || gravityState.isWormholeFixture(fixture2)) {
-            gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-            return false;
+            return gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
         }
 
         if (flagState.isFlag(one) || flagState.isFlag(two)) {
-            flagState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-            return false;
+            return flagState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
         }
 
         return true; //Default, keep processing this event
@@ -378,8 +416,14 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
      */
     private class BodyContainer extends EntityContainer<SimpleBody> {
 
+        //Filter for only dynamic objects
         public BodyContainer(EntityData ed) {
-            super(ed, Position.class, PhysicsMassType.class, PhysicsShape.class);
+            super(ed, OrFilter.create(PhysicsMassType.class,
+                    Filters.fieldEquals(PhysicsMassType.class, "type", PhysicsMassTypes.fixedLinearVelocity(ed).getType()),
+                    Filters.fieldEquals(PhysicsMassType.class, "type", PhysicsMassTypes.fixedAngularVelocity(ed).getType()),
+                    Filters.fieldEquals(PhysicsMassType.class, "type", PhysicsMassTypes.normal(ed).getType()),
+                    Filters.fieldEquals(PhysicsMassType.class, "type", PhysicsMassTypes.normal_bullet(ed).getType())),
+                    Position.class, PhysicsMassType.class, PhysicsShape.class);
         }
 
         @Override
@@ -398,13 +442,70 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             //TODO: Have gravity state and warpstate listen for body creations instead of relying on same info that SimplePhysics relies on in their containers
             PhysicsShape ps = e.get(PhysicsShape.class);
-
             PhysicsMassType pmt = e.get(PhysicsMassType.class);
+            Position pos = e.get(Position.class);
 
             // Right now only works for CoG-centered shapes                   
             SimpleBody newBody = createBody(e.getId(), pmt.getTypeName(ed), ps.getFixture(), true);
 
+            newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
+
+            newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position
+            newBody.getTransform().setRotation(pos.getRotation());
+
+            newBody.setUserData(e.getId());
+
+            newBody.setLinearDamping(0.3);
+
+            return newBody;
+        }
+
+        @Override
+        protected void updateObject(SimpleBody object, Entity e) {
+            // We don't support live-updating mass or shape right now
+        }
+
+        @Override
+        protected void removeObject(SimpleBody object, Entity e) {
+            removeBody(e.getId());
+            world.removeBody(object);
+        }
+
+    }
+
+    /**
+     * Maps the appropriate entities to physics bodies.
+     */
+    private class StaticContainer extends EntityContainer<SimpleBody> {
+
+        //Filter for only dynamic objects
+        public StaticContainer(EntityData ed) {
+            super(ed, Filters.fieldEquals(PhysicsMassType.class, "type", PhysicsMassTypes.infinite(ed).getType()),
+                    Position.class, PhysicsMassType.class, PhysicsShape.class);
+        }
+
+        @Override
+        protected SimpleBody[] getArray() {
+            return super.getArray();
+        }
+
+        @Override
+        protected SimpleBody addObject(Entity e) {
+            /**
+             * TODO: A Body flagged as a Bullet will be checked for tunneling
+             * depending on the CCD setting in the world's Settings. Use this if
+             * the body is a fast moving body, but be careful as this will incur
+             * a performance hit.
+             */
+
+            //TODO: Have gravity state and warpstate listen for body creations instead of relying on same info that SimplePhysics relies on in their containers
+            PhysicsShape ps = e.get(PhysicsShape.class);
+            PhysicsMassType pmt = e.get(PhysicsMassType.class);
             Position pos = e.get(Position.class);
+
+            // Right now only works for CoG-centered shapes                   
+            SimpleBody newBody = createStatic(e.getId(), pmt.getTypeName(ed), ps.getFixture(), true);
+
             newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
 
             newBody.getTransform().setTranslation(pos.getLocation().x, pos.getLocation().y); //Dyn4j position

@@ -11,6 +11,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.BodyPosition;
+import example.es.HitPoints;
 import example.es.PhysicsMassType;
 import example.es.PhysicsShape;
 import example.es.Position;
@@ -28,6 +29,7 @@ import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -43,6 +45,7 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
     private SimplePhysics simplePhysics;
     private HashSet<BodyFixture> warpTouchFixtures;
     private Warpers warpers;
+    private EntitySet canWarp;
 
     @Override
     protected void initialize() {
@@ -52,6 +55,8 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
 
         warpTouchEntities = ed.getEntities(WarpTouch.class);
         warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
+        
+        canWarp = ed.getEntities(BodyPosition.class, HitPoints.class);
 
     }
 
@@ -83,6 +88,8 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
 
         //warpTouchEntities.applyChanges();
         warpers.update();
+        
+        canWarp.applyChanges();
 
         if (warpToEntities.applyChanges()) {
             for (Entity e : warpToEntities) {
@@ -182,7 +189,17 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
         public void setWarpFixture(BodyFixture warpFixture) {
             this.warpFixture = warpFixture;
         }
-
+    }
+    
+    public void requestWarpToCenter(EntityId eID)
+    {
+        Transform t = simplePhysics.getBody(eID).getTransform();
+                
+        Vector2 centerOfArena = getSystem(MapStateServer.class).getCenterOfArena(t.getTranslationX(), t.getTranslationY());
+        
+        Vec3d res = new Vec3d(centerOfArena.x, centerOfArena.y, 0);
+        
+        ed.setComponent(eID, new WarpTo(res));
     }
 
     //Entities that upon touched will warp the other body away
@@ -218,6 +235,5 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
         protected void removeObject(WarpFixture object, Entity e) {
 
         }
-
     }
 }

@@ -36,8 +36,8 @@ public class FlagStateServer extends AbstractGameSystem {
         teamFlags = null;
 
     }
-    
-    public boolean isFlag(EntityId flagEntityId){
+
+    public boolean isFlag(EntityId flagEntityId) {
         return teamFlags.getEntityIds().contains(flagEntityId);
     }
 
@@ -54,16 +54,28 @@ public class FlagStateServer extends AbstractGameSystem {
     public void stop() {
     }
 
-    public void collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
+    public boolean collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
-        if (teamFlags.getEntityIds().contains(one)) {
-            int freq = shipState.getFrequency(two);
-            ed.setComponent(one, new Frequency(freq));
-        } else if (teamFlags.getEntityIds().contains(two)) {
-            int freq = shipState.getFrequency(one);
-            ed.setComponent(two, new Frequency(freq));
+        if (isFlag(one)) {
+            int flagFreq = ed.getComponent(one, Frequency.class).getFreq();
+            int shipFreq = shipState.getFrequency(two);
+
+            if (shipFreq != flagFreq) {
+                ed.setComponent(one, new Frequency(shipFreq));
+            }
+
+        } else if (isFlag(two)) {
+            int flagFreq = ed.getComponent(two, Frequency.class).getFreq();
+            int shipFreq = shipState.getFrequency(one);
+
+            if (shipFreq != flagFreq) {
+                ed.setComponent(two, new Frequency(shipFreq));
+            }
+        } else {
+            return true;
         }
+        return false;
     }
 }

@@ -44,6 +44,8 @@ import example.PhysicsConstants;
 
 import example.es.Position;
 import org.dyn4j.geometry.Transform;
+    import org.slf4j.Logger ;
+    import org.slf4j.LoggerFactory ;
 
 /**
  * A physical body in space. These are modeled as a "point mass" in the sense
@@ -67,6 +69,7 @@ public class SimpleBody extends org.dyn4j.dynamics.Body {
 
     public Quatd orientation = new Quatd();
     public volatile ControlDriver driver;
+    static Logger log = LoggerFactory.getLogger(SimpleBody.class);
 
     public SimpleBody(EntityId bodyId) {
         this.bodyId = bodyId;
@@ -99,13 +102,11 @@ public class SimpleBody extends org.dyn4j.dynamics.Body {
     public void syncronizePhysicsBody() {
         // setting 3d velocity based on internal physics 2d velocity
         velocity3d.set(velocity.x, velocity.y, 0.0d);
-        
+
         // setting 3d position based on Dyn4j physics 2d position
         pos.set(transform.getTranslationX() * PhysicsConstants.PHYSICS_SCALE,
                 transform.getTranslationY() * PhysicsConstants.PHYSICS_SCALE,
                 0);
-        
-        
 
         orientation.fromAngles(0, 0, transform.getRotation());
 

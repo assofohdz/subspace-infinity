@@ -354,4 +354,41 @@ public class GameEntities {
 
         return lastFlag;
     }
+    
+    public static EntityId createMob(Vec3d location, EntityData ed){
+        EntityId lastMob = ed.createEntity();
+        
+        Filter filter = CollisionFilters.FILTER_CATEGORY_SENSOR_FLAGS;
+        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.FLAGSIZERADIUS));
+        fixture.setFilter(filter);
+        fixture.setSensor(true);
+        
+        ed.setComponents(lastMob,
+                ViewTypes.mob(ed),
+                new Position(location, new Quatd(), 0f),
+                new PhysicsShape(fixture),
+                PhysicsMassTypes.normal(ed));
+        
+        return lastMob;
+    }
+    
+    public static EntityId createTower(Vec3d location, EntityData ed){
+        EntityId lastTower = ed.createEntity();
+        
+        ed.setComponents(lastTower,
+                ViewTypes.tower(ed),
+                new Position(location, new Quatd(), 0f));
+        
+        return lastTower;
+    }
+    
+    public static EntityId createBase(Vec3d location, EntityData ed){
+        EntityId lastBase = ed.createEntity();
+        
+        ed.setComponents(lastBase, 
+                ViewTypes.base(ed),
+                new Position(location, new Quatd(), 0f));
+        
+        return lastBase;
+    }
 }
