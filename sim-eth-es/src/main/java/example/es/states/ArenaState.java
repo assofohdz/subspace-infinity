@@ -83,6 +83,4 @@ public class ArenaState extends AbstractGameSystem {
     @Override
     public void stop() {
     }
-
-    
 }

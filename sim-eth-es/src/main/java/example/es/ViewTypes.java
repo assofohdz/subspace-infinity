@@ -35,7 +35,24 @@ public class ViewTypes {
     public static final String REPEL = "repel";
     public static final String FLAG_OURS = "flag_ours";
     public static final String FLAG_THEIRS = "flag_theirs";
+    
+    //Will probably need more mob visuals along the way
+    public static final String MOB = "mob";
+    //Will probably need more tower visuals along the way
+    public static final String TOWER = "tower";
+    //Will probably need more tower visuals along the way
+    public static final String BASE = "base";
 
+    public static ViewType base(EntityData ed) {
+        return ViewType.create(BASE, ed);
+    }
+    public static ViewType tower(EntityData ed) {
+        return ViewType.create(TOWER, ed);
+    }
+    
+    public static ViewType mob(EntityData ed) {
+        return ViewType.create(MOB, ed);
+    }
     /*
     The different ships
      */

@@ -97,6 +97,7 @@ public class GameServer {
     private String description;
 
     public GameServer(int port, String description) throws IOException {
+        
         this.description = description;
 
         // Make sure we are running with a fresh serializer registry

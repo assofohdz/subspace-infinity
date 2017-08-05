@@ -1,79 +1,26 @@
-/*
- * $Id$
- * 
- * Copyright (c) 2016, Simsilica, LLC
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
- * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
- *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
- *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package example.view;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.asset.AssetManager;
-import com.jme3.collision.CollisionResult;
-import com.jme3.collision.CollisionResults;
 import com.jme3.math.*;
 import com.jme3.material.Material;
-import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.*;
 import com.jme3.texture.Texture;
-import com.jme3.util.SafeArrayList;
 
 import com.simsilica.lemur.*;
-import com.simsilica.lemur.style.ElementId;
-
-import com.simsilica.ethereal.EtherealClient;
-import com.simsilica.ethereal.SharedObject;
-import com.simsilica.ethereal.SharedObjectListener;
-import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.*;
-import com.simsilica.lemur.event.CursorButtonEvent;
-import com.simsilica.lemur.event.CursorEventControl;
-import com.simsilica.lemur.event.DefaultCursorListener;
-import com.simsilica.lemur.event.DefaultMouseListener;
-import com.simsilica.mathd.Vec3d;
 
 import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import example.ConnectionState;
-import example.GameConstants;
 import example.GameSessionState;
 import example.Main;
 import example.TimeState;
@@ -164,9 +111,8 @@ public class ModelViewState extends BaseAppState {
         for (Mob mob : mobs.getArray()) {
             mob.updateSpatial(time);
         }
-        
-        //log.info("worldToZone("+playerSpatial.getWorldTranslation()+") ="+GameConstants.ZONE_GRID.worldToZone(new Vec3d(playerSpatial.getWorldTranslation())));
 
+        //log.info("worldToZone("+playerSpatial.getWorldTranslation()+") ="+GameConstants.ZONE_GRID.worldToZone(new Vec3d(playerSpatial.getWorldTranslation())));
     }
 
     protected Spatial createShip(Entity entity) {
@@ -180,6 +126,45 @@ public class ModelViewState extends BaseAppState {
         //result.setUserData(LayerComparator.LAYER, 0);
 
         //attachCoordinateAxes(result); //To debug
+        return result;
+    }
+
+    protected Spatial createBase(Entity entity) {
+        //Node information:
+        Node result = new Node("base:" + entity.getId());
+        result.setUserData("baseId", entity.getId().getId());
+
+        //Spatial information:
+        Spatial base = factory.createModel(entity);
+        result.attachChild(base);
+
+        //attachCoordinateAxes(result);
+        return result;
+    }
+
+    protected Spatial createTower(Entity entity) {
+        //Node information:
+        Node result = new Node("tower:" + entity.getId());
+        result.setUserData("towerId", entity.getId().getId());
+
+        //Spatial information:
+        Spatial tower = factory.createModel(entity);
+        result.attachChild(tower);
+
+        //attachCoordinateAxes(result);
+        return result;
+    }
+
+    protected Spatial createMob(Entity entity) {
+        //Node information:
+        Node result = new Node("mob:" + entity.getId());
+        result.setUserData("mobId", entity.getId().getId());
+
+        //Spatial information:
+        Spatial mob = factory.createModel(entity);
+        result.attachChild(mob);
+
+        //attachCoordinateAxes(result);
         return result;
     }
 
@@ -336,6 +321,15 @@ public class ModelViewState extends BaseAppState {
                 break;
             case ViewTypes.OVER2:
                 result = createOver2(entity);
+                break;
+            case ViewTypes.TOWER:
+                result = createTower(entity);
+                break;
+            case ViewTypes.MOB:
+                result = createMob(entity);
+                break;
+            case ViewTypes.BASE:
+                result = createBase(entity);
                 break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
