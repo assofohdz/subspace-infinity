@@ -47,8 +47,10 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
+import com.simsilica.es.Entity;
 
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.core.VersionedHolder;
@@ -65,6 +67,7 @@ import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.state.DebugHudState;
 
 import example.ConnectionState;
+import example.es.Resource;
 import example.es.ProjectileTypes;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;
@@ -92,11 +95,13 @@ public class PlayerMovementState extends BaseAppState
 
     // For now we'll do this here but really we probably want a separate camera state
     private EntityId shipId;
+    private EntitySet es;
     private ModelViewState models;
 
     private Vector3f lastPosition = new Vector3f();
     private VersionedHolder<String> positionDisplay;
     private VersionedHolder<String> speedDisplay;
+    private VersionedHolder<String> goldDisplay;
     private double rotate;
     private InputManager inputManager;
 
@@ -113,7 +118,8 @@ public class PlayerMovementState extends BaseAppState
 
     @Override
     protected void initialize(Application app) {
-
+        
+        
         log.info("initialize()");
 
         if (inputMapper == null) {
@@ -156,12 +162,18 @@ public class PlayerMovementState extends BaseAppState
         }
 
         this.models = getState(ModelViewState.class);
+    this.es = getState(ConnectionState.class).getEntityData().getEntities(Resource.class);
+        
 
         if (getState(DebugHudState.class) != null) {
             DebugHudState debug = getState(DebugHudState.class);
             this.positionDisplay = debug.createDebugValue("Position", DebugHudState.Location.Top);
             this.speedDisplay = debug.createDebugValue("Speed", DebugHudState.Location.Top);
+            this.goldDisplay = debug.createDebugValue("Gold", DebugHudState.Location.Top);
+           
         }
+        
+       
     }
 
     @Override
@@ -220,6 +232,7 @@ public class PlayerMovementState extends BaseAppState
 
         String s = String.format("%.2f, %.2f, %.2f", loc.x, loc.y, loc.z);
         positionDisplay.setObject(s);
+        
 
         long time = System.nanoTime();
         if (lastSpeedTime != 0) {
@@ -235,6 +248,7 @@ public class PlayerMovementState extends BaseAppState
             s = String.format("%.2f", speedAverage);
             speedDisplay.setObject(s);
         }
+        
         lastPosition.set(loc);
         lastSpeedTime = time;
     }
@@ -245,9 +259,17 @@ public class PlayerMovementState extends BaseAppState
     @Override
     public void update(float tpf) {
 
+      
         // Update the camera position from the ship spatial
         Spatial spatial = models.getModel(shipId);
 
+        // Display Gold
+        if (es.applyChanges()){
+            Entity e = es.getEntity(shipId);
+            Resource g = e.get(Resource.class);
+            goldDisplay.setObject(String.valueOf(g.getResources()[0]));
+        }
+        
         long time = System.nanoTime();
         if (time > nextSendTime) {
             nextSendTime = time + sendFrequency;
