@@ -173,6 +173,9 @@ public class GameConstants {
     public final static long GRAVBOMBDELAY = 1000;
     public final static long GRAVBOMBDECAY = 4000;
     public final static double GRAVBOMBWORMHOLEFORCE = 5000;
+    
+    public final static double RESOURCE_UPDATE_INTERVAL = 1;
+    public final static double GOLD_PER_TIME = 10000;
 }
 
 
