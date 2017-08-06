@@ -159,9 +159,14 @@ public class GameConstants {
     
     //Decays
     public final static long BULLETDECAY = 1500;
-    
     public final static long BOUNTYDECAY = 1000;
+    
+    //Health
     public final static int SHIPHEALTH = 100;
+    public final static int BASEHEALTH = 1000;
+    public final static int MOBHEALTH = 100;
+    
+    
     public final static int BOUNTYVALUE = 10;
     public final static int BOUNTYMAXCOUNT = 50;
     

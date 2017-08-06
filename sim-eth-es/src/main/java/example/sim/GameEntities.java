@@ -81,9 +81,9 @@ public class GameEntities {
                 ShipTypes.warbird(ed),
                 PhysicsMassTypes.normal(ed),
                 new PhysicsShape(fixture));
-        
+
         ed.setComponent(result, new Frequency(1));
-        
+
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;
@@ -354,41 +354,58 @@ public class GameEntities {
 
         return lastFlag;
     }
-    
-    public static EntityId createMob(Vec3d location, EntityData ed){
+
+    public static EntityId createMob(Vec3d location, EntityData ed) {
         EntityId lastMob = ed.createEntity();
-        
-        Filter filter = CollisionFilters.FILTER_CATEGORY_SENSOR_FLAGS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.FLAGSIZERADIUS));
+
+        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MOBS;
+        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.MOBSIZERADIUS));
         fixture.setFilter(filter);
-        fixture.setSensor(true);
-        
+        //fixture.setSensor(true);
+
         ed.setComponents(lastMob,
                 ViewTypes.mob(ed),
+                MobTypes.mob1(ed),
                 new Position(location, new Quatd(), 0f),
                 new PhysicsShape(fixture),
-                PhysicsMassTypes.normal(ed));
-        
+                PhysicsMassTypes.normal(ed),
+                new HitPoints(GameConstants.MOBHEALTH));
+
         return lastMob;
     }
-    
-    public static EntityId createTower(Vec3d location, EntityData ed){
+
+    public static EntityId createTower(Vec3d location, EntityData ed) {
         EntityId lastTower = ed.createEntity();
-        
+
+        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_TOWERS;
+        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.TOWERSIZERADIUS));
+        fixture.setFilter(filter);
+        //fixture.setSensor(true);
+
         ed.setComponents(lastTower,
                 ViewTypes.tower(ed),
-                new Position(location, new Quatd(), 0f));
-        
+                new Position(location, new Quatd(), 0f),
+                new PhysicsShape(fixture),
+                PhysicsMassTypes.infinite(ed));
+
         return lastTower;
     }
-    
-    public static EntityId createBase(Vec3d location, EntityData ed){
+
+    public static EntityId createBase(Vec3d location, EntityData ed) {
         EntityId lastBase = ed.createEntity();
-        
-        ed.setComponents(lastBase, 
+
+        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BASE;
+        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.BASESIZERADIUS));
+        fixture.setFilter(filter);
+        //fixture.setSensor(true);
+
+        ed.setComponents(lastBase,
                 ViewTypes.base(ed),
-                new Position(location, new Quatd(), 0f));
-        
+                new Position(location, new Quatd(), 0f),
+                new PhysicsShape(fixture),
+                PhysicsMassTypes.infinite(ed),
+                new HitPoints(GameConstants.BASEHEALTH));
+
         return lastBase;
     }
 }

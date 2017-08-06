@@ -19,11 +19,15 @@ public class PhysicsConstants {
     public final static double BOMBSIZERADIUS = 0.5f;
     public final static double BOUNTYSIZERADIUS = 0.5f;
     public final static double SHIPSIZERADIUS = 1f;
+    public final static double MOBSIZERADIUS = 1f;
+    public final static double TOWERSIZERADIUS = 1f;
+    public final static double BASESIZERADIUS = 2.5f;
     public final static double WORMHOLESIZERADIUS = 0.1;
     public final static double OVER5SIZERADIUS = 0.1;
     public final static double OVER1SIZERADIUS = 0.5;
     public final static double OVER2SIZERADIUS = 1;
     public final static double FLAGSIZERADIUS = 0.5;
+    
     
     //Weights
     public final static double SHIPMASS = 50;
