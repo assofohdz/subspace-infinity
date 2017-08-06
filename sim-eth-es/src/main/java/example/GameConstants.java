@@ -175,7 +175,7 @@ public class GameConstants {
     public final static double GRAVBOMBWORMHOLEFORCE = 5000;
     
     public final static double RESOURCE_UPDATE_INTERVAL = 1;
-    public final static double GOLD_PER_TIME = 10000;
+    public final static double GOLD_PER_SECOND = 10000;
 }
 
 

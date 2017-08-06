@@ -65,6 +65,7 @@ import example.view.MapEditorState;
 import example.view.ModelViewState;
 import example.view.PlayerListState;
 import example.view.PlayerMovementState;
+import example.view.ResourceStateClient;
 import example.view.SISpatialFactory;
 import example.view.ShipFrequencyStateClient;
 import example.view.SkyState;
@@ -103,6 +104,7 @@ public class GameSessionState extends CompositeAppState {
               new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
               new ShipFrequencyStateClient(),
               new FlagStateClient(),
+              new ResourceStateClient(),
               new ModelViewState(new SISpatialFactory())
               //new MapEditorState()
               ); 

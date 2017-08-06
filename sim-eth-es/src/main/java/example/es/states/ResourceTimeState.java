@@ -14,21 +14,20 @@ import example.GameConstants;
 import example.es.Resource;
 import example.es.ShipType;
 
-
 /**
  *
  * @author ss
  */
-public class ResourceTimeState extends AbstractGameSystem{
+public class ResourceTimeState extends AbstractGameSystem {
 
     private EntityData ed;
     private EntitySet eset;
     private double time_since_last_update;
-    
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        this.eset =  this.ed.getEntities(ShipType.class); 
+        this.eset = this.ed.getEntities(ShipType.class);
     }
 
     @Override
@@ -36,29 +35,31 @@ public class ResourceTimeState extends AbstractGameSystem{
         this.eset.release();
         this.eset = null;
     }
-    
+
     @Override
     public void update(SimTime tpf) {
         // only update every RESOURCE_UPDATE_INTERVAL
         System.out.print("update");
-        
-        if (this.time_since_last_update > GameConstants.RESOURCE_UPDATE_INTERVAL){
+
+        if (this.time_since_last_update > GameConstants.RESOURCE_UPDATE_INTERVAL) {
             this.time_since_last_update = 0;
-            
-        
+
             eset.applyChanges();
+            
+            //TPF is in seconds
+            int gold = (int) (tpf.getTpf() * GameConstants.GOLD_PER_SECOND);
+            
+            for (Entity e : this.eset.getAddedEntities()) {
+                this.ed.setComponent(e.getId(), new Resource(new int[]{gold}));
+            }
 
             for (Entity e : this.eset) {
                 Resource g = this.ed.getComponent(e.getId(), Resource.class);
-                if (g == null){
-                    this.ed.setComponent(e.getId(), new Resource( new int[]{(int) ( tpf.getTpf() * GameConstants.GOLD_PER_TIME)}));
-                } else {
-                    this.ed.setComponent(e.getId(), new Resource( new int[]{(int) ( tpf.getTpf() * GameConstants.GOLD_PER_TIME + g.getResources()[0])}));
-                }
+                this.ed.setComponent(e.getId(), new Resource(new int[]{(int) (gold + g.getResources()[0])}));
             }
         }
         // update time
-        this.time_since_last_update +=  tpf.getTpf();
+        this.time_since_last_update += tpf.getTpf();
         System.out.print(this.time_since_last_update);
     }
 
@@ -69,5 +70,5 @@ public class ResourceTimeState extends AbstractGameSystem{
     @Override
     public void stop() {
     }
-    
+
 }

@@ -76,6 +76,7 @@ import example.es.states.ArenaState;
 import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
 import example.es.states.MapStateServer;
+import example.es.states.ResourceTimeState;
 import example.es.states.ShipFrequencyStateServer;
 import example.es.states.WarpState;
 import example.sim.*;
@@ -172,6 +173,8 @@ public class GameServer {
         systems.register(ShipFrequencyStateServer.class, new ShipFrequencyStateServer());
         //Add system to keep track of flags and their frequency
         systems.register(FlagStateServer.class, new FlagStateServer());
+        //Add resources per time system
+        systems.register(ResourceTimeState.class, new ResourceTimeState());
         
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
@@ -216,6 +219,7 @@ public class GameServer {
         Serializer.registerClass(ShipType.class, new FieldSerializer());
         Serializer.registerClass(Frequency.class, new FieldSerializer());
         Serializer.registerClass(Flag.class, new FieldSerializer());
+        Serializer.registerClass(Resource.class, new FieldSerializer());
     }
 
     public Server getServer() {
