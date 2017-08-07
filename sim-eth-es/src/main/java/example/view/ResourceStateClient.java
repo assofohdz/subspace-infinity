@@ -13,7 +13,7 @@ import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.event.BaseAppState;
 import com.simsilica.state.DebugHudState;
 import example.ConnectionState;
-import example.es.Resource;
+import example.es.Gold;
 import example.net.client.GameSessionClientService;
 
 /**
@@ -34,7 +34,7 @@ public class ResourceStateClient extends BaseAppState {
 
         }
 
-        this.resources = getState(ConnectionState.class).getEntityData().getEntities(Resource.class);
+        this.resources = getState(ConnectionState.class).getEntityData().getEntities(Gold.class);
 
         shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getShip();
     }
@@ -60,8 +60,8 @@ public class ResourceStateClient extends BaseAppState {
         // Display Gold
         if (resources.applyChanges()) {
             Entity e = resources.getEntity(shipId);
-            Resource g = e.get(Resource.class);
-            goldDisplay.setObject(String.valueOf(g.getResources()[0]));
+            Gold g = e.get(Gold.class);
+            goldDisplay.setObject(String.valueOf(g.getGold()));
         }
     }
 
