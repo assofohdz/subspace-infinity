@@ -39,7 +39,7 @@ public class ResourceTimeState extends AbstractGameSystem {
     @Override
     public void update(SimTime tpf) {
         // only update every RESOURCE_UPDATE_INTERVAL
-        System.out.print("update");
+        
 
         if (this.time_since_last_update > GameConstants.RESOURCE_UPDATE_INTERVAL) {
             this.time_since_last_update = 0;
@@ -60,7 +60,7 @@ public class ResourceTimeState extends AbstractGameSystem {
         }
         // update time
         this.time_since_last_update += tpf.getTpf();
-        System.out.print(this.time_since_last_update);
+        
     }
 
     @Override
