@@ -11,56 +11,58 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.GameConstants;
-import example.es.Resource;
+import example.es.Gold;
 import example.es.ShipType;
 
 /**
  *
  * @author ss
  */
-public class ResourceTimeState extends AbstractGameSystem {
+public class GoldTimeState extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet eset;
+    private EntitySet es;
     private double time_since_last_update;
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        this.eset = this.ed.getEntities(ShipType.class);
+        this.es = this.ed.getEntities(ShipType.class);
     }
 
     @Override
     protected void terminate() {
-        this.eset.release();
-        this.eset = null;
+        this.es.release();
+        this.es = null;
     }
 
     @Override
     public void update(SimTime tpf) {
         // only update every RESOURCE_UPDATE_INTERVAL
-        System.out.print("update");
+        
 
         if (this.time_since_last_update > GameConstants.RESOURCE_UPDATE_INTERVAL) {
             this.time_since_last_update = 0;
 
-            eset.applyChanges();
+            es.applyChanges();
             
             //TPF is in seconds
             int gold = (int) (tpf.getTpf() * GameConstants.GOLD_PER_SECOND);
             
-            for (Entity e : this.eset.getAddedEntities()) {
-                this.ed.setComponent(e.getId(), new Resource(new int[]{gold}));
+            //Handle new ships
+            for (Entity e : this.es.getAddedEntities()) {
+                this.ed.setComponent(e.getId(), new Gold(gold));
             }
-
-            for (Entity e : this.eset) {
-                Resource g = this.ed.getComponent(e.getId(), Resource.class);
-                this.ed.setComponent(e.getId(), new Resource(new int[]{(int) (gold + g.getResources()[0])}));
+            
+            //Handle old ships
+            for (Entity e : this.es) {
+                Gold g = this.ed.getComponent(e.getId(), Gold.class);
+                this.ed.setComponent(e.getId(), new Gold(g.getGold() + gold));
             }
         }
         // update time
         this.time_since_last_update += tpf.getTpf();
-        System.out.print(this.time_since_last_update);
+        
     }
 
     @Override

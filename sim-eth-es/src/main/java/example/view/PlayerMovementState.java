@@ -67,7 +67,7 @@ import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.state.DebugHudState;
 
 import example.ConnectionState;
-import example.es.Resource;
+import example.es.Gold;
 import example.es.ProjectileTypes;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;

@@ -11,24 +11,21 @@ import com.simsilica.es.EntityComponent;
  *
  * @author ss
  */
-public class Resource implements EntityComponent{
+public class Gold implements EntityComponent{
  
-    // in the order:
-    // 0: Gold
-    // 1: 
-    private int[] resources;
+    private int gold;
     
     
-    public Resource() {
+    public Gold() {
     }
 
-    public Resource(int[] resources) {
-        this.resources = resources;
+    public Gold(int gold) {
+        this.gold = gold;
                 
     }
 
-    public int[] getResources() {
-        return this.resources;
+    public int getGold() {
+        return this.gold;
     }
     
 }

@@ -77,7 +77,7 @@ import example.es.states.BasicSteeringState;
 import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
 import example.es.states.MapStateServer;
-import example.es.states.ResourceTimeState;
+import example.es.states.GoldTimeState;
 import example.es.states.ShipFrequencyStateServer;
 import example.es.states.PathfinderState;
 import example.es.states.WarpState;
@@ -100,7 +100,7 @@ public class GameServer {
     private String description;
 
     public GameServer(int port, String description) throws IOException {
-        
+
         this.description = description;
 
         // Make sure we are running with a fresh serializer registry
@@ -175,13 +175,13 @@ public class GameServer {
         systems.register(ShipFrequencyStateServer.class, new ShipFrequencyStateServer());
         //Add system to keep track of flags and their frequency
         systems.register(FlagStateServer.class, new FlagStateServer());
-        //Add resources per time system
-        //systems.register(ResourceTimeState.class, new ResourceTimeState());
         //Add pathfinding system
         systems.register(PathfinderState.class, new PathfinderState());
         //Add simple steering system
         systems.register(BasicSteeringState.class, new BasicSteeringState());
-        
+        //Add resources per time system
+        systems.register(GoldTimeState.class, new GoldTimeState());
+
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
         systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
@@ -219,13 +219,13 @@ public class GameServer {
         Serializer.registerClass(ViewType.class, new FieldSerializer());
         Serializer.registerClass(Position.class, new FieldSerializer());
         Serializer.registerClass(SphereShape.class, new FieldSerializer());
-        
+
         Serializer.registerClass(TileInfo.class, new FieldSerializer());
-        
+
         Serializer.registerClass(ShipType.class, new FieldSerializer());
         Serializer.registerClass(Frequency.class, new FieldSerializer());
         Serializer.registerClass(Flag.class, new FieldSerializer());
-        Serializer.registerClass(Resource.class, new FieldSerializer());
+        Serializer.registerClass(Gold.class, new FieldSerializer());
     }
 
     public Server getServer() {
