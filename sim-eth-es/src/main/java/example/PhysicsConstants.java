@@ -44,4 +44,7 @@ public class PhysicsConstants {
     
     //Forces
     public final static float SHIPTHRUST = 10;
+    
+    //Pathfinding and polygons
+    public final static int VERTEXCOUNTCIRCLE = 10;
 }

@@ -35,7 +35,6 @@
  */
 package example.sim;
 
-import com.jme3.math.Vector3f;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -43,28 +42,27 @@ import com.jme3.util.SafeArrayList;
 
 import com.simsilica.es.*;
 import com.simsilica.es.filter.OrFilter;
-import com.simsilica.mathd.Quatd;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.*;
-import example.PhysicsConstants;
+import example.es.GravityWell;
+import example.es.PhysicsForce;
+import example.es.PhysicsMassType;
+import example.es.PhysicsMassTypes;
+import example.es.PhysicsShape;
+import example.es.PhysicsVelocity;
+import example.es.Position;
 
-import example.es.*;
+
 import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
-import org.dyn4j.collision.Filter;
-import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
-import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.ContinuousDetectionMode;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Settings;
-import org.dyn4j.dynamics.Torque;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.dynamics.contact.ContactConstraint;
-import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.MassType;
 import org.dyn4j.geometry.Vector2;
 import org.slf4j.Logger;

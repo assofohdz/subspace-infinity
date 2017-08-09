@@ -35,8 +35,6 @@
  */
 package example.sim;
 
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 import example.GameConstants;
@@ -48,10 +46,8 @@ import java.util.HashSet;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Force;
-import org.dyn4j.dynamics.Torque;
-import org.dyn4j.geometry.Circle;
 import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Mass;
+import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -73,7 +69,7 @@ public class GameEntities {
         ed.setComponent(result, name);
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.SHIPSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.SHIPSIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(result,
@@ -83,7 +79,6 @@ public class GameEntities {
                 new PhysicsShape(fixture));
 
         ed.setComponent(result, new Frequency(1));
-
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;
@@ -101,7 +96,7 @@ public class GameEntities {
         EntityId result = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.BOUNTYSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BOUNTYSIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(result, ViewTypes.bounty(ed),
@@ -126,7 +121,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.BOMBSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BOMBSIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(lastBomb, ViewTypes.bomb(ed),
@@ -152,7 +147,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.BULLETSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BULLETSIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(lastBomb, ViewTypes.bullet(ed),
@@ -220,7 +215,7 @@ public class GameEntities {
         EntityId lastWormhole = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.WORMHOLESIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.WORMHOLESIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(lastWormhole,
@@ -255,7 +250,7 @@ public class GameEntities {
         EntityId lastOver5 = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BODIES;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.OVER5SIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.OVER5SIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(lastOver5,
@@ -279,7 +274,7 @@ public class GameEntities {
         EntityId lastOver1 = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.OVER1SIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.OVER1SIZERADIUS));
         fixture.setFilter(filter);
 
         ed.setComponents(lastOver1,
@@ -302,7 +297,7 @@ public class GameEntities {
         EntityId lastOver2 = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture bodyFixture = new BodyFixture(new Circle(PhysicsConstants.OVER2SIZERADIUS));
+        BodyFixture bodyFixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.OVER2SIZERADIUS));
         bodyFixture.setFilter(filter);
 
         ed.setComponents(lastOver2,
@@ -340,7 +335,7 @@ public class GameEntities {
         EntityId lastFlag = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_SENSOR_FLAGS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.FLAGSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.FLAGSIZERADIUS));
         fixture.setFilter(filter);
         fixture.setSensor(true);
 
@@ -359,7 +354,7 @@ public class GameEntities {
         EntityId lastMob = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MOBS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.MOBSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.MOBSIZERADIUS));        
         fixture.setFilter(filter);
         //fixture.setSensor(true);
 
@@ -378,12 +373,13 @@ public class GameEntities {
         EntityId lastTower = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_TOWERS;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.TOWERSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.TOWERSIZERADIUS));
         fixture.setFilter(filter);
         //fixture.setSensor(true);
 
         ed.setComponents(lastTower,
                 ViewTypes.tower(ed),
+                TowerTypes.tower1(ed),
                 new Position(location, new Quatd(), 0f),
                 new PhysicsShape(fixture),
                 PhysicsMassTypes.infinite(ed));
@@ -395,12 +391,13 @@ public class GameEntities {
         EntityId lastBase = ed.createEntity();
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BASE;
-        BodyFixture fixture = new BodyFixture(new Circle(PhysicsConstants.BASESIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BASESIZERADIUS));
         fixture.setFilter(filter);
         //fixture.setSensor(true);
 
         ed.setComponents(lastBase,
                 ViewTypes.base(ed),
+                BaseTypes.base1(ed),
                 new Position(location, new Quatd(), 0f),
                 new PhysicsShape(fixture),
                 PhysicsMassTypes.infinite(ed),

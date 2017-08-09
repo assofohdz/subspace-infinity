@@ -73,11 +73,13 @@ import example.es.states.DecayState;
 import example.es.states.DelayState;
 import example.es.states.HealthState;
 import example.es.states.ArenaState;
+import example.es.states.BasicSteeringState;
 import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
 import example.es.states.MapStateServer;
 import example.es.states.ResourceTimeState;
 import example.es.states.ShipFrequencyStateServer;
+import example.es.states.PathfinderState;
 import example.es.states.WarpState;
 import example.sim.*;
 
@@ -174,7 +176,11 @@ public class GameServer {
         //Add system to keep track of flags and their frequency
         systems.register(FlagStateServer.class, new FlagStateServer());
         //Add resources per time system
-        systems.register(ResourceTimeState.class, new ResourceTimeState());
+        //systems.register(ResourceTimeState.class, new ResourceTimeState());
+        //Add pathfinding system
+        systems.register(PathfinderState.class, new PathfinderState());
+        //Add simple steering system
+        systems.register(BasicSteeringState.class, new BasicSteeringState());
         
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

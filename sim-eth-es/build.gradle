@@ -71,6 +71,9 @@ dependencies {
     runtime project(':assets')    
     
     compile 'junit:junit:4.12'
+    
+    //jWalkable for 2d polygonal pathfinding
+    compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
 }
 
 task wrapper(type: Wrapper) {

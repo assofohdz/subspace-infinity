@@ -176,6 +176,11 @@ public class GameConstants {
     
     public final static double RESOURCE_UPDATE_INTERVAL = 1;
     public final static double GOLD_PER_SECOND = 10000;
+    public final static float PATHWAYPOINTDISTANCE = 0.5f;
+    public final static double MOBSPEED = 100;
+    public final static double MOBMAXFORCE = 200;
+    public final static float PATHHELPERHEIGHT = 1000;
+    public final static float PATHHELPERWIDTH = 1000;
 }
 
 
