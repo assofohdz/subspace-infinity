@@ -49,7 +49,7 @@ public class BasicEnvironment extends AbstractGameSystem {
         
         //GameEntities.createOver5(new Vec3d(10,-10,0), 5, 5000, GravityWell.PUSH, ed);
         
-        GameEntities.createTower(new Vec3d(5, 5, 0), ed);
+       // GameEntities.createTower(new Vec3d(5, 8, 0), ed);
         
         GameEntities.createMob(new Vec3d(-5, 5, 0), ed);
         

@@ -108,7 +108,7 @@ public class BasicSteeringState extends AbstractGameSystem {
     }
 
     private void setNextWayPoint(EntityId eId) {
-        currentTargets.put(eId, currentTargets.get(eId) + 1);
+        currentTargets.put(eId, currentTargets.get(eId) + 2);
     }
 
     //Should be called whenver MobPath component is updated on entity
@@ -137,9 +137,9 @@ public class BasicSteeringState extends AbstractGameSystem {
         Vector2 steeringForce = new Vector2();
 
         Vector2 pathFollow = pathFollowing(e);
-        //log.info("(steer) pathFollow: " + pathFollow.toString());
+        log.info("(steer) pathFollow: " + pathFollow.toString());
         steeringForce.add(pathFollow);
-        //log.info("(steer) steering force: " + steeringForce.toString());
+        log.info("(steer) steering force: " + steeringForce.toString());
         steeringForce.setMagnitude(Math.min(GameConstants.MOBMAXFORCE, steeringForce.getMagnitude()));
         //log.info("(steer) steering force after magnitude: " + steeringForce.toString());
 
@@ -149,6 +149,7 @@ public class BasicSteeringState extends AbstractGameSystem {
     private Vector2 pathFollowing(Entity e) {
         //Get current position
         Vector2 currentPosition = simplePhysics.getBody(e.getId()).getTransform().getTranslation();
+        log.info("current pos: " + currentPosition.toString());
         //Get current target
         MobPath mobPath = e.get(MobPath.class);
         FloatArray path = mobPath.getPath();
@@ -157,6 +158,7 @@ public class BasicSteeringState extends AbstractGameSystem {
         float x = path.get(currentPathIndex);
         float y = path.get(currentPathIndex + 1);
         Vector2 currentTarget = new Vector2(x, y);
+        log.info("current target: " + currentTarget.toString());
 
         //Check distance to current target node
         if (distance(currentPosition, currentTarget) < GameConstants.PATHWAYPOINTDISTANCE) {
@@ -167,6 +169,7 @@ public class BasicSteeringState extends AbstractGameSystem {
             y = path.get(currentPathIndex * 2 + 1);
             currentTarget = new Vector2(x, y);
         }
+        log.info("current target: " + currentTarget.toString());
 
         Vector2 currentVelocity = simplePhysics.getBody(e.getId()).getLinearVelocity();
         if (currentVelocity.x == 0 && currentVelocity.y == 0) {

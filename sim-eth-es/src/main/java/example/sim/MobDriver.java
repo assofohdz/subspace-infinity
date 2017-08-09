@@ -31,6 +31,7 @@ public class MobDriver implements ControlDriver {
         //Calculate angle between corrent velocity and desired velocity
         Vector2 currentVelocity = body.getLinearVelocity();
         Vector3f desiredForce = new Vector3f(thrust.x, thrust.y, 0);
+        
         Vector3f currentVelocity3f = new Vector3f((float) currentVelocity.x, (float) currentVelocity.y, 0);
        
         //Radians betwen the desired force and current velocity
@@ -39,5 +40,6 @@ public class MobDriver implements ControlDriver {
 
         Vector2 linVel = new Vector2(vec.x, vec.y);
         body.applyForce(linVel);
+        body.applyTorque(0.4);
     }
 }
