@@ -61,7 +61,6 @@ import example.view.CameraState;
 import example.view.FlagStateClient;
 import example.view.MapStateClient;
 import example.view.HudLabelState;
-import example.view.MapEditorState;
 import example.view.ModelViewState;
 import example.view.PlayerListState;
 import example.view.PlayerMovementState;

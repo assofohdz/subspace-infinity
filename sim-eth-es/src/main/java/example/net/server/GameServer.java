@@ -80,6 +80,7 @@ import example.es.states.MapStateServer;
 import example.es.states.GoldTimeState;
 import example.es.states.ShipFrequencyStateServer;
 import example.es.states.PathfinderState;
+import example.es.states.TowerState;
 import example.es.states.WarpState;
 import example.sim.*;
 
@@ -181,6 +182,8 @@ public class GameServer {
         systems.register(BasicSteeringState.class, new BasicSteeringState());
         //Add resources per time system
         systems.register(GoldTimeState.class, new GoldTimeState());
+        //Add system to handle towers
+        systems.register(TowerState.class, new TowerState());
 
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

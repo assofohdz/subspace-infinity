@@ -1,28 +1,28 @@
-17:17:36,601 INFO  [JmeSystem] Running on jMonkeyEngine 3.1-stable
+21:54:51,365 INFO  [JmeSystem] Running on jMonkeyEngine 3.1-stable
  * Branch: HEAD
  * Git Hash: af04bf9
  * Build Date: 2017-02-13
-17:17:37,425 INFO  [LwjglContext] LWJGL 2.9.3 context running on thread jME3 Main
+21:54:52,233 INFO  [LwjglContext] LWJGL 2.9.3 context running on thread jME3 Main
  * Graphics Adapter: C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvd3dumx,C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvwgf2umx,C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvwgf2umx,C:\WINDOWS\System32\DriverStore\FileRepository\nv_dispi.inf_amd64_2a6e383a1adc0e24\nvwgf2umx
  * Driver Version: 21.21.13.7878
  * Scaling Factor: 1
-17:17:37,474 INFO  [GLRenderer] OpenGL Renderer Information
+21:54:52,250 INFO  [GLRenderer] OpenGL Renderer Information
  * Vendor: NVIDIA Corporation
  * Renderer: GeForce GTX 780/PCIe/SSE2
  * OpenGL Version: 4.5.0 NVIDIA 378.78
  * GLSL Version: 4.50 NVIDIA
  * Profile: Compatibility
-17:17:37,499 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
-17:17:37,500 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
-17:17:37,500 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
-17:17:37,500 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
-17:17:37,501 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
-17:17:37,502 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
-17:17:37,504 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
-17:17:37,528 WARN  [DefaultControllerEnvironment] Found unknown Windows version: Windows 10
-17:17:37,528 INFO  [DefaultControllerEnvironment] Attempting to use default windows plug-in.
-17:17:37,528 INFO  [DefaultControllerEnvironment] Loading: net.java.games.input.DirectAndRawInputEnvironmentPlugin
-17:17:37,738 INFO  [ALAudioRenderer] Audio Renderer Information
+21:54:52,274 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
+21:54:52,274 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
+21:54:52,274 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
+21:54:52,275 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
+21:54:52,275 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
+21:54:52,276 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
+21:54:52,278 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
+21:54:52,301 WARN  [DefaultControllerEnvironment] Found unknown Windows version: Windows 10
+21:54:52,301 INFO  [DefaultControllerEnvironment] Attempting to use default windows plug-in.
+21:54:52,301 INFO  [DefaultControllerEnvironment] Loading: net.java.games.input.DirectAndRawInputEnvironmentPlugin
+21:54:52,515 INFO  [ALAudioRenderer] Audio Renderer Information
  * Device: OpenAL Soft
  * Vendor: OpenAL Community
  * Renderer: OpenAL Soft
@@ -30,390 +30,413 @@
  * Supported channels: 64
  * ALC extensions: ALC_ENUMERATE_ALL_EXT ALC_ENUMERATION_EXT ALC_EXT_CAPTURE ALC_EXT_DEDICATED ALC_EXT_disconnect ALC_EXT_EFX ALC_EXT_thread_local_context ALC_SOFT_loopback
  * AL extensions: AL_EXT_ALAW AL_EXT_DOUBLE AL_EXT_EXPONENT_DISTANCE AL_EXT_FLOAT32 AL_EXT_IMA4 AL_EXT_LINEAR_DISTANCE AL_EXT_MCFORMATS AL_EXT_MULAW AL_EXT_MULAW_MCFORMATS AL_EXT_OFFSET AL_EXT_source_distance_model AL_LOKI_quadriphonic AL_SOFT_buffer_samples AL_SOFT_buffer_sub_data AL_SOFTX_deferred_updates AL_SOFT_direct_channels AL_SOFT_loop_points AL_SOFT_source_latency
-17:17:37,738 WARN  [ALAudioRenderer] Pausing audio device not supported.
-17:17:37,739 INFO  [ALAudioRenderer] Audio effect extension version: 1.0
-17:17:37,739 INFO  [ALAudioRenderer] Audio max auxiliary sends: 4
-17:17:37,810 INFO  [GuiGlobals] Initializing GuiGlobals with:com.simsilica.lemur.GuiGlobals@22236fe8
-17:17:37,819 INFO  [GuiGlobals] Lemur build date:20161119
-17:17:37,819 INFO  [BaseStyles] loadStyleResource(com/simsilica/lemur/style/base/glass-styles.groovy)
-17:17:38,129 INFO  [BaseStyles] Loading base resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur/1.9.1/4cf0982db2f5e436577ac723607c8a5d432ac3f1/lemur-1.9.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
-17:17:38,521 INFO  [BaseStyles] Loading extension resources for:com/simsilica/lemur/style/base/glass-styles.groovy
-17:17:38,522 INFO  [BaseStyles] Loading extension resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur-proto/1.8.1/c6635fe7ce1dc9abe7283f175c0e62ab3a905fec/lemur-proto-1.8.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
-17:17:39,455 INFO  [MainMenuState] Host a game on port:4271
-17:17:39,455 INFO  [MainMenuState] Description:
-17:17:39,455 INFO  [MainMenuState] This a game server.
+21:54:52,515 WARN  [ALAudioRenderer] Pausing audio device not supported.
+21:54:52,516 INFO  [ALAudioRenderer] Audio effect extension version: 1.0
+21:54:52,516 INFO  [ALAudioRenderer] Audio max auxiliary sends: 4
+21:54:52,587 INFO  [GuiGlobals] Initializing GuiGlobals with:com.simsilica.lemur.GuiGlobals@50a73b8a
+21:54:52,596 INFO  [GuiGlobals] Lemur build date:20161119
+21:54:52,597 INFO  [BaseStyles] loadStyleResource(com/simsilica/lemur/style/base/glass-styles.groovy)
+21:54:52,915 INFO  [BaseStyles] Loading base resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur/1.9.1/4cf0982db2f5e436577ac723607c8a5d432ac3f1/lemur-1.9.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
+21:54:53,320 INFO  [BaseStyles] Loading extension resources for:com/simsilica/lemur/style/base/glass-styles.groovy
+21:54:53,320 INFO  [BaseStyles] Loading extension resource:jar:file:/C:/Users/Asser/.gradle/caches/modules-2/files-2.1/com.simsilica/lemur-proto/1.8.1/c6635fe7ce1dc9abe7283f175c0e62ab3a905fec/lemur-proto-1.8.1.jar!/com/simsilica/lemur/style/base/glass-styles.groovy
+21:54:54,327 INFO  [MainMenuState] Host a game on port:4271
+21:54:54,328 INFO  [MainMenuState] Description:
+21:54:54,328 INFO  [MainMenuState] This a game server.
 There are many like it
 but this one is mine.
-17:17:39,546 INFO  [GameServer] Initializing game systems...
-17:17:39,546 TRACE [GameSystemManager] initialize()
-17:17:39,547 TRACE [GameSystemManager] initializing:com.simsilica.sim.TaskDispatcher@3f0537be
-17:17:39,547 TRACE [GameSystemManager] initializing:example.sim.SimplePhysics@2590ebe8
-17:17:39,645 TRACE [GameSystemManager] initializing:example.es.states.DecayState@3ac5bae4
-17:17:39,645 TRACE [GameSystemManager] initializing:example.es.states.HealthState@136b8582
-17:17:39,646 TRACE [GameSystemManager] initializing:example.es.states.BountyState@2fa08f69
-17:17:39,650 TRACE [GameSystemManager] initializing:example.es.states.AttackProjectileState@5bafcd07
-17:17:39,651 TRACE [GameSystemManager] initializing:example.es.states.ArenaState@5291b055
-17:17:39,655 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
-17:17:39,656 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
-17:17:39,656 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
-17:17:39,657 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
-17:17:39,657 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
-17:17:39,658 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
-17:17:39,658 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
-17:17:39,659 TRACE [GameSystemManager] initializing:example.es.states.MapStateServer@7c3ec3f9
-17:17:39,660 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
-17:17:39,660 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
-17:17:39,661 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
-17:17:39,661 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
-17:17:39,661 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
-17:17:39,662 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
-17:17:39,662 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
-17:17:39,662 TRACE [GameSystemManager] initializing:example.es.states.GravityState@4a3c18ad
-17:17:39,662 TRACE [GameSystemManager] initializing:example.es.states.WarpState@51fbbf4c
-17:17:39,663 TRACE [GameSystemManager] initializing:example.es.states.DelayState@2d8351e
-17:17:39,664 TRACE [GameSystemManager] initializing:example.es.states.ShipFrequencyStateServer@2486771a
-17:17:39,664 TRACE [GameSystemManager] initializing:example.es.states.FlagStateServer@4be65011
-17:17:39,664 TRACE [GameSystemManager] initializing:example.es.states.PathfinderState@8d5fcb6
-17:17:39,686 TRACE [GameSystemManager] initializing:example.es.states.BasicSteeringState@290724b7
-17:17:39,687 TRACE [GameSystemManager] initializing:example.es.states.GoldTimeState@3c4b84a3
-17:17:39,687 TRACE [GameSystemManager] initializing:example.net.server.ZoneNetworkSystem@4bb722bd
-17:17:39,688 TRACE [GameSystemManager] initializing:com.simsilica.es.server.EntityUpdater@5b0595e0
-17:17:39,688 TRACE [GameSystemManager] initializing:example.sim.BodyPositionPublisher@1ed075c4
-17:17:39,688 TRACE [GameSystemManager] initializing:example.sim.BasicEnvironment@7ede9421
-17:17:39,688 INFO  [GameServer] Starting game server...
-17:17:39,688 TRACE [GameSystemManager] start()
-17:17:39,688 TRACE [GameSystemManager] starting:com.simsilica.sim.TaskDispatcher@3f0537be
-17:17:39,688 TRACE [GameSystemManager] starting:example.sim.SimplePhysics@2590ebe8
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.DecayState@3ac5bae4
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.HealthState@136b8582
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.BountyState@2fa08f69
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.AttackProjectileState@5bafcd07
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.ArenaState@5291b055
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.MapStateServer@7c3ec3f9
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.GravityState@4a3c18ad
-17:17:39,692 TRACE [GameSystemManager] starting:example.es.states.WarpState@51fbbf4c
-17:17:39,693 TRACE [GameSystemManager] starting:example.es.states.DelayState@2d8351e
-17:17:39,693 TRACE [GameSystemManager] starting:example.es.states.ShipFrequencyStateServer@2486771a
-17:17:39,693 TRACE [GameSystemManager] starting:example.es.states.FlagStateServer@4be65011
-17:17:39,693 TRACE [GameSystemManager] starting:example.es.states.PathfinderState@8d5fcb6
-17:17:39,696 TRACE [GameSystemManager] starting:example.es.states.BasicSteeringState@290724b7
-17:17:39,697 TRACE [GameSystemManager] starting:example.es.states.GoldTimeState@3c4b84a3
-17:17:39,697 TRACE [GameSystemManager] starting:example.net.server.ZoneNetworkSystem@4bb722bd
-17:17:39,697 TRACE [GameSystemManager] starting:com.simsilica.es.server.EntityUpdater@5b0595e0
-17:17:39,697 TRACE [GameSystemManager] starting:example.sim.BodyPositionPublisher@1ed075c4
-17:17:39,698 TRACE [GameSystemManager] starting:example.sim.BasicEnvironment@7ede9421
-17:17:39,780 INFO  [StateCollector] Starting state collector.
-17:17:39,780 INFO  [GameServer] Game server started.
-17:17:39,822 INFO  [PathfinderState] [-5.0, 5.0, 3.1840515, 0.18695068, 3.3082886, 0.12506104, 3.690979, 0.048950195, 4.309021, 0.048950195, 4.6917114, 0.12506104, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.500763, 0.690094, 10.0, 5.0]
-17:17:39,823 INFO  [PathfinderState] [-10.0, -10.0, 4.875458, 0.22485352, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.500763, 0.690094, 10.0, 5.0]
-17:17:39,824 INFO  [PathfinderState] [-20.0, -30.0, 10.0, 5.0]
-17:17:39,824 INFO  [PathfinderState] [10.0, -5.0, 10.0, 5.0]
-17:17:39,825 INFO  [PathfinderState] [20.0, -20.0, 10.0, 5.0]
-17:17:39,825 INFO  [PathfinderState] [15.0, -10.0, 10.0, 5.0]
-17:17:40,421 INFO  [HostState] joinGame()
-17:17:40,429 INFO  [ConnectionState] Creating game client for:127.0.0.1 4271
-17:17:40,430 INFO  [GameClient] Connecting to:127.0.0.1 4271
-17:17:40,447 INFO  [SerializerRegistrationsMessage] Skipping registration of SerializerRegistrationsMessage.
-17:17:40,449 INFO  [GameClient] Adding services...
-17:17:40,459 DEBUG [AccountClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
-17:17:40,459 DEBUG [AccountClientService] Sharing session callback.
-17:17:40,460 DEBUG [GameSessionClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
-17:17:40,460 DEBUG [GameSessionClientService] Sharing session callback.
-17:17:40,463 DEBUG [ChatClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.simsilica.es.client.EntityDataClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.chat.client.ChatClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
-17:17:40,464 DEBUG [ChatClientService] Sharing session callback.
-17:17:40,468 INFO  [SharedObjectUpdater] onInitialize()
-17:17:40,468 INFO  [ConnectionState] Connection established:example.net.client.GameClient@3bf96b0e
-17:17:40,469 INFO  [ConnectionState] Starting client...
-17:17:40,469 INFO  [GameClient] start()
-17:17:40,471 INFO  [ConnectionState] Client started.
-17:17:40,471 INFO  [ConnectionState] Connection established:example.net.client.GameClient@3bf96b0e
-17:17:40,479 INFO  [MessageDebugger] Received:com.jme3.network.message.SerializerRegistrationsMessage@1933108a
-17:17:40,480 INFO  [SerializerRegistrationsMessage] Skipping registration as registry is locked, presumably by a local server process.
-17:17:40,979 DEBUG [AccountHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:54027]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:17:40,983 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
-17:17:40,983 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
-17:17:40,987 DEBUG [AccountClientService] start()
-17:17:40,987 DEBUG [AccountClientService] delegate:RemoteObject[#1, example.net.AccountSession]
-17:17:40,987 DEBUG [GameSessionClientService] start()
-17:17:40,988 DEBUG [ChatClientService] start()
-17:17:40,988 INFO  [SharedObjectUpdater] start()
-17:17:40,990 INFO  [ConnectionState] clientConnected(com.jme3.network.base.DefaultClient@242510b9)
-17:17:40,993 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[70], [BodyPosition[null]]], ComponentData[EntityId[71], [BodyPosition[null]]], ComponentData[EntityId[72], [BodyPosition[null]]], ComponentData[EntityId[73], [BodyPosition[null]]], ComponentData[EntityId[74], [BodyPosition[null]]], ComponentData[EntityId[75], [BodyPosition[null]]]]]
-17:17:41,004 INFO  [ConnectionState] onConnected()
-17:17:41,007 INFO  [MessageDebugger] Received:RpcResponseMessage[#0, result=This a game server.
+21:54:54,412 INFO  [GameServer] Initializing game systems...
+21:54:54,412 TRACE [GameSystemManager] initialize()
+21:54:54,413 TRACE [GameSystemManager] initializing:com.simsilica.sim.TaskDispatcher@6e36777a
+21:54:54,413 TRACE [GameSystemManager] initializing:example.sim.SimplePhysics@66c9a9ac
+21:54:54,509 TRACE [GameSystemManager] initializing:example.es.states.DecayState@50762cd9
+21:54:54,510 TRACE [GameSystemManager] initializing:example.es.states.HealthState@3eb3bd37
+21:54:54,510 TRACE [GameSystemManager] initializing:example.es.states.BountyState@1c5bad4e
+21:54:54,516 TRACE [GameSystemManager] initializing:example.es.states.AttackProjectileState@51cebd10
+21:54:54,517 TRACE [GameSystemManager] initializing:example.es.states.ArenaState@383b2d03
+21:54:54,522 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
+21:54:54,523 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
+21:54:54,523 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
+21:54:54,524 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
+21:54:54,524 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
+21:54:54,524 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
+21:54:54,525 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
+21:54:54,525 TRACE [GameSystemManager] initializing:example.es.states.MapStateServer@6b515371
+21:54:54,527 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MeshLoader
+21:54:54,528 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SkeletonLoader
+21:54:54,528 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.MaterialLoader
+21:54:54,528 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.ogre.SceneLoader
+21:54:54,528 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.blender.BlenderModelLoader
+21:54:54,529 WARN  [AssetConfig] Cannot find loader com.jme3.scene.plugins.fbx.FbxLoader
+21:54:54,529 WARN  [AssetConfig] Cannot find loader com.jme3.audio.plugins.OGGLoader
+21:54:54,529 TRACE [GameSystemManager] initializing:example.es.states.GravityState@101f3d2b
+21:54:54,529 TRACE [GameSystemManager] initializing:example.es.states.WarpState@6580f384
+21:54:54,530 TRACE [GameSystemManager] initializing:example.es.states.DelayState@5ce74edd
+21:54:54,530 TRACE [GameSystemManager] initializing:example.es.states.ShipFrequencyStateServer@57060fe7
+21:54:54,530 TRACE [GameSystemManager] initializing:example.es.states.FlagStateServer@15a6d1c8
+21:54:54,530 TRACE [GameSystemManager] initializing:example.es.states.PathfinderState@73d1e407
+21:54:54,551 TRACE [GameSystemManager] initializing:example.es.states.BasicSteeringState@462b52c9
+21:54:54,552 TRACE [GameSystemManager] initializing:example.es.states.GoldTimeState@2f869db
+21:54:54,552 TRACE [GameSystemManager] initializing:example.es.states.TowerState@38166885
+21:54:54,552 TRACE [GameSystemManager] initializing:example.net.server.ZoneNetworkSystem@60931d1c
+21:54:54,552 TRACE [GameSystemManager] initializing:com.simsilica.es.server.EntityUpdater@21641664
+21:54:54,552 TRACE [GameSystemManager] initializing:example.sim.BodyPositionPublisher@2abd008d
+21:54:54,552 TRACE [GameSystemManager] initializing:example.sim.BasicEnvironment@30d288e6
+21:54:54,553 INFO  [GameServer] Starting game server...
+21:54:54,553 TRACE [GameSystemManager] start()
+21:54:54,553 TRACE [GameSystemManager] starting:com.simsilica.sim.TaskDispatcher@6e36777a
+21:54:54,553 TRACE [GameSystemManager] starting:example.sim.SimplePhysics@66c9a9ac
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.DecayState@50762cd9
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.HealthState@3eb3bd37
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.BountyState@1c5bad4e
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.AttackProjectileState@51cebd10
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.ArenaState@383b2d03
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.MapStateServer@6b515371
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.GravityState@101f3d2b
+21:54:54,556 TRACE [GameSystemManager] starting:example.es.states.WarpState@6580f384
+21:54:54,557 TRACE [GameSystemManager] starting:example.es.states.DelayState@5ce74edd
+21:54:54,557 TRACE [GameSystemManager] starting:example.es.states.ShipFrequencyStateServer@57060fe7
+21:54:54,557 TRACE [GameSystemManager] starting:example.es.states.FlagStateServer@15a6d1c8
+21:54:54,557 TRACE [GameSystemManager] starting:example.es.states.PathfinderState@73d1e407
+21:54:54,560 TRACE [GameSystemManager] starting:example.es.states.BasicSteeringState@462b52c9
+21:54:54,561 TRACE [GameSystemManager] starting:example.es.states.GoldTimeState@2f869db
+21:54:54,561 TRACE [GameSystemManager] starting:example.es.states.TowerState@38166885
+21:54:54,561 TRACE [GameSystemManager] starting:example.net.server.ZoneNetworkSystem@60931d1c
+21:54:54,561 TRACE [GameSystemManager] starting:com.simsilica.es.server.EntityUpdater@21641664
+21:54:54,561 TRACE [GameSystemManager] starting:example.sim.BodyPositionPublisher@2abd008d
+21:54:54,561 TRACE [GameSystemManager] starting:example.sim.BasicEnvironment@30d288e6
+21:54:54,645 INFO  [StateCollector] Starting state collector.
+21:54:54,645 INFO  [GameServer] Game server started.
+21:54:54,689 INFO  [PathfinderState] [-5.0, 5.0, 3.1840515, 0.18695068, 3.3082886, 0.12506104, 3.690979, 0.048950195, 4.309021, 0.048950195, 4.6917114, 0.12506104, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.500763, 0.690094, 10.0, 5.0]
+21:54:54,690 INFO  [PathfinderState] [-10.0, -10.0, 4.875458, 0.22485352, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.500763, 0.690094, 10.0, 5.0]
+21:54:54,691 INFO  [PathfinderState] [-20.0, -30.0, 10.0, 5.0]
+21:54:54,691 INFO  [PathfinderState] [10.0, -5.0, 10.0, 5.0]
+21:54:54,691 INFO  [PathfinderState] [20.0, -20.0, 10.0, 5.0]
+21:54:54,692 INFO  [PathfinderState] [15.0, -10.0, 10.0, 5.0]
+21:54:55,278 INFO  [HostState] joinGame()
+21:54:55,285 INFO  [ConnectionState] Creating game client for:127.0.0.1 4271
+21:54:55,286 INFO  [GameClient] Connecting to:127.0.0.1 4271
+21:54:55,295 INFO  [SerializerRegistrationsMessage] Skipping registration of SerializerRegistrationsMessage.
+21:54:55,298 INFO  [GameClient] Adding services...
+21:54:55,306 DEBUG [AccountClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
+21:54:55,306 DEBUG [AccountClientService] Sharing session callback.
+21:54:55,307 DEBUG [GameSessionClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
+21:54:55,307 DEBUG [GameSessionClientService] Sharing session callback.
+21:54:55,310 DEBUG [ChatClientService] onInitialize(com.jme3.network.service.ClientServiceManager[services=[com.jme3.network.service.serializer.ClientSerializerRegistrationsService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rpc.RpcClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.jme3.network.service.rmi.RmiClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.AccountClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.client.GameSessionClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], com.simsilica.es.client.EntityDataClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager], example.net.chat.client.ChatClientService[serviceManager.class=class com.jme3.network.service.ClientServiceManager]]])
+21:54:55,310 DEBUG [ChatClientService] Sharing session callback.
+21:54:55,314 INFO  [SharedObjectUpdater] onInitialize()
+21:54:55,314 INFO  [ConnectionState] Connection established:example.net.client.GameClient@21cb1019
+21:54:55,316 INFO  [ConnectionState] Starting client...
+21:54:55,316 INFO  [GameClient] start()
+21:54:55,317 INFO  [ConnectionState] Client started.
+21:54:55,324 INFO  [MessageDebugger] Received:com.jme3.network.message.SerializerRegistrationsMessage@3d20c57b
+21:54:55,324 INFO  [SerializerRegistrationsMessage] Skipping registration as registry is locked, presumably by a local server process.
+21:54:55,327 INFO  [ConnectionState] Connection established:example.net.client.GameClient@21cb1019
+21:54:55,823 DEBUG [AccountHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:50088]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:54:55,826 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
+21:54:55,827 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
+21:54:55,831 DEBUG [AccountClientService] start()
+21:54:55,831 DEBUG [AccountClientService] delegate:RemoteObject[#1, example.net.AccountSession]
+21:54:55,831 DEBUG [GameSessionClientService] start()
+21:54:55,832 DEBUG [ChatClientService] start()
+21:54:55,832 INFO  [SharedObjectUpdater] start()
+21:54:55,833 INFO  [ConnectionState] clientConnected(com.jme3.network.base.DefaultClient@7d4ba81)
+21:54:55,836 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[71], [BodyPosition[null]]], ComponentData[EntityId[72], [BodyPosition[null]]], ComponentData[EntityId[73], [BodyPosition[null]]], ComponentData[EntityId[74], [BodyPosition[null]]], ComponentData[EntityId[75], [BodyPosition[null]]], ComponentData[EntityId[76], [BodyPosition[null]]]]]
+21:54:55,844 INFO  [ConnectionState] onConnected()
+21:54:55,847 INFO  [MessageDebugger] Received:RpcResponseMessage[#0, result=This a game server.
 There are many like it
 but this one is mine.]
-17:17:41,007 DEBUG [ConnectionState] Server info:This a game server.
+21:54:55,847 DEBUG [ConnectionState] Server info:This a game server.
 There are many like it
 but this one is mine.
-17:17:41,438 INFO  [ConnectionState] join(Asser)
-17:17:41,439 INFO  [AccountHostedService] login(Asser)
-17:17:41,440 INFO  [AccountHostedService] Created player entity:EntityId[77] for:Asser
-17:17:41,440 DEBUG [AccountHostedService] publishing playerLoggedOn event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:54027]], fast=UdpEndpoint[1, /127.0.0.1:61847] ]
-17:17:41,440 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=1, procId=0, args.length=1]
-17:17:41,440 DEBUG [GameSessionHostedService] onPlayerLoggedOn()
-17:17:41,440 DEBUG [GameSessionHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:54027]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:17:41,443 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
-17:17:41,443 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
-17:17:41,444 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[78], [BodyPosition[null]]]]]
-17:17:41,445 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], BodyPosition[null], class example.es.BodyPosition]]]
-17:17:41,445 DEBUG [ChatHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:54027]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:17:41,446 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
-17:17:41,446 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
-17:17:41,453 INFO  [MessageDebugger] Object state updates started.
-17:17:41,590 INFO  [PlayerMovementState] initialize()
-17:17:41,591 INFO  [PlayerMovementState] onEnable()
-17:17:41,593 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[78], [Name[Asser], BodyPosition[null]]]]]
-17:17:41,601 INFO  [MessageDebugger] Received:EntityDataMessage[3, [ComponentData[EntityId[78], [ShipType[type=14], example.es.Frequency@5cb0504d]]]]
-17:17:41,602 DEBUG [GameSessionClientService] delegate:RemoteObject[#2, example.net.GameSession]
-17:17:41,603 INFO  [MessageDebugger] Received:RpcResponseMessage[#1, result=EntityId[78]]
-17:17:41,606 INFO  [MessageDebugger] Received:EntityDataMessage[6, [ComponentData[EntityId[70], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[71], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[72], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[73], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[74], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[75], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[78], [ViewType[type=13], BodyPosition[null]]]]]
-17:17:41,609 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[0], [ViewType[type=0], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[1], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[2], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[3], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[4], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[5], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[6], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[7], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[8], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[9], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[10], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[11], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[12], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[13], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[14], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[15], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[16], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[17], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[18], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[19], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[20], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
-17:17:41,613 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[21], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[22], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[23], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[24], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[25], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[26], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[27], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[28], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[29], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[30], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[31], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[32], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[33], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[34], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[35], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[36], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[37], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[38], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[39], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[40], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[41], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
-17:17:41,615 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[42], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[43], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[44], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[45], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[46], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[47], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[48], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[49], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[50], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[51], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[52], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[53], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[54], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[55], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[56], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[57], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[58], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[59], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[60], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[61], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[62], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
-17:17:41,615 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[63], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[64], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[65], [ViewType[type=7], Position{location=Vec3[5.0, 5.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[66], [ViewType[type=7], Position{location=Vec3[5.0, 7.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[67], [ViewType[type=7], Position{location=Vec3[5.0, 3.5, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[68], [ViewType[type=7], Position{location=Vec3[6.0, 9.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[69], [ViewType[type=7], Position{location=Vec3[4.0, 2.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[70], [ViewType[type=9], Position{location=Vec3[-5.0, 5.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[71], [ViewType[type=9], Position{location=Vec3[-10.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[72], [ViewType[type=9], Position{location=Vec3[-20.0, -30.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[73], [ViewType[type=9], Position{location=Vec3[10.0, -5.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[74], [ViewType[type=9], Position{location=Vec3[20.0, -20.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[75], [ViewType[type=9], Position{location=Vec3[15.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[76], [ViewType[type=11], Position{location=Vec3[30.0, 10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[78], [ViewType[type=13], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
-17:17:41,646 INFO  [GameSessionState] initialize()
-17:17:41,647 INFO  [MessageDebugger] Received:RpcResponseMessage[#2, result=EntityId[77]]
-17:17:41,647 INFO  [MessageDebugger] Received:RpcResponseMessage[#3, result=EntityId[78]]
-17:17:41,647 INFO  [GameSessionState] Player object:EntityId[78]
-17:17:41,674 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=arena]
-17:17:41,675 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=gravSphere]
-17:17:41,676 INFO  [MessageDebugger] Received:ReturnComponentsMessage[2, EntityId[1], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,700 INFO  [MessageDebugger] Received:ReturnComponentsMessage[3, EntityId[2], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,705 INFO  [MessageDebugger] Received:ReturnComponentsMessage[4, EntityId[3], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,709 INFO  [MessageDebugger] Received:ReturnComponentsMessage[5, EntityId[4], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,714 INFO  [MessageDebugger] Received:ReturnComponentsMessage[6, EntityId[5], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,717 INFO  [MessageDebugger] Received:ReturnComponentsMessage[7, EntityId[6], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,721 INFO  [MessageDebugger] Received:ReturnComponentsMessage[8, EntityId[7], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,724 INFO  [MessageDebugger] Received:ReturnComponentsMessage[9, EntityId[8], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,728 INFO  [MessageDebugger] Received:ReturnComponentsMessage[10, EntityId[9], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,732 INFO  [MessageDebugger] Received:ReturnComponentsMessage[11, EntityId[10], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,735 INFO  [MessageDebugger] Received:ReturnComponentsMessage[12, EntityId[11], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,738 INFO  [MessageDebugger] Received:ReturnComponentsMessage[13, EntityId[12], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,741 INFO  [MessageDebugger] Received:ReturnComponentsMessage[14, EntityId[13], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,745 INFO  [MessageDebugger] Received:ReturnComponentsMessage[15, EntityId[14], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,748 INFO  [MessageDebugger] Received:ReturnComponentsMessage[16, EntityId[15], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,752 INFO  [MessageDebugger] Received:ReturnComponentsMessage[17, EntityId[16], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,755 INFO  [MessageDebugger] Received:ReturnComponentsMessage[18, EntityId[17], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,758 INFO  [MessageDebugger] Received:ReturnComponentsMessage[19, EntityId[18], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,761 INFO  [MessageDebugger] Received:ReturnComponentsMessage[20, EntityId[19], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,765 INFO  [MessageDebugger] Received:ReturnComponentsMessage[21, EntityId[20], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,768 INFO  [MessageDebugger] Received:ReturnComponentsMessage[22, EntityId[21], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,770 INFO  [MessageDebugger] Received:ReturnComponentsMessage[23, EntityId[22], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,773 INFO  [MessageDebugger] Received:ReturnComponentsMessage[24, EntityId[23], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,775 INFO  [MessageDebugger] Received:ReturnComponentsMessage[25, EntityId[24], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,777 INFO  [MessageDebugger] Received:ReturnComponentsMessage[26, EntityId[25], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,779 INFO  [MessageDebugger] Received:ReturnComponentsMessage[27, EntityId[26], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,780 INFO  [MessageDebugger] Received:ReturnComponentsMessage[28, EntityId[27], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,782 INFO  [MessageDebugger] Received:ReturnComponentsMessage[29, EntityId[28], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,784 INFO  [MessageDebugger] Received:ReturnComponentsMessage[30, EntityId[29], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,786 INFO  [MessageDebugger] Received:ReturnComponentsMessage[31, EntityId[30], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,788 INFO  [MessageDebugger] Received:ReturnComponentsMessage[32, EntityId[31], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,790 INFO  [MessageDebugger] Received:ReturnComponentsMessage[33, EntityId[32], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,792 INFO  [MessageDebugger] Received:ReturnComponentsMessage[34, EntityId[33], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,794 INFO  [MessageDebugger] Received:ReturnComponentsMessage[35, EntityId[34], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,797 INFO  [MessageDebugger] Received:ReturnComponentsMessage[36, EntityId[35], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,804 INFO  [MessageDebugger] Received:ReturnComponentsMessage[37, EntityId[36], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,808 INFO  [MessageDebugger] Received:ReturnComponentsMessage[38, EntityId[37], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,811 INFO  [MessageDebugger] Received:ReturnComponentsMessage[39, EntityId[38], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,813 INFO  [MessageDebugger] Received:ReturnComponentsMessage[40, EntityId[39], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,816 INFO  [MessageDebugger] Received:ReturnComponentsMessage[41, EntityId[40], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,818 INFO  [MessageDebugger] Received:ReturnComponentsMessage[42, EntityId[41], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,820 INFO  [MessageDebugger] Received:ReturnComponentsMessage[43, EntityId[42], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,822 INFO  [MessageDebugger] Received:ReturnComponentsMessage[44, EntityId[43], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,824 INFO  [MessageDebugger] Received:ReturnComponentsMessage[45, EntityId[44], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,826 INFO  [MessageDebugger] Received:ReturnComponentsMessage[46, EntityId[45], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,826 INFO  [MessageDebugger] Received:EntityDataMessage[5, [ComponentData[EntityId[78], [example.es.Gold@772bdf0b]]]]
-17:17:41,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@44809a55, class example.es.Gold], EntityChange[EntityId[78], example.es.Gold@7cc1a011, class example.es.Gold]]]
-17:17:41,827 INFO  [MessageDebugger] Received:ReturnComponentsMessage[47, EntityId[46], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,828 INFO  [MessageDebugger] Received:ReturnComponentsMessage[48, EntityId[47], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,829 INFO  [MessageDebugger] Received:ReturnComponentsMessage[49, EntityId[48], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,831 INFO  [MessageDebugger] Received:ReturnComponentsMessage[50, EntityId[49], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,832 INFO  [MessageDebugger] Received:ReturnComponentsMessage[51, EntityId[50], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,834 INFO  [MessageDebugger] Received:ReturnComponentsMessage[52, EntityId[51], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,836 INFO  [MessageDebugger] Received:ReturnComponentsMessage[53, EntityId[52], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,837 INFO  [MessageDebugger] Received:ReturnComponentsMessage[54, EntityId[53], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,839 INFO  [MessageDebugger] Received:ReturnComponentsMessage[55, EntityId[54], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,841 INFO  [MessageDebugger] Received:ReturnComponentsMessage[56, EntityId[55], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,842 INFO  [MessageDebugger] Received:ReturnComponentsMessage[57, EntityId[56], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,843 INFO  [MessageDebugger] Received:ReturnComponentsMessage[58, EntityId[57], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,845 INFO  [MessageDebugger] Received:ReturnComponentsMessage[59, EntityId[58], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,846 INFO  [MessageDebugger] Received:ReturnComponentsMessage[60, EntityId[59], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,847 INFO  [MessageDebugger] Received:ReturnComponentsMessage[61, EntityId[60], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,849 INFO  [MessageDebugger] Received:ReturnComponentsMessage[62, EntityId[61], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,850 INFO  [MessageDebugger] Received:ReturnComponentsMessage[63, EntityId[62], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,852 INFO  [MessageDebugger] Received:ReturnComponentsMessage[64, EntityId[63], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,854 INFO  [MessageDebugger] Received:ReturnComponentsMessage[65, EntityId[64], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
-17:17:41,856 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=tower]
-17:17:41,864 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=mob]
-17:17:41,867 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=base]
-17:17:41,895 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=ship_warbird]
-17:17:42,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@5afb52d6, class example.es.Gold]]]
-17:17:43,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@73010d05, class example.es.Gold]]]
-17:17:44,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@33936302, class example.es.Gold]]]
-17:17:45,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@42239c49, class example.es.Gold]]]
-17:17:46,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@42ce0b39, class example.es.Gold]]]
-17:17:47,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@39dc4f40, class example.es.Gold]]]
-17:17:47,960 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[73], null, class example.es.BodyPosition], EntityChange[EntityId[73], null, class example.es.ViewType], EntityChange[EntityId[73], null, class example.es.Position]]]
-17:17:47,967 DEBUG [SharedObjectUpdater] No entity yet for:73
-17:17:47,967 DEBUG [SharedObjectUpdater] No entity yet for:73
-17:17:47,967 DEBUG [SharedObjectUpdater] No entity yet for:73
-17:17:48,017 DEBUG [SharedObjectUpdater] ****** Object removed[t=85114458899455]:73
-17:17:48,017 DEBUG [SharedObjectUpdater] No entity for removed object for:73
-17:17:48,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@117fb00a, class example.es.Gold]]]
-17:17:49,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@4f60a7b8, class example.es.Gold]]]
-17:17:50,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@7dc5eaae, class example.es.Gold]]]
-17:17:51,277 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[75], null, class example.es.BodyPosition], EntityChange[EntityId[75], null, class example.es.ViewType], EntityChange[EntityId[75], null, class example.es.Position]]]
-17:17:51,302 DEBUG [SharedObjectUpdater] No entity yet for:75
-17:17:51,302 DEBUG [SharedObjectUpdater] No entity yet for:75
-17:17:51,302 DEBUG [SharedObjectUpdater] ****** Object removed[t=85117775684828]:75
-17:17:51,302 DEBUG [SharedObjectUpdater] No entity for removed object for:75
-17:17:51,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@26b81c19, class example.es.Gold]]]
-17:17:52,826 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@4aab0724, class example.es.Gold]]]
-17:17:53,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@527e2e9d, class example.es.Gold]]]
-17:17:54,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@473852a6, class example.es.Gold]]]
-17:17:55,827 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@6411961a, class example.es.Gold]]]
-17:17:56,494 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[71], null, class example.es.BodyPosition], EntityChange[EntityId[71], null, class example.es.ViewType], EntityChange[EntityId[71], null, class example.es.Position]]]
-17:17:56,506 DEBUG [SharedObjectUpdater] No entity yet for:71
-17:17:56,506 DEBUG [SharedObjectUpdater] No entity yet for:71
-17:17:56,506 DEBUG [SharedObjectUpdater] No entity yet for:71
-17:17:56,556 DEBUG [SharedObjectUpdater] ****** Object removed[t=85122992512106]:71
-17:17:56,556 DEBUG [SharedObjectUpdater] No entity for removed object for:71
-17:17:56,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@5520dac7, class example.es.Gold]]]
-17:17:57,378 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[74], null, class example.es.BodyPosition], EntityChange[EntityId[74], null, class example.es.ViewType], EntityChange[EntityId[74], null, class example.es.Position]]]
-17:17:57,415 DEBUG [SharedObjectUpdater] No entity yet for:74
-17:17:57,415 DEBUG [SharedObjectUpdater] ****** Object removed[t=85123877433235]:74
-17:17:57,415 DEBUG [SharedObjectUpdater] No entity for removed object for:74
-17:17:57,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@731a67cc, class example.es.Gold]]]
-17:17:58,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@7632b66b, class example.es.Gold]]]
-17:17:59,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@1e7b5ff1, class example.es.Gold]]]
-17:18:00,495 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[70], null, class example.es.BodyPosition], EntityChange[EntityId[70], null, class example.es.ViewType], EntityChange[EntityId[70], null, class example.es.Position]]]
-17:18:00,497 DEBUG [SharedObjectUpdater] No entity yet for:70
-17:18:00,497 DEBUG [SharedObjectUpdater] No entity yet for:70
-17:18:00,497 DEBUG [SharedObjectUpdater] No entity yet for:70
-17:18:00,547 DEBUG [SharedObjectUpdater] ****** Object removed[t=85126994271478]:70
-17:18:00,548 DEBUG [SharedObjectUpdater] No entity for removed object for:70
-17:18:00,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@4dde581b, class example.es.Gold]]]
-17:18:01,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@6dda626b, class example.es.Gold]]]
-17:18:02,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@eb81055, class example.es.Gold]]]
-17:18:03,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@4a7842a4, class example.es.Gold]]]
-17:18:04,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@7559d570, class example.es.Gold]]]
-17:18:05,763 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[80], [ViewType[type=15], Position{location=Vec3[16.624161095857296, -1.748672952815978, 0.0], facing=Quatd[0.0, 0.0, 0.5079427769079988, 0.8613908145476076], rotation=1.0655896928204136}]]]]
-17:18:05,763 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[80], ViewType[type=15], class example.es.ViewType], EntityChange[EntityId[80], Position{location=Vec3[16.624161095857296, -1.748672952815978, 0.0], facing=Quatd[0.0, 0.0, 0.5079427769079988, 0.8613908145476076], rotation=1.0655896928204136}, class example.es.Position]]]
-17:18:05,774 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=bomb]
-17:18:05,779 INFO  [HealthState] Applying 0 to:Entity[EntityId[78], values=[HitPoints[100]]] result:HitPoints[100]
-17:18:05,780 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[80], [BodyPosition[null]]]]]
-17:18:05,780 INFO  [MessageDebugger] Received:EntityDataMessage[6, [ComponentData[EntityId[80], [ViewType[type=15], BodyPosition[null]]]]]
-17:18:05,780 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[80], BodyPosition[null], class example.es.BodyPosition]]]
-17:18:05,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@4bae288a, class example.es.Gold]]]
-17:18:06,079 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[83], [ViewType[type=15], Position{location=Vec3[16.641316711887242, -1.7460939637090014, 0.0], facing=Quatd[0.0, 0.0, 0.5079427769079988, 0.8613908145476076], rotation=1.0655896928204136}]]]]
-17:18:06,079 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[83], ViewType[type=15], class example.es.ViewType], EntityChange[EntityId[83], Position{location=Vec3[16.641316711887242, -1.7460939637090014, 0.0], facing=Quatd[0.0, 0.0, 0.5079427769079988, 0.8613908145476076], rotation=1.0655896928204136}, class example.es.Position]]]
-17:18:06,095 INFO  [HealthState] Applying 0 to:Entity[EntityId[78], values=[HitPoints[100]]] result:HitPoints[100]
-17:18:06,096 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[83], [BodyPosition[null]]]]]
-17:18:06,096 INFO  [MessageDebugger] Received:EntityDataMessage[6, [ComponentData[EntityId[83], [ViewType[type=15], BodyPosition[null]]]]]
-17:18:06,096 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[83], BodyPosition[null], class example.es.BodyPosition]]]
-17:18:06,312 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[86], [ViewType[type=15], Position{location=Vec3[16.65295225270306, -1.7443448027948503, 0.0], facing=Quatd[0.0, 0.0, 0.5079427769079988, 0.8613908145476076], rotation=1.0655896928204136}]]]]
-17:18:06,313 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[86], ViewType[type=15], class example.es.ViewType], EntityChange[EntityId[86], Position{location=Vec3[16.65295225270306, -1.7443448027948503, 0.0], facing=Quatd[0.0, 0.0, 0.5079427769079988, 0.8613908145476076], rotation=1.0655896928204136}, class example.es.Position]]]
-17:18:06,329 INFO  [HealthState] Applying 0 to:Entity[EntityId[78], values=[HitPoints[100]]] result:HitPoints[100]
-17:18:06,329 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[86], [BodyPosition[null]]]]]
-17:18:06,329 INFO  [MessageDebugger] Received:EntityDataMessage[6, [ComponentData[EntityId[86], [ViewType[type=15], BodyPosition[null]]]]]
-17:18:06,329 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[86], BodyPosition[null], class example.es.BodyPosition]]]
-17:18:06,828 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@36f61aed, class example.es.Gold]]]
-17:18:07,279 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[88], [ViewType[type=16], Position{location=Vec3[7.36269474029541, 8.136441230773926, 0.0], facing=Quatd[-0.0, -0.0, -0.7268449642753855, -0.6868015709850361], rotation=0.0}]]]]
-17:18:07,279 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[88], ViewType[type=16], class example.es.ViewType], EntityChange[EntityId[88], Position{location=Vec3[7.36269474029541, 8.136441230773926, 0.0], facing=Quatd[-0.0, -0.0, -0.7268449642753855, -0.6868015709850361], rotation=0.0}, class example.es.Position], EntityChange[EntityId[80], null, class example.es.BodyPosition], EntityChange[EntityId[80], null, class example.es.ViewType], EntityChange[EntityId[80], null, class example.es.Position]]]
-17:18:07,291 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=explosion2]
-17:18:07,312 DEBUG [SharedObjectUpdater] No entity yet for:80
-17:18:07,312 DEBUG [SharedObjectUpdater] No entity yet for:80
-17:18:07,312 DEBUG [SharedObjectUpdater] ****** Object removed[t=85133777869882]:80
-17:18:07,312 DEBUG [SharedObjectUpdater] No entity for removed object for:80
-17:18:07,579 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[89], [ViewType[type=16], Position{location=Vec3[7.175703525543213, 11.3767671585083, 0.0], facing=Quatd[0.0, 0.0, 0.8859431355458999, 0.46379387725486343], rotation=0.0}]]]]
-17:18:07,579 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[89], ViewType[type=16], class example.es.ViewType], EntityChange[EntityId[89], Position{location=Vec3[7.175703525543213, 11.3767671585083, 0.0], facing=Quatd[0.0, 0.0, 0.8859431355458999, 0.46379387725486343], rotation=0.0}, class example.es.Position], EntityChange[EntityId[83], null, class example.es.BodyPosition], EntityChange[EntityId[83], null, class example.es.ViewType], EntityChange[EntityId[83], null, class example.es.Position]]]
-17:18:07,613 DEBUG [SharedObjectUpdater] No entity yet for:83
-17:18:07,613 DEBUG [SharedObjectUpdater] ****** Object removed[t=85134077877844]:83
-17:18:07,613 DEBUG [SharedObjectUpdater] No entity for removed object for:83
-17:18:07,829 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[90], [ViewType[type=16], Position{location=Vec3[7.468413352966309, 8.298527717590332, 0.0], facing=Quatd[0.0, 0.0, 0.5138419991751397, 0.857884840688828], rotation=0.0}]]]]
-17:18:07,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[90], ViewType[type=16], class example.es.ViewType], EntityChange[EntityId[90], Position{location=Vec3[7.468413352966309, 8.298527717590332, 0.0], facing=Quatd[0.0, 0.0, 0.5138419991751397, 0.857884840688828], rotation=0.0}, class example.es.Position], EntityChange[EntityId[86], null, class example.es.BodyPosition], EntityChange[EntityId[86], null, class example.es.ViewType], EntityChange[EntityId[86], null, class example.es.Position], EntityChange[EntityId[78], example.es.Gold@c269ec1, class example.es.Gold]]]
-17:18:07,867 DEBUG [SharedObjectUpdater] No entity yet for:86
-17:18:07,867 DEBUG [SharedObjectUpdater] ****** Object removed[t=85134327886435]:86
-17:18:07,867 DEBUG [SharedObjectUpdater] No entity for removed object for:86
-17:18:08,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@5c34fe64, class example.es.Gold]]]
-17:18:09,295 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[88], null, class example.es.ViewType], EntityChange[EntityId[88], null, class example.es.Position]]]
-17:18:09,579 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[89], null, class example.es.ViewType], EntityChange[EntityId[89], null, class example.es.Position]]]
-17:18:09,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[90], null, class example.es.ViewType], EntityChange[EntityId[90], null, class example.es.Position], EntityChange[EntityId[78], example.es.Gold@2c98fdd9, class example.es.Gold]]]
-17:18:10,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@2abfabd5, class example.es.Gold]]]
-17:18:11,229 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[72], null, class example.es.BodyPosition], EntityChange[EntityId[72], null, class example.es.ViewType], EntityChange[EntityId[72], null, class example.es.Position]]]
-17:18:11,245 DEBUG [SharedObjectUpdater] No entity yet for:72
-17:18:11,245 DEBUG [SharedObjectUpdater] No entity yet for:72
-17:18:11,245 DEBUG [SharedObjectUpdater] No entity yet for:72
-17:18:11,295 DEBUG [SharedObjectUpdater] ****** Object removed[t=85137727980930]:72
-17:18:11,295 DEBUG [SharedObjectUpdater] No entity for removed object for:72
-17:18:11,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@12d7e8d5, class example.es.Gold]]]
-17:18:12,829 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[78], example.es.Gold@696be335, class example.es.Gold]]]
-17:18:12,920 INFO  [GameServer] Stopping game server...Shutting down.
-17:18:12,920 TRACE [GameSystemManager] stop()
-17:18:12,921 TRACE [GameSystemManager] stopping:com.simsilica.sim.TaskDispatcher@3f0537be
-17:18:12,921 TRACE [GameSystemManager] stopping:example.sim.SimplePhysics@2590ebe8
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.DecayState@3ac5bae4
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.HealthState@136b8582
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.BountyState@2fa08f69
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.AttackProjectileState@5bafcd07
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.ArenaState@5291b055
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.MapStateServer@7c3ec3f9
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.GravityState@4a3c18ad
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.WarpState@51fbbf4c
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.DelayState@2d8351e
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.ShipFrequencyStateServer@2486771a
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.FlagStateServer@4be65011
-17:18:12,921 TRACE [GameSystemManager] stopping:example.es.states.PathfinderState@8d5fcb6
-17:18:12,926 TRACE [GameSystemManager] stopping:example.es.states.BasicSteeringState@290724b7
-17:18:12,926 TRACE [GameSystemManager] stopping:example.es.states.GoldTimeState@3c4b84a3
-17:18:12,927 TRACE [GameSystemManager] stopping:example.net.server.ZoneNetworkSystem@4bb722bd
-17:18:12,927 TRACE [GameSystemManager] stopping:com.simsilica.es.server.EntityUpdater@5b0595e0
-17:18:12,927 TRACE [GameSystemManager] stopping:example.sim.BodyPositionPublisher@1ed075c4
-17:18:12,927 TRACE [GameSystemManager] stopping:example.sim.BasicEnvironment@7ede9421
-17:18:12,927 TRACE [GameSystemManager] terminate()
-17:18:12,927 TRACE [GameSystemManager] terminating:com.simsilica.sim.TaskDispatcher@3f0537be
-17:18:12,927 TRACE [GameSystemManager] terminating:example.sim.SimplePhysics@2590ebe8
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.DecayState@3ac5bae4
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.HealthState@136b8582
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.BountyState@2fa08f69
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.AttackProjectileState@5bafcd07
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.ArenaState@5291b055
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.MapStateServer@7c3ec3f9
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.GravityState@4a3c18ad
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.WarpState@51fbbf4c
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.DelayState@2d8351e
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.ShipFrequencyStateServer@2486771a
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.FlagStateServer@4be65011
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.PathfinderState@8d5fcb6
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.BasicSteeringState@290724b7
-17:18:12,927 TRACE [GameSystemManager] terminating:example.es.states.GoldTimeState@3c4b84a3
-17:18:12,927 TRACE [GameSystemManager] terminating:example.net.server.ZoneNetworkSystem@4bb722bd
-17:18:12,927 TRACE [GameSystemManager] terminating:com.simsilica.es.server.EntityUpdater@5b0595e0
-17:18:12,927 TRACE [GameSystemManager] terminating:example.sim.BodyPositionPublisher@1ed075c4
-17:18:12,928 TRACE [GameSystemManager] terminating:example.sim.BasicEnvironment@7ede9421
-17:18:12,928 INFO  [StateCollector] Shuttong down state collector.
-17:18:12,929 ERROR [DefaultClient] Connection terminated, reason:Shutting down..
-17:18:12,929 DEBUG [AccountHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:18:12,929 DEBUG [AccountHostedService] publishing playerLoggedOff event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ]
-17:18:12,929 DEBUG [GameSessionHostedService] onPlayerLoggedOff()
-17:18:12,929 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:18:12,930 DEBUG [GameSessionHostedService] Closing game session for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ]
-17:18:12,930 INFO  [SharedObjectUpdater] stop()
-17:18:12,931 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:18:12,931 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:18:12,931 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:61847] ])
-17:18:12,932 INFO  [ConnectionState] clientDisconnected(com.jme3.network.base.DefaultClient@242510b9, DisconnectInfo[Shutting down., null])
-17:18:12,932 INFO  [MessageDebugger] Received:com.jme3.network.message.DisconnectMessage[reason=Shutting down., type=Kick]
-17:18:12,933 INFO  [GameServer] Game server stopped.
-17:18:12,933 INFO  [GameClient] close()
-17:18:12,929 ERROR [ConnectionState] Connection error
+21:54:56,228 INFO  [ConnectionState] join(Asser)
+21:54:56,229 INFO  [AccountHostedService] login(Asser)
+21:54:56,229 INFO  [AccountHostedService] Created player entity:EntityId[78] for:Asser
+21:54:56,230 DEBUG [AccountHostedService] publishing playerLoggedOn event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:50088]], fast=UdpEndpoint[1, /127.0.0.1:59509] ]
+21:54:56,230 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=1, procId=0, args.length=1]
+21:54:56,230 DEBUG [GameSessionHostedService] onPlayerLoggedOn()
+21:54:56,230 DEBUG [GameSessionHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:50088]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:54:56,233 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
+21:54:56,233 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
+21:54:56,235 DEBUG [ChatHostedService] startHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[connected local=/127.0.0.1:4271 remote=/127.0.0.1:50088]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:54:56,237 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=0, args.length=1]
+21:54:56,237 INFO  [MessageDebugger] Received:RpcCallMessage[#-1, channel=-2, async, objId=-1, procId=1, args.length=4]
+21:54:56,244 INFO  [MessageDebugger] Received:EntityDataMessage[0, [ComponentData[EntityId[79], [BodyPosition[null]]]]]
+21:54:56,244 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], BodyPosition[null], class example.es.BodyPosition]]]
+21:54:56,271 INFO  [MessageDebugger] Object state updates started.
+21:54:56,379 INFO  [PlayerMovementState] initialize()
+21:54:56,381 INFO  [PlayerMovementState] onEnable()
+21:54:56,383 INFO  [MessageDebugger] Received:EntityDataMessage[2, [ComponentData[EntityId[79], [Name[Asser], BodyPosition[null]]]]]
+21:54:56,391 INFO  [MessageDebugger] Received:EntityDataMessage[3, [ComponentData[EntityId[79], [ShipType[type=14], example.es.Frequency@1c392fe5]]]]
+21:54:56,392 DEBUG [GameSessionClientService] delegate:RemoteObject[#2, example.net.GameSession]
+21:54:56,393 INFO  [MessageDebugger] Received:RpcResponseMessage[#1, result=EntityId[79]]
+21:54:56,396 INFO  [MessageDebugger] Received:EntityDataMessage[6, [ComponentData[EntityId[71], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[72], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[73], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[74], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[75], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[76], [ViewType[type=9], BodyPosition[null]]], ComponentData[EntityId[79], [ViewType[type=13], BodyPosition[null]]]]]
+21:54:56,398 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[0], [ViewType[type=0], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[1], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[2], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[3], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[4], [ViewType[type=6], Position{location=Vec3[-384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[5], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[6], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[7], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[8], [ViewType[type=6], Position{location=Vec3[-384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[9], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[10], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[11], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[12], [ViewType[type=6], Position{location=Vec3[-384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[13], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[14], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[15], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[16], [ViewType[type=6], Position{location=Vec3[-384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[17], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[18], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[19], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[20], [ViewType[type=6], Position{location=Vec3[-128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
+21:54:56,400 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[21], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[22], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[23], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[24], [ViewType[type=6], Position{location=Vec3[-128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[25], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[26], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[27], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[28], [ViewType[type=6], Position{location=Vec3[-128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[29], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[30], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[31], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[32], [ViewType[type=6], Position{location=Vec3[-128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[33], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[34], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[35], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[36], [ViewType[type=6], Position{location=Vec3[128.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[37], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[38], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[39], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[40], [ViewType[type=6], Position{location=Vec3[128.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[41], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
+21:54:56,401 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[42], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[43], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[44], [ViewType[type=6], Position{location=Vec3[128.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[45], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[46], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[47], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[48], [ViewType[type=6], Position{location=Vec3[128.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[49], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[50], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[51], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[52], [ViewType[type=6], Position{location=Vec3[384.0, -384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[53], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[54], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[55], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[56], [ViewType[type=6], Position{location=Vec3[384.0, -128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[57], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[58], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[59], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[60], [ViewType[type=6], Position{location=Vec3[384.0, 128.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[61], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, -384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[62], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, -128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]]]]
+21:54:56,403 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[63], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, 128.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[64], [ViewType[type=6], Position{location=Vec3[384.0, 384.0, 384.0], facing=Quatd[-0.7071067811865475, 0.0, 0.0, 0.7071067811865476], rotation=0.0}]], ComponentData[EntityId[65], [ViewType[type=0], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[66], [ViewType[type=7], Position{location=Vec3[5.0, 5.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[67], [ViewType[type=7], Position{location=Vec3[5.0, 7.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[68], [ViewType[type=7], Position{location=Vec3[5.0, 3.5, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[69], [ViewType[type=7], Position{location=Vec3[6.0, 9.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[70], [ViewType[type=7], Position{location=Vec3[4.0, 2.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[71], [ViewType[type=9], Position{location=Vec3[-5.0, 5.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[72], [ViewType[type=9], Position{location=Vec3[-10.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[73], [ViewType[type=9], Position{location=Vec3[-20.0, -30.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[74], [ViewType[type=9], Position{location=Vec3[10.0, -5.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[75], [ViewType[type=9], Position{location=Vec3[20.0, -20.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[76], [ViewType[type=9], Position{location=Vec3[15.0, -10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[77], [ViewType[type=11], Position{location=Vec3[30.0, 10.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]], ComponentData[EntityId[79], [ViewType[type=13], Position{location=Vec3[0.0, 0.0, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
+21:54:56,432 INFO  [GameSessionState] initialize()
+21:54:56,433 INFO  [MessageDebugger] Received:RpcResponseMessage[#2, result=EntityId[78]]
+21:54:56,433 INFO  [MessageDebugger] Received:RpcResponseMessage[#3, result=EntityId[79]]
+21:54:56,433 INFO  [GameSessionState] Player object:EntityId[79]
+21:54:56,458 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=arena]
+21:54:56,459 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=gravSphere]
+21:54:56,460 INFO  [MessageDebugger] Received:ReturnComponentsMessage[2, EntityId[1], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,487 INFO  [MessageDebugger] Received:ReturnComponentsMessage[3, EntityId[2], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,491 INFO  [MessageDebugger] Received:ReturnComponentsMessage[4, EntityId[3], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,495 INFO  [MessageDebugger] Received:ReturnComponentsMessage[5, EntityId[4], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,500 INFO  [MessageDebugger] Received:ReturnComponentsMessage[6, EntityId[5], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,503 INFO  [MessageDebugger] Received:ReturnComponentsMessage[7, EntityId[6], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,506 INFO  [MessageDebugger] Received:ReturnComponentsMessage[8, EntityId[7], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,510 INFO  [MessageDebugger] Received:ReturnComponentsMessage[9, EntityId[8], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,514 INFO  [MessageDebugger] Received:ReturnComponentsMessage[10, EntityId[9], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,518 INFO  [MessageDebugger] Received:ReturnComponentsMessage[11, EntityId[10], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,521 INFO  [MessageDebugger] Received:ReturnComponentsMessage[12, EntityId[11], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,525 INFO  [MessageDebugger] Received:ReturnComponentsMessage[13, EntityId[12], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,528 INFO  [MessageDebugger] Received:ReturnComponentsMessage[14, EntityId[13], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,532 INFO  [MessageDebugger] Received:ReturnComponentsMessage[15, EntityId[14], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,535 INFO  [MessageDebugger] Received:ReturnComponentsMessage[16, EntityId[15], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,539 INFO  [MessageDebugger] Received:ReturnComponentsMessage[17, EntityId[16], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,542 INFO  [MessageDebugger] Received:ReturnComponentsMessage[18, EntityId[17], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,546 INFO  [MessageDebugger] Received:ReturnComponentsMessage[19, EntityId[18], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,549 INFO  [MessageDebugger] Received:ReturnComponentsMessage[20, EntityId[19], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,552 INFO  [MessageDebugger] Received:ReturnComponentsMessage[21, EntityId[20], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,555 INFO  [MessageDebugger] Received:ReturnComponentsMessage[22, EntityId[21], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,557 INFO  [MessageDebugger] Received:ReturnComponentsMessage[23, EntityId[22], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,560 INFO  [MessageDebugger] Received:ReturnComponentsMessage[24, EntityId[23], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,562 INFO  [MessageDebugger] Received:ReturnComponentsMessage[25, EntityId[24], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,564 INFO  [MessageDebugger] Received:ReturnComponentsMessage[26, EntityId[25], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,566 INFO  [MessageDebugger] Received:ReturnComponentsMessage[27, EntityId[26], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,568 INFO  [MessageDebugger] Received:ReturnComponentsMessage[28, EntityId[27], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,569 INFO  [MessageDebugger] Received:ReturnComponentsMessage[29, EntityId[28], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,571 INFO  [MessageDebugger] Received:ReturnComponentsMessage[30, EntityId[29], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,573 INFO  [MessageDebugger] Received:ReturnComponentsMessage[31, EntityId[30], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,575 INFO  [MessageDebugger] Received:ReturnComponentsMessage[32, EntityId[31], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,577 INFO  [MessageDebugger] Received:ReturnComponentsMessage[33, EntityId[32], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,579 INFO  [MessageDebugger] Received:ReturnComponentsMessage[34, EntityId[33], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,581 INFO  [MessageDebugger] Received:ReturnComponentsMessage[35, EntityId[34], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,583 INFO  [MessageDebugger] Received:ReturnComponentsMessage[36, EntityId[35], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,585 INFO  [MessageDebugger] Received:ReturnComponentsMessage[37, EntityId[36], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,587 INFO  [MessageDebugger] Received:ReturnComponentsMessage[38, EntityId[37], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,589 INFO  [MessageDebugger] Received:ReturnComponentsMessage[39, EntityId[38], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,594 INFO  [MessageDebugger] Received:ReturnComponentsMessage[40, EntityId[39], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,597 INFO  [MessageDebugger] Received:ReturnComponentsMessage[41, EntityId[40], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,599 INFO  [MessageDebugger] Received:ReturnComponentsMessage[42, EntityId[41], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,601 INFO  [MessageDebugger] Received:ReturnComponentsMessage[43, EntityId[42], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,603 INFO  [MessageDebugger] Received:ReturnComponentsMessage[44, EntityId[43], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,605 INFO  [MessageDebugger] Received:ReturnComponentsMessage[45, EntityId[44], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,606 INFO  [MessageDebugger] Received:ReturnComponentsMessage[46, EntityId[45], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,607 INFO  [MessageDebugger] Received:ReturnComponentsMessage[47, EntityId[46], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,608 INFO  [MessageDebugger] Received:ReturnComponentsMessage[48, EntityId[47], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,609 INFO  [MessageDebugger] Received:ReturnComponentsMessage[49, EntityId[48], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,610 INFO  [MessageDebugger] Received:ReturnComponentsMessage[50, EntityId[49], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,612 INFO  [MessageDebugger] Received:ReturnComponentsMessage[51, EntityId[50], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,613 INFO  [MessageDebugger] Received:ReturnComponentsMessage[52, EntityId[51], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,614 INFO  [MessageDebugger] Received:ReturnComponentsMessage[53, EntityId[52], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,616 INFO  [MessageDebugger] Received:ReturnComponentsMessage[54, EntityId[53], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,617 INFO  [MessageDebugger] Received:ReturnComponentsMessage[55, EntityId[54], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,618 INFO  [MessageDebugger] Received:ReturnComponentsMessage[56, EntityId[55], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,619 INFO  [MessageDebugger] Received:ReturnComponentsMessage[57, EntityId[56], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,621 INFO  [MessageDebugger] Received:ReturnComponentsMessage[58, EntityId[57], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,622 INFO  [MessageDebugger] Received:ReturnComponentsMessage[59, EntityId[58], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,623 INFO  [MessageDebugger] Received:ReturnComponentsMessage[60, EntityId[59], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,624 INFO  [MessageDebugger] Received:ReturnComponentsMessage[61, EntityId[60], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,625 INFO  [MessageDebugger] Received:ReturnComponentsMessage[62, EntityId[61], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,626 INFO  [MessageDebugger] Received:ReturnComponentsMessage[63, EntityId[62], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,627 INFO  [MessageDebugger] Received:ReturnComponentsMessage[64, EntityId[63], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,629 INFO  [MessageDebugger] Received:ReturnComponentsMessage[65, EntityId[64], [SphereShape[radius=10.0, centerOffset=Vec3[0.0, 0.0, 0.0]]]]
+21:54:56,631 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=tower]
+21:54:56,637 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=mob]
+21:54:56,640 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=base]
+21:54:56,673 INFO  [MessageDebugger] Received:StringIdMessage[id=null, string=ship_warbird]
+21:54:56,694 INFO  [MessageDebugger] Received:EntityDataMessage[5, [ComponentData[EntityId[79], [example.es.Gold@37a27833]]]]
+21:54:56,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1d961f9b, class example.es.Gold], EntityChange[EntityId[79], example.es.Gold@26b0ec1d, class example.es.Gold]]]
+21:54:57,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7e686cb9, class example.es.Gold]]]
+21:54:57,780 INFO  [PathfinderState] [-3.245575, 3.967926, 4.55719, 10.361298, 4.6032104, 10.39679, 5.1032104, 10.760071, 5.3082886, 10.874939, 5.690979, 10.95105, 6.309021, 10.95105, 6.6917114, 10.874939, 6.8967896, 10.760071, 7.3967896, 10.39679, 7.5161133, 10.294891, 7.7189026, 10.002655, 10.0, 5.0]
+21:54:57,781 INFO  [PathfinderState] [-8.322723, -8.847443, 4.8754883, 0.22485352, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.5161133, 0.70510864, 5.663788, 0.8931885, 7.21875, 3.454071, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:57,782 INFO  [PathfinderState] [-18.675446, -28.455017, 5.578583, 0.7736206, 5.6411133, 0.85757446, 6.6405945, 2.3570862, 6.696228, 2.451355, 7.185791, 3.3953857, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:57,783 INFO  [PathfinderState] [10.0, -2.9650574, 7.239502, 1.2077332, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:57,783 INFO  [PathfinderState] [19.24414, -18.110626, 7.2241516, 1.2316589, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:57,784 INFO  [PathfinderState] [14.356384, -8.069489, 7.2802124, 1.1506348, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:57,784 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[80], [ViewType[type=7], Position{location=Vec3[8.882545471191406, 2.3472580909729004, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
+21:54:57,785 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[80], ViewType[type=7], class example.es.ViewType], EntityChange[EntityId[80], Position{location=Vec3[8.882545471191406, 2.3472580909729004, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}, class example.es.Position]]]
+21:54:58,213 INFO  [PathfinderState] [-2.8103638, 3.7696838, 4.5241394, 10.332977, 4.6032104, 10.39679, 5.1032104, 10.760071, 5.3082886, 10.874939, 5.690979, 10.95105, 6.309021, 10.95105, 6.6917114, 10.874939, 6.8967896, 10.760071, 7.3967896, 10.39679, 7.5161133, 10.294891, 7.7189026, 10.002655, 10.0, 5.0]
+21:54:58,215 INFO  [PathfinderState] [-7.9017334, -8.558075, 4.8754883, 0.22485352, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.5161133, 0.70510864, 5.663788, 0.8931885, 7.21875, 3.454071, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,216 INFO  [PathfinderState] [-18.343628, -28.06662, 5.578705, 0.7737732, 5.6411133, 0.85757446, 6.6405945, 2.3570862, 6.696228, 2.451355, 7.185791, 3.3953857, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,217 INFO  [PathfinderState] [9.970123, -2.4634705, 7.271332, 1.162384, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,218 INFO  [PathfinderState] [19.046082, -17.640503, 7.226074, 1.2286072, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,219 INFO  [PathfinderState] [14.179199, -7.5932007, 7.288452, 1.1400452, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,220 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[81], [ViewType[type=7], Position{location=Vec3[10.76952075958252, 2.3012356758117676, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
+21:54:58,220 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[81], ViewType[type=7], class example.es.ViewType], EntityChange[EntityId[81], Position{location=Vec3[10.76952075958252, 2.3012356758117676, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}, class example.es.Position]]]
+21:54:58,629 INFO  [PathfinderState] [-2.3729553, 3.664978, 4.4958496, 10.306671, 4.6032104, 10.39679, 5.1032104, 10.760071, 5.3082886, 10.874939, 5.690979, 10.95105, 6.309021, 10.95105, 6.6917114, 10.874939, 6.8967896, 10.760071, 7.3967896, 10.39679, 7.5161133, 10.294891, 7.7189026, 10.002655, 10.0, 5.0]
+21:54:58,630 INFO  [PathfinderState] [-7.4689026, -8.26059, 4.8754883, 0.22485352, 4.8967896, 0.2399292, 5.3967896, 0.60321045, 5.5161133, 0.70510864, 5.663788, 0.8931885, 7.21875, 3.454071, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,630 INFO  [PathfinderState] [-18.00354, -27.666443, 5.5787964, 0.7739258, 5.6411133, 0.85757446, 6.6405945, 2.3570862, 6.696228, 2.451355, 7.185791, 3.3953857, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,631 INFO  [PathfinderState] [9.888794, -1.9647522, 7.306946, 1.1173096, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,631 INFO  [PathfinderState] [18.82904, -17.164062, 7.2277527, 1.2259216, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,632 INFO  [PathfinderState] [13.971497, -7.1173706, 7.2962036, 1.1303711, 7.122467, 1.45047, 6.931488, 2.0382385, 6.882538, 2.3472595, 6.931488, 2.6562805, 7.122467, 3.244049, 7.1496277, 3.3177185, 7.3664246, 3.6421509, 7.4857483, 3.744049, 7.9857483, 4.1073303, 8.178589, 4.217041, 10.0, 5.0]
+21:54:58,632 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[82], [ViewType[type=7], Position{location=Vec3[12.794567108154297, 2.3012354373931885, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
+21:54:58,632 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[82], ViewType[type=7], class example.es.ViewType], EntityChange[EntityId[82], Position{location=Vec3[12.794567108154297, 2.3012354373931885, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}, class example.es.Position]]]
+21:54:58,693 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@5aafe0a7, class example.es.Gold]]]
+21:54:59,129 INFO  [PathfinderState] [-1.8301697, 3.6398926, 4.465515, 10.2760315, 4.6032104, 10.39679, 5.1032104, 10.760071, 5.3082886, 10.874939, 5.690979, 10.95105, 6.309021, 10.95105, 6.6917114, 10.874939, 6.8967896, 10.760071, 7.3967896, 10.39679, 7.5161133, 10.294891, 7.7189026, 10.002655, 10.0, 5.0]
+21:54:59,130 INFO  [PathfinderState] [-6.9179688, -7.881897, 4.343231, 10.118164, 4.6032104, 10.39679, 5.1032104, 10.760071, 5.3082886, 10.874939, 5.690979, 10.95105, 6.309021, 10.95105, 6.6917114, 10.874939, 6.8967896, 10.760071, 7.3967896, 10.39679, 7.5161133, 10.294891, 7.7189026, 10.002655, 10.0, 5.0]
+21:54:59,130 INFO  [PathfinderState] [-17.571747, -27.156097, 14.265564, 0.96395874, 14.310669, 1.0063477, 14.527466, 1.33078, 14.554626, 1.4044495, 14.745605, 1.992218, 14.794556, 2.301239, 14.745605, 2.61026, 14.554626, 3.1980286, 14.527466, 3.271698, 14.310669, 3.5961304, 14.191345, 3.6980286, 13.691345, 4.06131, 13.486267, 4.176178, 13.329895, 4.226349, 10.0, 5.0]
+21:54:59,130 INFO  [PathfinderState] [9.725983, -1.3524475, 13.530945, 0.44610596, 13.691345, 0.5411682, 14.191345, 0.90444946, 14.310669, 1.0063477, 14.527466, 1.33078, 14.554626, 1.4044495, 14.745605, 1.992218, 14.794556, 2.301239, 14.745605, 2.61026, 14.554626, 3.1980286, 14.527466, 3.271698, 14.310669, 3.5961304, 14.191345, 3.6980286, 13.691345, 4.06131, 13.486267, 4.176178, 13.329895, 4.226349, 10.0, 5.0]
+21:54:59,131 INFO  [PathfinderState] [18.538208, -16.565002, 14.775635, 2.4949036, 14.745605, 2.61026, 14.554626, 3.1980286, 14.527466, 3.271698, 14.310669, 3.5961304, 14.191345, 3.6980286, 13.691345, 4.06131, 13.486267, 4.176178, 13.329895, 4.226349, 10.0, 5.0]
+21:54:59,131 INFO  [PathfinderState] [13.678711, -6.527313, 14.78656, 2.1749573, 14.794556, 2.301239, 14.745605, 2.61026, 14.554626, 3.1980286, 14.527466, 3.271698, 14.310669, 3.5961304, 14.191345, 3.6980286, 13.691345, 4.06131, 13.486267, 4.176178, 13.329895, 4.226349, 10.0, 5.0]
+21:54:59,132 INFO  [MessageDebugger] Received:EntityDataMessage[7, [ComponentData[EntityId[83], [ViewType[type=7], Position{location=Vec3[6.857499122619629, 2.3012354373931885, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}]]]]
+21:54:59,132 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[83], ViewType[type=7], class example.es.ViewType], EntityChange[EntityId[83], Position{location=Vec3[6.857499122619629, 2.3012354373931885, 0.0], facing=Quatd[0.0, 0.0, 0.0, 1.0], rotation=0.0}, class example.es.Position]]]
+21:54:59,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@776856ae, class example.es.Gold]]]
+21:55:00,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@56998c5a, class example.es.Gold]]]
+21:55:01,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@6ba92f94, class example.es.Gold]]]
+21:55:02,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@4ea6509e, class example.es.Gold]]]
+21:55:03,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7b4eb2c2, class example.es.Gold]]]
+21:55:04,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@612f0aad, class example.es.Gold]]]
+21:55:05,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@43d85c93, class example.es.Gold]]]
+21:55:06,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@3150bb56, class example.es.Gold]]]
+21:55:07,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@298e58e2, class example.es.Gold]]]
+21:55:08,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@20b79b63, class example.es.Gold]]]
+21:55:09,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@21222f37, class example.es.Gold]]]
+21:55:10,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7ab02ab9, class example.es.Gold]]]
+21:55:11,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@6640da0f, class example.es.Gold]]]
+21:55:12,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@3ae4f0b1, class example.es.Gold]]]
+21:55:13,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@a8f2b4d, class example.es.Gold]]]
+21:55:14,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@71113d47, class example.es.Gold]]]
+21:55:15,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@11e111c8, class example.es.Gold]]]
+21:55:16,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@c1d1a3d, class example.es.Gold]]]
+21:55:17,311 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[76], null, class example.es.ViewType], EntityChange[EntityId[76], null, class example.es.Position], EntityChange[EntityId[76], null, class example.es.BodyPosition]]]
+21:55:17,316 DEBUG [SharedObjectUpdater] No entity yet for:76
+21:55:17,316 DEBUG [SharedObjectUpdater] No entity yet for:76
+21:55:17,316 DEBUG [SharedObjectUpdater] No entity yet for:76
+21:55:17,367 DEBUG [SharedObjectUpdater] ****** Object removed[t=101763810094369]:76
+21:55:17,367 DEBUG [SharedObjectUpdater] No entity for removed object for:76
+21:55:17,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7f3b8db0, class example.es.Gold]]]
+21:55:18,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7b86c15, class example.es.Gold]]]
+21:55:19,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1e4e427b, class example.es.Gold]]]
+21:55:20,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7a667f7d, class example.es.Gold]]]
+21:55:21,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@59133b8c, class example.es.Gold]]]
+21:55:22,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1d8f3c7f, class example.es.Gold]]]
+21:55:22,744 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[75], null, class example.es.ViewType], EntityChange[EntityId[75], null, class example.es.Position], EntityChange[EntityId[75], null, class example.es.BodyPosition]]]
+21:55:22,777 DEBUG [SharedObjectUpdater] No entity yet for:75
+21:55:22,777 DEBUG [SharedObjectUpdater] No entity yet for:75
+21:55:22,777 DEBUG [SharedObjectUpdater] ****** Object removed[t=101769243629427]:75
+21:55:22,777 DEBUG [SharedObjectUpdater] No entity for removed object for:75
+21:55:22,861 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[71], null, class example.es.ViewType], EntityChange[EntityId[71], null, class example.es.Position], EntityChange[EntityId[71], null, class example.es.BodyPosition]]]
+21:55:22,880 DEBUG [SharedObjectUpdater] No entity yet for:71
+21:55:22,880 DEBUG [SharedObjectUpdater] No entity yet for:71
+21:55:22,880 DEBUG [SharedObjectUpdater] ****** Object removed[t=101769360299283]:71
+21:55:22,880 DEBUG [SharedObjectUpdater] No entity for removed object for:71
+21:55:23,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@71bee82f, class example.es.Gold]]]
+21:55:24,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@38eafcf2, class example.es.Gold]]]
+21:55:25,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@78656f38, class example.es.Gold]]]
+21:55:26,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1cedc88f, class example.es.Gold]]]
+21:55:27,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1a14b4ad, class example.es.Gold]]]
+21:55:28,694 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7576c671, class example.es.Gold]]]
+21:55:28,845 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[74], null, class example.es.ViewType], EntityChange[EntityId[74], null, class example.es.Position], EntityChange[EntityId[74], null, class example.es.BodyPosition]]]
+21:55:28,848 DEBUG [SharedObjectUpdater] No entity yet for:74
+21:55:28,848 DEBUG [SharedObjectUpdater] No entity yet for:74
+21:55:28,848 DEBUG [SharedObjectUpdater] No entity yet for:74
+21:55:28,899 DEBUG [SharedObjectUpdater] ****** Object removed[t=101775343890703]:74
+21:55:28,899 DEBUG [SharedObjectUpdater] No entity for removed object for:74
+21:55:29,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@26396b48, class example.es.Gold]]]
+21:55:30,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@546266b0, class example.es.Gold]]]
+21:55:31,562 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[72], null, class example.es.ViewType], EntityChange[EntityId[72], null, class example.es.Position], EntityChange[EntityId[72], null, class example.es.BodyPosition]]]
+21:55:31,580 DEBUG [SharedObjectUpdater] No entity yet for:72
+21:55:31,580 DEBUG [SharedObjectUpdater] No entity yet for:72
+21:55:31,580 DEBUG [SharedObjectUpdater] ****** Object removed[t=101778060656242]:72
+21:55:31,580 DEBUG [SharedObjectUpdater] No entity for removed object for:72
+21:55:31,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@6bec014d, class example.es.Gold]]]
+21:55:32,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@28ea070f, class example.es.Gold]]]
+21:55:33,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@45e44a71, class example.es.Gold]]]
+21:55:34,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@2f4f39b, class example.es.Gold]]]
+21:55:35,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@9197ce1, class example.es.Gold]]]
+21:55:36,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@71b3d0b2, class example.es.Gold]]]
+21:55:37,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1663ab37, class example.es.Gold]]]
+21:55:38,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@33aeea4b, class example.es.Gold]]]
+21:55:39,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@719276ab, class example.es.Gold]]]
+21:55:40,279 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[73], null, class example.es.ViewType], EntityChange[EntityId[73], null, class example.es.Position], EntityChange[EntityId[73], null, class example.es.BodyPosition]]]
+21:55:40,327 DEBUG [SharedObjectUpdater] No entity yet for:73
+21:55:40,328 DEBUG [SharedObjectUpdater] ****** Object removed[t=101786777685013]:73
+21:55:40,328 DEBUG [SharedObjectUpdater] No entity for removed object for:73
+21:55:40,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@1e4b0e6b, class example.es.Gold]]]
+21:55:41,696 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@157a3486, class example.es.Gold]]]
+21:55:42,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@514268d0, class example.es.Gold]]]
+21:55:43,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@33876b7d, class example.es.Gold]]]
+21:55:44,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@75791330, class example.es.Gold]]]
+21:55:45,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@31e3c71d, class example.es.Gold]]]
+21:55:46,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@73a52d19, class example.es.Gold]]]
+21:55:47,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@7bf17c93, class example.es.Gold]]]
+21:55:48,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@46ac104e, class example.es.Gold]]]
+21:55:49,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@6958eca9, class example.es.Gold]]]
+21:55:50,695 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@33cfc97e, class example.es.Gold]]]
+21:55:51,696 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@43aa3e70, class example.es.Gold]]]
+21:55:52,696 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@65a2782b, class example.es.Gold]]]
+21:55:53,696 INFO  [MessageDebugger] Received:ComponentChangeMessage[[EntityChange[EntityId[79], example.es.Gold@4b31ed92, class example.es.Gold]]]
+21:55:54,552 INFO  [GameServer] Stopping game server...Shutting down.
+21:55:54,552 TRACE [GameSystemManager] stop()
+21:55:54,552 TRACE [GameSystemManager] stopping:com.simsilica.sim.TaskDispatcher@6e36777a
+21:55:54,553 TRACE [GameSystemManager] stopping:example.sim.SimplePhysics@66c9a9ac
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.DecayState@50762cd9
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.HealthState@3eb3bd37
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.BountyState@1c5bad4e
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.AttackProjectileState@51cebd10
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.ArenaState@383b2d03
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.MapStateServer@6b515371
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.GravityState@101f3d2b
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.WarpState@6580f384
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.DelayState@5ce74edd
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.ShipFrequencyStateServer@57060fe7
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.FlagStateServer@15a6d1c8
+21:55:54,553 TRACE [GameSystemManager] stopping:example.es.states.PathfinderState@73d1e407
+21:55:54,566 TRACE [GameSystemManager] stopping:example.es.states.BasicSteeringState@462b52c9
+21:55:54,566 TRACE [GameSystemManager] stopping:example.es.states.GoldTimeState@2f869db
+21:55:54,566 TRACE [GameSystemManager] stopping:example.es.states.TowerState@38166885
+21:55:54,566 TRACE [GameSystemManager] stopping:example.net.server.ZoneNetworkSystem@60931d1c
+21:55:54,567 TRACE [GameSystemManager] stopping:com.simsilica.es.server.EntityUpdater@21641664
+21:55:54,567 TRACE [GameSystemManager] stopping:example.sim.BodyPositionPublisher@2abd008d
+21:55:54,567 TRACE [GameSystemManager] stopping:example.sim.BasicEnvironment@30d288e6
+21:55:54,567 TRACE [GameSystemManager] terminate()
+21:55:54,567 TRACE [GameSystemManager] terminating:com.simsilica.sim.TaskDispatcher@6e36777a
+21:55:54,567 TRACE [GameSystemManager] terminating:example.sim.SimplePhysics@66c9a9ac
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.DecayState@50762cd9
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.HealthState@3eb3bd37
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.BountyState@1c5bad4e
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.AttackProjectileState@51cebd10
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.ArenaState@383b2d03
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.MapStateServer@6b515371
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.GravityState@101f3d2b
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.WarpState@6580f384
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.DelayState@5ce74edd
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.ShipFrequencyStateServer@57060fe7
+21:55:54,567 TRACE [GameSystemManager] terminating:example.es.states.FlagStateServer@15a6d1c8
+21:55:54,568 TRACE [GameSystemManager] terminating:example.es.states.PathfinderState@73d1e407
+21:55:54,568 TRACE [GameSystemManager] terminating:example.es.states.BasicSteeringState@462b52c9
+21:55:54,568 TRACE [GameSystemManager] terminating:example.es.states.GoldTimeState@2f869db
+21:55:54,568 TRACE [GameSystemManager] terminating:example.es.states.TowerState@38166885
+21:55:54,568 TRACE [GameSystemManager] terminating:example.net.server.ZoneNetworkSystem@60931d1c
+21:55:54,568 TRACE [GameSystemManager] terminating:com.simsilica.es.server.EntityUpdater@21641664
+21:55:54,568 TRACE [GameSystemManager] terminating:example.sim.BodyPositionPublisher@2abd008d
+21:55:54,568 TRACE [GameSystemManager] terminating:example.sim.BasicEnvironment@30d288e6
+21:55:54,568 INFO  [StateCollector] Shuttong down state collector.
+21:55:54,569 ERROR [DefaultClient] Connection terminated, reason:Shutting down..
+21:55:54,570 DEBUG [AccountHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:55:54,570 DEBUG [AccountHostedService] publishing playerLoggedOff event for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ]
+21:55:54,570 INFO  [SharedObjectUpdater] stop()
+21:55:54,570 DEBUG [GameSessionHostedService] onPlayerLoggedOff()
+21:55:54,570 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:55:54,570 DEBUG [GameSessionHostedService] Closing game session for:Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ]
+21:55:54,571 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:55:54,572 INFO  [ConnectionState] clientDisconnected(com.jme3.network.base.DefaultClient@7d4ba81, DisconnectInfo[Shutting down., null])
+21:55:54,572 DEBUG [GameSessionHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:55:54,572 DEBUG [ChatHostedService] stopHostingOnConnection(Connection[ id=0, reliable=NioEndpoint[1, java.nio.channels.SocketChannel[closed]], fast=UdpEndpoint[1, /127.0.0.1:59509] ])
+21:55:54,572 INFO  [MessageDebugger] Received:com.jme3.network.message.DisconnectMessage[reason=Shutting down., type=Kick]
+21:55:54,573 INFO  [GameServer] Game server stopped.
+21:55:54,573 INFO  [GameClient] close()
+21:55:54,570 ERROR [ConnectionState] Connection error
 com.jme3.network.kernel.ConnectorException: Connector closed.
 	at com.jme3.network.base.ConnectorAdapter.run(ConnectorAdapter.java:161) [jme3-networking-3.1.0-stable.jar:3.1-stable]
-17:18:12,929 ERROR [ConnectionState] Connection error
+21:55:54,570 ERROR [ConnectionState] Connection error
 com.jme3.network.kernel.ConnectorException: Connector closed.
 	at com.jme3.network.base.ConnectorAdapter.run(ConnectorAdapter.java:161) [jme3-networking-3.1.0-stable.jar:3.1-stable]
-17:18:12,931 ERROR [ConnectionState] Connection error
+21:55:54,570 ERROR [ConnectionState] Connection error
 com.jme3.network.kernel.ConnectorException: Connection is closed:/127.0.0.1:4273
 	at com.jme3.network.kernel.tcp.SocketConnector.checkClosed(SocketConnector.java:81) ~[jme3-networking-3.1.0-stable.jar:3.1-stable]
 	at com.jme3.network.kernel.tcp.SocketConnector.write(SocketConnector.java:140) ~[jme3-networking-3.1.0-stable.jar:3.1-stable]

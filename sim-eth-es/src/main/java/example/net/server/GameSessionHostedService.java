@@ -72,6 +72,7 @@ import example.es.states.AttackProjectileState;
 import example.es.states.ArenaState;
 import example.es.states.MapStateServer;
 import example.es.states.ShipFrequencyStateServer;
+import example.es.states.TowerState;
 import example.es.states.WarpState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
@@ -302,11 +303,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             return callback;
         }
 
-        
         /**
-         * Attack method that calculates attack. 
-         * TODO: Should return attackinfo on success/modifiers etc.
-         * @param attackType 
+         * Attack method that calculates attack. TODO: Should return attackinfo
+         * on success/modifiers etc.
+         *
+         * @param attackType
          */
         @Override
         public void attack(String attackType) {
@@ -322,20 +323,31 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         @Override
         public void editMap(double x, double y) {
             //Create a map entity
-            
+
             if (log.isTraceEnabled()) {
                 log.trace("Map edit");
             }
-            
+
             gameSystems.get(MapStateServer.class).editMap(x, y);
+        }
+
+        @Override
+        public void tower(double x, double y) {
+            //Create a map entity
+
+            if (log.isTraceEnabled()) {
+                log.trace("Map edit");
+            }
+
+            gameSystems.get(TowerState.class).editTower(x, y);
         }
 
         @Override
         public void chooseShip(byte ship) {
             if (log.isTraceEnabled()) {
-                log.trace("Choose ship:"+ship);
+                log.trace("Choose ship:" + ship);
             }
-            
+
             gameSystems.get(ShipFrequencyStateServer.class).requestShipChange(shipEntity, ship);
         }
 
@@ -344,7 +356,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("Warp");
             }
-            
+
             gameSystems.get(WarpState.class).requestWarpToCenter(shipEntity);
         }
     }

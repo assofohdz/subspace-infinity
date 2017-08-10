@@ -56,6 +56,7 @@ public class PlayerMovementFunctions {
     public static final String G_MOVEMENT = "Movement";
     public static final String G_MAP = "Map";
     public static final String G_SHIPSELECTION = "Ship";
+    public static final String G_TOWER = "Tower";
 
     public static final FunctionId F_THRUST = new FunctionId(G_MOVEMENT, "Thrust");
 
@@ -77,6 +78,7 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, "Repel");
     public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, "Mine");
     public static final FunctionId F_WARP = new FunctionId(G_MOVEMENT, "Warp");
+    public static final FunctionId F_TOWER = new FunctionId(G_TOWER, "Tower");
     
     
     public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, "Warbird");
@@ -123,11 +125,11 @@ public class PlayerMovementFunctions {
         }
 
         if (!inputMapper.hasMappings(F_MOUSELEFTCLICK)) {
-            inputMapper.map(F_MOUSELEFTCLICK, Button.MOUSE_BUTTON1);
+            inputMapper.map(F_MOUSELEFTCLICK, MouseInput.BUTTON_LEFT);
         }
 
         if (!inputMapper.hasMappings(F_MOUSERIGHTCLICK)) {
-            inputMapper.map(F_MOUSERIGHTCLICK, Button.MOUSE_BUTTON2);
+            inputMapper.map(F_MOUSERIGHTCLICK, MouseInput.BUTTON_RIGHT);
         }
 
         if (!inputMapper.hasMappings(F_GRAVBOMB)) {
@@ -136,6 +138,10 @@ public class PlayerMovementFunctions {
         
         if (!inputMapper.hasMappings(F_WARP)) {
             inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
+        }
+        
+        if (!inputMapper.hasMappings(F_TOWER)) {
+            inputMapper.map(F_TOWER, KeyInput.KEY_T);
         }
         
         /**

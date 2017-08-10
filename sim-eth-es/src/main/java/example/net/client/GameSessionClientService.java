@@ -180,6 +180,14 @@ public class GameSessionClientService extends AbstractClientService
         }
         getDelegate().warp();
     }
+    
+    @Override
+    public void tower(double x, double y){
+        if (log.isTraceEnabled()) {
+            log.trace("edit tower @("+x+","+y+")");
+        }
+        getDelegate().tower(x, y); 
+    }
 
     /**
      * Shared with the server over RMI so that it can notify us about account

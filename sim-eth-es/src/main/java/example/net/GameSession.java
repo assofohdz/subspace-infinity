@@ -89,4 +89,7 @@ public interface GameSession {
 
     @Asynchronous(reliable = false)
     public void warp();
+
+    @Asynchronous(reliable = false)
+    public void tower(double x, double y);
 }

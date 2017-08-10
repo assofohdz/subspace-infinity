@@ -6,8 +6,14 @@ import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
+import com.jme3.input.MouseInput;
+import com.jme3.input.event.MouseButtonEvent;
+import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.math.*;
 import com.jme3.material.Material;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.*;
@@ -16,6 +22,8 @@ import com.jme3.texture.Texture;
 import com.simsilica.lemur.*;
 
 import com.simsilica.es.*;
+import com.simsilica.lemur.event.DefaultMouseListener;
+import com.simsilica.lemur.event.MouseEventControl;
 
 import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
@@ -25,6 +33,9 @@ import example.GameSessionState;
 import example.Main;
 import example.TimeState;
 import example.es.*;
+import example.net.GameSession;
+import example.net.client.GameSessionClientService;
+import static example.view.PlayerMovementState.log;
 
 /**
  * Displays the models for the various physics objects.
@@ -367,6 +378,50 @@ public class ModelViewState extends BaseAppState {
 
         //Spatial information:
         Spatial arena = factory.createModel(entity);
+
+        MouseEventControl.addListenersToSpatial(arena,
+                new DefaultMouseListener() {
+            @Override
+            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
+                GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+                if (session == null) {
+                    throw new RuntimeException("ModelViewState requires an active game session.");
+                }
+                Camera cam = getState(CameraState.class).getCamera();
+
+                Vector2f click2d = new Vector2f(event.getX(), event.getY());
+
+                Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
+                Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+
+                Ray ray = new Ray(click3d, dir);
+                CollisionResults results = new CollisionResults();
+                target.collideWith(ray, results);
+                if (results.size() != 1) {
+                    log.error("There should only be one collision with the arena when the user clicks it");
+                }
+                Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
+                    //Add tower
+                    session.tower(contactPoint.x, contactPoint.y);
+                } else {
+                    //Add map
+                    session.editMap(contactPoint.x, contactPoint.y);
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
+                //Material m = ((Geometry) target).getMaterial();
+                //m.setColor("Color", ColorRGBA.Yellow);
+            }
+
+            @Override
+            public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
+                //Material m = ((Geometry) target).getMaterial();
+                //m.setColor("Color", ColorRGBA.Blue);
+            }
+        });
 
         //CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
         result.attachChild(arena);
