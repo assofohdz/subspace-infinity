@@ -56,6 +56,11 @@ public class BasicEnvironment extends AbstractGameSystem {
         GameEntities.createTower(new Vec3d(4, 2, 0), ed);
         
         GameEntities.createMob(new Vec3d(-5, 5, 0), ed);
+        GameEntities.createMob(new Vec3d(-10, -10, 0), ed);
+        GameEntities.createMob(new Vec3d(-20, -30, 0), ed);
+        GameEntities.createMob(new Vec3d(10, -5, 0), ed);
+        GameEntities.createMob(new Vec3d(20, -20, 0), ed);
+        GameEntities.createMob(new Vec3d(15, -10, 0), ed);
         
         GameEntities.createBase(new Vec3d(30, 10, 0), ed);
         
