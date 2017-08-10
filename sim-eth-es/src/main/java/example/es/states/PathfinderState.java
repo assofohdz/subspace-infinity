@@ -140,10 +140,10 @@ public class PathfinderState extends AbstractGameSystem {
 
         //Offset path so it fits with the physical world (since jWalkable only works in width/heieght not in coordinates)
         for (int i = 0; i < path.size; i = i + 2) {
-            path.set(i, path.get(i) - GameConstants.PATHHELPERWIDTH / 2);
+            path.set(i, path.get(i) - pathHelperOffset.x);
         }
         for (int i = 1; i < path.size; i = i + 2) {
-            path.set(i, path.get(i) - GameConstants.PATHHELPERHEIGHT / 2);
+            path.set(i, path.get(i) - pathHelperOffset.y);
         }
 
         mobTargetMap.put(e.getId(), endPosition);
@@ -162,7 +162,7 @@ public class PathfinderState extends AbstractGameSystem {
         Vector2f[] basePosArray = basePositions.getArray();
         int randIndex = (int) (Math.random() * basePosArray.length);
         //Vector2f randomEndPosition = basePositions.getArray()[randIndex];
-        Vector2f randomEndPosition = new Vector2f(30, 10);
+        Vector2f randomEndPosition = new Vector2f(10, 5);
         return randomEndPosition;
     }
 
@@ -221,18 +221,20 @@ public class PathfinderState extends AbstractGameSystem {
             //Convert Dyn4j shape to jWalkable polygon/vertices
             Polygon p = (Polygon) physicsShape.getFixture().getShape();
             Vector2[] vertices = p.getVertices();
-            float[] verts = new float[vertices.length];
+            float[] verts = new float[vertices.length*2];
 
-            for (int i = 0; i < vertices.length; i = i + 2) {
-                verts[i] = (float) vertices[i].x;
+            int i = 0;
+            for(Vector2 vec : vertices){
+                
+                verts[i++] = (float) vec.x;
+                verts[i++] = (float) vec.y;
             }
-            for (int i = 1; i < vertices.length; i = i + 2) {
-                verts[i] = (float) vertices[i].y;
-            }
+            
+            
             //TODO: Offset position to jWalkable width+height
 
-            float x = (float) position.getLocation().x + GameConstants.PATHHELPERWIDTH / 2;
-            float y = (float) position.getLocation().y + GameConstants.PATHHELPERHEIGHT / 2;
+            float x = (float) position.getLocation().x + pathHelperOffset.x;
+            float y = (float) position.getLocation().y + pathHelperOffset.y;
 
             //Add obstacle to mesh
             Obstacle o = pathHelper.addPolygon(verts, x, y);
