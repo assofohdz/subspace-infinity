@@ -108,7 +108,7 @@ public class BasicSteeringState extends AbstractGameSystem {
     }
 
     private void setNextWayPoint(EntityId eId) {
-        currentTargets.put(eId, currentTargets.get(eId) + 1);
+        currentTargets.put(eId, currentTargets.get(eId) + 2);
     }
 
     //Should be called whenver MobPath component is updated on entity
@@ -145,6 +145,14 @@ public class BasicSteeringState extends AbstractGameSystem {
 
         return steeringForce;
     }
+    
+    private Vector2 getWayPoint(FloatArray path, EntityId eId){
+        int currentPathIndex = getCurrentPathIndex(eId);
+        float x = path.get(currentPathIndex);
+        float y = path.get(currentPathIndex + 1);
+        Vector2 wayPoint = new Vector2(x, y);
+        return wayPoint;
+    }
 
     private Vector2 pathFollowing(Entity e) {
         //Get current position
@@ -152,20 +160,14 @@ public class BasicSteeringState extends AbstractGameSystem {
         //Get current target
         MobPath mobPath = e.get(MobPath.class);
         FloatArray path = mobPath.getPath();
-        int currentPathIndex = getCurrentPathIndex(e.getId());
-        //Coordinates are ordered in x1,y1,x2,y2
-        float x = path.get(currentPathIndex);
-        float y = path.get(currentPathIndex + 1);
-        Vector2 currentTarget = new Vector2(x, y);
+        
+        Vector2 currentTarget = getWayPoint(path, e.getId());
 
         //Check distance to current target node
         if (distance(currentPosition, currentTarget) < GameConstants.PATHWAYPOINTDISTANCE) {
             //Set next target
             setNextWayPoint(e.getId());
-            currentPathIndex = getCurrentPathIndex(e.getId());
-            x = path.get(currentPathIndex * 2);
-            y = path.get(currentPathIndex * 2 + 1);
-            currentTarget = new Vector2(x, y);
+            currentTarget = getWayPoint(path, e.getId());
         }
 
         Vector2 currentVelocity = simplePhysics.getBody(e.getId()).getLinearVelocity();
