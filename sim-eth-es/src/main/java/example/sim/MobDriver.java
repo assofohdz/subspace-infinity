@@ -3,6 +3,7 @@ package example.sim;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import static example.sim.SimpleBody.log;
 import org.dyn4j.dynamics.Torque;
 import org.dyn4j.geometry.Vector2;
 
@@ -27,19 +28,31 @@ public class MobDriver implements ControlDriver {
 
     @Override
     public void update(double stepTime, SimpleBody body) {
-        Vector3f vec = thrust;
-        //Calculate angle between corrent velocity and desired velocity
-        Vector2 currentVelocity = body.getLinearVelocity();
-        Vector3f desiredForce = new Vector3f(thrust.x, thrust.y, 0);
-        
-        Vector3f currentVelocity3f = new Vector3f((float) currentVelocity.x, (float) currentVelocity.y, 0);
-       
-        //Radians betwen the desired force and current velocity
-        //float angle = desiredForce.angleBetween(currentVelocity3f);
-        //body.applyTorque(new Torque(angle < FastMath.PI ? 1 : -1));
-
-        Vector2 linVel = new Vector2(vec.x, vec.y);
+        // add force
+        Vector2 linVel = new Vector2(thrust.x, thrust.y);
         body.applyForce(linVel);
-        body.applyTorque(0.4);
+        
+        // add rotation
+        double desired_dir = rad_between_vec(1, 0, thrust.x, thrust.y); // [rad]
+        double orientaion = Math.atan2(body.orientation.toRotationMatrix().m00, body.orientation.toRotationMatrix().m01); // [rad]
+        
+        double diff = desired_dir - orientaion; // [rad]
+    
+        if (diff  < Math.PI){
+            body.setAngularVelocity(diff*2 );
+        }else{
+            body.setAngularVelocity(-diff*2);
+        }
+
     }
+    
+    private double rad_between_vec(double x1, double y1, double x2, double y2){
+        return Math.signum(y2)*Math.acos( (x1*x2 + y1*y2) / ( Math.sqrt(x1*x1+y1*y1) * Math.sqrt(x2*x2+y2*y2) ));
+    }
+    
+    
+        
+    
+        
+    
 }
