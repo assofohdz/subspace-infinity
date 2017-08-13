@@ -2,11 +2,14 @@ package example.es.states;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import example.es.Gold;
 import example.es.Position;
+import example.es.ShipType;
 import example.es.TowerType;
 import example.sim.GameEntities;
 import example.sim.PhysicsShapes;
@@ -24,14 +27,16 @@ public class TowerState extends AbstractGameSystem {
     private EntityData ed;
     private SimplePhysics simplePhysics;
     private EntitySet towers;
+    private ResourceState resourceState;
 
     @Override
     protected void initialize() {
 
         this.ed = getSystem(EntityData.class);
-
         this.simplePhysics = getSystem(SimplePhysics.class);
-
+        
+        this.resourceState = getSystem(ResourceState.class);
+        
         this.towers = ed.getEntities(TowerType.class, Position.class);
     }
 
@@ -44,18 +49,22 @@ public class TowerState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
-        towers.applyChanges();
-        for (Entity e : towers.getAddedEntities()) {
 
+        if (towers.applyChanges()) {
+            for (Entity e : towers.getAddedEntities()) {
+
+            }
+
+            for (Entity e : towers.getChangedEntities()) {
+
+            }
+
+            for (Entity e : towers.getRemovedEntities()) {
+
+            }
         }
-
-        for (Entity e : towers.getChangedEntities()) {
-
-        }
-
-        for (Entity e : towers.getRemovedEntities()) {
-
-        }
+        
+        
     }
 
     @Override
@@ -66,11 +75,15 @@ public class TowerState extends AbstractGameSystem {
     public void stop() {
     }
 
-    public void editTower(double x, double y) {
+    public void editTower(double x, double y, EntityId owner) {
         Convex c = PhysicsShapes.tower().getFixture().getShape();
         c.translate(x, y);
-        if (simplePhysics.allowConvex(c)) {
+        //Can we build there and do we have the money?
+        if (simplePhysics.allowConvex(c) && resourceState.canAffordTower(owner)) {
+            //Create tower
             GameEntities.createTower(new Vec3d(x, y, 0), ed);
+            //Deduct cost
+            resourceState.buyTower(owner);
         }
     }
 }

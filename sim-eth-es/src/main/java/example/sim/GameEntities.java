@@ -75,6 +75,7 @@ public class GameEntities {
                 PhysicsShapes.ship());
 
         ed.setComponent(result, new Frequency(1));
+        ed.setComponent(result, new Gold(0));
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;

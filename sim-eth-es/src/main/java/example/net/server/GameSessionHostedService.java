@@ -339,7 +339,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("Map edit");
             }
 
-            gameSystems.get(TowerState.class).editTower(x, y);
+            gameSystems.get(TowerState.class).editTower(x, y, shipEntity);
         }
 
         @Override

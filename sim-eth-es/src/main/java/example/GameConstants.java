@@ -181,6 +181,8 @@ public class GameConstants {
     public final static double MOBMAXFORCE = 200;
     public final static float PATHHELPERHEIGHT = 1000;
     public final static float PATHHELPERWIDTH = 1000;
+    
+    public final static int TOWERCOST = 1000;
 }
 
 

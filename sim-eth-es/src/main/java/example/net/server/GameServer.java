@@ -78,7 +78,7 @@ import example.es.states.BasicSteeringState;
 import example.es.states.FlagStateServer;
 import example.es.states.GravityState;
 import example.es.states.MapStateServer;
-import example.es.states.GoldTimeState;
+import example.es.states.ResourceState;
 import example.es.states.ShipFrequencyStateServer;
 import example.es.states.PathfinderState;
 import example.es.states.TowerState;
@@ -189,7 +189,7 @@ public class GameServer {
         //Add simple steering system
         systems.register(BasicSteeringState.class, new BasicSteeringState());
         //Add resources per time system
-        systems.register(GoldTimeState.class, new GoldTimeState());
+        systems.register(ResourceState.class, new ResourceState());
         //Add system to handle towers
         systems.register(TowerState.class, new TowerState());
 
