@@ -9,7 +9,10 @@ import com.simsilica.sim.SimTime;
 import example.es.Position;
 import example.es.TowerType;
 import example.sim.GameEntities;
+import example.sim.PhysicsShapes;
 import example.sim.SimplePhysics;
+import org.dyn4j.collision.Filter;
+import org.dyn4j.geometry.Convex;
 
 /**
  * State
@@ -64,7 +67,10 @@ public class TowerState extends AbstractGameSystem {
     }
 
     public void editTower(double x, double y) {
-        //TODO: Perform collission check, to see if placing a tower would overlap with existing towers (or mobs)
-        GameEntities.createTower(new Vec3d(x, y, 0), ed);
+        Convex c = PhysicsShapes.tower().getFixture().getShape();
+        c.translate(x, y);
+        if (simplePhysics.allowConvex(c)) {
+            GameEntities.createTower(new Vec3d(x, y, 0), ed);
+        }
     }
 }

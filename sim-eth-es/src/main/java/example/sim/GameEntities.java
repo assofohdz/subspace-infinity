@@ -68,15 +68,11 @@ public class GameEntities {
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.SHIPSIZERADIUS));
-        fixture.setFilter(filter);
-
         ed.setComponents(result,
                 ViewTypes.ship_warbird(ed),
                 ShipTypes.warbird(ed),
                 PhysicsMassTypes.normal(ed),
-                new PhysicsShape(fixture));
+                PhysicsShapes.ship());
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
@@ -95,14 +91,10 @@ public class GameEntities {
     public static EntityId createBounty(Vec3d pos, EntityData ed) {
         EntityId result = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BOUNTYSIZERADIUS));
-        fixture.setFilter(filter);
-
         ed.setComponents(result, ViewTypes.bounty(ed),
                 new Position(pos, new Quatd(), 0f),
                 new Bounty(GameConstants.BOUNTYVALUE),
-                new PhysicsShape(fixture),
+                PhysicsShapes.bounty(),
                 new SphereShape(ViewConstants.BOUNTYSIZE, new Vec3d()),
                 new Decay(GameConstants.BOUNTYDECAY));
         return result;
@@ -120,16 +112,14 @@ public class GameEntities {
     public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BOMBSIZERADIUS));
-        fixture.setFilter(filter);
+        
 
         ed.setComponents(lastBomb, ViewTypes.bomb(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 PhysicsMassTypes.normal_bullet(ed),
-                new PhysicsShape(fixture));
+                PhysicsShapes.bomb());
 
         return lastBomb;
     }
@@ -146,16 +136,13 @@ public class GameEntities {
     public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BULLETSIZERADIUS));
-        fixture.setFilter(filter);
-
+        
         ed.setComponents(lastBomb, ViewTypes.bullet(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 PhysicsMassTypes.normal_bullet(ed),
-                new PhysicsShape(fixture));
+                PhysicsShapes.bullet());
 
         return lastBomb;
     }
@@ -173,15 +160,12 @@ public class GameEntities {
     public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed) {
         EntityId lastTileInfo = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BODIES;
-        BodyFixture fixture = new BodyFixture(c);
-        fixture.setFilter(filter);
 
         ed.setComponents(lastTileInfo, ViewTypes.mapTile(ed),
                 new Position(location, new Quatd(), 0f),
                 new TileInfo(tileSet, tileIndex), //Tile set and tile index
                 PhysicsMassTypes.infinite(ed),
-                new PhysicsShape(fixture));
+                PhysicsShapes.mapTile(c));
 
         return lastTileInfo;
     }
@@ -214,16 +198,13 @@ public class GameEntities {
     public static EntityId createWormhole(Vec3d location, double radius, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.WORMHOLESIZERADIUS));
-        fixture.setFilter(filter);
-
+        
         ed.setComponents(lastWormhole,
                 ViewTypes.wormhole(ed),
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.infinite(ed),
                 new GravityWell(radius, force, gravityType),
-                new PhysicsShape(fixture),
+                PhysicsShapes.wormhole(),
                 new WarpTouch(warpTargetLocation));
 
         return lastWormhole;
@@ -249,16 +230,13 @@ public class GameEntities {
     public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed) {
         EntityId lastOver5 = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BODIES;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.OVER5SIZERADIUS));
-        fixture.setFilter(filter);
-
+       
         ed.setComponents(lastOver5,
                 ViewTypes.over5(ed),
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.infinite(ed),
                 new GravityWell(radius, force, gravityType),
-                new PhysicsShape(fixture));
+                PhysicsShapes.over5());
 
         return lastOver5;
     }
@@ -273,15 +251,11 @@ public class GameEntities {
     public static EntityId createOver1(Vec3d location, EntityData ed) {
         EntityId lastOver1 = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.OVER1SIZERADIUS));
-        fixture.setFilter(filter);
-
         ed.setComponents(lastOver1,
                 ViewTypes.over1(ed),
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.normal(ed),
-                new PhysicsShape(fixture));
+                PhysicsShapes.over1());
 
         return lastOver1;
     }
@@ -296,15 +270,11 @@ public class GameEntities {
     public static EntityId createOver2(Vec3d location, EntityData ed) {
         EntityId lastOver2 = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture bodyFixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.OVER2SIZERADIUS));
-        bodyFixture.setFilter(filter);
-
         ed.setComponents(lastOver2,
                 ViewTypes.over2(ed),
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.normal(ed),
-                new PhysicsShape(bodyFixture));
+                PhysicsShapes.over2());
 
         return lastOver2;
     }
@@ -334,15 +304,10 @@ public class GameEntities {
     public static EntityId createCaptureTheFlag(Vec3d location, EntityData ed) {
         EntityId lastFlag = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_SENSOR_FLAGS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.FLAGSIZERADIUS));
-        fixture.setFilter(filter);
-        fixture.setSensor(true);
-
         ed.setComponents(lastFlag,
                 ViewTypes.flag_theirs(ed),
                 new Position(location, new Quatd(), 0f),
-                new PhysicsShape(fixture),
+                PhysicsShapes.flag(),
                 PhysicsMassTypes.infinite(ed),
                 new Flag(),
                 new Frequency(0));
@@ -353,16 +318,11 @@ public class GameEntities {
     public static EntityId createMob(Vec3d location, EntityData ed) {
         EntityId lastMob = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MOBS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.MOBSIZERADIUS));        
-        fixture.setFilter(filter);
-        //fixture.setSensor(true);
-
         ed.setComponents(lastMob,
                 ViewTypes.mob(ed),
                 MobTypes.mob1(ed),
                 new Position(location, new Quatd(), 0f),
-                new PhysicsShape(fixture),
+                PhysicsShapes.mob(),
                 PhysicsMassTypes.normal(ed),
                 new HitPoints(GameConstants.MOBHEALTH));
 
@@ -372,16 +332,11 @@ public class GameEntities {
     public static EntityId createTower(Vec3d location, EntityData ed) {
         EntityId lastTower = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_TOWERS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.TOWERSIZERADIUS));
-        fixture.setFilter(filter);
-        //fixture.setSensor(true);
-
         ed.setComponents(lastTower,
                 ViewTypes.tower(ed),
                 TowerTypes.tower1(ed),
                 new Position(location, new Quatd(), 0f),
-                new PhysicsShape(fixture),
+                PhysicsShapes.tower(),
                 PhysicsMassTypes.infinite(ed));
 
         return lastTower;
@@ -390,16 +345,11 @@ public class GameEntities {
     public static EntityId createBase(Vec3d location, EntityData ed) {
         EntityId lastBase = ed.createEntity();
 
-        Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BASE;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(PhysicsConstants.VERTEXCOUNTCIRCLE, PhysicsConstants.BASESIZERADIUS));
-        fixture.setFilter(filter);
-        //fixture.setSensor(true);
-
         ed.setComponents(lastBase,
                 ViewTypes.base(ed),
                 BaseTypes.base1(ed),
                 new Position(location, new Quatd(), 0f),
-                new PhysicsShape(fixture),
+                PhysicsShapes.base(),
                 PhysicsMassTypes.infinite(ed),
                 new HitPoints(GameConstants.BASEHEALTH));
 

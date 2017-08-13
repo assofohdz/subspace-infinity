@@ -63,6 +63,7 @@ import com.simsilica.es.server.EntityUpdater; // from SiO2
 
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
+import com.sun.glass.ui.Application;
 
 import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
@@ -102,6 +103,8 @@ public class GameServer {
 
     public GameServer(int port, String description) throws IOException {
 
+        
+        
         this.description = description;
 
         // Make sure we are running with a fresh serializer registry
@@ -109,6 +112,8 @@ public class GameServer {
 
         this.systems = new GameSystemManager();
         this.loop = new GameLoop(systems);
+        
+        this.loop.setIdleSleepTime(1l);
 
         // Create the SpiderMonkey server and setup our standard
         // initial hosted services 
@@ -148,11 +153,14 @@ public class GameServer {
         EtherealHost ethereal = new EtherealHost(GameConstants.OBJECT_PROTOCOL,
                 GameConstants.ZONE_GRID,
                 GameConstants.ZONE_RADIUS);
+        
+        ethereal.setStateCollectionInterval(port);
+        
         server.getServices().addService(ethereal);
-
+        
         // Add the various game services to the GameSystemManager 
         systems.register(SimplePhysics.class, new SimplePhysics());
-
+        
         // Add any hosted services that require those systems to already
         // exist
         systems.register(DecayState.class, new DecayState());
@@ -306,6 +314,8 @@ public class GameServer {
      */
     public static void main(String... args) throws Exception {
 
+        
+        
         StringWriter sOut = new StringWriter();
         PrintWriter out = new PrintWriter(sOut);
         boolean hasDescription = false;

@@ -86,7 +86,8 @@ public class CollisionFilters {
     public static final CategoryFilter FILTER_CATEGORY_STATIC_TOWERS = new CategoryFilter(COLLISION_CATEGORY_STATIC_TOWERS,
             COLLISION_CATEGORY_DYNAMICS_PLAYERS
             | COLLISION_CATEGORY_DYNAMICS_MOBS
-            | COLLISION_CATEGORY_DYNAMICS_PROJECTILES);
+            | COLLISION_CATEGORY_DYNAMICS_PROJECTILES
+            | COLLISION_CATEGORY_STATIC_TOWERS);
 
     /**
      * Base senses players and mobs
