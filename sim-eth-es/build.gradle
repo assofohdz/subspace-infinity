@@ -11,6 +11,7 @@ repositories {
     jcenter()
     maven { url "https://jitpack.io" }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots"}
+    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
 }
 
 ext.jmeVersion = "3.1.0-stable"
@@ -31,6 +32,11 @@ project(":assets") {
 
 dependencies {
  
+    //GDX-AI for steering behaviours
+    compile "com.badlogicgames.gdx:gdx-ai:1.8.1:sources"
+    compile "com.badlogicgames.gdx:gdx-ai:1.8.1:javadoc"
+    compile "com.badlogicgames.gdx:gdx-ai:1.8.1"
+    
     //Mapeditor format support
     compile 'org.mapeditor:libtiled:0.17-SNAPSHOT'
     
@@ -50,7 +56,7 @@ dependencies {
     compile "com.simsilica:lemur:1.9.1"
     compile "com.simsilica:lemur-proto:1.8.1"
 
-// And our base code for sim-etheral, SiO2, etc.
+    // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
     compile "com.simsilica:sio2:1.1.0"
     compile "com.simsilica:sim-math:1.1.1"
@@ -96,8 +102,8 @@ task serverStartScript(type: CreateStartScripts) {
 }
 
 /*applicationDistribution.into("bin") {
-    from(serverStartScript)
-    fileMode = 0755
+from(serverStartScript)
+fileMode = 0755
 }*/
 
 // I think this is ultimately clearer than the above

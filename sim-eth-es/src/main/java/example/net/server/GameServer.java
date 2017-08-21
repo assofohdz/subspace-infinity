@@ -76,6 +76,7 @@ import example.es.states.HealthState;
 import example.es.states.ArenaState;
 import example.es.states.BasicSteeringState;
 import example.es.states.FlagStateServer;
+import example.es.states.GDXAIState;
 import example.es.states.GravityState;
 import example.es.states.MapStateServer;
 import example.es.states.ResourceState;
@@ -102,8 +103,6 @@ public class GameServer {
     private String description;
 
     public GameServer(int port, String description) throws IOException {
-
-        
         
         this.description = description;
 
@@ -187,11 +186,13 @@ public class GameServer {
         //Add pathfinding system
         systems.register(PathfinderState.class, new PathfinderState());
         //Add simple steering system
-        systems.register(BasicSteeringState.class, new BasicSteeringState());
+        //systems.register(BasicSteeringState.class, new BasicSteeringState());
         //Add resources per time system
         systems.register(ResourceState.class, new ResourceState());
         //Add system to handle towers
         systems.register(TowerState.class, new TowerState());
+        //Add GDX-AI system to steer mobs
+        systems.register(GDXAIState.class, new GDXAIState());
 
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

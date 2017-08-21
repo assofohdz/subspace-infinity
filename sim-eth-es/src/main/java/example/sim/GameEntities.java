@@ -322,6 +322,8 @@ public class GameEntities {
         ed.setComponents(lastMob,
                 ViewTypes.mob(ed),
                 MobTypes.mob1(ed),
+                //new Drivable(), //old
+                new Steerable(),
                 new Position(location, new Quatd(), 0f),
                 PhysicsShapes.mob(),
                 PhysicsMassTypes.normal(ed),
@@ -349,6 +351,7 @@ public class GameEntities {
         ed.setComponents(lastBase,
                 ViewTypes.base(ed),
                 BaseTypes.base1(ed),
+                new SteeringSeekable(),
                 new Position(location, new Quatd(), 0f),
                 PhysicsShapes.base(),
                 PhysicsMassTypes.infinite(ed),

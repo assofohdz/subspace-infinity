@@ -1,10 +1,7 @@
 package example.sim;
 
-import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import static example.sim.SimpleBody.log;
-import org.dyn4j.dynamics.Torque;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -28,31 +25,27 @@ public class MobDriver implements ControlDriver {
 
     @Override
     public void update(double stepTime, SimpleBody body) {
+        
         // add force
-        Vector2 linVel = new Vector2(thrust.x, thrust.y);
-        body.applyForce(linVel);
-        
-        // add rotation
-        double desired_dir = rad_between_vec(1, 0, thrust.x, thrust.y); // [rad]
-        double orientaion = Math.atan2(body.orientation.toRotationMatrix().m00, body.orientation.toRotationMatrix().m01); // [rad]
-        
-        double diff = desired_dir - orientaion; // [rad]
-    
-        if (diff  < Math.PI){
-            body.setAngularVelocity(diff*2 );
-        }else{
-            body.setAngularVelocity(-diff*2);
-        }
+        if (thrust.x != 0 || thrust.y != 0) {
+            Vector2 linVel = new Vector2(thrust.x, thrust.y);
+            body.applyForce(linVel);
 
+            // add rotation
+            double desired_dir = rad_between_vec(1, 0, thrust.x, thrust.y); // [rad]
+            double orientaion = Math.atan2(body.orientation.toRotationMatrix().m00, body.orientation.toRotationMatrix().m01); // [rad]
+
+            double diff = desired_dir - orientaion; // [rad]
+
+            if (diff < Math.PI) {
+                body.setAngularVelocity(diff * 2);
+            } else {
+                body.setAngularVelocity(-diff * 2);
+            }
+        }
     }
-    
-    private double rad_between_vec(double x1, double y1, double x2, double y2){
-        return Math.signum(y2)*Math.acos( (x1*x2 + y1*y2) / ( Math.sqrt(x1*x1+y1*y1) * Math.sqrt(x2*x2+y2*y2) ));
+
+    private double rad_between_vec(double x1, double y1, double x2, double y2) {
+        return Math.signum(y2) * Math.acos((x1 * x2 + y1 * y2) / (Math.sqrt(x1 * x1 + y1 * y1) * Math.sqrt(x2 * x2 + y2 * y2)));
     }
-    
-    
-        
-    
-        
-    
 }

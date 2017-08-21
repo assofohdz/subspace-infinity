@@ -1,4 +1,4 @@
-    /*
+/*
  * $Id$
  * 
  * Copyright (c) 2016, Simsilica, LLC
@@ -35,6 +35,10 @@
  */
 package example.sim;
 
+import com.badlogic.gdx.ai.steer.Steerable;
+import com.badlogic.gdx.ai.utils.Location;
+import com.badlogic.gdx.math.Vector;
+import com.badlogic.gdx.math.Vector2;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.simsilica.es.EntityId;
@@ -44,8 +48,8 @@ import example.PhysicsConstants;
 
 import example.es.Position;
 import org.dyn4j.geometry.Transform;
-    import org.slf4j.Logger ;
-    import org.slf4j.LoggerFactory ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A physical body in space. These are modeled as a "point mass" in the sense
@@ -56,7 +60,7 @@ import org.dyn4j.geometry.Transform;
  *
  * @author Paul Speed
  */
-public class SimpleBody extends org.dyn4j.dynamics.Body {
+public class SimpleBody extends org.dyn4j.dynamics.Body implements Location{
 
     public final EntityId bodyId;
 
@@ -113,5 +117,35 @@ public class SimpleBody extends org.dyn4j.dynamics.Body {
         // Update the bounds since it's easy to do here and helps
         // other things know where the object is for real
         bounds.setCenter(pos);
+    }
+
+    @Override
+    public Vector getPosition() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public float getOrientation() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void setOrientation(float f) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public float vectorToAngle(Vector t) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Vector angleToVector(Vector t, float f) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Location newLocation() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

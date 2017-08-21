@@ -15,6 +15,7 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.GameConstants;
+import example.es.Drivable;
 import example.es.MobPath;
 import example.sim.MobDriver;
 import example.sim.SimpleBody;
@@ -79,7 +80,7 @@ public class BasicSteeringState extends AbstractGameSystem {
         }
     }
 
-    private boolean createSteeringForce(Entity e, SimTime tpf) {
+    private boolean createAndApplySteeringForce(Entity e, SimTime tpf) {
         //This should be fun
         Vector2 steeringForce = new Vector2();
         if (steer(e, steeringForce)) {
@@ -206,7 +207,7 @@ public class BasicSteeringState extends AbstractGameSystem {
     private class MobDrivers extends EntityContainer<MobDriver> {
 
         public MobDrivers(EntityData ed) {
-            super(ed, MobPath.class);
+            super(ed, Drivable.class);
         }
 
         @Override
@@ -216,8 +217,9 @@ public class BasicSteeringState extends AbstractGameSystem {
 
         @Override
         protected MobDriver addObject(Entity e) {
+            SimpleBody body = simplePhysics.getBody(e.getId());
             MobDriver driver = new MobDriver();
-            simplePhysics.getBody(e.getId()).driver = driver;
+            body.driver = driver;
 
             restartPath(e.getId());
 
@@ -240,7 +242,7 @@ public class BasicSteeringState extends AbstractGameSystem {
             this.update();
 
             for (Entity e : drivers.keySet()) {
-                boolean createSteeringForce = createSteeringForce(e, tpf);
+                boolean createSteeringForce = createAndApplySteeringForce(e, tpf);
             }
         }
     }

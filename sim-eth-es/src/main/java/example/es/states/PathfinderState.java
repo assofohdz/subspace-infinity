@@ -3,7 +3,6 @@ package example.es.states;
 import com.dongbat.walkable.FloatArray;
 import com.dongbat.walkable.PathHelper;
 import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
@@ -19,6 +18,7 @@ import example.es.MobType;
 import example.es.PhysicsMassType;
 import example.es.PhysicsShape;
 import example.es.Position;
+import example.es.SteeringPath;
 import example.es.TowerType;
 import example.sim.SimplePhysics;
 import hxDaedalus.data.Obstacle;
@@ -110,14 +110,14 @@ public class PathfinderState extends AbstractGameSystem {
         for (Entity e : mobs) {
             FloatArray path = new FloatArray();
             //TODO: Instead of a random base, pick the nearest
-            aPathForEveryone = aPathForEveryone && calculatePath(e, getRandomBasePosition(), path);
+            aPathForEveryone = aPathForEveryone && calculateAndCreatePath(e, getRandomBasePosition(), path);
             mobPaths.updateObject(path, e);
         }
         return aPathForEveryone;
     }
 
     //For a single mob, returns true if path found
-    private boolean calculatePath(Entity e, Vector2f endPosition, FloatArray path) {
+    private boolean calculateAndCreatePath(Entity e, Vector2f endPosition, FloatArray path) {
 
         //Get position
         Vector2 startVec2 = simplePhysics.getBody(e.getId()).getTransform().getTranslation();
@@ -170,7 +170,7 @@ public class PathfinderState extends AbstractGameSystem {
     private class MobPaths extends EntityContainer<FloatArray> {
 
         public MobPaths(EntityData ed) {
-            super(ed, Position.class, MobType.class, PhysicsShape.class, PhysicsMassType.class);
+            super(ed, Position.class, MobType.class, PhysicsShape.class, PhysicsMassType.class, SteeringPath.class);
         }
 
         @Override
@@ -183,7 +183,7 @@ public class PathfinderState extends AbstractGameSystem {
 
             FloatArray path = new FloatArray();
             //Give this mob direction
-            calculatePath(e, getRandomBasePosition(), path);
+            calculateAndCreatePath(e, getRandomBasePosition(), path);
             
             return path;
         }
