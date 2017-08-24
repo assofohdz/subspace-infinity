@@ -93,6 +93,8 @@ public class PathfinderState extends AbstractGameSystem {
 
     @Override
     public void stop() {
+        mobs.clear();
+        
         mobPaths.stop();
         mobPaths = null;
 
