@@ -332,16 +332,19 @@ public class GameEntities {
         return lastMob;
     }
 
-    public static EntityId createTower(Vec3d location, EntityData ed) {
+    public static EntityId createTower(Vec3d location, EntityData ed) { // add tower-type ?
         EntityId lastTower = ed.createEntity();
+        double rand = Math.random()*Math.PI;
 
         ed.setComponents(lastTower,
-                ViewTypes.tower(ed),
-                TowerTypes.tower1(ed),
-                new Position(location, new Quatd(), 0f),
-                PhysicsShapes.tower(),
+                ViewTypes.tower(ed), // this
+                TowerTypes.tower1(ed, lastTower),
+                //new Position(location, new Quatd(0,0,Math.sin(rand),Math.cos(rand)), 0f),
+                new Position(location, new Quatd(0,0,-0.5,0.5), 0f),
+                PhysicsShapes.tower(), // and this moved to type creation, for modularity ?
                 PhysicsMassTypes.infinite(ed));
-
+        
+    
         return lastTower;
     }
 
