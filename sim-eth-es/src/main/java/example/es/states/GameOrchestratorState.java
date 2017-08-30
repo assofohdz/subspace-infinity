@@ -1,11 +1,17 @@
 package example.es.states;
 
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.MobType;
+import example.es.SteeringSeek;
+import example.sim.GameEntities;
 import example.sim.SimplePhysics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a state that holds the rules of the game. This is the state that will
@@ -16,12 +22,18 @@ import example.sim.SimplePhysics;
  */
 public class GameOrchestratorState extends AbstractGameSystem {
 
+    static Logger log = LoggerFactory.getLogger(GameOrchestratorState.class);
+
     //As a baseline, spawn 10 mobs per wave
     private final int baseline_mobCountPerWave = 10;
     //As a baseline, add a factor of mobs each wave
     private final int baseline_waveMobFactor = 2;
+    //The wait time (in seconds) before the next wave, after the last wave has ended
+    private final int baseline_waveWaitTime = 10;
+    //As a baseline, end the game after this many waves
+    private final int baseline_endWave = 10;
 
-    private final int baseline_endWave = 10; //Game length in waves
+    private long currentWaveEndTime;
     private int currentWave = 0;
 
     private final int timetoplay = 300; //Game length in seconds
@@ -29,6 +41,7 @@ public class GameOrchestratorState extends AbstractGameSystem {
     private SimplePhysics simplePhysics;
     private EntityData ed;
     private EntitySet mobs;
+    private EntityId baseId;
 
     @Override
     protected void initialize() {
@@ -42,21 +55,23 @@ public class GameOrchestratorState extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        mobs.release();
+        mobs = null;
     }
 
     @Override
     public void update(SimTime tpf) {
-        //Here we should account for the game type
+        mobs.applyChanges();
 
-        if (mobs.applyChanges()) {
-            //If there are no mobs, start spawning next wave
-            if (mobs.size() == 0) {
+        if (mobs.isEmpty()) {
+            currentWaveEndTime = tpf.getTime();
+        }
 
-                currentWave++;
-                if (currentWave < baseline_endWave) {
-                    spawnWave(currentWave);
-                }
+        //If the right amount of time has passed since last wave, start spawning next wave
+        if (tpf.getTime() - currentWaveEndTime > (baseline_waveWaitTime * 1000)) {
+
+            if (currentWave < baseline_endWave) {
+                spawnWave();
             }
         }
     }
@@ -70,10 +85,38 @@ public class GameOrchestratorState extends AbstractGameSystem {
     }
 
     //Spawn the required waves for the game
-    private void spawnWave(int wave) {
+    private void spawnWave() {
+        log.debug("Spawning wave");
         //TODO: This could be done on a seperate thread so as not to hold the game thread
         for (int i = 0; i < baseline_mobCountPerWave * currentWave * baseline_waveMobFactor; i++) {
             //TODO: Create mob, set it steering towards the base
+            log.debug("Spawning mob");
+            EntityId mobId = GameEntities.createMob(new Vec3d(-5, 5, 0), ed);
+            
+            ed.setComponent(mobId, new SteeringSeek(getBaseId()));
+        
+
         }
+        currentWave++;
+    }
+    
+    //Could probably use some more flexible system to spawn the base
+    private void spawnBase(){
+        Vec3d basePos = new Vec3d(30, 10, 0);
+        log.debug("Spawning base @ "+basePos);
+        baseId = GameEntities.createBase(basePos, ed);
+    }
+    
+    private EntityId getBaseId(){
+        return baseId;
+    }
+    
+    private void startGame(){
+        spawnBase();
+    }
+    
+    
+    private void endGame(){
+        
     }
 }
