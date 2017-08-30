@@ -7,6 +7,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.MobType;
+import example.es.SteeringPath;
 import example.es.SteeringSeek;
 import example.sim.GameEntities;
 import example.sim.SimplePhysics;
@@ -29,7 +30,7 @@ public class GameOrchestratorState extends AbstractGameSystem {
     //As a baseline, add a factor of mobs each wave
     private final int baseline_waveMobFactor = 2;
     //The wait time (in seconds) before the next wave, after the last wave has ended
-    private final int baseline_waveWaitTime = 10;
+    private final double baseline_waveWaitTime = 10; //10 seconds
     //As a baseline, end the game after this many waves
     private final int baseline_endWave = 10;
 
@@ -42,6 +43,7 @@ public class GameOrchestratorState extends AbstractGameSystem {
     private EntityData ed;
     private EntitySet mobs;
     private EntityId baseId;
+    private double timeSinceLastWave;
 
     @Override
     protected void initialize() {
@@ -61,15 +63,14 @@ public class GameOrchestratorState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+        timeSinceLastWave += tpf.getTpf();
+
         mobs.applyChanges();
 
-        if (mobs.isEmpty()) {
-            currentWaveEndTime = tpf.getTime();
-        }
-
-        //If the right amount of time has passed since last wave, start spawning next wave
-        if (tpf.getTime() - currentWaveEndTime > (baseline_waveWaitTime * 1000)) {
-
+        if (mobs.isEmpty() && currentWave == baseline_endWave) {
+            //You won the game
+        } else if (timeSinceLastWave > baseline_waveWaitTime && mobs.isEmpty()) {
+            //Continue with the game
             if (currentWave < baseline_endWave) {
                 spawnWave();
             }
@@ -78,10 +79,12 @@ public class GameOrchestratorState extends AbstractGameSystem {
 
     @Override
     public void start() {
+        startGame();
     }
 
     @Override
     public void stop() {
+        endGame();
     }
 
     //Spawn the required waves for the game
@@ -89,34 +92,49 @@ public class GameOrchestratorState extends AbstractGameSystem {
         log.debug("Spawning wave");
         //TODO: This could be done on a seperate thread so as not to hold the game thread
         for (int i = 0; i < baseline_mobCountPerWave * currentWave * baseline_waveMobFactor; i++) {
-            //TODO: Create mob, set it steering towards the base
-            log.debug("Spawning mob");
-            EntityId mobId = GameEntities.createMob(new Vec3d(-5, 5, 0), ed);
-            
-            ed.setComponent(mobId, new SteeringSeek(getBaseId()));
-        
-
+            spawnMob();
         }
         currentWave++;
+        timeSinceLastWave = 0;
     }
-    
+
+    private void spawnMob() {
+        //TODO: Create mob, set it steering towards the base
+        Vec3d randomSpawn = getMobSpawnPoint();
+        log.debug("Spawning mob @ " + randomSpawn);
+        EntityId mobId = GameEntities.createMob(randomSpawn, ed);
+
+        ed.setComponent(mobId, new SteeringPath());
+    }
+
     //Could probably use some more flexible system to spawn the base
-    private void spawnBase(){
-        Vec3d basePos = new Vec3d(30, 10, 0);
-        log.debug("Spawning base @ "+basePos);
+    private void spawnBase() {
+        Vec3d basePos = getBaseSpawnPoint();
+        log.debug("Spawning base @ " + basePos);
         baseId = GameEntities.createBase(basePos, ed);
     }
-    
-    private EntityId getBaseId(){
+
+    private EntityId getBaseId() {
         return baseId;
     }
-    
-    private void startGame(){
+
+    private void startGame() {
         spawnBase();
     }
-    
-    
-    private void endGame(){
-        
+
+    private void endGame() {
+
+    }
+
+    private Vec3d getMobSpawnPoint() {
+        Vec3d result = new Vec3d(Math.random() * 20 - 10, Math.random() * 20 - 10, 0);
+
+        return result;
+    }
+
+    private Vec3d getBaseSpawnPoint() {
+        Vec3d result = new Vec3d(30, 30, 0);
+
+        return result;
     }
 }

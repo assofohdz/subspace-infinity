@@ -77,11 +77,13 @@ import example.es.states.ArenaState;
 import example.es.states.BasicSteeringState;
 import example.es.states.FlagStateServer;
 import example.es.states.GDXAIState;
+import example.es.states.GameOrchestratorState;
 import example.es.states.GravityState;
 import example.es.states.MapStateServer;
 import example.es.states.ResourceState;
 import example.es.states.ShipFrequencyStateServer;
 import example.es.states.PathfinderState;
+import example.es.states.TowerAttackState;
 import example.es.states.TowerState;
 import example.es.states.WarpState;
 import example.sim.*;
@@ -193,6 +195,10 @@ public class GameServer {
         systems.register(TowerState.class, new TowerState());
         //Add GDX-AI system to steer mobs
         systems.register(GDXAIState.class, new GDXAIState());
+        //Add GDX-AI system to steer mobs
+        systems.register(TowerAttackState.class, new TowerAttackState());
+        //Add Game Orchestrator
+        systems.register(GameOrchestratorState.class, new GameOrchestratorState());
 
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
@@ -217,7 +223,8 @@ public class GameServer {
         systems.register(EntityData.class, ed);
 
         // Add a system for creating the basic "world" entities
-        systems.addSystem(new BasicEnvironment());
+        //systems.addSystem(new BasicEnvironment());
+        
 
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later

@@ -287,10 +287,36 @@ public class GDXAIState extends AbstractGameSystem implements PhysicsListener {
 
         @Override
         protected SteeringBehavior addObject(Entity e) {
+            SteeringBehavior<com.badlogic.gdx.math.Vector2> behaviour = getSteeringBehaviour(e);
+
+            mobPatherMap.put(e.getId(), behaviour);
+            return behaviour;
+        }
+
+        @Override
+        protected void updateObject(SteeringBehavior object, Entity e) {
+            SteeringBehavior<com.badlogic.gdx.math.Vector2> behaviour = getSteeringBehaviour(e);
+
+            mobPatherMap.put(e.getId(), behaviour);
+        }
+        
+        private SteeringBehavior getSteeringBehaviour(Entity e){
             MobPath path = e.get(MobPath.class);
             //The driver to create a behaviour for
             GDXAIDriver steerable = mobSteerables.getObject(e.getId());
 
+            LinePath<Vector2> linePath = convertAndCreatePath(path);
+
+            SteeringBehavior<com.badlogic.gdx.math.Vector2> behaviour = new FollowPath<>(steerable, linePath, 1)
+                    .setTimeToTarget(0.1f)
+                    .setArrivalTolerance(0.001f);
+                    //.setDecelerationRadius(80);
+
+            mobPatherMap.put(e.getId(), behaviour);
+            return behaviour;
+        }
+
+        private LinePath convertAndCreatePath(MobPath path) {
             com.dongbat.walkable.FloatArray fa = path.getPath();
             com.badlogic.gdx.utils.Array<Vector2> a = new Array<>();
 
@@ -300,17 +326,7 @@ public class GDXAIState extends AbstractGameSystem implements PhysicsListener {
             }
 
             LinePath<Vector2> linePath = new LinePath(a, true);
-            SteeringBehavior<com.badlogic.gdx.math.Vector2> behaviour = new FollowPath<Vector2, LinePathParam>(steerable, linePath, 1)
-                    .setTimeToTarget(0.1f)
-                    .setArrivalTolerance(0.001f);
-                    //.setDecelerationRadius(80);
-
-            mobPatherMap.put(e.getId(), behaviour);
-            return behaviour;
-        }
-
-        @Override
-        protected void updateObject(SteeringBehavior object, Entity e) {
+            return linePath;
         }
 
         @Override
