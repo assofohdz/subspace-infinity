@@ -25,6 +25,7 @@ public class CollisionFilters {
     private static final long COLLISION_CATEGORY_STATIC_TOWERS = 64;
     private static final long COLLISION_CATEGORY_DYNAMICS_MOBS = 128;
     private static final long COLLISION_CATEGORY_STATIC_BASE = 256;
+    private static final long COLLISION_CATEGORY_SENSOR_TOWERS = 512;
     private static final long COLLISION_CATEGORY_ALL = Long.MAX_VALUE;
 
     /**
@@ -107,4 +108,8 @@ public class CollisionFilters {
             | COLLISION_CATEGORY_DYNAMICS_MAPOBJECTS
             | COLLISION_CATEGORY_STATIC_TOWERS
             | COLLISION_CATEGORY_STATIC_BASE);
+    
+    public static final CategoryFilter FILTER_CATEGORY_SENSOR_TOWERS = new CategoryFilter(COLLISION_CATEGORY_SENSOR_TOWERS,
+            COLLISION_CATEGORY_DYNAMICS_MOBS);
+    
 }
