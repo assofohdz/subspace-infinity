@@ -8,37 +8,21 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import com.sun.javafx.geom.Vec2d;
-import example.es.Attack;
 import example.es.AttackDirection;
 import example.es.AttackMethodType;
 import example.es.AttackRate;
-import example.es.AttackVelocity;
-import example.es.BodyPosition;
 import example.es.Damage;
-import example.es.Gold;
-import example.es.MobType;
-import example.es.PhysicsShape;
 import example.es.Position;
 import example.es.ProjectileType;
 import example.es.Range;
-import example.es.ShipType;
+import example.es.RotationSpeed;
 import example.es.TowerRotationSpeed;
 import example.es.TowerType;
 import example.sim.CollisionFilters;
 import example.sim.GameEntities;
-import example.sim.PhysicsShapes;
 import example.sim.SimplePhysics;
-import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Set;
-import static junit.framework.TestCase.assertEquals;
-import org.dyn4j.collision.CategoryFilter;
-import org.dyn4j.collision.Filter;
-import org.dyn4j.collision.TypeFilter;
-import org.dyn4j.dynamics.contact.ContactConstraint;
-import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.AABB;
 import org.dyn4j.dynamics.DetectResult;
 import org.dyn4j.geometry.Vector2;
@@ -67,8 +51,8 @@ public class TowerAttackState extends AbstractGameSystem {
 
         // giver det mening at dele den op ?
         this.towerRange = ed.getEntities(TowerType.class, Position.class, Range.class);
-        this.towerRotation = ed.getEntities(TowerType.class, Position.class, TowerRotationSpeed.class);
-        this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class, Damage.class);
+        this.towerRotation = ed.getEntities(TowerType.class, Position.class, RotationSpeed.class);
+        this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class, Damage.class, ProjectileType.class);
     }
 
     @Override
@@ -95,43 +79,47 @@ public class TowerAttackState extends AbstractGameSystem {
             double range = e.get(Range.class).getRange();
 
             LinkedList<DetectResult> result = new LinkedList<>();
-            simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
+            simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_TOWER_SENSOR, true, true, result);
             if (!result.isEmpty()) {
                 towerToTargets.put(e.getId(), result);
             }
-            else{
+            else {
                 towerToTargets.remove(e.getId());
             }
         }
-
+        
         //Rotate towards the target(s)
         towerRotation.applyChanges();
         for (Entity e : towerRotation) {
             //Check if tower has target(s):
-            if (towerToTargets.containsKey(e.getId())) {
+            if (towerToTargets.containsKey(e.getId())) { // TODO itterate over this and get entity from towerRotation instead
+                
                 //Tower location
                 Vector2 location = new Vector2(e.get(Position.class).getLocation().x, e.get(Position.class).getLocation().y);
                 //Find random target and get the direction
                 //TODO: Should probably keep track of current target, so as not to switch targets all the time
                 //TODO: Add a target selection strategy here:
                 Vector2 dir = random(towerToTargets.get(e.getId())).subtract(location).getNormalized();
-
+             
                 // Turn the tower !
                 // - how fast
-                double radSec = e.get(TowerRotationSpeed.class).getRadSec();
+                double radSec = e.get(RotationSpeed.class).getRadSec();
                 // - how much
                 double mobRad = getRelativeDirection(dir);
                 towerToTargetRelativeRadians.put(e.getId(), mobRad);
-
+                ed.setComponent(e.getId(), new AttackDirection(dir.subtract(location)));
+                
+                
+                // - get current tower-angel
                 Quatd face = e.get(Position.class).getFacing();
                 double wRad = getAngles(face);
 
+                // - get new tower-angel
                 double rad = getTowerRotation(mobRad, wRad, radSec * tpf.getTpf());
-                //System.out.println("face: " + face.toString());
-                //System.out.println("mobCoord: " + dir + "  mobRad: " + mobRad + " towerRad:" + wRad + " moveRad: " + rad);
 
                 // set rotation
                 Vec3d loc = e.get(Position.class).getLocation();
+             
                 ed.setComponent(e.getId(), new Position(loc, setQuatdRotationZ(rad), 0));
             }
         }
@@ -142,7 +130,9 @@ public class TowerAttackState extends AbstractGameSystem {
             lastShoot.put(e.getId().getId(), tpf.getTime());
         }
         for (Entity e : towerAttack) {
-            double temp = getAngles(e.get(Position.class).getFacing());
+            double temp = getAngles(e.get(Position.class).getFacing()); // current tower angle
+            
+            //TODO itterate on this instead
             if (towerToTargets.containsKey(e.getId()) //The tower that can attack has a target
                     && Math.abs(towerToTargetRelativeRadians.get(e.getId()) - temp) < 0.2 //It also has an acceptable direction
                     && e.get(AttackRate.class).getRate() < tpf.getTime() - (long) lastShoot.get(e.getId().getId())) { //And can fire
