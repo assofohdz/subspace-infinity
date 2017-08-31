@@ -15,7 +15,7 @@ public class ViewType implements EntityComponent {
     
     //Translates into the texture
     private int type;
-    //Translates into the color overlay
+    //Translates into the color overlay (not used at the moment, but could be later on)
     private Color color;
  
     protected ViewType() {

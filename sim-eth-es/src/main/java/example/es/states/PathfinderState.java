@@ -163,8 +163,8 @@ public class PathfinderState extends AbstractGameSystem {
         //Find random base
         Vector2f[] basePosArray = basePositions.getArray();
         int randIndex = (int) (Math.random() * basePosArray.length);
-        //Vector2f randomEndPosition = basePositions.getArray()[randIndex];
-        Vector2f randomEndPosition = new Vector2f(10, 5);
+        Vector2f randomEndPosition = basePositions.getArray()[randIndex];
+        //Vector2f randomEndPosition = new Vector2f(10, 5);
         return randomEndPosition;
     }
 

@@ -166,7 +166,6 @@ public class TowerAttackState extends AbstractGameSystem {
             boolean activate = simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_SENSOR_TOWER, true, true, result);
 
             if (activate) {
-
                 // Find Target  
                 Vector2 dir = setAttackDirection(e, result);
 

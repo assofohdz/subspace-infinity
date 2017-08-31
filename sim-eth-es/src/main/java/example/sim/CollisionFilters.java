@@ -109,6 +109,7 @@ public class CollisionFilters {
             | COLLISION_CATEGORY_STATIC_TOWERS
             | COLLISION_CATEGORY_STATIC_BASE);
     
+
     public static final CategoryFilter FILTER_CATEGORY_SENSOR_TOWERS = new CategoryFilter(COLLISION_CATEGORY_SENSOR_TOWERS,
             COLLISION_CATEGORY_DYNAMICS_MOBS);
     
