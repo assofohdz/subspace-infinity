@@ -15,6 +15,7 @@ import example.es.AttackMethodType;
 import example.es.AttackRate;
 import example.es.AttackVelocity;
 import example.es.BodyPosition;
+import example.es.Damage;
 import example.es.Gold;
 import example.es.MobType;
 import example.es.PhysicsShape;
@@ -67,7 +68,7 @@ public class TowerAttackState extends AbstractGameSystem {
         // giver det mening at dele den op ?
         this.towerRange = ed.getEntities(TowerType.class, Position.class, Range.class);
         this.towerRotation = ed.getEntities(TowerType.class, Position.class, TowerRotationSpeed.class);
-        this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class);
+        this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class, Damage.class);
     }
 
     @Override
@@ -145,8 +146,13 @@ public class TowerAttackState extends AbstractGameSystem {
             if (towerToTargets.containsKey(e.getId()) //The tower that can attack has a target
                     && Math.abs(towerToTargetRelativeRadians.get(e.getId()) - temp) < 0.2 //It also has an acceptable direction
                     && e.get(AttackRate.class).getRate() < tpf.getTime() - (long) lastShoot.get(e.getId().getId())) { //And can fire
+                //Get information on the amount of damage the tower does
+                Damage damage = e.get(Damage.class);
                 // Fire !!!!!!!!
-                GameEntities.createAttack(e.getId(), e.get(ProjectileType.class).getTypeName(ed), ed);
+                EntityId attackEntity = GameEntities.createAttack(e.getId(), e.get(ProjectileType.class).getTypeName(ed), ed);
+                
+                //Se the amount of damage the attack should do
+                ed.setComponent(attackEntity, new Damage(damage.getDamage()));
                 lastShoot.put(e.getId().getId(), tpf.getTime());
             }
         }

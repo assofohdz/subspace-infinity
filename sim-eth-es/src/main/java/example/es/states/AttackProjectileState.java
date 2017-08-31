@@ -7,7 +7,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.jme3.math.Quaternion;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.GameConstants;
@@ -18,9 +17,8 @@ import example.es.AttackVelocity;
 import example.es.ProjectileType;
 import example.es.ProjectileTypes;
 import example.es.BodyPosition;
-import example.es.Buff;
+import example.es.Damage;
 import example.es.GravityWell;
-import example.es.HealthChange;
 import example.es.HitPoints;
 import example.es.PhysicsVelocity;
 import example.es.Position;
@@ -28,24 +26,15 @@ import example.sim.SimpleBody;
 import example.sim.GameEntities;
 import example.sim.SimplePhysics;
 import java.util.HashSet;
-import java.util.LinkedList;
-import org.dyn4j.dynamics.DetectResult;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
 /**
- * General app state that watches entities with a AttackType component and
- * HitPoints. It performs the attack if there is enough hitpoints and then
- * removes the attacktype component.
- *
- * The attacker must have a physical body (BodyPosition)
- *
  * @author Asser Fahrenholz
  */
 public class AttackProjectileState extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet entities;
     private EntitySet attacks;
     private Object gameSystems;
     private SimplePhysics physics;
@@ -57,11 +46,12 @@ public class AttackProjectileState extends AbstractGameSystem {
 
         if (attacks.applyChanges()) {
             for (Entity e : attacks.getAddedEntities()) {
-                //TODO: Check entities able to attack (cooldown as well as energi and get type of attack)
                 Attack a = e.get(Attack.class);
                 ProjectileType at = e.get(ProjectileType.class);
-                this.attack(a, at);
-             
+                Damage damage = e.get(Damage.class);
+                        
+                this.attack(a, at, damage);
+
                 ed.removeEntity(e.getId()); //Attack has been processed, now remove it
             }
         }
@@ -81,38 +71,26 @@ public class AttackProjectileState extends AbstractGameSystem {
 
         health = getSystem(HealthState.class);
 
-        entities = ed.getEntities(BodyPosition.class, HitPoints.class); //This filters the entities that are allowed to perform attacks
-        attacks = ed.getEntities(Attack.class, ProjectileType.class);
+        attacks = ed.getEntities(Attack.class, ProjectileType.class, Damage.class);
     }
 
     @Override
     protected void terminate() {
-        // Release the entity set we grabbed previously
-        entities.release();
-        entities = null;
-
         attacks.release();
         attacks = null;
     }
 
-    // why this step ?
-    private void attack(Attack a, ProjectileType at) {
-        EntityId owner = a.getOwner();
-
-        this.attack(owner, at);
-    }
-
-    private void attack(EntityId eId, ProjectileType type) {
+    private void attack(Attack a, ProjectileType type, Damage damage) {
+        EntityId eId = a.getOwner();
         SimTime localTime = time; //Copy incase someone else is writing to it
         Entity e = ed.getEntity(eId, HitPoints.class);
-     
-        
+
         Quatd orientation = new Quatd();
         Vec3d location;
         double rotation;
         Vector2 attackVel;
-        
-        if (e.get(HitPoints.class) != null){
+
+        if (e.get(HitPoints.class) != null) {
             // ship
             // TODO make more linear design
             HitPoints hp = e.get(HitPoints.class); //The current health of the attacker
@@ -137,36 +115,38 @@ public class AttackProjectileState extends AbstractGameSystem {
         } else {
             // towers
             e = ed.getEntity(eId, AttackVelocity.class, Position.class, AttackDirection.class);
-            location = e.get(Position.class).getLocation().add(new Vec3d(0,0,0));
-            
+            location = e.get(Position.class).getLocation().add(new Vec3d(0, 0, 0));
+
             Vector2 ori = e.get(AttackDirection.class).getMethod();
             System.out.println(ori.toString());
-            orientation = orientation.fromAngles(ori.getAngleBetween(new Vector2(1, 0)), ori.getAngleBetween(new Vector2(0, 1)), 0); 
+            orientation = orientation.fromAngles(ori.getAngleBetween(new Vector2(1, 0)), ori.getAngleBetween(new Vector2(0, 1)), 0);
             rotation = 0;
             // skal angive længde og ikke bare multiply...
-            attackVel = ori.multiply(e.get(AttackVelocity.class).getVelocity()); 
+            attackVel = ori.multiply(e.get(AttackVelocity.class).getVelocity());
         }
-
-   
-        
+        EntityId projectile;
         switch (type.getTypeName(ed)) {
             case ProjectileTypes.BOMB:
-                GameEntities.createBomb(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
+                projectile = GameEntities.createBomb(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
+                ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
             case ProjectileTypes.BULLET:
-                GameEntities.createBullet(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
+                projectile = GameEntities.createBullet(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
+                ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
             case ProjectileTypes.GRAVITYBOMB:
                 HashSet<EntityComponent> delayedComponents = new HashSet<>();
                 delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
                 delayedComponents.add(new PhysicsVelocity(new Vector2(0, 0))); //Freeze the bomb
-                GameEntities.createDelayedBomb(location, orientation, rotation, attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
+                delayedComponents.add(ProjectileTypes.gravityBomb(ed));
+                projectile = GameEntities.createDelayedBomb(location, orientation, rotation, attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
+                ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
         }
 
         //Create a buff/healthchange component because attacking takes health
-       // EntityId buffEntity = ed.createEntity();
-       // ed.setComponents(buffEntity, new Buff(e.getId(), localTime.getTime()), new HealthChange(0)); //TODO: change in health not set
+        // EntityId buffEntity = ed.createEntity();
+        // ed.setComponents(buffEntity, new Buff(e.getId(), localTime.getTime()), new HealthChange(0)); //TODO: change in health not set
     }
 
     private Vector2 getAttackVelocity(double rotation, ProjectileType type, Vector2 linearVelocity) {
@@ -202,7 +182,5 @@ public class AttackProjectileState extends AbstractGameSystem {
         attackPos.add(translation.x, translation.y);
         return attackPos;
     }
-
-    
 
 }
