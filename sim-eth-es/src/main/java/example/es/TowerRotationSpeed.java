@@ -12,6 +12,7 @@ import com.simsilica.es.EntityComponent;
  * @author ss
  */
 public class TowerRotationSpeed implements EntityComponent {
+    
     double radSec ;
     
     public TowerRotationSpeed(){
