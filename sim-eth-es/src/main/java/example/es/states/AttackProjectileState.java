@@ -128,11 +128,11 @@ public class AttackProjectileState extends AbstractGameSystem {
         switch (type.getTypeName(ed)) {
             case ProjectileTypes.BOMB:
                 projectile = GameEntities.createBomb(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
-                ed.setComponent(projectile, damage);
+                ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
             case ProjectileTypes.BULLET:
                 projectile = GameEntities.createBullet(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
-                ed.setComponent(projectile, damage);
+                ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
             case ProjectileTypes.GRAVITYBOMB:
                 HashSet<EntityComponent> delayedComponents = new HashSet<>();
@@ -140,7 +140,7 @@ public class AttackProjectileState extends AbstractGameSystem {
                 delayedComponents.add(new PhysicsVelocity(new Vector2(0, 0))); //Freeze the bomb
                 delayedComponents.add(ProjectileTypes.gravityBomb(ed));
                 projectile = GameEntities.createDelayedBomb(location, orientation, rotation, attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
-                ed.setComponent(projectile, damage);
+                ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
         }
 

@@ -60,7 +60,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
 
     @Override
     protected void terminate() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 
     @Override

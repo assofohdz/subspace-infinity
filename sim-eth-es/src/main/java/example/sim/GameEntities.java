@@ -213,7 +213,8 @@ public class GameEntities {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
-                ProjectileType.create(attackType, ed));
+                ProjectileType.create(attackType, ed),
+                new Damage(-20));
 
         return lastAttack;
     }
