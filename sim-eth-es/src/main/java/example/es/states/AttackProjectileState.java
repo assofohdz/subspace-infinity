@@ -118,7 +118,7 @@ public class AttackProjectileState extends AbstractGameSystem {
             location = e.get(Position.class).getLocation().add(new Vec3d(0, 0, 0));
 
             Vector2 ori = e.get(AttackDirection.class).getMethod();
-            System.out.println(ori.toString());
+   
             orientation = orientation.fromAngles(ori.getAngleBetween(new Vector2(1, 0)), ori.getAngleBetween(new Vector2(0, 1)), 0);
             rotation = 0;
             // skal angive længde og ikke bare multiply...
