@@ -60,7 +60,7 @@ public class ProjectileTypes {
         return ProjectileType.create(BOMB, ed);
     }
 
-    public static ProjectileType delayedBomb(EntityData ed) {
+    public static ProjectileType gravityBomb(EntityData ed) {
         return ProjectileType.create(GRAVITYBOMB, ed);      
     }
 

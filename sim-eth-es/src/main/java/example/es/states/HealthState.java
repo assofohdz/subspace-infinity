@@ -30,7 +30,7 @@ public class HealthState extends AbstractGameSystem {
     private EntityData ed;    
     private EntitySet living;
     private EntitySet changes;
-    private Map<EntityId, Integer> health = new HashMap<EntityId, Integer>();
+    private Map<EntityId, Integer> health = new HashMap<>();
        
     public HealthState() {
     }

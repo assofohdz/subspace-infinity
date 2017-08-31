@@ -565,6 +565,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         ArrayList<DetectResult> results = new ArrayList<>();
         world.detect(convex, results);
 
-        return results.size() <= 0;
+        return results.isEmpty();
     }
 }
