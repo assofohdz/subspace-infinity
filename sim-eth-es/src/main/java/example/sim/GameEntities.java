@@ -113,12 +113,11 @@ public class GameEntities {
     public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
 
-        
-
         ed.setComponents(lastBomb, ViewTypes.bomb(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
+                ProjectileTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.bomb());
 
@@ -130,6 +129,7 @@ public class GameEntities {
         EntityId lastDelayedBomb = GameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
+        ed.setComponents(lastDelayedBomb, ProjectileTypes.gravityBomb(ed));
 
         return lastDelayedBomb;
     }
@@ -137,12 +137,12 @@ public class GameEntities {
     public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
 
-        
         ed.setComponents(lastBomb, ViewTypes.bullet(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 PhysicsMassTypes.normal_bullet(ed),
+                ProjectileTypes.bullet(ed),
                 PhysicsShapes.bullet());
 
         return lastBomb;
@@ -160,7 +160,6 @@ public class GameEntities {
 
     public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed) {
         EntityId lastTileInfo = ed.createEntity();
-
 
         ed.setComponents(lastTileInfo, ViewTypes.mapTile(ed),
                 new Position(location, new Quatd(), 0f),
@@ -199,7 +198,6 @@ public class GameEntities {
     public static EntityId createWormhole(Vec3d location, double radius, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation, EntityData ed) {
         EntityId lastWormhole = ed.createEntity();
 
-        
         ed.setComponents(lastWormhole,
                 ViewTypes.wormhole(ed),
                 new Position(location, new Quatd(), 0f),
@@ -231,7 +229,6 @@ public class GameEntities {
     public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed) {
         EntityId lastOver5 = ed.createEntity();
 
-       
         ed.setComponents(lastOver5,
                 ViewTypes.over5(ed),
                 new Position(location, new Quatd(), 0f),
@@ -334,17 +331,17 @@ public class GameEntities {
 
     public static EntityId createTower(Vec3d location, EntityData ed) { // add tower-type ?
         EntityId lastTower = ed.createEntity();
-        double rand = Math.random()*Math.PI;
+        double rand = Math.random() * Math.PI;
 
         ed.setComponents(lastTower,
                 ViewTypes.tower(ed), // this
                 TowerTypes.tower1(ed, lastTower),
                 //new Position(location, new Quatd(0,0,Math.sin(rand),Math.cos(rand)), 0f),
-                new Position(location, new Quatd(0,0,-0.5,0.5), 0f),
+                new Position(location, new Quatd(0, 0, -0.5, 0.5), 0f),
                 PhysicsShapes.tower(), // and this moved to type creation, for modularity ?
-                PhysicsMassTypes.infinite(ed));
-        
-    
+                PhysicsMassTypes.infinite(ed),
+                new Damage(20)); //The amount of damage the tower does
+
         return lastTower;
     }
 
@@ -361,5 +358,16 @@ public class GameEntities {
                 new HitPoints(GameConstants.BASEHEALTH));
 
         return lastBase;
+    }
+
+    public static EntityId createHealthBuff(int healthChange, EntityId target, EntityData ed) {
+
+        EntityId lastHealthBuff = ed.createEntity();
+
+        ed.setComponents(lastHealthBuff,
+                new HealthChange(healthChange), //apply the damage
+                new Buff(target, 0)); //apply right away
+
+        return lastHealthBuff;
     }
 }

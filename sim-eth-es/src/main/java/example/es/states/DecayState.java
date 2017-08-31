@@ -12,7 +12,11 @@ import example.es.Decay;
 import example.es.ViewType;
 import example.es.ViewTypes;
 import example.es.Position;
+import example.es.ProjectileType;
+import example.es.ProjectileTypes;
 import example.sim.GameEntities;
+import example.sim.SimplePhysics;
+import org.dyn4j.geometry.Vector2;
 
 /**
  * General app state that watches entities with a Decay component and deletes
@@ -24,6 +28,7 @@ public class DecayState extends AbstractGameSystem {
 
     private EntityData ed;
     private EntitySet entities;
+    private SimplePhysics simplePhysics;
 
     @Override
     public void update(SimTime tpf) {
@@ -31,17 +36,12 @@ public class DecayState extends AbstractGameSystem {
         for (Entity e : entities) {
             Decay d = e.get(Decay.class);
             if (d.getPercent() >= 1.0) {
-                ViewType t = ed.getComponent(e.getId(), ViewType.class);
+                ProjectileType t = ed.getComponent(e.getId(), ProjectileType.class);
 
-                if (t != null && t.getTypeName(ed).equals(ViewTypes.BOMB)) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
-                    Position pos = ed.getComponent(e.getId(), Position.class);
-                    BodyPosition bodyPos = ed.getComponent(e.getId(), BodyPosition.class);
-
-                    if (bodyPos != null) {
-                        GameEntities.createExplosion2(new Vec3d(bodyPos.getFrame(tpf.getFrame()).getPosition(tpf.getTime())), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
-                    } else if (pos != null) {
-                        GameEntities.createExplosion2(pos.getLocation(), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
-                    }
+                if (t != null && (t.getTypeName(ed).equals(ProjectileTypes.BOMB)
+                        || t.getTypeName(ed).equals(ProjectileTypes.GRAVITYBOMB))) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
+                    Vector2 bodyLocation = simplePhysics.getBody(e.getId()).getWorldCenter();
+                    GameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
                 }
 
                 ed.removeEntity(e.getId());
@@ -53,6 +53,8 @@ public class DecayState extends AbstractGameSystem {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
         entities = ed.getEntities(Decay.class);
+
+        simplePhysics = getSystem(SimplePhysics.class);
     }
 
     @Override
