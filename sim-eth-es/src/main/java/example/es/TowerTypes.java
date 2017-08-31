@@ -1,6 +1,5 @@
 package example.es;
 
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 
@@ -17,7 +16,8 @@ public class TowerTypes {
                 AttackMethodTypes.random(ed),
                 new AttackVelocity(500),
                 new AttackRate(1000*MSEC),
-                new RotationSpeed(3.14));
+                new RotationSpeed(3.14),
+                ProjectileTypes.bullet(ed));
    
         
         
