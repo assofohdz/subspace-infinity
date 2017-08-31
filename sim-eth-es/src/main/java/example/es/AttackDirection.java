@@ -6,10 +6,6 @@
 package example.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
-import example.sim.SimplePhysics;
-import java.util.LinkedList;
-import org.dyn4j.dynamics.DetectResult;
 import org.dyn4j.geometry.Vector2;
 
 /**
@@ -27,7 +23,7 @@ public class AttackDirection implements EntityComponent{
         this.direction = direction;
     }
     
-    public Vector2 getMethod(){
+    public Vector2 getDirection(){
         return this.direction;
     }
     
