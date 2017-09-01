@@ -94,33 +94,33 @@ public class TowerAttackState extends AbstractGameSystem {
             //Check if tower has target(s):
             if (towerToTargets.containsKey(e.getId())) { // TODO itterate over this and get entity from towerRotation instead
                 
-                //Tower location
-                Vector2 location = new Vector2(e.get(Position.class).getLocation().x, e.get(Position.class).getLocation().y);
+                Vec3d towerLocation = e.get(Position.class).getLocation();
+                Vector2 towerLocation2d = new Vector2(towerLocation.x, towerLocation.y);
                 //Find random target and get the direction
                 //TODO: Should probably keep track of current target, so as not to switch targets all the time
                 //TODO: Add a target selection strategy here:
-                Vector2 dir = random(towerToTargets.get(e.getId())).subtract(location).getNormalized();
+                Vector2 mobLocation = random(towerToTargets.get(e.getId())).subtract(towerLocation2d).getNormalized();
              
                 // Turn the tower !
                 // - how fast
                 double radSec = e.get(RotationSpeed.class).getRadSec();
                 // - how much
-                double mobRad = getRelativeDirection(dir);
+                double mobRad = getRelativeDirection(mobLocation);
                 towerToTargetRelativeRadians.put(e.getId(), mobRad);
-                ed.setComponent(e.getId(), new AttackDirection(dir.subtract(location)));
                 
+                // set Attackdirection on entity, so shoots can get it (since precicion is +- 0.2 rad)
+                ed.setComponent(e.getId(), new AttackDirection(mobLocation)); 
                 
                 // - get current tower-angel
-                Quatd face = e.get(Position.class).getFacing();
-                double wRad = getAngles(face);
+                double towerRad = getAngles(e.get(Position.class).getFacing());
 
                 // - get new tower-angel
-                double rad = getTowerRotation(mobRad, wRad, radSec * tpf.getTpf());
-
+                double newTowerRad = getTowerRotation(mobRad, towerRad, radSec * tpf.getTpf());
+                
                 // set rotation
-                Vec3d loc = e.get(Position.class).getLocation();
-             
-                ed.setComponent(e.getId(), new Position(loc, setQuatdRotationZ(rad), 0));
+                ed.setComponent(e.getId(), new Position(towerLocation, setQuatdRotationZ(newTowerRad), 0));
+              
+
             }
         }
 
