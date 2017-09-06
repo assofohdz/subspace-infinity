@@ -79,7 +79,7 @@ public class TowerAttackState extends AbstractGameSystem {
             double range = e.get(Range.class).getRange();
 
             LinkedList<DetectResult> result = new LinkedList<>();
-            simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_TOWER_SENSOR, true, true, result);
+            simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
             if (!result.isEmpty()) {
                 towerToTargets.put(e.getId(), result);
             }
