@@ -63,17 +63,19 @@ public class GameOrchestratorState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
-        timeSinceLastWave += tpf.getTpf();
 
         mobs.applyChanges();
 
         if (mobs.isEmpty() && currentWave == baseline_endWave) {
             //You won the game
-        } else if (timeSinceLastWave > baseline_waveWaitTime && mobs.isEmpty()) {
+        } else if (mobs.isEmpty() && (timeSinceLastWave > baseline_waveWaitTime)) {
             //Continue with the game
             if (currentWave < baseline_endWave) {
                 spawnWave();
+                timeSinceLastWave = 0;
             }
+        } else if (mobs.isEmpty()) {
+            timeSinceLastWave += tpf.getTpf();
         }
     }
 
@@ -86,6 +88,10 @@ public class GameOrchestratorState extends AbstractGameSystem {
     public void stop() {
         endGame();
     }
+    
+    public int getWave(){
+        return currentWave;
+    }
 
     //Spawn the required waves for the game
     private void spawnWave() {
@@ -95,7 +101,9 @@ public class GameOrchestratorState extends AbstractGameSystem {
             spawnMob();
         }
         currentWave++;
-        timeSinceLastWave = 0;
+        
+        
+        
     }
 
     private void spawnMob() {
@@ -113,9 +121,9 @@ public class GameOrchestratorState extends AbstractGameSystem {
         log.debug("Spawning base @ " + basePos);
         baseId = GameEntities.createBase(basePos, ed);
     }
-
-    private EntityId getBaseId() {
-        return baseId;
+    
+    private void despawnBase(){
+        ed.removeEntity(baseId);
     }
 
     private void startGame() {
@@ -123,7 +131,7 @@ public class GameOrchestratorState extends AbstractGameSystem {
     }
 
     private void endGame() {
-
+        despawnBase();
     }
 
     private Vec3d getMobSpawnPoint() {
