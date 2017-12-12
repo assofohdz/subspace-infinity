@@ -4,4 +4,4 @@ object synching library.  This modifies the sim-eth-basic to be ES based using t
 
 To run: `gradle run`
 
-![Splash screen](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/Splash.PNG?raw=true)
+![Splash screen](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/Splash.PNG?=250x)
