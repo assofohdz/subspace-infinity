@@ -3,3 +3,5 @@ A java port of Subspace Continuum, built on JME, Lemur, Zay-ES, Zay-ES-Net, Spid
 object synching library.  This modifies the sim-eth-basic to be ES based using the Zay-ES library.
 
 To run: `gradle run`
+
+![Splash screen](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/Splash.PNG?raw=true)
