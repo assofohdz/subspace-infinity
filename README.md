@@ -10,3 +10,27 @@ To run: `gradle run`
 ## Game
 ![In game](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/InGame1.PNG?=150x)
 
+## Contributing
+
+[TODO]
+
+## Versioning
+
+[TODO]
+
+## Authors
+
+* **Asser Fahrenholz** - *Initial work* - [AssoFohdz](https://github.com/AssoFohdz)
+* **Henning Sonne** - *AI and TD game logic* - 
+
+See also the list of [contributors](https://github.com/assofohdz/subspace-infinity/contributors) who participated in this project.
+
+## License
+
+[TODO]
+
+## Acknowledgments
+
+Big thanks to the JME community and Paul Speed who has laid the foundation with the awesome Zay-ES framework and his game example.
+
+Thanks to the Subspace/Continuum developers who keeps the game alive. If not for them, this java port would not be here.
