@@ -12,6 +12,7 @@ repositories {
     maven { url "https://jitpack.io" }
     maven { url "https://oss.sonatype.org/content/repositories/snapshots"}
     maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    mavenCentral()
 }
 
 ext.jmeVersion = "3.2.1-stable"
@@ -20,6 +21,20 @@ project(":assets") {
     apply plugin: "java"
     
     buildDir = rootProject.file("build/assets")
+    
+    sourceSets {
+        main {
+            resources {
+                srcDir '.'
+            }
+        }
+    }    
+}
+
+project(":servers") {
+    apply plugin: "java"
+    
+    buildDir = rootProject.file("build/servers")
     
     sourceSets {
         main {
@@ -80,6 +95,9 @@ dependencies {
     
     //jWalkable for 2d polygonal pathfinding
     compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
+    
+    //Confucius
+    compile 'org.trendafilov.confucius:confucius:1.2.2'
 }
 
 task wrapper(type: Wrapper) {
