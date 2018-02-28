@@ -49,6 +49,7 @@ import org.dyn4j.dynamics.Force;
 import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.Vector2;
+import org.ini4j.Ini;
 
 /**
  * Utility methods for creating the common game entities used by the simulation.
@@ -59,7 +60,13 @@ import org.dyn4j.geometry.Vector2;
  * only consumed by one other, then this is not necessarily true.
  *
  */
-public class GameEntities {
+public class CoreGameEntities {
+    
+    Ini settings;
+    
+    public CoreGameEntities(Ini settings){
+        this.settings = settings;
+    }
 
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
@@ -126,7 +133,7 @@ public class GameEntities {
 
     public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed) {
 
-        EntityId lastDelayedBomb = GameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
+        EntityId lastDelayedBomb = CoreGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, ProjectileTypes.gravityBomb(ed));

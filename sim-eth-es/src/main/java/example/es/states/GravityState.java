@@ -14,7 +14,7 @@ import example.es.PhysicsShape;
 import example.es.Position;
 import example.es.WarpTouch;
 import example.sim.CollisionFilters;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.SimplePhysics;
 import java.util.Collection;
 import java.util.HashSet;
@@ -113,7 +113,7 @@ public class GravityState extends AbstractGameSystem {
         GravityWell gravityWell = ed.getComponent(wormholeEntityId, GravityWell.class);
         //start applying gravity to other entity
         Force force = getWormholeGravityOnBody(tpf, gravityWell, wormholeLocation, bodyLocation);
-        GameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
+        CoreGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
     }
 
     private Force getWormholeGravityOnBody(double tpf, GravityWell wormhole, Vec3d wormholeLocation, Vec3d bodyLocation) {

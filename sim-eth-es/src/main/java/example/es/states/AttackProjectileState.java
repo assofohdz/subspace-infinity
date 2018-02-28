@@ -23,7 +23,7 @@ import example.es.HitPoints;
 import example.es.PhysicsVelocity;
 import example.es.Position;
 import example.sim.SimpleBody;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.SimplePhysics;
 import java.util.HashSet;
 import org.dyn4j.geometry.Transform;
@@ -127,11 +127,11 @@ public class AttackProjectileState extends AbstractGameSystem {
         EntityId projectile;
         switch (type.getTypeName(ed)) {
             case ProjectileTypes.BOMB:
-                projectile = GameEntities.createBomb(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
+                projectile = CoreGameEntities.createBomb(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
                 ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
             case ProjectileTypes.BULLET:
-                projectile = GameEntities.createBullet(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
+                projectile = CoreGameEntities.createBullet(location, orientation, rotation, attackVel, GameConstants.BULLETDECAY, ed);
                 ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
             case ProjectileTypes.GRAVITYBOMB:
@@ -139,7 +139,7 @@ public class AttackProjectileState extends AbstractGameSystem {
                 delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
                 delayedComponents.add(new PhysicsVelocity(new Vector2(0, 0))); //Freeze the bomb
                 delayedComponents.add(ProjectileTypes.gravityBomb(ed));
-                projectile = GameEntities.createDelayedBomb(location, orientation, rotation, attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
+                projectile = CoreGameEntities.createDelayedBomb(location, orientation, rotation, attackVel, GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed);
                 ed.setComponent(projectile, new Damage(damage.getDamage()));
                 break;
         }

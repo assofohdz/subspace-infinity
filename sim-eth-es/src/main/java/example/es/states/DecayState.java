@@ -14,7 +14,7 @@ import example.es.ViewTypes;
 import example.es.Position;
 import example.es.ProjectileType;
 import example.es.ProjectileTypes;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.SimplePhysics;
 import org.dyn4j.geometry.Vector2;
 
@@ -41,7 +41,7 @@ public class DecayState extends AbstractGameSystem {
                 if (t != null && (t.getTypeName(ed).equals(ProjectileTypes.BOMB)
                         || t.getTypeName(ed).equals(ProjectileTypes.GRAVITYBOMB))) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
                     Vector2 bodyLocation = simplePhysics.getBody(e.getId()).getWorldCenter();
-                    GameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
+                    CoreGameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
                 }
 
                 ed.removeEntity(e.getId());

@@ -27,7 +27,7 @@ import example.es.SteeringSeekable;
 import example.es.Steerable;
 import example.es.SteeringPath;
 import example.es.SteeringSeek;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.GDXAIDriver;
 import example.sim.PhysicsListener;
 import example.sim.SimpleBody;

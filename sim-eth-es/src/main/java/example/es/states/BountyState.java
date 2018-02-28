@@ -19,7 +19,7 @@ import example.es.Bounty;
 import example.es.Position;
 import example.es.Spawner;
 import example.es.SphereShape;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.view.ModelViewState;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +89,6 @@ public class BountyState extends AbstractGameSystem {
         double x = Math.cos(angle) * radius + spawnCenter.x;
         double y = Math.sin(angle) * radius + spawnCenter.y;
 
-        return GameEntities.createBounty(new Vec3d(x, y, 0), ed);
+        return CoreGameEntities.createBounty(new Vec3d(x, y, 0), ed);
     }
 }

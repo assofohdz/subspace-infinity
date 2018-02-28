@@ -11,7 +11,7 @@ import example.es.Gold;
 import example.es.Position;
 import example.es.ShipType;
 import example.es.TowerType;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.PhysicsShapes;
 import example.sim.SimplePhysics;
 import org.dyn4j.collision.Filter;
@@ -81,7 +81,7 @@ public class TowerState extends AbstractGameSystem {
         //Can we build there and do we have the money?
         if (simplePhysics.allowConvex(c) && resourceState.canAffordTower(owner)) {
             //Create tower
-            GameEntities.createTower(new Vec3d(x, y, 0), ed);
+            CoreGameEntities.createTower(new Vec3d(x, y, 0), ed);
             //Deduct cost
             resourceState.buyTower(owner);
         }

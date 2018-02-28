@@ -9,7 +9,7 @@ import com.simsilica.sim.SimTime;
 import example.es.MobType;
 import example.es.SteeringPath;
 import example.es.SteeringSeek;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.SimplePhysics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +102,7 @@ public class GameOrchestratorState extends AbstractGameSystem {
         //TODO: Create mob, set it steering towards the base
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
-        EntityId mobId = GameEntities.createMob(randomSpawn, ed);
+        EntityId mobId = CoreGameEntities.createMob(randomSpawn, ed);
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -111,7 +111,7 @@ public class GameOrchestratorState extends AbstractGameSystem {
     private void spawnBase() {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
-        baseId = GameEntities.createBase(basePos, ed);
+        baseId = CoreGameEntities.createBase(basePos, ed);
     }
 
     private EntityId getBaseId() {

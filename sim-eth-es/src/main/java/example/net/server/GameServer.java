@@ -68,6 +68,7 @@ import com.sun.glass.ui.Application;
 import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
 import example.es.*;
+import example.es.states.AdaptiveLoadingState;
 import example.es.states.AttackProjectileState;
 import example.es.states.BountyState;
 import example.es.states.DecayState;
@@ -107,6 +108,7 @@ public class GameServer {
     private String description;
 
     public GameServer(int port, String description) throws IOException {
+        
         
         this.description = description;
 
@@ -199,14 +201,19 @@ public class GameServer {
         systems.register(GDXAIState.class, new GDXAIState());
         //Add state to make towers attack
         systems.register(TowerAttackState.class, new TowerAttackState());
+       
+        
         //Add Game Orchestrator
-        systems.register(GameOrchestratorState.class, new GameOrchestratorState());
+        //Deprecated: Should now be loaded dynamically by AdaptiveLoadingState
+        //systems.register(GameOrchestratorState.class, new GameOrchestratorState());
 
         //Add system to handle collisions between mobs and projectiles
         systems.register(ProjectileCollisionState.class, new ProjectileCollisionState());
         //Add system to handle mobs that are dead
         systems.register(DeathState.class, new DeathState());
-
+        
+        //Add all mods
+        systems.register(AdaptiveLoadingState.class, new AdaptiveLoadingState());
 
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       

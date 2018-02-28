@@ -1,2 +1,3 @@
-include 'assets'
-include 'servers'
+include ':assets'
+include ':interface'
+include ':servers'

@@ -37,47 +37,47 @@ public class BasicEnvironment extends AbstractGameSystem {
             for (int y = 0; y < 4; y++) {
                 for (int z = 0; z < 4; z++) {
                     Vec3d pos = new Vec3d(offset + x * spacing, offset + y * spacing, offset + z * spacing);
-                    GameEntities.createGravSphere(pos, 10, ed);
+                    CoreGameEntities.createGravSphere(pos, 10, ed);
                 }
             }
         }
 
-        GameEntities.createArena(0, ed);
+        CoreGameEntities.createArena(0, ed);
 
         //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);0
         //GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
         //GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(10,-10,0), ed);
         //GameEntities.createOver5(new Vec3d(10,-10,0), 5, 5000, GravityWell.PUSH, ed);
-        GameEntities.createTower(new Vec3d(5, 5, 0), ed);
-        GameEntities.createTower(new Vec3d(5, 7, 0), ed);
-        GameEntities.createTower(new Vec3d(5, 3.5, 0), ed);
-        GameEntities.createTower(new Vec3d(6, 9, 0), ed);
-        GameEntities.createTower(new Vec3d(4, 2, 0), ed);
+        CoreGameEntities.createTower(new Vec3d(5, 5, 0), ed);
+        CoreGameEntities.createTower(new Vec3d(5, 7, 0), ed);
+        CoreGameEntities.createTower(new Vec3d(5, 3.5, 0), ed);
+        CoreGameEntities.createTower(new Vec3d(6, 9, 0), ed);
+        CoreGameEntities.createTower(new Vec3d(4, 2, 0), ed);
 
-        EntityId baseId = GameEntities.createBase(new Vec3d(30, 10, 0), ed);
+        EntityId baseId = CoreGameEntities.createBase(new Vec3d(30, 10, 0), ed);
 
-        EntityId mobId = GameEntities.createMob(new Vec3d(-5, 5, 0), ed);
+        EntityId mobId = CoreGameEntities.createMob(new Vec3d(-5, 5, 0), ed);
         ed.setComponent(mobId, new SteeringSeek(baseId));
-        EntityId mobId2 = GameEntities.createMob(new Vec3d(-10, 5, 0), ed);
+        EntityId mobId2 = CoreGameEntities.createMob(new Vec3d(-10, 5, 0), ed);
         ed.setComponent(mobId2, new SteeringSeek(baseId));
-        EntityId mobId3 = GameEntities.createMob(new Vec3d(10, -5, 0), ed);
+        EntityId mobId3 = CoreGameEntities.createMob(new Vec3d(10, -5, 0), ed);
         ed.setComponent(mobId3, new SteeringSeek(baseId));
-        EntityId mobId4 = GameEntities.createMob(new Vec3d(-5, -10, 0), ed);
+        EntityId mobId4 = CoreGameEntities.createMob(new Vec3d(-5, -10, 0), ed);
         ed.setComponent(mobId4, new SteeringSeek(baseId));
-        EntityId mobId5 = GameEntities.createMob(new Vec3d(-5, -15, 0), ed);
+        EntityId mobId5 = CoreGameEntities.createMob(new Vec3d(-5, -15, 0), ed);
         ed.setComponent(mobId5, new SteeringSeek(baseId));
 
         
         
-        EntityId mobId6 = GameEntities.createMob(new Vec3d(-5, 5, 0), ed);
+        EntityId mobId6 = CoreGameEntities.createMob(new Vec3d(-5, 5, 0), ed);
         ed.setComponent(mobId6, new SteeringPath());
-        EntityId mobId7 = GameEntities.createMob(new Vec3d(-10, 5, 0), ed);
+        EntityId mobId7 = CoreGameEntities.createMob(new Vec3d(-10, 5, 0), ed);
         ed.setComponent(mobId7, new SteeringPath());
-        EntityId mobId8 = GameEntities.createMob(new Vec3d(10, -5, 0), ed);
+        EntityId mobId8 = CoreGameEntities.createMob(new Vec3d(10, -5, 0), ed);
         ed.setComponent(mobId8, new SteeringPath());
-        EntityId mobId9 = GameEntities.createMob(new Vec3d(-5, -10, 0), ed);
+        EntityId mobId9 = CoreGameEntities.createMob(new Vec3d(-5, -10, 0), ed);
         ed.setComponent(mobId9, new SteeringPath());
-        EntityId mobId10 = GameEntities.createMob(new Vec3d(-5, -15, 0), ed);
+        EntityId mobId10 = CoreGameEntities.createMob(new Vec3d(-5, -15, 0), ed);
         ed.setComponent(mobId10, new SteeringPath());
         
         /*

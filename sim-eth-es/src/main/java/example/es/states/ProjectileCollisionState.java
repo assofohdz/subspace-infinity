@@ -22,7 +22,7 @@ import example.es.Position;
 import example.es.ProjectileType;
 import example.es.ViewType;
 import example.es.ViewTypes;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.PhysicsListener;
 import example.sim.SimpleBody;
 import example.sim.SimplePhysics;
@@ -105,7 +105,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
             Damage d = projectiles.getEntity(one).get(Damage.class);
             ed.setComponent(one, new Decay(0)); //Set it to be removed
             
-            GameEntities.createHealthBuff(d.getDamage(), two, ed);
+            CoreGameEntities.createHealthBuff(d.getDamage(), two, ed);
             
             return false;
 
@@ -116,7 +116,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
             Damage d = projectiles.getEntity(two).get(Damage.class);
             ed.setComponent(two, new Decay(0)); //Set it to be removed
 
-            GameEntities.createHealthBuff(d.getDamage(), one, ed);
+            CoreGameEntities.createHealthBuff(d.getDamage(), one, ed);
             
             return false;
         }

@@ -37,6 +37,7 @@
 package example.sim;
 
 import com.simsilica.sim.SimTime;
+import example.sim.SimpleBody;
 
 /**
  *

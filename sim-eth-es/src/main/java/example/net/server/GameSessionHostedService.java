@@ -78,7 +78,7 @@ import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
 import example.sim.SimpleBody;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.ShipDriver;
 import example.sim.SimplePhysics;
 import org.dyn4j.geometry.Transform;
@@ -245,7 +245,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.shipDriver = new ShipDriver();
 
             //TODO: Let player choose the ship
-            this.shipEntity = GameEntities.createShip(playerEntity, ed);
+            this.shipEntity = CoreGameEntities.createShip(playerEntity, ed);
 
             // Set the ship driver directly on the Body.  This could
             // also have been managed with a component-based system but 
@@ -317,7 +317,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             //gameSystems.get(AttackState.class).attack(shipEntity, AttackTypes.create(attackType, ed));
             // Play the sound effect
             //shoot.playInstance();
-            GameEntities.createAttack(shipEntity, attackType, ed);
+            CoreGameEntities.createAttack(shipEntity, attackType, ed);
         }
 
         @Override

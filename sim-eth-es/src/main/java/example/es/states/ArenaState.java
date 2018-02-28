@@ -2,26 +2,15 @@ package example.es.states;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
-import com.simsilica.es.Entity;
-import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mathd.Vec3d;
-import com.simsilica.mathd.Vec3i;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import example.GameConstants;
 import example.es.ArenaId;
-import example.es.Position;
-import example.es.TileInfo;
-import example.map.LevelFile;
 import example.map.LevelLoader;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import java.util.concurrent.ConcurrentHashMap;
-import org.dyn4j.geometry.Convex;
-import tiled.io.TMXMapReader;
-import org.dyn4j.geometry.Rectangle;
 import org.dyn4j.geometry.Vector2;
 import tiled.core.Map;
 import org.slf4j.Logger;
@@ -49,7 +38,7 @@ public class ArenaState extends AbstractGameSystem {
 
         arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
 
-        EntityId arenaId = GameEntities.createArena(0, ed); //Create first arena
+        EntityId arenaId = CoreGameEntities.createArena(0, ed); //Create first arena
 
         AssetManager am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 

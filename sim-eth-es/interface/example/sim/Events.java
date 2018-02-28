@@ -3,12 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package example.es.gameorchestration;
+package example.sim;
 
 /**
  *
  * @author Asser
  */
-public class GameModeType {
+public enum Events {
+    
+    DEATHEVENT,
+    WEAPONFIRED
     
 }

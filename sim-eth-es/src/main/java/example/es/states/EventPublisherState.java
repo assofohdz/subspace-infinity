@@ -32,11 +32,11 @@ public class EventPublisherState extends AbstractGameSystem {
      * MapInformation
      * Message
      * PasswordPacketResponse
-     * PlayerBanned
-     * PlayerDeath
-     * PlayerEntered
-     * PlayerLeft
-     * PlayerPosition
+     -- * PlayerBanned
+     -- * PlayerDeath
+     -- * PlayerEntered
+     -- * PlayerLeft
+     * PlayerPosition // omitted because its continuous data
      * Prize
      * ScoreReset
      * ScoreUpdate
@@ -48,12 +48,12 @@ public class EventPublisherState extends AbstractGameSystem {
      * TurfFlagUpdate
      * TurretEvent
      * WatchDamage
-     * WeaponFired
+     --* WeaponFired
      */
     
     @Override
     protected void initialize() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
     }
 
     @Override

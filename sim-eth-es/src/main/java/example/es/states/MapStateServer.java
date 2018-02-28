@@ -13,7 +13,7 @@ import example.es.GravityWell;
 import example.es.WarpTo;
 import example.map.LevelFile;
 import example.map.LevelLoader;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import java.util.concurrent.ConcurrentHashMap;
 import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Rectangle;
@@ -109,23 +109,23 @@ public class MapStateServer extends AbstractGameSystem {
                     switch (s) {
                         case 170:
                             //Turf flag
-                            GameEntities.createCaptureTheFlag(location, ed);
+                            CoreGameEntities.createCaptureTheFlag(location, ed);
                             break;
                         case 216:
-                            GameEntities.createOver1(location, ed);
+                            CoreGameEntities.createOver1(location, ed);
                             break;
                         case 217:
                             //Medium asteroid
-                            GameEntities.createOver2(location, ed);
+                            CoreGameEntities.createOver2(location, ed);
                             break;
                         case 219:
                             //Station
                             break;
                         case 220:
-                            GameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
+                            CoreGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
                             break;
                         default:
-                            GameEntities.createMapTile(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//
+                            CoreGameEntities.createMapTile(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//
                             break;
                     }
                 }

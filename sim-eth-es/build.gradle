@@ -1,3 +1,15 @@
+evaluationDependsOnChildren()
+
+allprojects {
+    repositories {
+        mavenLocal()
+        jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots"}
+        maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+        mavenCentral()
+    }
+}
 
 apply plugin: 'java'
 apply plugin: 'application'
@@ -6,20 +18,19 @@ apply plugin: 'idea'
 
 mainClassName='example.Main'
 
-repositories {
-    mavenLocal()
-    jcenter()
-    maven { url "https://jitpack.io" }
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots"}
-    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
-    mavenCentral()
+if (!hasProperty('mainClass')) {
+    ext.mainClass = mainClassName
 }
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'example.Main'
+    }
+}
 ext.jmeVersion = "3.2.1-stable"
 
 project(":assets") {
-    apply plugin: "java"
-    
+    apply plugin: 'java'
     buildDir = rootProject.file("build/assets")
     
     sourceSets {
@@ -31,21 +42,15 @@ project(":assets") {
     }    
 }
 
-project(":servers") {
-    apply plugin: "java"
-    
-    buildDir = rootProject.file("build/servers")
-    
-    sourceSets {
-        main {
-            resources {
-                srcDir '.'
-            }
-        }
-    }    
-}
+
 
 dependencies {
+    compile project(':interface')
+    
+    compile 'junit:junit:4.12'
+    
+    //jWalkable for 2d polygonal pathfinding
+    compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
  
     //GDX-AI for steering behaviours
     compile "com.badlogicgames.gdx:gdx-ai:1.8.1:sources"
@@ -77,6 +82,8 @@ dependencies {
     compile "com.simsilica:sim-math:1.1.1"
     //compile "com.simsilica:sim-ethereal:1.2.2"
     compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
+    compile 'com.simsilica:zay-es-net:1.2.1'
+    compile 'com.simsilica:zay-es:1.2.1'
 
     // Standard utility stuff
     compile 'com.google.guava:guava:19.0'
@@ -86,19 +93,14 @@ dependencies {
     //Dyn4j
     compile 'org.dyn4j:dyn4j:3.2.3'
     
+    //Ini4j to parse settings files
+    compile 'org.ini4j:ini4j:0.5.4'
+    
     //HSQLDB
     runtime 'org.hsqldb:hsqldb:2.3.4'
-    
     runtime project(':assets')    
-    
-    compile 'junit:junit:4.12'
-    
-    //jWalkable for 2d polygonal pathfinding
-    compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
-    
-    //Confucius
-    compile 'org.trendafilov.confucius:confucius:1.2.2'
 }
+
 
 task wrapper(type: Wrapper) {
 }
@@ -131,8 +133,19 @@ distributions {
             from(serverStartScript) {
                 into "bin"
             }
+            into("bin/servers") {
+                from { project(':servers').jar }
+            }
         }
     }
+    /*
+    addons {
+        contents {
+            into("bin/servers") {
+                from { project(':servers').jar }
+            }
+        }
+    }*/
 }
 
 // Either way we end up with dupes if we don't do this
@@ -145,5 +158,53 @@ new File("${gradle.getGradleUserHomeDir().getAbsolutePath()}/daemon/${gradle.get
     if (it.getName().endsWith('.out.log')) {
         logger.debug("Cleaning up daemon log file $it")
         it.delete()
+    }
+}
+
+
+project(':interface'){
+    apply plugin:'java'
+    
+    buildDir = rootProject.file("build/interface")
+    
+    sourceSets {
+        main {
+            java {
+                srcDir '.'
+            }
+        }
+    }
+    
+    dependencies {
+        compile "com.simsilica:sim-math:1.1.1"
+        compile "com.simsilica:sio2:1.1.0"
+        compile 'com.simsilica:zay-es:1.2.1'
+        compile 'org.dyn4j:dyn4j:3.2.3'
+        compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
+        compile 'org.ini4j:ini4j:0.5.4'
+    }
+}
+
+project(':servers') {
+    apply plugin: 'java'
+        
+    buildDir = rootProject.file("build/servers")
+    
+    sourceSets {
+        main {
+            java {
+                srcDir '.'
+            }
+            resources {
+                srcDir '.'
+            }
+        }
+    }
+    
+    dependencies {
+        compile project(':interface')
+        compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
+        compile 'com.simsilica:zay-es-net:1.2.1'
+        compile 'com.simsilica:zay-es:1.2.1'
     }
 }

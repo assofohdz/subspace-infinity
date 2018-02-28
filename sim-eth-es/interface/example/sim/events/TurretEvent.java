@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package example.es.gameorchestration;
+package example.sim.events;
 
 /**
  *
  * @author Asser
  */
-public class GameModeTypes {
-    public static final String WAVES = "waves";
+public class TurretEvent {
+    /*
+     * TurretEvent
+    */
 }

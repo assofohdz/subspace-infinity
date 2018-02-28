@@ -19,7 +19,7 @@ import example.es.RotationSpeed;
 import example.es.TowerRotationSpeed;
 import example.es.TowerType;
 import example.sim.CollisionFilters;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.SimplePhysics;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -139,7 +139,7 @@ public class TowerAttackState extends AbstractGameSystem {
                 //Get information on the amount of damage the tower does
                 Damage damage = e.get(Damage.class);
                 // Fire !!!!!!!!
-                EntityId attackEntity = GameEntities.createAttack(e.getId(), e.get(ProjectileType.class).getTypeName(ed), ed);
+                EntityId attackEntity = CoreGameEntities.createAttack(e.getId(), e.get(ProjectileType.class).getTypeName(ed), ed);
                 
                 //Se the amount of damage the attack should do
                 ed.setComponent(attackEntity, new Damage(damage.getDamage()));

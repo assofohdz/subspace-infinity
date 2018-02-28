@@ -19,7 +19,7 @@ import example.es.WarpTo;
 import example.es.WarpTouch;
 import example.net.server.AccountHostedService;
 import example.net.server.ZoneNetworkSystem;
-import example.sim.GameEntities;
+import example.sim.CoreGameEntities;
 import example.sim.SimpleBody;
 import example.sim.SimplePhysics;
 import java.util.HashSet;
@@ -112,8 +112,8 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
                     }
                      */
                     //getStateListener(hc).setSelf(selfId, initialPosition);
-                    GameEntities.createWarpEffect(origLocationVec3d, ed);
-                    GameEntities.createWarpEffect(targetLocation, ed);
+                    CoreGameEntities.createWarpEffect(origLocationVec3d, ed);
+                    CoreGameEntities.createWarpEffect(targetLocation, ed);
 
                     ed.removeComponent(e.getId(), WarpTo.class);
                 }
