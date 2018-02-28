@@ -47,9 +47,9 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
     private final Vector<File> repository;
 
     //Used in distribution
-    private String modLocation = "servers\\servers.jar";
+    private String modLocation = "modules\\modules.jar";
     //Used from SDK
-    private String modLocation2 = "build\\servers\\libs\\servers.jar";
+    private String modLocation2 = "build\\modules\\libs\\modules.jar";
 
     public AdaptiveLoadingState() {
         repository = new Vector<File>();
@@ -104,8 +104,8 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
     }
 
     private void load(String className) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-        Ini ini = loadSettings("server1/arena1/arena1.ini");
-        BaseGameModule c = loadMod("server1.arena1.arena1", ini);
+        Ini ini = loadSettings("arena1/arena1.ini");
+        BaseGameModule c = loadMod("arena1.arena1", ini);
         classSettings.put(c, ini);
     }
 

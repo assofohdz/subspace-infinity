@@ -133,8 +133,8 @@ distributions {
             from(serverStartScript) {
                 into "bin"
             }
-            into("bin/servers") {
-                from { project(':servers').jar }
+            into("bin/modules") {
+                from { project(':modules').jar }
             }
         }
     }
@@ -185,18 +185,20 @@ project(':interface'){
     }
 }
 
-project(':servers') {
+project(':modules') {
     apply plugin: 'java'
         
-    buildDir = rootProject.file("build/servers")
+    buildDir = rootProject.file("build/modules")
     
     sourceSets {
         main {
             java {
                 srcDir '.'
+                exclude '**ini'
             }
             resources {
                 srcDir '.'
+                exclude '**java'
             }
         }
     }

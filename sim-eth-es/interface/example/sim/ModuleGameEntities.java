@@ -75,7 +75,7 @@ public class ModuleGameEntities {
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new Gold(0));
-        ed.setComponent(result, new HitPoints(settings.get("Warbird", "StartingHelath", int.class)));
+        ed.setComponent(result, new HitPoints(settings.get("Warbird", "StartingHealth", int.class)));
         //ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
         return result;
@@ -333,7 +333,7 @@ public class ModuleGameEntities {
                 PhysicsShapes.mob(settings),
                 PhysicsMassTypes.normal(ed),
                 //new HitPoints(GameConstants.MOBHEALTH));
-                new Decay(settings.get("Enemies", "Health", int.class)));
+                new HitPoints(settings.get("Enemies", "Health", int.class)));
 
         return lastMob;
     }
@@ -365,7 +365,7 @@ public class ModuleGameEntities {
                 PhysicsShapes.base(settings),
                 PhysicsMassTypes.infinite(ed),
                 //new HitPoints(GameConstants.BASEHEALTH));
-                new Decay(settings.get("Base", "Health", int.class)));
+                new HitPoints(settings.get("Base", "Health", int.class)));
 
         return lastBase;
     }
