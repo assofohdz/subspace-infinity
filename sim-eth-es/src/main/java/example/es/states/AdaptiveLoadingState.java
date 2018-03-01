@@ -52,7 +52,7 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
     private String modLocation2 = "build\\modules\\libs\\modules.jar";
 
     public AdaptiveLoadingState() {
-        repository = new Vector<File>();
+        repository = new Vector<>();
         classSettings = new HashMap<>();
     }
 

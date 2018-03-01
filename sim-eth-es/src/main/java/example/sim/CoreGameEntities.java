@@ -38,16 +38,12 @@ package example.sim;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 import example.GameConstants;
-import example.PhysicsConstants;
 import example.ViewConstants;
 
 import example.es.*;
 import java.util.HashSet;
-import org.dyn4j.collision.Filter;
-import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.Vector2;
 import org.ini4j.Ini;
 

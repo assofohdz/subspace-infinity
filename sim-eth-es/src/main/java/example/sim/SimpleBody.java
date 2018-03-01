@@ -35,21 +35,13 @@
  */
 package example.sim;
 
-import com.badlogic.gdx.ai.steer.Steerable;
 import com.badlogic.gdx.ai.utils.Location;
 import com.badlogic.gdx.math.Vector;
-import com.badlogic.gdx.math.Vector2;
-import java.util.concurrent.atomic.AtomicLong;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.*;
-import example.GameConstants;
-import example.PhysicsConstants;
 
 import example.es.Position;
-import example.sim.ControlDriver;
-import example.sim.ControlDriver;
-import org.dyn4j.geometry.Transform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,8 +102,8 @@ public class SimpleBody extends org.dyn4j.dynamics.Body implements Location{
         velocity3d.set(velocity.x, velocity.y, 0.0d);
 
         // setting 3d position based on Dyn4j physics 2d position
-        pos.set(transform.getTranslationX() * PhysicsConstants.PHYSICS_SCALE,
-                transform.getTranslationY() * PhysicsConstants.PHYSICS_SCALE,
+        pos.set(transform.getTranslationX(),
+                transform.getTranslationY(),
                 0);
 
         orientation.fromAngles(0, 0, transform.getRotation());
