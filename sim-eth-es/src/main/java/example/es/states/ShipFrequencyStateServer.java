@@ -24,7 +24,7 @@ import java.util.HashMap;
  * @author Asser
  */
 public class ShipFrequencyStateServer extends AbstractGameSystem {
-    
+
     private EntityData ed;
     private EntitySet freqs;
 
@@ -33,102 +33,107 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
      */
     private HashMap<Integer, ShipRestrictor> teamRestrictions;
     private EntitySet captains;
-    
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        
+
         this.freqs = ed.getEntities(Frequency.class, ShipType.class);
         this.captains = ed.getEntities(ShipType.class, Captain.class);
-        
+
         teamRestrictions = new HashMap<>();
     }
-    
+
     @Override
     protected void terminate() {
         freqs.release();
         freqs = null;
     }
-    
+
     @Override
     public void update(SimTime tpf) {
         if (freqs.applyChanges()) {
             for (Entity e : freqs.getAddedEntities()) {
-                
+
             }
             for (Entity e : freqs.getChangedEntities()) {
-                
+
             }
             for (Entity e : freqs.getRemovedEntities()) {
-                
+
             }
         }
-        
+
         if (captains.applyChanges()) {
             for (Entity e : captains.getAddedEntities()) {
-                
+
             }
             for (Entity e : captains.getChangedEntities()) {
-                
+
             }
             for (Entity e : captains.getRemovedEntities()) {
-                
+
             }
         }
     }
-    
+
     @Override
     public void start() {
     }
-    
+
     @Override
     public void stop() {
     }
-    
+
     public void requestShipChange(EntityId shipEntity, int shipType) {
         //TODO: Check for energy (full energy to switch ships)
-        switch (shipType) {
-            case 1:
-                ed.setComponent(shipEntity, ShipTypes.warbird(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_warbird(ed));
-                break;
-            case 2:
-                ed.setComponent(shipEntity, ShipTypes.javelin(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_javelin(ed));
-                break;
-            case 3:
-                ed.setComponent(shipEntity, ShipTypes.spider(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_spider(ed));
-                break;
-            case 4:
-                ed.setComponent(shipEntity, ShipTypes.leviathan(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_levi(ed));
-                break;
-            case 5:
-                ed.setComponent(shipEntity, ShipTypes.terrier(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_terrier(ed));
-                break;
-            case 6:
-                ed.setComponent(shipEntity, ShipTypes.weasel(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_weasel(ed));
-                break;
-            case 7:
-                ed.setComponent(shipEntity, ShipTypes.lancaster(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_lanc(ed));
-                break;
-            case 8:
-                ed.setComponent(shipEntity, ShipTypes.shark(ed));
-                ed.setComponent(shipEntity, ViewTypes.ship_shark(ed));
-                break;
+
+        int freq = freqs.getEntity(shipEntity).get(Frequency.class).getFreq();
+
+        if (this.getRestrictor(freq).canSwitch(shipEntity, (byte) shipType, freq)) {
+            switch (shipType) {
+                case 1:
+                    ed.setComponent(shipEntity, ShipTypes.warbird(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_warbird(ed));
+                    break;
+                case 2:
+                    ed.setComponent(shipEntity, ShipTypes.javelin(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_javelin(ed));
+                    break;
+                case 3:
+                    ed.setComponent(shipEntity, ShipTypes.spider(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_spider(ed));
+                    break;
+                case 4:
+                    ed.setComponent(shipEntity, ShipTypes.leviathan(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_levi(ed));
+                    break;
+                case 5:
+                    ed.setComponent(shipEntity, ShipTypes.terrier(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_terrier(ed));
+                    break;
+                case 6:
+                    ed.setComponent(shipEntity, ShipTypes.weasel(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_weasel(ed));
+                    break;
+                case 7:
+                    ed.setComponent(shipEntity, ShipTypes.lancaster(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_lanc(ed));
+                    break;
+                case 8:
+                    ed.setComponent(shipEntity, ShipTypes.shark(ed));
+                    ed.setComponent(shipEntity, ViewTypes.ship_shark(ed));
+                    break;
+            }
         }
     }
-    
+
     public int getFrequency(EntityId entityId) {
         Frequency freq = ed.getComponent(entityId, Frequency.class);
-        
+
         return freq.getFreq();
     }
-    
+
     public void requestFreqChange(EntityId eId, int newFreq) {
         ed.setComponent(eId, new Frequency(newFreq));
     }
@@ -148,12 +153,12 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
                 public boolean canSwitch(EntityId p, byte ship, int t) {
                     return true;
                 }
-                
+
                 @Override
                 public boolean canSwap(EntityId p1, EntityId p2, int t) {
                     return true;
                 }
-                
+
                 public byte fallbackShip() {
                     return 0;
                 }
@@ -161,6 +166,10 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
         } else {
             this.teamRestrictions.put(team, restrict);
         }
+    }
+
+    public ShipRestrictor getRestrictor(int team) {
+        return this.teamRestrictions.get(team);
     }
 
     /**
@@ -225,16 +234,16 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
      * @return the count of the ship type
      */
     public int getShipCount(int team, ShipType type) {
-        
+
         ComponentFilter freqFilter = FieldFilter.create(Frequency.class, "freq", team);
         EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShipType.class);
-        
+
         int count = 0;
 
         //Sum up the entities with the right type
         count = freq.stream().filter((e) -> (e.get(ShipType.class).getType() == type.getType())).map((_item) -> 1).reduce(count, Integer::sum);
-        
+
         return count;
     }
-    
+
 }
