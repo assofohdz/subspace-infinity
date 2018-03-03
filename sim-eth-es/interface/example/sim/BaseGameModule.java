@@ -1,25 +1,24 @@
 package example.sim;
 
 import com.simsilica.sim.AbstractGameSystem;
+import java.util.regex.Pattern;
 import org.ini4j.Ini;
 
 /**
  *
  * @author Asser
  */
-public abstract class BaseGameModule extends AbstractGameSystem {
+public abstract class BaseGameModule extends AbstractGameSystem implements CommandListener {
 
     private Ini settings;
 
     public BaseGameModule(Ini settings) {
-
         this.settings = settings;
     }
-    
-    public BaseGameModule(){
-        
-    }
 
+    /**
+     * @return the settings that came with the module (if any)
+     */
     protected Ini getSettings() {
         return settings;
     }

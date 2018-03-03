@@ -104,6 +104,55 @@ public class MapStateServer extends AbstractGameSystem {
                     Row 10, tile 17 - Flyunder (black = transparent) tile
                     Row 10, tile 18 - Flyunder (black = transparent) tile
                     Row 10, tile 19 - Flyunder (black = transparent) tile
+                    
+                    /*
+                    VIE tile constants.
+    
+                    public static final char vieNoTile = 0;
+
+                    public static final char vieNormalStart = 1;
+                    public static final char vieBorder = 20;            // Borders are not included in the .lvl files
+                    public static final char vieNormalEnd = 161;        // Tiles up to this point are part of sec.chk
+
+                    public static final char vieVDoorStart = 162;
+                    public static final char vieVDoorEnd = 165;
+
+                    public static final char vieHDoorStart = 166;
+                    public static final char vieHDoorEnd = 169;
+
+                    public static final char vieTurfFlag = 170;
+
+                    public static final char vieSafeZone = 171;         // Also included in sec.chk
+
+                    public static final char vieGoalArea = 172;
+
+                    public static final char vieFlyOverStart = 173;
+                    public static final char vieFlyOverEnd = 175;
+                    public static final char vieFlyUnderStart = 176;
+                    public static final char vieFlyUnderEnd = 190;
+
+                    public static final char vieAsteroidStart = 216;
+                    public static final char vieAsteroidEnd = 218;
+
+                    public static final char vieStation = 219;
+
+                    public static final char vieWormhole = 220;
+
+                    public static final char ssbTeamBrick = 221;        // These are internal
+                    public static final char ssbEnemyBrick = 222;
+
+                    public static final char ssbTeamGoal = 223;
+                    public static final char ssbEnemyGoal = 224;
+
+                    public static final char ssbTeamFlag = 225;
+                    public static final char ssbEnemyFlag = 226;
+
+                    public static final char ssbPrize = 227;
+
+                    public static final char ssbBorder = 228;           // Use ssbBorder instead of vieBorder to fill border
+
+                    
+                    
                      */
                     Vec3d location = new Vec3d(xpos, -ypos, 0).add(arenaOffset);
                     switch (s) {

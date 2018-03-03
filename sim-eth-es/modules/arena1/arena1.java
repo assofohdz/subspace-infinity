@@ -15,6 +15,7 @@ import example.sim.ModuleGameEntities;
 import example.sim.events.PlayerEvent;
 import example.sim.events.ShipEvent;
 import java.net.URL;
+import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * @author Asser
  */
 public class arena1 extends BaseGameModule {
-    
+
     static Logger log = LoggerFactory.getLogger(arena1.class);
 
     //As a baseline, spawn 10 mobs per wave
@@ -52,7 +53,7 @@ public class arena1 extends BaseGameModule {
     public arena1(Ini settings) {
         super(settings);
     }
-    
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
@@ -155,6 +156,14 @@ public class arena1 extends BaseGameModule {
     void onShipDestroyed(ShipEvent shipEvent) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+    @Override
+    public Pattern getCommandPattern() {
+        return Pattern.compile("!arena1 text");
+    }
+
+    @Override
+    public void interpretCommandGroup(String group) {
+        //Do stuff with the captured group
+    }
 }
-
-

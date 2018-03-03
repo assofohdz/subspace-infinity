@@ -205,16 +205,13 @@ public class GameServer {
         
         //Add Game Orchestrator
         //Deprecated: Should now be loaded dynamically by AdaptiveLoadingState
-        //systems.register(GameOrchestratorState.class, new GameOrchestratorState());
 
         //Add system to handle collisions between mobs and projectiles
         systems.register(ProjectileCollisionState.class, new ProjectileCollisionState());
         //Add system to handle mobs that are dead
         systems.register(DeathState.class, new DeathState());
         
-        //Add all mods
-        systems.register(AdaptiveLoadingState.class, new AdaptiveLoadingState());
-
+       
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
         systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
@@ -222,6 +219,8 @@ public class GameServer {
         // Setup our entity data and the hosting service
         DefaultEntityData ed = new DefaultEntityData();
         server.getServices().addService(new EntityDataHostedService(GameConstants.ES_CHANNEL, ed));
+        //Add all mods
+        server.getServices().addService(new AdaptiveLoadingState(systems));
 
         // Add it to the game systems so that we send updates properly
         systems.addSystem(new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));

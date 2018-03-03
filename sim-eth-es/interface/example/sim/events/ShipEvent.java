@@ -20,6 +20,8 @@ public class ShipEvent {
     public static EventType<ShipEvent> shipSpawned = EventType.create("ShipSpawned", ShipEvent.class);
     public static EventType<ShipEvent> weaponFiring = EventType.create("WeaponFiring", ShipEvent.class);
     public static EventType<ShipEvent> weaponFired = EventType.create("WeaponFired", ShipEvent.class);
+    public static EventType<ShipEvent> shipChangeAllowed = EventType.create("ShipChangeAllowed", ShipEvent.class);
+    public static EventType<ShipEvent> shipChangeDenied = EventType.create("ShipChangeDenied", ShipEvent.class);
 
     private final EntityId shipId;
 

@@ -9,6 +9,6 @@ package example.net.chat;
  *
  * @author Asser
  */
-public class ChatParser {
+public class CommandInterpreter {
     
 }

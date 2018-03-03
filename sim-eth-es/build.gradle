@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        jcenter()
+    }   
+    dependencies {
+        // Replace $version with the current version
+        classpath "com.smokejumperit.gradle.license:Gradle-License-Report:0.0.2"
+    }   
+}
+
+
 evaluationDependsOnChildren()
 
 allprojects {
@@ -15,6 +26,8 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin:'license-report'
+
 
 mainClassName='example.Main'
 
@@ -138,14 +151,6 @@ distributions {
             }
         }
     }
-    /*
-    addons {
-        contents {
-            into("bin/servers") {
-                from { project(':servers').jar }
-            }
-        }
-    }*/
 }
 
 // Either way we end up with dupes if we don't do this

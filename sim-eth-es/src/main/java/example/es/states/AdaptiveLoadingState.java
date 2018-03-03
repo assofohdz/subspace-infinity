@@ -5,28 +5,28 @@
  */
 package example.es.states;
 
-import com.simsilica.event.EventBus;
-import com.simsilica.sim.AbstractGameSystem;
-import com.simsilica.sim.SimTime;
+import com.jme3.network.service.AbstractHostedService;
+import com.jme3.network.service.HostedServiceManager;
+import com.simsilica.sim.GameSystemManager;
 import example.AdaptiveClassLoader;
-import example.Main;
+import example.net.chat.server.ChatHostedService;
 import example.sim.BaseGameModule;
+import example.sim.BaseGameService;
+import example.sim.CommandListener;
 
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyObject;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.ini4j.Ini;
 
 /**
@@ -36,7 +36,7 @@ import org.ini4j.Ini;
  *
  * @author Asser
  */
-public class AdaptiveLoadingState extends AbstractGameSystem {
+public class AdaptiveLoadingState extends AbstractHostedService implements CommandListener {
 
     //A map of settings (key,value) per class loaded
     private HashMap<Object, Ini> classSettings;
@@ -45,20 +45,36 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
     //final GroovyClassLoader classLoader = new GroovyClassLoader();
     private String[] directories;
     private final Vector<File> repository;
+    
+    private HashSet<BaseGameModule> modules;
+    private HashSet<BaseGameService> services;
+    
+    private Pattern modulePattern = Pattern.compile("\\~startModule\\s(\\w+)");
+    private Pattern servicePattern = Pattern.compile("\\~startService\\s(\\w+)");
+    private Matcher m;
 
     //Used in distribution
     private String modLocation = "modules\\modules.jar";
     //Used from SDK
     private String modLocation2 = "build\\modules\\libs\\modules.jar";
-
-    public AdaptiveLoadingState() {
+    
+    private GameSystemManager gameSystems;
+    
+    public AdaptiveLoadingState(GameSystemManager gameSystems) {
         repository = new Vector<>();
         classSettings = new HashMap<>();
+        
+        modules = new HashSet<>();
+        services = new HashSet<>();
+
+        //this.getManager();
+        //TODO: Register with ChatHostedService as Pattern Listener
+        this.gameSystems = gameSystems;
     }
-
+    
     @Override
-    protected void initialize() {
-
+    protected void onInitialize(HostedServiceManager serviceManager) {
+        
         File file = new File(modLocation);
         directories = file.list(new FilenameFilter() {
             @Override
@@ -78,7 +94,7 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
                 repository.add(f2);
             }
             this.classLoader = new AdaptiveClassLoader(repository);
-
+            
             load("arena1");
         } catch (IllegalAccessException ex) {
             Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
@@ -96,28 +112,32 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
             ex.getCause().printStackTrace();
             Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
         }
-        //}
+        
+        this.getService(ChatHostedService.class).registerPatternListener(this, modulePattern);
+        this.getService(ChatHostedService.class).registerPatternListener(this, servicePattern);
     }
-
-    @Override
-    protected void terminate() {
-    }
-
+    
     private void load(String className) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Ini ini = loadSettings("arena1/arena1.ini");
-        BaseGameModule c = loadMod("arena1.arena1", ini);
-        classSettings.put(c, ini);
+        loadClass("arena1.arena1", ini);
     }
-
-    private BaseGameModule loadMod(String file, Ini settingsFile) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+    
+    private void loadClass(String file, Ini settingsFile) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
         Constructor c = java.getConstructor(Ini.class);
-
-        BaseGameModule javaObj = (BaseGameModule) c.newInstance(settingsFile);
-
-        this.getManager().addSystem(javaObj);
-
-        return javaObj;
+        
+        if (BaseGameModule.class.isAssignableFrom(java)) {
+            BaseGameModule javaObj = (BaseGameModule) c.newInstance(settingsFile);
+            boolean add = modules.add(javaObj);
+            classSettings.put(javaObj, settingsFile);
+            
+        } else if (BaseGameService.class.isAssignableFrom(java)) {
+            
+            BaseGameService javaObj = (BaseGameService) c.newInstance(settingsFile);
+            boolean add = services.add(javaObj);
+            classSettings.put(javaObj, settingsFile);
+        }
+        
     }
 
     //Loads the associated settings ini-file
@@ -126,18 +146,32 @@ public class AdaptiveLoadingState extends AbstractGameSystem {
         Ini ini = new Ini(inputStream);
         return ini;
     }
-
-    @Override
-    public void update(SimTime tpf) {
-
-    }
-
+    
     @Override
     public void start() {
     }
-
+    
     @Override
     public void stop() {
     }
-
+    
+    @Override
+    public Pattern getCommandPattern() {
+        
+        return modulePattern;
+    }
+    
+    @Override
+    public void interpretCommandGroup(String group) {
+        //m = p.matcher(group);
+        
+        //If command following !startModule
+        modules.stream().filter((module) -> (module.getClass().getSimpleName() == null ? group == null : module.getClass().getSimpleName().equals(group))).forEachOrdered((module) -> {
+            gameSystems.addSystem(module);
+        });
+        
+        services.stream().filter((service) -> (service.getClass().getSimpleName() == null ? group == null : service.getClass().getSimpleName().equals(group))).forEachOrdered((service) -> {
+            this.getServiceManager().addService(service);
+        });
+    }
 }
