@@ -13,6 +13,8 @@ import example.sim.CommandListener;
 import example.sim.ModuleGameEntities;
 import example.sim.events.ShipEvent;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
@@ -149,22 +151,34 @@ public class arena1 extends BaseGameModule implements CommandListener {
         return result;
     }
 
+    //Event handling
     void onShipSpawned(ShipEvent shipEvent) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    //Event handling
     void onShipDestroyed(ShipEvent shipEvent) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    /**
+     * Be sure to map all patterns to a method that should be called
+     *
+     * @return a map of patterns to method
+     */
     @Override
-    public Pattern[] getCommandPatterns() {
-        Pattern[] pList = {arena1Command};
-        return pList;
+    public HashMap<Pattern, Consumer<String>> getPatternConsumers() {
+        HashMap<Pattern, Consumer<String>> map = new HashMap<>();
+        map.put(arena1Command, (s) -> this.messageHandler(s));
+        //Register all the patterns and consuming methods that needs to hook into the chat service
+        return map;
     }
 
-    @Override
-    public void interpretFullCommand(String group) {
-        java.util.logging.Logger.getLogger(arena1.class.getName()).log(Level.SEVERE, null, "Arena1 was called with a command: "+group);
+    /**
+     * Handle the message events
+     *
+     * @param s
+     */
+    public void messageHandler(String s) {
     }
 }

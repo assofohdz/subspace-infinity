@@ -98,6 +98,7 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         this.channel = channel;
         setAutoHost(false);
         this.patternListeners = new HashMap<>();
+        this.patternConsumers = new HashMap<>();
 
     }
 
@@ -177,18 +178,21 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         }
     }
 
+    /**
+     *
+     * @param from
+     * @param message
+     */
     protected void postMessage(ChatSessionImpl from, String message) {
-        boolean matchedCommand = false;
-        for (Pattern p : patternListeners.keySet()) {
+        //To avoid java.util.ConcurrentModificationException
+        HashSet<Pattern> set = new HashSet<>(patternConsumers.keySet());
+        for (Pattern p : set) {
             Matcher m = p.matcher(message);
             if (m.matches()) {
-                //matchedCommand = true;
-                for (CommandListener listener : patternListeners.get(p)) {
-                    listener.interpretFullCommand(message);
-                }
+                patternConsumers.get(p).accept(m.group(1));
             }
         }
-
+        
         //TODO: Test command line here
         //TODO: * for account related
         //TODO: ~ for server related
@@ -262,59 +266,21 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     }
 
     /**
-     * Register the listener for a specific regular expression
-     *
-     * @param listener the CommandListener
-     * @param patterns the Patterns to register for
-     */
-    public void registerPatternListener(CommandListener listener, Pattern... patterns) {
-        HashSet<CommandListener> set;
-
-        for (Pattern p : patterns) {
-            if (!patternListeners.containsKey(p)) {
-                set = new HashSet<>();
-            } else {
-                set = patternListeners.get(p);
-            }
-            boolean add = set.add(listener);
-            patternListeners.put(p, set);
-        }
-
-    }
-
-    /**
-     * Removes the listener for this specific regular expression
-     *
-     * @param listener the CommandListener
-     * @param patterns the Patterns to deregister
-     */
-    public void removePatternListener(CommandListener listener, Pattern... patterns) {
-        HashSet<CommandListener> set;
-        for (Pattern p : patterns) {
-            if (patternListeners.containsKey(p)) {
-                set = patternListeners.get(p);
-                if (set.size() == 1) {
-                    patternListeners.remove(p);
-                } else {
-                    set.remove(listener);
-                    patternListeners.put(p, set);
-                }
-            }
-        }
-    }
-
-    /**
      *
      * @param pattern the pattern to match against
      * @param c the method that will consume the message taking only String as
      * argument
      */
     public void registerPatternConsumer(Pattern pattern, Consumer<String> c) {
+        //TODO: For now, only one consumer per pattern (we could potentially have multiple)
         patternConsumers.put(pattern, c);
     }
 
-    public void removePatternConsumer(Pattern pattern, Consumer<String> c) {
+    /**
+     * Removes a pattern to be consumed
+     * @param pattern the pattern to remove comsumption of
+     */
+    public void removePatternConsumer(Pattern pattern) {
         patternConsumers.remove(pattern);
     }
-
 }

@@ -5,6 +5,8 @@
  */
 package example.sim;
 
+import java.util.HashMap;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
@@ -16,13 +18,5 @@ public interface CommandListener {
     /**
      * @return the regex command pattern
      */
-    public abstract Pattern[] getCommandPatterns();
-
-    /**
-     * This command should be implemented by the module to receive and interpret
-     * commands that matches the Pattern
-     *
-     * @param group the pattern that is to be interpreted
-     */
-    public abstract void interpretFullCommand(String group);
+    public abstract HashMap<Pattern,Consumer<String>> getPatternConsumers();
 }

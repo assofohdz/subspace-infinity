@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -35,7 +36,7 @@ import org.ini4j.Ini;
  *
  * @author Asser
  */
-public class AdaptiveLoadingService extends AbstractHostedService implements CommandListener {
+public class AdaptiveLoadingService extends AbstractHostedService /*implements CommandListener*/ {
 
     //A map of settings (key,value) per class loaded
     private HashMap<Object, Ini> classSettings;
@@ -114,14 +115,20 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Com
             Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        this.getService(ChatHostedService.class).registerPatternListener(this, startModulePattern, startServicePattern, stopModulePattern, stopServicePattern);
+        //Register consuming methods for patterns
+        this.getService(ChatHostedService.class).registerPatternConsumer(startModulePattern, (module) -> this.startModule(module));
+        this.getService(ChatHostedService.class).registerPatternConsumer(stopModulePattern, (module) -> this.stopModule(module));
+        this.getService(ChatHostedService.class).registerPatternConsumer(startServicePattern, (service) -> this.startService(service));
+        this.getService(ChatHostedService.class).registerPatternConsumer(stopServicePattern, (service) -> this.stopService(service));
     }
 
+    //Loads an INI file and a class
     private void load(String className) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Ini ini = loadSettings("arena1/arena1.ini");
         loadClass("arena1.arena1", ini);
     }
 
+    //Loads the class
     private void loadClass(String file, Ini settingsFile) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
         Constructor c = java.getConstructor(Ini.class);
@@ -155,69 +162,51 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Com
     public void stop() {
     }
 
-    @Override
-    public Pattern[] getCommandPatterns() {
-        Pattern[] pList = {startModulePattern, startServicePattern};
-        return pList;
-    }
-
-    @Override
-    public void interpretFullCommand(String group) {
-        m = startModulePattern.matcher(group);
-        if (m.matches()) {
-            String match = m.group(1);
-            if (modules.containsKey(match)) {
-                startModule(m.group(1));
-            }
-        }
-
-        m = stopModulePattern.matcher(group);
-        if (m.matches()) {
-            String match = m.group(1);
-            if (modules.containsKey(group)) {
-                stopModule(m.group(1));
-            }
-        }
-
-        m = startServicePattern.matcher(group);
-        if (m.matches() && services.containsKey(group)) {
-            //There should only be one match
-            startService(m.group(1));
-        }
-
-        m = stopServicePattern.matcher(group);
-        if (m.matches() && services.containsKey(group)) {
-            //There should only be one match
-            stopService(m.group(1));
-        }
-    }
-
-    private void stopModule(String module) {
-        gameSystems.removeSystem(modules.get(module));
-    }
-
+    /**
+     * Starts the given module. Is called when the "~startModule <module>"
+     * command is given
+     *
+     * @param module the module to start
+     */
     private void startModule(String module) {
         BaseGameModule bgm = modules.get(module);
         gameSystems.addSystem(bgm);
         if (bgm instanceof CommandListener) {
-
-            this.getService(ChatHostedService.class).registerPatternListener(this, startModulePattern);
+            CommandListener cl = (CommandListener) bgm;
+            HashMap<Pattern, Consumer<String>> map = cl.getPatternConsumers();
+            for (Pattern p : map.keySet()) {
+                this.getService(ChatHostedService.class).registerPatternConsumer(p, map.get(p));
+            }
         }
     }
 
+    /**
+     * Stop the given module. Is called when the "~stopModule <module>" command
+     * is given
+     *
+     * @param module the module to stop
+     */
+    private void stopModule(String module) {
+        gameSystems.removeSystem(modules.get(module));
+    }
+
+    /**
+     * Starts the given service. Is called when the "~startService <service>"
+     * command is given
+     *
+     * @param service the service to start
+     */
     private void startService(String service) {
-        BaseGameService bgs = services.get(service);
-        getServiceManager().addService(bgs);
-        if (bgs instanceof CommandListener) {
-            this.getService(ChatHostedService.class).registerPatternListener((CommandListener) bgs, ((CommandListener) bgs).getCommandPatterns());
-        }
+        getServiceManager().addService(services.get(service));
     }
 
+    /**
+     * Stops the given service. Is called when the "~stopService <service>"
+     * command is given
+     *
+     * @param service the service to stop
+     */
     private void stopService(String service) {
-        BaseGameService bgs = services.get(service);
         getServiceManager().removeService(services.get(service));
-        if (bgs instanceof CommandListener) {
-            this.getService(ChatHostedService.class).removePatternListener((CommandListener) bgs, ((CommandListener) bgs).getCommandPatterns());
-        }
     }
 }
