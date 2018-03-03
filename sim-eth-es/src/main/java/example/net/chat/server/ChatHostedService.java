@@ -55,6 +55,9 @@ import example.net.chat.ChatSession;
 import example.net.chat.ChatSessionListener;
 import example.sim.BaseGameModule;
 import example.sim.CommandListener;
+import java.lang.reflect.Method;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,6 +79,7 @@ public class ChatHostedService extends AbstractHostedConnectionService {
 
     private List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
     private HashMap<Pattern, HashSet<CommandListener>> patternListeners;
+    private HashMap<Pattern, Consumer> patternConsumers;
     private Matcher m;
 
     /**
@@ -174,6 +178,21 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     }
 
     protected void postMessage(ChatSessionImpl from, String message) {
+        boolean matchedCommand = false;
+        for (Pattern p : patternListeners.keySet()) {
+            Matcher m = p.matcher(message);
+            if (m.matches()) {
+                //matchedCommand = true;
+                for (CommandListener listener : patternListeners.get(p)) {
+                    listener.interpretFullCommand(message);
+                }
+            }
+        }
+
+        //TODO: Test command line here
+        //TODO: * for account related
+        //TODO: ~ for server related
+        //TODO: ? for game related
         log.info("chat> " + from.name + " said:" + message);
         for (ChatSessionImpl chatter : players) {
             chatter.newMessage(from.conn.getId(), from.name, message);
@@ -213,26 +232,8 @@ public class ChatHostedService extends AbstractHostedConnectionService {
 
         @Override
         public void sendMessage(String message) {
-            boolean matchedCommand = false;
-            for (Pattern p : patternListeners.keySet()) {
-                Matcher m = p.matcher(message);
-                if (m.matches()) {
-                    //matchedCommand = true;
-                    for (CommandListener listener : patternListeners.get(p)) {
-                        for (int i = 1; i < m.groupCount()+1; i++) {
-                            listener.interpretCommandGroup(m.group(i));
-                        }
-                    }
-                }
-            }
 
-            //TODO: Test command line here
-            //TODO: * for account related
-            //TODO: ~ for server related
-            //TODO: ? for game related
-            if (!matchedCommand) {
-                postMessage(this, message);
-            }
+            postMessage(this, message);
         }
 
         @Override
@@ -260,27 +261,60 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         }
     }
 
-    public void registerPatternListener(CommandListener listener, Pattern p) {
+    /**
+     * Register the listener for a specific regular expression
+     *
+     * @param listener the CommandListener
+     * @param patterns the Patterns to register for
+     */
+    public void registerPatternListener(CommandListener listener, Pattern... patterns) {
         HashSet<CommandListener> set;
-        if (!patternListeners.containsKey(p)) {
-            set = new HashSet<>();
-        } else {
-            set = patternListeners.get(p);
+
+        for (Pattern p : patterns) {
+            if (!patternListeners.containsKey(p)) {
+                set = new HashSet<>();
+            } else {
+                set = patternListeners.get(p);
+            }
+            boolean add = set.add(listener);
+            patternListeners.put(p, set);
         }
-        boolean add = set.add(listener);
-        patternListeners.put(p, set);
+
     }
 
-    public void removePatternListener(CommandListener listener, Pattern p) {
+    /**
+     * Removes the listener for this specific regular expression
+     *
+     * @param listener the CommandListener
+     * @param patterns the Patterns to deregister
+     */
+    public void removePatternListener(CommandListener listener, Pattern... patterns) {
         HashSet<CommandListener> set;
-        if (patternListeners.containsKey(p)) {
-            set = patternListeners.get(p);
-            if (set.size() == 1) {
-                patternListeners.remove(p);
-            } else {
-                set.remove(listener);
-                patternListeners.put(p, set);
+        for (Pattern p : patterns) {
+            if (patternListeners.containsKey(p)) {
+                set = patternListeners.get(p);
+                if (set.size() == 1) {
+                    patternListeners.remove(p);
+                } else {
+                    set.remove(listener);
+                    patternListeners.put(p, set);
+                }
             }
         }
     }
+
+    /**
+     *
+     * @param pattern the pattern to match against
+     * @param c the method that will consume the message taking only String as
+     * argument
+     */
+    public void registerPatternConsumer(Pattern pattern, Consumer<String> c) {
+        patternConsumers.put(pattern, c);
+    }
+
+    public void removePatternConsumer(Pattern pattern, Consumer<String> c) {
+        patternConsumers.remove(pattern);
+    }
+
 }

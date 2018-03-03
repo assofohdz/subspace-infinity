@@ -68,7 +68,7 @@ import com.sun.glass.ui.Application;
 import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
 import example.es.*;
-import example.es.states.AdaptiveLoadingState;
+import example.AdaptiveLoadingService;
 import example.es.states.AttackProjectileState;
 import example.es.states.BountyState;
 import example.es.states.DecayState;
@@ -220,7 +220,7 @@ public class GameServer {
         DefaultEntityData ed = new DefaultEntityData();
         server.getServices().addService(new EntityDataHostedService(GameConstants.ES_CHANNEL, ed));
         //Add all mods
-        server.getServices().addService(new AdaptiveLoadingState(systems));
+        server.getServices().addService(new AdaptiveLoadingService(systems));
 
         // Add it to the game systems so that we send updates properly
         systems.addSystem(new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));

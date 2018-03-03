@@ -12,7 +12,7 @@ import org.ini4j.Ini;
  *
  * @author Asser
  */
-public abstract class BaseGameService extends AbstractHostedService {
+public abstract class BaseGameService extends AbstractHostedService{
 
     private Ini settings;
 

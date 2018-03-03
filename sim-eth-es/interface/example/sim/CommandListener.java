@@ -16,7 +16,7 @@ public interface CommandListener {
     /**
      * @return the regex command pattern
      */
-    public abstract Pattern getCommandPattern();
+    public abstract Pattern[] getCommandPatterns();
 
     /**
      * This command should be implemented by the module to receive and interpret
@@ -24,5 +24,5 @@ public interface CommandListener {
      *
      * @param group the pattern that is to be interpreted
      */
-    public abstract void interpretCommandGroup(String group);
+    public abstract void interpretFullCommand(String group);
 }

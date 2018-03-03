@@ -5,16 +5,15 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.MobType;
 import example.es.SteeringPath;
-import example.es.SteeringSeek;
 import example.sim.BaseGameModule;
+import example.sim.CommandListener;
 import example.sim.ModuleGameEntities;
-import example.sim.events.PlayerEvent;
 import example.sim.events.ShipEvent;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class arena1 extends BaseGameModule {
+public class arena1 extends BaseGameModule implements CommandListener {
 
     static Logger log = LoggerFactory.getLogger(arena1.class);
 
@@ -49,6 +48,7 @@ public class arena1 extends BaseGameModule {
     private EntitySet mobs;
     private EntityId baseId;
     private double timeSinceLastWave;
+    private final Pattern arena1Command = Pattern.compile("\\~arena1\\s(\\w+)");
 
     public arena1(Ini settings) {
         super(settings);
@@ -158,12 +158,13 @@ public class arena1 extends BaseGameModule {
     }
 
     @Override
-    public Pattern getCommandPattern() {
-        return Pattern.compile("!arena1 text");
+    public Pattern[] getCommandPatterns() {
+        Pattern[] pList = {arena1Command};
+        return pList;
     }
 
     @Override
-    public void interpretCommandGroup(String group) {
-        //Do stuff with the captured group
+    public void interpretFullCommand(String group) {
+        java.util.logging.Logger.getLogger(arena1.class.getName()).log(Level.SEVERE, null, "Arena1 was called with a command: "+group);
     }
 }

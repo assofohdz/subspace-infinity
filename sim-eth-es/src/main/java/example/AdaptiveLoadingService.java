@@ -3,12 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package example.es.states;
+package example;
 
 import com.jme3.network.service.AbstractHostedService;
 import com.jme3.network.service.HostedServiceManager;
 import com.simsilica.sim.GameSystemManager;
-import example.AdaptiveClassLoader;
 import example.net.chat.server.ChatHostedService;
 import example.sim.BaseGameModule;
 import example.sim.BaseGameService;
@@ -36,7 +35,7 @@ import org.ini4j.Ini;
  *
  * @author Asser
  */
-public class AdaptiveLoadingState extends AbstractHostedService implements CommandListener {
+public class AdaptiveLoadingService extends AbstractHostedService implements CommandListener {
 
     //A map of settings (key,value) per class loaded
     private HashMap<Object, Ini> classSettings;
@@ -45,36 +44,38 @@ public class AdaptiveLoadingState extends AbstractHostedService implements Comma
     //final GroovyClassLoader classLoader = new GroovyClassLoader();
     private String[] directories;
     private final Vector<File> repository;
-    
-    private HashSet<BaseGameModule> modules;
-    private HashSet<BaseGameService> services;
-    
-    private Pattern modulePattern = Pattern.compile("\\~startModule\\s(\\w+)");
-    private Pattern servicePattern = Pattern.compile("\\~startService\\s(\\w+)");
+
+    private HashMap<String, BaseGameModule> modules;
+    private HashMap<String, BaseGameService> services;
+
+    private final Pattern startModulePattern = Pattern.compile("\\~startModule\\s(\\w+)");
+    private final Pattern startServicePattern = Pattern.compile("\\~startService\\s(\\w+)");
+    private final Pattern stopModulePattern = Pattern.compile("\\~stopModule\\s(\\w+)");
+    private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");
     private Matcher m;
 
     //Used in distribution
     private String modLocation = "modules\\modules.jar";
     //Used from SDK
     private String modLocation2 = "build\\modules\\libs\\modules.jar";
-    
+
     private GameSystemManager gameSystems;
-    
-    public AdaptiveLoadingState(GameSystemManager gameSystems) {
+
+    public AdaptiveLoadingService(GameSystemManager gameSystems) {
         repository = new Vector<>();
         classSettings = new HashMap<>();
-        
-        modules = new HashSet<>();
-        services = new HashSet<>();
+
+        modules = new HashMap<>();
+        services = new HashMap<>();
 
         //this.getManager();
         //TODO: Register with ChatHostedService as Pattern Listener
         this.gameSystems = gameSystems;
     }
-    
+
     @Override
     protected void onInitialize(HostedServiceManager serviceManager) {
-        
+
         File file = new File(modLocation);
         directories = file.list(new FilenameFilter() {
             @Override
@@ -94,50 +95,49 @@ public class AdaptiveLoadingState extends AbstractHostedService implements Comma
                 repository.add(f2);
             }
             this.classLoader = new AdaptiveClassLoader(repository);
-            
+
             load("arena1");
         } catch (IllegalAccessException ex) {
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalArgumentException ex) {
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvocationTargetException ex) {
             ex.getCause().printStackTrace();
-            Logger.getLogger(AdaptiveLoadingState.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        this.getService(ChatHostedService.class).registerPatternListener(this, modulePattern);
-        this.getService(ChatHostedService.class).registerPatternListener(this, servicePattern);
+
+        this.getService(ChatHostedService.class).registerPatternListener(this, startModulePattern, startServicePattern, stopModulePattern, stopServicePattern);
     }
-    
+
     private void load(String className) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Ini ini = loadSettings("arena1/arena1.ini");
         loadClass("arena1.arena1", ini);
     }
-    
+
     private void loadClass(String file, Ini settingsFile) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
         Constructor c = java.getConstructor(Ini.class);
-        
+
         if (BaseGameModule.class.isAssignableFrom(java)) {
             BaseGameModule javaObj = (BaseGameModule) c.newInstance(settingsFile);
-            boolean add = modules.add(javaObj);
+            modules.put(javaObj.getClass().getSimpleName(), javaObj);
             classSettings.put(javaObj, settingsFile);
-            
+
         } else if (BaseGameService.class.isAssignableFrom(java)) {
-            
+
             BaseGameService javaObj = (BaseGameService) c.newInstance(settingsFile);
-            boolean add = services.add(javaObj);
+            services.put(javaObj.getClass().getSimpleName(), javaObj);
             classSettings.put(javaObj, settingsFile);
         }
-        
+
     }
 
     //Loads the associated settings ini-file
@@ -146,32 +146,78 @@ public class AdaptiveLoadingState extends AbstractHostedService implements Comma
         Ini ini = new Ini(inputStream);
         return ini;
     }
-    
+
     @Override
     public void start() {
     }
-    
+
     @Override
     public void stop() {
     }
-    
+
     @Override
-    public Pattern getCommandPattern() {
-        
-        return modulePattern;
+    public Pattern[] getCommandPatterns() {
+        Pattern[] pList = {startModulePattern, startServicePattern};
+        return pList;
     }
-    
+
     @Override
-    public void interpretCommandGroup(String group) {
-        //m = p.matcher(group);
-        
-        //If command following !startModule
-        modules.stream().filter((module) -> (module.getClass().getSimpleName() == null ? group == null : module.getClass().getSimpleName().equals(group))).forEachOrdered((module) -> {
-            gameSystems.addSystem(module);
-        });
-        
-        services.stream().filter((service) -> (service.getClass().getSimpleName() == null ? group == null : service.getClass().getSimpleName().equals(group))).forEachOrdered((service) -> {
-            this.getServiceManager().addService(service);
-        });
+    public void interpretFullCommand(String group) {
+        m = startModulePattern.matcher(group);
+        if (m.matches()) {
+            String match = m.group(1);
+            if (modules.containsKey(match)) {
+                startModule(m.group(1));
+            }
+        }
+
+        m = stopModulePattern.matcher(group);
+        if (m.matches()) {
+            String match = m.group(1);
+            if (modules.containsKey(group)) {
+                stopModule(m.group(1));
+            }
+        }
+
+        m = startServicePattern.matcher(group);
+        if (m.matches() && services.containsKey(group)) {
+            //There should only be one match
+            startService(m.group(1));
+        }
+
+        m = stopServicePattern.matcher(group);
+        if (m.matches() && services.containsKey(group)) {
+            //There should only be one match
+            stopService(m.group(1));
+        }
+    }
+
+    private void stopModule(String module) {
+        gameSystems.removeSystem(modules.get(module));
+    }
+
+    private void startModule(String module) {
+        BaseGameModule bgm = modules.get(module);
+        gameSystems.addSystem(bgm);
+        if (bgm instanceof CommandListener) {
+
+            this.getService(ChatHostedService.class).registerPatternListener(this, startModulePattern);
+        }
+    }
+
+    private void startService(String service) {
+        BaseGameService bgs = services.get(service);
+        getServiceManager().addService(bgs);
+        if (bgs instanceof CommandListener) {
+            this.getService(ChatHostedService.class).registerPatternListener((CommandListener) bgs, ((CommandListener) bgs).getCommandPatterns());
+        }
+    }
+
+    private void stopService(String service) {
+        BaseGameService bgs = services.get(service);
+        getServiceManager().removeService(services.get(service));
+        if (bgs instanceof CommandListener) {
+            this.getService(ChatHostedService.class).removePatternListener((CommandListener) bgs, ((CommandListener) bgs).getCommandPatterns());
+        }
     }
 }

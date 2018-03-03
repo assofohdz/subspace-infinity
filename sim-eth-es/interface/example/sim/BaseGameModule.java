@@ -8,7 +8,7 @@ import org.ini4j.Ini;
  *
  * @author Asser
  */
-public abstract class BaseGameModule extends AbstractGameSystem implements CommandListener {
+public abstract class BaseGameModule extends AbstractGameSystem{
 
     private Ini settings;
 
