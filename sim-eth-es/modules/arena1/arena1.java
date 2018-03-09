@@ -8,7 +8,9 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
 import example.es.MobType;
 import example.es.SteeringPath;
+import example.sim.AccountLevels;
 import example.sim.BaseGameModule;
+import example.sim.CommandConsumer;
 import example.sim.CommandListener;
 import example.sim.ModuleGameEntities;
 import example.sim.events.ShipEvent;
@@ -166,6 +168,7 @@ public class arena1 extends BaseGameModule implements CommandListener {
      *
      * @return a map of patterns to method
      */
+    /*
     @Override
     public HashMap<Pattern, Consumer<String>> getPatternConsumers() {
         HashMap<Pattern, Consumer<String>> map = new HashMap<>();
@@ -173,12 +176,21 @@ public class arena1 extends BaseGameModule implements CommandListener {
         //Register all the patterns and consuming methods that needs to hook into the chat service
         return map;
     }
+    */
 
     /**
      * Handle the message events
      *
      * @param s
      */
-    public void messageHandler(String s) {
+    public void messageHandler(EntityId id, String s) {
+    }
+
+    @Override
+    public HashMap<Pattern, CommandConsumer> getPatternBiConsumers() {
+         HashMap<Pattern, CommandConsumer> map = new HashMap<>();
+        map.put(arena1Command, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        //Register all the patterns and consuming methods that needs to hook into the chat service
+        return map;
     }
 }

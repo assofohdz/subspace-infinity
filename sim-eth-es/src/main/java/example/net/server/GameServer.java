@@ -106,6 +106,7 @@ public class GameServer {
     private GameLoop loop;
 
     private String description;
+    private final HostedServiceManager serviceManager;
 
     public GameServer(int port, String description) throws IOException {
         
@@ -125,6 +126,9 @@ public class GameServer {
         this.server = Network.createServer(GameConstants.GAME_NAME,
                 GameConstants.PROTOCOL_VERSION,
                 port, port);
+        
+        
+        this.serviceManager = this.getServer().getServices();
 
         // Create a separate channel to do chat stuff so it doesn't interfere
         // with any real game stuff.
@@ -186,7 +190,7 @@ public class GameServer {
         //Add system to enable delayed component logic
         systems.register(DelayState.class, new DelayState());
         //Add system to keep track of ships:
-        systems.register(ShipFrequencyStateServer.class, new ShipFrequencyStateServer());
+        systems.register(ShipFrequencyStateServer.class, new ShipFrequencyStateServer(serviceManager));
         //Add system to keep track of flags and their frequency
         systems.register(FlagStateServer.class, new FlagStateServer());
         //Add pathfinding system
@@ -242,6 +246,10 @@ public class GameServer {
 
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later
+        
+        
+        
+        
         systems.initialize();
     }
 

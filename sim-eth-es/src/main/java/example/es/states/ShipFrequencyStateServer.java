@@ -1,5 +1,6 @@
 package example.es.states;
 
+import com.jme3.network.service.HostedServiceManager;
 import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
@@ -16,8 +17,13 @@ import example.es.Frequency;
 import example.es.ShipType;
 import example.es.ShipTypes;
 import example.es.ViewTypes;
+import example.net.chat.server.ChatHostedService;
+import example.net.server.AccountHostedService;
+import example.sim.AccountLevels;
+import example.sim.CommandConsumer;
 import game.ShipRestrictor;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -34,6 +40,14 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
     private HashMap<Integer, ShipRestrictor> teamRestrictions;
     private EntitySet captains;
 
+    //Matches =214 to capture frequency 214
+    private final Pattern joinTeam = Pattern.compile("\\=(\\d+)"); 
+    private final HostedServiceManager serviceManager;
+
+    public ShipFrequencyStateServer(HostedServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
@@ -42,6 +56,14 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
         this.captains = ed.getEntities(ShipType.class, Captain.class);
 
         teamRestrictions = new HashMap<>();
+        
+        //Register consuming methods for patterns
+        this.serviceManager.getService(ChatHostedService.class).registerPatternBiConsumer(joinTeam, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+    }
+    
+    private void joinTeam(EntityId from, String frequency){
+        //TODO: Add frequency component to 'from' entity - voila
+        //TODO: After frequencies are in place, handle proper collisions in physics and attack states  
     }
 
     @Override

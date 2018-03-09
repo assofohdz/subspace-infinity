@@ -179,6 +179,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         getService(ChatHostedService.class).startHostingOnConnection(conn, name);
     }
 
+    /**
+     * Made public to make sure we can get player entityid from a chat connection
+     * @param conn
+     * @return
+     */
     protected GameSessionImpl getGameSession(HostedConnection conn) {
         return conn.getAttribute(ATTRIBUTE_SESSION);
     }

@@ -16,7 +16,7 @@
  *    the documentation and/or other materials provided with the 
  *    distribution.
  * 
- * 3. Neither the name of the copyright holder nor the names of its 
+ * 3. Neither the id of the copyright holder nor the ids of its 
  *    contributors may be used to endorse or promote products derived 
  *    from this software without specific prior written permission.
  * 
@@ -54,7 +54,13 @@ import com.simsilica.es.server.EntityDataHostedService;
 
 import example.net.AccountSession;
 import example.net.AccountSessionListener;
+import example.sim.AccountLevels;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Provides super-basic account services like logging in. This could be expanded
@@ -67,6 +73,11 @@ import java.util.HashMap;
 public class AccountHostedService extends AbstractHostedConnectionService {
 
     static Logger log = LoggerFactory.getLogger(AccountHostedService.class);
+    /**
+     * This Hashmap contains all the operators Key: Name of the operator
+     * [lowercase] Value: level id (0-9)
+     */
+    private static HashMap<EntityId, Integer> operators;
 
     private static final String ATTRIBUTE_SESSION = "account.session";
     private static final String ATTRIBUTE_PLAYER_NAME = "account.playerName";
@@ -81,6 +92,7 @@ public class AccountHostedService extends AbstractHostedConnectionService {
 
     public AccountHostedService(String serverInfo) {
         this.serverInfo = serverInfo;
+        this.operators = new HashMap<>();
     }
 
     public static String getPlayerName(HostedConnection conn) {
@@ -113,6 +125,9 @@ public class AccountHostedService extends AbstractHostedConnectionService {
     @Override
     public void startHostingOnConnection(HostedConnection conn) {
 
+        //Add default access
+        operators.put(conn.getAttribute(AccountHostedService.ATTRIBUTE_PLAYER_ENTITY), AccountLevels.PLAYER_LEVEL);
+
         log.debug("startHostingOnConnection(" + conn + ")");
 
         AccountSessionImpl session = new AccountSessionImpl(conn);
@@ -137,6 +152,21 @@ public class AccountHostedService extends AbstractHostedConnectionService {
             account.dispose();
             conn.setAttribute(ATTRIBUTE_SESSION, account);
         }
+    }
+
+    /**
+     * Manually adds an operator to the access list. For special use only. (Not
+     * needed in any normal procedure.)
+     *
+     * @param id
+     * @param accessLevel Access level at which to add the name
+     */
+    public void addOperator(EntityId id, int accessLevel) {
+        if (accessLevel < AccountLevels.PLAYER_LEVEL || accessLevel > AccountLevels.OWNER_LEVEL) {
+            return;
+        }
+
+        operators.put(id, accessLevel);
     }
 
     /**
@@ -213,4 +243,426 @@ public class AccountHostedService extends AbstractHostedConnectionService {
             ed.removeEntity(player);
         }
     }
+
+    /**
+     * Translates a numerical staff level to the proper id.
+     *
+     * @param operatorLevel Operator level based on {@link OperatorList}.
+     * @return A textual representation of the level.
+     */
+    public static String staffName(int operatorLevel) {
+        switch (operatorLevel) {
+            case AccountLevels.OWNER_LEVEL:
+                return "Owner";
+
+            case AccountLevels.SYSOP_LEVEL:
+                return "System Operator";
+
+            case AccountLevels.SMOD_LEVEL:
+                return "Super Moderator";
+
+            case AccountLevels.DEV_LEVEL:
+                return "Developer";
+
+            case AccountLevels.HIGHMOD_LEVEL:
+                return "High Moderator";
+
+            case AccountLevels.MODERATOR_LEVEL:
+                return "Moderator";
+
+            case AccountLevels.ER_LEVEL:
+                return "Event Referee";
+
+            case AccountLevels.ZH_LEVEL:
+                return "Zone Helper";
+
+            case AccountLevels.OUTSIDER_LEVEL:
+                return "Outsider";
+
+            case AccountLevels.BOT_LEVEL:
+                return "Bot";
+
+            case AccountLevels.PLAYER_LEVEL:
+                return "Player";
+
+            default:
+                return "Unknown";
+        }
+    }
+
+    /**
+     * Clears the access list.
+     */
+    public void clear() {
+
+        // Custom clean method of operators
+        // Leave the bot operator list entries intact
+        Set<Entry<EntityId, Integer>> operatorNames = operators.entrySet();
+
+        synchronized (operators) {
+            Iterator<Entry<EntityId, Integer>> it = operatorNames.iterator(); // Must be in synchronized block
+
+            while (it.hasNext()) {
+                Entry<EntityId, Integer> operator = it.next();
+
+                if (operator.getValue() != AccountLevels.BOT_LEVEL) {
+                    it.remove();
+                }
+            }
+        }
+
+        //autoAssign.clear();
+    }
+
+    /**
+     * Retrieve names based on numeric access level.
+     *
+     * @param accessLevel
+     * @return Textual representation of the access level.
+     */
+    public String getAccessLevelName(int accessLevel) {
+        switch (accessLevel) {
+            case 0:
+                return "Player [lvl " + accessLevel + "]";
+
+            case 1:
+                return "Bot [lvl " + accessLevel + "]";
+
+            case 2:
+                return "Outsider [lvl " + accessLevel + "]";
+
+            case 3:
+                return "LR [lvl " + accessLevel + "]";
+
+            case 4:
+                return "ZH [lvl " + accessLevel + "]";
+
+            case 5:
+                return "ER [lvl " + accessLevel + "]";
+
+            case 6:
+                return "Mod [lvl " + accessLevel + "]";
+
+            case 7:
+                return "HighMod [lvl " + accessLevel + "]";
+
+            case 8:
+                return "Developer [lvl " + accessLevel + "]";
+
+            case 9:
+                return "SMod [lvl " + accessLevel + "]";
+
+            case 10:
+                return "Sysop [lvl " + accessLevel + "]";
+
+            case 11:
+                return "Owner [lvl " + accessLevel + "]";
+
+            default:
+                return "Unknown access level! [lvl " + accessLevel + "]";
+        }
+    }
+
+    /**
+     * @return The entire access mapping of player ids to access levels
+     */
+    public Map<EntityId, Integer> getList() {
+        return operators;
+    }
+
+    /**
+     * Given a id, return the access level associated. If none is found, return
+     * 0 (normal player).
+     *
+     * @param entityId Entity in question
+     * @return Access level of the id provided
+     */
+    public int getAccessLevel(EntityId entityId) {
+        if (entityId == null) {
+            return 0;
+        }
+
+        Integer accessLevel = operators.get(entityId);
+
+        if (accessLevel == null) {
+            return AccountLevels.PLAYER_LEVEL;
+        } else {
+            return accessLevel;
+        }
+    }
+
+    public boolean isAtLeastAtAccessLevel(EntityId id, int accessLevel) {
+        return getAccessLevel(id) >= accessLevel;
+    }
+
+    /**
+     * Checks if a given id has at least bot operator level status. Bots
+     * automatically make themselves the bot operator level after logging in.
+     *
+     * @param id Name in question
+     * @return True if player has at least the bot operator level status
+     */
+    public boolean isBot(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.BOT_LEVEL;
+    }
+
+    /**
+     * Checks if a given id has bot operator level status. Bots automatically
+     * make themselves the bot operator level after logging in.
+     *
+     * @param id Name in question
+     * @return True if player has the bot operator level status
+     */
+    public boolean isBotExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.BOT_LEVEL; // || getAccessLevel(id) == SYSOP_LEVEL) && !sysops.contains(id)) {
+    }
+
+    /**
+     * Check if a given id is at least of Outsider status. NOTE: Outsider is a
+     * special status provided to coders who are not members of staff. They are
+     * able to use some bot powers that ZHs can't, but can't generally use event
+     * bots.
+     *
+     * @param id Name in question
+     * @return True if player is at least an Outsider
+     */
+    public boolean isOutsider(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.OUTSIDER_LEVEL;
+    }
+
+    /**
+     * Check if a given id is an Outsider.
+     *
+     * @param id Name in question
+     * @return True if player is a Outsider
+     */
+    public boolean isOutsiderExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.OUTSIDER_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of ER status.
+     *
+     * @param id Name in question
+     * @return True if player is at least an ER
+     */
+    public boolean isLR(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.LR_LEVEL;
+    }
+
+    /**
+     * Check if a given id is an ER.
+     *
+     * @param id Name in question
+     * @return True if player is an ER
+     */
+    public boolean isLRExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.LR_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of ZH status.
+     *
+     * @param id Name in question
+     * @return True if player is at least a ZH
+     */
+    public boolean isZH(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.ZH_LEVEL;
+    }
+
+    /**
+     * Check if a given id is a ZH.
+     *
+     * @param id Name in question
+     * @return True if player is a ZH
+     */
+    public boolean isZHExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.ZH_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of ER status.
+     *
+     * @param id Name in question
+     * @return True if player is at least an ER
+     */
+    public boolean isER(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.ER_LEVEL;
+    }
+
+    /**
+     * Check if a given id is an ER.
+     *
+     * @param id Name in question
+     * @return True if player is an ER
+     */
+    public boolean isERExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.ER_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of Mod status.
+     *
+     * @param id Name in question
+     * @return True if player is at least a Mod
+     */
+    public boolean isModerator(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.MODERATOR_LEVEL;
+    }
+
+    /**
+     * Check if a given id is a Mod.
+     *
+     * @param id Name in question
+     * @return True if player is a Mod
+     */
+    public boolean isModeratorExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.MODERATOR_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of HighMod status. NOTE: HighMod is a
+     * special status given to experienced mods, allowing them access to certain
+     * features that are normally only allowed to SMod+. Usually they are league
+     * ops or hold another important position requiring this status.
+     *
+     * @param id Name in question
+     * @return True if player is at least a HighMod
+     */
+    public boolean isHighmod(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.HIGHMOD_LEVEL;
+    }
+
+    /**
+     * Check if a given id is a HighMod.
+     *
+     * @param id Name in question
+     * @return True if player is a HighMod
+     */
+    public boolean isHighmodExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.HIGHMOD_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of Developer status.
+     *
+     * @param id Name in question
+     * @return True if player is at least an ER
+     */
+    public boolean isDeveloper(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.DEV_LEVEL;
+    }
+
+    /**
+     * Check if a given id is a Developer.
+     *
+     * @param id Name in question
+     * @return True if player is a Developer
+     */
+    public boolean isDeveloperExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.DEV_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of SMod status.
+     *
+     * @param id Name in question
+     * @return True if player is at least a SMod
+     */
+    public boolean isSmod(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.SMOD_LEVEL;
+    }
+
+    /**
+     * Check if a given id is a SMod.
+     *
+     * @param id Name in question
+     * @return True if player is a SMod.
+     */
+    public boolean isSmodExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.SMOD_LEVEL;
+    }
+
+    /**
+     * Check if a given id is at least of Sysop status.
+     *
+     * @param id Name in question
+     * @return True if player is at least a Sysop
+     */
+    public boolean isSysop(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.SYSOP_LEVEL;
+    }
+
+    public boolean isSysopExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.SYSOP_LEVEL; // || sysops.contains(id)) {
+    }
+
+    /**
+     * Check if a given id is an owner.
+     *
+     * @param id Name in question
+     * @return True if player is an owner
+     */
+    public boolean isOwner(EntityId id) {
+
+        return getAccessLevel(id) >= AccountLevels.OWNER_LEVEL;
+    }
+
+    /**
+     * (REDUNDANT) Check if a given id is an owner.
+     *
+     * @param id Name in question
+     * @return True if player is an owner
+     * @deprecated Exactly the same functionality as isOwner, as no higher
+     * access level exists.
+     */
+    @Deprecated
+    public boolean isOwnerExact(EntityId id) {
+
+        return getAccessLevel(id) == AccountLevels.OWNER_LEVEL;
+    }
+
+    /**
+     * Given an access level, returns all players who match that access level.
+     *
+     * @param accessLevel A number corresponding to the OperatorList access
+     * standard
+     * @return HashSet of all players of that access level.
+     */
+    public HashSet<EntityId> getAllOfAccessLevel(int accessLevel) {
+        if (accessLevel < AccountLevels.PLAYER_LEVEL || accessLevel > AccountLevels.OWNER_LEVEL) {
+            return null;
+        }
+
+        HashSet<EntityId> gathered = new HashSet<>();
+
+        for (Entry<EntityId, Integer> operator : operators.entrySet()) {
+            if (operator.getValue() == accessLevel) {
+                gathered.add(operator.getKey());
+            }
+        }
+
+        return gathered;
+    }
+
 }

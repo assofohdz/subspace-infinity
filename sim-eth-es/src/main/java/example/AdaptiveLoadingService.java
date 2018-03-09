@@ -7,10 +7,14 @@ package example;
 
 import com.jme3.network.service.AbstractHostedService;
 import com.jme3.network.service.HostedServiceManager;
+import com.simsilica.es.EntityId;
 import com.simsilica.sim.GameSystemManager;
 import example.net.chat.server.ChatHostedService;
+import example.net.server.AccountHostedService;
+import example.sim.AccountLevels;
 import example.sim.BaseGameModule;
 import example.sim.BaseGameService;
+import example.sim.CommandConsumer;
 import example.sim.CommandListener;
 
 import java.io.File;
@@ -22,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -116,10 +121,10 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
         }
 
         //Register consuming methods for patterns
-        this.getService(ChatHostedService.class).registerPatternConsumer(startModulePattern, (module) -> this.startModule(module));
-        this.getService(ChatHostedService.class).registerPatternConsumer(stopModulePattern, (module) -> this.stopModule(module));
-        this.getService(ChatHostedService.class).registerPatternConsumer(startServicePattern, (service) -> this.startService(service));
-        this.getService(ChatHostedService.class).registerPatternConsumer(stopServicePattern, (service) -> this.stopService(service));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.stopModule(id, module)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, service) -> this.startService(id, service)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, service) -> this.stopService(id, service)));
     }
 
     //Loads an INI file and a class
@@ -168,14 +173,15 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      *
      * @param module the module to start
      */
-    private void startModule(String module) {
+    private void startModule(EntityId id, String module) {
+
         BaseGameModule bgm = modules.get(module);
         gameSystems.addSystem(bgm);
         if (bgm instanceof CommandListener) {
             CommandListener cl = (CommandListener) bgm;
-            HashMap<Pattern, Consumer<String>> map = cl.getPatternConsumers();
+            HashMap<Pattern, CommandConsumer> map = cl.getPatternBiConsumers();
             for (Pattern p : map.keySet()) {
-                this.getService(ChatHostedService.class).registerPatternConsumer(p, map.get(p));
+                this.getService(ChatHostedService.class).registerPatternBiConsumer(p, map.get(p));
             }
         }
     }
@@ -186,7 +192,7 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      *
      * @param module the module to stop
      */
-    private void stopModule(String module) {
+    private void stopModule(EntityId id, String module) {
         gameSystems.removeSystem(modules.get(module));
     }
 
@@ -196,7 +202,7 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      *
      * @param service the service to start
      */
-    private void startService(String service) {
+    private void startService(EntityId id, String service) {
         getServiceManager().addService(services.get(service));
     }
 
@@ -206,7 +212,7 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      *
      * @param service the service to stop
      */
-    private void stopService(String service) {
+    private void stopService(EntityId id, String service) {
         getServiceManager().removeService(services.get(service));
     }
 }
