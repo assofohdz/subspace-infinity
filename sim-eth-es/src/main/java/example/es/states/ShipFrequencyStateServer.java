@@ -58,12 +58,11 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
         teamRestrictions = new HashMap<>();
         
         //Register consuming methods for patterns
-        this.serviceManager.getService(ChatHostedService.class).registerPatternBiConsumer(joinTeam, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+        this.serviceManager.getService(ChatHostedService.class).registerPatternBiConsumer(joinTeam, "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
     }
     
     private void joinTeam(EntityId from, String frequency){
-        //TODO: Add frequency component to 'from' entity - voila
-        //TODO: After frequencies are in place, handle proper collisions in physics and attack states  
+        ed.setComponent(from, new Frequency(Integer.valueOf(frequency)));
     }
 
     @Override

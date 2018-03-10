@@ -42,28 +42,18 @@ import org.slf4j.*;
 
 import com.jme3.network.HostedConnection;
 import com.jme3.network.MessageConnection;
-import com.jme3.network.Server;
 import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 import com.simsilica.es.EntityId;
 
-import com.simsilica.event.EventBus;
-import com.simsilica.sim.AbstractGameSystem;
-import example.net.GameSession;
-
 import example.net.chat.ChatSession;
 import example.net.chat.ChatSessionListener;
 import example.net.server.AccountHostedService;
-import example.net.server.GameSessionHostedService;
-import example.sim.BaseGameModule;
 import example.sim.CommandConsumer;
-import example.sim.CommandListener;
-import java.lang.reflect.Method;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import example.sim.ChatHostedPoster;
+import example.sim.MessageTypes;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,7 +64,7 @@ import java.util.regex.Pattern;
  *
  * @author Paul Speed
  */
-public class ChatHostedService extends AbstractHostedConnectionService {
+public class ChatHostedService extends AbstractHostedConnectionService implements ChatHostedPoster {
 
     static Logger log = LoggerFactory.getLogger(ChatHostedService.class);
 
@@ -84,8 +74,6 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     private int channel;
 
     private List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
-    private HashMap<Pattern, HashSet<CommandListener>> patternListeners;
-    //private HashMap<Pattern, Consumer> patternConsumers;
     private HashMap<Pattern, CommandConsumer> patternBiConsumers;
     private Matcher m;
 
@@ -104,7 +92,6 @@ public class ChatHostedService extends AbstractHostedConnectionService {
     public ChatHostedService(int channel) {
         this.channel = channel;
         setAutoHost(false);
-        this.patternListeners = new HashMap<>();
         //this.patternConsumers = new HashMap<>();
         this.patternBiConsumers = new HashMap<>();
 
@@ -204,15 +191,21 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         }
          */
         HashSet<Pattern> set = new HashSet<>(patternBiConsumers.keySet());
+        boolean matched = false;
         for (Pattern p : set) {
             Matcher m = p.matcher(message);
             if (m.matches()) {
+                matched = true;
                 EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
                 CommandConsumer cc = patternBiConsumers.get(p);
                 if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity, cc.getAccessLevelRequired())) {
                     cc.getConsumer().accept(fromEntity, m.group(1));
                 }
             }
+        }
+        
+        if (matched) {
+            return;
         }
 
         //TODO: Test command line here
@@ -223,6 +216,66 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         for (ChatSessionImpl chatter : players) {
             chatter.newMessage(from.conn.getId(), from.name, message);
         }
+    }
+
+    //This method doesn't match patterns. It is only called from other modules, not from player clients. Could potentially allow matching to allow modules to chain commands to other modules
+    @Override
+    public void postPublicMessage(String from, int messageType, String message) {
+        log.info("chat> " + from + " said:" + message);
+        for (ChatSessionImpl chatter : players) {
+            chatter.newMessage(0, from, message);
+        }
+    }
+
+    /**
+     *
+     * @param pattern the pattern to match
+     * @param description
+     * @param c a consumer taking the message and the sender entity id
+     */
+    @Override
+    public void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c) {
+        //TODO: For now, only one consumer per pattern (we could potentially have multiple)
+        patternBiConsumers.put(pattern, c);
+        
+        //TODO: Post message only to those who have the proper access level
+        this.postPublicMessage("System", MessageTypes.MESSAGE, description);
+    }
+
+    /**
+     * Removes a pattern to be consumed
+     *
+     * @param pattern the pattern to remove comsumption of
+     */
+    @Override
+    public void removePatternConsumer(Pattern pattern) {
+        patternBiConsumers.remove(pattern);
+    }
+
+    @Override
+    public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void postTeamMessage(String from, int messageType, int targetFrequency, String message) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void registerCommandConsumer(String cmd, String helptext, CommandConsumer c) {
+        //TODO: Put together the pattern that will match, depending on the sender and the command
+        
+        
+        //TODO: Post message only to those who have the proper access level
+        this.postPublicMessage("System", MessageTypes.MESSAGE, helptext);
+
+    }
+
+    @Override
+    public void removeCommandConsumer(String cmd) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+
     }
 
     /**
@@ -291,37 +344,4 @@ public class ChatHostedService extends AbstractHostedConnectionService {
         }
     }
 
-    /*
-    /**
-     *
-     * @param pattern the pattern to match against
-     * @param accessLevelRequired the access level that the consumer requires
-     * @param c the method that will consume the message taking only String as
-     * argument
-     
-    public void registerPatternConsumer(Pattern pattern, int accessLevelRequired, Consumer<String> c) {
-        //TODO: For now, only one consumer per pattern (we could potentially have multiple)
-        patternConsumers.put(pattern, c);
-    }
-     */
-    /**
-     *
-     * @param pattern the pattern to match
-     * @param <error>
-     * @param accessLevelRequired the access level that the consumer requires
-     * @param c a consumer taking the message and the sender entity id
-     */
-    public void registerPatternBiConsumer(Pattern pattern, CommandConsumer c) {
-        //TODO: For now, only one consumer per pattern (we could potentially have multiple)
-        patternBiConsumers.put(pattern, c);
-    }
-
-    /**
-     * Removes a pattern to be consumed
-     *
-     * @param pattern the pattern to remove comsumption of
-     */
-    public void removePatternConsumer(Pattern pattern) {
-        patternBiConsumers.remove(pattern);
-    }
 }

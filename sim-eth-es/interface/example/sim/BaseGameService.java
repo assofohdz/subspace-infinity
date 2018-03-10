@@ -15,9 +15,19 @@ import org.ini4j.Ini;
 public abstract class BaseGameService extends AbstractHostedService{
 
     private Ini settings;
+    private final ChatHostedPoster chp;
+    private final AccountManager am;
 
-    public BaseGameService(Ini settings) {
+    /**
+     *
+     * @param settings
+     * @param chp
+     * @param am
+     */
+    public BaseGameService(Ini settings, ChatHostedPoster chp, AccountManager am) {
         this.settings = settings;
+        this.chp = chp;
+        this.am = am;
     }
 
     /**
@@ -25,5 +35,13 @@ public abstract class BaseGameService extends AbstractHostedService{
      */
     protected Ini getSettings() {
         return settings;
+    }
+
+    public ChatHostedPoster getChp() {
+        return chp;
+    }
+
+    public AccountManager getAm() {
+        return am;
     }
 }

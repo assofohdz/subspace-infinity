@@ -9,15 +9,13 @@ import com.simsilica.sim.SimTime;
 import example.es.MobType;
 import example.es.SteeringPath;
 import example.sim.AccountLevels;
+import example.sim.AccountManager;
 import example.sim.BaseGameModule;
+import example.sim.ChatHostedPoster;
 import example.sim.CommandConsumer;
-import example.sim.CommandListener;
 import example.sim.ModuleGameEntities;
 import example.sim.events.ShipEvent;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.function.Consumer;
-import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -30,7 +28,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class arena1 extends BaseGameModule implements CommandListener {
+public class arena1 extends BaseGameModule /*implements CommandListener*/ {
 
     static Logger log = LoggerFactory.getLogger(arena1.class);
 
@@ -53,9 +51,12 @@ public class arena1 extends BaseGameModule implements CommandListener {
     private EntityId baseId;
     private double timeSinceLastWave;
     private final Pattern arena1Command = Pattern.compile("\\~arena1\\s(\\w+)");
+    ChatHostedPoster chp;
 
-    public arena1(Ini settings) {
-        super(settings);
+    public arena1(Ini settings, ChatHostedPoster chp, AccountManager am) {
+        super(settings, chp, am);
+
+        this.chp = chp;
     }
 
     @Override
@@ -91,6 +92,8 @@ public class arena1 extends BaseGameModule implements CommandListener {
     @Override
     public void start() {
         EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+        chp.registerPatternBiConsumer(arena1Command, "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+
         startGame();
     }
 
@@ -176,21 +179,12 @@ public class arena1 extends BaseGameModule implements CommandListener {
         //Register all the patterns and consuming methods that needs to hook into the chat service
         return map;
     }
-    */
-
+     */
     /**
      * Handle the message events
      *
      * @param s
      */
     public void messageHandler(EntityId id, String s) {
-    }
-
-    @Override
-    public HashMap<Pattern, CommandConsumer> getPatternBiConsumers() {
-         HashMap<Pattern, CommandConsumer> map = new HashMap<>();
-        map.put(arena1Command, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
-        //Register all the patterns and consuming methods that needs to hook into the chat service
-        return map;
     }
 }

@@ -55,6 +55,7 @@ import com.simsilica.es.server.EntityDataHostedService;
 import example.net.AccountSession;
 import example.net.AccountSessionListener;
 import example.sim.AccountLevels;
+import example.sim.AccountManager;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -70,7 +71,7 @@ import java.util.Set;
  *
  * @author Paul Speed
  */
-public class AccountHostedService extends AbstractHostedConnectionService {
+public class AccountHostedService extends AbstractHostedConnectionService implements AccountManager {
 
     static Logger log = LoggerFactory.getLogger(AccountHostedService.class);
     /**

@@ -12,10 +12,11 @@ import com.simsilica.sim.GameSystemManager;
 import example.net.chat.server.ChatHostedService;
 import example.net.server.AccountHostedService;
 import example.sim.AccountLevels;
+import example.sim.AccountManager;
 import example.sim.BaseGameModule;
 import example.sim.BaseGameService;
+import example.sim.ChatHostedPoster;
 import example.sim.CommandConsumer;
-import example.sim.CommandListener;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -24,10 +25,7 @@ import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Vector;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -121,10 +119,10 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
         }
 
         //Register consuming methods for patterns
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.stopModule(id, module)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, service) -> this.startService(id, service)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern, new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, service) -> this.stopService(id, service)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern, "The command to start a new module is ~startModule <module>, where <module> is the module you want to start", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern, "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.stopModule(id, module)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern, "The command to start a new module is ~startService <service>, where <service> is the service you want to start", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, service) -> this.startService(id, service)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern, "The command to start a new module is ~stopService <service>, where <service> is the service you want to stop", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, service) -> this.stopService(id, service)));
     }
 
     //Loads an INI file and a class
@@ -136,16 +134,16 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
     //Loads the class
     private void loadClass(String file, Ini settingsFile) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
-        Constructor c = java.getConstructor(Ini.class);
+        Constructor c = java.getConstructor(Ini.class, ChatHostedPoster.class, AccountManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
-            BaseGameModule javaObj = (BaseGameModule) c.newInstance(settingsFile);
+            BaseGameModule javaObj = (BaseGameModule) c.newInstance(settingsFile, (ChatHostedPoster) getService(ChatHostedService.class), (AccountManager) getService(AccountHostedService.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
             classSettings.put(javaObj, settingsFile);
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
-            BaseGameService javaObj = (BaseGameService) c.newInstance(settingsFile);
+            BaseGameService javaObj = (BaseGameService) c.newInstance(settingsFile, getService(ChatHostedService.class), getService(AccountHostedService.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
             classSettings.put(javaObj, settingsFile);
         }
@@ -177,13 +175,15 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
 
         BaseGameModule bgm = modules.get(module);
         gameSystems.addSystem(bgm);
+        
+        /*
         if (bgm instanceof CommandListener) {
             CommandListener cl = (CommandListener) bgm;
             HashMap<Pattern, CommandConsumer> map = cl.getPatternBiConsumers();
             for (Pattern p : map.keySet()) {
                 this.getService(ChatHostedService.class).registerPatternBiConsumer(p, map.get(p));
             }
-        }
+        }*/
     }
 
     /**
