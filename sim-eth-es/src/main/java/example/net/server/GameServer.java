@@ -69,7 +69,7 @@ import example.GameConstants;
 import example.net.chat.server.ChatHostedService;
 import example.es.*;
 import example.AdaptiveLoadingService;
-import example.es.states.AttackProjectileState;
+import example.es.states.WeaponStateServer;
 import example.es.states.BountyState;
 import example.es.states.DecayState;
 import example.es.states.DelayState;
@@ -178,7 +178,7 @@ public class GameServer {
         //Add system to monitor and spawn bounties
         systems.register(BountyState.class, new BountyState());
         //Add system to attack and add health changes
-        systems.register(AttackProjectileState.class, new AttackProjectileState());
+        systems.register(WeaponStateServer.class, new WeaponStateServer());
         //Add system to arenas
         systems.register(ArenaState.class, new ArenaState());
         //Add system to handle maps and tilesets

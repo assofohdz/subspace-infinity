@@ -41,6 +41,11 @@ import example.GameConstants;
 import example.ViewConstants;
 
 import example.es.*;
+import example.es.ship.utilities.Recharge;
+import example.es.ship.weapons.Bombs;
+import example.es.ship.weapons.GravityBombs;
+import example.es.ship.weapons.Guns;
+import example.es.ship.weapons.Mines;
 import java.util.HashSet;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.geometry.Convex;
@@ -79,7 +84,16 @@ public class CoreGameEntities {
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new Gold(0));
+        
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
+        ed.setComponent(result, new MaxHitPoints(GameConstants.SHIPHEALTH*2));
+        ed.setComponent(result, new Recharge(100));
+        
+        //Add default weapons
+        ed.setComponent(result, new Bombs(500, 2, 0));
+        ed.setComponent(result, new Guns(2000, 4, 0));
+        ed.setComponent(result, new GravityBombs(1000, 10, 0));
+        ed.setComponent(result, new Mines(4000, 20, 0));
 
         return result;
     }
@@ -120,7 +134,7 @@ public class CoreGameEntities {
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
-                ProjectileTypes.bomb(ed),
+                WeaponTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.bomb());
 
@@ -132,7 +146,7 @@ public class CoreGameEntities {
         EntityId lastDelayedBomb = CoreGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
-        ed.setComponents(lastDelayedBomb, ProjectileTypes.gravityBomb(ed));
+        ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
 
         return lastDelayedBomb;
     }
@@ -145,7 +159,7 @@ public class CoreGameEntities {
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 PhysicsMassTypes.normal_bullet(ed),
-                ProjectileTypes.bullet(ed),
+                WeaponTypes.bullet(ed),
                 PhysicsShapes.bullet());
 
         return lastBomb;
@@ -216,7 +230,7 @@ public class CoreGameEntities {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
-                ProjectileType.create(attackType, ed),
+                WeaponType.create(attackType, ed),
                 new Damage(-20));
 
         return lastAttack;

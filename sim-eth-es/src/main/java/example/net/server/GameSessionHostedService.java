@@ -59,17 +59,9 @@ import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
-import com.simsilica.mathd.trans.PositionTransition;
-import example.GameConstants;
-import example.es.Attack;
-import example.es.ProjectileType;
-import example.es.ProjectileTypes;
-import example.es.BodyPosition;
 
 import example.es.Position;
-import example.es.ShipTypes;
-import example.es.states.AttackProjectileState;
-import example.es.states.ArenaState;
+import example.es.states.WeaponStateServer;
 import example.es.states.MapStateServer;
 import example.es.states.ShipFrequencyStateServer;
 import example.es.states.TowerState;
@@ -77,12 +69,9 @@ import example.es.states.WarpState;
 import example.net.GameSession;
 import example.net.GameSessionListener;
 import example.net.chat.server.ChatHostedService;
-import example.sim.SimpleBody;
 import example.sim.CoreGameEntities;
 import example.sim.ShipDriver;
 import example.sim.SimplePhysics;
-import org.dyn4j.geometry.Transform;
-import org.dyn4j.geometry.Vector2;
 
 /**
  * Provides game session management for connected players. This is where all of
@@ -308,23 +297,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             return callback;
         }
 
-        /**
-         * Attack method that calculates attack. TODO: Should return attackinfo
-         * on success/modifiers etc.
-         *
-         * @param attackType
-         */
-        @Override
-        public void attack(String attackType) {
-            if (log.isTraceEnabled()) {
-                log.trace("Attack");
-            }
-            //gameSystems.get(AttackState.class).attack(shipEntity, AttackTypes.create(attackType, ed));
-            // Play the sound effect
-            //shoot.playInstance();
-            CoreGameEntities.createAttack(shipEntity, attackType, ed);
-        }
-
         @Override
         public void editMap(double x, double y) {
             //Create a map entity
@@ -363,6 +335,52 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
 
             gameSystems.get(WarpState.class).requestWarpToCenter(shipEntity);
+        }
+
+        @Override
+        public void attackGuns() {
+            if (log.isTraceEnabled()) {
+                log.trace("attackGuns");
+            }
+            
+            gameSystems.get(WeaponStateServer.class).entityAttackGuns(shipEntity);
+        }
+
+        @Override
+        public void attackBomb() {
+            if (log.isTraceEnabled()) {
+                log.trace("attackBomb");
+            }
+            gameSystems.get(WeaponStateServer.class).entityAttackBomb(shipEntity);
+        }
+
+        @Override
+        public void placeMine() {
+            if (log.isTraceEnabled()) {
+                log.trace("placeMine");
+            }
+            gameSystems.get(WeaponStateServer.class).entityPlaceMine(shipEntity);
+        }
+
+        @Override
+        public void repel() {
+            if (log.isTraceEnabled()) {
+                log.trace("repel");
+            }
+        }
+
+        @Override
+        public void attackBurst() {
+            if (log.isTraceEnabled()) {
+                log.trace("attackBurst");
+            }
+            
+            gameSystems.get(WeaponStateServer.class).entityBurst(shipEntity);
+        }
+
+        @Override
+        public void attackGravityBomb() {
+            gameSystems.get(WeaponStateServer.class).entityAttackGravityBomb(shipEntity);
         }
     }
 }

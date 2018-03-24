@@ -31,35 +31,34 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example.es;
 
 import com.simsilica.es.EntityComponent;
 
-
 /**
- *  A destructable entity's maximum health.
+ * A destructable entity's maximum health.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class MaxHitPoints implements EntityComponent {
+
     private int health;
-    
+
     public MaxHitPoints() {
     }
-    
-    public MaxHitPoints( int health ) { 
+
+    public MaxHitPoints(int health) {
         this.health = health;
     }
- 
-    public MaxHitPoints newAdjusted( int delta ) {
+
+    public MaxHitPoints newAdjusted(int delta) {
         return new MaxHitPoints(health + delta);
     }
-    
+
     public int getMaxHealth() {
         return health;
     }
-    
+
     @Override
     public String toString() {
         return "MaxHitPoints[" + health + "]";

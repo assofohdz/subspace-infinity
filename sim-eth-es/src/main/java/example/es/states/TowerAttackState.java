@@ -13,8 +13,8 @@ import example.es.AttackMethodType;
 import example.es.AttackRate;
 import example.es.Damage;
 import example.es.Position;
-import example.es.ProjectileType;
-import example.es.Range;
+import example.es.WeaponType;
+import example.es.AttackRange;
 import example.es.RotationSpeed;
 import example.es.TowerRotationSpeed;
 import example.es.TowerType;
@@ -50,9 +50,9 @@ public class TowerAttackState extends AbstractGameSystem {
         this.simplePhysics = getSystem(SimplePhysics.class);
 
         // giver det mening at dele den op ?
-        this.towerRange = ed.getEntities(TowerType.class, Position.class, Range.class);
+        this.towerRange = ed.getEntities(TowerType.class, Position.class, AttackRange.class);
         this.towerRotation = ed.getEntities(TowerType.class, Position.class, RotationSpeed.class);
-        this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class, Damage.class, ProjectileType.class);
+        this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class, Damage.class, WeaponType.class);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class TowerAttackState extends AbstractGameSystem {
         towerRange.applyChanges();
         for (Entity e : towerRange) {
             Vector2 location = new Vector2(e.get(Position.class).getLocation().x, e.get(Position.class).getLocation().y);
-            double range = e.get(Range.class).getRange();
+            double range = e.get(AttackRange.class).getRange();
 
             LinkedList<DetectResult> result = new LinkedList<>();
             simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
@@ -139,7 +139,7 @@ public class TowerAttackState extends AbstractGameSystem {
                 //Get information on the amount of damage the tower does
                 Damage damage = e.get(Damage.class);
                 // Fire !!!!!!!!
-                EntityId attackEntity = CoreGameEntities.createAttack(e.getId(), e.get(ProjectileType.class).getTypeName(ed), ed);
+                EntityId attackEntity = CoreGameEntities.createAttack(e.getId(), e.get(WeaponType.class).getTypeName(ed), ed);
                 
                 //Se the amount of damage the attack should do
                 ed.setComponent(attackEntity, new Damage(damage.getDamage()));

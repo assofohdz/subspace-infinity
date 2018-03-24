@@ -11,13 +11,13 @@ public class TowerTypes {
     public static TowerType tower1(EntityData ed, EntityId id) {
         // tower type specifications
         ed.setComponents(id, 
-                new Range(10), 
-                ProjectileTypes.bullet(ed),
+                new AttackRange(10), 
+                WeaponTypes.bullet(ed),
                 AttackMethodTypes.random(ed),
                 new AttackVelocity(500),
                 new AttackRate(1000*MSEC),
                 new RotationSpeed(3.14),
-                ProjectileTypes.bullet(ed));
+                WeaponTypes.bullet(ed));
    
         
         

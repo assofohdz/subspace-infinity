@@ -19,7 +19,7 @@ import example.es.Decay;
 import example.es.HealthChange;
 import example.es.MobType;
 import example.es.Position;
-import example.es.ProjectileType;
+import example.es.WeaponType;
 import example.es.ViewType;
 import example.es.ViewTypes;
 import example.sim.CoreGameEntities;
@@ -53,7 +53,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
 
         this.simplePhysics = getSystem(SimplePhysics.class);
 
-        this.projectiles = ed.getEntities(ProjectileType.class, Damage.class);
+        this.projectiles = ed.getEntities(WeaponType.class, Damage.class);
 
         this.mobs = ed.getEntities(MobType.class);
     }

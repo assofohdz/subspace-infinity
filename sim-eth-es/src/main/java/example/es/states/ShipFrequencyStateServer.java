@@ -41,7 +41,7 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
     private EntitySet captains;
 
     //Matches =214 to capture frequency 214
-    private final Pattern joinTeam = Pattern.compile("\\=(\\d+)"); 
+    private final Pattern joinTeam = Pattern.compile("\\=(\\d+)");
     private final HostedServiceManager serviceManager;
 
     public ShipFrequencyStateServer(HostedServiceManager serviceManager) {
@@ -56,12 +56,13 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
         this.captains = ed.getEntities(ShipType.class, Captain.class);
 
         teamRestrictions = new HashMap<>();
-        
+
         //Register consuming methods for patterns
         this.serviceManager.getService(ChatHostedService.class).registerPatternBiConsumer(joinTeam, "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+
     }
-    
-    private void joinTeam(EntityId from, String frequency){
+
+    private void joinTeam(EntityId from, String frequency) {
         ed.setComponent(from, new Frequency(Integer.valueOf(frequency)));
     }
 
@@ -111,7 +112,11 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
 
         int freq = freqs.getEntity(shipEntity).get(Frequency.class).getFreq();
 
-        if (this.getRestrictor(freq).canSwitch(shipEntity, (byte) shipType, freq)) {
+        ShipRestrictor restrictor = this.getRestrictor(freq);
+
+        //Allow ship change if no restrictions on frequency, or if restrictions allow it
+        if (restrictor == null || restrictor.canSwitch(shipEntity, (byte) shipType, freq)) {
+
             switch (shipType) {
                 case 1:
                     ed.setComponent(shipEntity, ShipTypes.warbird(ed));

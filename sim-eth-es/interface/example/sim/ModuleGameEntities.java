@@ -121,7 +121,7 @@ public class ModuleGameEntities {
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
-                ProjectileTypes.bomb(ed),
+                WeaponTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.bomb(settings));
 
@@ -133,7 +133,7 @@ public class ModuleGameEntities {
         EntityId lastDelayedBomb = ModuleGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed, settings);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
-        ed.setComponents(lastDelayedBomb, ProjectileTypes.gravityBomb(ed));
+        ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
 
         return lastDelayedBomb;
     }
@@ -146,7 +146,7 @@ public class ModuleGameEntities {
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
                 PhysicsMassTypes.normal_bullet(ed),
-                ProjectileTypes.bullet(ed),
+                WeaponTypes.bullet(ed),
                 PhysicsShapes.bullet(settings));
 
         return lastBomb;
@@ -218,7 +218,7 @@ public class ModuleGameEntities {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
-                ProjectileType.create(attackType, ed),
+                WeaponType.create(attackType, ed),
                 new Damage(-20));
 
         return lastAttack;

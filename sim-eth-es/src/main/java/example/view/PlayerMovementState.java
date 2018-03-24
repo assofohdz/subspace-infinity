@@ -69,7 +69,7 @@ import com.simsilica.state.DebugHudState;
 
 import example.ConnectionState;
 import example.es.Gold;
-import example.es.ProjectileTypes;
+import example.es.WeaponTypes;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;
 
@@ -140,7 +140,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
-                PlayerMovementFunctions.F_REPEL,
+                //PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
                 PlayerMovementFunctions.F_WARP,
                 PlayerMovementFunctions.F_WARBIRD,
@@ -183,7 +183,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
-                PlayerMovementFunctions.F_REPEL,
+                //PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
                 PlayerMovementFunctions.F_WARP,
                 PlayerMovementFunctions.F_WARBIRD,
@@ -307,15 +307,15 @@ public class PlayerMovementState extends BaseAppState
         //TODO: Implement method to able to validate key combos on key release instead of key presses
         if (value == InputState.Off) {
             if (func == PlayerMovementFunctions.F_SHOOT) {
-                session.attack(ProjectileTypes.BULLET);
+                session.attackGuns();
             } else if (func == PlayerMovementFunctions.F_BOMB) {
-                session.attack(ProjectileTypes.BOMB);
+                session.attackBomb();
             } else if (func == PlayerMovementFunctions.F_GRAVBOMB) {
-                session.attack(ProjectileTypes.GRAVITYBOMB);
-            } else if (func == PlayerMovementFunctions.F_REPEL) {
-                session.attack(ProjectileTypes.REPEL);
+                session.attackGravityBomb();
+            /*} else if (func == PlayerMovementFunctions.F_REPEL) {
+                session.repel();*/
             } else if (func == PlayerMovementFunctions.F_MINE) {
-                session.attack(ProjectileTypes.MINE);
+                session.placeMine();
             } else if (func == PlayerMovementFunctions.F_WARBIRD) {
                 session.chooseShip((byte)1);
             }else if (func == PlayerMovementFunctions.F_JAVELIN) {

@@ -149,14 +149,6 @@ public class GameSessionClientService extends AbstractClientService
     }
 
     @Override
-    public void attack(String attackType) {
-        if (log.isTraceEnabled()) {
-            log.trace("attack shoot: "+attackType);
-        }
-        getDelegate().attack(attackType);
-    }
-    
-    @Override
     public void editMap(double x, double y){
         if (log.isTraceEnabled()) {
             log.trace("edit map @("+x+","+y+")");
@@ -174,7 +166,6 @@ public class GameSessionClientService extends AbstractClientService
 
     @Override
     public void warp() {
-        
         if (log.isTraceEnabled()) {
             log.trace("warp");
         }
@@ -187,6 +178,54 @@ public class GameSessionClientService extends AbstractClientService
             log.trace("edit tower @("+x+","+y+")");
         }
         getDelegate().tower(x, y); 
+    }
+
+    @Override
+    public void attackGuns() {
+        if (log.isTraceEnabled()) {
+            log.trace("attackGuns");
+        }
+        getDelegate().attackGuns();
+    }
+
+    @Override
+    public void attackBomb() {
+        if (log.isTraceEnabled()) {
+            log.trace("attackBomb");
+        }
+        getDelegate().attackBomb();
+    }
+
+    @Override
+    public void attackGravityBomb() {
+        if (log.isTraceEnabled()) {
+            log.trace("attackGravityBomb");
+        }
+        getDelegate().attackGravityBomb();
+    }
+
+    @Override
+    public void placeMine() {
+        if (log.isTraceEnabled()) {
+            log.trace("placeMine");
+        }
+        getDelegate().placeMine();
+    }
+
+    @Override
+    public void repel() {
+        if (log.isTraceEnabled()) {
+            log.trace("repel");
+        }
+        getDelegate().repel();
+    }
+
+    @Override
+    public void attackBurst() {
+        if (log.isTraceEnabled()) {
+            log.trace("attackBurst");
+        }
+        getDelegate().attackBurst();
     }
 
     /**

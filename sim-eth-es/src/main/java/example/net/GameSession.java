@@ -66,15 +66,25 @@ public interface GameSession {
      */
     @Asynchronous(reliable = false)
     public void move(Vector3f thrust);
-
-    /**
-     * Sends information about the player wanting to attack
-     *
-     * @param attackType
-     */
+    
     @Asynchronous(reliable = false)
-    public void attack(String attackType);
-
+    public void attackGuns();
+    
+    @Asynchronous(reliable = false)
+    public void attackBomb();
+    
+    @Asynchronous(reliable = false)
+    public void attackGravityBomb();
+    
+    @Asynchronous(reliable = false)
+    public void placeMine();
+    
+    @Asynchronous(reliable = false)
+    public void repel();
+    
+    @Asynchronous(reliable = false)
+    public void attackBurst();
+    
     /**
      * Sends information about editing a map tile
      *

@@ -43,32 +43,31 @@ import com.simsilica.es.EntityData;
  *
  * @author Paul Speed
  */
-public class ProjectileTypes {
+public class WeaponTypes {
 
     public static final String BULLET = "bullet"; //Fast moving projectile
-    public static final String BOMB = "bomb"; //Slower moving, hardr hitting
+    public static final String BOMB = "bomb"; //Slower moving, hardrr hitting
     public static final String GRAVITYBOMB = "gravityBomb"; //Bomb that stops and sucks everything in
-    public static final String REPEL = "repel"; 
     public static final String MINE = "mine"; //Stationary bomb
+    public static final String BURST = "burst"; //Stationary bomb
 
     
-    public static ProjectileType bullet(EntityData ed) {
-        return ProjectileType.create(BULLET, ed);
+    public static WeaponType bullet(EntityData ed) {
+        return WeaponType.create(BULLET, ed);
     }
 
-    public static ProjectileType bomb(EntityData ed) {
-        return ProjectileType.create(BOMB, ed);
+    public static WeaponType burst(EntityData ed) {
+        return WeaponType.create(BURST, ed);
+    }
+    public static WeaponType bomb(EntityData ed) {
+        return WeaponType.create(BOMB, ed);
     }
 
-    public static ProjectileType gravityBomb(EntityData ed) {
-        return ProjectileType.create(GRAVITYBOMB, ed);      
+    public static WeaponType gravityBomb(EntityData ed) {
+        return WeaponType.create(GRAVITYBOMB, ed);      
     }
 
-    public static ProjectileType repel(EntityData ed) {
-        return ProjectileType.create(REPEL, ed);      
-    }
-
-    public static ProjectileType mine(EntityData ed) {
-        return ProjectileType.create(MINE, ed);      
+    public static WeaponType mine(EntityData ed) {
+        return WeaponType.create(MINE, ed);      
     }
 }

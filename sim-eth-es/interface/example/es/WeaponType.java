@@ -45,19 +45,19 @@ import com.simsilica.es.EntityData;
  *
  *  @author    Paul Speed
  */
-public class ProjectileType implements EntityComponent {
+public class WeaponType implements EntityComponent {
     
     private int type;
  
-    protected ProjectileType() {
+    protected WeaponType() {
     }
     
-    public ProjectileType( int type ) {
+    public WeaponType( int type ) {
         this.type = type;
     }
     
-    public static ProjectileType create( String typeName, EntityData ed ) {
-        return new ProjectileType(ed.getStrings().getStringId(typeName, true));
+    public static WeaponType create( String typeName, EntityData ed ) {
+        return new WeaponType(ed.getStrings().getStringId(typeName, true));
     }
     
     public int getType() {

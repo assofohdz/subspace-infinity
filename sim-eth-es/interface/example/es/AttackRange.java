@@ -8,13 +8,22 @@ package example.es;
 import com.simsilica.es.EntityComponent;
 
 /**
- * A component that allows an entity to perform attacks with guns
- * @author Asser
+ *
+ * @author ss
  */
-public class Guns implements EntityComponent{
+public class AttackRange implements EntityComponent{
     
-    int cooldown;
-    int cost;
+    private double range;
     
+    public AttackRange(){
+    }
+    
+    public AttackRange(double range){
+        this.range = range;
+    }
+    
+    public double getRange(){
+        return this.range;
+    }
     
 }

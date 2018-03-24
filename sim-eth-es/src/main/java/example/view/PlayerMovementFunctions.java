@@ -42,6 +42,7 @@ import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
+import example.es.WeaponTypes;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,17 +71,20 @@ public class PlayerMovementFunctions {
      * space bar.
      */
     public static final FunctionId F_STOP = new FunctionId(G_MOVEMENT, "Stop");
-    public static final FunctionId F_SHOOT = new FunctionId(G_MOVEMENT, "Shoot");
     public static final FunctionId F_MOUSELEFTCLICK = new FunctionId(G_MAP, "UpdateTile");
     public static final FunctionId F_MOUSERIGHTCLICK = new FunctionId(G_MAP, "RemoveTile");
-    public static final FunctionId F_BOMB = new FunctionId(G_MOVEMENT, "Bomb");
-    public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, "GravBomb");
-    public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, "Repel");
-    public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, "Mine");
-    public static final FunctionId F_WARP = new FunctionId(G_MOVEMENT, "Warp");
+
+    //Weapons
+    public static final FunctionId F_BOMB = new FunctionId(G_MOVEMENT, WeaponTypes.BOMB);
+    public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, WeaponTypes.GRAVITYBOMB);
+    //public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, WeaponTypes.REPEL);
+    public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, WeaponTypes.MINE);
+    public static final FunctionId F_SHOOT = new FunctionId(G_MOVEMENT, WeaponTypes.BULLET);
+
     public static final FunctionId F_TOWER = new FunctionId(G_TOWER, "Tower");
-    
-    
+
+    public static final FunctionId F_WARP = new FunctionId(G_MOVEMENT, "Warp");
+
     public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, "Warbird");
     public static final FunctionId F_JAVELIN = new FunctionId(G_SHIPSELECTION, "Javelin");
     public static final FunctionId F_SPIDER = new FunctionId(G_SHIPSELECTION, "Spider");
@@ -103,15 +107,15 @@ public class PlayerMovementFunctions {
             inputMapper.map(F_THRUST, KeyInput.KEY_W);
             inputMapper.map(F_THRUST, InputState.Negative, KeyInput.KEY_S);
         }
-
+        /*
         if (!inputMapper.hasMappings(F_REPEL)) {
             inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT, KeyInput.KEY_LCONTROL);
         }
-
+         */
         if (!inputMapper.hasMappings(F_MINE)) {
             inputMapper.map(F_MINE, KeyInput.KEY_TAB, KeyInput.KEY_LSHIFT);
         }
-        
+
         if (!inputMapper.hasMappings(F_SHOOT)) {
             inputMapper.map(F_SHOOT, KeyInput.KEY_LCONTROL);
         }
@@ -135,15 +139,15 @@ public class PlayerMovementFunctions {
         if (!inputMapper.hasMappings(F_GRAVBOMB)) {
             inputMapper.map(F_GRAVBOMB, KeyInput.KEY_LSHIFT);
         }
-        
+
         if (!inputMapper.hasMappings(F_WARP)) {
             inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
         }
-        
+
         if (!inputMapper.hasMappings(F_TOWER)) {
             inputMapper.map(F_TOWER, KeyInput.KEY_T);
         }
-        
+
         /**
          * Ship selection keys
          */
