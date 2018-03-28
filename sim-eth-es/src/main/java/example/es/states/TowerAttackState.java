@@ -139,6 +139,7 @@ public class TowerAttackState extends AbstractGameSystem {
                 //Get information on the amount of damage the tower does
                 Damage damage = e.get(Damage.class);
                 // Fire !!!!!!!!
+                //getSystem(WeaponStateServer.class).attack(e.getId(), e.get(WeaponType.class));
                 EntityId attackEntity = CoreGameEntities.createAttack(e.getId(), e.get(WeaponType.class).getTypeName(ed), ed);
                 
                 //Se the amount of damage the attack should do

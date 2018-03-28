@@ -13,11 +13,12 @@ import com.simsilica.es.EntityComponent;
  */
 public class Bombs implements EntityComponent {
 
+
     long cooldown;
     int cost;
-    int level;
+    BombLevel level;
 
-    public Bombs(long cooldown, int cost, int level) {
+    public Bombs(long cooldown, int cost, BombLevel level) {
         this.cooldown = cooldown;
         this.cost = cost;
         this.level = level;
@@ -31,7 +32,7 @@ public class Bombs implements EntityComponent {
         return cost;
     }
 
-    public int getLevel() {
+    public BombLevel getLevel() {
         return level;
     }
 }

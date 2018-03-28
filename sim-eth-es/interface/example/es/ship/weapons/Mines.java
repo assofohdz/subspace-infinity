@@ -15,9 +15,9 @@ public class Mines implements EntityComponent {
 
     long cooldown;
     int cost;
-    int level;
+    BombLevel level;
 
-    public Mines(long cooldown, int cost, int level) {
+    public Mines(long cooldown, int cost, BombLevel level) {
         this.cooldown = cooldown;
         this.cost = cost;
         this.level = level;
@@ -31,7 +31,7 @@ public class Mines implements EntityComponent {
         return cost;
     }
 
-    public int getLevel() {
+    public BombLevel getLevel() {
         return level;
     }
 

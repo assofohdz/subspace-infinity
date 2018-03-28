@@ -42,8 +42,10 @@ import example.ViewConstants;
 
 import example.es.*;
 import example.es.ship.utilities.Recharge;
+import example.es.ship.weapons.BombLevel;
 import example.es.ship.weapons.Bombs;
 import example.es.ship.weapons.GravityBombs;
+import example.es.ship.weapons.GunLevel;
 import example.es.ship.weapons.Guns;
 import example.es.ship.weapons.Mines;
 import java.util.HashSet;
@@ -62,10 +64,10 @@ import org.ini4j.Ini;
  *
  */
 public class CoreGameEntities {
-    
+
     Ini settings;
-    
-    public CoreGameEntities(Ini settings){
+
+    public CoreGameEntities(Ini settings) {
         this.settings = settings;
     }
 
@@ -84,16 +86,16 @@ public class CoreGameEntities {
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new Gold(0));
-        
+
         ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
-        ed.setComponent(result, new MaxHitPoints(GameConstants.SHIPHEALTH*2));
+        ed.setComponent(result, new MaxHitPoints(GameConstants.SHIPHEALTH * 2));
         ed.setComponent(result, new Recharge(100));
-        
+
         //Add default weapons
-        ed.setComponent(result, new Bombs(500, 2, 0));
-        ed.setComponent(result, new Guns(2000, 4, 0));
-        ed.setComponent(result, new GravityBombs(1000, 10, 0));
-        ed.setComponent(result, new Mines(4000, 20, 0));
+        ed.setComponent(result, new Bombs(500, 2, BombLevel.LEVEL_1));
+        ed.setComponent(result, new Guns(2000, 4, GunLevel.LEVEL_1));
+        ed.setComponent(result, new GravityBombs(1000, 10, BombLevel.LEVEL_1));
+        ed.setComponent(result, new Mines(4000, 20, BombLevel.LEVEL_1));
 
         return result;
     }
@@ -127,10 +129,10 @@ public class CoreGameEntities {
         return result;
     }
 
-    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
+    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, BombLevel level) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, ViewTypes.bomb(ed),
+        ed.setComponents(lastBomb, ViewTypes.bomb(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
@@ -141,9 +143,9 @@ public class CoreGameEntities {
         return lastBomb;
     }
 
-    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed) {
+    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, BombLevel level) {
 
-        EntityId lastDelayedBomb = CoreGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed);
+        EntityId lastDelayedBomb = CoreGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed, level);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -151,10 +153,10 @@ public class CoreGameEntities {
         return lastDelayedBomb;
     }
 
-    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
+    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, GunLevel level) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, ViewTypes.bullet(ed),
+        ed.setComponents(lastBomb, ViewTypes.bullet(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
@@ -226,16 +228,16 @@ public class CoreGameEntities {
         return lastWormhole;
     }
 
+    
     public static EntityId createAttack(EntityId owner, String attackType, EntityData ed) {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
-                WeaponType.create(attackType, ed),
-                new Damage(-20));
+                WeaponType.create(attackType, ed));
 
         return lastAttack;
     }
-
+     
     public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,

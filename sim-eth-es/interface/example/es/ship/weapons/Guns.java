@@ -9,15 +9,16 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * A component that allows an entity to perform attacks with guns
+ *
  * @author Asser
  */
-public class Guns implements EntityComponent{
-    
+public class Guns implements EntityComponent {
+
     long cooldown;
     int cost;
-    int level;
+    GunLevel level;
 
-    public Guns(long cooldown, int cost, int level) {
+    public Guns(long cooldown, int cost, GunLevel level) {
         this.cooldown = cooldown;
         this.cost = cost;
         this.level = level;
@@ -31,7 +32,7 @@ public class Guns implements EntityComponent{
         return cost;
     }
 
-    public int getLevel() {
+    public GunLevel getLevel() {
         return level;
     }
 }

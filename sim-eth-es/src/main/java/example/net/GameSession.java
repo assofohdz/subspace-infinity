@@ -67,22 +67,20 @@ public interface GameSession {
     @Asynchronous(reliable = false)
     public void move(Vector3f thrust);
     
-    @Asynchronous(reliable = false)
     public void attackGuns();
     
-    @Asynchronous(reliable = false)
     public void attackBomb();
     
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void attackGravityBomb();
     
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void placeMine();
     
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void repel();
     
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void attackBurst();
     
     /**
@@ -91,15 +89,15 @@ public interface GameSession {
      * @param x x-coordinate
      * @param y y-coordinate
      */
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void editMap(double x, double y);
 
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void chooseShip(byte ship);
 
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void warp();
 
-    @Asynchronous(reliable = false)
+    //@Asynchronous(reliable = false)
     public void tower(double x, double y);
 }

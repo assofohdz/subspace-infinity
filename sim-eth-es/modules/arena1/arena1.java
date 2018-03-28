@@ -1,5 +1,6 @@
 package arena1;
 
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -167,24 +168,18 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
     }
 
     /**
-     * Be sure to map all patterns to a method that should be called
-     *
-     * @return a map of patterns to method
-     */
-    /*
-    @Override
-    public HashMap<Pattern, Consumer<String>> getPatternConsumers() {
-        HashMap<Pattern, Consumer<String>> map = new HashMap<>();
-        map.put(arena1Command, (s) -> this.messageHandler(s));
-        //Register all the patterns and consuming methods that needs to hook into the chat service
-        return map;
-    }
-     */
-    /**
      * Handle the message events
      *
-     * @param s
+     * @param id The entity id of the sender
+     * @param s The message to handle
      */
     public void messageHandler(EntityId id, String s) {
+    }
+
+    /**
+     * Example component used by this module
+     */
+    private class TestComponent implements EntityComponent {
+
     }
 }

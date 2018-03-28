@@ -115,7 +115,7 @@ public class ModelViewState extends BaseAppState {
 
         // Grab a consistent time for this frame
         long time = timeState.getTime();
-
+        
         // Update all of the models
         models.update();
         mobs.update();
@@ -297,13 +297,19 @@ public class ModelViewState extends BaseAppState {
             case ViewTypes.GRAV_SPHERE:
                 result = createGravSphere(entity);
                 break;
-            case ViewTypes.BULLET:
+            case ViewTypes.BULLETL1:
+            case ViewTypes.BULLETL2:
+            case ViewTypes.BULLETL3:
+            case ViewTypes.BULLETL4:
                 result = createBullet(entity);
                 break;
             case ViewTypes.BOUNTY:
                 result = createBounty(entity);
                 break;
-            case ViewTypes.BOMB:
+            case ViewTypes.BOMBL1:
+            case ViewTypes.BOMBL2:
+            case ViewTypes.BOMBL3:
+            case ViewTypes.BOMBL4:
                 result = createBomb(entity);
                 break;
             case ViewTypes.ARENA:

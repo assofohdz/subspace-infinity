@@ -61,6 +61,8 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
 
 import example.es.Position;
+import example.es.WeaponType;
+import example.es.WeaponTypes;
 import example.es.states.WeaponStateServer;
 import example.es.states.MapStateServer;
 import example.es.states.ShipFrequencyStateServer;
@@ -343,7 +345,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("attackGuns");
             }
             
-            gameSystems.get(WeaponStateServer.class).entityAttackGuns(shipEntity);
+            CoreGameEntities.createAttack(shipEntity, WeaponTypes.BULLET, ed);
+            //gameSystems.get(WeaponStateServer.class).entityAttackGuns(shipEntity);
         }
 
         @Override
@@ -351,7 +354,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackBomb");
             }
-            gameSystems.get(WeaponStateServer.class).entityAttackBomb(shipEntity);
+            CoreGameEntities.createAttack(shipEntity, WeaponTypes.BOMB, ed);
+            //gameSystems.get(WeaponStateServer.class).entityAttackBomb(shipEntity);
         }
 
         @Override
@@ -359,7 +363,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("placeMine");
             }
-            gameSystems.get(WeaponStateServer.class).entityPlaceMine(shipEntity);
+            CoreGameEntities.createAttack(shipEntity, WeaponTypes.MINE, ed);
+            //gameSystems.get(WeaponStateServer.class).entityPlaceMine(shipEntity);
         }
 
         @Override
@@ -367,6 +372,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("repel");
             }
+            
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -375,12 +382,17 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("attackBurst");
             }
             
-            gameSystems.get(WeaponStateServer.class).entityBurst(shipEntity);
+            CoreGameEntities.createAttack(shipEntity, WeaponTypes.BURST, ed);
+            //gameSystems.get(WeaponStateServer.class).entityBurst(shipEntity);
         }
 
         @Override
         public void attackGravityBomb() {
-            gameSystems.get(WeaponStateServer.class).entityAttackGravityBomb(shipEntity);
+            if (log.isTraceEnabled()) {
+                log.trace("attackGravBomb");
+            }
+            CoreGameEntities.createAttack(shipEntity, WeaponTypes.GRAVITYBOMB, ed);
+            //gameSystems.get(WeaponStateServer.class).entityAttackGravityBomb(shipEntity);
         }
     }
 }

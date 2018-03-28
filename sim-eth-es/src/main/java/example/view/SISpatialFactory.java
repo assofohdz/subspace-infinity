@@ -21,6 +21,8 @@ import example.ViewConstants;
 import example.es.TileInfo;
 import example.es.ViewType;
 import example.es.ViewTypes;
+import example.es.ship.weapons.BombLevel;
+import example.es.ship.weapons.Bombs;
 
 /**
  *
@@ -53,15 +55,28 @@ public class SISpatialFactory implements ModelFactory {
     @Override
     public Spatial createModel(Entity e) {
         ViewType type = e.get(ViewType.class);
+        
         if (ViewTypes.THRUST.equals(type.getTypeName(ed))) {
             //Create a particle emitter:
             return createParticleEmitter(e);
-        } else if (ViewTypes.BULLET.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.BULLETL1.equals(type.getTypeName(ed))) {
             //Create bullet
-            return createBullet(e);
-        } else if (ViewTypes.BOMB.equals(type.getTypeName(ed))) {
+            return createBullet(e,1);
+        } else if (ViewTypes.BOMBL1.equals(type.getTypeName(ed))) {
             //Create bomb
-            return createBomb(e);
+            return createBomb(e, BombLevel.LEVEL_1);
+        } else if (ViewTypes.BOMBL2.equals(type.getTypeName(ed))) {
+            //Create bomb
+            return createBomb(e, BombLevel.LEVEL_2);
+        } else if (ViewTypes.BOMBL3.equals(type.getTypeName(ed))) {
+            //Create bomb
+            return createBomb(e, BombLevel.LEVEL_3);
+        } else if (ViewTypes.BOMBL4.equals(type.getTypeName(ed))) {
+            //Create bomb
+            return createBomb(e, BombLevel.LEVEL_4);
+        } else if (ViewTypes.THOR.equals(type.getTypeName(ed))) {
+            //Create bomb
+            return createBomb(e, BombLevel.THOR);
         } else if (ViewTypes.EXPLOSION.equals(type.getTypeName(ed))) {
             //Create explosion
             return createExplosion(e);
@@ -116,6 +131,7 @@ public class SISpatialFactory implements ModelFactory {
             throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
         }
     }
+
     private Spatial createBase() {
         Quad quad = new Quad(ViewConstants.BASESIZE, ViewConstants.BASESIZE);
         //<-- Move into the material?
@@ -130,12 +146,12 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("Base", quad);
         Material mat = assets.loadMaterial("Materials/BaseMaterial.j3m");
         //mat.setColor("Color", ColorRGBA.Yellow);
-        
+
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
-    
+
     private Spatial createMob() {
         Quad quad = new Quad(ViewConstants.MOBSIZE, ViewConstants.MOBSIZE);
         //<-- Move into the material?
@@ -150,12 +166,12 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("Mob", quad);
         Material mat = assets.loadMaterial("Materials/MobMaterial.j3m");
         //mat.setColor("Color", ColorRGBA.Yellow);
-        
+
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
-    
+
     private Spatial createTower() {
         Quad quad = new Quad(ViewConstants.TOWERSIZE, ViewConstants.TOWERSIZE);
         //<-- Move into the material?
@@ -170,7 +186,7 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom = new Geometry("Tower", quad);
         Material mat = assets.loadMaterial("Materials/TowerMaterial.j3m");
         //mat.setColor("Color", ColorRGBA.Yellow);
-        
+
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -239,8 +255,7 @@ public class SISpatialFactory implements ModelFactory {
         Geometry geom;
         if (s instanceof Geometry) {
             geom = (Geometry) s; //From createShip
-        } 
-        else {
+        } else {
             geom = (Geometry) ((Node) s).getChild("Ship"); //From ModelViewState
         }
         Material mat = geom.getMaterial();
@@ -281,7 +296,7 @@ public class SISpatialFactory implements ModelFactory {
         return thrustEffect;
     }
 
-    private Spatial createBomb(Entity e) {
+    private Spatial createBomb(Entity e, BombLevel level) {
         Quad quad = new Quad(ViewConstants.BOMBSIZE, ViewConstants.BOMBSIZE);
         //<-- Move into the material?
         float halfSize = ViewConstants.BOMBSIZE * 0.5f;
@@ -294,12 +309,13 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
         Material mat = assets.loadMaterial("Materials/BombMaterial.j3m");
+        mat.setInt("numTilesOffsetY", level.viewOffset);
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
-    private Spatial createBullet(Entity e) {
+    private Spatial createBullet(Entity e, int offSet) {
         Quad quad = new Quad(ViewConstants.BULLETSIZE, ViewConstants.BULLETSIZE);
         //<-- Move into the material?
         float halfSize = ViewConstants.BULLETSIZE * 0.5f;
@@ -312,6 +328,7 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Bullet", quad);
         Material mat = assets.loadMaterial("Materials/BulletMaterial.j3m");
+        mat.setInt("numTilesOffsetY", offSet);
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;

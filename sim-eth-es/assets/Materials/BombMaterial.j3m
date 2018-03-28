@@ -1,11 +1,11 @@
 Material BombMaterial : MatDefs/AnimateSpriteShader.j3md {
      MaterialParameters {
-        AniTexMap : Flip Textures/Subspace/bombs-newer.gif
+        AniTexMap : Flip Textures/Subspace/bombs-newer.bm2
         numTilesX : 10
         numTilesY : 13
         Speed : 20
         numTilesOffsetX : 0
-        numTilesOffsetY : 1
+        numTilesOffsetY : 12
      }
     AdditionalRenderState {
       Blend Alpha

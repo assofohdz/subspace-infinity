@@ -40,6 +40,10 @@ import com.simsilica.es.*;
 
 import example.es.*;
 import example.es.Spawner.SpawnType;
+import example.es.ship.weapons.BombLevel;
+import example.es.ship.weapons.Bombs;
+import example.es.ship.weapons.GunLevel;
+import example.es.ship.weapons.Guns;
 import java.util.HashSet;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;
@@ -114,10 +118,12 @@ public class ModuleGameEntities {
         return result;
     }
 
-    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings) {
+    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings, BombLevel level) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, ViewTypes.bomb(ed),
+        
+        
+        ed.setComponents(lastBomb, ViewTypes.bomb(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
@@ -128,9 +134,9 @@ public class ModuleGameEntities {
         return lastBomb;
     }
 
-    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, Ini settings) {
+    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, Ini settings, BombLevel level) {
 
-        EntityId lastDelayedBomb = ModuleGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed, settings);
+        EntityId lastDelayedBomb = ModuleGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed, settings, level);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -138,10 +144,10 @@ public class ModuleGameEntities {
         return lastDelayedBomb;
     }
 
-    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings) {
+    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings, GunLevel level) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, ViewTypes.bullet(ed),
+        ed.setComponents(lastBomb, ViewTypes.bullet(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(decayMillis),
@@ -213,7 +219,7 @@ public class ModuleGameEntities {
 
         return lastWormhole;
     }
-
+/*
     public static EntityId createAttack(EntityId owner, String attackType, EntityData ed, Ini settings) {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
@@ -223,7 +229,7 @@ public class ModuleGameEntities {
 
         return lastAttack;
     }
-
+*/
     public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed, Ini settings) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,

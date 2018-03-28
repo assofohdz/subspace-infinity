@@ -1,6 +1,10 @@
 package example.es;
 
 import com.simsilica.es.EntityData;
+import example.es.ship.weapons.BombLevel;
+import example.es.ship.weapons.Bombs;
+import example.es.ship.weapons.GunLevel;
+import example.es.ship.weapons.Guns;
 
 /**
  * Factory methods for the common object types. Because we run the string names
@@ -21,8 +25,24 @@ public class ViewTypes {
     public static final String GRAV_SPHERE = "gravSphere";
     public static final String THRUST = "thrust";
     public static final String EXPLOSION = "explosion";
-    public static final String BULLET = "bullet";
-    public static final String BOMB = "bomb";
+
+    public static final String BULLETL1 = "bullet_l1";
+    public static final String BULLETL2 = "bullet_l2";
+    public static final String BULLETL3 = "bullet_l3";
+    public static final String BULLETL4 = "bullet_l4";
+
+    public static final String BOMBL1 = "bomb_l1";
+    public static final String BOMBL2 = "bomb_l2";
+    public static final String BOMBL3 = "bomb_l3";
+    public static final String BOMBL4 = "bomb_l4";
+
+    public static final String EMPL1 = "emp_l1";
+    public static final String EMPL2 = "emp_l2";
+    public static final String EMPL3 = "emp_l3";
+    public static final String EMPL4 = "emp_l4";
+
+    public static final String THOR = "thor";
+
     public static final String BOUNTY = "bounty";
     public static final String ARENA = "arena";
     public static final String MAPTILE = "maptile";
@@ -35,7 +55,7 @@ public class ViewTypes {
     public static final String REPEL = "repel";
     public static final String FLAG_OURS = "flag_ours";
     public static final String FLAG_THEIRS = "flag_theirs";
-    
+
     //Will probably need more mob visuals along the way
     public static final String MOB = "mob";
     //Will probably need more tower visuals along the way
@@ -46,13 +66,15 @@ public class ViewTypes {
     public static ViewType base(EntityData ed) {
         return ViewType.create(BASE, ed);
     }
+
     public static ViewType tower(EntityData ed) {
         return ViewType.create(TOWER, ed);
     }
-    
+
     public static ViewType mob(EntityData ed) {
         return ViewType.create(MOB, ed);
     }
+
     /*
     The different ships
      */
@@ -100,16 +122,40 @@ public class ViewTypes {
         return ViewType.create(EXPLOSION, ed);
     }
 
-    public static ViewType bullet(EntityData ed) {
-        return ViewType.create(BULLET, ed);
+    //Bullets
+    public static ViewType bullet(EntityData ed, GunLevel level) {
+        switch (level.level) {
+            case 1:
+                return ViewType.create(BULLETL1, ed);
+            case 2:
+                return ViewType.create(BULLETL2, ed);
+            case 3:
+                return ViewType.create(BULLETL3, ed);
+            case 4:
+                return ViewType.create(BULLETL4, ed);
+            default:
+                return ViewType.create(BULLETL1, ed);
+        }
     }
 
     public static ViewType bounty(EntityData ed) {
         return ViewType.create(BOUNTY, ed);
     }
 
-    public static ViewType bomb(EntityData ed) {
-        return ViewType.create(BOMB, ed);
+    //Bombs
+    public static ViewType bomb(EntityData ed, BombLevel level) {
+        switch (level.level) {
+            case 1:
+                return ViewType.create(BOMBL1, ed);
+            case 2:
+                return ViewType.create(BOMBL2, ed);
+            case 3:
+                return ViewType.create(BOMBL3, ed);
+            case 4:
+                return ViewType.create(BOMBL4, ed);
+            default:
+                return ViewType.create(BOMBL1, ed);
+        }
     }
 
     public static ViewType arena(EntityData ed) {
@@ -147,12 +193,12 @@ public class ViewTypes {
     public static ViewType over2(EntityData ed) {
         return ViewType.create(OVER2, ed);
     }
-    
-    public static ViewType flag_ours(EntityData ed){
+
+    public static ViewType flag_ours(EntityData ed) {
         return ViewType.create(FLAG_OURS, ed);
     }
-    
-    public static ViewType flag_theirs(EntityData ed){
+
+    public static ViewType flag_theirs(EntityData ed) {
         return ViewType.create(FLAG_THEIRS, ed);
     }
 }
