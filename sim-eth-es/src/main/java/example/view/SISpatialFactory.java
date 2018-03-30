@@ -80,7 +80,7 @@ public class SISpatialFactory implements ModelFactory {
         } else if (ViewTypes.EXPLOSION.equals(type.getTypeName(ed))) {
             //Create explosion
             return createExplosion(e);
-        } else if (ViewTypes.BOUNTY.equals(type.getTypeName(ed))) {
+        } else if (ViewTypes.PRIZE.equals(type.getTypeName(ed))) {
             //Create bounty
             return createBounty(e);
         } else if (ViewTypes.ARENA.equals(type.getTypeName(ed))) {
@@ -356,9 +356,9 @@ public class SISpatialFactory implements ModelFactory {
     }
 
     private Spatial createBounty(Entity e) {
-        Quad quad = new Quad(ViewConstants.BOUNTYSIZE, ViewConstants.BOUNTYSIZE);
+        Quad quad = new Quad(ViewConstants.PRIZESIZE, ViewConstants.PRIZESIZE);
         //<-- Move into the material?
-        float halfSize = ViewConstants.BOUNTYSIZE * 0.5f;
+        float halfSize = ViewConstants.PRIZESIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, new float[]{-halfSize, -halfSize, 0,
             halfSize, -halfSize, 0,
             halfSize, halfSize, 0,

@@ -303,7 +303,7 @@ public class ModelViewState extends BaseAppState {
             case ViewTypes.BULLETL4:
                 result = createBullet(entity);
                 break;
-            case ViewTypes.BOUNTY:
+            case ViewTypes.PRIZE:
                 result = createBounty(entity);
                 break;
             case ViewTypes.BOMBL1:

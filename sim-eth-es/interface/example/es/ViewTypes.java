@@ -43,7 +43,7 @@ public class ViewTypes {
 
     public static final String THOR = "thor";
 
-    public static final String BOUNTY = "bounty";
+    public static final String PRIZE = "bounty";
     public static final String ARENA = "arena";
     public static final String MAPTILE = "maptile";
     public static final String EXPLOSION2 = "explosion2";
@@ -138,8 +138,8 @@ public class ViewTypes {
         }
     }
 
-    public static ViewType bounty(EntityData ed) {
-        return ViewType.create(BOUNTY, ed);
+    public static ViewType prize(EntityData ed) {
+        return ViewType.create(PRIZE, ed);
     }
 
     //Bombs

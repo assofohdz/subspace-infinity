@@ -96,11 +96,11 @@ public class ModuleGameEntities {
     public static EntityId createBounty(Vec3d pos, EntityData ed, Ini settings) {
         EntityId result = ed.createEntity();
 
-        ed.setComponents(result, ViewTypes.bounty(ed),
+        ed.setComponents(result, ViewTypes.prize(ed),
                 new Position(pos, new Quatd(), 0f),
                 //new Bounty(GameConstants.BOUNTYVALUE),
                 new Bounty(settings.get("Bounties", "DefaultValue", int.class)),
-                PhysicsShapes.bounty(settings),
+                PhysicsShapes.prize(settings),
                 new SphereShape(settings.get("Bounties", "ViewSize", int.class)),
                 //new SphereShape(ViewConstants.BOUNTYSIZE, new Vec3d()),
                 new Decay(settings.get("Bounties", "Decay", int.class)));
@@ -113,8 +113,10 @@ public class ModuleGameEntities {
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
                 new Position(pos, new Quatd(), 0f),
+                new SphereShape(radius),
                 //new Spawner(GameConstants.BOUNTYMAXCOUNT, Spawner.SpawnType.Bounties));
-                new Spawner(settings.get("BountySpawners", "MaxCount", int.class), Spawner.SpawnType.Bounties));
+                PhysicsShapes.prize(settings),
+                new Spawner(settings.get("BountySpawners", "MaxCount", int.class), Spawner.SpawnType.Prizes));
         return result;
     }
 

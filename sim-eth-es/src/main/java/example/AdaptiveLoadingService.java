@@ -89,34 +89,15 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
         });
 
         //for (String s : directories) {
-        try {
-            File f1 = new File(modLocation);
-            if (f1.exists()) {
-                repository.add(f1);
-            }
-            File f2 = new File(modLocation2);
-            if (f2.exists()) {
-                repository.add(f2);
-            }
-            this.classLoader = new AdaptiveClassLoader(repository);
-
-            load("arena1");
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            ex.getCause().printStackTrace();
-            Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+        File f1 = new File(modLocation);
+        if (f1.exists()) {
+            repository.add(f1);
         }
+        File f2 = new File(modLocation2);
+        if (f2.exists()) {
+            repository.add(f2);
+        }
+        this.classLoader = new AdaptiveClassLoader(repository);
 
         //Register consuming methods for patterns
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern, "The command to start a new module is ~startModule <module>, where <module> is the module you want to start", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
@@ -127,8 +108,14 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
 
     //Loads an INI file and a class
     private void load(String className) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-        Ini ini = loadSettings("arena1/arena1.ini");
-        loadClass("arena1.arena1", ini);
+
+        //Ini files are considered resources
+        String settings = className + "/" + className + ".ini";
+        //Class prepended with their package name
+        String clazz = className + "." + className;
+
+        Ini ini = loadSettings(settings);
+        loadClass(clazz, ini);
     }
 
     //Loads the class
@@ -172,10 +159,36 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      * @param module the module to start
      */
     private void startModule(EntityId id, String module) {
+        BaseGameModule bgm;
+        if (!modules.containsKey(module)) {
+            try {
+                //Try to load it
+                this.load(module);
+            } catch (IllegalAccessException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InstantiationException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchMethodException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalArgumentException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
-        BaseGameModule bgm = modules.get(module);
+            bgm = modules.get(module);
+
+        } else {
+            bgm = modules.get(module);
+
+        }
+
         gameSystems.addSystem(bgm);
-        
+
         /*
         if (bgm instanceof CommandListener) {
             CommandListener cl = (CommandListener) bgm;

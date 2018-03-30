@@ -13,7 +13,7 @@ import com.simsilica.es.EntityComponent;
  */
 public class Spawner implements EntityComponent{
     
-    public enum SpawnType { Players, Bounties }
+    public enum SpawnType { Players, Prizes }
 
     public int getMaxCount() {
         return maxCount;

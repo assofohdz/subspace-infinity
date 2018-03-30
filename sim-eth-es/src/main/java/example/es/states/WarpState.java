@@ -31,6 +31,8 @@ import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -46,6 +48,8 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
     private HashSet<BodyFixture> warpTouchFixtures;
     private Warpers warpers;
     private EntitySet canWarp;
+    static Logger log = LoggerFactory.getLogger(WarpState.class);
+    
 
     @Override
     protected void initialize() {

@@ -16,6 +16,8 @@ import example.sim.PhysicsShapes;
 import example.sim.SimplePhysics;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.geometry.Convex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * State
@@ -28,6 +30,7 @@ public class TowerState extends AbstractGameSystem {
     private SimplePhysics simplePhysics;
     private EntitySet towers;
     private ResourceState resourceState;
+    static Logger log = LoggerFactory.getLogger(TowerState.class);
 
     @Override
     protected void initialize() {

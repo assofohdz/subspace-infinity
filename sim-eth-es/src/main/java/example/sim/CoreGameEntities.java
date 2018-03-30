@@ -48,6 +48,7 @@ import example.es.ship.weapons.GravityBombs;
 import example.es.ship.weapons.GunLevel;
 import example.es.ship.weapons.Guns;
 import example.es.ship.weapons.Mines;
+import example.es.subspace.PrizeType;
 import java.util.HashSet;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.geometry.Convex;
@@ -108,24 +109,24 @@ public class CoreGameEntities {
         return result;
     }
 
-    public static EntityId createBounty(Vec3d pos, EntityData ed) {
+    public static EntityId createPrize(Vec3d pos, String prizeType, EntityData ed) {
         EntityId result = ed.createEntity();
 
-        ed.setComponents(result, ViewTypes.bounty(ed),
+        ed.setComponents(result, ViewTypes.prize(ed),
                 new Position(pos, new Quatd(), 0f),
                 new Bounty(GameConstants.BOUNTYVALUE),
                 PhysicsShapes.bounty(),
-                new SphereShape(ViewConstants.BOUNTYSIZE, new Vec3d()),
-                new Decay(GameConstants.BOUNTYDECAY));
+                new SphereShape(ViewConstants.PRIZESIZE, new Vec3d()),
+                new Decay(GameConstants.PRIZEDECAY));
         return result;
     }
 
-    public static EntityId createBountySpawner(Vec3d pos, double radius, EntityData ed) {
+    public static EntityId createPrizeSpawner(Vec3d pos, double radius, EntityData ed) {
         EntityId result = ed.createEntity();
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
                 new Position(pos, new Quatd(), 0f),
-                new Spawner(GameConstants.BOUNTYMAXCOUNT, Spawner.SpawnType.Bounties));
+                new Spawner(GameConstants.PRIZEMAXCOUNT, Spawner.SpawnType.Prizes));
         return result;
     }
 

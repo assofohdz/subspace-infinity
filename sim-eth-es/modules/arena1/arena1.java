@@ -52,12 +52,9 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
     private EntityId baseId;
     private double timeSinceLastWave;
     private final Pattern arena1Command = Pattern.compile("\\~arena1\\s(\\w+)");
-    ChatHostedPoster chp;
 
     public arena1(Ini settings, ChatHostedPoster chp, AccountManager am) {
         super(settings, chp, am);
-
-        this.chp = chp;
     }
 
     @Override
@@ -93,7 +90,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
     @Override
     public void start() {
         EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        chp.registerPatternBiConsumer(arena1Command, "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        this.getChp().registerPatternBiConsumer(arena1Command, "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
 
         startGame();
     }

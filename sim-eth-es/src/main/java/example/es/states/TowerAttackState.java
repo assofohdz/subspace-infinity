@@ -26,6 +26,8 @@ import java.util.LinkedList;
 import org.dyn4j.geometry.AABB;
 import org.dyn4j.dynamics.DetectResult;
 import org.dyn4j.geometry.Vector2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * State
@@ -42,6 +44,7 @@ public class TowerAttackState extends AbstractGameSystem {
     private EntitySet towerRotation;
     private HashMap<EntityId, LinkedList<DetectResult>> towerToTargets = new HashMap<>();
     private HashMap<EntityId, Double> towerToTargetRelativeRadians = new HashMap<>();
+    static Logger log = LoggerFactory.getLogger(TowerAttackState.class);
 
     @Override
     protected void initialize() {
