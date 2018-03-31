@@ -50,8 +50,8 @@ public class WeaponTypes {
     public static final String GRAVITYBOMB = "gravityBomb"; //Bomb that stops and sucks everything in
     public static final String MINE = "mine"; //Stationary bomb
     public static final String BURST = "burst"; //Stationary bomb
+    public static final String THOR = "thor"; //Bomb that can penetrate walls
 
-    
     public static WeaponType bullet(EntityData ed) {
         return WeaponType.create(BULLET, ed);
     }
@@ -59,15 +59,20 @@ public class WeaponTypes {
     public static WeaponType burst(EntityData ed) {
         return WeaponType.create(BURST, ed);
     }
+
     public static WeaponType bomb(EntityData ed) {
         return WeaponType.create(BOMB, ed);
     }
 
     public static WeaponType gravityBomb(EntityData ed) {
-        return WeaponType.create(GRAVITYBOMB, ed);      
+        return WeaponType.create(GRAVITYBOMB, ed);
     }
 
     public static WeaponType mine(EntityData ed) {
-        return WeaponType.create(MINE, ed);      
+        return WeaponType.create(MINE, ed);
+    }
+
+    public static WeaponType thor(EntityData ed) {
+        return WeaponType.create(THOR, ed);
     }
 }

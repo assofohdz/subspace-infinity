@@ -83,6 +83,8 @@ public interface GameSession {
     //@Asynchronous(reliable = false)
     public void attackBurst();
     
+    public void attackThor();
+    
     /**
      * Sends information about editing a map tile
      *

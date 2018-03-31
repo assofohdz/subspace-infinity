@@ -136,6 +136,7 @@ public class PlayerMovementState extends BaseAppState
 
         inputMapper.addStateListener(this,
                 PlayerMovementFunctions.F_BOMB,
+                PlayerMovementFunctions.F_THOR,
                 PlayerMovementFunctions.F_SHOOT,
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
@@ -179,6 +180,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_TURN);
         inputMapper.removeStateListener(this,
                 PlayerMovementFunctions.F_BOMB,
+                PlayerMovementFunctions.F_THOR,
                 PlayerMovementFunctions.F_SHOOT,
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
@@ -312,6 +314,8 @@ public class PlayerMovementState extends BaseAppState
                 session.attackBomb();
             } else if (func == PlayerMovementFunctions.F_GRAVBOMB) {
                 session.attackGravityBomb();
+            } else if (func == PlayerMovementFunctions.F_THOR) {
+                session.attackThor();
             /*} else if (func == PlayerMovementFunctions.F_REPEL) {
                 session.repel();*/
             } else if (func == PlayerMovementFunctions.F_MINE) {

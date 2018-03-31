@@ -48,6 +48,7 @@ import example.es.ship.weapons.GravityBombs;
 import example.es.ship.weapons.GunLevel;
 import example.es.ship.weapons.Guns;
 import example.es.ship.weapons.Mines;
+import example.es.ship.weapons.Thor;
 import example.es.subspace.PrizeType;
 import java.util.HashSet;
 import org.dyn4j.dynamics.Force;
@@ -97,6 +98,8 @@ public class CoreGameEntities {
         ed.setComponent(result, new Guns(2000, 4, GunLevel.LEVEL_1));
         ed.setComponent(result, new GravityBombs(1000, 10, BombLevel.LEVEL_1));
         ed.setComponent(result, new Mines(4000, 20, BombLevel.LEVEL_1));
+        
+        ed.setComponent(result, new Thor(100, 2));
 
         return result;
     }
@@ -231,7 +234,6 @@ public class CoreGameEntities {
         return lastWormhole;
     }
 
-    
     public static EntityId createAttack(EntityId owner, String attackType, EntityData ed) {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
@@ -240,7 +242,7 @@ public class CoreGameEntities {
 
         return lastAttack;
     }
-     
+
     public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,
@@ -392,5 +394,19 @@ public class CoreGameEntities {
                 new Buff(target, 0)); //apply right away
 
         return lastHealthBuff;
+    }
+
+    public static EntityId createThor(Vec3d location, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed) {
+                EntityId lastBomb = ed.createEntity();
+
+        ed.setComponents(lastBomb, ViewTypes.thor(ed),
+                new Position(location, orientation, rotation),
+                new PhysicsVelocity(new Vector2(attackVelocity.x, attackVelocity.y)),
+                new Decay(thorDecay),
+                WeaponTypes.thor(ed),
+                PhysicsMassTypes.normal_bullet(ed),
+                PhysicsShapes.bomb());
+
+        return lastBomb;
     }
 }

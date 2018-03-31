@@ -74,12 +74,13 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_MOUSELEFTCLICK = new FunctionId(G_MAP, "UpdateTile");
     public static final FunctionId F_MOUSERIGHTCLICK = new FunctionId(G_MAP, "RemoveTile");
 
-    //Weapons
+    //Weapons: Not sure we should link to the static strings in WeaponTypes
     public static final FunctionId F_BOMB = new FunctionId(G_MOVEMENT, WeaponTypes.BOMB);
     public static final FunctionId F_GRAVBOMB = new FunctionId(G_MOVEMENT, WeaponTypes.GRAVITYBOMB);
     //public static final FunctionId F_REPEL = new FunctionId(G_MOVEMENT, WeaponTypes.REPEL);
     public static final FunctionId F_MINE = new FunctionId(G_MOVEMENT, WeaponTypes.MINE);
     public static final FunctionId F_SHOOT = new FunctionId(G_MOVEMENT, WeaponTypes.BULLET);
+    public static final FunctionId F_THOR = new FunctionId(G_MOVEMENT, WeaponTypes.THOR);
 
     public static final FunctionId F_TOWER = new FunctionId(G_TOWER, "Tower");
 
@@ -146,6 +147,9 @@ public class PlayerMovementFunctions {
 
         if (!inputMapper.hasMappings(F_TOWER)) {
             inputMapper.map(F_TOWER, KeyInput.KEY_T);
+        }
+        if (!inputMapper.hasMappings(F_THOR)) {
+            inputMapper.map(F_THOR, KeyInput.KEY_F12);
         }
 
         /**

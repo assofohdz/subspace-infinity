@@ -394,5 +394,13 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             CoreGameEntities.createAttack(shipEntity, WeaponTypes.GRAVITYBOMB, ed);
             //gameSystems.get(WeaponStateServer.class).entityAttackGravityBomb(shipEntity);
         }
+
+        @Override
+        public void attackThor() {
+            if (log.isTraceEnabled()) {
+                log.trace("attackThor");
+            }
+            CoreGameEntities.createAttack(shipEntity, WeaponTypes.THOR, ed);
+        }
     }
 }

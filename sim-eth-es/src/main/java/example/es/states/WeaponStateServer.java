@@ -34,6 +34,8 @@ import example.es.ship.weapons.GunLevel;
 import example.es.ship.weapons.GunsCooldown;
 import example.es.ship.weapons.Mines;
 import example.es.ship.weapons.MinesCooldown;
+import example.es.ship.weapons.Thor;
+import example.es.ship.weapons.ThorCooldown;
 import example.sim.SimpleBody;
 import example.sim.CoreGameEntities;
 import example.sim.SimplePhysics;
@@ -70,6 +72,8 @@ public class WeaponStateServer extends AbstractGameSystem {
     private EntitySet burstsCooldowns;
     private EntitySet gravityBombsCooldowns;
     private EntitySet minesCooldowns;
+    private EntitySet thors;
+    private EntitySet thorsCooldowns;
 
     @Override
     protected void initialize() {
@@ -99,6 +103,9 @@ public class WeaponStateServer extends AbstractGameSystem {
 
         mines = ed.getEntities(Mines.class);
         minesCooldowns = ed.getEntities(MinesCooldown.class);
+
+        thors = ed.getEntities(Thor.class);
+        thorsCooldowns = ed.getEntities(ThorCooldown.class);
 
     }
 
@@ -137,6 +144,12 @@ public class WeaponStateServer extends AbstractGameSystem {
         minesCooldowns.release();
         minesCooldowns = null;
 
+        thors.release();
+        thors = null;
+
+        thorsCooldowns.release();
+        thorsCooldowns = null;
+
     }
 
     @Override
@@ -157,6 +170,9 @@ public class WeaponStateServer extends AbstractGameSystem {
 
         bursts.applyChanges();
         burstsCooldowns.applyChanges();
+
+        thors.applyChanges();
+        thorsCooldowns.applyChanges();
 
         for (Entity e : gunsCooldowns) {
             GunsCooldown d = e.get(GunsCooldown.class);
@@ -192,7 +208,14 @@ public class WeaponStateServer extends AbstractGameSystem {
                 ed.removeComponent(e.getId(), BurstsCooldown.class);
             }
         }
-        
+
+        for (Entity e : thorsCooldowns) {
+            ThorCooldown d = e.get(ThorCooldown.class);
+            if (d.getPercent() >= 1.0) {
+                ed.removeComponent(e.getId(), ThorCooldown.class);
+            }
+        }
+
         if (attacks.applyChanges()) {
             for (Entity e : attacks.getAddedEntities()) {
                 Attack a = e.get(Attack.class);
@@ -203,7 +226,7 @@ public class WeaponStateServer extends AbstractGameSystem {
                 ed.removeEntity(e.getId()); //Attack has been processed, now remove it
             }
         }
-         
+
         time = tpf;
     }
 
@@ -218,6 +241,39 @@ public class WeaponStateServer extends AbstractGameSystem {
             this.entityAttackGravityBomb(requestor);
         } else if (type.getTypeName(ed).equals(WeaponTypes.MINE)) {
             this.entityPlaceMine(requestor);
+        } else if (type.getTypeName(ed).equals(WeaponTypes.THOR)) {
+            this.entityAttackThor(requestor);
+        }
+    }
+
+    private void entityAttackThor(EntityId requestor) {
+        //Check authorization and cooldown
+        if (!thors.containsId(requestor) || thorsCooldowns.containsId(requestor)) {
+            return;
+        }
+        Thor shipThors = thors.getEntity(requestor).get(Thor.class);
+
+        /* Health check disabled because Thors are free to use
+        //Check health
+        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipGuns.getCost()) {
+            return;
+        }
+        //Deduct health
+        health.createHealthChange(requestor, -1 * shipGuns.getCost());
+         */
+        //Perform attack
+        AttackInfo info = this.attack(new Attack(requestor), WeaponTypes.thor(ed));
+
+        this.attackThor(info, new Damage(-20));
+
+        //Set new cooldown
+        ed.setComponent(requestor, new ThorCooldown(shipThors.getCooldown()));
+
+        //Reduce count of thors in inventory:
+        if (shipThors.getCount() == 1) {
+            ed.removeComponent(requestor, Thor.class);
+        } else {
+            ed.setComponent(requestor, new Thor(shipThors.getCooldown(), shipThors.getCount() - 1));
         }
     }
 
@@ -338,7 +394,7 @@ public class WeaponStateServer extends AbstractGameSystem {
         Vec3d location;
         double rotation;
         Vector2 attackVel;
- 
+
         if (e.get(HitPoints.class) != null) {
             // Attacking body:
             SimpleBody shipBody = physics.getBody(e.getId());
@@ -403,6 +459,12 @@ public class WeaponStateServer extends AbstractGameSystem {
         return projectile.getId();
     }
 
+    private void attackThor(AttackInfo info, Damage damage) {
+        EntityId projectile;
+        projectile = CoreGameEntities.createThor(info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), GameConstants.THORDECAY, ed);
+        ed.setComponent(projectile, new Damage(damage.getDamage()));
+    }
+
     private class AttackInfo {
 
         private final Vec3d location;
@@ -456,6 +518,10 @@ public class WeaponStateServer extends AbstractGameSystem {
 
         } else if (type.getTypeName(ed).equals(WeaponTypes.MINE)) {
             attackVel.multiply(0); //A mine stands still
+        } else if (type.getTypeName(ed).equals(WeaponTypes.THOR)) {
+            attackVel.multiply(GameConstants.THORPROJECTILESPEED);
+            attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+
         }
 
         return attackVel;

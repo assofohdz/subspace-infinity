@@ -228,6 +228,14 @@ public class GameSessionClientService extends AbstractClientService
         getDelegate().attackBurst();
     }
 
+    @Override
+    public void attackThor() {
+          if (log.isTraceEnabled()) {
+            log.trace("attackThor");
+        }
+        getDelegate().attackThor();
+    }
+
     /**
      * Shared with the server over RMI so that it can notify us about account
      * related stuff.

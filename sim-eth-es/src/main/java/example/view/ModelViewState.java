@@ -216,6 +216,19 @@ public class ModelViewState extends BaseAppState {
         return result;
     }
 
+    protected Spatial createThor(Entity entity) {
+        //Node information:
+        Node result = new Node("thor:" + entity.getId());
+        result.setUserData("thorId", entity.getId().getId());
+
+        //Spatial information:
+        Spatial bomb = factory.createModel(entity);
+        result.attachChild(bomb);
+
+        //attachCoordinateAxes(result);
+        return result;
+    }
+
     protected Spatial createBullet(Entity entity) {
         //Node information:
         Node result = new Node("bullet:" + entity.getId());
@@ -311,6 +324,9 @@ public class ModelViewState extends BaseAppState {
             case ViewTypes.BOMBL3:
             case ViewTypes.BOMBL4:
                 result = createBomb(entity);
+                break;
+            case ViewTypes.THOR:
+                result = createThor(entity);
                 break;
             case ViewTypes.ARENA:
                 result = createArena(entity);

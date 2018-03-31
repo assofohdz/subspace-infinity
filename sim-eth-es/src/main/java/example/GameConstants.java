@@ -156,10 +156,13 @@ public class GameConstants {
     public final static double BOMBPROJECTILESPEED = 25;
     public final static double BULLETPROJECTILESPEED = 50;
     public final static double GRAVBOMBPROJECTILESPEED = 15;
+    public final static double THORPROJECTILESPEED = 30;
     
     //Decays
     public final static long BULLETDECAY = 1500;
     public final static long PRIZEDECAY = 1000;
+    public final static long THORDECAY = 1500;
+    public final static long GRAVBOMBDECAY = 4000;
     
     //Health
     public final static int SHIPHEALTH = 100;
@@ -171,7 +174,6 @@ public class GameConstants {
     public final static int PRIZEMAXCOUNT = 50;
     
     public final static long GRAVBOMBDELAY = 1000;
-    public final static long GRAVBOMBDECAY = 4000;
     public final static double GRAVBOMBWORMHOLEFORCE = 5000;
     
     public final static double RESOURCE_UPDATE_INTERVAL = 1;

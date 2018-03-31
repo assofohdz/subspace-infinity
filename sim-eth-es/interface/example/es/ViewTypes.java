@@ -157,6 +157,10 @@ public class ViewTypes {
                 return ViewType.create(BOMBL1, ed);
         }
     }
+    
+    public static ViewType thor(EntityData ed){
+        return ViewType.create(THOR, ed);
+    }
 
     public static ViewType arena(EntityData ed) {
         return ViewType.create(ARENA, ed);
