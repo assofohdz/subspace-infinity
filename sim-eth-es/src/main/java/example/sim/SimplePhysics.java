@@ -357,18 +357,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     //Contact manifold created by the manifold solver
     @Override
     public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
-
-        EntityId one = (EntityId) body1.getUserData();
-        EntityId two = (EntityId) body2.getUserData();
-
-        if (gravityState.isWormholeFixture(fixture1) || gravityState.isWormholeFixture(fixture2)) {
-            return gravityState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-        }
-
-        if (flagState.isFlag(one) || flagState.isFlag(two)) {
-            return flagState.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-        }
-
         return true; //Default, keep processing this event
     }
 

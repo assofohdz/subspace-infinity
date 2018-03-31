@@ -8,19 +8,27 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.es.Flag;
 import example.es.Frequency;
+import example.sim.SimplePhysics;
 import org.dyn4j.collision.manifold.Manifold;
+import org.dyn4j.collision.narrowphase.Penetration;
+import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.dynamics.CollisionListener;
+import org.dyn4j.dynamics.contact.ContactConstraint;
 
 /**
  *
  * @author Asser
  */
-public class FlagStateServer extends AbstractGameSystem {
+public class FlagStateServer extends AbstractGameSystem implements CollisionListener{
 
     private EntityData ed;
     private EntitySet teamFlags;
     private ShipFrequencyStateServer shipState;
 
+    private SimTime tpf;
+    private SimplePhysics simplePhysics;
+    
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
@@ -28,6 +36,8 @@ public class FlagStateServer extends AbstractGameSystem {
         teamFlags = ed.getEntities(Flag.class, Frequency.class);
 
         shipState = getSystem(ShipFrequencyStateServer.class);
+        this.simplePhysics = getSystem(SimplePhysics.class);
+        this.simplePhysics.addCollisionListener(this);
     }
 
     @Override
@@ -43,6 +53,7 @@ public class FlagStateServer extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+        this.tpf = tpf;
         teamFlags.applyChanges();
     }
 
@@ -77,5 +88,33 @@ public class FlagStateServer extends AbstractGameSystem {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
+        
+        EntityId one = (EntityId) body1.getUserData();
+        EntityId two = (EntityId) body2.getUserData();
+
+        if (this.isFlag(one) || this.isFlag(two)) {
+            return this.collide(body1, fixture1, body2, fixture2, manifold, tpf.getTpf());
+        }
+        
+        return true;
+    }
+
+    @Override
+    public boolean collision(ContactConstraint contactConstraint) {
+        return true;
     }
 }

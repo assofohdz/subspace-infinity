@@ -21,16 +21,19 @@ import java.util.HashSet;
 import java.util.Random;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.manifold.ManifoldPoint;
+import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
+import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.Force;
+import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Circle;
 
 /**
  *
  * @author Asser
  */
-public class GravityState extends AbstractGameSystem {
+public class GravityState extends AbstractGameSystem implements CollisionListener{
 
     private SimTime time;
 
@@ -47,6 +50,8 @@ public class GravityState extends AbstractGameSystem {
         this.ed = getSystem(EntityData.class);
 
         this.simplePhysics = getSystem(SimplePhysics.class);
+        
+        this.simplePhysics.addCollisionListener(this);
 
         gravityWells = ed.getEntities(GravityWell.class, Position.class);
 
@@ -138,6 +143,33 @@ public class GravityState extends AbstractGameSystem {
         Force force = new Force(gravity.x, gravity.y);
 
         return force;
+    }
+
+    @Override
+    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
+        EntityId one = (EntityId) body1.getUserData();
+        EntityId two = (EntityId) body2.getUserData();
+
+        if (this.isWormholeFixture(fixture1) || this.isWormholeFixture(fixture2)) {
+            return this.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
+        }
+        
+        return true;
+    }
+
+    @Override
+    public boolean collision(ContactConstraint contactConstraint) {
+        return true;
     }
 
     //Gravity wells that either exert a pull or a push on other bodies

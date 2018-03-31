@@ -22,6 +22,7 @@ import example.es.SphereShape;
 import example.es.subspace.PrizeType;
 import example.es.subspace.PrizeTypes;
 import example.sim.CoreGameEntities;
+import example.sim.SimplePhysics;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -52,6 +53,7 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
     private EntitySet prizes;
     private EntitySet ships;
     static Logger log = LoggerFactory.getLogger(PrizeState.class);
+    private SimplePhysics simplePhysics;
 
     @Override
     protected void initialize() {
@@ -70,6 +72,9 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
 
         ships = ed.getEntities(ShipType.class);
         prizes = ed.getEntities(PrizeType.class);
+
+        this.simplePhysics = getSystem(SimplePhysics.class);
+        this.simplePhysics.addCollisionListener(this);
     }
 
     private void loadPrizeWeights() {
@@ -128,10 +133,10 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             Position p = e.get(Position.class);
             SphereShape c = e.get(SphereShape.class);
             if (prizeCount.containsKey(e.getId()) && prizeCount.get(e.getId()) < s.getMaxCount()) {
-                spawnRandomBounty(p.getLocation(), c.getRadius(), false);
+                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), false);
                 prizeCount.put(e.getId(), prizeCount.get(e.getId()) + 1);
             } else {
-                spawnRandomBounty(p.getLocation(), c.getRadius(), false);
+                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), false);
                 prizeCount.put(e.getId(), 1);
             }
         }
@@ -145,7 +150,7 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
     public void stop() {
     }
 
-    private Vec3d getRandomWeightedCircleSpawnLocation(Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
+    private Vec3d getRandomSpawnLocation(Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
         double angle = Math.random() * Math.PI * 2;
 
         double lengthFromCenter = onlyOnCistringWeightsumference ? radius : radius * Math.random();
@@ -156,8 +161,8 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
         return new Vec3d(x, y, 0);
     }
 
-    private EntityId spawnRandomBounty(Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
-        Vec3d location = this.getRandomWeightedCircleSpawnLocation(spawnCenter, radius, onlyOnCistringWeightsumference);
+    private EntityId spawnRandomWeightedPrize(Vec3d spawnCenter, double radius, boolean onlyCircumference) {
+        Vec3d location = this.getRandomSpawnLocation(spawnCenter, radius, onlyCircumference);
 
         return CoreGameEntities.createPrize(location, rc.next(random), ed);
     }

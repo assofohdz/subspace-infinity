@@ -116,6 +116,8 @@ public class CoreGameEntities {
                 new Position(pos, new Quatd(), 0f),
                 new Bounty(GameConstants.BOUNTYVALUE),
                 PhysicsShapes.bounty(),
+                PhysicsMassTypes.normal(ed),
+                PrizeType.create(prizeType, ed),
                 new SphereShape(ViewConstants.PRIZESIZE, new Vec3d()),
                 new Decay(GameConstants.PRIZEDECAY));
         return result;
