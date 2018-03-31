@@ -147,10 +147,7 @@ public class GameConstants {
      *  zones including the zone they are in.
      */           
     public static final Vec3i ZONE_RADIUS = new Vec3i(10, 10, 0);
-    
-    
-    
-    
+
     //Properties
     public final static double BASEPROJECTILESPEED = 1;
     public final static double BOMBPROJECTILESPEED = 25;
@@ -168,6 +165,9 @@ public class GameConstants {
     public final static int SHIPHEALTH = 100;
     public final static int BASEHEALTH = 1000;
     public final static int MOBHEALTH = 100;
+    
+    //Cooldowns
+    public final static long THORCOOLDOWN = 500;
     
     
     public final static int BOUNTYVALUE = 10;

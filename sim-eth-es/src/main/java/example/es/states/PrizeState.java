@@ -15,10 +15,12 @@ import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import example.GameConstants;
 import example.es.Position;
 import example.es.ShipType;
 import example.es.Spawner;
 import example.es.SphereShape;
+import example.es.ship.weapons.Thor;
 import example.es.subspace.PrizeType;
 import example.es.subspace.PrizeTypes;
 import example.sim.CoreGameEntities;
@@ -78,35 +80,35 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
     }
 
     private void loadPrizeWeights() {
-        prizeWeights.put(PrizeTypes.ALLWEAPONS, 40);
-        prizeWeights.put(PrizeTypes.ANTIWARP, 40);
-        prizeWeights.put(PrizeTypes.BOMB, 40);
-        prizeWeights.put(PrizeTypes.BOUNCINGBULLETS, 40);
-        prizeWeights.put(PrizeTypes.BRICK, 40);
-        prizeWeights.put(PrizeTypes.BURST, 40);
-        prizeWeights.put(PrizeTypes.CLOAK, 40);
-        prizeWeights.put(PrizeTypes.DECOY, 40);
-        prizeWeights.put(PrizeTypes.ENERGY, 40);
-        prizeWeights.put(PrizeTypes.ENERGY, 40);
-        prizeWeights.put(PrizeTypes.GLUE, 40);
-        prizeWeights.put(PrizeTypes.GUN, 40);
-        prizeWeights.put(PrizeTypes.MULTIFIRE, 40);
-        prizeWeights.put(PrizeTypes.MULTIPRIZE, 40);
-        prizeWeights.put(PrizeTypes.PORTAL, 40);
-        prizeWeights.put(PrizeTypes.PROXIMITY, 40);
-        prizeWeights.put(PrizeTypes.QUICKCHARGE, 40);
-        prizeWeights.put(PrizeTypes.RECHARGE, 40);
-        prizeWeights.put(PrizeTypes.REPEL, 40);
-        prizeWeights.put(PrizeTypes.ROCKET, 40);
-        prizeWeights.put(PrizeTypes.ROTATION, 40);
-        prizeWeights.put(PrizeTypes.SHIELDS, 40);
-        prizeWeights.put(PrizeTypes.SHRAPNEL, 40);
-        prizeWeights.put(PrizeTypes.STEALTH, 40);
-        prizeWeights.put(PrizeTypes.THOR, 40);
-        prizeWeights.put(PrizeTypes.THRUSTER, 40);
-        prizeWeights.put(PrizeTypes.TOPSPEED, 40);
-        prizeWeights.put(PrizeTypes.WARP, 40);
-        prizeWeights.put(PrizeTypes.XRADAR, 40);
+        prizeWeights.put(PrizeTypes.ALLWEAPONS, 0);
+        prizeWeights.put(PrizeTypes.ANTIWARP, 0);
+        prizeWeights.put(PrizeTypes.BOMB, 0);
+        prizeWeights.put(PrizeTypes.BOUNCINGBULLETS, 0);
+        prizeWeights.put(PrizeTypes.BRICK, 0);
+        prizeWeights.put(PrizeTypes.BURST, 0);
+        prizeWeights.put(PrizeTypes.CLOAK, 0);
+        prizeWeights.put(PrizeTypes.DECOY, 0);
+        prizeWeights.put(PrizeTypes.ENERGY, 0);
+        prizeWeights.put(PrizeTypes.ENERGY, 0);
+        prizeWeights.put(PrizeTypes.GLUE, 0);
+        prizeWeights.put(PrizeTypes.GUN, 0);
+        prizeWeights.put(PrizeTypes.MULTIFIRE, 0);
+        prizeWeights.put(PrizeTypes.MULTIPRIZE, 0);
+        prizeWeights.put(PrizeTypes.PORTAL, 0);
+        prizeWeights.put(PrizeTypes.PROXIMITY, 0);
+        prizeWeights.put(PrizeTypes.QUICKCHARGE, 0);
+        prizeWeights.put(PrizeTypes.RECHARGE, 0);
+        prizeWeights.put(PrizeTypes.REPEL, 0);
+        prizeWeights.put(PrizeTypes.ROCKET, 0);
+        prizeWeights.put(PrizeTypes.ROTATION, 0);
+        prizeWeights.put(PrizeTypes.SHIELDS, 0);
+        prizeWeights.put(PrizeTypes.SHRAPNEL, 0);
+        prizeWeights.put(PrizeTypes.STEALTH, 0);
+        prizeWeights.put(PrizeTypes.THOR, 100);
+        prizeWeights.put(PrizeTypes.THRUSTER, 0);
+        prizeWeights.put(PrizeTypes.TOPSPEED, 0);
+        prizeWeights.put(PrizeTypes.WARP, 0);
+        prizeWeights.put(PrizeTypes.XRADAR, 0);
     }
 
     @Override
@@ -257,6 +259,15 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             case PrizeTypes.STEALTH:
                 break;
             case PrizeTypes.THOR:
+                Thor t = ed.getComponent(ship, Thor.class);
+                if (t == null) {
+                    t = new Thor(GameConstants.THORCOOLDOWN, 1);
+                } else {
+                    int count = t.getCount();
+                    t = new Thor(GameConstants.THORCOOLDOWN, count + 1);
+                }
+                ed.setComponent(ship, t);
+
                 break;
             case PrizeTypes.THRUSTER:
                 break;

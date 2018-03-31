@@ -111,7 +111,7 @@ public final class RandomSelector<T> {
     final double[] discreteProbabilities = new double[size];
     for (int i = 0; i < size; i++) {
       final double weight = weighter.applyAsDouble(elementArray[i]);
-      checkArgument(weight > 0d, "weighter returned a negative number");
+      checkArgument(weight >= 0d, "weighter returned a negative number");
       discreteProbabilities[i] = weight;
       totalWeight += weight;
     }
