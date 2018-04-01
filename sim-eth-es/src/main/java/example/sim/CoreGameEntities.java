@@ -123,6 +123,33 @@ public class CoreGameEntities {
                 PrizeType.create(prizeType, ed),
                 new SphereShape(ViewConstants.PRIZESIZE, new Vec3d()),
                 new Decay(GameConstants.PRIZEDECAY));
+        
+        return result;
+    }
+
+    public static void createBulletSound(EntityId parent, EntityData ed, GunLevel level) {
+        EntityId result = ed.createEntity();
+        
+        ed.setComponents(result, AudioTypes.fire_bullet(ed, level),
+                new Decay(3000), //Three seconds to play the sound
+                new Parent(parent));
+    }
+
+    public static void createBombSound(EntityId parent, EntityData ed, BombLevel level) {
+        EntityId result = ed.createEntity();
+        
+        ed.setComponents(result, AudioTypes.fire_bomb(ed, level),
+                new Decay(3000), //Three seconds to play the sound
+                new Parent(parent));
+    }
+    
+    public static EntityId createSound(EntityId parent, String audioType, EntityData ed){
+        EntityId result = ed.createEntity();
+        
+        ed.setComponents(result, AudioType.create(audioType, ed),
+                new Decay(3000), //Three seconds to play the sound
+                new Parent(parent));
+        
         return result;
     }
 

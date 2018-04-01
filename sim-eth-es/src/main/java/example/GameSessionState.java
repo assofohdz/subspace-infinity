@@ -33,7 +33,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package example;
 
 import org.slf4j.*;
@@ -51,6 +50,8 @@ import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.event.MouseAppState;
+import example.audio.AudioState;
+import example.audio.SIAudioFactory;
 
 import example.debug.TimeSequenceState;
 import example.net.GameSessionListener;
@@ -71,10 +72,10 @@ import example.view.SkyState;
 import example.view.SpaceGridState;
 
 /**
- *  The core state that manages the game session.  This has several
- *  child app states whose lifecycles are directly linked to this one.
+ * The core state that manages the game session. This has several child app
+ * states whose lifecycles are directly linked to this one.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class GameSessionState extends CompositeAppState {
 
@@ -82,58 +83,59 @@ public class GameSessionState extends CompositeAppState {
 
     private GameSessionObserver gameSessionObserver = new GameSessionObserver();
     private ChatSessionObserver chatSessionObserver = new ChatSessionObserver();
-    private ChatCommandEntry    chatEntry = new ChatCommandEntry();
+    private ChatCommandEntry chatEntry = new ChatCommandEntry();
 
     // Temporary reference FIXME
     private PlayerMovementState us;
     private int clientId;
-    
+
     private EntityId playerId;
     private EntityId shipId;
 
     public GameSessionState() {
         // add normal states on the super-constructor
         super(new MessageState(),
-              new TimeState(), // Has to be before any visuals that might need it.
-              new MapStateClient(),
-              new SkyState(),
-              new PlayerMovementState(),
-              new CameraState(),
-              new HudLabelState(),
-              new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-              new ShipFrequencyStateClient(),
-              new FlagStateClient(),
-              new ResourceStateClient(),
-              new ModelViewState(new SISpatialFactory())
-              //new MapEditorState()
-              ); 
-     
+                new TimeState(), // Has to be before any visuals that might need it.
+                new MapStateClient(),
+                new SkyState(),
+                new PlayerMovementState(),
+                new CameraState(),
+                new HudLabelState(),
+                new SpaceGridState(GameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+                new ShipFrequencyStateClient(),
+                new FlagStateClient(),
+                new ResourceStateClient(),
+                new ModelViewState(new SISpatialFactory()),
+                new AudioState(new SIAudioFactory())
+        //new MapEditorState()
+        );
+
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
         addChild(new InGameMenuState(false), true);
         addChild(new CommandConsoleState(), true);
-        
-        // For popping up a time sync debug panel
-        addChild(new TimeSequenceState(), true); 
 
-        addChild(new HelpState(), true); 
-        addChild(new PlayerListState(), true); 
+        // For popping up a time sync debug panel
+        addChild(new TimeSequenceState(), true);
+
+        addChild(new HelpState(), true);
+        addChild(new PlayerListState(), true);
     }
- 
+
     public EntityId getShipId() {
         return shipId;
     }
- 
+
     public void disconnect() {
         // Remove ourselves
         getStateManager().detach(this);
     }
-    
-    @Override   
-    protected void initialize( Application app ) {
+
+    @Override
+    protected void initialize(Application app) {
         super.initialize(app);
         log.info("initialize()");
-        
+
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
 
         // Add a self-message because we're too late to have caught the
@@ -152,7 +154,7 @@ public class GameSessionState extends CompositeAppState {
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
- 
+
         // Temporary FIXME
         clientId = getState(ConnectionState.class).getClientId();
         us = getState(PlayerMovementState.class);
@@ -160,24 +162,23 @@ public class GameSessionState extends CompositeAppState {
         shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getShip();
         log.info("Player object:" + shipId);
         us.setShipId(shipId);
-        
+
         addChild(new MouseAppState(app));
     }
-    
-    @Override   
-    protected void cleanup( Application app ) {
-        
+
+    @Override
+    protected void cleanup(Application app) {
+
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
-        inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);        
-        
+        inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);
+
         EventBus.publish(GameSessionEvent.sessionEnded, new GameSessionEvent());
- 
+
         // The below will fail because there is no message state anymore... so
         // it wouldn't show the message anyway.       
         // getState(MessageState.class).addMessage("> You have left the game.", ColorRGBA.Yellow);
-
         getChild(CommandConsoleState.class).setCommandEntry(null);
-                
+
         super.cleanup(app);
     }
 
@@ -185,54 +186,55 @@ public class GameSessionState extends CompositeAppState {
     protected void onEnable() {
         super.onEnable();
         //GuiGlobals.getInstance().setCursorEventsEnabled(false);
-    }            
+    }
 
     @Override
     protected void onDisable() {
         super.onEnable();
         //GuiGlobals.getInstance().setCursorEventsEnabled(true);
-    }            
-    
+    }
+
     /**
-     *  Notified by the server about game-session related events.
+     * Notified by the server about game-session related events.
      */
     private class GameSessionObserver implements GameSessionListener {
- 
+
     }
- 
+
     /**
-     *  Hooks into the CommandConsoleState to forward messages to the
-     *  chat service.
+     * Hooks into the CommandConsoleState to forward messages to the chat
+     * service.
      */
     private class ChatCommandEntry implements CommandEntry {
+
         @Override
-        public void runCommand( String cmd ) {
+        public void runCommand(String cmd) {
             getState(ConnectionState.class).getService(ChatClientService.class).sendMessage(cmd);
         }
-    } 
-    
+    }
+
     /**
-     *  Notified by the server about chat-releated events.
+     * Notified by the server about chat-releated events.
      */
     private class ChatSessionObserver implements ChatSessionListener {
-    
+
         @Override
-        public void playerJoined( int clientId, String playerName ) {
+        public void playerJoined(int clientId, String playerName) {
             getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
         }
- 
+
         @Override
-        public void newMessage( int clientId, String playerName, String message ) {
+        public void newMessage(int clientId, String playerName, String message) {
             message = message.trim();
-            if( message.length() == 0 ) {
+            if (message.length() == 0) {
                 return;
             }
-            getState(MessageState.class).addMessage(playerName + " said:" + message, ColorRGBA.White);  
+            getState(MessageState.class).addMessage(playerName + " said:" + message, ColorRGBA.White);
         }
-    
+
         @Override
-        public void playerLeft( int clientId, String playerName ) {
-            getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
+        public void playerLeft(int clientId, String playerName) {
+            getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);
         }
     }
 }

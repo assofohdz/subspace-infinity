@@ -14,6 +14,7 @@ import example.PhysicsConstants;
 import example.es.Attack;
 import example.es.AttackDirection;
 import example.es.AttackVelocity;
+import example.es.AudioTypes;
 import example.es.WeaponType;
 import example.es.WeaponTypes;
 import example.es.BodyPosition;
@@ -427,27 +428,27 @@ public class WeaponStateServer extends AbstractGameSystem {
         return new AttackInfo(location, orientation, rotation, attackVel);
     }
 
-    private long attackBomb(AttackInfo info, BombLevel level, Damage damage) {
+    private void attackBomb(AttackInfo info, BombLevel level, Damage damage) {
         EntityId projectile;
         projectile = CoreGameEntities.createBomb(info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), GameConstants.BULLETDECAY, ed, level);
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        return projectile.getId();
+        CoreGameEntities.createBombSound(projectile, ed, level);
     }
 
-    private long attackGuns(AttackInfo info, GunLevel level, Damage damage) {
+    private void attackGuns(AttackInfo info, GunLevel level, Damage damage) {
         EntityId projectile;
         projectile = CoreGameEntities.createBullet(info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), GameConstants.BULLETDECAY, ed, level);
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        return projectile.getId();
+        CoreGameEntities.createBulletSound(projectile, ed, level);
     }
 
-    private long attackGravBomb(AttackInfo info, BombLevel level, Damage damage) {
+    private void attackGravBomb(AttackInfo info, BombLevel level, Damage damage) {
         EntityId projectile;
         HashSet<EntityComponent> delayedComponents = new HashSet<>();
         delayedComponents.add(new GravityWell(5, GameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
@@ -456,13 +457,15 @@ public class WeaponStateServer extends AbstractGameSystem {
         projectile = CoreGameEntities.createDelayedBomb(info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), GameConstants.GRAVBOMBDECAY, GameConstants.GRAVBOMBDELAY, delayedComponents, ed, level);
         ed.setComponent(projectile, new Damage(damage.getDamage()));
 
-        return projectile.getId();
+        CoreGameEntities.createSound(projectile, AudioTypes.FIRE_GRAVBOMB, ed);
     }
 
     private void attackThor(AttackInfo info, Damage damage) {
         EntityId projectile;
         projectile = CoreGameEntities.createThor(info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), GameConstants.THORDECAY, ed);
         ed.setComponent(projectile, new Damage(damage.getDamage()));
+        
+        CoreGameEntities.createSound(projectile, AudioTypes.FIRE_THOR, ed);
     }
 
     private class AttackInfo {

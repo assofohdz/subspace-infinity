@@ -267,6 +267,8 @@ public class GameServer {
         Serializer.registerClass(Frequency.class, new FieldSerializer());
         Serializer.registerClass(Flag.class, new FieldSerializer());
         Serializer.registerClass(Gold.class, new FieldSerializer());
+        Serializer.registerClass(AudioType.class, new FieldSerializer());
+        Serializer.registerClass(Parent.class, new FieldSerializer());
     }
 
     public Server getServer() {

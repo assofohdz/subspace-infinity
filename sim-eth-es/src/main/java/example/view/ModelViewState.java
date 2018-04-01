@@ -59,6 +59,10 @@ public class ModelViewState extends BaseAppState {
     private Spatial playerSpatial;
     private EntityId localPlayerEntityId;
 
+    public ModelViewState(SISpatialFactory siSpatialFactory) {
+        this.factory = siSpatialFactory;
+    }
+
     public Spatial getModel(EntityId id) {
         return modelIndex.get(id);
     }
@@ -115,7 +119,7 @@ public class ModelViewState extends BaseAppState {
 
         // Grab a consistent time for this frame
         long time = timeState.getTime();
-        
+
         // Update all of the models
         models.update();
         mobs.update();
@@ -736,6 +740,13 @@ public class ModelViewState extends BaseAppState {
     public Spatial getPlayerSpatial() {
         return playerSpatial;
     }
+    
+    public Node getModelNode(EntityId eId){
+        if (models.getObject(eId) instanceof Node) {
+                return (Node) models.getObject(eId);
+        }
+        return null;
+    }
 
     private void putShape(Node n, Mesh shape, ColorRGBA color) {
         Geometry g = new Geometry("coordinate axis", shape);
@@ -758,10 +769,6 @@ public class ModelViewState extends BaseAppState {
         arrow = new Arrow(Vector3f.UNIT_Z);
         arrow.setLineWidth(4); // make arrow thicker
         putShape(n, arrow, ColorRGBA.Blue);
-    }
-
-    public ModelViewState(SISpatialFactory siSpatialFactory) {
-        this.factory = siSpatialFactory;
     }
 
     /**

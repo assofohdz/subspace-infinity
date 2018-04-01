@@ -46,9 +46,7 @@ public class SISpatialFactory implements ModelFactory {
         this.state = state;
         this.assets = state.getApplication().getAssetManager();
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
-
         this.assets.registerLoader(AWTLoader.class, "bm2");
-
         this.clientMapState = state.getApplication().getStateManager().getState(MapStateClient.class);
     }
 
@@ -128,7 +126,7 @@ public class SISpatialFactory implements ModelFactory {
         } else if (ViewTypes.BASE.equals(type.getTypeName(ed))) {
             return createBase();
         } else {
-            throw new RuntimeException("Unknown spatial type:" + type.getTypeName(ed));
+            throw new UnsupportedOperationException("Unknown spatial type:" + type.getTypeName(ed));
         }
     }
 

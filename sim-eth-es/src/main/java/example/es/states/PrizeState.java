@@ -16,6 +16,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.GameConstants;
+import example.es.AudioTypes;
 import example.es.Position;
 import example.es.ShipType;
 import example.es.Spawner;
@@ -191,12 +192,17 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             this.handlePrizeAcquisition(pt, two);
             //Remove prize
             ed.removeEntity(one);
+            //Play audio
+            //Play audio
+            CoreGameEntities.createSound(two, AudioTypes.PICKUP_PRIZE, ed);
             return false;
         } else if (prizes.containsId(two) && ships.containsId(one)) {
             PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
             this.handlePrizeAcquisition(pt, one);
             //Remove prize
             ed.removeEntity(two);
+            //Play audio
+            CoreGameEntities.createSound(one, AudioTypes.PICKUP_PRIZE, ed);
             return false;
         }
 
