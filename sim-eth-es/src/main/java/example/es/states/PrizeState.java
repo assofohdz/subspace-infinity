@@ -136,10 +136,10 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             Position p = e.get(Position.class);
             SphereShape c = e.get(SphereShape.class);
             if (prizeCount.containsKey(e.getId()) && prizeCount.get(e.getId()) < s.getMaxCount()) {
-                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), false);
+                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), true);
                 prizeCount.put(e.getId(), prizeCount.get(e.getId()) + 1);
             } else {
-                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), false);
+                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), true);
                 prizeCount.put(e.getId(), 1);
             }
         }

@@ -72,6 +72,7 @@ import example.es.Gold;
 import example.es.WeaponTypes;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;
+import java.util.HashMap;
 
 /**
  *
@@ -104,6 +105,8 @@ public class PlayerMovementState extends BaseAppState
     private double rotate;
     private InputManager inputManager;
 
+    private HashMap<FunctionId, Boolean> functionStates = new HashMap<>();
+
     public PlayerMovementState() {
     }
 
@@ -117,8 +120,7 @@ public class PlayerMovementState extends BaseAppState
 
     @Override
     protected void initialize(Application app) {
-        
-        
+
         log.info("initialize()");
 
         if (inputMapper == null) {
@@ -141,7 +143,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
-                //PlayerMovementFunctions.F_REPEL,
+                PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
                 PlayerMovementFunctions.F_WARP,
                 PlayerMovementFunctions.F_WARBIRD,
@@ -153,8 +155,6 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_LANC,
                 PlayerMovementFunctions.F_SHARK);
         
-        
-
         // Grab the game session
         session = getState(ConnectionState.class).getService(GameSessionClientService.class);
         if (session == null) {
@@ -162,8 +162,6 @@ public class PlayerMovementState extends BaseAppState
         }
 
         this.models = getState(ModelViewState.class);
-    
-        
 
         if (getState(DebugHudState.class) != null) {
             DebugHudState debug = getState(DebugHudState.class);
@@ -185,7 +183,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_MOUSELEFTCLICK,
                 PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
-                //PlayerMovementFunctions.F_REPEL,
+                PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
                 PlayerMovementFunctions.F_WARP,
                 PlayerMovementFunctions.F_WARBIRD,
@@ -206,6 +204,10 @@ public class PlayerMovementState extends BaseAppState
         inputMapper.activateGroup(PlayerMovementFunctions.G_MOVEMENT);
         inputMapper.activateGroup(PlayerMovementFunctions.G_MAP);
         inputMapper.activateGroup(PlayerMovementFunctions.G_SHIPSELECTION);
+        inputMapper.activateGroup(PlayerMovementFunctions.G_WEAPON);
+        inputMapper.activateGroup(PlayerMovementFunctions.G_TOGGLE);
+        inputMapper.activateGroup(PlayerMovementFunctions.G_TOWER);
+        inputMapper.activateGroup(PlayerMovementFunctions.G_ACTION);
 
         // And kill the cursor
         // GuiGlobals.getInstance().setCursorEventsEnabled(false);
@@ -219,6 +221,10 @@ public class PlayerMovementState extends BaseAppState
         inputMapper.deactivateGroup(PlayerMovementFunctions.G_MOVEMENT);
         inputMapper.deactivateGroup(PlayerMovementFunctions.G_MAP);
         inputMapper.deactivateGroup(PlayerMovementFunctions.G_SHIPSELECTION);
+        inputMapper.deactivateGroup(PlayerMovementFunctions.G_WEAPON);
+        inputMapper.deactivateGroup(PlayerMovementFunctions.G_TOGGLE);
+        inputMapper.deactivateGroup(PlayerMovementFunctions.G_TOWER);
+        inputMapper.deactivateGroup(PlayerMovementFunctions.G_ACTION);
         //GuiGlobals.getInstance().setCursorEventsEnabled(true);        
     }
 
@@ -229,7 +235,6 @@ public class PlayerMovementState extends BaseAppState
 
         String s = String.format("%.2f, %.2f, %.2f", loc.x, loc.y, loc.z);
         positionDisplay.setObject(s);
-        
 
         long time = System.nanoTime();
         if (lastSpeedTime != 0) {
@@ -245,7 +250,7 @@ public class PlayerMovementState extends BaseAppState
             s = String.format("%.2f", speedAverage);
             speedDisplay.setObject(s);
         }
-        
+
         lastPosition.set(loc);
         lastSpeedTime = time;
     }
@@ -256,11 +261,9 @@ public class PlayerMovementState extends BaseAppState
     @Override
     public void update(float tpf) {
 
-      
         // Update the camera position from the ship spatial
         Spatial spatial = models.getModel(shipId);
 
-        
         long time = System.nanoTime();
         if (time > nextSendTime) {
             nextSendTime = time + sendFrequency;
@@ -306,7 +309,11 @@ public class PlayerMovementState extends BaseAppState
      */
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
-        //TODO: Implement method to able to validate key combos on key release instead of key presses
+        /*
+        if (value == InputState.Positive) {
+            functionStates.put(func, Boolean.TRUE);
+        }
+         */
         if (value == InputState.Off) {
             if (func == PlayerMovementFunctions.F_SHOOT) {
                 session.attackGuns();
@@ -316,29 +323,33 @@ public class PlayerMovementState extends BaseAppState
                 session.attackGravityBomb();
             } else if (func == PlayerMovementFunctions.F_THOR) {
                 session.attackThor();
-            /*} else if (func == PlayerMovementFunctions.F_REPEL) {
-                session.repel();*/
+            } else if (func == PlayerMovementFunctions.F_REPEL) {
+                session.repel();
             } else if (func == PlayerMovementFunctions.F_MINE) {
                 session.placeMine();
             } else if (func == PlayerMovementFunctions.F_WARBIRD) {
-                session.chooseShip((byte)1);
-            }else if (func == PlayerMovementFunctions.F_JAVELIN) {
-                session.chooseShip((byte)2);
-            }else if (func == PlayerMovementFunctions.F_SPIDER) {
-                session.chooseShip((byte)3);
-            }else if (func == PlayerMovementFunctions.F_LEVI) {
-                session.chooseShip((byte)4);
-            }else if (func == PlayerMovementFunctions.F_TERRIER) {
-                session.chooseShip((byte)5);
-            }else if (func == PlayerMovementFunctions.F_WEASEL) {
-                session.chooseShip((byte)6);
-            }else if (func == PlayerMovementFunctions.F_LANC) {
-                session.chooseShip((byte)7);
-            }else if (func == PlayerMovementFunctions.F_SHARK) {
-                session.chooseShip((byte)8);
-            }else if (func == PlayerMovementFunctions.F_WARP) {
+                session.chooseShip((byte) 1);
+            } else if (func == PlayerMovementFunctions.F_JAVELIN) {
+                session.chooseShip((byte) 2);
+            } else if (func == PlayerMovementFunctions.F_SPIDER) {
+                session.chooseShip((byte) 3);
+            } else if (func == PlayerMovementFunctions.F_LEVI) {
+                session.chooseShip((byte) 4);
+            } else if (func == PlayerMovementFunctions.F_TERRIER) {
+                session.chooseShip((byte) 5);
+            } else if (func == PlayerMovementFunctions.F_WEASEL) {
+                session.chooseShip((byte) 6);
+            } else if (func == PlayerMovementFunctions.F_LANC) {
+                session.chooseShip((byte) 7);
+            } else if (func == PlayerMovementFunctions.F_SHARK) {
+                session.chooseShip((byte) 8);
+            } else if (func == PlayerMovementFunctions.F_WARP) {
                 session.warp();
             }
+            /*
+            for (FunctionId funcId : functionStates.keySet()) {
+                functionStates.put(funcId, Boolean.FALSE);
+            }*/
         }
     }
 
