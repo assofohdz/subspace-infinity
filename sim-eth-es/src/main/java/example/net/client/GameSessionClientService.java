@@ -149,11 +149,11 @@ public class GameSessionClientService extends AbstractClientService
     }
 
     @Override
-    public void editMap(double x, double y){
+    public void editMap(String tileSet, double x, double y){
         if (log.isTraceEnabled()) {
-            log.trace("edit map @("+x+","+y+")");
+            log.trace("edit map @("+x+","+y+") wi tileset: "+tileSet);
         }
-        getDelegate().editMap(x, y); 
+        getDelegate().editMap(tileSet, x, y); 
     }
 
     @Override

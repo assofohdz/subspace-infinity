@@ -170,12 +170,13 @@ public class ModuleGameEntities {
         return lastArena;
     }
 
-    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed, Ini settings) {
+    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, String tileType, EntityData ed, Ini settings) {
         EntityId lastTileInfo = ed.createEntity();
 
-        ed.setComponents(lastTileInfo, ViewTypes.mapTile(ed),
+        ed.setComponents(lastTileInfo,
+                TileType.create(tileType, tileSet, tileIndex, ed), 
+                ViewTypes.mapTile(ed),
                 new Position(location, new Quatd(), 0f),
-                new TileInfo(tileSet, tileIndex), //Tile set and tile index
                 PhysicsMassTypes.infinite(ed),
                 PhysicsShapes.mapTile(c));
 

@@ -33,62 +33,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package example.net;
+package example.es;
 
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
-import com.jme3.network.service.rmi.Asynchronous;
-
-import com.simsilica.es.EntityId;
+import com.simsilica.es.EntityData;
 
 /**
- * The client's view of the 'game'. Provides necessary access to the general
- * game interaction and possibly game or player state.
+ * Factory methods for the common object types. Because we run the string names
+ * through the EntityData's string index we can't just have normal constants.
  *
  * @author Paul Speed
  */
-public interface GameSession {
+public class TileTypes {
 
-    /**
-     * Returns the ID of the ship entity.
-     */
-    public EntityId getShip();
+    public static final String LEGACY = "legacy"; //Legacy SS Map Tileset
+    public static final String WANGBLOB = "wangblob"; //Wang Blob Tileset
 
-    /**
-     * Returns the ID of the player entity.
-     */
-    public EntityId getPlayer();
+    public static TileType legacy(String tileSet, short tileIndex, EntityData ed) {
+        return TileType.create(LEGACY, tileSet, tileIndex, ed);
+    }
 
-    /**
-     * Sends information to the game back end about the current movement state
-     * of the player from user input. Because this state is continuous, it
-     * doesn't need to be reliable.
-     */
-    @Asynchronous(reliable = false)
-    public void move(Vector3f thrust);
-
-    //Weapons:
-    public void attackGuns();
-
-    public void attackBomb();
-
-    public void attackGravityBomb();
-
-    public void placeMine();
-
-    public void attackBurst();
-
-    public void attackThor();
-
-    //Actions:
-    public void repel();
-
-    public void warp();
-
-    //Misc
-    public void editMap(String tileSet, double x, double y);
-
-    public void chooseShip(byte ship);
-
-    public void tower(double x, double y);
+    public static TileType wangblob(String tileSet, short tileIndex, EntityData ed) {
+        return TileType.create(WANGBLOB, tileSet, tileIndex, ed);
+    }
 }

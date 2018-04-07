@@ -261,14 +261,13 @@ public class GameServer {
         Serializer.registerClass(Position.class, new FieldSerializer());
         Serializer.registerClass(SphereShape.class, new FieldSerializer());
 
-        Serializer.registerClass(TileInfo.class, new FieldSerializer());
-
         Serializer.registerClass(ShipType.class, new FieldSerializer());
         Serializer.registerClass(Frequency.class, new FieldSerializer());
         Serializer.registerClass(Flag.class, new FieldSerializer());
         Serializer.registerClass(Gold.class, new FieldSerializer());
         Serializer.registerClass(AudioType.class, new FieldSerializer());
         Serializer.registerClass(Parent.class, new FieldSerializer());
+        Serializer.registerClass(TileType.class, new FieldSerializer());
     }
 
     public Server getServer() {

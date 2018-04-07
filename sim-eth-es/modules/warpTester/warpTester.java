@@ -59,7 +59,7 @@ public class warpTester extends BaseGameModule {
     public void start() {
         //EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this warpTester do stuff is ~prizeTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccountLevels.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
 
         //startGame();
     }

@@ -2,19 +2,30 @@ package example.es.states;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
+import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.es.filter.AndFilter;
+import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import example.GameConstants;
 import example.es.GravityWell;
+import example.es.Position;
+import example.es.TileType;
+import example.es.TileTypes;
 import example.es.WarpTo;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.CoreGameEntities;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import org.dyn4j.geometry.Convex;
 import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Rectangle;
 import org.dyn4j.geometry.Transform;
@@ -33,7 +44,14 @@ public class MapStateServer extends AbstractGameSystem {
     private AssetManager am;
     public static final int MAP_SIZE = 1024;
     private static final int HALF = 512;
+    private EntitySet tileTypes;
+    private Vector2 northKey, eastKey, westKey, southKey;
+    private Vector2 northEastKey;
+    private Vector2 southEastKey;
+    private Vector2 southWestKey;
+    private Vector2 northWestkey;
 
+    //int[][] multD = new int[5][];
     @Override
     protected void initialize() {
 
@@ -42,6 +60,8 @@ public class MapStateServer extends AbstractGameSystem {
         am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
         am.registerLoader(LevelLoader.class, "lvl");
+
+        tileTypes = ed.getEntities(TileType.class, Position.class);
 
         //
         //createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(0,0,0));
@@ -65,7 +85,7 @@ public class MapStateServer extends AbstractGameSystem {
         return map;
     }
 
-    public void createEntitiesFromMap(LevelFile map, Vec3d arenaOffset) {
+    public void createEntitiesFromLegacyMap(LevelFile map, Vec3d arenaOffset) {
         short[][] tiles = map.getMap();
 
         for (int xpos = 0; xpos < tiles.length; xpos++) {
@@ -174,7 +194,7 @@ public class MapStateServer extends AbstractGameSystem {
                             CoreGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
                             break;
                         default:
-                            CoreGameEntities.createMapTile(map.m_file, s, location, new Rectangle(1, 1), 0.0, ed);//
+                            CoreGameEntities.createMapTile(map.m_file, s, location, new Rectangle(1, 1), TileTypes.LEGACY, ed);//
                             break;
                     }
                 }
@@ -186,22 +206,143 @@ public class MapStateServer extends AbstractGameSystem {
         return index.get(coord);
     }
 
-    protected boolean removeMapTileCoord(Vector2 vector2) {
-        EntityId result = index.remove(vector2);
-        if (result != null) {
-            return true;
-        }
-        return false;
-    }
-
     @Override
     protected void terminate() {
         //Release reader object
         reader = null;
+
+        tileTypes.release();
+        tileTypes = null;
     }
 
     @Override
     public void update(SimTime tpf) {
+        tileTypes.applyChanges();
+        if (tileTypes.hasChanges()) {
+            for (Entity e : tileTypes.getAddedEntities()) {
+                TileType tt = e.get(TileType.class);
+                Position p = e.get(Position.class);
+                Vec3d location = p.getLocation();
+                //Clamp location
+                Vector2 clampedLocation = getKey(location);
+                location.x = clampedLocation.x;
+                location.y = clampedLocation.y;
+
+                index.put(clampedLocation, e.getId());
+
+                ArrayList<Vector2> locations = new ArrayList<>();
+                locations.add(clampedLocation);
+
+                short tileIndexNumber = updateWangBlobIndexNumber(locations, true);
+
+                CoreGameEntities.updateWangBlobEntity(e.getId(), tt.getTileSet(), tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), new Rectangle(1, 1), ed);
+            }
+        }
+    }
+
+    private short updateWangBlobIndexNumber(ArrayList<Vector2> locations, boolean cascade) {
+        int result = 0;
+        ArrayList<Vector2> cascadedLocations = new ArrayList<>();
+
+        int north = 0, northEast = 0, east = 0, southEast = 0, south = 0, southWest = 0, west = 0, northWest = 0;
+
+        for (Vector2 clampedLocation : locations) {
+            northKey = clampedLocation.copy().add(0, 1);
+            if (index.containsKey(northKey)) {
+                north = 1;
+                if (cascade) {
+                    cascadedLocations.add(northKey);
+                }
+            }
+
+            northEastKey = clampedLocation.copy().add(1, 1);
+            if (index.containsKey(northEastKey)) {
+                northEast = 1;
+                if (cascade) {
+                    cascadedLocations.add(northEastKey);
+                }
+            }
+
+            eastKey = clampedLocation.copy().add(1, 0);
+            if (index.containsKey(eastKey)) {
+                east = 1;
+                if (cascade) {
+                    cascadedLocations.add(eastKey);
+                }
+            }
+
+            southEastKey = clampedLocation.copy().add(1, -1);
+            if (index.containsKey(southEastKey)) {
+                southEast = 1;
+                if (cascade) {
+                    cascadedLocations.add(southEastKey);
+                }
+            }
+
+            southKey = clampedLocation.copy().add(0, -1);
+            if (index.containsKey(southKey)) {
+                south = 1;
+                if (cascade) {
+                    cascadedLocations.add(southKey);
+                }
+            }
+
+            southWestKey = clampedLocation.copy().add(-1, -1);
+            if (index.containsKey(southWestKey)) {
+                southWest = 1;
+                if (cascade) {
+                    cascadedLocations.add(southWestKey);
+                }
+            }
+
+            westKey = clampedLocation.copy().add(-1, 0);
+            if (index.containsKey(westKey)) {
+                west = 1;
+                if (cascade) {
+                    cascadedLocations.add(westKey);
+                }
+            }
+
+            northWestkey = clampedLocation.copy().add(-1, 1);
+            if (index.containsKey(northWestkey)) {
+                northWest = 1;
+                if (cascade) {
+                    cascadedLocations.add(northWestkey);
+                }
+            }
+
+            if (north == 0) {
+                northEast = 0;
+                northWest = 0;
+            }
+
+            if (west == 0) {
+                northWest = 0;
+                southWest = 0;
+            }
+
+            if (south == 0) {
+                southEast = 0;
+                southWest = 0;
+            }
+            
+            if (east == 0) {
+                southEast = 0;
+                northEast = 0;
+            }
+
+            result = north + 2 * northEast + 4 * east + 8 * southEast + 16 * south + 32 * southWest + 64 * west + 128 * northWest;
+
+            EntityId currentEntity = index.get(clampedLocation);
+            TileType tt = ed.getComponent(currentEntity, TileType.class);
+            ed.setComponent(currentEntity, tt.newTileIndex((short) result, ed));
+        }
+
+        if (cascade && cascadedLocations.size() > 0) {
+            updateWangBlobIndexNumber(cascadedLocations, false);
+        }
+
+        return (short) result;
     }
 
     @Override
@@ -212,18 +353,8 @@ public class MapStateServer extends AbstractGameSystem {
     public void stop() {
     }
 
-    public void editMap(double x, double y) {
-        Vector2 coordinates = new Vector2(Math.round(x - 0.5) + 0.5, Math.round(y - 0.5) + 0.5);
-
-        if (index.containsKey(coordinates)) {
-            //TODO: There's already a tile there, attempt to change it or remove it
-
-            //For now, just remove it
-            ed.removeEntity(index.get(coordinates));
-
-        } else {
-            //GameEntities.createTileInfo(tileSet, 0, Vec3d.UNIT_X, c, y, ed)
-            //GameEntities.createMapTile(MapTileTypes.solid(ed), new Vec3d(coordinates.x, coordinates.y, 0), ed, new Rectangle(1, 1)); //TODO: Account for actual arena (z-pos)
-        }
+    private Vector2 getKey(Vec3d location) {
+        Vector2 coordinates = new Vector2(Math.round(location.x - 0.5) + 0.5, Math.round(location.y - 0.5) + 0.5);
+        return coordinates;
     }
 }

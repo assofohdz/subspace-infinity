@@ -3,17 +3,39 @@ package example.view;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.asset.AssetManager;
+import com.jme3.collision.CollisionResults;
+import com.jme3.input.MouseInput;
+import com.jme3.input.event.MouseButtonEvent;
+import com.jme3.input.event.MouseMotionEvent;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.texture.Image;
 import com.jme3.texture.plugins.AWTLoader;
+import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.es.filter.AndFilter;
+import com.simsilica.es.filter.FieldFilter;
+import com.simsilica.lemur.event.DefaultMouseListener;
+import com.simsilica.lemur.event.MouseEventControl;
 import example.ConnectionState;
 import example.es.Position;
-import example.es.TileInfo;
+import example.es.TileType;
+import example.es.TileTypes;
+import example.es.ViewType;
+import example.es.ViewTypes;
 import example.map.LevelFile;
 import example.map.LevelLoader;
+import example.net.GameSession;
+import example.net.client.GameSessionClientService;
+import static example.view.ModelViewState.log;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
@@ -30,15 +52,20 @@ import tiled.core.Map;
  */
 public class MapStateClient extends BaseAppState {
 
-    private TMXMapReader reader;
-    private Map map;
+    AndFilter andFilter;
     private EntityData ed;
-    private BodyContainer tileImages;
+    private LegacyMapImageContainer tileImages;
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
     private HashMap<String, LevelFile> levelFiles = new HashMap<>();
     private AWTLoader imgLoader;
     private HashMap<TileKey, Image> imageMap = new HashMap<>();
+    private FieldFilter legacyFilter;
+    private FieldFilter wangBlobFilter;
+    private EntitySet tileTypes;
+    private EntitySet arenas;
+
+    private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
 
     @Override
     protected void initialize(Application app) {
@@ -51,6 +78,94 @@ public class MapStateClient extends BaseAppState {
 
         imgLoader = new AWTLoader();
 
+        tileTypes = ed.getEntities(TileType.class);
+
+        this.generateWangBlobInfoMap(wangBlobIndexMap);
+
+        legacyFilter = FieldFilter.create(TileType.class, "type", ed.getStrings().getStringId(TileTypes.LEGACY, false));
+        wangBlobFilter = FieldFilter.create(TileType.class, "type", ed.getStrings().getStringId(TileTypes.WANGBLOB, false));
+
+        arenas = ed.getEntities(FieldFilter.create(ViewType.class, "type", ViewTypes.ARENA), ViewType.class, Position.class);
+    }
+
+    public float getWangBlobRotations(int indexNumber) {
+        if (!wangBlobIndexMap.containsKey(indexNumber)) {
+            throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
+        }
+        return wangBlobIndexMap.get(indexNumber).getRotation();
+    }
+
+    public int getWangBloblTileNumber(int indexNumber) {
+        if (!wangBlobIndexMap.containsKey(indexNumber)) {
+            throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
+        }
+        return wangBlobIndexMap.get(indexNumber).getTileNumber();
+    }
+
+    private void generateWangBlobInfoMap(HashMap<Integer, WangInfo> map) {
+        //Zero
+        map.put(0, new WangInfo(0, 0));
+        //One
+        map.put(1, new WangInfo(1, 0));
+        map.put(4, new WangInfo(1, (float) Math.PI/2));
+        map.put(16, new WangInfo(1, (float) Math.PI));
+        map.put(64, new WangInfo(1, 3* (float) Math.PI/2));
+        //Five
+        map.put(5, new WangInfo(2, 0));
+        map.put(20, new WangInfo(2, (float) Math.PI/2));
+        map.put(80, new WangInfo(2, (float) Math.PI));
+        map.put(65, new WangInfo(2, 3* (float) Math.PI/2));
+        //Seven
+        map.put(7, new WangInfo(3, 0));
+        map.put(28, new WangInfo(3, (float) Math.PI/2));
+        map.put(112, new WangInfo(3, (float) Math.PI));
+        map.put(193, new WangInfo(3, 3* (float) Math.PI/2));
+        //Seventeen         
+        map.put(17, new WangInfo(4, 0));
+        map.put(68, new WangInfo(4, (float) Math.PI/2));
+        //Twentyone
+        map.put(21, new WangInfo(5, 0));
+        map.put(84, new WangInfo(5, (float) Math.PI/2));
+        map.put(81, new WangInfo(5, (float) Math.PI));
+        map.put(69, new WangInfo(5, 3* (float) Math.PI/2));
+        //Twentythree
+        map.put(23, new WangInfo(6, 0));
+        map.put(92, new WangInfo(6, (float) Math.PI/2));
+        map.put(113, new WangInfo(6, (float) Math.PI));
+        map.put(197, new WangInfo(6, 3* (float) Math.PI/2));
+        //TwentyNine
+        map.put(29, new WangInfo(7, 0));
+        map.put(116, new WangInfo(7, (float) Math.PI/2));
+        map.put(209, new WangInfo(7, (float) Math.PI));
+        map.put(71, new WangInfo(7, 3* (float) Math.PI/2));
+        //ThirtyOne
+        map.put(31, new WangInfo(8, 0));
+        map.put(124, new WangInfo(8, (float) Math.PI/2));
+        map.put(241, new WangInfo(8, (float) Math.PI));
+        map.put(199, new WangInfo(8, 3* (float) Math.PI/2));
+        //EightFive
+        map.put(85, new WangInfo(9, 0));
+        //EightySeven
+        map.put(87, new WangInfo(10, 0));
+        map.put(93, new WangInfo(10, (float) Math.PI/2));
+        map.put(117, new WangInfo(10, (float) Math.PI));
+        map.put(213, new WangInfo(10, 3* (float) Math.PI/2));
+        //NinetyFive
+        map.put(95, new WangInfo(11, 0));
+        map.put(125, new WangInfo(11, (float) Math.PI/2));
+        map.put(245, new WangInfo(11, (float) Math.PI));
+        map.put(215, new WangInfo(11, 3* (float) Math.PI/2));
+        //OneHundredAndNineTeen
+        map.put(119, new WangInfo(12, 0));
+        map.put(221, new WangInfo(12, (float) Math.PI/2));
+        //OneHundredAndTwentySeven
+        map.put(127, new WangInfo(13, 0));
+        map.put(253, new WangInfo(13, (float) Math.PI/2));
+        map.put(247, new WangInfo(13, (float) Math.PI));
+        map.put(223, new WangInfo(13, 3* (float) Math.PI/2));
+        //TwoHundredAndFiftyFive
+        map.put(255, new WangInfo(14, 0));
+        //Second row
     }
 
     public Image getImage(EntityId entityId) {
@@ -59,9 +174,9 @@ public class MapStateClient extends BaseAppState {
 
     protected LevelFile loadMap(String tileSet) {
 
-        LevelFile map = (LevelFile) am.loadAsset(tileSet);
+        LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
 
-        return map;
+        return localMap;
     }
 
     public EntityId getEntityId(Vector2 coord) {
@@ -70,61 +185,66 @@ public class MapStateClient extends BaseAppState {
 
     @Override
     protected void cleanup(Application app) {
-        //Release reader object
-        reader = null;
+        tileTypes.release();
+        tileTypes = null;
     }
 
     @Override
     protected void onEnable() {
-
-        tileImages = new MapStateClient.BodyContainer(ed);
-        tileImages.start();
+        //tileImages = new LegacyMapImageContainer(ed);
+        //tileImages.start();
     }
 
     @Override
     protected void onDisable() {
-        tileImages.stop();
-        tileImages = null;
+        //tileImages.stop();
+        //tileImages = null;
     }
 
     @Override
     public void update(float tpf) {
-        tileImages.update();
+        tileTypes.applyChanges();
+
+        //tileImages.update();
+    }
+
+    public TileType getType(EntityId id) {
+        return tileTypes.getEntity(id).get(TileType.class);
+    }
+
+    /**
+     * Converts a given Image into a BufferedImage
+     *
+     * @param img The Image to be converted
+     * @return The converted BufferedImage
+     */
+    private BufferedImage toBufferedImage(java.awt.Image img) {
+        if (img instanceof BufferedImage) {
+            return (BufferedImage) img;
+        }
+
+        int width = img.getWidth(null);
+        int height = img.getHeight(null);
+
+        // Create a buffered image with transparency
+        BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        // Draw the image on to the buffered image
+        Graphics2D bGr = bimage.createGraphics();
+        bGr.drawImage(img, 0, 0, null);                          //No flip
+        //bGr.drawImage(img, 0 + width, 0, -width, height, null);  //Horisontal flip
+        //bGr.drawImage(img, 0, 0 + height, width, -height, null);   //Vertical flip
+        bGr.dispose();
+
+        // Return the buffered image
+        return bimage;
     }
 
     //Map the entities to their texture
-    private class BodyContainer extends EntityContainer<Image> {
+    private class LegacyMapImageContainer extends EntityContainer<Image> {
 
-        /**
-         * Converts a given Image into a BufferedImage
-         *
-         * @param img The Image to be converted
-         * @return The converted BufferedImage
-         */
-        private BufferedImage toBufferedImage(java.awt.Image img) {
-            if (img instanceof BufferedImage) {
-                return (BufferedImage) img;
-            }
-
-            int width = img.getWidth(null);
-            int height = img.getHeight(null);
-
-            // Create a buffered image with transparency
-            BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-            // Draw the image on to the buffered image
-            Graphics2D bGr = bimage.createGraphics();
-            bGr.drawImage(img, 0, 0, null);                          //No flip
-            //bGr.drawImage(img, 0 + width, 0, -width, height, null);  //Horisontal flip
-            //bGr.drawImage(img, 0, 0 + height, width, -height, null);   //Vertical flip
-            bGr.dispose();
-
-            // Return the buffered image
-            return bimage;
-        }
-
-        public BodyContainer(EntityData ed) {
-            super(ed, Position.class, TileInfo.class);
+        public LegacyMapImageContainer(EntityData ed) {
+            super(ed, legacyFilter, TileType.class, Position.class);
         }
 
         @Override
@@ -134,8 +254,7 @@ public class MapStateClient extends BaseAppState {
 
         @Override
         protected Image addObject(Entity e) {
-
-            TileInfo ti = e.get(TileInfo.class);
+            TileType ti = e.get(TileType.class);
             String tileSet = ti.getTileSet();
             short tileIndex = ti.getTileIndex();
             TileKey key = new TileKey(tileSet, tileIndex);
@@ -149,7 +268,7 @@ public class MapStateClient extends BaseAppState {
                 }
 
                 java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
-                Image jmeOutputImage = imgLoader.load(this.toBufferedImage(awtInputImage), true);
+                Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
 
                 imageMap.put(key, jmeOutputImage);
 
@@ -210,4 +329,75 @@ public class MapStateClient extends BaseAppState {
         }
 
     }
+
+    private class WangInfo {
+
+        private final int tileNumber;
+        private final float radianRotation;
+
+        public WangInfo(int tileNumber, float rotation) {
+            this.tileNumber = tileNumber;
+            this.radianRotation = rotation;
+        }
+
+        public int getTileNumber() {
+            return tileNumber;
+        }
+
+        public float getRotation() {
+            return radianRotation;
+        }
+    }
+
+    public void setMapEditingActive(boolean active) {
+
+    }
+
+    public void addArenaMouseListeners(Spatial arena) {
+
+        MouseEventControl.addListenersToSpatial(arena,
+                new DefaultMouseListener() {
+            @Override
+            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
+                GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+                if (session == null) {
+                    throw new RuntimeException("ModelViewState requires an active game session.");
+                }
+                Camera cam = getState(CameraState.class).getCamera();
+
+                Vector2f click2d = new Vector2f(event.getX(), event.getY());
+
+                Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
+                Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+
+                Ray ray = new Ray(click3d, dir);
+                CollisionResults results = new CollisionResults();
+                target.collideWith(ray, results);
+                if (results.size() != 1) {
+                    log.error("There should only be one collision with the arena when the user clicks it");
+                }
+                Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
+                    session.editMap("Materials/WangBlobTest.j3m", contactPoint.x, contactPoint.y);
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
+                //Material m = ((Geometry) target).getMaterial();
+                //m.setColor("Color", ColorRGBA.Yellow);
+            }
+
+            @Override
+            public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
+                //Material m = ((Geometry) target).getMaterial();
+                //m.setColor("Color", ColorRGBA.Blue);
+            }
+        });
+    }
+
+    private void updateWangBlobTile() {
+
+    }
+
 }

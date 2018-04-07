@@ -5,6 +5,7 @@ import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -18,7 +19,8 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import example.ConnectionState;
 import example.ViewConstants;
-import example.es.TileInfo;
+import example.es.TileType;
+import example.es.TileTypes;
 import example.es.ViewType;
 import example.es.ViewTypes;
 import example.es.ship.weapons.BombLevel;
@@ -53,13 +55,13 @@ public class SISpatialFactory implements ModelFactory {
     @Override
     public Spatial createModel(Entity e) {
         ViewType type = e.get(ViewType.class);
-        
+
         if (ViewTypes.THRUST.equals(type.getTypeName(ed))) {
             //Create a particle emitter:
             return createParticleEmitter(e);
         } else if (ViewTypes.BULLETL1.equals(type.getTypeName(ed))) {
             //Create bullet
-            return createBullet(e,1);
+            return createBullet(e, 1);
         } else if (ViewTypes.BOMBL1.equals(type.getTypeName(ed))) {
             //Create bomb
             return createBomb(e, BombLevel.LEVEL_1);
@@ -409,20 +411,31 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("MapTile", quad);
 
-        Material mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
+        if (clientMapState.getType(e.getId()).getTypeName(ed).equals(TileTypes.LEGACY)) {
+            Material mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
 
-        //mat.setColor("Color", ColorRGBA.Yellow);
-        Image image = clientMapState.getImage(e.getId());
-        TileInfo ti = e.get(TileInfo.class
-        );
-        if (image == null) {
-            throw new RuntimeException("Image not loaded for tile: " + ti);
+            //mat.setColor("Color", ColorRGBA.Yellow);
+            Image image = clientMapState.getImage(e.getId());
+
+            if (image == null) {
+                throw new RuntimeException("Image not loaded for tile entity: " + e.getId());
+            }
+
+            Texture2D tex2D = new Texture2D(image);
+            mat.setTexture("ColorMap", tex2D);
+
+            geom.setMaterial(mat);
+        } else {
+            //TileInfo.tileSet should now be = "Materials/WangBlobTest.j3m"
+            TileType tileType = clientMapState.getType(e.getId());
+            Material mat = assets.loadMaterial(tileType.getTileSet());
+            geom.setMaterial(mat);
+            //Offset tile
+            mat.setInt("numTilesOffsetX", clientMapState.getWangBloblTileNumber(tileType.getTileIndex()));
+            //Rotate tile
+            geom.rotate(0, 0, -clientMapState.getWangBlobRotations(tileType.getTileIndex()));
+            geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         }
-
-        Texture2D tex2D = new Texture2D(image);
-        mat.setTexture("ColorMap", tex2D);
-
-        geom.setMaterial(mat);
 
         return geom;
     }

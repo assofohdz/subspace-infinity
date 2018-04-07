@@ -300,14 +300,15 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         }
 
         @Override
-        public void editMap(double x, double y) {
+        public void editMap(String tileSet, double x, double y) {
             //Create a map entity
 
             if (log.isTraceEnabled()) {
                 log.trace("Map edit");
             }
 
-            gameSystems.get(MapStateServer.class).editMap(x, y);
+            //gameSystems.get(MapStateServer.class).editMap(x, y);
+            CoreGameEntities.queueWangBlobTile(tileSet, new Vec3d(x,y,0), ed);
         }
 
         @Override

@@ -405,57 +405,14 @@ public class ModelViewState extends BaseAppState {
         //Spatial information:
         Spatial arena = factory.createModel(entity);
 
-        MouseEventControl.addListenersToSpatial(arena,
-                new DefaultMouseListener() {
-            @Override
-            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
-                GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
-                if (session == null) {
-                    throw new RuntimeException("ModelViewState requires an active game session.");
-                }
-                Camera cam = getState(CameraState.class).getCamera();
-
-                Vector2f click2d = new Vector2f(event.getX(), event.getY());
-
-                Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
-                Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
-
-                Ray ray = new Ray(click3d, dir);
-                CollisionResults results = new CollisionResults();
-                target.collideWith(ray, results);
-                if (results.size() != 1) {
-                    log.error("There should only be one collision with the arena when the user clicks it");
-                }
-                Vector3f contactPoint = results.getCollision(0).getContactPoint();
-                if (event.getButtonIndex() == MouseInput.BUTTON_LEFT) {
-                    //Add tower
-                    session.tower(contactPoint.x, contactPoint.y);
-                } else {
-                    //Add map
-                    session.editMap(contactPoint.x, contactPoint.y);
-                }
-            }
-
-            @Override
-            public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
-                //Material m = ((Geometry) target).getMaterial();
-                //m.setColor("Color", ColorRGBA.Yellow);
-            }
-
-            @Override
-            public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
-                //Material m = ((Geometry) target).getMaterial();
-                //m.setColor("Color", ColorRGBA.Blue);
-            }
-        });
-
-        //CursorEventControl.addListenersToSpatial(arena, getState(MapEditorState.class));
         result.attachChild(arena);
+        
+        getState(MapStateClient.class).addArenaMouseListeners(arena);
 
         //attachCoordinateAxes(result);
         return result;
     }
-
+    
     private Spatial createMapTile(Entity entity) {
         //Node information:
         Node result = new Node("maptile:" + entity.getId());
@@ -689,7 +646,6 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Mob object, Entity e) {
-
             object.updateComponents();
         }
 
@@ -720,7 +676,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Spatial object, Entity e) {
-            //System.out.println("MobContainer.updateObject(" + e + ")");
+            log.info("Updated model on entity: "+e.toString());
             updateModel(object, e, true);
         }
 

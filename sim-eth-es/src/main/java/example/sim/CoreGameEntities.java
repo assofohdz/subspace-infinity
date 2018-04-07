@@ -98,7 +98,7 @@ public class CoreGameEntities {
         ed.setComponent(result, new Guns(2000, 4, GunLevel.LEVEL_1));
         ed.setComponent(result, new GravityBombs(1000, 10, BombLevel.LEVEL_1));
         ed.setComponent(result, new Mines(4000, 20, BombLevel.LEVEL_1));
-        
+
         ed.setComponent(result, new Thor(100, 2));
 
         return result;
@@ -123,13 +123,13 @@ public class CoreGameEntities {
                 PrizeType.create(prizeType, ed),
                 new SphereShape(ViewConstants.PRIZESIZE, new Vec3d()),
                 new Decay(GameConstants.PRIZEDECAY));
-        
+
         return result;
     }
 
     public static void createBulletSound(EntityId parent, EntityData ed, GunLevel level) {
         EntityId result = ed.createEntity();
-        
+
         ed.setComponents(result, AudioTypes.fire_bullet(ed, level),
                 new Decay(3000), //Three seconds to play the sound
                 new Parent(parent));
@@ -137,19 +137,19 @@ public class CoreGameEntities {
 
     public static void createBombSound(EntityId parent, EntityData ed, BombLevel level) {
         EntityId result = ed.createEntity();
-        
+
         ed.setComponents(result, AudioTypes.fire_bomb(ed, level),
                 new Decay(3000), //Three seconds to play the sound
                 new Parent(parent));
     }
-    
-    public static EntityId createSound(EntityId parent, String audioType, EntityData ed){
+
+    public static EntityId createSound(EntityId parent, String audioType, EntityData ed) {
         EntityId result = ed.createEntity();
-        
+
         ed.setComponents(result, AudioType.create(audioType, ed),
                 new Decay(3000), //Three seconds to play the sound
                 new Parent(parent));
-        
+
         return result;
     }
 
@@ -210,16 +210,48 @@ public class CoreGameEntities {
         return lastArena;
     }
 
-    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, EntityData ed) {
+    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, String tileType, EntityData ed) {
         EntityId lastTileInfo = ed.createEntity();
 
-        ed.setComponents(lastTileInfo, ViewTypes.mapTile(ed),
+        ed.setComponents(lastTileInfo,
+                TileType.create(tileType, tileSet, tileIndex, ed),
+                ViewTypes.mapTile(ed),
                 new Position(location, new Quatd(), 0f),
-                new TileInfo(tileSet, tileIndex), //Tile set and tile index
+                PhysicsMassTypes.infinite(ed),
+                PhysicsShapes.mapTile(c));
+        Entity test = ed.getEntity(lastTileInfo, TileType.class);
+
+        return lastTileInfo;
+    }
+
+    //This will create an entity that the MapStateServer will find the right ViewType for
+    public static EntityId queueWangBlobTile(String tileSet, Vec3d location, EntityData ed) {
+        EntityId lastTileInfo = ed.createEntity();
+
+        ed.setComponents(lastTileInfo,
+                TileTypes.wangblob(tileSet, (short) -1, ed),
+                //ViewTypes.mapTile(ed),
+                new Position(location, new Quatd(), 0f));
+        //PhysicsMassTypes.infinite(ed),
+        //PhysicsShapes.mapTile(c));
+        Entity test = ed.getEntity(lastTileInfo, TileType.class);
+
+        return lastTileInfo;
+    }
+
+    //This is called by the server when it has calculcated the correct tileIndex number
+    public static EntityId updateWangBlobEntity(EntityId entity, String tileSet, short tileIndex, Vec3d location, Convex c, EntityData ed) {
+
+        ed.setComponents(entity,
+                TileTypes.wangblob(tileSet, tileIndex, ed),
+                ViewTypes.mapTile(ed),
+                new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.infinite(ed),
                 PhysicsShapes.mapTile(c));
 
-        return lastTileInfo;
+        Entity test = ed.getEntity(entity, TileType.class);
+
+        return entity;
     }
 
     /*
@@ -424,7 +456,7 @@ public class CoreGameEntities {
     }
 
     public static EntityId createThor(Vec3d location, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed) {
-                EntityId lastBomb = ed.createEntity();
+        EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.thor(ed),
                 new Position(location, orientation, rotation),
