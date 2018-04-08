@@ -5,7 +5,9 @@ import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -25,6 +27,8 @@ import example.es.ViewType;
 import example.es.ViewTypes;
 import example.es.ship.weapons.BombLevel;
 import example.es.ship.weapons.Bombs;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -32,6 +36,7 @@ import example.es.ship.weapons.Bombs;
  */
 public class SISpatialFactory implements ModelFactory {
 
+    static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
     private AssetManager assets;
     private EntityData ed;
 
@@ -411,7 +416,7 @@ public class SISpatialFactory implements ModelFactory {
         quad.updateBound();
         Geometry geom = new Geometry("MapTile", quad);
 
-        if (clientMapState.getType(e.getId()).getTypeName(ed).equals(TileTypes.LEGACY)) {
+        if (state.getType(e.getId()).getTypeName(ed).equals(TileTypes.LEGACY)) {
             Material mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
 
             //mat.setColor("Color", ColorRGBA.Yellow);
@@ -426,15 +431,11 @@ public class SISpatialFactory implements ModelFactory {
 
             geom.setMaterial(mat);
         } else {
-            //TileInfo.tileSet should now be = "Materials/WangBlobTest.j3m"
-            TileType tileType = clientMapState.getType(e.getId());
+            TileType tileType = state.getType(e.getId());
             Material mat = assets.loadMaterial(tileType.getTileSet());
             geom.setMaterial(mat);
-            //Offset tile
-            mat.setInt("numTilesOffsetX", clientMapState.getWangBloblTileNumber(tileType.getTileIndex()));
-            //Rotate tile
-            geom.rotate(0, 0, -clientMapState.getWangBlobRotations(tileType.getTileIndex()));
             geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+            this.updateWangBlobTile(geom, tileType);
         }
 
         return geom;
@@ -574,5 +575,31 @@ public class SISpatialFactory implements ModelFactory {
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
+    }
+
+    public void updateWangBlobTile(Spatial s, TileType tileType) {
+        Geometry geom;
+        if (s instanceof Geometry) {
+            geom = (Geometry) s; 
+        } else {
+            geom = (Geometry) ((Node) s).getChild("MapTile"); //From ModelViewState
+        }
+        Material mat = geom.getMaterial();
+        //Offset tile
+        mat.setInt("numTilesOffsetX", clientMapState.getWangBlobTileNumber(tileType.getTileIndex()));
+        
+        //Rotate tile
+        Quaternion rot = new Quaternion();
+        float rotations = clientMapState.getWangBlobRotations(tileType.getTileIndex());
+        float ninety_degrees_to_radians = FastMath.PI/2;
+        
+        rot.fromAngleAxis(- ninety_degrees_to_radians * rotations, Vector3f.UNIT_Z);
+        //Reset rotation
+        geom.setLocalRotation(new Quaternion());
+        //Set correct rotation
+        geom.rotate(rot);
+        
+        log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
+        
     }
 }

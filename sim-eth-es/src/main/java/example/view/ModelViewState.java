@@ -58,6 +58,7 @@ public class ModelViewState extends BaseAppState {
     private SISpatialFactory factory;
     private Spatial playerSpatial;
     private EntityId localPlayerEntityId;
+    private EntitySet tileTypes;
 
     public ModelViewState(SISpatialFactory siSpatialFactory) {
         this.factory = siSpatialFactory;
@@ -87,10 +88,14 @@ public class ModelViewState extends BaseAppState {
         this.timeState = getState(TimeState.class);
 
         this.ed = getState(ConnectionState.class).getEntityData();
+
+        this.tileTypes = ed.getEntities(TileType.class);
     }
 
     @Override
     protected void cleanup(Application app) {
+        tileTypes.release();
+        tileTypes = null;
     }
 
     @Override
@@ -116,7 +121,9 @@ public class ModelViewState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
+        tileTypes.applyChanges();
 
+        //tileImages.update();
         // Grab a consistent time for this frame
         long time = timeState.getTime();
 
@@ -127,6 +134,14 @@ public class ModelViewState extends BaseAppState {
             mob.updateSpatial(time);
         }
 
+        if (tileTypes.hasChanges()) {
+            //Tile index has updated
+            for (Entity e : tileTypes.getChangedEntities()) {
+                TileType tt = e.get(TileType.class);
+
+                factory.updateWangBlobTile(getModelSpatial(e.getId()), tt);
+            }
+        }
         //log.info("worldToZone("+playerSpatial.getWorldTranslation()+") ="+GameConstants.ZONE_GRID.worldToZone(new Vec3d(playerSpatial.getWorldTranslation())));
     }
 
@@ -406,13 +421,13 @@ public class ModelViewState extends BaseAppState {
         Spatial arena = factory.createModel(entity);
 
         result.attachChild(arena);
-        
+
         getState(MapStateClient.class).addArenaMouseListeners(arena);
 
         //attachCoordinateAxes(result);
         return result;
     }
-    
+
     private Spatial createMapTile(Entity entity) {
         //Node information:
         Node result = new Node("maptile:" + entity.getId());
@@ -568,22 +583,35 @@ public class ModelViewState extends BaseAppState {
             if (this.localPlayerShip) {
                 ViewType type = entity.get(ViewType.class);
                 int i = 0;
-                if (ViewTypes.SHIP_WARBIRD.equals(type.getTypeName(ed))) {
-                    i = 31;
-                } else if (ViewTypes.SHIP_JAVELIN.equals(type.getTypeName(ed))) {
-                    i = 27;
-                } else if (ViewTypes.SHIP_SPIDER.equals(type.getTypeName(ed))) {
-                    i = 23;
-                } else if (ViewTypes.SHIP_LEVI.equals(type.getTypeName(ed))) {
-                    i = 19;
-                } else if (ViewTypes.SHIP_TERRIER.equals(type.getTypeName(ed))) {
-                    i = 15;
-                } else if (ViewTypes.SHIP_WEASEL.equals(type.getTypeName(ed))) {
-                    i = 11;
-                } else if (ViewTypes.SHIP_LANCASTER.equals(type.getTypeName(ed))) {
-                    i = 7;
-                } else if (ViewTypes.SHIP_SHARK.equals(type.getTypeName(ed))) {
-                    i = 3;
+                if (null != type.getTypeName(ed)) {
+                    switch (type.getTypeName(ed)) {
+                        case ViewTypes.SHIP_WARBIRD:
+                            i = 31;
+                            break;
+                        case ViewTypes.SHIP_JAVELIN:
+                            i = 27;
+                            break;
+                        case ViewTypes.SHIP_SPIDER:
+                            i = 23;
+                            break;
+                        case ViewTypes.SHIP_LEVI:
+                            i = 19;
+                            break;
+                        case ViewTypes.SHIP_TERRIER:
+                            i = 15;
+                            break;
+                        case ViewTypes.SHIP_WEASEL:
+                            i = 11;
+                            break;
+                        case ViewTypes.SHIP_LANCASTER:
+                            i = 7;
+                            break;
+                        case ViewTypes.SHIP_SHARK:
+                            i = 3;
+                            break;
+                        default:
+                            break;
+                    }
                 }
 
                 factory.setShipMaterialVariables(playerSpatial, i);
@@ -676,7 +704,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Spatial object, Entity e) {
-            log.info("Updated model on entity: "+e.toString());
+            log.info("Updated model on entity: " + e.toString());
             updateModel(object, e, true);
         }
 
@@ -696,10 +724,17 @@ public class ModelViewState extends BaseAppState {
     public Spatial getPlayerSpatial() {
         return playerSpatial;
     }
-    
-    public Node getModelNode(EntityId eId){
+
+    public Spatial getModelSpatial(EntityId eId) {
+        if (!modelIndex.containsKey(eId)) {
+            throw new UnsupportedOperationException("Entity " + eId + " does not have a spatial");
+        }
+        return modelIndex.get(eId);
+    }
+
+    public Node getModelNode(EntityId eId) {
         if (models.getObject(eId) instanceof Node) {
-                return (Node) models.getObject(eId);
+            return (Node) models.getObject(eId);
         }
         return null;
     }
@@ -738,5 +773,13 @@ public class ModelViewState extends BaseAppState {
         if (tempSpatial != null) {
             factory.setFlagMaterialVariables(tempSpatial, teamFlag ? 0 : 1);
         }
+    }
+
+    public SISpatialFactory getFactory() {
+        return factory;
+    }
+
+    public TileType getType(EntityId eId) {
+        return tileTypes.getEntity(eId).get(TileType.class);
     }
 }

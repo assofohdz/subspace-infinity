@@ -45,11 +45,6 @@ public class MapStateServer extends AbstractGameSystem {
     public static final int MAP_SIZE = 1024;
     private static final int HALF = 512;
     private EntitySet tileTypes;
-    private Vector2 northKey, eastKey, westKey, southKey;
-    private Vector2 northEastKey;
-    private Vector2 southEastKey;
-    private Vector2 southWestKey;
-    private Vector2 northWestkey;
 
     //int[][] multD = new int[5][];
     @Override
@@ -220,11 +215,17 @@ public class MapStateServer extends AbstractGameSystem {
         tileTypes.applyChanges();
         if (tileTypes.hasChanges()) {
             for (Entity e : tileTypes.getAddedEntities()) {
+                
                 TileType tt = e.get(TileType.class);
                 Position p = e.get(Position.class);
                 Vec3d location = p.getLocation();
                 //Clamp location
                 Vector2 clampedLocation = getKey(location);
+                if (index.containsKey(clampedLocation)) {
+                    //A map entity already exists here
+                    ed.removeEntity(e.getId());
+                    continue;
+                }
                 location.x = clampedLocation.x;
                 location.y = clampedLocation.y;
 
@@ -244,10 +245,11 @@ public class MapStateServer extends AbstractGameSystem {
         int result = 0;
         ArrayList<Vector2> cascadedLocations = new ArrayList<>();
 
-        int north = 0, northEast = 0, east = 0, southEast = 0, south = 0, southWest = 0, west = 0, northWest = 0;
-
         for (Vector2 clampedLocation : locations) {
-            northKey = clampedLocation.copy().add(0, 1);
+            int north = 0, northEast = 0, east = 0, southEast = 0, south = 0, southWest = 0, west = 0, northWest = 0;
+
+            north = 0;
+            Vector2 northKey = clampedLocation.copy().add(0, 1);
             if (index.containsKey(northKey)) {
                 north = 1;
                 if (cascade) {
@@ -255,7 +257,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            northEastKey = clampedLocation.copy().add(1, 1);
+            northEast = 0;
+            Vector2 northEastKey = clampedLocation.copy().add(1, 1);
             if (index.containsKey(northEastKey)) {
                 northEast = 1;
                 if (cascade) {
@@ -263,7 +266,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            eastKey = clampedLocation.copy().add(1, 0);
+            east = 0;
+            Vector2 eastKey = clampedLocation.copy().add(1, 0);
             if (index.containsKey(eastKey)) {
                 east = 1;
                 if (cascade) {
@@ -271,7 +275,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            southEastKey = clampedLocation.copy().add(1, -1);
+            southEast = 0;
+            Vector2 southEastKey = clampedLocation.copy().add(1, -1);
             if (index.containsKey(southEastKey)) {
                 southEast = 1;
                 if (cascade) {
@@ -279,7 +284,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            southKey = clampedLocation.copy().add(0, -1);
+            south = 0;
+            Vector2 southKey = clampedLocation.copy().add(0, -1);
             if (index.containsKey(southKey)) {
                 south = 1;
                 if (cascade) {
@@ -287,7 +293,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            southWestKey = clampedLocation.copy().add(-1, -1);
+            southWest = 0;
+            Vector2 southWestKey = clampedLocation.copy().add(-1, -1);
             if (index.containsKey(southWestKey)) {
                 southWest = 1;
                 if (cascade) {
@@ -295,7 +302,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            westKey = clampedLocation.copy().add(-1, 0);
+            west = 0;
+            Vector2 westKey = clampedLocation.copy().add(-1, 0);
             if (index.containsKey(westKey)) {
                 west = 1;
                 if (cascade) {
@@ -303,7 +311,8 @@ public class MapStateServer extends AbstractGameSystem {
                 }
             }
 
-            northWestkey = clampedLocation.copy().add(-1, 1);
+            northWest = 0;
+            Vector2 northWestkey = clampedLocation.copy().add(-1, 1);
             if (index.containsKey(northWestkey)) {
                 northWest = 1;
                 if (cascade) {
@@ -325,13 +334,21 @@ public class MapStateServer extends AbstractGameSystem {
                 southEast = 0;
                 southWest = 0;
             }
-            
+
             if (east == 0) {
                 southEast = 0;
                 northEast = 0;
             }
 
-            result = north + 2 * northEast + 4 * east + 8 * southEast + 16 * south + 32 * southWest + 64 * west + 128 * northWest;
+            result
+                    = north
+                    + 2 * northEast
+                    + 4 * east
+                    + 8 * southEast
+                    + 16 * south
+                    + 32 * southWest
+                    + 64 * west
+                    + 128 * northWest;
 
             EntityId currentEntity = index.get(clampedLocation);
             TileType tt = ed.getComponent(currentEntity, TileType.class);
