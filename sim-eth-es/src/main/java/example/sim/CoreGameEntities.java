@@ -35,6 +35,7 @@
  */
 package example.sim;
 
+import com.jme3.math.ColorRGBA;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 import example.GameConstants;
@@ -100,6 +101,8 @@ public class CoreGameEntities {
         ed.setComponent(result, new Mines(4000, 20, BombLevel.LEVEL_1));
 
         ed.setComponent(result, new Thor(100, 2));
+        
+        ed.setComponent(result, new PointLightComponent(ColorRGBA.White, ViewConstants.SHIPLIGHTRADIUS));
 
         return result;
     }
@@ -171,7 +174,8 @@ public class CoreGameEntities {
                 new Decay(decayMillis),
                 WeaponTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
-                PhysicsShapes.bomb());
+                PhysicsShapes.bomb(),
+                new PointLightComponent(level.lightColor, level.lightRadius));
 
         return lastBomb;
     }

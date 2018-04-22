@@ -5,24 +5,26 @@
  */
 package example.es.ship.weapons;
 
+import com.jme3.math.ColorRGBA;
+
 /**
  *
  * @author Asser
  */
 public enum BombLevel {
-    LEVEL_1(1, 12),
-    LEVEL_2(2, 11),
-    LEVEL_3(3, 10),
-    LEVEL_4(4, 9),
-    EMP_1(1, 8),
-    EMP_2(2, 7),
-    EMP_3(3, 6),
-    EMP_4(4, 5),
-    SUPER_1(1, 4),
-    SUPER_2(2, 3),
-    SUPER_3(3, 2),
-    SUPER_4(4, 1),
-    THOR(1, 0);
+    LEVEL_1(1, 12, ColorRGBA.White, 500),
+    LEVEL_2(2, 11, ColorRGBA.Red, 600),
+    LEVEL_3(3, 10, ColorRGBA.Yellow, 700),
+    LEVEL_4(4, 9, ColorRGBA.Blue, 800),
+    EMP_1(1, 8, ColorRGBA.White, 300),
+    EMP_2(2, 7, ColorRGBA.Red,400),
+    EMP_3(3, 6, ColorRGBA.Yellow, 500),
+    EMP_4(4, 5, ColorRGBA.Blue, 600),
+    SUPER_1(1, 4, ColorRGBA.White, 700),
+    SUPER_2(2, 3, ColorRGBA.Red,800),
+    SUPER_3(3, 2, ColorRGBA.Yellow,900),
+    SUPER_4(4, 1, ColorRGBA.Blue,1000),
+    THOR(1, 0, ColorRGBA.Black, 1100);
 
     /**
      * Level value
@@ -34,8 +36,16 @@ public enum BombLevel {
      */
     public final int viewOffset;
 
-    private BombLevel(int level, int viewOffset) {
+    /**
+     * Light color
+     */
+    public final ColorRGBA lightColor;
+    public final float lightRadius;
+    
+    private BombLevel(int level, int viewOffset, ColorRGBA lightColor, float lightRadius) {
         this.level = level;
         this.viewOffset = viewOffset;
+        this.lightColor = lightColor;
+        this.lightRadius = lightRadius;
     }
 }

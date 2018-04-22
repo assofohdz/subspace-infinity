@@ -268,6 +268,8 @@ public class GameServer {
         Serializer.registerClass(AudioType.class, new FieldSerializer());
         Serializer.registerClass(Parent.class, new FieldSerializer());
         Serializer.registerClass(TileType.class, new FieldSerializer());
+        Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
+        Serializer.registerClass(Decay.class, new FieldSerializer());
     }
 
     public Server getServer() {

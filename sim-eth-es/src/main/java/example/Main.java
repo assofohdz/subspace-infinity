@@ -47,6 +47,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
+import static com.jme3.texture.Image.Format.Depth24Stencil8;
 import com.jme3.texture.Texture;
 
 import com.simsilica.event.EventBus;

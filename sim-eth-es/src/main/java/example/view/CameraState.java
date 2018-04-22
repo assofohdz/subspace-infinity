@@ -25,6 +25,9 @@ public class CameraState extends BaseAppState{
     @Override
     protected void initialize(Application app) {
         this.camera = app.getCamera();
+        this.camera.setLocation(new Vector3f(0,0,DISTANCETOPLANE));
+        this.camera.lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Z); //Set camera to look at the origin
+        
         this.models = getState(ModelViewState.class);
         this.playerShip = models.getPlayerSpatial();
     }
@@ -43,6 +46,8 @@ public class CameraState extends BaseAppState{
     
     @Override
     public void update(float tpf) {
+        
+        
         if( playerShip != null ) {
             camera.setLocation(playerShip.getWorldTranslation().add(0,0,DISTANCETOPLANE));  //Set camera position above spatial - Z is up
             camera.lookAt(playerShip.getWorldTranslation(), Vector3f.UNIT_Z); //Set camera to look at the spatial

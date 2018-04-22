@@ -38,4 +38,7 @@ public class ViewConstants {
     public final static long WARPDECAY = 800;
     public final static long REPELDECAY = 800;
 
+    
+    //LightSize radius
+    public final static float SHIPLIGHTRADIUS = 500;
 }

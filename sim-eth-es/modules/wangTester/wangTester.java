@@ -36,7 +36,8 @@ public class wangTester extends BaseGameModule {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        ModuleGameEntities.createMapTile("Materials/WangBlobTest.j3m", (short) 1, new Vec3d(), new Rectangle(1, 1), 0, TileTypes.WANGBLOB, ed, this.getSettings());
+        ModuleGameEntities.createBountySpawner(new Vec3d(), 20, ed, this.getSettings());
+        ModuleGameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100,100,0), ed, this.getSettings());
     }
 
     @Override

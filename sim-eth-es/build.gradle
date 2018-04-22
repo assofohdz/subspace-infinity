@@ -84,6 +84,7 @@ dependencies {
     }
     compile "org.jmonkeyengine:jme3-desktop:$jmeVersion"
     compile "org.jmonkeyengine:jme3-lwjgl:$jmeVersion"
+    compile "org.jmonkeyengine:jme3-effects:$jmeVersion"
     compile("org.jmonkeyengine:jme3-networking:$jmeVersion") {
         force = true;
     }
@@ -101,6 +102,9 @@ dependencies {
     compile 'com.simsilica:zay-es-net:1.2.1'
     compile 'com.simsilica:zay-es:1.2.1'
 
+    //Lights and Visibility
+    compile "com.badlogicgames.box2dlights:box2dlights:1.5-SNAPSHOT"
+    //compile 'com.massisframework:straightedge:0.8'
     // Standard utility stuff
     compile 'com.google.guava:guava:24.1-jre'
     compile 'org.slf4j:slf4j-api:1.7.13'

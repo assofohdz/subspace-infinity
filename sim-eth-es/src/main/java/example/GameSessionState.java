@@ -62,6 +62,8 @@ import example.view.CameraState;
 import example.view.FlagStateClient;
 import example.view.MapStateClient;
 import example.view.HudLabelState;
+import example.view.InfinityLightState;
+import example.view.LightState;
 import example.view.ModelViewState;
 import example.view.PlayerListState;
 import example.view.PlayerMovementState;
@@ -106,7 +108,9 @@ public class GameSessionState extends CompositeAppState {
                 new FlagStateClient(),
                 new ResourceStateClient(),
                 new ModelViewState(new SISpatialFactory()),
-                new AudioState(new SIAudioFactory())
+                new AudioState(new SIAudioFactory()),
+                new LightState()
+                //new InfinityLightState()
         //new MapEditorState()
         );
 

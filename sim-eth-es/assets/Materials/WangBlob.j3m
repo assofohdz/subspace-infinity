@@ -1,6 +1,6 @@
 Material ShipMaterial : MatDefs/StaticSpriteShader.j3md {
      MaterialParameters {
-        AniTexMap : Flip Textures/BlobTileset.png
+        AniTexMap : Flip Tilesets/wangblobs/File0968.png
         numTilesX : 15
         numTilesY : 1
         numTilesOffsetX : 0

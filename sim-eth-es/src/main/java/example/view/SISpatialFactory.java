@@ -3,6 +3,7 @@ package example.view;
 import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -253,6 +254,7 @@ public class SISpatialFactory implements ModelFactory {
         //mat.setInt("numTilesOffsetY", ship);
 
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+
         return geom;
     }
 
@@ -432,7 +434,9 @@ public class SISpatialFactory implements ModelFactory {
             geom.setMaterial(mat);
         } else {
             TileType tileType = state.getType(e.getId());
-            Material mat = assets.loadMaterial(tileType.getTileSet());
+            Material mat = assets.loadMaterial("Materials/WangBlobLight.j3m"); //tileType.getTileSet()
+            
+            
             geom.setMaterial(mat);
             geom.setQueueBucket(RenderQueue.Bucket.Transparent);
             this.updateWangBlobTile(geom, tileType);
@@ -580,26 +584,25 @@ public class SISpatialFactory implements ModelFactory {
     public void updateWangBlobTile(Spatial s, TileType tileType) {
         Geometry geom;
         if (s instanceof Geometry) {
-            geom = (Geometry) s; 
+            geom = (Geometry) s;
         } else {
             geom = (Geometry) ((Node) s).getChild("MapTile"); //From ModelViewState
         }
         Material mat = geom.getMaterial();
         //Offset tile
         mat.setInt("numTilesOffsetX", clientMapState.getWangBlobTileNumber(tileType.getTileIndex()));
-        
+
         //Rotate tile
         Quaternion rot = new Quaternion();
         float rotations = clientMapState.getWangBlobRotations(tileType.getTileIndex());
-        float ninety_degrees_to_radians = FastMath.PI/2;
-        
-        rot.fromAngleAxis(- ninety_degrees_to_radians * rotations, Vector3f.UNIT_Z);
+        float ninety_degrees_to_radians = FastMath.PI / 2;
+
+        rot.fromAngleAxis(-ninety_degrees_to_radians * rotations, Vector3f.UNIT_Z);
         //Reset rotation
         geom.setLocalRotation(new Quaternion());
         //Set correct rotation
         geom.rotate(rot);
-        
-        log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
-        
+
+        //log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
     }
 }

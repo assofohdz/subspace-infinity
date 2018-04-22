@@ -137,9 +137,12 @@ public class ModelViewState extends BaseAppState {
         if (tileTypes.hasChanges()) {
             //Tile index has updated
             for (Entity e : tileTypes.getChangedEntities()) {
-                TileType tt = e.get(TileType.class);
+                //There's a timing issue I can't figure out yet
+                if (modelIndex.containsKey(e.getId())) {
+                    TileType tt = e.get(TileType.class);
 
-                factory.updateWangBlobTile(getModelSpatial(e.getId()), tt);
+                    factory.updateWangBlobTile(getModelSpatial(e.getId(), true), tt);
+                }
             }
         }
         //log.info("worldToZone("+playerSpatial.getWorldTranslation()+") ="+GameConstants.ZONE_GRID.worldToZone(new Vec3d(playerSpatial.getWorldTranslation())));
@@ -725,9 +728,9 @@ public class ModelViewState extends BaseAppState {
         return playerSpatial;
     }
 
-    public Spatial getModelSpatial(EntityId eId) {
-        if (!modelIndex.containsKey(eId)) {
-            throw new UnsupportedOperationException("Entity " + eId + " does not have a spatial");
+    public Spatial getModelSpatial(EntityId eId, boolean throwNotExists) {
+        if (throwNotExists && !modelIndex.containsKey(eId)) {
+            throw new NoSuchElementException("Entity " + eId + " does not have a spatial");
         }
         return modelIndex.get(eId);
     }

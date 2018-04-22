@@ -384,9 +384,4 @@ public class MapStateClient extends BaseAppState {
             }
         });
     }
-
-    private void updateWangBlobTile() {
-
-    }
-
 }

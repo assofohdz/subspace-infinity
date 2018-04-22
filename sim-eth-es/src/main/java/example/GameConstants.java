@@ -157,7 +157,7 @@ public class GameConstants {
     
     //Decays
     public final static long BULLETDECAY = 1500;
-    public final static long PRIZEDECAY = 1000;
+    public final static long PRIZEDECAY = 5000;
     public final static long THORDECAY = 1500;
     public final static long GRAVBOMBDECAY = 4000;
     

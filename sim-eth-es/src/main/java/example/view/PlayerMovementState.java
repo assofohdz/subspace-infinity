@@ -261,9 +261,13 @@ public class PlayerMovementState extends BaseAppState
     @Override
     public void update(float tpf) {
 
-        // Update the camera position from the ship spatial
-        Spatial spatial = models.getModel(shipId);
+        Spatial spatial = models.getModelSpatial(shipId, false);
 
+        // Set the spatial so that the camera 
+        if (spatial != null) {
+            updateShipLocation(spatial.getWorldTranslation());
+        }
+        
         long time = System.nanoTime();
         if (time > nextSendTime) {
             nextSendTime = time + sendFrequency;
@@ -279,10 +283,6 @@ public class PlayerMovementState extends BaseAppState
             //if( spatial != null ) {                
             //    updateShipLocation(spatial.getWorldTranslation());
             //}
-        }
-
-        if (spatial != null) {
-            updateShipLocation(spatial.getWorldTranslation());
         }
 
         /*

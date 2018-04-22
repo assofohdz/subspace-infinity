@@ -63,7 +63,7 @@ import org.ini4j.Ini;
  *
  */
 public class ModuleGameEntities {
-    
+
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
     public static EntityId createShip(EntityId parent, EntityData ed, Ini settings) {
@@ -75,7 +75,7 @@ public class ModuleGameEntities {
                 ViewTypes.ship_warbird(ed),
                 ShipTypes.warbird(ed),
                 PhysicsMassTypes.normal(ed),
-                PhysicsShapes.ship(settings)) ;
+                PhysicsShapes.ship(settings));
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new Gold(0));
@@ -104,7 +104,7 @@ public class ModuleGameEntities {
                 new SphereShape(settings.get("Bounties", "ViewSize", int.class)),
                 //new SphereShape(ViewConstants.BOUNTYSIZE, new Vec3d()),
                 new Decay(settings.get("Bounties", "Decay", int.class)));
-                //new Decay(GameConstants.BOUNTYDECAY));
+        //new Decay(GameConstants.BOUNTYDECAY));
         return result;
     }
 
@@ -123,8 +123,6 @@ public class ModuleGameEntities {
     public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings, BombLevel level) {
         EntityId lastBomb = ed.createEntity();
 
-        
-        
         ed.setComponents(lastBomb, ViewTypes.bomb(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
@@ -174,7 +172,7 @@ public class ModuleGameEntities {
         EntityId lastTileInfo = ed.createEntity();
 
         ed.setComponents(lastTileInfo,
-                TileType.create(tileType, tileSet, tileIndex, ed), 
+                TileType.create(tileType, tileSet, tileIndex, ed),
                 ViewTypes.mapTile(ed),
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.infinite(ed),
@@ -222,7 +220,8 @@ public class ModuleGameEntities {
 
         return lastWormhole;
     }
-/*
+
+    /*
     public static EntityId createAttack(EntityId owner, String attackType, EntityData ed, Ini settings) {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
@@ -232,7 +231,7 @@ public class ModuleGameEntities {
 
         return lastAttack;
     }
-*/
+     */
     public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed, Ini settings) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,
@@ -388,5 +387,15 @@ public class ModuleGameEntities {
                 new Buff(target, 0)); //apply right away
 
         return lastHealthBuff;
+    }
+
+    public static EntityId createLight(Vec3d vec3d, EntityData ed, Ini settings) {
+
+        EntityId lastLight = ed.createEntity();
+
+        ed.setComponents(lastLight,
+                new Position(vec3d, new Quatd(), 0));
+
+        return lastLight;
     }
 }
