@@ -86,9 +86,15 @@ public interface GameSession {
     public void warp();
 
     //Misc
-    public void editMap(String tileSet, double x, double y);
 
     public void chooseShip(byte ship);
 
     public void tower(double x, double y);
+    
+    //Map
+    public void editMap(String tileSet, double x, double y);
+    
+    public void createTile(String tileSet, double x, double y);
+    
+    public void removeTile(double x, double y);
 }

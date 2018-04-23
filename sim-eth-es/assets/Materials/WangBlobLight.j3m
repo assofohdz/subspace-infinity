@@ -8,7 +8,7 @@ Material ShipMaterial : MatDefs/StaticSpriteLightShader.j3md {
         numTilesOffsetY : 0
 
 
-        DiffuseMap : Flip Tilesets/wangblobs/File0968.png
+        DiffuseMap : Flip Tilesets/wangblobs/File0001.png
         UseMaterialColors : true
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0

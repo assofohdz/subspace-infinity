@@ -59,7 +59,8 @@ public class ModelViewState extends BaseAppState {
     private Spatial playerSpatial;
     private EntityId localPlayerEntityId;
     private EntitySet tileTypes;
-
+    private Spatial arenaSpatial;
+    
     public ModelViewState(SISpatialFactory siSpatialFactory) {
         this.factory = siSpatialFactory;
     }
@@ -422,6 +423,8 @@ public class ModelViewState extends BaseAppState {
 
         //Spatial information:
         Spatial arena = factory.createModel(entity);
+        
+        this.arenaSpatial = arena;
 
         result.attachChild(arena);
 
@@ -784,5 +787,9 @@ public class ModelViewState extends BaseAppState {
 
     public TileType getType(EntityId eId) {
         return tileTypes.getEntity(eId).get(TileType.class);
+    }
+    
+    public Spatial getArenaSpatial(){
+        return this.arenaSpatial;
     }
 }

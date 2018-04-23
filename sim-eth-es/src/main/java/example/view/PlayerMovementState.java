@@ -42,6 +42,7 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.input.InputManager;
+import com.jme3.input.MouseInput;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
@@ -72,6 +73,8 @@ import example.es.Gold;
 import example.es.WeaponTypes;
 import example.net.GameSession;
 import example.net.client.GameSessionClientService;
+import static example.view.ModelViewState.log;
+import java.awt.Cursor;
 import java.util.HashMap;
 
 /**
@@ -106,6 +109,9 @@ public class PlayerMovementState extends BaseAppState
     private InputManager inputManager;
 
     private HashMap<FunctionId, Boolean> functionStates = new HashMap<>();
+    private double mouse1;
+    private double mouse3;
+    private double mouse2;
 
     public PlayerMovementState() {
     }
@@ -140,8 +146,6 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_BOMB,
                 PlayerMovementFunctions.F_THOR,
                 PlayerMovementFunctions.F_SHOOT,
-                PlayerMovementFunctions.F_MOUSELEFTCLICK,
-                PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
                 PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
@@ -154,7 +158,7 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_WEASEL,
                 PlayerMovementFunctions.F_LANC,
                 PlayerMovementFunctions.F_SHARK);
-        
+
         // Grab the game session
         session = getState(ConnectionState.class).getService(GameSessionClientService.class);
         if (session == null) {
@@ -180,8 +184,6 @@ public class PlayerMovementState extends BaseAppState
                 PlayerMovementFunctions.F_BOMB,
                 PlayerMovementFunctions.F_THOR,
                 PlayerMovementFunctions.F_SHOOT,
-                PlayerMovementFunctions.F_MOUSELEFTCLICK,
-                PlayerMovementFunctions.F_MOUSERIGHTCLICK,
                 PlayerMovementFunctions.F_GRAVBOMB,
                 PlayerMovementFunctions.F_REPEL,
                 PlayerMovementFunctions.F_MINE,
@@ -263,11 +265,6 @@ public class PlayerMovementState extends BaseAppState
 
         Spatial spatial = models.getModelSpatial(shipId, false);
 
-        // Set the spatial so that the camera 
-        if (spatial != null) {
-            updateShipLocation(spatial.getWorldTranslation());
-        }
-        
         long time = System.nanoTime();
         if (time > nextSendTime) {
             nextSendTime = time + sendFrequency;
@@ -280,9 +277,25 @@ public class PlayerMovementState extends BaseAppState
             session.move(thrust);
 
             // Only update the position/speed display 20 times a second
-            //if( spatial != null ) {                
-            //    updateShipLocation(spatial.getWorldTranslation());
-            //}
+            if (spatial != null) {
+                updateShipLocation(spatial.getWorldTranslation());
+            }
+
+            if (mouse1 == 1d) {
+                //log.info("MOUSE1 is down!!");
+                //log.info("CURSOR IS AT: " + inputManager.getCursorPosition());
+                Vector3f contactPoint = getArenaCollisionPoint(inputManager.getCursorPosition());
+                session.editMap("Materials/WangBlobLight.j3m", contactPoint.x, contactPoint.y);
+                //log.info("WORLD CLICK3D IS AT: " + click3d);
+            }
+
+            if (mouse2 == 1d) {
+                log.info("MOUSE2 is down!!");
+            }
+
+            if (mouse3 == 1d) {
+                log.info("MOUSE3 is down!!");
+            }
         }
 
         /*
@@ -362,6 +375,34 @@ public class PlayerMovementState extends BaseAppState
             this.forward = value;
         } else if (func == PlayerMovementFunctions.F_TURN) {
             this.rotate = value;
+        } else if (func == PlayerMovementFunctions.F_MOUSE1) {
+            this.mouse1 = value;
+        } else if (func == PlayerMovementFunctions.F_MOUSE2) {
+            this.mouse2 = value;
+        } else if (func == PlayerMovementFunctions.F_MOUSE3) {
+            this.mouse3 = value;
         }
+    }
+
+    private Vector3f getArenaCollisionPoint(Vector2f click2d) {
+        Camera cam = getState(CameraState.class).getCamera();
+
+        Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
+        Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+
+        Ray ray = new Ray(click3d, dir);
+        CollisionResults results = new CollisionResults();
+
+        Spatial target = getState(ModelViewState.class).getArenaSpatial();
+
+        target.collideWith(ray, results);
+        assert results.size() == 1;
+        //if (results.size() != 1) {
+        //    log.error("There should only be one collision with the arena when the user clicks it");
+        //}
+        Vector3f contactPoint = results.getCollision(0).getContactPoint();
+
+        //log.info("CONTACT POINT: " + contactPoint);
+        return contactPoint;
     }
 }

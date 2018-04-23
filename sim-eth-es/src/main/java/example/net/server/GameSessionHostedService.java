@@ -171,7 +171,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     }
 
     /**
-     * Made public to make sure we can get player entityid from a chat connection
+     * Made public to make sure we can get player entityid from a chat
+     * connection
+     *
      * @param conn
      * @return
      */
@@ -308,7 +310,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
 
             //gameSystems.get(MapStateServer.class).editMap(x, y);
-            CoreGameEntities.queueWangBlobTile(tileSet, new Vec3d(x,y,0), ed);
+            //CoreGameEntities.queueWangBlobTile(tileSet, new Vec3d(x, y, 0), ed);
         }
 
         @Override
@@ -345,7 +347,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackGuns");
             }
-            
+
             CoreGameEntities.createAttack(shipEntity, WeaponTypes.BULLET, ed);
             //gameSystems.get(WeaponStateServer.class).entityAttackGuns(shipEntity);
         }
@@ -373,7 +375,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("repel");
             }
-            
+
             throw new UnsupportedOperationException();
         }
 
@@ -382,7 +384,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackBurst");
             }
-            
+
             CoreGameEntities.createAttack(shipEntity, WeaponTypes.BURST, ed);
             //gameSystems.get(WeaponStateServer.class).entityBurst(shipEntity);
         }
@@ -402,6 +404,22 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("attackThor");
             }
             CoreGameEntities.createAttack(shipEntity, WeaponTypes.THOR, ed);
+        }
+
+        @Override
+        public void createTile(String tileSet, double x, double y) {
+            if (log.isTraceEnabled()) {
+                log.trace("createTile");
+            }
+            gameSystems.get(MapStateServer.class).sessionCreateTile(x, y);
+        }
+
+        @Override
+        public void removeTile(double x, double y) {
+            if (log.isTraceEnabled()) {
+                log.trace("removeTile");
+            }
+            gameSystems.get(MapStateServer.class).sessionRemoveTile(x, y);
         }
     }
 }

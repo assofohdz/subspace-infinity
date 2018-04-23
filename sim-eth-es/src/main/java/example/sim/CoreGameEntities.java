@@ -95,13 +95,13 @@ public class CoreGameEntities {
         ed.setComponent(result, new Recharge(100));
 
         //Add default weapons
-        ed.setComponent(result, new Bombs(500, 2, BombLevel.LEVEL_1));
+        ed.setComponent(result, new Bombs(500, 2, BombLevel.BOMB_1));
         ed.setComponent(result, new Guns(2000, 4, GunLevel.LEVEL_1));
-        ed.setComponent(result, new GravityBombs(1000, 10, BombLevel.LEVEL_1));
-        ed.setComponent(result, new Mines(4000, 20, BombLevel.LEVEL_1));
+        ed.setComponent(result, new GravityBombs(1000, 10, BombLevel.BOMB_1));
+        ed.setComponent(result, new Mines(4000, 20, BombLevel.BOMB_1));
 
         ed.setComponent(result, new Thor(100, 2));
-        
+
         ed.setComponent(result, new PointLightComponent(ColorRGBA.White, ViewConstants.SHIPLIGHTRADIUS));
 
         return result;
@@ -228,6 +228,7 @@ public class CoreGameEntities {
         return lastTileInfo;
     }
 
+    /*
     //This will create an entity that the MapStateServer will find the right ViewType for
     public static EntityId queueWangBlobTile(String tileSet, Vec3d location, EntityData ed) {
         EntityId lastTileInfo = ed.createEntity();
@@ -238,11 +239,11 @@ public class CoreGameEntities {
                 new Position(location, new Quatd(), 0f));
         //PhysicsMassTypes.infinite(ed),
         //PhysicsShapes.mapTile(c));
-        Entity test = ed.getEntity(lastTileInfo, TileType.class);
 
         return lastTileInfo;
     }
 
+     */
     //This is called by the server when it has calculcated the correct tileIndex number
     public static EntityId updateWangBlobEntity(EntityId entity, String tileSet, short tileIndex, Vec3d location, Convex c, EntityData ed) {
 
@@ -253,9 +254,20 @@ public class CoreGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 PhysicsShapes.mapTile(c));
 
-        Entity test = ed.getEntity(entity, TileType.class);
-
         return entity;
+    }
+    //This is called by the server when it has calculcated the correct tileIndex number
+    public static EntityId createWangBlobEntity(String tileSet, short tileIndex, Vec3d location, Convex c, EntityData ed) {
+
+        EntityId lastTileInfo = ed.createEntity();
+        ed.setComponents(lastTileInfo,
+                TileTypes.wangblob(tileSet, tileIndex, ed),
+                ViewTypes.mapTile(ed),
+                new Position(location, new Quatd(), 0f),
+                PhysicsMassTypes.infinite(ed),
+                PhysicsShapes.mapTile(c));
+
+        return lastTileInfo;
     }
 
     /*

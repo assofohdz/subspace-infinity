@@ -49,7 +49,7 @@ public class SIAudioFactory implements AudioFactory {
             case AudioTypes.FIRE_BOMBS_L2:
             case AudioTypes.FIRE_BOMBS_L3:
             case AudioTypes.FIRE_BOMBS_L4:
-                return createFIRE_BOMB(e, BombLevel.LEVEL_1);
+                return createFIRE_BOMB(e, BombLevel.BOMB_1);
             case AudioTypes.FIRE_GUNS_L1:
             case AudioTypes.FIRE_GUNS_L2:
             case AudioTypes.FIRE_GUNS_L3:

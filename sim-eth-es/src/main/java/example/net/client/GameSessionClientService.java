@@ -236,6 +236,22 @@ public class GameSessionClientService extends AbstractClientService
         getDelegate().attackThor();
     }
 
+    @Override
+    public void createTile(String tileSet, double x, double y) {
+          if (log.isTraceEnabled()) {
+            log.trace("createTile");
+        }
+        getDelegate().createTile(tileSet, x, y);
+    }
+
+    @Override
+    public void removeTile(double x, double y) {
+          if (log.isTraceEnabled()) {
+            log.trace("removeTile");
+        }
+        getDelegate().removeTile(x, y);
+    }
+
     /**
      * Shared with the server over RMI so that it can notify us about account
      * related stuff.

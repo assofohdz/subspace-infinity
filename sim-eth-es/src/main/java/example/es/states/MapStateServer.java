@@ -22,8 +22,11 @@ import example.es.WarpTo;
 import example.map.LevelFile;
 import example.map.LevelLoader;
 import example.sim.CoreGameEntities;
+import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.geometry.Convex;
 import tiled.io.TMXMapReader;
@@ -45,6 +48,9 @@ public class MapStateServer extends AbstractGameSystem {
     public static final int MAP_SIZE = 1024;
     private static final int HALF = 512;
     private EntitySet tileTypes;
+
+    private LinkedList<Vector2> sessionTileRemovals = new LinkedList<>();
+    private LinkedList<Vector2> sessionTileCreations = new LinkedList<>();
 
     //int[][] multD = new int[5][];
     @Override
@@ -212,10 +218,37 @@ public class MapStateServer extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+
+        while (!sessionTileRemovals.isEmpty()) {
+            Vector2 remove = sessionTileRemovals.poll();
+        }
+
+        while (!sessionTileCreations.isEmpty()) {
+            Vector2 create = sessionTileCreations.poll(); //Take the next in line
+            //Clamp location
+            Vector2 clampedLocation = getKey(create);
+            if (index.containsKey(clampedLocation)) {
+                //A map entity already exists here
+                continue;
+            }
+
+            ArrayList<Vector2> locations = new ArrayList<>();
+            locations.add(clampedLocation);
+
+            EntityId eId = ed.createEntity();
+
+            index.put(clampedLocation, eId);
+
+            short tileIndexNumber = updateWangBlobIndexNumber(locations, true);
+
+            CoreGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), new Rectangle(1, 1), ed);
+        }
+
+        /*
         tileTypes.applyChanges();
         if (tileTypes.hasChanges()) {
             for (Entity e : tileTypes.getAddedEntities()) {
-                
+
                 TileType tt = e.get(TileType.class);
                 Position p = e.get(Position.class);
                 Vec3d location = p.getLocation();
@@ -226,8 +259,6 @@ public class MapStateServer extends AbstractGameSystem {
                     ed.removeEntity(e.getId());
                     continue;
                 }
-                location.x = clampedLocation.x;
-                location.y = clampedLocation.y;
 
                 index.put(clampedLocation, e.getId());
 
@@ -238,7 +269,7 @@ public class MapStateServer extends AbstractGameSystem {
 
                 CoreGameEntities.updateWangBlobEntity(e.getId(), tt.getTileSet(), tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), new Rectangle(1, 1), ed);
             }
-        }
+        }*/
     }
 
     private short updateWangBlobIndexNumber(ArrayList<Vector2> locations, boolean cascade) {
@@ -351,8 +382,9 @@ public class MapStateServer extends AbstractGameSystem {
                     + 128 * northWest;
 
             EntityId currentEntity = index.get(clampedLocation);
-            TileType tt = ed.getComponent(currentEntity, TileType.class);
-            ed.setComponent(currentEntity, tt.newTileIndex((short) result, ed));
+            TileType tt = TileTypes.wangblob("", (short) result, ed);
+            
+            ed.setComponent(currentEntity, tt);
         }
 
         if (cascade && cascadedLocations.size() > 0) {
@@ -370,8 +402,21 @@ public class MapStateServer extends AbstractGameSystem {
     public void stop() {
     }
 
+    private Vector2 getKey(Vector2 location) {
+        Vector2 coordinates = new Vector2(Math.round(location.x - 0.5) + 0.5, Math.round(location.y - 0.5) + 0.5);
+        return coordinates;
+    }
+
     private Vector2 getKey(Vec3d location) {
         Vector2 coordinates = new Vector2(Math.round(location.x - 0.5) + 0.5, Math.round(location.y - 0.5) + 0.5);
         return coordinates;
+    }
+
+    public void sessionRemoveTile(double x, double y) {
+        sessionTileRemovals.add(new Vector2(x, y));
+    }
+
+    public void sessionCreateTile(double x, double y) {
+        sessionTileCreations.add(new Vector2(x, y));
     }
 }

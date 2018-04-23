@@ -70,16 +70,16 @@ public class SISpatialFactory implements ModelFactory {
             return createBullet(e, 1);
         } else if (ViewTypes.BOMBL1.equals(type.getTypeName(ed))) {
             //Create bomb
-            return createBomb(e, BombLevel.LEVEL_1);
+            return createBomb(e, BombLevel.BOMB_1);
         } else if (ViewTypes.BOMBL2.equals(type.getTypeName(ed))) {
             //Create bomb
-            return createBomb(e, BombLevel.LEVEL_2);
+            return createBomb(e, BombLevel.BOMB_2);
         } else if (ViewTypes.BOMBL3.equals(type.getTypeName(ed))) {
             //Create bomb
-            return createBomb(e, BombLevel.LEVEL_3);
+            return createBomb(e, BombLevel.BOMB_3);
         } else if (ViewTypes.BOMBL4.equals(type.getTypeName(ed))) {
             //Create bomb
-            return createBomb(e, BombLevel.LEVEL_4);
+            return createBomb(e, BombLevel.BOMB_4);
         } else if (ViewTypes.THOR.equals(type.getTypeName(ed))) {
             //Create bomb
             return createBomb(e, BombLevel.THOR);

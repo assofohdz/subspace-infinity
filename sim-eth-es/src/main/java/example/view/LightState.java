@@ -30,12 +30,16 @@ import example.es.Decay;
 import example.es.PointLightComponent;
 import example.es.Position;
 import java.util.HashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Asser
  */
 public class LightState extends BaseAppState {
+
+    static Logger log = LoggerFactory.getLogger(LightState.class);
 
     private EntityData ed;
     private EntitySet movingPointLights;
@@ -107,12 +111,24 @@ public class LightState extends BaseAppState {
 
                 PointLight pl = pointLightMap.get(e.getId());
 
-                float newRadius = Math.max(plc.getRadius() * (float) (1 - (FastMath.pow((float)d.getPercent(), 5f))), 0f);
+                double percentage = d.getPercent();
+                
+                float factor = (float) (1 - (FastMath.pow((float)percentage, 5f)));
+                
+                float newRadius = Math.max(plc.getRadius() * factor , 0f);
 
+                ColorRGBA oldColor = pl.getColor();
+                ColorRGBA newColor = oldColor.clone();
+                newColor.a = factor;
+                
+                pl.setColor(newColor);
                 pl.setRadius(newRadius);
+                
+                if (factor < 0.5) {
+                    log.info(String.valueOf(pl.getRadius()) + " " + pl.getColor());
+                }
             }
         }
-
     }
 
     private void removePointLight(Entity e) {
@@ -155,5 +171,4 @@ public class LightState extends BaseAppState {
 
         rootNode.addLight(pl);
     }
-
 }

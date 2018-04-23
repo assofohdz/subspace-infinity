@@ -12,18 +12,18 @@ import com.jme3.math.ColorRGBA;
  * @author Asser
  */
 public enum BombLevel {
-    LEVEL_1(1, 12, ColorRGBA.White, 500),
-    LEVEL_2(2, 11, ColorRGBA.Red, 600),
-    LEVEL_3(3, 10, ColorRGBA.Yellow, 700),
-    LEVEL_4(4, 9, ColorRGBA.Blue, 800),
-    EMP_1(1, 8, ColorRGBA.White, 300),
-    EMP_2(2, 7, ColorRGBA.Red,400),
-    EMP_3(3, 6, ColorRGBA.Yellow, 500),
-    EMP_4(4, 5, ColorRGBA.Blue, 600),
-    SUPER_1(1, 4, ColorRGBA.White, 700),
-    SUPER_2(2, 3, ColorRGBA.Red,800),
-    SUPER_3(3, 2, ColorRGBA.Yellow,900),
-    SUPER_4(4, 1, ColorRGBA.Blue,1000),
+    BOMB_1(1, 12, ColorRGBA.Red, 500),
+    BOMB_2(2, 11, ColorRGBA.Yellow, 600),
+    BOMB_3(3, 10, ColorRGBA.Blue, 700),
+    BOMB_4(4, 9, ColorRGBA.White, 800),
+    EMP_1(1, 8, ColorRGBA.Red, 300),
+    EMP_2(2, 7, ColorRGBA.Yellow,400),
+    EMP_3(3, 6, ColorRGBA.Blue, 500),
+    EMP_4(4, 5, ColorRGBA.White, 600),
+    SUPER_1(1, 4, ColorRGBA.Red, 700),
+    SUPER_2(2, 3, ColorRGBA.Yellow,800),
+    SUPER_3(3, 2, ColorRGBA.Blue,900),
+    SUPER_4(4, 1, ColorRGBA.White,1000),
     THOR(1, 0, ColorRGBA.Black, 1100);
 
     /**

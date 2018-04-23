@@ -37,6 +37,7 @@ package example.view;
 
 import com.jme3.input.KeyInput;
 import com.jme3.input.MouseInput;
+import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
@@ -66,8 +67,9 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_STOP = new FunctionId(G_MOVEMENT, "Stop");
 
     //Map
-    public static final FunctionId F_MOUSELEFTCLICK = new FunctionId(G_MAP, "UpdateTile");
-    public static final FunctionId F_MOUSERIGHTCLICK = new FunctionId(G_MAP, "RemoveTile");
+    public static final FunctionId F_MOUSE1 = new FunctionId(G_MAP, "UpdateTile");
+    public static final FunctionId F_MOUSE2 = new FunctionId(G_MAP, "RemoveTile");
+    public static final FunctionId F_MOUSE3 = new FunctionId(G_MAP, "Mouse3");
 
     //Weapons
     public static final FunctionId F_BOMB = new FunctionId(G_WEAPON, WeaponTypes.BOMB);
@@ -124,14 +126,20 @@ public class PlayerMovementFunctions {
             inputMapper.map(F_STOP, KeyInput.KEY_SPACE);
         }
 
-        if (!inputMapper.hasMappings(F_MOUSELEFTCLICK)) {
-            inputMapper.map(F_MOUSELEFTCLICK, MouseInput.BUTTON_LEFT);
+        /*
+        Mouse
+        */
+        if (!inputMapper.hasMappings(F_MOUSE1)) {
+            inputMapper.map(F_MOUSE1, Button.MOUSE_BUTTON1);
         }
 
-        if (!inputMapper.hasMappings(F_MOUSERIGHTCLICK)) {
-            inputMapper.map(F_MOUSERIGHTCLICK, MouseInput.BUTTON_RIGHT);
+        if (!inputMapper.hasMappings(F_MOUSE2)) {
+            inputMapper.map(F_MOUSE2, Button.MOUSE_BUTTON2);
         }
 
+        if (!inputMapper.hasMappings(F_MOUSE3)) {
+            inputMapper.map(F_MOUSE3, Button.MOUSE_BUTTON3);
+        }
         /*
         Actions
          */
