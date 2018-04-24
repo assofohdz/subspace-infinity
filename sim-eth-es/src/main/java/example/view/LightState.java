@@ -112,21 +112,10 @@ public class LightState extends BaseAppState {
                 PointLight pl = pointLightMap.get(e.getId());
 
                 double percentage = d.getPercent();
+                float factor = Math.max((float) (1 - (FastMath.pow((float)percentage, 5f))),0f);
                 
-                float factor = (float) (1 - (FastMath.pow((float)percentage, 5f)));
+                pl.setColor(plc.getColor().mult(factor));
                 
-                float newRadius = Math.max(plc.getRadius() * factor , 0f);
-
-                ColorRGBA oldColor = pl.getColor();
-                ColorRGBA newColor = oldColor.clone();
-                newColor.a = factor;
-                
-                pl.setColor(newColor);
-                pl.setRadius(newRadius);
-                
-                if (factor < 0.5) {
-                    log.info(String.valueOf(pl.getRadius()) + " " + pl.getColor());
-                }
             }
         }
     }
