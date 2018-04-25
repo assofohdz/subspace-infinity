@@ -1,7 +1,7 @@
-Material WangBlobUnshaded : MatDefs/StaticSprite/StaticSpriteUnshaded.j3md {
+Material BaseMaterialUnshaded : MatDefs/StaticSprite/StaticSpriteUnshaded.j3md {
      MaterialParameters {
-        ColorMap : Flip Tilesets/wangblobs/File0968.png
-        numTilesX : 15
+        ColorMap : Flip Textures/WB_base_d0.png
+        numTilesX : 1
         numTilesY : 1
         numTilesOffsetX : 0
         numTilesOffsetY : 0

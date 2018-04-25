@@ -58,25 +58,30 @@ project(":assets") {
 
 dependencies {
     
-    // https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
+    //https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
     compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
     
     compile project(':interface')
     
+    //https://junit.org/junit5/
     compile 'junit:junit:4.12'
     
     //jWalkable for 2d polygonal pathfinding
+    //https://github.com/implicit-invocation/jwalkable
     compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
  
     //GDX-AI for steering behaviours
+    //https://github.com/libgdx/gdx-ai
     compile "com.badlogicgames.gdx:gdx-ai:1.8.1:sources"
     compile "com.badlogicgames.gdx:gdx-ai:1.8.1:javadoc"
     compile "com.badlogicgames.gdx:gdx-ai:1.8.1"
     
     //Mapeditor format support
+    //https://github.com/bjorn/tiled
     compile 'org.mapeditor:libtiled:0.17-SNAPSHOT'
     
     // Need at least basic JME
+    //https://github.com/jMonkeyEngine
     compile("org.jmonkeyengine:jme3-core:$jmeVersion") {
         // For some reason if I don't do this then it picks up alpha4 instead
         // of beta2-SNAPSHOT.
@@ -90,33 +95,54 @@ dependencies {
     }
  
     // We definitely want a UI
+    //https://github.com/jMonkeyEngine-Contributions/Lemur
     compile "com.simsilica:lemur:1.9.1"
     compile "com.simsilica:lemur-proto:1.9.1"
 
     // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
+    //https://github.com/Simsilica/SiO2
     compile "com.simsilica:sio2:1.1.0"
+    //https://github.com/Simsilica/SimMath
     compile "com.simsilica:sim-math:1.1.1"
     //compile "com.simsilica:sim-ethereal:1.2.2"
+    //https://github.com/Simsilica/SimEthereal
     compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
+    
+    //https://github.com/jMonkeyEngine-Contributions/zay-es
     compile 'com.simsilica:zay-es-net:1.2.1'
     compile 'com.simsilica:zay-es:1.2.1'
 
     //Lights and Visibility
+    //https://github.com/libgdx/box2dlights
     compile "com.badlogicgames.box2dlights:box2dlights:1.5-SNAPSHOT"
-    //compile 'com.massisframework:straightedge:0.8'
+    
+    //2d polygon lib for lighting and pathfinding
+    //https://github.com/rpax/straightedge
+    //compile 'com.massisframework:straightedge:0
+    //.8'
     // Standard utility stuff
+    //https://github.com/google/guava
     compile 'com.google.guava:guava:24.1-jre'
+    //https://www.slf4j.org/
     compile 'org.slf4j:slf4j-api:1.7.13'
+    //https://logging.apache.org
     runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.5'
     
     //Dyn4j
+    //http://www.dyn4j.org/
     compile 'org.dyn4j:dyn4j:3.2.3'
     
     //Ini4j to parse settings files
+    //http://ini4j.sourceforge.net/
     compile 'org.ini4j:ini4j:0.5.4'
     
+    //Noise4j dungeon generation
+    //https://github.com/czyzby/noise4j
+    compile 'com.github.czyzby:noise4j:0.1.0'
+    
     //HSQLDB
+    //http://hsqldb.org/
     runtime 'org.hsqldb:hsqldb:2.3.4'
     runtime project(':assets')    
 }

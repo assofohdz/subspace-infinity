@@ -1,12 +1,12 @@
-Material WangBlobLight : MatDefs/StaticSprite/StaticSpriteLightShader.j3md {
-     MaterialParameters {
-
-        numTilesX : 15
-        numTilesY : 1
+Material WormholeMaterialLight : MatDefs/Multiline/AnimateMultilineSpriteLightShader.j3md {
+    MaterialParameters {
+        numTilesX : 4
+        numTilesY : 6
+        Speed : 20
         numTilesOffsetX : 0
         numTilesOffsetY : 0
 
-        DiffuseMap : Flip Tilesets/wangblobs/File0002.png
+        DiffuseMap : Flip Textures/Subspace/wormhole.bm2
         UseMaterialColors : true
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0

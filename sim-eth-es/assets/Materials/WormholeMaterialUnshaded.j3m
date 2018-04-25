@@ -1,0 +1,14 @@
+Material WormholeMaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteShader.j3md {
+    MaterialParameters {
+        ColorMap : Flip Textures/Subspace/wormhole.bm2
+        numTilesX : 4
+        numTilesY : 6
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

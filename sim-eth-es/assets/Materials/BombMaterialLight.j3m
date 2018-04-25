@@ -1,12 +1,12 @@
-Material ShipMaterialLight : MatDefs/StaticSprite/StaticSpriteLightShader.j3md {
+Material BombMaterialLight : MatDefs/AnimateSprite/AnimateSpriteLightShader.j3md {
      MaterialParameters {
-        //AniTexMap : Flip Textures/Subspace/ships.bmp
         numTilesX : 10
-        numTilesY : 32
+        numTilesY : 13
+        Speed : 20
         numTilesOffsetX : 0
-        numTilesOffsetY : 3
+        numTilesOffsetY : 12
 
-        DiffuseMap : Flip Textures/Subspace/ships.bmp
+        DiffuseMap : Flip Textures/Subspace/bombs-newer.bm2
         UseMaterialColors : true
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0

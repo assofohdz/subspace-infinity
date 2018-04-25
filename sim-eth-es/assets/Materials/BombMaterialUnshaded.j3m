@@ -1,0 +1,14 @@
+Material BombMaterialUnshaded : MatDefs/AnimateSprite/AnimateSpriteUnshaded.j3md {
+     MaterialParameters {
+        ColorMap : Flip Textures/Subspace/bombs-newer.bm2
+        numTilesX : 10
+        numTilesY : 13
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 12
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

@@ -41,6 +41,8 @@ public class DecayState extends AbstractGameSystem {
                 if (t != null && (t.getTypeName(ed).equals(WeaponTypes.BOMB)
                         || t.getTypeName(ed).equals(WeaponTypes.GRAVITYBOMB))) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
                     Vector2 bodyLocation = simplePhysics.getBody(e.getId()).getWorldCenter();
+                    
+                    //Will seem off on client side, because client is showing the bomb a few timesteps behind where it really is
                     CoreGameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
                 }
 

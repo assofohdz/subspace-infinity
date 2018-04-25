@@ -150,7 +150,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Base", quad);
-        Material mat = assets.loadMaterial("Materials/BaseMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/BaseMaterialLight.j3m");
         //mat.setColor("Color", ColorRGBA.Yellow);
 
         geom.setMaterial(mat);
@@ -170,7 +170,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Mob", quad);
-        Material mat = assets.loadMaterial("Materials/MobMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/MobMaterialLight.j3m");
         //mat.setColor("Color", ColorRGBA.Yellow);
 
         geom.setMaterial(mat);
@@ -190,7 +190,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Tower", quad);
-        Material mat = assets.loadMaterial("Materials/TowerMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/TowerMaterialLight.j3m");
         //mat.setColor("Color", ColorRGBA.Yellow);
 
         geom.setMaterial(mat);
@@ -210,7 +210,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Flag", quad);
-        Material mat = assets.loadMaterial("Materials/FlagMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/FlagMaterialLight.j3m");
 
         geom.setMaterial(mat);
         //mat.setInt("numTilesOffsetY", flag);
@@ -247,7 +247,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Ship", quad);
-        Material mat = assets.loadMaterial("Materials/ShipMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/ShipMaterialLight.j3m");
 
         geom.setMaterial(mat);
         setShipMaterialVariables(geom, ship);
@@ -315,7 +315,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
-        Material mat = assets.loadMaterial("Materials/BombMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/BombMaterialLight.j3m");
         mat.setInt("numTilesOffsetY", level.viewOffset);
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -334,7 +334,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bullet", quad);
-        Material mat = assets.loadMaterial("Materials/BulletMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/BulletMaterialLight.j3m");
         mat.setInt("numTilesOffsetY", offSet);
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -374,7 +374,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bounty", quad);
-        Material mat = assets.loadMaterial("Materials/BountyMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/BountyMaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -457,7 +457,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
-        Material mat = assets.loadMaterial("Materials/Explode2Material.j3m");
+        Material mat = assets.loadMaterial("Materials/Explode2MaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
 
         geom.setMaterial(mat);
@@ -478,7 +478,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quadOver5.updateBound();
         Geometry geomOver5 = new Geometry("Wormhole", quadOver5);
-        Material matOver5 = assets.loadMaterial("Materials/Over5Material.j3m");
+        Material matOver5 = assets.loadMaterial("Materials/Over5MaterialLight.j3m");
         matOver5.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geomOver5.setMaterial(matOver5);
         geomOver5.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -498,7 +498,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Wormhole", quad);
-        Material mat = assets.loadMaterial("Materials/WormholeMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/WormholeMaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -517,7 +517,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Over1", quad);
-        Material mat = assets.loadMaterial("Materials/Over1Material.j3m");
+        Material mat = assets.loadMaterial("Materials/Over1MaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -536,7 +536,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Over2", quad);
-        Material mat = assets.loadMaterial("Materials/Over2Material.j3m");
+        Material mat = assets.loadMaterial("Materials/Over2MaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -555,7 +555,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Warp", quad);
-        Material mat = assets.loadMaterial("Materials/WarpMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/WarpMaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -574,7 +574,7 @@ public class SISpatialFactory implements ModelFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Repel", quad);
-        Material mat = assets.loadMaterial("Materials/RepelMaterial.j3m");
+        Material mat = assets.loadMaterial("Materials/RepelMaterialLight.j3m");
         mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);

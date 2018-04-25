@@ -1,16 +1,16 @@
-Material WangBlobLight : MatDefs/StaticSprite/StaticSpriteLightShader.j3md {
+Material BountyMaterial : MatDefs/AnimateSprite/AnimateSpriteLightShader.j3md {
      MaterialParameters {
-
-        numTilesX : 15
+        numTilesX : 10
         numTilesY : 1
+        Speed : 20
         numTilesOffsetX : 0
-        numTilesOffsetY : 0
+        numTilesOffsetY : 0      
 
-        DiffuseMap : Flip Tilesets/wangblobs/File0002.png
+        DiffuseMap : Textures/Subspace/prizes.png
         UseMaterialColors : true
         Specular : 1.0 1.0 1.0 1.0
         Diffuse : 1.0 1.0 1.0 1.0
-        Shininess : 1.0
+        Shininess : 1.0    
      }
     AdditionalRenderState {
       Blend Alpha

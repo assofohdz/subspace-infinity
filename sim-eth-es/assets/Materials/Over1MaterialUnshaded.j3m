@@ -1,0 +1,14 @@
+Material Over1MaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteUnshaded.j3md {
+    MaterialParameters {
+        ColorMap : Flip Textures/Subspace/over1.bm2
+        numTilesX : 15
+        numTilesY : 2
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

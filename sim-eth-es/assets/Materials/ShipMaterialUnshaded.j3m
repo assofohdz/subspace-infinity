@@ -1,0 +1,13 @@
+Material ShipMaterialUnshaded : MatDefs/StaticSprite/StaticSpriteUnshaded.j3md {
+     MaterialParameters {
+        ColorMap : Flip Textures/Subspace/ships.bmp
+        numTilesX : 10
+        numTilesY : 32
+        numTilesOffsetX : 0
+        numTilesOffsetY : 3
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}
