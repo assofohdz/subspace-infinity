@@ -1,5 +1,8 @@
 package example.es.states;
 
+import com.github.czyzby.noise4j.map.Grid;
+import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
+import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
 import com.simsilica.es.ComponentFilter;
@@ -26,6 +29,7 @@ import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.geometry.Convex;
@@ -49,8 +53,12 @@ public class MapStateServer extends AbstractGameSystem {
     private static final int HALF = 512;
     private EntitySet tileTypes;
 
-    private LinkedList<Vector2> sessionTileRemovals = new LinkedList<>();
-    private LinkedList<Vector2> sessionTileCreations = new LinkedList<>();
+    private LinkedHashSet<Vector2> sessionTileRemovals = new LinkedHashSet<>();
+    private LinkedHashSet<Vector2> sessionTileCreations = new LinkedHashSet<>();
+
+    public static final float NOISE4J_CORRIDOR = 0f;
+    public static final float NOISE4J_FLOOR = 0.5f;
+    public static final float NOISE4J_WALL = 1f;
 
     //int[][] multD = new int[5][];
     @Override
@@ -69,6 +77,10 @@ public class MapStateServer extends AbstractGameSystem {
         //createEntitiesFromMap(loadMap("Maps/extreme.lvl"), new Vec3d(-MAP_SIZE,0,0));
         //createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
         //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
+        Grid dungeon = this.createDungeonGrid();
+        dungeon = this.expandCorridors(dungeon);
+        this.createMapTilesFromDungeonGrid(dungeon, -50f, -50f);
+
     }
 
     public Vector2 getCenterOfArena(double currentXCoord, double currentYCoord) {
@@ -219,12 +231,23 @@ public class MapStateServer extends AbstractGameSystem {
     @Override
     public void update(SimTime tpf) {
 
-        while (!sessionTileRemovals.isEmpty()) {
-            Vector2 remove = sessionTileRemovals.poll();
-        }
+        for (Vector2 remove : sessionTileRemovals) {
+            Vector2 clampedLocation = getKey(remove);
 
-        while (!sessionTileCreations.isEmpty()) {
-            Vector2 create = sessionTileCreations.poll(); //Take the next in line
+            if (index.containsKey(clampedLocation)) {
+                EntityId eId = index.get(clampedLocation);
+                ed.removeEntity(eId);
+
+                index.remove(remove);
+            }
+            //Update surrounding tiles
+            ArrayList<Vector2> locations = new ArrayList<>();
+            locations.add(clampedLocation);
+            updateWangBlobIndexNumber(locations, true, false);
+        }
+        sessionTileRemovals.clear();
+
+        for (Vector2 create : sessionTileCreations) {
             //Clamp location
             Vector2 clampedLocation = getKey(create);
             if (index.containsKey(clampedLocation)) {
@@ -239,10 +262,11 @@ public class MapStateServer extends AbstractGameSystem {
 
             index.put(clampedLocation, eId);
 
-            short tileIndexNumber = updateWangBlobIndexNumber(locations, true);
+            short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
 
             CoreGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), new Rectangle(1, 1), ed);
         }
+        sessionTileCreations.clear();
 
         /*
         tileTypes.applyChanges();
@@ -272,7 +296,7 @@ public class MapStateServer extends AbstractGameSystem {
         }*/
     }
 
-    private short updateWangBlobIndexNumber(ArrayList<Vector2> locations, boolean cascade) {
+    private short updateWangBlobIndexNumber(ArrayList<Vector2> locations, boolean cascade, boolean create) {
         int result = 0;
         ArrayList<Vector2> cascadedLocations = new ArrayList<>();
 
@@ -371,8 +395,7 @@ public class MapStateServer extends AbstractGameSystem {
                 northEast = 0;
             }
 
-            result
-                    = north
+            result = north
                     + 2 * northEast
                     + 4 * east
                     + 8 * southEast
@@ -381,14 +404,18 @@ public class MapStateServer extends AbstractGameSystem {
                     + 64 * west
                     + 128 * northWest;
 
-            EntityId currentEntity = index.get(clampedLocation);
-            TileType tt = TileTypes.wangblob("", (short) result, ed);
-            
-            ed.setComponent(currentEntity, tt);
+            if (create || !cascade) {
+
+                EntityId currentEntity = index.get(clampedLocation);
+                TileType tt = TileTypes.wangblob("", (short) result, ed);
+
+                ed.setComponent(currentEntity, tt);
+            }
+
         }
 
         if (cascade && cascadedLocations.size() > 0) {
-            updateWangBlobIndexNumber(cascadedLocations, false);
+            updateWangBlobIndexNumber(cascadedLocations, false, create);
         }
 
         return (short) result;
@@ -413,10 +440,117 @@ public class MapStateServer extends AbstractGameSystem {
     }
 
     public void sessionRemoveTile(double x, double y) {
-        sessionTileRemovals.add(new Vector2(x, y));
+        Vector2 clampedLocation = getKey(new Vector2(x,y));
+        sessionTileRemovals.add(clampedLocation);
     }
 
     public void sessionCreateTile(double x, double y) {
-        sessionTileCreations.add(new Vector2(x, y));
+        Vector2 clampedLocation = getKey(new Vector2(x,y));
+        sessionTileCreations.add(clampedLocation);
+    }
+
+    private Grid createDungeonGrid() {
+        Grid result = new Grid(100, 100);
+
+        DungeonGenerator dungeonGenerator = new DungeonGenerator();
+
+        dungeonGenerator.setCorridorThreshold(NOISE4J_CORRIDOR);
+        dungeonGenerator.setFloorThreshold(NOISE4J_FLOOR);
+        dungeonGenerator.setWallThreshold(NOISE4J_WALL);
+
+        dungeonGenerator.setRoomGenerationAttempts(100);
+        dungeonGenerator.setMaxRoomsAmount(10);
+        dungeonGenerator.addRoomTypes(DefaultRoomType.values());
+
+        //Max first, then min. Only odd values
+        dungeonGenerator.setMaxRoomSize(21);
+        dungeonGenerator.setMinRoomSize(9);
+
+        dungeonGenerator.generate(result);
+
+        //result = carveCorridors(result);
+        return result;
+    }
+
+    /**
+     * So I dont forget:
+     *
+     * Go through grid, carve all corridors to be 2 wide in a copy Assign copy
+     * to grid Go through grid, set all tiles adjacent to floor or corridor to
+     * wall Create one or more entrances
+     *
+     */
+    private Grid expandCorridors(Grid grid) {
+        Grid newGrid = grid.copy();
+
+        for (int i = 0; i < grid.getWidth(); i++) {
+            for (int j = 0; j < grid.getHeight(); j++) {
+                if (grid.get(i, j) == NOISE4J_CORRIDOR) {
+                    //newGrid.set(i - 1, j - 1, 0f);
+                    //newGrid.set(i - 1, j, 0f);
+                    //newGrid.set(i - 1, j + 1, 0f);
+                    //newGrid.set(i + 1, j - 1, 0f);
+
+                    if (grid.get(i + 1, j) == NOISE4J_WALL && grid.get(i + 1, j) != NOISE4J_FLOOR) {
+                        newGrid.set(i + 1, j, NOISE4J_CORRIDOR);
+                    }
+                    if (grid.get(i + 1, j + 1) == NOISE4J_WALL && grid.get(i + 1, j + 1) != NOISE4J_FLOOR) {
+                        newGrid.set(i + 1, j + 1, NOISE4J_CORRIDOR);
+                    }
+                    if (grid.get(i, j + 1) == NOISE4J_WALL && grid.get(i, j + 1) != NOISE4J_FLOOR) {
+                        newGrid.set(i, j + 1, NOISE4J_CORRIDOR);
+                    }
+                    //newGrid.set(i, j - 1, 0f);
+                    //newGrid.set(i, j, 0f);
+                }
+            }
+        }
+        grid.set(newGrid);
+
+        return grid;
+    }
+
+    private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetY) {
+        /*
+        Default values:
+        private float wallThreshold = 1f;
+        private float floorThreshold = 0.5f;
+        private float corridorThreshold = 0f;
+         */
+        float f;
+        for (int i = 0; i < grid.getHeight(); i++) {
+            for (int j = 0; j < grid.getWidth(); j++) {
+                f = grid.get(j, i);
+                if (f == 0f || f == 0.5f) {
+                    //Floors (rooms) && Corridors
+
+                    //Should create maptiles around rooms and corridors
+                    if (grid.get(j + 1, i) == 1f) {
+                        sessionCreateTile(j + 1 + offsetX, i + offsetY);
+                    }
+                    if (grid.get(j - 1, i) == 1f) {
+                        sessionCreateTile(j - 1 + offsetX, i + offsetY);
+                    }
+                    if (grid.get(j, i + 1) == 1f) {
+                        sessionCreateTile(j + offsetX, i + 1 + offsetY);
+                    }
+                    if (grid.get(j, i - 1) == 1f) {
+                        sessionCreateTile(j + offsetX, i - 1 + offsetY);
+                    }
+                    if (grid.get(j + 1, i + 1) == 1f) {
+                        sessionCreateTile(j + 1 + offsetX, i + 1 + offsetY);
+                    }
+                    if (grid.get(j - 1, i + 1) == 1f) {
+                        sessionCreateTile(j - 1 + offsetX, i + 1 + offsetY);
+                    }
+                    if (grid.get(j + 1, i - 1) == 1f) {
+                        sessionCreateTile(j + 1 + offsetX, i - 1 + offsetY);
+                    }
+                    if (grid.get(j - 1, i - 1) == 1f) {
+                        sessionCreateTile(j - 1 + offsetX, i - 1 + offsetY);
+                    }
+                }
+            }
+        }
     }
 }
