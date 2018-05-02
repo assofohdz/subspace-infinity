@@ -1,0 +1,14 @@
+Material BountyMaterial : MatDefs/AnimateSprite/AnimateSpriteUnshaded.j3md {
+     MaterialParameters {
+        ColorMap : Textures/Subspace/prizes.png
+        numTilesX : 10
+        numTilesY : 1
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0          
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

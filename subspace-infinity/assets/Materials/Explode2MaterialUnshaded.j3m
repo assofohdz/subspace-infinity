@@ -1,0 +1,15 @@
+Material Explode2MaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteUnshaded.j3md {
+    MaterialParameters {
+        ColorMap : Flip Textures/Subspace/explode2.bm2
+        numTilesX : 4
+        numTilesY : 11
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}
