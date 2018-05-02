@@ -1,3 +1,10 @@
 /sim-eth-es/.nb-gradle/
 /sim-eth-es/build/
 #/sim-eth-es/.gradle/
+/network-basic/.nb-gradle/
+/subspace-infinity/.nb-gradle/
+/subspace-infinity/build/
+/subspace-infinity/logs/
+/.gradle/
+/subspace-infinity/.gradle/
+*.log
