@@ -41,6 +41,7 @@ public class CoreViewConstants {
     public final static float MAPTILESIZE = 1f;
     public final static float FLAGSIZE = 1;
     public final static float BASESIZE = 5f;
+    public final static float BURSTSIZE = 0.25f;
     
     
     

@@ -23,36 +23,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.api.es.ship.weapons;
+package infinity.client.view;
 
-import com.simsilica.es.EntityComponent;
+import com.jme3.scene.Spatial;
+import com.simsilica.es.Entity;
 
 /**
  *
  * @author Asser
  */
-public class Bombs implements EntityComponent {
-
-
-    long cooldownMilis;
-    int cost;
-    BombLevel level;
-
-    public Bombs(long cooldown, int cost, BombLevel level) {
-        this.cooldownMilis = cooldown;
-        this.cost = cost;
-        this.level = level;
-    }
-
-    public long getCooldown() {
-        return cooldownMilis;
-    }
-
-    public int getCost() {
-        return cost;
-    }
-
-    public BombLevel getLevel() {
-        return level;
-    }
+public interface ModelFactory {
+    
+    public void setState( ModelViewState state );
+    public Spatial createModel( Entity e );
 }

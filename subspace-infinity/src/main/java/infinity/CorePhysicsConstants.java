@@ -47,7 +47,7 @@ public class CorePhysicsConstants {
     public final static double OVER1SIZERADIUS = 0.5;
     public final static double OVER2SIZERADIUS = 1;
     public final static double FLAGSIZERADIUS = 0.5;
-    
+    public final static double BURSTSIZERADIUS = 0.125f;
     
     //Weights
     public final static double SHIPMASS = 50;
@@ -67,4 +67,5 @@ public class CorePhysicsConstants {
     
     //Pathfinding and polygons
     public final static int VERTEXCOUNTCIRCLE = 20;
+    
 }

@@ -39,9 +39,7 @@ import infinity.api.es.Frequency;
 import infinity.api.es.WeaponTypes;
 import infinity.api.es.Bounty;
 import infinity.api.es.HealthChange;
-import infinity.api.es.WeaponType;
 import infinity.api.es.TileTypes;
-import infinity.api.es.Attack;
 import infinity.api.es.SteeringSeekable;
 import infinity.api.es.PhysicsMassTypes;
 import infinity.api.es.TowerTypes;
@@ -61,6 +59,7 @@ import infinity.api.es.Gold;
 import infinity.api.es.GravityWell;
 import infinity.api.es.Parent;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 import infinity.CoreGameConstants;
@@ -69,6 +68,7 @@ import infinity.CoreViewConstants;
 import infinity.api.es.ship.utilities.Recharge;
 import infinity.api.es.ship.weapons.BombLevel;
 import infinity.api.es.ship.weapons.Bombs;
+import infinity.api.es.ship.weapons.Bursts;
 import infinity.api.es.ship.weapons.GravityBombs;
 import infinity.api.es.ship.weapons.GunLevel;
 import infinity.api.es.ship.weapons.Guns;
@@ -120,6 +120,7 @@ public class CoreGameEntities {
 
         //Add default weapons
         ed.setComponent(result, new Bombs(500, 2, BombLevel.BOMB_1));
+        ed.setComponent(result, new Bursts(100, 50));
         ed.setComponent(result, new Guns(2000, 4, GunLevel.LEVEL_1));
         ed.setComponent(result, new GravityBombs(1000, 10, BombLevel.BOMB_1));
         ed.setComponent(result, new Mines(4000, 20, BombLevel.BOMB_1));
@@ -154,35 +155,39 @@ public class CoreGameEntities {
         return result;
     }
 
-    public static void createBulletSound(EntityId parent, EntityData ed, GunLevel level) {
+    public static void createBulletSound(EntityId parent, Vec3d pos, EntityData ed, GunLevel level) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_bullet(ed, level),
                 new Decay(3000), //Three seconds to play the sound
+                new Position(pos, new Quatd(), 0),
                 new Parent(parent));
     }
 
-    public static void createBombSound(EntityId parent, EntityData ed, BombLevel level) {
+    public static void createBombSound(EntityId parent, Vec3d pos, EntityData ed, BombLevel level) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_bomb(ed, level),
                 new Decay(3000), //Three seconds to play the sound
+                new Position(pos, new Quatd(), 0),
                 new Parent(parent));
     }
 
-    public static void createExplosionSound(EntityId parent, EntityData ed) {
+    public static void createExplosionSound(EntityId parent, Vec3d pos, EntityData ed) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.explosion2(ed),
                 new Decay(3000), //Three seconds to play the sound
+                new Position(pos, new Quatd(), 0),
                 new Parent(parent));
     }
 
-    public static EntityId createSound(EntityId parent, String audioType, EntityData ed) {
+    public static EntityId createSound(EntityId parent, Vec3d pos, String audioType, EntityData ed) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioType.create(audioType, ed),
                 new Decay(3000), //Three seconds to play the sound
+                new Position(pos, new Quatd(), 0),
                 new Parent(parent));
 
         return result;
@@ -198,8 +203,8 @@ public class CoreGameEntities {
                 new Spawner(CoreGameConstants.PRIZEMAXCOUNT, Spawner.SpawnType.Prizes));
         return result;
     }
-
-    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, BombLevel level) {
+    
+    public static EntityId createBomb(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, BombLevel level) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.bomb(ed, level),
@@ -209,14 +214,39 @@ public class CoreGameEntities {
                 WeaponTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 CorePhysicsShapes.bomb(),
+                new Parent(owner),
                 new PointLightComponent(level.lightColor, level.lightRadius));
 
         return lastBomb;
     }
 
-    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, BombLevel level) {
+    public static EntityId createBurst(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
+        EntityId lastBomb = ed.createEntity();
 
-        EntityId lastDelayedBomb = CoreGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed, level);
+        ed.setComponents(lastBomb, ViewTypes.burst(ed),
+                new Position(location, quatd, rotation),
+                new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
+                new Decay(decayMillis),
+                WeaponTypes.burst(ed),
+                PhysicsMassTypes.normal_bullet(ed),
+                CorePhysicsShapes.burst(),
+                new Parent(owner)
+                //new PointLightComponent(level.lightColor, level.lightRadius));
+                );
+        return lastBomb;
+    }
+    
+    public static void createBurstSound(EntityId owner, Vec3d location, EntityData ed) {
+        EntityId result = ed.createEntity();
+
+        ed.setComponents(result, AudioTypes.fire_burst(ed),
+                new Decay(3000) //Three seconds to play the sound
+                );
+    }
+
+    public static EntityId createDelayedBomb(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, BombLevel level) {
+
+        EntityId lastDelayedBomb = CoreGameEntities.createBomb(owner, location, quatd, rotation, linearVelocity, decayMillis, ed, level);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -224,7 +254,7 @@ public class CoreGameEntities {
         return lastDelayedBomb;
     }
 
-    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, GunLevel level) {
+    public static EntityId createBullet(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, GunLevel level) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.bullet(ed, level),
@@ -233,6 +263,7 @@ public class CoreGameEntities {
                 new Decay(decayMillis),
                 PhysicsMassTypes.normal_bullet(ed),
                 WeaponTypes.bullet(ed),
+                new Parent(owner),
                 CorePhysicsShapes.bullet());
 
         return lastBomb;
@@ -299,15 +330,6 @@ public class CoreGameEntities {
                 new WarpTouch(warpTargetLocation));
 
         return lastWormhole;
-    }
-
-    public static EntityId createAttack(EntityId owner, String attackType, EntityData ed) {
-        EntityId lastAttack = ed.createEntity();
-        ed.setComponents(lastAttack,
-                new Attack(owner),
-                WeaponType.create(attackType, ed));
-
-        return lastAttack;
     }
 
     public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed) {
@@ -463,7 +485,7 @@ public class CoreGameEntities {
         return lastHealthBuff;
     }
 
-    public static EntityId createThor(Vec3d location, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed) {
+    public static EntityId createThor(EntityId owner, Vec3d location, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.thor(ed),
@@ -471,6 +493,7 @@ public class CoreGameEntities {
                 new PhysicsVelocity(new Vector2(attackVelocity.x, attackVelocity.y)),
                 new Decay(thorDecay),
                 WeaponTypes.thor(ed),
+                new Parent(owner),
                 PhysicsMassTypes.normal_bullet(ed),
                 CorePhysicsShapes.bomb());
 

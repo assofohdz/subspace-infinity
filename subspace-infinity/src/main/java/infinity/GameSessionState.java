@@ -40,28 +40,27 @@ import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.event.MouseAppState;
-import infinity.audio.AudioState;
-import infinity.audio.SIAudioFactory;
+import infinity.client.audio.AudioState;
+import infinity.client.audio.SIAudioFactory;
 
 import infinity.debug.TimeSequenceState;
 import infinity.net.GameSessionListener;
 import infinity.net.client.GameSessionClientService;
 import infinity.net.chat.ChatSessionListener;
 import infinity.net.chat.client.ChatClientService;
-import infinity.view.CameraState;
-import infinity.view.FlagStateClient;
-import infinity.view.MapStateClient;
-import infinity.view.HudLabelState;
-import infinity.view.InfinityLightState;
-import infinity.view.LightState;
-import infinity.view.ModelViewState;
-import infinity.view.PlayerListState;
-import infinity.view.PlayerMovementState;
-import infinity.view.ResourceStateClient;
-import infinity.view.SISpatialFactory;
-import infinity.view.ShipFrequencyStateClient;
-import infinity.view.SkyState;
-import infinity.view.SpaceGridState;
+import infinity.client.CameraState;
+import infinity.client.FlagStateClient;
+import infinity.client.MapStateClient;
+import infinity.client.HudLabelState;
+import infinity.client.LightState;
+import infinity.client.view.ModelViewState;
+import infinity.client.PlayerListState;
+import infinity.client.PlayerMovementState;
+import infinity.client.ResourceStateClient;
+import infinity.client.view.SISpatialFactory;
+import infinity.client.ShipFrequencyStateClient;
+import infinity.client.view.SkyState;
+import infinity.client.view.SpaceGridState;
 
 /**
  * The core state that manages the game session. This has several child app
@@ -96,7 +95,7 @@ public class GameSessionState extends CompositeAppState {
                 new SpaceGridState(CoreGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
                 new ShipFrequencyStateClient(),
                 new FlagStateClient(),
-                new ResourceStateClient(),
+                //new ResourceStateClient(),
                 new ModelViewState(new SISpatialFactory()),
                 new AudioState(new SIAudioFactory()),
                 new LightState()

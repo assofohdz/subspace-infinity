@@ -25,12 +25,10 @@
  */
 package infinity.sim;
 
-import com.simsilica.es.EntityComponent;
 import infinity.CorePhysicsConstants;
 import infinity.api.es.PhysicsShape;
 import org.dyn4j.collision.Filter;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Geometry;
 
 /**
@@ -44,7 +42,8 @@ public class CorePhysicsShapes {
     public static PhysicsShape tower() {
 
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_TOWERS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.TOWERSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.TOWERSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.TOWERSIZERADIUS));
         fixture.setFilter(filter);
         //fixture.setSensor(true);
 
@@ -53,7 +52,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape ship() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.SHIPSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.SHIPSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.SHIPSIZERADIUS));
         fixture.setFilter(filter);
 
         return new PhysicsShape(fixture);
@@ -61,7 +61,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape bounty() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BOUNTYSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BOUNTYSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BOUNTYSIZERADIUS));
         fixture.setFilter(filter);
 
         return new PhysicsShape(fixture);
@@ -69,7 +70,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape bomb() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BOMBSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BOMBSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BOMBSIZERADIUS));
         fixture.setFilter(filter);
         fixture.setRestitution(1d); //Bounciness
         fixture.setFriction(0d);
@@ -79,7 +81,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape bullet() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BULLETSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BULLETSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BULLETSIZERADIUS));
 
         fixture.setFilter(filter);
 
@@ -99,7 +102,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape wormhole() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.WORMHOLESIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.WORMHOLESIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.WORMHOLESIZERADIUS));
         fixture.setFilter(filter);
 
         return new PhysicsShape(fixture);
@@ -107,7 +111,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape over5() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BODIES;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.OVER5SIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.OVER5SIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.OVER5SIZERADIUS));
         fixture.setFilter(filter);
 
         return new PhysicsShape(fixture);
@@ -115,7 +120,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape over1() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.OVER1SIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.OVER1SIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.OVER1SIZERADIUS));
         fixture.setFilter(filter);
 
         return new PhysicsShape(fixture);
@@ -123,7 +129,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape over2() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.OVER2SIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.OVER2SIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.OVER2SIZERADIUS));
         fixture.setFilter(filter);
 
         return new PhysicsShape(fixture);
@@ -131,7 +138,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape flag() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_SENSOR_FLAGS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.FLAGSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.FLAGSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.FLAGSIZERADIUS));
         fixture.setFilter(filter);
         fixture.setSensor(true);
 
@@ -140,7 +148,8 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape mob() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_MOBS;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.MOBSIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.MOBSIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.MOBSIZERADIUS));
         fixture.setFilter(filter);
         //fixture.setSensor(true);
 
@@ -149,10 +158,19 @@ public class CorePhysicsShapes {
 
     public static PhysicsShape base() {
         Filter filter = CollisionFilters.FILTER_CATEGORY_STATIC_BASE;
-        BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BASESIZERADIUS));
+        //BodyFixture fixture = new BodyFixture(Geometry.createPolygonalCircle(CorePhysicsConstants.VERTEXCOUNTCIRCLE, CorePhysicsConstants.BASESIZERADIUS));
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BASESIZERADIUS));
         fixture.setFilter(filter);
         //fixture.setSensor(true);
 
+        return new PhysicsShape(fixture);
+    }
+    
+    public static PhysicsShape burst() {
+        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_SHIP_PROJECTILES;
+        BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BURSTSIZERADIUS));
+        fixture.setFilter(filter);
+        
         return new PhysicsShape(fixture);
     }
 }

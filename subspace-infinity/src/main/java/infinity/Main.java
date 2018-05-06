@@ -47,7 +47,7 @@ import com.simsilica.lemur.style.BaseStyles;
 import com.simsilica.state.DebugHudState;
 import com.simsilica.util.LogAdapter;
 
-import infinity.view.PlayerMovementFunctions;
+import infinity.client.PlayerMovementFunctions;
 
 /**
  *  The main bootstrap class for the SimEthereal networking example

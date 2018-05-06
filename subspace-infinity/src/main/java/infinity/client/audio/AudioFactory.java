@@ -23,36 +23,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.api.es.ship.weapons;
+package infinity.client.audio;
 
-import com.simsilica.es.EntityComponent;
+import com.jme3.audio.AudioNode;
+import com.simsilica.es.Entity;
 
 /**
  *
  * @author Asser
  */
-public class Bombs implements EntityComponent {
+public interface AudioFactory {
 
+    /**
+     * References the parent audio state
+     * @param state the parent audio state to set
+     */
+    public void setState(AudioState state);
+    
+    public AudioNode createAudio(Entity e);
 
-    long cooldownMilis;
-    int cost;
-    BombLevel level;
-
-    public Bombs(long cooldown, int cost, BombLevel level) {
-        this.cooldownMilis = cooldown;
-        this.cost = cost;
-        this.level = level;
-    }
-
-    public long getCooldown() {
-        return cooldownMilis;
-    }
-
-    public int getCost() {
-        return cost;
-    }
-
-    public BombLevel getLevel() {
-        return level;
-    }
 }

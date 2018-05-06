@@ -27,9 +27,7 @@ package infinity.api.es;
 
 import com.simsilica.es.EntityData;
 import infinity.api.es.ship.weapons.BombLevel;
-import infinity.api.es.ship.weapons.Bombs;
 import infinity.api.es.ship.weapons.GunLevel;
-import infinity.api.es.ship.weapons.Guns;
 
 /**
  * Factory methods for the common object types. Because we run the string names
@@ -67,6 +65,7 @@ public class ViewTypes {
     public static final String EMPL4 = "emp_l4";
 
     public static final String THOR = "thor";
+    public static final String BURST = "burst";
 
     public static final String PRIZE = "bounty";
     public static final String ARENA = "arena";
@@ -229,5 +228,9 @@ public class ViewTypes {
 
     public static ViewType flag_theirs(EntityData ed) {
         return ViewType.create(FLAG_THEIRS, ed);
+    }
+
+    public static ViewType burst(EntityData ed) {
+        return ViewType.create(BURST, ed);
     }
 }

@@ -41,6 +41,7 @@ import infinity.api.es.Position;
 import infinity.api.es.ShipType;
 import infinity.api.es.Spawner;
 import infinity.api.es.SphereShape;
+import infinity.api.es.ship.weapons.Bursts;
 import infinity.api.es.ship.weapons.Thor;
 import infinity.api.es.subspace.PrizeType;
 import infinity.api.es.subspace.PrizeTypes;
@@ -55,6 +56,7 @@ import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.geometry.Vector2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +111,7 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
         prizeWeights.put(PrizeTypes.BOMB, 0);
         prizeWeights.put(PrizeTypes.BOUNCINGBULLETS, 0);
         prizeWeights.put(PrizeTypes.BRICK, 0);
-        prizeWeights.put(PrizeTypes.BURST, 0);
+        prizeWeights.put(PrizeTypes.BURST, 100);
         prizeWeights.put(PrizeTypes.CLOAK, 0);
         prizeWeights.put(PrizeTypes.DECOY, 0);
         prizeWeights.put(PrizeTypes.ENERGY, 0);
@@ -128,7 +130,7 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
         prizeWeights.put(PrizeTypes.SHIELDS, 0);
         prizeWeights.put(PrizeTypes.SHRAPNEL, 0);
         prizeWeights.put(PrizeTypes.STEALTH, 0);
-        prizeWeights.put(PrizeTypes.THOR, 100);
+        prizeWeights.put(PrizeTypes.THOR, 0);
         prizeWeights.put(PrizeTypes.THRUSTER, 0);
         prizeWeights.put(PrizeTypes.TOPSPEED, 0);
         prizeWeights.put(PrizeTypes.WARP, 0);
@@ -221,20 +223,22 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
         //Only interact with collision if a ship collides with a prize or vice verca
         if (prizes.containsId(one) && ships.containsId(two)) {
             PrizeType pt = prizes.getEntity(one).get(PrizeType.class);
+            Vector2 loc = body1.getWorldCenter();
             this.handlePrizeAcquisition(pt, two);
             //Remove prize
             ed.removeEntity(one);
             //Play audio
             //Play audio
-            CoreGameEntities.createSound(two, AudioTypes.PICKUP_PRIZE, ed);
+            CoreGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
             return false;
         } else if (prizes.containsId(two) && ships.containsId(one)) {
             PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
+            Vector2 loc = body2.getWorldCenter();
             this.handlePrizeAcquisition(pt, one);
             //Remove prize
             ed.removeEntity(two);
             //Play audio
-            CoreGameEntities.createSound(one, AudioTypes.PICKUP_PRIZE, ed);
+            CoreGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
             return false;
         }
 
@@ -268,7 +272,15 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             case PrizeTypes.BRICK:
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
             case PrizeTypes.BURST:
-                throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
+                Bursts burst = ed.getComponent(ship, Bursts.class);
+                if (burst == null) {
+                    burst = new Bursts(CoreGameConstants.BURSTCOOLDOWN, 1);
+                } else {
+                    int count = burst.getCount();
+                    burst = new Bursts(CoreGameConstants.BURSTCOOLDOWN, count + 1);
+                }
+                ed.setComponent(ship, burst);
+                break;
             case PrizeTypes.CLOAK:
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
             case PrizeTypes.DECOY:

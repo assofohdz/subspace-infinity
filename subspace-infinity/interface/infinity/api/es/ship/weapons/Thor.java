@@ -33,7 +33,7 @@ import com.simsilica.es.EntityComponent;
  */
 public class Thor implements EntityComponent {
 
-    private final long cooldown;
+    private final long cooldownMilis;
     private final int count;
 
     public int getCount() {
@@ -41,11 +41,11 @@ public class Thor implements EntityComponent {
     }
 
     public Thor(long cooldown, int count) {
-        this.cooldown = cooldown;
+        this.cooldownMilis = cooldown;
         this.count = count;
     }
 
     public long getCooldown() {
-        return cooldown;
+        return cooldownMilis;
     }
 }

@@ -137,12 +137,13 @@ public class CoreGameConstants {
      */           
     public static final Vec3i ZONE_RADIUS = new Vec3i(10, 10, 0);
 
-    //Properties
+    //Projectile speeds
     public final static double BASEPROJECTILESPEED = 1;
     public final static double BOMBPROJECTILESPEED = 25;
     public final static double BULLETPROJECTILESPEED = 50;
     public final static double GRAVBOMBPROJECTILESPEED = 15;
     public final static double THORPROJECTILESPEED = 30;
+    public final static double BURSTPROJECTILESPEED = 50;
     
     //Decays
     public final static long BULLETDECAY = 1500;
@@ -157,6 +158,10 @@ public class CoreGameConstants {
     
     //Cooldowns
     public final static long THORCOOLDOWN = 500;
+    public final static long BURSTCOOLDOWN = 250;
+    
+    public final static long BURSTPROJECTILECOUNT = 30;
+    
     
     
     public final static int BOUNTYVALUE = 10;

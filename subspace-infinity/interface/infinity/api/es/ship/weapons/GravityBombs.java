@@ -33,18 +33,18 @@ import com.simsilica.es.EntityComponent;
  */
 public class GravityBombs implements EntityComponent {
     
-    long cooldown;
+    long cooldownMilis;
     int cost;
     BombLevel level;
 
     public GravityBombs(long cooldown, int cost, BombLevel level) {
-        this.cooldown = cooldown;
+        this.cooldownMilis = cooldown;
         this.cost = cost;
         this.level = level;
     }
 
     public long getCooldown() {
-        return cooldown;
+        return cooldownMilis;
     }
 
     public int getCost() {

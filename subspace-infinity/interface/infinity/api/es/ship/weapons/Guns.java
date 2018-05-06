@@ -34,18 +34,18 @@ import com.simsilica.es.EntityComponent;
  */
 public class Guns implements EntityComponent {
 
-    long cooldown;
+    long cooldownMilis;
     int cost;
     GunLevel level;
 
     public Guns(long cooldown, int cost, GunLevel level) {
-        this.cooldown = cooldown;
+        this.cooldownMilis = cooldown;
         this.cost = cost;
         this.level = level;
     }
 
     public long getCooldown() {
-        return cooldown;
+        return cooldownMilis;
     }
 
     public int getCost() {

@@ -23,36 +23,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.api.es.ship.weapons;
+package infinity.client;
 
-import com.simsilica.es.EntityComponent;
+import com.jme3.app.Application;
+import com.jme3.app.state.BaseAppState;
 
 /**
  *
  * @author Asser
  */
-public class Bombs implements EntityComponent {
+public class ScoreState extends BaseAppState{
 
-
-    long cooldownMilis;
-    int cost;
-    BombLevel level;
-
-    public Bombs(long cooldown, int cost, BombLevel level) {
-        this.cooldownMilis = cooldown;
-        this.cost = cost;
-        this.level = level;
+    @Override
+    protected void initialize(Application app) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public long getCooldown() {
-        return cooldownMilis;
+    @Override
+    protected void cleanup(Application app) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public int getCost() {
-        return cost;
+    @Override
+    protected void onEnable() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    public BombLevel getLevel() {
-        return level;
+    @Override
+    protected void onDisable() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
 }

@@ -55,7 +55,6 @@ import com.jme3.network.service.rpc.RpcHostedService;
 // To test something
 import com.jme3.network.service.AbstractHostedService;
 import com.jme3.network.service.HostedServiceManager;
-import com.jme3.network.service.serializer.ServerSerializerRegistrationsService;
 
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
@@ -79,19 +78,17 @@ import infinity.es.states.DecayState;
 import infinity.es.states.DelayState;
 import infinity.es.states.HealthState;
 import infinity.es.states.ArenaState;
-import infinity.es.states.BasicSteeringState;
 import infinity.es.states.DeathState;
 import infinity.es.states.FlagStateServer;
-import infinity.es.states.GDXAIState;
-import infinity.es.states.GameOrchestratorState;
+import infinity.es.states.steering.GDXAIState;
 import infinity.es.states.GravityState;
 import infinity.es.states.MapStateServer;
-import infinity.es.states.ResourceState;
+import infinity.es.states.towerdefense.ResourceState;
 import infinity.es.states.ShipFrequencyStateServer;
-import infinity.es.states.PathfinderState;
-import infinity.es.states.TowerAttackState;
+import infinity.es.states.steering.PathfinderState;
+import infinity.es.states.towerdefense.TowerAttackState;
 import infinity.es.states.ProjectileCollisionState;
-import infinity.es.states.TowerState;
+import infinity.es.states.towerdefense.TowerState;
 import infinity.es.states.WarpState;
 
 /**

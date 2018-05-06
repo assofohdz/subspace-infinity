@@ -23,78 +23,98 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.es.states;
+package infinity.es.states.towerdefense;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.api.es.Decay;
-import infinity.api.es.WeaponType;
-import infinity.api.es.WeaponTypes;
+import infinity.api.es.Position;
+import infinity.api.es.TowerType;
 import infinity.sim.CoreGameEntities;
+import infinity.sim.CorePhysicsShapes;
 import infinity.sim.SimplePhysics;
-import org.dyn4j.geometry.Vector2;
+import org.dyn4j.geometry.Convex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * General app state that watches entities with a Decay component and deletes
- * them when their time is up.
+ * State to keep track of towers and letting the players edit the towers
  *
- * @author Asser Fahrenholz
+ * @author Asser
  */
-public class DecayState extends AbstractGameSystem {
+public class TowerState extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet entities;
     private SimplePhysics simplePhysics;
-
-    @Override
-    public void update(SimTime tpf) {
-        entities.applyChanges();
-        for (Entity e : entities) {
-            Decay d = e.get(Decay.class);
-            if (d.getPercent() >= 1.0) {
-                WeaponType t = ed.getComponent(e.getId(), WeaponType.class);
-
-                if (t != null && (t.getTypeName(ed).equals(WeaponTypes.BOMB)
-                        || t.getTypeName(ed).equals(WeaponTypes.GRAVITYBOMB))) { //TODO: Not sure if we should explode when we do not hit anything before out ttl is up
-                    Vector2 bodyLocation = simplePhysics.getBody(e.getId()).getWorldCenter();
-
-                    //Will seem off on client side, because client is showing the bomb a few timesteps behind where it really is
-                    EntityId eId = CoreGameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
-                    CoreGameEntities.createExplosionSound(eId, new Vec3d(bodyLocation.x, bodyLocation.y, 0), ed);
-                }
-
-                ed.removeEntity(e.getId());
-            }
-        }
-    }
+    private EntitySet towers;
+    private ResourceState resourceState;
+    static Logger log = LoggerFactory.getLogger(TowerState.class);
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
-        entities = ed.getEntities(Decay.class);
 
-        simplePhysics = getSystem(SimplePhysics.class);
+        this.ed = getSystem(EntityData.class);
+        this.simplePhysics = getSystem(SimplePhysics.class);
+        
+        this.resourceState = getSystem(ResourceState.class);
+        
+        this.towers = ed.getEntities(TowerType.class, Position.class);
     }
 
     @Override
     protected void terminate() {
-        // Release the entity set we grabbed previously
-        entities.release();
-        entities = null;
+        //Release reader object
+        towers.release();
+        towers = null;
+    }
+
+    @Override
+    public void update(SimTime tpf) {
+
+        if (towers.applyChanges()) {
+            for (Entity e : towers.getAddedEntities()) {
+
+            }
+
+            for (Entity e : towers.getChangedEntities()) {
+
+            }
+
+            for (Entity e : towers.getRemovedEntities()) {
+
+            }
+        }
+        
+        
     }
 
     @Override
     public void start() {
-
     }
 
     @Override
     public void stop() {
+    }
+
+    /**
+     * Lets an entity request a tower placement
+     * @param x the x-coordinate of the tower
+     * @param y the y-coordinate of the tower
+     * @param owner the entity that wants to place a tower
+     */
+    public void requestPlaceTower(double x, double y, EntityId owner) {
+        Convex c = CorePhysicsShapes.tower().getFixture().getShape();
+        c.translate(x, y);
+        //Can we build there and do we have the money?
+        if (simplePhysics.allowConvex(c) && resourceState.canAffordTower(owner)) {
+            //Create tower
+            CoreGameEntities.createTower(new Vec3d(x, y, 0), ed);
+            //Deduct cost
+            resourceState.buyTower(owner);
+        }
     }
 }

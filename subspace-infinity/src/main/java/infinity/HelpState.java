@@ -42,8 +42,8 @@ import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputMapper.Mapping;
 import com.simsilica.lemur.style.ElementId;
 
-import infinity.view.PlayerMovementFunctions;
-import infinity.view.PlayerMovementState;
+import infinity.client.PlayerMovementFunctions;
+import infinity.client.PlayerMovementState;
 
 /**
  *  Presents a help popup to the user when they press F1.

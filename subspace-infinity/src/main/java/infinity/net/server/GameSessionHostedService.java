@@ -56,7 +56,7 @@ import infinity.api.es.WeaponTypes;
 import infinity.es.states.WeaponStateServer;
 import infinity.es.states.MapStateServer;
 import infinity.es.states.ShipFrequencyStateServer;
-import infinity.es.states.TowerState;
+import infinity.es.states.towerdefense.TowerState;
 import infinity.es.states.WarpState;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
@@ -337,9 +337,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackGuns");
             }
-
-            CoreGameEntities.createAttack(shipEntity, WeaponTypes.BULLET, ed);
-            //gameSystems.get(WeaponStateServer.class).entityAttackGuns(shipEntity);
+            gameSystems.get(WeaponStateServer.class).sessionAttack(shipEntity, WeaponTypes.BULLET);
         }
 
         @Override
@@ -347,8 +345,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackBomb");
             }
-            CoreGameEntities.createAttack(shipEntity, WeaponTypes.BOMB, ed);
-            //gameSystems.get(WeaponStateServer.class).entityAttackBomb(shipEntity);
+            gameSystems.get(WeaponStateServer.class).sessionAttack(shipEntity, WeaponTypes.BOMB);
         }
 
         @Override
@@ -356,8 +353,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("placeMine");
             }
-            CoreGameEntities.createAttack(shipEntity, WeaponTypes.MINE, ed);
-            //gameSystems.get(WeaponStateServer.class).entityPlaceMine(shipEntity);
+            
+            gameSystems.get(WeaponStateServer.class).sessionAttack(shipEntity, WeaponTypes.MINE);
         }
 
         @Override
@@ -374,9 +371,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackBurst");
             }
-
-            CoreGameEntities.createAttack(shipEntity, WeaponTypes.BURST, ed);
-            //gameSystems.get(WeaponStateServer.class).entityBurst(shipEntity);
+            gameSystems.get(WeaponStateServer.class).sessionAttack(shipEntity, WeaponTypes.BURST);
         }
 
         @Override
@@ -384,8 +379,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackGravBomb");
             }
-            CoreGameEntities.createAttack(shipEntity, WeaponTypes.GRAVITYBOMB, ed);
-            //gameSystems.get(WeaponStateServer.class).entityAttackGravityBomb(shipEntity);
+            gameSystems.get(WeaponStateServer.class).sessionAttack(shipEntity, WeaponTypes.GRAVITYBOMB);
         }
 
         @Override
@@ -393,7 +387,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (log.isTraceEnabled()) {
                 log.trace("attackThor");
             }
-            CoreGameEntities.createAttack(shipEntity, WeaponTypes.THOR, ed);
+            gameSystems.get(WeaponStateServer.class).sessionAttack(shipEntity, WeaponTypes.THOR);
         }
 
         @Override

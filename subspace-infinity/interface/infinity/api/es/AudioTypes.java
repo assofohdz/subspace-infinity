@@ -47,6 +47,7 @@ public class AudioTypes {
     public static final String FIRE_BOMBS_L3 ="fire_bombs_l3";
     public static final String FIRE_BOMBS_L4 ="fire_bombs_l4";
     public static final String EXPLOSION2 ="explosion2";
+    public static final String BURST ="burst";
 
     public static AudioType fire_thor(EntityData ed) {
         return AudioType.create(FIRE_THOR, ed);
@@ -95,4 +96,8 @@ public class AudioTypes {
         return AudioType.create(EXPLOSION2, ed);
     }
 
+    
+    public static AudioType fire_burst(EntityData ed) {
+        return AudioType.create(BURST, ed);
+    }
 }

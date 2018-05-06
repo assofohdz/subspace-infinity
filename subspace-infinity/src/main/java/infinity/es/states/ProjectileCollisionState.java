@@ -33,6 +33,7 @@ import com.simsilica.sim.SimTime;
 import infinity.api.es.Damage;
 import infinity.api.es.Decay;
 import infinity.api.es.MobType;
+import infinity.api.es.Parent;
 import infinity.api.es.WeaponType;
 import infinity.sim.CoreGameEntities;
 import infinity.sim.PhysicsListener;
@@ -48,7 +49,8 @@ import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 
 /**
- * This state handles projectiles and their collisions. Makes sure that damage is properly transfered from projectile to target
+ * This state handles projectiles and their collisions. Makes sure that damage
+ * is properly transfered from projectile to target
  *
  * @author Asser
  */
@@ -65,9 +67,10 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
 
         this.simplePhysics = getSystem(SimplePhysics.class);
 
-        this.projectiles = ed.getEntities(WeaponType.class, Damage.class);
+        this.projectiles = ed.getEntities(WeaponType.class, Damage.class, Parent.class);
 
         this.mobs = ed.getEntities(MobType.class);
+
     }
 
     @Override
@@ -94,8 +97,21 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
         simplePhysics.removePhysicsListener(this);
     }
 
+    /**
+     * Here we filter out projectile collisions for projectile hitting their
+     * owners TODO: Filter out for team members as well
+     */
     @Override
     public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+        EntityId one = (EntityId) body1.getUserData();
+        EntityId two = (EntityId) body2.getUserData();
+
+        if (projectiles.getEntityIds().contains(one) && projectiles.getEntity(one).get(Parent.class).getParentEntity() == two) {
+            return false;
+        } else if (projectiles.getEntityIds().contains(two) && projectiles.getEntity(two).get(Parent.class).getParentEntity() == one) {
+            return false;
+        }
+
         return true;
     }
 

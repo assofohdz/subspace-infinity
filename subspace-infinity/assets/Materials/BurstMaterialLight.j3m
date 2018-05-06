@@ -1,0 +1,19 @@
+Material BulletMaterialLight : MatDefs/AnimateSprite/AnimateSpriteLightShader.j3md {
+     MaterialParameters {
+        numTilesX : 4
+        numTilesY : 10
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+
+        DiffuseMap : Flip Textures/Subspace/bullets.bm2
+        UseMaterialColors : true
+        Specular : 1.0 1.0 1.0 1.0
+        Diffuse : 1.0 1.0 1.0 1.0
+        Shininess : 1.0    
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

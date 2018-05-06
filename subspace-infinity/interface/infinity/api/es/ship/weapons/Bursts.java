@@ -31,6 +31,22 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class Bursts implements EntityComponent{
-    
+public class Bursts implements EntityComponent {
+
+    private final long cooldownMilis;
+    private final int count;
+
+    public Bursts(long cooldown, int count) {
+        this.count = count;
+        this.cooldownMilis = cooldown;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public long getCooldown() {
+        return cooldownMilis;
+    }
+
 }

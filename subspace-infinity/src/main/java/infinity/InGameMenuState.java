@@ -39,7 +39,7 @@ import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.ElementId;
 
-import infinity.view.PlayerMovementState;
+import infinity.client.PlayerMovementState;
 
 /**
  *
