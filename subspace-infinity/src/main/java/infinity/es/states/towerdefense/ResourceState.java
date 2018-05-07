@@ -25,6 +25,7 @@
  */
 package infinity.es.states.towerdefense;
 
+import com.jme3.network.service.HostedServiceManager;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -34,6 +35,8 @@ import com.simsilica.sim.SimTime;
 import infinity.CoreGameConstants;
 import infinity.api.es.Gold;
 import infinity.api.es.ShipType;
+import infinity.net.GameSessionListener;
+import infinity.net.server.GameSessionHostedService;
 import java.util.HashMap;
 
 /**
@@ -47,7 +50,11 @@ public class ResourceState extends AbstractGameSystem {
     private EntitySet ships;
     private double time_since_last_update;
     private HashMap<EntityId, Integer> goldMap = new HashMap<>();
+    private final HostedServiceManager serviceManager;
 
+    public ResourceState(HostedServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
@@ -76,6 +83,11 @@ public class ResourceState extends AbstractGameSystem {
                 Gold g = this.ed.getComponent(e.getId(), Gold.class);
                 int totalGold = g.getGold() + gold;
                 this.ed.setComponent(e.getId(), new Gold(totalGold));
+                
+                //TODO: Will not work if we are to count gold for non-player ships
+                GameSessionListener listener = serviceManager.getService(GameSessionHostedService.class).getGameSessionImpl(e.getId());
+                
+                listener.updateCredits(totalGold);
 
                 goldMap.put(e.getId(), totalGold);
             }

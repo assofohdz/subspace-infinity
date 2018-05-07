@@ -23,24 +23,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.api.es;
+package infinity.api.es.ship;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.mathd.Vec3d;
 
 /**
  *
  * @author Asser
  */
-public class WarpTo implements EntityComponent {
+public class Recharge implements EntityComponent {
 
-    Vec3d targetLocation;
+    double rechargePerSecond;
 
-    public WarpTo(Vec3d targetLocation) {
-        this.targetLocation = targetLocation;
+    public Recharge(double rechargePerSecond) {
+        this.rechargePerSecond = rechargePerSecond;
     }
 
-    public Vec3d getTargetLocation() {
-        return targetLocation;
+    public double getRechargePerSecond() {
+        return rechargePerSecond;
     }
 }

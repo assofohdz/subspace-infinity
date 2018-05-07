@@ -65,7 +65,7 @@ import com.simsilica.es.*;
 import infinity.CoreGameConstants;
 import infinity.CoreViewConstants;
 
-import infinity.api.es.ship.utilities.Recharge;
+import infinity.api.es.ship.Recharge;
 import infinity.api.es.ship.weapons.BombLevel;
 import infinity.api.es.ship.weapons.Bombs;
 import infinity.api.es.ship.weapons.Bursts;

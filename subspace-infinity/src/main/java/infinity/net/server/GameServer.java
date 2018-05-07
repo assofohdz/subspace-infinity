@@ -198,7 +198,7 @@ public class GameServer {
         //Add simple steering system
         //systems.register(BasicSteeringState.class, new BasicSteeringState());
         //Add resources per time system
-        systems.register(ResourceState.class, new ResourceState());
+        systems.register(ResourceState.class, new ResourceState(serviceManager));
         //Add system to handle towers
         systems.register(TowerState.class, new TowerState());
         //Add GDX-AI system to steer mobs

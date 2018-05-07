@@ -167,7 +167,7 @@ public class CorePhysicsShapes {
     }
     
     public static PhysicsShape burst() {
-        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_SHIP_PROJECTILES;
+        Filter filter = CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
         BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BURSTSIZERADIUS));
         fixture.setFilter(filter);
         

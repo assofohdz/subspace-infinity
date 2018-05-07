@@ -32,7 +32,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.api.es.ArenaId;
+import infinity.api.es.subspace.ArenaId;
 import infinity.map.LevelLoader;
 import infinity.sim.CoreGameEntities;
 import java.util.concurrent.ConcurrentHashMap;

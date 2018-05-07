@@ -51,7 +51,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
 
 import infinity.api.es.Position;
-import infinity.api.es.WeaponType;
 import infinity.api.es.WeaponTypes;
 import infinity.es.states.WeaponStateServer;
 import infinity.es.states.MapStateServer;
@@ -64,6 +63,7 @@ import infinity.net.chat.server.ChatHostedService;
 import infinity.sim.CoreGameEntities;
 import infinity.sim.ShipDriver;
 import infinity.sim.SimplePhysics;
+import java.util.HashMap;
 
 /**
  * Provides game session management for connected players. This is where all of
@@ -82,6 +82,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     private GameSystemManager gameSystems;
     private EntityData ed;
     private SimplePhysics physics;
+    
+    private HashMap<EntityId, GameSessionListener> entitySessionMap = new HashMap<>();
+    
+    private HashMap<EntityId, EntityId> shipToPlayerMap = new HashMap<>();
 
     private RmiHostedService rmiService;
     private AccountObserver accountObserver = new AccountObserver();
@@ -141,6 +145,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         log.debug("startHostingOnConnection(" + conn + ")");
 
         GameSessionImpl session = new GameSessionImpl(player, conn);
+        
+        entitySessionMap.put(player, session);
+        
         conn.setAttribute(ATTRIBUTE_SESSION, session);
 
         // Expose the session as an RMI resource to the client
@@ -217,7 +224,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     /**
      * The connection-specific 'host' for the GameSession.
      */
-    private class GameSessionImpl implements GameSession {
+    private class GameSessionImpl implements GameSession, GameSessionListener {
 
         private HostedConnection conn;
         private GameSessionListener callback;
@@ -234,6 +241,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
             //TODO: Let player choose the ship
             this.shipEntity = CoreGameEntities.createShip(playerEntity, ed);
+            
+            shipToPlayerMap.put(shipEntity, playerEntity);
 
             // Set the ship driver directly on the Body.  This could
             // also have been managed with a component-based system but 
@@ -405,5 +414,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
             gameSystems.get(MapStateServer.class).sessionRemoveTile(x, y);
         }
+        
+        @Override
+        public void updateCredits(int credits){
+            getCallback().updateCredits(credits);
+        }
+    }
+    
+    public GameSessionListener getGameSessionImpl(EntityId shipEntityId){
+        return entitySessionMap.get(shipToPlayerMap.get(shipEntityId));
     }
 }

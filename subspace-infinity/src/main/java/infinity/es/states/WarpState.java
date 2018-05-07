@@ -38,7 +38,7 @@ import infinity.api.es.HitPoints;
 import infinity.api.es.PhysicsMassType;
 import infinity.api.es.PhysicsShape;
 import infinity.api.es.Position;
-import infinity.api.es.WarpTo;
+import infinity.api.es.ship.actions.WarpTo;
 import infinity.api.es.WarpTouch;
 import infinity.sim.CoreGameEntities;
 import infinity.sim.SimpleBody;

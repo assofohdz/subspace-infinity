@@ -23,49 +23,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client;
+package infinity.api.es.ship.toggles;
 
-import com.jme3.app.Application;
-import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.lemur.event.BaseAppState;
-import com.simsilica.state.DebugHudState;
+import com.simsilica.es.EntityComponent;
 
 /**
  *
  * @author Asser
  */
-public class ResourceStateClient extends BaseAppState {
+public class Stealth implements EntityComponent {
 
-    private VersionedHolder<String> goldDisplay;
-
-    @Override
-    protected void initialize(Application aplctn) {
-        if (getState(DebugHudState.class) != null) {
-            DebugHudState debug = getState(DebugHudState.class);
-            this.goldDisplay = debug.createDebugValue("Gold", DebugHudState.Location.Top);
-        }
-    }
-
-    @Override
-    protected void cleanup(Application aplctn) {
-    }
-
-    @Override
-    protected void enable() {
-
-    }
-
-    @Override
-    protected void disable() {
-
-    }
-    
-    public void updateCredits(int credits){
-        goldDisplay.setObject(String.valueOf(credits));
-    }
-
-    @Override
-    public void update(float tpf) {
-        
+    public Stealth() {
     }
 }

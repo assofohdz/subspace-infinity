@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.api.es.ship.utilities;
+package infinity.api.es.ship.toggles;
 
 import com.simsilica.es.EntityComponent;
 
@@ -31,15 +31,8 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class Recharge implements EntityComponent {
+public class Cloak implements EntityComponent {
 
-    double rechargePerSecond;
-
-    public Recharge(double rechargePerSecond) {
-        this.rechargePerSecond = rechargePerSecond;
-    }
-
-    public double getRechargePerSecond() {
-        return rechargePerSecond;
+    public Cloak() {
     }
 }

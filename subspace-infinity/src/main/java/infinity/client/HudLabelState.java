@@ -25,28 +25,18 @@
  */
 package infinity.client;
 
-import java.util.*;
-import java.util.concurrent.*;
 
 import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.asset.AssetManager;
 import com.jme3.math.*;
 import com.jme3.renderer.Camera;
-import com.jme3.material.Material;
-import com.jme3.renderer.Camera;
 import com.jme3.scene.*;
-import com.jme3.texture.Texture;
-import com.jme3.util.SafeArrayList;
 
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.style.ElementId;
 
-import com.simsilica.ethereal.EtherealClient;
-import com.simsilica.ethereal.SharedObject;
-import com.simsilica.ethereal.SharedObjectListener;
 import com.simsilica.ethereal.TimeSource; 
 
 import com.simsilica.es.*;
@@ -59,8 +49,6 @@ import infinity.GameSessionState;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.api.es.BodyPosition;
-import infinity.net.GameSessionListener;
-import infinity.net.client.GameSessionClientService;
 
 /**
  *  Displays a HUD label for any entity with a BodyPosition and a Name.

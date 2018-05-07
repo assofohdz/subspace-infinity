@@ -248,5 +248,13 @@ public class GameSessionClientService extends AbstractClientService
      */
     private class GameSessionCallback implements GameSessionListener {
 
+        @Override
+        public void updateCredits(int credits) {
+            log.trace("This is called from server to client");
+            
+            for(GameSessionListener listener : listeners){
+                listener.updateCredits(credits);
+            }
+        }
     }
 }

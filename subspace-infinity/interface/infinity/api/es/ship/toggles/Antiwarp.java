@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.api.es.ship.utilities;
+package infinity.api.es.ship.toggles;
 
 import com.simsilica.es.EntityComponent;
 
@@ -31,6 +31,8 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class Repels implements EntityComponent{
-    
+public class Antiwarp implements EntityComponent {
+
+    public Antiwarp() {
+    }
 }

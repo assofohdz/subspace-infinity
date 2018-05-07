@@ -25,15 +25,22 @@
  */
 package infinity.net;
 
-import com.jme3.math.*;
 import com.jme3.network.service.rmi.Asynchronous;
 
 /**
- *  The asynchronous callbacks that the game back-end uses to
- *  send game-session information to the player.
+ * The asynchronous callbacks that the game back-end uses to send game-session
+ * information to the player.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public interface GameSessionListener {
- 
+
+    /**
+     * Updates the player credits
+     *
+     * @param credits
+     */
+    @Asynchronous
+    public void updateCredits(int credits);
+
 }

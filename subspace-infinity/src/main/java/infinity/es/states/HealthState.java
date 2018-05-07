@@ -36,7 +36,7 @@ import infinity.api.es.Dead;
 import infinity.api.es.HealthChange;
 import infinity.api.es.HitPoints;
 import infinity.api.es.MaxHitPoints;
-import infinity.api.es.ship.utilities.Recharge;
+import infinity.api.es.ship.Recharge;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;

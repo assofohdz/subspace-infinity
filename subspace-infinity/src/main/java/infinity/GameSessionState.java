@@ -95,7 +95,7 @@ public class GameSessionState extends CompositeAppState {
                 new SpaceGridState(CoreGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
                 new ShipFrequencyStateClient(),
                 new FlagStateClient(),
-                //new ResourceStateClient(),
+                new ResourceStateClient(),
                 new ModelViewState(new SISpatialFactory()),
                 new AudioState(new SIAudioFactory()),
                 new LightState()
@@ -192,6 +192,11 @@ public class GameSessionState extends CompositeAppState {
      */
     private class GameSessionObserver implements GameSessionListener {
 
+        @Override
+        public void updateCredits(int credits) {
+            log.trace("This is called via listener framework");
+            getState(ResourceStateClient.class).updateCredits(credits);
+        }
     }
 
     /**
