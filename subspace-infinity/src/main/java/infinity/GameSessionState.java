@@ -56,6 +56,7 @@ import infinity.client.LightState;
 import infinity.client.view.ModelViewState;
 import infinity.client.PlayerListState;
 import infinity.client.PlayerMovementState;
+import infinity.client.RadarState;
 import infinity.client.ResourceStateClient;
 import infinity.client.view.SISpatialFactory;
 import infinity.client.ShipFrequencyStateClient;
@@ -98,9 +99,10 @@ public class GameSessionState extends CompositeAppState {
                 new ResourceStateClient(),
                 new ModelViewState(new SISpatialFactory()),
                 new AudioState(new SIAudioFactory()),
-                new LightState()
+                new LightState(),
+                new RadarState()
                 //new InfinityLightState()
-        //new MapEditorState()
+                //new MapEditorState()
         );
 
         // Add states that need to support enable/disable independent of
@@ -113,6 +115,7 @@ public class GameSessionState extends CompositeAppState {
 
         addChild(new HelpState(), true);
         addChild(new PlayerListState(), true);
+
     }
 
     public EntityId getShipId() {

@@ -89,6 +89,14 @@ public class ModelViewState extends BaseAppState {
     public Spatial getModel(EntityId id) {
         return modelIndex.get(id);
     }
+    
+    public ModelContainer getModelContainer(){
+        return models;
+    }
+    
+    public MobContainer getMobContainer(){
+        return mobs;
+    }
 
     @Override
     protected void initialize(Application app) {
@@ -568,7 +576,7 @@ public class ModelViewState extends BaseAppState {
         return result;
     }
 
-    private class Mob {
+    public class Mob {
 
         Entity entity;
         Spatial spatial;
@@ -620,6 +628,10 @@ public class ModelViewState extends BaseAppState {
                 setVisible(trans.getVisibility(time));
                 //log.info(spatial.getName() + ": "+trans.toString());
             }
+        }
+        
+        public Spatial getSpatial(){
+            return this.spatial;
         }
 
         protected void updateComponents() {
@@ -682,15 +694,19 @@ public class ModelViewState extends BaseAppState {
             this.visible = f;
             resetVisibility();
         }
+        
+        public boolean isVisible(){
+            return this.visible;
+        }
 
         protected void resetVisibility() {
-            /*
-            if (visible && !localPlayerShip) {
+            
+            if (visible) {
                 spatial.setCullHint(Spatial.CullHint.Inherit);
             } else {
                 spatial.setCullHint(Spatial.CullHint.Always);
             }
-             */
+            
         }
 
         public void dispose() {
@@ -700,14 +716,14 @@ public class ModelViewState extends BaseAppState {
         }
     }
 
-    private class MobContainer extends EntityContainer<Mob> {
+    public class MobContainer extends EntityContainer<Mob> {
 
         public MobContainer(EntityData ed) {
             super(ed, ViewType.class, BodyPosition.class);
         }
 
         @Override
-        protected Mob[] getArray() {
+        public Mob[] getArray() {
             return super.getArray();
         }
 
@@ -733,10 +749,15 @@ public class ModelViewState extends BaseAppState {
      * exists in both the MobContainer and this one that the MobContainer takes
      * precedence.
      */
-    private class ModelContainer extends EntityContainer<Spatial> {
+    public class ModelContainer extends EntityContainer<Spatial> {
 
         public ModelContainer(EntityData ed) {
             super(ed, ViewType.class, Position.class);
+        }
+
+        @Override
+        public Spatial[] getArray() {
+            return super.getArray();
         }
 
         @Override

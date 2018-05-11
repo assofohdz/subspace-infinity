@@ -26,6 +26,7 @@
 package infinity;
 
 import com.jme3.input.KeyInput;
+import com.simsilica.lemur.input.Axis;
 import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
@@ -46,6 +47,8 @@ public class MainGameFunctions {
 
     public static final FunctionId F_PLAYER_LIST = new FunctionId(IN_GAME, "Player List");
     
+    public static final FunctionId F_RADAR = new FunctionId(IN_GAME, "Radar");
+    
     public static final FunctionId F_COMMAND_CONSOLE = new FunctionId(IN_GAME, "Command Console");
  
     public static final FunctionId F_TIME_DEBUG = new FunctionId(IN_GAME, "Time Debug");
@@ -63,5 +66,7 @@ public class MainGameFunctions {
         
         inputMapper.map(F_COMMAND_CONSOLE, KeyInput.KEY_RETURN);
         inputMapper.map(F_COMMAND_CONSOLE, KeyInput.KEY_NUMPADENTER);
+        
+        inputMapper.map(F_RADAR, KeyInput.KEY_F3);
     }
 }
