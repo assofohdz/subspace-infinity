@@ -80,6 +80,8 @@ public class Main extends SimpleApplication {
         settings.setTitle("Subspace: Infinity");
         settings.setSettingsDialogImage("/subspace-since-1995-splash.jpg");
         settings.setUseJoysticks(true);
+        
+        
         /*
         try {
             BufferedImage[] icons = new BufferedImage[] {
@@ -110,8 +112,8 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {        
         
         setPauseOnLostFocus(false);
-        setDisplayFps(false);
-        setDisplayStatView(false);
+        setDisplayFps(true);
+        setDisplayStatView(true);
         
         GuiGlobals.initialize(this);
  
