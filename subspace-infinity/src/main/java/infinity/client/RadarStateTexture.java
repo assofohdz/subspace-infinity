@@ -1,21 +1,3 @@
-/**
- * https://www.unknowncheats.me/forum/general-programming-and-reversing/135529-implement-simple-radar.html
- * 3. In case you're still with and didn't leave the thread yet...
- * ... I'd like to use this knowledge to create a radar!
- * What will we do?
- * 1. Define the center of our radar. Let's say or radar is 300*300 pixels, it's center then is (150,150).
- * 2. Find our local player. Let's say it is at (10,12).
- * 2.1. Save our local player's position (I'll call it myPos)
- * 3. Iterate through our players (I'll call the currently iterated player "currPlayer")
- * 3.1. If currPlayer is invalud, skip it.
- * 3.2. Math! Get it's vector2!
- * 3.3. Calculate the relative vector from this player to myPlayer: myPos - currPlayer.vector2
- * 3.4. Get the relative vectors' length: If it is greater than the radius of our radar, it will be out of bounds (since it's origin is in the center of the radar, shown in the pic above).
- * 3.4.1. If it is out of bounds, you may skip it OR you scale it in order to make it appear at the border of our radar
- * 3.4.2. To scale it that way, normalize the relative vector and multiply it by the radius of our radar - This way it keeps it's direction and points to the border of the radar.
- * 3.5. You can now rotate the relative vector by the local player's yaw: As you turn around ingame, your radar shall turn around, too!
- * 3.6. Draw the player at the position that is pointed to by our relative vector!
- */
 package infinity.client;
 
 import com.jme3.app.Application;
@@ -30,9 +12,9 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.input.InputMapper;
+import infinity.CoreGameConstants;
 import infinity.Main;
 import infinity.MainGameFunctions;
-import infinity.api.es.Position;
 import infinity.client.view.ModelViewState;
 import infinity.client.view.ModelViewState.Mob;
 import infinity.client.view.ModelViewState.MobContainer;
@@ -43,10 +25,16 @@ import java.util.HashSet;
 import org.dyn4j.geometry.Vector2;
 
 /**
+ * For information on how to do this, check out:
+ * https://www.unknowncheats.me/forum/general-programming-and-reversing/135529-implement-simple-radar.html
+ * or look at page 212 in the book:
+ * 'Game-Programming-Algorithms-and-Techniques-A-Platform-Agnostic-Approach'
+ * TODO: Should be done via an alternate viewport and scene (with
+ * EntityComponents that hold RadarSymbol-information)
  *
  * @author Asser Fahrenholz
  */
-public class RadarState extends BaseAppState {
+public class RadarStateTexture extends BaseAppState {
 
     //Needed these to initialize GUI element
     private Container window;
@@ -70,24 +58,23 @@ public class RadarState extends BaseAppState {
     //Texture to draw on
     private PaintableTexture texture;
 
-    public static final float RADARRANGE = 100;
-    private float radarRadius = 150;
+    public static final float RADARRANGE = CoreGameConstants.GRID_CELL_SIZE;
+    private final float radarRadius = 150;
     private Vector2 playerCoords;
-    
-    
+
     //Colors:
     private final Color colorMap = Color.WHITE;
-    private final Color colorMobs  = Color.WHITE;
+    private final Color colorMobs = Color.WHITE;
     private final Color colorMe = Color.WHITE;
     private final Color colorBackground = Color.DARK_GRAY;
-    
+
     //ColorRGBAs:
     private final ColorRGBA colorMapRGBA = ColorRGBA.White;
-    private final ColorRGBA colorMobsRGBA  = ColorRGBA.White;
+    private final ColorRGBA colorMobsRGBA = ColorRGBA.White;
     private final ColorRGBA colorMeRGBA = ColorRGBA.White;
     private final ColorRGBA colorBackgroundRGBA = ColorRGBA.Green;//this.copyWithAlpha(ColorRGBA.LightGray, 0);
-    
-    public RadarState() {
+
+    public RadarStateTexture() {
         setEnabled(false);
     }
 
@@ -117,16 +104,15 @@ public class RadarState extends BaseAppState {
         //Label title = window.addChild(new Label("Radar", new ElementId("title")));
         //title.setInsets(new Insets3f(2, 2, 0, 2
         this.resetTexture();
-        
+
         bg = new QuadBackgroundComponent(texture.getTexture());
-        
+
         window.setBackground(bg);
-        
+
         //Can be used to set alpha on entire map gui element
         window.setAlpha(0.5f, true);
 
         //loadTestBlips();
-
     }
 
     @Override
@@ -140,9 +126,6 @@ public class RadarState extends BaseAppState {
         // Setup the panel for display
         Node gui = ((Main) getApplication()).getGuiNode();
 
-        // Base size and positioning off of 1.5x the 'standard scale' 
-        //float standardScale = getState(MainMenuState.class).getStandardScale(); 
-        //window.setLocalScale(1.5f * standardScale);
         window.setPreferredSize(new Vector3f(radarWidth, radarHeight, 0));
 
         window.setLocalTranslation(camWidth - radarWidth, radarHeight,
@@ -191,27 +174,10 @@ public class RadarState extends BaseAppState {
                     Vector2 scaledBlipToPlayerVec = this.getScaledBlipToPlayerVector(playerToBlip.copy());
                     addBlipToRadar(scaledBlipToPlayerVec, colorMobs);
                 }
-                /**
-                 * // Convert Enemy's position to 2D coordinate Vector2
-                 * enemyPos2D = Vector2 ( e . position . x , e . position . z )
-                 * // Construct vector from player to enemy Vector2
-                 * playerToEnemy = enemyPos2D – playerPos2D // Check the length,
-                 * and see if it's within range if playerToEnemy .Length() <=
-                 * range
-                 */
-
             }
         }
 
         for (Vector2 vec : testCoords) {
-
-            /**
-             * // Convert Enemy's position to 2D coordinate Vector2 enemyPos2D
-             * = Vector2 ( e . position . x , e . position . z ) // Construct
-             * vector from player to enemy Vector2 playerToEnemy = enemyPos2D –
-             * playerPos2D // Check the length, and see if it's within range if
-             * playerToEnemy .Length() <= range
-             */
             Vector2 playerToBlip = vec.copy().subtract(playerCoords);
             if (playerToBlip.getMagnitude() <= RADARRANGE) {
                 Vector2 scaledBlipToPlayerVec = this.getScaledBlipToPlayerVector(playerToBlip.copy());
@@ -225,29 +191,15 @@ public class RadarState extends BaseAppState {
 
         playerToBlip.multiply(1f / RADARRANGE);
         playerToBlip.multiply(radarRadius);
-
-        /**
-         * // Take the playerToEnemy vector and convert it to offset from the
-         * center of the on-screen radar. blip . position = playerToEnemy blip .
-         * position /= range blip . position *= radius // Add blip to list of
-         * blips blips .Add( blip )
-         */
         return playerToBlip;
     }
-
 
     private void addBlipToRadar(Vector2 scaledRelativeBlip, Color color) {
 
         texture.setPixel((int) (radarCenter.x + scaledRelativeBlip.x), (int) (radarCenter.y + scaledRelativeBlip.y), color);
 
     }
-    /*
-    private void addBlipToRadar(Vector2 scaledRelativeBlip, ColorRGBA color) {
 
-        texture.setPixel((int) (radarCenter.x + scaledRelativeBlip.x), (int) (radarCenter.y + scaledRelativeBlip.y), color);
-
-    }
-*/
     private void loadTestBlips() {
         testCoords.add(new Vector2(10, 10));
         testCoords.add(new Vector2(20, 20));
@@ -259,14 +211,14 @@ public class RadarState extends BaseAppState {
     private Vector2 convertToVec2(Vector3f vec3f) {
         return new Vector2(vec3f.x, vec3f.y);
     }
-    
-    private void resetTexture(){
+
+    private void resetTexture() {
         texture = new PaintableTexture(radarWidth, radarHeight);
         texture.setBackground(colorBackground);
         texture.setMagFilter(Texture.MagFilter.Bilinear);
     }
-    
-    private ColorRGBA copyWithAlpha(ColorRGBA color, float alpha){
+
+    private ColorRGBA copyWithAlpha(ColorRGBA color, float alpha) {
         ColorRGBA newColor = color.clone();
         newColor.set(color.r, color.g, color.b, alpha);
         return newColor;
