@@ -65,7 +65,8 @@ public class GameClient {
                 CoreGameConstants.PROTOCOL_VERSION,
                 host, port);
 
-        client.addMessageListener(new MessageDebugger());
+        //Enable to see info on all rpc messages
+        //client.addMessageListener(new MessageDebugger());
 
         log.info("Adding services...");
         client.getServices().addServices(new RpcClientService(),
