@@ -27,14 +27,20 @@ package infinity.es.states;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.ethereal.zone.ZoneKey;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.CoreGameConstants;
+import infinity.api.es.Position;
 import infinity.api.es.subspace.ArenaId;
 import infinity.map.LevelLoader;
 import infinity.sim.CoreGameEntities;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.geometry.Vector2;
 import tiled.core.Map;
@@ -52,9 +58,12 @@ public class ArenaState extends AbstractGameSystem {
     private Map map;
     private EntityData ed;
     private EntitySet arenaEntities;
+    private EntitySet staticPositions;
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
     static Logger log = LoggerFactory.getLogger(ArenaState.class);
+
+    private HashMap<ZoneKey, Long> zones = new HashMap<>();
 
     @Override
     protected void initialize() {
@@ -69,12 +78,13 @@ public class ArenaState extends AbstractGameSystem {
 
         am.registerLoader(LevelLoader.class, "lvl");
 
+        staticPositions = ed.getEntities(Position.class);
+
     }
 
     public EntityId getEntityId(Vector2 coord) {
         return index.get(coord);
     }
-
 
     @Override
     protected void terminate() {
@@ -86,8 +96,25 @@ public class ArenaState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
-        
+
         arenaEntities.applyChanges();
+
+        if (staticPositions.applyChanges()) {
+            for (Entity e : staticPositions.getAddedEntities()) {
+                Position pos = e.get(Position.class);
+
+                ZoneKey zone = CoreGameConstants.ZONE_GRID.worldToKey(pos.getLocation());
+                long cellId = zone.toLongId();
+
+                zones.put(zone, cellId);
+
+                Position newPos = pos.newCellId(cellId);
+                ed.setComponent(e.getId(), newPos);
+            }
+            
+            log.info("Zones: "+zones.toString());
+        }
+
     }
 
     @Override
@@ -97,4 +124,5 @@ public class ArenaState extends AbstractGameSystem {
     @Override
     public void stop() {
     }
+
 }

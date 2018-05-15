@@ -198,19 +198,6 @@ public class ModuleGameEntities {
         return lastTileInfo;
     }
 
-    /*
-    public static EntityId createMapTile(MapTileType mapTileType, Vec3d location, EntityData ed, Convex c) {
-        EntityId lastMapTile = ed.createEntity();
-
-        ed.setComponents(lastMapTile, ObjectTypes.mapTile(ed),
-                new Position(location, new Quatd(), 0f),
-                mapTileType, //TODO: Should be parameterized
-                new MassProperties(PhysicsConstants.MAPTILEMASS), //for Physics
-                new PhysicsShape(new BodyFixture(c))); //for physics - for now, only 1 by 1 tiles created (square)
-
-        return lastMapTile;
-    }
-     */
     //Explosion is for now only visual, so only object type and position
     public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed, Ini settings) {
         EntityId lastExplosion = ed.createEntity();

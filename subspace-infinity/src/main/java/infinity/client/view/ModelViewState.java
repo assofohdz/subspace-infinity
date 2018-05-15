@@ -48,11 +48,17 @@ import com.jme3.texture.Texture;
 import com.simsilica.lemur.*;
 
 import com.simsilica.es.*;
+import com.simsilica.es.filter.FieldFilter;
+import com.simsilica.es.filter.OrFilter;
+import com.simsilica.ethereal.LocalZoneIndex;
+import com.simsilica.ethereal.zone.ZoneKey;
+import com.simsilica.mathd.Vec3d;
 
 import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
+import infinity.CoreGameConstants;
 import infinity.GameSessionState;
 import infinity.Main;
 import infinity.TimeState;
@@ -81,7 +87,17 @@ public class ModelViewState extends BaseAppState {
     private EntityId localPlayerEntityId;
     private EntitySet tileTypes;
     private Spatial arenaSpatial;
+
+    private long oldPlayerCellId;
+
+    private LocalZoneIndex zones;
+
+    private ModelViewState mvs;
+    private Vec3d oldPlayerPosition;
+    private boolean playerCellIdInitialized = false;
     
+    private List<ZoneKey> inZones = new ArrayList<>();
+
     public ModelViewState(SISpatialFactory siSpatialFactory) {
         this.factory = siSpatialFactory;
     }
@@ -89,12 +105,12 @@ public class ModelViewState extends BaseAppState {
     public Spatial getModel(EntityId id) {
         return modelIndex.get(id);
     }
-    
-    public ModelContainer getModelContainer(){
+
+    public ModelContainer getModelContainer() {
         return models;
     }
-    
-    public MobContainer getMobContainer(){
+
+    public MobContainer getMobContainer() {
         return mobs;
     }
 
@@ -102,6 +118,8 @@ public class ModelViewState extends BaseAppState {
     protected void initialize(Application app) {
         factory.setState(this);
         modelRoot = new Node();
+
+        zones = new LocalZoneIndex(CoreGameConstants.ZONE_GRID, CoreGameConstants.ZONE_RADIUS);
 
         // Retrieve the time source from the network connection
         // The time source will give us a time in recent history that we should be
@@ -151,6 +169,34 @@ public class ModelViewState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
+
+        if (playerSpatial != null) {
+            Vec3d newPlayerPosition = new Vec3d(playerSpatial.getWorldTranslation());
+            if (newPlayerPosition != oldPlayerPosition) {
+                ZoneKey newKey = CoreGameConstants.ZONE_GRID.worldToKey(newPlayerPosition);
+                long newPlayerCellId = newKey.toLongId();
+                if (newPlayerCellId != oldPlayerCellId || !playerCellIdInitialized) {
+
+                    List<ZoneKey> entered = new ArrayList<>();
+                    List<ZoneKey> exited = new ArrayList<>();
+                    zones.setCenter(newKey, entered, exited);
+
+                    inZones.addAll(entered);
+                    inZones.removeAll(exited);
+                    
+                    OrFilter zoneFilter = generateZoneFilter(inZones);
+
+                    models.updateFilter(zoneFilter);
+
+                    oldPlayerCellId = newPlayerCellId;
+
+                    playerCellIdInitialized = true;
+                    
+                }
+                oldPlayerPosition = newPlayerPosition;
+            }
+        }
+
         tileTypes.applyChanges();
 
         //tileImages.update();
@@ -457,7 +503,7 @@ public class ModelViewState extends BaseAppState {
 
         //Spatial information:
         Spatial arena = factory.createModel(entity);
-        
+
         this.arenaSpatial = arena;
 
         result.attachChild(arena);
@@ -629,8 +675,8 @@ public class ModelViewState extends BaseAppState {
                 //log.info(spatial.getName() + ": "+trans.toString());
             }
         }
-        
-        public Spatial getSpatial(){
+
+        public Spatial getSpatial() {
             return this.spatial;
         }
 
@@ -694,19 +740,19 @@ public class ModelViewState extends BaseAppState {
             this.visible = f;
             resetVisibility();
         }
-        
-        public boolean isVisible(){
+
+        public boolean isVisible() {
             return this.visible;
         }
 
         protected void resetVisibility() {
-            
+
             if (visible) {
                 spatial.setCullHint(Spatial.CullHint.Inherit);
             } else {
                 spatial.setCullHint(Spatial.CullHint.Always);
             }
-            
+
         }
 
         public void dispose() {
@@ -752,7 +798,7 @@ public class ModelViewState extends BaseAppState {
     public class ModelContainer extends EntityContainer<Spatial> {
 
         public ModelContainer(EntityData ed) {
-            super(ed, ViewType.class, Position.class);
+            super(ed, Position.class, ViewType.class);
         }
 
         @Override
@@ -779,6 +825,10 @@ public class ModelViewState extends BaseAppState {
             if (mobs.getObject(e.getId()) == null) {
                 removeModel(object, e);
             }
+        }
+
+        private void updateFilter(OrFilter zoneFilter) {
+            this.setFilter(zoneFilter);
         }
 
     }
@@ -848,8 +898,23 @@ public class ModelViewState extends BaseAppState {
     public TileType getType(EntityId eId) {
         return tileTypes.getEntity(eId).get(TileType.class);
     }
-    
-    public Spatial getArenaSpatial(){
+
+    public Spatial getArenaSpatial() {
         return this.arenaSpatial;
+    }
+
+    private OrFilter generateZoneFilter(List<ZoneKey> entered) {
+        List<ComponentFilter> filters = new ArrayList<>();
+
+        for (ZoneKey key : entered) {
+            long cellId = key.toLongId();
+            filters.add(new FieldFilter(Position.class, "cellId", cellId));
+
+            log.info(key.toString() + "=" + cellId);
+        }
+
+        OrFilter newZoneFilter = new com.simsilica.es.filter.OrFilter(Position.class, filters.toArray(new ComponentFilter[filters.size()]));
+
+        return newZoneFilter;
     }
 }

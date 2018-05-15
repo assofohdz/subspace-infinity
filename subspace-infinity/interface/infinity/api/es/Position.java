@@ -29,58 +29,71 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 
-
 /**
- *  The position of static or mostly static objects.  This is the position
- *  for entities that move infrequently and is the initial position used
- *  for mobile objects.  A physics listener may also occasionally publish
- *  updates to the real position of mobile objects. 
+ * The position of static or mostly static objects. This is the position for
+ * entities that move infrequently and is the initial position used for mobile
+ * objects. A physics listener may also occasionally publish updates to the real
+ * position of mobile objects.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class Position implements EntityComponent {
+
     private Vec3d location;
     private Quatd facing;
     private double rotation;
-    
+
     // When we want to filter static objects based on position then
     // this will be very useful and we'll need to generate it whenever the
     // position changes.
-    //private long cellId;
-    
+    private long cellId;
+
     public Position() {
-        this(new Vec3d(), new Quatd(), 0.0);
+        this(new Vec3d(), new Quatd(), 0.0, 0);
     }
-    
-    public Position( Vec3d loc, Quatd quat, double rotation ) {
+
+    public Position(Vec3d loc, Quatd quat, double rotation) {
         this.location = loc;
         this.facing = quat;
         this.rotation = rotation;
     }
-    
+
+    public Position(Vec3d loc, Quatd quat, double rotation, long cellId) {
+        this.location = loc;
+        this.facing = quat;
+        this.rotation = rotation;
+        this.cellId = cellId;
+    }
+
+    public Position newCellId(long cellId) {
+        return new Position(location, facing, rotation, cellId);
+    }
+
     //public Position changeLocation( Vec3d location ) {
     //    return new Position(location, facing, 0.0);
     //}
-
     //public Position changeFacing( Quatd facing ) {
     //    return new Position(location, facing, 0.0);
     //}
-    
     public Vec3d getLocation() {
         return location;
     }
-    
+
     public Quatd getFacing() {
         return facing;
     }
-    
-    public double getRotation(){
+
+    public double getRotation() {
         return rotation;
+    }
+
+    public long getCellId() {
+        return cellId;
     }
 
     @Override
     public String toString() {
         return "Position{" + "location=" + location + ", facing=" + facing + ", rotation=" + rotation + '}';
     }
-    
+
 }

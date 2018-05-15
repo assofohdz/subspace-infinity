@@ -56,7 +56,7 @@ import infinity.client.LightState;
 import infinity.client.view.ModelViewState;
 import infinity.client.PlayerListState;
 import infinity.client.PlayerMovementState;
-import infinity.client.RadarState;
+import infinity.client.RadarStateTexture;
 import infinity.client.ResourceStateClient;
 import infinity.client.view.SISpatialFactory;
 import infinity.client.ShipFrequencyStateClient;
@@ -100,7 +100,7 @@ public class GameSessionState extends CompositeAppState {
                 new ModelViewState(new SISpatialFactory()),
                 new AudioState(new SIAudioFactory()),
                 new LightState(),
-                new RadarState()
+                new RadarStateTexture()
                 //new InfinityLightState()
                 //new MapEditorState()
         );

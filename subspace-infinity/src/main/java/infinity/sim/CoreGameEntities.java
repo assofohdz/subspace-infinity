@@ -288,7 +288,6 @@ public class CoreGameEntities {
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.infinite(ed),
                 CorePhysicsShapes.mapTile());
-        //Entity test = ed.getEntity(lastTileInfo, TileType.class);
 
         return lastTileInfo;
     }
