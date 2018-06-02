@@ -31,10 +31,13 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 /**
- * This class represents a region defined by several things: name	-	rNam
- *
- * isBase	-	rBSE isNoFlags	-	rNFL isNoWeps	-	rNWP isNoAnti	-	rNAW isAutoWarp	-
- * rAWP
+ * This class represents a region defined by several things: 
+ * name         -	rNam
+ * isBase	-	rBSE 
+ * isNoFlags	-	rNFL 
+ * isNoWeps	-	rNWP 
+ * isNoAnti	-	rNAW 
+ * isAutoWarp	-       rAWP
  *
  * autoWarp x, y, and arena (in case of autowarp) arena is max 15 letters
  *

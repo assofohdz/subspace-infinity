@@ -49,9 +49,13 @@ import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
+import infinity.api.es.ActionType;
+import infinity.api.es.ActionTypes;
 
 import infinity.api.es.Position;
 import infinity.api.es.WeaponTypes;
+import infinity.api.sim.ModuleGameEntities;
+import infinity.es.states.ActionState;
 import infinity.es.states.WeaponStateServer;
 import infinity.es.states.MapStateServer;
 import infinity.es.states.ShipFrequencyStateServer;
@@ -60,7 +64,6 @@ import infinity.es.states.WarpState;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.net.chat.server.ChatHostedService;
-import infinity.sim.CoreGameEntities;
 import infinity.sim.ShipDriver;
 import infinity.sim.SimplePhysics;
 import java.util.HashMap;
@@ -240,7 +243,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.shipDriver = new ShipDriver();
 
             //TODO: Let player choose the ship
-            this.shipEntity = CoreGameEntities.createShip(playerEntity, ed);
+            this.shipEntity = ModuleGameEntities.createShip(playerEntity, ed);
             
             shipToPlayerMap.put(shipEntity, playerEntity);
 
@@ -372,7 +375,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 log.trace("repel");
             }
 
-            throw new UnsupportedOperationException();
+            gameSystems.get(ActionState.class).sessionRepel(shipEntity, ActionTypes.REPEL);
         }
 
         @Override

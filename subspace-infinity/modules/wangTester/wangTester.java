@@ -31,10 +31,14 @@ import com.simsilica.mathd.Vec3d;
 import infinity.api.es.GravityWell;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.AdaptiveLoader;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -50,17 +54,24 @@ public class wangTester extends BaseGameModule {
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~wangTester\\s(\\w+)");
 
-    public wangTester(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        super(settings, chp, am);
+    private Ini settings;
 
+    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+        super(chp, am, loader, arenas);
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        ModuleGameEntities.createBountySpawner(new Vec3d(), 20, ed, this.getSettings());
-        ModuleGameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100,100,0), ed, this.getSettings());
+        try {
+            settings = this.getLoader().loadSettings("wangTester");
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        ModuleGameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 20, ed, settings);
+        ModuleGameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 100, 0), ed, settings);
     }
 
     @Override

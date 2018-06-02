@@ -31,11 +31,16 @@ import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.AdaptiveLoader;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
 import infinity.api.sim.events.ShipEvent;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 
@@ -47,19 +52,26 @@ public class lightTester extends BaseGameModule {
 
     private Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
     private EntityData ed;
+    
+    private Ini settings;
 
-    public lightTester(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        super(settings, chp, am);
+    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+        super(chp, am, loader, arenas);
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
+        try {
+            settings = this.getLoader().loadSettings("lightTester");
+        } catch (IOException ex) {
+            Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        ModuleGameEntities.createLight(new Vec3d(10, 10, 0), ed, this.getSettings());
-        ModuleGameEntities.createLight(new Vec3d(-10, 10, 0), ed, this.getSettings());
-        ModuleGameEntities.createLight(new Vec3d(10, -10, 0), ed, this.getSettings());
-        ModuleGameEntities.createLight(new Vec3d(-10, -10, 0), ed, this.getSettings());
+        ModuleGameEntities.createLight(new Vec3d(10, 10, 0), ed, settings);
+        ModuleGameEntities.createLight(new Vec3d(-10, 10, 0), ed, settings);
+        ModuleGameEntities.createLight(new Vec3d(10, -10, 0), ed, settings);
+        ModuleGameEntities.createLight(new Vec3d(-10, -10, 0), ed, settings);
     }
 
     @Override

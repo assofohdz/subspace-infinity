@@ -38,8 +38,8 @@ import infinity.api.es.PhysicsMassType;
 import infinity.api.es.PhysicsShape;
 import infinity.api.es.Position;
 import infinity.api.es.WarpTouch;
-import infinity.sim.CollisionFilters;
-import infinity.sim.CoreGameEntities;
+import infinity.api.sim.ModuleCollisionFilters;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.sim.SimplePhysics;
 import java.util.Collection;
 import java.util.HashSet;
@@ -143,7 +143,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         GravityWell gravityWell = ed.getComponent(wormholeEntityId, GravityWell.class);
         //start applying gravity to other entity
         Force force = getWormholeGravityOnBody(tpf, gravityWell, wormholeLocation, bodyLocation);
-        CoreGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
+        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
     }
 
     /**
@@ -244,7 +244,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
 
             bodyFixture.setUserData(e.getId());
             bodyFixture.setSensor(true);
-            bodyFixture.setFilter(CollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY);
+            bodyFixture.setFilter(ModuleCollisionFilters.FILTER_CATEGORY_STATIC_GRAVITY);
 
             b.addFixture(bodyFixture);
 

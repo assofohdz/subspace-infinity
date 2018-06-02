@@ -36,12 +36,16 @@ import infinity.api.es.MobType;
 import infinity.api.es.SteeringPath;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.AdaptiveLoader;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
 import infinity.api.sim.events.ShipEvent;
+import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -77,9 +81,11 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
     private EntityId baseId;
     private double timeSinceLastWave;
     private final Pattern arena1Command = Pattern.compile("\\~arena1\\s(\\w+)");
+    
+    private Ini settings;
 
-    public arena1(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        super(settings, chp, am);
+    public arena1(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+        super(chp, am, loader, arenas);
     }
 
     @Override
@@ -88,6 +94,12 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
 
         //Keep track of how many mobs are in the game currently
         this.mobs = ed.getEntities(MobType.class);
+        
+        try {
+            settings = this.getLoader().loadSettings("arena1");
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(arena1.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
@@ -142,7 +154,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
         //Create mob ourselves
-        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, this.getSettings());
+        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, settings);
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -152,7 +164,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
         URL s = ModuleGameEntities.class.getResource("ModuleGameEntities.class");
-        baseId = ModuleGameEntities.createBase(basePos, ed, this.getSettings());
+        baseId = ModuleGameEntities.createBase(basePos, ed, settings);
     }
 
     private EntityId getBaseId() {

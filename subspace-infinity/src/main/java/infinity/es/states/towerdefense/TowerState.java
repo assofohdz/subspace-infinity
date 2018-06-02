@@ -32,10 +32,10 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.api.es.PhysicsShapes;
 import infinity.api.es.Position;
 import infinity.api.es.TowerType;
-import infinity.sim.CoreGameEntities;
-import infinity.sim.CorePhysicsShapes;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.sim.SimplePhysics;
 import org.dyn4j.geometry.Convex;
 import org.slf4j.Logger;
@@ -107,12 +107,12 @@ public class TowerState extends AbstractGameSystem {
      * @param owner the entity that wants to place a tower
      */
     public void requestPlaceTower(double x, double y, EntityId owner) {
-        Convex c = CorePhysicsShapes.tower().getFixture().getShape();
+        Convex c = PhysicsShapes.tower().getFixture().getShape();
         c.translate(x, y);
         //Can we build there and do we have the money?
         if (simplePhysics.allowConvex(c) && resourceState.canAffordTower(owner)) {
             //Create tower
-            CoreGameEntities.createTower(new Vec3d(x, y, 0), ed);
+            ModuleGameEntities.createTower(new Vec3d(x, y, 0), ed);
             //Deduct cost
             resourceState.buyTower(owner);
         }

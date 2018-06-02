@@ -25,6 +25,7 @@
  */
 package infinity;
 
+import infinity.api.sim.AdaptiveLoader;
 import com.jme3.network.service.AbstractHostedService;
 import com.jme3.network.service.HostedServiceManager;
 import com.simsilica.es.EntityId;
@@ -33,10 +34,12 @@ import infinity.net.chat.server.ChatHostedService;
 import infinity.net.server.AccountHostedService;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.BaseGameService;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
+import infinity.es.states.arena.ArenaState;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -44,8 +47,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -59,10 +66,8 @@ import org.ini4j.Ini;
  *
  * @author Asser
  */
-public class AdaptiveLoadingService extends AbstractHostedService /*implements CommandListener*/ {
+public class AdaptiveLoadingService extends AbstractHostedService implements AdaptiveLoader /*implements CommandListener*/ {
 
-    //A map of settings (key,value) per class loaded
-    private HashMap<Object, Ini> classSettings;
     // Create GroovyClassLoader.
     AdaptiveClassLoader classLoader;
     //final GroovyClassLoader classLoader = new GroovyClassLoader();
@@ -78,16 +83,21 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
     private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");
     private Matcher m;
 
-    //Used in distribution
-    private String modLocation = "modules\\modules.jar";
-    //Used from SDK
-    private String modLocation2 = "build\\modules\\libs\\modules.jar";
+    List<String> repositoryList = Arrays.asList(
+            //Loading extensions:
+            //Used in distribution
+            "modules\\modules.jar",
+            //Used from SDK
+            "build\\modules\\libs\\modules.jar",
+            //Extras
+            "modules"
+    );
 
     private GameSystemManager gameSystems;
 
     public AdaptiveLoadingService(GameSystemManager gameSystems) {
         repository = new Vector<>();
-        classSettings = new HashMap<>();
+        //classSettings = new HashMap<>();
 
         modules = new HashMap<>();
         services = new HashMap<>();
@@ -105,24 +115,22 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
     @Override
     protected void onInitialize(HostedServiceManager serviceManager) {
 
-        File file = new File(modLocation);
-        directories = file.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File current, String name) {
-                return new File(current, name).isDirectory();
+        /*
+        File file = new File("modules");
+        directories = file.list((File current, String name) -> new File(current, name).exists());
+         */
+        Consumer<String> consumerDirectories = folder -> {
+            File fileFolder = new File(folder);
+            if (fileFolder.exists()) {
+                repository.add(fileFolder);
             }
-        });
+        };
 
-        //for (String s : directories) {
-        File f1 = new File(modLocation);
-        if (f1.exists()) {
-            repository.add(f1);
-        }
-        File f2 = new File(modLocation2);
-        if (f2.exists()) {
-            repository.add(f2);
-        }
+        //Arrays.asList(directories).forEach(consumerDirectories);
+        repositoryList.forEach(consumerDirectories);
+
         this.classLoader = new AdaptiveClassLoader(repository);
+        //this.classLoader = new AdaptiveClassLoader(directories);
 
         //Register consuming methods for patterns
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern, "The command to start a new module is ~startModule <module>, where <module> is the module you want to start", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
@@ -134,7 +142,7 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
     /**
      * Loads an INI file and a class
      *
-     * @param className the name of the .class and .ini file to load
+     * @param moduleName the name of the .class and .ini file to load
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException
@@ -143,15 +151,11 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      * @throws IllegalArgumentException
      * @throws InvocationTargetException
      */
-    private void load(String className) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-
-        //Ini files are considered resources
-        String settings = className + "/" + className + ".ini";
+    private void loadModule(String moduleName) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         //Class prepended with their package name
-        String clazz = className + "." + className;
-
-        Ini ini = loadSettings(settings);
-        loadClass(clazz, ini);
+        String clazz = moduleName + "." + moduleName;
+        //Ini ini = loadSettings(settings);
+        loadClass(clazz);
     }
 
     /**
@@ -169,34 +173,22 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      * @throws InvocationTargetException
      */
     //Loads the class
-    private void loadClass(String file, Ini settingsFile) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+    private void loadClass(String file) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
-        Constructor c = java.getConstructor(Ini.class, ChatHostedPoster.class, AccountManager.class);
+        Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class, ArenaManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
-            BaseGameModule javaObj = (BaseGameModule) c.newInstance(settingsFile, (ChatHostedPoster) getService(ChatHostedService.class), (AccountManager) getService(AccountHostedService.class));
+            BaseGameModule javaObj = (BaseGameModule) c.newInstance((ChatHostedPoster) getService(ChatHostedService.class), (AccountManager) getService(AccountHostedService.class), (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaState.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
-            classSettings.put(javaObj, settingsFile);
+            //classSettings.put(javaObj, settingsFile);
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
-            BaseGameService javaObj = (BaseGameService) c.newInstance(settingsFile, getService(ChatHostedService.class), getService(AccountHostedService.class));
+            BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class), getService(AccountHostedService.class), (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaState.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
-            classSettings.put(javaObj, settingsFile);
+            //classSettings.put(javaObj, settingsFile);
         }
 
-    }
-
-    /**
-     * Loads the .ini file with Ini4J
-     * @param className the filename to load
-     * @return the Ini object holding all settings inside the ini-file
-     * @throws IOException
-     */
-    private Ini loadSettings(String className) throws IOException {
-        InputStream inputStream = classLoader.getResourceAsStream(className);
-        Ini ini = new Ini(inputStream);
-        return ini;
     }
 
     @Override
@@ -219,7 +211,7 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
         if (!modules.containsKey(module)) {
             try {
                 //Try to load it
-                this.load(module);
+                this.loadModule(module);
             } catch (IllegalAccessException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InstantiationException ex) {
@@ -286,5 +278,34 @@ public class AdaptiveLoadingService extends AbstractHostedService /*implements C
      */
     private void stopService(EntityId id, String service) {
         getServiceManager().removeService(services.get(service));
+    }
+
+    /**
+     * Will validate the settings against core mechanics. The template.sss file
+     * is used to validate settings
+     *
+     * @param settings
+     * @return true if settings are ok, false if not
+     * @throws IOException if file io goes wrong
+     */
+    @Override
+    public boolean validateSettings(Ini settings) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    /**
+     * Loads the .ini file with Ini4J
+     *
+     * @param iniFileName name of the file (without filetype)
+     * @return the Ini object holding all settings inside the ini-file
+     * @throws IOException
+     */
+    @Override
+    public Ini loadSettings(String iniFileName) throws IOException {
+        //Ini files are considered resources
+        String settings = iniFileName + "/" + iniFileName + ".ini";
+        InputStream inputStream = classLoader.getResourceAsStream(settings);
+        Ini ini = new Ini(inputStream);
+        return ini;
     }
 }

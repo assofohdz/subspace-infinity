@@ -28,7 +28,7 @@ package infinity.sim;
 import com.jme3.math.*;
 
 import com.simsilica.mathd.*;
-import infinity.CorePhysicsConstants;
+import infinity.api.sim.CorePhysicsConstants;
 import org.dyn4j.geometry.Vector2;
 
 /**

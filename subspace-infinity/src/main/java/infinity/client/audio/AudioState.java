@@ -225,6 +225,10 @@ public class AudioState extends BaseAppState {
                 break;
             case AudioTypes.BURST:
                 result = createBurst(entity);
+                break;
+            case AudioTypes.REPEL:
+                result = createRepel(entity);
+                break;
             default:
                 throw new RuntimeException("Unknown spatial type:" + typeName);
         }
@@ -306,6 +310,19 @@ public class AudioState extends BaseAppState {
         //Node information:
         Node result = new Node("fireGravBomb:" + entity.getId());
         result.setUserData("fireGravBombId", entity.getId().getId());
+        //result.setUserData(LayerComparator.LAYER, 1);
+
+        //Spatial information:
+        AudioNode an = factory.createAudio(entity);
+        result.attachChild(an);
+
+        return an;
+    }
+
+    private AudioNode createRepel(Entity entity) {
+        //Node information:
+        Node result = new Node("repel:" + entity.getId());
+        result.setUserData("repelId", entity.getId().getId());
         //result.setUserData(LayerComparator.LAYER, 1);
 
         //Spatial information:

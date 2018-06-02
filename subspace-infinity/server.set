@@ -1,0 +1,19 @@
+Flag:SpawnRadius:50:::How far from the spawn center that new flags spawn (in tiles).
+Flag:SpawnX:<unset>:::The X coordinate that new flags spawn at (in tiles).
+Flag:SpawnY:<unset>:::The Y coordinate that new flags spawn at (in tiles).
+Soccer:SpawnRadius:<unset>:::How far from the spawn center the ball can spawn (in tiles).
+Soccer:SpawnX:<unset>:0:1023:The X coordinate that the ball spawns at (in tiles).
+Soccer:SpawnX/Y/RadiusN:<unset>:::The spawn coordinates and radius for balls other than the first one. N goes from 1 to 7 (0 is take care of by the settings without a number). If there are more balls than spawns defined, the latter balls will repeat the first spawns in order. For example, with 3 spawns, the fourth ball uses the first spawn, the fifth ball uses the second. If only part of a spawn is undefined, that part will default to the first spawn's setting.
+Soccer:SpawnY:<unset>:0:1023:The Y coordinate that the ball spawns at (in tiles).
+Spawn:Team0-Radius:5:::How large of a circle from the center point freq 0 can start. (Cont .38+)
+Spawn:Team0-X:430:::If set to a value, this is the X coordinate for the center point where freq 0 will start. (Cont .38+)
+Spawn:Team0-Y:512:::If set to a value, this is the Y coordinate for the center point where freq 0 will start. (Cont .38+)
+Spawn:Team1-Radius:5:::How large of a circle from the center point freq 1 can start. (Cont .38+)
+Spawn:Team1-X:660:::If set to a value, this is the X coordinate for the center point where freq 1 will start. (Cont .38+)
+Spawn:Team1-Y:512:::If set to a value, this is the Y coordinate for the center point where freq 1 will start. (Cont .38+)
+Spawn:Team2-Radius:5:::How large of a circle from the center point freq 2 can start. NOTE: if the Team2 settings are 0, Team0 will apply to evens and Team1 will apply to odds. (Cont .38+)
+Spawn:Team2-X:512:::If set to a value, this is the X coordinate for the center point where freq 2 will start. NOTE: if the Team2 settings are 0, Team0 will apply to evens and Team1 will apply to odds. (Cont .38+)
+Spawn:Team2-Y:512:::If set to a value, this is the Y coordinate for the center point where freq 2 will start. NOTE: if the Team2 settings are 0, Team0 will apply to evens and Team1 will apply to odds. (Cont .38+)
+Spawn:Team3-Radius:5:::How large of a circle from the center point freq 3 can start. NOTE: Repeats, freq 4 will use Team0's, freq 5 will use Team1's, etc. (Cont .38+)
+Spawn:Team3-X:512:::If set to a value, this is the X coordinate for the center point where freq 3 will start. NOTE: Repeats, freq 4 will use Team0's, freq 5 will use Team1's, etc. (Cont .38+)
+Spawn:Team3-Y:512:::If set to a value, this is the Y coordinate for the center point where freq 3 will start. NOTE: Repeats, freq 4 will use Team0's, freq 5 will use Team1's, etc. (Cont .38+)

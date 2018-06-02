@@ -36,7 +36,7 @@ import com.simsilica.sim.SimTime;
 import infinity.api.es.Decay;
 import infinity.api.es.WeaponType;
 import infinity.api.es.WeaponTypes;
-import infinity.sim.CoreGameEntities;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.sim.SimplePhysics;
 import org.dyn4j.geometry.Vector2;
 
@@ -65,8 +65,8 @@ public class DecayState extends AbstractGameSystem {
                     Vector2 bodyLocation = simplePhysics.getBody(e.getId()).getWorldCenter();
 
                     //Will seem off on client side, because client is showing the bomb a few timesteps behind where it really is
-                    EntityId eId = CoreGameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
-                    CoreGameEntities.createExplosionSound(eId, new Vec3d(bodyLocation.x, bodyLocation.y, 0), ed);
+                    EntityId eId = ModuleGameEntities.createExplosion2(new Vec3d(bodyLocation.x, bodyLocation.y, 0), new Quatd().fromAngles(0, 0, Math.random() * 360), ed);
+                    ModuleGameEntities.createExplosionSound(eId, new Vec3d(bodyLocation.x, bodyLocation.y, 0), ed);
                 }
 
                 ed.removeEntity(e.getId());

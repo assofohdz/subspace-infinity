@@ -58,7 +58,7 @@ import com.simsilica.mathd.trans.PositionTransition;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
-import infinity.CoreGameConstants;
+import infinity.ServerGameConstants;
 import infinity.GameSessionState;
 import infinity.Main;
 import infinity.TimeState;
@@ -119,7 +119,7 @@ public class ModelViewState extends BaseAppState {
         factory.setState(this);
         modelRoot = new Node();
 
-        zones = new LocalZoneIndex(CoreGameConstants.ZONE_GRID, CoreGameConstants.ZONE_RADIUS);
+        zones = new LocalZoneIndex(ServerGameConstants.ZONE_GRID, ServerGameConstants.ZONE_RADIUS);
 
         // Retrieve the time source from the network connection
         // The time source will give us a time in recent history that we should be
@@ -173,7 +173,7 @@ public class ModelViewState extends BaseAppState {
         if (playerSpatial != null) {
             Vec3d newPlayerPosition = new Vec3d(playerSpatial.getWorldTranslation());
             if (newPlayerPosition != oldPlayerPosition) {
-                ZoneKey newKey = CoreGameConstants.ZONE_GRID.worldToKey(newPlayerPosition);
+                ZoneKey newKey = ServerGameConstants.ZONE_GRID.worldToKey(newPlayerPosition);
                 long newPlayerCellId = newKey.toLongId();
                 if (newPlayerCellId != oldPlayerCellId || !playerCellIdInitialized) {
 

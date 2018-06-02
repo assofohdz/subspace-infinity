@@ -70,7 +70,7 @@ public class MainMenuState extends BaseAppState {
     protected int parseInt( String title, String sInt ) {
         sInt = sInt.trim();
         if( sInt.length() == 0 ) {
-            showError(title + " Error", "Please specify a port.\nDefault is " + CoreGameConstants.DEFAULT_PORT);
+            showError(title + " Error", "Please specify a port.\nDefault is " + ServerGameConstants.DEFAULT_PORT);
             return -1;
         }
         try {
@@ -151,7 +151,7 @@ public class MainMenuState extends BaseAppState {
         props.addChild(new Label("Connect to host:"));
         connectHost = props.addChild(new TextField("localhost"), 1);
         props.addChild(new Label("On port:"));
-        connectPort = props.addChild(new TextField(String.valueOf(CoreGameConstants.DEFAULT_PORT)), 1);
+        connectPort = props.addChild(new TextField(String.valueOf(ServerGameConstants.DEFAULT_PORT)), 1);
         joinPanel.addChild(new ActionButton(new CallMethodAction("Connect", this, "connect")));
  
         Container hostPanel = mainWindow.addChild(new Container());
@@ -161,7 +161,7 @@ public class MainMenuState extends BaseAppState {
         props = hostPanel.addChild(new Container(new SpringGridLayout(Axis.Y, Axis.X, FillMode.None, FillMode.Last)));
         props.setBackground(null);
         props.addChild(new Label("Host on port:"));
-        hostPort = props.addChild(new TextField(String.valueOf(CoreGameConstants.DEFAULT_PORT)), 1);
+        hostPort = props.addChild(new TextField(String.valueOf(ServerGameConstants.DEFAULT_PORT)), 1);
         
         hostPanel.addChild(new Label("Server Description"));
         hostDescription = hostPanel.addChild(new TextField("This a game server.\nThere are many like it\nbut this one is mine."));

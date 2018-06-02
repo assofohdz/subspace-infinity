@@ -26,8 +26,8 @@
 package infinity.api.es;
 
 import com.simsilica.es.EntityData;
-import infinity.api.es.ship.weapons.BombLevel;
-import infinity.api.es.ship.weapons.GunLevel;
+import infinity.api.es.ship.weapons.BombLevelEnum;
+import infinity.api.es.ship.weapons.GunLevelEnum;
 
 /**
  *
@@ -48,6 +48,11 @@ public class AudioTypes {
     public static final String FIRE_BOMBS_L4 ="fire_bombs_l4";
     public static final String EXPLOSION2 ="explosion2";
     public static final String BURST ="burst";
+    public static final String REPEL ="repel";
+    
+    public static AudioType repel(EntityData ed) {
+        return AudioType.create(REPEL, ed);
+    }
 
     public static AudioType fire_thor(EntityData ed) {
         return AudioType.create(FIRE_THOR, ed);
@@ -62,7 +67,7 @@ public class AudioTypes {
     }
 
     //Bombs
-    public static AudioType fire_bomb(EntityData ed, BombLevel level) {
+    public static AudioType fire_bomb(EntityData ed, BombLevelEnum level) {
         switch (level.level) {
             case 1:
                 return AudioType.create(FIRE_BOMBS_L1, ed);
@@ -77,7 +82,7 @@ public class AudioTypes {
         }
     }
     //Bullets
-    public static AudioType fire_bullet(EntityData ed, GunLevel level) {
+    public static AudioType fire_bullet(EntityData ed, GunLevelEnum level) {
         switch (level.level) {
             case 1:
                 return AudioType.create(FIRE_GUNS_L1, ed);

@@ -12,7 +12,7 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.input.InputMapper;
-import infinity.CoreGameConstants;
+import infinity.ServerGameConstants;
 import infinity.Main;
 import infinity.MainGameFunctions;
 import infinity.client.view.ModelViewState;
@@ -58,7 +58,7 @@ public class RadarStateTexture extends BaseAppState {
     //Texture to draw on
     private PaintableTexture texture;
 
-    public static final float RADARRANGE = CoreGameConstants.GRID_CELL_SIZE;
+    public static final float RADARRANGE = ServerGameConstants.GRID_CELL_SIZE;
     private final float radarRadius = 150;
     private Vector2 playerCoords;
 

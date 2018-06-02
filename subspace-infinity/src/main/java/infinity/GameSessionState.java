@@ -93,7 +93,7 @@ public class GameSessionState extends CompositeAppState {
                 new PlayerMovementState(),
                 new CameraState(),
                 new HudLabelState(),
-                new SpaceGridState(CoreGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+                new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
                 new ShipFrequencyStateClient(),
                 new FlagStateClient(),
                 new ResourceStateClient(),

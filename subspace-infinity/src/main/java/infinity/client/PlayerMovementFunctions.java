@@ -31,7 +31,7 @@ import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 import infinity.api.es.ActionTypes;
-import infinity.api.es.ShipTypes;
+import infinity.api.es.ship.ShipTypes;
 import infinity.api.es.ToggleTypes;
 import infinity.api.es.WeaponTypes;
 
@@ -135,11 +135,11 @@ public class PlayerMovementFunctions {
         if (!inputMapper.hasMappings(F_WARP)) {
             inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
         }
-        /*
+        
         if (!inputMapper.hasMappings(F_REPEL)) {
-            inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT, KeyInput.KEY_LCONTROL);
+            inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT);
         }
-         */
+         
  /*
         if (!inputMapper.hasMappings(F_PORTAL)) {
             inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT, KeyInput.KEY_INSERT);

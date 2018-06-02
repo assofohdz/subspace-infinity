@@ -33,6 +33,16 @@ import com.simsilica.es.EntityComponent;
  */
 public class Stealth implements EntityComponent {
 
+    boolean enabled;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public Stealth(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public Stealth() {
     }
 }

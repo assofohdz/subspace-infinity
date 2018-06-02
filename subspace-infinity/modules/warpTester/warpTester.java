@@ -31,10 +31,14 @@ import com.simsilica.mathd.Vec3d;
 import infinity.api.es.GravityWell;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.AdaptiveLoader;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -50,24 +54,30 @@ public class warpTester extends BaseGameModule {
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");
 
-    public warpTester(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        super(settings, chp, am);
-
+    private Ini settings;
+    
+    public warpTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+        super(chp, am, loader, arenas);
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
+        try {
+            settings = this.getLoader().loadSettings("warpTester");
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(warpTester.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
-        ModuleGameEntities.createBountySpawner(new Vec3d(0, 0, 0), 13, ed, this.getSettings());
+        ModuleGameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(0, 0, 0), 13, ed, settings);
         
-        ModuleGameEntities.createWormhole(new Vec3d(-7,7,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(7,7,0), ed, this.getSettings());
-        ModuleGameEntities.createOver5(new Vec3d(7,7,0), 5, 5000, GravityWell.PUSH, ed, this.getSettings());
+        ModuleGameEntities.createWormhole(new Vec3d(-7,7,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(7,7,0), ed, settings);
+        ModuleGameEntities.createOver5(new Vec3d(7,7,0), 5, 5000, GravityWell.PUSH, ed, settings);
         
         
-        ModuleGameEntities.createWormhole(new Vec3d(7,-7,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7,-7,0), ed, this.getSettings());
-        ModuleGameEntities.createOver5(new Vec3d(-7,-7,0), 5, 5000, GravityWell.PUSH, ed, this.getSettings());
+        ModuleGameEntities.createWormhole(new Vec3d(7,-7,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7,-7,0), ed, settings);
+        ModuleGameEntities.createOver5(new Vec3d(-7,-7,0), 5, 5000, GravityWell.PUSH, ed, settings);
     }
 
     @Override

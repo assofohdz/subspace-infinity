@@ -34,8 +34,8 @@ import com.simsilica.sim.SimTime;
 import infinity.api.es.Buff;
 import infinity.api.es.Dead;
 import infinity.api.es.HealthChange;
-import infinity.api.es.HitPoints;
-import infinity.api.es.MaxHitPoints;
+import infinity.api.es.ship.Energy;
+import infinity.api.es.ship.EnergyMax;
 import infinity.api.es.ship.Recharge;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,12 +65,12 @@ public class HealthState extends AbstractGameSystem {
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
-        living = ed.getEntities(HitPoints.class);
+        living = ed.getEntities(Energy.class);
         changes = ed.getEntities(Buff.class, HealthChange.class);
 
-        recharges = ed.getEntities(HitPoints.class, Recharge.class);
+        recharges = ed.getEntities(Energy.class, Recharge.class);
 
-        maxLiving = ed.getEntities(HitPoints.class, MaxHitPoints.class);
+        maxLiving = ed.getEntities(Energy.class, EnergyMax.class);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class HealthState extends AbstractGameSystem {
                 continue;
             }
 
-            HitPoints hp = target.get(HitPoints.class);
+            Energy hp = target.get(Energy.class);
             if (log.isInfoEnabled()) {
                 log.info("Applying " + entry.getValue() + " to:" + target + " result:" + hp);
             }
@@ -165,7 +165,7 @@ public class HealthState extends AbstractGameSystem {
                 hp = hp.newAdjusted(entry.getValue());
             } //If we do have a maximum
             else {
-                MaxHitPoints maxHp = maxLiving.getEntity(target.getId()).get(MaxHitPoints.class);
+                EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
                 //Check if we go above max hp
                 if (entry.getValue() <= maxHp.getMaxHealth()) {
                     hp = hp.newAdjusted(entry.getValue());
@@ -204,7 +204,7 @@ public class HealthState extends AbstractGameSystem {
      * @return the health of the entity
      */
     public int getHealth(EntityId eId) {
-        return living.getEntity(eId).get(HitPoints.class).getHealth();
+        return living.getEntity(eId).get(Energy.class).getHealth();
     }
 
     /**
@@ -212,7 +212,7 @@ public class HealthState extends AbstractGameSystem {
      * @return the maximum health of the entity
      */
     public int getMaxHealth(EntityId eId) {
-        return maxLiving.getEntity(eId).get(MaxHitPoints.class).getMaxHealth();
+        return maxLiving.getEntity(eId).get(EnergyMax.class).getMaxHealth();
     }
 
     /**

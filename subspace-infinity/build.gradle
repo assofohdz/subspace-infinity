@@ -127,7 +127,7 @@ dependencies {
     compile "com.simsilica:sim-math:1.1.1"
     //compile "com.simsilica:sim-ethereal:1.2.2"
     //https://github.com/Simsilica/SimEthereal
-    compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
+    compile 'com.github.Simsilica:SimEthereal:master-SNAPSHOT' //There is an unreleased commit that we need
     
     //https://github.com/jMonkeyEngine-Contributions/zay-es
     compile 'com.simsilica:zay-es-net:1.2.1'
@@ -155,7 +155,9 @@ dependencies {
     
     //Ini4j to parse settings files
     //http://ini4j.sourceforge.net/
-    compile 'org.ini4j:ini4j:0.5.4'
+    compile 'org.ini4j:ini4j:0.5.4:sources'
+    compile 'org.ini4j:ini4j:0.5.4:javadoc'
+    
     
     //Noise4j dungeon generation
     //https://github.com/czyzby/noise4j
@@ -165,6 +167,11 @@ dependencies {
     //http://hsqldb.org/
     runtime 'org.hsqldb:hsqldb:2.3.4'
     runtime project(':assets')    
+    
+    //SteamWorks4J
+    //https://github.com/code-disaster/steamworks4j
+    compile "com.code-disaster.steamworks4j:steamworks4j:1.7.0"
+    compile "com.code-disaster.steamworks4j:steamworks4j-server:1.7.0"
 }
 
 
@@ -173,14 +180,14 @@ task wrapper(type: Wrapper) {
 
 task runServer(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
-    main = "example.net.server.GameServer"
+    main = "infinity.net.server.GameServer"
     jvmArgs '-Dlog4j.configurationFile=server-log4j2.xml'
     standardInput = System.in
 }
 
 // Create a custom server start script in the distribution
 task serverStartScript(type: CreateStartScripts) {
-    mainClassName = "example.net.server.GameServer"
+    mainClassName = "infinity.net.server.GameServer"
     applicationName = "server"
     outputDir = new File(project.buildDir, 'scripts')
     classpath = jar.outputs.files + project.configurations.runtime

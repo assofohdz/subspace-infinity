@@ -46,13 +46,13 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import infinity.ConnectionState;
-import infinity.CoreViewConstants;
 import infinity.api.es.TileType;
 import infinity.api.es.TileTypes;
 import infinity.api.es.ViewType;
 import infinity.api.es.ViewTypes;
-import infinity.api.es.ship.weapons.BombLevel;
-import infinity.api.es.ship.weapons.Bombs;
+import infinity.api.es.ship.weapons.BombLevelEnum;
+import infinity.api.es.ship.weapons.Bomb;
+import infinity.api.sim.CoreViewConstants;
 import infinity.client.EffectFactory;
 import infinity.client.MapStateClient;
 import org.slf4j.Logger;
@@ -100,19 +100,19 @@ public class SISpatialFactory implements ModelFactory {
                 return createBullet(e, 1);
             case ViewTypes.BOMBL1:
                 //Create bomb
-                return createBomb(e, BombLevel.BOMB_1);
+                return createBomb(e, BombLevelEnum.BOMB_1);
             case ViewTypes.BOMBL2:
                 //Create bomb
-                return createBomb(e, BombLevel.BOMB_2);
+                return createBomb(e, BombLevelEnum.BOMB_2);
             case ViewTypes.BOMBL3:
                 //Create bomb
-                return createBomb(e, BombLevel.BOMB_3);
+                return createBomb(e, BombLevelEnum.BOMB_3);
             case ViewTypes.BOMBL4:
                 //Create bomb
-                return createBomb(e, BombLevel.BOMB_4);
+                return createBomb(e, BombLevelEnum.BOMB_4);
             case ViewTypes.THOR:
                 //Create bomb
-                return createBomb(e, BombLevel.THOR);
+                return createBomb(e, BombLevelEnum.THOR);
             case ViewTypes.BURST:
                 //Create bomb
                 return createBurst(e);
@@ -336,7 +336,7 @@ public class SISpatialFactory implements ModelFactory {
         return thrustEffect;
     }
 
-    private Spatial createBomb(Entity e, BombLevel level) {
+    private Spatial createBomb(Entity e, BombLevelEnum level) {
         Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
         //<-- Move into the material?
         float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;

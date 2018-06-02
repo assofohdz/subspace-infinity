@@ -26,8 +26,8 @@
 package infinity.api.es;
 
 import com.simsilica.es.EntityData;
-import infinity.api.es.ship.weapons.BombLevel;
-import infinity.api.es.ship.weapons.GunLevel;
+import infinity.api.es.ship.weapons.BombLevelEnum;
+import infinity.api.es.ship.weapons.GunLevelEnum;
 
 /**
  * Factory methods for the common object types. Because we run the string names
@@ -147,7 +147,7 @@ public class ViewTypes {
     }
 
     //Bullets
-    public static ViewType bullet(EntityData ed, GunLevel level) {
+    public static ViewType bullet(EntityData ed, GunLevelEnum level) {
         switch (level.level) {
             case 1:
                 return ViewType.create(BULLETL1, ed);
@@ -167,7 +167,7 @@ public class ViewTypes {
     }
 
     //Bombs
-    public static ViewType bomb(EntityData ed, BombLevel level) {
+    public static ViewType bomb(EntityData ed, BombLevelEnum level) {
         switch (level.level) {
             case 1:
                 return ViewType.create(BOMBL1, ed);

@@ -33,4 +33,18 @@ import com.simsilica.es.EntityComponent;
  */
 public class ArenaId implements EntityComponent{
     
+    private String arenaId;
+    
+    //For serialization
+    public ArenaId(){
+        
+    }
+
+    public ArenaId(String arenaId) {
+        this.arenaId = arenaId;
+    }
+
+    public String getArenaId() {
+        return arenaId;
+    }
 }

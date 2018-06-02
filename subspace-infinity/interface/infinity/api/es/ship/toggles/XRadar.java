@@ -33,6 +33,16 @@ import com.simsilica.es.EntityComponent;
  */
 public class XRadar implements EntityComponent {
 
+    boolean enabled;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public XRadar(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
     public XRadar() {
     }
 }

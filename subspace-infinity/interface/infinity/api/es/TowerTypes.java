@@ -25,6 +25,7 @@
  */
 package infinity.api.es;
 
+import infinity.api.es.ship.Rotation;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 
@@ -41,7 +42,7 @@ public class TowerTypes {
                 AttackMethodTypes.random(ed),
                 new AttackVelocity(500),
                 new AttackRate(1000*MSEC),
-                new RotationSpeed(3.14),
+                new Rotation(3.14),
                 WeaponTypes.bullet(ed));
    
         

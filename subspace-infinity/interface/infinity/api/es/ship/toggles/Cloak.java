@@ -33,6 +33,16 @@ import com.simsilica.es.EntityComponent;
  */
 public class Cloak implements EntityComponent {
 
+    boolean enabled;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public Cloak(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
     public Cloak() {
     }
 }

@@ -34,8 +34,8 @@ import com.simsilica.es.EntityData;
 import infinity.ConnectionState;
 import infinity.api.es.AudioType;
 import infinity.api.es.AudioTypes;
-import infinity.api.es.ship.weapons.BombLevel;
-import infinity.api.es.ship.weapons.GunLevel;
+import infinity.api.es.ship.weapons.BombLevelEnum;
+import infinity.api.es.ship.weapons.GunLevelEnum;
 
 /**
  *
@@ -68,18 +68,20 @@ public class SIAudioFactory implements AudioFactory {
             case AudioTypes.FIRE_BOMBS_L2:
             case AudioTypes.FIRE_BOMBS_L3:
             case AudioTypes.FIRE_BOMBS_L4:
-                return createFIRE_BOMB(e, BombLevel.BOMB_1);
+                return createFIRE_BOMB(e, BombLevelEnum.BOMB_1);
             case AudioTypes.FIRE_GUNS_L1:
             case AudioTypes.FIRE_GUNS_L2:
             case AudioTypes.FIRE_GUNS_L3:
             case AudioTypes.FIRE_GUNS_L4:
-                return createFIRE_BULLET(e, GunLevel.LEVEL_1);
+                return createFIRE_BULLET(e, GunLevelEnum.LEVEL_1);
             case AudioTypes.FIRE_GRAVBOMB:
                 return createFIRE_GRAVBOMB(e);
             case AudioTypes.EXPLOSION2:
                 return createEXPLOSION2(e);
             case AudioTypes.BURST:
                 return createFIRE_BURST(e);
+            case AudioTypes.REPEL:
+                return createREPEL(e);
             default:
                 throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
         }
@@ -98,7 +100,7 @@ public class SIAudioFactory implements AudioFactory {
         an.setVolume(1);
     }
 
-    private AudioNode createFIRE_BOMB(Entity e, BombLevel bombLevel) {
+    private AudioNode createFIRE_BOMB(Entity e, BombLevelEnum bombLevel) {
         String sound = "";
         switch (bombLevel.level) {
             case 1:
@@ -121,7 +123,7 @@ public class SIAudioFactory implements AudioFactory {
         return an;
     }
 
-    private AudioNode createFIRE_BULLET(Entity e, GunLevel gunLevel) {
+    private AudioNode createFIRE_BULLET(Entity e, GunLevelEnum gunLevel) {
         String sound = "";
         switch (gunLevel.level) {
             case 1:
@@ -170,6 +172,12 @@ public class SIAudioFactory implements AudioFactory {
 
     private AudioNode createFIRE_BURST(Entity e) {
         AudioNode an = new AudioNode(assets, "Sounds/Subspace/burst.wa2", AudioData.DataType.Buffer);
+        this.setDefaults(an);
+        return an;
+    }
+
+    private AudioNode createREPEL(Entity e) {
+        AudioNode an = new AudioNode(assets, "Sounds/Subspace/repel.wa2", AudioData.DataType.Buffer);
         this.setDefaults(an);
         return an;
     }

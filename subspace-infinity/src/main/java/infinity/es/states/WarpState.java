@@ -34,13 +34,13 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.api.es.BodyPosition;
-import infinity.api.es.HitPoints;
+import infinity.api.es.ship.Energy;
 import infinity.api.es.PhysicsMassType;
 import infinity.api.es.PhysicsShape;
 import infinity.api.es.Position;
 import infinity.api.es.ship.actions.WarpTo;
 import infinity.api.es.WarpTouch;
-import infinity.sim.CoreGameEntities;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.sim.SimpleBody;
 import infinity.sim.SimplePhysics;
 import java.util.HashSet;
@@ -80,7 +80,7 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
         warpTouchEntities = ed.getEntities(WarpTouch.class);
         warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
 
-        canWarp = ed.getEntities(BodyPosition.class, HitPoints.class);
+        canWarp = ed.getEntities(BodyPosition.class, Energy.class);
 
     }
 
@@ -136,8 +136,8 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
                     }
                      */
                     //getStateListener(hc).setSelf(selfId, initialPosition);
-                    CoreGameEntities.createWarpEffect(origLocationVec3d, ed);
-                    CoreGameEntities.createWarpEffect(targetLocation, ed);
+                    ModuleGameEntities.createWarpEffect(origLocationVec3d, ed);
+                    ModuleGameEntities.createWarpEffect(targetLocation, ed);
 
                     ed.removeComponent(e.getId(), WarpTo.class);
                 } else {

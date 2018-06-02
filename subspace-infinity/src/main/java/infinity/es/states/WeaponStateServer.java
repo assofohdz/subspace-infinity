@@ -36,32 +36,35 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.CoreGameConstants;
 import infinity.api.es.AudioTypes;
 import infinity.api.es.WeaponType;
 import infinity.api.es.WeaponTypes;
 import infinity.api.es.Damage;
 import infinity.api.es.GravityWell;
-import infinity.api.es.ship.weapons.Guns;
-import infinity.api.es.HitPoints;
+import infinity.api.es.ship.weapons.Gun;
+import infinity.api.es.ship.Energy;
 import infinity.api.es.PhysicsVelocity;
-import infinity.api.es.ship.weapons.BombLevel;
-import infinity.api.es.ship.weapons.Bombs;
-import infinity.api.es.ship.weapons.BombsCooldown;
-import infinity.api.es.ship.weapons.Bursts;
-import infinity.api.es.ship.weapons.BurstsCooldown;
-import infinity.api.es.ship.weapons.GravityBombs;
-import infinity.api.es.ship.weapons.GravityBombsCooldown;
-import infinity.api.es.ship.weapons.GunLevel;
-import infinity.api.es.ship.weapons.GunsCooldown;
-import infinity.api.es.ship.weapons.Mines;
-import infinity.api.es.ship.weapons.MinesCooldown;
-import infinity.api.es.ship.weapons.Thor;
-import infinity.api.es.ship.weapons.ThorCooldown;
+import infinity.api.es.ship.weapons.BombLevelEnum;
+import infinity.api.es.ship.weapons.Bomb;
+import infinity.api.es.ship.weapons.BombFireDelay;
+import infinity.api.es.ship.actions.Burst;
+import infinity.api.es.ship.weapons.GravityBomb;
+import infinity.api.es.ship.weapons.GravityBombFireDelay;
+import infinity.api.es.ship.weapons.GunLevelEnum;
+import infinity.api.es.ship.weapons.GunFireDelay;
+import infinity.api.es.ship.weapons.Mine;
+import infinity.api.es.ship.weapons.MineFireDelay;
+import infinity.api.es.ship.actions.Thor;
+import infinity.api.es.ship.weapons.BombCost;
+import infinity.api.es.ship.weapons.GravityBombCost;
+import infinity.api.es.ship.weapons.GunCost;
+import infinity.api.es.ship.weapons.MineCost;
+import infinity.api.sim.CoreGameConstants;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.sim.SimpleBody;
-import infinity.sim.CoreGameEntities;
 import infinity.sim.SimplePhysics;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
@@ -85,23 +88,8 @@ public class WeaponStateServer extends AbstractGameSystem {
     private SimTime time;
     private HealthState health;
 
-    //Entities that has guns
-    private EntitySet guns;
-    //Entities that has bombs
-    private EntitySet bombs;
-    //Entities that has bursts
-    private EntitySet bursts;
-    //Entities that has gravityBombs
-    private EntitySet gravityBombs;
-    //Entities that has mines
-    private EntitySet mines;
-    private EntitySet gunsCooldowns;
-    private EntitySet bombsCooldowns;
-    private EntitySet burstsCooldowns;
-    private EntitySet gravityBombsCooldowns;
-    private EntitySet minesCooldowns;
-    private EntitySet thors;
-    private EntitySet thorsCooldowns;
+    //Sets for those entities that has the weapon available
+    private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
 
     @Override
     protected void initialize() {
@@ -115,23 +103,17 @@ public class WeaponStateServer extends AbstractGameSystem {
 
         health = getSystem(HealthState.class);
 
-        guns = ed.getEntities(Guns.class);
-        gunsCooldowns = ed.getEntities(GunsCooldown.class);
+        guns = ed.getEntities(Gun.class, GunFireDelay.class, GunCost.class);
 
-        bombs = ed.getEntities(Bombs.class);
-        bombsCooldowns = ed.getEntities(BombsCooldown.class);
+        bombs = ed.getEntities(Bomb.class, BombFireDelay.class, BombCost.class);
 
-        bursts = ed.getEntities(Bursts.class);
-        burstsCooldowns = ed.getEntities(BurstsCooldown.class);
+        bursts = ed.getEntities(Burst.class);
 
-        gravityBombs = ed.getEntities(GravityBombs.class);
-        gravityBombsCooldowns = ed.getEntities(GravityBombsCooldown.class);
+        gravityBombs = ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
 
-        mines = ed.getEntities(Mines.class);
-        minesCooldowns = ed.getEntities(MinesCooldown.class);
+        mines = ed.getEntities(Mine.class, MineFireDelay.class, MineCost.class);
 
         thors = ed.getEntities(Thor.class);
-        thorsCooldowns = ed.getEntities(ThorCooldown.class);
 
     }
 
@@ -152,26 +134,8 @@ public class WeaponStateServer extends AbstractGameSystem {
         bursts.release();
         bursts = null;
 
-        gunsCooldowns.release();
-        gunsCooldowns = null;
-
-        bombsCooldowns.release();
-        bombsCooldowns = null;
-
-        burstsCooldowns.release();
-        burstsCooldowns = null;
-
-        gravityBombsCooldowns.release();
-        gravityBombsCooldowns = null;
-
-        minesCooldowns.release();
-        minesCooldowns = null;
-
         thors.release();
         thors = null;
-
-        thorsCooldowns.release();
-        thorsCooldowns = null;
 
     }
 
@@ -180,73 +144,34 @@ public class WeaponStateServer extends AbstractGameSystem {
 
         //Update who has what ship weapons
         guns.applyChanges();
-        gunsCooldowns.applyChanges();
 
         bombs.applyChanges();
-        bombsCooldowns.applyChanges();
 
         gravityBombs.applyChanges();
-        gravityBombsCooldowns.applyChanges();
 
         mines.applyChanges();
-        minesCooldowns.applyChanges();
 
         bursts.applyChanges();
-        burstsCooldowns.applyChanges();
 
         thors.applyChanges();
-        thorsCooldowns.applyChanges();
-
-        for (Entity e : gunsCooldowns) {
-            GunsCooldown d = e.get(GunsCooldown.class);
-            if (d.getPercent() >= 1.0) {
-                ed.removeComponent(e.getId(), GunsCooldown.class);
-            }
-        }
-
-        for (Entity e : bombsCooldowns) {
-            BombsCooldown d = e.get(BombsCooldown.class);
-            if (d.getPercent() >= 1.0) {
-                ed.removeComponent(e.getId(), BombsCooldown.class);
-            }
-        }
-
-        for (Entity e : gravityBombsCooldowns) {
-            GravityBombsCooldown d = e.get(GravityBombsCooldown.class);
-            if (d.getPercent() >= 1.0) {
-                ed.removeComponent(e.getId(), GravityBombsCooldown.class);
-            }
-        }
-
-        for (Entity e : minesCooldowns) {
-            MinesCooldown d = e.get(MinesCooldown.class);
-            if (d.getPercent() >= 1.0) {
-                ed.removeComponent(e.getId(), MinesCooldown.class);
-            }
-        }
-
-        for (Entity e : burstsCooldowns) {
-            BurstsCooldown d = e.get(BurstsCooldown.class);
-            if (d.getPercent() >= 1.0) {
-                ed.removeComponent(e.getId(), BurstsCooldown.class);
-            }
-        }
-
-        for (Entity e : thorsCooldowns) {
-            ThorCooldown d = e.get(ThorCooldown.class);
-            if (d.getPercent() >= 1.0) {
-                ed.removeComponent(e.getId(), ThorCooldown.class);
-            }
-        }
 
         /*
         Default pattern to let multiple sessions call methods and then process them one by one
          */
+        Iterator<Attack> iterator = sessionAttackCreations.iterator();
+        while (iterator.hasNext()) {
+            Attack a = iterator.next();
+
+            this.attack(a.getOwner(), a.getWeaponType());
+
+            iterator.remove();
+        }
+        /*
         for (Attack attack : sessionAttackCreations) {
             this.attack(attack.getOwner(), attack.getWeaponType());
         }
         sessionAttackCreations.clear();
-
+         */
         time = tpf;
     }
 
@@ -288,7 +213,7 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void entityAttackThor(EntityId requestor) {
         //Check authorization and cooldown
-        if (!thors.containsId(requestor) || thorsCooldowns.containsId(requestor)) {
+        if (!thors.containsId(requestor)) {
             return;
         }
         Thor shipThors = thors.getEntity(requestor).get(Thor.class);
@@ -307,13 +232,13 @@ public class WeaponStateServer extends AbstractGameSystem {
         this.attackThor(info, new Damage(-20), requestor);
 
         //Set new cooldown
-        ed.setComponent(requestor, new ThorCooldown(shipThors.getCooldown()));
-
+        //No cooldown on thors
+        //ed.setComponent(requestor, new ThorFireDelay(shipThors.getCooldown()));
         //Reduce count of thors in inventory:
         if (shipThors.getCount() == 1) {
             ed.removeComponent(requestor, Thor.class);
         } else {
-            ed.setComponent(requestor, new Thor(shipThors.getCooldown(), shipThors.getCount() - 1));
+            ed.setComponent(requestor, new Thor(shipThors.getCount() - 1));
         }
     }
 
@@ -324,18 +249,23 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param requestor requesting entity
      */
     private void entityAttackGuns(EntityId requestor) {
-        //Check authorization and cooldown
-        if (!guns.containsId(requestor) || gunsCooldowns.containsId(requestor)) {
+        Entity entity = guns.getEntity(requestor);
+
+        Gun shipGuns = entity.get(Gun.class);
+        GunCost shipGunCost = entity.get(GunCost.class);
+        GunFireDelay shipGunCooldown = entity.get(GunFireDelay.class);
+
+        //Check authorization and check cooldown
+        if (!guns.containsId(requestor) || shipGunCooldown.getPercent() < 1.0) {
             return;
         }
-        Guns shipGuns = guns.getEntity(requestor).get(Guns.class);
 
         //Check health
-        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipGuns.getCost()) {
+        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipGunCost.getCost()) {
             return;
         }
         //Deduct health
-        health.createHealthChange(requestor, -1 * shipGuns.getCost());
+        health.createHealthChange(requestor, -1 * shipGunCost.getCost());
 
         //Perform attack
         AttackInfo info = this.getAttackInfo(requestor, WeaponTypes.bullet(ed));
@@ -343,7 +273,7 @@ public class WeaponStateServer extends AbstractGameSystem {
         this.attackGuns(info, shipGuns.getLevel(), new Damage(-20), requestor);
 
         //Set new cooldown
-        ed.setComponent(requestor, new GunsCooldown(shipGuns.getCooldown()));
+        ed.setComponent(requestor, shipGunCooldown.copy());
     }
 
     /**
@@ -352,19 +282,22 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param requestor requesting entity
      */
     private void entityAttackBomb(EntityId requestor) {
+        Entity entity = bombs.getEntity(requestor);
+        Bomb shipBombs = entity.get(Bomb.class);
+        BombFireDelay shipBombCooldown = entity.get(BombFireDelay.class);
+        BombCost shipBombCost = entity.get(BombCost.class);
+
         //Check authorization
-        if (!bombs.containsId(requestor) || bombsCooldowns.containsId(requestor)) {
+        if (!bombs.containsId(requestor) || shipBombCooldown.getPercent() < 1.0) {
             return;
         }
 
-        Bombs shipBombs = bombs.getEntity(requestor).get(Bombs.class);
-
         //Check health
-        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipBombs.getCost()) {
+        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipBombCost.getCost()) {
             return;
         }
         //Deduct health
-        health.createHealthChange(requestor, -1 * shipBombs.getCost());
+        health.createHealthChange(requestor, -1 * shipBombCost.getCost());
 
         //Perform attack
         AttackInfo info = this.getAttackInfo(requestor, WeaponTypes.bomb(ed));
@@ -372,7 +305,7 @@ public class WeaponStateServer extends AbstractGameSystem {
         this.attackBomb(info, shipBombs.getLevel(), new Damage(-20), requestor);
 
         //Set new cooldown
-        ed.setComponent(requestor, new GunsCooldown(shipBombs.getCooldown()));
+        ed.setComponent(requestor, shipBombCooldown.copy());
 
     }
 
@@ -382,19 +315,22 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param requestor requesting entity
      */
     private void entityPlaceMine(EntityId requestor) {
-        //Check authorization
-        if (!mines.containsId(requestor) || minesCooldowns.containsId(requestor)) {
+        Entity entity = mines.getEntity(requestor);
+        Mine shipMines = entity.get(Mine.class);
+        MineCost shipMineCost = entity.get(MineCost.class);
+        MineFireDelay shipMineCooldown = entity.get(MineFireDelay.class);
+
+        //Check authorization and cooldown
+        if (!mines.containsId(requestor) || shipMineCooldown.getPercent() < 1.0) {
             return;
         }
 
-        Mines shipMines = mines.getEntity(requestor).get(Mines.class);
-
         //Check health
-        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipMines.getCost()) {
+        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipMineCost.getCost()) {
             return;
         }
         //Deduct health
-        health.createHealthChange(requestor, -1 * shipMines.getCost());
+        health.createHealthChange(requestor, -1 * shipMineCost.getCost());
 
         //Perform attack 
         AttackInfo info = this.getAttackInfo(requestor, WeaponTypes.mine(ed));
@@ -402,7 +338,7 @@ public class WeaponStateServer extends AbstractGameSystem {
         this.attackBomb(info, shipMines.getLevel(), new Damage(-20), requestor);
 
         //Set new cooldown
-        ed.setComponent(requestor, new GunsCooldown(shipMines.getCooldown()));
+        ed.setComponent(requestor, shipMineCooldown.copy());
     }
 
     /**
@@ -411,12 +347,12 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param requestor requesting entity
      */
     private void entityBurst(EntityId requestor) {
+
         //Check authorization
-        if (!bursts.containsId(requestor) || burstsCooldowns.containsId(requestor)) {
+        if (!bursts.containsId(requestor)) {
             return;
         }
-
-        Bursts shipBursts = bursts.getEntity(requestor).get(Bursts.class);
+        Burst shipBursts = bursts.getEntity(requestor).get(Burst.class);
 
         //No health check for these
         //Perform attack
@@ -430,16 +366,13 @@ public class WeaponStateServer extends AbstractGameSystem {
             rotation = angle * (float) i;
 
             //log.info("Rotating (from original) degrees: "+rotation * FastMath.RAD_TO_DEG);
-            
             //Quaternion newOrientation = info.getOrientation().toQuaternion().fromAngleAxis(rotation, Vector3f.UNIT_Z);
             Vector2 newVelocity = info.getAttackVelocity();
-            
-            //log.info("Attack velocity: "+newVelocity.toString());
-            
-            newVelocity.rotate(rotation);
-            
-            //log.info("rotated velocity: "+newVelocity.toString());
 
+            //log.info("Attack velocity: "+newVelocity.toString());
+            newVelocity.rotate(rotation);
+
+            //log.info("rotated velocity: "+newVelocity.toString());
             //info.setOrientation(new Quatd(newOrientation));
             info.setAttackVelocity(newVelocity);
             info.setRotation(rotation);
@@ -449,12 +382,10 @@ public class WeaponStateServer extends AbstractGameSystem {
 
         //Reduce count of bursts in inventory:
         if (shipBursts.getCount() == 1) {
-            ed.removeComponent(requestor, Bursts.class);
+            ed.removeComponent(requestor, Burst.class);
         } else {
-            ed.setComponent(requestor, new Thor(shipBursts.getCooldown(), shipBursts.getCount() - 1));
+            ed.setComponent(requestor, new Burst(shipBursts.getCount() - 1));
         }
-        //Set new cooldown
-        ed.setComponent(requestor, new BurstsCooldown(shipBursts.getCooldown()));
     }
 
     /**
@@ -463,19 +394,24 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param requestor requesting entity
      */
     private void entityAttackGravityBomb(EntityId requestor) {
+        Entity entity = gravityBombs.getEntity(requestor);
+
+        GravityBombFireDelay shipGravBombCooldown = entity.get(GravityBombFireDelay.class);
+        GravityBombCost shipGravBombCost = entity.get(GravityBombCost.class);
+
         //Check authorization
-        if (!gravityBombs.containsId(requestor) || gravityBombsCooldowns.containsId(requestor)) {
+        if (!gravityBombs.containsId(requestor) || shipGravBombCooldown.getPercent() < 1.0) {
             return;
         }
 
-        GravityBombs shipGravityBombs = gravityBombs.getEntity(requestor).get(GravityBombs.class);
+        GravityBomb shipGravityBombs = entity.get(GravityBomb.class);
 
         //Check health
-        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipGravityBombs.getCost()) {
+        if (!health.hasHealth(requestor) || health.getHealth(requestor) < shipGravBombCost.getCost()) {
             return;
         }
         //Deduct health
-        health.createHealthChange(requestor, -1 * shipGravityBombs.getCost());
+        health.createHealthChange(requestor, -1 * shipGravBombCost.getCost());
 
         //Perform attack
         AttackInfo info = this.getAttackInfo(requestor, WeaponTypes.gravityBomb(ed));
@@ -483,7 +419,7 @@ public class WeaponStateServer extends AbstractGameSystem {
         this.attackGravBomb(info, shipGravityBombs.getLevel(), new Damage(-20), requestor);
 
         //Set new cooldown
-        ed.setComponent(requestor, new GunsCooldown(shipGravityBombs.getCooldown()));
+        ed.setComponent(requestor, shipGravBombCooldown.copy());
     }
 
     /**
@@ -494,7 +430,7 @@ public class WeaponStateServer extends AbstractGameSystem {
     private AttackInfo getAttackInfo(EntityId attacker, WeaponType type) {
         EntityId eId = attacker;
         SimTime localTime = time; //Copy incase someone else is writing to it
-        Entity e = ed.getEntity(eId, HitPoints.class);
+        Entity e = ed.getEntity(eId, Energy.class);
 
         Quatd orientation = new Quatd();
         Vec3d location;
@@ -540,14 +476,14 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param level the bomb level
      * @param damage the damage of the bomb
      */
-    private void attackBomb(AttackInfo info, BombLevel level, Damage damage, EntityId owner) {
+    private void attackBomb(AttackInfo info, BombLevelEnum level, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = CoreGameEntities.createBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level);
+        projectile = ModuleGameEntities.createBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level);
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        CoreGameEntities.createBombSound(projectile, info.location, ed, level);
+        ModuleGameEntities.createBombSound(projectile, info.location, ed, level);
     }
 
     /**
@@ -559,12 +495,12 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void attackBurst(AttackInfo info, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = CoreGameEntities.createBurst(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed);
+        projectile = ModuleGameEntities.createBurst(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed);
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        CoreGameEntities.createBurstSound(owner, info.location, ed);
+        ModuleGameEntities.createBurstSound(owner, info.location, ed);
     }
 
     /**
@@ -574,14 +510,14 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param level the bullet level
      * @param damage the damage of the bullet
      */
-    private void attackGuns(AttackInfo info, GunLevel level, Damage damage, EntityId owner) {
+    private void attackGuns(AttackInfo info, GunLevelEnum level, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = CoreGameEntities.createBullet(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level);
+        projectile = ModuleGameEntities.createBullet(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level);
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        CoreGameEntities.createBulletSound(projectile, info.location, ed, level);
+        ModuleGameEntities.createBulletSound(projectile, info.location, ed, level);
     }
 
     /**
@@ -591,16 +527,16 @@ public class WeaponStateServer extends AbstractGameSystem {
      * @param level the bomb level
      * @param damage the damage of the bomb
      */
-    private void attackGravBomb(AttackInfo info, BombLevel level, Damage damage, EntityId owner) {
+    private void attackGravBomb(AttackInfo info, BombLevelEnum level, Damage damage, EntityId owner) {
         EntityId projectile;
         HashSet<EntityComponent> delayedComponents = new HashSet<>();
         delayedComponents.add(new GravityWell(5, CoreGameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
         delayedComponents.add(new PhysicsVelocity(new Vector2(0, 0))); //Freeze the bomb
         delayedComponents.add(WeaponTypes.gravityBomb(ed));
-        projectile = CoreGameEntities.createDelayedBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.GRAVBOMBDECAY, CoreGameConstants.GRAVBOMBDELAY, delayedComponents, ed, level);
+        projectile = ModuleGameEntities.createDelayedBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.GRAVBOMBDECAY, CoreGameConstants.GRAVBOMBDELAY, delayedComponents, ed, level);
         ed.setComponent(projectile, new Damage(damage.getDamage()));
 
-        CoreGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_GRAVBOMB, ed);
+        ModuleGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_GRAVBOMB, ed);
     }
 
     /**
@@ -611,10 +547,10 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void attackThor(AttackInfo info, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = CoreGameEntities.createThor(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.THORDECAY, ed);
+        projectile = ModuleGameEntities.createThor(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.THORDECAY, ed);
         ed.setComponent(projectile, new Damage(damage.getDamage()));
 
-        CoreGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_THOR, ed);
+        ModuleGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_THOR, ed);
     }
 
     public class Attack {

@@ -34,30 +34,27 @@ import org.ini4j.Ini;
  */
 public abstract class BaseGameModule extends AbstractGameSystem {
 
-    private Ini settings;
     private final ChatHostedPoster chp;
     private final AccountManager am;
+    private final AdaptiveLoader loader;
+    private final ArenaManager arenas;
 
     /**
      * Instantiates a base game module with settings and reference to chat and
      * account services
      *
-     * @param settings the .ini file settings to load this module with
      * @param chp reference to the hosted chat server
      * @param am reference to the account management service
+     * @param loader reference to the adaptive loading service
+     * @param arenas
      */
-    public BaseGameModule(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        this.settings = settings;
+    public BaseGameModule(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
         this.chp = chp;
         this.am = am;
+        this.loader = loader;
+        this.arenas = arenas;
     }
 
-    /**
-     * @return the settings that came with the module (if any)
-     */
-    protected Ini getSettings() {
-        return settings;
-    }
 
     public ChatHostedPoster getChp() {
         return chp;
@@ -66,4 +63,13 @@ public abstract class BaseGameModule extends AbstractGameSystem {
     public AccountManager getAm() {
         return am;
     }
+    
+    public AdaptiveLoader getLoader(){
+        return loader;
+    }
+
+    public ArenaManager getArenas() {
+        return arenas;
+    }
+    
 }

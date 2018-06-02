@@ -40,11 +40,10 @@ import infinity.api.es.Damage;
 import infinity.api.es.Position;
 import infinity.api.es.WeaponType;
 import infinity.api.es.AttackRange;
-import infinity.api.es.RotationSpeed;
+import infinity.api.es.ship.Rotation;
 import infinity.api.es.TowerType;
+import infinity.api.sim.ModuleCollisionFilters;
 import infinity.es.states.WeaponStateServer;
-import infinity.sim.CollisionFilters;
-import infinity.sim.CoreGameEntities;
 import infinity.sim.SimplePhysics;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -80,7 +79,7 @@ public class TowerAttackState extends AbstractGameSystem {
 
         // giver det mening at dele den op ?
         this.towerRange = ed.getEntities(TowerType.class, Position.class, AttackRange.class);
-        this.towerRotation = ed.getEntities(TowerType.class, Position.class, RotationSpeed.class);
+        this.towerRotation = ed.getEntities(TowerType.class, Position.class, Rotation.class);
         this.towerAttack = ed.getEntities(TowerType.class, Position.class, AttackMethodType.class, AttackRate.class, Damage.class, WeaponType.class);
     }
 
@@ -108,7 +107,7 @@ public class TowerAttackState extends AbstractGameSystem {
             double range = e.get(AttackRange.class).getRange();
 
             LinkedList<DetectResult> result = new LinkedList<>();
-            simplePhysics.getWorld().detect(new AABB(location, range), CollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
+            simplePhysics.getWorld().detect(new AABB(location, range), ModuleCollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
             if (!result.isEmpty()) {
                 towerToTargets.put(e.getId(), result);
             } else {
@@ -131,7 +130,7 @@ public class TowerAttackState extends AbstractGameSystem {
 
                 // Turn the tower !
                 // - how fast
-                double radSec = e.get(RotationSpeed.class).getRadSec();
+                double radSec = e.get(Rotation.class).getRadSec();
                 // - how much
                 double mobRad = getRelativeDirection(mobLocation);
                 towerToTargetRelativeRadians.put(e.getId(), mobRad);

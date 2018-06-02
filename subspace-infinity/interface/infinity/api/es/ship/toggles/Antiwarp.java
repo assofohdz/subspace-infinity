@@ -33,6 +33,16 @@ import com.simsilica.es.EntityComponent;
  */
 public class Antiwarp implements EntityComponent {
 
+    boolean enabled;
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public Antiwarp(boolean enabled) {
+        this.enabled = enabled;
+    }
+    
     public Antiwarp() {
     }
 }

@@ -33,9 +33,13 @@ import com.simsilica.sim.SimTime;
 import infinity.api.es.MobType;
 import infinity.api.es.SteeringPath;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.AdaptiveLoader;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.ModuleGameEntities;
+import java.io.IOException;
+import java.util.logging.Level;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,14 +73,22 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
     private EntitySet mobs;
     private EntityId baseId;
     private double timeSinceLastWave;
+    
+    private Ini settings;
 
-    public GameOrchestratorState(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        super(settings, chp, am);
+    public GameOrchestratorState(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+        super(chp, am, loader, arenas);
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
+        
+        try {
+            settings = this.getLoader().loadSettings("GameOrchestratorState");
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(GameOrchestratorState.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         //Keep track of how many mobs are in the game currently
         this.mobs = ed.getEntities(MobType.class);
@@ -129,7 +141,7 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
         //TODO: Create mob, set it steering towards the base
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
-        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, this.getSettings());
+        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, settings);
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -138,7 +150,7 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
     private void spawnBase() {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
-        baseId = ModuleGameEntities.createBase(basePos, ed, this.getSettings());
+        baseId = ModuleGameEntities.createBase(basePos, ed, settings);
     }
 
     private EntityId getBaseId() {

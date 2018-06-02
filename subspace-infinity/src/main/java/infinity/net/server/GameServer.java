@@ -30,7 +30,7 @@ import infinity.api.es.Position;
 import infinity.api.es.BodyPosition;
 import infinity.api.es.SphereShape;
 import infinity.api.es.AudioType;
-import infinity.api.es.ShipType;
+import infinity.api.es.ship.ShipType;
 import infinity.api.es.ViewType;
 import infinity.api.es.Frequency;
 import infinity.api.es.Decay;
@@ -69,15 +69,17 @@ import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 import com.sun.glass.ui.Application;
 
-import infinity.CoreGameConstants;
+import infinity.ServerGameConstants;
 import infinity.net.chat.server.ChatHostedService;
 import infinity.AdaptiveLoadingService;
+import infinity.es.states.ActionState;
 import infinity.es.states.WeaponStateServer;
 import infinity.es.states.PrizeState;
 import infinity.es.states.DecayState;
 import infinity.es.states.DelayState;
 import infinity.es.states.HealthState;
-import infinity.es.states.ArenaState;
+import infinity.es.states.arena.ArenaState;
+import infinity.es.states.SettingsState;
 import infinity.es.states.DeathState;
 import infinity.es.states.FlagStateServer;
 import infinity.es.states.steering.GDXAIState;
@@ -109,8 +111,7 @@ public class GameServer {
     private final HostedServiceManager serviceManager;
 
     public GameServer(int port, String description) throws IOException {
-        
-        
+
         this.description = description;
 
         // Make sure we are running with a fresh serializer registry
@@ -118,16 +119,15 @@ public class GameServer {
 
         this.systems = new GameSystemManager();
         this.loop = new GameLoop(systems);
-        
+
         this.loop.setIdleSleepTime(1l);
 
         // Create the SpiderMonkey server and setup our standard
         // initial hosted services 
-        this.server = Network.createServer(CoreGameConstants.GAME_NAME,
-                CoreGameConstants.PROTOCOL_VERSION,
+        this.server = Network.createServer(ServerGameConstants.GAME_NAME,
+                ServerGameConstants.PROTOCOL_VERSION,
                 port, port);
-        
-        
+
         this.serviceManager = this.getServer().getServices();
 
         // Create a separate channel to do chat stuff so it doesn't interfere
@@ -154,22 +154,29 @@ public class GameServer {
                 new RmiHostedService(),
                 new AccountHostedService(description),
                 new GameSessionHostedService(systems),
-                new ChatHostedService(CoreGameConstants.CHAT_CHANNEL)
+                new ChatHostedService(ServerGameConstants.CHAT_CHANNEL)
         );
 
         // Add the SimEtheral host that will serve object sync updates to
         // the clients. 
-        EtherealHost ethereal = new EtherealHost(CoreGameConstants.OBJECT_PROTOCOL,
-                CoreGameConstants.ZONE_GRID,
-                CoreGameConstants.ZONE_RADIUS);
-        
+        EtherealHost ethereal = new EtherealHost(ServerGameConstants.OBJECT_PROTOCOL,
+                ServerGameConstants.ZONE_GRID,
+                ServerGameConstants.ZONE_RADIUS);
+
         ethereal.setStateCollectionInterval(port);
-        
+
         server.getServices().addService(ethereal);
-        
+
+        AssetLoaderService assetLoader = new AssetLoaderService();
+        AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
+
+        server.getServices().addService(assetLoader);
+
+        systems.register(SettingsState.class, new SettingsState(assetLoader, adaptiveLoader));
+
         // Add the various game services to the GameSystemManager 
         systems.register(SimplePhysics.class, new SimplePhysics());
-        
+
         // Add any hosted services that require those systems to already
         // exist
         systems.register(DecayState.class, new DecayState());
@@ -182,7 +189,7 @@ public class GameServer {
         //Add system to arenas
         systems.register(ArenaState.class, new ArenaState());
         //Add system to handle maps and tilesets
-        systems.register(MapStateServer.class, new MapStateServer());
+        systems.register(MapStateServer.class, new MapStateServer(assetLoader));
         //Add system to keep track of wormholes
         systems.register(GravityState.class, new GravityState());
         //Add system to keep track of warping
@@ -205,26 +212,25 @@ public class GameServer {
         systems.register(GDXAIState.class, new GDXAIState());
         //Add state to make towers attack
         systems.register(TowerAttackState.class, new TowerAttackState());
-       
-        
+        //Add ACtion state to handle those
+        systems.register(ActionState.class, new ActionState());
+
         //Add Game Orchestrator
         //Deprecated: Should now be loaded dynamically by AdaptiveLoadingState
-
         //Add system to handle collisions between mobs and projectiles
         systems.register(ProjectileCollisionState.class, new ProjectileCollisionState());
         //Add system to handle mobs that are dead
         systems.register(DeathState.class, new DeathState());
-        
-       
+
         // Add a system that will forward physics changes to the Ethereal 
         // zone manager       
         systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
 
         // Setup our entity data and the hosting service
         DefaultEntityData ed = new DefaultEntityData();
-        server.getServices().addService(new EntityDataHostedService(CoreGameConstants.ES_CHANNEL, ed));
+        server.getServices().addService(new EntityDataHostedService(ServerGameConstants.ES_CHANNEL, ed));
         //Add all mods
-        server.getServices().addService(new AdaptiveLoadingService(systems));
+        server.getServices().addService(adaptiveLoader);
 
         // Add it to the game systems so that we send updates properly
         systems.addSystem(new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));
@@ -242,14 +248,9 @@ public class GameServer {
 
         // Add a system for creating the basic "world" entities
         //systems.addSystem(new BasicEnvironment());
-        
-
         log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later
-        
-        
-        
-        
+
         systems.initialize();
     }
 
@@ -291,6 +292,7 @@ public class GameServer {
      * Kicks all current connection, closes the network host, stops all systems,
      * and finally terminates them. The GameServer is not restartable at this
      * point.
+     *
      * @param kickMessage the message to send before stopping server
      */
     public void close(String kickMessage) {
@@ -345,13 +347,12 @@ public class GameServer {
      * Allow running a basic dedicated server from the command line using the
      * default port. If we want something more advanced then we should break it
      * into a separate class with a proper shell and so on.
+     *
      * @param args main arguments for hte server
      * @throws java.lang.Exception throws exception if it fails
      */
     public static void main(String... args) throws Exception {
 
-        
-        
         StringWriter sOut = new StringWriter();
         PrintWriter out = new PrintWriter(sOut);
         boolean hasDescription = false;
@@ -376,7 +377,7 @@ public class GameServer {
         out.close();
         String desc = sOut.toString();
 
-        GameServer gs = new GameServer(CoreGameConstants.DEFAULT_PORT, desc);
+        GameServer gs = new GameServer(ServerGameConstants.DEFAULT_PORT, desc);
         gs.start();
 
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));

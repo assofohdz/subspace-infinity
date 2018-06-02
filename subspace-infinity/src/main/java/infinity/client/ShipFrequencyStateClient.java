@@ -35,7 +35,7 @@ import infinity.ConnectionState;
 import infinity.GameSessionState;
 import infinity.api.es.Flag;
 import infinity.api.es.Frequency;
-import infinity.api.es.ShipType;
+import infinity.api.es.ship.ShipType;
 
 /**
  *

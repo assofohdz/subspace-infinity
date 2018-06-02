@@ -30,10 +30,14 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.AccountManager;
+import infinity.api.sim.AdaptiveLoader;
+import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
+import java.io.IOException;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -48,17 +52,25 @@ public class prizeTester extends BaseGameModule {
     static Logger log = LoggerFactory.getLogger(prizeTester.class);
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
+    
+    private Ini settings;
 
-    public prizeTester(Ini settings, ChatHostedPoster chp, AccountManager am) {
-        super(settings, chp, am);
+    public prizeTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+        super(chp, am, loader, arenas);
 
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
+        
+        try {
+            settings = this.getLoader().loadSettings("prizeTester");
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-        ModuleGameEntities.createBountySpawner(new Vec3d(), 10, ed, this.getSettings());
+        ModuleGameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 10, ed, settings);
     }
 
     @Override

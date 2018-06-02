@@ -35,18 +35,21 @@ import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.CoreGameConstants;
 import infinity.api.es.AudioTypes;
 import infinity.api.es.Position;
-import infinity.api.es.ShipType;
+import infinity.api.es.ship.ShipType;
 import infinity.api.es.Spawner;
 import infinity.api.es.SphereShape;
-import infinity.api.es.ship.weapons.Bursts;
-import infinity.api.es.ship.weapons.Thor;
+import infinity.api.es.ship.toggles.Antiwarp;
+import infinity.api.es.ship.actions.Burst;
+import infinity.api.es.ship.actions.Thor;
+import infinity.api.es.subspace.ArenaId;
 import infinity.api.es.subspace.PrizeType;
 import infinity.api.es.subspace.PrizeTypes;
-import infinity.sim.CoreGameEntities;
+import infinity.api.sim.ModuleGameEntities;
+import infinity.settings.SettingListener;
 import infinity.sim.SimplePhysics;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -57,6 +60,7 @@ import org.dyn4j.dynamics.BodyFixture;
 import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Vector2;
+import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,48 +68,177 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class PrizeState extends AbstractGameSystem implements CollisionListener {
+public class PrizeState extends AbstractGameSystem implements CollisionListener, SettingListener {
 
+    private static final String PRIZEWEIGHTSECTION = "PrizeWeight";
+    private static final String PRIZERULESECITON = "Prizes";
+
+    private static final String PRIZE_MULTIPRIZECOUNT = "MultiPrizeCount";
+    private static final String PRIZE_PRIZEFACTOR = "PrizeFactor";
+    private static final String PRIZE_PRIZEDELAY = "PrizeDelay";
+    private static final String PRIZE_PRIZEHIDECOUNT = "PrizeHideCount";
+    private static final String PRIZE_MINIMUMVIRTUAL = "MinimumVirtual";
+    private static final String PRIZE_UPGRADEVIRTUAL = "UpgradeVirtual";
+    private static final String PRIZE_PRIZEMAXEXIST = "PrizeMaxExist";
+    private static final String PRIZE_PRIZEMINEXIST = "PrizeMinExist";
+    private static final String PRIZE_PRIZENEGATIVEFACTOR = "PrizeNegativeFactor";
+    private static final String PRIZE_DEATHPRIZETIME = "DeathPrizeTime";
+    private static final String PRIZE_ENGINESHUTDOWNTIME = "EngineShutdownTime";
+    private static final String PRIZE_TAKEPRIZERELIABLE = "TakePrizeReliable";
+    private static final String PRIZE_S2CTAKEPRIZERELIABLE = "S2CTakePrizeReliable";
+
+    /*
+    Prize:MultiPrizeCount:::Number of random 'Greens' given with a 'MultiPrize'
+Prize:PrizeFactor:::Number of prizes hidden is based on number of players in game.  This number adjusts the formula, higher numbers mean more prizes. (*Note: 10000 is max, 10 greens per person)
+Prize:PrizeDelay:::How often prizes are regenerated (in hundredths of a second)
+Prize:PrizeHideCount:::Number of prizes that are regenerated every PrizeDelay.
+Prize:MinimumVirtual:::Distance from center of arena that prizes/flags/soccer-balls will generate
+Prize:UpgradeVirtual:::Amount of additional distance added to MinimumVirtual for each player that is in the game.
+Prize:PrizeMaxExist:::Maximum amount of time that a hidden prize will remain on screen. (actual time is random)
+Prize:PrizeMinExist:::Minimum amount of time that a hidden prize will remain on screen. (actual time is random)
+Prize:PrizeNegativeFactor:::Odds of getting a negative prize.  (1 = every prize, 32000 = extremely rare)
+Prize:DeathPrizeTime:::How long the prize exists that appears after killing somebody.
+Prize:EngineShutdownTime:::Time the player is affected by an 'Engine Shutdown' Prize (in hundredth of a second)
+Prize:TakePrizeReliable:0:1:Whether prize packets are sent reliably (C2S)
+Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
+     */
     private EntityData ed;
 
-    private Map<EntityId, Integer> prizeCount = new HashMap<EntityId, Integer>();
+    private Map<EntityId, Integer> spawnerPrizeCount = new HashMap<EntityId, Integer>();
     private EntitySet prizeSpawners;
 
-    private HashMap<String, Integer> prizeWeights = new HashMap<>();
+    private HashMap<String, HashMap<String, Integer>> arenaPrizeWeights = new HashMap<>();
+    private HashMap<String, HashMap<String, Integer>> arenaPrizeRules = new HashMap<>();
 
-    RandomSelector<String> rc;
+    private HashMap<String, Integer> arenaPrizeCounts = new HashMap<>();
+
+    //private HashMap<String, Integer> prizeWeights = new HashMap<>();
+    private HashMap<String, RandomSelector<String>> arenaSelectors = new HashMap<>();
+
+    //RandomSelector<String> rc;
     Random random;
     private EntitySet prizes;
     private EntitySet ships;
     static Logger log = LoggerFactory.getLogger(PrizeState.class);
     private SimplePhysics simplePhysics;
+    private SettingsState settings;
+    private ArrayList<String> prizeWeightTypes = new ArrayList<>(), prizeRuleTypes = new ArrayList<>();
 
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
 
+        settings = getSystem(SettingsState.class);
+
+        initPrizeRuleTypes();
+
+        initPrizeWeightTypes();
+
         ComponentFilter prizeSpawnerFilter = FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
 
-        prizeSpawners = ed.getEntities(prizeSpawnerFilter, Spawner.class, Position.class, SphereShape.class);
+        prizeSpawners = ed.getEntities(prizeSpawnerFilter, Spawner.class, Position.class, SphereShape.class, ArenaId.class);
 
         //TODO: Read prize weights and load into random collection
         random = new Random();
 
-        this.loadPrizeWeights();
-
-        rc = RandomSelector.weighted(prizeWeights.keySet(), s -> prizeWeights.get(s));
-
-        ships = ed.getEntities(ShipType.class);
-        prizes = ed.getEntities(PrizeType.class);
+        //HashMap<String, Integer> prizeWeightTests = this.loadTestingWeights();
+        //RandomSelector testSelector = RandomSelector.weighted(prizeWeightTests.keySet(), s -> prizeWeightTests.get(s));
+        //arenaSelectors.put(CoreGameConstants.DEFAULTARENAID, testSelector);
+        ships = ed.getEntities(ArenaId.class, ShipType.class);
+        prizes = ed.getEntities(ArenaId.class, PrizeType.class);
 
         this.simplePhysics = getSystem(SimplePhysics.class);
         this.simplePhysics.addCollisionListener(this);
     }
 
+    private void initPrizeRuleTypes() {
+        prizeRuleTypes = new ArrayList<>();
+
+        prizeRuleTypes.add(PRIZE_DEATHPRIZETIME);
+        prizeRuleTypes.add(PRIZE_ENGINESHUTDOWNTIME);
+        prizeRuleTypes.add(PRIZE_MINIMUMVIRTUAL);
+        prizeRuleTypes.add(PRIZE_MULTIPRIZECOUNT);
+        prizeRuleTypes.add(PRIZE_PRIZEDELAY);
+        prizeRuleTypes.add(PRIZE_PRIZEFACTOR);
+        prizeRuleTypes.add(PRIZE_PRIZEHIDECOUNT);
+        prizeRuleTypes.add(PRIZE_PRIZEMAXEXIST);
+        prizeRuleTypes.add(PRIZE_PRIZEMINEXIST);
+        prizeRuleTypes.add(PRIZE_PRIZENEGATIVEFACTOR);
+        prizeRuleTypes.add(PRIZE_S2CTAKEPRIZERELIABLE);
+        prizeRuleTypes.add(PRIZE_TAKEPRIZERELIABLE);
+        prizeRuleTypes.add(PRIZE_UPGRADEVIRTUAL);
+    }
+
+    private HashMap<String, Integer> loadArenaPrizeWeights(String arenaId) {
+        HashMap<String, Integer> newPrizeWeights = new HashMap<>();
+
+        Ini arenaSettings = settings.getArenaSettings(arenaId);
+
+        for (String s : prizeWeightTypes) {
+            int weight = Integer.valueOf(arenaSettings.get(PRIZEWEIGHTSECTION, s));
+
+            newPrizeWeights.put(s, weight);
+        }
+
+        return newPrizeWeights;
+    }
+
+    private HashMap<String, Integer> loadArenaPrizeRules(ArenaId arenaId) {
+        HashMap<String, Integer> newPrizeRules = new HashMap<>();
+
+        Ini arenaSettings = settings.getArenaSettings(arenaId.getArenaId());
+
+        for (String s : prizeRuleTypes) {
+            int weight = Integer.valueOf(arenaSettings.get(PRIZERULESECITON, s));
+
+            newPrizeRules.put(s, weight);
+        }
+
+        return newPrizeRules;
+    }
+
+    private void initPrizeWeightTypes() {
+        prizeWeightTypes = new ArrayList<>();
+
+        prizeWeightTypes.add(PrizeTypes.ALLWEAPONS);
+        prizeWeightTypes.add(PrizeTypes.ANTIWARP);
+        prizeWeightTypes.add(PrizeTypes.BOMB);
+        prizeWeightTypes.add(PrizeTypes.BOUNCINGBULLETS);
+        prizeWeightTypes.add(PrizeTypes.BRICK);
+        prizeWeightTypes.add(PrizeTypes.BURST);
+        prizeWeightTypes.add(PrizeTypes.CLOAK);
+        prizeWeightTypes.add(PrizeTypes.DECOY);
+        prizeWeightTypes.add(PrizeTypes.ENERGY);
+        prizeWeightTypes.add(PrizeTypes.ENERGY);
+        prizeWeightTypes.add(PrizeTypes.GLUE);
+        prizeWeightTypes.add(PrizeTypes.GUN);
+        prizeWeightTypes.add(PrizeTypes.MULTIFIRE);
+        prizeWeightTypes.add(PrizeTypes.MULTIPRIZE);
+        prizeWeightTypes.add(PrizeTypes.PORTAL);
+        prizeWeightTypes.add(PrizeTypes.PROXIMITY);
+        prizeWeightTypes.add(PrizeTypes.QUICKCHARGE);
+        prizeWeightTypes.add(PrizeTypes.RECHARGE);
+        prizeWeightTypes.add(PrizeTypes.REPEL);
+        prizeWeightTypes.add(PrizeTypes.ROCKET);
+        prizeWeightTypes.add(PrizeTypes.ROTATION);
+        prizeWeightTypes.add(PrizeTypes.SHIELDS);
+        prizeWeightTypes.add(PrizeTypes.SHRAPNEL);
+        prizeWeightTypes.add(PrizeTypes.STEALTH);
+        prizeWeightTypes.add(PrizeTypes.THOR);
+        prizeWeightTypes.add(PrizeTypes.THRUSTER);
+        prizeWeightTypes.add(PrizeTypes.TOPSPEED);
+        prizeWeightTypes.add(PrizeTypes.WARP);
+        prizeWeightTypes.add(PrizeTypes.XRADAR);
+
+    }
+
     /**
-     * Loads the prize weights. Is used when randomly selecting the prizes
+     * Load specific prize weights, used for testing
      */
-    private void loadPrizeWeights() {
+    private HashMap<String, Integer> loadTestingWeights() {
+
+        HashMap<String, Integer> prizeWeights = new HashMap<>();
+
         prizeWeights.put(PrizeTypes.ALLWEAPONS, 0);
         prizeWeights.put(PrizeTypes.ANTIWARP, 0);
         prizeWeights.put(PrizeTypes.BOMB, 0);
@@ -135,6 +268,8 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
         prizeWeights.put(PrizeTypes.TOPSPEED, 0);
         prizeWeights.put(PrizeTypes.WARP, 0);
         prizeWeights.put(PrizeTypes.XRADAR, 0);
+
+        return prizeWeights;
     }
 
     @Override
@@ -156,16 +291,53 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
 
         prizeSpawners.applyChanges();
 
-        for (Entity e : prizeSpawners) { //Spawn max one per update-call / frame
+        //Make sure we have the arena prize weights and prize rules in place for new arenas:
+        for (Entity e : prizeSpawners.getAddedEntities()) {
+            ArenaId arena = e.get(ArenaId.class);
+
+            if (!arenaPrizeWeights.containsKey(arena.getArenaId())) {
+                HashMap<String, Integer> newPrizeWeights = this.loadArenaPrizeWeights(arena.getArenaId());
+                arenaPrizeWeights.put(arena.getArenaId(), newPrizeWeights);
+
+                RandomSelector newSelector = RandomSelector.weighted(newPrizeWeights.keySet(), s -> newPrizeWeights.get(s));
+                arenaSelectors.put(arena.getArenaId(), newSelector);
+            }
+
+            if (!arenaPrizeRules.containsKey(arena.getArenaId())) {
+                HashMap<String, Integer> newPrizeRules = this.loadArenaPrizeRules(arena);
+                arenaPrizeRules.put(arena.getArenaId(), newPrizeRules);
+            }
+        }
+
+        //TODO: Remove completely empty arenas
+        /*
+        for (Entity e : prizeSpawners.getRemovedEntities()) {
+            ArenaId arena = e.get(ArenaId.class);
+
+            if (arenaPrizeWeights.containsKey(arena.getArenaId())) {
+                arenaPrizeWeights.remove(arena.getArenaId());
+            }
+            
+            if (arenaPrizeRules.containsKey(arena.getArenaId())) {
+                arenaPrizeRules.remove(arena.getArenaId());
+            }
+        }
+         */
+        //TODO: Need to account for prize rules
+        for (Entity e : prizeSpawners) {
+            ArenaId arena = e.get(ArenaId.class);
+
+            HashMap<String, Integer> localArenaPrizeRules = arenaPrizeRules.get(arena.getArenaId());
+
             Spawner s = e.get(Spawner.class);
             Position p = e.get(Position.class);
             SphereShape c = e.get(SphereShape.class);
-            if (prizeCount.containsKey(e.getId()) && prizeCount.get(e.getId()) < s.getMaxCount()) {
-                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), true);
-                prizeCount.put(e.getId(), prizeCount.get(e.getId()) + 1);
+            if (spawnerPrizeCount.containsKey(e.getId()) && spawnerPrizeCount.get(e.getId()) < s.getMaxCount()) {
+                spawnRandomWeightedPrize(arena.getArenaId(), p.getLocation(), c.getRadius(), true);
+                spawnerPrizeCount.put(e.getId(), spawnerPrizeCount.get(e.getId()) + 1);
             } else {
-                spawnRandomWeightedPrize(p.getLocation(), c.getRadius(), true);
-                prizeCount.put(e.getId(), 1);
+                spawnRandomWeightedPrize(arena.getArenaId(), p.getLocation(), c.getRadius(), true);
+                spawnerPrizeCount.put(e.getId(), 1);
             }
         }
     }
@@ -198,10 +370,10 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
      * circle
      * @return the entity id of the prize that was spawned
      */
-    private EntityId spawnRandomWeightedPrize(Vec3d spawnCenter, double radius, boolean onlyCircumference) {
+    private EntityId spawnRandomWeightedPrize(String arenaId, Vec3d spawnCenter, double radius, boolean onlyCircumference) {
         Vec3d location = this.getRandomSpawnLocation(spawnCenter, radius, onlyCircumference);
 
-        return CoreGameEntities.createPrize(location, rc.next(random), ed);
+        return ModuleGameEntities.createPrize(location, arenaSelectors.get(arenaId).next(random), ed);
     }
 
     @Override
@@ -229,7 +401,7 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             ed.removeEntity(one);
             //Play audio
             //Play audio
-            CoreGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
+            ModuleGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
             return false;
         } else if (prizes.containsId(two) && ships.containsId(one)) {
             PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
@@ -238,7 +410,7 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             //Remove prize
             ed.removeEntity(two);
             //Play audio
-            CoreGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
+            ModuleGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
             return false;
         }
 
@@ -259,25 +431,38 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
      * @param ship the ship that picked up the prize
      */
     private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {
+        
+        ArenaId arena = ed.getComponent(ship, ArenaId.class);
+        String arenaName = arena.getArenaId();
+        //Find settings
+        Ini settings = this.settings.getArenaSettings(arenaName);
+        
+        
         log.info("Ship " + ship + " picked up prize:" + pt.getTypeName(ed));
+        
         switch (pt.getTypeName(ed)) {
-            case PrizeTypes.ALLWEAPONS:
+            case PrizeTypes.ALLWEAPONS: //PrizeWeight:AllWeapons:::Likelyhood of 'Super!' prize appearing
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
             case PrizeTypes.ANTIWARP:
-                throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
+                Antiwarp anti = ed.getComponent(ship, Antiwarp.class);
+                if (anti == null) {
+                    anti = new Antiwarp(false);
+                    ed.setComponent(ship, anti);
+                } 
+                break;
             case PrizeTypes.BOMB:
-                throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
+                
             case PrizeTypes.BOUNCINGBULLETS:
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
             case PrizeTypes.BRICK:
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
             case PrizeTypes.BURST:
-                Bursts burst = ed.getComponent(ship, Bursts.class);
+                Burst burst = ed.getComponent(ship, Burst.class);
                 if (burst == null) {
-                    burst = new Bursts(CoreGameConstants.BURSTCOOLDOWN, 1);
+                    burst = new Burst(1);
                 } else {
                     int count = burst.getCount();
-                    burst = new Bursts(CoreGameConstants.BURSTCOOLDOWN, count + 1);
+                    burst = new Burst(count + 1);
                 }
                 ed.setComponent(ship, burst);
                 break;
@@ -318,10 +503,10 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             case PrizeTypes.THOR:
                 Thor t = ed.getComponent(ship, Thor.class);
                 if (t == null) {
-                    t = new Thor(CoreGameConstants.THORCOOLDOWN, 1);
+                    t = new Thor(1);
                 } else {
                     int count = t.getCount();
-                    t = new Thor(CoreGameConstants.THORCOOLDOWN, count + 1);
+                    t = new Thor(count + 1);
                 }
                 ed.setComponent(ship, t);
 
@@ -337,5 +522,10 @@ public class PrizeState extends AbstractGameSystem implements CollisionListener 
             default:
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported for pickup");
         }
+    }
+
+    @Override
+    public void arenaSettingsChange(ArenaId arenaId, String section, String setting) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

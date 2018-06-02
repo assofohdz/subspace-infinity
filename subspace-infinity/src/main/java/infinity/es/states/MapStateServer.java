@@ -40,9 +40,10 @@ import infinity.api.es.GravityWell;
 import infinity.api.es.Position;
 import infinity.api.es.TileType;
 import infinity.api.es.TileTypes;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
-import infinity.sim.CoreGameEntities;
+import infinity.net.server.AssetLoaderService;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +60,6 @@ public class MapStateServer extends AbstractGameSystem {
     private TMXMapReader reader;
     private EntityData ed;
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
-    private AssetManager am;
     public static final int MAP_SIZE = 1024;
     private static final int HALF = 512;
     private EntitySet tileTypes;
@@ -70,16 +70,20 @@ public class MapStateServer extends AbstractGameSystem {
     public static final float NOISE4J_CORRIDOR = 0f;
     public static final float NOISE4J_FLOOR = 0.5f;
     public static final float NOISE4J_WALL = 1f;
+    private final AssetLoaderService assetLoader;
 
+    public MapStateServer(AssetLoaderService assetLoader){
+        
+        this.assetLoader = assetLoader;
+    }
+    
     //int[][] multD = new int[5][];
     @Override
     protected void initialize() {
 
         this.ed = getSystem(EntityData.class);
 
-        am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
-
-        am.registerLoader(LevelLoader.class, "lvl");
+        assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
         tileTypes = ed.getEntities(TileType.class, Position.class);
 
@@ -118,7 +122,7 @@ public class MapStateServer extends AbstractGameSystem {
      * @return the lvz-map wrapped in a LevelFile
      */
     public LevelFile loadMap(String mapFile) {
-        LevelFile map = (LevelFile) am.loadAsset(mapFile);
+        LevelFile map = (LevelFile) assetLoader.loadAsset(mapFile);
         return map;
     }
 
@@ -221,23 +225,23 @@ public class MapStateServer extends AbstractGameSystem {
                     switch (s) {
                         case 170:
                             //Turf flag
-                            CoreGameEntities.createCaptureTheFlag(location, ed);
+                            ModuleGameEntities.createCaptureTheFlag(location, ed);
                             break;
                         case 216:
-                            CoreGameEntities.createOver1(location, ed);
+                            ModuleGameEntities.createOver1(location, ed);
                             break;
                         case 217:
                             //Medium asteroid
-                            CoreGameEntities.createOver2(location, ed);
+                            ModuleGameEntities.createOver2(location, ed);
                             break;
                         case 219:
                             //Station
                             break;
                         case 220:
-                            CoreGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
+                            ModuleGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
                             break;
                         default:
-                            CoreGameEntities.createMapTile(map.m_file, s, location, TileTypes.LEGACY, ed);//
+                            ModuleGameEntities.createMapTile(map.m_file, s, location, TileTypes.LEGACY, ed);//
                             break;
                     }
                 }
@@ -300,7 +304,7 @@ public class MapStateServer extends AbstractGameSystem {
 
             short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
 
-            CoreGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), ed);
+            ModuleGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), ed);
         }
         sessionTileCreations.clear();
     }

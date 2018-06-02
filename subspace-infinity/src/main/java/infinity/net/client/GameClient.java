@@ -43,7 +43,7 @@ import com.simsilica.ethereal.TimeSource;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.client.EntityDataClientService;
 
-import infinity.CoreGameConstants;
+import infinity.ServerGameConstants;
 import infinity.net.chat.client.ChatClientService;
 
 /**
@@ -61,8 +61,8 @@ public class GameClient {
     public GameClient(String host, int port) throws IOException {
 
         log.info("Connecting to:" + host + " " + port);
-        this.client = Network.connectToServer(CoreGameConstants.GAME_NAME,
-                CoreGameConstants.PROTOCOL_VERSION,
+        this.client = Network.connectToServer(ServerGameConstants.GAME_NAME,
+                ServerGameConstants.PROTOCOL_VERSION,
                 host, port);
 
         //Enable to see info on all rpc messages
@@ -73,11 +73,11 @@ public class GameClient {
                 new RmiClientService(),
                 new AccountClientService(),
                 new GameSessionClientService(),
-                new EntityDataClientService(CoreGameConstants.ES_CHANNEL),
-                new ChatClientService(CoreGameConstants.CHAT_CHANNEL),
-                new EtherealClient(CoreGameConstants.OBJECT_PROTOCOL,
-                        CoreGameConstants.ZONE_GRID,
-                        CoreGameConstants.ZONE_RADIUS),
+                new EntityDataClientService(ServerGameConstants.ES_CHANNEL),
+                new ChatClientService(ServerGameConstants.CHAT_CHANNEL),
+                new EtherealClient(ServerGameConstants.OBJECT_PROTOCOL,
+                        ServerGameConstants.ZONE_GRID,
+                        ServerGameConstants.ZONE_RADIUS),
                 new SharedObjectUpdater()
         );
 

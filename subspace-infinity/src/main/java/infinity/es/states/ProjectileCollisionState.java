@@ -35,7 +35,7 @@ import infinity.api.es.Decay;
 import infinity.api.es.MobType;
 import infinity.api.es.Parent;
 import infinity.api.es.WeaponType;
-import infinity.sim.CoreGameEntities;
+import infinity.api.sim.ModuleGameEntities;
 import infinity.sim.PhysicsListener;
 import infinity.sim.SimpleBody;
 import infinity.sim.SimplePhysics;
@@ -133,7 +133,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
             Damage d = projectiles.getEntity(one).get(Damage.class);
             ed.setComponent(one, new Decay(0)); //Set it to be removed
 
-            CoreGameEntities.createHealthBuff(d.getDamage(), two, ed);
+            ModuleGameEntities.createHealthBuff(d.getDamage(), two, ed);
 
             return false;
 
@@ -144,7 +144,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
             Damage d = projectiles.getEntity(two).get(Damage.class);
             ed.setComponent(two, new Decay(0)); //Set it to be removed
 
-            CoreGameEntities.createHealthBuff(d.getDamage(), one, ed);
+            ModuleGameEntities.createHealthBuff(d.getDamage(), one, ed);
 
             return false;
         }
