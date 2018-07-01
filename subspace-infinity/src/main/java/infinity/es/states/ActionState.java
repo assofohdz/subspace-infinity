@@ -36,6 +36,8 @@ import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
 
 /**
+ * This state holds logic for the actions that players can take. This includes
+ * repels, bricks, warps.
  *
  * @author Asser Fahrenholz
  */
@@ -56,6 +58,8 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
         if (physics == null) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
+        
+        physics.addCollisionListener(this);
 
         FieldFilter repelFilter = new FieldFilter(ActionType.class, "type", ActionTypes.repel(ed).getType());
 
@@ -73,6 +77,8 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
 
         repellers.release();
         repellers = null;
+        
+        physics.removeCollisionListener(this);
     }
 
     @Override
@@ -180,7 +186,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
 
     @Override
     public boolean collision(ContactConstraint contactConstraint) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return true;
     }
 
     private class ActionInfo {

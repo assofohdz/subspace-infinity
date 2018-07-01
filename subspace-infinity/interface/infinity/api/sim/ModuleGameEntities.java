@@ -759,6 +759,7 @@ public class ModuleGameEntities {
                 new Parent(owner),
                 ActionTypes.repel(ed),
                 PhysicsShapes.repel(),
+                PhysicsMassTypes.infinite(ed),
                 AudioTypes.repel(ed));
 
         
