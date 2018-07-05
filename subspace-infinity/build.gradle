@@ -127,7 +127,7 @@ dependencies {
     compile "com.simsilica:sim-math:1.1.1"
     //compile "com.simsilica:sim-ethereal:1.2.2"
     //https://github.com/Simsilica/SimEthereal
-    compile 'com.github.Simsilica:SimEthereal:master-SNAPSHOT' //There is an unreleased commit that we need
+    compile 'com.github.Simsilica:simethereal:45bbcc6e0a'
     
     //https://github.com/jMonkeyEngine-Contributions/zay-es
     compile 'com.simsilica:zay-es-net:1.2.1'
@@ -272,7 +272,8 @@ project(':modules') {
     
     dependencies {
         compile project(':interface')
-        compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
+        //compile 'com.github.Simsilica:SimEthereal:-SNAPSHOT' //There is an unreleased commit that we need
+        compile 'com.github.Simsilica:simethereal:45bbcc6e0a'
         compile 'com.simsilica:zay-es-net:1.2.1'
         compile 'com.simsilica:zay-es:1.2.1'
     }
