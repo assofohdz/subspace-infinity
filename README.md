@@ -1,3 +1,7 @@
+## Build:
+
+[![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
+
 ## Discord
 
 Join Discord here: https://discord.gg/tfyWxbK
