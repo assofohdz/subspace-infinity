@@ -5,4 +5,4 @@ jdk:
   - oraclejdk8
 
 script:
-  - ./gradlew build --scan -s
+  - ./subspace-infinity/gradle build --scan -s
