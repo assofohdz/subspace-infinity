@@ -1,8 +1,12 @@
 language: java
+
+before_install:
+ - chmod +x gradlew
+ 
 install: true
 
 jdk:
   - oraclejdk8
-
+ 
 script:
   - ./subspace-infinity/gradlew build --scan -s
