@@ -9,4 +9,5 @@ jdk:
   - oraclejdk8
  
 script:
-  - ./subspace-infinity/gradlew build --scan -s
+  - cd subspace-infinity
+  - gradlew build --scan -s
