@@ -8,3 +8,4 @@
 /.gradle/
 /subspace-infinity/.gradle/
 *.log
+/subspace-infinity/%APPDATA%/

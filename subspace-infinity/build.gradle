@@ -1,8 +1,8 @@
 buildscript {
     repositories {
+        mavenCentral()
         mavenLocal()
         jcenter()
-        mavenCentral()
     }   
     dependencies {
         // Replace $version with the current version
@@ -11,7 +11,12 @@ buildscript {
         classpath group: 'org.mini2Dx', name: 'butler', version: '1.1.3'
         //https://github.com/mini2Dx/parcl
         classpath group: 'org.mini2Dx', name: 'parcl', version: '1.2.1'
+        
+        
+        classpath 'com.bmuschko:gradle-docker-plugin:3.4.1'
+        
     }   
+
 }
 
 evaluationDependsOnChildren()
@@ -35,6 +40,7 @@ apply plugin: 'idea'
 apply plugin: 'license-report'
 apply plugin: "org.mini2Dx.butler"
 apply plugin: "org.mini2Dx.parcl"
+apply plugin: 'com.bmuschko.docker-java-application'
 
 /*
  * Gets the version name from the latest Git tag
@@ -304,5 +310,19 @@ butler {
  
     windows {
         binDirectory = new File(project.buildDir, "windows").getAbsolutePath()
+    }
+}
+
+docker {
+    javaApplication {
+        baseImage = 'dockerfile/java:openjdk-8-jre'
+        maintainer = 'Benjamin Muschko "benjamin.muschko@gmail.com"'
+        ports = [9090, 5701]
+        tag = 'jettyapp:1.115'
+        /*
+        exec {
+            defaultCommand 'server'
+            entryPoint 'myApp/bin/containerLaunch.sh'
+        }*/
     }
 }
