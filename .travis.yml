@@ -11,4 +11,4 @@ jdk:
 before_script: cd subspace-infinity
 
 script: 
-  - gradlew build --scan -s
+  - ./gradlew build --scan -s
