@@ -8,4 +8,6 @@ install: true
 jdk:
   - oraclejdk8
  
-script: cd subspace-infinity && gradlew build --scan -s
+script: 
+  - cd ./subspace-infinity
+  - gradlew build --scan -s
