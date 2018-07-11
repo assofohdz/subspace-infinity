@@ -41,10 +41,10 @@ public class SSSLoader implements AssetLoader {
 
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(":");
-                for (String str : values) {
+                /*for (String str : values) {
                     System.out.println(str);
                 }
-
+*/
                 result.add(values);
             }
         }

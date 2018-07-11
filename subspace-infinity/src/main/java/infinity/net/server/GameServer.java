@@ -67,7 +67,6 @@ import com.simsilica.es.server.EntityUpdater; // from SiO2
 
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
-import com.sun.glass.ui.Application;
 
 import infinity.ServerGameConstants;
 import infinity.net.chat.server.ChatHostedService;
@@ -90,6 +89,7 @@ import infinity.es.states.ShipFrequencyStateServer;
 import infinity.es.states.steering.PathfinderState;
 import infinity.es.states.towerdefense.TowerAttackState;
 import infinity.es.states.ProjectileCollisionState;
+import infinity.es.states.ServerStatsState;
 import infinity.es.states.towerdefense.TowerState;
 import infinity.es.states.WarpState;
 
@@ -240,6 +240,8 @@ public class GameServer {
         // on the clients.
         systems.addSystem(new BodyPositionPublisher());
 
+        systems.addSystem(new ServerStatsState(this));
+        
         // Register some custom serializers
         registerSerializers();
 
@@ -394,8 +396,7 @@ public class GameServer {
                 System.err.println("Unknown command:" + line);
             }
         }
-
-        gs.close();
+        //gs.close("Shutting down because no input is received");
     }
 
     // Just for debugging something
