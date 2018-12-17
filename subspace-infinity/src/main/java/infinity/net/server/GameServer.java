@@ -64,6 +64,7 @@ import com.simsilica.es.Name;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.es.server.EntityUpdater; // from SiO2
+import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
@@ -241,7 +242,7 @@ public class GameServer {
         systems.addSystem(new BodyPositionPublisher());
 
         systems.addSystem(new ServerStatsState(this));
-        
+
         // Register some custom serializers
         registerSerializers();
 
@@ -254,9 +255,17 @@ public class GameServer {
         // Initialize the game system manager to prepare to start later
 
         systems.initialize();
+        
+        ethereal.setTimeSource(new TimeSource() {
+            @Override
+            public long getTime() {
+                return systems.getStepTime().getUnlockedTime(System.nanoTime());
+            }
+        });
     }
 
-    protected void registerSerializers() {
+    private void registerSerializers() {
+        
         Serializer.registerClass(Name.class, new FieldSerializer());
 
         Serializer.registerClass(BodyPosition.class, new FieldSerializer());

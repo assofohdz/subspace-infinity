@@ -226,7 +226,8 @@ public class TimeSequenceState extends BaseAppState {
         long delta = ((timeState.getRealTime() - baseTime) / 1000000) / 3;
         realTime.setLocalTranslation(delta, 0, -1);
 
-        delta = (-timeState.getTimeSource().getOffset() / 1000000) / 3;
+        //TODO: If used, this needs to be fixed
+        //delta = (-timeState.getTimeSource().getOffset() / 1000000) / 3;
         offsetTime.setLocalTranslation(delta, 0, -1);
 
         for( SequenceEntry e : sequences ) {

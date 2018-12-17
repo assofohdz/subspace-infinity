@@ -30,6 +30,7 @@ import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -84,7 +85,17 @@ public class MapStateServer extends AbstractGameSystem {
         this.ed = getSystem(EntityData.class);
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
+        
+        //Create entities, so the tile types will be in the string index (we use the tiletypes as filters)
+        EntityId e = ed.createEntity();
+        short s = 0;
+        ed.setComponent(e, TileTypes.legacy("empty", s, ed));
 
+        
+        EntityId e2 = ed.createEntity();
+        short s2 = 0;
+        ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
+        
         tileTypes = ed.getEntities(TileType.class, Position.class);
 
         //

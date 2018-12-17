@@ -53,6 +53,7 @@ import com.simsilica.ethereal.TimeSource;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.client.EntityDataClientService;
+import com.simsilica.ethereal.SynchedTimeSource;
 
 import infinity.net.AccountSessionListener;
 import infinity.net.client.AccountClientService;

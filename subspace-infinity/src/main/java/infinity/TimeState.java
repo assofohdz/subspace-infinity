@@ -27,6 +27,7 @@ package infinity;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
+import com.simsilica.ethereal.SynchedTimeSource;
 
 import com.simsilica.ethereal.TimeSource;
 

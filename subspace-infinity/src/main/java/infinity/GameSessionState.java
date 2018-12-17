@@ -111,7 +111,7 @@ public class GameSessionState extends CompositeAppState {
         addChild(new CommandConsoleState(), true);
 
         // For popping up a time sync debug panel
-        addChild(new TimeSequenceState(), true);
+        //addChild(new TimeSequenceState(), true);
 
         addChild(new HelpState(), true);
         addChild(new PlayerListState(), true);
