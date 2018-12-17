@@ -164,6 +164,13 @@ public class GameServer {
                 ServerGameConstants.ZONE_GRID,
                 ServerGameConstants.ZONE_RADIUS);
 
+        ethereal.setTimeSource(new TimeSource() {
+            @Override
+            public long getTime() {
+                return systems.getStepTime().getUnlockedTime(System.nanoTime());
+            }
+        });
+
         ethereal.setStateCollectionInterval(port);
 
         server.getServices().addService(ethereal);
@@ -255,17 +262,11 @@ public class GameServer {
         // Initialize the game system manager to prepare to start later
 
         systems.initialize();
-        
-        ethereal.setTimeSource(new TimeSource() {
-            @Override
-            public long getTime() {
-                return systems.getStepTime().getUnlockedTime(System.nanoTime());
-            }
-        });
+
     }
 
     private void registerSerializers() {
-        
+
         Serializer.registerClass(Name.class, new FieldSerializer());
 
         Serializer.registerClass(BodyPosition.class, new FieldSerializer());
