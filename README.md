@@ -23,7 +23,7 @@ With Chocolatey:
 - Clone the repository (git clone)
 - Run: "gradle build"
 
-##To run:
+## To run:
 
 # From command line
 - Run: "gradle run"
