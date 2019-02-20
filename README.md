@@ -1,28 +1,45 @@
-## Build:
+# Build Stats:
 
 [![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
+
+# Subspace Infinity
+A java port of Subspace Continuum, built on JME, Lemur, Zay-ES, Zay-ES-Net, SpiderMonkey, and the SimEthereal real-time
+object synching library.  This modifies the sim-eth-basic to be ES based using the Zay-ES library.
+
+# Community
 
 ## Discord
 
 Join Discord here: https://discord.gg/tfyWxbK
 
-## Subspace Infinity
-A java port of Subspace Continuum, built on JME, Lemur, Zay-ES, Zay-ES-Net, SpiderMonkey, and the SimEthereal real-time
-object synching library.  This modifies the sim-eth-basic to be ES based using the Zay-ES library.
+# To contribute
 
-To run: `gradle run`
+## Setup foundation
 
-## Splash
+With Chocolatey:
+- Run: "choco install git.install"
+- Run: "choco install gradle" (version 5.0 required at the moment of writing this)
+
+## Check out the project
+
+- Clone the repository (git clone)
+- Run: "gradle build"
+
+# To run:
+
+## From command line
+- Run: "gradle run"
+
+## From itch.io
+Game is pushed to Itch.io on updates, so client in Itch.io will keep up to date.
+
+# Splash
 ![Splash screen](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/Splash.PNG?=150x)
 
-## Game
+# Game
 ![In game](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/InGame1.PNG?=150x)
 
-## Contributing
-
-[TODO]
-
-## Subspace port: road map to the stars
+# Subspace features
 
 Alpha
 - Game world with top down view and very basic controls of the ship
@@ -333,9 +350,6 @@ Beta
     - SheepMessage=Sheep successfully cloned -- hello Dolly
     - ResetScoreOnFrequencyChange=0
     - MaxPlaying=0
-
-1.0
-[TODO]
 
 ## Authors
 
