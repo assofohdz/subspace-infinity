@@ -10,7 +10,26 @@ Join Discord here: https://discord.gg/tfyWxbK
 A java port of Subspace Continuum, built on JME, Lemur, Zay-ES, Zay-ES-Net, SpiderMonkey, and the SimEthereal real-time
 object synching library.  This modifies the sim-eth-basic to be ES based using the Zay-ES library.
 
-To run: `gradle run`
+## To contribute
+
+# Setup foundation
+
+With Chocolatey:
+- Run: "choco install git.install"
+- Run: "choco install gradle"
+
+# Check out the project
+
+- Clone the repository (git clone)
+- Run: "gradle build"
+
+##To run:
+
+# From command line
+- Run: "gradle run"
+
+# From itch.io
+Game is pushed to Itch.io on updates, so client in Itch.io will keep up to date.
 
 ## Splash
 ![Splash screen](https://github.com/assofohdz/Subspace-Infinity/blob/master/screenshots/Splash.PNG?=150x)
