@@ -18,7 +18,7 @@ Join Discord here: https://discord.gg/tfyWxbK
 
 With Chocolatey:
 - Run: "choco install git.install"
-- Run: "choco install gradle"
+- Run: "choco install gradle" (version 5.0 required at the moment of writing this)
 
 ## Check out the project
 
