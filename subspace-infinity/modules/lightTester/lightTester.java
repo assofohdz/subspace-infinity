@@ -37,6 +37,7 @@ import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
+import infinity.api.sim.TimeManager;
 import infinity.api.sim.events.ShipEvent;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -55,8 +56,8 @@ public class lightTester extends BaseGameModule {
     
     private Ini settings;
 
-    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
-        super(chp, am, loader, arenas);
+    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
+        super(chp, am, loader, arenas, time);
     }
 
     @Override
@@ -68,10 +69,10 @@ public class lightTester extends BaseGameModule {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        ModuleGameEntities.createLight(new Vec3d(10, 10, 0), ed, settings);
-        ModuleGameEntities.createLight(new Vec3d(-10, 10, 0), ed, settings);
-        ModuleGameEntities.createLight(new Vec3d(10, -10, 0), ed, settings);
-        ModuleGameEntities.createLight(new Vec3d(-10, -10, 0), ed, settings);
+        ModuleGameEntities.createLight(new Vec3d(10, 10, 0), ed, settings,this.getTimeManager().getTime());
+        ModuleGameEntities.createLight(new Vec3d(-10, 10, 0), ed, settings,this.getTimeManager().getTime());
+        ModuleGameEntities.createLight(new Vec3d(10, -10, 0), ed, settings,this.getTimeManager().getTime());
+        ModuleGameEntities.createLight(new Vec3d(-10, -10, 0), ed, settings, this.getTimeManager().getTime());
     }
 
     @Override

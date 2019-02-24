@@ -38,6 +38,7 @@ import infinity.api.sim.ArenaManager;
 import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.ModuleGameEntities;
+import infinity.api.sim.TimeManager;
 import java.io.IOException;
 import java.util.logging.Level;
 import org.ini4j.Ini;
@@ -73,17 +74,17 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
     private EntitySet mobs;
     private EntityId baseId;
     private double timeSinceLastWave;
-    
+
     private Ini settings;
 
-    public GameOrchestratorState(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
-        super(chp, am, loader, arenas);
+    public GameOrchestratorState(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
+        super(chp, am, loader, arenas, time);
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        
+
         try {
             settings = this.getLoader().loadSettings("GameOrchestratorState");
         } catch (IOException ex) {
@@ -141,7 +142,7 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
         //TODO: Create mob, set it steering towards the base
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
-        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, settings);
+        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, settings, this.getTimeManager().getTime());
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -150,7 +151,7 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
     private void spawnBase() {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
-        baseId = ModuleGameEntities.createBase(basePos, ed, settings);
+        baseId = ModuleGameEntities.createBase(basePos, ed, settings, this.getTimeManager().getTime());
     }
 
     private EntityId getBaseId() {

@@ -123,7 +123,8 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
     private SimplePhysics simplePhysics;
     private SettingsState settings;
     private ArrayList<String> prizeWeightTypes = new ArrayList<>(), prizeRuleTypes = new ArrayList<>();
-
+    private SimTime time;
+    
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
@@ -286,6 +287,8 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
 
     @Override
     public void update(SimTime time) {
+        this.time = time;
+        
         prizes.applyChanges();
         ships.applyChanges();
 
@@ -373,7 +376,7 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
     private EntityId spawnRandomWeightedPrize(String arenaId, Vec3d spawnCenter, double radius, boolean onlyCircumference) {
         Vec3d location = this.getRandomSpawnLocation(spawnCenter, radius, onlyCircumference);
 
-        return ModuleGameEntities.createPrize(location, arenaSelectors.get(arenaId).next(random), ed);
+        return ModuleGameEntities.createPrize(location, arenaSelectors.get(arenaId).next(random), ed, time.getTime());
     }
 
     @Override
@@ -401,7 +404,7 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
             ed.removeEntity(one);
             //Play audio
             //Play audio
-            ModuleGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
+            ModuleGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed, time.getTime());
             return false;
         } else if (prizes.containsId(two) && ships.containsId(one)) {
             PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
@@ -410,7 +413,7 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
             //Remove prize
             ed.removeEntity(two);
             //Play audio
-            ModuleGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed);
+            ModuleGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed, time.getTime());
             return false;
         }
 

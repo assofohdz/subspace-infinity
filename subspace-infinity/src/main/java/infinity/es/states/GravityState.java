@@ -84,7 +84,6 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
 
         pushingWells = new HashSet<>();
         pullingWells = new HashSet<>();
-
     }
 
     @Override
@@ -143,7 +142,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         GravityWell gravityWell = ed.getComponent(wormholeEntityId, GravityWell.class);
         //start applying gravity to other entity
         Force force = getWormholeGravityOnBody(tpf, gravityWell, wormholeLocation, bodyLocation);
-        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
+        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed, time.getTime());
     }
 
     /**

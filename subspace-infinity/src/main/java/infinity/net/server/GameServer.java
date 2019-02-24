@@ -33,7 +33,7 @@ import infinity.api.es.AudioType;
 import infinity.api.es.ship.ShipType;
 import infinity.api.es.ViewType;
 import infinity.api.es.Frequency;
-import infinity.api.es.Decay;
+import com.simsilica.es.common.Decay;
 import infinity.api.es.TileType;
 import infinity.api.es.Gold;
 import infinity.api.es.Flag;
@@ -75,7 +75,7 @@ import infinity.AdaptiveLoadingService;
 import infinity.es.states.ActionState;
 import infinity.es.states.WeaponStateServer;
 import infinity.es.states.PrizeState;
-import infinity.es.states.DecayState;
+import com.simsilica.sim.common.DecaySystem;
 import infinity.es.states.DelayState;
 import infinity.es.states.HealthState;
 import infinity.es.states.arena.ArenaState;
@@ -187,7 +187,7 @@ public class GameServer {
 
         // Add any hosted services that require those systems to already
         // exist
-        systems.register(DecayState.class, new DecayState());
+        systems.register(DecaySystem.class, new DecaySystem());
         //Add system to monitor health changes
         systems.register(HealthState.class, new HealthState());
         //Add system to monitor and spawn bounties

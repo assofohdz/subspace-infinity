@@ -31,7 +31,7 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.api.es.Damage;
-import infinity.api.es.Decay;
+import com.simsilica.es.common.Decay;
 import infinity.api.es.MobType;
 import infinity.api.es.Parent;
 import infinity.api.es.WeaponType;
@@ -60,6 +60,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
     private EntityData ed;
     private EntitySet projectiles;
     private EntitySet mobs;
+    private SimTime time;
 
     @Override
     protected void initialize() {
@@ -80,6 +81,8 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
 
     @Override
     public void update(SimTime tpf) {
+        this.time = tpf;
+        
         mobs.applyChanges();
         projectiles.applyChanges();
 
@@ -131,9 +134,9 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
             ManifoldPoint point = points.get(0);
 
             Damage d = projectiles.getEntity(one).get(Damage.class);
-            ed.setComponent(one, new Decay(0)); //Set it to be removed
+            ed.setComponent(one, new Decay(time.getTime(), time.getTime())); //Set it to be removed
 
-            ModuleGameEntities.createHealthBuff(d.getDamage(), two, ed);
+            ModuleGameEntities.createHealthBuff(d.getDamage(), two, ed, time.getTime());
 
             return false;
 
@@ -142,9 +145,9 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
             ManifoldPoint point = points.get(0);
 
             Damage d = projectiles.getEntity(two).get(Damage.class);
-            ed.setComponent(two, new Decay(0)); //Set it to be removed
+            ed.setComponent(two, new Decay(time.getTime(), time.getTime())); //Set it to be removed
 
-            ModuleGameEntities.createHealthBuff(d.getDamage(), one, ed);
+            ModuleGameEntities.createHealthBuff(d.getDamage(), one, ed, time.getTime());
 
             return false;
         }

@@ -37,6 +37,7 @@ import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
+import infinity.api.sim.TimeManager;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -56,8 +57,8 @@ public class wangTester extends BaseGameModule {
 
     private Ini settings;
 
-    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
-        super(chp, am, loader, arenas);
+    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
+        super(chp, am, loader, arenas, time);
     }
 
     @Override
@@ -70,8 +71,8 @@ public class wangTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        ModuleGameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 20, ed, settings);
-        ModuleGameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 100, 0), ed, settings);
+        ModuleGameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 20, ed, settings, this.getTimeManager().getTime());
+        ModuleGameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 100, 0), ed, settings, this.getTimeManager().getTime());
     }
 
     @Override

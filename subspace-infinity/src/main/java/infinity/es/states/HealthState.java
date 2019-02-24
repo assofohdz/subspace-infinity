@@ -64,6 +64,7 @@ public class HealthState extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
+        
         ed = getSystem(EntityData.class);
         living = ed.getEntities(Energy.class);
         changes = ed.getEntities(Buff.class, HealthChange.class);
@@ -150,15 +151,18 @@ public class HealthState extends AbstractGameSystem {
         // Now apply all accumulated adjustments
         for (Map.Entry<EntityId, Integer> entry : health.entrySet()) {
             Entity target = living.getEntity(entry.getKey());
+            
+            
             if (target == null) {
                 log.warn("No target for id:" + entry.getKey());
                 continue;
             }
 
             Energy hp = target.get(Energy.class);
-            if (log.isInfoEnabled()) {
-                log.info("Applying " + entry.getValue() + " to:" + target + " result:" + hp);
-            }
+            
+            //if (log.isInfoEnabled()) {
+            //    log.info("Applying " + entry.getValue() + " to:" + target + " result:" + hp);
+            //}
 
             //If we dont have a max hitpoint, just set new hp
             if (!maxLiving.containsId(target.getId())) {

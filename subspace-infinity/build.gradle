@@ -15,13 +15,13 @@ buildscript {
         classpath group: 'org.mini2Dx', name: 'butler', version: '1.1.3'
         //https://github.com/mini2Dx/parcl
         classpath group: 'org.mini2Dx', name: 'parcl', version: '1.4.0'
-	}   
+    }   
 }
 
 plugins {
     id 'com.gradle.build-scan' version '2.1'
     id 'com.bmuschko.docker-java-application' version '4.5.0'
-	id "com.github.ben-manes.versions" version '0.20.0'
+    id "com.github.ben-manes.versions" version '0.20.0'
 }
 
 allprojects {
@@ -70,7 +70,7 @@ jar {
         attributes 'Main-Class': 'infinity.Main'
     }
 }
-ext.jmeVersion = "3.2.1-stable"
+ext.jmeVersion = "3.2.2-stable"
 
 project(":assets") {
     apply plugin: 'java'
@@ -125,22 +125,22 @@ dependencies {
  
     // We definitely want a UI
     //https://github.com/jMonkeyEngine-Contributions/Lemur
-    compile 'com.simsilica:lemur:1.11.0'
+    compile 'com.simsilica:lemur:1.12.0'
     compile 'com.simsilica:lemur-proto:1.10.0'
 
     // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
+    
+
     //https://github.com/Simsilica/SiO2
     compile "com.simsilica:sio2:1.3.0"
     //https://github.com/Simsilica/SimMath
     compile "com.simsilica:sim-math:1.3.0"
-    //compile "com.simsilica:sim-ethereal:1.2.2"
     //https://github.com/Simsilica/SimEthereal
-    compile 'com.simsilica:sim-ethereal:1.3.0'
-    //compile 'com~github~simsilica:sim-ethereal:1~3~0' 
+    compile 'com.simsilica:sim-ethereal:1.4.0'
     
     //https://github.com/jMonkeyEngine-Contributions/zay-es
-    compile 'com.simsilica:zay-es-net:1.3.1'
+    compile 'com.simsilica:zay-es-net:1.4.0'
     compile 'com.simsilica:zay-es:1.3.1'
 
     //Lights and Visibility
@@ -153,7 +153,7 @@ dependencies {
     //.8'
     // Standard utility stuff
     //https://github.com/google/guava
-    compile 'com.google.guava:guava:24.1-jre'
+    compile 'com.google.guava:guava:27.0.1-jre'
     //https://www.slf4j.org/
     compile 'org.slf4j:slf4j-api:1.7.13'
     //https://logging.apache.org
@@ -180,8 +180,8 @@ dependencies {
     
     //SteamWorks4J
     //https://github.com/code-disaster/steamworks4j
-    compile "com.code-disaster.steamworks4j:steamworks4j:1.7.0"
-    compile "com.code-disaster.steamworks4j:steamworks4j-server:1.7.0"
+    compile "com.code-disaster.steamworks4j:steamworks4j:1.8.0"
+    compile "com.code-disaster.steamworks4j:steamworks4j-server:1.8.0"
 }
 
 task runServer(type: JavaExec) {
@@ -249,10 +249,10 @@ project(':interface'){
     }
     
     dependencies {
-        compile "com.simsilica:sim-math:1.2.0"
-        compile "com.simsilica:sio2:1.2.0"
-        compile 'com.simsilica:zay-es:1.3.0'
-        compile 'org.dyn4j:dyn4j:3.2.3'
+        compile 'com.simsilica:sim-math:1.3.0'
+        compile 'com.simsilica:sio2:1.3.0'
+        compile 'com.simsilica:zay-es:1.3.1'
+        compile 'org.dyn4j:dyn4j:3.3.0'
         compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
         compile 'org.ini4j:ini4j:0.5.4'
     }
@@ -278,10 +278,10 @@ project(':modules') {
     
     dependencies {
         compile project(':interface')
-        compile 'com.simsilica:sim-ethereal:1.3.0'
+        compile 'com.simsilica:sim-ethereal:1.4.0'
         //compile 'com.github.Simsilica:simethereal:45bbcc6e0a'
-        compile 'com.simsilica:zay-es-net:1.3.1'
-        compile 'com.simsilica:zay-es:1.3.0'
+        compile 'com.simsilica:zay-es-net:1.4.0'
+        compile 'com.simsilica:zay-es:1.3.1'
     }
 }
 

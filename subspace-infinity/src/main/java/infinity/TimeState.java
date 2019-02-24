@@ -30,6 +30,7 @@ import com.jme3.app.state.BaseAppState;
 import com.simsilica.ethereal.SynchedTimeSource;
 
 import com.simsilica.ethereal.TimeSource;
+import infinity.api.sim.TimeManager;
 
 
 /**
@@ -45,7 +46,7 @@ import com.simsilica.ethereal.TimeSource;
  *
  *  @author    Paul Speed
  */
-public class TimeState extends BaseAppState {
+public class TimeState extends BaseAppState implements TimeManager{
 
     private TimeSource timeSource;
     private long frameTime;
@@ -66,6 +67,7 @@ public class TimeState extends BaseAppState {
         return timeSource;
     }
     
+    @Override
     public long getTime() {
         return frameTime; 
     }

@@ -31,12 +31,14 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.api.es.Dead;
-import infinity.api.es.Decay;
+import com.simsilica.es.common.Decay;
 import infinity.sim.SimplePhysics;
 
 /**
  * A state to keep track of dead entities. Will remove them from the game, but
  * can otherwise be used keep track of deaths with points, buffs etc.
+ * 
+ * Update: Should be upgdated. As it is, it doesn't work with how the DecaySystem works
  *
  * @author Asser
  */
@@ -67,7 +69,7 @@ public class DeathState extends AbstractGameSystem {
                 Dead d = e.get(Dead.class);
                 ed.removeComponent(e.getId(), Dead.class);
 
-                ed.setComponent(e.getId(), new Decay(0));
+                ed.setComponent(e.getId(), new Decay(tpf.getTime(), tpf.getTime()));
             }
         }
     }

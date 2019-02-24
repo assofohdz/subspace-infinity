@@ -49,6 +49,7 @@ import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.server.EntityDataHostedService;
+import infinity.TimeState;
 import infinity.api.es.ActionType;
 import infinity.api.es.ActionTypes;
 
@@ -98,6 +99,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     public GameSessionHostedService(GameSystemManager gameSystems) {
 
         this.gameSystems = gameSystems;
+        
+        
 
         // We do not autohost because we want to host only when the
         // player is actually logged on.
@@ -132,6 +135,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         // Get the physics system... it's not available yet when onInitialize() is called.
         physics = gameSystems.get(SimplePhysics.class);
+        
         if (physics == null) {
             throw new RuntimeException("GameSessionHostedService requires a SimplePhysics system.");
         }
@@ -238,12 +242,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         public GameSessionImpl(EntityId playerEntity, HostedConnection conn) {
             this.playerEntity = playerEntity;
             this.conn = conn;
-
+            
             // Create a ship for the player
             this.shipDriver = new ShipDriver();
 
             //TODO: Let player choose the ship
-            this.shipEntity = ModuleGameEntities.createShip(playerEntity, ed);
+            this.shipEntity = ModuleGameEntities.createShip(playerEntity, ed, conn.getServer().getServices().getService(EtherealHost.class).getTimeSource().getTime());
             
             shipToPlayerMap.put(shipEntity, playerEntity);
 
@@ -255,10 +259,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Set the position when we want the ship to actually appear
             // in space 'for real'.
             ed.setComponent(shipEntity, new Position());
+            
+            
             System.out.println("Set position on:" + shipEntity);
         }
 
         public void initialize() {
+            
+            
         }
 
         public void close() {

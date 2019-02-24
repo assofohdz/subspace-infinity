@@ -25,10 +25,14 @@
  */
 package infinity.sim;
 
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
+import com.simsilica.sim.GameSystem;
+import com.simsilica.sim.SimTime;
+import infinity.TimeState;
 import infinity.api.es.SteeringPath;
 import infinity.api.es.SteeringSeek;
 import infinity.api.sim.ModuleGameEntities;
@@ -41,9 +45,12 @@ import infinity.api.sim.ModuleGameEntities;
 public class BasicEnvironment extends AbstractGameSystem {
 
     private EntityData ed;
+    private SimTime time;
+    private boolean envCreated = false;
 
     @Override
     protected void initialize() {
+
         this.ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException("SimplePhysics system requires an EntityData object.");
@@ -57,6 +64,27 @@ public class BasicEnvironment extends AbstractGameSystem {
     @Override
     public void start() {
 
+    }
+
+    @Override
+    public void stop() {
+        // For now at least, we won't be reciprocal, ie: we won't remove
+        // all of the stuff we added.
+    }
+
+    @Override
+    public void update(SimTime tpf) {
+        this.time = tpf;
+        
+        if (!envCreated) {
+            this.createEnv();
+        }
+
+    }
+
+    private void createEnv() {
+        envCreated = true;
+
         // Create some built in objects
         double spacing = 256;
         double offset = -2 * spacing + spacing * 0.5;
@@ -64,49 +92,47 @@ public class BasicEnvironment extends AbstractGameSystem {
             for (int y = 0; y < 4; y++) {
                 for (int z = 0; z < 4; z++) {
                     Vec3d pos = new Vec3d(offset + x * spacing, offset + y * spacing, offset + z * spacing);
-                    ModuleGameEntities.createGravSphere(pos, 10, ed);
+                    ModuleGameEntities.createGravSphere(pos, 10, ed, time.getTime());
                 }
             }
         }
 
-        ModuleGameEntities.createArena(0, ed);
+        ModuleGameEntities.createArena(0, ed, time.getTime());
 
         //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);0
         //GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);
         //GameEntities.createWormhole(new Vec3d(-10,-10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(10,-10,0), ed);
         //GameEntities.createOver5(new Vec3d(10,-10,0), 5, 5000, GravityWell.PUSH, ed);
-        ModuleGameEntities.createTower(new Vec3d(5, 5, 0), ed);
-        ModuleGameEntities.createTower(new Vec3d(5, 7, 0), ed);
-        ModuleGameEntities.createTower(new Vec3d(5, 3.5, 0), ed);
-        ModuleGameEntities.createTower(new Vec3d(6, 9, 0), ed);
-        ModuleGameEntities.createTower(new Vec3d(4, 2, 0), ed);
+        ModuleGameEntities.createTower(new Vec3d(5, 5, 0), ed, time.getTime());
+        ModuleGameEntities.createTower(new Vec3d(5, 7, 0), ed, time.getTime());
+        ModuleGameEntities.createTower(new Vec3d(5, 3.5, 0), ed, time.getTime());
+        ModuleGameEntities.createTower(new Vec3d(6, 9, 0), ed, time.getTime());
+        ModuleGameEntities.createTower(new Vec3d(4, 2, 0), ed, time.getTime());
 
-        EntityId baseId = ModuleGameEntities.createBase(new Vec3d(30, 10, 0), ed);
+        EntityId baseId = ModuleGameEntities.createBase(new Vec3d(30, 10, 0), ed, time.getTime());
 
-        EntityId mobId = ModuleGameEntities.createMob(new Vec3d(-5, 5, 0), ed);
+        EntityId mobId = ModuleGameEntities.createMob(new Vec3d(-5, 5, 0), ed, time.getTime());
         ed.setComponent(mobId, new SteeringSeek(baseId));
-        EntityId mobId2 = ModuleGameEntities.createMob(new Vec3d(-10, 5, 0), ed);
+        EntityId mobId2 = ModuleGameEntities.createMob(new Vec3d(-10, 5, 0), ed, time.getTime());
         ed.setComponent(mobId2, new SteeringSeek(baseId));
-        EntityId mobId3 = ModuleGameEntities.createMob(new Vec3d(10, -5, 0), ed);
+        EntityId mobId3 = ModuleGameEntities.createMob(new Vec3d(10, -5, 0), ed, time.getTime());
         ed.setComponent(mobId3, new SteeringSeek(baseId));
-        EntityId mobId4 = ModuleGameEntities.createMob(new Vec3d(-5, -10, 0), ed);
+        EntityId mobId4 = ModuleGameEntities.createMob(new Vec3d(-5, -10, 0), ed, time.getTime());
         ed.setComponent(mobId4, new SteeringSeek(baseId));
-        EntityId mobId5 = ModuleGameEntities.createMob(new Vec3d(-5, -15, 0), ed);
+        EntityId mobId5 = ModuleGameEntities.createMob(new Vec3d(-5, -15, 0), ed, time.getTime());
         ed.setComponent(mobId5, new SteeringSeek(baseId));
 
-        
-        
-        EntityId mobId6 = ModuleGameEntities.createMob(new Vec3d(-5, 5, 0), ed);
+        EntityId mobId6 = ModuleGameEntities.createMob(new Vec3d(-5, 5, 0), ed, time.getTime());
         ed.setComponent(mobId6, new SteeringPath());
-        EntityId mobId7 = ModuleGameEntities.createMob(new Vec3d(-10, 5, 0), ed);
+        EntityId mobId7 = ModuleGameEntities.createMob(new Vec3d(-10, 5, 0), ed, time.getTime());
         ed.setComponent(mobId7, new SteeringPath());
-        EntityId mobId8 = ModuleGameEntities.createMob(new Vec3d(10, -5, 0), ed);
+        EntityId mobId8 = ModuleGameEntities.createMob(new Vec3d(10, -5, 0), ed, time.getTime());
         ed.setComponent(mobId8, new SteeringPath());
-        EntityId mobId9 = ModuleGameEntities.createMob(new Vec3d(-5, -10, 0), ed);
+        EntityId mobId9 = ModuleGameEntities.createMob(new Vec3d(-5, -10, 0), ed, time.getTime());
         ed.setComponent(mobId9, new SteeringPath());
-        EntityId mobId10 = ModuleGameEntities.createMob(new Vec3d(-5, -15, 0), ed);
+        EntityId mobId10 = ModuleGameEntities.createMob(new Vec3d(-5, -15, 0), ed, time.getTime());
         ed.setComponent(mobId10, new SteeringPath());
-        
+
         /*
         GameEntities.createOver1(new Vec3d(10,10,0), ed);
         GameEntities.createOver1(new Vec3d(11,10,0), ed);
@@ -127,11 +153,4 @@ public class BasicEnvironment extends AbstractGameSystem {
          */
         //GameEntities.createWormhole(new Vec3d(-10,10,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-512,700,0), ed);
     }
-
-    @Override
-    public void stop() {
-        // For now at least, we won't be reciprocal, ie: we won't remove
-        // all of the stuff we added.
-    }
-
 }

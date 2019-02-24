@@ -14,6 +14,7 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.TimeState;
 import infinity.api.es.ActionType;
 import infinity.api.es.ActionTypes;
 import infinity.api.es.Parent;
@@ -124,7 +125,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
     }
 
     private void performRepel(ActionInfo info, EntityId requestor) {
-        ModuleGameEntities.createRepel(requestor, info.getLocation(), ed);
+        ModuleGameEntities.createRepel(requestor, info.getLocation(), ed, time.getTime());
 
         //Create a collision shape, detect collisions, apply outward forces
         //Steal from the pushing wormhole calculations
@@ -307,7 +308,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
         //start applying gravity to other entity
         Force force = getRepelForceOnBody(tpf, repel, repelLocation, impactedBodyLocation);
 
-        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed);
+        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed, time.getTime());
     }
 
     private Force getRepelForceOnBody(double tpf, Repel repel, Vec3d repelLocation, Vec3d bodyLocation) {

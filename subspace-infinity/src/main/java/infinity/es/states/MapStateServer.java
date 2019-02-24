@@ -28,9 +28,6 @@ package infinity.es.states;
 import com.github.czyzby.noise4j.map.Grid;
 import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
-import com.jme3.asset.AssetManager;
-import com.jme3.system.JmeSystem;
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -72,6 +69,7 @@ public class MapStateServer extends AbstractGameSystem {
     public static final float NOISE4J_FLOOR = 0.5f;
     public static final float NOISE4J_WALL = 1f;
     private final AssetLoaderService assetLoader;
+    private SimTime time;
 
     public MapStateServer(AssetLoaderService assetLoader){
         
@@ -236,23 +234,23 @@ public class MapStateServer extends AbstractGameSystem {
                     switch (s) {
                         case 170:
                             //Turf flag
-                            ModuleGameEntities.createCaptureTheFlag(location, ed);
+                            ModuleGameEntities.createCaptureTheFlag(location, ed, time.getTime());
                             break;
                         case 216:
-                            ModuleGameEntities.createOver1(location, ed);
+                            ModuleGameEntities.createOver1(location, ed, time.getTime());
                             break;
                         case 217:
                             //Medium asteroid
-                            ModuleGameEntities.createOver2(location, ed);
+                            ModuleGameEntities.createOver2(location, ed, time.getTime());
                             break;
                         case 219:
                             //Station
                             break;
                         case 220:
-                            ModuleGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed);
+                            ModuleGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed, time.getTime());
                             break;
                         default:
-                            ModuleGameEntities.createMapTile(map.m_file, s, location, TileTypes.LEGACY, ed);//
+                            ModuleGameEntities.createMapTile(map.m_file, s, location, TileTypes.LEGACY, ed, time.getTime());//
                             break;
                     }
                 }
@@ -281,6 +279,7 @@ public class MapStateServer extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+        this.time = tpf;
 
         for (Vector2 remove : sessionTileRemovals) {
             Vector2 clampedLocation = getKey(remove);
@@ -315,7 +314,7 @@ public class MapStateServer extends AbstractGameSystem {
 
             short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
 
-            ModuleGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), ed);
+            ModuleGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), ed, time.getTime());
         }
         sessionTileCreations.clear();
     }

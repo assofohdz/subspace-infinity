@@ -36,6 +36,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.ServerGameConstants;
+import infinity.TimeState;
 import infinity.api.es.Position;
 import infinity.api.es.subspace.ArenaId;
 import infinity.api.sim.ArenaManager;
@@ -66,7 +67,7 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
     static Logger log = LoggerFactory.getLogger(ArenaState.class);
 
     private HashMap<ZoneKey, Long> zones = new HashMap<>();
-
+    
     @Override
     protected void initialize() {
 
@@ -74,7 +75,8 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
 
         arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
 
-        EntityId arenaId = ModuleGameEntities.createArena(0, ed); //Create first arena
+        //Move down into 'update'
+        //EntityId arenaId = ModuleGameEntities.createArena(0, ed, ts.getTime()); //Create first arena
 
         AssetManager am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 

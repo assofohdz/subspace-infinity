@@ -6,10 +6,11 @@
 package infinity.api.sim;
 
 /**
- *
+ * Time must be specified in milliseconds
  * @author Asser Fahrenholz
  */
 public class CoreGameConstants {
+
     //Projectile speeds
     public final static double BASEPROJECTILESPEED = 1;
     public final static double BOMBPROJECTILESPEED = 25;
@@ -17,32 +18,31 @@ public class CoreGameConstants {
     public final static double GRAVBOMBPROJECTILESPEED = 15;
     public final static double THORPROJECTILESPEED = 30;
     public final static double BURSTPROJECTILESPEED = 50;
-    
+
     //Decays
+    //Decays must be in milliseconds
     public final static long BULLETDECAY = 1500;
     public final static long PRIZEDECAY = 5000;
     public final static long THORDECAY = 1500;
     public final static long GRAVBOMBDECAY = 4000;
-    
+
     //Health
     public final static int SHIPHEALTH = 100;
     public final static int BASEHEALTH = 1000;
     public final static int MOBHEALTH = 100;
-    
+
     //Cooldowns
     public final static long THORCOOLDOWN = 500;
     public final static long BURSTCOOLDOWN = 250;
-    
+
     public final static long BURSTPROJECTILECOUNT = 30;
-    
-    
-    
+
     public final static int BOUNTYVALUE = 10;
     public final static int PRIZEMAXCOUNT = 50;
-    
+
     public final static long GRAVBOMBDELAY = 1000;
     public final static double GRAVBOMBWORMHOLEFORCE = 5000;
-    
+
     public final static double RESOURCE_UPDATE_INTERVAL = 1;
     public final static double GOLD_PER_SECOND = 10000;
     public final static float PATHWAYPOINTDISTANCE = 0.5f;
@@ -50,8 +50,8 @@ public class CoreGameConstants {
     public final static double MOBMAXFORCE = 200;
     public final static float PATHHELPERHEIGHT = 1000;
     public final static float PATHHELPERWIDTH = 1000;
-    
+
     public final static int TOWERCOST = 1000;
-    
+
     public final static String DEFAULTARENAID = "default";
 }

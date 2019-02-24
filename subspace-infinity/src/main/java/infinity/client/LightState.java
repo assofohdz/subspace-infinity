@@ -35,13 +35,13 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mathd.trans.PositionTransition;
+import com.simsilica.mathd.trans.PositionTransition3f;
 import com.simsilica.mathd.trans.TransitionBuffer;
 import infinity.ConnectionState;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.api.es.BodyPosition;
-import infinity.api.es.Decay;
+import com.simsilica.es.common.Decay;
 import infinity.api.es.PointLightComponent;
 import java.util.HashMap;
 import org.slf4j.Logger;
@@ -59,7 +59,7 @@ public class LightState extends BaseAppState {
     private EntitySet movingPointLights;
     private Node rootNode;
     private HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
-    private HashMap<EntityId, TransitionBuffer<PositionTransition>> bufferMap = new HashMap<>();
+    private HashMap<EntityId, TransitionBuffer<PositionTransition3f>> bufferMap = new HashMap<>();
     private TimeState timeState;
     private Vector3f pointLightOffset = new Vector3f(0, 0, 5);
     private EntitySet decayingPointLights;
@@ -125,10 +125,12 @@ public class LightState extends BaseAppState {
 
                 PointLight pl = pointLightMap.get(e.getId());
 
-                double percentage = d.getPercent();
-                float factor = Math.max((float) (1 - (FastMath.pow((float)percentage, 5f))),0f);
+                //double percentage = 1-d.getPercentRemaining(time);
+                //float factor = Math.max((float) (1 - (FastMath.pow((float)percentage, 5f))),0f);
                 
-                pl.setColor(plc.getColor().mult(factor));
+                float percentageRemFloat = (float) d.getPercentRemaining(time);
+                
+                pl.setColor(plc.getColor().mult(percentageRemFloat));
                 
             }
         }
@@ -144,13 +146,13 @@ public class LightState extends BaseAppState {
     //Not working yet
     private void updatePointLight(Entity e, long time) {
         PointLight pl = pointLightMap.get(e.getId());
-        TransitionBuffer<PositionTransition> buffer = bufferMap.get(e.getId());
+        TransitionBuffer<PositionTransition3f> buffer = bufferMap.get(e.getId());
         //        Vec3d location = p.getLocation();
         // Look back in the brief history that we've kept and
         // pull an interpolated value.  To do this, we grab the
         // span of time that contains the time we want.  PositionTransition
         // represents a starting and an ending pos+rot over a span of time.
-        PositionTransition trans = buffer.getTransition(time);
+        PositionTransition3f trans = buffer.getTransition(time);
         if (trans != null) {
             pl.setPosition(trans.getPosition(time, true).add(pointLightOffset));
         }

@@ -29,7 +29,7 @@ import com.jme3.math.ColorRGBA;
 import infinity.api.es.Spawner;
 import infinity.api.es.WeaponTypes;
 import infinity.api.es.HealthChange;
-import infinity.api.es.Decay;
+import com.simsilica.es.common.Decay;
 import infinity.api.es.PhysicsForce;
 import infinity.api.es.ship.Energy;
 import infinity.api.es.PhysicsShapes;
@@ -59,10 +59,10 @@ import com.simsilica.es.*;
 import infinity.api.es.ActionTypes;
 import infinity.api.es.AudioType;
 import infinity.api.es.AudioTypes;
+import infinity.api.es.Meta;
 import infinity.api.es.Parent;
 import infinity.api.es.PointLightComponent;
 
-import infinity.api.es.Spawner.SpawnType;
 import infinity.api.es.TileTypes;
 import infinity.api.es.ship.EnergyMax;
 import infinity.api.es.ship.Recharge;
@@ -90,11 +90,9 @@ import infinity.api.es.ship.weapons.MineMax;
 import infinity.api.es.subspace.ArenaId;
 import infinity.api.es.subspace.PrizeType;
 import java.util.HashSet;
-import org.dyn4j.collision.Filter;
-import org.dyn4j.dynamics.BodyFixture;
+import java.util.concurrent.TimeUnit;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.geometry.Convex;
-import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.Vector2;
 import org.ini4j.Ini;
 
@@ -111,7 +109,7 @@ public class ModuleGameEntities {
 
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
-    public static EntityId createShip(EntityId parent, EntityData ed, Ini settings) {
+    public static EntityId createShip(EntityId parent, EntityData ed, Ini settings, long createdTime) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
@@ -127,18 +125,21 @@ public class ModuleGameEntities {
         ed.setComponent(result, new Energy(settings.get("Warbird", "StartingHealth", int.class)));
         //ed.setComponent(result, new HitPoints(GameConstants.SHIPHEALTH));
 
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed, Ini settings) {
+    public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed, Ini settings, long createdTime) {
         EntityId result = ed.createEntity();
         ed.setComponents(result, ViewTypes.gravSphereType(ed),
                 new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0), 0.0),
                 new SphereShape(radius, new Vec3d()));
+
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createBounty(Vec3d pos, EntityData ed, Ini settings) {
+    public static EntityId createBounty(Vec3d pos, EntityData ed, Ini settings, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, ViewTypes.prize(ed),
@@ -148,12 +149,14 @@ public class ModuleGameEntities {
                 PhysicsShapes.prize(settings),
                 new SphereShape(settings.get("Bounties", "ViewSize", int.class)),
                 //new SphereShape(ViewConstants.BOUNTYSIZE, new Vec3d()),
-                new Decay(settings.get("Bounties", "Decay", int.class)));
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(settings.get("Bounties", "Decay", int.class), TimeUnit.MILLISECONDS)));
         //new Decay(GameConstants.BOUNTYDECAY));
+
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createBountySpawner(String arenaId, Vec3d pos, double radius, EntityData ed, Ini settings) {
+    public static EntityId createBountySpawner(String arenaId, Vec3d pos, double radius, EntityData ed, Ini settings, long createdTime) {
         EntityId result = ed.createEntity();
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
@@ -163,26 +166,32 @@ public class ModuleGameEntities {
                 PhysicsShapes.prize(settings),
                 new ArenaId(arenaId),
                 new Spawner(settings.get("BountySpawners", "MaxCount", int.class), Spawner.SpawnType.Prizes));
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings, BombLevelEnum level) {
+    public static EntityId createBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity,
+            long decayMillis, EntityData ed, Ini settings, BombLevelEnum level, long createdTime) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.bomb(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
-                new Decay(decayMillis),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.bomb(settings));
 
+        ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
     }
 
-    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, Ini settings, BombLevelEnum level) {
+    public static EntityId createDelayedBomb(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity,
+            long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, Ini settings,
+            BombLevelEnum level, long createdTime) {
 
-        EntityId lastDelayedBomb = ModuleGameEntities.createBomb(location, quatd, rotation, linearVelocity, decayMillis, ed, settings, level);
+        EntityId lastDelayedBomb = ModuleGameEntities.createBomb(location, quatd, rotation, linearVelocity,
+                decayMillis, ed, settings, level, createdTime);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -190,31 +199,35 @@ public class ModuleGameEntities {
         return lastDelayedBomb;
     }
 
-    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, Ini settings, GunLevelEnum level) {
+    public static EntityId createBullet(Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity,
+            long decayMillis, EntityData ed, Ini settings, GunLevelEnum level, long createdTime) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.bullet(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
-                new Decay(decayMillis),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 PhysicsMassTypes.normal_bullet(ed),
                 WeaponTypes.bullet(ed),
                 PhysicsShapes.bullet(settings));
+        ed.setComponent(lastBomb, new Meta(createdTime));
 
         return lastBomb;
     }
 
-    public static EntityId createArena(int arenaId, EntityData ed, Ini settings) { //TODO: Should have Position as a parameter in case we want to create more than one arena
+    public static EntityId createArena(int arenaId, EntityData ed, Ini settings, long createdTime) { //TODO: Should have Position as a parameter in case we want to create more than one arena
         EntityId lastArena = ed.createEntity();
 
         ed.setComponents(lastArena, ViewTypes.arena(ed),
                 new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0f)
         );
+        ed.setComponent(lastArena, new Meta(createdTime));
 
         return lastArena;
     }
 
-    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass, String tileType, EntityData ed, Ini settings) {
+    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass,
+            String tileType, EntityData ed, Ini settings, long createdTime) {
         EntityId lastTileInfo = ed.createEntity();
 
         ed.setComponents(lastTileInfo,
@@ -223,24 +236,28 @@ public class ModuleGameEntities {
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.infinite(ed),
                 PhysicsShapes.mapTile(c));
+        ed.setComponent(lastTileInfo, new Meta(createdTime));
 
         return lastTileInfo;
     }
 
     //Explosion is for now only visual, so only object type and position
-    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed, Ini settings) {
+    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed, Ini settings, long createdTime) {
         EntityId lastExplosion = ed.createEntity();
 
         ed.setComponents(lastExplosion,
                 ViewTypes.explosion2(ed),
                 new Position(location, quat, 0f),
                 //new Decay(ViewConstants.EXPLOSION2DECAY));
-                new Decay(settings.get("Explosions", "Type2Decay", int.class)));
+                new Decay(createdTime, createdTime
+                        + TimeUnit.NANOSECONDS.convert(settings.get("Explosions", "Type2Decay", int.class), TimeUnit.MILLISECONDS)));
+        ed.setComponent(lastExplosion, new Meta(createdTime));
 
         return lastExplosion;
     }
 
-    public static EntityId createWormhole(Vec3d location, double radius, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation, EntityData ed, Ini settings) {
+    public static EntityId createWormhole(Vec3d location, double radius, double targetAreaRadius, double force,
+            String gravityType, Vec3d warpTargetLocation, EntityData ed, Ini settings, long createdTime) {
         EntityId lastWormhole = ed.createEntity();
 
         ed.setComponents(lastWormhole,
@@ -250,12 +267,13 @@ public class ModuleGameEntities {
                 new GravityWell(radius, force, gravityType),
                 PhysicsShapes.wormhole(settings),
                 new WarpTouch(warpTargetLocation));
+        ed.setComponent(lastWormhole, new Meta(createdTime));
 
         return lastWormhole;
     }
 
     /*
-    public static EntityId createAttack(EntityId owner, String attackType, EntityData ed, Ini settings) {
+    public static EntityId createAttack(EntityId owner, String attackType, EntityData ed, Ini settings, long createdTime) {
         EntityId lastAttack = ed.createEntity();
         ed.setComponents(lastAttack,
                 new Attack(owner),
@@ -265,15 +283,18 @@ public class ModuleGameEntities {
         return lastAttack;
     }
      */
-    public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed, Ini settings) {
+    public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed,
+            Ini settings, long createdTime) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,
                 new PhysicsForce(owner, force, forceWorldCoords));
+        ed.setComponent(lastForce, new Meta(createdTime));
 
         return lastForce;
     }
 
-    public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed, Ini settings) {
+    public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed,
+            Ini settings, long createdTime) {
         EntityId lastOver5 = ed.createEntity();
 
         ed.setComponents(lastOver5,
@@ -282,6 +303,7 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 new GravityWell(radius, force, gravityType),
                 PhysicsShapes.over5(settings));
+        ed.setComponent(lastOver5, new Meta(createdTime));
 
         return lastOver5;
     }
@@ -294,7 +316,7 @@ public class ModuleGameEntities {
      * @param settings the settings to load this small asteroid with
      * @return the entityid of the created entity
      */
-    public static EntityId createOver1(Vec3d location, EntityData ed, Ini settings) {
+    public static EntityId createOver1(Vec3d location, EntityData ed, Ini settings, long createdTime) {
         EntityId lastOver1 = ed.createEntity();
 
         ed.setComponents(lastOver1,
@@ -302,6 +324,7 @@ public class ModuleGameEntities {
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.normal(ed),
                 PhysicsShapes.over1(settings));
+        ed.setComponent(lastOver1, new Meta(createdTime));
 
         return lastOver1;
     }
@@ -314,7 +337,7 @@ public class ModuleGameEntities {
      * @param settings the settings to load this medium asteroid with
      * @return the entityid of the created entity
      */
-    public static EntityId createOver2(Vec3d location, EntityData ed, Ini settings) {
+    public static EntityId createOver2(Vec3d location, EntityData ed, Ini settings, long createdTime) {
         EntityId lastOver2 = ed.createEntity();
 
         ed.setComponents(lastOver2,
@@ -322,23 +345,25 @@ public class ModuleGameEntities {
                 new Position(location, new Quatd(), 0f),
                 PhysicsMassTypes.normal(ed),
                 PhysicsShapes.over2(settings));
+        ed.setComponent(lastOver2, new Meta(createdTime));
 
         return lastOver2;
     }
 
-    public static EntityId createWarpEffect(Vec3d location, EntityData ed, Ini settings) {
+    public static EntityId createWarpEffect(Vec3d location, EntityData ed, Ini settings, long createdTime) {
         EntityId lastWarpTo = ed.createEntity();
 
         ed.setComponents(lastWarpTo,
                 ViewTypes.warp(ed),
                 new Position(location, new Quatd(), 0f),
                 //new Decay(ViewConstants.WARPDECAY));
-                new Decay(settings.get("Warp", "Decay", int.class)));
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(settings.get("Warp", "Decay", int.class), TimeUnit.MILLISECONDS)));
+        ed.setComponent(lastWarpTo, new Meta(createdTime));
 
         return lastWarpTo;
     }
 
-    public static EntityId createCaptureTheFlag(Vec3d location, EntityData ed, Ini settings) {
+    public static EntityId createCaptureTheFlag(Vec3d location, EntityData ed, Ini settings, long createdTime) {
         EntityId lastFlag = ed.createEntity();
 
         ed.setComponents(lastFlag,
@@ -348,11 +373,12 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 new Flag(),
                 new Frequency(0));
+        ed.setComponent(lastFlag, new Meta(createdTime));
 
         return lastFlag;
     }
 
-    public static EntityId createMob(Vec3d location, EntityData ed, Ini settings) {
+    public static EntityId createMob(Vec3d location, EntityData ed, Ini settings, long createdTime) {
         EntityId lastMob = ed.createEntity();
 
         ed.setComponents(lastMob,
@@ -365,11 +391,12 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.normal(ed),
                 //new HitPoints(GameConstants.MOBHEALTH));
                 new Energy(settings.get("Enemies", "Health", int.class)));
+        ed.setComponent(lastMob, new Meta(createdTime));
 
         return lastMob;
     }
 
-    public static EntityId createTower(Vec3d location, EntityData ed, Ini settings) { // add tower-type ?
+    public static EntityId createTower(Vec3d location, EntityData ed, Ini settings, long createdTime) { // add tower-type ?
         EntityId lastTower = ed.createEntity();
         double rand = Math.random() * Math.PI;
 
@@ -381,11 +408,12 @@ public class ModuleGameEntities {
                 PhysicsShapes.tower(settings), // and this moved to type creation, for modularity ?
                 PhysicsMassTypes.infinite(ed),
                 new Damage(20)); //The amount of damage the tower does
+        ed.setComponent(lastTower, new Meta(createdTime));
 
         return lastTower;
     }
 
-    public static EntityId createBase(Vec3d location, EntityData ed, Ini settings) {
+    public static EntityId createBase(Vec3d location, EntityData ed, Ini settings, long createdTime) {
         EntityId lastBase = ed.createEntity();
 
         ed.setComponents(lastBase,
@@ -397,34 +425,37 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 //new HitPoints(GameConstants.BASEHEALTH));
                 new Energy(settings.get("Base", "Health", int.class)));
+        ed.setComponent(lastBase, new Meta(createdTime));
 
         return lastBase;
     }
 
-    public static EntityId createHealthBuff(int healthChange, EntityId target, EntityData ed, Ini settings) {
+    public static EntityId createHealthBuff(int healthChange, EntityId target, EntityData ed, Ini settings, long createdTime) {
 
         EntityId lastHealthBuff = ed.createEntity();
 
         ed.setComponents(lastHealthBuff,
                 new HealthChange(healthChange), //apply the damage
                 new Buff(target, 0)); //apply right away
+        ed.setComponent(lastHealthBuff, new Meta(createdTime));
 
         return lastHealthBuff;
     }
 
-    public static EntityId createLight(Vec3d vec3d, EntityData ed, Ini settings) {
+    public static EntityId createLight(Vec3d vec3d, EntityData ed, Ini settings, long createdTime) {
 
         EntityId lastLight = ed.createEntity();
 
         ed.setComponents(lastLight,
                 new Position(vec3d, new Quatd(), 0));
+        ed.setComponent(lastLight, new Meta(createdTime));
 
         return lastLight;
     }
-    
+
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
-    public static EntityId createShip(EntityId parent, EntityData ed) {
+    public static EntityId createShip(EntityId parent, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
         Name name = ed.getComponent(parent, Name.class);
         ed.setComponent(result, name);
@@ -446,21 +477,21 @@ public class ModuleGameEntities {
         ed.setComponent(result, new Bomb(BombLevelEnum.BOMB_1));
         ed.setComponent(result, new BombCost(2));
         ed.setComponent(result, new BombFireDelay(500));
-        
+
         //Add burst:
         ed.setComponent(result, new Burst(5));
         ed.setComponent(result, new BurstMax(5));
-        
+
         //Add guns:
         ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
         ed.setComponent(result, new GunCost(10));
         ed.setComponent(result, new GunFireDelay(250));
-        
+
         //Add gravity bombs
         ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
         ed.setComponent(result, new GravityBombCost(10));
         ed.setComponent(result, new GravityBombFireDelay(1000));
-        
+
         //Add mines
         ed.setComponent(result, new Mine(BombLevelEnum.BOMB_1));
         ed.setComponent(result, new MineCost(50));
@@ -470,25 +501,27 @@ public class ModuleGameEntities {
         //Add thors
         ed.setComponent(result, new Thor(2));
         ed.setComponent(result, new ThorMax(2));
-        
+
         //Add repels
         ed.setComponent(result, new Repel(10));
         ed.setComponent(result, new RepelMax(20));
 
         ed.setComponent(result, new PointLightComponent(ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS));
 
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed) {
+    public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
         ed.setComponents(result, ViewTypes.gravSphereType(ed),
                 new Position(pos, new Quatd().fromAngles(-Math.PI * 0.5, 0, 0), 0.0),
                 new SphereShape(radius, new Vec3d()));
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createPrize(Vec3d pos, String prizeType, EntityData ed) {
+    public static EntityId createPrize(Vec3d pos, String prizeType, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, ViewTypes.prize(ed),
@@ -498,136 +531,152 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.normal(ed),
                 PrizeType.create(prizeType, ed),
                 new SphereShape(CoreViewConstants.PRIZESIZE, new Vec3d()),
-                new Decay(CoreGameConstants.PRIZEDECAY));
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(CoreGameConstants.PRIZEDECAY, TimeUnit.MILLISECONDS)));
 
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static void createBulletSound(EntityId parent, Vec3d pos, EntityData ed, GunLevelEnum level) {
+    public static void createBulletSound(EntityId parent, Vec3d pos, EntityData ed, GunLevelEnum level, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_bullet(ed, level),
-                new Decay(3000), //Three seconds to play the sound
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), //Three seconds to play the sound
                 new Position(pos, new Quatd(), 0),
                 new Parent(parent));
+
+        ed.setComponent(result, new Meta(createdTime));
+
     }
 
-    public static void createBombSound(EntityId parent, Vec3d pos, EntityData ed, BombLevelEnum level) {
+    public static void createBombSound(EntityId parent, Vec3d pos, EntityData ed, BombLevelEnum level, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_bomb(ed, level),
-                new Decay(3000), //Three seconds to play the sound
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), //Three seconds to play the sound
                 new Position(pos, new Quatd(), 0),
                 new Parent(parent));
+        ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static void createExplosionSound(EntityId parent, Vec3d pos, EntityData ed) {
+    public static void createExplosionSound(EntityId parent, Vec3d pos, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.explosion2(ed),
-                new Decay(3000), //Three seconds to play the sound
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), //Three seconds to play the sound
                 new Position(pos, new Quatd(), 0),
                 new Parent(parent));
+        ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static EntityId createSound(EntityId parent, Vec3d pos, String audioType, EntityData ed) {
+    public static EntityId createSound(EntityId parent, Vec3d pos, String audioType, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioType.create(audioType, ed),
-                new Decay(3000), //Three seconds to play the sound
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), //Three seconds to play the sound
                 new Position(pos, new Quatd(), 0),
                 new Parent(parent));
 
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
-    
-    
 
-    public static EntityId createPrizeSpawner(Vec3d pos, double radius, EntityData ed) {
+    public static EntityId createPrizeSpawner(Vec3d pos, double radius, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
         ed.setComponents(result,
                 //Possible to add model if we want the players to be able to see the spawner
                 new Position(pos, new Quatd(), 0f),
                 new Spawner(CoreGameConstants.PRIZEMAXCOUNT, Spawner.SpawnType.Prizes));
+        ed.setComponent(result, new Meta(createdTime));
         return result;
     }
-    
-    public static EntityId createBomb(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, BombLevelEnum level) {
+
+    public static EntityId createBomb(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity,
+            long decayMillis, EntityData ed, BombLevelEnum level, long createdTime) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.bomb(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
-                new Decay(decayMillis),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bomb(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.bomb(),
                 new Parent(owner),
                 new PointLightComponent(level.lightColor, level.lightRadius));
 
+        ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
     }
 
-    public static EntityId createBurst(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed) {
+    public static EntityId createBurst(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity,
+            long decayMillis, EntityData ed, long createdTime) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.burst(ed),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
-                new Decay(decayMillis),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.burst(ed),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.burst(),
                 new Parent(owner)
-                //new PointLightComponent(level.lightColor, level.lightRadius));
-                );
+        //new PointLightComponent(level.lightColor, level.lightRadius));
+        );
+        ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
     }
-    
-    public static void createBurstSound(EntityId owner, Vec3d location, EntityData ed) {
+
+    public static void createBurstSound(EntityId owner, Vec3d location, EntityData ed, long createdTime) {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_burst(ed),
-                new Decay(3000) //Three seconds to play the sound
-                );
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)) //Three seconds to play the sound
+        );
+        ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static EntityId createDelayedBomb(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents, EntityData ed, BombLevelEnum level) {
+    public static EntityId createDelayedBomb(EntityId owner, Vec3d location, Quatd quatd, double rotation,
+            Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents,
+            EntityData ed, BombLevelEnum level, long createdTime) {
 
-        EntityId lastDelayedBomb = ModuleGameEntities.createBomb(owner, location, quatd, rotation, linearVelocity, decayMillis, ed, level);
+        EntityId lastDelayedBomb = ModuleGameEntities.createBomb(owner, location, quatd, rotation, linearVelocity, decayMillis, ed, level, createdTime);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
 
+        ed.setComponent(lastDelayedBomb, new Meta(createdTime));
         return lastDelayedBomb;
     }
 
-    public static EntityId createBullet(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, GunLevelEnum level) {
+    public static EntityId createBullet(EntityId owner, Vec3d location, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, GunLevelEnum level, long createdTime) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.bullet(ed, level),
                 new Position(location, quatd, rotation),
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
-                new Decay(decayMillis),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 PhysicsMassTypes.normal_bullet(ed),
                 WeaponTypes.bullet(ed),
                 new Parent(owner),
                 PhysicsShapes.bullet());
 
+        ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
     }
 
-    public static EntityId createArena(int arenaId, EntityData ed) { //TODO: Should have Position as a parameter in case we want to create more than one arena
+    public static EntityId createArena(int arenaId, EntityData ed, long createdTime) { //TODO: Should have Position as a parameter in case we want to create more than one arena
         EntityId lastArena = ed.createEntity();
 
         ed.setComponents(lastArena, ViewTypes.arena(ed),
                 new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0f)
         );
+        ed.setComponent(lastArena, new Meta(createdTime));
 
         return lastArena;
     }
 
-    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, String tileType, EntityData ed) {
+    public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, String tileType, EntityData ed, long createdTime) {
         EntityId lastTileInfo = ed.createEntity();
 
         ed.setComponents(lastTileInfo,
@@ -637,11 +686,12 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 PhysicsShapes.mapTile());
 
+        ed.setComponent(lastTileInfo, new Meta(createdTime));
         return lastTileInfo;
     }
 
     //This is called by the server when it has calculcated the correct tileIndex number
-    public static EntityId updateWangBlobEntity(EntityId entity, String tileSet, short tileIndex, Vec3d location, EntityData ed) {
+    public static EntityId updateWangBlobEntity(EntityId entity, String tileSet, short tileIndex, Vec3d location, EntityData ed, long createdTime) {
 
         ed.setComponents(entity,
                 TileTypes.wangblob(tileSet, tileIndex, ed),
@@ -650,22 +700,24 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 PhysicsShapes.mapTile());
 
+        ed.setComponent(entity, new Meta(createdTime));
         return entity;
     }
-     
+
     //Explosion is for now only visual, so only object type and position
-    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed) {
+    public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed, long createdTime) {
         EntityId lastExplosion = ed.createEntity();
 
         ed.setComponents(lastExplosion,
                 ViewTypes.explosion2(ed),
                 new Position(location, quat, 0f),
-                new Decay(CoreViewConstants.EXPLOSION2DECAY));
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(CoreViewConstants.EXPLOSION2DECAY, TimeUnit.MILLISECONDS)));
 
+        ed.setComponent(lastExplosion, new Meta(createdTime));
         return lastExplosion;
     }
 
-    public static EntityId createWormhole(Vec3d location, double radius, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation, EntityData ed) {
+    public static EntityId createWormhole(Vec3d location, double radius, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation, EntityData ed, long createdTime) {
         EntityId lastWormhole = ed.createEntity();
 
         ed.setComponents(lastWormhole,
@@ -676,18 +728,20 @@ public class ModuleGameEntities {
                 PhysicsShapes.wormhole(),
                 new WarpTouch(warpTargetLocation));
 
+        ed.setComponent(lastWormhole, new Meta(createdTime));
         return lastWormhole;
     }
 
-    public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed) {
+    public static EntityId createForce(EntityId owner, Force force, Vector2 forceWorldCoords, EntityData ed, long createdTime) {
         EntityId lastForce = ed.createEntity();
         ed.setComponents(lastForce,
                 new PhysicsForce(owner, force, forceWorldCoords));
 
+        ed.setComponent(lastForce, new Meta(createdTime));
         return lastForce;
     }
 
-    public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed) {
+    public static EntityId createOver5(Vec3d location, double radius, double force, String gravityType, EntityData ed, long createdTime) {
         EntityId lastOver5 = ed.createEntity();
 
         ed.setComponents(lastOver5,
@@ -697,6 +751,7 @@ public class ModuleGameEntities {
                 new GravityWell(radius, force, gravityType),
                 PhysicsShapes.over5());
 
+        ed.setComponent(lastOver5, new Meta(createdTime));
         return lastOver5;
     }
 
@@ -707,7 +762,7 @@ public class ModuleGameEntities {
      * @param ed the entitydata set to create the entity in
      * @return the entityid of the created entity
      */
-    public static EntityId createOver1(Vec3d location, EntityData ed) {
+    public static EntityId createOver1(Vec3d location, EntityData ed, long createdTime) {
         EntityId lastOver1 = ed.createEntity();
 
         ed.setComponents(lastOver1,
@@ -716,6 +771,7 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.normal(ed),
                 PhysicsShapes.over1());
 
+        ed.setComponent(lastOver1, new Meta(createdTime));
         return lastOver1;
     }
 
@@ -726,7 +782,7 @@ public class ModuleGameEntities {
      * @param ed the entitydata set to create the entity in
      * @return the entityid of the created entity
      */
-    public static EntityId createOver2(Vec3d location, EntityData ed) {
+    public static EntityId createOver2(Vec3d location, EntityData ed, long createdTime) {
         EntityId lastOver2 = ed.createEntity();
 
         ed.setComponents(lastOver2,
@@ -735,39 +791,40 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.normal(ed),
                 PhysicsShapes.over2());
 
+        ed.setComponent(lastOver2, new Meta(createdTime));
         return lastOver2;
     }
 
-    public static EntityId createWarpEffect(Vec3d location, EntityData ed) {
+    public static EntityId createWarpEffect(Vec3d location, EntityData ed, long createdTime) {
         EntityId lastWarpTo = ed.createEntity();
 
         ed.setComponents(lastWarpTo,
                 ViewTypes.warp(ed),
                 new Position(location, new Quatd(), 0f),
-                new Decay(CoreViewConstants.WARPDECAY));
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(CoreViewConstants.WARPDECAY, TimeUnit.MILLISECONDS)));
 
+        ed.setComponent(lastWarpTo, new Meta(createdTime));
         return lastWarpTo;
     }
 
-    public static EntityId createRepel(EntityId owner, Vec3d location, EntityData ed) {
+    public static EntityId createRepel(EntityId owner, Vec3d location, EntityData ed, long createdTime) {
         EntityId lastWarpTo = ed.createEntity();
 
         ed.setComponents(lastWarpTo,
                 ViewTypes.repel(ed),
                 new Position(location, new Quatd(), 0f),
-                new Decay(CoreViewConstants.REPELDECAY),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(CoreViewConstants.REPELDECAY, TimeUnit.MILLISECONDS)),
                 new Parent(owner),
                 ActionTypes.repel(ed),
                 PhysicsShapes.repel(),
                 PhysicsMassTypes.infinite(ed),
                 AudioTypes.repel(ed));
 
-        
-        
+        ed.setComponent(lastWarpTo, new Meta(createdTime));
         return lastWarpTo;
     }
 
-    public static EntityId createCaptureTheFlag(Vec3d location, EntityData ed) {
+    public static EntityId createCaptureTheFlag(Vec3d location, EntityData ed, long createdTime) {
         EntityId lastFlag = ed.createEntity();
 
         ed.setComponents(lastFlag,
@@ -777,11 +834,12 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 new Flag(),
                 new Frequency(0));
+        ed.setComponent(lastFlag, new Meta(createdTime));
 
         return lastFlag;
     }
 
-    public static EntityId createMob(Vec3d location, EntityData ed) {
+    public static EntityId createMob(Vec3d location, EntityData ed, long createdTime) {
         EntityId lastMob = ed.createEntity();
 
         ed.setComponents(lastMob,
@@ -793,11 +851,12 @@ public class ModuleGameEntities {
                 PhysicsShapes.mob(),
                 PhysicsMassTypes.normal(ed),
                 new Energy(CoreGameConstants.MOBHEALTH));
+        ed.setComponent(lastMob, new Meta(createdTime));
 
         return lastMob;
     }
 
-    public static EntityId createTower(Vec3d location, EntityData ed) { // add tower-type ?
+    public static EntityId createTower(Vec3d location, EntityData ed, long createdTime) { // add tower-type ?
         EntityId lastTower = ed.createEntity();
         double rand = Math.random() * Math.PI;
 
@@ -810,10 +869,11 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 new Damage(20)); //The amount of damage the tower does
 
+        ed.setComponent(lastTower, new Meta(createdTime));
         return lastTower;
     }
 
-    public static EntityId createBase(Vec3d location, EntityData ed) {
+    public static EntityId createBase(Vec3d location, EntityData ed, long createdTime) {
         EntityId lastBase = ed.createEntity();
 
         ed.setComponents(lastBase,
@@ -825,10 +885,11 @@ public class ModuleGameEntities {
                 PhysicsMassTypes.infinite(ed),
                 new Energy(CoreGameConstants.BASEHEALTH));
 
+        ed.setComponent(lastBase, new Meta(createdTime));
         return lastBase;
     }
 
-    public static EntityId createHealthBuff(int healthChange, EntityId target, EntityData ed) {
+    public static EntityId createHealthBuff(int healthChange, EntityId target, EntityData ed, long createdTime) {
 
         EntityId lastHealthBuff = ed.createEntity();
 
@@ -836,20 +897,22 @@ public class ModuleGameEntities {
                 new HealthChange(healthChange), //apply the damage
                 new Buff(target, 0)); //apply right away
 
+        ed.setComponent(lastHealthBuff, new Meta(createdTime));
         return lastHealthBuff;
     }
 
-    public static EntityId createThor(EntityId owner, Vec3d location, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed) {
+    public static EntityId createThor(EntityId owner, Vec3d location, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed, long createdTime) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ViewTypes.thor(ed),
                 new Position(location, orientation, rotation),
                 new PhysicsVelocity(new Vector2(attackVelocity.x, attackVelocity.y)),
-                new Decay(thorDecay),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(thorDecay, TimeUnit.MILLISECONDS)),
                 WeaponTypes.thor(ed),
                 new Parent(owner),
                 PhysicsMassTypes.normal_bullet(ed),
                 PhysicsShapes.bomb());
+        ed.setComponent(lastBomb, new Meta(createdTime));
 
         return lastBomb;
     }

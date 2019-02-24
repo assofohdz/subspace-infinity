@@ -53,6 +53,7 @@ public class TowerState extends AbstractGameSystem {
     private EntitySet towers;
     private ResourceState resourceState;
     static Logger log = LoggerFactory.getLogger(TowerState.class);
+    private SimTime time;
 
     @Override
     protected void initialize() {
@@ -63,6 +64,7 @@ public class TowerState extends AbstractGameSystem {
         this.resourceState = getSystem(ResourceState.class);
         
         this.towers = ed.getEntities(TowerType.class, Position.class);
+        
     }
 
     @Override
@@ -74,6 +76,8 @@ public class TowerState extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+        
+        this.time = tpf;
 
         if (towers.applyChanges()) {
             for (Entity e : towers.getAddedEntities()) {
@@ -112,7 +116,7 @@ public class TowerState extends AbstractGameSystem {
         //Can we build there and do we have the money?
         if (simplePhysics.allowConvex(c) && resourceState.canAffordTower(owner)) {
             //Create tower
-            ModuleGameEntities.createTower(new Vec3d(x, y, 0), ed);
+            ModuleGameEntities.createTower(new Vec3d(x, y, 0), ed, time.getTime());
             //Deduct cost
             resourceState.buyTower(owner);
         }

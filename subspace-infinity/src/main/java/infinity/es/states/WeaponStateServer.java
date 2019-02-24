@@ -141,6 +141,7 @@ public class WeaponStateServer extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+        time = tpf;
 
         //Update who has what ship weapons
         guns.applyChanges();
@@ -172,7 +173,6 @@ public class WeaponStateServer extends AbstractGameSystem {
         }
         sessionAttackCreations.clear();
          */
-        time = tpf;
     }
 
     /**
@@ -478,12 +478,12 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void attackBomb(AttackInfo info, BombLevelEnum level, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = ModuleGameEntities.createBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level);
+        projectile = ModuleGameEntities.createBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level, time.getTime());
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        ModuleGameEntities.createBombSound(projectile, info.location, ed, level);
+        ModuleGameEntities.createBombSound(projectile, info.location, ed, level, time.getTime());
     }
 
     /**
@@ -495,12 +495,12 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void attackBurst(AttackInfo info, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = ModuleGameEntities.createBurst(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed);
+        projectile = ModuleGameEntities.createBurst(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, time.getTime());
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        ModuleGameEntities.createBurstSound(owner, info.location, ed);
+        ModuleGameEntities.createBurstSound(owner, info.location, ed, time.getTime());
     }
 
     /**
@@ -512,12 +512,12 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void attackGuns(AttackInfo info, GunLevelEnum level, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = ModuleGameEntities.createBullet(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level);
+        projectile = ModuleGameEntities.createBullet(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, ed, level, time.getTime());
 
         //TODO: Calculate damage based on level:
         ed.setComponent(projectile, damage);
 
-        ModuleGameEntities.createBulletSound(projectile, info.location, ed, level);
+        ModuleGameEntities.createBulletSound(projectile, info.location, ed, level, time.getTime());
     }
 
     /**
@@ -533,10 +533,10 @@ public class WeaponStateServer extends AbstractGameSystem {
         delayedComponents.add(new GravityWell(5, CoreGameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL));             //Suck everything in
         delayedComponents.add(new PhysicsVelocity(new Vector2(0, 0))); //Freeze the bomb
         delayedComponents.add(WeaponTypes.gravityBomb(ed));
-        projectile = ModuleGameEntities.createDelayedBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.GRAVBOMBDECAY, CoreGameConstants.GRAVBOMBDELAY, delayedComponents, ed, level);
+        projectile = ModuleGameEntities.createDelayedBomb(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.GRAVBOMBDECAY, CoreGameConstants.GRAVBOMBDELAY, delayedComponents, ed, level,  time.getTime());
         ed.setComponent(projectile, new Damage(damage.getDamage()));
 
-        ModuleGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_GRAVBOMB, ed);
+        ModuleGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_GRAVBOMB, ed,  time.getTime());
     }
 
     /**
@@ -547,10 +547,10 @@ public class WeaponStateServer extends AbstractGameSystem {
      */
     private void attackThor(AttackInfo info, Damage damage, EntityId owner) {
         EntityId projectile;
-        projectile = ModuleGameEntities.createThor(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.THORDECAY, ed);
+        projectile = ModuleGameEntities.createThor(owner, info.getLocation(), info.getOrientation(), info.getRotation(), info.getAttackVelocity(), CoreGameConstants.THORDECAY, ed, time.getTime());
         ed.setComponent(projectile, new Damage(damage.getDamage()));
 
-        ModuleGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_THOR, ed);
+        ModuleGameEntities.createSound(projectile, info.location, AudioTypes.FIRE_THOR, ed, time.getTime());
     }
 
     public class Attack {

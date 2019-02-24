@@ -42,6 +42,7 @@ import infinity.api.sim.BaseGameModule;
 import infinity.api.sim.ChatHostedPoster;
 import infinity.api.sim.CommandConsumer;
 import infinity.api.sim.ModuleGameEntities;
+import infinity.api.sim.TimeManager;
 import infinity.api.sim.events.ShipEvent;
 import java.io.IOException;
 import java.net.URL;
@@ -81,11 +82,11 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
     private EntityId baseId;
     private double timeSinceLastWave;
     private final Pattern arena1Command = Pattern.compile("\\~arena1\\s(\\w+)");
-    
+
     private Ini settings;
 
-    public arena1(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
-        super(chp, am, loader, arenas);
+    public arena1(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
+        super(chp, am, loader, arenas, time);
     }
 
     @Override
@@ -94,7 +95,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
 
         //Keep track of how many mobs are in the game currently
         this.mobs = ed.getEntities(MobType.class);
-        
+
         try {
             settings = this.getLoader().loadSettings("arena1");
         } catch (IOException ex) {
@@ -154,7 +155,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
         //Create mob ourselves
-        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, settings);
+        EntityId mobId = ModuleGameEntities.createMob(randomSpawn, ed, settings, this.getTimeManager().getTime());
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -164,7 +165,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
         URL s = ModuleGameEntities.class.getResource("ModuleGameEntities.class");
-        baseId = ModuleGameEntities.createBase(basePos, ed, settings);
+        baseId = ModuleGameEntities.createBase(basePos, ed, settings, this.getTimeManager().getTime());
     }
 
     private EntityId getBaseId() {

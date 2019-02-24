@@ -26,11 +26,12 @@
 package infinity.api.sim;
 
 /**
+ * Time must be specified in milliseconds
  *
  * @author Asser
  */
 public class CoreViewConstants {
-    
+
     //Sizes
     public final static float BULLETSIZE = 0.25f;
     public final static float BOMBSIZE = 1f;
@@ -42,9 +43,7 @@ public class CoreViewConstants {
     public final static float FLAGSIZE = 1;
     public final static float BASESIZE = 5f;
     public final static float BURSTSIZE = 0.25f;
-    
-    
-    
+
     public final static float EXPLOSION2SIZE = 2f;
     public final static float WORMHOLESIZE = 4f;
     public final static float OVER1SIZE = 1f;
@@ -52,14 +51,15 @@ public class CoreViewConstants {
     public final static float OVER5SIZE = 4f;
     public final static float WARPSIZE = 3f;
     public final static float REPELSIZE = 4f;
-    
+
     //Game
     public final static int ARENASIZE = 1000;
+
+    //Decays must be in milliseconds
     public final static long EXPLOSION2DECAY = 2000;
     public final static long WARPDECAY = 800;
     public final static long REPELDECAY = 400;
 
-    
     //LightSize radius
     public final static float SHIPLIGHTRADIUS = 500;
 }

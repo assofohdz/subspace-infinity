@@ -33,6 +33,7 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.TimeState;
 import infinity.api.es.BodyPosition;
 import infinity.api.es.ship.Energy;
 import infinity.api.es.PhysicsMassType;
@@ -81,7 +82,6 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
         warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
 
         canWarp = ed.getEntities(BodyPosition.class, Energy.class);
-
     }
 
     @Override
@@ -136,8 +136,8 @@ public class WarpState extends AbstractGameSystem implements CollisionListener {
                     }
                      */
                     //getStateListener(hc).setSelf(selfId, initialPosition);
-                    ModuleGameEntities.createWarpEffect(origLocationVec3d, ed);
-                    ModuleGameEntities.createWarpEffect(targetLocation, ed);
+                    ModuleGameEntities.createWarpEffect(origLocationVec3d, ed, time.getTime());
+                    ModuleGameEntities.createWarpEffect(targetLocation, ed, time.getTime());
 
                     ed.removeComponent(e.getId(), WarpTo.class);
                 } else {

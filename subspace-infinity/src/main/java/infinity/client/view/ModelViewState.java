@@ -54,7 +54,7 @@ import com.simsilica.ethereal.LocalZoneIndex;
 import com.simsilica.ethereal.zone.ZoneKey;
 import com.simsilica.mathd.Vec3d;
 
-import com.simsilica.mathd.trans.PositionTransition;
+import com.simsilica.mathd.trans.PositionTransition3f;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
@@ -629,7 +629,7 @@ public class ModelViewState extends BaseAppState {
         boolean visible;
         boolean localPlayerShip;
 
-        TransitionBuffer<PositionTransition> buffer;
+        TransitionBuffer<PositionTransition3f> buffer;
 
         public Mob(Entity entity) {
             this.entity = entity;
@@ -667,7 +667,8 @@ public class ModelViewState extends BaseAppState {
             // pull an interpolated value.  To do this, we grab the
             // span of time that contains the time we want.  PositionTransition
             // represents a starting and an ending pos+rot over a span of time.
-            PositionTransition trans = buffer.getTransition(time);
+            
+            PositionTransition3f trans = buffer.getTransition(time);
             if (trans != null) {
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));

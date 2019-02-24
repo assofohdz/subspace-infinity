@@ -41,7 +41,7 @@ import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.*;
 
-import com.simsilica.mathd.trans.PositionTransition;
+import com.simsilica.mathd.trans.PositionTransition3f;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
@@ -143,7 +143,7 @@ public class HudLabelState extends BaseAppState {
         boolean visible;
         boolean isPlayerEntity;        
         
-        TransitionBuffer<PositionTransition> buffer;
+        TransitionBuffer<PositionTransition3f> buffer;
         
         public LabelHolder( Entity entity ) {
             this.entity = entity;
@@ -199,7 +199,7 @@ public class HudLabelState extends BaseAppState {
             // pull an interpolated value.  To do this, we grab the
             // span of time that contains the time we want.  PositionTransition
             // represents a starting and an ending pos+rot over a span of time.
-            PositionTransition trans = buffer.getTransition(time);
+            PositionTransition3f trans = buffer.getTransition(time);
             if( trans != null ) {
                 Vector3f pos = trans.getPosition(time, true);
                 setVisible(trans.getVisibility(time));                
