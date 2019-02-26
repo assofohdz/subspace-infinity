@@ -269,11 +269,9 @@ public class PlayerMovementState extends BaseAppState
             }
 
             if (mouse1 == 1d) {
-                //log.info("MOUSE1 is down!!");
-                //log.info("CURSOR IS AT: " + inputManager.getCursorPosition());
                 Vector3f contactPoint = getArenaCollisionPoint(inputManager.getCursorPosition());
-                session.editMap("Materials/WangBlobLight.j3m", contactPoint.x, contactPoint.y);
-                //log.info("WORLD CLICK3D IS AT: " + click3d);
+                session.createTile("Materials/WangBlobLight.j3m", contactPoint.x, contactPoint.y);
+                //session.editMap("Materials/WangBlobLight.j3m", contactPoint.x, contactPoint.y);
             }
 
             if (mouse2 == 1d) {
@@ -281,7 +279,8 @@ public class PlayerMovementState extends BaseAppState
             }
 
             if (mouse3 == 1d) {
-                log.info("MOUSE3 is down!!");
+                Vector3f contactPoint = getArenaCollisionPoint(inputManager.getCursorPosition());
+                session.removeTile(contactPoint.x, contactPoint.y);
             }
         }
 

@@ -243,6 +243,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.playerEntity = playerEntity;
             this.conn = conn;
             
+            
+            
             // Create a ship for the player
             this.shipDriver = new ShipDriver();
 
@@ -258,14 +260,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
             // Set the position when we want the ship to actually appear
             // in space 'for real'.
-            ed.setComponent(shipEntity, new Position());
-            
+            ed.setComponent(shipEntity, new Position());            
             
             System.out.println("Set position on:" + shipEntity);
         }
 
         public void initialize() {
             
+            //getService(EtherealHost.class).getStateListener(conn).setMaxMessageSize(32000); 
             
         }
 
@@ -312,6 +314,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         }
 
         @Override
+        @Deprecated
         public void editMap(String tileSet, double x, double y) {
             //Create a map entity
 

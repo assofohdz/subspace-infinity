@@ -25,6 +25,7 @@
  */
 package infinity.client.view;
 
+import com.google.common.collect.EvictingQueue;
 import infinity.client.view.SISpatialFactory;
 import infinity.api.es.Position;
 import infinity.api.es.BodyPosition;
@@ -41,6 +42,7 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.math.*;
 import com.jme3.material.Material;
 import com.jme3.scene.*;
+import com.jme3.scene.Spatial.CullHint;
 import com.jme3.scene.debug.Arrow;
 import com.jme3.scene.shape.*;
 import com.jme3.texture.Texture;
@@ -63,6 +65,8 @@ import infinity.GameSessionState;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.client.MapStateClient;
+import infinity.util.MathUtil;
+import java.math.RoundingMode;
 
 /**
  * Displays the models for the various physics objects.
@@ -70,6 +74,8 @@ import infinity.client.MapStateClient;
  * @author Paul Speed
  */
 public class ModelViewState extends BaseAppState {
+
+    private MovingAverage movingAverage = new MovingAverage(10);
 
     static Logger log = LoggerFactory.getLogger(ModelViewState.class);
 
@@ -95,7 +101,7 @@ public class ModelViewState extends BaseAppState {
     private ModelViewState mvs;
     private Vec3d oldPlayerPosition;
     private boolean playerCellIdInitialized = false;
-    
+
     private List<ZoneKey> inZones = new ArrayList<>();
 
     public ModelViewState(SISpatialFactory siSpatialFactory) {
@@ -183,7 +189,7 @@ public class ModelViewState extends BaseAppState {
 
                     inZones.addAll(entered);
                     inZones.removeAll(exited);
-                    
+
                     OrFilter zoneFilter = generateZoneFilter(inZones);
 
                     models.updateFilter(zoneFilter);
@@ -191,7 +197,7 @@ public class ModelViewState extends BaseAppState {
                     oldPlayerCellId = newPlayerCellId;
 
                     playerCellIdInitialized = true;
-                    
+
                 }
                 oldPlayerPosition = newPlayerPosition;
             }
@@ -667,13 +673,24 @@ public class ModelViewState extends BaseAppState {
             // pull an interpolated value.  To do this, we grab the
             // span of time that contains the time we want.  PositionTransition
             // represents a starting and an ending pos+rot over a span of time.
-            
             PositionTransition3f trans = buffer.getTransition(time);
+
             if (trans != null) {
+
+                double distanceToNewCoord = spatial.getLocalTranslation().distance(trans.getPosition(time, true));
+
+                movingAverage.add((double) Math.round(distanceToNewCoord * 100000d) / 100000d);
+
+                if (MathUtil.getInstance().hasOutlier(movingAverage.getList(), MathUtil.DEFAULT_09999)) {
+                    log.info(spatial.getName() + ": Avg. distance: " + (double) Math.round(movingAverage.getAverage() * 100000d) / 100000d);
+                    log.info(spatial.getName() + ": New  distance: " + (double) Math.round(distanceToNewCoord * 100000d) / 100000d);
+                }
+
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
+
                 setVisible(trans.getVisibility(time));
-                //log.info(spatial.getName() + ": "+trans.toString());
+
             }
         }
 
@@ -911,11 +928,41 @@ public class ModelViewState extends BaseAppState {
             long cellId = key.toLongId();
             filters.add(new FieldFilter(Position.class, "cellId", cellId));
 
-            log.info(key.toString() + "=" + cellId);
+            //log.info(key.toString() + "=" + cellId);
         }
 
         OrFilter newZoneFilter = new com.simsilica.es.filter.OrFilter(Position.class, filters.toArray(new ComponentFilter[filters.size()]));
 
         return newZoneFilter;
+    }
+
+    public class MovingAverage {
+
+        private final Queue<Double> window = new ArrayDeque<>();
+        private final int period;
+        private double sum = 0d;
+
+        public MovingAverage(int period) {
+            this.period = period;
+        }
+
+        public void add(Double num) {
+            sum = sum + num;
+            window.add(num);
+            if (window.size() > period) {
+                sum = sum - window.remove();
+            }
+        }
+
+        public double getAverage() {
+            if (window.isEmpty()) {
+                return 0d;
+            }
+            return sum / Double.valueOf(window.size());
+        }
+
+        public List<Double> getList() {
+            return new ArrayList(window);
+        }
     }
 }

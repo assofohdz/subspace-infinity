@@ -163,6 +163,8 @@ public class GameServer {
         EtherealHost ethereal = new EtherealHost(ServerGameConstants.OBJECT_PROTOCOL,
                 ServerGameConstants.ZONE_GRID,
                 ServerGameConstants.ZONE_RADIUS);
+        
+        
 
         ethereal.setTimeSource(new TimeSource() {
             @Override
@@ -172,8 +174,10 @@ public class GameServer {
         });
 
         ethereal.setStateCollectionInterval(port);
+        
 
         server.getServices().addService(ethereal);
+        
 
         AssetLoaderService assetLoader = new AssetLoaderService();
         AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);

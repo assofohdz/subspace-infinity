@@ -124,6 +124,7 @@ public interface GameSession {
      * @param x the x-coordinate to edit the map
      * @param y the y-coordinate to edit the map
      */
+    @Deprecated
     public void editMap(String tileSet, double x, double y);
 
     /**

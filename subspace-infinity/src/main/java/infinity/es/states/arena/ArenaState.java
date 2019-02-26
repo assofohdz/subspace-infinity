@@ -65,8 +65,11 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
     private java.util.Map<Vector2, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
     static Logger log = LoggerFactory.getLogger(ArenaState.class);
+    private SimTime time;
 
     private HashMap<ZoneKey, Long> zones = new HashMap<>();
+    
+    private boolean createdDefaultArena = false;
     
     @Override
     protected void initialize() {
@@ -74,9 +77,6 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
         this.ed = getSystem(EntityData.class);
 
         arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
-
-        //Move down into 'update'
-        //EntityId arenaId = ModuleGameEntities.createArena(0, ed, ts.getTime()); //Create first arena
 
         AssetManager am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
@@ -100,8 +100,13 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
 
     @Override
     public void update(SimTime tpf) {
-
+        time = tpf;
         arenaEntities.applyChanges();
+        
+        if(!createdDefaultArena){
+            EntityId arenaId = ModuleGameEntities.createArena(0, ed, time.getTime()); //Create first arena
+            createdDefaultArena = true;
+        }
 
         if (staticPositions.applyChanges()) {
             for (Entity e : staticPositions.getAddedEntities()) {

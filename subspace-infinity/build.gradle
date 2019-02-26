@@ -85,7 +85,16 @@ project(":assets") {
     }    
 }
 
+//Simsilica versions:
+ext.simMathVersion = "1.4.0-SNAPSHOT"
+ext.simEtherealVersion = "1.5.0-SNAPSHOT"
+ext.simSiO2Version = "1.3.0"
+ext.simZayESNetVersion = "1.4.0"
+ext.simZayESVersion = "1.3.1"
+
 dependencies {
+    
+    compile 'org.apache.commons:commons-math:2.2'
     
     //https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
     compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
@@ -133,15 +142,15 @@ dependencies {
     
 
     //https://github.com/Simsilica/SiO2
-    compile "com.simsilica:sio2:1.3.0"
+    compile "com.simsilica:sio2:$simSiO2Version"
     //https://github.com/Simsilica/SimMath
-    compile "com.simsilica:sim-math:1.3.0"
+    compile "com.simsilica:sim-math:$simMathVersion"
     //https://github.com/Simsilica/SimEthereal
-    compile 'com.simsilica:sim-ethereal:1.4.0'
+    compile "com.simsilica:sim-ethereal:$simEtherealVersion"
     
     //https://github.com/jMonkeyEngine-Contributions/zay-es
-    compile 'com.simsilica:zay-es-net:1.4.0'
-    compile 'com.simsilica:zay-es:1.3.1'
+    compile "com.simsilica:zay-es-net:$simZayESNetVersion"
+    compile "com.simsilica:zay-es:$simZayESVersion"
 
     //Lights and Visibility
     //https://github.com/libgdx/box2dlights
@@ -249,9 +258,9 @@ project(':interface'){
     }
     
     dependencies {
-        compile 'com.simsilica:sim-math:1.3.0'
-        compile 'com.simsilica:sio2:1.3.0'
-        compile 'com.simsilica:zay-es:1.3.1'
+        compile "com.simsilica:sim-math:$simMathVersion"
+        compile "com.simsilica:sio2:$simSiO2Version"
+        compile "com.simsilica:zay-es:$simZayESVersion"
         compile 'org.dyn4j:dyn4j:3.3.0'
         compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
         compile 'org.ini4j:ini4j:0.5.4'
@@ -278,10 +287,9 @@ project(':modules') {
     
     dependencies {
         compile project(':interface')
-        compile 'com.simsilica:sim-ethereal:1.4.0'
-        //compile 'com.github.Simsilica:simethereal:45bbcc6e0a'
-        compile 'com.simsilica:zay-es-net:1.4.0'
-        compile 'com.simsilica:zay-es:1.3.1'
+        compile "com.simsilica:sim-ethereal:$simEtherealVersion"
+        compile "com.simsilica:zay-es-net:$simZayESNetVersion"
+        compile "com.simsilica:zay-es:$simZayESVersion"
     }
 }
 
