@@ -32,6 +32,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.filter.FieldFilter;
+import com.simsilica.event.EventBus;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.api.es.Captain;
@@ -43,6 +44,7 @@ import infinity.net.chat.server.ChatHostedService;
 import infinity.api.sim.AccessLevel;
 import infinity.api.sim.CommandConsumer;
 import infinity.ShipRestrictor;
+import infinity.api.sim.events.ShipEvent;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -172,6 +174,8 @@ public class ShipFrequencyStateServer extends AbstractGameSystem {
                     ed.setComponent(shipEntity, ViewTypes.ship_shark(ed));
                     break;
             }
+            
+            EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
         }
     }
 

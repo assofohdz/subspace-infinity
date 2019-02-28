@@ -202,10 +202,9 @@ public class ModelViewState extends BaseAppState {
                 oldPlayerPosition = newPlayerPosition;
             }
         }
-
+        
         tileTypes.applyChanges();
 
-        //tileImages.update();
         // Grab a consistent time for this frame
         long time = timeState.getTime();
 
@@ -466,6 +465,7 @@ public class ModelViewState extends BaseAppState {
                 break;
             case ViewTypes.BURST:
                 result = createBurst(entity);
+                break;
             //ACTIONS
             case ViewTypes.WARP:
                 result = createWarp(entity);
@@ -648,7 +648,7 @@ public class ModelViewState extends BaseAppState {
             // sure all instances of BodyPosition are sharing the same
             // thread-safe history buffer.  Everywhere it's used, it should
             // be 'initialized'.            
-            bodyPos.initialize(entity.getId(), 12);
+            bodyPos.initialize(entity.getId(), 50);
             buffer = bodyPos.getBuffer();
 
             // If this is the player's ship then we don't want the model
@@ -770,7 +770,6 @@ public class ModelViewState extends BaseAppState {
             } else {
                 spatial.setCullHint(Spatial.CullHint.Always);
             }
-
         }
 
         public void dispose() {

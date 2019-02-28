@@ -71,11 +71,11 @@ public class MapStateServer extends AbstractGameSystem {
     private final AssetLoaderService assetLoader;
     private SimTime time;
 
-    public MapStateServer(AssetLoaderService assetLoader){
-        
+    public MapStateServer(AssetLoaderService assetLoader) {
+
         this.assetLoader = assetLoader;
     }
-    
+
     //int[][] multD = new int[5][];
     @Override
     protected void initialize() {
@@ -83,17 +83,16 @@ public class MapStateServer extends AbstractGameSystem {
         this.ed = getSystem(EntityData.class);
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
-        
+
         //Create entities, so the tile types will be in the string index (we use the tiletypes as filters)
         EntityId e = ed.createEntity();
         short s = 0;
         ed.setComponent(e, TileTypes.legacy("empty", s, ed));
 
-        
         EntityId e2 = ed.createEntity();
         short s2 = 0;
         ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
-        
+
         tileTypes = ed.getEntities(TileType.class, Position.class);
 
         //
@@ -101,10 +100,12 @@ public class MapStateServer extends AbstractGameSystem {
         //createEntitiesFromMap(loadMap("Maps/extreme.lvl"), new Vec3d(-MAP_SIZE,0,0));
         //createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
         //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
+        
+        /*
         Grid dungeon = this.createDungeonGrid();
         dungeon = this.expandCorridors(dungeon);
         this.createMapTilesFromDungeonGrid(dungeon, -50f, -50f);
-
+         */
     }
 
     /**

@@ -28,7 +28,7 @@ package infinity.api.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Initial recharge rate, or how quickly this ship recharges its energy.
+ * Initial recharge rate, or how quickly this ship recharges its energy. 
  *
  * @author Asser
  */

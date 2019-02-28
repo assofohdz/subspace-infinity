@@ -28,7 +28,7 @@ package infinity.api.es.ship.toggles;
 import com.simsilica.es.EntityComponent;
 
 /**
- *
+ * Indicates if a ship has x-radar enabled
  * @author Asser
  */
 public class XRadar implements EntityComponent {

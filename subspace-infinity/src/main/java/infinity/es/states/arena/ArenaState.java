@@ -44,6 +44,7 @@ import infinity.api.sim.CoreGameConstants;
 import infinity.api.sim.ModuleGameEntities;
 import infinity.map.LevelLoader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.geometry.Vector2;
 import tiled.core.Map;
@@ -56,7 +57,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class ArenaState extends AbstractGameSystem implements ArenaManager{
+public class ArenaState extends AbstractGameSystem implements ArenaManager {
 
     private Map map;
     private EntityData ed;
@@ -67,10 +68,12 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
     static Logger log = LoggerFactory.getLogger(ArenaState.class);
     private SimTime time;
 
+    private HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
+
     private HashMap<ZoneKey, Long> zones = new HashMap<>();
-    
+
     private boolean createdDefaultArena = false;
-    
+
     @Override
     protected void initialize() {
 
@@ -92,7 +95,6 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
 
     @Override
     protected void terminate() {
-        //Release reader object
         // Release the entity set we grabbed previously
         arenaEntities.release();
         arenaEntities = null;
@@ -102,9 +104,9 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
     public void update(SimTime tpf) {
         time = tpf;
         arenaEntities.applyChanges();
-        
-        if(!createdDefaultArena){
-            EntityId arenaId = ModuleGameEntities.createArena(0, ed, time.getTime()); //Create first arena
+
+        if (!createdDefaultArena) {
+            this.openArena(getDefaultArenaId());
             createdDefaultArena = true;
         }
 
@@ -120,8 +122,8 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
                 Position newPos = pos.newCellId(cellId);
                 ed.setComponent(e.getId(), newPos);
             }
-            
-            log.info("Zones: "+zones.toString());
+
+            log.info("Zones: " + zones.toString());
         }
 
     }
@@ -135,13 +137,22 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager{
     }
 
     @Override
-    public String getDefaultArenaId() {
-        return CoreGameConstants.DEFAULTARENAID;
+    public String[] getActiveArenas() {
+        return (String[]) currentOpenArenas.keySet().toArray();
+    }
+
+    private void openArena(String arenaId) {
+        ModuleGameEntities.createArena(ed, arenaId, new Vec3d(0, 0, 0), time.getTime());
+    }
+
+    private void closeArena(String arenaId) {
+        ed.removeEntity(currentOpenArenas.get(arenaId));
+
+        currentOpenArenas.remove(arenaId);
     }
 
     @Override
-    public String[] getActiveArenas() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public String getDefaultArenaId() {
+        return CoreGameConstants.DEFAULTARENAID;
     }
-
 }

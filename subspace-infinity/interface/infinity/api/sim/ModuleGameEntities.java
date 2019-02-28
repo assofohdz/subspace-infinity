@@ -215,11 +215,12 @@ public class ModuleGameEntities {
         return lastBomb;
     }
 
-    public static EntityId createArena(int arenaId, EntityData ed, Ini settings, long createdTime) { //TODO: Should have Position as a parameter in case we want to create more than one arena
+    public static EntityId createArena(EntityData ed, String arenaId, Vec3d pos, long createdTime) { //TODO: Should have Position as a parameter in case we want to create more than one arena
         EntityId lastArena = ed.createEntity();
 
         ed.setComponents(lastArena, ViewTypes.arena(ed),
-                new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0f)
+                new Position(pos, new Quatd(), 0f),
+                new ArenaId(arenaId)
         );
         ed.setComponent(lastArena, new Meta(createdTime));
 
@@ -663,17 +664,6 @@ public class ModuleGameEntities {
 
         ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
-    }
-
-    public static EntityId createArena(int arenaId, EntityData ed, long createdTime) { //TODO: Should have Position as a parameter in case we want to create more than one arena
-        EntityId lastArena = ed.createEntity();
-
-        ed.setComponents(lastArena, ViewTypes.arena(ed),
-                new Position(new Vec3d(0, 0, arenaId), new Quatd(), 0f)
-        );
-        ed.setComponent(lastArena, new Meta(createdTime));
-
-        return lastArena;
     }
 
     public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, String tileType, EntityData ed, long createdTime) {

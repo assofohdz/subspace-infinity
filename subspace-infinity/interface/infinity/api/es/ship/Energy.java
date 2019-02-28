@@ -28,7 +28,8 @@ package infinity.api.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * A destructable entity's health.
+ * A destructable entity's health. Initial amount of energy that the ship can
+ * have.
  *
  * @author Paul Speed
  */

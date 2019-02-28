@@ -28,7 +28,7 @@ package infinity.api.es.ship.toggles;
 import com.simsilica.es.EntityComponent;
 
 /**
- *
+ * Indicates if a ship has cloak enabled
  * @author Asser
  */
 public class Cloak implements EntityComponent {

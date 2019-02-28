@@ -1,0 +1,3 @@
+[submodule "subspace-infinity/src/main/resources/Subspace-Infinity.wiki"]
+	path = subspace-infinity/src/main/resources/Subspace-Infinity.wiki
+	url = https://github.com/assofohdz/Subspace-Infinity.wiki.git

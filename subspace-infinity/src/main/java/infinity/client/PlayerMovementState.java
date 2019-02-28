@@ -263,15 +263,9 @@ public class PlayerMovementState extends BaseAppState
 
             session.move(thrust);
 
-            // Only update the position/speed display 20 times a second
-            if (spatial != null) {
-                updateShipLocation(spatial.getWorldTranslation());
-            }
-
             if (mouse1 == 1d) {
                 Vector3f contactPoint = getArenaCollisionPoint(inputManager.getCursorPosition());
                 session.createTile("Materials/WangBlobLight.j3m", contactPoint.x, contactPoint.y);
-                //session.editMap("Materials/WangBlobLight.j3m", contactPoint.x, contactPoint.y);
             }
 
             if (mouse2 == 1d) {
@@ -284,6 +278,10 @@ public class PlayerMovementState extends BaseAppState
             }
         }
 
+        // Only update the position/speed display 20 times a second
+        if (spatial != null) {
+            updateShipLocation(spatial.getWorldTranslation());
+        }
         /*
         // 'integrate' camera position based on the current move, strafe,
         // and elevation speeds.

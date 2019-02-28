@@ -65,13 +65,15 @@ public class SettingsState extends AbstractGameSystem {
     private Ini coreServerSettings;
     private final AssetLoaderService assetLoader;
 
+    //Server settings
+    private Ini serverSettings;
+    //Arena settings (can overrule server settings)
     private HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
 
     private ArrayList<String[]> asssTemplate;
 
     //private ArenaSettings defaultArenaSettings;
     private AdaptiveLoadingService adaptiveLoader;
-    private Ini serverSettings;
 
     public SettingsState(AssetLoaderService assetLoader, AdaptiveLoadingService adaptiveLoader) {
 
