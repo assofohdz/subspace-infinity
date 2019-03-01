@@ -1,3 +1,9 @@
+# Archived
+
+Repository is archived. Moved to Azure DevOps because I wanted Wiki to be included in main repository and not as a seperate repository.
+
+Go here if you want to be kept up to date: https://dev.azure.com/assofohdz/Subspace-Infinity
+
 # Build Stats:
 
 [![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
