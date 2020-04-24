@@ -1,8 +1,4 @@
-# Archived
-
-Repository is archived. Moved to Azure DevOps because I wanted Wiki to be included in main repository and not as a seperate repository.
-
-Go here if you want to be kept up to date: https://dev.azure.com/assofohdz/Subspace-Infinity
+Project is un-archived - lets see if we can push some more into this game :D
 
 # Build Stats:
 
