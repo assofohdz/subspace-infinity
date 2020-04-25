@@ -444,15 +444,15 @@ public class WeaponStateServer extends AbstractGameSystem {
         Transform shipTransform = shipBody.getTransform();
 
         //Bomb velocity:
-        attackVel = this.getAttackVelocity(shipTransform.getRotation(), type, shipBody.getLinearVelocity());
+        attackVel = this.getAttackVelocity(shipTransform.getRotationAngle(), type, shipBody.getLinearVelocity());
 
         //Position
-        Vector2 attackPos = this.getAttackPosition(shipTransform.getRotation(), shipTransform.getTranslation());
+        Vector2 attackPos = this.getAttackPosition(shipTransform.getRotationAngle(), shipTransform.getTranslation());
 
         //Convert to Vec3d because that's what the rest of sim-eth-es uses
         location = new Vec3d(attackPos.x, attackPos.y, 0);
         orientation = shipBody.orientation;
-        rotation = shipTransform.getRotation();
+        rotation = shipTransform.getRotationAngle();
         /*} else {
             // towers
             e = ed.getEntity(eId, AttackVelocity.class, Position.class, AttackDirection.class);

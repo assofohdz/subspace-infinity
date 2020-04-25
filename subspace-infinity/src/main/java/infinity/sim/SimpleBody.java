@@ -96,7 +96,7 @@ public class SimpleBody extends org.dyn4j.dynamics.Body implements Location{
                 transform.getTranslationY(),
                 0);
 
-        orientation.fromAngles(0, 0, transform.getRotation());
+        orientation.fromAngles(0, 0, transform.getRotationAngle());
 
         // Update the bounds since it's easy to do here and helps
         // other things know where the object is for real

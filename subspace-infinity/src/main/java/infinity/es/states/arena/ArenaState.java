@@ -47,7 +47,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.dyn4j.geometry.Vector2;
-import tiled.core.Map;
+import org.mapeditor.core.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

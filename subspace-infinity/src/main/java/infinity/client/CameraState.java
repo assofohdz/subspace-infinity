@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -31,13 +31,20 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.event.BaseAppState;
+import infinity.util.MathUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * A state to manage in-game camera 
+ * A state to manage in-game camera
+ *
  * @author Asser
  */
-public class CameraState extends BaseAppState{
+public class CameraState extends BaseAppState {
 
+    static Logger log = LoggerFactory.getLogger(CameraState.class);
+
+    private MovingAverage movingAverage = new MovingAverage(10);
     public static final float DISTANCETOPLANE = 60;
     private Camera camera;
 
@@ -46,15 +53,16 @@ public class CameraState extends BaseAppState{
     }
     private ModelViewState models;
     private Spatial playerShip;
-    
+
+    private Vector3f oldCamPos, newCamPos;
 
     @Override
     protected void initialize(Application app) {
         this.camera = app.getCamera();
-        
-        this.camera.setLocation(new Vector3f(0,0,DISTANCETOPLANE));
-        this.camera.lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Z); //Set camera to look at the origin
-        
+
+        this.camera.setLocation(new Vector3f(0, 0, DISTANCETOPLANE));
+        this.camera.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Z); //Set camera to look at the origin
+
         this.models = getState(ModelViewState.class);
         this.playerShip = models.getPlayerSpatial();
     }
@@ -70,22 +78,34 @@ public class CameraState extends BaseAppState{
     @Override
     protected void disable() {
     }
-    
+
     @Override
     public void update(float tpf) {
-        
-        
-        if( playerShip != null ) {
-            camera.setLocation(playerShip.getWorldTranslation().add(0,0,DISTANCETOPLANE));  //Set camera position above spatial - Z is up
+        /*
+        newCamPos = camera.getLocation().clone();
+
+        if (oldCamPos != null) {
+            double distanceToNewPos = newCamPos.distance(oldCamPos);
+            movingAverage.add((double) Math.round(distanceToNewPos * 100000d) / 100000d);
+
+            if (MathUtil.getInstance().hasOutlier(movingAverage.getList(), MathUtil.DEFAULT_09999)) {
+                log.info("Camera: Avg. distance: " + (double) Math.round(movingAverage.getAverage() * 100000d) / 100000d);
+                log.info("Camera: New  distance: " + (double) Math.round(distanceToNewPos * 100000d) / 100000d);
+            }
+        }
+         */
+        if (playerShip != null) {
+            camera.setLocation(playerShip.getWorldTranslation().add(0, 0, DISTANCETOPLANE));  //Set camera position above spatial - Z is up
             camera.lookAt(playerShip.getWorldTranslation(), Vector3f.UNIT_Z); //Set camera to look at the spatial
-        }
-        else //Probably a crude way to do it - should be handled properly
+        } else //Probably a crude way to do it - should be handled properly
         {
-            this.playerShip = models.getPlayerSpatial(); 
+            this.playerShip = models.getPlayerSpatial();
         }
+
+        //oldCamPos = newCamPos.clone();
     }
-    
-    public void setPlayerShip(Spatial s){
+
+    public void setPlayerShip(Spatial s) {
         this.playerShip = s;
     }
 }

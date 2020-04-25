@@ -125,11 +125,10 @@ public class AccountClientService extends AbstractClientService
         @Override   
         public void notifyLoginStatus( boolean loggedIn ) {
             log.trace("notifyLoginStatus(" + loggedIn + ")");
-            for( AccountSessionListener l : listeners ) {
+            listeners.forEach((l) -> {
                 l.notifyLoginStatus(loggedIn);
-            }
+            });
         }
-        
     }
 }
 

@@ -47,6 +47,7 @@ import com.simsilica.lemur.style.BaseStyles;
 import com.simsilica.state.DebugHudState;
 import com.simsilica.util.LogAdapter;
 
+
 import infinity.client.PlayerMovementFunctions;
 
 /**

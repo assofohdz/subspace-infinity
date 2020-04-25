@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -45,8 +45,8 @@ import infinity.net.server.AssetLoaderService;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentHashMap;
-import tiled.io.TMXMapReader;
 import org.dyn4j.geometry.Vector2;
+import org.mapeditor.io.TMXMapReader;
 
 /**
  * State
@@ -70,6 +70,7 @@ public class MapStateServer extends AbstractGameSystem {
     public static final float NOISE4J_WALL = 1f;
     private final AssetLoaderService assetLoader;
     private SimTime time;
+    private boolean mapCreated = false;
 
     public MapStateServer(AssetLoaderService assetLoader) {
 
@@ -95,12 +96,6 @@ public class MapStateServer extends AbstractGameSystem {
 
         tileTypes = ed.getEntities(TileType.class, Position.class);
 
-        //
-        //createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(0,0,0));
-        //createEntitiesFromMap(loadMap("Maps/extreme.lvl"), new Vec3d(-MAP_SIZE,0,0));
-        //createEntitiesFromMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
-        //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
-        
         /*
         Grid dungeon = this.createDungeonGrid();
         dungeon = this.expandCorridors(dungeon);
@@ -181,10 +176,10 @@ public class MapStateServer extends AbstractGameSystem {
                     Row 10, tile 17 - Flyunder (black = transparent) tile
                     Row 10, tile 18 - Flyunder (black = transparent) tile
                     Row 10, tile 19 - Flyunder (black = transparent) tile
-                    
+
                     /*
                     VIE tile constants.
-    
+
                     public static final char vieNoTile = 0;
 
                     public static final char vieNormalStart = 1;
@@ -228,8 +223,8 @@ public class MapStateServer extends AbstractGameSystem {
 
                     public static final char ssbBorder = 228;           // Use ssbBorder instead of vieBorder to fill border
 
-                    
-                    
+
+
                      */
                     Vec3d location = new Vec3d(xpos, -ypos, 0).add(arenaOffset);
                     switch (s) {
@@ -281,6 +276,15 @@ public class MapStateServer extends AbstractGameSystem {
     @Override
     public void update(SimTime tpf) {
         this.time = tpf;
+
+        //Create map:
+        if (!mapCreated) {
+            createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(0,0,0));
+            //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
+            //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0));
+            //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
+            mapCreated = true;
+        }
 
         for (Vector2 remove : sessionTileRemovals) {
             Vector2 clampedLocation = getKey(remove);
@@ -456,6 +460,7 @@ public class MapStateServer extends AbstractGameSystem {
 
     @Override
     public void start() {
+
     }
 
     @Override

@@ -97,7 +97,7 @@ public class BasicEnvironment extends AbstractGameSystem {
             }
         }
 
-        ModuleGameEntities.createArena(0, ed, time.getTime());
+        ModuleGameEntities.createArena(ed, "arena0", new Vec3d(), time.getTime());
 
         //GameEntities.createBountySpawner(new Vec3d(0, 0, 0), 10, ed);0
         //GameEntities.createExplosion2(new Vec3d(5,5,0), new Quatd().fromAngles(0, 0, Math.random()*360), ed);

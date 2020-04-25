@@ -67,6 +67,8 @@ import infinity.TimeState;
 import infinity.client.MapStateClient;
 import infinity.util.MathUtil;
 import java.math.RoundingMode;
+import infinity.client.MovingAverage;
+import infinity.client.MyTransitionBuffer;
 
 /**
  * Displays the models for the various physics objects.
@@ -95,6 +97,8 @@ public class ModelViewState extends BaseAppState {
     private Spatial arenaSpatial;
 
     private long oldPlayerCellId;
+
+    private HashSet<Spatial> updatedSpatials = new HashSet<>();
 
     private LocalZoneIndex zones;
 
@@ -227,6 +231,7 @@ public class ModelViewState extends BaseAppState {
             }
         }
         //log.info("worldToZone("+playerSpatial.getWorldTranslation()+") ="+GameConstants.ZONE_GRID.worldToZone(new Vec3d(playerSpatial.getWorldTranslation())));
+        updatedSpatials.clear();
     }
 
     protected Spatial createShip(Entity entity) {
@@ -648,7 +653,7 @@ public class ModelViewState extends BaseAppState {
             // sure all instances of BodyPosition are sharing the same
             // thread-safe history buffer.  Everywhere it's used, it should
             // be 'initialized'.            
-            bodyPos.initialize(entity.getId(), 50);
+            bodyPos.initialize(entity.getId(), 12);
             buffer = bodyPos.getBuffer();
 
             // If this is the player's ship then we don't want the model
@@ -676,22 +681,38 @@ public class ModelViewState extends BaseAppState {
             PositionTransition3f trans = buffer.getTransition(time);
 
             if (trans != null) {
+                //double distanceToNewCoord = spatial.getLocalTranslation().distance(trans.getPosition(time, true));
 
-                double distanceToNewCoord = spatial.getLocalTranslation().distance(trans.getPosition(time, true));
-
-                movingAverage.add((double) Math.round(distanceToNewCoord * 100000d) / 100000d);
-
+                //movingAverage.add((double) Math.round(distanceToNewCoord * 100000d) / 100000d);
+/*
                 if (MathUtil.getInstance().hasOutlier(movingAverage.getList(), MathUtil.DEFAULT_09999)) {
+                    log.info("Transition1: "+trans.toString());
+                    log.info("Time1: "+time+".Buffer1 with outliers: " + buffer.toString());
                     log.info(spatial.getName() + ": Avg. distance: " + (double) Math.round(movingAverage.getAverage() * 100000d) / 100000d);
                     log.info(spatial.getName() + ": New  distance: " + (double) Math.round(distanceToNewCoord * 100000d) / 100000d);
+                } else {
+                    log.info("Transition2: "+trans.toString());
+                    log.info("Time2: "+time+".Buffer2 without outliers: " + buffer.toString());
                 }
 
+                */
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
 
                 setVisible(trans.getVisibility(time));
+                /*
+                if (updatedSpatials.contains(spatial)) {
+                    log.warn("Already updated this spatial in this loop once before");
+                } else {
+                    updatedSpatials.add(spatial);
+                }
+                 */
 
             }
+            /*
+            else{
+                log.info("Transition was null for time: "+time+". Buffer: "+buffer.toString());
+            }*/
         }
 
         public Spatial getSpatial() {
@@ -933,35 +954,5 @@ public class ModelViewState extends BaseAppState {
         OrFilter newZoneFilter = new com.simsilica.es.filter.OrFilter(Position.class, filters.toArray(new ComponentFilter[filters.size()]));
 
         return newZoneFilter;
-    }
-
-    public class MovingAverage {
-
-        private final Queue<Double> window = new ArrayDeque<>();
-        private final int period;
-        private double sum = 0d;
-
-        public MovingAverage(int period) {
-            this.period = period;
-        }
-
-        public void add(Double num) {
-            sum = sum + num;
-            window.add(num);
-            if (window.size() > period) {
-                sum = sum - window.remove();
-            }
-        }
-
-        public double getAverage() {
-            if (window.isEmpty()) {
-                return 0d;
-            }
-            return sum / Double.valueOf(window.size());
-        }
-
-        public List<Double> getList() {
-            return new ArrayList(window);
-        }
     }
 }

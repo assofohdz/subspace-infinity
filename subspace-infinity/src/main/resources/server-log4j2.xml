@@ -14,10 +14,10 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="example" level="DEBUG"/>
+    <Logger name="infinity" level="TRACE"/>
     <Logger name="com.simsilica.sim" level="TRACE"/>
     <!-- <Logger name="com.simsilica.lemur.CallMethodAction" level="TRACE"/> -->
-    <Root level="INFO">
+    <Root level="ALL">
       <AppenderRef ref="RollingFile"/>
       <AppenderRef ref="STDOUT"/>
     </Root>

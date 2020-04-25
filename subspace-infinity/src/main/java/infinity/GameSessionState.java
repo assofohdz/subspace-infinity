@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -91,13 +91,13 @@ public class GameSessionState extends CompositeAppState {
                 new MapStateClient(),
                 new SkyState(),
                 new PlayerMovementState(),
-                new CameraState(),
                 new HudLabelState(),
                 new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
                 new ShipFrequencyStateClient(),
                 new FlagStateClient(),
                 new ResourceStateClient(),
                 new ModelViewState(new SISpatialFactory()),
+                new CameraState(),
                 new AudioState(new SIAudioFactory()),
                 new LightState(),
                 new RadarStateTexture()

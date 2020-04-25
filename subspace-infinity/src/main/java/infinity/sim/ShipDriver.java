@@ -95,7 +95,7 @@ public class ShipDriver implements ControlDriver {
         Vector2 linVel = new Vector2(0, vec.y * CorePhysicsConstants.SHIPTHRUST);
         //Velocity since we want the ship to stop rotating right away if player releases the rotate keys        
         body.setAngularVelocity(vec.x);
-        double rotation = body.getTransform().getRotation(); //Is the rotation from last frame
+        double rotation = body.getTransform().getRotationAngle(); //Is the rotation from last frame
         linVel.rotate(rotation);
         body.applyForce(linVel);
     }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -76,7 +76,7 @@ import org.slf4j.LoggerFactory;
 public class MapStateClient extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MapStateClient.class);
-    
+
     AndFilter andFilter;
     private EntityData ed;
     private LegacyMapImageContainer tileImages;
@@ -90,6 +90,7 @@ public class MapStateClient extends BaseAppState {
     private EntitySet arenas;
 
     private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
+    private float tpfTime;
 
     @Override
     protected void initialize(Application app) {
@@ -142,7 +143,7 @@ public class MapStateClient extends BaseAppState {
         map.put(28, new WangInfo(3, 1));
         map.put(112, new WangInfo(3, 2));
         map.put(193, new WangInfo(3, 3));
-        //Seventeen         
+        //Seventeen
         map.put(17, new WangInfo(4, 0));
         map.put(68, new WangInfo(4, 1));
         //Twentyone
@@ -211,18 +212,21 @@ public class MapStateClient extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        //tileImages = new LegacyMapImageContainer(ed);
-        //tileImages.start();
+        tileImages = new LegacyMapImageContainer(ed);
+        tileImages.start();
     }
 
     @Override
     protected void onDisable() {
-        //tileImages.stop();
-        //tileImages = null;
+        tileImages.stop();
+        tileImages = null;
     }
 
     @Override
     public void update(float tpf) {
+        this.tpfTime = tpf;
+
+        tileImages.update();
     }
 
     /**
@@ -371,90 +375,90 @@ public class MapStateClient extends BaseAppState {
         MouseEventControl.addListenersToSpatial(arena,
                 new DefaultMouseListener() {
 
-            boolean isPressed;
-            int keyIndex;
+                    boolean isPressed;
+                    int keyIndex;
 
-            private int xDown;
-            private int yDown;
+                    private int xDown;
+                    private int yDown;
 
-            @Override
-            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
+                    @Override
+                    protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
 
-            }
-
-            @Override
-            public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
-                event.setConsumed();
-
-                isPressed = event.isPressed();
-                keyIndex = event.getButtonIndex();
-
-                if (event.isPressed()) {
-                    xDown = event.getX();
-                    yDown = event.getY();
-                } else if (isClick(event, xDown, yDown)) {
-                    click(event, target, capture);
-                }
-            }
-
-            @Override
-            public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
-                //Material m = ((Geometry) target).getMaterial();
-                //m.setColor("Color", ColorRGBA.Yellow);
-            }
-
-            @Override
-            public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
-                //Material m = ((Geometry) target).getMaterial();
-                //m.setColor("Color", ColorRGBA.Blue);
-            }
-
-            @Override
-            public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
-                if (isPressed && keyIndex == MouseInput.BUTTON_LEFT) {
-                    GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
-                    if (session == null) {
-                        throw new RuntimeException("ModelViewState requires an active game session.");
                     }
-                    Camera cam = getState(CameraState.class).getCamera();
 
-                    Vector2f click2d = new Vector2f(event.getX(), event.getY());
+                    @Override
+                    public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
+                        event.setConsumed();
 
-                    Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+                        isPressed = event.isPressed();
+                        keyIndex = event.getButtonIndex();
 
-                    Ray ray = new Ray(click3d, dir);
-                    CollisionResults results = new CollisionResults();
-                    target.collideWith(ray, results);
-                    if (results.size() != 1) {
-                        log.error("There should only be one collision with the arena when the user clicks it");
+                        if (event.isPressed()) {
+                            xDown = event.getX();
+                            yDown = event.getY();
+                        } else if (isClick(event, xDown, yDown)) {
+                            click(event, target, capture);
+                        }
                     }
-                    Vector3f contactPoint = results.getCollision(0).getContactPoint();
-                    session.createTile("", contactPoint.x, contactPoint.y);
-                }
 
-                if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
-                    GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
-                    if (session == null) {
-                        throw new RuntimeException("ModelViewState requires an active game session.");
+                    @Override
+                    public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
+                        //Material m = ((Geometry) target).getMaterial();
+                        //m.setColor("Color", ColorRGBA.Yellow);
                     }
-                    Camera cam = getState(CameraState.class).getCamera();
 
-                    Vector2f click2d = new Vector2f(event.getX(), event.getY());
-
-                    Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
-
-                    Ray ray = new Ray(click3d, dir);
-                    CollisionResults results = new CollisionResults();
-                    target.collideWith(ray, results);
-                    if (results.size() != 1) {
-                        log.error("There should only be one collision with the arena when the user clicks it");
+                    @Override
+                    public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
+                        //Material m = ((Geometry) target).getMaterial();
+                        //m.setColor("Color", ColorRGBA.Blue);
                     }
-                    Vector3f contactPoint = results.getCollision(0).getContactPoint();
-                    session.removeTile(contactPoint.x, contactPoint.y);
-                }
-            }
-        });
+
+                    @Override
+                    public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
+                        if (isPressed && keyIndex == MouseInput.BUTTON_LEFT) {
+                            GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+                            if (session == null) {
+                                throw new RuntimeException("ModelViewState requires an active game session.");
+                            }
+                            Camera cam = getState(CameraState.class).getCamera();
+
+                            Vector2f click2d = new Vector2f(event.getX(), event.getY());
+
+                            Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
+                            Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+
+                            Ray ray = new Ray(click3d, dir);
+                            CollisionResults results = new CollisionResults();
+                            target.collideWith(ray, results);
+                            if (results.size() != 1) {
+                                log.error("There should only be one collision with the arena when the user clicks it");
+                            }
+                            Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                            session.createTile("", contactPoint.x, contactPoint.y);
+                        }
+
+                        if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
+                            GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+                            if (session == null) {
+                                throw new RuntimeException("ModelViewState requires an active game session.");
+                            }
+                            Camera cam = getState(CameraState.class).getCamera();
+
+                            Vector2f click2d = new Vector2f(event.getX(), event.getY());
+
+                            Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
+                            Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+
+                            Ray ray = new Ray(click3d, dir);
+                            CollisionResults results = new CollisionResults();
+                            target.collideWith(ray, results);
+                            if (results.size() != 1) {
+                                log.error("There should only be one collision with the arena when the user clicks it");
+                            }
+                            Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                            session.removeTile(contactPoint.x, contactPoint.y);
+                        }
+                    }
+                });
     }
 }

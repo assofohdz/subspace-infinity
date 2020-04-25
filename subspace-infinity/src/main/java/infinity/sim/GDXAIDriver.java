@@ -132,7 +132,7 @@ public class GDXAIDriver implements ControlDriver, Steerable<com.badlogic.gdx.ma
 
     @Override
     public float getOrientation() {
-        return convert(steerableBody.getTransform().getRotation());
+        return convert(steerableBody.getTransform().getRotationAngle());
     }
 
     @Override

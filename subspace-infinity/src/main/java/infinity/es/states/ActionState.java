@@ -284,7 +284,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
         //Convert to Vec3d because that's what the rest of sim-eth-es uses
         location = new Vec3d(attackPos.x, attackPos.y, 0);
         orientation = shipBody.orientation;
-        rotation = shipTransform.getRotation();
+        rotation = shipTransform.getRotationAngle();
 
         return new ActionInfo(location, orientation, rotation, actionVelocity);
     }
