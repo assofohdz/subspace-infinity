@@ -38,6 +38,8 @@ import com.jme3.scene.*;
 import com.simsilica.lemur.GuiGlobals;
 
 import infinity.Main;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  Presents a 3D grid around the current camera position.  It will
@@ -46,6 +48,7 @@ import infinity.Main;
  *  @author    Paul Speed
  */
 public class SpaceGridState extends BaseAppState {
+    static Logger log = LoggerFactory.getLogger(SpaceGridState.class);
  
     private int cellSize;
     private int gridRadius;
@@ -57,6 +60,8 @@ public class SpaceGridState extends BaseAppState {
         this.cellSize = cellSize;
         this.gridRadius = gridRadius;
         this.gridColor = gridColor;
+        
+        log.debug("Constructed SpaceGridState");
     }
     
     @Override

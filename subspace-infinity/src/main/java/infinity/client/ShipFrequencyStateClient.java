@@ -32,20 +32,28 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import infinity.ConnectionState;
-import infinity.GameSessionState;
-import infinity.api.es.Flag;
 import infinity.api.es.Frequency;
 import infinity.api.es.ship.ShipType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Asser
  */
 public class ShipFrequencyStateClient extends BaseAppState {
+    static Logger log = LoggerFactory.getLogger(ShipFrequencyStateClient.class);
 
     private EntityData ed;
     private EntitySet ships;
+    private final EntityId localPlayerShip;
     private int localPlayerFrequency = -1; //Frequency initiated to -1. All real frequencies are positive integers
+
+    public ShipFrequencyStateClient(EntityId shipId) {
+        this.localPlayerShip = shipId;
+        
+        log.debug("Constructed ShipFrequencyStateClient");
+    }
 
     @Override
     protected void initialize(Application app) {
@@ -74,14 +82,14 @@ public class ShipFrequencyStateClient extends BaseAppState {
         if (ships.applyChanges()) {
             for (Entity e : ships.getChangedEntities()) {
                 Frequency freq = e.get(Frequency.class);
-                if (e.getId().getId() == getState(GameSessionState.class).getShipId().getId()) {
+                if (e.getId().getId() == localPlayerShip.getId()) {
                     localPlayerFrequency = freq.getFreq();
                 }
                 //TODO: Use remaining information to update roster in HUD
             }
             for (Entity e : ships.getAddedEntities()) {
                 Frequency freq = e.get(Frequency.class);
-                if (e.getId().getId() == getState(GameSessionState.class).getShipId().getId()) {
+                if (e.getId().getId() == localPlayerShip.getId()) {
                     localPlayerFrequency = freq.getFreq();
                 }
                 //TODO: Use information to update roster in HUD

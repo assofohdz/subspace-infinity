@@ -23,6 +23,8 @@ import infinity.client.view.PaintableTexture;
 import java.awt.Color;
 import java.util.HashSet;
 import org.dyn4j.geometry.Vector2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * For information on how to do this, check out:
@@ -35,6 +37,7 @@ import org.dyn4j.geometry.Vector2;
  * @author Asser Fahrenholz
  */
 public class RadarStateTexture extends BaseAppState {
+    static Logger log = LoggerFactory.getLogger(RadarStateTexture.class);
 
     //Needed these to initialize GUI element
     private Container window;
@@ -76,6 +79,8 @@ public class RadarStateTexture extends BaseAppState {
 
     public RadarStateTexture() {
         setEnabled(false);
+        
+        log.debug("Constructed RadarStateTexture");
     }
 
     public void close() {

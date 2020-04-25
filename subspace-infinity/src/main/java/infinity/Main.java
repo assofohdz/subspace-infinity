@@ -105,9 +105,16 @@ public class Main extends SimpleApplication {
               new AnimationState(), // from Lemur
               new OptionPanelState(), // from Lemur
               new DebugHudState(), // SiO2 utility class
-              new SiliconDioxideState(),
+              //new SiliconDioxideState(),
               new MainMenuState(),
               new ScreenshotAppState("", System.currentTimeMillis())); 
+    }
+    
+    @Override
+    public void handleError(java.lang.String errMsg,
+                        java.lang.Throwable t)
+    {
+        t.printStackTrace();
     }
         
     public void simpleInitApp() {        

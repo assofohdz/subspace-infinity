@@ -30,7 +30,8 @@ import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
-import com.simsilica.lemur.event.BaseAppState;
+import com.simsilica.es.EntityId;
+import com.jme3.app.state.BaseAppState;
 import infinity.util.MathUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,13 @@ public class CameraState extends BaseAppState {
     private MovingAverage movingAverage = new MovingAverage(10);
     public static final float DISTANCETOPLANE = 60;
     private Camera camera;
+    private final EntityId localPlayerShip;
+
+    public CameraState(EntityId shipId) {
+        this.localPlayerShip = shipId;
+        
+        log.debug("Constructed CameraState");
+    }
 
     public Camera getCamera() {
         return camera;
@@ -69,14 +77,6 @@ public class CameraState extends BaseAppState {
 
     @Override
     protected void cleanup(Application app) {
-    }
-
-    @Override
-    protected void enable() {
-    }
-
-    @Override
-    protected void disable() {
     }
 
     @Override
@@ -107,5 +107,20 @@ public class CameraState extends BaseAppState {
 
     public void setPlayerShip(Spatial s) {
         this.playerShip = s;
+    }
+
+    @Override
+    public String getId() {
+        return "CameraState";
+    }
+
+    @Override
+    protected void onEnable() {
+        
+    }
+
+    @Override
+    protected void onDisable() {
+        
     }
 }

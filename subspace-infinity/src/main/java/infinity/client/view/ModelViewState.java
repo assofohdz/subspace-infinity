@@ -61,7 +61,6 @@ import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
 import infinity.ServerGameConstants;
-import infinity.GameSessionState;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.client.MapStateClient;
@@ -108,8 +107,11 @@ public class ModelViewState extends BaseAppState {
 
     private List<ZoneKey> inZones = new ArrayList<>();
 
-    public ModelViewState(SISpatialFactory siSpatialFactory) {
+    public ModelViewState(SISpatialFactory siSpatialFactory, EntityId shipId) {
         this.factory = siSpatialFactory;
+        this.localPlayerEntityId = shipId;
+        
+        log.debug("Constructed ModelViewState");
     }
 
     public Spatial getModel(EntityId id) {
@@ -659,7 +661,7 @@ public class ModelViewState extends BaseAppState {
             // If this is the player's ship then we don't want the model
             // shown else it looks bad.  A) it's ugly.  B) the model will
             // always lag the player's turning.
-            if (entity.getId().getId() == getState(GameSessionState.class).getShipId().getId()) {
+            if (entity.getId().getId() == localPlayerEntityId.getId()) {
 
                 this.localPlayerShip = true;
                 localPlayerEntityId = entity.getId();

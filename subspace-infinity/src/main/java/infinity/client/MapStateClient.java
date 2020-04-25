@@ -91,6 +91,10 @@ public class MapStateClient extends BaseAppState {
 
     private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     private float tpfTime;
+    
+    public MapStateClient(){
+        log.info("Constructed MapStateClient");
+    }
 
     @Override
     protected void initialize(Application app) {

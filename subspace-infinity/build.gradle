@@ -72,7 +72,7 @@ jar {
         attributes 'Main-Class': 'infinity.Main'
     }
 }
-ext.jmeVersion = "3.2.3-stable"
+ext.jmeVersion = "3.3.0-stable"
 
 project("assets") {
     apply plugin: 'java'

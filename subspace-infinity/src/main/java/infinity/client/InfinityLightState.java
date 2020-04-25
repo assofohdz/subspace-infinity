@@ -33,7 +33,7 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.texture.FrameBuffer;
-import com.simsilica.lemur.event.BaseAppState;
+import com.jme3.app.state.BaseAppState;
 
 import com.jme3.math.Vector2f;
 import com.jme3.scene.Node;
@@ -96,7 +96,7 @@ public class InfinityLightState extends BaseAppState {
     }
 
     @Override
-    protected void enable() {
+    protected void onEnable() {
         lightRoot = ((Main) getApplication()).getRootNode();
 
         InfinitySceneProcessor isp = new InfinitySceneProcessor();
@@ -107,7 +107,8 @@ public class InfinityLightState extends BaseAppState {
     }
 
     @Override
-    protected void disable() {
+    protected void onDisable() {
+
     }
 
     @Override
@@ -143,7 +144,6 @@ public class InfinityLightState extends BaseAppState {
         Vec3d location = p.getLocation();
 
         //PointLightComponent lt = e.get(PointLightComponent.class);
-
         PointLight pl = pointLightMap.get(e.getId());
         pl.setPosition(location.toVector3f());
     }
@@ -155,8 +155,13 @@ public class InfinityLightState extends BaseAppState {
         PointLight pl = new PointLight(p.getLocation().toVector3f(), plc.getColor(), plc.getRadius());
 
         pointLightMap.put(e.getId(), pl);
-        
+
         lightRoot.addLight(pl);
+    }
+
+    @Override
+    public String getId() {
+        return "InfinityLightState";
     }
 
     private class InfinitySceneProcessor implements SceneProcessor {

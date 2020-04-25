@@ -30,20 +30,31 @@ import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import infinity.ConnectionState;
 import infinity.api.es.Flag;
 import infinity.api.es.Frequency;
 import infinity.api.es.ViewType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Asser
  */
 public class FlagStateClient extends BaseAppState {
+    static Logger log = LoggerFactory.getLogger(FlagStateClient.class);
 
     private EntityData ed;
     private EntitySet flags;
+    private final EntityId localPlayerShip;
+
+    public FlagStateClient(EntityId shipId) {
+        this.localPlayerShip = shipId;
+        
+        log.debug("Constructed FlagStateClient");
+    }
 
     @Override
     protected void initialize(Application app) {

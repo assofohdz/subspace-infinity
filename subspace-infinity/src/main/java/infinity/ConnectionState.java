@@ -58,6 +58,7 @@ import com.simsilica.ethereal.SynchedTimeSource;
 import infinity.net.AccountSessionListener;
 import infinity.net.client.AccountClientService;
 import infinity.net.client.GameClient;
+import infinity.net.client.GameSessionClientService;
 
 /**
  *  Manages the connection and game client when connected to a server.
@@ -136,7 +137,9 @@ public class ConnectionState extends CompositeAppState {
             // We'd want to present an error... but right now this will
             // never happen.
         }
-        addChild(new GameSessionState(), true);
+        
+        EntityId shipId = getService(GameSessionClientService.class).getShip();
+        addChild(new GameSessionState(shipId), true);
     } 
 
     @Override   

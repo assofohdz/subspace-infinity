@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn" name="MyApp" packages="">
   <Appenders>
-    <RollingFile name="RollingFile" fileName="server.log" ignoreExceptions="false"                
-                 filePattern="logs/$${date:yyyy-MM}/server-%d{MM-dd-yyyy}-%i.log.gz">
+    <RollingFile name="RollingFile" fileName="application.log" ignoreExceptions="false"                
+                 filePattern="logs/$${date:yyyy-MM}/application-%d{MM-dd-yyyy}-%i.log.gz">
       <PatternLayout>
         <Pattern>%d{ABSOLUTE} %-5p [%c{1}] %m%n</Pattern>        
       </PatternLayout>
@@ -14,10 +14,11 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="infinity" level="TRACE"/>
+    <Logger name="infinity" level="DEBUG"/>
     <Logger name="com.simsilica.sim" level="TRACE"/>
+    <!-- <Logger name="com.simsilica.lemur.input.InputMapper" level="TRACE"/> -->
     <!-- <Logger name="com.simsilica.lemur.CallMethodAction" level="TRACE"/> -->
-    <Root level="ALL">
+    <Root level="INFO">
       <AppenderRef ref="RollingFile"/>
       <AppenderRef ref="STDOUT"/>
     </Root>

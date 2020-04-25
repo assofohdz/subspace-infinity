@@ -83,6 +83,8 @@ public class AudioState extends BaseAppState {
 
     public AudioState(SIAudioFactory factory) {
         this.factory = factory;
+        
+        log.debug("Constructed AudioState");
     }
 
     @Override

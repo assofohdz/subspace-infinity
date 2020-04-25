@@ -26,17 +26,28 @@
 package infinity.client;
 
 import com.jme3.app.Application;
+import com.simsilica.es.EntityId;
 import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.lemur.event.BaseAppState;
+import com.jme3.app.state.BaseAppState;
 import com.simsilica.state.DebugHudState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author Asser
  */
 public class ResourceStateClient extends BaseAppState {
+    static Logger log = LoggerFactory.getLogger(ResourceStateClient.class);
 
     private VersionedHolder<String> goldDisplay;
+    private final EntityId localPlayerShip;
+
+    public ResourceStateClient(EntityId shipId) {
+        this.localPlayerShip = shipId;
+        
+        log.debug("Constructed ResourceStateClient");
+    }
 
     @Override
     protected void initialize(Application aplctn) {
@@ -49,16 +60,6 @@ public class ResourceStateClient extends BaseAppState {
     @Override
     protected void cleanup(Application aplctn) {
     }
-
-    @Override
-    protected void enable() {
-
-    }
-
-    @Override
-    protected void disable() {
-
-    }
     
     public void updateCredits(int credits){
         goldDisplay.setObject(String.valueOf(credits));
@@ -66,6 +67,21 @@ public class ResourceStateClient extends BaseAppState {
 
     @Override
     public void update(float tpf) {
+        //System.out.println("");
+    }
+
+    @Override
+    public String getId() {
+        return "ResourceStateClient";
+    }
+
+    @Override
+    protected void onEnable() {
+        
+    }
+
+    @Override
+    protected void onDisable() {
         
     }
 }

@@ -32,6 +32,8 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
 import infinity.Main;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -40,9 +42,11 @@ import infinity.Main;
  */
 public class SkyState extends BaseAppState {
 
+    static Logger log = LoggerFactory.getLogger(SkyState.class);
     private Spatial sky;
 
     public SkyState() {
+        log.debug("Constructed SkyState");
     }
     
     @Override

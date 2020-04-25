@@ -63,6 +63,10 @@ public class LightState extends BaseAppState {
     private TimeState timeState;
     private Vector3f pointLightOffset = new Vector3f(0, 0, 5);
     private EntitySet decayingPointLights;
+    
+    public LightState(){
+        log.debug("Constructed LightState");
+    }
 
     @Override
     protected void initialize(Application app) {

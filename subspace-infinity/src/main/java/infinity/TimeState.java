@@ -31,6 +31,8 @@ import com.simsilica.ethereal.SynchedTimeSource;
 
 import com.simsilica.ethereal.TimeSource;
 import infinity.api.sim.TimeManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -48,11 +50,14 @@ import infinity.api.sim.TimeManager;
  */
 public class TimeState extends BaseAppState implements TimeManager{
 
+    static Logger log = LoggerFactory.getLogger(TimeState.class);
+    
     private TimeSource timeSource;
     private long frameTime;
     private long realTime;
 
     public TimeState() {
+        log.info("Constructed TimeState");
     }
     
     public TimeState( TimeSource timeSource ) {

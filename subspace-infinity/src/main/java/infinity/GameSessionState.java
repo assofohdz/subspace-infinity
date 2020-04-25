@@ -79,30 +79,28 @@ public class GameSessionState extends CompositeAppState {
 
     // Temporary reference FIXME
     private PlayerMovementState us;
-    private int clientId;
 
-    private EntityId playerId;
     private EntityId shipId;
-
-    public GameSessionState() {
+    
+    public GameSessionState(EntityId shipId){
         // add normal states on the super-constructor
         super(new MessageState(),
                 new TimeState(), // Has to be before any visuals that might need it.
                 new MapStateClient(),
                 new SkyState(),
-                new PlayerMovementState(),
-                new HudLabelState(),
+                new HudLabelState(shipId),
                 new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-                new ShipFrequencyStateClient(),
-                new FlagStateClient(),
-                new ResourceStateClient(),
-                new ModelViewState(new SISpatialFactory()),
-                new CameraState(),
+                new ShipFrequencyStateClient(shipId),
+                new FlagStateClient(shipId),
+                new ResourceStateClient(shipId),
                 new AudioState(new SIAudioFactory()),
                 new LightState(),
-                new RadarStateTexture()
-                //new InfinityLightState()
-                //new MapEditorState()
+                new ModelViewState(new SISpatialFactory(), shipId),
+                new CameraState(shipId),
+                new RadarStateTexture(),
+                new PlayerMovementState(shipId)
+        //new InfinityLightState()
+        //new MapEditorState()
         );
 
         // Add states that need to support enable/disable independent of
@@ -112,12 +110,49 @@ public class GameSessionState extends CompositeAppState {
 
         // For popping up a time sync debug panel
         //addChild(new TimeSequenceState(), true);
-
         addChild(new HelpState(), true);
         addChild(new PlayerListState(), true);
-
+        
+        System.out.println("created GameSessionState w. shipId: "+shipId);
+        
+        this.shipId = shipId;
     }
+/*
+    public GameSessionState() {
+        // add normal states on the super-constructor
+        super(new MessageState(),
+                new TimeState(), // Has to be before any visuals that might need it.
+                new MapStateClient(),
+                new SkyState(),
+                new PlayerMovementState(),
+                //new HudLabelState(),
+                //new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+                //new ShipFrequencyStateClient(),
+                //new FlagStateClient(),
+                //new ResourceStateClient(),
+                new CameraState(),
+                new AudioState(new SIAudioFactory()),
+                new LightState(),
+                new RadarStateTexture(),
+                new ModelViewState(new SISpatialFactory())
+        //new InfinityLightState()
+        //new MapEditorState()
+        );
 
+        // Add states that need to support enable/disable independent of
+        // the outer state using addChild().
+        addChild(new InGameMenuState(false), true);
+        addChild(new CommandConsoleState(), true);
+
+        // For popping up a time sync debug panel
+        //addChild(new TimeSequenceState(), true);
+        addChild(new HelpState(), true);
+        addChild(new PlayerListState(), true);
+        
+        cs = getState(ConnectionState.class);
+        System.out.println("");
+    }
+*/
     public EntityId getShipId() {
         return shipId;
     }
@@ -129,15 +164,14 @@ public class GameSessionState extends CompositeAppState {
 
     @Override
     protected void initialize(Application app) {
-        super.initialize(app);
         log.info("initialize()");
 
+        System.out.println("initialize in GameSessionState");
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
 
         // Add a self-message because we're too late to have caught the
         // player joined message for ourselves.  (Please we'd want it to look like this, anyway.)
         getState(MessageState.class).addMessage("> You have joined the game.", ColorRGBA.Yellow);
-
         getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
 
         // Give the time state its time source
@@ -150,14 +184,6 @@ public class GameSessionState extends CompositeAppState {
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
-
-        // Temporary FIXME
-        clientId = getState(ConnectionState.class).getClientId();
-        us = getState(PlayerMovementState.class);
-        playerId = getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayer();
-        shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getShip();
-        log.info("Player object:" + shipId);
-        us.setShipId(shipId);
 
         addChild(new MouseAppState(app));
     }

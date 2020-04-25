@@ -25,7 +25,6 @@
  */
 package infinity.client;
 
-
 import org.slf4j.*;
 
 import com.jme3.app.Application;
@@ -37,7 +36,7 @@ import com.jme3.scene.*;
 import com.simsilica.lemur.*;
 import com.simsilica.lemur.style.ElementId;
 
-import com.simsilica.ethereal.TimeSource; 
+import com.simsilica.ethereal.TimeSource;
 
 import com.simsilica.es.*;
 
@@ -45,38 +44,41 @@ import com.simsilica.mathd.trans.PositionTransition3f;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
-import infinity.GameSessionState;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.api.es.BodyPosition;
 
 /**
- *  Displays a HUD label for any entity with a BodyPosition and a Name.
+ * Displays a HUD label for any entity with a BodyPosition and a Name.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class HudLabelState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(HudLabelState.class);
 
     private EntityData ed;
+    private EntityId localPlayerShip;
     private TimeSource timeSource;
     private TimeState timeState;
-    
-    private Node hudLabelRoot;    
+
+    private Node hudLabelRoot;
     private Camera camera;
-    
+
     private LabelContainer labels;
 
-    public HudLabelState() {
+    public HudLabelState(EntityId shipId) {
+        this.localPlayerShip = shipId;
+        
+        log.debug("Constructed HudLabelState");
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
         hudLabelRoot = new Node("HUD labels");
- 
+
         this.camera = app.getCamera();
-        
+
         // Retrieve the time source from the network connection
         // The time source will give us a time in recent history that we should be
         // viewing.  This currently defaults to -100 ms but could vary (someday) depending
@@ -87,7 +89,7 @@ public class HudLabelState extends BaseAppState {
         // https://developer.valvesoftware.com/wiki/Latency_Compensating_Methods_in_Client/Server_In-game_Protocol_Design_and_Optimization
         //this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         this.timeState = getState(TimeState.class);
-    
+
         this.ed = getState(ConnectionState.class).getEntityData();
     }
 
@@ -97,25 +99,25 @@ public class HudLabelState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        
+
         labels = new LabelContainer(ed);
         labels.start();
-    
-        ((Main)getApplication()).getGuiNode().attachChild(hudLabelRoot);
+
+        ((Main) getApplication()).getGuiNode().attachChild(hudLabelRoot);
         //this.timeSource = getState(TimeState.class).getTimeSource();
     }
 
     @Override
     protected void onDisable() {
         hudLabelRoot.removeFromParent();
-        
+
         labels.stop();
         labels = null;
     }
 
     @Override
-    public void update( float tpf ) {
- 
+    public void update(float tpf) {
+
         // Grab a consistent time for this frame
         long time = timeState.getTime();
         // Grab a consistent time for this frame
@@ -123,35 +125,35 @@ public class HudLabelState extends BaseAppState {
 
         // Update all of the models
         labels.update();
-        for( LabelHolder label : labels.getArray() ) {
+        for (LabelHolder label : labels.getArray()) {
             label.update(time);
-        } 
+        }
     }
- 
+
     /**
-     *  Holds the on-screen label and the transition buffer, etc necessary
-     *  for managing the position and state of the label.  If not for the 
-     *  need to poll these once per frame for position updates, we technically
-     *  could have done all management in the EntityContainer and just returned
-     *  Labels directly.  
+     * Holds the on-screen label and the transition buffer, etc necessary for
+     * managing the position and state of the label. If not for the need to poll
+     * these once per frame for position updates, we technically could have done
+     * all management in the EntityContainer and just returned Labels directly.
      */
     private class LabelHolder {
+
         Entity entity;
         Label label;
         float labelOffset = 0.1f;
-        
+
         boolean visible;
-        boolean isPlayerEntity;        
-        
+        boolean isPlayerEntity;
+
         TransitionBuffer<PositionTransition3f> buffer;
-        
-        public LabelHolder( Entity entity ) {
+
+        public LabelHolder(Entity entity) {
             this.entity = entity;
 
             this.label = new Label("Ship", new ElementId("ship.label"));
             label.setColor(ColorRGBA.Green);
             label.setShadowColor(ColorRGBA.Black);
-                        
+
             BodyPosition bodyPos = entity.get(BodyPosition.class);
             // BodyPosition requires special management to make
             // sure all instances of BodyPosition are sharing the same
@@ -159,100 +161,104 @@ public class HudLabelState extends BaseAppState {
             // be 'initialized'.            
             bodyPos.initialize(entity.getId(), 12);
             buffer = bodyPos.getBuffer();
-            
+
             // If this is the player's ship then we don't want the model
             // shown else it looks bad.  A) it's ugly.  B) the model will
             // always lag the player's turning.
-            if( entity.getId().getId() == getState(GameSessionState.class).getShipId().getId() ) {
+            if (entity.getId().getId() == localPlayerShip.getId()) {
                 this.isPlayerEntity = true;
             }
-            
+
             // Pick up the current name
             updateComponents();
         }
 
-        protected void updateLabelPos( Vector3f pos ) {
-            if( !visible || isPlayerEntity ) {
+        protected void updateLabelPos(Vector3f pos) {
+            if (!visible || isPlayerEntity) {
                 return;
             }
             Vector3f camRelative = pos.subtract(camera.getLocation());
             float distance = camera.getDirection().dot(camRelative);
-            if( distance < 0 ) {
+            if (distance < 0) {
                 // It's behind us
                 label.removeFromParent();
                 return;
             }
-            
+
             // Calculate the ship's position on screen
             Vector3f screen2 = camera.getScreenCoordinates(pos.add(0, labelOffset, 0));
-            
+
             Vector3f pref = label.getPreferredSize();
             label.setLocalTranslation(screen2.x - pref.x * 0.5f, screen2.y + pref.y, screen2.z);
-            if( label.getParent() == null ) {
+            if (label.getParent() == null) {
                 hudLabelRoot.attachChild(label);
-            }               
+            }
         }
-        
-        public void update( long time ) {
- 
+
+        public void update(long time) {
+
             // Look back in the brief history that we've kept and
             // pull an interpolated value.  To do this, we grab the
             // span of time that contains the time we want.  PositionTransition
             // represents a starting and an ending pos+rot over a span of time.
             PositionTransition3f trans = buffer.getTransition(time);
-            if( trans != null ) {
+            if (trans != null) {
                 Vector3f pos = trans.getPosition(time, true);
-                setVisible(trans.getVisibility(time));                
+                setVisible(trans.getVisibility(time));
                 updateLabelPos(pos);
-            }            
+            }
         }
- 
+
         protected void updateComponents() {
             label.setText(entity.get(Name.class).getName());
         }
-        
-        protected void setVisible( boolean f ) {
-            if( this.visible == f ) {
+
+        protected void setVisible(boolean f) {
+            if (this.visible == f) {
                 return;
             }
             this.visible = f;
-            if( visible && !isPlayerEntity ) {
+            if (visible && !isPlayerEntity) {
                 label.setCullHint(Spatial.CullHint.Inherit);
             } else {
                 label.setCullHint(Spatial.CullHint.Always);
             }
         }
-        
+
         public void dispose() {
             label.removeFromParent();
         }
     }
-    
+
     private class LabelContainer extends EntityContainer<LabelHolder> {
-        public LabelContainer( EntityData ed ) {
+
+        public LabelContainer(EntityData ed) {
             super(ed, Name.class, BodyPosition.class);
         }
-    
-        @Override     
+
+        @Override
         protected LabelHolder[] getArray() {
             return super.getArray();
         }
-    
-        @Override       
-        protected LabelHolder addObject( Entity e ) {
+
+        @Override
+        protected LabelHolder addObject(Entity e) {
             return new LabelHolder(e);
         }
-    
-        @Override       
-        protected void updateObject( LabelHolder object, Entity e ) {
+
+        @Override
+        protected void updateObject(LabelHolder object, Entity e) {
             object.updateComponents();
         }
-    
-        @Override       
-        protected void removeObject( LabelHolder object, Entity e ) {
-            object.dispose();   
-        }            
+
+        @Override
+        protected void removeObject(LabelHolder object, Entity e) {
+            object.dispose();
+        }
+    }
+
+    public void setLocalPlayerShip(EntityId localPlayerShip) {
+        this.localPlayerShip = localPlayerShip;
     }
 
 }
-

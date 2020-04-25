@@ -218,12 +218,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     private class AccountObserver {
 
         public void onPlayerLoggedOn(AccountEvent event) {
-            log.debug("onPlayerLoggedOn()");
+            log.info("onPlayerLoggedOn()");
             startHostingOnConnection(event.getConnection(), event.getPlayerEntity());
         }
 
         public void onPlayerLoggedOff(AccountEvent event) {
-            log.debug("onPlayerLoggedOff()");
+            log.info("onPlayerLoggedOff()");
             stopHostingOnConnection(event.getConnection());
         }
     }
