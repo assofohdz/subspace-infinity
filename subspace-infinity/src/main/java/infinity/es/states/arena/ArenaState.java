@@ -123,7 +123,7 @@ public class ArenaState extends AbstractGameSystem implements ArenaManager {
                 ed.setComponent(e.getId(), newPos);
             }
 
-            log.info("Zones: " + zones.toString());
+            log.trace("Zones: " + zones.toString());
         }
 
     }

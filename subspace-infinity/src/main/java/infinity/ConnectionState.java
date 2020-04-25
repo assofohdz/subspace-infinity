@@ -137,9 +137,7 @@ public class ConnectionState extends CompositeAppState {
             // We'd want to present an error... but right now this will
             // never happen.
         }
-        
-        EntityId shipId = getService(GameSessionClientService.class).getShip();
-        addChild(new GameSessionState(shipId), true);
+        addChild(new GameSessionState(getService(GameSessionClientService.class).getShip(), getRemoteTimeSource()), true);
     } 
 
     @Override   

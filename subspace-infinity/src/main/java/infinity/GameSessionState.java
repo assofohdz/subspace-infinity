@@ -80,12 +80,12 @@ public class GameSessionState extends CompositeAppState {
     // Temporary reference FIXME
     private PlayerMovementState us;
 
-    private EntityId shipId;
-    
-    public GameSessionState(EntityId shipId){
+    private final EntityId shipId;
+
+    public GameSessionState(EntityId shipId, TimeSource ts) {
         // add normal states on the super-constructor
         super(new MessageState(),
-                new TimeState(), // Has to be before any visuals that might need it.
+                new TimeState(ts), // Has to be before any visuals that might need it.
                 new MapStateClient(),
                 new SkyState(),
                 new HudLabelState(shipId),
@@ -103,41 +103,7 @@ public class GameSessionState extends CompositeAppState {
         //new MapEditorState()
         );
 
-        // Add states that need to support enable/disable independent of
-        // the outer state using addChild().
-        addChild(new InGameMenuState(false), true);
-        addChild(new CommandConsoleState(), true);
-
-        // For popping up a time sync debug panel
-        //addChild(new TimeSequenceState(), true);
-        addChild(new HelpState(), true);
-        addChild(new PlayerListState(), true);
-        
-        System.out.println("created GameSessionState w. shipId: "+shipId);
-        
         this.shipId = shipId;
-    }
-/*
-    public GameSessionState() {
-        // add normal states on the super-constructor
-        super(new MessageState(),
-                new TimeState(), // Has to be before any visuals that might need it.
-                new MapStateClient(),
-                new SkyState(),
-                new PlayerMovementState(),
-                //new HudLabelState(),
-                //new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-                //new ShipFrequencyStateClient(),
-                //new FlagStateClient(),
-                //new ResourceStateClient(),
-                new CameraState(),
-                new AudioState(new SIAudioFactory()),
-                new LightState(),
-                new RadarStateTexture(),
-                new ModelViewState(new SISpatialFactory())
-        //new InfinityLightState()
-        //new MapEditorState()
-        );
 
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
@@ -148,13 +114,8 @@ public class GameSessionState extends CompositeAppState {
         //addChild(new TimeSequenceState(), true);
         addChild(new HelpState(), true);
         addChild(new PlayerListState(), true);
-        
-        cs = getState(ConnectionState.class);
-        System.out.println("");
-    }
-*/
-    public EntityId getShipId() {
-        return shipId;
+
+        System.out.println("created GameSessionState w. shipId: " + shipId);
     }
 
     public void disconnect() {
@@ -164,7 +125,8 @@ public class GameSessionState extends CompositeAppState {
 
     @Override
     protected void initialize(Application app) {
-        log.info("initialize()");
+        log.debug("++initialize()");
+        super.initialize(app);
 
         System.out.println("initialize in GameSessionState");
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
@@ -174,10 +136,6 @@ public class GameSessionState extends CompositeAppState {
         getState(MessageState.class).addMessage("> You have joined the game.", ColorRGBA.Yellow);
         getState(ConnectionState.class).getService(GameSessionClientService.class).addGameSessionListener(gameSessionObserver);
 
-        // Give the time state its time source
-        TimeSource timeSource = getState(ConnectionState.class).getRemoteTimeSource();
-        getState(TimeState.class).setTimeSource(timeSource);
-
         // Setup the chat related services
         getState(ConnectionState.class).getService(ChatClientService.class).addChatSessionListener(chatSessionObserver);
         getState(CommandConsoleState.class).setCommandEntry(chatEntry);
@@ -186,11 +144,12 @@ public class GameSessionState extends CompositeAppState {
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
 
         addChild(new MouseAppState(app));
+        log.debug("--initialize()");
     }
 
     @Override
     protected void cleanup(Application app) {
-
+        log.debug("++cleanup()");
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);
 
@@ -202,6 +161,7 @@ public class GameSessionState extends CompositeAppState {
         getChild(CommandConsoleState.class).setCommandEntry(null);
 
         super.cleanup(app);
+        log.debug("--cleanup()");
     }
 
     @Override

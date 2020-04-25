@@ -14,7 +14,7 @@
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="infinity" level="DEBUG"/>
+    <Logger name="infinity" level="TRACE"/>
     <Logger name="com.simsilica.sim" level="TRACE"/>
     <!-- <Logger name="com.simsilica.lemur.CallMethodAction" level="TRACE"/> -->
     <Root level="INFO">

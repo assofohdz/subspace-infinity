@@ -19,12 +19,12 @@ buildscript {
 }
 
 plugins {
-	//id "com.gradle.enterprise" version "3.2.1"
+    //id "com.gradle.enterprise" version "3.2.1"
     //id 'com.gradle.build-scan' version '2.1'
     //id 'com.bmuschko.docker-java-application' version '4.5.0'
     id "com.bmuschko.docker-java-application" version "6.4.0"
-	//id "com.github.ben-manes.versions" version '0.20.0'
-	id "com.github.ben-manes.versions" version "0.28.0"
+    //id "com.github.ben-manes.versions" version '0.20.0'
+    id "com.github.ben-manes.versions" version "0.28.0"
 }
 
 allprojects {
@@ -165,10 +165,15 @@ dependencies {
     // Standard utility stuff
     //https://github.com/google/guava
     compile 'com.google.guava:guava:29.0-jre'
+    
+    
     //https://www.slf4j.org/
-    compile 'org.slf4j:slf4j-api:2.0.0-alpha1'
+    //compile 'org.slf4j:slf4j-api:2.0.0-alpha1'
     //https://logging.apache.org
-    runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.13.2'
+    //runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.13.2'
+    compile "org.slf4j:slf4j-simple:2.0.0-alpha1"
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.2'
+
     
     //Dyn4j
     //http://www.dyn4j.org/
@@ -195,6 +200,11 @@ dependencies {
     compile "com.code-disaster.steamworks4j:steamworks4j-server:1.8.0"
 }
 
+task runClient(type: JavaExec) {
+    main = "infinity.Main"
+    jvmArgs '-Dlog4j.configurationFile=log4j2.xml'
+}
+
 task runServer(type: JavaExec) {
     classpath sourceSets.main.runtimeClasspath
     main = "infinity.net.server.GameServer"
@@ -207,7 +217,7 @@ task serverStartScript(type: CreateStartScripts) {
     mainClassName = "infinity.net.server.GameServer"
     applicationName = "server"
     outputDir = new File(project.buildDir, 'scripts')
-    classpath = jar.outputs.files + project.configurations.runtime
+    classpath = jar.outputs.files + project.configurations.runtime  
     defaultJvmOpts = ['-Dlog4j.configurationFile=server-log4j2.xml']
 }
 

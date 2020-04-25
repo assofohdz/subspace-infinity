@@ -80,7 +80,7 @@ public class Main extends SimpleApplication {
         settings.load("Subspace: Infinity");
         settings.setTitle("Subspace: Infinity");
         settings.setSettingsDialogImage("/subspace-since-1995-splash.jpg");
-        settings.setUseJoysticks(true);
+        settings.setUseJoysticks(false);
         
         
         /*
@@ -105,7 +105,7 @@ public class Main extends SimpleApplication {
               new AnimationState(), // from Lemur
               new OptionPanelState(), // from Lemur
               new DebugHudState(), // SiO2 utility class
-              //new SiliconDioxideState(),
+              new SiliconDioxideState(),
               new MainMenuState(),
               new ScreenshotAppState("", System.currentTimeMillis())); 
     }
@@ -117,6 +117,7 @@ public class Main extends SimpleApplication {
         t.printStackTrace();
     }
         
+    @Override
     public void simpleInitApp() {        
         
         setPauseOnLostFocus(false);
