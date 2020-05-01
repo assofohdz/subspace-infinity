@@ -346,16 +346,16 @@ public class GameServer {
         EtherealHost host = server.getServices().getService(EtherealHost.class);
 
         for (HostedConnection conn : server.getConnections()) {
-            log.info("Client[" + conn.getId() + "] address:" + conn.getAddress());
+            log.debug("Client[" + conn.getId() + "] address:" + conn.getAddress());
             NetworkStateListener listener = host.getStateListener(conn);
             if (listener == null) {
                 log.info("[" + conn.getId() + "] No stats");
                 continue;
             }
-            log.info("[" + conn.getId() + "] Ping time: " + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
+            log.debug("[" + conn.getId() + "] Ping time: " + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
             String miss = String.format("%.02f", listener.getConnectionStats().getAckMissPercent());
-            log.info("[" + conn.getId() + "] Ack miss: " + miss + "%");
-            log.info("[" + conn.getId() + "] Average msg size: " + listener.getConnectionStats().getAverageMessageSize() + " bytes");
+            log.debug("[" + conn.getId() + "] Ack miss: " + miss + "%");
+            log.debug("[" + conn.getId() + "] Average msg size: " + listener.getConnectionStats().getAverageMessageSize() + " bytes");
         }
     }
 

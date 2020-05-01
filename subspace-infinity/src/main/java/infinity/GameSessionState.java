@@ -126,10 +126,9 @@ public class GameSessionState extends CompositeAppState {
 
     @Override
     protected void initialize(Application app) {
-        log.debug("++initialize()");
+        log.info("++initialize()");
         super.initialize(app);
 
-        System.out.println("initialize in GameSessionState");
         EventBus.publish(GameSessionEvent.sessionStarted, new GameSessionEvent());
 
         // Add a self-message because we're too late to have caught the
@@ -145,7 +144,7 @@ public class GameSessionState extends CompositeAppState {
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
 
         addChild(new MouseAppState(app));
-        log.debug("--initialize()");
+        log.info("--initialize()");
     }
 
     @Override

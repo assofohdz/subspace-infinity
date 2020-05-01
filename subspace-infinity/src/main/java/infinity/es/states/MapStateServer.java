@@ -42,11 +42,19 @@ import infinity.api.sim.ModuleGameEntities;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.net.server.AssetLoaderService;
+import java.lang.reflect.Method;
+import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import org.dyn4j.geometry.Vector2;
 import org.mapeditor.io.TMXMapReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * State
@@ -54,6 +62,8 @@ import org.mapeditor.io.TMXMapReader;
  * @author Asser
  */
 public class MapStateServer extends AbstractGameSystem {
+    
+    static Logger log = LoggerFactory.getLogger(MapStateServer.class);
 
     private TMXMapReader reader;
     private EntityData ed;
@@ -71,6 +81,7 @@ public class MapStateServer extends AbstractGameSystem {
     private final AssetLoaderService assetLoader;
     private SimTime time;
     private boolean mapCreated = false;
+    private LinkedList<MapTileCallable> mapTileQueue;
 
     public MapStateServer(AssetLoaderService assetLoader) {
 
@@ -101,6 +112,7 @@ public class MapStateServer extends AbstractGameSystem {
         dungeon = this.expandCorridors(dungeon);
         this.createMapTilesFromDungeonGrid(dungeon, -50f, -50f);
          */
+        mapTileQueue = new LinkedList<>();
     }
 
     /**
@@ -246,8 +258,10 @@ public class MapStateServer extends AbstractGameSystem {
                             ModuleGameEntities.createWormhole(location, 5, 5, 5000, GravityWell.PULL, new Vec3d(0, 0, 0), ed, time.getTime());
                             break;
                         default:
-                            ModuleGameEntities.createMapTile(map.m_file, s, location, TileTypes.LEGACY, ed, time.getTime());//
+                            //ModuleGameEntities.createMapTile(map.m_file, s, location, TileTypes.LEGACY, ed, time.getTime());//
+                            mapTileQueue.add(new MapTileCallable(map.m_file, s, location, TileTypes.LEGACY, ed, time.getTime()));
                             break;
+
                     }
                 }
             }
@@ -275,11 +289,12 @@ public class MapStateServer extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
+
         this.time = tpf;
 
         //Create map:
         if (!mapCreated) {
-            createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(0,0,0));
+            createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE*0.5, MAP_SIZE*0.25, 0));
             //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
             //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0));
             //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
@@ -322,6 +337,21 @@ public class MapStateServer extends AbstractGameSystem {
             ModuleGameEntities.updateWangBlobEntity(eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, clampedLocation.y, 0), ed, time.getTime());
         }
         sessionTileCreations.clear();
+
+        try {
+            if (mapTileQueue.size() > 2) {
+                mapTileQueue.pop().call();
+                mapTileQueue.pop().call();
+
+            }
+            if (mapTileQueue.size() > 0) {
+                mapTileQueue.pop().call();
+
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -625,6 +655,45 @@ public class MapStateServer extends AbstractGameSystem {
                     }
                 }
             }
+        }
+    }
+
+    class MapTileCallable implements Callable<EntityId> {
+
+        String m_file;
+        short s;
+        Vec3d loc;
+        String type;
+        EntityData ed;
+        long time;
+
+        public MapTileCallable(String m_file, short s, Vec3d location, String type, EntityData ed, long time) {
+            this.m_file = m_file;
+            this.s = s;
+            this.loc = location;
+            this.type = type;
+            this.ed = ed;
+            this.time = time;
+        }
+
+        @Override
+        public EntityId call() throws Exception {
+            EntityId id = ModuleGameEntities.createMapTile(m_file, s, loc, type, ed, time);
+            log.debug("Called up creation of entity: "+id+". "+this.toString());
+            return id;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("MapTileCallable{m_file=").append(m_file);
+            sb.append(", s=").append(s);
+            sb.append(", loc=").append(loc);
+            sb.append(", type=").append(type);
+            sb.append(", ed=").append(ed);
+            sb.append(", time=").append(time);
+            sb.append('}');
+            return sb.toString();
         }
     }
 }

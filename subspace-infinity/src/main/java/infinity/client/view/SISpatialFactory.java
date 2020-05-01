@@ -459,7 +459,7 @@ public class SISpatialFactory implements ModelFactory {
             Image image = clientMapState.getImage(e.getId());
 
             if (image == null) {
-                throw new RuntimeException("Image not loaded for tile entity: " + e.getId());
+                image = clientMapState.forceLoadImage(e.getId());
             }
 
             Texture2D tex2D = new Texture2D(image);

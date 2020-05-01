@@ -63,6 +63,7 @@ import infinity.ConnectionState;
 import infinity.ServerGameConstants;
 import infinity.Main;
 import infinity.TimeState;
+import infinity.api.es.TileTypes;
 import infinity.client.MapStateClient;
 import infinity.util.MathUtil;
 import java.math.RoundingMode;
@@ -110,7 +111,7 @@ public class ModelViewState extends BaseAppState {
     public ModelViewState(SISpatialFactory siSpatialFactory, EntityId shipId) {
         this.factory = siSpatialFactory;
         this.localPlayerEntityId = shipId;
-        
+
         log.debug("Constructed ModelViewState");
     }
 
@@ -208,7 +209,7 @@ public class ModelViewState extends BaseAppState {
                 oldPlayerPosition = newPlayerPosition;
             }
         }
-        
+
         tileTypes.applyChanges();
 
         // Grab a consistent time for this frame
@@ -227,8 +228,9 @@ public class ModelViewState extends BaseAppState {
                 //There's a timing issue I can't figure out yet
                 if (modelIndex.containsKey(e.getId())) {
                     TileType tt = e.get(TileType.class);
-
-                    factory.updateWangBlobTile(getModelSpatial(e.getId(), true), tt);
+                    if (tt.getTypeName(ed).equals(TileTypes.WANGBLOB)) {
+                        factory.updateWangBlobTile(getModelSpatial(e.getId(), true), tt);
+                    }
                 }
             }
         }
@@ -499,7 +501,7 @@ public class ModelViewState extends BaseAppState {
             spatial.setLocalTranslation(pos.getLocation().toVector3f());
             spatial.setLocalRotation(pos.getFacing().toQuaternion());
 
-            log.info("Position ("+spatial.getName()+"): "+spatial.getLocalTranslation()+", "+pos.getFacing());
+            log.debug("Position (" + spatial.getName() + "): " + spatial.getLocalTranslation() + ", " + pos.getFacing());
         }
     }
 
@@ -697,7 +699,7 @@ public class ModelViewState extends BaseAppState {
                     log.info("Time2: "+time+".Buffer2 without outliers: " + buffer.toString());
                 }
 
-                */
+                 */
                 spatial.setLocalTranslation(trans.getPosition(time, true));
                 spatial.setLocalRotation(trans.getRotation(time, true));
 
@@ -856,7 +858,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Spatial object, Entity e) {
-            log.info("Updated model on entity: " + e.toString());
+            log.debug("Updated model on entity: " + e.toString());
             updateModel(object, e, true);
         }
 
