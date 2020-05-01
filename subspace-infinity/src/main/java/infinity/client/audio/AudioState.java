@@ -72,7 +72,6 @@ public class AudioState extends BaseAppState {
     private EntitySet audio;
     private AssetManager assets;
     private Listener listener;
-    private Camera cam;
     private final SIAudioFactory factory;
     private ModelViewState viewState;
     private AudioContainer sounds;
@@ -101,7 +100,6 @@ public class AudioState extends BaseAppState {
         //Register default wave loader with the wa2 extension
         this.assets.registerLoader(WAVLoader.class, "wa2");
         this.listener = app.getListener();
-        this.cam = getState(CameraState.class).getCamera();
 
         this.viewState = getState(ModelViewState.class);
 

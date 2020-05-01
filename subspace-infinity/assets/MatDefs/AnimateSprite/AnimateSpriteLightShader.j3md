@@ -201,10 +201,6 @@ MaterialDef Phong AnimateMultilineSpriteLightShader {
             SPHERE_MAP : EnvMapAsSphereMap  
             NUM_BONES : NumberOfBones                        
             INSTANCING : UseInstancing
-            NUMTILESX : numTilesX
-            NUMTILESY : numTilesY
-            NUMTILESOFFSETX : numTilesOffsetX
-            NUMTILESOFFSETY : numTilesOffsetY
         }
     }
 

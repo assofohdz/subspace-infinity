@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="c8833e34-40c1-4a3d-8218-ffc4c2dd8b59" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/infinity/client/MovingAverage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/infinity/client/MyTransitionBuffer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/GameSessionState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/GameSessionState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/LoginState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/LoginState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/client/CameraState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/client/CameraState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/client/InfinityLightState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/client/InfinityLightState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/client/MapStateClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/client/MapStateClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/client/ResourceStateClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/client/ResourceStateClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/client/view/ModelViewState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/client/view/ModelViewState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/es/states/ActionState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/es/states/ActionState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/es/states/MapStateServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/es/states/MapStateServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/es/states/WeaponStateServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/es/states/WeaponStateServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/es/states/arena/ArenaState.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/es/states/arena/ArenaState.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/sim/BasicEnvironment.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/sim/BasicEnvironment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/sim/GDXAIDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/sim/GDXAIDriver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/sim/ShipDriver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/sim/ShipDriver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/infinity/sim/SimpleBody.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/infinity/sim/SimpleBody.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view />
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="1azOGFLNDbGlDrJ2lF916fe2xeV" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="show.unlinked.gradle.project.popup" value="true" />
+  </component>
+  <component name="RunManager">
+    <configuration name="subspace-infinity [run]" type="GradleRunConfiguration" factoryName="Gradle" nameIsGenerated="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="run" />
+          </list>
+        </option>
+        <option name="vmOptions" value="" />
+      </ExternalSystemSettings>
+      <GradleScriptDebugEnabled>true</GradleScriptDebugEnabled>
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="c8833e34-40c1-4a3d-8218-ffc4c2dd8b59" name="Default Changelist" comment="" />
+      <created>1587734857513</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1587734857513</updated>
+      <workItem from="1587734862125" duration="1053000" />
+      <workItem from="1587736149705" duration="51000" />
+      <workItem from="1587745449202" duration="2777000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="2" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1587748902868">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1587748902868" />
+    <state x="765" y="226" key="#com.intellij.ide.util.MemberChooser" timestamp="1587748578717">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="765" y="226" key="#com.intellij.ide.util.MemberChooser/0.0.1920.1040@0.0.1920.1040" timestamp="1587748578717" />
+    <state width="938" height="348" key="GridCell.Tab.0.bottom" timestamp="1587754019084">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019084" />
+    <state width="938" height="348" key="GridCell.Tab.0.center" timestamp="1587754019084">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019084" />
+    <state width="938" height="348" key="GridCell.Tab.0.left" timestamp="1587754019084">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019084" />
+    <state width="938" height="348" key="GridCell.Tab.0.right" timestamp="1587754019084">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019084" />
+    <state width="938" height="348" key="GridCell.Tab.1.bottom" timestamp="1587754019085">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019085" />
+    <state width="938" height="348" key="GridCell.Tab.1.center" timestamp="1587754019085">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019085" />
+    <state width="938" height="348" key="GridCell.Tab.1.left" timestamp="1587754019085">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019085" />
+    <state width="938" height="348" key="GridCell.Tab.1.right" timestamp="1587754019085">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="938" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1587754019085" />
+  </component>
+</project>

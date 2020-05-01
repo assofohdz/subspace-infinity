@@ -94,6 +94,7 @@ public class PlayerMovementState extends BaseAppState
 
     private Spatial localPlayerSpatial;
     private EntityId localPlayerShip;
+    private Camera camera;
 
 
     public PlayerMovementState(EntityId shipId) {
@@ -112,7 +113,7 @@ public class PlayerMovementState extends BaseAppState
 
     @Override
     protected void initialize(Application app) {
-
+        this.camera = app.getCamera();
         log.info("initialize()");
 
         if (inputMapper == null) {
@@ -379,10 +380,9 @@ public class PlayerMovementState extends BaseAppState
     }
 
     private Vector3f getArenaCollisionPoint(Vector2f click2d) {
-        Camera cam = getState(CameraState.class).getCamera();
 
-        Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
-        Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+        Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
+        Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
 
         Ray ray = new Ray(click3d, dir);
         CollisionResults results = new CollisionResults();

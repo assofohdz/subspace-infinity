@@ -30,6 +30,7 @@ import org.slf4j.*;
 import com.jme3.app.Application;
 import com.jme3.app.state.VideoRecorderAppState;
 import com.jme3.math.*;
+import com.simsilica.es.EntityData;
 
 import com.simsilica.event.EventBus;
 import com.simsilica.lemur.GuiGlobals;
@@ -82,28 +83,28 @@ public class GameSessionState extends CompositeAppState {
 
     private final EntityId shipId;
 
-    public GameSessionState(EntityId shipId, TimeSource ts) {
+    public GameSessionState(EntityId playerShipEntityId, TimeSource worldTimeSource) {
         // add normal states on the super-constructor
         super(new MessageState(),
-                new TimeState(ts), // Has to be before any visuals that might need it.
+                new TimeState(worldTimeSource), // Has to be before any visuals that might need it.
                 new MapStateClient(),
                 new SkyState(),
-                new HudLabelState(shipId),
+                new HudLabelState(playerShipEntityId),
                 new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-                new ShipFrequencyStateClient(shipId),
-                new FlagStateClient(shipId),
-                new ResourceStateClient(shipId),
+                new ShipFrequencyStateClient(playerShipEntityId),
+                new FlagStateClient(playerShipEntityId),
+                new ResourceStateClient(playerShipEntityId),
                 new AudioState(new SIAudioFactory()),
                 new LightState(),
-                new ModelViewState(new SISpatialFactory(), shipId),
-                new CameraState(shipId),
-                new RadarStateTexture(),
-                new PlayerMovementState(shipId)
+                new ModelViewState(new SISpatialFactory(), playerShipEntityId),
+                new CameraState(playerShipEntityId),
+                //new RadarStateTexture(),
+                new PlayerMovementState(playerShipEntityId)
         //new InfinityLightState()
         //new MapEditorState()
         );
 
-        this.shipId = shipId;
+        this.shipId = playerShipEntityId;
 
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
@@ -115,7 +116,7 @@ public class GameSessionState extends CompositeAppState {
         addChild(new HelpState(), true);
         addChild(new PlayerListState(), true);
 
-        System.out.println("created GameSessionState w. shipId: " + shipId);
+        System.out.println("created GameSessionState w. shipId: " + playerShipEntityId);
     }
 
     public void disconnect() {

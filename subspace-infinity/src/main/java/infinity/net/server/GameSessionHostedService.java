@@ -149,7 +149,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     public void startHostingOnConnection(HostedConnection conn, EntityId player) {
 
-        log.debug("startHostingOnConnection(" + conn + ")");
+        log.info("startHostingOnConnection(" + conn + ")");
 
         GameSessionImpl session = new GameSessionImpl(player, conn);
         

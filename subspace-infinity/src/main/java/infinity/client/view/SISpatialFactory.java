@@ -301,6 +301,7 @@ public class SISpatialFactory implements ModelFactory {
         Material mat = geom.getMaterial();
         mat.setInt("numTilesOffsetY", ship);
         geom.setMaterial(mat);
+        log.info("Setting geometry material on spatial:"+s+"; ship:" +ship);
     }
 
     private Spatial createParticleEmitter(Entity e) {
@@ -467,11 +468,15 @@ public class SISpatialFactory implements ModelFactory {
             geom.setMaterial(mat);
         } else {
             TileType tileType = state.getType(e.getId());
-            Material mat = assets.loadMaterial("Materials/WangBlobLight.j3m"); //tileType.getTileSet()
+            
+            //TODO: Do some caching and re-use materials/shaders
+            Material mat = assets.loadMaterial("Materials/WangBlobLight.j3m"); //tileType.getTileSet()            
+                        
+            mat.setTransparent(false);
             
             
             geom.setMaterial(mat);
-            geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+            geom.setQueueBucket(RenderQueue.Bucket.Opaque);
             this.updateWangBlobTile(geom, tileType);
         }
 

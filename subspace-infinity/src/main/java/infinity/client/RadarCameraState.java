@@ -41,22 +41,21 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class CameraState extends BaseAppState {
+public class RadarCameraState extends BaseAppState {
 
-    static Logger log = LoggerFactory.getLogger(CameraState.class);
+    static Logger log = LoggerFactory.getLogger(RadarCameraState.class);
 
     private MovingAverage movingAverage = new MovingAverage(10);
-    public static final float DISTANCETOPLANE = 60;
-    private Camera camera;
+    public static final float DISTANCETOPLANE = 300;
+    private Camera radarViewPortCamera;
     private final EntityId localPlayerShip;
 
     private ModelViewState models;
     private Spatial playerShip;
 
     private Vector3f oldCamPos, newCamPos;
-    
 
-    public CameraState(EntityId shipId) {
+    public RadarCameraState(EntityId shipId) {
         this.localPlayerShip = shipId;
 
         log.debug("Constructed CameraState");
@@ -64,10 +63,10 @@ public class CameraState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        this.camera = app.getCamera();
+        this.radarViewPortCamera = new Camera();
 
-        this.camera.setLocation(new Vector3f(0, 0, DISTANCETOPLANE));
-        this.camera.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Z); //Set camera to look at the origin
+        this.radarViewPortCamera.setLocation(new Vector3f(0, 0, DISTANCETOPLANE));
+        this.radarViewPortCamera.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Z); //Set camera to look at the origin
 
         this.models = getState(ModelViewState.class);
         this.playerShip = models.getPlayerSpatial();
@@ -79,22 +78,10 @@ public class CameraState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        /*
-        newCamPos = camera.getLocation().clone();
 
-        if (oldCamPos != null) {
-            double distanceToNewPos = newCamPos.distance(oldCamPos);
-            movingAverage.add((double) Math.round(distanceToNewPos * 100000d) / 100000d);
-
-            if (MathUtil.getInstance().hasOutlier(movingAverage.getList(), MathUtil.DEFAULT_09999)) {
-                log.info("Camera: Avg. distance: " + (double) Math.round(movingAverage.getAverage() * 100000d) / 100000d);
-                log.info("Camera: New  distance: " + (double) Math.round(distanceToNewPos * 100000d) / 100000d);
-            }
-        }
-         */
         if (playerShip != null) {
-            camera.setLocation(playerShip.getWorldTranslation().add(0, 0, DISTANCETOPLANE));  //Set camera position above spatial - Z is up
-            camera.lookAt(playerShip.getWorldTranslation(), Vector3f.UNIT_Z); //Set camera to look at the spatial
+            radarViewPortCamera.setLocation(playerShip.getWorldTranslation().add(0, 0, DISTANCETOPLANE));  //Set camera position above spatial - Z is up
+            radarViewPortCamera.lookAt(playerShip.getWorldTranslation(), Vector3f.UNIT_Z); //Set camera to look at the spatial
         } else //Probably a crude way to do it - should be handled properly
         {
             this.playerShip = models.getPlayerSpatial();
@@ -109,7 +96,7 @@ public class CameraState extends BaseAppState {
 
     @Override
     public String getId() {
-        return "CameraState";
+        return "RadarCameraState";
     }
 
     @Override

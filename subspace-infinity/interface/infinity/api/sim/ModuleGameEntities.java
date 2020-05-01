@@ -677,6 +677,7 @@ public class ModuleGameEntities {
                 PhysicsShapes.mapTile());
 
         ed.setComponent(lastTileInfo, new Meta(createdTime));
+        
         return lastTileInfo;
     }
 

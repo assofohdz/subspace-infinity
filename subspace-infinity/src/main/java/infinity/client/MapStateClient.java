@@ -91,6 +91,7 @@ public class MapStateClient extends BaseAppState {
 
     private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     private float tpfTime;
+    private Camera camera;
     
     public MapStateClient(){
         log.info("Constructed MapStateClient");
@@ -98,6 +99,7 @@ public class MapStateClient extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
+        this.camera = app.getCamera();
 
         this.ed = getState(ConnectionState.class).getEntityData();
 
@@ -424,12 +426,11 @@ public class MapStateClient extends BaseAppState {
                             if (session == null) {
                                 throw new RuntimeException("ModelViewState requires an active game session.");
                             }
-                            Camera cam = getState(CameraState.class).getCamera();
 
                             Vector2f click2d = new Vector2f(event.getX(), event.getY());
 
-                            Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
-                            Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+                            Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
+                            Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
 
                             Ray ray = new Ray(click3d, dir);
                             CollisionResults results = new CollisionResults();
@@ -446,12 +447,11 @@ public class MapStateClient extends BaseAppState {
                             if (session == null) {
                                 throw new RuntimeException("ModelViewState requires an active game session.");
                             }
-                            Camera cam = getState(CameraState.class).getCamera();
 
                             Vector2f click2d = new Vector2f(event.getX(), event.getY());
 
-                            Vector3f click3d = cam.getWorldCoordinates(click2d.clone(), 0f).clone();
-                            Vector3f dir = cam.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+                            Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
+                            Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
 
                             Ray ray = new Ray(click3d, dir);
                             CollisionResults results = new CollisionResults();

@@ -499,7 +499,7 @@ public class ModelViewState extends BaseAppState {
             spatial.setLocalTranslation(pos.getLocation().toVector3f());
             spatial.setLocalRotation(pos.getFacing().toQuaternion());
 
-            //log.info("Position ("+spatial.getName()+"): "+spatial.getLocalTranslation()+", "+pos.getFacing());
+            log.info("Position ("+spatial.getName()+"): "+spatial.getLocalTranslation()+", "+pos.getFacing());
         }
     }
 
@@ -856,7 +856,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void updateObject(Spatial object, Entity e) {
-            //log.info("Updated model on entity: " + e.toString());
+            log.info("Updated model on entity: " + e.toString());
             updateModel(object, e, true);
         }
 
