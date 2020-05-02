@@ -60,6 +60,7 @@ import com.simsilica.mathd.trans.PositionTransition3f;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 import infinity.ConnectionState;
+import infinity.GameSessionState;
 import infinity.ServerGameConstants;
 import infinity.Main;
 import infinity.TimeState;
@@ -92,7 +93,6 @@ public class ModelViewState extends BaseAppState {
     private ModelContainer models;
     private SISpatialFactory factory;
     private Spatial playerSpatial;
-    private EntityId localPlayerEntityId;
     private EntitySet tileTypes;
     private Spatial arenaSpatial;
 
@@ -107,10 +107,11 @@ public class ModelViewState extends BaseAppState {
     private boolean playerCellIdInitialized = false;
 
     private List<ZoneKey> inZones = new ArrayList<>();
+    private EntityId playerEntityId;
+    private EntityId shipEntityId;
 
-    public ModelViewState(SISpatialFactory siSpatialFactory, EntityId shipId) {
+    public ModelViewState(SISpatialFactory siSpatialFactory) {
         this.factory = siSpatialFactory;
-        this.localPlayerEntityId = shipId;
 
         log.debug("Constructed ModelViewState");
     }
@@ -216,10 +217,12 @@ public class ModelViewState extends BaseAppState {
         long time = timeState.getTime();
 
         // Update all of the models
-        models.update();
-        mobs.update();
-        for (Mob mob : mobs.getArray()) {
-            mob.updateSpatial(time);
+        if (shipEntityId != null) {
+            models.update();
+            mobs.update();
+            for (Mob mob : mobs.getArray()) {
+                mob.updateSpatial(time);
+            }
         }
 
         if (tileTypes.hasChanges()) {
@@ -663,10 +666,9 @@ public class ModelViewState extends BaseAppState {
             // If this is the player's ship then we don't want the model
             // shown else it looks bad.  A) it's ugly.  B) the model will
             // always lag the player's turning.
-            if (entity.getId().getId() == localPlayerEntityId.getId()) {
+            if (entity.getId().getId() == shipEntityId.getId()) {
 
                 this.localPlayerShip = true;
-                localPlayerEntityId = entity.getId();
 
                 //To let the camerastate known which spatial is the player
                 playerSpatial = spatial;
@@ -875,10 +877,6 @@ public class ModelViewState extends BaseAppState {
 
     }
 
-    public EntityId getPlayerEntityId() {
-        return localPlayerEntityId;
-    }
-
     public Spatial getPlayerSpatial() {
         return playerSpatial;
     }
@@ -958,5 +956,10 @@ public class ModelViewState extends BaseAppState {
         OrFilter newZoneFilter = new com.simsilica.es.filter.OrFilter(Position.class, filters.toArray(new ComponentFilter[filters.size()]));
 
         return newZoneFilter;
+    }
+
+    public void setPlayerEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+        this.playerEntityId = playerEntityId;
+        this.shipEntityId = shipEntityId;
     }
 }

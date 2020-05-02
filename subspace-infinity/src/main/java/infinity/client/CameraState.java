@@ -48,16 +48,15 @@ public class CameraState extends BaseAppState {
     private MovingAverage movingAverage = new MovingAverage(10);
     public static final float DISTANCETOPLANE = 60;
     private Camera camera;
-    private final EntityId localPlayerShip;
 
     private ModelViewState models;
-    private Spatial playerShip;
+    private Spatial playerSpatial;
 
     private Vector3f oldCamPos, newCamPos;
-    
+    private EntityId playerEntityId;
+    private EntityId shipEntityId;
 
-    public CameraState(EntityId shipId) {
-        this.localPlayerShip = shipId;
+    public CameraState() {
 
         log.debug("Constructed CameraState");
     }
@@ -70,7 +69,7 @@ public class CameraState extends BaseAppState {
         this.camera.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Z); //Set camera to look at the origin
 
         this.models = getState(ModelViewState.class);
-        this.playerShip = models.getPlayerSpatial();
+        this.playerSpatial = models.getPlayerSpatial();
     }
 
     @Override
@@ -92,19 +91,15 @@ public class CameraState extends BaseAppState {
             }
         }
          */
-        if (playerShip != null) {
-            camera.setLocation(playerShip.getWorldTranslation().add(0, 0, DISTANCETOPLANE));  //Set camera position above spatial - Z is up
-            camera.lookAt(playerShip.getWorldTranslation(), Vector3f.UNIT_Z); //Set camera to look at the spatial
+        if (playerSpatial != null) {
+            camera.setLocation(playerSpatial.getWorldTranslation().add(0, 0, DISTANCETOPLANE));  //Set camera position above spatial - Z is up
+            camera.lookAt(playerSpatial.getWorldTranslation(), Vector3f.UNIT_Z); //Set camera to look at the spatial
         } else //Probably a crude way to do it - should be handled properly
         {
-            this.playerShip = models.getPlayerSpatial();
+            this.playerSpatial = models.getPlayerSpatial();
         }
 
         //oldCamPos = newCamPos.clone();
-    }
-
-    public void setPlayerShip(Spatial s) {
-        this.playerShip = s;
     }
 
     @Override
@@ -120,5 +115,10 @@ public class CameraState extends BaseAppState {
     @Override
     protected void onDisable() {
 
+    }
+
+    public void setPlayerEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+        this.playerEntityId = playerEntityId;
+        this.shipEntityId = shipEntityId;
     }
 }

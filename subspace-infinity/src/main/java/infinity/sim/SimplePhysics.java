@@ -43,6 +43,7 @@ import infinity.api.es.Position;
 
 import infinity.es.states.FlagStateServer;
 import infinity.es.states.GravityState;
+import infinity.es.states.MapStateServer;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.BodyFixture;
@@ -54,8 +55,12 @@ import org.dyn4j.dynamics.Settings;
 import org.dyn4j.dynamics.World;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Convex;
+import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Rectangle;
 import org.dyn4j.geometry.Vector2;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,12 +97,17 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     private Map<EntityId, SimpleBody> mapIndex = new ConcurrentHashMap<>();
     private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
 
+    GeometryFactory geometryFactory = new GeometryFactory();
+
+    //Map of tileKeys to JTS polygons (so we always know which tiles are mapped into which polygons)
     // Still need these to manage physics listener notifications in a 
     // thread-consistent way   
     private ConcurrentLinkedQueue<SimpleBody> toAdd = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<SimpleBody> toRemove = new ConcurrentLinkedQueue<>();
 
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
+
+    private Map<Vector2, Polygon> tileMapToPolygonMap = new HashMap<>();
 
     private World world;
     private Settings physicsSettings;
@@ -194,8 +204,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 index.put(entityId, result);
             }
         }
-        log.info("Created dynamic body: " + result.toString());
-        log.info("Number of dynamics in play: " + index.size());
+        log.info("Created dynamic body: " + result.toString() + " - Number of dynamics in play: " + index.size());
         return result;
     }
 
@@ -221,8 +230,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             }
         }
 
-        log.info("Created static body: " + result.toString());
-        log.info("Number of statics in play: " + indexStatic.size());
+        log.info("Created static body: " + result.toString() + " - Number of statics in play: " + indexStatic.size());
         return result;
     }
 
@@ -503,6 +511,15 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             PhysicsShape ps = e.get(PhysicsShape.class);
             PhysicsMassType pmt = e.get(PhysicsMassType.class);
             Position pos = e.get(Position.class);
+
+            Convex convex = ps.getFixture().getShape();
+            if (convex instanceof Rectangle && ps.getFixture().getUserData() == "mapTile") {
+                log.info("We found a map tile physics shape: "+e.toString());
+
+                ArrayList<Vector2> neighbours = getSystem(MapStateServer.class).getNeighbours((int) pos.getLocation().x, (int) pos.getLocation().y);
+                log.info("It has these neighbours: "+neighbours.toString());
+                //Do the magic
+            }
 
             // Right now only works for CoG-centered shapes                   
             SimpleBody newBody = createStatic(e.getId(), pmt.getTypeName(ed), ps.getFixture(), true);

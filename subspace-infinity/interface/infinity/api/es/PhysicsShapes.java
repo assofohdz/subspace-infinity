@@ -213,6 +213,8 @@ public class PhysicsShapes {
         fixture.setFilter(filter);
         //fixture.setRestitution(1d); //Bounciness
         //fixture.setFriction(0d);
+        
+        fixture.setUserData("mapTile");
 
         return new PhysicsShape(fixture);
     }

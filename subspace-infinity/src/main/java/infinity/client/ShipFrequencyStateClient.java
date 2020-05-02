@@ -32,6 +32,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import infinity.ConnectionState;
+import infinity.GameSessionState;
 import infinity.api.es.Frequency;
 import infinity.api.es.ship.ShipType;
 import org.slf4j.Logger;
@@ -42,16 +43,16 @@ import org.slf4j.LoggerFactory;
  * @author Asser
  */
 public class ShipFrequencyStateClient extends BaseAppState {
+
     static Logger log = LoggerFactory.getLogger(ShipFrequencyStateClient.class);
 
     private EntityData ed;
     private EntitySet ships;
-    private final EntityId localPlayerShip;
     private int localPlayerFrequency = -1; //Frequency initiated to -1. All real frequencies are positive integers
+    private EntityId shipEntityId;
+    private EntityId playerEntityId;
 
-    public ShipFrequencyStateClient(EntityId shipId) {
-        this.localPlayerShip = shipId;
-        
+    public ShipFrequencyStateClient() {
         log.debug("Constructed ShipFrequencyStateClient");
     }
 
@@ -79,28 +80,37 @@ public class ShipFrequencyStateClient extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        if (ships.applyChanges()) {
-            for (Entity e : ships.getChangedEntities()) {
-                Frequency freq = e.get(Frequency.class);
-                if (e.getId().getId() == localPlayerShip.getId()) {
-                    localPlayerFrequency = freq.getFreq();
+
+        if (shipEntityId != null) {
+            if (ships.applyChanges()) {
+                for (Entity e : ships.getChangedEntities()) {
+                    Frequency freq = e.get(Frequency.class);
+                    if (e.getId().getId() == shipEntityId.getId()) {
+                        localPlayerFrequency = freq.getFreq();
+                    }
+                    //TODO: Use remaining information to update roster in HUD
                 }
-                //TODO: Use remaining information to update roster in HUD
-            }
-            for (Entity e : ships.getAddedEntities()) {
-                Frequency freq = e.get(Frequency.class);
-                if (e.getId().getId() == localPlayerShip.getId()) {
-                    localPlayerFrequency = freq.getFreq();
+                for (Entity e : ships.getAddedEntities()) {
+                    Frequency freq = e.get(Frequency.class);
+                    if (e.getId().getId() == shipEntityId.getId()) {
+                        localPlayerFrequency = freq.getFreq();
+                    }
+                    //TODO: Use information to update roster in HUD
                 }
-                //TODO: Use information to update roster in HUD
-            }
-            for (Entity e : ships.getRemovedEntities()) {
-                //TODO: Use information to update roster in HUD
+                for (Entity e : ships.getRemovedEntities()) {
+                    //TODO: Use information to update roster in HUD
+                }
             }
         }
+
     }
 
     public int getLocalPlayerFrequency() {
         return this.localPlayerFrequency;
+    }
+    
+    public void setPlayerEntityIds(EntityId playerEntityId, EntityId shipEntityId){
+        this.playerEntityId = playerEntityId; 
+        this.shipEntityId = shipEntityId;
     }
 }

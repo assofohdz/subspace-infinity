@@ -92,15 +92,11 @@ public class PlayerMovementState extends BaseAppState
     private double mouse3;
     private double mouse2;
 
-    private Spatial localPlayerSpatial;
-    private EntityId localPlayerShip;
+    private Spatial playerSpatial;
     private Camera camera;
 
 
-    public PlayerMovementState(EntityId shipId) {
-        this.localPlayerShip = shipId;
-        
-        log.debug("Constructed PlayerMovementState");
+    public PlayerMovementState() {
     }
 
     public void setShipId(EntityId shipId) {
@@ -257,7 +253,7 @@ public class PlayerMovementState extends BaseAppState
 
     @Override
     public void update(float tpf) {
-
+        
         long time = System.nanoTime();
         if (time > nextSendTime) {
             nextSendTime = time + sendFrequency;
@@ -285,10 +281,10 @@ public class PlayerMovementState extends BaseAppState
         }
 
         // Only update the position/speed display 20 times a second
-        if (localPlayerSpatial != null) {
-            updateShipLocation(localPlayerSpatial.getWorldTranslation());
+        if (playerSpatial != null) {
+            updateShipLocation(playerSpatial.getWorldTranslation());
         } else {
-            this.localPlayerSpatial = models.getModelSpatial(localPlayerShip, false);
+            this.playerSpatial = models.getPlayerSpatial();
         }
         
         /*

@@ -243,8 +243,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.playerEntity = playerEntity;
             this.conn = conn;
             
-            
-            
             // Create a ship for the player
             this.shipDriver = new ShipDriver();
 
@@ -261,8 +259,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Set the position when we want the ship to actually appear
             // in space 'for real'.
             ed.setComponent(shipEntity, new Position());            
-            
-            System.out.println("Set position on:" + shipEntity);
         }
 
         public void initialize() {
@@ -429,9 +425,15 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             gameSystems.get(MapStateServer.class).sessionRemoveTile(x, y);
         }
         
+        //GameSessionListener interface
         @Override
         public void updateCredits(int credits){
             getCallback().updateCredits(credits);
+        }
+
+        @Override
+        public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+            getCallback().setEntityIds(playerEntityId, shipEntityId);
         }
     }
     

@@ -44,12 +44,12 @@ import com.simsilica.event.EventType;
 public class AccountEvent {
 
     /**
-     *  Singals that a player has successfully logged in.
+     *  Signals that a player has successfully logged in.
      */
     public static EventType<AccountEvent> playerLoggedOn = EventType.create("PlayerLoggedOn", AccountEvent.class);
 
     /**
-     *  Singals that a player has logged out.
+     *  Signals that a player has logged out.
      */
     public static EventType<AccountEvent> playerLoggedOff = EventType.create("PlayerLoggedOff", AccountEvent.class);
     

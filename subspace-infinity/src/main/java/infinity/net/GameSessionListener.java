@@ -26,6 +26,7 @@
 package infinity.net;
 
 import com.jme3.network.service.rmi.Asynchronous;
+import com.simsilica.es.EntityId;
 
 /**
  * The asynchronous callbacks that the game back-end uses to send game-session
@@ -43,4 +44,6 @@ public interface GameSessionListener {
     @Asynchronous
     public void updateCredits(int credits);
 
+    @Asynchronous
+    public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId);
 }

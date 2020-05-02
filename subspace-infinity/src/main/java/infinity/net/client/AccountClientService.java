@@ -79,6 +79,7 @@ public class AccountClientService extends AbstractClientService
      * @param l the account session listener to add
      */
     public void addAccountSessionListener( AccountSessionListener l ) {
+        log.info("Added account client service listener: "+l.toString());
         listeners.add(l);
     }
     
@@ -124,7 +125,7 @@ public class AccountClientService extends AbstractClientService
  
         @Override   
         public void notifyLoginStatus( boolean loggedIn ) {
-            log.trace("notifyLoginStatus(" + loggedIn + ")");
+            log.info("notifyLoginStatus(" + loggedIn + ")");
             listeners.forEach((l) -> {
                 l.notifyLoginStatus(loggedIn);
             });

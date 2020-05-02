@@ -58,7 +58,6 @@ public class HudLabelState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(HudLabelState.class);
 
     private EntityData ed;
-    private EntityId localPlayerShip;
     private TimeSource timeSource;
     private TimeState timeState;
 
@@ -66,10 +65,11 @@ public class HudLabelState extends BaseAppState {
     private Camera camera;
 
     private LabelContainer labels;
+    private EntityId playerEntityId;
+    private EntityId shipEntityId;
 
-    public HudLabelState(EntityId shipId) {
-        this.localPlayerShip = shipId;
-        
+    public HudLabelState() {
+
         log.debug("Constructed HudLabelState");
     }
 
@@ -123,10 +123,12 @@ public class HudLabelState extends BaseAppState {
         // Grab a consistent time for this frame
         //long time = timeSource.getTime();
 
-        // Update all of the models
-        labels.update();
-        for (LabelHolder label : labels.getArray()) {
-            label.update(time);
+        if (playerEntityId != null) {
+            // Update all of the models
+            labels.update();
+            for (LabelHolder label : labels.getArray()) {
+                label.update(time);
+            }
         }
     }
 
@@ -165,7 +167,7 @@ public class HudLabelState extends BaseAppState {
             // If this is the player's ship then we don't want the model
             // shown else it looks bad.  A) it's ugly.  B) the model will
             // always lag the player's turning.
-            if (entity.getId().getId() == localPlayerShip.getId()) {
+            if (entity.getId().getId() == shipEntityId.getId()) {
                 this.isPlayerEntity = true;
             }
 
@@ -257,8 +259,9 @@ public class HudLabelState extends BaseAppState {
         }
     }
 
-    public void setLocalPlayerShip(EntityId localPlayerShip) {
-        this.localPlayerShip = localPlayerShip;
+    public void setPlayerEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+        this.playerEntityId = playerEntityId;
+        this.shipEntityId = shipEntityId;
     }
 
 }

@@ -41,11 +41,8 @@ public class ResourceStateClient extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(ResourceStateClient.class);
 
     private VersionedHolder<String> goldDisplay;
-    private final EntityId localPlayerShip;
 
-    public ResourceStateClient(EntityId shipId) {
-        this.localPlayerShip = shipId;
-        
+    public ResourceStateClient() {
         log.debug("Constructed ResourceStateClient");
     }
 

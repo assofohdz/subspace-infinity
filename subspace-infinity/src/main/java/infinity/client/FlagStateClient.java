@@ -48,10 +48,8 @@ public class FlagStateClient extends BaseAppState {
 
     private EntityData ed;
     private EntitySet flags;
-    private final EntityId localPlayerShip;
 
-    public FlagStateClient(EntityId shipId) {
-        this.localPlayerShip = shipId;
+    public FlagStateClient() {
         
         log.debug("Constructed FlagStateClient");
     }

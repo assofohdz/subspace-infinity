@@ -36,9 +36,11 @@ import com.jme3.network.service.ClientServiceManager;
 import com.jme3.network.service.rmi.RmiClientService;
 
 import com.simsilica.es.EntityId;
+import infinity.net.AccountSessionListener;
 
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
+import java.util.logging.Level;
 
 /**
  * Manages the client-side hook-up for the GameSession.
@@ -46,7 +48,7 @@ import infinity.net.GameSessionListener;
  * @author Paul Speed
  */
 public class GameSessionClientService extends AbstractClientService
-        implements GameSession {
+        implements GameSession, AccountSessionListener {
 
     static Logger log = LoggerFactory.getLogger(GameSessionClientService.class);
 
@@ -55,7 +57,8 @@ public class GameSessionClientService extends AbstractClientService
     private GameSession delegate;
 
     private GameSessionCallback sessionCallback = new GameSessionCallback();
-    private List<GameSessionListener> listeners = new CopyOnWriteArrayList<>();
+    private List<GameSessionListener> gameSessionListeners = new CopyOnWriteArrayList<>();
+    private boolean loggedIn;
 
     public GameSessionClientService() {
     }
@@ -100,18 +103,20 @@ public class GameSessionClientService extends AbstractClientService
      * Adds a listener that will be notified about account-related events. Note
      * that these listeners are called on the networking thread and as such are
      * not suitable for modifying the visualization directly.
+     *
      * @param l the game session listener to add
      */
     public void addGameSessionListener(GameSessionListener l) {
-        listeners.add(l);
+        gameSessionListeners.add(l);
     }
 
     public void removeGameSessionListener(GameSessionListener l) {
-        listeners.remove(l);
+        gameSessionListeners.remove(l);
     }
 
     @Override
     protected void onInitialize(ClientServiceManager s) {
+        getService(AccountClientService.class).addAccountSessionListener(this);
         log.debug("onInitialize(" + s + ")");
         this.rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
@@ -242,6 +247,11 @@ public class GameSessionClientService extends AbstractClientService
         getDelegate().removeTile(x, y);
     }
 
+    @Override
+    public void notifyLoginStatus(boolean loggedIn) {
+        this.loggedIn = loggedIn;
+    }
+
     /**
      * Shared with the server over RMI so that it can notify us about account
      * related stuff.
@@ -251,9 +261,18 @@ public class GameSessionClientService extends AbstractClientService
         @Override
         public void updateCredits(int credits) {
             log.trace("This is called from server to client");
-            
-            for(GameSessionListener listener : listeners){
+
+            for (GameSessionListener listener : gameSessionListeners) {
                 listener.updateCredits(credits);
+            }
+        }
+
+        @Override
+        public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+            log.trace("This is called from server to client");
+
+            for (GameSessionListener listener : gameSessionListeners) {
+                listener.setEntityIds(playerEntityId, shipEntityId);
             }
         }
     }

@@ -52,6 +52,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import org.dyn4j.geometry.Vector2;
+import org.locationtech.jts.geom.Polygon;
 import org.mapeditor.io.TMXMapReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * @author Asser
  */
 public class MapStateServer extends AbstractGameSystem {
-    
+
     static Logger log = LoggerFactory.getLogger(MapStateServer.class);
 
     private TMXMapReader reader;
@@ -82,6 +83,7 @@ public class MapStateServer extends AbstractGameSystem {
     private SimTime time;
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
+    
 
     public MapStateServer(AssetLoaderService assetLoader) {
 
@@ -338,19 +340,22 @@ public class MapStateServer extends AbstractGameSystem {
         }
         sessionTileCreations.clear();
 
-        try {
-            if (mapTileQueue.size() > 2) {
-                mapTileQueue.pop().call();
-                mapTileQueue.pop().call();
+        //Create the legacy maps in an ordered fashion instead of all at once:
+        if (mapTileQueue.size() > 0) {
+            try {
+                if (mapTileQueue.size() > 2) {
+                    mapTileQueue.pop().call();
+                    mapTileQueue.pop().call();
 
-            }
-            if (mapTileQueue.size() > 0) {
-                mapTileQueue.pop().call();
+                }
+                if (mapTileQueue.size() > 0) {
+                    mapTileQueue.pop().call();
 
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage());
+                ex.printStackTrace();
             }
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            ex.printStackTrace();
         }
     }
 
@@ -679,7 +684,7 @@ public class MapStateServer extends AbstractGameSystem {
         @Override
         public EntityId call() throws Exception {
             EntityId id = ModuleGameEntities.createMapTile(m_file, s, loc, type, ed, time);
-            log.debug("Called up creation of entity: "+id+". "+this.toString());
+            log.debug("Called up creation of entity: " + id + ". " + this.toString());
             return id;
         }
 
@@ -695,5 +700,33 @@ public class MapStateServer extends AbstractGameSystem {
             sb.append('}');
             return sb.toString();
         }
+    }
+    
+    public ArrayList<Vector2> getNeighbours(int locX, int locY){
+        Vector2 loc = new Vector2(locX, locY);
+        ArrayList<Vector2> result = new ArrayList<>();
+        
+        Vector2 west = new Vector2(loc.x-1, loc.y);
+        Vector2 east = new Vector2(loc.x+1, loc.y);
+        Vector2 north = new Vector2(loc.x, loc.y+1);
+        Vector2 south = new Vector2(loc.x, loc.y-1);
+        //((Check west))
+        if (index.containsKey(west)) {
+            result.add(west);
+        }
+        //((Check east))
+        if (index.containsKey(east)) {
+            result.add(east);
+        }
+        //((Check north))
+        if (index.containsKey(north)) {
+            result.add(north);
+        }
+        //((Check south))
+        if (index.containsKey(south)) {
+            result.add(south);
+        }
+        
+        return result;
     }
 }

@@ -79,32 +79,35 @@ public class GameSessionState extends CompositeAppState {
     private ChatCommandEntry chatEntry = new ChatCommandEntry();
 
     // Temporary reference FIXME
-    private PlayerMovementState us;
+    private PlayerMovementState movement;
+    private int clientId;
+    private EntityId playerId;
+    private EntityId shipId;
+    private ModelViewState models;
+    private ShipFrequencyStateClient frequencies;
+    private HudLabelState hud;
+    private CameraState camera;
 
-    private final EntityId shipId;
-
-    public GameSessionState(EntityId playerShipEntityId, TimeSource worldTimeSource) {
+    public GameSessionState(TimeSource worldTimeSource) {
         // add normal states on the super-constructor
         super(new MessageState(),
                 new TimeState(worldTimeSource), // Has to be before any visuals that might need it.
                 new MapStateClient(),
                 new SkyState(),
-                new HudLabelState(playerShipEntityId),
+                new HudLabelState(),
                 new SpaceGridState(ServerGameConstants.GRID_CELL_SIZE, 10, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-                new ShipFrequencyStateClient(playerShipEntityId),
-                new FlagStateClient(playerShipEntityId),
-                new ResourceStateClient(playerShipEntityId),
+                new ShipFrequencyStateClient(),
+                new FlagStateClient(),
+                new ResourceStateClient(),
                 new AudioState(new SIAudioFactory()),
                 new LightState(),
-                new ModelViewState(new SISpatialFactory(), playerShipEntityId),
-                new CameraState(playerShipEntityId),
+                new ModelViewState(new SISpatialFactory()),
+                new CameraState(),
                 //new RadarStateTexture(),
-                new PlayerMovementState(playerShipEntityId)
+                new PlayerMovementState()
         //new InfinityLightState()
         //new MapEditorState()
         );
-
-        this.shipId = playerShipEntityId;
 
         // Add states that need to support enable/disable independent of
         // the outer state using addChild().
@@ -115,8 +118,6 @@ public class GameSessionState extends CompositeAppState {
         //addChild(new TimeSequenceState(), true);
         addChild(new HelpState(), true);
         addChild(new PlayerListState(), true);
-
-        System.out.println("created GameSessionState w. shipId: " + playerShipEntityId);
     }
 
     public void disconnect() {
@@ -144,6 +145,29 @@ public class GameSessionState extends CompositeAppState {
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
 
         addChild(new MouseAppState(app));
+        
+        // Temporary FIXME
+        clientId = getState(ConnectionState.class).getClientId();
+        
+        playerId = getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayer();
+        shipId = getState(ConnectionState.class).getService(GameSessionClientService.class).getShip();
+        log.info("Player("+playerId+") ship=" + shipId);
+        
+        movement = getState(PlayerMovementState.class);
+        movement.setShipId(shipId);
+        
+        models = getState(ModelViewState.class);
+        models.setPlayerEntityIds(playerId, shipId);
+        
+        frequencies = getState(ShipFrequencyStateClient.class);
+        frequencies.setPlayerEntityIds(playerId, shipId);
+        
+        hud = getState(HudLabelState.class);
+        hud.setPlayerEntityIds(playerId, shipId);
+        
+        camera = getState(CameraState.class);
+        camera.setPlayerEntityIds(playerId, shipId);
+        
         log.info("--initialize()");
     }
 
@@ -185,6 +209,12 @@ public class GameSessionState extends CompositeAppState {
         public void updateCredits(int credits) {
             log.trace("This is called via listener framework");
             getState(ResourceStateClient.class).updateCredits(credits);
+        }
+
+        @Override
+        public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+            getState(ModelViewState.class).setPlayerEntityIds(playerEntityId, shipEntityId);
+            getState(HudLabelState.class).setPlayerEntityIds(playerEntityId, shipEntityId);
         }
     }
 
