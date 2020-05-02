@@ -702,7 +702,7 @@ public class MapStateServer extends AbstractGameSystem {
         }
     }
     
-    public ArrayList<Vector2> getNeighbours(int locX, int locY){
+    public ArrayList<Vector2> getNeighbours(double locX, double locY){
         Vector2 loc = new Vector2(locX, locY);
         ArrayList<Vector2> result = new ArrayList<>();
         

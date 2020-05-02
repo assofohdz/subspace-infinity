@@ -84,11 +84,6 @@ public class ResourceState extends AbstractGameSystem {
                 int totalGold = g.getGold() + gold;
                 this.ed.setComponent(e.getId(), new Gold(totalGold));
                 
-                //TODO: Will not work if we are to count gold for non-player ships
-                GameSessionListener listener = serviceManager.getService(GameSessionHostedService.class).getGameSessionImpl(e.getId());
-                
-                listener.updateCredits(totalGold);
-
                 goldMap.put(e.getId(), totalGold);
             }
         }

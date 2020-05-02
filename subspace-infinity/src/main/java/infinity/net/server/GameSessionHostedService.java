@@ -424,17 +424,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
             gameSystems.get(MapStateServer.class).sessionRemoveTile(x, y);
         }
-        
-        //GameSessionListener interface
-        @Override
-        public void updateCredits(int credits){
-            getCallback().updateCredits(credits);
-        }
-
-        @Override
-        public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
-            getCallback().setEntityIds(playerEntityId, shipEntityId);
-        }
     }
     
     public GameSessionListener getGameSessionImpl(EntityId shipEntityId){

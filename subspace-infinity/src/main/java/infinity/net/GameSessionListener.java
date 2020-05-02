@@ -36,14 +36,4 @@ import com.simsilica.es.EntityId;
  */
 public interface GameSessionListener {
 
-    /**
-     * Updates the player credits
-     *
-     * @param credits
-     */
-    @Asynchronous
-    public void updateCredits(int credits);
-
-    @Asynchronous
-    public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId);
 }

@@ -87,6 +87,7 @@ public class GameSessionState extends CompositeAppState {
     private ShipFrequencyStateClient frequencies;
     private HudLabelState hud;
     private CameraState camera;
+    private ResourceStateClient resources;
 
     public GameSessionState(TimeSource worldTimeSource) {
         // add normal states on the super-constructor
@@ -168,6 +169,9 @@ public class GameSessionState extends CompositeAppState {
         camera = getState(CameraState.class);
         camera.setPlayerEntityIds(playerId, shipId);
         
+        resources = getState(ResourceStateClient.class);
+        resources.setPlayerEntityIds(playerId, shipId);
+        
         log.info("--initialize()");
     }
 
@@ -205,17 +209,7 @@ public class GameSessionState extends CompositeAppState {
      */
     private class GameSessionObserver implements GameSessionListener {
 
-        @Override
-        public void updateCredits(int credits) {
-            log.trace("This is called via listener framework");
-            getState(ResourceStateClient.class).updateCredits(credits);
-        }
-
-        @Override
-        public void setEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
-            getState(ModelViewState.class).setPlayerEntityIds(playerEntityId, shipEntityId);
-            getState(HudLabelState.class).setPlayerEntityIds(playerEntityId, shipEntityId);
-        }
+       
     }
 
     /**

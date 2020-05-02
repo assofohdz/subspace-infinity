@@ -29,7 +29,11 @@ import com.jme3.app.Application;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.core.VersionedHolder;
 import com.jme3.app.state.BaseAppState;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.WatchedEntity;
 import com.simsilica.state.DebugHudState;
+import infinity.ConnectionState;
+import infinity.api.es.Gold;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +42,15 @@ import org.slf4j.LoggerFactory;
  * @author Asser
  */
 public class ResourceStateClient extends BaseAppState {
+
+    WatchedEntity playerEntity, shipEntity;
+
     static Logger log = LoggerFactory.getLogger(ResourceStateClient.class);
 
     private VersionedHolder<String> goldDisplay;
+    private EntityId playerEntityId;
+    private EntityId shipEntityId;
+    private EntityData ed;
 
     public ResourceStateClient() {
         log.debug("Constructed ResourceStateClient");
@@ -52,19 +62,30 @@ public class ResourceStateClient extends BaseAppState {
             DebugHudState debug = getState(DebugHudState.class);
             this.goldDisplay = debug.createDebugValue("Gold", DebugHudState.Location.Top);
         }
+        this.ed = getState(ConnectionState.class).getEntityData();
     }
 
     @Override
     protected void cleanup(Application aplctn) {
+        shipEntity.release();
     }
-    
-    public void updateCredits(int credits){
-        goldDisplay.setObject(String.valueOf(credits));
+
+    public void updateCredits(int credits) {
+        //goldDisplay.setObject(String.valueOf(credits));
     }
 
     @Override
     public void update(float tpf) {
-        //System.out.println("");
+        if (shipEntity == null) {
+            shipEntity = ed.watchEntity(shipEntityId, Gold.class);
+        }
+
+        if (shipEntity.applyChanges()) {
+            Gold gold = shipEntity.get(Gold.class);
+            goldDisplay.setObject(String.valueOf(gold.getGold()));
+        }
+
+//System.out.println("");
     }
 
     @Override
@@ -74,11 +95,16 @@ public class ResourceStateClient extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        
+
     }
 
     @Override
     protected void onDisable() {
-        
+
+    }
+
+    public void setPlayerEntityIds(EntityId playerEntityId, EntityId shipEntityId) {
+        this.playerEntityId = playerEntityId;
+        this.shipEntityId = shipEntityId;
     }
 }

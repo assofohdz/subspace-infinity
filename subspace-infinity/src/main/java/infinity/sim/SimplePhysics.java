@@ -514,10 +514,13 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             Convex convex = ps.getFixture().getShape();
             if (convex instanceof Rectangle && ps.getFixture().getUserData() == "mapTile") {
-                log.info("We found a map tile physics shape: "+e.toString());
+                
+                
+                
+                log.debug("We found a map tile physics shape: "+e.toString());
 
-                ArrayList<Vector2> neighbours = getSystem(MapStateServer.class).getNeighbours((int) pos.getLocation().x, (int) pos.getLocation().y);
-                log.info("It has these neighbours: "+neighbours.toString());
+                ArrayList<Vector2> neighbours = getSystem(MapStateServer.class).getNeighbours(pos.getLocation().x, pos.getLocation().y);
+                log.debug("It has these neighbours: "+neighbours.toString());
                 //Do the magic
             }
 
