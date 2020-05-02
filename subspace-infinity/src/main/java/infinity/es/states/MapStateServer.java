@@ -294,7 +294,7 @@ public class MapStateServer extends AbstractGameSystem {
 
         //Create map:
         if (!mapCreated) {
-            createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE*0.5, MAP_SIZE*0.25, 0));
+            //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE*0.5, MAP_SIZE*0.25, 0));
             //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
             //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0));
             //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));

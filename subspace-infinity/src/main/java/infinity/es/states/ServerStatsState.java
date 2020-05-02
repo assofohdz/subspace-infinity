@@ -69,7 +69,6 @@ public class ServerStatsState extends AbstractGameSystem {
         // run is a abstract method that defines task performed at scheduled time.
         @Override
         public void run() {
-            log.info("-------------- Logging stats --------------");
             localServer.logStats();
         }
     }

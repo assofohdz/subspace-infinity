@@ -96,97 +96,97 @@ ext.simZayESVersion = "1.3.1"
 
 dependencies {
     
-    compile 'org.apache.commons:commons-math:2.2'
+    implementation 'org.apache.commons:commons-math:2.2'
     
     //https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
-    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     
-    compile project(':interface')
+    implementation project(':interface')
     
     //https://junit.org/junit5/
-    compile 'junit:junit:4.13'
+    implementation 'junit:junit:4.13'
     
     //jWalkable for 2d polygonal pathfinding
     //https://github.com/implicit-invocation/jwalkable
-    compile 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
+    implementation 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
  
     //GDX-AI for steering behaviours
     //https://github.com/libgdx/gdx-ai
     //compile "com.badlogicgames.gdx:gdx-ai:1.8.1:sources"
     //compile "com.badlogicgames.gdx:gdx-ai:1.8.1:javadoc"
-    compile "com.badlogicgames.gdx:gdx-ai:1.8.2"
+    implementation "com.badlogicgames.gdx:gdx-ai:1.8.2"
     
     //Mapeditor format support
     //https://github.com/bjorn/tiled
-    compile 'org.mapeditor:libtiled:1.2.3'
+    implementation 'org.mapeditor:libtiled:1.2.3'
     
     // Need at least basic JME
     //https://github.com/jMonkeyEngine
-    compile("org.jmonkeyengine:jme3-core:$jmeVersion") {
+    implementation("org.jmonkeyengine:jme3-core:$jmeVersion") {
         // For some reason if I don't do this then it picks up alpha4 instead
         // of beta2-SNAPSHOT.
         force = true
     }
-    compile "org.jmonkeyengine:jme3-desktop:$jmeVersion"
-    //compile "org.jmonkeyengine:jme3-lwjgl:$jmeVersion" //lwjgl2
-    compile "org.jmonkeyengine:jme3-lwjgl3:$jmeVersion" //lwjgl3
-    compile "org.jmonkeyengine:jme3-effects:$jmeVersion"
-    compile("org.jmonkeyengine:jme3-networking:$jmeVersion") {
+    implementation "org.jmonkeyengine:jme3-desktop:$jmeVersion"
+    //implementation "org.jmonkeyengine:jme3-lwjgl:$jmeVersion" //lwjgl2
+    implementation "org.jmonkeyengine:jme3-lwjgl3:$jmeVersion" //lwjgl3
+    runtimeOnly "org.jmonkeyengine:jme3-effects:$jmeVersion"
+    runtimeOnly("org.jmonkeyengine:jme3-networking:$jmeVersion") {
         force = true;
     }
  
     // We definitely want a UI
     //https://github.com/jMonkeyEngine-Contributions/Lemur
-    compile 'com.simsilica:lemur:1.13.0'
-    compile 'com.simsilica:lemur-proto:1.11.0'
+    implementation 'com.simsilica:lemur:1.13.0'
+    implementation 'com.simsilica:lemur-proto:1.11.0'
 
     // And our base code for sim-etheral, SiO2, etc.
     // (many of these need to be built locally and 'gradle install'ed as of this writing)
     
 
     //https://github.com/Simsilica/SiO2
-    compile "com.simsilica:sio2:$simSiO2Version"
+    implementation "com.simsilica:sio2:$simSiO2Version"
     //https://github.com/Simsilica/SimMath
-    compile "com.simsilica:sim-math:$simMathVersion"
+    implementation "com.simsilica:sim-math:$simMathVersion"
     //https://github.com/Simsilica/SimEthereal
-    compile "com.simsilica:sim-ethereal:$simEtherealVersion"
+    implementation "com.simsilica:sim-ethereal:$simEtherealVersion"
     
     //https://github.com/jMonkeyEngine-Contributions/zay-es
-    compile "com.simsilica:zay-es-net:$simZayESNetVersion"
-    compile "com.simsilica:zay-es:$simZayESVersion"
+    implementation "com.simsilica:zay-es-net:$simZayESNetVersion"
+    implementation "com.simsilica:zay-es:$simZayESVersion"
 
     //Lights and Visibility
     //https://github.com/libgdx/box2dlights
-    compile "com.badlogicgames.box2dlights:box2dlights:1.5"
+    implementation "com.badlogicgames.box2dlights:box2dlights:1.5"
     
     //2d polygon lib for lighting and pathfinding
     //https://github.com/rpax/straightedge
-    //compile 'com.massisframework:straightedge:0
+    //implementation 'com.massisframework:straightedge:0
     //.8'
     // Standard utility stuff
     //https://github.com/google/guava
-    compile 'com.google.guava:guava:29.0-jre'
+    implementation 'com.google.guava:guava:29.0-jre'
     
     
     //https://www.slf4j.org/
     //https://logging.apache.org
-    compile "org.slf4j:slf4j-simple:2.0.0-alpha1"
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.2'
+    implementation "org.slf4j:slf4j-simple:2.0.0-alpha1"
+    implementation 'org.apache.logging.log4j:log4j-core:2.13.2'
 
     
     //Dyn4j
     //http://www.dyn4j.org/
-    compile 'org.dyn4j:dyn4j:3.4.0'
+    implementation 'org.dyn4j:dyn4j:3.4.0'
     
     //Ini4j to parse settings files
     //http://ini4j.sourceforge.net/
-    compile 'org.ini4j:ini4j:0.5.4:sources'
-    compile 'org.ini4j:ini4j:0.5.4:javadoc'
+    implementation 'org.ini4j:ini4j:0.5.4:sources'
+    implementation 'org.ini4j:ini4j:0.5.4:javadoc'
     
     
     //Noise4j dungeon generation
     //https://github.com/czyzby/noise4j
-    compile 'com.github.czyzby:noise4j:0.1.0'
+    implementation 'com.github.czyzby:noise4j:0.1.0'
     
     //HSQLDB
     //http://hsqldb.org/
@@ -195,8 +195,10 @@ dependencies {
     
     //SteamWorks4J
     //https://github.com/code-disaster/steamworks4j
-    compile "com.code-disaster.steamworks4j:steamworks4j:1.8.0"
-    compile "com.code-disaster.steamworks4j:steamworks4j-server:1.8.0"
+    implementation "com.code-disaster.steamworks4j:steamworks4j:1.8.0"
+    implementation "com.code-disaster.steamworks4j:steamworks4j-server:1.8.0"
+    
+    implementation 'org.locationtech.jts:jts-core:1.16.1'
 }
 
 task runClient(type: JavaExec) {

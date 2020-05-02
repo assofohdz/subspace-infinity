@@ -114,6 +114,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
      * Adds a listener that will be notified about physics related updates. This
      * is not a thread safe method call so must be called during setup or from
      * the physics/simulation thread.
+     *
      * @param l the physics listener to add
      */
     public void addPhysicsListener(PhysicsListener l) {
@@ -122,6 +123,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     /**
      * Removes a listener
+     *
      * @param l the physics listener to remove
      */
     public void removePhysicsListener(PhysicsListener l) {
@@ -192,6 +194,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 index.put(entityId, result);
             }
         }
+        log.info("Created dynamic body: " + result.toString());
+        log.info("Number of dynamics in play: " + index.size());
         return result;
     }
 
@@ -216,12 +220,22 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                 indexStatic.put(entityId, result);
             }
         }
+
+        log.info("Created static body: " + result.toString());
+        log.info("Number of statics in play: " + indexStatic.size());
         return result;
     }
 
     protected boolean removeBody(EntityId entityId) {
         SimpleBody result = index.remove(entityId);
         if (result != null) {
+            log.info("Number of dynamics in play: " + index.size());
+            toRemove.add(result);
+            return true;
+        }
+        result = indexStatic.remove(entityId);
+        if (result != null) {
+            log.info("Number of statics in play: " + indexStatic.size());
             toRemove.add(result);
             return true;
         }
@@ -252,7 +266,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         world.addListener(this);
         world.getSettings().setRestitutionVelocity(0);
-        
+
         world.getSettings().setContinuousDetectionMode(ContinuousDetectionMode.BULLETS_ONLY);
         //world.getSettings().set
 
@@ -263,7 +277,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         gravityState = this.getSystem(GravityState.class);
         flagState = this.getSystem(FlagStateServer.class);
-        
+
     }
 
     @Override
@@ -438,7 +452,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             newBody.setUserData(e.getId());
 
             newBody.setLinearDamping(0.2);
-            
+
             if (pmt.getTypeName(ed).equals(PhysicsMassTypes.NORMAL_BULLET)) {
                 newBody.setBullet(true);
             }
@@ -453,8 +467,9 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         @Override
         protected void removeObject(SimpleBody object, Entity e) {
-            removeBody(e.getId());
             world.removeBody(object);
+            log.info("Removed dynamic body: " + object.toString());
+            removeBody(e.getId());
         }
 
     }
@@ -511,8 +526,9 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         @Override
         protected void removeObject(SimpleBody object, Entity e) {
-            removeBody(e.getId());
             world.removeBody(object);
+            log.info("Removed static body: " + object.toString());
+            removeBody(e.getId());
         }
 
     }
@@ -567,7 +583,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     }
 
     /**
-     * Removes and adds the entity. This ensures that listeners now that this
+     * Removes and adds the entity. This ensures that listeners know that this
      * body has been reset
      *
      * @param eId the EntityId
