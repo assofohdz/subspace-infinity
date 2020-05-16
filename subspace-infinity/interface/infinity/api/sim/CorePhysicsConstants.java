@@ -30,10 +30,9 @@ package infinity.api.sim;
  * @author Asser
  */
 public class CorePhysicsConstants {
-    
-    
+
     public static double PHYSICS_SCALE = 1;
-    
+
     //Radius
     public final static double BULLETSIZERADIUS = 0.125f;
     public final static double BOMBSIZERADIUS = 0.5f;
@@ -48,10 +47,9 @@ public class CorePhysicsConstants {
     public final static double OVER2SIZERADIUS = 1;
     public final static double FLAGSIZERADIUS = 0.5;
     public final static double BURSTSIZERADIUS = 0.125f;
-    
-    
+
     public final static double REPELRADIUS = 0.125f;
-    
+
     //Weights
     public final static double SHIPMASS = 50;
     public final static double BOMBMASS = 25;
@@ -61,14 +59,17 @@ public class CorePhysicsConstants {
     public final static double OVER1MASS = 10;
     public final static double OVER2MASS = 40;
     public final static double OVER5MASS = 0;
-    
+
     //View
     public final static double PROJECTILEOFFSET = 3;
-    
+
     //Forces
     public final static float SHIPTHRUST = 10;
-    
+
     //Pathfinding and polygons
     public final static int VERTEXCOUNTCIRCLE = 20;
-    
+
+    //Map tiles
+    public final static int MAPTILEWIDTH = 1, MAPTILEHEIGHT = 1;
+
 }

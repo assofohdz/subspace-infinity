@@ -227,6 +227,7 @@ public class ModuleGameEntities {
         return lastArena;
     }
 
+    /*
     public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d location, Convex c, double invMass,
             String tileType, EntityData ed, Ini settings, long createdTime) {
         EntityId lastTileInfo = ed.createEntity();
@@ -241,7 +242,7 @@ public class ModuleGameEntities {
 
         return lastTileInfo;
     }
-
+*/
     //Explosion is for now only visual, so only object type and position
     public static EntityId createExplosion2(Vec3d location, Quatd quat, EntityData ed, Ini settings, long createdTime) {
         EntityId lastExplosion = ed.createEntity();

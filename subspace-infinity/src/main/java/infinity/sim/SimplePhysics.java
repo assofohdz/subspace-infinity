@@ -33,6 +33,14 @@ import com.jme3.util.SafeArrayList;
 import com.simsilica.es.*;
 import com.simsilica.es.filter.OrFilter;
 import com.simsilica.sim.*;
+import de.lighti.clipper.Clipper;
+import de.lighti.clipper.Clipper.EndType;
+import de.lighti.clipper.Clipper.JoinType;
+import de.lighti.clipper.ClipperOffset;
+import de.lighti.clipper.DefaultClipper;
+import de.lighti.clipper.Path;
+import de.lighti.clipper.Paths;
+import de.lighti.clipper.Point;
 import infinity.api.es.GravityWell;
 import infinity.api.es.PhysicsForce;
 import infinity.api.es.PhysicsMassType;
@@ -40,27 +48,40 @@ import infinity.api.es.PhysicsMassTypes;
 import infinity.api.es.PhysicsShape;
 import infinity.api.es.PhysicsVelocity;
 import infinity.api.es.Position;
+import infinity.api.sim.CorePhysicsConstants;
 
 import infinity.es.states.FlagStateServer;
 import infinity.es.states.GravityState;
 import infinity.es.states.MapStateServer;
+import org.dyn4j.collision.Filter;
+import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
+//import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.ContinuousDetectionMode;
-import org.dyn4j.dynamics.DetectResult;
+//import org.dyn4j.dynamics.DetectResult;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.Settings;
-import org.dyn4j.dynamics.World;
+//import org.dyn4j.dynamics.World;
+import org.dyn4j.world.World;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.geometry.AABB;
 import org.dyn4j.geometry.Convex;
 import org.dyn4j.geometry.Geometry;
 import org.dyn4j.geometry.MassType;
+import org.dyn4j.geometry.Polygon;
 import org.dyn4j.geometry.Rectangle;
 import org.dyn4j.geometry.Vector2;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.Polygon;
+import org.dyn4j.geometry.decompose.Bayazit;
+import org.dyn4j.geometry.decompose.EarClipping;
+import org.dyn4j.geometry.decompose.SweepLine;
+import org.dyn4j.world.BroadphaseCollisionData;
+import org.dyn4j.world.DetectFilter;
+import org.dyn4j.world.ManifoldCollisionData;
+import org.dyn4j.world.NarrowphaseCollisionData;
+import org.dyn4j.world.listener.CollisionListener;
+import org.dyn4j.world.result.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +95,21 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     public World getWorld() {
         return this.world;
+    }
+
+    @Override
+    public boolean collision(BroadphaseCollisionData collision) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(NarrowphaseCollisionData collision) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(ManifoldCollisionData collision) {
+        return true;
     }
 
     public enum FixtureType {
@@ -97,9 +133,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     private Map<EntityId, SimpleBody> mapIndex = new ConcurrentHashMap<>();
     private Map<EntityId, ControlDriver> driverIndex = new ConcurrentHashMap<>();
 
-    GeometryFactory geometryFactory = new GeometryFactory();
-
-    //Map of tileKeys to JTS polygons (so we always know which tiles are mapped into which polygons)
     // Still need these to manage physics listener notifications in a 
     // thread-consistent way   
     private ConcurrentLinkedQueue<SimpleBody> toAdd = new ConcurrentLinkedQueue<>();
@@ -107,7 +140,9 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     private SafeArrayList<PhysicsListener> listeners = new SafeArrayList<>(PhysicsListener.class);
 
-    private Map<Vector2, Polygon> tileMapToPolygonMap = new HashMap<>();
+    private Bayazit bayazit = new Bayazit();
+    private SweepLine sweepLine = new SweepLine();
+    private EarClipping earClipping = new EarClipping();
 
     private World world;
     private Settings physicsSettings;
@@ -118,6 +153,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     private FlagStateServer flagState;
 
     public SimplePhysics() {
+
     }
 
     /**
@@ -272,7 +308,9 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         world.setSettings(physicsSettings);
         world.setGravity(World.ZERO_GRAVITY);
 
-        world.addListener(this);
+        //world.addListener(this);
+        world.getCollisionListeners().add(this);
+        
         world.getSettings().setRestitutionVelocity(0);
 
         world.getSettings().setContinuousDetectionMode(ContinuousDetectionMode.BULLETS_ONLY);
@@ -396,32 +434,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         }
     }
 
-    //Collision detected by the broadphase
-    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2) {
-        //Default, keep processing this event
-
-        return true;
-    }
-
-    //Collision detected by narrowphase
-    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }
-
-    //Contact manifold created by the manifold solver
-    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
-        return true; //Default, keep processing this event
-    }
-
-    //Contact constraint created
-    @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-        return true; //Default, keep processing this event
-    }
-
     /**
      * Maps the appropriate entities to physics bodies.
      */
@@ -513,16 +525,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             Position pos = e.get(Position.class);
 
             Convex convex = ps.getFixture().getShape();
-            if (convex instanceof Rectangle && ps.getFixture().getUserData() == "mapTile") {
-                
-                
-                
-                log.debug("We found a map tile physics shape: "+e.toString());
-
-                ArrayList<Vector2> neighbours = getSystem(MapStateServer.class).getNeighbours(pos.getLocation().x, pos.getLocation().y);
-                log.debug("It has these neighbours: "+neighbours.toString());
-                //Do the magic
-            }
 
             // Right now only works for CoG-centered shapes                   
             SimpleBody newBody = createStatic(e.getId(), pmt.getTypeName(ed), ps.getFixture(), true);
@@ -535,6 +537,68 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             newBody.setUserData(e.getId());
 
             newBody.setLinearDamping(0.3);
+
+            //TODO: Do we really care if these are map tiles and rectangles we are working on, as long as they are static?
+            //if (convex instanceof Rectangle && ps.getFixture().getUserData() == "mapTile") {
+                Rectangle r = (Rectangle) convex;
+
+                InfinityPhysicsFactory fac = new InfinityPhysicsFactory();
+
+                //Optimize on all the existing bodies
+                SimpleBody[] totalArray = Arrays.copyOf(super.getArray(), super.getArray().length + 1);
+                //Add the new body
+                totalArray[totalArray.length - 1] = newBody;
+
+                //Union the stuff
+                ArrayList<ArrayList<Vector2>> res = fac.unionBodies(totalArray);
+                
+                //Check resulting unioned polygons
+                log.info("Current tiles: "+totalArray.length);
+
+                //Check resulting unioned polygons
+                log.info("Unioned polygons size: "+res.size());
+                log.info("Unioned polygons: "+res.toString());
+                
+                //Decompose the unioned polygons
+                List<Convex> decomposeBayazit = fac.decomposeUnitedPolygonBayazit(res);                
+                
+                //Check resulting decomposed polygons
+                log.info("Bayazit polygons size: "+decomposeBayazit.size());
+                log.info("Bayazit polygons: "+decomposeBayazit.toString());
+
+                
+                //Decompose the unioned polygons
+                List<Convex> decomposeEarClipping = fac.decomposeUnitedPolygonsEarClipping(res);                
+                
+                //Check resulting decomposed polygons
+                log.info("EarClipping polygons size: "+decomposeEarClipping.size());
+                log.info("EarClipping polygons: "+decomposeEarClipping.toString());
+                
+                
+                //Decompose the unioned polygons
+                List<Convex> decomposeSweepLine = fac.decomposeUnitedPolygonsSweepLine(res);                
+                
+                //Check resulting decomposed polygons
+                log.info("SweepLine polygons size: "+decomposeSweepLine.size());
+                log.info("SweepLine polygons: "+decomposeSweepLine.toString());
+                
+                //Calculate vertices based on convex and
+                //Calculate the vertices of the rectangle
+                /**
+                 * Insert tile Check for adjacent tiles 
+                 * If one or more is found, create JTS polygon from tile and union w. existing mapped JTS
+                 * polygon(s) (for all neighbours) 
+                 * map new Tile to same JTS polygon (Coord/Tile, JTS Polygon) 
+                 * Marshal to Dyn4j Shape (maybe concave) 
+                 * Break down updated (new) concave shape into convex shapes using Dyn4j geometry.decompose 
+                 * Remove (also from world) any previous mapped (JTS polygon, Dyn4j Shape(s)) Convex shapes 
+                 * Add convex shapes to physics
+                 */
+                //log.debug("We found a map tile physics shape: " + e.toString());
+
+                ArrayList<Vector2> neighbours = getSystem(MapStateServer.class).getNeighbours(pos.getLocation().x, pos.getLocation().y);
+                //Do the magic
+            //}
 
             return newBody;
         }
@@ -595,11 +659,11 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     }
 
     public void addCollisionListener(CollisionListener cl) {
-        world.addListener(cl);
+        world.getCollisionListeners().add(cl);
     }
 
     public void removeCollisionListener(CollisionListener cl) {
-        world.removeListener(cl);
+        world.getCollisionListeners().remove(cl);
     }
 
     /**
@@ -617,9 +681,126 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
     }
 
     public boolean allowConvex(Convex convex) {
-        ArrayList<DetectResult> results = new ArrayList<>();
-        world.detect(convex, results);
+        List<DetectResult> results = new ArrayList<>();
+        
+        results = world.detect(convex.createAABB(), new DetectFilter(true, true, Filter.DEFAULT_FILTER));
+        //world.detect(convex, results);
 
         return results.isEmpty();
+    }
+
+    /**
+     * Inspired by
+     * https://gamedev.stackexchange.com/questions/125927/how-do-i-merge-colliders-in-a-tile-based-game
+     */
+    private class InfinityPhysicsFactory {
+
+        public ArrayList<ArrayList<Vector2>> unionBodies(SimpleBody[] bodies) {
+            //public ArrayList<ArrayList<Vector2>> uniteCollisionPolygons(ArrayList<SimpleBody> bodies) {
+            //this is going to be the result of the method
+            ArrayList<ArrayList<Vector2>> unitedPolygons = new ArrayList<>();
+            DefaultClipper clipper = new DefaultClipper();
+
+            for (SimpleBody body : bodies) {
+                //Only meant to be used with one fixture bodies
+                BodyFixture fixture = body.getFixture(0);
+
+                Polygon p = (Polygon) fixture.getShape();
+
+                Vector2[] verts = p.getVertices();
+                ArrayList<Vector2> arrayVerts = new ArrayList<>();
+                //Get the world relative points of the body
+                for (Vector2 vert : verts) {
+                    arrayVerts.add(body.getWorldPoint(vert));
+                }
+                verts = arrayVerts.toArray(new Vector2[0]);
+
+                //Convert the world relative points to data type supported by the Clipper object
+                Path path = new Path();
+                for (Vector2 vert : verts) {
+                    Point.LongPoint lp = new Point.LongPoint((long) vert.x, (long) vert.y);
+
+                    path.add(lp);
+                }
+                //Make sure we close the path and make it a polygon
+                Vector2 end = verts[0];
+                Point.LongPoint endLp = new Point.LongPoint((long) end.x, (long) end.y);
+                path.add(endLp);
+
+                //Add it to the clipper
+                clipper.addPath(path, Clipper.PolyType.SUBJECT, true);
+            }
+
+            //this will be the result
+            Paths solutionPaths = new Paths();
+
+            //having added all the Paths added to the clipper object, we tell clipper to execute an union
+            clipper.execute(Clipper.ClipType.UNION, solutionPaths);
+
+            /*
+            //the union may not end perfectly, so we're gonna do an offset in our polygons, that is, expand them outside a little bit
+            ClipperOffset offset = new ClipperOffset();
+            offset.addPaths(solutionPaths, JoinType.MITER, EndType.CLOSED_POLYGON);
+            //5 is the ammount of offset
+            offset.execute(solutionPaths, 1.05);
+             */
+            //now we just need to convert it into a List<List<Vector2>> while removing the scaling
+            for (Path solutionPath : solutionPaths) {
+
+                ArrayList<Vector2> unitedPolygon = new ArrayList<>();
+
+                //Convert it back into Vector2 objects for use in Dyn4j
+                for (Point.LongPoint longPoint : solutionPath) {
+
+                    unitedPolygon.add(new Vector2((double) longPoint.getX(), (double) longPoint.getY()));
+                }
+                unitedPolygons.add(unitedPolygon);
+            }
+
+            return unitedPolygons;
+        }
+
+        //create the physics shapes
+        public List<Convex> decomposeUnitedPolygonBayazit(ArrayList<ArrayList<Vector2>> unitedPolygons) {
+            List<Convex> physicsPolygons = new ArrayList<>();
+
+            for (List<Vector2> polygonPath : unitedPolygons) {
+                List<Convex> localConvexList = bayazit.decompose(polygonPath.toArray(new Vector2[0]));
+                physicsPolygons.addAll(localConvexList);
+            }
+
+            return physicsPolygons;
+        }
+        
+                //create the physics shapes
+        public List<Convex> decomposeUnitedPolygonsEarClipping(ArrayList<ArrayList<Vector2>> unitedPolygons) {
+            List<Convex> physicsPolygons = new ArrayList<>();
+
+            for (List<Vector2> polygonPath : unitedPolygons) {
+                List<Convex> localConvexList = earClipping.decompose(polygonPath.toArray(new Vector2[0]));
+                physicsPolygons.addAll(localConvexList);
+            }
+
+            return physicsPolygons;
+        }
+        
+                //create the physics shapes
+        public List<Convex> decomposeUnitedPolygonsSweepLine(ArrayList<ArrayList<Vector2>> unitedPolygons) {
+            List<Convex> physicsPolygons = new ArrayList<>();
+
+            for (List<Vector2> polygonPath : unitedPolygons) {
+                List<Convex> localConvexList = sweepLine.decompose(polygonPath.toArray(new Vector2[0]));
+                physicsPolygons.addAll(localConvexList);
+            }
+
+            return physicsPolygons;
+        }
+
+        public void subtractPolygon(Polygon p) {
+
+        }
+
+        public void addPolygon(Polygon p) {
+        }
     }
 }

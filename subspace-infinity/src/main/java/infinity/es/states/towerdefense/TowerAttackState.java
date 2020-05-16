@@ -48,8 +48,9 @@ import infinity.sim.SimplePhysics;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.dyn4j.geometry.AABB;
-import org.dyn4j.dynamics.DetectResult;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.DetectFilter;
+import org.dyn4j.world.result.DetectResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +108,9 @@ public class TowerAttackState extends AbstractGameSystem {
             double range = e.get(AttackRange.class).getRange();
 
             LinkedList<DetectResult> result = new LinkedList<>();
-            simplePhysics.getWorld().detect(new AABB(location, range), ModuleCollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
+            //simplePhysics.getWorld().detect(new AABB(location, range), ModuleCollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS, true, true, result);
+            simplePhysics.getWorld().detect(new AABB(location, range), new DetectFilter(true, true, ModuleCollisionFilters.FILTER_CATEGORY_SENSOR_TOWERS));
+            
             if (!result.isEmpty()) {
                 towerToTargets.put(e.getId(), result);
             } else {

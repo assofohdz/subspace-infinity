@@ -167,7 +167,7 @@ public class HudLabelState extends BaseAppState {
             // If this is the player's ship then we don't want the model
             // shown else it looks bad.  A) it's ugly.  B) the model will
             // always lag the player's turning.
-            if (entity.getId().getId() == shipEntityId.getId()) {
+            if (shipEntityId != null && entity.getId().getId() == shipEntityId.getId()) {
                 this.isPlayerEntity = true;
             }
 
@@ -176,7 +176,7 @@ public class HudLabelState extends BaseAppState {
         }
 
         protected void updateLabelPos(Vector3f pos) {
-            if (!visible || isPlayerEntity) {
+            if (!visible || (shipEntityId != null && isPlayerEntity)) {
                 return;
             }
             Vector3f camRelative = pos.subtract(camera.getLocation());

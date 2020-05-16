@@ -44,15 +44,20 @@ import infinity.sim.SimplePhysics;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Random;
+import org.dyn4j.collision.CollisionBody;
+import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.manifold.ManifoldPoint;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Circle;
+import org.dyn4j.world.BroadphaseCollisionData;
+import org.dyn4j.world.ManifoldCollisionData;
+import org.dyn4j.world.NarrowphaseCollisionData;
+import org.dyn4j.world.listener.CollisionListener;
 
 /**
  * This state keeps track of all wormholes and applies physical forces to bodies
@@ -69,7 +74,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
     //A set to map from the pulling gravity wells to a pushing gravity well
     private SimplePhysics simplePhysics;
     private HashSet<EntityId> pushingWells, pullingWells;
-    private HashSet<BodyFixture> gravityFixtures = new HashSet<>();
+    private HashSet<Fixture> gravityFixtures = new HashSet<>();
     private GravityWells wells;
 
     @Override
@@ -120,14 +125,15 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
 
     /**
      * @param gravityFixture the fixture to check
-     * @return true if the fixture is mapped as a gravity fixture 
+     * @return true if the fixture is mapped as a gravity fixture
      */
-    public boolean isWormholeFixture(BodyFixture gravityFixture) {
+    public boolean isWormholeFixture(Fixture gravityFixture) {
         return gravityFixtures.contains(gravityFixture);
     }
 
     /**
      * Creates a force on a given entity
+     *
      * @param wormholeEntityId the wormhole entity that exerts a force
      * @param bodyEntityId the body entity impacted by the force
      * @param wormholeBody the wormhole body
@@ -135,7 +141,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
      * @param mp the manifold
      * @param tpf the time per frame
      */
-    private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, Body wormholeBody, Body body, ManifoldPoint mp, double tpf) {
+    private void createWormholeForce(EntityId wormholeEntityId, EntityId bodyEntityId, CollisionBody wormholeBody, CollisionBody body, ManifoldPoint mp, double tpf) {
         Vec3d wormholeLocation = new Vec3d(wormholeBody.getTransform().getTranslationX(), wormholeBody.getTransform().getTranslationY(), 0);
         Vec3d bodyLocation = new Vec3d(body.getTransform().getTranslation().x, body.getTransform().getTranslation().y, 0);
 
@@ -147,6 +153,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
 
     /**
      * Calculates the force that a wormhole exerts on a body
+     *
      * @param tpf the time per frame
      * @param wormhole the wormhole
      * @param wormholeLocation the location of the wormhole
@@ -177,29 +184,7 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
         return force;
     }
 
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
-        EntityId one = (EntityId) body1.getUserData();
-        EntityId two = (EntityId) body2.getUserData();
-
-        if (this.isWormholeFixture(fixture1) || this.isWormholeFixture(fixture2)) {
-            return this.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
-        }
-
-        return true;
-    }
-
-    public boolean collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
+    public boolean collide(CollisionBody body1, Fixture fixture1, CollisionBody body2, Fixture fixture2, Manifold manifold, double tpf) {
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
@@ -207,15 +192,41 @@ public class GravityState extends AbstractGameSystem implements CollisionListene
             createWormholeForce(one, two, body1, body2, manifold.getPoints().get(0), tpf);
         } else if (wells.getObject(two) == fixture2) {
             createWormholeForce(two, one, body2, body1, manifold.getPoints().get(0), tpf);
-        } else {
-            return true;
         }
 
-        return false;
+        return true;
     }
 
     @Override
-    public boolean collision(ContactConstraint contactConstraint) {
+    public boolean collision(BroadphaseCollisionData collision
+    ) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(NarrowphaseCollisionData collision
+    ) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(ManifoldCollisionData collision) {
+
+        CollisionBody body1 = collision.getBody1();
+        CollisionBody body2 = collision.getBody2();
+
+        Fixture fixture1 = collision.getFixture1();
+        Fixture fixture2 = collision.getFixture2();
+
+        Manifold manifold = collision.getManifold();
+
+        EntityId one = (EntityId) body1.getUserData();
+        EntityId two = (EntityId) body2.getUserData();
+
+        if (this.isWormholeFixture(fixture1) || this.isWormholeFixture(fixture2)) {
+            return this.collide(body1, fixture1, body2, fixture2, manifold, time.getTpf());
+        }
+
         return true;
     }
 

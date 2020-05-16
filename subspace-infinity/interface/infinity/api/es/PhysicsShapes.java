@@ -155,7 +155,7 @@ public class PhysicsShapes {
         fixture.setFilter(filter);
         return new PhysicsShape(fixture);
     }
-    
+
     public static PhysicsShape tower() {
 
         Filter filter = ModuleCollisionFilters.FILTER_CATEGORY_STATIC_TOWERS;
@@ -209,11 +209,11 @@ public class PhysicsShapes {
     public static PhysicsShape mapTile() {
 
         Filter filter = ModuleCollisionFilters.FILTER_CATEGORY_STATIC_BODIES;
-        BodyFixture fixture = new BodyFixture(Geometry.createRectangle(1,1));
+        BodyFixture fixture = new BodyFixture(Geometry.createRectangle(CorePhysicsConstants.MAPTILEWIDTH, CorePhysicsConstants.MAPTILEHEIGHT));
         fixture.setFilter(filter);
         //fixture.setRestitution(1d); //Bounciness
         //fixture.setFriction(0d);
-        
+
         fixture.setUserData("mapTile");
 
         return new PhysicsShape(fixture);
@@ -284,12 +284,12 @@ public class PhysicsShapes {
 
         return new PhysicsShape(fixture);
     }
-    
+
     public static PhysicsShape burst() {
         Filter filter = ModuleCollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES;
         BodyFixture fixture = new BodyFixture(Geometry.createCircle(CorePhysicsConstants.BURSTSIZERADIUS));
         fixture.setFilter(filter);
-        
+
         return new PhysicsShape(fixture);
     }
 

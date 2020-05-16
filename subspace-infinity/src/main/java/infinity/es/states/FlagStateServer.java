@@ -34,12 +34,17 @@ import com.simsilica.sim.SimTime;
 import infinity.api.es.Flag;
 import infinity.api.es.Frequency;
 import infinity.sim.SimplePhysics;
+import org.dyn4j.collision.CollisionBody;
+import org.dyn4j.collision.Fixture;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.world.BroadphaseCollisionData;
+import org.dyn4j.world.ManifoldCollisionData;
+import org.dyn4j.world.NarrowphaseCollisionData;
+import org.dyn4j.world.listener.CollisionListener;
 
 /**
  *
@@ -90,29 +95,6 @@ public class FlagStateServer extends AbstractGameSystem implements CollisionList
     public void stop() {
     }
 
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
-
-        EntityId one = (EntityId) body1.getUserData();
-        EntityId two = (EntityId) body2.getUserData();
-
-        if (this.isFlag(one) || this.isFlag(two)) {
-            return this.collide(body1, fixture1, body2, fixture2, manifold, tpf.getTpf());
-        }
-
-        return true;
-    }
-
     /**
      * Collides a player with a flag and captures the flag if necessary
      *
@@ -125,7 +107,7 @@ public class FlagStateServer extends AbstractGameSystem implements CollisionList
      * @return true if the event should be processed further, false if collision
      * event is consumed by this state
      */
-    public boolean collide(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold, double tpf) {
+    public boolean collide(CollisionBody body1, Fixture fixture1, CollisionBody body2, Fixture fixture2, Manifold manifold, double tpf) {
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
@@ -151,7 +133,34 @@ public class FlagStateServer extends AbstractGameSystem implements CollisionList
     }
 
     @Override
-    public boolean collision(ContactConstraint contactConstraint) {
+    public boolean collision(BroadphaseCollisionData collision) {
         return true;
+    }
+
+    @Override
+    public boolean collision(NarrowphaseCollisionData collision) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(ManifoldCollisionData collision) {
+        
+        CollisionBody body1 = collision.getBody1();
+        CollisionBody body2 = collision.getBody1();
+        
+        Fixture fixture1 = collision.getFixture1();
+        Fixture fixture2 = collision.getFixture2();
+        
+        Manifold manifold = collision.getManifold();
+        
+        EntityId one = (EntityId) body1.getUserData();
+        EntityId two = (EntityId) body2.getUserData();
+
+        if (this.isFlag(one) || this.isFlag(two)) {
+            return this.collide(body1, fixture1, body2, fixture2, manifold, tpf.getTpf());
+        }
+
+        return true;
+
     }
 }

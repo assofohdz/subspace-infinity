@@ -52,7 +52,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import org.dyn4j.geometry.Vector2;
-import org.locationtech.jts.geom.Polygon;
 import org.mapeditor.io.TMXMapReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +82,7 @@ public class MapStateServer extends AbstractGameSystem {
     private SimTime time;
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
+    
     
 
     public MapStateServer(AssetLoaderService assetLoader) {

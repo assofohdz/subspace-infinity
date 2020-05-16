@@ -40,13 +40,17 @@ import infinity.sim.PhysicsListener;
 import infinity.sim.SimpleBody;
 import infinity.sim.SimplePhysics;
 import java.util.List;
+import org.dyn4j.collision.CollisionBody;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.manifold.ManifoldPoint;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
+import org.dyn4j.world.BroadphaseCollisionData;
+import org.dyn4j.world.ManifoldCollisionData;
+import org.dyn4j.world.NarrowphaseCollisionData;
+import org.dyn4j.world.listener.CollisionListener;
 
 /**
  * This state handles projectiles and their collisions. Makes sure that damage
@@ -82,7 +86,7 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
     @Override
     public void update(SimTime tpf) {
         this.time = tpf;
-        
+
         mobs.applyChanges();
         projectiles.applyChanges();
 
@@ -105,7 +109,10 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
      * owners TODO: Filter out for team members as well
      */
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+    public boolean collision(BroadphaseCollisionData collision) {
+        CollisionBody body1 = collision.getBody1();
+        CollisionBody body2 = collision.getBody2();
+
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
@@ -119,12 +126,12 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
     }
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
+    public boolean collision(ManifoldCollisionData collision) {
+        CollisionBody body1 = collision.getBody1();
+        CollisionBody body2 = collision.getBody2();
+        
+        Manifold manifold = collision.getManifold();
+        
         EntityId one = (EntityId) body1.getUserData();
         EntityId two = (EntityId) body2.getUserData();
 
@@ -156,11 +163,6 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
     }
 
     @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-        return true;
-    }
-
-    @Override
     public void beginFrame(SimTime time) {
 
     }
@@ -179,5 +181,10 @@ public class ProjectileCollisionState extends AbstractGameSystem implements Coll
 
     @Override
     public void endFrame(SimTime time) {
+    }
+
+    @Override
+    public boolean collision(NarrowphaseCollisionData collision) {
+        return true;
     }
 }

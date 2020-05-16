@@ -25,16 +25,20 @@ import infinity.sim.SimpleBody;
 import infinity.sim.SimplePhysics;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import org.dyn4j.collision.CollisionBody;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.manifold.ManifoldPoint;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.Force;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Transform;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.BroadphaseCollisionData;
+import org.dyn4j.world.ManifoldCollisionData;
+import org.dyn4j.world.NarrowphaseCollisionData;
+import org.dyn4j.world.listener.CollisionListener;
 
 /**
  * This state holds logic for the actions that players can take. This includes
@@ -133,19 +137,22 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
     }
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
+    public boolean collision(BroadphaseCollisionData collision) {
         return true;
     }
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-
+    public boolean collision(NarrowphaseCollisionData collision) {
         return true;
     }
 
     @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Manifold manifold) {
-
+    public boolean collision(ManifoldCollisionData collision) {
+        
+        CollisionBody body1 = collision.getBody1();
+        CollisionBody body2 = collision.getBody2();
+        Manifold manifold = collision.getManifold();
+        
         //Calculate forces of the repel on anyone in the area
         //Create a collision shape, detect collisions, apply outward forces
         //Steal from the pushing wormhole calculations
@@ -164,7 +171,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
                 return false;
             }
 
-            createRepelForce(one, body1, two, body2, manifold.getPoints().get(0), time.getTpf());
+            createRepelForce(one, body1, two, body2, manifold, time.getTpf());
 
         }
 
@@ -178,16 +185,12 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
             if (parentOfTwo.getParentEntity().equals(one)) {
                 return false;
             }
-            createRepelForce(two, body2, one, body1, manifold.getPoints().get(0), time.getTpf());
+            createRepelForce(two, body2, one, body1, manifold, time.getTpf());
         }
 
         //We keep impacting the other bodies for as long as a repel is active
         return true;
-    }
-
-    @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-        return true;
+        
     }
 
     private class ActionInfo {
@@ -299,7 +302,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
      * @param mp the manifold
      * @param tpf the time per frame
      */
-    private void createRepelForce(EntityId repellerId, Body repellerBody, EntityId bodyEntityId, Body body, ManifoldPoint mp, double tpf) {
+    private void createRepelForce(EntityId repellerId, CollisionBody repellerBody, EntityId bodyEntityId, CollisionBody body, Manifold mp, double tpf) {
         Vec3d repelLocation = new Vec3d(repellerBody.getTransform().getTranslationX(), repellerBody.getTransform().getTranslationY(), 0);
         Vec3d impactedBodyLocation = new Vec3d(body.getTransform().getTranslation().x, body.getTransform().getTranslation().y, 0);
 
@@ -308,7 +311,7 @@ public class ActionState extends AbstractGameSystem implements CollisionListener
         //start applying gravity to other entity
         Force force = getRepelForceOnBody(tpf, repel, repelLocation, impactedBodyLocation);
 
-        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoint(), ed, time.getTime());
+        ModuleGameEntities.createForce(bodyEntityId, force, mp.getPoints().get(0).getPoint(), ed, time.getTime());
     }
 
     private Force getRepelForceOnBody(double tpf, Repel repel, Vec3d repelLocation, Vec3d bodyLocation) {

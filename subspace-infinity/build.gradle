@@ -173,10 +173,10 @@ dependencies {
     implementation "org.slf4j:slf4j-simple:2.0.0-alpha1"
     implementation 'org.apache.logging.log4j:log4j-core:2.13.2'
 
-    
     //Dyn4j
     //http://www.dyn4j.org/
-    implementation 'org.dyn4j:dyn4j:3.4.0'
+    //implementation 'org.dyn4j:dyn4j:3.4.0'
+    implementation "org.dyn4j:dyn4j:4.0.0"
     
     //Ini4j to parse settings files
     //http://ini4j.sourceforge.net/
@@ -198,7 +198,8 @@ dependencies {
     implementation "com.code-disaster.steamworks4j:steamworks4j:1.8.0"
     implementation "com.code-disaster.steamworks4j:steamworks4j-server:1.8.0"
     
-    implementation 'org.locationtech.jts:jts-core:1.16.1'
+    //We're using a java port of http://www.angusj.com/delphi/clipper.php to do polygon boolean operations
+    implementation files('libs/Clipper-6.4.2.jar')
 }
 
 task runClient(type: JavaExec) {

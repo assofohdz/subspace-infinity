@@ -53,13 +53,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import org.dyn4j.collision.CollisionBody;
 import org.dyn4j.collision.manifold.Manifold;
 import org.dyn4j.collision.narrowphase.Penetration;
 import org.dyn4j.dynamics.Body;
 import org.dyn4j.dynamics.BodyFixture;
-import org.dyn4j.dynamics.CollisionListener;
 import org.dyn4j.dynamics.contact.ContactConstraint;
 import org.dyn4j.geometry.Vector2;
+import org.dyn4j.world.BroadphaseCollisionData;
+import org.dyn4j.world.ManifoldCollisionData;
+import org.dyn4j.world.NarrowphaseCollisionData;
+import org.dyn4j.world.listener.CollisionListener;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -237,7 +241,7 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
      * Load specific prize weights, used for testing
      */
     private HashMap<String, Integer> loadTestingWeights() {
-
+        
         HashMap<String, Integer> prizeWeights = new HashMap<>();
 
         prizeWeights.put(PrizeTypes.ALLWEAPONS, 0);
@@ -379,52 +383,6 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
         return ModuleGameEntities.createPrize(location, arenaSelectors.get(arenaId).next(random), ed, time.getTime());
     }
 
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }
-
-    //Contact manifold created by the manifold solver
-    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
-        EntityId one = (EntityId) body1.getUserData();
-        EntityId two = (EntityId) body2.getUserData();
-
-        //Only interact with collision if a ship collides with a prize or vice verca
-        if (prizes.containsId(one) && ships.containsId(two)) {
-            PrizeType pt = prizes.getEntity(one).get(PrizeType.class);
-            Vector2 loc = body1.getWorldCenter();
-            this.handlePrizeAcquisition(pt, two);
-            //Remove prize
-            ed.removeEntity(one);
-            //Play audio
-            //Play audio
-            ModuleGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed, time.getTime());
-            return false;
-        } else if (prizes.containsId(two) && ships.containsId(one)) {
-            PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
-            Vector2 loc = body2.getWorldCenter();
-            this.handlePrizeAcquisition(pt, one);
-            //Remove prize
-            ed.removeEntity(two);
-            //Play audio
-            ModuleGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed, time.getTime());
-            return false;
-        }
-
-        return true;
-    }
-
-    //Contact constraint created
-    @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-        return true;
-    }
 
     /**
      * Handles a ship picking up a prize. When picking up a prize, the powerup
@@ -530,5 +488,50 @@ Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
     @Override
     public void arenaSettingsChange(ArenaId arenaId, String section, String setting) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public boolean collision(BroadphaseCollisionData collision) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(NarrowphaseCollisionData collision) {
+        return true;
+    }
+
+    @Override
+    public boolean collision(ManifoldCollisionData collision) {
+        
+        CollisionBody body1 = collision.getBody1();
+        CollisionBody body2 = collision.getBody2();
+        
+        EntityId one = (EntityId) body1.getUserData();
+        EntityId two = (EntityId) body2.getUserData();
+
+        //Only interact with collision if a ship collides with a prize or vice verca
+        if (prizes.containsId(one) && ships.containsId(two)) {
+            PrizeType pt = prizes.getEntity(one).get(PrizeType.class);
+            Vector2 loc = body1.getWorldCenter();
+            this.handlePrizeAcquisition(pt, two);
+            //Remove prize
+            ed.removeEntity(one);
+            //Play audio
+            //Play audio
+            ModuleGameEntities.createSound(two, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed, time.getTime());
+            return false;
+        } else if (prizes.containsId(two) && ships.containsId(one)) {
+            PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
+            Vector2 loc = body2.getWorldCenter();
+            this.handlePrizeAcquisition(pt, one);
+            //Remove prize
+            ed.removeEntity(two);
+            //Play audio
+            ModuleGameEntities.createSound(one, new Vec3d(loc.x, loc.y, 0), AudioTypes.PICKUP_PRIZE, ed, time.getTime());
+            return false;
+        }
+
+        return true;
+        
     }
 }
