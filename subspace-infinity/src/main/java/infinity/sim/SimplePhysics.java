@@ -93,6 +93,14 @@ import org.slf4j.LoggerFactory;
  */
 public class SimplePhysics extends AbstractGameSystem implements CollisionListener {
 
+    List<Convex> decomposeBayazit;
+    List<Convex> decomposeEarClipping;
+    List<Convex> decomposeSweepLine;
+    ArrayList<ArrayList<Vector2>> unionedBodies;
+    InfinityClipperFactory fac = new InfinityClipperFactory();
+
+    Set<SimpleBody> optimizedStaticBodies = new HashSet<>();
+
     public World getWorld() {
         return this.world;
     }
@@ -244,7 +252,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
         return result;
     }
 
-    protected SimpleBody createStatic(EntityId entityId, String massType, BodyFixture fixture, boolean create) {
+    protected SimpleBody createStatic(EntityId entityId, BodyFixture fixture, boolean create) {
         SimpleBody result = indexStatic.get(entityId);
         if (result == null && create) {
             synchronized (this) {
@@ -253,15 +261,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
                     return result;
                 }
                 result = new SimpleBody(entityId);
-
-                // Set it up to be managed by Dyn4j
                 result.addFixture(fixture);
-
                 result.setMass(MassType.INFINITE);
-
-                world.addBody(result);
-
-                // Set it up to be managed by physics
                 indexStatic.put(entityId, result);
             }
         }
@@ -310,7 +311,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
         //world.addListener(this);
         world.getCollisionListeners().add(this);
-        
+
         world.getSettings().setRestitutionVelocity(0);
 
         world.getSettings().setContinuousDetectionMode(ContinuousDetectionMode.BULLETS_ONLY);
@@ -390,9 +391,12 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             l.beginFrame(time);
         }
 
-        // Update the entity list       
-        bodies.update();
-        statics.update();
+        // Update the entity list    
+        bodies.update(); 
+        if (statics.update()) {
+            //We have an update to the statics - now optimize it relative to Dyn4J
+            optimizePhysicsStatics();
+        }
 
         if (forceEntities.applyChanges()) {
             applyForces();
@@ -524,10 +528,8 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             PhysicsMassType pmt = e.get(PhysicsMassType.class);
             Position pos = e.get(Position.class);
 
-            Convex convex = ps.getFixture().getShape();
-
             // Right now only works for CoG-centered shapes                   
-            SimpleBody newBody = createStatic(e.getId(), pmt.getTypeName(ed), ps.getFixture(), true);
+            SimpleBody newBody = createStatic(e.getId(), ps.getFixture(), true);
 
             newBody.setPosition(pos);   //ES position: Not used anymore, since Dyn4j controls movement
 
@@ -537,68 +539,6 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             newBody.setUserData(e.getId());
 
             newBody.setLinearDamping(0.3);
-
-            //TODO: Do we really care if these are map tiles and rectangles we are working on, as long as they are static?
-            //if (convex instanceof Rectangle && ps.getFixture().getUserData() == "mapTile") {
-                Rectangle r = (Rectangle) convex;
-
-                InfinityPhysicsFactory fac = new InfinityPhysicsFactory();
-
-                //Optimize on all the existing bodies
-                SimpleBody[] totalArray = Arrays.copyOf(super.getArray(), super.getArray().length + 1);
-                //Add the new body
-                totalArray[totalArray.length - 1] = newBody;
-
-                //Union the stuff
-                ArrayList<ArrayList<Vector2>> res = fac.unionBodies(totalArray);
-                
-                //Check resulting unioned polygons
-                log.info("Current tiles: "+totalArray.length);
-
-                //Check resulting unioned polygons
-                log.info("Unioned polygons size: "+res.size());
-                log.info("Unioned polygons: "+res.toString());
-                
-                //Decompose the unioned polygons
-                List<Convex> decomposeBayazit = fac.decomposeUnitedPolygonBayazit(res);                
-                
-                //Check resulting decomposed polygons
-                log.info("Bayazit polygons size: "+decomposeBayazit.size());
-                log.info("Bayazit polygons: "+decomposeBayazit.toString());
-
-                
-                //Decompose the unioned polygons
-                List<Convex> decomposeEarClipping = fac.decomposeUnitedPolygonsEarClipping(res);                
-                
-                //Check resulting decomposed polygons
-                log.info("EarClipping polygons size: "+decomposeEarClipping.size());
-                log.info("EarClipping polygons: "+decomposeEarClipping.toString());
-                
-                
-                //Decompose the unioned polygons
-                List<Convex> decomposeSweepLine = fac.decomposeUnitedPolygonsSweepLine(res);                
-                
-                //Check resulting decomposed polygons
-                log.info("SweepLine polygons size: "+decomposeSweepLine.size());
-                log.info("SweepLine polygons: "+decomposeSweepLine.toString());
-                
-                //Calculate vertices based on convex and
-                //Calculate the vertices of the rectangle
-                /**
-                 * Insert tile Check for adjacent tiles 
-                 * If one or more is found, create JTS polygon from tile and union w. existing mapped JTS
-                 * polygon(s) (for all neighbours) 
-                 * map new Tile to same JTS polygon (Coord/Tile, JTS Polygon) 
-                 * Marshal to Dyn4j Shape (maybe concave) 
-                 * Break down updated (new) concave shape into convex shapes using Dyn4j geometry.decompose 
-                 * Remove (also from world) any previous mapped (JTS polygon, Dyn4j Shape(s)) Convex shapes 
-                 * Add convex shapes to physics
-                 */
-                //log.debug("We found a map tile physics shape: " + e.toString());
-
-                ArrayList<Vector2> neighbours = getSystem(MapStateServer.class).getNeighbours(pos.getLocation().x, pos.getLocation().y);
-                //Do the magic
-            //}
 
             return newBody;
         }
@@ -682,7 +622,7 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
     public boolean allowConvex(Convex convex) {
         List<DetectResult> results = new ArrayList<>();
-        
+
         results = world.detect(convex.createAABB(), new DetectFilter(true, true, Filter.DEFAULT_FILTER));
         //world.detect(convex, results);
 
@@ -693,8 +633,14 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
      * Inspired by
      * https://gamedev.stackexchange.com/questions/125927/how-do-i-merge-colliders-in-a-tile-based-game
      */
-    private class InfinityPhysicsFactory {
+    private class InfinityClipperFactory {
 
+        /**
+         * Method the smallest number of possibly concave bodies
+         *
+         * @param bodies to be unioned
+         * @return list of polygons
+         */
         public ArrayList<ArrayList<Vector2>> unionBodies(SimpleBody[] bodies) {
             //public ArrayList<ArrayList<Vector2>> uniteCollisionPolygons(ArrayList<SimpleBody> bodies) {
             //this is going to be the result of the method
@@ -760,7 +706,13 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             return unitedPolygons;
         }
 
-        //create the physics shapes
+        /**
+         * Decompose the list of polygons into the smallest amount of convex
+         * polygons using the Bayazit algorithm
+         *
+         * @param unitedPolygons
+         * @return
+         */
         public List<Convex> decomposeUnitedPolygonBayazit(ArrayList<ArrayList<Vector2>> unitedPolygons) {
             List<Convex> physicsPolygons = new ArrayList<>();
 
@@ -771,8 +723,14 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             return physicsPolygons;
         }
-        
-                //create the physics shapes
+
+        /**
+         * Decompose the list of polygons into the smallest amount of convex
+         * polygons using the EarClipping algorithm
+         *
+         * @param unitedPolygons
+         * @return
+         */
         public List<Convex> decomposeUnitedPolygonsEarClipping(ArrayList<ArrayList<Vector2>> unitedPolygons) {
             List<Convex> physicsPolygons = new ArrayList<>();
 
@@ -783,8 +741,14 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
 
             return physicsPolygons;
         }
-        
-                //create the physics shapes
+
+        /**
+         * Decompose the list of polygons into the smallest amount of convex
+         * polygons using the SweepLine algorithm
+         *
+         * @param unitedPolygons
+         * @return
+         */
         public List<Convex> decomposeUnitedPolygonsSweepLine(ArrayList<ArrayList<Vector2>> unitedPolygons) {
             List<Convex> physicsPolygons = new ArrayList<>();
 
@@ -796,11 +760,81 @@ public class SimplePhysics extends AbstractGameSystem implements CollisionListen
             return physicsPolygons;
         }
 
+        //TODO: Do difference algorithm so that we can remove single tiles from larger polygons
         public void subtractPolygon(Polygon p) {
+            DefaultClipper clipper = new DefaultClipper();
 
         }
 
+        //TODO: Do union of larger polygons and single tiles
         public void addPolygon(Polygon p) {
+        }
+    }
+
+    private void optimizePhysicsStatics() {
+
+        //Optimize on all the existing bodies
+        SimpleBody[] totalArray = Arrays.copyOf(statics.getArray(), statics.getArray().length);
+
+        //Union the stuff
+        unionedBodies = fac.unionBodies(totalArray);
+
+        //log.info("Current tiles: " + totalArray.length);
+
+        //Check resulting unioned polygons
+        //log.info("Merged into unioned polygons size: " + unionedBodies.size());
+        //log.info("Unioned polygons: " + res.toString());
+
+        //Decompose the unioned polygons
+        decomposeBayazit = fac.decomposeUnitedPolygonBayazit(unionedBodies);
+
+        //Check resulting decomposed polygons
+        //log.info("Decomposed by Bayazit polygons size: " + decomposeBayazit.size());
+        //log.info("Bayazit polygons: " + decomposeBayazit.toString());
+
+        //Decompose the unioned polygons
+        decomposeEarClipping = fac.decomposeUnitedPolygonsEarClipping(unionedBodies);
+
+        //Check resulting decomposed polygons
+        //log.info("Decomposed by EarClipping polygons size: " + decomposeEarClipping.size());
+        //log.info("EarClipping polygons: " + decomposeEarClipping.toString());
+
+        //Decompose the unioned polygons
+        decomposeSweepLine = fac.decomposeUnitedPolygonsSweepLine(unionedBodies);
+
+        //Check resulting decomposed polygons
+        //log.info("Decomposed by SweepLine polygons size: " + decomposeSweepLine.size());
+        //log.info("SweepLine polygons: " + decomposeSweepLine.toString());
+
+        //TODO: Clear world of static bodies
+        optimizedStaticBodies.forEach((SimpleBody e) -> world.removeBody(e));
+        log.debug("Removed all the static bodies count("+optimizedStaticBodies.size()+") from world");
+        optimizedStaticBodies.clear();;
+        Iterator<Convex> iterator;
+
+        if (decomposeBayazit.size() <= decomposeEarClipping.size() && decomposeBayazit.size() <= decomposeSweepLine.size()) {
+            iterator = decomposeBayazit.iterator();
+        } else if (decomposeEarClipping.size() <= decomposeSweepLine.size() && decomposeEarClipping.size() <= decomposeBayazit.size()) {
+            iterator = decomposeEarClipping.iterator();
+        } else {
+            iterator = decomposeSweepLine.iterator();
+        }
+
+        //Create physics bodies for the decomposed convex polygons
+        while (iterator.hasNext()) {
+            Convex next = iterator.next();
+
+            EntityId eId = ed.createEntity();
+            BodyFixture fixture = new BodyFixture(next);
+
+            //Create the static body - will also add it to the world
+            SimpleBody body = createStatic(eId, fixture, true);
+
+            optimizedStaticBodies.add(body);
+
+            // Set it up to be managed by physics
+            world.addBody(body);
+            log.debug("Added body("+body.toString()+") to world");
         }
     }
 }
