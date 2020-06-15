@@ -1,10 +1,12 @@
 language: java
  
+before_install:
+ - chmod +x ./subspace-infinity/gradlew
+ 
 install: true
 
 jdk:
   - oraclejdk14
-  
 
 script: 
-  - ./gradle build --scan -s
+  - ./gradlew build --scan -s
