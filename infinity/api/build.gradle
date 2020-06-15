@@ -1,0 +1,24 @@
+
+project(":infinity:api") {
+    apply plugin: 'java'
+    
+    buildDir = file("../build/api")
+    sourceSets {
+        main {
+            java {
+                srcDir 'src'
+            }
+        }
+    }
+    
+    sourceCompatibility = 1.14
+    
+    dependencies {
+        implementation "com.simsilica:zay-es:$zayEsVersion"
+        implementation "com.simsilica:sim-math:$simMathVersion"
+        implementation "com.simsilica:sio2:$sio2Version"
+        implementation 'org.dyn4j:dyn4j:3.4.0'
+        implementation 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
+        implementation 'org.ini4j:ini4j:0.5.4'
+    }
+}

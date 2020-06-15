@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="MyApp" packages="">
+  <Appenders>
+    <RollingFile name="RollingFile" fileName="demo.log" ignoreExceptions="false"                
+                 filePattern="logs/$${date:yyyy-MM}/demo-%d{MM-dd-yyyy}-%i.log.gz">
+      <PatternLayout>
+        <Pattern>%d{ABSOLUTE} %t %-5p [%c{1}] %m%n</Pattern>        
+      </PatternLayout>
+      <OnStartupTriggeringPolicy />
+    </RollingFile>
+    
+    <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
+      <PatternLayout pattern="%d{ABSOLUTE} %-5p [%c{1}] %m%n"/>
+    </Console>
+  </Appenders>
+  
+  <Loggers>
+
+    <Logger name="com.simsilica.mphys" level="DEBUG"/>
+
+    <Logger name="com.simsilica.demo" level="DEBUG"/>
+    <Logger name="com.simsilica.lemur.style" level="DEBUG"/>
+    <!--<Logger name="com.simsilica.lemur.input" level="TRACE"/>-->
+    <Logger name="com.simsilica.es" level="INFO"/>
+    <Logger name="com.simsilica.ethereal" level="INFO"/>
+    <Logger name="com.simsilica.sim.common.DecaySystem" level="TRACE"/>
+    <Logger name="com.simsilica.ext.mphys" level="DEBUG"/>
+    <Logger name="com.simsilica.mblock" level="DEBUG"/>
+    <Logger name="com.simsilica.mworld" level="DEBUG"/>
+    <Logger name="com.simsilica.builderr" level="INFO"/>
+    <Logger name="com.simsilica.pager" level="INFO"/>
+ 
+    <Root level="WARN">
+      <AppenderRef ref="RollingFile"/>
+      <AppenderRef ref="STDOUT"/>
+    </Root>
+  </Loggers>
+</Configuration>
+
