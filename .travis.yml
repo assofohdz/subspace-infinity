@@ -1,7 +1,7 @@
 language: java
  
 before_install:
- - chmod +x ./subspace-infinity/gradlew
+ - chmod +x ./gradlew
  
 install: true
 
