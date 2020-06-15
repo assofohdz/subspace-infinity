@@ -28,6 +28,7 @@ hs_err_pid*
 # gradle related directories
 .gradle/
 build/
+!gradle/wrapper/gradle-wrapper.jar
 
 # We shouldn't be checking in DLLs but we will find them in our JME source
 # try all the time... best to skip them
