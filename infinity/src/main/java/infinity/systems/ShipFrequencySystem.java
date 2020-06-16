@@ -33,6 +33,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.event.EventBus;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
@@ -42,7 +43,6 @@ import java.util.regex.Pattern;
 import infinity.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.Frequency;
-import infinity.es.ViewTypes;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.ShipTypes;
 import infinity.events.ShipEvent;
@@ -145,35 +145,35 @@ public class ShipFrequencySystem extends AbstractGameSystem {
             switch (shipType) {
                 case 1:
                     ed.setComponent(shipEntity, ShipTypes.warbird(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_warbird(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("warbird", 1, ed));
                     break;
                 case 2:
                     ed.setComponent(shipEntity, ShipTypes.javelin(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_javelin(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("javelin", 1, ed));
                     break;
                 case 3:
                     ed.setComponent(shipEntity, ShipTypes.spider(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_spider(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("spider", 1, ed));
                     break;
                 case 4:
                     ed.setComponent(shipEntity, ShipTypes.leviathan(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_levi(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("leviathan", 1, ed));
                     break;
                 case 5:
                     ed.setComponent(shipEntity, ShipTypes.terrier(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_terrier(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("terrier", 1, ed));
                     break;
                 case 6:
                     ed.setComponent(shipEntity, ShipTypes.weasel(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_weasel(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("weasel", 1, ed));
                     break;
                 case 7:
                     ed.setComponent(shipEntity, ShipTypes.lancaster(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_lanc(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("lancaster", 1, ed));
                     break;
                 case 8:
                     ed.setComponent(shipEntity, ShipTypes.shark(ed));
-                    ed.setComponent(shipEntity, ViewTypes.ship_shark(ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create("shark", 1, ed));
                     break;
             }
             

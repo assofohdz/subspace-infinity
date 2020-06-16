@@ -50,6 +50,7 @@ import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandConsumer;
 import infinity.sim.GameEntities;
+import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 
 /**
@@ -85,8 +86,8 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
 
     private Ini settings;
 
-    public arena1(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
-        super(chp, am, loader, arenas, time);
+    public arena1(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time,physics);
     }
 
     @Override
@@ -155,7 +156,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
         //Create mob ourselves
-        EntityId mobId = GameEntities.createMob(randomSpawn, ed, settings, this.getTimeManager().getTime());
+        EntityId mobId = GameEntities.createMob(randomSpawn, ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics()); 
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -165,7 +166,7 @@ public class arena1 extends BaseGameModule /*implements CommandListener*/ {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
         URL s = GameEntities.class.getResource("ModuleGameEntities.class");
-        baseId = GameEntities.createBase(basePos, ed, settings, this.getTimeManager().getTime());
+        baseId = GameEntities.createBase(basePos, ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics()); 
     }
 
     private EntityId getBaseId() {

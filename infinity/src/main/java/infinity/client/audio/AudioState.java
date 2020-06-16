@@ -51,7 +51,7 @@ import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
 import infinity.es.Parent;
-import infinity.es.Position;
+import infinity.es.BodyPosition;
 
 /**
  *
@@ -89,7 +89,7 @@ public class AudioState extends BaseAppState {
         this.ed = getState(ConnectionState.class).getEntityData();
 
         //This state just needs to know which sounds to play and where to play them
-        this.audio = ed.getEntities(AudioType.class, Position.class);
+        this.audio = ed.getEntities(AudioType.class, BodyPosition.class);
 
         //Get asset manager to be able to retrieve the sounds
         this.assets = app.getAssetManager();
@@ -170,11 +170,11 @@ public class AudioState extends BaseAppState {
             if (p.getParentEntity().getId() == 0l) {
                 //No position to update to
             } else {
-                Position pos = ed.getComponent(p.getParentEntity(), Position.class);
+                BodyPosition pos = ed.getComponent(p.getParentEntity(), BodyPosition.class);
 
                 // I like to move it... move it...
-                spatial.setLocalTranslation(pos.getLocation().toVector3f());
-                spatial.setLocalRotation(pos.getFacing().toQuaternion());
+                spatial.setLocalTranslation(pos.getLastLocation().toVector3f());
+                spatial.setLocalRotation(pos.getLastOrientation().toQuaternion());
             }
 
         }

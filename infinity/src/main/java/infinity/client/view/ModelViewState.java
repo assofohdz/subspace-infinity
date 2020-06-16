@@ -73,7 +73,6 @@ import infinity.es.LargeObject;
 import infinity.es.PointLightComponent;
 import infinity.es.TileType;
 import infinity.es.TileTypes;
-import infinity.es.ViewType;
 
 /**
  *
@@ -94,7 +93,7 @@ public class ModelViewState extends BaseAppState {
     private ShapeFactoryRegistry<MBlockShape> shapeFactory;
     //private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
     private SpatialFactory modelFactory = new SpatialFactory();
-    private SISpatialFactory siModelFactory = new SISpatialFactory();
+    private SISpatialFactory siModelFactory;
 
     // The root node to which all managed objects will be added
     private Node objectRoot;
@@ -161,14 +160,11 @@ public class ModelViewState extends BaseAppState {
     private Map<EntityId, Spatial> spatialIndex = new HashMap<>();
 
     //Lights-->
-    
-    private EntitySet movingPointLights,decayingPointLights;
+    private EntitySet movingPointLights, decayingPointLights;
     private HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
     private Vec3d pointLightOffset = new Vec3d(0, 5, 0);
-    
+
     //<<--Lights
-    
-    
     public ModelViewState() {
     }
 
@@ -271,8 +267,12 @@ public class ModelViewState extends BaseAppState {
 
         //this.shapeFactory = (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);        
         this.shapeFactory = new ShapeFactoryRegistry<>();
+        //Need to register all shapes here
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+
+        siModelFactory = new SISpatialFactory(ed, app);
 
         // Some test objects
         //for( int i = 0; i < tests.length; i++ ) {
@@ -297,9 +297,6 @@ public class ModelViewState extends BaseAppState {
 
         this.tileTypes = ed.getEntities(TileType.class);
 
-        
-        siModelFactory.setState(this);
-        
         this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); //Moving point lights
         this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); //Lights that decay
     }
@@ -314,7 +311,7 @@ public class ModelViewState extends BaseAppState {
         }
         tileTypes.release();
         tileTypes = null;
-        
+
         this.movingPointLights.release();
         this.movingPointLights = null;
     }
@@ -329,7 +326,7 @@ public class ModelViewState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        
+
         decayingPointLights.applyChanges();
         movingPointLights.applyChanges();
 
@@ -485,10 +482,19 @@ public class ModelViewState extends BaseAppState {
 
     }
 
-    protected Spatial createModel(EntityId id, MBlockShape shape, Mass mass) {
+    protected Spatial createModel(EntityId id, ShapeInfo shapeInfo, Mass mass) {
+        MBlockShape shape = shapeFactory.createShape(shapeInfo, mass);
+
+        Spatial s = siModelFactory.createModel(id, shape, shapeInfo, mass);
+        spatialIndex.put(id, s);
+
+        return s;
+    }
+
+    protected Spatial createModelOld(EntityId id, MBlockShape shape, Mass mass) {
         //Decide on which factory should get to produce the spatial
         Spatial s = null;
-        ViewType vt = ed.getComponent(id, ViewType.class);
+        /*ViewType vt = ed.getComponent(id, ViewType.class);
         if (vt != null) {
             s = siModelFactory.createModel(id, vt);
             //Rotate to fit new coordinate axis system
@@ -497,10 +503,11 @@ public class ModelViewState extends BaseAppState {
             
             //s.ro
         } else {
-            s = modelFactory.createModel(id, shape, mass);
+         */
+        s = modelFactory.createModel(id, shape, mass);
+        //s = siModelFactory.createModel(id, type);
 
-        }   
-
+        //}   
         spatialIndex.put(id, s);
 
         return s;
@@ -690,7 +697,8 @@ log.info("states:" + sb);*/
                 spatial.removeFromParent();
             }
             Mass mass = ed.getComponent(entityId, Mass.class);
-            spatial = createModel(entityId, shapeFactory.createShape(shapeInfo, mass), mass);
+            //spatial = createModelOld(entityId, shapeFactory.createShape(shapeInfo, mass), mass);
+            spatial = createModel(entityId, shapeInfo, mass);
             if (spatial != null) {
                 getObjectRoot().attachChild(spatial);
                 resetVisibility();

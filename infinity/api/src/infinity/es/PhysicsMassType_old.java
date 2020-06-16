@@ -26,51 +26,39 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.mathd.Vec3d;
+import com.simsilica.es.EntityData;
+
 
 /**
+ *  For visible game objects, this is the type of object.
  *
- * @author Asser Fahrenholz
+ *  @author    Paul Speed
  */
-public class SphereShape implements EntityComponent {
-
-    private double radius;
-    private Vec3d offset;
-
-    /**
-     * For SpiderMonkey serialization purposes.
-     */
-    protected SphereShape() {
+public class PhysicsMassType_old implements EntityComponent {
+    
+    private int type;
+ 
+    protected PhysicsMassType_old() {
     }
-
-    /**
-     * Creates a new sphere collision shape with the specified radius and
-     * 'center' relative to the natural origin of the object to which it
-     * applies. -CoG in most cases.
-     *
-     * @param radius the radius of the sphere
-     * @param centerOffset the offset relative to the object to which it applies
-     */
-    public SphereShape(double radius, Vec3d centerOffset) {
-        this.radius = radius;
-        this.offset = centerOffset;
+    
+    public PhysicsMassType_old( int type ) {
+        this.type = type;
     }
-
-    public SphereShape(double radius) {
-        this.radius = radius;
-        this.offset = new Vec3d();
+    
+    public static PhysicsMassType_old create( String typeName, EntityData ed ) {
+        return new PhysicsMassType_old(ed.getStrings().getStringId(typeName, true));
     }
-
-    public double getRadius() {
-        return radius;
+    
+    public int getType() {
+        return type;
     }
-
-    public Vec3d getCenterOffset() {
-        return offset;
+    
+    public String getTypeName( EntityData ed ) {
+        return ed.getStrings().getString(type);                 
     }
-
-    @Override
+ 
+    @Override   
     public String toString() {
-        return "SphereShape[radius=" + radius + ", centerOffset=" + offset + "]";
-    }
+        return getClass().getSimpleName() + "[type=" + type + "]";
+    }     
 }

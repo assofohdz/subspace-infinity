@@ -32,5 +32,6 @@ project(":infinity:modules") {
         implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
         implementation "com.simsilica:zay-es:$zayEsVersion"
         implementation "com.simsilica:sio2:$sio2Version"
+        implementation project(":sio2-mphys")
     }
 }

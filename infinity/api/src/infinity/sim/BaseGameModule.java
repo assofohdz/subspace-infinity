@@ -38,6 +38,7 @@ public abstract class BaseGameModule extends AbstractGameSystem {
     private final AdaptiveLoader loader;
     private final ArenaManager arenas;
     private final TimeManager time;
+    private final PhysicsManager physics;
 
     /**
      * Instantiates a base game module with settings and reference to chat and
@@ -49,12 +50,13 @@ public abstract class BaseGameModule extends AbstractGameSystem {
      * @param arenas
      * @param time
      */
-    public BaseGameModule(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
+    public BaseGameModule(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
         this.chp = chp;
         this.am = am;
         this.loader = loader;
         this.arenas = arenas;
         this.time = time;
+        this.physics = physics;
     }
 
 
@@ -76,6 +78,10 @@ public abstract class BaseGameModule extends AbstractGameSystem {
     
     public TimeManager getTimeManager(){
         return time;
+    }
+    
+    public PhysicsManager getPhysicsManager(){
+        return physics;
     }
     
 }

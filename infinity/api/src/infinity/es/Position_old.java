@@ -37,7 +37,7 @@ import com.simsilica.mathd.Vec3d;
  *
  * @author Paul Speed
  */
-public class Position implements EntityComponent {
+public class Position_old implements EntityComponent {
 
     private Vec3d location;
     private Quatd facing;
@@ -48,25 +48,25 @@ public class Position implements EntityComponent {
     // position changes.
     private long cellId;
 
-    public Position() {
+    public Position_old() {
         this(new Vec3d(), new Quatd(), 0.0, 0);
     }
 
-    public Position(Vec3d loc, Quatd quat, double rotation) {
+    public Position_old(Vec3d loc, Quatd quat, double rotation) {
         this.location = loc;
         this.facing = quat;
         this.rotation = rotation;
     }
 
-    public Position(Vec3d loc, Quatd quat, double rotation, long cellId) {
+    public Position_old(Vec3d loc, Quatd quat, double rotation, long cellId) {
         this.location = loc;
         this.facing = quat;
         this.rotation = rotation;
         this.cellId = cellId;
     }
 
-    public Position newCellId(long cellId) {
-        return new Position(location, facing, rotation, cellId);
+    public Position_old newCellId(long cellId) {
+        return new Position_old(location, facing, rotation, cellId);
     }
 
     //public Position changeLocation( Vec3d location ) {

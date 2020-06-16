@@ -35,7 +35,7 @@ import infinity.es.ship.weapons.GunLevelEnum;
  *
  * @author Paul Speed
  */
-public class ViewTypes {
+public class ViewTypes_old {
 
     public static final String SHIP_SHARK = "ship_shark";
     public static final String SHIP_WARBIRD = "ship_warbird";
@@ -87,150 +87,150 @@ public class ViewTypes {
     //Will probably need more tower visuals along the way
     public static final String BASE = "base";
 
-    public static ViewType base(EntityData ed) {
-        return ViewType.create(BASE, ed);
+    public static ViewType_old base(EntityData ed) {
+        return ViewType_old.create(BASE, ed);
     }
 
-    public static ViewType tower(EntityData ed) {
-        return ViewType.create(TOWER, ed);
+    public static ViewType_old tower(EntityData ed) {
+        return ViewType_old.create(TOWER, ed);
     }
 
-    public static ViewType mob(EntityData ed) {
-        return ViewType.create(MOB, ed);
+    public static ViewType_old mob(EntityData ed) {
+        return ViewType_old.create(MOB, ed);
     }
 
     /*
     The different ships
      */
-    public static ViewType ship_warbird(EntityData ed) {
-        return ViewType.create(SHIP_WARBIRD, ed);
+    public static ViewType_old ship_warbird(EntityData ed) {
+        return ViewType_old.create(SHIP_WARBIRD, ed);
     }
 
-    public static ViewType ship_javelin(EntityData ed) {
-        return ViewType.create(SHIP_JAVELIN, ed);
+    public static ViewType_old ship_javelin(EntityData ed) {
+        return ViewType_old.create(SHIP_JAVELIN, ed);
     }
 
-    public static ViewType ship_spider(EntityData ed) {
-        return ViewType.create(SHIP_SPIDER, ed);
+    public static ViewType_old ship_spider(EntityData ed) {
+        return ViewType_old.create(SHIP_SPIDER, ed);
     }
 
-    public static ViewType ship_levi(EntityData ed) {
-        return ViewType.create(SHIP_LEVI, ed);
+    public static ViewType_old ship_levi(EntityData ed) {
+        return ViewType_old.create(SHIP_LEVI, ed);
     }
 
-    public static ViewType ship_terrier(EntityData ed) {
-        return ViewType.create(SHIP_TERRIER, ed);
+    public static ViewType_old ship_terrier(EntityData ed) {
+        return ViewType_old.create(SHIP_TERRIER, ed);
     }
 
-    public static ViewType ship_weasel(EntityData ed) {
-        return ViewType.create(SHIP_WEASEL, ed);
+    public static ViewType_old ship_weasel(EntityData ed) {
+        return ViewType_old.create(SHIP_WEASEL, ed);
     }
 
-    public static ViewType ship_lanc(EntityData ed) {
-        return ViewType.create(SHIP_LANCASTER, ed);
+    public static ViewType_old ship_lanc(EntityData ed) {
+        return ViewType_old.create(SHIP_LANCASTER, ed);
     }
 
-    public static ViewType ship_shark(EntityData ed) {
-        return ViewType.create(SHIP_SHARK, ed);
+    public static ViewType_old ship_shark(EntityData ed) {
+        return ViewType_old.create(SHIP_SHARK, ed);
     }
 
-    public static ViewType gravSphereType(EntityData ed) {
-        return ViewType.create(GRAV_SPHERE, ed);
+    public static ViewType_old gravSphereType(EntityData ed) {
+        return ViewType_old.create(GRAV_SPHERE, ed);
     }
 
-    public static ViewType thrust(EntityData ed) {
-        return ViewType.create(THRUST, ed);
+    public static ViewType_old thrust(EntityData ed) {
+        return ViewType_old.create(THRUST, ed);
     }
 
-    public static ViewType explosion(EntityData ed) {
-        return ViewType.create(EXPLOSION, ed);
+    public static ViewType_old explosion(EntityData ed) {
+        return ViewType_old.create(EXPLOSION, ed);
     }
 
     //Bullets
-    public static ViewType bullet(EntityData ed, GunLevelEnum level) {
+    public static ViewType_old bullet(EntityData ed, GunLevelEnum level) {
         switch (level.level) {
             case 1:
-                return ViewType.create(BULLETL1, ed);
+                return ViewType_old.create(BULLETL1, ed);
             case 2:
-                return ViewType.create(BULLETL2, ed);
+                return ViewType_old.create(BULLETL2, ed);
             case 3:
-                return ViewType.create(BULLETL3, ed);
+                return ViewType_old.create(BULLETL3, ed);
             case 4:
-                return ViewType.create(BULLETL4, ed);
+                return ViewType_old.create(BULLETL4, ed);
             default:
-                return ViewType.create(BULLETL1, ed);
+                return ViewType_old.create(BULLETL1, ed);
         }
     }
 
-    public static ViewType prize(EntityData ed) {
-        return ViewType.create(PRIZE, ed);
+    public static ViewType_old prize(EntityData ed) {
+        return ViewType_old.create(PRIZE, ed);
     }
 
     //Bombs
-    public static ViewType bomb(EntityData ed, BombLevelEnum level) {
+    public static ViewType_old bomb(EntityData ed, BombLevelEnum level) {
         switch (level.level) {
             case 1:
-                return ViewType.create(BOMBL1, ed);
+                return ViewType_old.create(BOMBL1, ed);
             case 2:
-                return ViewType.create(BOMBL2, ed);
+                return ViewType_old.create(BOMBL2, ed);
             case 3:
-                return ViewType.create(BOMBL3, ed);
+                return ViewType_old.create(BOMBL3, ed);
             case 4:
-                return ViewType.create(BOMBL4, ed);
+                return ViewType_old.create(BOMBL4, ed);
             default:
-                return ViewType.create(BOMBL1, ed);
+                return ViewType_old.create(BOMBL1, ed);
         }
     }
     
-    public static ViewType thor(EntityData ed){
-        return ViewType.create(THOR, ed);
+    public static ViewType_old thor(EntityData ed){
+        return ViewType_old.create(THOR, ed);
     }
 
-    public static ViewType arena(EntityData ed) {
-        return ViewType.create(ARENA, ed);
+    public static ViewType_old arena(EntityData ed) {
+        return ViewType_old.create(ARENA, ed);
     }
 
-    public static ViewType mapTile(EntityData ed) {
-        return ViewType.create(MAPTILE, ed);
+    public static ViewType_old mapTile(EntityData ed) {
+        return ViewType_old.create(MAPTILE, ed);
     }
 
-    public static ViewType explosion2(EntityData ed) {
-        return ViewType.create(EXPLOSION2, ed);
+    public static ViewType_old explosion2(EntityData ed) {
+        return ViewType_old.create(EXPLOSION2, ed);
     }
 
-    public static ViewType wormhole(EntityData ed) {
-        return ViewType.create(WORMHOLE, ed);
+    public static ViewType_old wormhole(EntityData ed) {
+        return ViewType_old.create(WORMHOLE, ed);
     }
 
-    public static ViewType over5(EntityData ed) {
-        return ViewType.create(OVER5, ed);
+    public static ViewType_old over5(EntityData ed) {
+        return ViewType_old.create(OVER5, ed);
     }
 
-    public static ViewType over1(EntityData ed) {
-        return ViewType.create(OVER1, ed);
+    public static ViewType_old over1(EntityData ed) {
+        return ViewType_old.create(OVER1, ed);
     }
 
-    public static ViewType warp(EntityData ed) {
-        return ViewType.create(WARP, ed);
+    public static ViewType_old warp(EntityData ed) {
+        return ViewType_old.create(WARP, ed);
     }
 
-    public static ViewType repel(EntityData ed) {
-        return ViewType.create(REPEL, ed);
+    public static ViewType_old repel(EntityData ed) {
+        return ViewType_old.create(REPEL, ed);
     }
 
-    public static ViewType over2(EntityData ed) {
-        return ViewType.create(OVER2, ed);
+    public static ViewType_old over2(EntityData ed) {
+        return ViewType_old.create(OVER2, ed);
     }
 
-    public static ViewType flag_ours(EntityData ed) {
-        return ViewType.create(FLAG_OURS, ed);
+    public static ViewType_old flag_ours(EntityData ed) {
+        return ViewType_old.create(FLAG_OURS, ed);
     }
 
-    public static ViewType flag_theirs(EntityData ed) {
-        return ViewType.create(FLAG_THEIRS, ed);
+    public static ViewType_old flag_theirs(EntityData ed) {
+        return ViewType_old.create(FLAG_THEIRS, ed);
     }
 
-    public static ViewType burst(EntityData ed) {
-        return ViewType.create(BURST, ed);
+    public static ViewType_old burst(EntityData ed) {
+        return ViewType_old.create(BURST, ed);
     }
 }

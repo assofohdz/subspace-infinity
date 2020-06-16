@@ -43,6 +43,7 @@ import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandConsumer;
 import infinity.sim.GameEntities;
+import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 
 /**
@@ -53,11 +54,11 @@ public class lightTester extends BaseGameModule {
 
     private Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
     private EntityData ed;
-    
+
     private Ini settings;
 
-    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
-        super(chp, am, loader, arenas, time);
+    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time, physics);
     }
 
     @Override
@@ -68,11 +69,11 @@ public class lightTester extends BaseGameModule {
         } catch (IOException ex) {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        GameEntities.createLight(new Vec3d(10, 10, 0), ed, settings,this.getTimeManager().getTime());
-        GameEntities.createLight(new Vec3d(-10, 10, 0), ed, settings,this.getTimeManager().getTime());
-        GameEntities.createLight(new Vec3d(10, -10, 0), ed, settings,this.getTimeManager().getTime());
-        GameEntities.createLight(new Vec3d(-10, -10, 0), ed, settings, this.getTimeManager().getTime());
+
+        GameEntities.createLight(new Vec3d(10, 10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createLight(new Vec3d(-10, 10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createLight(new Vec3d(10, -10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createLight(new Vec3d(-10, -10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
     }
 
     @Override

@@ -43,6 +43,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.GameEntities;
+import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 
 /**
@@ -77,8 +78,8 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
 
     private Ini settings;
 
-    public GameOrchestratorState(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
-        super(chp, am, loader, arenas, time);
+    public GameOrchestratorState(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time, physics);
     }
 
     @Override
@@ -142,7 +143,7 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
         //TODO: Create mob, set it steering towards the base
         Vec3d randomSpawn = getMobSpawnPoint();
         log.debug("Spawning mob @ " + randomSpawn);
-        EntityId mobId = GameEntities.createMob(randomSpawn, ed, settings, this.getTimeManager().getTime());
+        EntityId mobId = GameEntities.createMob(randomSpawn, ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
 
         ed.setComponent(mobId, new SteeringPath());
     }
@@ -151,7 +152,7 @@ public class GameOrchestratorState extends BaseGameModule /*implements CommandLi
     private void spawnBase() {
         Vec3d basePos = getBaseSpawnPoint();
         log.debug("Spawning base @ " + basePos);
-        baseId = GameEntities.createBase(basePos, ed, settings, this.getTimeManager().getTime());
+        baseId = GameEntities.createBase(basePos, ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
     }
 
     private EntityId getBaseId() {

@@ -38,7 +38,7 @@ import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.TimeState;
 import infinity.es.ArenaId;
-import infinity.es.Position;
+import infinity.es.BodyPosition;
 import infinity.sim.ArenaManager;
 import infinity.sim.CoreGameConstants;
 import infinity.map.LevelLoader;
@@ -59,7 +59,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     private EntityData ed;
     private EntitySet arenaEntities;
-    private EntitySet staticPositions;
+    private EntitySet staticBodyPositions;
     private java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
     static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
@@ -82,7 +82,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
         am.registerLoader(LevelLoader.class, "lvl");
 
-        staticPositions = ed.getEntities(Position.class);
+        staticBodyPositions = ed.getEntities(BodyPosition.class);
 
     }
 
@@ -99,29 +99,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     @Override
     public void update(SimTime tpf) {
-        time = tpf;
-        arenaEntities.applyChanges();
-
-        if (!createdDefaultArena) {
-            this.openArena(getDefaultArenaId());
-            createdDefaultArena = true;
-        }
-
-        if (staticPositions.applyChanges()) {
-            for (Entity e : staticPositions.getAddedEntities()) {
-                Position pos = e.get(Position.class);
-
-                ZoneKey zone = InfinityConstants.ZONE_GRID.worldToKey(pos.getLocation());
-                long cellId = zone.toLongId();
-
-                zones.put(zone, cellId);
-
-                Position newPos = pos.newCellId(cellId);
-                ed.setComponent(e.getId(), newPos);
-            }
-
-            log.trace("Zones: " + zones.toString());
-        }
+        
 
     }
 
@@ -136,10 +114,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     @Override
     public String[] getActiveArenas() {
         return (String[]) currentOpenArenas.keySet().toArray();
-    }
-
-    private void openArena(String arenaId) {
-        GameEntities.createArena(ed, arenaId, new Vec3d(0, 0, 0), time.getTime());
     }
 
     private void closeArena(String arenaId) {

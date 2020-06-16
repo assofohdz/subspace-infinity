@@ -33,7 +33,7 @@ import com.simsilica.es.EntityData;
  *
  * @author Paul Speed
  */
-public class PhysicsMassTypes {
+public class PhysicsMassTypes_old {
 
     /**
      * Indicates a normal mass
@@ -61,24 +61,24 @@ public class PhysicsMassTypes {
      */
     public static final String NORMAL_BULLET = "Normal_bullet";
 
-    public static PhysicsMassType normal(EntityData ed) {
-        return PhysicsMassType.create(NORMAL, ed);
+    public static PhysicsMassType_old normal(EntityData ed) {
+        return PhysicsMassType_old.create(NORMAL, ed);
     }
 
-    public static PhysicsMassType infinite(EntityData ed) {
-        return PhysicsMassType.create(INFINITE, ed);
+    public static PhysicsMassType_old infinite(EntityData ed) {
+        return PhysicsMassType_old.create(INFINITE, ed);
     }
 
-    public static PhysicsMassType fixedAngularVelocity(EntityData ed) {
-        return PhysicsMassType.create(FIXED_ANGULAR_VELOCITY, ed);
+    public static PhysicsMassType_old fixedAngularVelocity(EntityData ed) {
+        return PhysicsMassType_old.create(FIXED_ANGULAR_VELOCITY, ed);
     }
 
-    public static PhysicsMassType fixedLinearVelocity(EntityData ed) {
-        return PhysicsMassType.create(FIXED_LINEAR_VELOCITY, ed);
+    public static PhysicsMassType_old fixedLinearVelocity(EntityData ed) {
+        return PhysicsMassType_old.create(FIXED_LINEAR_VELOCITY, ed);
     }
 
-    public static PhysicsMassType normal_bullet(EntityData ed) {
-        return PhysicsMassType.create(NORMAL_BULLET, ed);
+    public static PhysicsMassType_old normal_bullet(EntityData ed) {
+        return PhysicsMassType_old.create(NORMAL_BULLET, ed);
     }
 
 }

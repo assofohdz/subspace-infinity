@@ -43,6 +43,7 @@ import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandConsumer;
 import infinity.sim.GameEntities;
+import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 
 /**
@@ -57,8 +58,8 @@ public class wangTester extends BaseGameModule {
 
     private Ini settings;
 
-    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
-        super(chp, am, loader, arenas, time);
+    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time, physics);
     }
 
     @Override
@@ -71,8 +72,8 @@ public class wangTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 20, ed, settings, this.getTimeManager().getTime());
-        GameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 100, 0), ed, settings, this.getTimeManager().getTime());
+        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 20, ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 100, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
     }
 
     @Override

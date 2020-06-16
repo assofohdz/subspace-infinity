@@ -26,39 +26,51 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityData;
-
+import com.simsilica.mathd.Vec3d;
 
 /**
- *  For visible game objects, this is the type of object.
  *
- *  @author    Paul Speed
+ * @author Asser Fahrenholz
  */
-public class PhysicsMassType implements EntityComponent {
-    
-    private int type;
- 
-    protected PhysicsMassType() {
+public class SphereShape_old implements EntityComponent {
+
+    private double radius;
+    private Vec3d offset;
+
+    /**
+     * For SpiderMonkey serialization purposes.
+     */
+    protected SphereShape_old() {
     }
-    
-    public PhysicsMassType( int type ) {
-        this.type = type;
+
+    /**
+     * Creates a new sphere collision shape with the specified radius and
+     * 'center' relative to the natural origin of the object to which it
+     * applies. -CoG in most cases.
+     *
+     * @param radius the radius of the sphere
+     * @param centerOffset the offset relative to the object to which it applies
+     */
+    public SphereShape_old(double radius, Vec3d centerOffset) {
+        this.radius = radius;
+        this.offset = centerOffset;
     }
-    
-    public static PhysicsMassType create( String typeName, EntityData ed ) {
-        return new PhysicsMassType(ed.getStrings().getStringId(typeName, true));
+
+    public SphereShape_old(double radius) {
+        this.radius = radius;
+        this.offset = new Vec3d();
     }
-    
-    public int getType() {
-        return type;
+
+    public double getRadius() {
+        return radius;
     }
-    
-    public String getTypeName( EntityData ed ) {
-        return ed.getStrings().getString(type);                 
+
+    public Vec3d getCenterOffset() {
+        return offset;
     }
- 
-    @Override   
+
+    @Override
     public String toString() {
-        return getClass().getSimpleName() + "[type=" + type + "]";
-    }     
+        return "SphereShape[radius=" + radius + ", centerOffset=" + offset + "]";
+    }
 }

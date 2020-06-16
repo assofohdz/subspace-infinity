@@ -36,22 +36,22 @@ import java.awt.Color;
  *
  *  @author    Paul Speed
  */
-public class ViewType implements EntityComponent {
+public class ViewType_old implements EntityComponent {
     
     //Translates into the texture
     private int type;
     //Translates into the color overlay (not used at the moment, but could be later on)
     private Color color;
  
-    protected ViewType() {
+    protected ViewType_old() {
     }
     
-    public ViewType( int type ) {
+    public ViewType_old( int type ) {
         this.type = type;
     }
     
-    public static ViewType create( String typeName, EntityData ed ) {
-        return new ViewType(ed.getStrings().getStringId(typeName, true));
+    public static ViewType_old create( String typeName, EntityData ed ) {
+        return new ViewType_old(ed.getStrings().getStringId(typeName, true));
     }
     
     public int getType() {

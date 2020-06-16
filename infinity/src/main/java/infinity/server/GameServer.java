@@ -84,9 +84,7 @@ import infinity.es.LargeGridCell;
 import infinity.es.LargeObject;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
-import infinity.es.SphereShape;
 import infinity.es.TileType;
-import infinity.es.ViewType;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
 import infinity.server.chat.ChatHostedService;
@@ -201,6 +199,7 @@ public class GameServer {
         // MBlockShapes. 
         ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
         systems.register(ShapeFactory.class, shapeFactory);
 
@@ -342,9 +341,6 @@ public class GameServer {
         //Serializer.registerClass(LitBy.class, new FieldSerializer());
         //Serializer.registerClass(OverheadLight.class, new FieldSerializer());*/
         Serializer.registerClass(Name.class, new FieldSerializer());
-
-        Serializer.registerClass(ViewType.class, new FieldSerializer());
-        Serializer.registerClass(SphereShape.class, new FieldSerializer());
 
         Serializer.registerClass(ShipType.class, new FieldSerializer());
         Serializer.registerClass(Frequency.class, new FieldSerializer());

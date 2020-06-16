@@ -25,6 +25,7 @@
  */
 package infinity.client.view;
 
+import com.jme3.app.Application;
 import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
@@ -39,16 +40,21 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
+import com.jme3.system.Timer;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.mblock.phys.CellArrayPart;
+import com.simsilica.mblock.phys.Group;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mblock.phys.Part;
 import infinity.client.ConnectionState;
 import infinity.es.TileType;
 import infinity.es.TileTypes;
-import infinity.es.ViewType;
-import infinity.es.ViewTypes;
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.sim.CoreViewConstants;
 import org.slf4j.Logger;
@@ -65,102 +71,112 @@ public class SISpatialFactory {
     private EntityData ed;
 
     private EffectFactory ef;
+    private Timer timer;
 
-    private ModelViewState state;
-    
-    
-    public SISpatialFactory() {
+    SISpatialFactory(EntityData ed, AssetManager assetManager, Timer timer) {
+        this.ed = ed;
+        this.assets = assets;
+        this.timer = timer;
     }
 
-    public void setState(ModelViewState state) {
-        this.state = state;
-        this.assets = state.getApplication().getAssetManager();
-        this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
-        this.assets.registerLoader(AWTLoader.class, "bm2");
+    SISpatialFactory(EntityData ed, Application app) {
+        this.ed = ed;
+        this.assets = app.getAssetManager();
+        this.timer = app.getTimer();
     }
 
-        public Spatial createModel(EntityId eId, ViewType type) {
+    Spatial createModel(EntityId id, MBlockShape shape, ShapeInfo shapeInfo, Mass mass) {
+        //TODO: Use the shape ?
+        String shapeName = shapeInfo.getShapeName(ed);
 
-        if (null == type.getTypeName(ed)) {
-            throw new UnsupportedOperationException("Null viewtype name: " + type.getTypeName(ed));
-        } else switch (type.getTypeName(ed)) {
-            case ViewTypes.THRUST:
-                //Create a particle emitter:
-                return createParticleEmitter(eId, type);
-            case ViewTypes.BULLETL1:
-                //Create bullet
+        if (shapeName == null || shapeName == "") {
+            throw new NullPointerException("Model shapeInfo name cannot be null or empty");
+        }
+
+        Spatial s = this.createModel(id, shapeName);
+        
+        return s;
+    }
+
+    public Spatial createModel(EntityId eId, String shapeName) {
+
+        switch (shapeName) {
+            case "thrust":
+                return createParticleEmitter(eId, shapeName);
+            case "bullet_l1":
                 return createBullet(eId, 1);
-            case ViewTypes.BOMBL1:
+            case "bomb_l1":
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_1);
-            case ViewTypes.BOMBL2:
+            case "bomb_l2":
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_2);
-            case ViewTypes.BOMBL3:
+            case "bomb_l3":
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_3);
-            case ViewTypes.BOMBL4:
+            case "bomb_l4":
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_4);
-            case ViewTypes.THOR:
+            case "thor":
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.THOR);
-            case ViewTypes.BURST:
+            case "burst":
                 //Create bomb
                 return createBurst(eId);
-            case ViewTypes.EXPLOSION:
+            case "explosion":
                 //Create explosion
                 return createExplosion(eId);
-            case ViewTypes.PRIZE:
+            case "prize":
                 //Create bounty
                 return createBounty(eId);
-            case ViewTypes.ARENA:
+            case "arena":
                 return createArena(eId);
-                /*
+            /*
             case ViewTypes.MAPTILE:
                 return createMapTile(eId);*/
-            case ViewTypes.EXPLOSION2:
+            case "explosion2":
                 return createExplosion2(eId);
-            case ViewTypes.OVER5:
+            case "over5":
                 return createOver5(eId);
-            case ViewTypes.WORMHOLE:
+            case "wormhole":
                 return createWormhole(eId);
-            case ViewTypes.OVER1:
+            case "over1":
                 return createOver1(eId);
-            case ViewTypes.WARP:
+            case "warp":
                 return createWarp(eId);
-            case ViewTypes.REPEL:
+            case "repel":
                 return createRepel(eId);
-            case ViewTypes.OVER2:
+            case "over2":
                 return createOver2(eId);
-            case ViewTypes.SHIP_WARBIRD:
+            case "warbird":
                 return createShip(31);
-            case ViewTypes.SHIP_JAVELIN:
+            case "javelin":
                 return createShip(27);
-            case ViewTypes.SHIP_SPIDER:
+            case "spider":
                 return createShip(23);
-            case ViewTypes.SHIP_LEVI:
+            case "leviathan":
                 return createShip(19);
-            case ViewTypes.SHIP_TERRIER:
+            case "terrier":
                 return createShip(15);
-            case ViewTypes.SHIP_WEASEL:
+            case "weasel":
                 return createShip(11);
-            case ViewTypes.SHIP_LANCASTER:
+            case "lancaster":
                 return createShip(7);
-            case ViewTypes.SHIP_SHARK:
+            case "shark":
                 return createShip(3);
-            case ViewTypes.FLAG_OURS:
+            case "flag_ours":
                 return createFlag(0);
-            case ViewTypes.FLAG_THEIRS:
+            case "flag_theirs":
                 return createFlag(1);
-            case ViewTypes.MOB:
+            case "mob":
                 return createMob();
-            case ViewTypes.TOWER:
+            case "tower":
                 return createTower();
-            case ViewTypes.BASE:
+            case "base":
                 return createBase();
             default:
-                throw new UnsupportedOperationException("Unknown spatial type:" + type.getTypeName(ed));
+                throw new UnsupportedOperationException("Unknown shapeinfo name:" + shapeName);
+
         }
     }
 
@@ -263,7 +279,6 @@ public class SISpatialFactory {
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         //geom.addLight(new PointLight(new Vector3f(0,5,0), ColorRGBA.White, 50f));
-        
         return geom;
     }
 
@@ -277,16 +292,16 @@ public class SISpatialFactory {
         Material mat = geom.getMaterial();
         mat.setInt("numTilesOffsetY", ship);
         geom.setMaterial(mat);
-        log.info("Setting geometry material on spatial:"+s+"; ship:" +ship);
+        log.info("Setting geometry material on spatial:" + s + "; ship:" + ship);
     }
 
-    private Spatial createParticleEmitter(EntityId eId, ViewType vt) {
+    private Spatial createParticleEmitter(EntityId eId, String shapeName) {
         Spatial result = null;
         ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); //will be overriden in switch
 
-        switch (vt.getTypeName(ed)) {
+        switch (shapeName) {
             //Create a thrust particle emitter
-            case ViewTypes.THRUST:
+            case "thrust":
                 result = createThrustEmitter(particleEmitter, eId);
         }
         return result;
@@ -373,7 +388,7 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Bounty", quad);
         Material mat = assets.loadMaterial("Materials/BountyMaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -394,7 +409,8 @@ public class SISpatialFactory {
 
         return geom;
     }
-/*
+
+    /*
     private Spatial createMapTile(EntityId eId) {
         //SquareShape s = e.get(SquareShape.class);
 
@@ -438,7 +454,7 @@ public class SISpatialFactory {
 
         return geom;
     }
-*/
+     */
     private Spatial createExplosion2(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
         //<-- Move into the material?
@@ -448,7 +464,7 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
         Material mat = assets.loadMaterial("Materials/Explode2MaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
 
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -465,7 +481,7 @@ public class SISpatialFactory {
         quadOver5.updateBound();
         Geometry geomOver5 = new Geometry("Wormhole", quadOver5);
         Material matOver5 = assets.loadMaterial("Materials/Over5MaterialLight.j3m");
-        matOver5.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        matOver5.setFloat("StartTime", timer.getTimeInSeconds());
         geomOver5.setMaterial(matOver5);
         geomOver5.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geomOver5;
@@ -481,7 +497,7 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Wormhole", quad);
         Material mat = assets.loadMaterial("Materials/WormholeMaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -496,7 +512,7 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Over1", quad);
         Material mat = assets.loadMaterial("Materials/Over1MaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -511,7 +527,7 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Over2", quad);
         Material mat = assets.loadMaterial("Materials/Over2MaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -526,7 +542,7 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Warp", quad);
         Material mat = assets.loadMaterial("Materials/WarpMaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
@@ -541,12 +557,13 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Repel", quad);
         Material mat = assets.loadMaterial("Materials/RepelMaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
-/*
+
+    /*
     public void updateWangBlobTile(Spatial s, TileType tileType) {
         Geometry geom;
         if (s instanceof Geometry) {
@@ -571,7 +588,7 @@ public class SISpatialFactory {
 
         //log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
     }
-*/
+     */
     private Spatial createBurst(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
         //<-- Move into the material?
@@ -581,18 +598,18 @@ public class SISpatialFactory {
         quad.updateBound();
         Geometry geom = new Geometry("Burst", quad);
         Material mat = assets.loadMaterial("Materials/BurstMaterialLight.j3m");
-        mat.setFloat("StartTime", state.getApplication().getTimer().getTimeInSeconds());
+        mat.setFloat("StartTime", timer.getTimeInSeconds());
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
-    
-    private float[] getArray(float halfSize){
+
+    private float[] getArray(float halfSize) {
         float[] res = new float[]{
-             halfSize, 0, -halfSize,
+            halfSize, 0, -halfSize,
             -halfSize, 0, -halfSize,
-            -halfSize, 0,  halfSize,
-             halfSize, 0,  halfSize
+            -halfSize, 0, halfSize,
+            halfSize, 0, halfSize
         };
         return res;
     }

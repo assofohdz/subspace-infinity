@@ -33,12 +33,12 @@ import org.dyn4j.dynamics.BodyFixture;
  *
  * @author Asser
  */
-public class PhysicsShape implements EntityComponent {
+public class PhysicsShape_old implements EntityComponent {
 
     BodyFixture fixture;
 
     //Doesn't need empty serialization constructor because it will not be sent to client
-    public PhysicsShape(BodyFixture fixture) {
+    public PhysicsShape_old(BodyFixture fixture) {
         this.fixture = fixture;
     }
 

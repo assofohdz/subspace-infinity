@@ -42,6 +42,7 @@ import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandConsumer;
 import infinity.sim.GameEntities;
+import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 
 /**
@@ -56,8 +57,8 @@ public class prizeTester extends BaseGameModule {
     
     private Ini settings;
 
-    public prizeTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time) {
-        super(chp, am, loader, arenas, time);
+    public prizeTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time, physics);
 
     }
 
@@ -71,7 +72,7 @@ public class prizeTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 10, ed, settings,this.getTimeManager().getTime());
+        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 10, ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
     }
 
     @Override

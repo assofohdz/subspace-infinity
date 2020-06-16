@@ -61,7 +61,6 @@ import com.simsilica.sim.*;
 
 import com.simsilica.mphys.PhysicsSpace;
 import infinity.es.PointLightComponent;
-import infinity.es.ViewTypes;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipTypes;
@@ -240,10 +239,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             //avatarEntity = GameEntities.createShip(fireAlt, ed, settings, 0);
             ed.setComponents(avatarEntity,
                     new SpawnPosition(phys.getGrid(), new Vec3d(0, 0, 0)),
-                    ShapeInfo.create("sphere", 1, ed),
+                    ShapeInfo.create("warbird", 1, ed),
                     new Mass(10),
                     ShipTypes.warbird(ed),
-                    ViewTypes.ship_warbird(ed),
                     new Player(),
                     new PointLightComponent(ColorRGBA.White, 500f, new Vec3d(0, 5, 0)),
                     Gravity.ZERO);
