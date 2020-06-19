@@ -174,7 +174,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private HostedConnection conn;
         private GameSessionListener callback;
 
-        private EntityId avatarEntity;
+        private EntityId avatarEntityId;
 
         private Vec3d spawnLoc = new Vec3d();
 
@@ -192,6 +192,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private InfinityMPhysSystem mphys;
 
         private ShipDriver driver;
+        private EntityId playerEntityId;
 
         public GameSessionImpl(HostedConnection conn) {
             this.conn = conn;
@@ -199,17 +200,22 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Create the avatar entity for this player
             //this.avatarEntity = gameSystems.get(GameEntities.class).createAvatar(playerEntity);
             //This is the player
-            this.avatarEntity = ed.createEntity();
+            this.playerEntityId = ed.createEntity();
+            ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
+            
+            //this.avatarEntity = ed.createEntity();
+            
+            avatarEntityId = GameEntities.createWarbird(playerEntityId, ed, 0, phys);
 
-            System.out.println("avatarId(" + avatarEntity.getId() + ")");
+            System.out.println("avatarId(" + avatarEntityId.getId() + ")");
 
-            log.info("createdAvatar:" + avatarEntity);
+            log.info("createdAvatar:" + avatarEntityId);
         }
 
         public void initialize() {
             log.info("GameSessionImpl.initialize()");
             if (getCallback(false) != null) {
-                getCallback(true).setAvatar(avatarEntity);
+                getCallback(true).setAvatar(avatarEntityId);
             } else {
                 // Apparently when we call initialize to soon we don't have the delegate
                 // yet.  So this model only works with a separate login step.
@@ -219,7 +225,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Setup to start using SimEthereal synching
             EtherealHost ethereal = getService(EtherealHost.class);
             ethereal.startHostingOnConnection(conn);
-            ethereal.setConnectionObject(conn, avatarEntity.getId(), spawnLoc);
+            ethereal.setConnectionObject(conn, avatarEntityId.getId(), spawnLoc);
             EntityDataHostedService eds = getService(EntityDataHostedService.class);
 
             // Setup a filter for BodyPosition components to match what
@@ -237,7 +243,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             //This is the players default ship:
             //shipEntity = ed.createEntity();
             //avatarEntity = GameEntities.createShip(fireAlt, ed, settings, 0);
-            ed.setComponents(avatarEntity,
+            ed.setComponents(avatarEntityId,
                     new SpawnPosition(phys.getGrid(), new Vec3d(0, 0, 0)),
                     ShapeInfo.create("warbird", 1, ed),
                     new Mass(10),
@@ -262,7 +268,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         @Override
         public EntityId getAvatar() {
-            return avatarEntity;
+            return avatarEntityId;
         }
 
         @Override
@@ -278,7 +284,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
             //nsl.setMaxMessageSize(2000);
             if (nsl != null) {
-                nsl.setSelf(avatarEntity.getId(), location);
+                nsl.setSelf(avatarEntityId.getId(), location);
             }
 
             lastViewLoc.set(location);
@@ -352,7 +358,7 @@ log.info("spawn location:" + spawnLoc);
             if (log.isTraceEnabled()) {
                 log.trace("movementForces(" + movementForces + ")");
             }
-            ShipDriver driver = mphys.getDriver(avatarEntity);
+            ShipDriver driver = mphys.getDriver(avatarEntityId);
             if (driver != null) {//Should only happen if client side is faster than server side (or debugging)
                 driver.applyMovementState(movementForces);
             }
