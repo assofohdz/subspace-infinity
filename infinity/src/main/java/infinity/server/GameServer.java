@@ -92,6 +92,7 @@ import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.ShipDriver;
 import infinity.systems.HealthSystem;
 import infinity.systems.SettingsSystem;
+import infinity.systems.ShipFrequencySystem;
 import infinity.util.AdaptiveLoadingService;
 //import infinity.systems.WeaponSystem;
 import java.util.HashMap;
@@ -147,13 +148,15 @@ public class GameServer {
         // generally prevent the RpcCall messages from coming too quickly and getting processed
         // before the SerializerRegistrationMessage has had a chance to process.
         server.getServices().addService(new DelayService());
+        
+        ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
 
         server.getServices().addServices(new RpcHostedService(),
                 new RmiHostedService(),
                 //new GameSessionHostedService(systems),
                 //new AccountHostedService(description),
                 //new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
-                new ChatHostedService(InfinityConstants.CHAT_CHANNEL)
+                chp
         );
 
         // Add the SimEtheral host that will serve object sync updates to
@@ -199,7 +202,16 @@ public class GameServer {
         // MBlockShapes. 
         ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
+        
         shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("javelin", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("spider", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("leviathan", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("terrier", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("lancaster", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
+        
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
         systems.register(ShapeFactory.class, shapeFactory);
 
@@ -244,6 +256,8 @@ public class GameServer {
         //Subspace Infinity Specific Systems:-->
         //systems.register(WeaponSystem.class, new WeaponSystem());
         systems.register(HealthSystem.class, new HealthSystem());
+        systems.register(ShipFrequencySystem.class, new ShipFrequencySystem(chp));
+        
 
         AssetLoaderService assetLoader = new AssetLoaderService();
         //systems.register(AssetLoaderService.class, assetLoader);

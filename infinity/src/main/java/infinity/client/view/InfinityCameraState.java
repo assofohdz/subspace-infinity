@@ -34,6 +34,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.CameraState;
@@ -93,21 +94,22 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     @Override
     public void update(float tpf) {
-        if (avatarSpatial == null) {
+        //This means our avatar has a new shapeinfo (new spatial)
+        if (watchedAvatar.applyChanges() || avatarSpatial == null ){
             avatarSpatial = viewState.getModelSpatial(avatar, true);
-        } else {
-            Vector3f newCamPos = avatarSpatial.getWorldTranslation();
-
-            lastAvatarLoc = newCamPos;
-            newCameraLoc.x = lastAvatarLoc.x;
-            //We dont set the y because that doesnt change (for now)
-            newCameraLoc.z = lastAvatarLoc.z;
-
-            Quaternion rot = camera.getRotation();
-            
-            getState(WorldViewState.class).setViewLocation(newCameraLoc, lastAvatarLoc);
-            gameSession.setView(new Quatd(rot), new Vec3d(newCameraLoc));
         }
+
+        Vector3f newCamPos = avatarSpatial.getWorldTranslation();
+
+        lastAvatarLoc = newCamPos;
+        newCameraLoc.x = lastAvatarLoc.x;
+        //We dont set the y because that doesnt change (for now)
+        newCameraLoc.z = lastAvatarLoc.z;
+
+        Quaternion rot = camera.getRotation();
+
+        getState(WorldViewState.class).setViewLocation(newCameraLoc, lastAvatarLoc);
+        gameSession.setView(new Quatd(rot), new Vec3d(newCameraLoc));
 
         /*
         BodyPosition bp2 = ed.getComponent(avatar, BodyPosition.class);
@@ -147,9 +149,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     @Override
     public void setAvatar(EntityId avatarId) {
-        //We only need to know where the player is currently - that's where we'll point our camera 
         this.avatar = avatarId;
-        //Doesn't work:
-        //watchedAvatar = ed.watchEntity(this.avatar, BodyPosition.class);
+        watchedAvatar = ed.watchEntity(this.avatar, ShapeInfo.class);
     }
 }

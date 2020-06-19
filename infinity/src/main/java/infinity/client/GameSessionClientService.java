@@ -58,23 +58,23 @@ import infinity.net.GameSessionListener;
  */
 public class GameSessionClientService extends AbstractClientService
         implements GameSession {
-
+    
     static Logger log = LoggerFactory.getLogger(GameSessionClientService.class);
-
+    
     private RmiClientService rmiService;
     private GameSession delegate;
-
+    
     private GameSessionCallback sessionCallback = new GameSessionCallback();
     private List<GameSessionListener> listeners = new CopyOnWriteArrayList<>();
-
+    
     public GameSessionClientService() {
     }
-
+    
     @Override
     public EntityId getAvatar() {
         return getDelegate().getAvatar();
     }
-
+    
     @Override
     public void setView(Quatd rotation, Vec3d location) {
         if (log.isTraceEnabled()) {
@@ -82,7 +82,7 @@ public class GameSessionClientService extends AbstractClientService
         }
         getDelegate().setView(rotation, location);
     }
-
+    
     private GameSession getDelegate() {
         // We look up the delegate lazily to make the service more
         // flexible.  Otherwise we'd have to listen to the account service
@@ -109,11 +109,11 @@ public class GameSessionClientService extends AbstractClientService
     public void addGameSessionListener(GameSessionListener l) {
         listeners.add(l);
     }
-
+    
     public void removeGameSessionListener(GameSessionListener l) {
         listeners.remove(l);
     }
-
+    
     @Override
     protected void onInitialize(ClientServiceManager s) {
         log.info("onInitialize(" + s + ")");
@@ -141,67 +141,67 @@ public class GameSessionClientService extends AbstractClientService
         log.debug("start()");
         super.start();
     }
-
+    
     @Override
     public void move(Vec3d movementForces) {
         //log.debug("move(" + movementForces + ")");
         getDelegate().move(movementForces);
     }
-
+    
     @Override
     public void createTile(String tileSet, double x, double y) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void removeTile(double x, double y) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void attackGuns() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void attackBomb() {
         //log.debug("attackBomb()");
         getDelegate().attackBomb();
     }
-
+    
     @Override
     public void attackGravityBomb() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void placeMine() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void attackBurst() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void attackThor() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void repel() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void warp() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void chooseShip(byte ship) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        getDelegate().chooseShip(ship);
     }
 
     /**
@@ -209,10 +209,10 @@ public class GameSessionClientService extends AbstractClientService
      * related stuff.
      */
     private class GameSessionCallback implements GameSessionListener {
-
+        
         @Override
         public void setAvatar(EntityId avatar) {
-
+            
             log.info("setAvatar(" + avatar + ")");
             for (GameSessionListener l : listeners) {
                 l.setAvatar(avatar);

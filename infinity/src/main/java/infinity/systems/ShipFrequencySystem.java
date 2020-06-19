@@ -67,10 +67,11 @@ public class ShipFrequencySystem extends AbstractGameSystem {
 
     //Matches =214 to capture frequency 214
     private final Pattern joinTeam = Pattern.compile("\\=(\\d+)");
-    private final HostedServiceManager serviceManager;
+    private final ChatHostedService chp;
 
-    public ShipFrequencySystem(HostedServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
+
+    public ShipFrequencySystem(ChatHostedService chp) {
+        this.chp = chp;
     }
 
     @Override
@@ -83,7 +84,7 @@ public class ShipFrequencySystem extends AbstractGameSystem {
         teamRestrictions = new HashMap<>();
 
         //Register consuming methods for patterns
-        this.serviceManager.getService(ChatHostedService.class).registerPatternBiConsumer(joinTeam, "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+        chp.registerPatternBiConsumer(joinTeam, "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
 
     }
 

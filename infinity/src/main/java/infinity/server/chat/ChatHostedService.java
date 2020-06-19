@@ -91,6 +91,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      */
     public ChatHostedService(int channel) {
         this.channel = channel;
+        this.patternBiConsumers = new HashMap<>();
         //setAutoHost(false);
     }
 

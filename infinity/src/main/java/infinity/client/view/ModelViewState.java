@@ -269,7 +269,15 @@ public class ModelViewState extends BaseAppState {
         this.shapeFactory = new ShapeFactoryRegistry<>();
         //Need to register all shapes here
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
+        
         shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("javelin", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("spider", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("leviathan", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("terrier", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("lancaster", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
 
         siModelFactory = new SISpatialFactory(ed, app);

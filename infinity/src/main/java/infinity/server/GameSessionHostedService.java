@@ -69,6 +69,7 @@ import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
 import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.ShipDriver;
+import infinity.systems.ShipFrequencySystem;
 //import infinity.systems.WeaponSystem;
 
 /**
@@ -399,10 +400,7 @@ log.info("spawn location:" + spawnLoc);
 
         @Override
         public void chooseShip(byte ship) {
-            //phys.morph(avatarEntityId, shape;
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            gameSystems.get(ShipFrequencySystem.class).requestShipChange(avatarEntityId, ship);
         }
-        
-        
     }
 }
