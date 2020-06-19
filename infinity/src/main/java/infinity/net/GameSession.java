@@ -61,20 +61,6 @@ public interface GameSession {
     public void setView(Quatd rotation, Vec3d location);
 
     /**
-     * Starts a grab+hold operation on some object. We send these async because
-     * we don't have to wait for the result but we do need it to be reliably
-     * sent because we won't be sending it again.
-     */
-    @Asynchronous(reliable = true)
-    public void startHolding(EntityId object, Vec3d location);
-
-    /**
-     * Releases a previous grab+hold operation.
-     */
-    @Asynchronous(reliable = true)
-    public void stopHolding(EntityId object);
-
-    /**
      * For now we just direct-move the player avatar.
      */
     @Asynchronous(reliable = false)

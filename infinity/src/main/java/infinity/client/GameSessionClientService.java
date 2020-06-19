@@ -83,20 +83,6 @@ public class GameSessionClientService extends AbstractClientService
         getDelegate().setView(rotation, location);
     }
 
-    public void startHolding(EntityId object, Vec3d location) {
-        if (log.isTraceEnabled()) {
-            log.trace("startHolding(" + object + ", " + location + ")");
-        }
-        getDelegate().startHolding(object, location);
-    }
-
-    public void stopHolding(EntityId object) {
-        if (log.isTraceEnabled()) {
-            log.trace("stopHolding(" + object + ")");
-        }
-        getDelegate().stopHolding(object);
-    }
-
     private GameSession getDelegate() {
         // We look up the delegate lazily to make the service more
         // flexible.  Otherwise we'd have to listen to the account service

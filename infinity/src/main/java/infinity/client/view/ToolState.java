@@ -147,14 +147,14 @@ public class ToolState extends BaseAppState {
                     // See if we can grab anything
                     PickedObject po = models.pickObject();                
                     if( po != null ) {
-                        gameSession.startHolding(po.entityId, po.location);
+                        //gameSession.startHolding(po.entityId, po.location);
                         heldEntity = po.entityId;
                     } else {
                         // Just in case
                         heldEntity = null;
                     }
                 } else {
-                    gameSession.stopHolding(heldEntity);
+                    //gameSession.stopHolding(heldEntity);
                     heldEntity = null;
                 }
             } 

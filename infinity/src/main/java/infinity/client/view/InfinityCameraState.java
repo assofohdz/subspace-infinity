@@ -26,6 +26,7 @@
 package infinity.client.view;
 
 import com.jme3.app.Application;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
@@ -33,8 +34,11 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.CameraState;
 import infinity.client.ConnectionState;
+import infinity.client.GameSessionClientService;
 import infinity.net.GameSessionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +64,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     ModelViewState viewState;
     Spatial avatarSpatial;
+    private GameSessionClientService gameSession;
 
     public InfinityCameraState() {
     }
@@ -98,7 +103,10 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
             //We dont set the y because that doesnt change (for now)
             newCameraLoc.z = lastAvatarLoc.z;
 
+            Quaternion rot = camera.getRotation();
+            
             getState(WorldViewState.class).setViewLocation(newCameraLoc, lastAvatarLoc);
+            gameSession.setView(new Quatd(rot), new Vec3d(newCameraLoc));
         }
 
         /*
@@ -129,7 +137,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     @Override
     protected void onEnable() {
-
+        this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override

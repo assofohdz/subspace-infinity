@@ -200,6 +200,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Create the avatar entity for this player
             //this.avatarEntity = gameSystems.get(GameEntities.class).createAvatar(playerEntity);
             //This is the player
+            
+            this.phys = gameSystems.get(PhysicsSpace.class, true);
+            this.mphys = gameSystems.get(InfinityMPhysSystem.class, true);
+            
             this.playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
             
@@ -207,6 +211,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             
             avatarEntityId = GameEntities.createWarbird(playerEntityId, ed, 0, phys);
 
+            ed.setComponent(avatarEntityId, new Player());
+            
             System.out.println("avatarId(" + avatarEntityId.getId() + ")");
 
             log.info("createdAvatar:" + avatarEntityId);
@@ -237,13 +243,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             //hed.registerEntityVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
             hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
 
-            this.phys = gameSystems.get(PhysicsSpace.class, true);
-            this.mphys = gameSystems.get(InfinityMPhysSystem.class, true);
 
             //This is the players default ship:
             //shipEntity = ed.createEntity();
             //avatarEntity = GameEntities.createShip(fireAlt, ed, settings, 0);
-            ed.setComponents(avatarEntityId,
+            /*ed.setComponents(avatarEntityId,
                     new SpawnPosition(phys.getGrid(), new Vec3d(0, 0, 0)),
                     ShapeInfo.create("warbird", 1, ed),
                     new Mass(10),
@@ -251,7 +255,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                     new Player(),
                     new PointLightComponent(ColorRGBA.White, 500f, new Vec3d(0, 5, 0)),
                     Gravity.ZERO);
-
+*/
+            
+            
+            
             log.info("GameSessionImpl.initialized()");
         }
 
@@ -289,37 +296,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
             lastViewLoc.set(location);
             lastViewOrient.set(rotation);
-
-            if (test != null) {
-                Vec3d rot = lastViewOrient.mult(relativeLoc);
-                //ed.setComponent(test, new SpawnPosition(phys.getGrid(), lastViewLoc.add(rot)));
-                phys.teleport(test, lastViewLoc.add(rot), lastViewOrient);
-            }
         }
-
-        public void startHolding(EntityId object, Vec3d location) {
-            if (log.isTraceEnabled()) {
-                log.trace("startHolding(" + object + ", " + location + ")");
-            }
-            log.info("startHolding(" + object + ", " + location + ")");
-
-            //test = gameSystems.get(GameEntities.class).createTestSphere(location, 0.1, true);
-            relativeLoc = lastViewOrient.inverse().mult(location.subtract(lastViewLoc));
-
-        }
-
-        public void stopHolding(EntityId object) {
-            if (log.isTraceEnabled()) {
-                log.trace("stopHolding(" + object + ")");
-            }
-            log.info("stopHolding(" + object + ")");
-
-            if (test != null) {
-                ed.removeEntity(test);
-                test = null;
-            }
-        }
-
+        
         /*        
         public void spawn() {
 log.info("spawn():" + avatarEntity);        
@@ -421,8 +399,10 @@ log.info("spawn location:" + spawnLoc);
 
         @Override
         public void chooseShip(byte ship) {
+            //phys.morph(avatarEntityId, shape;
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
-
+        
+        
     }
 }

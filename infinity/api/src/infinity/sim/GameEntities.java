@@ -29,6 +29,8 @@ import com.jme3.math.ColorRGBA;
 import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 import com.simsilica.es.common.Decay;
+import com.simsilica.ext.mphys.Gravity;
+import com.simsilica.ext.mphys.Mass;
 import infinity.es.Spawner;
 import infinity.es.WeaponTypes;
 import infinity.es.HealthChange;
@@ -107,14 +109,13 @@ public class GameEntities {
 
     //TODO: All constants should come through the parameters - for now, they come from the constants
     //TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
-
     public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed, Ini settings, long createdTime, PhysicsSpace phys) {
         EntityId result = ed.createEntity();
         ed.setComponents(result,
                 //ViewTypes.gravSphereType(ed),
                 ShapeInfo.create("gravitysphere", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos)
-                //new SpawnPosition(phys.getGrid(), pos)
+        //new SpawnPosition(phys.getGrid(), pos)
         );
 
         ed.setComponent(result, new Meta(createdTime));
@@ -165,8 +166,8 @@ public class GameEntities {
                 new PhysicsVelocity(new Vector2(linearVelocity.x, linearVelocity.y)),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bomb(ed));
-                //PhysicsMassTypes.normal_bullet(ed),
-                //PhysicsShapes.bomb(settings));
+        //PhysicsMassTypes.normal_bullet(ed),
+        //PhysicsShapes.bomb(settings));
 
         ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
@@ -177,7 +178,7 @@ public class GameEntities {
             BombLevelEnum level, long createdTime, PhysicsSpace phys) {
 
         EntityId lastDelayedBomb = GameEntities.createBomb(pos, quatd, rotation, linearVelocity,
-                decayMillis, ed, settings, level, createdTime,phys);
+                decayMillis, ed, settings, level, createdTime, phys);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -189,7 +190,7 @@ public class GameEntities {
             long decayMillis, EntityData ed, Ini settings, GunLevelEnum level, long createdTime, PhysicsSpace phys) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, 
+        ed.setComponents(lastBomb,
                 //ViewTypes.bullet(ed, level),
                 ShapeInfo.create("bullet", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -197,7 +198,7 @@ public class GameEntities {
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 //PhysicsMassTypes.normal_bullet(ed),
                 WeaponTypes.bullet(ed));
-                //PhysicsShapes.bullet(settings));
+        //PhysicsShapes.bullet(settings));
         ed.setComponent(lastBomb, new Meta(createdTime));
 
         return lastBomb;
@@ -206,7 +207,7 @@ public class GameEntities {
     public static EntityId createArena(EntityData ed, String arenaId, Vec3d pos, long createdTime, PhysicsSpace phys) { //TODO: Should have SpawnPosition as a parameter in case we want to create more than one arena
         EntityId lastArena = ed.createEntity();
 
-        ed.setComponents(lastArena, 
+        ed.setComponents(lastArena,
                 //ViewTypes.arena(ed),
                 ShapeInfo.create("arena", 1, ed),
                 new SpawnPosition(phys.getGrid(), new Vec3d()),
@@ -319,8 +320,8 @@ public class GameEntities {
                 //ViewTypes.over1(ed),
                 ShapeInfo.create("over1", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //PhysicsMassTypes.normal(ed),
-                //PhysicsShapes.over1(settings));
+        //PhysicsMassTypes.normal(ed),
+        //PhysicsShapes.over1(settings));
         ed.setComponent(lastOver1, new Meta(createdTime));
 
         return lastOver1;
@@ -341,8 +342,8 @@ public class GameEntities {
                 //ViewTypes.over2(ed),
                 ShapeInfo.create("over2", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //PhysicsMassTypes.normal(ed),
-                //PhysicsShapes.over2(settings));
+        //PhysicsMassTypes.normal(ed),
+        //PhysicsShapes.over2(settings));
         ed.setComponent(lastOver2, new Meta(createdTime));
 
         return lastOver2;
@@ -467,8 +468,11 @@ public class GameEntities {
                 ShapeInfo.create("warbird", 1, ed),
                 //ViewTypes.ship_warbird(ed),
                 ShipTypes.warbird(ed));
-                //PhysicsMassTypes.normal(ed),
-                //PhysicsShapes.ship());
+        //PhysicsMassTypes.normal(ed),
+        //PhysicsShapes.ship());
+        ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d()));
+        ed.setComponent(result, new Mass(10));
+        ed.setComponent(result, Gravity.ZERO);
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new Gold(0));
@@ -518,11 +522,11 @@ public class GameEntities {
 
     public static EntityId createGravSphere(Vec3d pos, double radius, EntityData ed, long createdTime, PhysicsSpace phys) {
         EntityId result = ed.createEntity();
-        ed.setComponents(result, 
+        ed.setComponents(result,
                 //ViewTypes.gravSphereType(ed),
                 ShapeInfo.create("gravitysphere", radius, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //new SphereShape(radius, new Vec3d()));
+        //new SphereShape(radius, new Vec3d()));
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }
@@ -530,7 +534,7 @@ public class GameEntities {
     public static EntityId createPrize(Vec3d pos, String prizeType, EntityData ed, long createdTime, PhysicsSpace phys) {
         EntityId result = ed.createEntity();
 
-        ed.setComponents(result, 
+        ed.setComponents(result,
                 //ViewTypes.prize(ed),
                 ShapeInfo.create("prize", 0.5, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -603,7 +607,7 @@ public class GameEntities {
             long decayMillis, EntityData ed, BombLevelEnum level, long createdTime, PhysicsSpace phys) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, 
+        ed.setComponents(lastBomb,
                 //ViewTypes.bomb(ed, level),
                 ShapeInfo.create("bomb", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -623,7 +627,7 @@ public class GameEntities {
             long decayMillis, EntityData ed, long createdTime, PhysicsSpace phys) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, 
+        ed.setComponents(lastBomb,
                 //ViewTypes.burst(ed),
                 ShapeInfo.create("burst", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -652,7 +656,7 @@ public class GameEntities {
             Vector2 linearVelocity, long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents,
             EntityData ed, BombLevelEnum level, long createdTime, PhysicsSpace phys) {
 
-        EntityId lastDelayedBomb = GameEntities.createBomb(owner, pos, quatd, rotation, linearVelocity, decayMillis, ed, level, createdTime,phys);
+        EntityId lastDelayedBomb = GameEntities.createBomb(owner, pos, quatd, rotation, linearVelocity, decayMillis, ed, level, createdTime, phys);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
         ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -664,7 +668,7 @@ public class GameEntities {
     public static EntityId createBullet(EntityId owner, Vec3d pos, Quatd quatd, double rotation, Vector2 linearVelocity, long decayMillis, EntityData ed, GunLevelEnum level, long createdTime, PhysicsSpace phys) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, 
+        ed.setComponents(lastBomb,
                 //ViewTypes.bullet(ed, level),
                 ShapeInfo.create("bullet", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -673,8 +677,8 @@ public class GameEntities {
                 //PhysicsMassTypes.normal_bullet(ed),
                 WeaponTypes.bullet(ed),
                 new Parent(owner)
-                //PhysicsShapes.bullet()
-                );
+        //PhysicsShapes.bullet()
+        );
 
         ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
@@ -688,8 +692,8 @@ public class GameEntities {
                 //ViewTypes.mapTile(ed),
                 ShapeInfo.create("maptile", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //PhysicsMassTypes.infinite(ed),
-                //PhysicsShapes.mapTile());
+        //PhysicsMassTypes.infinite(ed),
+        //PhysicsShapes.mapTile());
 
         ed.setComponent(lastTileInfo, new Meta(createdTime));
 
@@ -704,8 +708,8 @@ public class GameEntities {
                 //ViewTypes.mapTile(ed),
                 ShapeInfo.create("wangblob", 1, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //PhysicsMassTypes.infinite(ed),
-                //PhysicsShapes.mapTile());
+        //PhysicsMassTypes.infinite(ed),
+        //PhysicsShapes.mapTile());
 
         ed.setComponent(entity, new Meta(createdTime));
         return entity;
@@ -759,7 +763,7 @@ public class GameEntities {
                 new SpawnPosition(phys.getGrid(), pos),
                 //PhysicsMassTypes.infinite(ed),
                 new GravityWell(radius, force, gravityType)
-                //PhysicsShapes.over5()
+        //PhysicsShapes.over5()
         );
 
         ed.setComponent(lastOver5, new Meta(createdTime));
@@ -780,8 +784,8 @@ public class GameEntities {
                 //ViewTypes.over1(ed),
                 ShapeInfo.create("over1", createdTime, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //PhysicsMassTypes.normal(ed),
-                //PhysicsShapes.over1());
+        //PhysicsMassTypes.normal(ed),
+        //PhysicsShapes.over1());
 
         ed.setComponent(lastOver1, new Meta(createdTime));
         return lastOver1;
@@ -801,8 +805,8 @@ public class GameEntities {
                 //ViewTypes.over2(ed),
                 ShapeInfo.create("over2", createdTime, ed),
                 new SpawnPosition(phys.getGrid(), pos));
-                //PhysicsMassTypes.normal(ed),
-                //PhysicsShapes.over2());
+        //PhysicsMassTypes.normal(ed),
+        //PhysicsShapes.over2());
 
         ed.setComponent(lastOver2, new Meta(createdTime));
         return lastOver2;
@@ -922,7 +926,7 @@ public class GameEntities {
     public static EntityId createThor(EntityId owner, Vec3d pos, Quatd orientation, double rotation, Vector2 attackVelocity, long thorDecay, EntityData ed, long createdTime, PhysicsSpace phys) {
         EntityId lastBomb = ed.createEntity();
 
-        ed.setComponents(lastBomb, 
+        ed.setComponents(lastBomb,
                 //ViewTypes.thor(ed),
                 ShapeInfo.create("thor", rotation, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -930,8 +934,8 @@ public class GameEntities {
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(thorDecay, TimeUnit.MILLISECONDS)),
                 WeaponTypes.thor(ed),
                 new Parent(owner));
-                //PhysicsMassTypes.normal_bullet(ed),
-                //PhysicsShapes.bomb());
+        //PhysicsMassTypes.normal_bullet(ed),
+        //PhysicsShapes.bomb());
         ed.setComponent(lastBomb, new Meta(createdTime));
 
         return lastBomb;
