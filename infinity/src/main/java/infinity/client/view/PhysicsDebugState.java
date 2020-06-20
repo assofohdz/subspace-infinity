@@ -53,7 +53,6 @@ import com.simsilica.mphys.PhysicsStats;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.debug.*;
 import infinity.HostState;
-import infinity.sim.InfinityMPhysSystem;
 
 
 /**
@@ -85,7 +84,7 @@ public class PhysicsDebugState extends CompositeAppState {
         PhysicsSpace phys = host.getSystems().get(PhysicsSpace.class);
         this.stats = phys.getStats(); 
         addChild(new BinStatusState(phys, 64)); 
-        addChild(new BodyDebugState(host.getSystems().get(InfinityMPhysSystem.class)));
+        addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
         addChild(new ContactDebugState(phys));  
         
         DebugHudState debug = getState(DebugHudState.class);

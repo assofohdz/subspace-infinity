@@ -53,6 +53,7 @@ import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 import com.simsilica.ext.mphys.Gravity;
+import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
@@ -60,6 +61,7 @@ import com.simsilica.mathd.*;
 import com.simsilica.sim.*;
 
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.es.MovementInput;
 import infinity.es.PointLightComponent;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.Player;
@@ -67,9 +69,10 @@ import infinity.es.ship.ShipTypes;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
-import infinity.sim.InfinityMPhysSystem;
-import infinity.sim.ShipDriver;
+//import infinity.sim.InfinityMPhysSystem;
+import infinity.sim.PlayerDriver;
 import infinity.systems.ShipFrequencySystem;
+//import infinity.systems.WeaponsSystem;
 //import infinity.systems.WeaponSystem;
 
 /**
@@ -190,9 +193,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private Quatd lastViewOrient = new Quatd();
         private Vec3d relativeLoc = null;
         private PhysicsSpace phys;
-        private InfinityMPhysSystem mphys;
+        private MPhysSystem mphys;
 
-        private ShipDriver driver;
+        private PlayerDriver driver;
         private EntityId playerEntityId;
 
         public GameSessionImpl(HostedConnection conn) {
@@ -203,7 +206,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             //This is the player
             
             this.phys = gameSystems.get(PhysicsSpace.class, true);
-            this.mphys = gameSystems.get(InfinityMPhysSystem.class, true);
+            this.mphys = gameSystems.get(MPhysSystem.class, true);
             
             this.playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
@@ -333,14 +336,16 @@ log.info("spawn location:" + spawnLoc);
         }
 
         @Override
-        public void move(Vec3d movementForces) {
+        public void move(MovementInput movementForces) {
+            ed.setComponent(avatarEntityId, movementForces);
+            /*
             if (log.isTraceEnabled()) {
                 log.trace("movementForces(" + movementForces + ")");
             }
-            ShipDriver driver = mphys.getDriver(avatarEntityId);
+            PlayerDriver driver = mphys.getDriver(avatarEntityId);
             if (driver != null) {//Should only happen if client side is faster than server side (or debugging)
                 driver.applyMovementState(movementForces);
-            }
+            }*/
         }
 
         @Override
@@ -355,6 +360,7 @@ log.info("spawn location:" + spawnLoc);
 
         @Override
         public void attackGuns() {
+            //gameSystems.get(WeaponsSystem.class).sessionAttack(activation, WeaponTypes.bullet(ed));
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 

@@ -48,6 +48,7 @@ import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import infinity.es.MovementInput;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 
@@ -143,7 +144,7 @@ public class GameSessionClientService extends AbstractClientService
     }
     
     @Override
-    public void move(Vec3d movementForces) {
+    public void move(MovementInput movementForces) {
         //log.debug("move(" + movementForces + ")");
         getDelegate().move(movementForces);
     }
@@ -160,7 +161,7 @@ public class GameSessionClientService extends AbstractClientService
     
     @Override
     public void attackGuns() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        getDelegate().attackGuns();
     }
     
     @Override

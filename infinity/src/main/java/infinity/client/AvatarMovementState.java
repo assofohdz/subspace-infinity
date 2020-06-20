@@ -15,7 +15,9 @@ import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
+import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import infinity.es.MovementInput;
 import infinity.net.GameSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +45,12 @@ public class AvatarMovementState extends BaseAppState
 
     //The information that will be sent to the server
     private double speed = 1;
-    
+
     private double rotateSpeed = 1.5;
     private Vec3d thrust = new Vec3d(); // not a direction, just 3 values
+    private MovementInput movementInput;
+    private Quatd facing = new Quatd();
+    private byte flags = (byte) 0;
 
     private InputManager inputManager;
     private GameSession session;
@@ -68,7 +73,7 @@ public class AvatarMovementState extends BaseAppState
                 //Movement:-->
                 PlayerMovementFunctions.F_THRUST,
                 PlayerMovementFunctions.F_TURN
-                //<--
+        //<--
         );
 
         inputMapper.addStateListener(this,
@@ -155,9 +160,11 @@ public class AvatarMovementState extends BaseAppState
             //thrust.y is left out because y is the upwards axis
             thrust.z = (float) (forward * speed);  //Z is forward
 
+            movementInput = new MovementInput(thrust, facing, flags);
+
             //TODO: Figure out a way to only send when we are pressing keys
             //if (thrust.x != 0.0 || thrust.y != 0.0) {
-            session.move(thrust);
+            session.move(movementInput);
             //}
 
             timeSinceLastSend = 0;
@@ -183,15 +190,15 @@ public class AvatarMovementState extends BaseAppState
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
         boolean b = value == InputState.Positive;
-        
-        if( func == PlayerMovementFunctions.F_RUN ) {
-            if( b ) {
+
+        if (func == PlayerMovementFunctions.F_RUN) {
+            if (b) {
                 speed = 2;
             } else {
                 speed = 1;
             }
         }
-        
+
         if (value == InputState.Off) {
             if (func == PlayerMovementFunctions.F_SHOOT) {
                 session.attackGuns();

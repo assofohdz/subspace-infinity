@@ -41,6 +41,7 @@ import com.jme3.network.service.rmi.Asynchronous;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import infinity.es.MovementInput;
 
 /**
  *
@@ -64,7 +65,7 @@ public interface GameSession {
      * For now we just direct-move the player avatar.
      */
     @Asynchronous(reliable = false)
-    public void move(Vec3d movementForces);
+    public void move(MovementInput movementForces);
 
     /**
      * RMI call to create a tile

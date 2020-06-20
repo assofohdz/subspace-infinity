@@ -82,15 +82,17 @@ import infinity.es.Frequency;
 import infinity.es.Gold;
 import infinity.es.LargeGridCell;
 import infinity.es.LargeObject;
+import infinity.es.MovementInput;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.TileType;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
 import infinity.server.chat.ChatHostedService;
-import infinity.sim.InfinityMPhysSystem;
-import infinity.sim.ShipDriver;
+//import infinity.sim.InfinityMPhysSystem;
+import infinity.sim.PlayerDriver;
 import infinity.systems.HealthSystem;
+import infinity.systems.MovementSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ShipFrequencySystem;
 import infinity.util.AdaptiveLoadingService;
@@ -148,7 +150,7 @@ public class GameServer {
         // generally prevent the RpcCall messages from coming too quickly and getting processed
         // before the SerializerRegistrationMessage has had a chance to process.
         server.getServices().addService(new DelayService());
-        
+
         ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
 
         server.getServices().addServices(new RpcHostedService(),
@@ -202,7 +204,7 @@ public class GameServer {
         // MBlockShapes. 
         ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
-        
+
         shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("javelin", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("spider", 1, ed), new SphereFactory());
@@ -211,7 +213,7 @@ public class GameServer {
         shapeFactory.registerFactory(ShapeInfo.create("lancaster", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
-        
+
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
         systems.register(ShapeFactory.class, shapeFactory);
 
@@ -219,8 +221,8 @@ public class GameServer {
         // customization
         // Override the default body factory behavior so that we can apply the
         // upright driver as needed.
-        HashMap<EntityId, ShipDriver> map = new HashMap<>();
-
+        HashMap<EntityId, PlayerDriver> map = new HashMap<>();
+        /*
         EntityBodyFactory<MBlockShape> bodyFactory = new EntityBodyFactory<MBlockShape>(ed,
                 InfinityConstants.DEFAULT_GRAVITY, shapeFactory) {
             @Override
@@ -233,22 +235,23 @@ public class GameServer {
 
                 //If the entity is a player, we add a driver, so the player can control his ship
                 if (getComponent(id, Player.class) != null) {
-                    ShipDriver driver = new ShipDriver<EntityId, MBlockShape>();
+                    PlayerDriver driver = new PlayerDriver<EntityId, MBlockShape>();
                     result.setControlDriver(driver);
                     map.put(id, driver);
                 }
                 return result;
             }
-        };
+        };*/
+        EntityBodyFactory<MBlockShape> bodyFactory = new EntityBodyFactory<MBlockShape>(ed, Gravity.ZERO.getLinearAcceleration(), shapeFactory);
 
-        InfinityMPhysSystem mphys = new InfinityMPhysSystem<MBlockShape>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+        MPhysSystem mphys = new MPhysSystem<MBlockShape>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
-        mphys.setDriverIndex(map);
+        //mphys.setDriverIndex(map);
 
         mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(leafDb));
 
         //mphys.addPhysicsListener(new PositionUpdater(ed));
-        systems.register(InfinityMPhysSystem.class, mphys);
+        //systems.register(InfinityMPhysSystem.class, mphys);
         systems.register(MPhysSystem.class, mphys);
         systems.register(PhysicsSpace.class, mphys.getPhysicsSpace());
         systems.register(EntityBodyFactory.class, bodyFactory);
@@ -257,11 +260,11 @@ public class GameServer {
         //systems.register(WeaponSystem.class, new WeaponSystem());
         systems.register(HealthSystem.class, new HealthSystem());
         systems.register(ShipFrequencySystem.class, new ShipFrequencySystem(chp));
-        
+        systems.register(MovementSystem.class, new MovementSystem());
 
         AssetLoaderService assetLoader = new AssetLoaderService();
         //systems.register(AssetLoaderService.class, assetLoader);
-        
+
         AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
         //systems.register(AdaptiveLoadingService.class, adaptiveLoader);
         server.getServices().addService(assetLoader);
@@ -365,6 +368,7 @@ public class GameServer {
         Serializer.registerClass(TileType.class, new FieldSerializer());
         Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
         Serializer.registerClass(Decay.class, new FieldSerializer());
+        Serializer.registerClass(MovementInput.class, new FieldSerializer());
     }
 
     public Server getServer() {
