@@ -27,7 +27,6 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
-import org.dyn4j.geometry.Vector2;
 
 /**
  *

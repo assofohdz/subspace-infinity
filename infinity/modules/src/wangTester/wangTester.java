@@ -72,8 +72,9 @@ public class wangTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 20, ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
-        GameEntities.createWormhole(new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 100, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 20);
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100,0,100));
+        
     }
 
     @Override

@@ -72,7 +72,7 @@ public class prizeTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(), 10, ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 10);
     }
 
     @Override

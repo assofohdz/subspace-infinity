@@ -17,7 +17,7 @@ project(":infinity:api") {
         implementation "com.simsilica:zay-es:$zayEsVersion"
         implementation "com.simsilica:sim-math:$simMathVersion"
         implementation "com.simsilica:sio2:$sio2Version"
-        implementation 'org.dyn4j:dyn4j:3.4.0'
+        //implementation 'org.dyn4j:dyn4j:3.4.0'
         implementation 'com.github.implicit-invocation:jwalkable:master-SNAPSHOT'
         implementation 'org.ini4j:ini4j:0.5.4'
         implementation project(":sio2-mphys")

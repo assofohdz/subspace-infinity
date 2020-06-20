@@ -26,11 +26,22 @@
 package infinity.sim;
 
 import com.jme3.math.*;
+import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.WatchedEntity;
+import com.simsilica.es.base.DefaultWatchedEntity;
 
 import com.simsilica.mathd.*;
+import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.ControlDriver;
 import com.simsilica.mphys.RigidBody;
 import infinity.es.MovementInput;
+import infinity.es.ship.Energy;
+import infinity.es.ship.Rotation;
+import infinity.es.ship.Speed;
+import infinity.es.ship.Thrust;
+import infinity.systems.SettingsSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +52,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class PlayerDriver<EntityId, AbstractShape> implements ControlDriver, ShipDriver {
+public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
 
     static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
     //The entity that is controlling this driver
-    private EntityId avatar;
+    private DefaultWatchedEntity shipEntity;
 
     // Keep track of what the player has provided.
     private volatile Quaternion orientation = new Quaternion();
@@ -56,6 +67,16 @@ public class PlayerDriver<EntityId, AbstractShape> implements ControlDriver, Shi
     //Local reference to the body that we want to update
     private RigidBody body;
     private Vec3d velocity = new Vec3d();
+    private final EntityData ed;
+    private final SettingsSystem settings;
+    
+    public PlayerDriver(EntityId shipEntityId, EntityData ed, SettingsSystem settings) {
+        //Watch all the relevant movement components of the ship
+        Class[] types = {Energy.class, Rotation.class, Speed.class, Thrust.class};
+        this.shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
+        this.settings = settings;
+        this.ed = ed;
+    }
 
     @Override
     public void applyMovementState(MovementInput input) {
@@ -85,6 +106,8 @@ public class PlayerDriver<EntityId, AbstractShape> implements ControlDriver, Shi
     public void update(long frameTime, double step) {
         //Drivable bodies should not fall asleep, keep them awake at all times
         body.wakeUp(true);
+        
+        shipEntity.applyChanges();
 
         //x-axis is side-to-side
         //Grab local versions of the player settings in case another

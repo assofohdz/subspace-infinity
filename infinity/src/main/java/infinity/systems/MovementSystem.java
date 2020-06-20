@@ -140,7 +140,7 @@ public class MovementSystem extends AbstractGameSystem {
         @Override        
         protected PlayerDriver addObject(Entity e) {
             log.info("addObject(" + e + ")");            
-            PlayerDriver result = new PlayerDriver();
+            PlayerDriver result = new PlayerDriver(e.getId(),ed, getSystem(SettingsSystem.class)); 
 
             // See if the physics engine already has a body for this entity
             RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());

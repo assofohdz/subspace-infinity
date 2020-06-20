@@ -50,9 +50,9 @@ import infinity.es.ship.Recharge;
  *
  * @author Paul Speed
  */
-public class HealthSystem extends AbstractGameSystem {
+public class EnergySystem extends AbstractGameSystem {
 
-    static Logger log = LoggerFactory.getLogger(HealthSystem.class);
+    static Logger log = LoggerFactory.getLogger(EnergySystem.class);
 
     private EntityData ed;
     private EntitySet living;
@@ -61,7 +61,7 @@ public class HealthSystem extends AbstractGameSystem {
     private EntitySet recharges;
     private EntitySet maxLiving;
 
-    public HealthSystem() {
+    public EnergySystem() {
     }
 
     @Override

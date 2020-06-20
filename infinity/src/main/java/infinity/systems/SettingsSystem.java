@@ -149,6 +149,8 @@ public class SettingsSystem extends AbstractGameSystem {
             listener.arenaSettingsChange(arenaId, section, setting);
         }
     }
+    
+    
 
     /**
      * Easy way out to let other states get the setting they need

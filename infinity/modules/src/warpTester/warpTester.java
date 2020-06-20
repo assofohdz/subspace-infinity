@@ -72,14 +72,17 @@ public class warpTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(warpTester.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        GameEntities.createBountySpawner(this.getArenas().getDefaultArenaId(), new Vec3d(0, 0, 0), 13, ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 13);
         
-        GameEntities.createWormhole(new Vec3d(-7,7,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(7,7,0), ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
-        GameEntities.createOver5(new Vec3d(7,7,0), 5, 5000, GravityWell.PUSH, ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), 
+                new Vec3d(-7,0,7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7,0,7));
+        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(7,7,0), 5, 5000, GravityWell.PUSH);
         
         
-        GameEntities.createWormhole(new Vec3d(7,-7,0), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7,-7,0), ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
-        GameEntities.createOver5(new Vec3d(-7,-7,0), 5, 5000, GravityWell.PUSH, ed, settings,this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), 
+                new Vec3d(7,0,-7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7,0,-7));
+        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-7,-7,0), 5, 5000, GravityWell.PUSH);
     }
 
     @Override

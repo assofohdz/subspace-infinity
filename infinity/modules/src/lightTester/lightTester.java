@@ -70,10 +70,10 @@ public class lightTester extends BaseGameModule {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createLight(new Vec3d(10, 10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
-        GameEntities.createLight(new Vec3d(-10, 10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
-        GameEntities.createLight(new Vec3d(10, -10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
-        GameEntities.createLight(new Vec3d(-10, -10, 0), ed, settings, this.getTimeManager().getTime(), this.getPhysicsManager().getPhysics());
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, -10));
     }
 
     @Override

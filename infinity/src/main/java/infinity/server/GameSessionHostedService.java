@@ -58,9 +58,11 @@ import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.*;
+import com.simsilica.mphys.BinIndex;
 import com.simsilica.sim.*;
 
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.es.ActionType;
 import infinity.es.MovementInput;
 import infinity.es.PointLightComponent;
 import infinity.es.WeaponTypes;
@@ -197,29 +199,27 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         private PlayerDriver driver;
         private EntityId playerEntityId;
+        private final BinIndex binIndex;
 
         public GameSessionImpl(HostedConnection conn) {
             this.conn = conn;
-
-            // Create the avatar entity for this player
-            //this.avatarEntity = gameSystems.get(GameEntities.class).createAvatar(playerEntity);
-            //This is the player
             
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
+            this.binIndex = phys.getBinIndex();
             
             this.playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
             
-            //this.avatarEntity = ed.createEntity();
-            
-            avatarEntityId = GameEntities.createWarbird(playerEntityId, ed, 0, phys);
+            avatarEntityId = GameEntities.createWarbird(ed, playerEntityId, phys, 0);
 
             ed.setComponent(avatarEntityId, new Player());
             
             System.out.println("avatarId(" + avatarEntityId.getId() + ")");
 
             log.info("createdAvatar:" + avatarEntityId);
+            
+            
         }
 
         public void initialize() {
@@ -247,22 +247,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             //hed.registerEntityVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
             hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
 
-
-            //This is the players default ship:
-            //shipEntity = ed.createEntity();
-            //avatarEntity = GameEntities.createShip(fireAlt, ed, settings, 0);
-            /*ed.setComponents(avatarEntityId,
-                    new SpawnPosition(phys.getGrid(), new Vec3d(0, 0, 0)),
-                    ShapeInfo.create("warbird", 1, ed),
-                    new Mass(10),
-                    ShipTypes.warbird(ed),
-                    new Player(),
-                    new PointLightComponent(ColorRGBA.White, 500f, new Vec3d(0, 5, 0)),
-                    Gravity.ZERO);
-*/
-            
-            
-            
             log.info("GameSessionImpl.initialized()");
         }
 
@@ -361,7 +345,10 @@ log.info("spawn location:" + spawnLoc);
         @Override
         public void attackGuns() {
             //gameSystems.get(WeaponsSystem.class).sessionAttack(activation, WeaponTypes.bullet(ed));
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            //ed.setComponent(avatarEntityId, new AttackGuns());
+            
+            //phys.getBinIndex().getRigidBody(ed)
+            
         }
 
         @Override

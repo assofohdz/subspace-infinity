@@ -91,7 +91,7 @@ import infinity.es.ship.ShipType;
 import infinity.server.chat.ChatHostedService;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
-import infinity.systems.HealthSystem;
+import infinity.systems.EnergySystem;
 import infinity.systems.MovementSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ShipFrequencySystem;
@@ -258,7 +258,7 @@ public class GameServer {
 
         //Subspace Infinity Specific Systems:-->
         //systems.register(WeaponSystem.class, new WeaponSystem());
-        systems.register(HealthSystem.class, new HealthSystem());
+        systems.register(EnergySystem.class, new EnergySystem());
         systems.register(ShipFrequencySystem.class, new ShipFrequencySystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
 

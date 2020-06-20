@@ -11,7 +11,7 @@ import infinity.es.MovementInput;
  *
  * @author AFahrenholz
  */
-public interface ShipDriver {
+public interface Driver {
 
     public void applyMovementState(MovementInput movement);
 }
