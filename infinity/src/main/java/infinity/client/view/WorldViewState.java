@@ -86,7 +86,7 @@ public class WorldViewState extends BaseAppState {
             pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
 
             getApplication().getCamera().setLocation(viewLoc);
-            //getApplication().getCamera().lookAt(lookAt, Vector3f.UNIT_Y);
+            getApplication().getCamera().lookAt(lookAt, Vector3f.UNIT_Y);
 
             pager.getGrid().toCell(viewLoc, viewCell);
 

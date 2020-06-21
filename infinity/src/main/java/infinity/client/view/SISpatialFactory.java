@@ -351,7 +351,7 @@ public class SISpatialFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bullet", quad);
-        Material mat = assets.loadMaterial("Materials/BulletMaterialLight.j3m");
+        Material mat = assets.loadMaterial("Materials/BulletMaterialUnshaded.j3m");
         mat.setInt("numTilesOffsetY", offSet);
         geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);

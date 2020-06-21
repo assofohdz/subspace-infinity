@@ -134,8 +134,9 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb,
-                ShapeInfo.create("bullet", 1, ed),
+                ShapeInfo.create("bullet_l"+level.level, 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
+                new Gravity(linearVelocity),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bullet(ed),
                 new Parent(owner));
@@ -427,7 +428,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb,
-                ShapeInfo.create("bomb", 1, ed),
+                ShapeInfo.create("bomb_l"+level.level, 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bomb(ed),

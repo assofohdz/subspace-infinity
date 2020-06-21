@@ -95,6 +95,7 @@ import infinity.systems.EnergySystem;
 import infinity.systems.MovementSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ShipFrequencySystem;
+import infinity.systems.WeaponsSystem;
 import infinity.util.AdaptiveLoadingService;
 //import infinity.systems.WeaponSystem;
 import java.util.HashMap;
@@ -203,6 +204,7 @@ public class GameServer {
         // Need a shape factory to turn ShapeInfo components into 
         // MBlockShapes. 
         ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
+        /*
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
 
         shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
@@ -213,8 +215,8 @@ public class GameServer {
         shapeFactory.registerFactory(ShapeInfo.create("lancaster", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
-
-        shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+*/
+        shapeFactory.setDefaultFactory(new SphereFactory());
         systems.register(ShapeFactory.class, shapeFactory);
 
         // And give that to an EntityBodyFactory, for the moment without any
@@ -261,6 +263,7 @@ public class GameServer {
         systems.register(EnergySystem.class, new EnergySystem());
         systems.register(ShipFrequencySystem.class, new ShipFrequencySystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
+        systems.register(WeaponsSystem.class, new WeaponsSystem());
 
         AssetLoaderService assetLoader = new AssetLoaderService();
         //systems.register(AssetLoaderService.class, assetLoader);

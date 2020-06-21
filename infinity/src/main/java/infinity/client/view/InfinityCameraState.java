@@ -33,13 +33,17 @@ import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.WatchedEntity;
+import com.simsilica.es.base.DefaultWatchedEntity;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.trans.PositionTransition3d;
+import com.simsilica.mathd.trans.TransitionBuffer;
 import com.simsilica.state.CameraState;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
+import infinity.es.BodyPosition;
 import infinity.net.GameSessionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,20 +56,23 @@ import org.slf4j.LoggerFactory;
 public class InfinityCameraState extends CameraState implements GameSessionListener {
 
     WatchedEntity watchedAvatar;
-    EntityId avatar;
+    EntityId avatarId;
 
     static Logger log = LoggerFactory.getLogger(InfinityCameraState.class);
 
     public static final float DISTANCETOPLANE = 40;
     private Camera camera;
     private EntityData ed;
-    Vector3f newCameraLoc = new Vector3f(0, DISTANCETOPLANE, 0);
+    Vector3f cameraPos = new Vector3f(0, DISTANCETOPLANE, 0);
     Vector3f lastAvatarLoc = new Vector3f();
     private TimeSource timeSource;
 
     ModelViewState viewState;
     Spatial avatarSpatial;
     private GameSessionClientService gameSession;
+    private Vector3f avatarPos;
+    private ModelViewState.Model avatarModel;
+    private TransitionBuffer<PositionTransition3d> buffer;
 
     public InfinityCameraState() {
     }
@@ -74,7 +81,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
     protected void initialize(Application app) {
         this.camera = app.getCamera();
 
-        this.camera.setLocation(newCameraLoc);
+        this.camera.setLocation(cameraPos);
         this.camera.lookAt(lastAvatarLoc, Vector3f.UNIT_Y); //Set camera to look at the origin
 
         this.ed = getState(ConnectionState.class).getEntityData();
@@ -94,23 +101,29 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     @Override
     public void update(float tpf) {
+        long time = timeSource.getTime();
+        watchedAvatar.applyChanges();
+        
+        
+        /*
+
         //This means our avatar has a new shapeinfo (new spatial)
-        if (watchedAvatar.applyChanges() || avatarSpatial == null ){
+        if (watchedAvatar.applyChanges() || avatarSpatial == null) {
             avatarSpatial = viewState.getModelSpatial(avatar, true);
         }
-
-        Vector3f newCamPos = avatarSpatial.getWorldTranslation();
-
-        lastAvatarLoc = newCamPos;
-        newCameraLoc.x = lastAvatarLoc.x;
-        //We dont set the y because that doesnt change (for now)
-        newCameraLoc.z = lastAvatarLoc.z;
+        avatarModel = viewState.getModel(avatar, false);
+        avatarModel.
+        avatarPos = avatarSpatial.getWorldTranslation().clone();
 
         Quaternion rot = camera.getRotation();
 
-        getState(WorldViewState.class).setViewLocation(newCameraLoc, lastAvatarLoc);
-        gameSession.setView(new Quatd(rot), new Vec3d(newCameraLoc));
+        cameraPos = avatarPos.clone().setY(40);
 
+        gameSession.setView(new Quatd(rot), new Vec3d(avatarPos));
+        getState(WorldViewState.class).setViewLocation(cameraPos, avatarPos);
+
+        log.info("Camera is at: " + cameraPos + ", looking at :" + avatarPos);
+*/
         /*
         BodyPosition bp2 = ed.getComponent(avatar, BodyPosition.class);
 
@@ -149,7 +162,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     @Override
     public void setAvatar(EntityId avatarId) {
-        this.avatar = avatarId;
-        watchedAvatar = ed.watchEntity(this.avatar, ShapeInfo.class);
+        this.avatarId = avatarId;
+        watchedAvatar = ed.watchEntity(avatarId, BodyPosition.class);
     }
 }

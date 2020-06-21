@@ -74,6 +74,7 @@ import infinity.sim.GameEntities;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
 import infinity.systems.ShipFrequencySystem;
+import infinity.systems.WeaponsSystem;
 //import infinity.systems.WeaponsSystem;
 //import infinity.systems.WeaponSystem;
 
@@ -344,11 +345,7 @@ log.info("spawn location:" + spawnLoc);
 
         @Override
         public void attackGuns() {
-            //gameSystems.get(WeaponsSystem.class).sessionAttack(activation, WeaponTypes.bullet(ed));
-            //ed.setComponent(avatarEntityId, new AttackGuns());
-            
-            //phys.getBinIndex().getRigidBody(ed)
-            
+            gameSystems.get(WeaponsSystem.class).sessionAttack(avatarEntityId, WeaponTypes.BULLET);
         }
 
         @Override

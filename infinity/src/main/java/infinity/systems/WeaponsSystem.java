@@ -16,8 +16,10 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
@@ -59,6 +61,8 @@ public class WeaponsSystem extends AbstractGameSystem {
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
     private PhysicsSpace<EntityId, MBlockShape> space;
+    private BinIndex binIndex;
+    private BinEntityManager binEntityManager;
 
     static Logger log = LoggerFactory.getLogger(WeaponsSystem.class);
     private LinkedHashSet<Attack> sessionAttackCreations = new LinkedHashSet<>();
@@ -79,7 +83,9 @@ public class WeaponsSystem extends AbstractGameSystem {
         }
 
         this.space = physics.getPhysicsSpace();
-
+        this.binIndex = space.getBinIndex();
+        this.binEntityManager = physics.getBinEntityManager();
+        
         health = getSystem(EnergySystem.class);
 
         guns = ed.getEntities(Gun.class, GunFireDelay.class, GunCost.class);
@@ -229,7 +235,10 @@ public class WeaponsSystem extends AbstractGameSystem {
      */
     private void entityAttackGuns(EntityId requestor) {
         Entity entity = guns.getEntity(requestor);
-
+        //Entity doesnt have guns
+        if (entity == null) {
+            return;
+        }
         Gun shipGuns = entity.get(Gun.class);
         GunCost shipGunCost = entity.get(GunCost.class);
         GunFireDelay shipGunCooldown = entity.get(GunFireDelay.class);
@@ -633,7 +642,7 @@ public class WeaponsSystem extends AbstractGameSystem {
         Vec3d attackPos = new Vec3d(0, 0, 0);
         attackPos = rotation.mult(attackPos);
         //attackPos.multiply(CorePhysicsConstants.PROJECTILEOFFSET);
-        attackPos.add(translation);
+        attackPos = attackPos.add(translation);
         return attackPos;
     }
 

@@ -80,21 +80,19 @@ public class GameSessionState extends CompositeAppState {
                 //new CameraState(),
                 //new LightingState(), //For the general lighting
                 //new AmbientLightState(),
-                //new SkyState(true),
                 //new PostProcessingState(),
                 //new GridState(new Grid(32, 0, 32)),
                 //new SkySettingsState(),
                 //new SkyState(true),
-                new infinity.client.view.SkyState(),
-                //new PostProcessingState(),
-                //new GridState(new Grid(32, 0, 32)),
-                //new SkySettingsState(),
+                
+//new infinity.client.view.SkyState(),
+                
                 new BuilderState(4, 4),
                 new WorldViewState(),
-                new ModelViewState(),
+                new ModelViewState()
                 //For now we do everything unshaded
                 //new LightState() //For pointlights and decaying lights - must come after ModelViewState because we need the spatials to be there
-                new InfinityCameraState() //Add camera last
+                //new InfinityCameraState() //Add camera last
         );
 
         addChild(new HelpState(), true);
@@ -131,8 +129,8 @@ public class GameSessionState extends CompositeAppState {
         addChild(movement);
 
         //Camera should be set to orthogonal
-        getState(InfinityCameraState.class).setAvatar(avatar);
-        getState(InfinityCameraState.class).setFieldOfView(60);
+        //getState(InfinityCameraState.class).setAvatar(avatar);
+        //getState(InfinityCameraState.class).setFieldOfView(60);
         //Modelview state
         getState(ModelViewState.class).setAvatar(avatar);
 

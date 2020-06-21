@@ -66,6 +66,7 @@ import com.simsilica.mblock.phys.*;
 import com.simsilica.mphys.*;
 import infinity.InfinityConstants;
 import infinity.client.ConnectionState;
+import infinity.client.GameSessionClientService;
 import infinity.es.BodyPosition;
 
 import infinity.es.LargeGridCell;
@@ -115,7 +116,8 @@ public class ModelViewState extends BaseAppState {
         };
     private Spatial[] tests = new Spatial[testCoords.length];*/
     private List<Vector4f> testCoords = new ArrayList<>();
-    private EntityId avatar;
+    private WatchedEntity watchedAvatar;
+    private GameSessionClientService gameSession;
 
     {
         testCoords.add(new Vector4f(0, 64, 0, 0.5f));
@@ -268,6 +270,7 @@ public class ModelViewState extends BaseAppState {
         //this.shapeFactory = (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);        
         this.shapeFactory = new ShapeFactoryRegistry<>();
         //Need to register all shapes here
+        /*
         shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
         
         shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
@@ -277,8 +280,8 @@ public class ModelViewState extends BaseAppState {
         shapeFactory.registerFactory(ShapeInfo.create("terrier", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("lancaster", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
-        shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+        shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());*/
+        shapeFactory.setDefaultFactory(new SphereFactory());
 
         siModelFactory = new SISpatialFactory(ed, app);
 
@@ -330,10 +333,12 @@ public class ModelViewState extends BaseAppState {
         mobs.start();
         models.start();
         largeModels.start();
+        this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
     public void update(float tpf) {
+        watchedAvatar.applyChanges();
 
         decayingPointLights.applyChanges();
         movingPointLights.applyChanges();
@@ -610,8 +615,8 @@ log.info("states:" + sb);*/
     }
 
     public void setAvatar(EntityId avatarId) {
+        watchedAvatar = ed.watchEntity(avatarId, ShapeInfo.class);
         //We only need to know where the player is currently - that's where we'll point our camera 
-        this.avatar = avatarId;
         //Doesn't work:
         //watchedAvatar = ed.watchEntity(this.avatar, BodyPosition.class);
     }
@@ -826,8 +831,19 @@ log.info("states:" + sb);*/
 
                 model.spatial.setLocalTranslation(pos);
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
-//log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());                
+                log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
                 setVisible(trans.getVisibility(time));
+
+                if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
+                    
+
+                    Quatd cameraRotation = new Quatd(getApplication().getCamera().getRotation());
+                    Vec3d avatarWorldTranslation = new Vec3d(model.spatial.getWorldTranslation());
+                    gameSession.setView(cameraRotation, avatarWorldTranslation);
+                    
+                    Vector3f cameraWorldTranslation = new Vec3d(avatarWorldTranslation).add(0, 40, 0).toVector3f();
+                    getState(WorldViewState.class).setViewLocation(cameraWorldTranslation, avatarWorldTranslation.toVector3f());
+                }
             }
         }
 
