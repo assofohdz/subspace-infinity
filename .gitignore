@@ -24,7 +24,7 @@
 org.eclipse.buildship.core.prefs
 
 # JDT-specific (Eclipse Java Development Tools)     
-.classpath
+# .classpath
 
 # binary folders
 bin/
