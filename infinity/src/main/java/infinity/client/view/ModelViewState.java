@@ -831,7 +831,7 @@ log.info("states:" + sb);*/
 
                 model.spatial.setLocalTranslation(pos);
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
-                log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
+                //log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
                 setVisible(trans.getVisibility(time));
 
                 if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {

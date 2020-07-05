@@ -11,6 +11,7 @@ import com.simsilica.mphys.PhysicsSpace;
 import infinity.es.ship.Energy;
 import infinity.es.ship.weapons.Gun;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
@@ -85,7 +86,7 @@ public class WeaponsSystem extends AbstractGameSystem {
         this.space = physics.getPhysicsSpace();
         this.binIndex = space.getBinIndex();
         this.binEntityManager = physics.getBinEntityManager();
-        
+
         health = getSystem(EnergySystem.class);
 
         guns = ed.getEntities(Gun.class, GunFireDelay.class, GunCost.class);
@@ -412,34 +413,6 @@ public class WeaponsSystem extends AbstractGameSystem {
     }
 
     /**
-     * Performs an attack
-     *
-     * @param requestor requesting entity
-     */
-    private AttackInfo getAttackInfo(EntityId attacker, WeaponType type) {
-        EntityId eId = attacker;
-        SimTime localTime = time; //Copy incase someone else is writing to it
-        Entity e = ed.getEntity(eId, Energy.class);
-
-        Vec3d location;
-
-        Vec3d attackVel;
-        // Attacking body:
-        RigidBody shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(eId);
-        Quatd orientation = shipBody.orientation;
-
-        attackVel = this.getAttackVelocity(orientation, type, shipBody.getLinearVelocity());
-
-        //Position
-        Vec3d attackPos = this.getAttackPosition(orientation, shipBody.position);
-
-        //Convert to Vec3d because that's what the rest of sim-eth-es uses
-        location = new Vec3d(attackPos.x, attackPos.y, 0);
-
-        return new AttackInfo(location, orientation, attackVel);
-    }
-
-    /**
      * Creates a bomb entity
      *
      * @param info the attack information
@@ -511,9 +484,9 @@ public class WeaponsSystem extends AbstractGameSystem {
      */
     private void attackThor(AttackInfo info, Damage damage, EntityId owner) {
         EntityId projectile;
-        
+
         projectile = GameEntities.createThor(ed, owner, space, time.getTime(), info.getLocation(), info.getOrientation(), info.getAttackVelocity(), CoreGameConstants.THORDECAY);
-        
+
         ed.setComponent(projectile, new Damage(damage.getDamage()));
 
         GameSounds.createSound(ed, owner, space, time.getTime(), info.getLocation(), AudioTypes.FIRE_THOR);
@@ -585,43 +558,74 @@ public class WeaponsSystem extends AbstractGameSystem {
     }
 
     /**
+     * Performs an attack
+     *
+     * @param requestor requesting entity
+     */
+    private AttackInfo getAttackInfo(EntityId attacker, WeaponType type) {
+        RigidBody shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
+        /*
+        // Create the bullet and orient it properly.
+            Position pos = ed.getComponent(ship, Position.class);
+
+            Vector3f bulletVel = new Vector3f(0,1,0);
+            pos.getFacing().multLocal(bulletVel);
+
+            // Find the tip of the ship
+            Vector3f bulletPos = bulletVel.mult(bulletOffset);
+            bulletPos.addLocal(pos.getLocation());
+         */
+        Vec3d projectileVelocity = new Vec3d(0, 0, 1);
+        Quatd shipRotation = new Quatd(shipBody.orientation);
+
+        Vec3d shipVelocity = shipBody.getLinearVelocity();
+        projectileVelocity = shipRotation.mult(projectileVelocity);
+        projectileVelocity = projectileVelocity.add(shipVelocity);
+
+        Vec3d shipPosition = new Vec3d(shipBody.position);
+
+        Vec3d projectilePosition = projectileVelocity.mult(0.5f); //Offset
+        projectilePosition = projectilePosition.add(shipPosition);
+        /*
+        Vec3d attackVel = this.getProjectileVelocity(shipRotation, type);
+        Vec3d attackPos = this.getProjectilePosition(shipRotation);
+         */
+        return new AttackInfo(projectilePosition, shipRotation, projectileVelocity);
+    }
+
+    /**
      * Find the velocity vector2 of a given attack
      *
-     * @param rotation the direction of the weapon
+     * @param shipRotation the direction of the weapon
      * @param type the weapon type
      * @param linearVelocity the initial linear velocity
      * @return the Vector2 containing the total projectile velocity
      */
-    private Vec3d getAttackVelocity(Quatd rotation, WeaponType type, Vec3d linearVelocity) {
-        Vec3d attackVel = new Vec3d(0, 1, 0);
+    private Vec3d getProjectileVelocity(Vec3d shipVelocity, Quatd shipRotation, WeaponType type) {
 
-        attackVel = rotation.mult(attackVel);
+        Vec3d attackVel = new Vec3d(shipVelocity);
 
-        attackVel.mult(CoreGameConstants.BASEPROJECTILESPEED);
+        //attackVel = shipRotation.mult(attackVel);
+        attackVel.multLocal(CoreGameConstants.BASEPROJECTILESPEED);
 
         switch (type.getTypeName(ed)) {
             case WeaponTypes.BOMB:
-                attackVel.mult(CoreGameConstants.BOMBPROJECTILESPEED);
-                attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+                attackVel = attackVel.mult(CoreGameConstants.BOMBPROJECTILESPEED);
                 break;
             case WeaponTypes.BULLET:
-                attackVel.mult(CoreGameConstants.BULLETPROJECTILESPEED);
-                attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+                attackVel = attackVel.mult(CoreGameConstants.BULLETPROJECTILESPEED);
                 break;
             case WeaponTypes.GRAVITYBOMB:
-                attackVel.mult(CoreGameConstants.GRAVBOMBPROJECTILESPEED);
-                attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+                attackVel = attackVel.mult(CoreGameConstants.GRAVBOMBPROJECTILESPEED);
                 break;
             case WeaponTypes.MINE:
-                attackVel.mult(0); //A mine stands still
+                attackVel = attackVel.mult(0); //A mine stands still
                 break;
             case WeaponTypes.THOR:
-                attackVel.mult(CoreGameConstants.THORPROJECTILESPEED);
-                attackVel.add(linearVelocity); //Add ships velocity to account for direction of ship and rotation
+                attackVel = attackVel.mult(CoreGameConstants.THORPROJECTILESPEED);
                 break;
             case WeaponTypes.BURST:
-                attackVel.mult(CoreGameConstants.BURSTPROJECTILESPEED);
-                attackVel.add(linearVelocity);
+                attackVel = attackVel.mult(CoreGameConstants.BURSTPROJECTILESPEED);
                 break;
             default:
                 throw new UnsupportedOperationException("WeaponType " + type.getTypeName(ed) + " not supported for velocity calculation");
@@ -631,18 +635,17 @@ public class WeaponsSystem extends AbstractGameSystem {
     }
 
     /**
-     * Calculcate the starting position for an attack using a base offset
+     * Calculate the starting position for an attack using a base offset
      *
-     * @param rotation the direction of the attack
+     * @param shipRotation the direction of the attack
      * @param translation the base translation of the attack
      * @return the Vector2 containing the coordinates the projectile will
      * originate
      */
-    private Vec3d getAttackPosition(Quatd rotation, Vec3d translation) {
-        Vec3d attackPos = new Vec3d(0, 0, 0);
-        attackPos = rotation.mult(attackPos);
+    private Vec3d getProjectilePosition(Vec3d shipPosition, Quatd shipRotationn) {
+        Vec3d attackPos = new Vec3d(shipPosition);
+        attackPos = shipPosition.mult(attackPos);
         //attackPos.multiply(CorePhysicsConstants.PROJECTILEOFFSET);
-        attackPos = attackPos.add(translation);
         return attackPos;
     }
 

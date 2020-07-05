@@ -131,19 +131,20 @@ public class GameEntities {
     public static EntityId createBullet(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
             Vec3d pos, Quatd quatd, Vec3d linearVelocity,
             long decayMillis, GunLevelEnum level) {
-        EntityId lastBomb = ed.createEntity();
+        EntityId lastBullet = ed.createEntity();
 
-        ed.setComponents(lastBomb,
-                ShapeInfo.create("bullet_l"+level.level, 1, ed),
+        ed.setComponents(lastBullet,
+                ShapeInfo.create("bullet_l"+level.level, 0.1f , ed),
+                new Mass(1),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Gravity(linearVelocity),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bullet(ed),
                 new Parent(owner));
 
-        ed.setComponent(lastBomb, new Meta(createdTime));
+        ed.setComponent(lastBullet, new Meta(createdTime));
 
-        return lastBomb;
+        return lastBullet;
     }
 
     public static EntityId createArena(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
