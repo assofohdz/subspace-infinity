@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package warpTester;
+package prize;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import infinity.es.GravityWell;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.AdaptiveLoader;
@@ -50,39 +49,30 @@ import infinity.sim.TimeManager;
  *
  * @author Asser
  */
-public class warpTester extends BaseGameModule {
+public class PrizeTester extends BaseGameModule {
 
-    static Logger log = LoggerFactory.getLogger(warpTester.class);
+    static Logger log = LoggerFactory.getLogger(PrizeTester.class);
     private EntityData ed;
-    private final Pattern prizeTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");        
-
-    private Ini settings;
+    private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
     
-    public warpTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
-        super(chp, am, loader, arenas, time, physics);        
+    private Ini settings;
+
+    public PrizeTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time, physics);
+
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-
+        
         try {
-            settings = this.getLoader().loadSettings("warpTester");
+            settings = this.getLoader().loadSettings("prizeTester");
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(warpTester.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(PrizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 13);
-        
 
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), 
-                new Vec3d(-7,0,7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7,0,7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(7,7,0), 5, 5000, GravityWell.PUSH);
-        
-        
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), 
-                new Vec3d(7,0,-7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7,0,-7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-7,-7,0), 5, 5000, GravityWell.PUSH);
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 10);
     }
 
     @Override
@@ -94,7 +84,7 @@ public class warpTester extends BaseGameModule {
     public void start() {
         //EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this prizeTester do stuff is ~prizeTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
 
         //startGame();
     }

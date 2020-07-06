@@ -23,17 +23,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package prizeTester;
+package light;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.event.EventBus;
 import java.io.IOException;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import infinity.events.ShipEvent;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.AdaptiveLoader;
@@ -49,59 +50,49 @@ import infinity.sim.TimeManager;
  *
  * @author Asser
  */
-public class prizeTester extends BaseGameModule {
+public class LightTester extends BaseGameModule {
 
-    static Logger log = LoggerFactory.getLogger(prizeTester.class);
+    private Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
     private EntityData ed;
-    private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
-    
+
     private Ini settings;
 
-    public prizeTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+    public LightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
-
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        
         try {
-            settings = this.getLoader().loadSettings("prizeTester");
+            settings = this.getLoader().loadSettings("lightTester");
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(LightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 10);
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, -10));
     }
 
     @Override
     protected void terminate() {
-
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void start() {
-        //EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this prizeTester do stuff is ~prizeTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
-
-        //startGame();
+        EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+        this.getChp().registerPatternBiConsumer(lightCommand, "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
     }
 
     @Override
     public void stop() {
-        //EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        //endGame();
+        EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
     }
 
-    /**
-     * Handle the message events
-     *
-     * @param id The entity id of the sender
-     * @param s The message to handle
-     */
-    public void messageHandler(EntityId id, String s) {
-        log.info("Received command"+s);
+    private CommandConsumer messageHandler(EntityId id, String s) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
