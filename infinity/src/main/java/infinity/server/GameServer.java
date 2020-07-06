@@ -89,6 +89,8 @@ import infinity.es.TileType;
 import infinity.es.ship.Player;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
+import infinity.sim.InfinityPhysicsManager;
+import infinity.systems.InfinityTimeSystem;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
 import infinity.systems.EnergySystem;
@@ -256,6 +258,7 @@ public class GameServer {
         //systems.register(InfinityMPhysSystem.class, mphys);
         systems.register(MPhysSystem.class, mphys);
         systems.register(PhysicsSpace.class, mphys.getPhysicsSpace());
+        systems.register(InfinityPhysicsManager.class, new InfinityPhysicsManager(mphys.getPhysicsSpace()));
         systems.register(EntityBodyFactory.class, bodyFactory);
 
         //Subspace Infinity Specific Systems:-->
@@ -264,13 +267,15 @@ public class GameServer {
         systems.register(ShipFrequencySystem.class, new ShipFrequencySystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
         systems.register(WeaponsSystem.class, new WeaponsSystem());
+        
+        systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
         AssetLoaderService assetLoader = new AssetLoaderService();
-        //systems.register(AssetLoaderService.class, assetLoader);
+        server.getServices().addService(assetLoader);
 
         AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
-        //systems.register(AdaptiveLoadingService.class, adaptiveLoader);
-        server.getServices().addService(assetLoader);
+        server.getServices().addService(adaptiveLoader);
+        
         systems.register(SettingsSystem.class, new SettingsSystem(assetLoader, adaptiveLoader));
         //<--
 

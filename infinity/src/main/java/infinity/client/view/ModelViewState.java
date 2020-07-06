@@ -49,6 +49,7 @@ import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.*;
 import com.jme3.texture.Texture;
+import com.jme3.texture.plugins.AWTLoader;
 
 import com.simsilica.es.*;
 import com.simsilica.es.common.Decay;
@@ -283,7 +284,7 @@ public class ModelViewState extends BaseAppState {
         shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());*/
         shapeFactory.setDefaultFactory(new SphereFactory());
 
-        siModelFactory = new SISpatialFactory(ed, app);
+        siModelFactory = new SISpatialFactory(ed, (SimpleApplication)app);
 
         // Some test objects
         //for( int i = 0; i < tests.length; i++ ) {

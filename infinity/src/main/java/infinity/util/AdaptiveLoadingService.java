@@ -57,7 +57,11 @@ import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import infinity.server.chat.ChatHostedService;
 import infinity.server.AccountHostedService;
+import infinity.sim.InfinityPhysicsManager;
+import infinity.sim.PhysicsManager;
+import infinity.sim.TimeManager;
 import infinity.systems.ArenaSystem;
+import infinity.systems.InfinityTimeSystem;
 
 /**
  * This is the state that will load, instantiate, enable/disable, null and
@@ -86,9 +90,9 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
     List<String> repositoryList = Arrays.asList(
             //Loading extensions:
             //Used in distribution
-            "modules\\modules.jar",
+            "modules\\modules-1.0.0-SNAPSHOT.jar",
             //Used from SDK
-            "build\\modules\\libs\\modules.jar",
+            "build\\modules\\libs\\modules-1.0.0-SNAPSHOT.jar",
             //Extras
             "modules"
     );
@@ -175,22 +179,34 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
     //Loads the class
     private void loadClass(String file) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
-        Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class, ArenaManager.class);
+        Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class, ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
-            BaseGameModule javaObj = (BaseGameModule) c.newInstance((ChatHostedPoster) getService(ChatHostedService.class), (AccountManager) getService(AccountHostedService.class), (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaSystem.class));
+            BaseGameModule javaObj = (BaseGameModule) c.newInstance(
+                    (ChatHostedPoster) getService(ChatHostedService.class), 
+                    (AccountManager) getService(AccountHostedService.class), 
+                    (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaSystem.class), 
+                    (TimeManager) gameSystems.get(InfinityTimeSystem.class), 
+                    (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
             //classSettings.put(javaObj, settingsFile);
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
-            BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class), getService(AccountHostedService.class), (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaSystem.class));
+            BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class), getService(AccountHostedService.class), (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaSystem.class), (TimeManager) gameSystems.get(InfinityTimeSystem.class), (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
             //classSettings.put(javaObj, settingsFile);
         }
 
     }
 
+    /**
+     *
+     * TiME MANAGER +++++ PHYSICS MANAGER!!!
+     *
+     *
+     *
+     */
     @Override
     public void start() {
     }

@@ -1,4 +1,4 @@
-Material Over2MaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteShader.j3md {
+Material Over2MaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteUnshaded.j3md {
     MaterialParameters {
         ColorMap : Flip Textures/Subspace/over2.bm2
         numTilesX : 10

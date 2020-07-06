@@ -38,6 +38,7 @@ package infinity.client;
 import org.slf4j.*;
 
 import com.jme3.app.Application;
+import com.jme3.texture.plugins.AWTLoader;
 //import com.jme3.math.Vector3f;
 
 //import com.simsilica.lemur.GuiGlobals;
@@ -84,15 +85,15 @@ public class GameSessionState extends CompositeAppState {
                 //new GridState(new Grid(32, 0, 32)),
                 //new SkySettingsState(),
                 //new SkyState(true),
-                
-//new infinity.client.view.SkyState(),
-                
+
+                //new infinity.client.view.SkyState(),
+
                 new BuilderState(4, 4),
                 new WorldViewState(),
                 new ModelViewState()
-                //For now we do everything unshaded
-                //new LightState() //For pointlights and decaying lights - must come after ModelViewState because we need the spatials to be there
-                //new InfinityCameraState() //Add camera last
+        //For now we do everything unshaded
+        //new LightState() //For pointlights and decaying lights - must come after ModelViewState because we need the spatials to be there
+        //new InfinityCameraState() //Add camera last
         );
 
         addChild(new HelpState(), true);
@@ -135,7 +136,9 @@ public class GameSessionState extends CompositeAppState {
         getState(ModelViewState.class).setAvatar(avatar);
 
         getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
-
+        
+        
+        this.getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
     }
 
     @Override

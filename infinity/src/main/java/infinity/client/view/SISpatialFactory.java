@@ -26,9 +26,12 @@
 package infinity.client.view;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -39,6 +42,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.control.LightControl;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.Timer;
 import com.jme3.texture.Image;
@@ -73,17 +77,13 @@ public class SISpatialFactory {
 
     private EffectFactory ef;
     private Timer timer;
+    private Node rootNode;
 
-    SISpatialFactory(EntityData ed, AssetManager assetManager, Timer timer) {
-        this.ed = ed;
-        this.assets = assets;
-        this.timer = timer;
-    }
-
-    SISpatialFactory(EntityData ed, Application app) {
+    SISpatialFactory(EntityData ed, SimpleApplication app) {
         this.ed = ed;
         this.assets = app.getAssetManager();
         this.timer = app.getTimer();
+        this.rootNode = app.getRootNode();
     }
 
     Spatial createModel(EntityId id, MBlockShape shape, ShapeInfo shapeInfo, Mass mass) {
@@ -95,7 +95,7 @@ public class SISpatialFactory {
         }
 
         Spatial s = this.createModel(id, shapeName);
-        
+
         return s;
     }
 
@@ -270,8 +270,8 @@ public class SISpatialFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Ship", quad);
-        //Material mat = assets.loadMaterial("Materials/ShipMaterialLight.j3m");
-        Material mat = assets.loadMaterial("Materials/ShipMaterialUnshaded.j3m");
+        Material mat = assets.loadMaterial("Materials/ShipMaterialLight.j3m");
+        //Material mat = assets.loadMaterial("Materials/ShipMaterialUnshaded.j3m");
 
         geom.setMaterial(mat);
         setShipMaterialVariables(geom, ship);
@@ -279,7 +279,18 @@ public class SISpatialFactory {
 
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
-        //geom.addLight(new PointLight(new Vector3f(0,5,0), ColorRGBA.White, 50f));
+        PointLight myLight = new PointLight();
+        myLight.setColor(ColorRGBA.White);
+        myLight.setRadius(20);
+        myLight.setPosition(geom.getLocalTranslation().add(0, 0, 2));
+        rootNode.addLight(myLight);
+        LightControl lightControl = new LightControl(myLight);
+        geom.addControl(lightControl);
+
+        AmbientLight al = new AmbientLight();
+        al.setColor(ColorRGBA.White.mult(1.3f));
+        rootNode.addLight(al);
+
         return geom;
     }
 

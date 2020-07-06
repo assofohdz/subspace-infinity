@@ -180,9 +180,10 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
                 matched = true;
                 EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
                 CommandConsumer cc = patternBiConsumers.get(p);
-                if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity, cc.getAccessLevelRequired())) {
+                //TODO: Implement account service to manage security levels
+                //if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity, cc.getAccessLevelRequired())) {
                     cc.getConsumer().accept(fromEntity, m.group(1));
-                }
+                //}
             }
         }
 
