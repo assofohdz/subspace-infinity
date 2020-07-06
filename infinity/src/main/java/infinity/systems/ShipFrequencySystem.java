@@ -43,8 +43,7 @@ import java.util.regex.Pattern;
 import infinity.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.Frequency;
-import infinity.es.ship.ShipType;
-import infinity.es.ship.ShipTypes;
+import infinity.es.ShapeNames;
 import infinity.events.ShipEvent;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.AccessLevel;
@@ -78,8 +77,8 @@ public class ShipFrequencySystem extends AbstractGameSystem {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        this.freqs = ed.getEntities(Frequency.class, ShipType.class);
-        this.captains = ed.getEntities(ShipType.class, Captain.class);
+        this.freqs = ed.getEntities(Frequency.class, ShapeInfo.class);
+        this.captains = ed.getEntities(ShapeInfo.class, Captain.class);
 
         teamRestrictions = new HashMap<>();
 
@@ -145,36 +144,28 @@ public class ShipFrequencySystem extends AbstractGameSystem {
 
             switch (shipType) {
                 case 1:
-                    ed.setComponent(shipEntity, ShipTypes.warbird(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("warbird", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed));
                     break;
                 case 2:
-                    ed.setComponent(shipEntity, ShipTypes.javelin(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("javelin", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed));
                     break;
                 case 3:
-                    ed.setComponent(shipEntity, ShipTypes.spider(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("spider", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed));
                     break;
                 case 4:
-                    ed.setComponent(shipEntity, ShipTypes.leviathan(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("leviathan", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed));
                     break;
                 case 5:
-                    ed.setComponent(shipEntity, ShipTypes.terrier(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("terrier", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed));
                     break;
                 case 6:
-                    ed.setComponent(shipEntity, ShipTypes.weasel(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("weasel", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed));
                     break;
                 case 7:
-                    ed.setComponent(shipEntity, ShipTypes.lancaster(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("lancaster", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed));
                     break;
                 case 8:
-                    ed.setComponent(shipEntity, ShipTypes.shark(ed));
-                    ed.setComponent(shipEntity, ShapeInfo.create("shark", 1, ed));
+                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed));
                     break;
             }
             
@@ -299,15 +290,15 @@ public class ShipFrequencySystem extends AbstractGameSystem {
      * @param type the type of ship
      * @return the count of the ship type
      */
-    public int getShipCount(int team, ShipType type) {
+    public int getShipCount(int team, ShapeInfo type) {
 
         ComponentFilter freqFilter = FieldFilter.create(Frequency.class, "freq", team);
-        EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShipType.class);
+        EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShapeInfo.class);
 
         int count = 0;
 
         //Sum up the entities with the right type
-        count = freq.stream().filter((e) -> (e.get(ShipType.class).getType() == type.getType())).map((_item) -> 1).reduce(count, Integer::sum);
+        count = freq.stream().filter((e) -> (e.get(ShapeInfo.class).getShapeName(ed)== type.getShapeName(ed))).map((_item) -> 1).reduce(count, Integer::sum);
 
         return count;
     }

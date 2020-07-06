@@ -87,7 +87,6 @@ import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.TileType;
 import infinity.es.ship.Player;
-import infinity.es.ship.ShipType;
 import infinity.server.chat.ChatHostedService;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
@@ -362,7 +361,6 @@ public class GameServer {
         //Serializer.registerClass(OverheadLight.class, new FieldSerializer());*/
         Serializer.registerClass(Name.class, new FieldSerializer());
 
-        Serializer.registerClass(ShipType.class, new FieldSerializer());
         Serializer.registerClass(Frequency.class, new FieldSerializer());
         Serializer.registerClass(Flag.class, new FieldSerializer());
         Serializer.registerClass(Gold.class, new FieldSerializer());

@@ -67,7 +67,6 @@ import infinity.es.MovementInput;
 import infinity.es.PointLightComponent;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.Player;
-import infinity.es.ship.ShipTypes;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;

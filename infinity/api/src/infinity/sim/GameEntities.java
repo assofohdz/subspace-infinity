@@ -36,7 +36,6 @@ import infinity.es.WeaponTypes;
 import infinity.es.HealthChange;
 import infinity.es.ship.Energy;
 import infinity.es.Buff;
-import infinity.es.ship.ShipTypes;
 import infinity.es.Frequency;
 import infinity.es.WarpTouch;
 import infinity.es.Bounty;
@@ -88,6 +87,7 @@ import org.ini4j.Ini;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.es.ShapeNames;
 
 /**
  * Utility methods for creating the common game entities used by the simulation.
@@ -134,7 +134,7 @@ public class GameEntities {
         EntityId lastBullet = ed.createEntity();
 
         ed.setComponents(lastBullet,
-                ShapeInfo.create("bullet_l"+level.level, 0.1f , ed),
+                ShapeInfo.create("bullet_l" + level.level, 0.1f, ed),
                 new Mass(1),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Gravity(linearVelocity),
@@ -296,7 +296,7 @@ public class GameEntities {
     }
 
     public static EntityId createCaptureTheFlag(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-        Vec3d pos) {
+            Vec3d pos) {
         EntityId lastFlag = ed.createEntity();
 
         ed.setComponents(lastFlag,
@@ -342,9 +342,9 @@ public class GameEntities {
         ed.setComponent(result, name);
 
         ed.setComponents(result,
-                ShapeInfo.create("warbird", 1, ed),
-                //ViewTypes.ship_warbird(ed),
-                ShipTypes.warbird(ed));
+                ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed));
+        
+        //ViewTypes.ship_warbird(ed),
         //PhysicsMassTypes.normal(ed),
         //PhysicsShapes.ship());
         ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d()));
@@ -429,7 +429,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb,
-                ShapeInfo.create("bomb_l"+level.level, 1, ed),
+                ShapeInfo.create("bomb_l" + level.level, 1, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bomb(ed),
@@ -498,7 +498,6 @@ public class GameEntities {
         return lastForce;
     }
      */
-
     public static EntityId createRepel(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
             Vec3d pos) {
         EntityId lastWarpTo = ed.createEntity();

@@ -30,11 +30,11 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import java.util.HashMap;
 import infinity.es.Gold;
-import infinity.es.ship.ShipType;
 import infinity.sim.CoreGameConstants;
 
 /**
@@ -56,7 +56,7 @@ public class ResourceState extends AbstractGameSystem {
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        this.ships = this.ed.getEntities(ShipType.class);
+        this.ships = this.ed.getEntities(ShapeInfo.class);
     }
 
     @Override

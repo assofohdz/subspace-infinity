@@ -5,6 +5,7 @@
  */
 package infinity.sim;
 
+import infinity.es.ShapeNames;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.EntityBodyFactory;
@@ -46,15 +47,14 @@ public class InfinityEntityBodyFactory extends EntityBodyFactory<AbstractShape> 
 
         //Do whatever we want to the body depending on the ShapeInfo
         switch (info.getShapeName(ed)) {
-            case "bullet_l1":
+            case ShapeNames.BULLETL1:
                 //Set the dampening/restitution
                 result.setLinearDamping(0);
                 break;
-            case "warbird":
-
+            case ShapeNames.SHIP_WARBIRD:
                 break;
             default:
-                throw new AssertionError();
+                throw new AssertionError("Shape name unknown: "+info.getShapeName(ed));
         }
 
         return result;

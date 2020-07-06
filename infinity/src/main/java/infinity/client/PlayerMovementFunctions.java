@@ -31,7 +31,7 @@ import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 import infinity.es.ActionTypes;
-import infinity.es.ship.ShipTypes;
+import infinity.es.ShapeNames;
 import infinity.es.ToggleTypes;
 import infinity.es.WeaponTypes;
 
@@ -90,14 +90,14 @@ public class PlayerMovementFunctions {
     public static final FunctionId F_TOWER = new FunctionId(G_TOWER, "Tower");
 
     //Ships
-    public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, ShipTypes.WARBIRD);
-    public static final FunctionId F_JAVELIN = new FunctionId(G_SHIPSELECTION, ShipTypes.JAVELIN);
-    public static final FunctionId F_SPIDER = new FunctionId(G_SHIPSELECTION, ShipTypes.SPIDER);
-    public static final FunctionId F_LEVI = new FunctionId(G_SHIPSELECTION, ShipTypes.LEVIATHAN);
-    public static final FunctionId F_TERRIER = new FunctionId(G_SHIPSELECTION, ShipTypes.TERRIER);
-    public static final FunctionId F_LANC = new FunctionId(G_SHIPSELECTION, ShipTypes.LANCASTER);
-    public static final FunctionId F_WEASEL = new FunctionId(G_SHIPSELECTION, ShipTypes.WEASEL);
-    public static final FunctionId F_SHARK = new FunctionId(G_SHIPSELECTION, ShipTypes.SHARK);
+    public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_WARBIRD);
+    public static final FunctionId F_JAVELIN = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_JAVELIN);
+    public static final FunctionId F_SPIDER = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_SPIDER);
+    public static final FunctionId F_LEVI = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_LEVI);
+    public static final FunctionId F_TERRIER = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_TERRIER);
+    public static final FunctionId F_LANC = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_LANCASTER);
+    public static final FunctionId F_WEASEL = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_WEASEL);
+    public static final FunctionId F_SHARK = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_SHARK);
 
     public static void initializeDefaultMappings(InputMapper inputMapper) {
 

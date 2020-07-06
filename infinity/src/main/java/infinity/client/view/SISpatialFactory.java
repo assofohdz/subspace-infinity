@@ -57,6 +57,7 @@ import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.sim.CoreViewConstants;
+import infinity.es.ShapeNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,79 +102,79 @@ public class SISpatialFactory {
     public Spatial createModel(EntityId eId, String shapeName) {
 
         switch (shapeName) {
-            case "thrust":
-                return createParticleEmitter(eId, shapeName);
-            case "bullet_l1":
+            //case "thrust":
+            //    return createParticleEmitter(eId, shapeName);
+            case ShapeNames.BULLETL1:
                 return createBullet(eId, 1);
-            case "bomb_l1":
+            case ShapeNames.BOMBL1:
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_1);
-            case "bomb_l2":
+            case ShapeNames.BOMBL2:
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_2);
-            case "bomb_l3":
+            case ShapeNames.BOMBL3:
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_3);
-            case "bomb_l4":
+            case ShapeNames.BOMBL4:
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.BOMB_4);
-            case "thor":
+            case ShapeNames.THOR:
                 //Create bomb
                 return createBomb(eId, BombLevelEnum.THOR);
-            case "burst":
+            case ShapeNames.BURST:
                 //Create bomb
                 return createBurst(eId);
-            case "explosion":
+            case ShapeNames.EXPLOSION:
                 //Create explosion
                 return createExplosion(eId);
-            case "prize":
+            case ShapeNames.PRIZE:
                 //Create bounty
                 return createBounty(eId);
-            case "arena":
+            case ShapeNames.ARENA:
                 return createArena(eId);
             /*
             case ViewTypes.MAPTILE:
                 return createMapTile(eId);*/
-            case "explosion2":
+            case ShapeNames.EXPLOSION2:
                 return createExplosion2(eId);
-            case "over5":
+            case ShapeNames.OVER5:
                 return createOver5(eId);
-            case "wormhole":
+            case ShapeNames.WORMHOLE:
                 return createWormhole(eId);
-            case "over1":
+            case ShapeNames.OVER1:
                 return createOver1(eId);
-            case "warp":
+            case ShapeNames.WARP:
                 return createWarp(eId);
-            case "repel":
+            case ShapeNames.REPEL:
                 return createRepel(eId);
-            case "over2":
+            case ShapeNames.OVER2:
                 return createOver2(eId);
-            case "warbird":
+            case ShapeNames.SHIP_WARBIRD:
                 return createShip(31);
-            case "javelin":
+            case ShapeNames.SHIP_JAVELIN:
                 return createShip(27);
-            case "spider":
+            case ShapeNames.SHIP_SPIDER:
                 return createShip(23);
-            case "leviathan":
+            case ShapeNames.SHIP_LEVI:
                 return createShip(19);
-            case "terrier":
+            case ShapeNames.SHIP_TERRIER:
                 return createShip(15);
-            case "weasel":
+            case ShapeNames.SHIP_WEASEL:
                 return createShip(11);
-            case "lancaster":
+            case ShapeNames.SHIP_LANCASTER:
                 return createShip(7);
-            case "shark":
+            case ShapeNames.SHIP_SHARK:
                 return createShip(3);
-            case "flag_ours":
+            case ShapeNames.FLAG_OURS:
                 return createFlag(0);
-            case "flag_theirs":
+            case ShapeNames.FLAG_THEIRS:
                 return createFlag(1);
-            case "mob":
+            /*case "mob":
                 return createMob();
             case "tower":
                 return createTower();
             case "base":
-                return createBase();
+                return createBase();*/
             default:
                 throw new UnsupportedOperationException("Unknown shapeinfo name:" + shapeName);
 
