@@ -32,6 +32,11 @@ public class ShapeNames {
     public static final String BOMBL2 = "bomb_l2";
     public static final String BOMBL3 = "bomb_l3";
     public static final String BOMBL4 = "bomb_l4";
+    
+    public static final String MINEL1 = "mine_l1";
+    public static final String MINEL2 = "mine_l2";
+    public static final String MINEL3 = "mine_l3";
+    public static final String MINEL4 = "mine_l4";
 
     public static final String EMPL1 = "emp_l1";
     public static final String EMPL2 = "emp_l2";

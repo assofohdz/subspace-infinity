@@ -48,15 +48,41 @@ public class InfinityEntityBodyFactory extends EntityBodyFactory<MBlockShape> {
 
         //Do whatever we want to the body depending on the ShapeInfo
         switch (info.getShapeName(ed)) {
+            //Remove dampening from projectiles
             case ShapeNames.BULLETL1:
-                //Set the dampening/restitution
+            case ShapeNames.BULLETL2:
+            case ShapeNames.BULLETL3:
+            case ShapeNames.BULLETL4:
+            case ShapeNames.BOMBL1:
+            case ShapeNames.BOMBL2:
+            case ShapeNames.BOMBL3:
+            case ShapeNames.BOMBL4:
+            case ShapeNames.THOR:
+            case ShapeNames.BURST:
                 result.setLinearDamping(1);
                 break;
             case ShapeNames.SHIP_WARBIRD:
+            case ShapeNames.SHIP_JAVELIN:
+            case ShapeNames.SHIP_SPIDER:
+            case ShapeNames.SHIP_LEVI:
+            case ShapeNames.SHIP_TERRIER:
+            case ShapeNames.SHIP_LANCASTER:
+            case ShapeNames.SHIP_WEASEL:
+            case ShapeNames.SHIP_SHARK:
                 result.setLinearDamping(0.5);
                 break;
+            //Static bodies:
+            case ShapeNames.MINEL1:
+            case ShapeNames.MINEL2:
+            case ShapeNames.MINEL3:
+            case ShapeNames.MINEL4:
+            case ShapeNames.WARP:
+            case ShapeNames.WORMHOLE:
+            case ShapeNames.MAPTILE:
+                result.setLinearDamping(0);
+                break;
             default:
-                throw new AssertionError("Shape name unknown: "+info.getShapeName(ed));
+                throw new AssertionError("Shape name unknown: " + info.getShapeName(ed));
         }
 
         return result;
