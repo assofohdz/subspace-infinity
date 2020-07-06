@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package wang;
+package wangTester;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -50,15 +50,15 @@ import infinity.sim.TimeManager;
  *
  * @author Asser
  */
-public class WangTester extends BaseGameModule {
+public class wangTester extends BaseGameModule {
 
-    static Logger log = LoggerFactory.getLogger(WangTester.class);
+    static Logger log = LoggerFactory.getLogger(wangTester.class);
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~wangTester\\s(\\w+)");
 
     private Ini settings;
 
-    public WangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
@@ -69,7 +69,7 @@ public class WangTester extends BaseGameModule {
         try {
             settings = this.getLoader().loadSettings("wangTester");
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(WangTester.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 20);
