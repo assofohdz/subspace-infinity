@@ -56,18 +56,20 @@ import infinity.sim.PlayerDriver;
  * @author Paul Speed
  */
 public class MovementSystem extends AbstractGameSystem {
-    
+
     static Logger log = LoggerFactory.getLogger(MovementSystem.class);
-    
+
     private EntityData ed;
-    private MPhysSystem<MBlockShape> physics;    
+    private MPhysSystem<MBlockShape> physics;
     private PlayerContainer players;
     private MovementBodyInitializer initializer = new MovementBodyInitializer();
     private PhysicsSpace<EntityId, MBlockShape> space;
-    
+    private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
+    private EnergySystem health;
+
     public MovementSystem() {
     }
-    
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
@@ -78,7 +80,7 @@ public class MovementSystem extends AbstractGameSystem {
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
-        
+
         this.space = physics.getPhysicsSpace();
         physics.getBodyFactory().addDynamicInitializer(initializer);
 
@@ -105,79 +107,84 @@ public class MovementSystem extends AbstractGameSystem {
         // demos or the SiO2 bullet-char demo because the rigid bodies can be dynamically 
         // loaded and unloaded in mphys.      
     }
-    
+
     @Override
     protected void terminate() {
     }
-    
+
     @Override
     public void start() {
         players = new PlayerContainer(ed);
-        players.start();        
+        players.start();
     }
-    
+
     @Override
     public void update(SimTime time) {
         players.update();
     }
-    
+
     @Override
     public void stop() {
         players.stop();
         players = null;
     }
-    
+
+    /**
+     * All moving ships will be mapped to a driver. We use this to lookup the
+     * drivers when we need to fire a weapon on that ship
+     */
     private class PlayerContainer extends EntityContainer<PlayerDriver> {
-        
+
         public PlayerContainer(EntityData ed) {
             super(ed, MovementInput.class);
         }
-        
+
         public PlayerDriver[] getArray() {
             return super.getArray();
         }
-        
-        @Override        
+
+        @Override
         protected PlayerDriver addObject(Entity e) {
-            log.info("addObject(" + e + ")");            
-            PlayerDriver result = new PlayerDriver(e.getId(),ed, getSystem(SettingsSystem.class)); 
+            log.info("addObject(" + e + ")");
+            PlayerDriver result = new PlayerDriver(e.getId(), ed, getSystem(SettingsSystem.class));
 
             // See if the physics engine already has a body for this entity
             RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
             log.info("existing body:" + body);
             if (body != null) {
                 body.setControlDriver(result);
-            }            
-            
+            }
+
             return result;
         }
-        
-        @Override        
+
+        @Override
         protected void updateObject(PlayerDriver driver, Entity e) {
             if (log.isTraceEnabled()) {
                 log.trace("updateObject(" + e + ")");
-            }            
+            }
             MovementInput ms = e.get(MovementInput.class);
             driver.applyMovementState(ms);
         }
-        
-        @Override        
+
+        @Override
         protected void removeObject(PlayerDriver driver, Entity e) {
             log.info("removeObject(" + e + ")");
             //physics.setControlDriver(e.getId(), null);
-        }        
+        }
     }
-    
+
     private class MovementBodyInitializer implements Function<RigidBody<EntityId, MBlockShape>, Void> {
 
+        @Override
         public Void apply(RigidBody<EntityId, MBlockShape> body) {
             // See if this is one of the ones we need to add a player driver to
             PlayerDriver driver = players.getObject(body.id);
-            log.info("MovementBodyInitializer.apply(" + body + ")  driver:" + driver);            
+            log.info("MovementBodyInitializer.apply(" + body + ")  driver:" + driver);
             if (driver != null) {
                 body.setControlDriver(driver);
-            }            
+            }
             return null;
         }
-    }    
+    }
 }

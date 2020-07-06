@@ -88,6 +88,7 @@ import infinity.es.PointLightComponent;
 import infinity.es.TileType;
 import infinity.es.ship.Player;
 import infinity.server.chat.ChatHostedService;
+import infinity.sim.InfinityEntityBodyFactory;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
 import infinity.systems.EnergySystem;
@@ -243,7 +244,7 @@ public class GameServer {
                 return result;
             }
         };*/
-        EntityBodyFactory<MBlockShape> bodyFactory = new EntityBodyFactory<MBlockShape>(ed, Gravity.ZERO.getLinearAcceleration(), shapeFactory);
+        InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed, Gravity.ZERO.getLinearAcceleration(), shapeFactory);
 
         MPhysSystem mphys = new MPhysSystem<MBlockShape>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
