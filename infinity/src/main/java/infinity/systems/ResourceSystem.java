@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.towerdefense;
+package infinity.systems;
 
 import com.jme3.network.service.HostedServiceManager;
 import com.simsilica.es.Entity;
@@ -42,7 +42,7 @@ import infinity.sim.CoreGameConstants;
  *
  * @author ss
  */
-public class ResourceState extends AbstractGameSystem {
+public class ResourceSystem extends AbstractGameSystem {
 
     private EntityData ed;
     private EntitySet ships;
@@ -50,7 +50,7 @@ public class ResourceState extends AbstractGameSystem {
     private HashMap<EntityId, Integer> goldMap = new HashMap<>();
     private final HostedServiceManager serviceManager;
 
-    public ResourceState(HostedServiceManager serviceManager) {
+    public ResourceSystem(HostedServiceManager serviceManager) {
         this.serviceManager = serviceManager;
     }
     @Override

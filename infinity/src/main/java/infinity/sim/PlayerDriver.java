@@ -126,7 +126,10 @@ public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
 
         //Set a clamped velocity on the forward axis rotated by the bodies current rotation
         Vec3d newLinearVelocity = body.orientation.mult(velocity);
-        body.setLinearVelocity(newLinearVelocity);
+        //body.setLinearVelocity(newLinearVelocity);
+        
+        
+        body.addForce(newLinearVelocity.mult(10));
     }
 
     @Override

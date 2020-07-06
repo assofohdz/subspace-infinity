@@ -50,9 +50,10 @@ public class InfinityEntityBodyFactory extends EntityBodyFactory<MBlockShape> {
         switch (info.getShapeName(ed)) {
             case ShapeNames.BULLETL1:
                 //Set the dampening/restitution
-                result.setLinearDamping(0);
+                result.setLinearDamping(1);
                 break;
             case ShapeNames.SHIP_WARBIRD:
+                result.setLinearDamping(0.5);
                 break;
             default:
                 throw new AssertionError("Shape name unknown: "+info.getShapeName(ed));
