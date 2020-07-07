@@ -129,7 +129,8 @@ project(":infinity:assets") {
                     "**/*.j3o",
                     "**/*.blocks",
                     "**/*.wa2",
-                    "**/*.bmp"
+                    "**/*.bmp",
+                    "**/*.bm2"
                 ]
             }
         }

@@ -78,6 +78,9 @@ public class SISpatialFactory {
     private EffectFactory ef;
     private Timer timer;
     private Node rootNode;
+    
+    //Use to flip between using the lights and using unshaded textures
+    private boolean unshaded = true;
 
     SISpatialFactory(EntityData ed, SimpleApplication app) {
         this.ed = ed;
@@ -87,7 +90,6 @@ public class SISpatialFactory {
     }
 
     Spatial createModel(EntityId id, MBlockShape shape, ShapeInfo shapeInfo, Mass mass) {
-        //TODO: Use the shape ?
         String shapeName = shapeInfo.getShapeName(ed);
 
         if (shapeName == null || shapeName == "") {
@@ -183,67 +185,69 @@ public class SISpatialFactory {
 
     private Spatial createBase() {
         Quad quad = new Quad(CoreViewConstants.BASESIZE, CoreViewConstants.BASESIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.BASESIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Base", quad);
-        Material mat = assets.loadMaterial("Materials/BaseMaterialLight.j3m");
-        //mat.setColor("Color", ColorRGBA.Yellow);
 
-        geom.setMaterial(mat);
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/BaseMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/BaseMaterialLight.j3m"));
+        }
+
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createMob() {
         Quad quad = new Quad(CoreViewConstants.MOBSIZE, CoreViewConstants.MOBSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.MOBSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Mob", quad);
-        Material mat = assets.loadMaterial("Materials/MobMaterialLight.j3m");
-        //mat.setColor("Color", ColorRGBA.Yellow);
 
-        geom.setMaterial(mat);
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/MobMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/MobMaterialLight.j3m"));
+        }
+
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createTower() {
         Quad quad = new Quad(CoreViewConstants.TOWERSIZE, CoreViewConstants.TOWERSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.TOWERSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Tower", quad);
-        Material mat = assets.loadMaterial("Materials/TowerMaterialLight.j3m");
-        //mat.setColor("Color", ColorRGBA.Yellow);
 
-        geom.setMaterial(mat);
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/TowerMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/TowerMaterialLight.j3m"));
+        }
+
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createFlag(int flag) {
         Quad quad = new Quad(CoreViewConstants.FLAGSIZE, CoreViewConstants.FLAGSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.FLAGSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Flag", quad);
-        Material mat = assets.loadMaterial("Materials/FlagMaterialLight.j3m");
 
-        geom.setMaterial(mat);
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/FlagMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/FlagMaterialLight.j3m"));
+        }
         //mat.setInt("numTilesOffsetY", flag);
         setFlagMaterialVariables(geom, flag);
-
-        geom.setMaterial(mat);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         return geom;
@@ -264,33 +268,33 @@ public class SISpatialFactory {
 
     private Spatial createShip(int ship) {
         Quad quad = new Quad(CoreViewConstants.SHIPSIZE, CoreViewConstants.SHIPSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.SHIPSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Ship", quad);
-        Material mat = assets.loadMaterial("Materials/ShipMaterialLight.j3m");
-        //Material mat = assets.loadMaterial("Materials/ShipMaterialUnshaded.j3m");
 
-        geom.setMaterial(mat);
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/ShipMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/ShipMaterialLight.j3m"));
+        }
+
         setShipMaterialVariables(geom, ship);
-        //mat.setInt("numTilesOffsetY", ship);
 
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         PointLight myLight = new PointLight();
         myLight.setColor(ColorRGBA.White);
         myLight.setRadius(20);
-        myLight.setPosition(geom.getLocalTranslation().add(0, 0, 2));
         rootNode.addLight(myLight);
-        LightControl lightControl = new LightControl(myLight);
+        ShipLightControl lightControl = new ShipLightControl(myLight);
         geom.addControl(lightControl);
 
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(1.3f));
-        rootNode.addLight(al);
-
+        //Test:
+        //AmbientLight al = new AmbientLight();
+        //al.setColor(ColorRGBA.White.mult(1.3f));
+        //rootNode.addLight(al);
+        //<--
         return geom;
     }
 
@@ -342,30 +346,36 @@ public class SISpatialFactory {
 
     private Spatial createBomb(EntityId eId, BombLevelEnum level) {
         Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
-        Material mat = assets.loadMaterial("Materials/BombMaterialLight.j3m");
-        mat.setInt("numTilesOffsetY", level.viewOffset);
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/BombMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/BombMaterialLight.j3m"));
+        }
+        geom.getMaterial().setInt("numTilesOffsetY", level.viewOffset);
+
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createBullet(EntityId eId, int offSet) {
         Quad quad = new Quad(CoreViewConstants.BULLETSIZE, CoreViewConstants.BULLETSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.BULLETSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bullet", quad);
-        Material mat = assets.loadMaterial("Materials/BulletMaterialUnshaded.j3m");
-        mat.setInt("numTilesOffsetY", offSet);
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/BulletMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/BulletMaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setInt("numTilesOffsetY", offSet);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
@@ -393,15 +403,18 @@ public class SISpatialFactory {
 
     private Spatial createBounty(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.PRIZESIZE, CoreViewConstants.PRIZESIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.PRIZESIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bounty", quad);
-        Material mat = assets.loadMaterial("Materials/BountyMaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/BountyMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/BountyMaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
@@ -469,32 +482,37 @@ public class SISpatialFactory {
      */
     private Spatial createExplosion2(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.EXPLOSION2SIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Bomb", quad);
-        Material mat = assets.loadMaterial("Materials/Explode2MaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
 
-        geom.setMaterial(mat);
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/Explode2MaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/Explode2MaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
+
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createOver5(EntityId eId) {
-
         Quad quadOver5 = new Quad(CoreViewConstants.OVER5SIZE, CoreViewConstants.OVER5SIZE);
-        //<-- Move into the material?
         float halfSizeOver5 = CoreViewConstants.OVER5SIZE * 0.5f;
         quadOver5.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSizeOver5));
-        //-->
         quadOver5.updateBound();
         Geometry geomOver5 = new Geometry("Wormhole", quadOver5);
-        Material matOver5 = assets.loadMaterial("Materials/Over5MaterialLight.j3m");
-        matOver5.setFloat("StartTime", timer.getTimeInSeconds());
-        geomOver5.setMaterial(matOver5);
+
+        if (unshaded) {
+            geomOver5.setMaterial(assets.loadMaterial("Materials/Over5MaterialUnshaded.j3m"));
+        } else {
+            geomOver5.setMaterial(assets.loadMaterial("Materials/Over5MaterialLight.j3m"));
+        }
+
+        geomOver5.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geomOver5.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geomOver5;
 
@@ -508,69 +526,86 @@ public class SISpatialFactory {
         //-->
         quad.updateBound();
         Geometry geom = new Geometry("Wormhole", quad);
-        Material mat = assets.loadMaterial("Materials/WormholeMaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/WormholeMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/WormholeMaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createOver1(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.OVER1SIZE, CoreViewConstants.OVER1SIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.OVER1SIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Over1", quad);
-        Material mat = assets.loadMaterial("Materials/Over1MaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/Over1MaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/Over1MaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createOver2(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.OVER2SIZE, CoreViewConstants.OVER2SIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.OVER2SIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Over2", quad);
-        Material mat = assets.loadMaterial("Materials/Over2MaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/Over2MaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/Over2MaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createWarp(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.WARPSIZE, CoreViewConstants.WARPSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.WARPSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Warp", quad);
-        Material mat = assets.loadMaterial("Materials/WarpMaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/WarpMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/WarpMaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
     private Spatial createRepel(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.REPELSIZE, CoreViewConstants.REPELSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.REPELSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Repel", quad);
-        Material mat = assets.loadMaterial("Materials/RepelMaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/RepelMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/RepelMaterialLight.j3m"));
+        }
+
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
@@ -603,19 +638,28 @@ public class SISpatialFactory {
      */
     private Spatial createBurst(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
-        //<-- Move into the material?
         float halfSize = CoreViewConstants.BURSTSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-        //-->
         quad.updateBound();
         Geometry geom = new Geometry("Burst", quad);
-        Material mat = assets.loadMaterial("Materials/BurstMaterialLight.j3m");
-        mat.setFloat("StartTime", timer.getTimeInSeconds());
-        geom.setMaterial(mat);
+
+        if (unshaded) {
+            geom.setMaterial(assets.loadMaterial("Materials/BurstMaterialUnshaded.j3m"));
+        } else {
+            geom.setMaterial(assets.loadMaterial("Materials/BurstMaterialLight.j3m"));
+        }
+        geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
         return geom;
     }
 
+    /**
+     * This array is used to define the quad bounds in the right order. Its
+     * important relative to where the camera is and what facing the camera has
+     *
+     * @param halfSize
+     * @return array 
+     */
     private float[] getArray(float halfSize) {
         float[] res = new float[]{
             halfSize, 0, -halfSize,
