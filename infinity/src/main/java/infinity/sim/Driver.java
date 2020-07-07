@@ -5,7 +5,7 @@
  */
 package infinity.sim;
 
-import infinity.es.MovementInput;
+import infinity.es.input.MovementInput;
 
 /**
  *

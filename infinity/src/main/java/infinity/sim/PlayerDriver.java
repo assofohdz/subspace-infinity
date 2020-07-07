@@ -36,7 +36,7 @@ import com.simsilica.mathd.*;
 import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.ControlDriver;
 import com.simsilica.mphys.RigidBody;
-import infinity.es.MovementInput;
+import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.Speed;

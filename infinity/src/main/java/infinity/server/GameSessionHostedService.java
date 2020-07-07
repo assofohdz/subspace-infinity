@@ -63,16 +63,21 @@ import com.simsilica.sim.*;
 
 import com.simsilica.mphys.PhysicsSpace;
 import infinity.es.ActionType;
-import infinity.es.MovementInput;
+import infinity.es.input.MovementInput;
 import infinity.es.PointLightComponent;
 import infinity.es.WeaponTypes;
+import infinity.es.input.ActionInput;
+import infinity.es.input.AttackInput;
+import infinity.es.input.AvatarInput;
+import infinity.es.input.FreqInput;
+import infinity.es.input.ToggleInput;
 import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
-import infinity.systems.ShipFrequencySystem;
+import infinity.systems.AvatarSystem;
 import infinity.systems.WeaponsSystem;
 //import infinity.systems.WeaponsSystem;
 //import infinity.systems.WeaponSystem;
@@ -203,23 +208,22 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         public GameSessionImpl(HostedConnection conn) {
             this.conn = conn;
-            
+
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
             this.binIndex = phys.getBinIndex();
-            
+
             this.playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
-            
+
             avatarEntityId = GameEntities.createWarbird(ed, playerEntityId, phys, 0);
 
             ed.setComponent(avatarEntityId, new Player());
-            
+
             System.out.println("avatarId(" + avatarEntityId.getId() + ")");
 
             log.info("createdAvatar:" + avatarEntityId);
-            
-            
+
         }
 
         public void initialize() {
@@ -262,6 +266,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         }
 
         @Override
+        public EntityId getPlayer() {
+            return playerEntityId;
+        }
+
+        @Override
         public EntityId getAvatar() {
             return avatarEntityId;
         }
@@ -285,7 +294,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             lastViewLoc.set(location);
             lastViewOrient.set(rotation);
         }
-        
+
         /*        
         public void spawn() {
 log.info("spawn():" + avatarEntity);        
@@ -322,74 +331,32 @@ log.info("spawn location:" + spawnLoc);
         @Override
         public void move(MovementInput movementForces) {
             ed.setComponent(avatarEntityId, movementForces);
-            /*
-            if (log.isTraceEnabled()) {
-                log.trace("movementForces(" + movementForces + ")");
-            }
-            PlayerDriver driver = mphys.getDriver(avatarEntityId);
-            if (driver != null) {//Should only happen if client side is faster than server side (or debugging)
-                driver.applyMovementState(movementForces);
-            }*/
         }
 
         @Override
-        public void createTile(String tileSet, double x, double y) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void action(ActionInput actionInput) {
+            ed.setComponent(avatarEntityId, actionInput);
         }
 
         @Override
-        public void removeTile(double x, double y) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void attack(AttackInput attackInput) {
+            ed.setComponent(avatarEntityId, attackInput);
         }
 
         @Override
-        public void attackGuns() {
-            gameSystems.get(WeaponsSystem.class).sessionAttack(avatarEntityId, WeaponTypes.BULLET);
+        public void avatar(AvatarInput avatarInput) {
+            ed.setComponent(avatarEntityId, avatarInput);
         }
 
         @Override
-        public void attackBomb() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            /*
-            if (log.isTraceEnabled()) {
-                log.trace("attackBomb");
-            }
-            gameSystems.get(WeaponSystem.class).sessionAttack(avatarEntity, WeaponTypes.BOMB);*/
+        public void toggle(ToggleInput toggleInput) {
+            ed.setComponent(avatarEntityId, toggleInput);
         }
 
         @Override
-        public void attackGravityBomb() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void frequency(FreqInput freqInput) {
+            ed.setComponent(avatarEntityId, freqInput);
         }
 
-        @Override
-        public void placeMine() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void attackBurst() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void attackThor() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void repel() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void warp() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-        }
-
-        @Override
-        public void chooseShip(byte ship) {
-            gameSystems.get(ShipFrequencySystem.class).requestShipChange(avatarEntityId, ship);
-        }
     }
 }

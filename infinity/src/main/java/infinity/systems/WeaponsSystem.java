@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author AFahrenholz
  */
+@Deprecated
 public class WeaponsSystem extends AbstractGameSystem {
 
     private EntityData ed;

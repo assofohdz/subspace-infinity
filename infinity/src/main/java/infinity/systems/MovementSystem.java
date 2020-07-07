@@ -46,7 +46,9 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import infinity.es.MovementInput;
+import infinity.es.input.ActionInput;
+import infinity.es.input.AttackInput;
+import infinity.es.input.MovementInput;
 import infinity.sim.PlayerDriver;
 
 /**
@@ -105,7 +107,7 @@ public class MovementSystem extends AbstractGameSystem {
         //
         // This control driver handling is trickier than in some of the simpler ES 
         // demos or the SiO2 bullet-char demo because the rigid bodies can be dynamically 
-        // loaded and unloaded in mphys.      
+        // loaded and unloaded in mphys.     
     }
 
     @Override

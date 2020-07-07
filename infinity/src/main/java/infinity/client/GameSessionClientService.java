@@ -48,7 +48,12 @@ import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.es.MovementInput;
+import infinity.es.input.ActionInput;
+import infinity.es.input.AttackInput;
+import infinity.es.input.AvatarInput;
+import infinity.es.input.FreqInput;
+import infinity.es.input.MovementInput;
+import infinity.es.input.ToggleInput;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 
@@ -148,63 +153,37 @@ public class GameSessionClientService extends AbstractClientService
         //log.debug("move(" + movementForces + ")");
         getDelegate().move(movementForces);
     }
-    
+
     @Override
-    public void createTile(String tileSet, double x, double y) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void removeTile(double x, double y) {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void attackGuns() {
-        getDelegate().attackGuns();
-    }
-    
-    @Override
-    public void attackBomb() {
-        //log.debug("attackBomb()");
-        getDelegate().attackBomb();
-    }
-    
-    @Override
-    public void attackGravityBomb() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void placeMine() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void attackBurst() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void attackThor() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void repel() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void warp() {
-        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
-    @Override
-    public void chooseShip(byte ship) {
-        getDelegate().chooseShip(ship);
+    public EntityId getPlayer() {
+        return getDelegate().getPlayer();
     }
 
+    @Override
+    public void action(ActionInput actionInput) {
+        getDelegate().action(actionInput);
+    }
+
+    @Override
+    public void attack(AttackInput attackInput) {
+        getDelegate().attack(attackInput);
+    }
+
+    @Override
+    public void avatar(AvatarInput avatarInput) {
+        getDelegate().avatar(avatarInput);
+    }
+
+    @Override
+    public void toggle(ToggleInput toggleInput) {
+        getDelegate().toggle(toggleInput);
+    }
+
+    @Override
+    public void frequency(FreqInput freqInput) {
+        getDelegate().frequency(freqInput);
+    }
+    
     /**
      * Shared with the server over RMI so that it can notify us about account
      * related stuff.

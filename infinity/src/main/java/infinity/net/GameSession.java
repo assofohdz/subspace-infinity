@@ -41,7 +41,12 @@ import com.jme3.network.service.rmi.Asynchronous;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.es.MovementInput;
+import infinity.es.input.ActionInput;
+import infinity.es.input.AttackInput;
+import infinity.es.input.AvatarInput;
+import infinity.es.input.FreqInput;
+import infinity.es.input.MovementInput;
+import infinity.es.input.ToggleInput;
 
 /**
  *
@@ -54,6 +59,8 @@ public interface GameSession {
      * Returns the ID of the player's current 'avatar' in the game.
      */
     public EntityId getAvatar();
+
+    public EntityId getPlayer();
 
     /**
      * For now we just direct-move the player avatar.
@@ -68,80 +75,111 @@ public interface GameSession {
     public void move(MovementInput movementForces);
 
     /**
-     * RMI call to create a tile
-     *
-     * @param tileSet the tileset chosen
-     * @param x the x-coordinate to create the tile on
-     * @param y the y-coordinate to create the tile on
+     * Perform an action, such as placing a brick, firing off burst, placing a
+     * decoy etc.
      */
-    @Asynchronous(reliable = true)
-    public void createTile(String tileSet, double x, double y);
+    @Asynchronous(reliable = false)
+    public void action(ActionInput actionInput);
 
     /**
-     * RMI call to remove a tile
-     *
-     * @param x the x-coordinate to remove the tile from
-     * @param y the y-coordinate to remove the tile from
+     * Attack using guns, bombs, mines, gravbombs
      */
-    @Asynchronous(reliable = true)
-    public void removeTile(double x, double y);
-
-    //Weapons:
-    /**
-     * RMI call to attack with guns
-     */
-    @Asynchronous(reliable = true)
-    public void attackGuns();
+    @Asynchronous(reliable = false)
+    public void attack(AttackInput attackInput);
 
     /**
-     * RMI call to attack with bombs
+     * Request a ship change or enter spectator mode
      */
-    @Asynchronous(reliable = true)
-    public void attackBomb();
+    @Asynchronous(reliable = false)
+    public void avatar(AvatarInput avatarInput);
 
     /**
-     * RMI call to attack with gravity bombs
+     * Toggle antiwarp, cloak, stealth etc.
      */
-    @Asynchronous(reliable = true)
-    public void attackGravityBomb();
-
+    @Asynchronous(reliable = false)
+    public void toggle(ToggleInput toggleInput);
+    
     /**
-     * RMI call to place a mine
+     * Request a frequency change
      */
-    @Asynchronous(reliable = true)
-    public void placeMine();
-
-    /**
-     * RMI call to attack with burst
-     */
-    @Asynchronous(reliable = true)
-    public void attackBurst();
-
-    /**
-     * RMI call to attack with thor
-     */
-    @Asynchronous(reliable = true)
-    public void attackThor();
-
-    //Actions:
-    /**
-     * RMI call to repel
-     */
-    @Asynchronous(reliable = true)
-    public void repel();
-
-    /**
-     * RMI call to warp
-     */
-    @Asynchronous(reliable = true)
-    public void warp();
-
-    //Misc
-    /**
-     * RMI call to choose a ship
-     *
-     * @param ship the chosen ship
-     */
-    @Asynchronous(reliable = true)
-    public void chooseShip(byte ship);
+    @Asynchronous(reliable = false)
+    public void frequency(FreqInput freqInput);
+//    
+//    /**
+//     * RMI call to create a tile
+//     *
+//     * @param tileSet the tileset chosen
+//     * @param x the x-coordinate to create the tile on
+//     * @param y the y-coordinate to create the tile on
+//     */
+//    @Asynchronous(reliable = true)
+//    public void createTile(String tileSet, double x, double y);
+//
+//    /**
+//     * RMI call to remove a tile
+//     *
+//     * @param x the x-coordinate to remove the tile from
+//     * @param y the y-coordinate to remove the tile from
+//     */
+//    @Asynchronous(reliable = true)
+//    public void removeTile(double x, double y);
+//
+//    //Weapons:
+//    /**
+//     * RMI call to attack with guns
+//     */
+//    @Asynchronous(reliable = true)
+//    public void attackGuns();
+//
+//    /**
+//     * RMI call to attack with bombs
+//     */
+//    @Asynchronous(reliable = true)
+//    public void attackBomb();
+//
+//    /**
+//     * RMI call to attack with gravity bombs
+//     */
+//    @Asynchronous(reliable = true)
+//    public void attackGravityBomb();
+//
+//    /**
+//     * RMI call to place a mine
+//     */
+//    @Asynchronous(reliable = true)
+//    public void placeMine();
+//
+//    /**
+//     * RMI call to attack with burst
+//     */
+//    @Asynchronous(reliable = true)
+//    public void attackBurst();
+//
+//    /**
+//     * RMI call to attack with thor
+//     */
+//    @Asynchronous(reliable = true)
+//    public void attackThor();
+//
+//    //Actions:
+//    /**
+//     * RMI call to repel
+//     */
+//    @Asynchronous(reliable = true)
+//    public void repel();
+//
+//    /**
+//     * RMI call to warp
+//     */
+//    @Asynchronous(reliable = true)
+//    public void warp();
+//
+//    //Misc
+//    /**
+//     * RMI call to choose a ship
+//     *
+//     * @param ship the chosen ship
+//     */
+//    @Asynchronous(reliable = true)
+//    public void chooseShip(byte ship);
 }

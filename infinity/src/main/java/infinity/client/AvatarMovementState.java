@@ -17,7 +17,10 @@ import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.es.MovementInput;
+import infinity.es.input.ActionInput;
+import infinity.es.input.AttackInput;
+import infinity.es.input.AvatarInput;
+import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,6 +157,8 @@ public class AvatarMovementState extends BaseAppState
 
     @Override
     public void update(float tpf) {
+        timeSinceLastSend += tpf;
+        
         if (timeSinceLastSend > sendFrequency) {
 
             thrust.x = (float) (rotate * rotateSpeed);
@@ -169,7 +174,6 @@ public class AvatarMovementState extends BaseAppState
 
             timeSinceLastSend = 0;
         }
-        timeSinceLastSend += tpf;
     }
 
     @Override
@@ -198,40 +202,43 @@ public class AvatarMovementState extends BaseAppState
                 speed = 1;
             }
         }
+        
+        byte flag = 0x0;
 
         if (value == InputState.Off) {
             if (func == PlayerMovementFunctions.F_SHOOT) {
-                session.attackGuns();
+                session.attack(new AttackInput(AttackInput.GUN));
             } else if (func == PlayerMovementFunctions.F_BOMB) {
-                session.attackBomb();
+                session.attack(new AttackInput(AttackInput.BOMB));
             } else if (func == PlayerMovementFunctions.F_GRAVBOMB) {
-                session.attackGravityBomb();
+                session.attack(new AttackInput(AttackInput.GRAVBOMB));
             } else if (func == PlayerMovementFunctions.F_THOR) {
-                session.attackThor();
+                session.action(new ActionInput(ActionInput.FIRETHOR));
             } else if (func == PlayerMovementFunctions.F_REPEL) {
-                session.repel();
+                session.action(new ActionInput(ActionInput.REPEL));
             } else if (func == PlayerMovementFunctions.F_MINE) {
-                session.placeMine();
+                session.attack(new AttackInput(AttackInput.MINE));
             } else if (func == PlayerMovementFunctions.F_BURST) {
-                session.attackBurst();
+                session.action(new ActionInput(ActionInput.FIREBURST));
+                
             } else if (func == PlayerMovementFunctions.F_WARBIRD) {
-                session.chooseShip((byte) 1);
+                session.avatar(new AvatarInput(AvatarInput.WARBIRD));
             } else if (func == PlayerMovementFunctions.F_JAVELIN) {
-                session.chooseShip((byte) 2);
+                session.avatar(new AvatarInput(AvatarInput.JAVELIN));
             } else if (func == PlayerMovementFunctions.F_SPIDER) {
-                session.chooseShip((byte) 3);
+                session.avatar(new AvatarInput(AvatarInput.SPIDER));
             } else if (func == PlayerMovementFunctions.F_LEVI) {
-                session.chooseShip((byte) 4);
+                session.avatar(new AvatarInput(AvatarInput.LEVI));
             } else if (func == PlayerMovementFunctions.F_TERRIER) {
-                session.chooseShip((byte) 5);
+                session.avatar(new AvatarInput(AvatarInput.TERRIER));
             } else if (func == PlayerMovementFunctions.F_WEASEL) {
-                session.chooseShip((byte) 6);
+                session.avatar(new AvatarInput(AvatarInput.WEASEL));
             } else if (func == PlayerMovementFunctions.F_LANC) {
-                session.chooseShip((byte) 7);
+                session.avatar(new AvatarInput(AvatarInput.LANCASTER));
             } else if (func == PlayerMovementFunctions.F_SHARK) {
-                session.chooseShip((byte) 8);
+                session.avatar(new AvatarInput(AvatarInput.SHARK));
             } else if (func == PlayerMovementFunctions.F_WARP) {
-                session.warp();
+                session.action(new ActionInput(ActionInput.WARP));
             }
             /*
             for (FunctionId funcId : functionStates.keySet()) {

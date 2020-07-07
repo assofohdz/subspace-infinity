@@ -82,10 +82,14 @@ import infinity.es.Frequency;
 import infinity.es.Gold;
 import infinity.es.LargeGridCell;
 import infinity.es.LargeObject;
-import infinity.es.MovementInput;
+import infinity.es.input.MovementInput;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.TileType;
+import infinity.es.input.ActionInput;
+import infinity.es.input.AttackInput;
+import infinity.es.input.AvatarInput;
+import infinity.es.input.ToggleInput;
 import infinity.es.ship.Player;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
@@ -96,7 +100,7 @@ import infinity.sim.PlayerDriver;
 import infinity.systems.EnergySystem;
 import infinity.systems.MovementSystem;
 import infinity.systems.SettingsSystem;
-import infinity.systems.ShipFrequencySystem;
+import infinity.systems.AvatarSystem;
 import infinity.systems.WeaponsSystem;
 import infinity.util.AdaptiveLoadingService;
 //import infinity.systems.WeaponSystem;
@@ -264,7 +268,7 @@ public class GameServer {
         //Subspace Infinity Specific Systems:-->
         //systems.register(WeaponSystem.class, new WeaponSystem());
         systems.register(EnergySystem.class, new EnergySystem());
-        systems.register(ShipFrequencySystem.class, new ShipFrequencySystem(chp));
+        systems.register(AvatarSystem.class, new AvatarSystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
         systems.register(WeaponsSystem.class, new WeaponsSystem());
         
@@ -375,7 +379,12 @@ public class GameServer {
         Serializer.registerClass(TileType.class, new FieldSerializer());
         Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
         Serializer.registerClass(Decay.class, new FieldSerializer());
+        
         Serializer.registerClass(MovementInput.class, new FieldSerializer());
+        Serializer.registerClass(AvatarInput.class, new FieldSerializer());
+        Serializer.registerClass(AttackInput.class, new FieldSerializer());
+        Serializer.registerClass(ToggleInput.class, new FieldSerializer());
+        Serializer.registerClass(ActionInput.class, new FieldSerializer());
     }
 
     public Server getServer() {
