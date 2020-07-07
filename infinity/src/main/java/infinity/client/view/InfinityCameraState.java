@@ -73,6 +73,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
     private Vector3f avatarPos;
     private ModelViewState.Model avatarModel;
     private TransitionBuffer<PositionTransition3d> buffer;
+    private float frustumSize = 1;
 
     public InfinityCameraState() {
     }
@@ -83,6 +84,11 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
         this.camera.setLocation(cameraPos);
         this.camera.lookAt(lastAvatarLoc, Vector3f.UNIT_Y); //Set camera to look at the origin
+        this.camera.setParallelProjection(true);
+        float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
+        this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
+
+        app.getRenderManager().setCamera(camera, true);
 
         this.ed = getState(ConnectionState.class).getEntityData();
 
@@ -103,8 +109,7 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
     public void update(float tpf) {
         long time = timeSource.getTime();
         watchedAvatar.applyChanges();
-        
-        
+
         /*
 
         //This means our avatar has a new shapeinfo (new spatial)
@@ -123,8 +128,8 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
         getState(WorldViewState.class).setViewLocation(cameraPos, avatarPos);
 
         log.info("Camera is at: " + cameraPos + ", looking at :" + avatarPos);
-*/
-        /*
+         */
+ /*
         BodyPosition bp2 = ed.getComponent(avatar, BodyPosition.class);
 
         if (bp2 != null) {
