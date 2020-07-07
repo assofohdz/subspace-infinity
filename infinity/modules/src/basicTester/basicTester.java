@@ -44,10 +44,10 @@ public class basicTester extends BaseGameModule {
         this.ed = getSystem(EntityData.class, true);
         
         //Test the smallest asteroids
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, 10)));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, -10)));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, 10)));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, -10)));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, 10), 1));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, -10), 10));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, 10), 100));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, -10), 1000));
 
         //Test the medium asteroids
         createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(20, 0, 20)));

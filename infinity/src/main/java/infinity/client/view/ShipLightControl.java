@@ -29,7 +29,7 @@ public class ShipLightControl extends LightControl {
         //super.update(tpf);
         if (this.enabled && this.getSpatial() != null && pointLight != null) {
             pos = this.getSpatial().getLocalTranslation();
-            pointLight.setPosition(pos.add(0, 0, 2));
+            pointLight.setPosition(pos.add(0, 2, 0));
         }
     }
 }

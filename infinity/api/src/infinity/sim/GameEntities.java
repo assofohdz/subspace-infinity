@@ -245,17 +245,16 @@ public class GameEntities {
     /**
      * Small asteroid with animation
      *
-     * @param location the Vec3d position of the asteroid
      * @param ed the entitydata set to create the entity in
-     * @param settings the settings to load this small asteroid with
      * @return the entityid of the created entity
      */
     public static EntityId createOver1(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos) {
+            Vec3d pos, int mass) {
         EntityId lastOver1 = ed.createEntity();
 
         ed.setComponents(lastOver1,
                 ShapeInfo.create("over1", 1, ed),
+                new Mass(mass),
                 new SpawnPosition(phys.getGrid(), pos));
         ed.setComponent(lastOver1, new Meta(createdTime));
 
