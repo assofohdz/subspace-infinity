@@ -30,6 +30,7 @@ import com.simsilica.mathd.*;
 import com.simsilica.es.*;
 import com.simsilica.es.common.Decay;
 import com.simsilica.ext.mphys.Gravity;
+import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.Mass;
 import infinity.es.Spawner;
 import infinity.es.WeaponTypes;
@@ -137,7 +138,7 @@ public class GameEntities {
                 ShapeInfo.create("bullet_l" + level.level, 0.1f, ed),
                 new Mass(1),
                 new SpawnPosition(phys.getGrid(), pos),
-                new Gravity(linearVelocity),
+                new Impulse(linearVelocity),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bullet(ed),
                 new Parent(owner));
