@@ -37,6 +37,7 @@ public class CoreViewConstants {
     //Sizes
     public final static float BULLETSIZE = 0.25f;
     public final static float BOMBSIZE = 1f;
+    public final static float THORSIZE = 1f;
     public final static float PRIZESIZE = 1f;
     public final static float SHIPSIZE = 2f;
     public final static float MOBSIZE = 2f;

@@ -36,7 +36,8 @@ public class CorePhysicsConstants {
     //Radius
     public final static double BULLETSIZERADIUS = 0.125f;
     public final static double BOMBSIZERADIUS = 0.5f;
-    public final static double BOUNTYSIZERADIUS = 0.5f;
+    public final static double THORSIZERADIUS = 0.5f;
+    public final static double PRIZESIZERADIUS = 0.5f;
     public final static double SHIPSIZERADIUS = 1f;
     public final static double MOBSIZERADIUS = 1f;
     public final static double TOWERSIZERADIUS = 1f;

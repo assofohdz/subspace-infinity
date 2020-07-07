@@ -81,7 +81,7 @@ public class SISpatialFactory {
     private Node rootNode;
 
     //Use to flip between using the lights and using unshaded textures
-    private boolean unshaded = false;
+    private boolean unshaded = true;
 
     SISpatialFactory(EntityData ed, SimpleApplication app) {
         this.ed = ed;

@@ -183,8 +183,9 @@ public class GameEntities {
             Vec3d pos, Quatd quat, long decayMillis) {
         EntityId lastExplosion = ed.createEntity();
 
+        //Explosion is a ghost
         ed.setComponents(lastExplosion,
-                ShapeInfo.create("explosion2", 1, ed),
+                ShapeInfo.create(ShapeNames.EXPLOSION2, 0, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime
                         + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)));
@@ -198,8 +199,9 @@ public class GameEntities {
             String gravityType, Vec3d warpTargetLocation) {
         EntityId lastWormhole = ed.createEntity();
 
+        //Wormhome is also a ghost
         ed.setComponents(lastWormhole,
-                ShapeInfo.create("wormhole", 1, ed),
+                ShapeInfo.create(ShapeNames.WORMHOLE, 0, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new GravityWell(gravityRadius, force, gravityType),
                 new WarpTouch(warpTargetLocation));
@@ -234,7 +236,7 @@ public class GameEntities {
         EntityId lastOver5 = ed.createEntity();
 
         ed.setComponents(lastOver5,
-                ShapeInfo.create("over5", 1, ed),
+                ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.OVER5SIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new GravityWell(gravityRadius, force, gravityType)
         );
@@ -254,7 +256,7 @@ public class GameEntities {
         EntityId lastOver1 = ed.createEntity();
 
         ed.setComponents(lastOver1,
-                ShapeInfo.create("over1", 1, ed),
+                ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.OVER1SIZERADIUS, ed),
                 new Mass(mass),
                 new SpawnPosition(phys.getGrid(), pos));
         ed.setComponent(lastOver1, new Meta(createdTime));
@@ -275,7 +277,7 @@ public class GameEntities {
         EntityId lastOver2 = ed.createEntity();
 
         ed.setComponents(lastOver2,
-                ShapeInfo.create("over2", 1, ed),
+                ShapeInfo.create(ShapeNames.OVER2, CorePhysicsConstants.OVER2SIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos));
         ed.setComponent(lastOver2, new Meta(createdTime));
 
@@ -286,8 +288,9 @@ public class GameEntities {
             Vec3d pos, long decayMillis) {
         EntityId lastWarpTo = ed.createEntity();
 
+        //Warp is a ghost
         ed.setComponents(lastWarpTo,
-                ShapeInfo.create("warpeffect", 1, ed),
+                ShapeInfo.create(ShapeNames.WARP, 0, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)));
         ed.setComponent(lastWarpTo, new Meta(createdTime));
@@ -300,7 +303,7 @@ public class GameEntities {
         EntityId lastFlag = ed.createEntity();
 
         ed.setComponents(lastFlag,
-                ShapeInfo.create("flag", 1, ed),
+                ShapeInfo.create(ShapeNames.FLAG_OURS, CorePhysicsConstants.FLAGSIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Flag(),
                 new Frequency(0));
@@ -342,7 +345,7 @@ public class GameEntities {
         ed.setComponent(result, name);
 
         ed.setComponents(result,
-                ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed));
+                ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
         
         //ViewTypes.ship_warbird(ed),
         //PhysicsMassTypes.normal(ed),
@@ -391,7 +394,7 @@ public class GameEntities {
         ed.setComponent(result, new Repel(10));
         ed.setComponent(result, new RepelMax(20));
 
-        ed.setComponent(result, new PointLightComponent(ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CoreViewConstants.SHIPLIGHTOFFSET));
+        //ed.setComponent(result, new PointLightComponent(ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CorePhysicsConstants.SHIPLIGHTOFFSET));
 
         ed.setComponent(result, new Meta(createdTime));
         return result;
@@ -402,7 +405,7 @@ public class GameEntities {
         EntityId result = ed.createEntity();
 
         ed.setComponents(result,
-                ShapeInfo.create("prize", 0.5, ed),
+                ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Bounty(CoreGameConstants.BOUNTYVALUE),
                 PrizeType.create(prizeType, ed),
@@ -433,8 +436,8 @@ public class GameEntities {
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bomb(ed),
-                new Parent(owner),
-                new PointLightComponent(level.lightColor, level.lightRadius, CoreViewConstants.SHIPLIGHTOFFSET));
+                new Parent(owner));
+                //new PointLightComponent(level.lightColor, level.lightRadius, CorePhysicsConstants.SHIPLIGHTOFFSET));
 
         ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
@@ -447,7 +450,7 @@ public class GameEntities {
 
         ed.setComponents(lastBomb,
                 //ViewTypes.burst(ed),
-                ShapeInfo.create("burst", 1, ed),
+                ShapeInfo.create(ShapeNames.BURST, CorePhysicsConstants.BURSTSIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 //new PhysicsVelocity(new Vec3d(linearVelocity.x, linearVelocity.y)),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
@@ -467,7 +470,8 @@ public class GameEntities {
 
         ed.setComponents(lastTileInfo,
                 TileType.create(tileType, tileSet, tileIndex, ed),
-                ShapeInfo.create("maptile", 1, ed),
+                //TODO: Register map tiles with a block shape factory instead of default sphere factory
+                ShapeInfo.create(ShapeNames.MAPTILE, CorePhysicsConstants.MAPTILEWIDTH, ed),
                 new SpawnPosition(phys.getGrid(), pos));
 
         ed.setComponent(lastTileInfo, new Meta(createdTime));
@@ -479,6 +483,7 @@ public class GameEntities {
     public static EntityId updateWangBlobEntity(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
             EntityId entity, String tileSet, short tileIndex, Vec3d pos) {
 
+        //TODO: Update the shapename to something from ShapeNames
         ed.setComponents(entity,
                 TileTypes.wangblob(tileSet, tileIndex, ed),
                 ShapeInfo.create("wangblob", 1, ed),
@@ -503,7 +508,7 @@ public class GameEntities {
         EntityId lastWarpTo = ed.createEntity();
 
         ed.setComponents(lastWarpTo,
-                ShapeInfo.create("repel", createdTime, ed),
+                ShapeInfo.create(ShapeNames.REPEL, CorePhysicsConstants.REPELRADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(CoreViewConstants.REPELDECAY, TimeUnit.MILLISECONDS)),
                 new Parent(owner),
@@ -518,7 +523,7 @@ public class GameEntities {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb,
-                ShapeInfo.create("thor", 1, ed),
+                ShapeInfo.create(ShapeNames.THOR, CorePhysicsConstants.THORSIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(thorDecay, TimeUnit.MILLISECONDS)),
                 WeaponTypes.thor(ed),

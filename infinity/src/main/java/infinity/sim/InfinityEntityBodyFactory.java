@@ -82,7 +82,7 @@ public class InfinityEntityBodyFactory extends EntityBodyFactory<MBlockShape> {
                 result.setLinearDamping(0);
                 break;
             default:
-                throw new AssertionError("Shape name unknown: " + info.getShapeName(ed));
+                break;
         }
 
         return result;
