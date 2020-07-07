@@ -56,6 +56,7 @@ import infinity.client.GameSessionClientService;
 import infinity.client.view.InfinityCameraState;
 import infinity.client.view.ModelViewState;
 import infinity.client.view.PhysicsDebugState;
+import infinity.client.view.SkyState;
 import infinity.client.view.WorldViewState;
 
 //import com.simsilica.mphys.PhysicsSpace;
@@ -84,7 +85,7 @@ public class GameSessionState extends CompositeAppState {
                 //new PostProcessingState(),
                 //new GridState(new Grid(32, 0, 32)),
                 //new SkySettingsState(),
-                //new SkyState(true),
+                new SkyState(),
 
                 //new infinity.client.view.SkyState(),
 
