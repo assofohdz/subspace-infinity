@@ -88,6 +88,7 @@ import org.ini4j.Ini;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.es.CollisionCategory;
 import infinity.es.ShapeNames;
 
 /**
@@ -115,12 +116,12 @@ public class GameEntities {
     }
 
     public static EntityId createDelayedBomb(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Quatd quatd, Vec3d linearVelocity,
+            Vec3d pos, Vec3d linearVelocity,
             long decayMillis, long scheduledMillis, HashSet<EntityComponent> delayedComponents,
             BombLevelEnum level) {
 
         EntityId lastDelayedBomb = GameEntities.createBomb(ed, owner, phys, createdTime,
-                pos, quatd, linearVelocity,
+                pos, linearVelocity,
                 decayMillis, level);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
@@ -129,18 +130,40 @@ public class GameEntities {
         return lastDelayedBomb;
     }
 
+    public static EntityId createBomb(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
+            Vec3d pos, Vec3d linearVelocity,
+            long decayMillis, BombLevelEnum level) {
+        EntityId lastBomb = ed.createEntity();
+
+        ed.setComponents(lastBomb,
+                ShapeInfo.create("bomb_l" + level.level, 0.5, ed),
+                new SpawnPosition(phys.getGrid(), pos),
+                new Mass(5),
+                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
+                WeaponTypes.bomb(ed),
+                new Impulse(linearVelocity),
+                new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
+                new Parent(owner));
+        
+                //new PointLightComponent(level.lightColor, level.lightRadius, CorePhysicsConstants.SHIPLIGHTOFFSET));
+
+        ed.setComponent(lastBomb, new Meta(createdTime));
+        return lastBomb;
+    }
+    
     public static EntityId createBullet(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Quatd quatd, Vec3d linearVelocity,
+            Vec3d pos, Vec3d linearVelocity,
             long decayMillis, GunLevelEnum level) {
         EntityId lastBullet = ed.createEntity();
 
         ed.setComponents(lastBullet,
-                ShapeInfo.create("bullet_l" + level.level, 0.1f, ed),
-                new Mass(1),
+                ShapeInfo.create("bullet_l" + level.level, 0.125, ed),
                 new SpawnPosition(phys.getGrid(), pos),
-                new Impulse(linearVelocity),
+                new Mass(1),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
                 WeaponTypes.bullet(ed),
+                new Impulse(linearVelocity),
+                new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
                 new Parent(owner));
 
         ed.setComponent(lastBullet, new Meta(createdTime));
@@ -180,7 +203,7 @@ public class GameEntities {
      */
     //Explosion is for now only visual, so only object type and position
     public static EntityId createExplosion2(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Quatd quat, long decayMillis) {
+            Vec3d pos, long decayMillis) {
         EntityId lastExplosion = ed.createEntity();
 
         //Explosion is a ghost
@@ -393,6 +416,8 @@ public class GameEntities {
         //Add repels
         ed.setComponent(result, new Repel(10));
         ed.setComponent(result, new RepelMax(20));
+        
+        ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
         //ed.setComponent(result, new PointLightComponent(ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CorePhysicsConstants.SHIPLIGHTOFFSET));
 
@@ -426,25 +451,9 @@ public class GameEntities {
         return result;
     }
 
-    public static EntityId createBomb(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Quatd quatd, Vec3d linearVelocity,
-            long decayMillis, BombLevelEnum level) {
-        EntityId lastBomb = ed.createEntity();
-
-        ed.setComponents(lastBomb,
-                ShapeInfo.create("bomb_l" + level.level, 1, ed),
-                new SpawnPosition(phys.getGrid(), pos),
-                new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
-                WeaponTypes.bomb(ed),
-                new Parent(owner));
-                //new PointLightComponent(level.lightColor, level.lightRadius, CorePhysicsConstants.SHIPLIGHTOFFSET));
-
-        ed.setComponent(lastBomb, new Meta(createdTime));
-        return lastBomb;
-    }
 
     public static EntityId createBurst(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Quatd quatd, Vec3d linearVelocity,
+            Vec3d pos, Vec3d linearVelocity,
             long decayMillis) {
         EntityId lastBomb = ed.createEntity();
 
@@ -519,7 +528,7 @@ public class GameEntities {
     }
 
     public static EntityId createThor(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Quatd orientation, Vec3d attackVelocity, long thorDecay) {
+            Vec3d pos, Vec3d attackVelocity, long thorDecay) {
         EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb,

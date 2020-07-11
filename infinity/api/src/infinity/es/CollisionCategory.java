@@ -6,11 +6,22 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
+import infinity.sim.CategoryFilter;
 
 /**
  *
  * @author AFahrenholz
  */
-public class PhysicsBody implements EntityComponent {
+public class CollisionCategory implements EntityComponent{
+    
+    CategoryFilter filter;
+
+    public CollisionCategory(CategoryFilter filter) {
+        this.filter = filter;
+    }
+
+    public CategoryFilter getFilter() {
+        return filter;
+    }
     
 }

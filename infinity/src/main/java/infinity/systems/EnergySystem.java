@@ -201,7 +201,7 @@ public class EnergySystem extends AbstractGameSystem {
      * @param eId the entityid to check
      * @return true if the entity has health, false if not
      */
-    public boolean hasHealth(EntityId eId) {
+    public boolean hasEnergy(EntityId eId) {
         return living.containsId(eId);
     }
 

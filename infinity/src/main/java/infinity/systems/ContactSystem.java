@@ -1,0 +1,99 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package infinity.systems;
+
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.ext.mphys.BinEntityManager;
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.BinIndex;
+import com.simsilica.mphys.Contact;
+import com.simsilica.mphys.ContactListener;
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.sim.AbstractGameSystem;
+import com.simsilica.sim.SimTime;
+import infinity.es.CollisionCategory;
+import infinity.es.Parent;
+import infinity.sim.CategoryFilter;
+
+/**
+ *
+ * @author AFahrenholz
+ */
+public class ContactSystem extends AbstractGameSystem implements ContactListener {
+
+    private EntityData ed;
+    private MPhysSystem<MBlockShape> physics;
+    private PhysicsSpace<EntityId, MBlockShape> space;
+    private BinIndex binIndex;
+    private BinEntityManager binEntityManager;
+    EntitySet categoryFilters;
+
+    @Override
+    public void newContact(Contact contact) {
+        EntityId one = (EntityId) contact.body1.id;
+        EntityId two = (EntityId) contact.body2.id;
+
+        if (categoryFilters.containsId(two) && categoryFilters.containsId(one)) {
+            CategoryFilter filterOne = categoryFilters.getEntity(one).get(CollisionCategory.class).getFilter();
+            CategoryFilter filterTwo = categoryFilters.getEntity(two).get(CollisionCategory.class).getFilter();
+
+            if (!filterTwo.isAllowed(filterOne)) {
+                contact.disable();
+            }
+            
+            EntityId parentOne = categoryFilters.getEntity(one).get(Parent.class).getParentEntity();
+            EntityId parentTwo = categoryFilters.getEntity(two).get(Parent.class).getParentEntity();
+            
+            if (parentOne.equals(two) || parentTwo.equals(one)) {
+                contact.disable();
+            }
+        }
+    }
+
+    @Override
+    public void stop() {
+        super.stop(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void update(SimTime time) {
+        super.update(time); //To change body of generated methods, choose Tools | Templates.
+
+        categoryFilters.applyChanges();
+    }
+
+    @Override
+    public void start() {
+        super.start(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected void initialize() {
+        this.ed = getSystem(EntityData.class);
+        if (ed == null) {
+            throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
+        }
+        this.physics = (MPhysSystem<MBlockShape>) getSystem(MPhysSystem.class);
+        if (physics == null) {
+            throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
+        }
+
+        this.space = physics.getPhysicsSpace();
+        this.binIndex = space.getBinIndex();
+        this.binEntityManager = physics.getBinEntityManager();
+
+        categoryFilters = ed.getEntities(CollisionCategory.class, Parent.class);
+    }
+
+    @Override
+    protected void terminate() {
+        categoryFilters.release();
+        categoryFilters = null;
+    }
+}

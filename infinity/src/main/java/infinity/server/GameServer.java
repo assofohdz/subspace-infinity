@@ -87,7 +87,6 @@ import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.TileType;
 import infinity.es.input.ActionInput;
-import infinity.es.input.AttackInput;
 import infinity.es.input.AvatarInput;
 import infinity.es.input.ToggleInput;
 import infinity.es.ship.Player;
@@ -97,11 +96,12 @@ import infinity.sim.InfinityPhysicsManager;
 import infinity.systems.InfinityTimeSystem;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
+import infinity.systems.AttackSystem;
 import infinity.systems.EnergySystem;
 import infinity.systems.MovementSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.AvatarSystem;
-import infinity.systems.WeaponsSystem;
+import infinity.systems.ContactSystem;
 import infinity.util.AdaptiveLoadingService;
 //import infinity.systems.WeaponSystem;
 import java.util.HashMap;
@@ -270,8 +270,12 @@ public class GameServer {
         systems.register(EnergySystem.class, new EnergySystem());
         systems.register(AvatarSystem.class, new AvatarSystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
-        systems.register(WeaponsSystem.class, new WeaponsSystem());
+        systems.register(AttackSystem.class, new AttackSystem());
         
+        //Set up contacts to be filtered
+        ContactSystem contactSystem = new ContactSystem();
+        systems.register(ContactSystem.class, contactSystem);
+        mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
         systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
         AssetLoaderService assetLoader = new AssetLoaderService();
@@ -382,7 +386,6 @@ public class GameServer {
         
         Serializer.registerClass(MovementInput.class, new FieldSerializer());
         Serializer.registerClass(AvatarInput.class, new FieldSerializer());
-        Serializer.registerClass(AttackInput.class, new FieldSerializer());
         Serializer.registerClass(ToggleInput.class, new FieldSerializer());
         Serializer.registerClass(ActionInput.class, new FieldSerializer());
     }

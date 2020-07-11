@@ -67,7 +67,6 @@ import infinity.es.input.MovementInput;
 import infinity.es.PointLightComponent;
 import infinity.es.WeaponTypes;
 import infinity.es.input.ActionInput;
-import infinity.es.input.AttackInput;
 import infinity.es.input.AvatarInput;
 import infinity.es.input.FreqInput;
 import infinity.es.input.ToggleInput;
@@ -77,10 +76,8 @@ import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
+import infinity.systems.AttackSystem;
 import infinity.systems.AvatarSystem;
-import infinity.systems.WeaponsSystem;
-//import infinity.systems.WeaponsSystem;
-//import infinity.systems.WeaponSystem;
 
 /**
  *
@@ -205,12 +202,15 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private PlayerDriver driver;
         private EntityId playerEntityId;
         private final BinIndex binIndex;
+        private AttackSystem attackSystem;
 
         public GameSessionImpl(HostedConnection conn) {
             this.conn = conn;
 
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
+            this.attackSystem = gameSystems.get(AttackSystem.class, true);
+            
             this.binIndex = phys.getBinIndex();
 
             this.playerEntityId = ed.createEntity();
@@ -339,8 +339,8 @@ log.info("spawn location:" + spawnLoc);
         }
 
         @Override
-        public void attack(AttackInput attackInput) {
-            ed.setComponent(avatarEntityId, attackInput);
+        public void attack(byte attackInput) {
+            attackSystem.sessionAttack(avatarEntityId, attackInput);
         }
 
         @Override

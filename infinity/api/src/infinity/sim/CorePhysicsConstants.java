@@ -48,6 +48,8 @@ public class CorePhysicsConstants {
     public final static double OVER2SIZERADIUS = 1;
     public final static double FLAGSIZERADIUS = 0.5;
     public final static double BURSTSIZERADIUS = 0.125f;
+    
+    public final static double SAFETYOFFSET = 0.05f;
 
     public final static double REPELRADIUS = 0.125f;
 

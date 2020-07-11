@@ -18,10 +18,10 @@ import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import infinity.es.input.ActionInput;
-import infinity.es.input.AttackInput;
 import infinity.es.input.AvatarInput;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
+import infinity.systems.AttackSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,18 +206,20 @@ public class AvatarMovementState extends BaseAppState
         byte flag = 0x0;
 
         if (value == InputState.Off) {
+            //Attack functions first:
             if (func == PlayerMovementFunctions.F_SHOOT) {
-                session.attack(new AttackInput(AttackInput.GUN));
+                session.attack(AttackSystem.GUN);
             } else if (func == PlayerMovementFunctions.F_BOMB) {
-                session.attack(new AttackInput(AttackInput.BOMB));
+                session.attack(AttackSystem.BOMB);
             } else if (func == PlayerMovementFunctions.F_GRAVBOMB) {
-                session.attack(new AttackInput(AttackInput.GRAVBOMB));
+                session.attack(AttackSystem.GRAVBOMB);
+            } else if (func == PlayerMovementFunctions.F_MINE) {
+                session.attack(AttackSystem.MINE);
+            //<..
             } else if (func == PlayerMovementFunctions.F_THOR) {
                 session.action(new ActionInput(ActionInput.FIRETHOR));
             } else if (func == PlayerMovementFunctions.F_REPEL) {
                 session.action(new ActionInput(ActionInput.REPEL));
-            } else if (func == PlayerMovementFunctions.F_MINE) {
-                session.attack(new AttackInput(AttackInput.MINE));
             } else if (func == PlayerMovementFunctions.F_BURST) {
                 session.action(new ActionInput(ActionInput.FIREBURST));
                 

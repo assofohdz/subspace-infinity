@@ -49,7 +49,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import infinity.es.input.ActionInput;
-import infinity.es.input.AttackInput;
 import infinity.es.input.AvatarInput;
 import infinity.es.input.FreqInput;
 import infinity.es.input.MovementInput;
@@ -165,7 +164,7 @@ public class GameSessionClientService extends AbstractClientService
     }
 
     @Override
-    public void attack(AttackInput attackInput) {
+    public void attack(byte attackInput) {
         getDelegate().attack(attackInput);
     }
 

@@ -42,7 +42,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import infinity.es.input.ActionInput;
-import infinity.es.input.AttackInput;
 import infinity.es.input.AvatarInput;
 import infinity.es.input.FreqInput;
 import infinity.es.input.MovementInput;
@@ -85,7 +84,7 @@ public interface GameSession {
      * Attack using guns, bombs, mines, gravbombs
      */
     @Asynchronous(reliable = false)
-    public void attack(AttackInput attackInput);
+    public void attack(byte attackInput);
 
     /**
      * Request a ship change or enter spectator mode

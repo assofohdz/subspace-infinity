@@ -46,8 +46,6 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import infinity.es.input.ActionInput;
-import infinity.es.input.AttackInput;
 import infinity.es.input.MovementInput;
 import infinity.sim.PlayerDriver;
 
