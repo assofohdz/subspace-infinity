@@ -564,10 +564,10 @@ public class AttackSystem extends AbstractGameSystem {
         //TODO: Look these settings up in SettingsSystem
         switch (flag) {
             case AttackSystem.GUN:
-                projectileVelocity.addLocal(0,0,5);
+                projectileVelocity.addLocal(0,0,15);
                 break;
             case AttackSystem.BOMB:
-                projectileVelocity.addLocal(0,0,5);
+                projectileVelocity.addLocal(0,0,10);
                 break;
             case AttackSystem.GRAVBOMB:
                 break;
@@ -589,7 +589,7 @@ public class AttackSystem extends AbstractGameSystem {
         //Step 4: Find the translation
         Vec3d shipPosition = new Vec3d(shipBody.position);
         //Default position is at the tip of the ship;
-        Vec3d projectilePosition = new Vec3d(0,0, CorePhysicsConstants.SHIPSIZERADIUS);
+        Vec3d projectilePosition = new Vec3d(0,0, 0);//CorePhysicsConstants.SHIPSIZERADIUS);
         //Offset with the radius of the projectile
         switch (flag) {
             case AttackSystem.GUN:
@@ -603,7 +603,7 @@ public class AttackSystem extends AbstractGameSystem {
             default:
                 throw new AssertionError();
         }
-        projectilePosition.addLocal(0, 0, CorePhysicsConstants.SAFETYOFFSET);
+        //projectilePosition.addLocal(0, 0, CorePhysicsConstants.SAFETYOFFSET);
         
         //Rotate the projectile position just as the ship is rotated
         projectilePosition = shipRotation.mult(projectilePosition);

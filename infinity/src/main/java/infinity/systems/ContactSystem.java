@@ -45,13 +45,21 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
 
             if (!filterTwo.isAllowed(filterOne)) {
                 contact.disable();
+                return;
             }
             
-            EntityId parentOne = categoryFilters.getEntity(one).get(Parent.class).getParentEntity();
-            EntityId parentTwo = categoryFilters.getEntity(two).get(Parent.class).getParentEntity();
+            Parent parentOfOne = ed.getComponent(one, Parent.class);
+            Parent parentOfTwo = ed.getComponent(two, Parent.class);
             
-            if (parentOne.equals(two) || parentTwo.equals(one)) {
+            if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
+                //We have a parent on entity one and its equal to two
                 contact.disable();
+                return;
+            }
+            if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
+                //We have a parent on entity two and its equal to one
+                contact.disable();
+                return;
             }
         }
     }
@@ -88,7 +96,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
         this.binIndex = space.getBinIndex();
         this.binEntityManager = physics.getBinEntityManager();
 
-        categoryFilters = ed.getEntities(CollisionCategory.class, Parent.class);
+        categoryFilters = ed.getEntities(CollisionCategory.class);
     }
 
     @Override
