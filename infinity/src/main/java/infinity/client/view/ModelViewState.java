@@ -284,7 +284,7 @@ public class ModelViewState extends BaseAppState {
         shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());*/
         shapeFactory.setDefaultFactory(new SphereFactory());
 
-        siModelFactory = new SISpatialFactory(ed, (SimpleApplication)app);
+        siModelFactory = new SISpatialFactory(ed, (SimpleApplication) app);
 
         // Some test objects
         //for( int i = 0; i < tests.length; i++ ) {
@@ -716,6 +716,10 @@ log.info("states:" + sb);*/
             if (spatial != null) {
                 getObjectRoot().attachChild(spatial);
                 resetVisibility();
+
+                if (spatial.getUserDataKeys().contains("arena")) {
+                    this.markInvisible();
+                }
             }
         }
 
@@ -836,12 +840,11 @@ log.info("states:" + sb);*/
                 setVisible(trans.getVisibility(time));
 
                 if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
-                    
 
                     Quatd cameraRotation = new Quatd(getApplication().getCamera().getRotation());
                     Vec3d avatarWorldTranslation = new Vec3d(model.spatial.getWorldTranslation());
                     gameSession.setView(cameraRotation, avatarWorldTranslation);
-                    
+
                     Vector3f cameraWorldTranslation = new Vec3d(avatarWorldTranslation).add(0, 40, 0).toVector3f();
                     getState(WorldViewState.class).setViewLocation(cameraWorldTranslation, avatarWorldTranslation.toVector3f());
                 }
@@ -937,7 +940,7 @@ log.info("Setting NOT visible:" + entity.getId());
             Model object = getModel(e.getId(), true);
             updateObject(object, e);
 
-            // Add it to the queue to be made visible at a future time            
+            // Add it to the queue to be made visible at a future time     
             markerQueue.add(new MarkVisible(object, timeSource.getTime() + VIS_DELAY));
 
             return object;

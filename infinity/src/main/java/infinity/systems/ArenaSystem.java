@@ -81,6 +81,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         AssetManager am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
         am.registerLoader(LevelLoader.class, "lvl");
+        am.registerLoader(LevelLoader.class, "lvz");
 
         staticBodyPositions = ed.getEntities(BodyPosition.class);
 

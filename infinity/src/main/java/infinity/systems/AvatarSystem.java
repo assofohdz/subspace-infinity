@@ -45,8 +45,6 @@ import infinity.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
-import infinity.es.input.AvatarInput;
-import infinity.es.input.FreqInput;
 import infinity.es.ship.Player;
 import infinity.events.ShipEvent;
 import infinity.server.chat.ChatHostedService;
@@ -63,6 +61,16 @@ public class AvatarSystem extends AbstractGameSystem {
     private EntityData ed;
     private EntitySet freqInput, avatarInput;
     private EntitySet frequencies;
+    
+    public static final byte SPEC = 0x0;
+    public static final byte WARBIRD = 0x1;
+    public static final byte JAVELIN = 0x2;
+    public static final byte SPIDER = 0x3;
+    public static final byte LEVI = 0x4;
+    public static final byte TERRIER = 0x5;
+    public static final byte LANCASTER = 0x6;
+    public static final byte WEASEL = 0x7;
+    public static final byte SHARK = 0x8;
 
     /**
      * The number of allowed players in each ship on this team
@@ -82,9 +90,6 @@ public class AvatarSystem extends AbstractGameSystem {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        this.freqInput = ed.getEntities(FreqInput.class);
-        this.avatarInput = ed.getEntities(AvatarInput.class);
-
         this.frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
         this.captains = ed.getEntities(ShapeInfo.class, Captain.class);
 
@@ -101,11 +106,6 @@ public class AvatarSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-        avatarInput.release();
-        avatarInput = null;
-
-        freqInput.release();
-        freqInput = null;
 
         frequencies.release();
         frequencies = null;
@@ -114,29 +114,6 @@ public class AvatarSystem extends AbstractGameSystem {
     @Override
     public void update(SimTime tpf) {
 
-        if (avatarInput.applyChanges()) {
-            for (Entity e : avatarInput.getAddedEntities()) {
-                AvatarInput input = e.get(AvatarInput.class);
-                this.requestShipChange(e.getId(), input.getFlags());
-                ed.removeComponent(e.getId(), AvatarInput.class);
-            }
-        }
-
-        if (frequencies.applyChanges()) {
-
-        }
-
-        if (freqInput.applyChanges()) {
-            for (Entity e : freqInput.getAddedEntities()) {
-
-            }
-            for (Entity e : freqInput.getChangedEntities()) {
-
-            }
-            for (Entity e : freqInput.getRemovedEntities()) {
-
-            }
-        }
 
         if (captains.applyChanges()) {
             for (Entity e : captains.getAddedEntities()) {

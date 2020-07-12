@@ -48,11 +48,7 @@ import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.es.input.ActionInput;
-import infinity.es.input.AvatarInput;
-import infinity.es.input.FreqInput;
 import infinity.es.input.MovementInput;
-import infinity.es.input.ToggleInput;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 
@@ -159,7 +155,7 @@ public class GameSessionClientService extends AbstractClientService
     }
 
     @Override
-    public void action(ActionInput actionInput) {
+    public void action(byte actionInput) {
         getDelegate().action(actionInput);
     }
 
@@ -169,19 +165,20 @@ public class GameSessionClientService extends AbstractClientService
     }
 
     @Override
-    public void avatar(AvatarInput avatarInput) {
+    public void avatar(byte avatarInput) {
         getDelegate().avatar(avatarInput);
     }
 
     @Override
-    public void toggle(ToggleInput toggleInput) {
+    public void toggle(byte toggleInput) {
         getDelegate().toggle(toggleInput);
     }
 
     @Override
-    public void frequency(FreqInput freqInput) {
-        getDelegate().frequency(freqInput);
+    public void map(byte mapInput, Vec3d coords) {
+        getDelegate().map(mapInput, coords);
     }
+
     
     /**
      * Shared with the server over RMI so that it can notify us about account

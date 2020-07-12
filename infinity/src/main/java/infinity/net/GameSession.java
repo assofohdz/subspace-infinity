@@ -41,11 +41,7 @@ import com.jme3.network.service.rmi.Asynchronous;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.es.input.ActionInput;
-import infinity.es.input.AvatarInput;
-import infinity.es.input.FreqInput;
 import infinity.es.input.MovementInput;
-import infinity.es.input.ToggleInput;
 
 /**
  *
@@ -77,32 +73,35 @@ public interface GameSession {
      * Perform an action, such as placing a brick, firing off burst, placing a
      * decoy etc.
      */
-    @Asynchronous(reliable = false)
-    public void action(ActionInput actionInput);
+    @Asynchronous(reliable = true)
+    public void action(byte actionInput);
 
     /**
      * Attack using guns, bombs, mines, gravbombs
      */
-    @Asynchronous(reliable = false)
+    @Asynchronous(reliable = true)
     public void attack(byte attackInput);
 
     /**
      * Request a ship change or enter spectator mode
      */
-    @Asynchronous(reliable = false)
-    public void avatar(AvatarInput avatarInput);
+    @Asynchronous(reliable = true)
+    public void avatar(byte avatarInput);
 
     /**
      * Toggle antiwarp, cloak, stealth etc.
      */
-    @Asynchronous(reliable = false)
-    public void toggle(ToggleInput toggleInput);
+    @Asynchronous(reliable = true)
+    public void toggle(byte toggleInput);
     
     /**
-     * Request a frequency change
+     * Edit the map
+     * @param mapInput 
      */
-    @Asynchronous(reliable = false)
-    public void frequency(FreqInput freqInput);
+    @Asynchronous(reliable = true)
+    public void map(byte mapInput, Vec3d coords);
+    
+    
 //    
 //    /**
 //     * RMI call to create a tile

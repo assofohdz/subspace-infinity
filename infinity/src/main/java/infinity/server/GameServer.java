@@ -86,9 +86,6 @@ import infinity.es.input.MovementInput;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.TileType;
-import infinity.es.input.ActionInput;
-import infinity.es.input.AvatarInput;
-import infinity.es.input.ToggleInput;
 import infinity.es.ship.Player;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
@@ -102,6 +99,7 @@ import infinity.systems.MovementSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
+import infinity.systems.MapSystem;
 import infinity.util.AdaptiveLoadingService;
 //import infinity.systems.WeaponSystem;
 import java.util.HashMap;
@@ -285,6 +283,7 @@ public class GameServer {
         server.getServices().addService(adaptiveLoader);
         
         systems.register(SettingsSystem.class, new SettingsSystem(assetLoader, adaptiveLoader));
+        systems.register(MapSystem.class, new MapSystem(assetLoader));
         //<--
 
         // The physics system will need some way to load physics collision shapes
@@ -385,9 +384,6 @@ public class GameServer {
         Serializer.registerClass(Decay.class, new FieldSerializer());
         
         Serializer.registerClass(MovementInput.class, new FieldSerializer());
-        Serializer.registerClass(AvatarInput.class, new FieldSerializer());
-        Serializer.registerClass(ToggleInput.class, new FieldSerializer());
-        Serializer.registerClass(ActionInput.class, new FieldSerializer());
     }
 
     public Server getServer() {

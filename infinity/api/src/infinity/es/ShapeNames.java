@@ -58,4 +58,5 @@ public class ShapeNames {
     public static final String REPEL = "repel";
     public static final String FLAG_OURS = "flag_ours";
     public static final String FLAG_THEIRS = "flag_theirs";
+    
 }

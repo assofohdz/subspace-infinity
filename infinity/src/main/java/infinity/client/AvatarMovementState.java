@@ -17,11 +17,11 @@ import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.es.input.ActionInput;
-import infinity.es.input.AvatarInput;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
+import infinity.systems.ActionSystem;
 import infinity.systems.AttackSystem;
+import infinity.systems.AvatarSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,7 +158,7 @@ public class AvatarMovementState extends BaseAppState
     @Override
     public void update(float tpf) {
         timeSinceLastSend += tpf;
-        
+
         if (timeSinceLastSend > sendFrequency) {
 
             thrust.x = (float) (rotate * rotateSpeed);
@@ -202,8 +202,6 @@ public class AvatarMovementState extends BaseAppState
                 speed = 1;
             }
         }
-        
-        byte flag = 0x0;
 
         if (value == InputState.Off) {
             //Attack functions first:
@@ -215,33 +213,37 @@ public class AvatarMovementState extends BaseAppState
                 session.attack(AttackSystem.GRAVBOMB);
             } else if (func == PlayerMovementFunctions.F_MINE) {
                 session.attack(AttackSystem.MINE);
-            //<..
+                //<..
+                //Actions-->
             } else if (func == PlayerMovementFunctions.F_THOR) {
-                session.action(new ActionInput(ActionInput.FIRETHOR));
+                session.action(ActionSystem.FIRETHOR);
             } else if (func == PlayerMovementFunctions.F_REPEL) {
-                session.action(new ActionInput(ActionInput.REPEL));
+                session.action(ActionSystem.REPEL);
             } else if (func == PlayerMovementFunctions.F_BURST) {
-                session.action(new ActionInput(ActionInput.FIREBURST));
-                
-            } else if (func == PlayerMovementFunctions.F_WARBIRD) {
-                session.avatar(new AvatarInput(AvatarInput.WARBIRD));
-            } else if (func == PlayerMovementFunctions.F_JAVELIN) {
-                session.avatar(new AvatarInput(AvatarInput.JAVELIN));
-            } else if (func == PlayerMovementFunctions.F_SPIDER) {
-                session.avatar(new AvatarInput(AvatarInput.SPIDER));
-            } else if (func == PlayerMovementFunctions.F_LEVI) {
-                session.avatar(new AvatarInput(AvatarInput.LEVI));
-            } else if (func == PlayerMovementFunctions.F_TERRIER) {
-                session.avatar(new AvatarInput(AvatarInput.TERRIER));
-            } else if (func == PlayerMovementFunctions.F_WEASEL) {
-                session.avatar(new AvatarInput(AvatarInput.WEASEL));
-            } else if (func == PlayerMovementFunctions.F_LANC) {
-                session.avatar(new AvatarInput(AvatarInput.LANCASTER));
-            } else if (func == PlayerMovementFunctions.F_SHARK) {
-                session.avatar(new AvatarInput(AvatarInput.SHARK));
+                session.action(ActionSystem.FIREBURST);
             } else if (func == PlayerMovementFunctions.F_WARP) {
-                session.action(new ActionInput(ActionInput.WARP));
+                session.action(ActionSystem.WARP);
+            } 
+                //<..
+                //Avatar functions:-->
+            else if (func == PlayerMovementFunctions.F_WARBIRD) {
+                session.avatar(AvatarSystem.WARBIRD);
+            } else if (func == PlayerMovementFunctions.F_JAVELIN) {
+                session.avatar(AvatarSystem.JAVELIN);
+            } else if (func == PlayerMovementFunctions.F_SPIDER) {
+                session.avatar(AvatarSystem.SPIDER);
+            } else if (func == PlayerMovementFunctions.F_LEVI) {
+                session.avatar(AvatarSystem.LEVI);
+            } else if (func == PlayerMovementFunctions.F_TERRIER) {
+                session.avatar(AvatarSystem.TERRIER);
+            } else if (func == PlayerMovementFunctions.F_WEASEL) {
+                session.avatar(AvatarSystem.WEASEL);
+            } else if (func == PlayerMovementFunctions.F_LANC) {
+                session.avatar(AvatarSystem.LANCASTER);
+            } else if (func == PlayerMovementFunctions.F_SHARK) {
+                session.avatar(AvatarSystem.SHARK);
             }
+            //<..
             /*
             for (FunctionId funcId : functionStates.keySet()) {
                 functionStates.put(funcId, Boolean.FALSE);

@@ -47,20 +47,20 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
                 contact.disable();
                 return;
             }
-            
-            Parent parentOfOne = ed.getComponent(one, Parent.class);
-            Parent parentOfTwo = ed.getComponent(two, Parent.class);
-            
-            if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
-                //We have a parent on entity one and its equal to two
-                contact.disable();
-                return;
-            }
-            if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
-                //We have a parent on entity two and its equal to one
-                contact.disable();
-                return;
-            }
+        }
+
+        Parent parentOfOne = ed.getComponent(one, Parent.class);
+        if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
+            //We have a parent on entity one and its equal to two
+            contact.disable();
+            return;
+        }
+        
+        Parent parentOfTwo = ed.getComponent(two, Parent.class);
+        if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
+            //We have a parent on entity two and its equal to one
+            contact.disable();
+            return;
         }
     }
 

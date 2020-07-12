@@ -45,6 +45,7 @@ import com.jme3.texture.plugins.AWTLoader;
 //import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.builder.BuilderState;
 import com.simsilica.es.EntityId;
+import com.simsilica.lemur.event.MouseAppState;
 import com.simsilica.state.CompositeAppState;
 import infinity.HelpState;
 import infinity.HostState;
@@ -140,6 +141,7 @@ public class GameSessionState extends CompositeAppState {
         
         
         this.getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
+        addChild(new MouseAppState(this.getApplication()));
     }
 
     @Override

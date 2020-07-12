@@ -66,10 +66,6 @@ import infinity.es.ActionType;
 import infinity.es.input.MovementInput;
 import infinity.es.PointLightComponent;
 import infinity.es.WeaponTypes;
-import infinity.es.input.ActionInput;
-import infinity.es.input.AvatarInput;
-import infinity.es.input.FreqInput;
-import infinity.es.input.ToggleInput;
 import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
@@ -78,6 +74,7 @@ import infinity.sim.GameEntities;
 import infinity.sim.PlayerDriver;
 import infinity.systems.AttackSystem;
 import infinity.systems.AvatarSystem;
+import infinity.systems.MapSystem;
 
 /**
  *
@@ -203,6 +200,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private EntityId playerEntityId;
         private final BinIndex binIndex;
         private AttackSystem attackSystem;
+        private MapSystem mapSystem;
 
         public GameSessionImpl(HostedConnection conn) {
             this.conn = conn;
@@ -210,6 +208,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
             this.attackSystem = gameSystems.get(AttackSystem.class, true);
+            this.mapSystem = gameSystems.get(MapSystem.class, true);
             
             this.binIndex = phys.getBinIndex();
 
@@ -334,8 +333,7 @@ log.info("spawn location:" + spawnLoc);
         }
 
         @Override
-        public void action(ActionInput actionInput) {
-            ed.setComponent(avatarEntityId, actionInput);
+        public void action(byte actionInput) {
         }
 
         @Override
@@ -344,18 +342,32 @@ log.info("spawn location:" + spawnLoc);
         }
 
         @Override
-        public void avatar(AvatarInput avatarInput) {
-            ed.setComponent(avatarEntityId, avatarInput);
+        public void avatar(byte avatarInput) {
         }
 
         @Override
-        public void toggle(ToggleInput toggleInput) {
-            ed.setComponent(avatarEntityId, toggleInput);
+        public void toggle(byte toggleInput) {
         }
 
         @Override
-        public void frequency(FreqInput freqInput) {
-            ed.setComponent(avatarEntityId, freqInput);
+        public void map(byte mapInput, Vec3d coords) {
+            switch (mapInput) {
+                case MapSystem.CREATE:
+                    mapSystem.sessionCreateTile(coords.x, coords.z);
+                    break;
+                case MapSystem.DELETE:
+                    mapSystem.sessionRemoveTile(coords.x, coords.z);
+                    break;
+                case MapSystem.READ:
+                    
+                    break;
+                case MapSystem.UPDATE:
+                    
+                    break;
+                default:
+                    throw new AssertionError();
+            }
+            
         }
 
     }

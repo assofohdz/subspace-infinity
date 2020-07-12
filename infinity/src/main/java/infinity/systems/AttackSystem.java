@@ -454,8 +454,11 @@ public class AttackSystem extends AbstractGameSystem {
      * @param damage the damage of the bullet
      */
     private void attackGuns(AttackInfo info, GunLevelEnum level, Damage damage, EntityId owner) {
+        
+        String shapeName = "bullet_l"+level.level;
+        
         EntityId projectile;
-        projectile = GameEntities.createBullet(ed, owner, space, time.getTime(), info.getLocation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, level);
+        projectile = GameEntities.createBullet(ed, owner, space, time.getTime(), info.getLocation(), info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, level, shapeName);
         ed.setComponent(projectile, damage);
         GameSounds.createBulletSound(ed, owner, space, time.getTime(), info.getLocation(), level);
     }
@@ -564,10 +567,10 @@ public class AttackSystem extends AbstractGameSystem {
         //TODO: Look these settings up in SettingsSystem
         switch (flag) {
             case AttackSystem.GUN:
-                projectileVelocity.addLocal(0,0,15);
+                projectileVelocity.addLocal(0,0,50);
                 break;
             case AttackSystem.BOMB:
-                projectileVelocity.addLocal(0,0,10);
+                projectileVelocity.addLocal(0,0,25);
                 break;
             case AttackSystem.GRAVBOMB:
                 break;
