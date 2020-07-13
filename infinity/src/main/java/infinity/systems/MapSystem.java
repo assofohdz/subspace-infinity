@@ -65,7 +65,7 @@ import infinity.sim.GameEntities;
  * @author Asser
  */
 public class MapSystem extends AbstractGameSystem {
-    
+
     public static final byte CREATE = 0x0;
     public static final byte READ = 0x1;
     public static final byte UPDATE = 0x2;
@@ -115,8 +115,6 @@ public class MapSystem extends AbstractGameSystem {
         this.space = physics.getPhysicsSpace();
         this.binIndex = space.getBinIndex();
         this.binEntityManager = physics.getBinEntityManager();
-        
-        
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
@@ -130,7 +128,7 @@ public class MapSystem extends AbstractGameSystem {
         ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
 
         tileTypes = ed.getEntities(TileType.class, BodyPosition.class);
-        
+
         GameEntities.createArena(ed, EntityId.NULL_ID, space, 0l, "default", new Vec3d());
 
         /*
@@ -179,8 +177,8 @@ public class MapSystem extends AbstractGameSystem {
         short[][] tiles = map.getMap();
 
         for (int xpos = 0; xpos < tiles.length; xpos++) {
-            for (int ypos = tiles[xpos].length - 1; ypos >= 0; ypos--) {
-                short s = tiles[xpos][ypos];
+            for (int zpos = tiles[xpos].length - 1; zpos >= 0; zpos--) {
+                short s = tiles[xpos][zpos];
                 if (s != 0) {
                     //TODO: Check on the short and only create the map tiles, not the extras (asteroids, wormholes etc.)
 /*  TILE    STATUS
@@ -335,7 +333,7 @@ public class MapSystem extends AbstractGameSystem {
 255:  animated green. visible, not on radar. Items and ship go through.
 
                      */
-                    Vec3d location = new Vec3d(xpos, -ypos, 0).add(arenaOffset);
+                    Vec3d location = new Vec3d(xpos, 0, -zpos).add(arenaOffset);
                     switch (s) {
                         case 170:
                             //Turf flag
@@ -391,10 +389,10 @@ public class MapSystem extends AbstractGameSystem {
 
         //Create map:
         if (!mapCreated) {
-            //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE*0.5, MAP_SIZE*0.25, 0));
-            //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, MAP_SIZE, 0));
-            //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0));
-            //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0));
+            createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, MAP_SIZE * 0.25));
+            //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, 0, MAP_SIZE));
+            //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0 , 0));
+            //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0,0));
             mapCreated = true;
         }
 
@@ -704,9 +702,9 @@ public class MapSystem extends AbstractGameSystem {
      *
      * @param grid the Grid to create entities from
      * @param offsetX the offset x-coordinate to create the entities in
-     * @param offsetY the offset y-coordinate to create the entities in
+     * @param offsetZ the offset y-coordinate to create the entities in
      */
-    private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetY) {
+    private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetZ) {
         /*
 
          */
@@ -719,28 +717,28 @@ public class MapSystem extends AbstractGameSystem {
 
                     //Should create maptiles around rooms and corridors
                     if (grid.get(j + 1, i) == 1f) {
-                        sessionCreateTile(j + 1 + offsetX, i + offsetY);
+                        sessionCreateTile(j + 1 + offsetX, i + offsetZ);
                     }
                     if (grid.get(j - 1, i) == 1f) {
-                        sessionCreateTile(j - 1 + offsetX, i + offsetY);
+                        sessionCreateTile(j - 1 + offsetX, i + offsetZ);
                     }
                     if (grid.get(j, i + 1) == 1f) {
-                        sessionCreateTile(j + offsetX, i + 1 + offsetY);
+                        sessionCreateTile(j + offsetX, i + 1 + offsetZ);
                     }
                     if (grid.get(j, i - 1) == 1f) {
-                        sessionCreateTile(j + offsetX, i - 1 + offsetY);
+                        sessionCreateTile(j + offsetX, i - 1 + offsetZ);
                     }
                     if (grid.get(j + 1, i + 1) == 1f) {
-                        sessionCreateTile(j + 1 + offsetX, i + 1 + offsetY);
+                        sessionCreateTile(j + 1 + offsetX, i + 1 + offsetZ);
                     }
                     if (grid.get(j - 1, i + 1) == 1f) {
-                        sessionCreateTile(j - 1 + offsetX, i + 1 + offsetY);
+                        sessionCreateTile(j - 1 + offsetX, i + 1 + offsetZ);
                     }
                     if (grid.get(j + 1, i - 1) == 1f) {
-                        sessionCreateTile(j + 1 + offsetX, i - 1 + offsetY);
+                        sessionCreateTile(j + 1 + offsetX, i - 1 + offsetZ);
                     }
                     if (grid.get(j - 1, i - 1) == 1f) {
-                        sessionCreateTile(j - 1 + offsetX, i - 1 + offsetY);
+                        sessionCreateTile(j - 1 + offsetX, i - 1 + offsetZ);
                     }
                 }
             }
@@ -768,9 +766,9 @@ public class MapSystem extends AbstractGameSystem {
         @Override
         public EntityId call() throws Exception {
             //EntityId id = GameEntities.createMapTile(m_file, s, loc, type, ed, time);
-            
+
             EntityId id = GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, m_file, s, loc, type);
-            
+
             log.debug("Called up creation of entity: " + id + ". " + this.toString());
             return id;
         }

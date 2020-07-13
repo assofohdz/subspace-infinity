@@ -79,7 +79,7 @@ public class InfinityConstants {
      *  The size of the rendered grid cells.  This is just a visualization
      *  setting but it's best if it is at least a multiple/factor of the gridSize.
      */       
-    public static final int GRID_CELL_SIZE = 32;
+    public static final int GRID_CELL_SIZE = 128;
     
     /** 
      *  The grid that divides physical space into bins for management of the
@@ -106,7 +106,7 @@ public class InfinityConstants {
     // zones in a player's view, there is considerably more management involved
     // with each new zone, more network messages, etc..  Finding the sweet spot
     // will depend largely on the game.
-    private static final int gridSize = 32; //64;
+    private static final int gridSize = 128; //32;
     
     /**
      *  The 3D zone grid definition that defines how space is broken
@@ -174,7 +174,7 @@ public class InfinityConstants {
      *  zones including the zone they are in.
      */           
     //public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
-    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 3, 1);
+    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 0, 1);
     //public static final Vec3i ZONE_RADIUS = new Vec3i(2, 2, 2);
     
 }

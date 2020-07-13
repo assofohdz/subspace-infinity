@@ -374,7 +374,7 @@ public class GameEntities {
         //PhysicsMassTypes.normal(ed),
         //PhysicsShapes.ship());
         ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d()));
-        ed.setComponent(result, new Mass(10));
+        ed.setComponent(result, new Mass(1));
         ed.setComponent(result, Gravity.ZERO);
 
         ed.setComponent(result, new Frequency(1));
@@ -480,6 +480,7 @@ public class GameEntities {
         ed.setComponents(lastTileInfo,
                 TileType.create(tileType, tileSet, tileIndex, ed),
                 //TODO: Register map tiles with a block shape factory instead of default sphere factory
+                new Mass(0),
                 ShapeInfo.create(ShapeNames.MAPTILE, CorePhysicsConstants.MAPTILEWIDTH, ed),
                 new SpawnPosition(phys.getGrid(), pos));
 

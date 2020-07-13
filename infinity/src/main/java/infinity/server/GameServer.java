@@ -85,6 +85,7 @@ import infinity.es.LargeObject;
 import infinity.es.input.MovementInput;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
+import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.ship.Player;
 import infinity.server.chat.ChatHostedService;
@@ -220,6 +221,7 @@ public class GameServer {
         shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
 */
+        //shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.ARENA, 1, ed), new MBLock);
         shapeFactory.setDefaultFactory(new SphereFactory());
         systems.register(ShapeFactory.class, shapeFactory);
 

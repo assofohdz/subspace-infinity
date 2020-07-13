@@ -129,7 +129,7 @@ public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
         //body.setLinearVelocity(newLinearVelocity);
         
         
-        body.addForce(newLinearVelocity.mult(10));
+        body.addForce(newLinearVelocity.mult(20));
         //log.info("Player (body) velocity (length of linvel): "+body.getLinearVelocity().length());
     }
 

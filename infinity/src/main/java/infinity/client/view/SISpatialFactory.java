@@ -59,6 +59,7 @@ import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mblock.phys.Part;
 import infinity.client.ConnectionState;
+import infinity.client.MapState;
 import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.es.ship.weapons.BombLevelEnum;
@@ -80,6 +81,8 @@ public class SISpatialFactory {
     private EffectFactory ef;
     private Timer timer;
     private Node rootNode;
+    private MapState mapState;
+    private ModelViewState state;
 
     //Use to flip between using the lights and using unshaded textures
     private boolean unshaded = true;
@@ -89,6 +92,8 @@ public class SISpatialFactory {
         this.assets = app.getAssetManager();
         this.timer = app.getTimer();
         this.rootNode = app.getRootNode();
+        this.mapState = app.getStateManager().getState(MapState.class);
+        this.state = app.getStateManager().getState(ModelViewState.class);
     }
 
     Spatial createModel(EntityId id, MBlockShape shape, ShapeInfo shapeInfo, Mass mass) {
@@ -136,9 +141,8 @@ public class SISpatialFactory {
                 return createBounty(eId);
             case ShapeNames.ARENA:
                 return createArena(eId);
-            /*
-            case ViewTypes.MAPTILE:
-                return createMapTile(eId);*/
+            case ShapeNames.MAPTILE:
+                return createMapTile(eId);
             case ShapeNames.EXPLOSION2:
                 return createExplosion2(eId);
             case ShapeNames.OVER5:
@@ -445,33 +449,28 @@ public class SISpatialFactory {
         return geom;
     }
 
-    /*
+    
     private Spatial createMapTile(EntityId eId) {
-        //SquareShape s = e.get(SquareShape.class);
-
         Quad quad = new Quad(CoreViewConstants.MAPTILESIZE, CoreViewConstants.MAPTILESIZE);
-        //<-- Move into the material?
-
         float halfSize = CoreViewConstants.MAPTILESIZE * 0.5f;
-        quad.setBuffer(VertexBuffer.Type.Position, 3, this.getArray(halfSize));
-
-        //-->
+        quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
+        quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
         quad.updateBound();
+        
         Geometry geom = new Geometry("MapTile", quad);
 
         if (state.getType(eId).getTypeName(ed).equals(TileTypes.LEGACY)) {
             Material mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
 
-            //mat.setColor("Color", ColorRGBA.Yellow);
-            Image image = clientMapState.getImage(eId);
+            Image image = mapState.getImage(eId);
 
             if (image == null) {
-                image = clientMapState.forceLoadImage(eId);
+                image = mapState.forceLoadImage(eId);
             }
 
             Texture2D tex2D = new Texture2D(image);
+            
             mat.setTexture("ColorMap", tex2D);
-
             geom.setMaterial(mat);
         } else {
             TileType tileType = state.getType(eId);
@@ -489,7 +488,7 @@ public class SISpatialFactory {
 
         return geom;
     }
-     */
+     
     private Spatial createExplosion2(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
         float halfSize = CoreViewConstants.EXPLOSION2SIZE * 0.5f;
@@ -627,7 +626,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    /*
+    
     public void updateWangBlobTile(Spatial s, TileType tileType) {
         Geometry geom;
         if (s instanceof Geometry) {
@@ -637,14 +636,14 @@ public class SISpatialFactory {
         }
         Material mat = geom.getMaterial();
         //Offset tile
-        mat.setInt("numTilesOffsetX", clientMapState.getWangBlobTileNumber(tileType.getTileIndex()));
+        mat.setInt("numTilesOffsetX", mapState.getWangBlobTileNumber(tileType.getTileIndex()));
 
         //Rotate tile
         Quaternion rot = new Quaternion();
-        float rotations = clientMapState.getWangBlobRotations(tileType.getTileIndex());
+        float rotations = mapState.getWangBlobRotations(tileType.getTileIndex());
         float ninety_degrees_to_radians = FastMath.PI / 2;
 
-        rot.fromAngleAxis(-ninety_degrees_to_radians * rotations, Vector3f.UNIT_Z);
+        rot.fromAngleAxis(-ninety_degrees_to_radians * rotations, Vector3f.UNIT_Y);
         //Reset rotation
         geom.setLocalRotation(new Quaternion());
         //Set correct rotation
@@ -652,7 +651,7 @@ public class SISpatialFactory {
 
         //log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
     }
-     */
+     
     private Spatial createBurst(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
         float halfSize = CoreViewConstants.BURSTSIZE * 0.5f;
