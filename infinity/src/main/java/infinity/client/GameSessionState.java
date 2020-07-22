@@ -76,6 +76,7 @@ public class GameSessionState extends CompositeAppState {
 
     public GameSessionState() {
         super(
+                new AvatarMovementState(),
                 new TimeState(), // Has to be before any visuals that might need it.
                 //new CameraMovementState(),
                 //new CameraState(),
@@ -92,16 +93,16 @@ public class GameSessionState extends CompositeAppState {
 
                 new BuilderState(4, 4),
                 new WorldViewState(),
-                new ModelViewState()
+                new ModelViewState(),
         //For now we do everything unshaded
         //new LightState() //For pointlights and decaying lights - must come after ModelViewState because we need the spatials to be there
-        //new InfinityCameraState() //Add camera last
+        new InfinityCameraState() //Add camera last
         );
 
         addChild(new HelpState(), true);
         addChild(new SettingsState(), true);
         addChild(new ChatState(), true);
-        addChild(new MapState(), true);
+        //addChild(new MapState(), true);
         //addChild(new ToolState(), true);
     }
 
@@ -127,10 +128,6 @@ public class GameSessionState extends CompositeAppState {
             //addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
             //addChild(new ContactDebugState(host.getSystems().get(PhysicsSpace.class)));
         }
-
-        AvatarMovementState movement = new AvatarMovementState();
-        movement.setSession(getState(ConnectionState.class).getService(GameSessionClientService.class));
-        addChild(movement);
 
         //Camera should be set to orthogonal
         //getState(InfinityCameraState.class).setAvatar(avatar);

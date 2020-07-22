@@ -144,13 +144,12 @@ public class GameEntities {
                 new Impulse(linearVelocity),
                 new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
                 new Parent(owner));
-        
-                //new PointLightComponent(level.lightColor, level.lightRadius, CorePhysicsConstants.SHIPLIGHTOFFSET));
 
+        //new PointLightComponent(level.lightColor, level.lightRadius, CorePhysicsConstants.SHIPLIGHTOFFSET));
         ed.setComponent(lastBomb, new Meta(createdTime));
         return lastBomb;
     }
-    
+
     public static EntityId createBullet(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
             Vec3d pos, Vec3d linearVelocity,
             long decayMillis, GunLevelEnum level, String shapeName) {
@@ -280,7 +279,7 @@ public class GameEntities {
 
         ed.setComponents(lastOver1,
                 ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.OVER1SIZERADIUS, ed),
-                new Mass(mass),
+                //new Mass(mass),
                 new SpawnPosition(phys.getGrid(), pos));
         ed.setComponent(lastOver1, new Meta(createdTime));
 
@@ -369,11 +368,11 @@ public class GameEntities {
 
         ed.setComponents(result,
                 ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-        
+
         //ViewTypes.ship_warbird(ed),
         //PhysicsMassTypes.normal(ed),
         //PhysicsShapes.ship());
-        ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d()));
+        ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d(0, 0, 0)));
         ed.setComponent(result, new Mass(1));
         ed.setComponent(result, Gravity.ZERO);
 
@@ -416,11 +415,10 @@ public class GameEntities {
         //Add repels
         ed.setComponent(result, new Repel(10));
         ed.setComponent(result, new RepelMax(20));
-        
+
         ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
         //ed.setComponent(result, new PointLightComponent(ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CorePhysicsConstants.SHIPLIGHTOFFSET));
-
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }
@@ -450,7 +448,6 @@ public class GameEntities {
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }
-
 
     public static EntityId createBurst(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
             Vec3d pos, Vec3d linearVelocity,

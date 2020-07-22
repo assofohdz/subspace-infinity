@@ -76,24 +76,23 @@ public class SISpatialFactory {
 
     static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
     private AssetManager assets;
-    private EntityData ed;
 
     private EffectFactory ef;
     private Timer timer;
-    private Node rootNode;
-    private MapState mapState;
-    private ModelViewState state;
+    //private MapState mapState;
+    //private ModelViewState state;
 
     //Use to flip between using the lights and using unshaded textures
     private boolean unshaded = true;
+    private final EntityData ed;
+    private final Node rootNode;
 
-    SISpatialFactory(EntityData ed, SimpleApplication app) {
+    SISpatialFactory(EntityData ed, Node rootNode, AssetManager assets) {
         this.ed = ed;
-        this.assets = app.getAssetManager();
-        this.timer = app.getTimer();
-        this.rootNode = app.getRootNode();
-        this.mapState = app.getStateManager().getState(MapState.class);
-        this.state = app.getStateManager().getState(ModelViewState.class);
+        //this.mapState = app.getStateManager().getState(MapState.class);
+        //this.state = app.getStateManager().getState(ModelViewState.class);
+        this.rootNode = rootNode;
+        this.assets = assets;
     }
 
     Spatial createModel(EntityId id, MBlockShape shape, ShapeInfo shapeInfo, Mass mass) {
@@ -141,8 +140,8 @@ public class SISpatialFactory {
                 return createBounty(eId);
             case ShapeNames.ARENA:
                 return createArena(eId);
-            case ShapeNames.MAPTILE:
-                return createMapTile(eId);
+            /*case ShapeNames.MAPTILE:
+                return createMapTile(eId);*/
             case ShapeNames.EXPLOSION2:
                 return createExplosion2(eId);
             case ShapeNames.OVER5:
@@ -184,7 +183,7 @@ public class SISpatialFactory {
             case "base":
                 return createBase();*/
             default:
-                throw new UnsupportedOperationException("Unknown shapeinfo name:" + shapeName);
+                return null;
 
         }
     }
@@ -294,13 +293,14 @@ public class SISpatialFactory {
 
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
+        
         PointLight myLight = new PointLight();
         myLight.setColor(ColorRGBA.White);
         myLight.setRadius(20);
         rootNode.addLight(myLight);
         ShipLightControl lightControl = new ShipLightControl(myLight);
         geom.addControl(lightControl);
-
+        
         return geom;
     }
 
@@ -434,7 +434,7 @@ public class SISpatialFactory {
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
         quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
         quad.updateBound();
-        
+
         Geometry geom = new Geometry("Arena", quad);
         geom.setCullHint(Spatial.CullHint.Always);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -443,13 +443,13 @@ public class SISpatialFactory {
         //mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         mat.setTransparent(true);
         geom.setMaterial(mat);
-        
+
         geom.setUserData("arena", true);
-        
+
         return geom;
     }
 
-    
+    /*
     private Spatial createMapTile(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.MAPTILESIZE, CoreViewConstants.MAPTILESIZE);
         float halfSize = CoreViewConstants.MAPTILESIZE * 0.5f;
@@ -470,6 +470,8 @@ public class SISpatialFactory {
 
             Texture2D tex2D = new Texture2D(image);
             
+            //image.dispose();
+            
             mat.setTexture("ColorMap", tex2D);
             geom.setMaterial(mat);
         } else {
@@ -488,7 +490,7 @@ public class SISpatialFactory {
 
         return geom;
     }
-     
+     */
     private Spatial createExplosion2(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
         float halfSize = CoreViewConstants.EXPLOSION2SIZE * 0.5f;
@@ -626,7 +628,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    
+    /*
     public void updateWangBlobTile(Spatial s, TileType tileType) {
         Geometry geom;
         if (s instanceof Geometry) {
@@ -651,7 +653,7 @@ public class SISpatialFactory {
 
         //log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
     }
-     
+     */
     private Spatial createBurst(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
         float halfSize = CoreViewConstants.BURSTSIZE * 0.5f;

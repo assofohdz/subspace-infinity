@@ -88,6 +88,7 @@ import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.ship.Player;
+import infinity.map.InfinityDefaultWorld;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
@@ -188,11 +189,11 @@ public class GameServer {
         server.getServices().addService(new EntityDataHostedService(InfinityConstants.ES_CHANNEL, ed));
 
         // Just create a test world for now
-        //LeafDb leafDb = new LeafDbCache(new TestLeafDb()); 
+        LeafDb leafDb2 = new LeafDbCache(new TestLeafDb()); 
         LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
 
-        World world = new DefaultWorld(leafDb);
-        systems.register(World.class, world);
+        InfinityDefaultWorld world = new InfinityDefaultWorld(leafDb);
+        systems.register(InfinityDefaultWorld.class, world);
         server.getServices().addService(new WorldHostedService(world, InfinityConstants.TERRAIN_CHANNEL));
 
         // Add the game session service last so that it has access to everything else
@@ -206,24 +207,20 @@ public class GameServer {
         // Add some standard systems
         systems.addSystem(new DecaySystem());
 
+        
+        // Setup the physics space
+        //--------------------------
+        
         // Need a shape factory to turn ShapeInfo components into 
         // MBlockShapes. 
         ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
-        /*
-        shapeFactory.registerFactory(ShapeInfo.create("sphere", 1, ed), new SphereFactory());
-
-        shapeFactory.registerFactory(ShapeInfo.create("warbird", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("javelin", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("spider", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("leviathan", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("terrier", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("lancaster", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("weasel", 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create("shark", 1, ed), new SphereFactory());
-*/
-        //shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.ARENA, 1, ed), new MBLock);
-        shapeFactory.setDefaultFactory(new SphereFactory());
-        systems.register(ShapeFactory.class, shapeFactory);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, 1, ed), new SphereFactory());
+        shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+        systems.register(ShapeFactory.class, shapeFactory); 
 
         // And give that to an EntityBodyFactory, for the moment without any
         // customization

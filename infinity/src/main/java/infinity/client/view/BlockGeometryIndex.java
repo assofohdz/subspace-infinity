@@ -51,8 +51,8 @@ public static boolean debug = false;
                 new MaterialType("palette1", 1, true, false, false),
             };
  
-        this.types = new BlockType[65];
-        for( int i = 0; i < 64; i++ ) {
+        this.types = new BlockType[257];
+        for( int i = 0; i < 256; i++ ) {
             types[i+1] = new BlockType(createFactory(1, i));
         }
     }        

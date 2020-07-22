@@ -208,7 +208,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
             this.attackSystem = gameSystems.get(AttackSystem.class, true);
-            this.mapSystem = gameSystems.get(MapSystem.class, true);
+            //this.mapSystem = gameSystems.get(MapSystem.class, true);
             
             this.binIndex = phys.getBinIndex();
 
@@ -353,10 +353,10 @@ log.info("spawn location:" + spawnLoc);
         public void map(byte mapInput, Vec3d coords) {
             switch (mapInput) {
                 case MapSystem.CREATE:
-                    mapSystem.sessionCreateTile(coords.x, coords.z);
+                    //mapSystem.sessionCreateTile(coords.x, coords.z);
                     break;
                 case MapSystem.DELETE:
-                    mapSystem.sessionRemoveTile(coords.x, coords.z);
+                    //mapSystem.sessionRemoveTile(coords.x, coords.z);
                     break;
                 case MapSystem.READ:
                     

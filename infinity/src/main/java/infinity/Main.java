@@ -72,7 +72,7 @@ public class Main extends SimpleApplication {
     //private static Grid grid = new Grid(32, 0, 32);
 
     public static void main( String... args ) throws Exception {  
-        
+
         Main main = new Main();        
         AppSettings settings = new AppSettings(true);
  

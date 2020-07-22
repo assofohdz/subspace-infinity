@@ -75,18 +75,15 @@ public class WorldViewState extends BaseAppState {
 
     private Vector3f viewLoc = new Vector3f(0, 66.8f, 0);
     private Vector3f viewCell = new Vector3f();
-    boolean showGrid = true;
 
     public WorldViewState() {
     }
 
-    public void setViewLocation(Vector3f viewLoc, Vector3f lookAt) {
+    public void setViewLocation( Vector3f viewLoc ) {
         this.viewLoc.set(viewLoc);
         if (pager != null) {
             pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
-
-            getApplication().getCamera().setLocation(viewLoc);
-            getApplication().getCamera().lookAt(lookAt, Vector3f.UNIT_Y);
+            getApplication().getCamera().setLocation(new Vector3f(viewLoc.x, 40, viewLoc.z));
 
             pager.getGrid().toCell(viewLoc, viewCell);
 
@@ -118,12 +115,15 @@ public class WorldViewState extends BaseAppState {
 
         //LeafData data = world.getLeaf(0);
         //log.info("Data for leafId 0:" + data);
+
         //data = world.getLeaf(new Vec3i(0, 2, 0));
         //log.info("Data for leaf 0, 2, 0:" + data);
+        
         Builder builder = getState(BuilderState.class).getBuilder();
 
         Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
 
+                                                                   
         ZoneFactory rootFactory = new LeafDataZone.Factory(world);
 
         pager = new PagedGrid(rootFactory, builder, rootGrid, 5, 5);
@@ -131,6 +131,7 @@ public class WorldViewState extends BaseAppState {
         worldRoot = new Node("worldRoot");
         worldRoot.attachChild(pager.getGridRoot());
 
+        boolean showGrid = true;
         if (showGrid) {
             Material boxMaterial = GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false).getMaterial();
             boxMaterial.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
@@ -141,6 +142,8 @@ public class WorldViewState extends BaseAppState {
             worldRoot.attachChild(gridPager.getGridRoot());
         }
 
+
+ 
         world.addCellChangeListener(cellObserver);
 
     }
@@ -163,6 +166,7 @@ public class WorldViewState extends BaseAppState {
         
         pager.setCenterWorldLocation(loc.x, loc.z);
     }*/
+
     @Override
     protected void onEnable() {
         ((SimpleApplication) getApplication()).getRootNode().attachChild(worldRoot);

@@ -85,7 +85,6 @@ public class MapState extends BaseAppState {
     private HashMap<TileKey, Image> imageMap = new HashMap<>();
     private FieldFilter legacyFilter;
     private FieldFilter wangBlobFilter;
-    private EntitySet arenas;
 
     private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     private float tpfTime;
@@ -112,7 +111,7 @@ public class MapState extends BaseAppState {
         legacyFilter = FieldFilter.create(TileType.class, "type", ed.getStrings().getStringId(TileTypes.LEGACY, false));
         wangBlobFilter = FieldFilter.create(TileType.class, "type", ed.getStrings().getStringId(TileTypes.WANGBLOB, false));
 
-        arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id", ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class, BodyPosition.class);
+        //arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id", ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class, BodyPosition.class);
     }
 
     public float getWangBlobRotations(int indexNumber) {
@@ -280,6 +279,7 @@ public class MapState extends BaseAppState {
 
             java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
             Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
+            //jmeOutputImage.dispose();
 
             imageMap.put(key, jmeOutputImage);
 

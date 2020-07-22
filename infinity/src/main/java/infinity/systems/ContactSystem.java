@@ -73,7 +73,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
         }
         else{
             //So, we have contacts with one body ? 
-            log.info(contact.toString());
+            //log.info(contact.toString());
         }
 
     }

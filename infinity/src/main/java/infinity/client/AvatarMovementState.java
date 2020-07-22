@@ -8,6 +8,7 @@ package infinity.client;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
+import com.jme3.math.Vector3f;
 import com.simsilica.input.MovementTarget;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -17,6 +18,7 @@ import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import infinity.client.view.WorldViewState;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.systems.ActionSystem;
@@ -142,6 +144,9 @@ public class AvatarMovementState extends BaseAppState
         inputMapper.activateGroup(PlayerMovementFunctions.G_TOGGLE);
         inputMapper.activateGroup(PlayerMovementFunctions.G_TOWER);
         inputMapper.activateGroup(PlayerMovementFunctions.G_ACTION);
+        
+        
+        this.session = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -173,6 +178,23 @@ public class AvatarMovementState extends BaseAppState
             //}
 
             timeSinceLastSend = 0;
+            
+            getState(WorldViewState.class).setViewLocation(new Vector3f(0,40,0));
+ 
+            session.setView(new Quatd(getApplication().getCamera().getRotation()), new Vec3d(0,40,0));
+            
+            /*
+                if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
+
+                    Quatd cameraRotation = new Quatd(getApplication().getCamera().getRotation().clone());
+                    Vec3d avatarWorldTranslation = new Vec3d(model.spatial.getWorldTranslation().clone());
+                    
+                    gameSession.setView(cameraRotation, avatarWorldTranslation);
+                    
+                    Vector3f cameraWorldTranslation = new Vec3d(avatarWorldTranslation).add(0, 40, 0).toVector3f();
+                    getState(WorldViewState.class).setViewLocation(cameraWorldTranslation);
+                }
+            */
         }
     }
 

@@ -53,9 +53,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class InfinityCameraState extends CameraState implements GameSessionListener {
+public class InfinityCameraState extends CameraState{
 
-    WatchedEntity watchedAvatar;
+    //WatchedEntity watchedAvatar;
     EntityId avatarId;
 
     static Logger log = LoggerFactory.getLogger(InfinityCameraState.class);
@@ -71,7 +71,6 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
     Spatial avatarSpatial;
     private GameSessionClientService gameSession;
     private Vector3f avatarPos;
-    private ModelViewState.Model avatarModel;
     private TransitionBuffer<PositionTransition3d> buffer;
     private float frustumSize = 1;
 
@@ -83,10 +82,10 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
         this.camera = app.getCamera();
 
         this.camera.setLocation(cameraPos);
-        this.camera.lookAt(lastAvatarLoc, Vector3f.UNIT_Y); //Set camera to look at the origin
-        this.camera.setParallelProjection(true);
-        float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
-        this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
+        this.camera.lookAt(new Vector3f(), Vector3f.UNIT_Y); //Set camera to look at the origin
+        //this.camera.setParallelProjection(true);
+        //float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
+        //this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
 
         app.getRenderManager().setCamera(camera, true);
 
@@ -100,15 +99,15 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
     @Override
     protected void cleanup(Application app) {
         //Will only happen if we are closing the game
-        if (watchedAvatar != null) {
+        /*if (watchedAvatar != null) {
             watchedAvatar.release();
-        }
+        }*/
     }
 
     @Override
     public void update(float tpf) {
         long time = timeSource.getTime();
-        watchedAvatar.applyChanges();
+        //watchedAvatar.applyChanges();
 
         /*
 
@@ -165,9 +164,9 @@ public class InfinityCameraState extends CameraState implements GameSessionListe
 
     }
 
-    @Override
+    /*@Override
     public void setAvatar(EntityId avatarId) {
         this.avatarId = avatarId;
         watchedAvatar = ed.watchEntity(avatarId, BodyPosition.class);
-    }
+    }*/
 }
