@@ -92,7 +92,6 @@ public class ModelViewState extends BaseAppState {
     private WorldViewState worldView;
     
     int spatialMovedTwiceInOneFrameCount = 0;
-    HashMap<Spatial, Integer> movedMap = new HashMap<>();
 
     private Grid grid;
 
@@ -373,9 +372,6 @@ public class ModelViewState extends BaseAppState {
             spatialCount.setObject(String.valueOf(modelIndex.size()));
         }
         
-        
-        
-        this.resetMovedMap();
     }
 
     @Override
@@ -388,11 +384,11 @@ public class ModelViewState extends BaseAppState {
     }
 
     protected void updateCenter( Vector3f center ) {
-        log.info("updateCenter(" + center + ")");
+        //log.info("updateCenter(" + center + ")");
 
         Vector3f cell = worldView.getViewCell();
 
-        log.info("cell:" + cell + "   lastCell:" + centerCell);
+        //log.info("cell:" + cell + "   lastCell:" + centerCell);
         
         // If the cell position has moved then we need to recalculate
         // relative positions of static objects
@@ -420,13 +416,13 @@ public class ModelViewState extends BaseAppState {
             }
         }
 
-        log.info("  world:" + centerCellWorld);       
+        //log.info("  world:" + centerCellWorld);       
         objectRoot.setLocalTranslation(-(center.x - centerCellWorld.x),
                 // The camera y always == center y
                 0,//-(center.y - centerCellWorld.y),
                 -(center.z - centerCellWorld.z));
 
-        log.info("  local:" + objectRoot.getLocalTranslation());
+        //log.info("  local:" + objectRoot.getLocalTranslation());
         
         //log.info("  test:" + test.getLocalTranslation());
     }
@@ -717,7 +713,6 @@ log.info("states:" + sb);*/
                     log.info("-- to " + loc);
 
                     spatial.setLocalTranslation(loc);
-                    spatialMoved(spatial);
                     spatial.setLocalRotation(pos.getOrientation().toQuaternion());
                 }
             }
@@ -812,7 +807,6 @@ log.info("states:" + sb);*/
                 pos.subtractLocal(centerCellWorld);
 
                 model.spatial.setLocalTranslation(pos);
-                spatialMoved(model.spatial);
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
                 //log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
                 setVisible(trans.getVisibility(time));
@@ -972,19 +966,5 @@ log.info("Setting NOT visible:" + entity.getId());
             throw new NoSuchElementException("Entity " + eId + " does not have a spatial");
         }
         return spatialIndex.get(eId);
-    }
-    
-    private void spatialMoved(Spatial s){
-        if (movedMap.containsKey(s)) {
-            movedMap.put(s, movedMap.get(s)+1);
-            log.error("this is wrong");
-        }
-        else{
-            movedMap.put(s, 1);
-        }
-    }
-    
-    private void resetMovedMap(){
-        movedMap.clear();
     }
 }
