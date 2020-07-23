@@ -90,7 +90,7 @@ public class ModelViewState extends BaseAppState {
 
     private EntityData ed;
     private WorldViewState worldView;
-    
+
     int spatialMovedTwiceInOneFrameCount = 0;
 
     private Grid grid;
@@ -122,6 +122,7 @@ public class ModelViewState extends BaseAppState {
     private List<Vector4f> testCoords = new ArrayList<>();
     private WatchedEntity watchedAvatar;
     private GameSessionClientService gameSession;
+    private Spatial avatarSpatial;
 
     {
         testCoords.add(new Vector4f(0, 64, 0, 0.5f));
@@ -174,12 +175,12 @@ public class ModelViewState extends BaseAppState {
     public ModelViewState() {
     }
 
-    protected Spatial findPickedSpatial( Spatial spatial ) {
+    protected Spatial findPickedSpatial(Spatial spatial) {
         Long oid = spatial.getUserData("oid");
-        if( oid != null ) {
+        if (oid != null) {
             return spatial;
         }
-        if( spatial.getParent() != null ) {
+        if (spatial.getParent() != null) {
             return findPickedSpatial(spatial.getParent());
         }
         return null;
@@ -204,11 +205,11 @@ public class ModelViewState extends BaseAppState {
         CollisionResults crs = new CollisionResults();
         int count = objectRoot.collideWith(ray, crs);
         log.info("pickObject() count:" + count);
-        for( CollisionResult cr : crs ) {
+        for (CollisionResult cr : crs) {
             log.info("pickObject() cr:" + cr);
             Spatial picked = findPickedSpatial(cr.getGeometry());
             log.info("pickObject()  picked:" + picked);
-            if( picked != null ) {
+            if (picked != null) {
                 Long oid = picked.getUserData("oid");
                 EntityId entityId = new EntityId(oid);
 
@@ -231,7 +232,7 @@ public class ModelViewState extends BaseAppState {
         return null;
     }
 
-    protected void addTestObject( Vector3f loc, float size ) {
+    protected void addTestObject(Vector3f loc, float size) {
 
         Vector4f coord = new Vector4f(loc.x, loc.y, loc.z, size);
 
@@ -248,7 +249,7 @@ public class ModelViewState extends BaseAppState {
     }
 
     protected Node getRoot() {
-        return ((SimpleApplication)getApplication()).getRootNode();
+        return ((SimpleApplication) getApplication()).getRootNode();
     }
 
     protected Node getObjectRoot() {
@@ -256,7 +257,7 @@ public class ModelViewState extends BaseAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
         this.ed = getState(ConnectionState.class).getEntityData();
         this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         this.worldView = getState(WorldViewState.class);
@@ -264,7 +265,7 @@ public class ModelViewState extends BaseAppState {
         this.grid = InfinityConstants.PHYSICS_GRID;
 
         DebugHudState debug = getState(DebugHudState.class);
-        if( debug != null ) {
+        if (debug != null) {
             mobCount = debug.createDebugValue("Mobs", DebugHudState.Location.Right);
             modelCount = debug.createDebugValue("Statics", DebugHudState.Location.Right);
             largeModelCount = debug.createDebugValue("Lobs", DebugHudState.Location.Right);
@@ -275,8 +276,8 @@ public class ModelViewState extends BaseAppState {
         this.shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
-        
-        this.modelFactory = new SpatialFactory(ed, ((SimpleApplication)app).getRootNode(), app.getAssetManager());
+
+        this.modelFactory = new SpatialFactory(ed, ((SimpleApplication) app).getRootNode(), app.getAssetManager());
 
         // Some test objects
         //for( int i = 0; i < tests.length; i++ ) {
@@ -306,9 +307,9 @@ public class ModelViewState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup(Application app) {
         DebugHudState debug = getState(DebugHudState.class);
-        if( debug != null ) {
+        if (debug != null) {
             debug.removeDebugValue("Mobs");
             debug.removeDebugValue("Statics");
             debug.removeDebugValue("Spatials");
@@ -331,9 +332,7 @@ public class ModelViewState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        
-        
-        
+
         watchedAvatar.applyChanges();
 
         decayingPointLights.applyChanges();
@@ -346,15 +345,15 @@ public class ModelViewState extends BaseAppState {
         models.update();
         largeModels.update();
         long time = timeSource.getTime();
-        for( Mob mob : mobs.getArray() ) {
+        for (Mob mob : mobs.getArray()) {
             mob.update(time);
         }
 //log.info("checking marker queue");        
-        while( !markerQueue.isEmpty() ) {
+        while (!markerQueue.isEmpty()) {
             // Update static model visibility
             MarkVisible marker = markerQueue.peek();
 //log.info("marker visibleTime:" + marker.visibleTime + "  time:" + time);            
-            if( marker.visibleTime > time ) {
+            if (marker.visibleTime > time) {
                 // The earliest item in the queue is not ready yet
                 break;
             }
@@ -363,15 +362,14 @@ public class ModelViewState extends BaseAppState {
             marker.update();
         }
 
-        
 //log.info("Mob count:" + mobs.size() + "   model count:" + models.size());
-        if( mobCount != null ) {
+        if (mobCount != null) {
             mobCount.setObject(String.valueOf(mobs.size()));
             modelCount.setObject(String.valueOf(models.size()));
             largeModelCount.setObject(String.valueOf(largeModels.size()));
             spatialCount.setObject(String.valueOf(modelIndex.size()));
         }
-        
+
     }
 
     @Override
@@ -383,24 +381,23 @@ public class ModelViewState extends BaseAppState {
         objectRoot.removeFromParent();
     }
 
-    protected void updateCenter( Vector3f center ) {
+    protected void updateCenter(Vector3f center) {
         //log.info("updateCenter(" + center + ")");
 
         Vector3f cell = worldView.getViewCell();
 
         //log.info("cell:" + cell + "   lastCell:" + centerCell);
-        
         // If the cell position has moved then we need to recalculate
         // relative positions of static objects
-        if( (int)cell.x != centerCell.x || (int)cell.y != centerCell.y || (int)cell.z != centerCell.z ) {        
-            centerCell.x = (int)cell.x;
-            centerCell.y = (int)cell.y;  
-            centerCell.z = (int)cell.z;
+        if ((int) cell.x != centerCell.x || (int) cell.y != centerCell.y || (int) cell.z != centerCell.z) {
+            centerCell.x = (int) cell.x;
+            centerCell.y = (int) cell.y;
+            centerCell.z = (int) cell.z;
             worldView.cellToWorld(centerCell, centerCellWorld);
             //centerCellWorld.y = 0;              
             resetRelativeCoordinates();
 
-            if( modelCenter.x != centerCell.x || modelCenter.z != centerCell.z ) {
+            if (modelCenter.x != centerCell.x || modelCenter.z != centerCell.z) {
                 modelCenter.x = centerCell.x;
                 modelCenter.z = centerCell.z;
                 // Also need to reset the filter for the static objects
@@ -409,7 +406,7 @@ public class ModelViewState extends BaseAppState {
 
             // Calculate the large model center cell
             Vec3i largeCenter = InfinityConstants.LARGE_OBJECT_GRID.worldToCell(new Vec3d(centerCellWorld));
-            if( largeModelCenter.x != largeCenter.x || largeModelCenter.z != largeCenter.z ) {
+            if (largeModelCenter.x != largeCenter.x || largeModelCenter.z != largeCenter.z) {
                 largeModelCenter.x = largeCenter.x;
                 largeModelCenter.z = largeCenter.z;
                 resetLargeModelFilter();
@@ -423,21 +420,20 @@ public class ModelViewState extends BaseAppState {
                 -(center.z - centerCellWorld.z));
 
         //log.info("  local:" + objectRoot.getLocalTranslation());
-        
         //log.info("  test:" + test.getLocalTranslation());
     }
 
     protected void resetRelativeCoordinates() {
         log.info("********************** resetRelativeCoordinates()");
-        for( int i = 0; i < tests.size(); i++ ) {
+        for (int i = 0; i < tests.size(); i++) {
             Vector4f coord = testCoords.get(i);
             tests.get(i).setLocalTranslation(coord.w + coord.x - centerCellWorld.x, coord.w + coord.y - centerCellWorld.y, coord.w + coord.z - centerCellWorld.z);
         }
 
-        for( Model m : models.getArray() ) {
+        for (Model m : models.getArray()) {
             m.updateRelativePosition();
         }
-        for( Model m : largeModels.getArray() ) {
+        for (Model m : largeModels.getArray()) {
             m.updateRelativePosition();
         }
     }
@@ -453,8 +449,8 @@ public class ModelViewState extends BaseAppState {
         int xOffset = modelCenter.x - gridRadius;
         int zOffset = modelCenter.z - gridRadius;
         int index = 0;
-        for( int x = 0; x < size; x++ ) {
-            for( int z = 0; z < size; z++ ) {
+        for (int x = 0; x < size; x++) {
+            for (int z = 0; z < size; z++) {
                 long id = InfinityConstants.PHYSICS_GRID.cellToId(xOffset + x, 0, zOffset + z);
 //System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");                                                
                 ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", id);
@@ -480,8 +476,8 @@ public class ModelViewState extends BaseAppState {
         int xOffset = largeModelCenter.x - gridRadius;
         int zOffset = largeModelCenter.z - gridRadius;
         int index = 0;
-        for( int x = 0; x < size; x++ ) {
-            for( int z = 0; z < size; z++ ) {
+        for (int x = 0; x < size; x++) {
+            for (int z = 0; z < size; z++) {
                 long id = InfinityConstants.LARGE_OBJECT_GRID.cellToId(xOffset + x, 0, zOffset + z);
 //System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");                                                
                 ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", id);
@@ -495,9 +491,9 @@ public class ModelViewState extends BaseAppState {
 
     }
 
-    protected Spatial createModel( EntityId id, MBlockShape blockShape, ShapeInfo shapeInfo, Mass mass ) {
+    protected Spatial createModel(EntityId id, MBlockShape blockShape, ShapeInfo shapeInfo, Mass mass) {
         return modelFactory.createModel(id, blockShape, shapeInfo, mass);
-/*
+        /*
         Spatial spatial;   
         CellArray cells = shape.getCells();        
         if( cells != null ) {
@@ -550,12 +546,12 @@ public class ModelViewState extends BaseAppState {
         spatial.setUserData("oid", id.getId());
         
         return spatial;        
-        */
+         */
     }
 
-    protected Model getModel( EntityId entityId, boolean create ) {
+    protected Model getModel(EntityId entityId, boolean create) {
         Model result = modelIndex.get(entityId);
-        if( result == null && create ) {
+        if (result == null && create) {
             result = new Model(entityId);
             modelIndex.put(entityId, result);
         }
@@ -563,9 +559,9 @@ public class ModelViewState extends BaseAppState {
         return result;
     }
 
-    protected Model releaseModel( EntityId entityId ) {
+    protected Model releaseModel(EntityId entityId) {
         Model result = modelIndex.get(entityId);
-        if( result.release() ) {
+        if (result.release()) {
             modelIndex.remove(entityId);
         }
         /*        
@@ -595,21 +591,21 @@ log.info("states:" + sb);*/
     }
 
     /**
-     *  Marks static models visible at a delay so that they act similar
-     *  to mobs which have a strict visibility time.  This is to make up
-     *  for the fact that SpawnPosition doesn't have a timestamp and that
-     *  rigid bodies will typically have both a SpawnPosition and a BodyPosition.
-     *  These two compete and cause the object to flicker on creation:
-     *  SpawnPosition makes it visible
-     *  BodyPosition makes it invisible
-     *  BodyPosition + delay makes it visible again.
-     *  A timestamp on SpawnPosition would fix this but might be overkill. 
+     * Marks static models visible at a delay so that they act similar to mobs
+     * which have a strict visibility time. This is to make up for the fact that
+     * SpawnPosition doesn't have a timestamp and that rigid bodies will
+     * typically have both a SpawnPosition and a BodyPosition. These two compete
+     * and cause the object to flicker on creation: SpawnPosition makes it
+     * visible BodyPosition makes it invisible BodyPosition + delay makes it
+     * visible again. A timestamp on SpawnPosition would fix this but might be
+     * overkill.
      */
     private class MarkVisible {
+
         Model model;
         long visibleTime;
 
-        public MarkVisible( Model model, long visibleTime ) {
+        public MarkVisible(Model model, long visibleTime) {
             this.model = model;
             this.visibleTime = visibleTime;
         }
@@ -618,12 +614,12 @@ log.info("states:" + sb);*/
             //log.info("MarkVisible.update() useCount:" + model.useCount + "  dynamic:" + model.dynamic);
             // If the model is still static in some way then
             // we'll mark for static visibility
-            if( model.useCount == 1 && model.dynamic ) {
+            if (model.useCount == 1 && model.dynamic) {
                 log.info("only dynamic... should already be visible.");
                 // Somehow it's only dynamic... no spawn position at all
                 return;
             }
-            if( model.useCount == 0 ) {
+            if (model.useCount == 0) {
                 // Model is no longer in use
                 log.info("not used anymore");
                 return;
@@ -636,16 +632,17 @@ log.info("states:" + sb);*/
     }
 
     /**
-     *  Models may be detected as static and dynamic objects at the same time
-     *  because of SpawnPosition and BodyPosition.  Furthermore, we can't guarantee
-     *  that a BodyPosition will always have a corresponding SpawnPosition because
-     *  it may have moved into a different zone that see see (and we may not see
-     *  the original spawn zone).
-     *  So we need to cache them and keep track of the number of 'views' using it.
-     *  Also, if we already have one being managed by a Mob view then we should not
-     *  update its static position from SpawnPosition. 
+     * Models may be detected as static and dynamic objects at the same time
+     * because of SpawnPosition and BodyPosition. Furthermore, we can't
+     * guarantee that a BodyPosition will always have a corresponding
+     * SpawnPosition because it may have moved into a different zone that see
+     * see (and we may not see the original spawn zone). So we need to cache
+     * them and keep track of the number of 'views' using it. Also, if we
+     * already have one being managed by a Mob view then we should not update
+     * its static position from SpawnPosition.
      */
     private class Model {
+
         private EntityId entityId;
         private Spatial spatial;
         private ShapeInfo shapeInfo;
@@ -654,7 +651,7 @@ log.info("states:" + sb);*/
         private SpawnPosition pos;
         private int visibleCount;
 
-        public Model( EntityId entityId ) {
+        public Model(EntityId entityId) {
             this.entityId = entityId;
         }
 
@@ -664,8 +661,8 @@ log.info("states:" + sb);*/
 
         public boolean release() {
             useCount--;
-            if( useCount <= 0 ) {
-                if( spatial != null ) {
+            if (useCount <= 0) {
+                if (spatial != null) {
                     spatial.removeFromParent();
                 }
                 return true;
@@ -673,18 +670,27 @@ log.info("states:" + sb);*/
             return false;
         }
 
-        public void setShape( ShapeInfo shapeInfo ) {
-            if( Objects.equals(this.shapeInfo, shapeInfo) ) {
+        public void setShape(ShapeInfo shapeInfo) {
+            if (Objects.equals(this.shapeInfo, shapeInfo)) {
                 return;
             }
             this.shapeInfo = shapeInfo;
-            if( spatial != null ) {
+            if (spatial != null) {
                 spatial.removeFromParent();
             }
             Mass mass = ed.getComponent(entityId, Mass.class);
             spatial = createModel(entityId, shapeFactory.createShape(shapeInfo, mass), shapeInfo, mass);
-            if( spatial != null ) {
-                getObjectRoot().attachChild(spatial);
+            if (spatial != null) {
+
+                if (getAvatarSpatial() == null && entityId.getId() == watchedAvatar.getId().getId()) {
+                    setAvatarSpatial(spatial);
+                    Node playerNode = new Node();
+                    
+                    playerNode.attachChild(spatial);
+                    getObjectRoot().attachChild(playerNode);
+                } else {
+                    getObjectRoot().attachChild(spatial);
+                }
                 resetVisibility();
 
                 if (spatial.getUserDataKeys().contains("arena")) {
@@ -693,15 +699,15 @@ log.info("states:" + sb);*/
             }
         }
 
-        public void setPosition( SpawnPosition pos ) {
+        public void setPosition(SpawnPosition pos) {
             this.pos = pos;
             updateRelativePosition();
         }
 
         public void updateRelativePosition() {
 //log.info("updateRelativePosition entityId:" + entityId + "  dynamic:" + dynamic);        
-            if( !dynamic ) {
-                if( pos == null ) {
+            if (!dynamic) {
+                if (pos == null) {
                     // We are not a static model and we are probably being removed
                     log.info("dynamic=false, pos=null, useCount=" + useCount);
                 } else {
@@ -718,12 +724,12 @@ log.info("states:" + sb);*/
             }
         }
 
-        public void setDynamic( boolean dynamic ) {
-            if( this.dynamic == dynamic ) {
+        public void setDynamic(boolean dynamic) {
+            if (this.dynamic == dynamic) {
                 return;
             }
             this.dynamic = dynamic;
-            if( !dynamic ) {
+            if (!dynamic) {
                 updateRelativePosition();
             }
         }
@@ -740,7 +746,7 @@ log.info("states:" + sb);*/
 
         protected void resetVisibility() {
 //log.info("resetVisibility():" + visibleCount);        
-            if( visibleCount > 0 ) {
+            if (visibleCount > 0) {
 //log.info("visible:" + entityId);            
                 spatial.setCullHint(Spatial.CullHint.Inherit);
             } else {
@@ -751,6 +757,7 @@ log.info("states:" + sb);*/
     }
 
     private class Mob {
+
         private Entity entity;
         //private ShapeInfo shapeInfo;
         //private Spatial model;
@@ -763,7 +770,7 @@ log.info("states:" + sb);*/
         boolean visible;
         boolean forceInvisible; // just in case
 
-        public Mob( Entity entity ) {
+        public Mob(Entity entity) {
             this.entity = entity;
             this.model = getModel(entity.getId(), true);
             model.setDynamic(true);
@@ -772,16 +779,15 @@ log.info("states:" + sb);*/
         //public void setCenterCellWorld( Vector3f centerCellWorld ) {
         //    this.centerCellWorld.set(centerCellWorld);
         //}
-        
-        public void setShape( ShapeInfo shapeInfo ) {
+        public void setShape(ShapeInfo shapeInfo) {
             model.setShape(shapeInfo);
             /*if( model.spatial != null ) {
                 resetVisibility();
             }*/
         }
 
-        public void setPosition( BodyPosition pos ) {        
-            if( this.pos == pos ) {
+        public void setPosition(BodyPosition pos) {
+            if (this.pos == pos) {
                 return;
             }
 
@@ -793,14 +799,14 @@ log.info("states:" + sb);*/
             this.buffer = pos.getBuffer();
         }
 
-        public void update( long time ) {
+        public void update(long time) {
 
             // Look back in the brief history that we've kept and
             // pull an interpolated value.  To do this, we grab the
             // span of time that contains the time we want.  PositionTransition3d
             // represents a starting and an ending pos+rot over a span of time.
             PositionTransition3d trans = buffer.getTransition(time);
-            if( trans != null ) {
+            if (trans != null) {
                 Vector3f pos = trans.getPosition(time, true).toVector3f();
 
                 // Make the position relative to our "conveyor"
@@ -813,16 +819,16 @@ log.info("states:" + sb);*/
             }
         }
 
-        protected void setVisible( boolean f ) {
+        protected void setVisible(boolean f) {
 //log.info("setVisible(" + entity.getId() + ", " + f + ")");            
-            if( this.visible == f ) {
+            if (this.visible == f) {
                 return;
             }
 // For now, ignore setting false
 //if( !f ) return;            
             this.visible = f;
             //resetVisibility();
-            if( visible ) {
+            if (visible) {
                 model.markVisible();
             } else {
                 model.markInvisible();
@@ -841,7 +847,6 @@ log.info("Setting NOT visible:" + entity.getId());
                 model.markInvisible();
             }
         }*/
-        
         public void release() {
             releaseModel(entity.getId());
             model.setDynamic(false);
@@ -852,9 +857,9 @@ log.info("Setting NOT visible:" + entity.getId());
         }
     }
 
-   
     private class MobContainer extends EntityContainer<Mob> {
-        public MobContainer( EntityData ed ) {
+
+        public MobContainer(EntityData ed) {
             // Because at least in this demo, shape and model are the same thing
             super(ed, BodyPosition.class, ShapeInfo.class);
         }
@@ -863,41 +868,42 @@ log.info("Setting NOT visible:" + entity.getId());
             return super.getArray();
         }
 
-        protected Mob addObject( Entity e ) {
+        protected Mob addObject(Entity e) {
             log.info("add mob for:" + e.getId());
             Mob object = new Mob(e);
             updateObject(object, e);
             return object;
         }
 
-        protected void updateObject( Mob object, Entity e ) {
+        protected void updateObject(Mob object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(BodyPosition.class));
         }
 
-        protected void removeObject( Mob object, Entity e ) {
+        protected void removeObject(Mob object, Entity e) {
             log.info("remove mob for:" + e.getId());
             object.release();
         }
     }
 
     /**
-     *  Keeps track of the static models in the scene.
+     * Keeps track of the static models in the scene.
      */
     private class ModelContainer extends EntityContainer<Model> {
-        public ModelContainer( EntityData ed ) {
+
+        public ModelContainer(EntityData ed) {
             super(ed, SpawnPosition.class, ShapeInfo.class);
         }
 
-        public void setFilter( ComponentFilter filter ) {
+        public void setFilter(ComponentFilter filter) {
             super.setFilter(filter);
         }
 
         public Model[] getArray() {
-            return (Model[])super.getArray();
+            return (Model[]) super.getArray();
         }
 
-        protected Model addObject( Entity e ) {
+        protected Model addObject(Entity e) {
 //log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());        
             Model object = getModel(e.getId(), true);
             updateObject(object, e);
@@ -908,34 +914,35 @@ log.info("Setting NOT visible:" + entity.getId());
             return object;
         }
 
-        protected void updateObject( Model object, Entity e ) {
+        protected void updateObject(Model object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(SpawnPosition.class));
         }
 
-        protected void removeObject( Model object, Entity e ) {
+        protected void removeObject(Model object, Entity e) {
             log.info("remove model for:" + e.getId());
             releaseModel(e.getId());
         }
     }
 
     /**
-     *  Keeps track of the large static models in the scene.
+     * Keeps track of the large static models in the scene.
      */
     private class LargeModelContainer extends EntityContainer<Model> {
-        public LargeModelContainer( EntityData ed ) {
+
+        public LargeModelContainer(EntityData ed) {
             super(ed, SpawnPosition.class, ShapeInfo.class, LargeObject.class, LargeGridCell.class);
         }
 
-        public void setFilter( ComponentFilter filter ) {
+        public void setFilter(ComponentFilter filter) {
             super.setFilter(filter);
         }
 
         public Model[] getArray() {
-            return (Model[])super.getArray();
+            return (Model[]) super.getArray();
         }
 
-        protected Model addObject( Entity e ) {
+        protected Model addObject(Entity e) {
             log.info("LargeObject add model for:" + e.getId() + "   at time:" + timeSource.getTime());
             Model object = getModel(e.getId(), true);
             updateObject(object, e);
@@ -946,12 +953,12 @@ log.info("Setting NOT visible:" + entity.getId());
             return object;
         }
 
-        protected void updateObject( Model object, Entity e ) {
+        protected void updateObject(Model object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(SpawnPosition.class));
         }
 
-        protected void removeObject( Model object, Entity e ) {
+        protected void removeObject(Model object, Entity e) {
             log.info("LargeObject remove model for:" + e.getId());
             releaseModel(e.getId());
         }
@@ -966,5 +973,13 @@ log.info("Setting NOT visible:" + entity.getId());
             throw new NoSuchElementException("Entity " + eId + " does not have a spatial");
         }
         return spatialIndex.get(eId);
+    }
+
+    public Spatial getAvatarSpatial() {
+        return this.avatarSpatial;
+    }
+
+    private void setAvatarSpatial(Spatial s) {
+        this.avatarSpatial = s;
     }
 }

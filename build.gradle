@@ -29,7 +29,7 @@ subprojects {
     //ext.jmeVersion = "[3.3,)"
     ext.lemurVersion = '1.14.0-SNAPSHOT'
     ext.lemurProtoVersion = '1.11.1-SNAPSHOT'
-    ext.lemurPropsVersion = '1.1.1-SNAPSHOT'
+    ext.lemurPropsVersion = '1.1.1'
     ext.simMathVersion = '1.4.1-SNAPSHOT'
     ext.sio2Version = '1.4.0-SNAPSHOT'
     ext.simEtherealVersion = '1.5.1-SNAPSHOT'

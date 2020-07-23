@@ -29,7 +29,10 @@ import com.jme3.app.Application;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.jme3.scene.CameraNode;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.control.CameraControl;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.WatchedEntity;
@@ -63,8 +66,7 @@ public class InfinityCameraState extends CameraState{
     public static final float DISTANCETOPLANE = 40;
     private Camera camera;
     private EntityData ed;
-    Vector3f cameraPos = new Vector3f(0, DISTANCETOPLANE, 0);
-    Vector3f lastAvatarLoc = new Vector3f();
+    Vector3f viewLoc = new Vector3f(0, DISTANCETOPLANE, 0);
     private TimeSource timeSource;
 
     ModelViewState viewState;
@@ -73,16 +75,28 @@ public class InfinityCameraState extends CameraState{
     private Vector3f avatarPos;
     private TransitionBuffer<PositionTransition3d> buffer;
     private float frustumSize = 1;
+    
+    private boolean initializedCam = false;
+    
+    private CameraNode camNode;
+    
+    private InfinityCamControl camControl;
 
     public InfinityCameraState() {
     }
 
     @Override
     protected void initialize(Application app) {
+        
+        
         this.camera = app.getCamera();
 
-        this.camera.setLocation(cameraPos);
-        this.camera.lookAt(new Vector3f(), Vector3f.UNIT_Y); //Set camera to look at the origin
+        camNode = new CameraNode("Camera", camera);
+        //SpatialToamera means the camera copies movement by the target
+        camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
+        
+        camControl = new InfinityCamControl(camera, InfinityCamControl.ControlDirection.SpatialToCamera, DISTANCETOPLANE);
+        
         //this.camera.setParallelProjection(true);
         //float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
         //this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
@@ -107,6 +121,22 @@ public class InfinityCameraState extends CameraState{
     @Override
     public void update(float tpf) {
         long time = timeSource.getTime();
+        
+        if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
+            avatarSpatial = viewState.getAvatarSpatial();
+        } else if(!initializedCam){
+            //avatarSpatial.getParent().attachChild(camNode);
+            //((Node)avatarSpatial).attachChild(camNode);
+            
+            //camNode.setLocalRotation(avatarSpatial.getLocalRotation());
+            //camNode.setLocalTranslation(viewLoc);
+            //camNode.lookAt(avatarSpatial.getLocalTranslation(), Vector3f.UNIT_Y); //Set camera to at our player Avatar
+            
+            avatarSpatial.addControl(camControl);
+            
+            initializedCam = true;
+        } 
+        
         //watchedAvatar.applyChanges();
 
         /*

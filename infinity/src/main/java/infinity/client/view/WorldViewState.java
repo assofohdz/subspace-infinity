@@ -73,7 +73,7 @@ public class WorldViewState extends BaseAppState {
     private PagedGrid pager;
     private Node worldRoot;
 
-    private Vector3f viewLoc = new Vector3f(0, 66.8f, 0);
+    private Vector3f viewLoc = new Vector3f(0, 80f, 0);
     private Vector3f viewCell = new Vector3f();
 
     public WorldViewState() {
@@ -83,7 +83,7 @@ public class WorldViewState extends BaseAppState {
         this.viewLoc.set(viewLoc);
         if (pager != null) {
             pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
-            getApplication().getCamera().setLocation(new Vector3f(viewLoc.x, 40, viewLoc.z));
+            //getApplication().getCamera().setLocation(new Vector3f(viewLoc.x, 80, viewLoc.z));
 
             pager.getGrid().toCell(viewLoc, viewCell);
 
