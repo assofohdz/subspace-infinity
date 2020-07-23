@@ -275,6 +275,14 @@ public class ModelViewState extends BaseAppState {
         //this.shapeFactory = (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);        
         this.shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL1, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
 
         this.modelFactory = new SpatialFactory(ed, ((SimpleApplication) app).getRootNode(), app.getAssetManager());

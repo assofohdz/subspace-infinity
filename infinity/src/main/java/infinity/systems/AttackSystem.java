@@ -575,10 +575,9 @@ public class AttackSystem extends AbstractGameSystem {
             case AttackSystem.GRAVBOMB:
                 break;
             case AttackSystem.MINE:
-                projectileVelocity.multLocal(0);
                 break;
             default:
-                throw new AssertionError();
+                throw new AssertionError("Flag :"+flag+" not recognized");
         }
         
         //Step 2: Rotate the scaled velocity
@@ -588,7 +587,16 @@ public class AttackSystem extends AbstractGameSystem {
         
         //Step 3: Add ship velocity:
         projectileVelocity.addLocal(shipVelocity);
-
+        
+        //Step 4: Correct mines:
+        switch (flag) {
+            case AttackSystem.MINE:
+                projectileVelocity.set(0,0,0);
+                break;
+            default:
+                break;
+        }
+        
         //Step 4: Find the translation
         Vec3d shipPosition = new Vec3d(shipBody.position);
         //Default position is at the tip of the ship;

@@ -80,6 +80,7 @@ public class InfinityEntityBodyFactory extends EntityBodyFactory<MBlockShape> {
             case ShapeNames.WORMHOLE:
             case ShapeNames.MAPTILE:
                 result.setLinearDamping(0);
+                result.setLinearVelocity(new Vec3d(0,0,0));
                 break;
             default:
                 break;

@@ -70,10 +70,18 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
                 contact.disable();
                 return;
             }
-        }
-        else{
-            //So, we have contacts with one body ? 
-            //log.info(contact.toString());
+            
+            log.info("Collision between: "+bodyOne+" and "+bodyTwo);
+            
+        } else {
+            //This happens when a dynamic collides with a static body or the world
+            if (bodyOne != null) {
+                log.info("Collided: " +bodyOne.toString() + " with null");
+            } else {
+                log.info("Collided: " +bodyTwo.toString() + " with null");
+            }
+            
+            contact.restitution = 1;
         }
 
     }
