@@ -34,12 +34,15 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.DirectionMasks;
+import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.client.view.BlockGeometryIndex;
 import infinity.es.BodyPosition;
 import infinity.es.TileType;
 import infinity.map.LevelFile;
@@ -341,7 +344,9 @@ public class MapSystem extends AbstractGameSystem {
 255:  animated green. visible, not on radar. Items and ship go through.
 
                      */
-                    Vec3d location = new Vec3d(xpos, 0, -zpos).add(arenaOffset);
+                    
+                    Vec3d bottomPlane = new Vec3d(xpos, 0, -zpos).add(arenaOffset);
+                    Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
                     
                     /*
                     switch (s) {
@@ -372,7 +377,16 @@ public class MapSystem extends AbstractGameSystem {
                      */
                     
                     //We can create entities as well as world data here (some asteroids may be dynamic, some may be world)
-                    world.setWorldCell(location, map.m_file, 1);
+                    
+                    //int val = MaskUtils.setSideMask(BlockGeometryIndex.BOTTOM_TILE_LAYER, DirectionMasks.UP_MASK);
+                    
+                    //Add the bottom plane with only the up-mask visible
+                    world.setWorldCell(bottomPlane, 1);
+                    //Add an empty plane just above
+                    
+                    
+                    //int val2 = MaskUtils.setSideMask(1, DirectionMasks.DOWN_MASK);
+                    world.setWorldCell(topPlane, 1);
                     //world.setWorldCell(location, map.m_file, Short.toUnsignedInt(s));
                 }
             }

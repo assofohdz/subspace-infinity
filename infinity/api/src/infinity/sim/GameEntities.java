@@ -372,7 +372,7 @@ public class GameEntities {
         //ViewTypes.ship_warbird(ed),
         //PhysicsMassTypes.normal(ed),
         //PhysicsShapes.ship());
-        ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d(0, 0, 0)));
+        ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d(0, 1, 0)));
         ed.setComponent(result, new Mass(1));
         ed.setComponent(result, Gravity.ZERO);
 
