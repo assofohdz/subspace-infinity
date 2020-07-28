@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.client;
 
 import com.jme3.input.KeyInput;
 import com.simsilica.lemur.input.Axis;

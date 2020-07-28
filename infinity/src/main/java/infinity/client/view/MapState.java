@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client;
+package infinity.client.view;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
@@ -50,6 +50,8 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import com.simsilica.lemur.event.MouseEventControl;
 import com.simsilica.mathd.Vec3d;
+import infinity.client.ConnectionState;
+import infinity.client.GameSessionClientService;
 import infinity.es.BodyPosition;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
@@ -83,8 +85,6 @@ public class MapState extends BaseAppState {
     private HashMap<String, LevelFile> levelFiles = new HashMap<>();
     private AWTLoader imgLoader;
     private HashMap<TileKey, Image> imageMap = new HashMap<>();
-    private FieldFilter legacyFilter;
-    private FieldFilter wangBlobFilter;
 
     private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     private float tpfTime;
@@ -107,9 +107,6 @@ public class MapState extends BaseAppState {
         imgLoader = new AWTLoader();
 
         this.generateWangBlobInfoMap(wangBlobIndexMap);
-
-        legacyFilter = FieldFilter.create(TileType.class, "type", ed.getStrings().getStringId(TileTypes.LEGACY, false));
-        wangBlobFilter = FieldFilter.create(TileType.class, "type", ed.getStrings().getStringId(TileTypes.WANGBLOB, false));
 
         //arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id", ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class, BodyPosition.class);
     }
@@ -291,7 +288,7 @@ public class MapState extends BaseAppState {
     private class LegacyMapImageContainer extends EntityContainer<Image> {
 
         public LegacyMapImageContainer(EntityData ed) {
-            super(ed, legacyFilter, TileType.class, BodyPosition.class);
+            super(ed, TileType.class, BodyPosition.class);
         }
 
         @Override

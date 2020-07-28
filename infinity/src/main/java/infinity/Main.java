@@ -36,6 +36,7 @@
 
 package infinity;
 
+import infinity.client.CameraMovementFunctions;
 import org.slf4j.*;
 
 import com.jme3.app.*;
@@ -52,7 +53,7 @@ import com.simsilica.lemur.style.*;
 //import com.simsilica.fx.sky.SkySettingsState;
 
 import com.simsilica.state.*;
-import infinity.client.PlayerMovementFunctions;
+import infinity.client.AvatarMovementFunctions;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 
@@ -128,7 +129,7 @@ public class Main extends SimpleApplication {
         DebugFunctions.initializeDefaultMappings(globals.getInputMapper());        
         ToolFunctions.initializeDefaultMappings(globals.getInputMapper());        
         HelpState.initializeDefaultMappings(globals.getInputMapper());
-        PlayerMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
+        AvatarMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
         
         BaseStyles.loadGlassStyle();
         globals.getStyles().setDefaultStyle("glass");

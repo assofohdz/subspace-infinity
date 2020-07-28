@@ -41,7 +41,7 @@ import infinity.es.WeaponTypes;
  *
  * @author Paul Speed
  */
-public class PlayerMovementFunctions {
+public class AvatarMovementFunctions {
 
     public static final String G_MOVEMENT = "Movement";
     public static final String G_MAP = "Map";

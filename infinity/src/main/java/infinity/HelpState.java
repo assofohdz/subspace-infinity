@@ -36,6 +36,7 @@
 
 package infinity;
 
+import infinity.client.CameraMovementFunctions;
 import java.util.*;
 
 import com.google.common.base.Joiner;

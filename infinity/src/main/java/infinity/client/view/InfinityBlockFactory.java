@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package infinity.sim;
+package infinity.client.view;
 
 import com.google.common.base.MoreObjects;
 import com.simsilica.mathd.Vec3d;
@@ -59,6 +59,7 @@ public class InfinityBlockFactory implements BlockFactory {
         this.volume = volume;
         this.min = min;
         this.max = max;
+        
         boolean all = true;
         if (solid != null) {
             for (boolean b : solid) {
@@ -113,7 +114,7 @@ public class InfinityBlockFactory implements BlockFactory {
      * DefaultPartFactory.createFace() with each of the specified material
      * types.
      */
-    public static InfinityBlockFactory createCube(double transparency, MaterialType... materialTypes) {
+    public static InfinityBlockFactory createCube(double transparency, int tileId, int mapId, MaterialType... materialTypes) {
         return createCube(transparency,
                 DefaultPartFactory.createCubeFace(materialTypes[Direction.North.ordinal()],
                         Direction.North),
@@ -133,15 +134,15 @@ public class InfinityBlockFactory implements BlockFactory {
      * Constructs a new block factory, calculating the min/max, volume,
      * transparency, and solid values based on the supplied part factories.
      */
-    public static InfinityBlockFactory create(PartFactory[] dirParts, PartFactory internalParts) {
-        return create(dirParts, internalParts, null);
+    public static InfinityBlockFactory create(PartFactory[] dirParts, PartFactory internalParts, int tileId, int mapId) {
+        return create(dirParts, internalParts, null, tileId, mapId);
     }
 
     /**
      * Constructs a new block factory, calculating the min/max, volume, and
      * solid values based on the supplied part factories.
      */
-    public static InfinityBlockFactory create(PartFactory[] dirParts, PartFactory internalParts, double[] transparency) {
+    public static InfinityBlockFactory create(PartFactory[] dirParts, PartFactory internalParts, double[] transparency, int tileId, int mapId) {
 
         if (dirParts == null && internalParts == null) {
             throw new IllegalArgumentException("dirParts and internalParts cannot both be null");
@@ -210,10 +211,10 @@ public class InfinityBlockFactory implements BlockFactory {
         if (dirParts != null) {
             for (Direction dir : Direction.values()) {
                 
-                if (yWorld == 0 && dir.compareTo(Direction.Up) != 0) {
+                /*if (yWorld == 0 && dir.compareTo(Direction.Up) != 0) {
                     continue;
                 }
-                
+                */
                 PartFactory part = dirParts[dir.ordinal()];
                 if (part == null || (sideMask & dir.getBitMask()) == 0) {
                     continue;

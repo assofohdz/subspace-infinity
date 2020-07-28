@@ -59,7 +59,6 @@ import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mblock.phys.Part;
 import infinity.client.ConnectionState;
-import infinity.client.MapState;
 import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.es.ship.weapons.BombLevelEnum;

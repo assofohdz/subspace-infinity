@@ -78,7 +78,6 @@ public class GameSessionState extends CompositeAppState {
         super(
                 new AvatarMovementState(),
                 new TimeState(), // Has to be before any visuals that might need it.
-                //new CameraMovementState(),
                 //new CameraState(),
                 //new MovementState(), - is added later with reference to MovementTarget
                 //new CameraState(),
@@ -96,6 +95,7 @@ public class GameSessionState extends CompositeAppState {
                 new ModelViewState(),
         //For now we do everything unshaded
         //new LightState() //For pointlights and decaying lights - must come after ModelViewState because we need the spatials to be there
+                //new CameraMovementState()
         new InfinityCameraState() //Add camera last
         );
 

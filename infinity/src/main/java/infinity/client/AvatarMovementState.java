@@ -76,33 +76,33 @@ public class AvatarMovementState extends BaseAppState
         // Most of the movement functions are treated as analog.        
         inputMapper.addAnalogListener(this,
                 //Movement:-->
-                PlayerMovementFunctions.F_THRUST,
-                PlayerMovementFunctions.F_TURN
+                AvatarMovementFunctions.F_THRUST,
+                AvatarMovementFunctions.F_TURN
         //<--
         );
 
         inputMapper.addStateListener(this,
                 //Movement
-                PlayerMovementFunctions.F_RUN,
+                AvatarMovementFunctions.F_RUN,
                 //Weapons
-                PlayerMovementFunctions.F_BOMB,
-                PlayerMovementFunctions.F_BURST,
-                PlayerMovementFunctions.F_THOR,
-                PlayerMovementFunctions.F_SHOOT,
-                PlayerMovementFunctions.F_GRAVBOMB,
-                PlayerMovementFunctions.F_MINE,
+                AvatarMovementFunctions.F_BOMB,
+                AvatarMovementFunctions.F_BURST,
+                AvatarMovementFunctions.F_THOR,
+                AvatarMovementFunctions.F_SHOOT,
+                AvatarMovementFunctions.F_GRAVBOMB,
+                AvatarMovementFunctions.F_MINE,
                 //Actions
-                PlayerMovementFunctions.F_REPEL,
-                PlayerMovementFunctions.F_WARP,
+                AvatarMovementFunctions.F_REPEL,
+                AvatarMovementFunctions.F_WARP,
                 //Ships
-                PlayerMovementFunctions.F_WARBIRD,
-                PlayerMovementFunctions.F_JAVELIN,
-                PlayerMovementFunctions.F_SPIDER,
-                PlayerMovementFunctions.F_LEVI,
-                PlayerMovementFunctions.F_TERRIER,
-                PlayerMovementFunctions.F_WEASEL,
-                PlayerMovementFunctions.F_LANC,
-                PlayerMovementFunctions.F_SHARK);
+                AvatarMovementFunctions.F_WARBIRD,
+                AvatarMovementFunctions.F_JAVELIN,
+                AvatarMovementFunctions.F_SPIDER,
+                AvatarMovementFunctions.F_LEVI,
+                AvatarMovementFunctions.F_TERRIER,
+                AvatarMovementFunctions.F_WEASEL,
+                AvatarMovementFunctions.F_LANC,
+                AvatarMovementFunctions.F_SHARK);
 
     }
 
@@ -110,40 +110,40 @@ public class AvatarMovementState extends BaseAppState
     protected void cleanup(Application app) {
 
         inputMapper.removeAnalogListener(this,
-                PlayerMovementFunctions.F_THRUST,
-                PlayerMovementFunctions.F_TURN);
+                AvatarMovementFunctions.F_THRUST,
+                AvatarMovementFunctions.F_TURN);
         inputMapper.removeStateListener(this,
                 //Weapons
-                PlayerMovementFunctions.F_BOMB,
-                PlayerMovementFunctions.F_BURST,
-                PlayerMovementFunctions.F_THOR,
-                PlayerMovementFunctions.F_SHOOT,
-                PlayerMovementFunctions.F_GRAVBOMB,
-                PlayerMovementFunctions.F_MINE,
+                AvatarMovementFunctions.F_BOMB,
+                AvatarMovementFunctions.F_BURST,
+                AvatarMovementFunctions.F_THOR,
+                AvatarMovementFunctions.F_SHOOT,
+                AvatarMovementFunctions.F_GRAVBOMB,
+                AvatarMovementFunctions.F_MINE,
                 //Actions
-                PlayerMovementFunctions.F_REPEL,
-                PlayerMovementFunctions.F_WARP,
+                AvatarMovementFunctions.F_REPEL,
+                AvatarMovementFunctions.F_WARP,
                 //Ships
-                PlayerMovementFunctions.F_WARBIRD,
-                PlayerMovementFunctions.F_JAVELIN,
-                PlayerMovementFunctions.F_SPIDER,
-                PlayerMovementFunctions.F_LEVI,
-                PlayerMovementFunctions.F_TERRIER,
-                PlayerMovementFunctions.F_WEASEL,
-                PlayerMovementFunctions.F_LANC,
-                PlayerMovementFunctions.F_SHARK);
+                AvatarMovementFunctions.F_WARBIRD,
+                AvatarMovementFunctions.F_JAVELIN,
+                AvatarMovementFunctions.F_SPIDER,
+                AvatarMovementFunctions.F_LEVI,
+                AvatarMovementFunctions.F_TERRIER,
+                AvatarMovementFunctions.F_WEASEL,
+                AvatarMovementFunctions.F_LANC,
+                AvatarMovementFunctions.F_SHARK);
     }
 
     @Override
     protected void onEnable() {
         // Make sure our input group is enabled
-        inputMapper.activateGroup(PlayerMovementFunctions.G_MOVEMENT);
-        inputMapper.activateGroup(PlayerMovementFunctions.G_MAP);
-        inputMapper.activateGroup(PlayerMovementFunctions.G_SHIPSELECTION);
-        inputMapper.activateGroup(PlayerMovementFunctions.G_WEAPON);
-        inputMapper.activateGroup(PlayerMovementFunctions.G_TOGGLE);
-        inputMapper.activateGroup(PlayerMovementFunctions.G_TOWER);
-        inputMapper.activateGroup(PlayerMovementFunctions.G_ACTION);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_MOVEMENT);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_MAP);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_SHIPSELECTION);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_WEAPON);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_TOGGLE);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_TOWER);
+        inputMapper.activateGroup(AvatarMovementFunctions.G_ACTION);
         
         
         this.session = getState(ConnectionState.class).getService(GameSessionClientService.class);
@@ -151,13 +151,13 @@ public class AvatarMovementState extends BaseAppState
 
     @Override
     protected void onDisable() {
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_MOVEMENT);
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_MAP);
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_SHIPSELECTION);
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_WEAPON);
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_TOGGLE);
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_TOWER);
-        inputMapper.deactivateGroup(PlayerMovementFunctions.G_ACTION);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_MOVEMENT);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_MAP);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_SHIPSELECTION);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_WEAPON);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_TOGGLE);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_TOWER);
+        inputMapper.deactivateGroup(AvatarMovementFunctions.G_ACTION);
     }
 
     @Override
@@ -200,15 +200,15 @@ public class AvatarMovementState extends BaseAppState
 
     @Override
     public void valueActive(FunctionId func, double value, double tpf) {
-        if (func == PlayerMovementFunctions.F_THRUST) {
+        if (func == AvatarMovementFunctions.F_THRUST) {
             this.forward = value;
-        } else if (func == PlayerMovementFunctions.F_TURN) {
+        } else if (func == AvatarMovementFunctions.F_TURN) {
             this.rotate = value;
-        } else if (func == PlayerMovementFunctions.F_MOUSE1) {
+        } else if (func == AvatarMovementFunctions.F_MOUSE1) {
             this.mouse1 = value;
-        } else if (func == PlayerMovementFunctions.F_MOUSE2) {
+        } else if (func == AvatarMovementFunctions.F_MOUSE2) {
             this.mouse2 = value;
-        } else if (func == PlayerMovementFunctions.F_MOUSE3) {
+        } else if (func == AvatarMovementFunctions.F_MOUSE3) {
             this.mouse3 = value;
         }
     }
@@ -217,7 +217,7 @@ public class AvatarMovementState extends BaseAppState
     public void valueChanged(FunctionId func, InputState value, double tpf) {
         boolean b = value == InputState.Positive;
 
-        if (func == PlayerMovementFunctions.F_RUN) {
+        if (func == AvatarMovementFunctions.F_RUN) {
             if (b) {
                 speed = 2;
             } else {
@@ -227,42 +227,42 @@ public class AvatarMovementState extends BaseAppState
 
         if (value == InputState.Off) {
             //Attack functions first:
-            if (func == PlayerMovementFunctions.F_SHOOT) {
+            if (func == AvatarMovementFunctions.F_SHOOT) {
                 session.attack(AttackSystem.GUN);
-            } else if (func == PlayerMovementFunctions.F_BOMB) {
+            } else if (func == AvatarMovementFunctions.F_BOMB) {
                 session.attack(AttackSystem.BOMB);
-            } else if (func == PlayerMovementFunctions.F_GRAVBOMB) {
+            } else if (func == AvatarMovementFunctions.F_GRAVBOMB) {
                 session.attack(AttackSystem.GRAVBOMB);
-            } else if (func == PlayerMovementFunctions.F_MINE) {
+            } else if (func == AvatarMovementFunctions.F_MINE) {
                 session.attack(AttackSystem.MINE);
                 //<..
                 //Actions-->
-            } else if (func == PlayerMovementFunctions.F_THOR) {
+            } else if (func == AvatarMovementFunctions.F_THOR) {
                 session.action(ActionSystem.FIRETHOR);
-            } else if (func == PlayerMovementFunctions.F_REPEL) {
+            } else if (func == AvatarMovementFunctions.F_REPEL) {
                 session.action(ActionSystem.REPEL);
-            } else if (func == PlayerMovementFunctions.F_BURST) {
+            } else if (func == AvatarMovementFunctions.F_BURST) {
                 session.action(ActionSystem.FIREBURST);
-            } else if (func == PlayerMovementFunctions.F_WARP) {
+            } else if (func == AvatarMovementFunctions.F_WARP) {
                 session.action(ActionSystem.WARP);
             } 
                 //<..
                 //Avatar functions:-->
-            else if (func == PlayerMovementFunctions.F_WARBIRD) {
+            else if (func == AvatarMovementFunctions.F_WARBIRD) {
                 session.avatar(AvatarSystem.WARBIRD);
-            } else if (func == PlayerMovementFunctions.F_JAVELIN) {
+            } else if (func == AvatarMovementFunctions.F_JAVELIN) {
                 session.avatar(AvatarSystem.JAVELIN);
-            } else if (func == PlayerMovementFunctions.F_SPIDER) {
+            } else if (func == AvatarMovementFunctions.F_SPIDER) {
                 session.avatar(AvatarSystem.SPIDER);
-            } else if (func == PlayerMovementFunctions.F_LEVI) {
+            } else if (func == AvatarMovementFunctions.F_LEVI) {
                 session.avatar(AvatarSystem.LEVI);
-            } else if (func == PlayerMovementFunctions.F_TERRIER) {
+            } else if (func == AvatarMovementFunctions.F_TERRIER) {
                 session.avatar(AvatarSystem.TERRIER);
-            } else if (func == PlayerMovementFunctions.F_WEASEL) {
+            } else if (func == AvatarMovementFunctions.F_WEASEL) {
                 session.avatar(AvatarSystem.WEASEL);
-            } else if (func == PlayerMovementFunctions.F_LANC) {
+            } else if (func == AvatarMovementFunctions.F_LANC) {
                 session.avatar(AvatarSystem.LANCASTER);
-            } else if (func == PlayerMovementFunctions.F_SHARK) {
+            } else if (func == AvatarMovementFunctions.F_SHARK) {
                 session.avatar(AvatarSystem.SHARK);
             }
             //<..

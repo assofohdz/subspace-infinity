@@ -7,7 +7,6 @@ package infinity.map;
 
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
-import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mworld.CellChangeEvent;
 import com.simsilica.mworld.CellChangeListener;
 import com.simsilica.mworld.Coordinates;

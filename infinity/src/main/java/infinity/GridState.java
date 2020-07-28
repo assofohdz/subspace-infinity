@@ -37,7 +37,6 @@
 package infinity;
 
 import com.jme3.app.*;
-import com.jme3.app.state.*;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
@@ -52,8 +51,6 @@ import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 
 import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.lemur.event.*;
-import com.simsilica.lemur.input.*;
 
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mathd.Grid;
