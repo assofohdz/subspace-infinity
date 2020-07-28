@@ -10,7 +10,7 @@
     </RollingFile>
     
     <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
-      <PatternLayout pattern="%d{ABSOLUTE} %-5p [%c{1}] %m%n"/>
+      <PatternLayout pattern="%d{ABSOLUTE} %-5p [%c{10}] %m%n"/>
     </Console>
   </Appenders>
   
