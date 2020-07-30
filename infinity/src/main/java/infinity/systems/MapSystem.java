@@ -426,7 +426,7 @@ public class MapSystem extends AbstractGameSystem {
 
         //Create map:
         if (!mapCreated) {
-            createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, MAP_SIZE * 0.25));
+            createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz-el-blazer-01.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, MAP_SIZE * 0.5));
             //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, 0, MAP_SIZE));
             //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0 , 0));
             //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0,0));

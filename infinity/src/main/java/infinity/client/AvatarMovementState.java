@@ -9,6 +9,7 @@ import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.simsilica.input.MovementTarget;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -59,9 +60,12 @@ public class AvatarMovementState extends BaseAppState
 
     private InputManager inputManager;
     private GameSession session;
+    private Camera cam;
 
     @Override
     protected void initialize(Application app) {
+        
+        cam = getApplication().getCamera();
 
         log.debug("initialize()");
 
@@ -179,9 +183,9 @@ public class AvatarMovementState extends BaseAppState
 
             timeSinceLastSend = 0;
             
-            getState(WorldViewState.class).setViewLocation(new Vector3f(0,40,0));
+            getState(WorldViewState.class).setViewLocation(cam.getLocation());
  
-            session.setView(new Quatd(getApplication().getCamera().getRotation()), new Vec3d(0,40,0));
+            session.setView(new Quatd(cam.getRotation()), new Vec3d(cam.getLocation()));
             
             /*
                 if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {

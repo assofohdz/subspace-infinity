@@ -145,7 +145,7 @@ public class BlockGeometryIndex {
         //Check to see if we have loaded this map before
         if (!mapIdToLevels.containsKey(mapId)) {
             //TODO: Lookup stringname based on mapId
-            String mapName = "tunnelbase.lvl";
+            String mapName = "aswz/aswz-el-blazer-01.lvl";
             LevelFile level = loadMap("Maps/" + mapName);
             mapIdToLevels.put(mapId, level);
         }
@@ -169,7 +169,7 @@ public class BlockGeometryIndex {
 
             //log.info("getMaterialType:: tileKey = " + tileKey + " => (Tile,Map) = (" + tileId + "," + mapId + ")");
 
-            String mapName = "tunnelbase.lvl";
+            String mapName = "aswz-el-blazer-01.lvl";
 
             matType = new MaterialType(tileKey);
 

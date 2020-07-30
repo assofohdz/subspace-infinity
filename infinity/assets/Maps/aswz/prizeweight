@@ -1,0 +1,53 @@
+[ PrizeWeight ]
+AllWeapons=0
+AntiWarp=180
+Bomb=6
+BouncingBullets=540
+Brick=0
+Burst=240
+Cloak=180
+Decoy=360
+Energy=6
+Glue=0
+Gun=6
+MultiFire=360
+MultiPrize=60
+Portal=360
+Proximity=480
+QuickCharge=30
+Recharge=6
+Repel=240
+Rocket=360
+Rotation=6
+Shields=0
+Shrapnel=300
+Stealth=180
+Thor=0
+Thruster=6
+TopSpeed=6
+Warp=6
+XRadar=180
+
+DontShareBrick = 1
+DontShareBurst = 0
+DontShareThor = 1
+UpgradeVirtual = 1
+UseDeathPrizeWeights = 0
+UseTeamkillPrize = 0
+
+[ Prize ]
+DeathPrizeTime=1000
+EngineShutdownTime=600
+MinimumVirtual=150
+MultiPrizeCount=15
+PrizeDelay=250
+PrizeFactor=4500
+PrizeHideCount=25
+PrizeMaxExist=8000
+PrizeMinExist=4000
+PrizeNegativeFactor=300
+S2CTakePrizeReliable=0
+TakePrizeReliable=0
+UpgradeVirtual=3
+
+

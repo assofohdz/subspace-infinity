@@ -468,7 +468,7 @@ public class ModelViewState extends BaseAppState {
             }
 //System.out.println();            
         }
-
+        log.info("Setting static model filter to: "+Arrays.toString(filters));
         models.setFilter(Filters.or(SpawnPosition.class, filters));
     }
 
