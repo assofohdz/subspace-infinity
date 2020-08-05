@@ -95,6 +95,7 @@ import infinity.sim.InfinityPhysicsManager;
 import infinity.systems.InfinityTimeSystem;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
+import infinity.systems.ArenaSystem;
 import infinity.systems.AttackSystem;
 import infinity.systems.EnergySystem;
 import infinity.systems.MovementSystem;
@@ -189,7 +190,7 @@ public class GameServer {
         server.getServices().addService(new EntityDataHostedService(InfinityConstants.ES_CHANNEL, ed));
 
         // Just create a test world for now
-        LeafDb leafDb2 = new LeafDbCache(new TestLeafDb()); 
+        //LeafDb leafDb2 = new LeafDbCache(new TestLeafDb()); 
         LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
 
         InfinityDefaultWorld world = new InfinityDefaultWorld(leafDb);
@@ -272,6 +273,7 @@ public class GameServer {
         systems.register(AvatarSystem.class, new AvatarSystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
         systems.register(AttackSystem.class, new AttackSystem());
+        systems.register(ArenaSystem.class, new ArenaSystem());
         
         //Set up contacts to be filtered
         ContactSystem contactSystem = new ContactSystem();

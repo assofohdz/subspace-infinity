@@ -56,6 +56,9 @@ import com.simsilica.state.*;
 import infinity.client.AvatarMovementFunctions;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.List;
 
 //import com.simsilica.mathd.Grid;
 
@@ -154,7 +157,13 @@ public class Main extends SimpleApplication {
         //SkyState sky = stateManager.getState(SkyState.class);
         //sky.getGroundColor().set(0.3f, 0.5f, 0.1f, 1);
         //sky.setShowGroundDisc(true);
+        
+                // get a RuntimeMXBean reference
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
 
+        // get the jvm's input arguments as a list of strings
+        List<String> listOfArguments = runtimeMxBean.getInputArguments();
+        listOfArguments.forEach(s -> System.out.println("ARG:" + s));
     }
 
     @Override

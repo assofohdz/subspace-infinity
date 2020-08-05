@@ -203,6 +203,7 @@ public class BlockGeometryIndex {
             mat.setTexture("ColorMap", tex2D);
             //mat = globals.createMaterial(texture, false).getMaterial();
             materials.put(tileKey, mat);
+            jmeOutputImage.dispose();
         }
         else{
             //log.info("Found cached material: "+mat+" for tileKey = " + tileKey + " <= (Tile,Map) = (" + tileId + "," + mapId + ")");

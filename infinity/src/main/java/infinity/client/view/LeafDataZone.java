@@ -33,7 +33,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.client.view;
 
 import org.slf4j.*;
@@ -46,53 +45,54 @@ import com.simsilica.pager.*;
 import com.simsilica.mworld.*;
 
 /**
- *  Integrated leaf data geometry generation into the PagedGrid system.
+ * Integrated leaf data geometry generation into the PagedGrid system.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class LeafDataZone extends AbstractZone {
+
     static Logger log = LoggerFactory.getLogger(LeafDataZone.class);
-    
+
     private World world;
     private long leafId;
     private Node leafNode;
-    private Node lastLeafNode;    
+    private Node lastLeafNode;
     private static BlockGeometryIndex geomIndex = new BlockGeometryIndex();
-    
-    public LeafDataZone( World world, Grid grid, int xCell, int yCell, int zCell ) {
+
+    public LeafDataZone(World world, Grid grid, int xCell, int yCell, int zCell) {
         super(grid, xCell, yCell, zCell);
         this.world = world;
         this.leafId = Coordinates.leafToLeafId(xCell, yCell, zCell);
     }
-    
+
     @Override
-    public void build() {  
-//log.info("build():" + leafId);
+    public void build() {
         LeafData leaf = world.getLeaf(leafId);
-log.info("build() leaf empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:" + leaf.getRawCells());        
-        if( leaf.isEmpty() ) {
+        if (leaf.isEmpty()) {
             //System.out.println("--- skipping:" + leafId);
             return;
         }
- 
+        log.info("build() " + leafId+", loc: "+leaf.getInfo().location+", empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:" + leaf.getRawCells());
+
         lastLeafNode = leafNode;       
         leafNode = new Node("leaf:" + leafId);
-        geomIndex.generateBlocks(leafNode, leaf.getRawCells()); 
+        log.info("Calling generateBlocks from LeafDataZone");
+        geomIndex.generateBlocks(leafNode, leaf.getRawCells());
     }
-     
+
     @Override
-    public void apply( Builder builder ) {
+    public void apply(Builder builder) {
 //log.info("apply():" + leafId);
-        if( lastLeafNode != null ) {
+        if (lastLeafNode != null) {
             lastLeafNode.removeFromParent();
         }
-        if( leafNode != null ) {
+        if (leafNode != null) {
             getZoneRoot().attachChild(leafNode);
         }
     }
 
     @Override
-    public void release( Builder builder ) {
+    public void release(Builder builder) {
 //log.info("release():" + leafId);
         //Mesh mesh = boxGeom.getMesh();
         //for( VertexBuffer vb : mesh.getBufferList() ) {
@@ -102,19 +102,19 @@ log.info("build() leaf empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" +
         //    BufferUtils.destroyDirectBuffer( vb.getData() );
         //}        
     }
-    
+
     public static class Factory implements ZoneFactory {
+
         private World world;
-        
-        public Factory( World world ) {
+
+        public Factory(World world) {
             this.world = world;;
         }
-        
+
         @Override
-        public Zone createZone( PagedGrid pg, int xCell, int yCell, int zCell ) {
+        public Zone createZone(PagedGrid pg, int xCell, int yCell, int zCell) {
             Zone result = new LeafDataZone(world, pg.getGrid(), xCell, yCell, zCell);
-            return result;   
-        }        
+            return result;
+        }
     }
 }
-

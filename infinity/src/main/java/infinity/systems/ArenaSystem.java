@@ -25,6 +25,8 @@
  */
 package infinity.systems;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.jme3.asset.AssetManager;
 import com.jme3.system.JmeSystem;
 import com.simsilica.es.Entity;
@@ -43,15 +45,18 @@ import infinity.sim.ArenaManager;
 import infinity.sim.CoreGameConstants;
 import infinity.map.LevelLoader;
 import infinity.sim.GameEntities;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * State to keep track of different arenas. Arenas are composed of a tileset and
- * a ruleset. This state keeps track of where the next arena can be loaded
+ * a ruleset and a location (since areanas are 1024x1024. This state keeps track
+ * of where the next arena can be loaded and associates rulesets to each loaded arena
  *
  * @author Asser
  */
@@ -67,9 +72,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     private HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
 
-    private HashMap<ZoneKey, Long> zones = new HashMap<>();
-
     private boolean createdDefaultArena = false;
+    
+    private ListOrderedMap arenas = new ListOrderedMap();
+    private MapSystem mapSystem;
+    private int xCoord, zCoord;
 
     @Override
     protected void initialize() {
@@ -84,7 +91,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         am.registerLoader(LevelLoader.class, "lvz");
 
         staticBodyPositions = ed.getEntities(BodyPosition.class);
-
+        
+        mapSystem = getSystem(MapSystem.class, true);
     }
 
     public EntityId getEntityId(Vec3d coord) {
@@ -100,7 +108,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     @Override
     public void update(SimTime tpf) {
-        
 
     }
 
@@ -126,5 +133,59 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     @Override
     public String getDefaultArenaId() {
         return CoreGameConstants.DEFAULTARENAID;
+    }
+    
+    public void loadArena(String name, boolean forceLoad){
+        if (!arenas.containsKey(name)) {
+            //find next coordinate pair to load map on
+            
+            
+        }
+        
+        
+        if (arenas.containsKey(name) && forceLoad) {
+            
+            
+            
+            
+        }
+    }
+    
+    private class Vector2i{
+        public int x,z;
+
+        public Vector2i(int x, int z) {
+            this.x = x;
+            this.z = z;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Vector2i other = (Vector2i) obj;
+            if (this.x != other.x) {
+                return false;
+            }
+            if (this.z != other.z) {
+                return false;
+            }
+            return true;
+        }
+        
+        
     }
 }

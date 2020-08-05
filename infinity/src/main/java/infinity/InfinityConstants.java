@@ -112,7 +112,7 @@ public class InfinityConstants {
      *  The 3D zone grid definition that defines how space is broken
      *  up into network zones.  
      */
-    public static final ZoneGrid ZONE_GRID = new ZoneGrid(gridSize, gridSize, gridSize);
+    public static final ZoneGrid ZONE_GRID = new ZoneGrid(gridSize, 0, gridSize);
  
     //public static final float MAX_OBJECT_RADIUS = 5;
     public static final float MAX_OBJECT_RADIUS = 32; // with big ships, it needs to be bumped.

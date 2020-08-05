@@ -50,6 +50,7 @@ import com.simsilica.mathd.*;
 import com.simsilica.mphys.*;
 import com.simsilica.mblock.phys.*;
 import com.simsilica.ext.mphys.*;
+import java.util.logging.Logger;
 
 /**
  * Convenience methods for creating Spatials from shapes.
@@ -150,6 +151,7 @@ public class SpatialFactory {
         Node parts = new Node("Parts:" + id);
         node.attachChild(parts);
 
+        LOG.info("Calling generateBlocks from SpatialFactory");
         geomIndex.generateBlocks(parts, part.getCells());
 
         // If we are the root level then we'll need a cog shift
@@ -174,6 +176,7 @@ public class SpatialFactory {
 
         return node;
     }
+    private static final Logger LOG = Logger.getLogger(SpatialFactory.class.getName());
 
     public Spatial createSphere(EntityId id, float radius, Mass mass) {
         Sphere mesh = new Sphere(24, 24, radius);

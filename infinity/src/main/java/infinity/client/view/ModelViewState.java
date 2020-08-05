@@ -394,10 +394,11 @@ public class ModelViewState extends BaseAppState {
 
         Vector3f cell = worldView.getViewCell();
 
-        //log.info("cell:" + cell + "   lastCell:" + centerCell);
         // If the cell position has moved then we need to recalculate
         // relative positions of static objects
         if ((int) cell.x != centerCell.x || (int) cell.y != centerCell.y || (int) cell.z != centerCell.z) {
+            log.info("cell:" + cell + "   lastCell:" + centerCell);
+
             centerCell.x = (int) cell.x;
             centerCell.y = (int) cell.y;
             centerCell.z = (int) cell.z;
@@ -468,7 +469,7 @@ public class ModelViewState extends BaseAppState {
             }
 //System.out.println();            
         }
-        log.info("Setting static model filter to: "+Arrays.toString(filters));
+        log.info("Setting static model filter to: " + Arrays.toString(filters));
         models.setFilter(Filters.or(SpawnPosition.class, filters));
     }
 
@@ -693,7 +694,7 @@ log.info("states:" + sb);*/
                 if (getAvatarSpatial() == null && entityId.getId() == watchedAvatar.getId().getId()) {
                     setAvatarSpatial(spatial);
                     Node playerNode = new Node();
-                    
+
                     playerNode.attachChild(spatial);
                     getObjectRoot().attachChild(playerNode);
                 } else {

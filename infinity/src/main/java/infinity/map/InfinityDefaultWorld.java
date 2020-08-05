@@ -74,57 +74,6 @@ public class InfinityDefaultWorld implements World {
         }
     }
 
-    public int setWorldCell(Vec3d world, int type, boolean recalculateSideMasks) {
-//log.info("setWorldCell(" + world + ", " + type + ")");    
-        LeafData leaf = getWorldLeaf(world);
-        if (leaf == null) {
-            return -1;
-        }
-
-        WorldCellData data = new WorldCellData(leaf, this);
-
-        int x = Coordinates.worldToCell(world.x);
-        int y = Coordinates.worldToCell(world.y);
-        int z = Coordinates.worldToCell(world.z);
-
-        data.setCell(x, y, z, type);
-        //We are Subspace Infinity, will calculate sidemasks manually and never recalculate (mostly using just UP)
-        if (recalculateSideMasks) {
-            BlockGeometryIndex.recalculateSideMasks(data, x, y, z);
-        }
-
-        // Get the newly masked value to fire in the event
-        int value = data.getCell(x, y, z);
-//log.info("set cell:" + x + ", " + y + ", " + z + "  to: " + MaskUtils.valueToString(value));
-
-        //Vec3i leafLoc = leaf.getInfo().location;
-        //fireCellChanged(leaf.getInfo().leafId, x - leafLoc.x, y - leafLoc.y, z - leafLoc.z, value);
-        // Push the changes back to the DB
-        for (LeafData mod : data.getModified()) {
-            leafDb.storeLeaf(mod);
-        }
-
-        // Notify the listeners       
-        for (CellChangeEvent event : data.getChanges()) {
-//log.info("firing event:" + event);        
-            fireCellChanged(event);
-        }
-
-        /*        
-        int x = Coordinates.worldToCell(world.x) - leaf.getInfo().location.x;
-        int y = Coordinates.worldToCell(world.y) - leaf.getInfo().location.y;
-        int z = Coordinates.worldToCell(world.z) - leaf.getInfo().location.z;
-        
- 
-        leaf.setCell(x, y, z, value);
-
-        //MaskUtils.recalculateSideMasks(leaf.getCells(), x, y, z, true);
- 
-        fireCellChanged(leaf.getInfo().leafId, x, y, z, value);
-         */
-        return value;
-    }
-
     @Override
     public int getWorldCell(Vec3d world) {
         LeafData leaf = getWorldLeaf(world);
