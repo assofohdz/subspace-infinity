@@ -180,6 +180,7 @@ public class MapSystem extends AbstractGameSystem {
      */
     public LevelFile loadMap(String mapFile) {
         LevelFile map = (LevelFile) assetLoader.loadAsset(mapFile);
+        //log.info("loadMap:: Loading map = "+map+":"+map.readLevel());
         return map;
     }
 
@@ -193,12 +194,14 @@ public class MapSystem extends AbstractGameSystem {
         Set<Integer> tileSet = new HashSet<>();
         short[][] tiles = map.getMap();
         int count = 0;
+        
+        
 
         //for (int xpos = 510; xpos < 516; xpos++) {
         for (int xpos = 0; xpos < tiles.length; xpos++) {
             //for (int zpos = 260; zpos >= 250; zpos--) {
-            for (int zpos = tiles[xpos].length - 1; zpos >= 0; zpos--) {
-                short s = tiles[xpos][zpos];
+            for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
+                short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
                 if (s != 0) {
                     //TODO: Check on the short and only create the map tiles, not the extras (asteroids, wormholes etc.)
 /*  TILE    STATUS
@@ -356,11 +359,11 @@ public class MapSystem extends AbstractGameSystem {
 
                     if (s > 190) {
                         //TODO: will handle special tiles later
-                        continue;
+                        s=1;
                     }
 
-                    Vec3d bottomPlane = new Vec3d(xpos, 0, -zpos).add(arenaOffset);
-                    Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
+                    Vec3d bottomPlane = new Vec3d(xpos, 0, zpos).add(arenaOffset);
+                    //Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
                     Vec3i i = new Vec3i(bottomPlane.toVector3f());
 
@@ -372,7 +375,8 @@ public class MapSystem extends AbstractGameSystem {
                     //log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) = (" + tileId + "," + mapId + ") - Coords: " + i);
                     //value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
                     world.setWorldCell(bottomPlane, value);
-                    world.setWorldCell(topPlane, 0);
+                    
+                    //world.setWorldCell(topPlane, 0);
 
                     count++;
                 }
@@ -426,7 +430,7 @@ public class MapSystem extends AbstractGameSystem {
 
         //Create map:
         if (!mapCreated) {
-            createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz-el-blazer-01.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, MAP_SIZE * 0.5));
+            createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz.lvl"), new Vec3d(-MAP_SIZE*0.5, 0, -MAP_SIZE * 0.5));
             //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, 0, MAP_SIZE));
             //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0 , 0));
             //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0,0));

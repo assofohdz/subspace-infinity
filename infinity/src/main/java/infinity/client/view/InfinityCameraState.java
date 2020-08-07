@@ -56,15 +56,15 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class InfinityCameraState extends CameraState{
+public class InfinityCameraState extends CameraState {
 
-    //WatchedEntity watchedAvatar;
+    WatchedEntity watchedAvatar;
     EntityId avatarId;
 
     static Logger log = LoggerFactory.getLogger(InfinityCameraState.class);
 
     public static final float DISTANCETOPLANE = 40;
-    private Camera camera;
+    private Camera cam;
     private EntityData ed;
     Vector3f viewLoc = new Vector3f(0, DISTANCETOPLANE, 0);
     private TimeSource timeSource;
@@ -73,41 +73,41 @@ public class InfinityCameraState extends CameraState{
     Spatial avatarSpatial;
     private GameSessionClientService gameSession;
     private Vector3f avatarPos;
-    private TransitionBuffer<PositionTransition3d> buffer;
     private float frustumSize = 1;
-    
+
     private boolean initializedCam = false;
-    
+
     private CameraNode camNode;
-    
+
     private InfinityCamControl camControl;
+    private GameSessionClientService session;
+    private TransitionBuffer<PositionTransition3d> avatarTransBuffer;
 
     public InfinityCameraState() {
     }
 
     @Override
     protected void initialize(Application app) {
-        
-        
-        this.camera = app.getCamera();
+        this.cam = app.getCamera();
 
-        camNode = new CameraNode("Camera", camera);
+        camNode = new CameraNode("Camera", cam);
         //SpatialToamera means the camera copies movement by the target
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
-        
-        camControl = new InfinityCamControl(camera, InfinityCamControl.ControlDirection.SpatialToCamera, DISTANCETOPLANE);
-        
+
+        camControl = new InfinityCamControl(cam, InfinityCamControl.ControlDirection.SpatialToCamera, DISTANCETOPLANE);
+
         //this.camera.setParallelProjection(true);
         //float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
         //this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
-
-        app.getRenderManager().setCamera(camera, true);
+        app.getRenderManager().setCamera(cam, true);
 
         this.ed = getState(ConnectionState.class).getEntityData();
 
         this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
 
         this.viewState = getState(ModelViewState.class);
+
+        this.session = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -121,59 +121,37 @@ public class InfinityCameraState extends CameraState{
     @Override
     public void update(float tpf) {
         long time = timeSource.getTime();
-        
+        /*
         if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
             avatarSpatial = viewState.getAvatarSpatial();
-        } else if(!initializedCam){
-            //avatarSpatial.getParent().attachChild(camNode);
-            //((Node)avatarSpatial).attachChild(camNode);
-            
-            //camNode.setLocalRotation(avatarSpatial.getLocalRotation());
-            //camNode.setLocalTranslation(viewLoc);
-            //camNode.lookAt(avatarSpatial.getLocalTranslation(), Vector3f.UNIT_Y); //Set camera to at our player Avatar
-            
-            avatarSpatial.addControl(camControl);
-            
+        } else 
+            if (!initializedCam && avatarSpatial != null) {
+            //avatarSpatial.addControl(camControl);
+
             initializedCam = true;
-        } 
-        
-        //watchedAvatar.applyChanges();
-
-        /*
-
-        //This means our avatar has a new shapeinfo (new spatial)
-        if (watchedAvatar.applyChanges() || avatarSpatial == null) {
-            avatarSpatial = viewState.getModelSpatial(avatar, true);
         }
-        avatarModel = viewState.getModel(avatar, false);
-        avatarModel.
-        avatarPos = avatarSpatial.getWorldTranslation().clone();
-
-        Quaternion rot = camera.getRotation();
-
-        cameraPos = avatarPos.clone().setY(40);
-
-        gameSession.setView(new Quatd(rot), new Vec3d(avatarPos));
-        getState(WorldViewState.class).setViewLocation(cameraPos, avatarPos);
-
-        log.info("Camera is at: " + cameraPos + ", looking at :" + avatarPos);
          */
- /*
-        BodyPosition bp2 = ed.getComponent(avatar, BodyPosition.class);
+        //if (initializedCam) {
+        //log.info("update:: setting viewLoc to:"+cam.getLocation());
+/*
+        avatarTransBuffer = viewState.getAvatarBuffer();
+        avatarPos = viewState.getAvatarPosition();
 
-        if (bp2 != null) {
-            long time = this.timeSource.getTime();
-            PositionTransition3d transition = bp2.getBuffer().getTransition(time);
-            if (transition != null) {
-                Vector3f pos = transition.getPosition(time, true).toVector3f();
-           
-                lastAvatarLoc = pos;
-                newCameraLoc.x = lastAvatarLoc.x;
-                //We dont set the y because that doesnt change (for now)
-                newCameraLoc.z = lastAvatarLoc.z;
+        if (avatarTransBuffer != null) {
 
-                camera.setLocation(newCameraLoc);
-                camera.lookAt(lastAvatarLoc, Vector3f.UNIT_Y);
+            PositionTransition3d trans = avatarTransBuffer.getTransition(time);
+            if (trans != null) {
+                Vector3f pos = trans.getPosition(time, true).toVector3f();
+                //log.info("update():: avatarPos = "+avatarPos);
+                getState(WorldViewState.class).setViewLocation(pos);
+
+                pos.subtractLocal(getState(ModelViewState.class).get)
+                
+                cam.setLocation(pos.add(0, DISTANCETOPLANE, 0));
+                cam.lookAt(pos, Vector3f.UNIT_Y);
+
+                //getState(WorldViewState.class).setViewLocation(avatarSpatial.getWorldTranslation());
+                session.setView(new Quatd(cam.getRotation()), new Vec3d(pos));
             }
         }
          */
@@ -187,16 +165,11 @@ public class InfinityCameraState extends CameraState{
     @Override
     protected void onEnable() {
         this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
+
     }
 
     @Override
     protected void onDisable() {
 
     }
-
-    /*@Override
-    public void setAvatar(EntityId avatarId) {
-        this.avatarId = avatarId;
-        watchedAvatar = ed.watchEntity(avatarId, BodyPosition.class);
-    }*/
 }

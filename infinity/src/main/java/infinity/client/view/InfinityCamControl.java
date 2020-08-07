@@ -43,7 +43,10 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.util.TempVars;
+import com.simsilica.mathd.Vec3i;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This Control maintains a reference to a Camera,
@@ -121,6 +124,7 @@ public class InfinityCamControl extends AbstractControl {
                     camLoc.addLocal(0, distanceToCam, 0);
                     
                     camera.setLocation(camLoc);
+                    LOG.log(Level.INFO, "controlUpdate:: Setting camera location to : {0}", new Vec3i(camLoc));
                     //camera.setRotation(spatial.getWorldRotation());
                     camera.lookAt(spatialLoc, Vector3f.UNIT_Y);
                     break;
@@ -140,6 +144,7 @@ public class InfinityCamControl extends AbstractControl {
             }
         }
     }
+    private static final Logger LOG = Logger.getLogger(InfinityCamControl.class.getName());
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {

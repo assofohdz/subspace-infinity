@@ -169,7 +169,7 @@ public class BlockGeometryIndex {
 
             //log.info("getMaterialType:: tileKey = " + tileKey + " => (Tile,Map) = (" + tileId + "," + mapId + ")");
 
-            String mapName = "aswz-el-blazer-01.lvl";
+            String mapName = "aswz.lvl";
 
             matType = new MaterialType(tileKey);
 
@@ -469,8 +469,8 @@ public class BlockGeometryIndex {
 
         bGr.dispose();
 
-        AffineTransform tx = AffineTransform.getScaleInstance(1, -1);
-        tx.translate(0, -bimage.getHeight(null));
+        AffineTransform tx = AffineTransform.getScaleInstance(-11, -1);
+        tx.translate(-bimage.getWidth(null), -bimage.getHeight(null));
         AffineTransformOp op = new AffineTransformOp(tx,
                 AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
         bimage = op.filter(bimage, null);

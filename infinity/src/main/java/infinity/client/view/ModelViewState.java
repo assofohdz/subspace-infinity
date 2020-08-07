@@ -123,6 +123,8 @@ public class ModelViewState extends BaseAppState {
     private WatchedEntity watchedAvatar;
     private GameSessionClientService gameSession;
     private Spatial avatarSpatial;
+    private TransitionBuffer avatarBuffer;
+    private Vector3f avatarPos;
 
     {
         testCoords.add(new Vector4f(0, 64, 0, 0.5f));
@@ -263,6 +265,8 @@ public class ModelViewState extends BaseAppState {
         this.worldView = getState(WorldViewState.class);
         this.objectRoot = new Node("objectRoot");
         this.grid = InfinityConstants.PHYSICS_GRID;
+        
+        
 
         DebugHudState debug = getState(DebugHudState.class);
         if (debug != null) {
@@ -403,7 +407,7 @@ public class ModelViewState extends BaseAppState {
             centerCell.y = (int) cell.y;
             centerCell.z = (int) cell.z;
             worldView.cellToWorld(centerCell, centerCellWorld);
-            //centerCellWorld.y = 0;              
+            centerCellWorld.y = 0;
             resetRelativeCoordinates();
 
             if (modelCenter.x != centerCell.x || modelCenter.z != centerCell.z) {
@@ -422,13 +426,14 @@ public class ModelViewState extends BaseAppState {
             }
         }
 
-        //log.info("  world:" + centerCellWorld);       
+        //log.info("  centerCellWorld:" + centerCellWorld);
         objectRoot.setLocalTranslation(-(center.x - centerCellWorld.x),
                 // The camera y always == center y
                 0,//-(center.y - centerCellWorld.y),
                 -(center.z - centerCellWorld.z));
 
-        //log.info("  local:" + objectRoot.getLocalTranslation());
+        //log.info("  objectRootWorld:" + objectRoot.getWorldTranslation());
+        //log.info("  objectRootLocal:" + objectRoot.getLocalTranslation());
         //log.info("  test:" + test.getLocalTranslation());
     }
 
@@ -593,10 +598,7 @@ log.info("states:" + sb);*/
     }
 
     public void setAvatar(EntityId avatarId) {
-        watchedAvatar = ed.watchEntity(avatarId, ShapeInfo.class);
-        //We only need to know where the player is currently - that's where we'll point our camera 
-        //Doesn't work:
-        //watchedAvatar = ed.watchEntity(this.avatar, BodyPosition.class);
+        watchedAvatar = ed.watchEntity(avatarId, BodyPosition.class);
     }
 
     /**
@@ -691,15 +693,15 @@ log.info("states:" + sb);*/
             spatial = createModel(entityId, shapeFactory.createShape(shapeInfo, mass), shapeInfo, mass);
             if (spatial != null) {
 
-                if (getAvatarSpatial() == null && entityId.getId() == watchedAvatar.getId().getId()) {
-                    setAvatarSpatial(spatial);
-                    Node playerNode = new Node();
+                //if (getAvatarSpatial() == null && entityId.getId() == watchedAvatar.getId().getId()) {
+                //setAvatarSpatial(spatial);
+                //Node playerNode = new Node();
+                //playerNode.attachChild(spatial);
+                //} else {
+                //    getObjectRoot().attachChild(spatial);
+                //}
+                getObjectRoot().attachChild(spatial);
 
-                    playerNode.attachChild(spatial);
-                    getObjectRoot().attachChild(playerNode);
-                } else {
-                    getObjectRoot().attachChild(spatial);
-                }
                 resetVisibility();
 
                 if (spatial.getUserDataKeys().contains("arena")) {
@@ -778,8 +780,13 @@ log.info("states:" + sb);*/
 
         boolean visible;
         boolean forceInvisible; // just in case
+        boolean isAvatar = false;
 
         public Mob(Entity entity) {
+            if (entity.getId().getId() == watchedAvatar.getId().getId()) {
+                this.isAvatar = true;
+            }
+
             this.entity = entity;
             this.model = getModel(entity.getId(), true);
             model.setDynamic(true);
@@ -806,6 +813,10 @@ log.info("states:" + sb);*/
             // be 'initialized'.            
             pos.initialize(entity.getId(), 12);
             this.buffer = pos.getBuffer();
+
+            if (this.isAvatar) {
+                setAvatarBuffer(buffer);
+            }
         }
 
         public void update(long time) {
@@ -825,6 +836,15 @@ log.info("states:" + sb);*/
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
                 //log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
                 setVisible(trans.getVisibility(time));
+                
+                if (isAvatar) {
+                    Vector3f avatarWorldPos = model.spatial.getWorldTranslation();
+                    getApplication().getCamera().setLocation(avatarWorldPos.add(0,40,0));
+                    getApplication().getCamera().lookAt(avatarWorldPos, Vector3f.UNIT_Y);
+                    
+                    getState(WorldViewState.class).setViewLocation(pos.clone().addLocal(centerCellWorld));
+                    gameSession.setView(new Quatd(getApplication().getCamera().getRotation()), new Vec3d(getApplication().getCamera().getLocation()));
+                }
             }
         }
 
@@ -984,11 +1004,19 @@ log.info("Setting NOT visible:" + entity.getId());
         return spatialIndex.get(eId);
     }
 
-    public Spatial getAvatarSpatial() {
-        return this.avatarSpatial;
+    private void setAvatarBuffer(TransitionBuffer buffer) {
+        this.avatarBuffer = buffer;
     }
 
-    private void setAvatarSpatial(Spatial s) {
-        this.avatarSpatial = s;
+    public TransitionBuffer<PositionTransition3d> getAvatarBuffer() {
+        return this.avatarBuffer;
+    }
+
+    private void setAvatarWorldPosition(Vector3f pos) {
+        this.avatarPos = pos;
+    }
+
+    public Vector3f getAvatarPosition() {
+        return this.avatarPos;
     }
 }

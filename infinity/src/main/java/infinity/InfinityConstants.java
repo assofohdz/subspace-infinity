@@ -79,7 +79,7 @@ public class InfinityConstants {
      *  The size of the rendered grid cells.  This is just a visualization
      *  setting but it's best if it is at least a multiple/factor of the gridSize.
      */       
-    public static final int GRID_CELL_SIZE = 128;
+    public static final int GRID_CELL_SIZE = 256;
     
     /** 
      *  The grid that divides physical space into bins for management of the

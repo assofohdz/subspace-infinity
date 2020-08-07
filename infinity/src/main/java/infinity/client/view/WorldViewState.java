@@ -73,31 +73,35 @@ public class WorldViewState extends BaseAppState {
     private PagedGrid pager;
     private Node worldRoot;
 
-    private Vector3f viewLoc = new Vector3f(0, 80f, 0);
+    private Vector3f viewLoc = new Vector3f(20, 40.5f, 20);
     private Vector3f viewCell = new Vector3f();
 
     public WorldViewState() {
     }
 
     public void setViewLocation( Vector3f viewLoc ) {
+        //viewLoc = viewLoc.setY(30);
         this.viewLoc.set(viewLoc);
+        //log.info("setViewLocation:: viewLoc is now: "+viewLoc);
         if (pager != null) {
             pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
-            //getApplication().getCamera().setLocation(new Vector3f(viewLoc.x, 80, viewLoc.z));
 
             pager.getGrid().toCell(viewLoc, viewCell);
 
             // The grid may be in 3D but the pager considers it a 2D grid for the
             // sake of center placement.
             viewCell.y = 0;
+            //log.info("setViewLocation:: viewCell is now: "+viewCell);
         }
     }
 
     public Vector3f getViewLocation() {
+        //log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
         return viewLoc;
     }
 
     public Vector3f getViewCell() {
+        //log.info("getViewCell:: Getting viewCell: "+viewCell);
         return viewCell;
     }
 
@@ -138,7 +142,7 @@ public class WorldViewState extends BaseAppState {
             boxMaterial.getAdditionalRenderState().setWireframe(true);
             ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
 
-            PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 5, 2);
+            PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 5, 5);
             worldRoot.attachChild(gridPager.getGridRoot());
         }
 
@@ -172,7 +176,7 @@ public class WorldViewState extends BaseAppState {
         ((SimpleApplication) getApplication()).getRootNode().attachChild(worldRoot);
 
         pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
-        getApplication().getCamera().setLocation(new Vector3f(0, viewLoc.y, 0));
+        getApplication().getCamera().setLocation(new Vector3f(20, 40, 20));
     }
 
     @Override

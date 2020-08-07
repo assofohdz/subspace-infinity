@@ -46,6 +46,7 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.builder.BuilderState;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.event.MouseAppState;
+import com.simsilica.state.CameraState;
 import com.simsilica.state.CompositeAppState;
 import infinity.HelpState;
 import infinity.HostState;
@@ -77,26 +78,16 @@ public class GameSessionState extends CompositeAppState {
     public GameSessionState() {
         super(
                 new AvatarMovementState(),
+                new CameraState(),
+                //new LightingState(),
                 new TimeState(), // Has to be before any visuals that might need it.
-                //new CameraState(),
-                //new MovementState(), - is added later with reference to MovementTarget
-                //new CameraState(),
-                //new LightingState(), //For the general lighting
-                //new AmbientLightState(),
-                //new PostProcessingState(),
-                //new GridState(new Grid(32, 0, 32)),
-                //new SkySettingsState(),
                 new SkyState(),
-
-                //new infinity.client.view.SkyState(),
-
+                //new PostProcessingState(),
+                //new SkySettingsState(),
                 new BuilderState(4, 4),
-                new WorldViewState(),
                 new ModelViewState(),
-        //For now we do everything unshaded
-        //new LightState() //For pointlights and decaying lights - must come after ModelViewState because we need the spatials to be there
-                //new CameraMovementState()
-        new InfinityCameraState() //Add camera last
+                new InfinityCameraState(),
+                new WorldViewState()
         );
 
         addChild(new HelpState(), true);
@@ -121,7 +112,7 @@ public class GameSessionState extends CompositeAppState {
         // to its own debug manager state. 
         HostState host = getState(HostState.class);
         if (host != null) {
-            addChild(new PhysicsDebugState(host), true);
+            //addChild(new PhysicsDebugState(host), true);
             //hostIsLocal = true;
             // Then we can add some debug states
             //addChild(new BinStatusState(host.getSystems().get(PhysicsSpace.class), 64)); 
@@ -136,8 +127,7 @@ public class GameSessionState extends CompositeAppState {
         getState(ModelViewState.class).setAvatar(avatar);
 
         getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
-        
-        
+
         this.getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
         addChild(new MouseAppState(this.getApplication()));
     }

@@ -168,7 +168,7 @@ public class AvatarMovementState extends BaseAppState
     public void update(float tpf) {
         timeSinceLastSend += tpf;
 
-        if (timeSinceLastSend > sendFrequency) {
+        //if (timeSinceLastSend > sendFrequency) {
 
             thrust.x = (float) (rotate * rotateSpeed);
             //thrust.y is left out because y is the upwards axis
@@ -183,10 +183,6 @@ public class AvatarMovementState extends BaseAppState
 
             timeSinceLastSend = 0;
             
-            getState(WorldViewState.class).setViewLocation(cam.getLocation());
- 
-            session.setView(new Quatd(cam.getRotation()), new Vec3d(cam.getLocation()));
-            
             /*
                 if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
 
@@ -199,7 +195,7 @@ public class AvatarMovementState extends BaseAppState
                     getState(WorldViewState.class).setViewLocation(cameraWorldTranslation);
                 }
             */
-        }
+        //}
     }
 
     @Override

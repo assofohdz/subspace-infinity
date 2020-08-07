@@ -72,11 +72,11 @@ public class LeafDataZone extends AbstractZone {
             //System.out.println("--- skipping:" + leafId);
             return;
         }
-        log.info("build() " + leafId+", loc: "+leaf.getInfo().location+", empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:" + leaf.getRawCells());
+        //log.info("build() " + leafId+", loc: "+leaf.getInfo().location+", empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:" + leaf.getRawCells());
 
         lastLeafNode = leafNode;       
         leafNode = new Node("leaf:" + leafId);
-        log.info("Calling generateBlocks from LeafDataZone");
+        //log.info("Calling generateBlocks from LeafDataZone");
         geomIndex.generateBlocks(leafNode, leaf.getRawCells());
     }
 

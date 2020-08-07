@@ -466,11 +466,7 @@ public class LevelFile extends JPanel {
 
     public boolean available(int n) {
         try {
-            if (m_stream.available() >= n) {
-                return true;
-            } else {
-                return false;
-            }
+            return m_stream.available() >= n;
         } catch (IOException e) {
             System.out.println(e);
             return false;
