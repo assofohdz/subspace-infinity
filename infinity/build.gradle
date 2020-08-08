@@ -102,7 +102,7 @@ dependencies {
     implementation "com.badlogicgames.gdx:gdx-ai:1.8.2"
     
     //We're using a java port of http://www.angusj.com/delphi/clipper.php to do polygon boolean operations
-    implementation files('libs/Clipper-6.4.2.jar')
+    implementation 'de.lighti:Clipper:6.4.2'
     
     
     // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
