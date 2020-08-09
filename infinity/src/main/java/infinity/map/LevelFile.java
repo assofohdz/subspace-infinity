@@ -71,8 +71,8 @@ public class LevelFile extends JPanel {
     /**
      * Reads in a *.lvl file.
      *
-     * @param bufferedStream	The file to load/save to
-     * @param b	The tileset bitmap (note read in default bitmap if lvl file does
+     * @param bufferedStream    The file to load/save to
+     * @param b    The tileset bitmap (note read in default bitmap if lvl file does
      * not contain bitmap portion)
      * @param hasBMP if the file has bmp information
      * @param hasELVL if the file has the extended lvz information
@@ -90,7 +90,7 @@ public class LevelFile extends JPanel {
     /**
      * Creates a new default lvl file
      *
-     * @param b	The tileset bitmap (note read in default bitmap if lvl file does
+     * @param b    The tileset bitmap (note read in default bitmap if lvl file does
      * not contain bitmap portion)
      */
     public LevelFile(BitMap b) {

@@ -32,16 +32,16 @@ import java.util.Vector;
 
 /**
  * This class represents a region defined by several things: 
- * name         -	rNam
- * isBase	-	rBSE 
- * isNoFlags	-	rNFL 
- * isNoWeps	-	rNWP 
- * isNoAnti	-	rNAW 
- * isAutoWarp	-       rAWP
+ * name         -    rNam
+ * isBase    -    rBSE 
+ * isNoFlags    -    rNFL 
+ * isNoWeps    -    rNWP 
+ * isNoAnti    -    rNAW 
+ * isAutoWarp    -       rAWP
  *
  * autoWarp x, y, and arena (in case of autowarp) arena is max 15 letters
  *
- * vector of rectangles	- rTIL
+ * vector of rectangles    - rTIL
  *
  * @author baks
  */
@@ -223,7 +223,7 @@ public class Region {
             }
         }
 
-        // encode tiles		
+        // encode tiles        
         encoding.add(new Byte((byte) 'r'));
         encoding.add(new Byte((byte) 'T'));
         encoding.add(new Byte((byte) 'I'));
@@ -388,10 +388,10 @@ public class Region {
      */
     private static Vector encodeEmptyRows(int count) {
         /*first, rows that contain no
-		tiles at all can (optionally) be encoded specially:
+        tiles at all can (optionally) be encoded specially:
 
-		100n nnnn          - n+1 (1-32) rows of all empty
-		1010 00nn  nnnn nnnn - n+1 (1-1024) rows of all empty*/
+        100n nnnn          - n+1 (1-32) rows of all empty
+        1010 00nn  nnnn nnnn - n+1 (1-1024) rows of all empty*/
 
         Vector code = new Vector();
 
@@ -422,12 +422,12 @@ public class Region {
      */
     private static Vector encodeRun(int count, boolean inRegion) {
         /*for each row, split it into runs of empty tiles and present tiles. for
-		each run, output one of these bit sequences:
+        each run, output one of these bit sequences:
 
-		000n nnnn            - n+1 (1-32) empty tiles in a row
-		0010 00nn  nnnn nnnn - n+1 (1-1024) empty tiles in a row
-		010n nnnn            - n+1 (1-32) present tiles in a row
-		0110 00nn  nnnn nnnn - n+1 (1-1024) present tiles in a row*/
+        000n nnnn            - n+1 (1-32) empty tiles in a row
+        0010 00nn  nnnn nnnn - n+1 (1-1024) empty tiles in a row
+        010n nnnn            - n+1 (1-32) present tiles in a row
+        0110 00nn  nnnn nnnn - n+1 (1-1024) present tiles in a row*/
 
         Vector code = new Vector();
 
@@ -473,10 +473,10 @@ public class Region {
      */
     private static Vector encodeRepeatLastRow(int count) {
         /*if the same pattern of tiles appears in more than one
-		consecutive row, you can use these special codes to save more space:
+        consecutive row, you can use these special codes to save more space:
 
-		110n nnnn            - repeat last row n+1 (1-32) times
-		1110 00nn  nnnn nnnn - repeat last row n+1 (1-1024) times*/
+        110n nnnn            - repeat last row n+1 (1-32) times
+        1110 00nn  nnnn nnnn - repeat last row n+1 (1-1024) times*/
 
         Vector code = new Vector();
 

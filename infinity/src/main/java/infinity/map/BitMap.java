@@ -32,10 +32,10 @@ import java.io.*;
 
 public class BitMap extends JPanel {
 
-    public final static int BI_RGB = 0;  		//No compression
-    public final static int BI_RLE8 = 1; 		//RLE 8-bit / pixel 
-    public final static int BI_RLE4 = 2; 		//RLE 4-bit / pixel 
-    public final static int BI_BITFIELDS = 3;	//Bitfields
+    public final static int BI_RGB = 0;          //No compression
+    public final static int BI_RLE8 = 1;         //RLE 8-bit / pixel 
+    public final static int BI_RLE4 = 2;         //RLE 4-bit / pixel 
+    public final static int BI_BITFIELDS = 3;    //Bitfields
 
     private BufferedInputStream m_stream;
 
@@ -218,7 +218,7 @@ public class BitMap extends JPanel {
         byte[] b = new byte[n];
         try {
             m_stream.read(b);
-            //	fileData.addByteArray( b );
+            //    fileData.addByteArray( b );
             return b;
         } catch (IOException e) {
             return new byte[0];

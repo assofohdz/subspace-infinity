@@ -157,7 +157,7 @@ public class CategoryFilter implements Filter {
     }
 
     /* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
+     * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
     public boolean equals(Object obj) {
@@ -175,7 +175,7 @@ public class CategoryFilter implements Filter {
     }
 
     /* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
+     * @see java.lang.Object#hashCode()
      */
     @Override
     public int hashCode() {
@@ -186,7 +186,7 @@ public class CategoryFilter implements Filter {
     }
 
     /* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+     * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {

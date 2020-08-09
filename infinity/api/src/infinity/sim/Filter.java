@@ -16,7 +16,7 @@ public interface Filter {
      */
     public static final Filter DEFAULT_FILTER = new Filter() {
         /* (non-Javadoc)
-		 * @see org.dyn4j.collision.Filter#isAllowed(org.dyn4j.collision.Filter)
+         * @see org.dyn4j.collision.Filter#isAllowed(org.dyn4j.collision.Filter)
          */
         @Override
         public boolean isAllowed(Filter filter) {
@@ -25,7 +25,7 @@ public interface Filter {
         }
 
         /* (non-Javadoc)
-		 * @see java.lang.Object#toString()
+         * @see java.lang.Object#toString()
          */
         public String toString() {
             return "DefaultFilter[]";

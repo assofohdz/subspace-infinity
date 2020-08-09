@@ -19,10 +19,6 @@
 *.tar.gz
 *.rar
 
-# Eclipse Core      
-.project
-org.eclipse.buildship.core.prefs
-
 # JDT-specific (Eclipse Java Development Tools)     
 # .classpath
 
