@@ -1,3 +1,7 @@
+# Build Stats:
+
+[![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
+
 # Pre-requisites to build
 
 See also CONTRIBUTE
