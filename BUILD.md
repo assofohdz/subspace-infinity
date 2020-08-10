@@ -1,4 +1,4 @@
-# Build Stats:
+# Build Status:
 
 [![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
 
