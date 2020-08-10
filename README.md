@@ -1,9 +1,5 @@
 Project is un-archived - lets see if we can push some more into this game :D
 
-# Build Stats:
-
-[![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
-
 # Subspace Infinity
 A java port of Subspace Continuum, built on JME, Lemur, Zay-ES, Zay-ES-Net, SpiderMonkey, and the SimEthereal real-time
 object synching library.  This modifies the sim-eth-basic to be ES based using the Zay-ES library.
