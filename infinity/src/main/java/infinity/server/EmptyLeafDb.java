@@ -35,14 +35,17 @@ package infinity.server;
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-
-import org.slf4j.*;
-
-import com.simsilica.mathd.*;
-
-import com.simsilica.mblock.*;
-import com.simsilica.mworld.*;
+import com.simsilica.mathd.Vec3i;
+import com.simsilica.mblock.CellArray;
+import com.simsilica.mblock.CellData;
+import com.simsilica.mblock.Direction;
+import com.simsilica.mblock.MaskUtils;
+import com.simsilica.mworld.Coordinates;
+import com.simsilica.mworld.LeafData;
+import com.simsilica.mworld.LeafInfo;
 import com.simsilica.mworld.db.LeafDb;
 
 /**

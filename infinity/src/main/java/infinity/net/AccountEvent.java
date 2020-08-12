@@ -30,7 +30,6 @@ import com.google.common.base.MoreObjects;
 import com.jme3.network.HostedConnection;
 
 import com.simsilica.es.EntityId;
-
 import com.simsilica.event.EventType;
 
 /**

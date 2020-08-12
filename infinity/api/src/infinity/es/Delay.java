@@ -25,8 +25,9 @@
  */
 package infinity.es;
 
-import com.simsilica.es.EntityComponent;
 import java.util.HashSet;
+
+import com.simsilica.es.EntityComponent;
 
 /**
  * Represents a time-to-live for an entity.

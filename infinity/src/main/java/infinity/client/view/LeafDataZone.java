@@ -35,14 +35,20 @@
  */
 package infinity.client.view;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.jme3.scene.*;
+import com.jme3.scene.Node;
 
-import com.simsilica.builder.*;
-import com.simsilica.pager.*;
-
-import com.simsilica.mworld.*;
+import com.simsilica.builder.Builder;
+import com.simsilica.mworld.Coordinates;
+import com.simsilica.mworld.LeafData;
+import com.simsilica.mworld.World;
+import com.simsilica.pager.AbstractZone;
+import com.simsilica.pager.Grid;
+import com.simsilica.pager.PagedGrid;
+import com.simsilica.pager.Zone;
+import com.simsilica.pager.ZoneFactory;
 
 /**
  * Integrated leaf data geometry generation into the PagedGrid system.

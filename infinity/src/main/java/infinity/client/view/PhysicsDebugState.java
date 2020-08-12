@@ -36,22 +36,24 @@
 
 package infinity.client.view;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
 
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.debug.BinStatusState;
+import com.simsilica.ext.mphys.debug.BodyDebugState;
+import com.simsilica.ext.mphys.debug.ContactDebugState;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.input.InputMapper;
-
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.PhysicsStats;
 import com.simsilica.state.CompositeAppState;
 import com.simsilica.state.DebugHudState;
 
-import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mphys.PhysicsStats;
-import com.simsilica.ext.mphys.MPhysSystem;
-import com.simsilica.ext.mphys.debug.*;
 import infinity.HostState;
 
 

@@ -25,9 +25,21 @@
  */
 package infinity.systems;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.czyzby.noise4j.map.Grid;
 import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -35,38 +47,20 @@ import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
-import com.simsilica.mblock.Direction;
-import com.simsilica.mblock.DirectionMasks;
-import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.client.view.BlockGeometryIndex;
+
 import infinity.es.BodyPosition;
 import infinity.es.TileType;
-import infinity.map.LevelFile;
-import infinity.map.LevelLoader;
-import java.lang.reflect.Method;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import infinity.es.TileTypes;
 import infinity.map.InfinityDefaultWorld;
+import infinity.map.LevelFile;
+import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.sim.GameEntities;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * State

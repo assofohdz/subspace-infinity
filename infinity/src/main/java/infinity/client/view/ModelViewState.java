@@ -35,47 +35,68 @@
  */
 package infinity.client.view;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.collision.*;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.light.PointLight;
-import com.jme3.math.*;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.scene.*;
-import com.jme3.scene.shape.*;
-import com.jme3.texture.Texture;
-import com.jme3.texture.plugins.AWTLoader;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 
-import com.simsilica.es.*;
+import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.es.Filters;
+import com.simsilica.es.WatchedEntity;
 import com.simsilica.es.common.Decay;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
+import com.simsilica.ext.mblock.SphereFactory;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeFactoryRegistry;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.mathd.*;
-import com.simsilica.mathd.trans.*;
-import com.simsilica.state.*;
+import com.simsilica.mathd.Grid;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
+import com.simsilica.mathd.trans.PositionTransition3d;
+import com.simsilica.mathd.trans.TransitionBuffer;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.state.DebugHudState;
 
-import com.simsilica.ext.mblock.*;
-import com.simsilica.ext.mphys.*;
-import com.simsilica.mblock.*;
-import com.simsilica.mblock.phys.*;
-import com.simsilica.mphys.*;
 import infinity.InfinityConstants;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.es.BodyPosition;
-
 import infinity.es.LargeGridCell;
 import infinity.es.LargeObject;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
-import infinity.es.TileTypes;
 
 /**
  *

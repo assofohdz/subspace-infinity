@@ -36,22 +36,27 @@
 
 package infinity.client.view;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.material.*;
+import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
-import com.jme3.scene.*;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 
-import com.simsilica.lemur.*;
-import com.simsilica.lemur.input.*;
+import com.simsilica.es.EntityId;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.input.FunctionId;
+import com.simsilica.lemur.input.InputMapper;
+import com.simsilica.lemur.input.InputState;
+import com.simsilica.lemur.input.StateFunctionListener;
 
-import com.simsilica.es.*;
-import com.simsilica.mathd.*;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.net.GameSession;

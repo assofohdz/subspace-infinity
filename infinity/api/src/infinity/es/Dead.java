@@ -26,7 +26,6 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
 
 
 /**

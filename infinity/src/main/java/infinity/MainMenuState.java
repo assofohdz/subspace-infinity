@@ -35,27 +35,28 @@ package infinity;
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
-
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.KeyInput;
-import com.jme3.math.*;
-import com.jme3.network.service.ClientService;
-import com.jme3.scene.*;
-import com.simsilica.ethereal.EtherealClient;
-import com.simsilica.ethereal.TimeSource;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 
-import com.simsilica.lemur.*;
-import com.simsilica.lemur.component.*;
-import com.simsilica.lemur.style.ElementId;
 import com.simsilica.event.EventBus;
-import com.simsilica.mathd.*;
+import com.simsilica.lemur.ActionButton;
+import com.simsilica.lemur.CallMethodAction;
+import com.simsilica.lemur.Container;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.Insets3f;
+import com.simsilica.lemur.Label;
+import com.simsilica.lemur.OptionPanelState;
+import com.simsilica.lemur.style.ElementId;
 import com.simsilica.state.CommandConsoleState;
+
 import infinity.client.ClientEvent;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;

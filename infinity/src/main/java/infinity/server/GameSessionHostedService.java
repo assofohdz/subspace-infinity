@@ -35,37 +35,33 @@
  */
 package infinity.server;
 
-import com.badlogic.gdx.ai.steer.proximities.InfiniteProximity;
-import com.jme3.math.ColorRGBA;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.jme3.network.*;
-import com.jme3.network.service.*;
+import com.jme3.network.HostedConnection;
+import com.jme3.network.service.AbstractHostedConnectionService;
+import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
-import com.simsilica.es.*;
-import com.simsilica.es.server.HostedEntityData;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.Name;
 import com.simsilica.es.server.EntityDataHostedService;
+import com.simsilica.es.server.HostedEntityData;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
-import com.simsilica.ext.mphys.Gravity;
 import com.simsilica.ext.mphys.MPhysSystem;
-import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.ext.mphys.SpawnPosition;
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.BinIndex;
-import com.simsilica.sim.*;
-
 import com.simsilica.mphys.PhysicsSpace;
-import infinity.es.ActionType;
+import com.simsilica.sim.GameSystemManager;
+
 import infinity.es.input.MovementInput;
-import infinity.es.PointLightComponent;
-import infinity.es.WeaponTypes;
 import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
@@ -73,7 +69,6 @@ import infinity.sim.GameEntities;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
 import infinity.systems.AttackSystem;
-import infinity.systems.AvatarSystem;
 import infinity.systems.MapSystem;
 
 /**

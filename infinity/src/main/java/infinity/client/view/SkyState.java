@@ -25,6 +25,9 @@
  */
 package infinity.client.view;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.scene.Spatial;
@@ -32,8 +35,6 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
 import infinity.Main;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

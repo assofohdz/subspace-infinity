@@ -36,13 +36,13 @@
 
 package infinity;
 
+import com.simsilica.ethereal.net.ObjectStateProtocol;
+import com.simsilica.ethereal.zone.ZoneGrid;
 import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mathd.bits.QuatBits;
 import com.simsilica.mathd.bits.Vec3Bits;
-import com.simsilica.ethereal.net.ObjectStateProtocol;
-import com.simsilica.ethereal.zone.ZoneGrid;
 
 
 /**

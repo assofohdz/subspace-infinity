@@ -5,25 +5,31 @@
  */
 package infinity.systems;
 
-import com.simsilica.ext.mphys.MPhysSystem;
-import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.PhysicsSpace;
-import infinity.es.ship.Energy;
-import infinity.es.ship.weapons.Gun;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.BinEntityManager;
+import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.BinIndex;
+import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+
 import infinity.es.AudioTypes;
 import infinity.es.Damage;
 import infinity.es.GravityWell;
@@ -36,6 +42,7 @@ import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
+import infinity.es.ship.weapons.Gun;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
 import infinity.es.ship.weapons.GunLevelEnum;
@@ -46,11 +53,6 @@ import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

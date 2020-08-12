@@ -5,13 +5,14 @@
  */
 package infinity.settings;
 
-import com.jme3.asset.AssetInfo;
-import com.jme3.asset.AssetLoader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+
+import com.jme3.asset.AssetInfo;
+import com.jme3.asset.AssetLoader;
 
 /**
  *

@@ -35,11 +35,11 @@
  */
 package infinity.client;
 
-import com.jme3.math.Vector3f;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.network.service.AbstractClientService;
 import com.jme3.network.service.ClientServiceManager;
@@ -48,6 +48,7 @@ import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;

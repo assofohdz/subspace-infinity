@@ -25,10 +25,13 @@
  */
 package infinity.map;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
+import java.awt.Image;
+import java.awt.image.MemoryImageSource;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+
+import javax.swing.JPanel;
 
 public class BitMap extends JPanel {
 

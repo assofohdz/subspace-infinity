@@ -24,8 +24,6 @@
  */
 package infinity.sim;
 
-import infinity.sim.Filter;
-
 /**
  * A {@link Filter} for categorized fixtures.
  * <p>

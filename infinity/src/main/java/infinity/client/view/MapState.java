@@ -25,6 +25,15 @@
  */
 package infinity.client.view;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.asset.AssetManager;
@@ -39,34 +48,24 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Image;
 import com.jme3.texture.plugins.AWTLoader;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 import com.simsilica.es.filter.AndFilter;
-import com.simsilica.es.filter.FieldFilter;
-import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import com.simsilica.lemur.event.MouseEventControl;
 import com.simsilica.mathd.Vec3d;
+
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.es.BodyPosition;
-import infinity.es.ShapeNames;
 import infinity.es.TileType;
-import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.net.GameSession;
 import infinity.systems.MapSystem;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * State

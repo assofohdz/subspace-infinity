@@ -35,7 +35,8 @@
  */
 package infinity.client.view;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -44,18 +45,21 @@ import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.*;
+import com.jme3.scene.Node;
 
-import com.simsilica.mathd.*;
-import com.simsilica.lemur.*;
-
-import com.simsilica.builder.*;
-import com.simsilica.pager.Grid;
-import com.simsilica.pager.*;
-import com.simsilica.pager.debug.*;
-
-import com.simsilica.mworld.*;
+import com.simsilica.builder.Builder;
+import com.simsilica.builder.BuilderState;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.mathd.Vec3i;
+import com.simsilica.mworld.CellChangeEvent;
+import com.simsilica.mworld.CellChangeListener;
+import com.simsilica.mworld.World;
 import com.simsilica.mworld.net.client.WorldClientService;
+import com.simsilica.pager.Grid;
+import com.simsilica.pager.PagedGrid;
+import com.simsilica.pager.ZoneFactory;
+import com.simsilica.pager.debug.BBoxZone;
+
 import infinity.client.ConnectionState;
 
 /**

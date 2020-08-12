@@ -25,6 +25,12 @@
  */
 package infinity.client.audio;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
@@ -32,26 +38,21 @@ import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.Listener;
 import com.jme3.audio.plugins.WAVLoader;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.state.CameraState;
-import java.util.HashMap;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import infinity.TimeState;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
-import infinity.es.Parent;
 import infinity.es.BodyPosition;
+import infinity.es.Parent;
 
 /**
  *

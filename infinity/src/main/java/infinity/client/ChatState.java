@@ -36,15 +36,19 @@
 
 package infinity.client;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.math.*;
+import com.jme3.math.ColorRGBA;
 
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.InputMapper;
-import com.simsilica.state.*;
+import com.simsilica.state.CommandConsoleState;
+import com.simsilica.state.CommandEntry;
+import com.simsilica.state.MessageState;
+
 import infinity.MainGameFunctions;
 import infinity.client.chat.ChatClientService;
 import infinity.net.chat.ChatSessionListener;

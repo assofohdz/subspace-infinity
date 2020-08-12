@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.jme3.math.ColorRGBA;
+
 import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 

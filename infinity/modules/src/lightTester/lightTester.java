@@ -25,15 +25,18 @@
  */
 package lightTester;
 
-import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
-import com.simsilica.mathd.Vec3d;
-import com.simsilica.event.EventBus;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
 import org.ini4j.Ini;
+
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.event.EventBus;
+import com.simsilica.mathd.Vec3d;
+
 import infinity.events.ShipEvent;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;

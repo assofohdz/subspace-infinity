@@ -5,6 +5,8 @@
  */
 package infinity.systems;
 
+import java.util.logging.Logger;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -18,10 +20,10 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+
 import infinity.es.CollisionCategory;
 import infinity.es.Parent;
 import infinity.sim.CategoryFilter;
-import java.util.logging.Logger;
 
 /**
  *

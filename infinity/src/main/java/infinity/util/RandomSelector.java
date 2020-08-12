@@ -1,5 +1,6 @@
 package infinity.util;
 
+import static infinity.util.Preconditions.checkArgument;
 /*
  * Copyright 2015 Olivier Grégoire.
  *
@@ -27,7 +28,6 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import static infinity.util.Preconditions.checkArgument;
 
 /**
  * A tool to randomly select elements from collections.

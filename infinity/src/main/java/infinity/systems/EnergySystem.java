@@ -25,18 +25,19 @@
  */
 package infinity.systems;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import java.util.HashMap;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import infinity.es.Buff;
 import infinity.es.Dead;
 import infinity.es.HealthChange;

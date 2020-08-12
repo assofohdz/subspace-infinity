@@ -18,6 +18,7 @@ package infinity.util;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
 import javax.annotation.Nullable;
 
 /**

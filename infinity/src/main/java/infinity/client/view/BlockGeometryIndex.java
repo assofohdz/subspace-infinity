@@ -6,41 +6,45 @@
  */
 package infinity.client.view;
 
-import com.jme3.asset.AssetManager;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.nio.FloatBuffer;
+import java.nio.ShortBuffer;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.asset.DesktopAssetManager;
-import java.nio.*;
-import java.util.*;
-
-import org.slf4j.*;
-
-import com.jme3.math.ColorRGBA;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Image;
-import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
 import com.jme3.util.BufferUtils;
 
-import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.BlockType;
+import com.simsilica.mblock.CellArray;
+import com.simsilica.mblock.CellData;
+import com.simsilica.mblock.Direction;
+import com.simsilica.mblock.MaskUtils;
+import com.simsilica.mblock.geom.BlockFactory;
+import com.simsilica.mblock.geom.DefaultPartBuffer;
+import com.simsilica.mblock.geom.GeomPart;
+import com.simsilica.mblock.geom.MaterialType;
 
-import com.simsilica.mblock.*;
-import com.simsilica.mblock.geom.*;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
 
 /**
  *

@@ -35,8 +35,9 @@
  */
 package infinity.es.input;
 
-import com.simsilica.mathd.*;
 import com.simsilica.es.EntityComponent;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 
 /**
  * Represents the abstract movement inputs from a player. The control driver

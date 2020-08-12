@@ -25,7 +25,10 @@
  */
 package infinity.systems;
 
+import java.util.HashMap;
+
 import com.jme3.network.service.HostedServiceManager;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -33,7 +36,7 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import java.util.HashMap;
+
 import infinity.es.Gold;
 import infinity.sim.CoreGameConstants;
 

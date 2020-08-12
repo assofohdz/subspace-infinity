@@ -26,10 +26,12 @@
 package infinity.client;
 
 import com.jme3.input.KeyInput;
+
 import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
+
 import infinity.es.ActionTypes;
 import infinity.es.ShapeNames;
 import infinity.es.ToggleTypes;

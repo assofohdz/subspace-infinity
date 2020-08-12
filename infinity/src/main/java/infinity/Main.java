@@ -36,33 +36,39 @@
 
 package infinity;
 
-import infinity.client.CameraMovementFunctions;
-import org.slf4j.*;
-
-import com.jme3.app.*;
-import com.jme3.app.state.ScreenshotAppState;
-import com.jme3.math.ColorRGBA;
-import com.jme3.system.AppSettings;
-
-import com.simsilica.lemur.*;
-import com.simsilica.lemur.component.QuadBackgroundComponent;
-import com.simsilica.lemur.style.*;
-
-//import com.simsilica.fx.LightingState;
-//import com.simsilica.fx.sky.SkyState;
-//import com.simsilica.fx.sky.SkySettingsState;
-
-import com.simsilica.state.*;
-import infinity.client.AvatarMovementFunctions;
-import infinity.client.view.DebugFunctions;
-import infinity.client.view.ToolFunctions;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.List;
 
-//import com.simsilica.mathd.Grid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.badlogic.gdx.Application;
 
+import com.jme3.app.BasicProfilerState;
+import com.jme3.app.DebugKeysAppState;
+import com.jme3.app.SimpleApplication;
+import com.jme3.app.StatsAppState;
+import com.jme3.app.state.ScreenshotAppState;
+import com.jme3.math.ColorRGBA;
+import com.jme3.system.AppSettings;
+
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.HAlignment;
+import com.simsilica.lemur.Insets3f;
+import com.simsilica.lemur.OptionPanelState;
+import com.simsilica.lemur.component.QuadBackgroundComponent;
+import com.simsilica.lemur.style.Attributes;
+import com.simsilica.lemur.style.BaseStyles;
+import com.simsilica.lemur.style.Styles;
+import com.simsilica.state.CommandConsoleState;
+import com.simsilica.state.DebugHudState;
+import com.simsilica.state.MemoryDebugState;
+import com.simsilica.state.MessageState;
+
+import infinity.client.AvatarMovementFunctions;
+import infinity.client.view.DebugFunctions;
+import infinity.client.view.ToolFunctions;
 
 /**
  *  The main demo for the network stuff.
@@ -76,6 +82,8 @@ public class Main extends SimpleApplication {
     //private static Grid grid = new Grid(32, 0, 32);
 
     public static void main( String... args ) throws Exception {  
+        
+        Application app;
 
         Main main = new Main();        
         AppSettings settings = new AppSettings(true);

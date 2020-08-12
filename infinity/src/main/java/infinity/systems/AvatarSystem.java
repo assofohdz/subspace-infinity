@@ -25,27 +25,24 @@
  */
 package infinity.systems;
 
-import com.jme3.network.service.HostedServiceManager;
+import java.util.HashMap;
+import java.util.regex.Pattern;
+
 import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.es.filter.AndFilter;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.event.EventBus;
 import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import java.util.HashMap;
-import java.util.regex.Pattern;
+
 import infinity.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
-import infinity.es.ship.Player;
 import infinity.events.ShipEvent;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.AccessLevel;

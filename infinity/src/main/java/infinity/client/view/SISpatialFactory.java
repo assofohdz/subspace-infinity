@@ -25,47 +25,33 @@
  */
 package infinity.client.view;
 
-import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
-import com.jme3.light.AmbientLight;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
-import com.jme3.scene.control.LightControl;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.Timer;
-import com.jme3.texture.Image;
-import com.jme3.texture.Texture2D;
-import com.jme3.texture.plugins.AWTLoader;
 import com.jme3.util.BufferUtils;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.mblock.phys.CellArrayPart;
-import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mblock.phys.Part;
-import infinity.client.ConnectionState;
-import infinity.es.TileType;
-import infinity.es.TileTypes;
+
+import infinity.es.ShapeNames;
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.sim.CoreViewConstants;
-import infinity.es.ShapeNames;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

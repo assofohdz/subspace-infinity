@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.simsilica.es.EntityData;
+
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.es.ship.weapons.GunLevelEnum;
 

@@ -36,18 +36,23 @@
 
 package infinity.server;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 
-import com.simsilica.es.*;
+import com.simsilica.es.EntityId;
 import com.simsilica.ethereal.zone.ZoneManager;
-import com.simsilica.mathd.*;
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.ObjectStatusListener;
+import com.simsilica.mathd.AaBBox;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mphys.AbstractShape;
+import com.simsilica.mphys.PhysicsListener;
+import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
-
-import com.simsilica.mphys.*;
-import com.simsilica.ext.mphys.*;
 
 /**
  *  A game system that registers a listener with the SimplePhysics

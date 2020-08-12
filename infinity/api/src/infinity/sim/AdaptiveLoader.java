@@ -6,6 +6,7 @@
 package infinity.sim;
 
 import java.io.IOException;
+
 import org.ini4j.Ini;
 
 /**

@@ -25,31 +25,26 @@
  */
 package infinity.client.view;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.CameraNode;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl;
-import com.simsilica.es.EntityId;
+
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.WatchedEntity;
-import com.simsilica.es.base.DefaultWatchedEntity;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.mathd.Quatd;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.trans.PositionTransition3d;
 import com.simsilica.mathd.trans.TransitionBuffer;
 import com.simsilica.state.CameraState;
+
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
-import infinity.es.BodyPosition;
-import infinity.net.GameSessionListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A state to manage in-game camera. It simply follows the avatar of the player

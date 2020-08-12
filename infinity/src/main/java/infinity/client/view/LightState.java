@@ -25,31 +25,30 @@
  */
 package infinity.client.view;
 
+import java.util.HashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.light.PointLight;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.LightNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mathd.trans.PositionTransition3f;
+import com.simsilica.es.common.Decay;
+import com.simsilica.mathd.trans.PositionTransition3d;
 import com.simsilica.mathd.trans.TransitionBuffer;
+
 import infinity.Main;
 import infinity.TimeState;
-import com.simsilica.es.common.Decay;
-import com.simsilica.mathd.Vec3d;
-import com.simsilica.mathd.trans.PositionTransition3d;
 import infinity.client.ConnectionState;
 import infinity.es.BodyPosition;
-import java.util.HashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import infinity.es.PointLightComponent;
 
 /**

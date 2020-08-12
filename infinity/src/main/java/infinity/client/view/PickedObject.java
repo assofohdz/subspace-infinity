@@ -36,8 +36,8 @@
 
 package infinity.client.view;
 
-import com.simsilica.es.*;
-import com.simsilica.mathd.*;
+import com.simsilica.es.EntityId;
+import com.simsilica.mathd.Vec3d;
 
 /**
  *  An entity that was picked, including where it was picked, etc.

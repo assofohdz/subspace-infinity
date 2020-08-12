@@ -25,9 +25,6 @@
  */
 package infinity.systems;
 
-import com.simsilica.es.EntityId;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 

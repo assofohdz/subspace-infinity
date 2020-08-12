@@ -29,8 +29,10 @@ import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioData;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.plugins.WAVLoader;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;

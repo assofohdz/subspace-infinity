@@ -25,9 +25,7 @@
  */
 package infinity.es;
 
-import com.jme3.math.FastMath;
 import com.simsilica.es.EntityComponent;
-import com.simsilica.mathd.Vec3d;
 
 /**
  *

@@ -5,7 +5,6 @@
  */
 package infinity.server;
 
-import com.jme3.app.Application;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;

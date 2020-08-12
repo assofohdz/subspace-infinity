@@ -5,6 +5,12 @@
  */
 package infinity.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mworld.CellChangeEvent;
@@ -12,15 +18,10 @@ import com.simsilica.mworld.CellChangeListener;
 import com.simsilica.mworld.Coordinates;
 import com.simsilica.mworld.LeafData;
 import com.simsilica.mworld.World;
-import com.simsilica.mworld.base.DefaultWorld;
 import com.simsilica.mworld.base.WorldCellData;
 import com.simsilica.mworld.db.LeafDb;
+
 import infinity.client.view.BlockGeometryIndex;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

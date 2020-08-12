@@ -37,6 +37,7 @@
 package infinity.client;
 
 import com.jme3.input.KeyInput;
+
 import com.simsilica.lemur.input.Axis;
 import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;

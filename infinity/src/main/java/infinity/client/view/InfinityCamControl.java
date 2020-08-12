@@ -1,5 +1,9 @@
 package infinity.client.view;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /*
  * Copyright (c) 2009-2012 jMonkeyEngine
  * All rights reserved.
@@ -43,10 +47,8 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.util.TempVars;
+
 import com.simsilica.mathd.Vec3i;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This Control maintains a reference to a Camera,

@@ -25,25 +25,24 @@
  */
 package infinity.sim;
 
-import com.jme3.math.*;
-import com.simsilica.es.EntityComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.jme3.math.Quaternion;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.WatchedEntity;
 import com.simsilica.es.base.DefaultWatchedEntity;
-
-import com.simsilica.mathd.*;
-import com.simsilica.mphys.AbstractShape;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.ControlDriver;
 import com.simsilica.mphys.RigidBody;
+
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
 import infinity.systems.SettingsSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Uses rotation and a 3-axis thrust vector to supply specific velocity to a

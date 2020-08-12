@@ -6,6 +6,7 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
+
 import infinity.sim.CategoryFilter;
 
 /**

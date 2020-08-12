@@ -5,13 +5,14 @@
  */
 package basicTester;
 
+import java.util.HashSet;
+import java.util.regex.Pattern;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.server.HostedEntityData;
-import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
-import infinity.events.ShipEvent;
+
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.AdaptiveLoader;
@@ -22,8 +23,6 @@ import infinity.sim.CommandConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
-import java.util.HashSet;
-import java.util.regex.Pattern;
 
 /**
  *

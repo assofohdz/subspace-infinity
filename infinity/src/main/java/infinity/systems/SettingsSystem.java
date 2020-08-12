@@ -25,29 +25,23 @@
  */
 package infinity.systems;
 
-import com.jme3.export.InputCapsule;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
-import com.jme3.export.OutputCapsule;
-import com.jme3.export.Savable;
-import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.ini4j.Ini;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+
 import infinity.es.ArenaId;
 import infinity.server.AssetLoaderService;
-import infinity.util.AdaptiveLoadingService;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.CoreGameConstants;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import org.ini4j.Ini;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import infinity.util.AdaptiveLoadingService;
 
 /**
  * This state loads the settings for all arenas and notifies all listeners of

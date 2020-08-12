@@ -35,22 +35,32 @@
  */
 package infinity.client.view;
 
+import java.util.logging.Logger;
+
 import com.jme3.asset.AssetManager;
 import com.jme3.light.AmbientLight;
-import com.jme3.math.*;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.scene.*;
-import com.jme3.scene.shape.*;
-import com.jme3.texture.*;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.texture.Texture;
 
-import com.simsilica.es.*;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.mathd.*;
-
-import com.simsilica.mphys.*;
-import com.simsilica.mblock.phys.*;
-import com.simsilica.ext.mphys.*;
-import java.util.logging.Logger;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.CellArrayPart;
+import com.simsilica.mblock.phys.Group;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mblock.phys.Part;
+import com.simsilica.mphys.BodyMass;
 
 /**
  * Convenience methods for creating Spatials from shapes.

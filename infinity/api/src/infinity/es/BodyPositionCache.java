@@ -39,7 +39,8 @@ package infinity.es;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.trans.PositionTransition3d;

@@ -5,7 +5,6 @@
  */
 package infinity.sim;
 
-import infinity.es.ShapeNames;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.EntityBodyFactory;
@@ -16,9 +15,10 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.StaticBody;
+
+import infinity.es.ShapeNames;
 
 /**
  *

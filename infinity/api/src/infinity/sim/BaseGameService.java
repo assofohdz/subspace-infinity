@@ -26,7 +26,6 @@
 package infinity.sim;
 
 import com.jme3.network.service.AbstractHostedService;
-import org.ini4j.Ini;
 
 /**
  *

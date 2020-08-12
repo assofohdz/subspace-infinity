@@ -26,9 +26,10 @@
 package infinity.es;
 
 
+import java.awt.Color;
+
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
-import java.awt.Color;
 
 
 /**

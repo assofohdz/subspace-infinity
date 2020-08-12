@@ -25,16 +25,15 @@
  */
 package infinity.systems;
 
+import java.util.Iterator;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import java.util.Iterator;
+
 import infinity.es.Delay;
 
 /**

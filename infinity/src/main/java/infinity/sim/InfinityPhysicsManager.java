@@ -5,7 +5,6 @@
  */
 package infinity.sim;
 
-import com.simsilica.mathd.Grid;
 import com.simsilica.mphys.PhysicsSpace;
 
 /**

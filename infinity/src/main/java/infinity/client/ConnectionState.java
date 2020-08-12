@@ -39,7 +39,8 @@ package infinity.client;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 
@@ -51,18 +52,16 @@ import com.jme3.network.ClientStateListener.DisconnectInfo;
 import com.jme3.network.ErrorListener;
 import com.jme3.network.service.ClientService;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.es.client.EntityDataClientService;
+import com.simsilica.ethereal.EtherealClient;
+import com.simsilica.ethereal.TimeSource;
+import com.simsilica.event.EventBus;
 import com.simsilica.lemur.Action;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.OptionPanel;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.state.CompositeAppState;
-
-import com.simsilica.ethereal.EtherealClient;
-import com.simsilica.ethereal.TimeSource;
-
-import com.simsilica.es.EntityData;
-import com.simsilica.es.client.EntityDataClientService;
-import com.simsilica.event.EventBus;
 
 //import com.simsilica.demo.net.AccountSessionListener;
 //import com.simsilica.demo.client.AccountClientService;

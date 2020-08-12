@@ -25,26 +25,11 @@
  */
 package infinity.util;
 
-import infinity.sim.AdaptiveLoader;
-import com.jme3.network.service.AbstractHostedService;
-import com.jme3.network.service.HostedServiceManager;
-import com.simsilica.es.EntityId;
-import com.simsilica.sim.GameSystemManager;
-import infinity.sim.AccessLevel;
-import infinity.sim.AccountManager;
-import infinity.sim.ArenaManager;
-import infinity.sim.BaseGameModule;
-import infinity.sim.BaseGameService;
-import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandConsumer;
-
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +39,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.ini4j.Ini;
-import infinity.server.chat.ChatHostedService;
+
+import com.jme3.network.service.AbstractHostedService;
+import com.jme3.network.service.HostedServiceManager;
+
+import com.simsilica.es.EntityId;
+import com.simsilica.sim.GameSystemManager;
+
 import infinity.server.AccountHostedService;
+import infinity.server.chat.ChatHostedService;
+import infinity.sim.AccessLevel;
+import infinity.sim.AccountManager;
+import infinity.sim.AdaptiveLoader;
+import infinity.sim.ArenaManager;
+import infinity.sim.BaseGameModule;
+import infinity.sim.BaseGameService;
+import infinity.sim.ChatHostedPoster;
+import infinity.sim.CommandConsumer;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;

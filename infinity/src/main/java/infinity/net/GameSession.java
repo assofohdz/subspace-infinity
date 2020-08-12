@@ -35,12 +35,12 @@
  */
 package infinity.net;
 
-import com.jme3.math.Vector3f;
 import com.jme3.network.service.rmi.Asynchronous;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+
 import infinity.es.input.MovementInput;
 
 /**

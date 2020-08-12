@@ -39,12 +39,14 @@ package infinity.client.chat;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.network.MessageConnection;
 import com.jme3.network.service.AbstractClientService;
 import com.jme3.network.service.ClientServiceManager;
 import com.jme3.network.service.rmi.RmiClientService;
+
 import infinity.net.chat.ChatSession;
 import infinity.net.chat.ChatSessionListener;
 

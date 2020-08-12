@@ -25,33 +25,28 @@
  */
 package infinity.systems;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.jme3.asset.AssetManager;
-import com.jme3.system.JmeSystem;
-import com.simsilica.es.Entity;
-import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
-import com.simsilica.ethereal.zone.ZoneKey;
-import com.simsilica.mathd.Vec3d;
-import com.simsilica.sim.AbstractGameSystem;
-import com.simsilica.sim.SimTime;
-import infinity.InfinityConstants;
-import infinity.TimeState;
-import infinity.es.ArenaId;
-import infinity.es.BodyPosition;
-import infinity.sim.ArenaManager;
-import infinity.sim.CoreGameConstants;
-import infinity.map.LevelLoader;
-import infinity.sim.GameEntities;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.collections4.map.ListOrderedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jme3.asset.AssetManager;
+import com.jme3.system.JmeSystem;
+
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.sim.AbstractGameSystem;
+import com.simsilica.sim.SimTime;
+
+import infinity.es.ArenaId;
+import infinity.es.BodyPosition;
+import infinity.map.LevelLoader;
+import infinity.sim.ArenaManager;
+import infinity.sim.CoreGameConstants;
 
 /**
  * State to keep track of different arenas. Arenas are composed of a tileset and

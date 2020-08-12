@@ -37,7 +37,9 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Grid;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
 
 /**
  *  Mapping this as a separate component for now to indicate a large

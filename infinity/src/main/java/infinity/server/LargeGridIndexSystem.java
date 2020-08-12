@@ -36,19 +36,28 @@
 
 package infinity.server;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-
-import com.simsilica.es.*;
-import com.simsilica.mathd.*;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityChange;
+import com.simsilica.es.EntityComponentListener;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.ObservableEntityData;
+import com.simsilica.ext.mphys.SpawnPosition;
+import com.simsilica.mathd.Grid;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
-import com.simsilica.mphys.*;
-import com.simsilica.ext.mphys.*;
 import infinity.InfinityConstants;
 import infinity.es.BodyPosition;
 import infinity.es.LargeGridCell;

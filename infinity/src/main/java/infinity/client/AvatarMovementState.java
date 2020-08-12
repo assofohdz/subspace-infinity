@@ -5,11 +5,14 @@
  */
 package infinity.client;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+
 import com.simsilica.input.MovementTarget;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -19,14 +22,12 @@ import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.client.view.WorldViewState;
+
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.systems.ActionSystem;
 import infinity.systems.AttackSystem;
 import infinity.systems.AvatarSystem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

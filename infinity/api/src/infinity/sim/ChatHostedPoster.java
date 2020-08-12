@@ -25,8 +25,9 @@
  */
 package infinity.sim;
 
-import com.simsilica.es.EntityId;
 import java.util.regex.Pattern;
+
+import com.simsilica.es.EntityId;
 
 /**
  *

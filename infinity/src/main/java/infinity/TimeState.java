@@ -25,14 +25,14 @@
  */
 package infinity;
 
-import com.jme3.app.Application;
-import com.jme3.app.state.BaseAppState;
-import com.simsilica.es.EntityData;
-import com.simsilica.ethereal.SynchedTimeSource;
-
-import com.simsilica.ethereal.TimeSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jme3.app.Application;
+import com.jme3.app.state.BaseAppState;
+
+import com.simsilica.ethereal.TimeSource;
+
 import infinity.sim.TimeManager;
 
 

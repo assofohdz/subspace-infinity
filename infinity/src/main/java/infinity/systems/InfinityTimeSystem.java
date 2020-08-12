@@ -5,9 +5,9 @@
  */
 package infinity.systems;
 
-import com.simsilica.ethereal.TimeSource;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+
 import infinity.sim.TimeManager;
 
 /**

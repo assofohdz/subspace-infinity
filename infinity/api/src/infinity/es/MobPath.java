@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.dongbat.walkable.FloatArray;
+
 import com.simsilica.es.EntityComponent;
 
 /**

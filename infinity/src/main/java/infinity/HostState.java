@@ -36,20 +36,22 @@
 
 package infinity;
 
-import java.io.*;
+import java.io.IOException;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
-import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.lemur.core.VersionedObject;
 
 import com.simsilica.es.EntityData;
+import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.sim.GameSystemManager;
+
 import infinity.server.GameServer;
 
 

@@ -37,19 +37,20 @@ package infinity.server;
 
 import java.util.Random;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.es.*;
-import com.simsilica.es.common.*;
-import com.simsilica.mathd.*;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.ext.mphys.Gravity;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-
-import com.simsilica.ext.mphys.*;
-import com.simsilica.mphys.*;
-import com.simsilica.mworld.World;
-import infinity.es.BodyPosition;
-import infinity.es.LargeObject;
 
 /**
  * Provides some standard entity factories as well as setting up an initial test

@@ -35,17 +35,23 @@
  */
 package infinity.systems;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 
-import com.simsilica.es.*;
-import com.simsilica.sim.*;
-
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.sim.AbstractGameSystem;
+import com.simsilica.sim.SimTime;
+
 import infinity.es.input.MovementInput;
 import infinity.sim.PlayerDriver;
 

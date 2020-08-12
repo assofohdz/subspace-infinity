@@ -36,13 +36,23 @@
 
 package infinity.server;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.es.*;
+import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.EntityChange;
+import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.server.ComponentVisibility;
 import com.simsilica.ethereal.NetworkStateListener;
+
 import infinity.es.BodyPosition;
 
 

@@ -35,7 +35,8 @@
  */
 package infinity.client;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.texture.plugins.AWTLoader;
@@ -48,16 +49,13 @@ import com.simsilica.es.EntityId;
 import com.simsilica.lemur.event.MouseAppState;
 import com.simsilica.state.CameraState;
 import com.simsilica.state.CompositeAppState;
+
 import infinity.HelpState;
 import infinity.HostState;
 import infinity.SettingsState;
 import infinity.TimeState;
-import infinity.client.ChatState;
-import infinity.client.ConnectionState;
-import infinity.client.GameSessionClientService;
 import infinity.client.view.InfinityCameraState;
 import infinity.client.view.ModelViewState;
-import infinity.client.view.PhysicsDebugState;
 import infinity.client.view.SkyState;
 import infinity.client.view.WorldViewState;
 

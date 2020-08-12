@@ -5,7 +5,13 @@
  */
 package infinity.client.view;
 
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.MoreObjects;
+
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.Axis;
 import com.simsilica.mblock.BlockType;
@@ -14,12 +20,9 @@ import com.simsilica.mblock.geom.BlockFactory;
 import com.simsilica.mblock.geom.BoundaryShape;
 import com.simsilica.mblock.geom.BoundaryShapes;
 import com.simsilica.mblock.geom.DefaultPartFactory;
+import com.simsilica.mblock.geom.GeomPartBuffer;
 import com.simsilica.mblock.geom.MaterialType;
 import com.simsilica.mblock.geom.PartFactory;
-import com.simsilica.mblock.geom.GeomPartBuffer;
-import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
