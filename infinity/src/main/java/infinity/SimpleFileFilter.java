@@ -111,8 +111,8 @@ public class SimpleFileFilter implements FilenameFilter {
     public boolean accept(File dir, String _name) {
         String name = _name.toLowerCase();
 
-        for (int i = 0; i < extensions.length; i++) {
-            if (name.endsWith(extensions[i])) {
+        for (String extension : extensions) {
+            if (name.endsWith(extension)) {
                 return true;
             }
         }

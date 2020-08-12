@@ -339,13 +339,13 @@ public class BlockGeometryIndex {
                 }
 
                 float[] texArray = part.getTexCoords();
-                for (int t = 0; t < texArray.length; t++) {
-                    if (texArray[t] < 0 || texArray[t] > 1) {
+                for (float element : texArray) {
+                    if (element < 0 || element > 1) {
                         throw new RuntimeException(
-                                "Entry has out of bounds texcoord:" + texArray[t] + " type:" + part.getMaterialType());
+                                "Entry has out of bounds texcoord:" + element + " type:" + part.getMaterialType());
                     }
                     // texes.put((byte)(texArray[t] * 255));
-                    texes.put(texArray[t]);
+                    texes.put(element);
                 }
 
                 // The indexes need to be offset also

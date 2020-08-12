@@ -266,8 +266,8 @@ public class Region {
         }
 
         // add rectangles
-        for (int c = 0; c < rects.size(); ++c) {
-            Rectangle r = (Rectangle) rects.get(c);
+        for (Object rect : rects) {
+            Rectangle r = (Rectangle) rect;
 
             int endX = r.x + r.width;
             int endY = r.y + r.height;

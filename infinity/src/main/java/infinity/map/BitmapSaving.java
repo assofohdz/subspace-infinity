@@ -74,8 +74,8 @@ public class BitmapSaving {
         // 304 = 76 * 4, always on 32 bit boundry
 
         // now color table
-        for (int x = 0; x < colorTable.size(); ++x) {
-            RGBQuad item = (RGBQuad) colorTable.get(x);
+        for (Object element : colorTable) {
+            RGBQuad item = (RGBQuad) element;
             item.save(bos);
         }
 

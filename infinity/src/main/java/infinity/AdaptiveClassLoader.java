@@ -217,8 +217,8 @@ public class AdaptiveClassLoader extends ClassLoader {
             files = SimpleFileFilter.fileOrFiles(file);
 
             if (files != null) {
-                for (int i = 0; i < files.length; i++) {
-                    file = files[i];
+                for (File file2 : files) {
+                    file = file2;
 
                     // Check to see if we have proper access.
                     if (!file.exists()) {
@@ -427,8 +427,8 @@ public class AdaptiveClassLoader extends ClassLoader {
             File file = repEnum.nextElement();
             File[] files = SimpleFileFilter.fileOrFiles(file);
 
-            for (int i = 0; i < files.length; i++) {
-                file = files[i];
+            for (File file2 : files) {
+                file = file2;
 
                 try {
                     if (file.isDirectory()) {

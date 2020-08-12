@@ -347,8 +347,8 @@ public class ByteArray {
 
     public void addByteArray(int[] intArray) {
 
-        for (int i = 0; i < intArray.length; i++) {
-            m_array[m_pointer++] = (byte) ((intArray[i]) & 0xff);
+        for (int element : intArray) {
+            m_array[m_pointer++] = (byte) ((element) & 0xff);
         }
 
         m_pointer += intArray.length;
@@ -578,8 +578,8 @@ public class ByteArray {
      * @param b byte array to display
      */
     public static void show(byte[] b) {
-        for (int i = 0; i < b.length; i++) {
-            System.out.print(ConvertHex.byteToHex(b[i]) + " ");
+        for (byte element : b) {
+            System.out.print(ConvertHex.byteToHex(element) + " ");
         }
 
         System.out.println();
@@ -617,8 +617,8 @@ public class ByteArray {
      * Sends contents of the internal byte array to the console, in hex format.
      */
     public void show() {
-        for (int i = 0; i < m_array.length; i++) {
-            System.out.print(ConvertHex.byteToHex(m_array[i]) + " ");
+        for (byte element : m_array) {
+            System.out.print(ConvertHex.byteToHex(element) + " ");
         }
 
         System.out.println();
