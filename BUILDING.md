@@ -31,10 +31,10 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     git clone https://github.com/jMonkeyEngine-Contributions/Lemur.git
     cd $env:SubspaceWorkspace\Simsilica
     git clone https://github.com/Simsilica/Pager.git
+    git clone https://github.com/Simsilica/SimArboreal.git
     git clone https://github.com/Simsilica/SimFX.git
     git clone https://github.com/Simsilica/SimEthereal.git
     git clone https://github.com/Simsilica/SimMath.git
-    git clone https://github.com/Simsilica/SimArboreal.git
     git clone https://github.com/assofohdz/SiO2
     cd $env:SubspaceWorkspace\pspeed42
     git clone https://github.com/assofohdz/moss.git
@@ -50,6 +50,8 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     gradle install
     cd $env:SubspaceWorkspace\Simsilica\Pager
     gradle install
+    cd $env:SubspaceWorkspace\Simsilica\SimArboreal
+    gradle install
     cd $env:SubspaceWorkspace\Simsilica\SimEthereal
     gradle install
     cd $env:SubspaceWorkspace\Simsilica\SimFX
@@ -57,8 +59,6 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     cd $env:SubspaceWorkspace\Simsilica\SimMath
     gradle install
     cd $env:SubspaceWorkspace\Simsilica\SiO2
-    gradle install
-    cd $env:SubspaceWorkspace\Simsilica\SimArboreal
     gradle install
     
     ```
