@@ -1,18 +1,26 @@
-#Tue Aug 11 17:33:00 CDT 2020
+#Wed Aug 12 15:27:36 CDT 2020
 \!/=
+/configuration/org.eclipse.buildship.ui/org.eclipse.buildship.ui.wizard.project.import.showWelcomePage=false
 /configuration/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true
 /configuration/org.eclipse.epp.mpc.ui/showOpenFavoritesNotification=false
 /configuration/org.eclipse.ui.ide/MAX_RECENT_WORKSPACES=10
-/configuration/org.eclipse.ui.ide/RECENT_WORKSPACES=C\:\\workspace\\Subspace-Infinity
+/configuration/org.eclipse.ui.ide/RECENT_WORKSPACES=C\:\\workspace\\Subspace
 /configuration/org.eclipse.ui.ide/RECENT_WORKSPACES_PROTOCOL=3
 /configuration/org.eclipse.ui.ide/SHOW_RECENT_WORKSPACES=false
 /configuration/org.eclipse.ui.ide/SHOW_WORKSPACE_SELECTION_DIALOG=true
+/instance/net.sf.eclipsecs.core/background.full.build=true
+/instance/net.sf.eclipsecs.core/include.module.ids=true
+/instance/net.sf.eclipsecs.core/include.rule.names=true
+/instance/net.sf.eclipsecs.core/limit.markers.per.resource=false
+/instance/net.sf.eclipsecs.core/marker.amount.limit=1000
+/instance/net.sf.eclipsecs.ui/ask.before.rebuild=always
+/instance/net.sf.eclipsecs.ui/warn.before.losing.filesets=true
 /instance/org.eclipse.ant.ui/useAnnotationsPrefPage=true
 /instance/org.eclipse.ant.ui/useQuickDiffPrefPage=true
 /instance/org.eclipse.buildship.core/arguments=
-/instance/org.eclipse.buildship.core/auto.sync=false
+/instance/org.eclipse.buildship.core/auto.sync=true
 /instance/org.eclipse.buildship.core/gradle.build.scans=false
-/instance/org.eclipse.buildship.core/gradle.distribution=GRADLE_DISTRIBUTION(VERSION(6.5.1))
+/instance/org.eclipse.buildship.core/gradle.distribution=GRADLE_DISTRIBUTION(VERSION(6.6))
 /instance/org.eclipse.buildship.core/gradle.offline.mode=false
 /instance/org.eclipse.buildship.core/jvm.arguments=
 /instance/org.eclipse.buildship.core/show.console.view=true
@@ -571,7 +579,7 @@
 /instance/org.eclipse.ui.ide/REFRESH_WORKSPACE_ON_STARTUP=true
 /instance/org.eclipse.ui.ide/SHOW_PROBLEMS_VIEW_DECORATIONS_ON_STARTUP=true
 /instance/org.eclipse.ui.ide/org.eclipse.ui.internal.views.markers.CachedMarkerBuilderorg.eclipse.ui.views.ProblemView=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<filterGroups andFilters\="false" markerLimit\="2000" markerLimitEnabled\="true">\r\n<filterGroup IMemento.internal.id\="org.eclipse.ui.ide.projectErrorsWarningsGrouping" enabled\="false" filterLimit\="-1" scope\="3" workingSet\="Aggregate for window 1596911189099">\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.severityAndDescriptionField" containsModifier\="CONTAINS" containsText\="" selectedSeverities\="6"/>\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.markerType"/>\r\n</filterGroup>\r\n<filterGroup IMemento.internal.id\="org.eclipse.ui.ide.selectedErrorsWarningsGrouping" enabled\="true" filterLimit\="-1" scope\="2" workingSet\="Aggregate for window 1596911189099">\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.severityAndDescriptionField" containsModifier\="CONTAINS" containsText\="" selectedSeverities\="6"/>\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.markerType"/>\r\n</filterGroup>\r\n<filterGroup IMemento.internal.id\="org.eclipse.ui.ide.selectedWarningsGrouping" enabled\="false" filterLimit\="-1" scope\="2" workingSet\="Aggregate for window 1596911189099">\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.severityAndDescriptionField" containsModifier\="CONTAINS" containsText\="" selectedSeverities\="2"/>\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.markerType"/>\r\n</filterGroup>\r\n<filterGroup IMemento.internal.id\="org.eclipse.ui.ide.errorsFilter" enabled\="false" filterLimit\="-1" scope\="0" workingSet\="Aggregate for window 1596911189099">\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.severityAndDescriptionField" containsModifier\="CONTAINS" containsText\="" selectedSeverities\="4"/>\r\n<fieldFilter IMemento.internal.id\="org.eclipse.ui.ide.markerType"/>\r\n</filterGroup>\r\n</filterGroups>
-/instance/org.eclipse.ui.ide/platformState=1597160479274
+/instance/org.eclipse.ui.ide/platformState=1597160479281
 /instance/org.eclipse.ui.ide/quickStart=false
 /instance/org.eclipse.ui.ide/tipsAndTricks=true
 /instance/org.eclipse.ui.navigator/org.eclipse.ui.navigator.ProjectExplorer.filterActivation=\:org.eclipse.jdt.java.ui.filters.HidePackageDeclaration\:org.eclipse.jdt.java.ui.filters.HideOutputFolder\:org.eclipse.buildship.ui.navigator.filter.gradle.subProject\:org.eclipse.ui.navigator.resources.nested.HideTopLevelProjectIfNested\:org.eclipse.buildship.ui.navigator.filter.gradle.buildfolder\:org.eclipse.jdt.java.ui.filters.HideEmptyInnerPackages\:org.eclipse.jdt.java.ui.filters.HideInnerClassFiles\:org.eclipse.ui.navigator.resources.filters.startsWithDot\:org.eclipse.jdt.java.ui.filters.HideEmptyLibraryContainers\:org.eclipse.jdt.java.ui.filters.HideImportDeclaration\:org.eclipse.jdt.java.ui.filters.HideSyntheticMembers\:org.eclipse.mylyn.tasks.ui.navigator.filters.tasks\:org.eclipse.ui.navigator.resources.nested.HideFolderWhenProjectIsShownAsNested\:
@@ -584,6 +592,8 @@
 /instance/org.eclipse.wst.xml.core/indentationChar=space
 /instance/org.eclipse.wst.xml.core/indentationSize=4
 /instance/org.eclipse.wst.xml.ui/org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart.lastActivePage=1
+@net.sf.eclipsecs.core=8.34.0.202007272354
+@net.sf.eclipsecs.ui=8.34.0.202007272354
 @org.eclipse.ant.ui=3.7.800.v20200413-1643
 @org.eclipse.buildship.core=3.1.4.v20200326-1743
 @org.eclipse.buildship.ui=3.1.4.v20200326-1743

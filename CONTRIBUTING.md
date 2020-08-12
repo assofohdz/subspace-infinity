@@ -10,14 +10,15 @@ These instructions assume you are using Windows 10. Java is cross-platform and S
 1. Close your Administrator PowerShell and open a new PowerShell session
 1. Launch Eclipse by typing `eclipse` at the PowerShell command prompt
 1. Eclipse will prompt you for a workspace folder, select the workspace folder you created when you followed the build instructions, for example: `C:\workspace\Subspace`
-1. Import the Workspace Preferences with File->Import->General->Preferences, and select the file C:\workspace\Subspace\Subspace-Infinity\eclipse\Workspace-Preferences.epf. Eclipse will suggest you restart, do that.
-1. Import MOSS into Eclipse using File->Import->Gradle->Existing Gradle Project and select the folder C:\workspace\Subspace\pspeed42\moss
+1. Use the Eclipse Marketplace: `Help->Eclipse Marketplace...` to install `Yaml Editor 1.6.2` and `Checkstyle Plug-in 8.34.0`
+1. Import the Workspace Preferences with `File->Import->General->Preferences`, and select the file `C:\workspace\Subspace\Subspace-Infinity\eclipse\Workspace-Preferences.epf`. Eclipse will suggest you restart, do that.
+1. Import MOSS into Eclipse using `File->Import->Gradle->Existing Gradle Project` and select the folder `C:\workspace\Subspace\pspeed42\moss`
 1. Let Eclipse finish importing and building MOSS before proceeding to the next step
-1. Import Subspace-Infinity into Eclipse using File->Import->Gradle->Existing Gradle Project and select the folder C:\workspace\Subspace\Subspace-Infinity
+1. Import Subspace-Infinity into Eclipse using `File->Import->Gradle->Existing Gradle Project` and select the folder `C:\workspace\Subspace\Subspace-Infinity`
 1. Let Eclipse finish importing and building Subspace-Infinity before proceeding to the next step
-1. If you want to view projects in a hierarchical view instead of flat, select Window->Show View->Project Explorer
-1. Select the infinity folder within the Subspace-Infinity project, right click, and select Run As...->Java Application, select the class "infinity.Main" as the class to run, name the run configuration "Subspace-Infinity Main", and put the following in for the VM Arguments parameter: `-Xmx1024m -Xms512m -XX:MaxDirectMemorySize=1024m --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED`
-1. Click the Run button and Subspace-Infinity should launch, with logging appearing in the Eclipse console window
+1. If you want to view projects in a hierarchical view instead of flat, select `Window->Show View->Project Explorer`
+1. Select the infinity folder within the Subspace-Infinity project, right click, and select Run As...->Java Application, select the class `infinity.Main` as the class to run, name the run configuration `Subspace-Infinity Main`, and put the following in for the VM Arguments parameter: `-Xmx1024m -Xms512m -XX:MaxDirectMemorySize=1024m --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED`
+1. Click the `Run` button and Subspace-Infinity should launch, with logging appearing in the Eclipse console window
 
 ## Guildelines for Submitting PRs
 
