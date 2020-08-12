@@ -7,11 +7,12 @@ package infinity.sim;
 
 /**
  * Time must be specified in milliseconds
+ *
  * @author Asser Fahrenholz
  */
 public class CoreGameConstants {
 
-    //Projectile speeds
+    // Projectile speeds
     public final static double BASEPROJECTILESPEED = 1;
     public final static double BOMBPROJECTILESPEED = 25;
     public final static double BULLETPROJECTILESPEED = 50;
@@ -19,19 +20,19 @@ public class CoreGameConstants {
     public final static double THORPROJECTILESPEED = 30;
     public final static double BURSTPROJECTILESPEED = 50;
 
-    //Decays
-    //Decays must be in milliseconds
+    // Decays
+    // Decays must be in milliseconds
     public final static long BULLETDECAY = 1500;
     public final static long PRIZEDECAY = 5000;
     public final static long THORDECAY = 1500;
     public final static long GRAVBOMBDECAY = 4000;
 
-    //Health
+    // Health
     public final static int SHIPHEALTH = 100;
     public final static int BASEHEALTH = 1000;
     public final static int MOBHEALTH = 100;
 
-    //Cooldowns
+    // Cooldowns
     public final static long THORCOOLDOWN = 500;
     public final static long BURSTCOOLDOWN = 250;
 

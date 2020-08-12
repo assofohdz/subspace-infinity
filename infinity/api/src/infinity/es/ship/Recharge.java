@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -28,7 +28,7 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Initial recharge rate, or how quickly this ship recharges its energy. 
+ * Initial recharge rate, or how quickly this ship recharges its energy.
  *
  * @author Asser
  */

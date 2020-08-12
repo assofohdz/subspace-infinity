@@ -10,5 +10,5 @@ package infinity.sim;
  * @author AFahrenholz
  */
 public class InfinityMBlockCollisionSystem {
-    
+
 }

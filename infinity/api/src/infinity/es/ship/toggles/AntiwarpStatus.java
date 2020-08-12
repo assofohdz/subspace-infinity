@@ -7,6 +7,7 @@ package infinity.es.ship.toggles;
 
 /**
  * Whether ships are allowed to receive 'Anti-Warp' 0=no 1=yes 2=yes/start-with
+ *
  * @author Asser Fahrenholz
  */
 public class AntiwarpStatus {

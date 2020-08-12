@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,6 +25,12 @@
  */
 package infinity.client.audio;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
@@ -32,26 +38,21 @@ import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.Listener;
 import com.jme3.audio.plugins.WAVLoader;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.state.CameraState;
-import java.util.HashMap;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import infinity.TimeState;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
-import infinity.es.Parent;
 import infinity.es.BodyPosition;
+import infinity.es.Parent;
 
 /**
  *
@@ -78,7 +79,7 @@ public class AudioState extends BaseAppState {
 
     public AudioState(SIAudioFactory factory) {
         this.factory = factory;
-        
+
         log.debug("Constructed AudioState");
     }
 
@@ -88,12 +89,12 @@ public class AudioState extends BaseAppState {
         this.timeState = getState(TimeState.class);
         this.ed = getState(ConnectionState.class).getEntityData();
 
-        //This state just needs to know which sounds to play and where to play them
+        // This state just needs to know which sounds to play and where to play them
         this.audio = ed.getEntities(AudioType.class, BodyPosition.class);
 
-        //Get asset manager to be able to retrieve the sounds
+        // Get asset manager to be able to retrieve the sounds
         this.assets = app.getAssetManager();
-        //Register default wave loader with the wa2 extension
+        // Register default wave loader with the wa2 extension
         this.assets.registerLoader(WAVLoader.class, "wa2");
         this.listener = app.getListener();
 
@@ -122,9 +123,9 @@ public class AudioState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        //Move listener with camera
-        //listener.setLocation(cam.getLocation());
-        //listener.setRotation(cam.getRotation());
+        // Move listener with camera
+        // listener.setLocation(cam.getLocation());
+        // listener.setRotation(cam.getRotation());
 
         // Grab a consistent time for this frame
         time = timeState.getTime();
@@ -168,7 +169,7 @@ public class AudioState extends BaseAppState {
         if (updatePosition) {
             Parent p = entity.get(Parent.class);
             if (p.getParentEntity().getId() == 0l) {
-                //No position to update to
+                // No position to update to
             } else {
                 BodyPosition pos = ed.getComponent(p.getParentEntity(), BodyPosition.class);
 
@@ -189,42 +190,42 @@ public class AudioState extends BaseAppState {
             return result;
         }
 
-        // Else figure out what type to create... 
+        // Else figure out what type to create...
         AudioType type = entity.get(AudioType.class);
         String typeName = type.getTypeName(ed);
         switch (typeName) {
-            case AudioTypes.FIRE_THOR:
-                result = createFireThor(entity);
-                break;
-            case AudioTypes.PICKUP_PRIZE:
-                result = createPickUpPrize(entity);
-                break;
-            case AudioTypes.FIRE_BOMBS_L1:
-            case AudioTypes.FIRE_BOMBS_L2:
-            case AudioTypes.FIRE_BOMBS_L3:
-            case AudioTypes.FIRE_BOMBS_L4:
-                result = createFireBombs(entity);
-                break;
-            case AudioTypes.FIRE_GRAVBOMB:
-                result = createFireGravBomb(entity);
-                break;
-            case AudioTypes.FIRE_GUNS_L1:
-            case AudioTypes.FIRE_GUNS_L2:
-            case AudioTypes.FIRE_GUNS_L3:
-            case AudioTypes.FIRE_GUNS_L4:
-                result = createFireGuns(entity);
-                break;
-            case AudioTypes.EXPLOSION2:
-                result = createExplosion2(entity);
-                break;
-            case AudioTypes.BURST:
-                result = createBurst(entity);
-                break;
-            case AudioTypes.REPEL:
-                result = createRepel(entity);
-                break;
-            default:
-                throw new RuntimeException("Unknown spatial type:" + typeName);
+        case AudioTypes.FIRE_THOR:
+            result = createFireThor(entity);
+            break;
+        case AudioTypes.PICKUP_PRIZE:
+            result = createPickUpPrize(entity);
+            break;
+        case AudioTypes.FIRE_BOMBS_L1:
+        case AudioTypes.FIRE_BOMBS_L2:
+        case AudioTypes.FIRE_BOMBS_L3:
+        case AudioTypes.FIRE_BOMBS_L4:
+            result = createFireBombs(entity);
+            break;
+        case AudioTypes.FIRE_GRAVBOMB:
+            result = createFireGravBomb(entity);
+            break;
+        case AudioTypes.FIRE_GUNS_L1:
+        case AudioTypes.FIRE_GUNS_L2:
+        case AudioTypes.FIRE_GUNS_L3:
+        case AudioTypes.FIRE_GUNS_L4:
+            result = createFireGuns(entity);
+            break;
+        case AudioTypes.EXPLOSION2:
+            result = createExplosion2(entity);
+            break;
+        case AudioTypes.BURST:
+            result = createBurst(entity);
+            break;
+        case AudioTypes.REPEL:
+            result = createRepel(entity);
+            break;
+        default:
+            throw new RuntimeException("Unknown spatial type:" + typeName);
         }
 
         // Add it to the index
@@ -233,41 +234,33 @@ public class AudioState extends BaseAppState {
 
         float volume = 1f;
         /*
-        if (result != null) {
-            BodyPosition bp = ed.getComponent(entity.getId(), BodyPosition.class);
-            Position pos = ed.getComponent(entity.getId(), Position.class);
-            if (bp != null) {
-
-                PositionTransition trans = bp.getBuffer().getTransition(time);
-                if (trans != null) {
-                    Vector3f bodyPositionPos = trans.getPosition(time, true);
-                    volume = this.calculateVolume(bodyPositionPos);
-                }
-            } else if (pos != null) {
-                volume = this.calculateVolume(pos.getLocation().toVector3f());
-            }
-
-            result.setVolume(volume);
-            result.playInstance();
-        } else {
-            throw new NullPointerException("Resulting audio node is null");
-        }
+         * if (result != null) { BodyPosition bp = ed.getComponent(entity.getId(),
+         * BodyPosition.class); Position pos = ed.getComponent(entity.getId(),
+         * Position.class); if (bp != null) {
+         *
+         * PositionTransition trans = bp.getBuffer().getTransition(time); if (trans !=
+         * null) { Vector3f bodyPositionPos = trans.getPosition(time, true); volume =
+         * this.calculateVolume(bodyPositionPos); } } else if (pos != null) { volume =
+         * this.calculateVolume(pos.getLocation().toVector3f()); }
+         *
+         * result.setVolume(volume); result.playInstance(); } else { throw new
+         * NullPointerException("Resulting audio node is null"); }
          */
         if (result != null) {
-            
-            //result.setref
+
+            // result.setref
             result.playInstance();
         }
         return result;
     }
 
     private AudioNode createPickUpPrize(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("pickupPrize:" + entity.getId());
         result.setUserData("pickupPrizeId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -275,12 +268,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createFireThor(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("fireThor:" + entity.getId());
         result.setUserData("fireThorId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -288,12 +281,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createFireBombs(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("fireBombs:" + entity.getId());
         result.setUserData("fireBombsId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -301,12 +294,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createFireGravBomb(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("fireGravBomb:" + entity.getId());
         result.setUserData("fireGravBombId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -314,12 +307,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createRepel(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("repel:" + entity.getId());
         result.setUserData("repelId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -327,12 +320,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createFireGuns(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("fireGuns:" + entity.getId());
         result.setUserData("fireGunsId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -340,12 +333,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createExplosion2(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("explosion2:" + entity.getId());
         result.setUserData("explosion2Id", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 
@@ -353,12 +346,12 @@ public class AudioState extends BaseAppState {
     }
 
     private AudioNode createBurst(Entity entity) {
-        //Node information:
+        // Node information:
         Node result = new Node("burstSound:" + entity.getId());
         result.setUserData("burstSoundId", entity.getId().getId());
-        //result.setUserData(LayerComparator.LAYER, 1);
+        // result.setUserData(LayerComparator.LAYER, 1);
 
-        //Spatial information:
+        // Spatial information:
         AudioNode an = factory.createAudio(entity);
         result.attachChild(an);
 

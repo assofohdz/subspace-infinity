@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -27,13 +27,11 @@ package infinity.systems;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.es.common.Decay;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import com.simsilica.es.common.Decay;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
+
 import infinity.es.Dead;
 
 /**

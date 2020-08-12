@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -35,15 +35,16 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+
 import com.simsilica.es.EntityData;
+
 import infinity.client.ConnectionState;
-import infinity.client.view.ModelViewState;
 
 /**
  *
  * @author Asser
  */
-public class EffectFactory{
+public class EffectFactory {
 
     private ModelViewState state;
     private AssetManager assets;
@@ -51,22 +52,21 @@ public class EffectFactory{
     private float time = 0;
     private int state2 = 0;
     private Node explosionEffect = new Node("explosionFX");
-    private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris,
-            shockwave;
+    private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris, shockwave;
 
-    
     private static final int COUNT_FACTOR = 1;
     private static final float COUNT_FACTOR_F = 1f;
 
     private static final boolean POINT_SPRITE = true;
-    private static final ParticleMesh.Type EMITTER_TYPE = POINT_SPRITE ? ParticleMesh.Type.Point : ParticleMesh.Type.Triangle;
+    private static final ParticleMesh.Type EMITTER_TYPE = POINT_SPRITE ? ParticleMesh.Type.Point
+            : ParticleMesh.Type.Triangle;
 
     public void setState(ModelViewState state) {
 
         this.state = state;
         this.assets = state.getApplication().getAssetManager();
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
-        
+
         createFlame();
         createFlash();
         createSpark();
@@ -76,13 +76,13 @@ public class EffectFactory{
         createShockwave();
         explosionEffect.setLocalScale(0.5f);
         state.getApplication().getRenderManager().preloadScene(explosionEffect);
-        
+
     }
 
     private void createFlame() {
         flame = new ParticleEmitter("Flame", EMITTER_TYPE, 32 * COUNT_FACTOR);
         flame.setSelectRandomImage(true);
-        flame.setStartColor(new ColorRGBA(1f, 0.4f, 0.05f, (float) (1f / COUNT_FACTOR_F)));
+        flame.setStartColor(new ColorRGBA(1f, 0.4f, 0.05f, 1f / COUNT_FACTOR_F));
         flame.setEndColor(new ColorRGBA(.4f, .22f, .12f, 0f));
         flame.setStartSize(1.3f);
         flame.setEndSize(2f);
@@ -105,7 +105,7 @@ public class EffectFactory{
     private void createFlash() {
         flash = new ParticleEmitter("Flash", EMITTER_TYPE, 24 * COUNT_FACTOR);
         flash.setSelectRandomImage(true);
-        flash.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, (float) (1f / COUNT_FACTOR_F)));
+        flash.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, 1f / COUNT_FACTOR_F));
         flash.setEndColor(new ColorRGBA(1f, 0.8f, 0.36f, 0f));
         flash.setStartSize(.1f);
         flash.setEndSize(3.0f);
@@ -128,7 +128,7 @@ public class EffectFactory{
     private void createRoundSpark() {
         roundspark = new ParticleEmitter("RoundSpark", EMITTER_TYPE, 20 * COUNT_FACTOR);
         roundspark.setStartColor(new ColorRGBA(1f, 0.29f, 0.34f, (float) (1.0 / COUNT_FACTOR_F)));
-        roundspark.setEndColor(new ColorRGBA(0, 0, 0, (float) (0.5f / COUNT_FACTOR_F)));
+        roundspark.setEndColor(new ColorRGBA(0, 0, 0, 0.5f / COUNT_FACTOR_F));
         roundspark.setStartSize(1.2f);
         roundspark.setEndSize(1.8f);
         roundspark.setShape(new EmitterSphereShape(Vector3f.ZERO, 2f));
@@ -149,7 +149,7 @@ public class EffectFactory{
 
     private void createSpark() {
         spark = new ParticleEmitter("Spark", ParticleMesh.Type.Triangle, 30 * COUNT_FACTOR);
-        spark.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, (float) (1.0f / COUNT_FACTOR_F)));
+        spark.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, 1.0f / COUNT_FACTOR_F));
         spark.setEndColor(new ColorRGBA(1f, 0.8f, 0.36f, 0f));
         spark.setStartSize(.5f);
         spark.setEndSize(.5f);
@@ -170,7 +170,7 @@ public class EffectFactory{
 
     private void createSmokeTrail() {
         smoketrail = new ParticleEmitter("SmokeTrail", ParticleMesh.Type.Triangle, 22 * COUNT_FACTOR);
-        smoketrail.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, (float) (1.0f / COUNT_FACTOR_F)));
+        smoketrail.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, 1.0f / COUNT_FACTOR_F));
         smoketrail.setEndColor(new ColorRGBA(1f, 0.8f, 0.36f, 0f));
         smoketrail.setStartSize(.2f);
         smoketrail.setEndSize(1f);
@@ -196,7 +196,7 @@ public class EffectFactory{
         debris.setSelectRandomImage(true);
         debris.setRandomAngle(true);
         debris.setRotateSpeed(FastMath.TWO_PI * 4);
-        debris.setStartColor(new ColorRGBA(1f, 0.59f, 0.28f, (float) (1.0f / COUNT_FACTOR_F)));
+        debris.setStartColor(new ColorRGBA(1f, 0.59f, 0.28f, 1.0f / COUNT_FACTOR_F));
         debris.setEndColor(new ColorRGBA(.5f, 0.5f, 0.5f, 0f));
         debris.setStartSize(.2f);
         debris.setEndSize(.2f);
@@ -220,7 +220,7 @@ public class EffectFactory{
         shockwave = new ParticleEmitter("Shockwave", ParticleMesh.Type.Triangle, 1 * COUNT_FACTOR);
 //        shockwave.setRandomAngle(true);
         shockwave.setFaceNormal(Vector3f.UNIT_Y);
-        shockwave.setStartColor(new ColorRGBA(.48f, 0.17f, 0.01f, (float) (.8f / COUNT_FACTOR_F)));
+        shockwave.setStartColor(new ColorRGBA(.48f, 0.17f, 0.01f, .8f / COUNT_FACTOR_F));
         shockwave.setEndColor(new ColorRGBA(.48f, 0.17f, 0.01f, 0f));
 
         shockwave.setStartSize(0f);
@@ -239,9 +239,8 @@ public class EffectFactory{
         shockwave.setMaterial(mat);
         explosionEffect.attachChild(shockwave);
     }
-    
-    public Spatial createExplosion()
-    {
+
+    public Spatial createExplosion() {
         return explosionEffect.deepClone();
     }
 

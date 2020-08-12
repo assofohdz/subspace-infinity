@@ -7,8 +7,9 @@ package infinity.es.ship;
 
 /**
  * Maximum speed of ship (0 = can't move)
+ *
  * @author Asser Fahrenholz
  */
 public class SpeedMax {
-    
+
 }

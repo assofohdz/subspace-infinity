@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -32,5 +32,5 @@ package infinity.events;
 public class TurretEvent {
     /*
      * TurretEvent
-    */
+     */
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,7 +29,6 @@ import com.simsilica.es.EntityData;
 
 public class MobTypes {
 
-    
     public static final String MOB1 = "mob1";
 
     public static MobType mob1(EntityData ed) {

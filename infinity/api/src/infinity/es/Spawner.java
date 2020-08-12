@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -31,9 +31,11 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class Spawner implements EntityComponent{
-    
-    public enum SpawnType { Players, Prizes }
+public class Spawner implements EntityComponent {
+
+    public enum SpawnType {
+        Players, Prizes
+    }
 
     public int getMaxCount() {
         return maxCount;
@@ -47,13 +49,12 @@ public class Spawner implements EntityComponent{
         this.maxCount = maxCount;
         this.type = type;
     }
-    
-    
+
     private int maxCount;
     private SpawnType type;
-    
-    public Spawner(){
-        
+
+    public Spawner() {
+
     }
 
     public SpawnType getType() {

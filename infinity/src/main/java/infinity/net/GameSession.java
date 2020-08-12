@@ -1,46 +1,46 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2018, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.net;
 
-import com.jme3.math.Vector3f;
 import com.jme3.network.service.rmi.Asynchronous;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+
 import infinity.es.input.MovementInput;
 
 /**
@@ -53,56 +53,56 @@ public interface GameSession {
     /**
      * Returns the ID of the player's current 'avatar' in the game.
      */
-    public EntityId getAvatar();
+    EntityId getAvatar();
 
-    public EntityId getPlayer();
-
-    /**
-     * For now we just direct-move the player avatar.
-     */
-    @Asynchronous(reliable = false)
-    public void setView(Quatd rotation, Vec3d location);
+    EntityId getPlayer();
 
     /**
      * For now we just direct-move the player avatar.
      */
     @Asynchronous(reliable = false)
-    public void move(MovementInput movementForces);
+    void setView(Quatd rotation, Vec3d location);
 
     /**
-     * Perform an action, such as placing a brick, firing off burst, placing a
-     * decoy etc.
+     * For now we just direct-move the player avatar.
+     */
+    @Asynchronous(reliable = false)
+    void move(MovementInput movementForces);
+
+    /**
+     * Perform an action, such as placing a brick, firing off burst, placing a decoy
+     * etc.
      */
     @Asynchronous(reliable = true)
-    public void action(byte actionInput);
+    void action(byte actionInput);
 
     /**
      * Attack using guns, bombs, mines, gravbombs
      */
     @Asynchronous(reliable = true)
-    public void attack(byte attackInput);
+    void attack(byte attackInput);
 
     /**
      * Request a ship change or enter spectator mode
      */
     @Asynchronous(reliable = true)
-    public void avatar(byte avatarInput);
+    void avatar(byte avatarInput);
 
     /**
      * Toggle antiwarp, cloak, stealth etc.
      */
     @Asynchronous(reliable = true)
-    public void toggle(byte toggleInput);
-    
+    void toggle(byte toggleInput);
+
     /**
      * Edit the map
-     * @param mapInput 
+     *
+     * @param mapInput
      */
     @Asynchronous(reliable = true)
-    public void map(byte mapInput, Vec3d coords);
-    
-    
-//    
+    void map(byte mapInput, Vec3d coords);
+
+//
 //    /**
 //     * RMI call to create a tile
 //     *

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Initial number of Repels given to ships when they start
+ *
  * @author Asser
  */
 public class Repel implements EntityComponent {
@@ -42,8 +43,8 @@ public class Repel implements EntityComponent {
     public Repel(int count) {
         this.count = count;
     }
-    
-    public Repel decrement(int decrement){
-        return new Repel(count-decrement);
+
+    public Repel decrement(int decrement) {
+        return new Repel(count - decrement);
     }
 }

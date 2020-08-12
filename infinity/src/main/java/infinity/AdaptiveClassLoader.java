@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -59,7 +59,8 @@ import java.util.zip.ZipFile;
  * repository is passed at construction.
  *
  * <P>
- * <B>How autoreload works:</B></P>
+ * <B>How autoreload works:</B>
+ * </P>
  *
  * <P>
  * The Java VM considers two classes the same if they have the same
@@ -100,7 +101,7 @@ import java.util.zip.ZipFile;
  * @author Jim Heintz
  * @author <a href="mailto:stefano@apache.org">Stefano Mazzocchi</a>
  * @version $Revision: 9187 $ $Date: 2016-01-22 00:50:59 +0100 (fr, 22 jan 2016)
- * $
+ *          $
  * @see java.lang.ClassLoader
  */
 public class AdaptiveClassLoader extends ClassLoader {
@@ -111,8 +112,8 @@ public class AdaptiveClassLoader extends ClassLoader {
     static private int generationCounter = 0;
 
     /**
-     * Generation number of the classloader, used to distinguish between
-     * different instances.
+     * Generation number of the classloader, used to distinguish between different
+     * instances.
      */
     @SuppressWarnings("unused")
     private int generation;
@@ -130,16 +131,15 @@ public class AdaptiveClassLoader extends ClassLoader {
 
     /**
      * The classpath which this classloader searches for class definitions. Each
-     * element of the vector should be either a directory, a .zip file, or a
-     * .jar file.
+     * element of the vector should be either a directory, a .zip file, or a .jar
+     * file.
      * <p>
      * It may be empty when only system classes are controlled.
      */
     private Vector<File> repository;
 
     /**
-     * Private class used to maintain information about the classes that we
-     * loaded.
+     * Private class used to maintain information about the classes that we loaded.
      */
     private static class ClassCacheEntry {
 
@@ -149,14 +149,14 @@ public class AdaptiveClassLoader extends ClassLoader {
         Class<?> loadedClass;
 
         /**
-         * The file from which this class was loaded; or null if it was loaded
-         * from the system.
+         * The file from which this class was loaded; or null if it was loaded from the
+         * system.
          */
         File origin;
 
         /**
-         * The time at which the class was loaded from the origin file, in ms
-         * since the epoch.
+         * The time at which the class was loaded from the origin file, in ms since the
+         * epoch.
          */
         long lastModified;
 
@@ -168,20 +168,20 @@ public class AdaptiveClassLoader extends ClassLoader {
         }
     }
 
-    //------------------------------------------------------- Constructors
+    // ------------------------------------------------------- Constructors
     /**
      * Creates a new class loader that will load classes from specified class
      * repositories.
      *
-     * @param classRepository An set of File classes indicating directories
-     * and/or zip/jar files. It may be empty when only system classes are
-     * loaded.
-     * @throws java.lang.IllegalArgumentException if the objects contained in
-     * the vector are not a file instance or the file is not a valid directory
-     * or a zip/jar file.
+     * @param classRepository An set of File classes indicating directories and/or
+     *                        zip/jar files. It may be empty when only system
+     *                        classes are loaded.
+     * @throws java.lang.IllegalArgumentException if the objects contained in the
+     *                                            vector are not a file instance or
+     *                                            the file is not a valid directory
+     *                                            or a zip/jar file.
      */
-    public AdaptiveClassLoader(Vector<File> classRepository)
-            throws IllegalArgumentException {
+    public AdaptiveClassLoader(Vector<File> classRepository) throws IllegalArgumentException {
         this(classRepository, null);
     }
 
@@ -189,21 +189,23 @@ public class AdaptiveClassLoader extends ClassLoader {
      * Creates a new class loader that will load classes from specified class
      * repositories.
      *
-     * @param classRepository An set of File classes indicating directories
-     * and/or zip/jar files. It may be empty when only system classes are
-     * loaded.
+     * @param classRepository    An set of File classes indicating directories
+     *                           and/or zip/jar files. It may be empty when only
+     *                           system classes are loaded.
      * @param chainedClassLoader A class loader to attempt to load classes as
-     * resources thru before falling back on the default system loaders.
-     * @throws java.lang.IllegalArgumentException if the objects contained in
-     * the vector are not a file instance or the file is not a valid directory
-     * or a zip/jar file.
+     *                           resources thru before falling back on the default
+     *                           system loaders.
+     * @throws java.lang.IllegalArgumentException if the objects contained in the
+     *                                            vector are not a file instance or
+     *                                            the file is not a valid directory
+     *                                            or a zip/jar file.
      */
     public AdaptiveClassLoader(Vector<File> classRepository, ClassLoader chainedClassLoader)
             throws IllegalArgumentException {
         myParentClassLoader = chainedClassLoader;
 
         // Create the cache of loaded classes
-        cache = new Hashtable<String, ClassCacheEntry>();
+        cache = new Hashtable<>();
 
         // Verify that all the repository are valid.
         Enumeration<File> e = classRepository.elements();
@@ -220,20 +222,17 @@ public class AdaptiveClassLoader extends ClassLoader {
 
                     // Check to see if we have proper access.
                     if (!file.exists()) {
-                        throw new IllegalArgumentException("Repository "
-                                + file.getAbsolutePath() + " doesn't exist!");
+                        throw new IllegalArgumentException("Repository " + file.getAbsolutePath() + " doesn't exist!");
                     } else if (!file.canRead()) {
                         throw new IllegalArgumentException(
-                                "Do not have read access for file "
-                                + file.getAbsolutePath());
+                                "Do not have read access for file " + file.getAbsolutePath());
                     }
 
                     // Check that it is a directory or zip/jar file
-                    if (!(file.isDirectory() || isZipOrJarArchive(file))) {
+                    if ((!file.isDirectory() && !isZipOrJarArchive(file))) {
                         throw new IllegalArgumentException(
-                                file.getAbsolutePath()
-                                + " is not a directory or zip/jar file"
-                                + " or if it's a zip/jar file then it is corrupted.");
+                                file.getAbsolutePath() + " is not a directory or zip/jar file"
+                                        + " or if it's a zip/jar file then it is corrupted.");
                     }
                 }
             }
@@ -246,7 +245,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         this.generation = generationCounter++;
     }
 
-    //------------------------------------------------------- Methods
+    // ------------------------------------------------------- Methods
     /**
      * Test if a file is a ZIP or JAR archive.
      *
@@ -276,8 +275,8 @@ public class AdaptiveClassLoader extends ClassLoader {
     }
 
     /**
-     * Check to see if a given class should be reloaded because of a
-     * modification to the original class.
+     * Check to see if a given class should be reloaded because of a modification to
+     * the original class.
      *
      * @param classname The name of the class to check for modification.
      * @return true if the class should be reloaded, false if not
@@ -293,8 +292,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             // System classes cannot be reloaded
             return false;
         } else {
-            boolean reload
-                    = (entry.origin.lastModified() != entry.lastModified);
+            boolean reload = (entry.origin.lastModified() != entry.lastModified);
             return reload;
         }
     }
@@ -302,8 +300,8 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Check whether the classloader should be reinstantiated.
      * <P>
-     * The classloader must be replaced if there is any class whose origin file
-     * has changed since it was last loaded.
+     * The classloader must be replaced if there is any class whose origin file has
+     * changed since it was last loaded.
      *
      * @return true if the class loader should be reloaded, false otherwise
      */
@@ -313,7 +311,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         Enumeration<ClassCacheEntry> e = cache.elements();
 
         while (e.hasMoreElements()) {
-            ClassCacheEntry entry = (ClassCacheEntry) e.nextElement();
+            ClassCacheEntry entry = e.nextElement();
 
             if (entry.isSystemClass()) {
                 continue;
@@ -321,7 +319,7 @@ public class AdaptiveClassLoader extends ClassLoader {
 
             // XXX: Because we want the classloader to be an accurate
             // reflection of the contents of the repository, we also
-            // reload if a class origin file is now missing.  This
+            // reload if a class origin file is now missing. This
             // probably makes things a bit more fragile, but is OK in
             // a servlet development situation. <mbp@pharos.com.au>
             long msOrigin = entry.origin.lastModified();
@@ -344,8 +342,8 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Re-instantiate this class loader.
      * <p>
-     * This method creates a new instance of the class loader that will load
-     * classes form the same path as this one.
+     * This method creates a new instance of the class loader that will load classes
+     * form the same path as this one.
      *
      * @return the new adaptive class loader instance
      */
@@ -353,32 +351,32 @@ public class AdaptiveClassLoader extends ClassLoader {
         return new AdaptiveClassLoader(repository, myParentClassLoader);
     }
 
-    //------------------------------------ Implementation of Classloader
+    // ------------------------------------ Implementation of Classloader
 
     /*
-        XXX: The javadoc for java.lang.ClassLoader says that the
-        ClassLoader should cache classes so that it can handle repeated
-        requests for the same class.  On the other hand, the JLS seems
-        to imply that each classloader is only asked to load each class
-        once.  Is this a contradiction?
-
-        Perhaps the second call only applies to classes which have been
-        garbage-collected?
+     * XXX: The javadoc for java.lang.ClassLoader says that the ClassLoader should
+     * cache classes so that it can handle repeated requests for the same class. On
+     * the other hand, the JLS seems to imply that each classloader is only asked to
+     * load each class once. Is this a contradiction?
+     *
+     * Perhaps the second call only applies to classes which have been
+     * garbage-collected?
      */
     /**
-     * Resolves the specified name to a Class. The method loadClass() is called
-     * by the virtual machine. As an abstract method, loadClass() must be
-     * defined in a subclass of ClassLoader.
+     * Resolves the specified name to a Class. The method loadClass() is called by
+     * the virtual machine. As an abstract method, loadClass() must be defined in a
+     * subclass of ClassLoader.
      *
-     * @param name the name of the desired Class.
-     * @param resolve true if the Class needs to be resolved; false if the
-     * virtual machine just wants to determine whether the class exists or not
+     * @param name    the name of the desired Class.
+     * @param resolve true if the Class needs to be resolved; false if the virtual
+     *                machine just wants to determine whether the class exists or
+     *                not
      * @return the resulting Class.
      * @exception ClassNotFoundException if the class loader cannot find a the
-     * requested class.
+     *                                   requested class.
      */
-    protected synchronized Class<?> loadClass(String name, boolean resolve)
-            throws ClassNotFoundException {
+    @Override
+    protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         // The class object that will be returned.
         Class<?> c = null;
 
@@ -426,7 +424,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         while (repEnum.hasMoreElements()) {
             byte[] classData = null;
 
-            File file = (File) repEnum.nextElement();
+            File file = repEnum.nextElement();
             File[] files = SimpleFileFilter.fileOrFiles(file);
 
             for (int i = 0; i < files.length; i++) {
@@ -434,11 +432,9 @@ public class AdaptiveClassLoader extends ClassLoader {
 
                 try {
                     if (file.isDirectory()) {
-                        classData
-                                = loadClassFromDirectory(file, name, classCache);
+                        classData = loadClassFromDirectory(file, name, classCache);
                     } else {
-                        classData
-                                = loadClassFromZipfile(file, name, classCache);
+                        classData = loadClassFromZipfile(file, name, classCache);
                     }
                 } catch (IOException ioe) {
                     // Error while reading in data, consider it as not found
@@ -478,9 +474,9 @@ public class AdaptiveClassLoader extends ClassLoader {
      * Load a class using the system classloader.
      *
      * @exception ClassNotFoundException if the class loader cannot find a the
-     * requested class.
-     * @exception NoClassDefFoundError if the class loader cannot find a
-     * definition for the class.
+     *                                   requested class.
+     * @exception NoClassDefFoundError   if the class loader cannot find a
+     *                                   definition for the class.
      */
     private Class<?> loadSystemClass(String name, boolean resolve) throws NoClassDefFoundError, ClassNotFoundException {
         if (myParentClassLoader != null) {
@@ -505,11 +501,11 @@ public class AdaptiveClassLoader extends ClassLoader {
     }
 
     /**
-     * Checks whether a classloader is allowed to define a given class, within
-     * the security manager restrictions.
+     * Checks whether a classloader is allowed to define a given class, within the
+     * security manager restrictions.
      */
     // XXX: Should we perhaps also not allow classes to be dynamically
-    // loaded from org.apache.jserv.*?  Would it introduce security
+    // loaded from org.apache.jserv.*? Would it introduce security
     // problems if people could override classes here?
     // <mbp@humbug.org.au 1998-07-29>
     private boolean securityAllowsClass(String className) {
@@ -524,8 +520,7 @@ public class AdaptiveClassLoader extends ClassLoader {
 
             int lastDot = className.lastIndexOf('.');
             // Check if we are allowed to load the class' package
-            security.checkPackageDefinition((lastDot > -1)
-                    ? className.substring(0, lastDot) : "");
+            security.checkPackageDefinition((lastDot > -1) ? className.substring(0, lastDot) : "");
             // Throws if not allowed
             return true;
         } catch (SecurityException e) {
@@ -536,16 +531,13 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Tries to load the class from a directory.
      *
-     * @param dir The directory that contains classes.
-     * @param name The classname
+     * @param dir   The directory that contains classes.
+     * @param name  The classname
      * @param cache The cache entry to set the file if successful.
      */
-    private byte[] loadClassFromDirectory(File dir, String name,
-            ClassCacheEntry cache)
-            throws IOException {
+    private byte[] loadClassFromDirectory(File dir, String name, ClassCacheEntry cache) throws IOException {
         // Translate class name to file name
-        String classFileName
-                = name.replace('.', File.separatorChar) + ".class";
+        String classFileName = name.replace('.', File.separatorChar) + ".class";
 
         // Check for garbage input at beginning of file name
         // i.e. ../ or similar
@@ -553,8 +545,8 @@ public class AdaptiveClassLoader extends ClassLoader {
             // Find real beginning of class name
             int start = 1;
 
-            while (!Character.isJavaIdentifierStart(
-                    classFileName.charAt(start++)));
+            while (!Character.isJavaIdentifierStart(classFileName.charAt(start)))
+                start++;
 
             classFileName = classFileName.substring(start);
         }
@@ -580,13 +572,11 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Tries to load the class from a zip file.
      *
-     * @param file The zipfile that contains classes.
-     * @param name The classname
+     * @param file  The zipfile that contains classes.
+     * @param name  The classname
      * @param cache The cache entry to set the file if successful.
      */
-    private byte[] loadClassFromZipfile(File file, String name,
-            ClassCacheEntry cache)
-            throws IOException {
+    private byte[] loadClassFromZipfile(File file, String name, ClassCacheEntry cache) throws IOException {
         // Translate class name to file name
         String classFileName = name.replace('.', '/') + ".class";
 
@@ -597,8 +587,7 @@ public class AdaptiveClassLoader extends ClassLoader {
 
             if (entry != null) {
                 cache.origin = file;
-                return loadBytesFromStream(zipfile.getInputStream(entry),
-                        (int) entry.getSize());
+                return loadBytesFromStream(zipfile.getInputStream(entry), (int) entry.getSize());
             } else {
                 // Not found
                 return null;
@@ -611,8 +600,7 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Loads all the bytes of an InputStream.
      */
-    private byte[] loadBytesFromStream(InputStream in, int length)
-            throws IOException {
+    private byte[] loadBytesFromStream(InputStream in, int length) throws IOException {
         byte[] buf = new byte[length];
         int nRead, count = 0;
 
@@ -625,16 +613,17 @@ public class AdaptiveClassLoader extends ClassLoader {
     }
 
     /**
-     * Get an InputStream on a given resource. Will return null if no resource
-     * with this name is found.
+     * Get an InputStream on a given resource. Will return null if no resource with
+     * this name is found.
      * <p>
-     * The JServClassLoader translate the resource's name to a file or a zip
-     * entry. It looks for the resource in all its repository entry.
+     * The JServClassLoader translate the resource's name to a file or a zip entry.
+     * It looks for the resource in all its repository entry.
      *
      * @see java.lang.Class#getResourceAsStream(String)
      * @param name the name of the resource, to be used as is.
      * @return an InputStream on the resource, or null if not found.
      */
+    @Override
     public InputStream getResourceAsStream(String name) {
         // Try to load it from the system class
         InputStream s = null;
@@ -652,7 +641,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             Enumeration<File> repEnum = repository.elements();
 
             while (repEnum.hasMoreElements()) {
-                File file = (File) repEnum.nextElement();
+                File file = repEnum.nextElement();
 
                 if (file.isDirectory()) {
                     s = loadResourceFromDirectory(file, name);
@@ -734,16 +723,17 @@ public class AdaptiveClassLoader extends ClassLoader {
     }
 
     /**
-     * Find a resource with a given name. The return is a URL to the resource.
-     * Doing a getContent() on the URL may return an Image, an AudioClip,or an
+     * Find a resource with a given name. The return is a URL to the resource. Doing
+     * a getContent() on the URL may return an Image, an AudioClip,or an
      * InputStream.
      * <p>
-     * This classloader looks for the resource only in the directory repository
-     * for this resource.
+     * This classloader looks for the resource only in the directory repository for
+     * this resource.
      *
      * @param name the name of the resource, to be used as is.
      * @return an URL on the resource, or null if not found.
      */
+    @Override
     public URL getResource(String name) {
 
         if (name == null) {
@@ -765,11 +755,12 @@ public class AdaptiveClassLoader extends ClassLoader {
             return u;
         }
 
-        // We got here so we have to look for the resource in our list of repository elements
+        // We got here so we have to look for the resource in our list of repository
+        // elements
         Enumeration<File> repEnum = repository.elements();
 
         while (repEnum.hasMoreElements()) {
-            File file = (File) repEnum.nextElement();
+            File file = repEnum.nextElement();
 
             // Construct a file://-URL if the repository is a directory
             if (file.isDirectory()) {

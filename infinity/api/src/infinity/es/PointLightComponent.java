@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.jme3.math.ColorRGBA;
+
 import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 
@@ -55,8 +56,8 @@ public class PointLightComponent implements EntityComponent {
     public float getRadius() {
         return radius;
     }
-    
-    public Vec3d getOffset(){
+
+    public Vec3d getOffset() {
         return offset;
     }
 

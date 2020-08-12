@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -69,12 +69,12 @@ public class Position_old implements EntityComponent {
         return new Position_old(location, facing, rotation, cellId);
     }
 
-    //public Position changeLocation( Vec3d location ) {
-    //    return new Position(location, facing, 0.0);
-    //}
-    //public Position changeFacing( Quatd facing ) {
-    //    return new Position(location, facing, 0.0);
-    //}
+    // public Position changeLocation( Vec3d location ) {
+    // return new Position(location, facing, 0.0);
+    // }
+    // public Position changeFacing( Quatd facing ) {
+    // return new Position(location, facing, 0.0);
+    // }
     public Vec3d getLocation() {
         return location;
     }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -26,28 +26,26 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
-
 
 /**
- *  The object is dead if it has this component.
+ * The object is dead if it has this component.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class Dead implements EntityComponent {
     private long time;
-    
+
     public Dead() {
     }
-    
-    public Dead( long time ) {
+
+    public Dead(long time) {
         this.time = time;
     }
-    
+
     public long getTime() {
         return time;
     }
-    
+
     @Override
     public String toString() {
         return "Dead[at:" + time + "]";

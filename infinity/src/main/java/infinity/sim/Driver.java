@@ -13,5 +13,5 @@ import infinity.es.input.MovementInput;
  */
 public interface Driver {
 
-    public void applyMovementState(MovementInput movement);
+    void applyMovementState(MovementInput movement);
 }

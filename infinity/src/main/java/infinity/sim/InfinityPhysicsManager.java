@@ -5,21 +5,20 @@
  */
 package infinity.sim;
 
-import com.simsilica.mathd.Grid;
 import com.simsilica.mphys.PhysicsSpace;
 
 /**
  *
  * @author AFahrenholz
  */
-public class InfinityPhysicsManager implements PhysicsManager{
-    
+public class InfinityPhysicsManager implements PhysicsManager {
+
     PhysicsSpace space;
 
     public InfinityPhysicsManager(PhysicsSpace space) {
         this.space = space;
     }
-    
+
     @Override
     public PhysicsSpace getPhysics() {
         return space;

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Indicates if a ship has antiwarp enabled
+ *
  * @author Asser
  */
 public class Antiwarp implements EntityComponent {
@@ -42,7 +43,7 @@ public class Antiwarp implements EntityComponent {
     public Antiwarp(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     public Antiwarp() {
     }
 }

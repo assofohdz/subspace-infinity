@@ -1,44 +1,50 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2016, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.server.chat;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.network.HostedConnection;
 import com.jme3.network.MessageConnection;
@@ -46,9 +52,9 @@ import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
+
 import com.simsilica.es.EntityId;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import infinity.net.chat.ChatSession;
 import infinity.net.chat.ChatSessionListener;
 import infinity.server.AccountHostedService;
@@ -86,13 +92,13 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     }
 
     /**
-     * Creates a new chat service that will use the specified channel for
-     * reliable communication.
+     * Creates a new chat service that will use the specified channel for reliable
+     * communication.
      */
     public ChatHostedService(int channel) {
         this.channel = channel;
         this.patternBiConsumers = new HashMap<>();
-        //setAutoHost(false);
+        // setAutoHost(false);
     }
 
     protected ChatSessionImpl getChatSession(HostedConnection conn) {
@@ -102,7 +108,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     @Override
     protected void onInitialize(HostedServiceManager s) {
 
-        // Grab the RMI service so we can easily use it later        
+        // Grab the RMI service so we can easily use it later
         this.rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("ChatHostedService requires an RMI service.");
@@ -111,8 +117,8 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
     /**
      * Starts hosting the chat services on the specified connection using a
-     * specified player name. This causes the player to 'enter' the chat room
-     * and will then be able to send/receive messages.
+     * specified player name. This causes the player to 'enter' the chat room and
+     * will then be able to send/receive messages.
      */
     public void startHostingOnConnection(HostedConnection conn, String playerName) {
         log.debug("startHostingOnConnection(" + conn + ")");
@@ -157,7 +163,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
             // may call it and it will also be called during connection shutdown.
             conn.setAttribute(ATTRIBUTE_SESSION, null);
 
-            // Remove player session from the active sessions list 
+            // Remove player session from the active sessions list
             players.remove(player);
 
             // Send the leave event to other players
@@ -180,10 +186,11 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
                 matched = true;
                 EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
                 CommandConsumer cc = patternBiConsumers.get(p);
-                //TODO: Implement account service to manage security levels
-                //if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity, cc.getAccessLevelRequired())) {
-                    cc.getConsumer().accept(fromEntity, m.group(1));
-                //}
+                // TODO: Implement account service to manage security levels
+                // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
+                // cc.getAccessLevelRequired())) {
+                cc.getConsumer().accept(fromEntity, m.group(1));
+                // }
             }
         }
 
@@ -208,16 +215,17 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
     /**
      *
-     * @param pattern the pattern to match
+     * @param pattern     the pattern to match
      * @param description the help description of the pattern
-     * @param c a consumer taking the message and the sender entity id
+     * @param c           a consumer taking the message and the sender entity id
      */
     @Override
     public void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c) {
-        //TODO: For now, only one consumer per pattern (we could potentially have multiple)
+        // TODO: For now, only one consumer per pattern (we could potentially have
+        // multiple)
         patternBiConsumers.put(pattern, c);
 
-        //TODO: Post message only to those who have the proper access level
+        // TODO: Post message only to those who have the proper access level
         this.postPublicMessage("System", MessageTypes.MESSAGE, description);
     }
 
@@ -233,34 +241,38 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
     @Override
     public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public void postTeamMessage(String from, int messageType, int targetFrequency, String message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public void registerCommandConsumer(String cmd, String helptext, CommandConsumer c) {
-        //TODO: Put together the pattern that will match, depending on the sender and the command
+        // TODO: Put together the pattern that will match, depending on the sender and
+        // the command
 
-        //TODO: Post message only to those who have the proper access level
+        // TODO: Post message only to those who have the proper access level
         this.postPublicMessage("System", MessageTypes.MESSAGE, helptext);
 
     }
 
     @Override
     public void removeCommandConsumer(String cmd) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
 
     }
 
     /**
-     * The connection-specific 'host' for the ChatSession. For convenience this
-     * also implements the ChatSessionListener. Since the methods don't collide
-     * at all it's convenient for our other code not to have to worry about the
-     * internal delegate.
+     * The connection-specific 'host' for the ChatSession. For convenience this also
+     * implements the ChatSessionListener. Since the methods don't collide at all
+     * it's convenient for our other code not to have to worry about the internal
+     * delegate.
      */
     private class ChatSessionImpl implements ChatSession, ChatSessionListener {
 

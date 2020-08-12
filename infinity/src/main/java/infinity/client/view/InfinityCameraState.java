@@ -25,31 +25,26 @@
  */
 package infinity.client.view;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.CameraNode;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl;
-import com.simsilica.es.EntityId;
+
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.WatchedEntity;
-import com.simsilica.es.base.DefaultWatchedEntity;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.mathd.Quatd;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.trans.PositionTransition3d;
 import com.simsilica.mathd.trans.TransitionBuffer;
 import com.simsilica.state.CameraState;
+
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
-import infinity.es.BodyPosition;
-import infinity.net.GameSessionListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A state to manage in-game camera. It simply follows the avatar of the player
@@ -91,14 +86,15 @@ public class InfinityCameraState extends CameraState {
         this.cam = app.getCamera();
 
         camNode = new CameraNode("Camera", cam);
-        //SpatialToamera means the camera copies movement by the target
+        // SpatialToamera means the camera copies movement by the target
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
 
         camControl = new InfinityCamControl(cam, InfinityCamControl.ControlDirection.SpatialToCamera, DISTANCETOPLANE);
 
-        //this.camera.setParallelProjection(true);
-        //float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
-        //this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect * frustumSize, frustumSize, -frustumSize);
+        // this.camera.setParallelProjection(true);
+        // float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
+        // this.camera.setFrustum(-1000, 1000, -aspect * frustumSize, aspect *
+        // frustumSize, frustumSize, -frustumSize);
         app.getRenderManager().setCamera(cam, true);
 
         this.ed = getState(ConnectionState.class).getEntityData();
@@ -112,48 +108,43 @@ public class InfinityCameraState extends CameraState {
 
     @Override
     protected void cleanup(Application app) {
-        //Will only happen if we are closing the game
-        /*if (watchedAvatar != null) {
-            watchedAvatar.release();
-        }*/
+        // Will only happen if we are closing the game
+        /*
+         * if (watchedAvatar != null) { watchedAvatar.release(); }
+         */
     }
 
     @Override
     public void update(float tpf) {
         long time = timeSource.getTime();
         /*
-        if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
-            avatarSpatial = viewState.getAvatarSpatial();
-        } else 
-            if (!initializedCam && avatarSpatial != null) {
-            //avatarSpatial.addControl(camControl);
-
-            initializedCam = true;
-        }
+         * if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
+         * avatarSpatial = viewState.getAvatarSpatial(); } else if (!initializedCam &&
+         * avatarSpatial != null) { //avatarSpatial.addControl(camControl);
+         *
+         * initializedCam = true; }
          */
-        //if (initializedCam) {
-        //log.info("update:: setting viewLoc to:"+cam.getLocation());
-/*
-        avatarTransBuffer = viewState.getAvatarBuffer();
-        avatarPos = viewState.getAvatarPosition();
-
-        if (avatarTransBuffer != null) {
-
-            PositionTransition3d trans = avatarTransBuffer.getTransition(time);
-            if (trans != null) {
-                Vector3f pos = trans.getPosition(time, true).toVector3f();
-                //log.info("update():: avatarPos = "+avatarPos);
-                getState(WorldViewState.class).setViewLocation(pos);
-
-                pos.subtractLocal(getState(ModelViewState.class).get)
-                
-                cam.setLocation(pos.add(0, DISTANCETOPLANE, 0));
-                cam.lookAt(pos, Vector3f.UNIT_Y);
-
-                //getState(WorldViewState.class).setViewLocation(avatarSpatial.getWorldTranslation());
-                session.setView(new Quatd(cam.getRotation()), new Vec3d(pos));
-            }
-        }
+        // if (initializedCam) {
+        // log.info("update:: setting viewLoc to:"+cam.getLocation());
+        /*
+         * avatarTransBuffer = viewState.getAvatarBuffer(); avatarPos =
+         * viewState.getAvatarPosition();
+         *
+         * if (avatarTransBuffer != null) {
+         *
+         * PositionTransition3d trans = avatarTransBuffer.getTransition(time); if (trans
+         * != null) { Vector3f pos = trans.getPosition(time, true).toVector3f();
+         * //log.info("update():: avatarPos = "+avatarPos);
+         * getState(WorldViewState.class).setViewLocation(pos);
+         *
+         * pos.subtractLocal(getState(ModelViewState.class).get)
+         *
+         * cam.setLocation(pos.add(0, DISTANCETOPLANE, 0)); cam.lookAt(pos,
+         * Vector3f.UNIT_Y);
+         *
+         * //getState(WorldViewState.class).setViewLocation(avatarSpatial.
+         * getWorldTranslation()); session.setView(new Quatd(cam.getRotation()), new
+         * Vec3d(pos)); } }
          */
     }
 

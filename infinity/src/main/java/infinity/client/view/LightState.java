@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,31 +25,30 @@
  */
 package infinity.client.view;
 
+import java.util.HashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.light.PointLight;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.LightNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mathd.trans.PositionTransition3f;
+import com.simsilica.es.common.Decay;
+import com.simsilica.mathd.trans.PositionTransition3d;
 import com.simsilica.mathd.trans.TransitionBuffer;
+
 import infinity.Main;
 import infinity.TimeState;
-import com.simsilica.es.common.Decay;
-import com.simsilica.mathd.Vec3d;
-import com.simsilica.mathd.trans.PositionTransition3d;
 import infinity.client.ConnectionState;
 import infinity.es.BodyPosition;
-import java.util.HashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import infinity.es.PointLightComponent;
 
 /**
@@ -76,8 +75,8 @@ public class LightState extends BaseAppState {
 
         this.ed = getState(ConnectionState.class).getEntityData();
 
-        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); //Moving point lights
-        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); //Lights that decay
+        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
+        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
 
         this.timeState = getState(TimeState.class);
     }
@@ -92,9 +91,9 @@ public class LightState extends BaseAppState {
     protected void onEnable() {
         rootNode = ((Main) getApplication()).getRootNode();
 
-        //Add a central light to the scene
-        //PointLight pl = new PointLight(new Vector3f(0, 2, 0), ColorRGBA.White, 1000);
-        //rootNode.addLight(pl);
+        // Add a central light to the scene
+        // PointLight pl = new PointLight(new Vector3f(0, 2, 0), ColorRGBA.White, 1000);
+        // rootNode.addLight(pl);
     }
 
     @Override
@@ -118,9 +117,7 @@ public class LightState extends BaseAppState {
             }
         }
         /*
-        for (Entity e : movingPointLights) {
-            this.updatePointLight(e, time);
-        }
+         * for (Entity e : movingPointLights) { this.updatePointLight(e, time); }
          */
         decayingPointLights.applyChanges();
 
@@ -132,8 +129,9 @@ public class LightState extends BaseAppState {
 
                 PointLight pl = pointLightMap.get(e.getId());
 
-                //double percentage = 1-d.getPercentRemaining(time);
-                //float factor = Math.max((float) (1 - (FastMath.pow((float)percentage, 5f))),0f);
+                // double percentage = 1-d.getPercentRemaining(time);
+                // float factor = Math.max((float) (1 - (FastMath.pow((float)percentage,
+                // 5f))),0f);
                 float percentageRemFloat = (float) d.getPercentRemaining(time);
 
                 pl.setColor(plc.getColor().mult(percentageRemFloat));
@@ -150,28 +148,25 @@ public class LightState extends BaseAppState {
     }
 
     /*
-    //Not working yet
-    @Deprecated
-    private void updatePointLight(Entity e, long time) {
-        PointLight pl = pointLightMap.get(e.getId());
-        TransitionBuffer<PositionTransition3d> buffer = bufferMap.get(e.getId());
-
-        //        Vec3d location = p.getLocation();
-        // Look back in the brief history that we've kept and
-        // pull an interpolated value.  To do this, we grab the
-        // span of time that contains the time we want.  PositionTransition
-        // represents a starting and an ending pos+rot over a span of time.
-        PositionTransition3d trans = buffer.getTransition(time);
-
-        if (trans != null) {
-            Vector3f res = trans.getPosition(time, true).add(pointLightOffset).toVector3f();
-            System.out.println("Light pos: " + res);
-            pl.setPosition(res);
-        }
-
-    }
+     * //Not working yet
+     *
+     * @Deprecated private void updatePointLight(Entity e, long time) { PointLight
+     * pl = pointLightMap.get(e.getId()); TransitionBuffer<PositionTransition3d>
+     * buffer = bufferMap.get(e.getId());
+     *
+     * // Vec3d location = p.getLocation(); // Look back in the brief history that
+     * we've kept and // pull an interpolated value. To do this, we grab the // span
+     * of time that contains the time we want. PositionTransition // represents a
+     * starting and an ending pos+rot over a span of time. PositionTransition3d
+     * trans = buffer.getTransition(time);
+     *
+     * if (trans != null) { Vector3f res = trans.getPosition(time,
+     * true).add(pointLightOffset).toVector3f(); System.out.println("Light pos: " +
+     * res); pl.setPosition(res); }
+     *
+     * }
      */
-    
+
     private void createPointLight(Entity e) {
         Spatial s = getState(ModelViewState.class).getModelSpatial(e.getId(), true).getParent();
 
@@ -181,18 +176,19 @@ public class LightState extends BaseAppState {
         PointLight pl = new PointLight();
         pl.setColor(plc.getColor());
         pl.setRadius(plc.getRadius());
-        //Set the pointlights starting position and offset it
+        // Set the pointlights starting position and offset it
         pl.setPosition(s.getWorldTranslation().add(plc.getOffset().toVector3f()));
 
         pointLightMap.put(e.getId(), pl);
 
-        //Create pointer to the threadsafe same position buffer array as modelviewstate. 
-        //Ensure it is the same by initialising it everywhere it's used
+        // Create pointer to the threadsafe same position buffer array as
+        // modelviewstate.
+        // Ensure it is the same by initialising it everywhere it's used
         bp.initialize(e.getId(), 12);
         bufferMap.put(e.getId(), bp.getBuffer());
 
         rootNode.addLight(pl);
         LightNode ln = new LightNode(e.getId().toString(), pl);
-        //s.getp.attachChild(ln);
+        // s.getp.attachChild(ln);
     }
 }

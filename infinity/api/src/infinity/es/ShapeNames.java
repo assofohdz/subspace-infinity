@@ -10,7 +10,7 @@ package infinity.es;
  * @author AFahrenholz
  */
 public class ShapeNames {
-    
+
     public static final String SHIP_SHARK = "ship_shark";
     public static final String SHIP_WARBIRD = "ship_warbird";
     public static final String SHIP_JAVELIN = "ship_javelin";
@@ -32,7 +32,7 @@ public class ShapeNames {
     public static final String BOMBL2 = "bomb_l2";
     public static final String BOMBL3 = "bomb_l3";
     public static final String BOMBL4 = "bomb_l4";
-    
+
     public static final String MINEL1 = "mine_l1";
     public static final String MINEL2 = "mine_l2";
     public static final String MINEL3 = "mine_l3";
@@ -58,5 +58,5 @@ public class ShapeNames {
     public static final String REPEL = "repel";
     public static final String FLAG_OURS = "flag_ours";
     public static final String FLAG_THEIRS = "flag_theirs";
-    
+
 }

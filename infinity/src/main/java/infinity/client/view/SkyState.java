@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,6 +25,9 @@
  */
 package infinity.client.view;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.scene.Spatial;
@@ -32,13 +35,11 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
 import infinity.Main;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class SkyState extends BaseAppState {
 
@@ -48,36 +49,31 @@ public class SkyState extends BaseAppState {
     public SkyState() {
         log.debug("Constructed SkyState");
     }
-    
+
     @Override
-    protected void initialize( Application app ) {
-        
+    protected void initialize(Application app) {
+
         Texture texture1 = app.getAssetManager().loadTexture("Textures/galaxy+Z.jpg");
-        Texture texture2 = app.getAssetManager().loadTexture("Textures/galaxy-Z.jpg"); 
-        Texture texture3 = app.getAssetManager().loadTexture("Textures/galaxy+X.jpg"); 
-        Texture texture4 = app.getAssetManager().loadTexture("Textures/galaxy-X.jpg"); 
-        Texture texture5 = app.getAssetManager().loadTexture("Textures/galaxy+Y.jpg"); 
+        Texture texture2 = app.getAssetManager().loadTexture("Textures/galaxy-Z.jpg");
+        Texture texture3 = app.getAssetManager().loadTexture("Textures/galaxy+X.jpg");
+        Texture texture4 = app.getAssetManager().loadTexture("Textures/galaxy-X.jpg");
+        Texture texture5 = app.getAssetManager().loadTexture("Textures/galaxy+Y.jpg");
         Texture texture6 = app.getAssetManager().loadTexture("Textures/galaxy-Y.jpg");
- 
-        sky = SkyFactory.createSky(app.getAssetManager(),
-                                   texture1, texture2,
-                                   texture3, texture4,
-                                   texture5, texture6);    
+
+        sky = SkyFactory.createSky(app.getAssetManager(), texture1, texture2, texture3, texture4, texture5, texture6);
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup(Application app) {
     }
-    
+
     @Override
     protected void onEnable() {
-        ((Main)getApplication()).getRootNode().attachChild(sky);
+        ((Main) getApplication()).getRootNode().attachChild(sky);
     }
-    
+
     @Override
     protected void onDisable() {
         sky.removeFromParent();
     }
 }
-
-

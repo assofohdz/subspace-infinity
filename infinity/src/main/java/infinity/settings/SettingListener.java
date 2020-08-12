@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -27,13 +27,12 @@ package infinity.settings;
 
 import infinity.es.ArenaId;
 
-
 /**
  *
  * @author Asser Fahrenholz
  */
 public interface SettingListener {
 
-    public void arenaSettingsChange(ArenaId arenaId, String section, String setting);
-    
+    void arenaSettingsChange(ArenaId arenaId, String section, String setting);
+
 }

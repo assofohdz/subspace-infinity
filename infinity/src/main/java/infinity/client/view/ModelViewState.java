@@ -1,81 +1,102 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2018, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.client.view;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.collision.*;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
 import com.jme3.light.PointLight;
-import com.jme3.math.*;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.scene.*;
-import com.jme3.scene.shape.*;
-import com.jme3.texture.Texture;
-import com.jme3.texture.plugins.AWTLoader;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 
-import com.simsilica.es.*;
+import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.es.Filters;
+import com.simsilica.es.WatchedEntity;
 import com.simsilica.es.common.Decay;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
+import com.simsilica.ext.mblock.SphereFactory;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeFactoryRegistry;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.mathd.*;
-import com.simsilica.mathd.trans.*;
-import com.simsilica.state.*;
+import com.simsilica.mathd.Grid;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
+import com.simsilica.mathd.trans.PositionTransition3d;
+import com.simsilica.mathd.trans.TransitionBuffer;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.state.DebugHudState;
 
-import com.simsilica.ext.mblock.*;
-import com.simsilica.ext.mphys.*;
-import com.simsilica.mblock.*;
-import com.simsilica.mblock.phys.*;
-import com.simsilica.mphys.*;
 import infinity.InfinityConstants;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.es.BodyPosition;
-
 import infinity.es.LargeGridCell;
 import infinity.es.LargeObject;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
-import infinity.es.TileTypes;
 
 /**
  *
@@ -96,7 +117,7 @@ public class ModelViewState extends BaseAppState {
     private Grid grid;
 
     private ShapeFactoryRegistry<MBlockShape> shapeFactory;
-    //private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
+    // private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
     private SpatialFactory modelFactory;
     private SISpatialFactory siModelFactory;
 
@@ -109,16 +130,14 @@ public class ModelViewState extends BaseAppState {
 
     // If the block at 0, 0, 0 is the block whose own origin as
     // at 0,0,0 then it extends up to 1,1,1... So we want to make
-    // sure out visualization is calibrated similarly.  Also, in
+    // sure out visualization is calibrated similarly. Also, in
     // the test DB we generate a 'horizon' at elevation 64... which
-    // is really block 63.  So a test block at 64 should extend up
+    // is really block 63. So a test block at 64 should extend up
     // from 64 to 65 and be sitting on the ground.
-    /*private float[][] testCoords = {
-            {0, 64, 0},
-            {0, 0, 0},
-            {32, 64, 32}
-        };
-    private Spatial[] tests = new Spatial[testCoords.length];*/
+    /*
+     * private float[][] testCoords = { {0, 64, 0}, {0, 0, 0}, {32, 64, 32} };
+     * private Spatial[] tests = new Spatial[testCoords.length];
+     */
     private List<Vector4f> testCoords = new ArrayList<>();
     private WatchedEntity watchedAvatar;
     private GameSessionClientService gameSession;
@@ -138,22 +157,22 @@ public class ModelViewState extends BaseAppState {
     private ModelContainer models;
     private LargeModelContainer largeModels;
 
-    private LinkedList<MarkVisible> markerQueue = new LinkedList<MarkVisible>();
+    private LinkedList<MarkVisible> markerQueue = new LinkedList<>();
 
     // Physics grid is 32x32 but SimEthereal's grid is 64x64... which
-    // means the maximum we'll see updates for is 128< away.  So for
+    // means the maximum we'll see updates for is 128< away. So for
     // a 32 grid we'd need a radius of 3... but then sometimes we'd
-    // show some extra static objects.  I guess that's ok if we also
+    // show some extra static objects. I guess that's ok if we also
     // allow the dynamic objects to go away.
     // The grid we keep for the model interest is the same as the physics grid
     // which is different than the paged grid.
     // Though note that for the moment we require these to be the same
-    // resolution.  The paged grid is necessary because it tells us how
-    // to position the objects relative to the terrain.  The physics grid
+    // resolution. The paged grid is necessary because it tells us how
+    // to position the objects relative to the terrain. The physics grid
     // is necessary for building the array of model filters.
     private Vec3i modelCenter = new Vec3i();
     private Vec3i largeModelCenter = new Vec3i();
-    private int gridRadius = 1; //3;
+    private int gridRadius = 1; // 3;
     private ComponentFilter[][] gridFilters;
 
     private ComponentFilter[][] largeGridFilters;
@@ -168,12 +187,12 @@ public class ModelViewState extends BaseAppState {
     private EntitySet tileTypes;
     private Map<EntityId, Spatial> spatialIndex = new HashMap<>();
 
-    //Lights-->
+    // Lights-->
     private EntitySet movingPointLights, decayingPointLights;
     private HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
     private Vec3d pointLightOffset = new Vec3d(0, 5, 0);
 
-    //<<--Lights
+    // <<--Lights
     public ModelViewState() {
     }
 
@@ -240,7 +259,8 @@ public class ModelViewState extends BaseAppState {
 
         Box box = new Box(coord.w, coord.w, coord.w);
         Geometry geom = new Geometry("test", box);
-        geom.setMaterial(com.simsilica.lemur.GuiGlobals.getInstance().createMaterial(ColorRGBA.Blue, true).getMaterial());
+        geom.setMaterial(
+                com.simsilica.lemur.GuiGlobals.getInstance().createMaterial(ColorRGBA.Blue, true).getMaterial());
         geom.setLocalTranslation(coord.x + coord.w, coord.y + coord.w, coord.z + coord.w);
         objectRoot.attachChild(geom);
 
@@ -265,8 +285,6 @@ public class ModelViewState extends BaseAppState {
         this.worldView = getState(WorldViewState.class);
         this.objectRoot = new Node("objectRoot");
         this.grid = InfinityConstants.PHYSICS_GRID;
-        
-        
 
         DebugHudState debug = getState(DebugHudState.class);
         if (debug != null) {
@@ -276,7 +294,8 @@ public class ModelViewState extends BaseAppState {
             spatialCount = debug.createDebugValue("Spatials", DebugHudState.Location.Right);
         }
 
-        //this.shapeFactory = (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);        
+        // this.shapeFactory =
+        // (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);
         this.shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
@@ -292,19 +311,16 @@ public class ModelViewState extends BaseAppState {
         this.modelFactory = new SpatialFactory(ed, ((SimpleApplication) app).getRootNode(), app.getAssetManager());
 
         // Some test objects
-        //for( int i = 0; i < tests.length; i++ ) {
+        // for( int i = 0; i < tests.length; i++ ) {
         /*
-        for (Vector4f coord : testCoords) {
-            //float[] coord = testCoords[i];
-            Box box = new Box(coord.w, coord.w, coord.w);
-            Geometry geom = new Geometry("test", box);
-            geom.setMaterial(com.simsilica.lemur.GuiGlobals.getInstance().createMaterial(ColorRGBA.Blue, true).getMaterial());
-            geom.setLocalTranslation(coord.x + coord.w, coord.y + coord.w, coord.z + coord.w);
-            objectRoot.attachChild(geom);
-
-            //tests[i] = geom;
-            tests.add(geom);
-        }
+         * for (Vector4f coord : testCoords) { //float[] coord = testCoords[i]; Box box
+         * = new Box(coord.w, coord.w, coord.w); Geometry geom = new Geometry("test",
+         * box);
+         * geom.setMaterial(com.simsilica.lemur.GuiGlobals.getInstance().createMaterial(
+         * ColorRGBA.Blue, true).getMaterial()); geom.setLocalTranslation(coord.x +
+         * coord.w, coord.y + coord.w, coord.z + coord.w); objectRoot.attachChild(geom);
+         *
+         * //tests[i] = geom; tests.add(geom); }
          */
         this.mobs = new MobContainer(ed);
         this.models = new ModelContainer(ed);
@@ -314,8 +330,8 @@ public class ModelViewState extends BaseAppState {
 
         this.tileTypes = ed.getEntities(TileType.class);
 
-        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); //Moving point lights
-        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); //Lights that decay
+        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
+        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
     }
 
     @Override
@@ -351,7 +367,7 @@ public class ModelViewState extends BaseAppState {
         movingPointLights.applyChanges();
 
         tileTypes.applyChanges();
-//log.info("update");    
+//log.info("update");
         updateCenter(worldView.getViewLocation());
         mobs.update();
         models.update();
@@ -360,17 +376,17 @@ public class ModelViewState extends BaseAppState {
         for (Mob mob : mobs.getArray()) {
             mob.update(time);
         }
-//log.info("checking marker queue");        
+//log.info("checking marker queue");
         while (!markerQueue.isEmpty()) {
             // Update static model visibility
             MarkVisible marker = markerQueue.peek();
-//log.info("marker visibleTime:" + marker.visibleTime + "  time:" + time);            
+//log.info("marker visibleTime:" + marker.visibleTime + "  time:" + time);
             if (marker.visibleTime > time) {
                 // The earliest item in the queue is not ready yet
                 break;
             }
             marker = markerQueue.poll();
-//log.info("time:" + time + "  marker time:" + marker.visibleTime);            
+//log.info("time:" + time + "  marker time:" + marker.visibleTime);
             marker.update();
         }
 
@@ -394,7 +410,7 @@ public class ModelViewState extends BaseAppState {
     }
 
     protected void updateCenter(Vector3f center) {
-        //log.info("updateCenter(" + center + ")");
+        // log.info("updateCenter(" + center + ")");
 
         Vector3f cell = worldView.getViewCell();
 
@@ -426,22 +442,23 @@ public class ModelViewState extends BaseAppState {
             }
         }
 
-        //log.info("  centerCellWorld:" + centerCellWorld);
+        // log.info(" centerCellWorld:" + centerCellWorld);
         objectRoot.setLocalTranslation(-(center.x - centerCellWorld.x),
                 // The camera y always == center y
-                0,//-(center.y - centerCellWorld.y),
+                0, // -(center.y - centerCellWorld.y),
                 -(center.z - centerCellWorld.z));
 
-        //log.info("  objectRootWorld:" + objectRoot.getWorldTranslation());
-        //log.info("  objectRootLocal:" + objectRoot.getLocalTranslation());
-        //log.info("  test:" + test.getLocalTranslation());
+        // log.info(" objectRootWorld:" + objectRoot.getWorldTranslation());
+        // log.info(" objectRootLocal:" + objectRoot.getLocalTranslation());
+        // log.info(" test:" + test.getLocalTranslation());
     }
 
     protected void resetRelativeCoordinates() {
         log.info("********************** resetRelativeCoordinates()");
         for (int i = 0; i < tests.size(); i++) {
             Vector4f coord = testCoords.get(i);
-            tests.get(i).setLocalTranslation(coord.w + coord.x - centerCellWorld.x, coord.w + coord.y - centerCellWorld.y, coord.w + coord.z - centerCellWorld.z);
+            tests.get(i).setLocalTranslation(coord.w + coord.x - centerCellWorld.x,
+                    coord.w + coord.y - centerCellWorld.y, coord.w + coord.z - centerCellWorld.z);
         }
 
         for (Model m : models.getArray()) {
@@ -455,24 +472,24 @@ public class ModelViewState extends BaseAppState {
     protected void resetModelFilter() {
         int size = gridRadius * 2 + 1;
         gridFilters = new ComponentFilter[size][size];
-        //List<ComponentFilter> filters = new ArrayList<>();
+        // List<ComponentFilter> filters = new ArrayList<>();
         ComponentFilter[] filters = new ComponentFilter[size * size];
 
 //System.out.println("************************************************");
-//System.out.println("New grid center:" + modelCenter);        
+//System.out.println("New grid center:" + modelCenter);
         int xOffset = modelCenter.x - gridRadius;
         int zOffset = modelCenter.z - gridRadius;
         int index = 0;
         for (int x = 0; x < size; x++) {
             for (int z = 0; z < size; z++) {
                 long id = InfinityConstants.PHYSICS_GRID.cellToId(xOffset + x, 0, zOffset + z);
-//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");                                                
+//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
                 ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", id);
                 gridFilters[x][z] = filter;
-                //filters.add(filter);
+                // filters.add(filter);
                 filters[index++] = filter;
             }
-//System.out.println();            
+//System.out.println();
         }
         log.info("Setting static model filter to: " + Arrays.toString(filters));
         models.setFilter(Filters.or(SpawnPosition.class, filters));
@@ -486,20 +503,20 @@ public class ModelViewState extends BaseAppState {
         ComponentFilter[] filters = new ComponentFilter[size * size];
 
 //System.out.println("************************************************");
-//System.out.println("New grid center:" + modelCenter);        
+//System.out.println("New grid center:" + modelCenter);
         int xOffset = largeModelCenter.x - gridRadius;
         int zOffset = largeModelCenter.z - gridRadius;
         int index = 0;
         for (int x = 0; x < size; x++) {
             for (int z = 0; z < size; z++) {
                 long id = InfinityConstants.LARGE_OBJECT_GRID.cellToId(xOffset + x, 0, zOffset + z);
-//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");                                                
+//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
                 ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", id);
                 largeGridFilters[x][z] = filter;
-                //filters.add(filter);
+                // filters.add(filter);
                 filters[index++] = filter;
             }
-//System.out.println();            
+//System.out.println();
         }
         largeModels.setFilter(Filters.or(LargeGridCell.class, filters));
 
@@ -508,58 +525,50 @@ public class ModelViewState extends BaseAppState {
     protected Spatial createModel(EntityId id, MBlockShape blockShape, ShapeInfo shapeInfo, Mass mass) {
         return modelFactory.createModel(id, blockShape, shapeInfo, mass);
         /*
-        Spatial spatial;   
-        CellArray cells = shape.getCells();        
-        if( cells != null ) {
-            Node node = new Node("Object:" + id);
-            Node parts = new Node("Parts:" + id);
-            node.attachChild(parts);
-            spatial =  node;
-
-            geomIndex.generateBlocks(parts, cells);                
- 
-            // For the time being, we'll just consider the CoG to be the center
-            // of the model.
-            //Vector3f cogOffset = cells.getSize().toVector3f();
-            //cogOffset.multLocal((float)(-0.5 * shape.getScale()));
-                
-            BodyMass bm = shape.getMass();
-                
-            // The position of the object is its CoG... which means
-            // we need to offset our model's origin by it.  It should
-            // already be scaled and everything... just need to negate it.
-            Vector3f cogOffset = bm.getCog().toVector3f().negate(); 
-                
-            // We need to sort out what the center should be.  Directly out of generateBlocks()
-            // the geometry is all relative to the corner.   See cog-offset.txt
-            parts.move(cogOffset);
-            parts.setLocalScale((float)shape.getScale());   
-            parts.setShadowMode(ShadowMode.CastAndReceive);
-
-        } else {
-            float radius = (float)shape.getMass().getRadius();  
-            Sphere mesh = new Sphere(24, 24, radius);
-            mesh.setTextureMode(Sphere.TextureMode.Projected);
-            mesh.scaleTextureCoordinates(new Vector2f(4, 2));
-            Geometry geom = new Geometry("Object:" + id, mesh);
-            spatial = geom;
-            
-            if( mass != null && mass.getMass() != 0 ) { 
-                geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0, 0.6f, 0.6f, 1), true).getMaterial());
-            
-                Texture texture = GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png", true, true);
-                geom.getMaterial().setTexture("DiffuseMap", texture);
-            } else {
-                // Just a flat green
-                geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f, 0.6f, 0.2f, 1), true).getMaterial());
-            }
-    
-            spatial.setShadowMode(ShadowMode.CastAndReceive);
-        }
- 
-        spatial.setUserData("oid", id.getId());
-        
-        return spatial;        
+         * Spatial spatial; CellArray cells = shape.getCells(); if( cells != null ) {
+         * Node node = new Node("Object:" + id); Node parts = new Node("Parts:" + id);
+         * node.attachChild(parts); spatial = node;
+         *
+         * geomIndex.generateBlocks(parts, cells);
+         *
+         * // For the time being, we'll just consider the CoG to be the center // of the
+         * model. //Vector3f cogOffset = cells.getSize().toVector3f();
+         * //cogOffset.multLocal((float)(-0.5 * shape.getScale()));
+         *
+         * BodyMass bm = shape.getMass();
+         *
+         * // The position of the object is its CoG... which means // we need to offset
+         * our model's origin by it. It should // already be scaled and everything...
+         * just need to negate it. Vector3f cogOffset =
+         * bm.getCog().toVector3f().negate();
+         *
+         * // We need to sort out what the center should be. Directly out of
+         * generateBlocks() // the geometry is all relative to the corner. See
+         * cog-offset.txt parts.move(cogOffset);
+         * parts.setLocalScale((float)shape.getScale());
+         * parts.setShadowMode(ShadowMode.CastAndReceive);
+         *
+         * } else { float radius = (float)shape.getMass().getRadius(); Sphere mesh = new
+         * Sphere(24, 24, radius); mesh.setTextureMode(Sphere.TextureMode.Projected);
+         * mesh.scaleTextureCoordinates(new Vector2f(4, 2)); Geometry geom = new
+         * Geometry("Object:" + id, mesh); spatial = geom;
+         *
+         * if( mass != null && mass.getMass() != 0 ) {
+         * geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0,
+         * 0.6f, 0.6f, 1), true).getMaterial());
+         *
+         * Texture texture =
+         * GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png",
+         * true, true); geom.getMaterial().setTexture("DiffuseMap", texture); } else {
+         * // Just a flat green
+         * geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f,
+         * 0.6f, 0.2f, 1), true).getMaterial()); }
+         *
+         * spatial.setShadowMode(ShadowMode.CastAndReceive); }
+         *
+         * spatial.setUserData("oid", id.getId());
+         *
+         * return spatial;
          */
     }
 
@@ -578,22 +587,14 @@ public class ModelViewState extends BaseAppState {
         if (result.release()) {
             modelIndex.remove(entityId);
         }
-        /*        
-log.info("released:" + entityId + "  remaining:" + modelIndex.keySet());
-StringBuilder sb = new StringBuilder();
-for( EntityId key : modelIndex.keySet() ) {
-    if( sb.length() > 0 ) {
-        sb.append(", ");
-    }
-    sb.append(key);
-    sb.append(":");
-    if( modelIndex.get(key).dynamic ) {
-        sb.append("dynamic");
-    } else {
-        sb.append("static");
-    }
-}
-log.info("states:" + sb);*/
+        /*
+         * log.info("released:" + entityId + "  remaining:" + modelIndex.keySet());
+         * StringBuilder sb = new StringBuilder(); for( EntityId key :
+         * modelIndex.keySet() ) { if( sb.length() > 0 ) { sb.append(", "); }
+         * sb.append(key); sb.append(":"); if( modelIndex.get(key).dynamic ) {
+         * sb.append("dynamic"); } else { sb.append("static"); } } log.info("states:" +
+         * sb);
+         */
         return result;
     }
 
@@ -602,14 +603,13 @@ log.info("states:" + sb);*/
     }
 
     /**
-     * Marks static models visible at a delay so that they act similar to mobs
-     * which have a strict visibility time. This is to make up for the fact that
-     * SpawnPosition doesn't have a timestamp and that rigid bodies will
-     * typically have both a SpawnPosition and a BodyPosition. These two compete
-     * and cause the object to flicker on creation: SpawnPosition makes it
-     * visible BodyPosition makes it invisible BodyPosition + delay makes it
-     * visible again. A timestamp on SpawnPosition would fix this but might be
-     * overkill.
+     * Marks static models visible at a delay so that they act similar to mobs which
+     * have a strict visibility time. This is to make up for the fact that
+     * SpawnPosition doesn't have a timestamp and that rigid bodies will typically
+     * have both a SpawnPosition and a BodyPosition. These two compete and cause the
+     * object to flicker on creation: SpawnPosition makes it visible BodyPosition
+     * makes it invisible BodyPosition + delay makes it visible again. A timestamp
+     * on SpawnPosition would fix this but might be overkill.
      */
     private class MarkVisible {
 
@@ -622,7 +622,8 @@ log.info("states:" + sb);*/
         }
 
         public void update() {
-            //log.info("MarkVisible.update() useCount:" + model.useCount + "  dynamic:" + model.dynamic);
+            // log.info("MarkVisible.update() useCount:" + model.useCount + " dynamic:" +
+            // model.dynamic);
             // If the model is still static in some way then
             // we'll mark for static visibility
             if (model.useCount == 1 && model.dynamic) {
@@ -636,21 +637,20 @@ log.info("states:" + sb);*/
                 return;
             }
 
-            //log.info("Marking static object visible:" + model.entityId);
+            // log.info("Marking static object visible:" + model.entityId);
             // Should be safe to add our static visibility marker
             model.markVisible();
         }
     }
 
     /**
-     * Models may be detected as static and dynamic objects at the same time
-     * because of SpawnPosition and BodyPosition. Furthermore, we can't
-     * guarantee that a BodyPosition will always have a corresponding
-     * SpawnPosition because it may have moved into a different zone that see
-     * see (and we may not see the original spawn zone). So we need to cache
-     * them and keep track of the number of 'views' using it. Also, if we
-     * already have one being managed by a Mob view then we should not update
-     * its static position from SpawnPosition.
+     * Models may be detected as static and dynamic objects at the same time because
+     * of SpawnPosition and BodyPosition. Furthermore, we can't guarantee that a
+     * BodyPosition will always have a corresponding SpawnPosition because it may
+     * have moved into a different zone that see see (and we may not see the
+     * original spawn zone). So we need to cache them and keep track of the number
+     * of 'views' using it. Also, if we already have one being managed by a Mob view
+     * then we should not update its static position from SpawnPosition.
      */
     private class Model {
 
@@ -693,13 +693,14 @@ log.info("states:" + sb);*/
             spatial = createModel(entityId, shapeFactory.createShape(shapeInfo, mass), shapeInfo, mass);
             if (spatial != null) {
 
-                //if (getAvatarSpatial() == null && entityId.getId() == watchedAvatar.getId().getId()) {
-                //setAvatarSpatial(spatial);
-                //Node playerNode = new Node();
-                //playerNode.attachChild(spatial);
-                //} else {
-                //    getObjectRoot().attachChild(spatial);
-                //}
+                // if (getAvatarSpatial() == null && entityId.getId() ==
+                // watchedAvatar.getId().getId()) {
+                // setAvatarSpatial(spatial);
+                // Node playerNode = new Node();
+                // playerNode.attachChild(spatial);
+                // } else {
+                // getObjectRoot().attachChild(spatial);
+                // }
                 getObjectRoot().attachChild(spatial);
 
                 resetVisibility();
@@ -716,7 +717,7 @@ log.info("states:" + sb);*/
         }
 
         public void updateRelativePosition() {
-//log.info("updateRelativePosition entityId:" + entityId + "  dynamic:" + dynamic);        
+//log.info("updateRelativePosition entityId:" + entityId + "  dynamic:" + dynamic);
             if (!dynamic) {
                 if (pos == null) {
                     // We are not a static model and we are probably being removed
@@ -756,12 +757,12 @@ log.info("states:" + sb);*/
         }
 
         protected void resetVisibility() {
-//log.info("resetVisibility():" + visibleCount);        
+//log.info("resetVisibility():" + visibleCount);
             if (visibleCount > 0) {
-//log.info("visible:" + entityId);            
+//log.info("visible:" + entityId);
                 spatial.setCullHint(Spatial.CullHint.Inherit);
             } else {
-//log.info("invisible:" + entityId);            
+//log.info("invisible:" + entityId);
                 spatial.setCullHint(Spatial.CullHint.Always);
             }
         }
@@ -770,11 +771,11 @@ log.info("states:" + sb);*/
     private class Mob {
 
         private Entity entity;
-        //private ShapeInfo shapeInfo;
-        //private Spatial model;
+        // private ShapeInfo shapeInfo;
+        // private Spatial model;
         private Model model;
 
-        //private Vector3f centerCellWorld = new Vector3f();       
+        // private Vector3f centerCellWorld = new Vector3f();
         private BodyPosition pos;
         private TransitionBuffer<PositionTransition3d> buffer;
 
@@ -792,14 +793,14 @@ log.info("states:" + sb);*/
             model.setDynamic(true);
         }
 
-        //public void setCenterCellWorld( Vector3f centerCellWorld ) {
-        //    this.centerCellWorld.set(centerCellWorld);
-        //}
+        // public void setCenterCellWorld( Vector3f centerCellWorld ) {
+        // this.centerCellWorld.set(centerCellWorld);
+        // }
         public void setShape(ShapeInfo shapeInfo) {
             model.setShape(shapeInfo);
-            /*if( model.spatial != null ) {
-                resetVisibility();
-            }*/
+            /*
+             * if( model.spatial != null ) { resetVisibility(); }
+             */
         }
 
         public void setPosition(BodyPosition pos) {
@@ -809,8 +810,8 @@ log.info("states:" + sb);*/
 
             // BodyPosition requires special management to make
             // sure all instances of BodyPosition are sharing the same
-            // thread-safe history buffer.  Everywhere it's used, it should
-            // be 'initialized'.            
+            // thread-safe history buffer. Everywhere it's used, it should
+            // be 'initialized'.
             pos.initialize(entity.getId(), 12);
             this.buffer = pos.getBuffer();
 
@@ -822,8 +823,8 @@ log.info("states:" + sb);*/
         public void update(long time) {
 
             // Look back in the brief history that we've kept and
-            // pull an interpolated value.  To do this, we grab the
-            // span of time that contains the time we want.  PositionTransition3d
+            // pull an interpolated value. To do this, we grab the
+            // span of time that contains the time we want. PositionTransition3d
             // represents a starting and an ending pos+rot over a span of time.
             PositionTransition3d trans = buffer.getTransition(time);
             if (trans != null) {
@@ -834,29 +835,31 @@ log.info("states:" + sb);*/
 
                 model.spatial.setLocalTranslation(pos);
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
-                //log.info("Mob[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
+                // log.info("Mob[" + entity.getId() + "] position:" +
+                // model.spatial.getLocalTranslation());
                 setVisible(trans.getVisibility(time));
-                
+
                 if (isAvatar) {
                     Vector3f avatarWorldPos = model.spatial.getWorldTranslation();
-                    getApplication().getCamera().setLocation(avatarWorldPos.add(0,40,0));
+                    getApplication().getCamera().setLocation(avatarWorldPos.add(0, 40, 0));
                     getApplication().getCamera().lookAt(avatarWorldPos, Vector3f.UNIT_Y);
-                    
+
                     getState(WorldViewState.class).setViewLocation(pos.clone().addLocal(centerCellWorld));
-                    gameSession.setView(new Quatd(getApplication().getCamera().getRotation()), new Vec3d(getApplication().getCamera().getLocation()));
+                    gameSession.setView(new Quatd(getApplication().getCamera().getRotation()),
+                            new Vec3d(getApplication().getCamera().getLocation()));
                 }
             }
         }
 
         protected void setVisible(boolean f) {
-//log.info("setVisible(" + entity.getId() + ", " + f + ")");            
+//log.info("setVisible(" + entity.getId() + ", " + f + ")");
             if (this.visible == f) {
                 return;
             }
 // For now, ignore setting false
-//if( !f ) return;            
+//if( !f ) return;
             this.visible = f;
-            //resetVisibility();
+            // resetVisibility();
             if (visible) {
                 model.markVisible();
             } else {
@@ -864,25 +867,22 @@ log.info("states:" + sb);*/
             }
         }
 
-        /*        protected void resetVisibility() {
-            //if( model.useCount > 1 || (visible && !forceInvisible) ) {
-            if( (visible && !forceInvisible) ) {
-log.info("Setting visible:" + entity.getId());            
-                //model.spatial.setCullHint(Spatial.CullHint.Inherit);
-                model.markVisible();
-            } else {
-log.info("Setting NOT visible:" + entity.getId());            
-                //model.spatial.setCullHint(Spatial.CullHint.Always);
-                model.markInvisible();
-            }
-        }*/
+        /*
+         * protected void resetVisibility() { //if( model.useCount > 1 || (visible &&
+         * !forceInvisible) ) { if( (visible && !forceInvisible) ) {
+         * log.info("Setting visible:" + entity.getId());
+         * //model.spatial.setCullHint(Spatial.CullHint.Inherit); model.markVisible(); }
+         * else { log.info("Setting NOT visible:" + entity.getId());
+         * //model.spatial.setCullHint(Spatial.CullHint.Always); model.markInvisible();
+         * } }
+         */
         public void release() {
             releaseModel(entity.getId());
             model.setDynamic(false);
-            //model.release();
-            /*if( model != null ) {
-                model.removeFromParent();
-            }*/
+            // model.release();
+            /*
+             * if( model != null ) { model.removeFromParent(); }
+             */
         }
     }
 
@@ -893,10 +893,12 @@ log.info("Setting NOT visible:" + entity.getId());
             super(ed, BodyPosition.class, ShapeInfo.class);
         }
 
+        @Override
         public Mob[] getArray() {
             return super.getArray();
         }
 
+        @Override
         protected Mob addObject(Entity e) {
             log.info("add mob for:" + e.getId());
             Mob object = new Mob(e);
@@ -904,11 +906,13 @@ log.info("Setting NOT visible:" + entity.getId());
             return object;
         }
 
+        @Override
         protected void updateObject(Mob object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(BodyPosition.class));
         }
 
+        @Override
         protected void removeObject(Mob object, Entity e) {
             log.info("remove mob for:" + e.getId());
             object.release();
@@ -924,30 +928,35 @@ log.info("Setting NOT visible:" + entity.getId());
             super(ed, SpawnPosition.class, ShapeInfo.class);
         }
 
+        @Override
         public void setFilter(ComponentFilter filter) {
             super.setFilter(filter);
         }
 
+        @Override
         public Model[] getArray() {
-            return (Model[]) super.getArray();
+            return super.getArray();
         }
 
+        @Override
         protected Model addObject(Entity e) {
-//log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());        
+//log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());
             Model object = getModel(e.getId(), true);
             updateObject(object, e);
 
-            // Add it to the queue to be made visible at a future time     
+            // Add it to the queue to be made visible at a future time
             markerQueue.add(new MarkVisible(object, timeSource.getTime() + VIS_DELAY));
 
             return object;
         }
 
+        @Override
         protected void updateObject(Model object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(SpawnPosition.class));
         }
 
+        @Override
         protected void removeObject(Model object, Entity e) {
             log.info("remove model for:" + e.getId());
             releaseModel(e.getId());
@@ -963,30 +972,35 @@ log.info("Setting NOT visible:" + entity.getId());
             super(ed, SpawnPosition.class, ShapeInfo.class, LargeObject.class, LargeGridCell.class);
         }
 
+        @Override
         public void setFilter(ComponentFilter filter) {
             super.setFilter(filter);
         }
 
+        @Override
         public Model[] getArray() {
-            return (Model[]) super.getArray();
+            return super.getArray();
         }
 
+        @Override
         protected Model addObject(Entity e) {
             log.info("LargeObject add model for:" + e.getId() + "   at time:" + timeSource.getTime());
             Model object = getModel(e.getId(), true);
             updateObject(object, e);
 
-            // Add it to the queue to be made visible at a future time            
+            // Add it to the queue to be made visible at a future time
             markerQueue.add(new MarkVisible(object, timeSource.getTime() + VIS_DELAY));
 
             return object;
         }
 
+        @Override
         protected void updateObject(Model object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(SpawnPosition.class));
         }
 
+        @Override
         protected void removeObject(Model object, Entity e) {
             log.info("LargeObject remove model for:" + e.getId());
             releaseModel(e.getId());

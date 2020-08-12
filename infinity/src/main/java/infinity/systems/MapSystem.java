@@ -25,9 +25,21 @@
  */
 package infinity.systems;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.czyzby.noise4j.map.Grid;
 import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -35,38 +47,20 @@ import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
-import com.simsilica.mblock.Direction;
-import com.simsilica.mblock.DirectionMasks;
-import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.client.view.BlockGeometryIndex;
+
 import infinity.es.BodyPosition;
 import infinity.es.TileType;
-import infinity.map.LevelFile;
-import infinity.map.LevelLoader;
-import java.lang.reflect.Method;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import infinity.es.TileTypes;
 import infinity.map.InfinityDefaultWorld;
+import infinity.map.LevelFile;
+import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.sim.GameEntities;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * State
@@ -111,14 +105,14 @@ public class MapSystem extends AbstractGameSystem {
         this.assetLoader = assetLoader;
     }
 
-    //int[][] multD = new int[5][];
+    // int[][] multD = new int[5][];
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = (MPhysSystem<MBlockShape>) getSystem(MPhysSystem.class);
+        this.physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
@@ -133,7 +127,8 @@ public class MapSystem extends AbstractGameSystem {
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
-        //Create entities, so the tile types will be in the string index (we use the tiletypes as filters)
+        // Create entities, so the tile types will be in the string index (we use the
+        // tiletypes as filters)
         EntityId e = ed.createEntity();
         short s = 0;
         ed.setComponent(e, TileTypes.legacy("empty", s, ed));
@@ -144,12 +139,13 @@ public class MapSystem extends AbstractGameSystem {
 
         tileTypes = ed.getEntities(TileType.class, BodyPosition.class);
 
-        //GameEntities.createArena(ed, EntityId.NULL_ID, space, 0l, "default", new Vec3d());
+        // GameEntities.createArena(ed, EntityId.NULL_ID, space, 0l, "default", new
+        // Vec3d());
 
         /*
-        Grid dungeon = this.createDungeonGrid();
-        dungeon = this.expandCorridors(dungeon);
-        this.createMapTilesFromDungeonGrid(dungeon, -50f, -50f);
+         * Grid dungeon = this.createDungeonGrid(); dungeon =
+         * this.expandCorridors(dungeon); this.createMapTilesFromDungeonGrid(dungeon,
+         * -50f, -50f);
          */
         mapTileQueue = new LinkedList<>();
 
@@ -180,190 +176,129 @@ public class MapSystem extends AbstractGameSystem {
      */
     public LevelFile loadMap(String mapFile) {
         LevelFile map = (LevelFile) assetLoader.loadAsset(mapFile);
-        //log.info("loadMap:: Loading map = "+map+":"+map.readLevel());
+        // log.info("loadMap:: Loading map = "+map+":"+map.readLevel());
         return map;
     }
 
     /**
      * Creates map tiles for a legacy map
      *
-     * @param map the lvz-based-map to create create entities from
+     * @param map         the lvz-based-map to create create entities from
      * @param arenaOffset where to position the map
      */
     public void createEntitiesFromLegacyMap(LevelFile map, Vec3d arenaOffset) {
         Set<Integer> tileSet = new HashSet<>();
         short[][] tiles = map.getMap();
         int count = 0;
-        
-        
 
-        //for (int xpos = 510; xpos < 516; xpos++) {
+        // for (int xpos = 510; xpos < 516; xpos++) {
         for (int xpos = 0; xpos < tiles.length; xpos++) {
-            //for (int zpos = 260; zpos >= 250; zpos--) {
+            // for (int zpos = 260; zpos >= 250; zpos--) {
             for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
                 short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
                 if (s != 0) {
-                    //TODO: Check on the short and only create the map tiles, not the extras (asteroids, wormholes etc.)
-/*  TILE    STATUS
-                    Row 2, tile 1 - Border tile
-                    Row 9, tile 10 - Vertical warpgate (Mostly open)
-                    Row 9, tile 11 - Vertical warpgate (Frequently open)
-                    Row 9, tile 12 - Vertical warpgate (Frequently closed)
-                    Row 9, tile 13 - Vertical warpgate (Mostly closed)
-                    Row 9, tile 14 - Horizontal warpgate (Mostly open)
-                    Row 9, tile 15 - Horizontal warpgate (Frequently open)
-                    Row 9, tile 16 - Horizontal warpgate (Frequently closed)
-                    Row 9, tile 17 - Horizontal warpgate (Mostly closed)
-     170    DONE    Row 9, tile 18 - Flag for turf
-                    Row 9, tile 19 - Safezone
-                    Row 10, tile 1 - Soccer goal (leave blank if you want)
-                    Row 10, tile 2 - Flyover tile
-                    Row 10, tile 3 - Flyover tile
-                    Row 10, tile 4 - Flyover tile
-                    Row 10, tile 5 - Flyunder (opaque) tile
-                    Row 10, tile 6 - Flyunder (opaque) tile
-                    Row 10, tile 7 - Flyunder (opaque) tile
-                    Row 10, tile 8 - Flyunder (opaque) tile
-                    Row 10, tile 9 - Flyunder (opaque) tile
-                    Row 10, tile 10 - Flunder (opaque) tile
-                    Row 10, tile 11 - Flyunder (opaque) tile
-                    Row 10, tile 12 - Flyunder (opaque) tile
-                    Row 10, tile 13 - Flyunder (black = transparent) tile
-                    Row 10, tile 14 - Flyunder (black = transparent) tile
-                    Row 10, tile 15 - Flyunder (black = transparent) tile
-                    Row 10, tile 16 - Flyunder (black = transparent) tile
-                    Row 10, tile 17 - Flyunder (black = transparent) tile
-                    Row 10, tile 18 - Flyunder (black = transparent) tile
-                    Row 10, tile 19 - Flyunder (black = transparent) tile
-
+                    // TODO: Check on the short and only create the map tiles, not the extras
+                    // (asteroids, wormholes etc.)
                     /*
-                    VIE tile constants.
-
-                    public static final char vieNoTile = 0;
-
-                    public static final char vieNormalStart = 1;
-                    public static final char vieBorder = 20;            // Borders are not included in the .lvl files
-                    public static final char vieNormalEnd = 161;        // Tiles up to this point are part of sec.chk
-
-                    public static final char vieVDoorStart = 162;
-                    public static final char vieVDoorEnd = 165;
-
-                    public static final char vieHDoorStart = 166;
-                    public static final char vieHDoorEnd = 169;
-
-                    public static final char vieTurfFlag = 170;
-
-                    public static final char vieSafeZone = 171;         // Also included in sec.chk
-
-                    public static final char vieGoalArea = 172;
-
-                    public static final char vieFlyOverStart = 173;
-                    public static final char vieFlyOverEnd = 175;
-                    public static final char vieFlyUnderStart = 176;
-                    public static final char vieFlyUnderEnd = 190;
-
-                    public static final char vieAsteroidStart = 216;
-                    public static final char vieAsteroidEnd = 218;
-
-                    public static final char vieStation = 219;
-
-                    public static final char vieWormhole = 220;
-
-                    public static final char ssbTeamBrick = 221;        // These are internal
-                    public static final char ssbEnemyBrick = 222;
-
-                    public static final char ssbTeamGoal = 223;
-                    public static final char ssbEnemyGoal = 224;
-
-                    public static final char ssbTeamFlag = 225;
-                    public static final char ssbEnemyFlag = 226;
-
-                    public static final char ssbPrize = 227;
-
-                    public static final char ssbBorder = 228;           // Use ssbBorder instead of vieBorder to fill border
-
-20:   Border
-162:  Door Horizontal 1
-163:  Door Horizontal 2
-164:  Door Horizontal 3
-165:  Door Horizontal 4
-166:  Door Vertical 1
-167:  Door Vertical 2
-168:  Door Vertical 3
-169:  Door Vertical 4
-170:  flag
-171:  safe
-172:  goal
-173:  fly over 1
-174:  fly over 2
-175:  fly over 3
-176:  fly Under 1
-177:  fly Under 2
-178:  fly Under 3
-179:  fly Under 4
-180:  fly Under 5
-181:  fly Under 6
-182:  fly Under 7
-183:  fly Under 8
-184:  fly Under 9
-185:  fly Under 10
-186:  fly Under 11
-187:  fly Under 12
-188:  fly Under 13
-189:  fly Under 14
-190:  fly Under 15
-191:  invisible, Ships go through, items bounce off, Thors go through
-      if you fire an item while in it, it will float suspended in space.
-192:  invisible
-193:  invisible
-194:  invisible
-195:  invisible
-196:  invisible
-197:  invisible
-198:  invisible
-199:  invisible
-200:  invisible
-201:  invisible
-202:  invisible
-203:  invisible
-204:  invisible
-205:  invisible
-206:  invisible
-207:  invisible
-216:  small Asteroid
-217:  large Asteroid
-218:  small Asteroid 2
-219:  space Station
-220:  wormhole
-240:  invisible
-241:  absorbs weapons, invisible
-242:  warp on contact, not on radar, invisible
-242:  not on radar, invisible
-243:  not on radar, invisible
-244:  not on radar, invisible
-245:  not on radar, invisible
-246:  not on radar, invisible
-247:  not on radar, invisible
-248:  not on radar, invisible
-249:  not on radar, invisible
-250:  not on radar, invisible
-251:  invisible, not on radar, warps ship on contact, items bounce off, 
-      thors dissappear
-252:  animated enemy brick, visible, not on radar. Items go through, 
-      ship gets warped after 0-2 seconds
-253:  animated team brick. Visible, invisible on radar. Items and ship go through.
-254:  invisible, not on radar. Impossible to lay bricks while on/near it.
-255:  animated green. visible, not on radar. Items and ship go through.
-
+                     * TILE STATUS Row 2, tile 1 - Border tile Row 9, tile 10 - Vertical warpgate
+                     * (Mostly open) Row 9, tile 11 - Vertical warpgate (Frequently open) Row 9,
+                     * tile 12 - Vertical warpgate (Frequently closed) Row 9, tile 13 - Vertical
+                     * warpgate (Mostly closed) Row 9, tile 14 - Horizontal warpgate (Mostly open)
+                     * Row 9, tile 15 - Horizontal warpgate (Frequently open) Row 9, tile 16 -
+                     * Horizontal warpgate (Frequently closed) Row 9, tile 17 - Horizontal warpgate
+                     * (Mostly closed) 170 DONE Row 9, tile 18 - Flag for turf Row 9, tile 19 -
+                     * Safezone Row 10, tile 1 - Soccer goal (leave blank if you want) Row 10, tile
+                     * 2 - Flyover tile Row 10, tile 3 - Flyover tile Row 10, tile 4 - Flyover tile
+                     * Row 10, tile 5 - Flyunder (opaque) tile Row 10, tile 6 - Flyunder (opaque)
+                     * tile Row 10, tile 7 - Flyunder (opaque) tile Row 10, tile 8 - Flyunder
+                     * (opaque) tile Row 10, tile 9 - Flyunder (opaque) tile Row 10, tile 10 -
+                     * Flunder (opaque) tile Row 10, tile 11 - Flyunder (opaque) tile Row 10, tile
+                     * 12 - Flyunder (opaque) tile Row 10, tile 13 - Flyunder (black = transparent)
+                     * tile Row 10, tile 14 - Flyunder (black = transparent) tile Row 10, tile 15 -
+                     * Flyunder (black = transparent) tile Row 10, tile 16 - Flyunder (black =
+                     * transparent) tile Row 10, tile 17 - Flyunder (black = transparent) tile Row
+                     * 10, tile 18 - Flyunder (black = transparent) tile Row 10, tile 19 - Flyunder
+                     * (black = transparent) tile
+                     *
+                     * /* VIE tile constants.
+                     *
+                     * public static final char vieNoTile = 0;
+                     *
+                     * public static final char vieNormalStart = 1; public static final char
+                     * vieBorder = 20; // Borders are not included in the .lvl files public static
+                     * final char vieNormalEnd = 161; // Tiles up to this point are part of sec.chk
+                     *
+                     * public static final char vieVDoorStart = 162; public static final char
+                     * vieVDoorEnd = 165;
+                     *
+                     * public static final char vieHDoorStart = 166; public static final char
+                     * vieHDoorEnd = 169;
+                     *
+                     * public static final char vieTurfFlag = 170;
+                     *
+                     * public static final char vieSafeZone = 171; // Also included in sec.chk
+                     *
+                     * public static final char vieGoalArea = 172;
+                     *
+                     * public static final char vieFlyOverStart = 173; public static final char
+                     * vieFlyOverEnd = 175; public static final char vieFlyUnderStart = 176; public
+                     * static final char vieFlyUnderEnd = 190;
+                     *
+                     * public static final char vieAsteroidStart = 216; public static final char
+                     * vieAsteroidEnd = 218;
+                     *
+                     * public static final char vieStation = 219;
+                     *
+                     * public static final char vieWormhole = 220;
+                     *
+                     * public static final char ssbTeamBrick = 221; // These are internal public
+                     * static final char ssbEnemyBrick = 222;
+                     *
+                     * public static final char ssbTeamGoal = 223; public static final char
+                     * ssbEnemyGoal = 224;
+                     *
+                     * public static final char ssbTeamFlag = 225; public static final char
+                     * ssbEnemyFlag = 226;
+                     *
+                     * public static final char ssbPrize = 227;
+                     *
+                     * public static final char ssbBorder = 228; // Use ssbBorder instead of
+                     * vieBorder to fill border
+                     *
+                     * 20: Border 162: Door Horizontal 1 163: Door Horizontal 2 164: Door Horizontal
+                     * 3 165: Door Horizontal 4 166: Door Vertical 1 167: Door Vertical 2 168: Door
+                     * Vertical 3 169: Door Vertical 4 170: flag 171: safe 172: goal 173: fly over 1
+                     * 174: fly over 2 175: fly over 3 176: fly Under 1 177: fly Under 2 178: fly
+                     * Under 3 179: fly Under 4 180: fly Under 5 181: fly Under 6 182: fly Under 7
+                     * 183: fly Under 8 184: fly Under 9 185: fly Under 10 186: fly Under 11 187:
+                     * fly Under 12 188: fly Under 13 189: fly Under 14 190: fly Under 15 191:
+                     * invisible, Ships go through, items bounce off, Thors go through if you fire
+                     * an item while in it, it will float suspended in space. 192: invisible 193:
+                     * invisible 194: invisible 195: invisible 196: invisible 197: invisible 198:
+                     * invisible 199: invisible 200: invisible 201: invisible 202: invisible 203:
+                     * invisible 204: invisible 205: invisible 206: invisible 207: invisible 216:
+                     * small Asteroid 217: large Asteroid 218: small Asteroid 2 219: space Station
+                     * 220: wormhole 240: invisible 241: absorbs weapons, invisible 242: warp on
+                     * contact, not on radar, invisible 242: not on radar, invisible 243: not on
+                     * radar, invisible 244: not on radar, invisible 245: not on radar, invisible
+                     * 246: not on radar, invisible 247: not on radar, invisible 248: not on radar,
+                     * invisible 249: not on radar, invisible 250: not on radar, invisible 251:
+                     * invisible, not on radar, warps ship on contact, items bounce off, thors
+                     * dissappear 252: animated enemy brick, visible, not on radar. Items go
+                     * through, ship gets warped after 0-2 seconds 253: animated team brick.
+                     * Visible, invisible on radar. Items and ship go through. 254: invisible, not
+                     * on radar. Impossible to lay bricks while on/near it. 255: animated green.
+                     * visible, not on radar. Items and ship go through.
+                     *
                      */
 
                     if (s > 190) {
-                        //TODO: will handle special tiles later
-                        s=1;
+                        // TODO: will handle special tiles later
+                        s = 1;
                     }
 
                     Vec3d bottomPlane = new Vec3d(xpos, 0, zpos).add(arenaOffset);
-                    //Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
+                    // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
                     Vec3i i = new Vec3i(bottomPlane.toVector3f());
 
@@ -372,36 +307,33 @@ public class MapSystem extends AbstractGameSystem {
                     tileSet.add(tileId);
 
                     int value = tileId | (mapId << 8);
-                    //log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) = (" + tileId + "," + mapId + ") - Coords: " + i);
-                    //value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
+                    // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) =
+                    // (" + tileId + "," + mapId + ") - Coords: " + i);
+                    // value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
                     world.setWorldCell(bottomPlane, value);
-                    
-                    //world.setWorldCell(topPlane, 0);
+
+                    // world.setWorldCell(topPlane, 0);
 
                     count++;
                 }
             }
         }
 
-        //Test:
+        // Test:
         /*
-        for (int i = 0; i < 380; i++) {
-            short s = (short) (i % 190);
-            Vec3d bottomPlane = new Vec3d(i % 19, 0, (Math.floor(i / 19)));
-            Vec3d topPlane = new Vec3d(i % 19, 1, (Math.floor(i / 19)));
-            int mapId = 20;
-            int tileId = Short.toUnsignedInt(s);
-            tileSet.add(tileId);
-
-            int value = tileId | (mapId << 8);
-            log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) = (" + tileId + "," + mapId + ") - Coords: " + bottomPlane);
-            world.setWorldCell(bottomPlane, value);
-            world.setWorldCell(topPlane, 0);
-            count++;
-        }
+         * for (int i = 0; i < 380; i++) { short s = (short) (i % 190); Vec3d
+         * bottomPlane = new Vec3d(i % 19, 0, (Math.floor(i / 19))); Vec3d topPlane =
+         * new Vec3d(i % 19, 1, (Math.floor(i / 19))); int mapId = 20; int tileId =
+         * Short.toUnsignedInt(s); tileSet.add(tileId);
+         *
+         * int value = tileId | (mapId << 8);
+         * log.info("createEntitiesFromLegacyMap:: value = " + value +
+         * " <= (Tile,Map) = (" + tileId + "," + mapId + ") - Coords: " + bottomPlane);
+         * world.setWorldCell(bottomPlane, value); world.setWorldCell(topPlane, 0);
+         * count++; }
          */
-        //log.info("Counted: " + count + " tiles in the world");
-        //log.info("Counted: " + tileSet.size() + " different tiles added to world");
+        // log.info("Counted: " + count + " tiles in the world");
+        // log.info("Counted: " + tileSet.size() + " different tiles added to world");
     }
 
     /**
@@ -416,8 +348,8 @@ public class MapSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-        //Release reader object
-        //reader = null;
+        // Release reader object
+        // reader = null;
 
         tileTypes.release();
         tileTypes = null;
@@ -428,12 +360,15 @@ public class MapSystem extends AbstractGameSystem {
 
         this.time = tpf;
 
-        //Create map:
+        // Create map:
         if (!mapCreated) {
-            createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz.lvl"), new Vec3d(-MAP_SIZE*0.5, 0, -MAP_SIZE * 0.5));
-            //createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new Vec3d(-MAP_SIZE, 0, MAP_SIZE));
-            //createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new Vec3d(-HALF,HALF,0 , 0));
-            //createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new Vec3d(0,MAP_SIZE,0,0));
+            createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE * 0.5));
+            // createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new
+            // Vec3d(-MAP_SIZE, 0, MAP_SIZE));
+            // createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new
+            // Vec3d(-HALF,HALF,0 , 0));
+            // createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new
+            // Vec3d(0,MAP_SIZE,0,0));
             mapCreated = true;
         }
 
@@ -446,7 +381,7 @@ public class MapSystem extends AbstractGameSystem {
 
                 index.remove(remove);
             }
-            //Update surrounding tiles
+            // Update surrounding tiles
             ArrayList<Vec3d> locations = new ArrayList<>();
             locations.add(clampedLocation);
             updateWangBlobIndexNumber(locations, true, false);
@@ -454,10 +389,10 @@ public class MapSystem extends AbstractGameSystem {
         sessionTileRemovals.clear();
 
         for (Vec3d create : sessionTileCreations) {
-            //Clamp location
+            // Clamp location
             Vec3d clampedLocation = getKey(create);
             if (index.containsKey(clampedLocation)) {
-                //A map entity already exists here
+                // A map entity already exists here
                 continue;
             }
 
@@ -470,11 +405,12 @@ public class MapSystem extends AbstractGameSystem {
 
             short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
 
-            GameEntities.updateWangBlobEntity(ed, eId, space, time.getTime(), eId, "", tileIndexNumber, new Vec3d(clampedLocation.x, 0, clampedLocation.z));
+            GameEntities.updateWangBlobEntity(ed, eId, space, time.getTime(), eId, "", tileIndexNumber,
+                    new Vec3d(clampedLocation.x, 0, clampedLocation.z));
         }
         sessionTileCreations.clear();
 
-        //Create the legacy maps in an ordered fashion instead of all at once:
+        // Create the legacy maps in an ordered fashion instead of all at once:
         if (mapTileQueue.size() > 0) {
             try {
                 if (mapTileQueue.size() > 2) {
@@ -496,10 +432,10 @@ public class MapSystem extends AbstractGameSystem {
     /**
      * Updates the wang blob index number in the locations given
      *
-     * @param locations the clamped locations to update wangblob tile index
-     * number for
-     * @param cascade cascade to surrounding tiles
-     * @param create create or remove tile
+     * @param locations the clamped locations to update wangblob tile index number
+     *                  for
+     * @param cascade   cascade to surrounding tiles
+     * @param create    create or remove tile
      * @return the tileindex of the current tile being updated
      */
     private short updateWangBlobIndexNumber(ArrayList<Vec3d> locations, boolean cascade, boolean create) {
@@ -601,13 +537,7 @@ public class MapSystem extends AbstractGameSystem {
                 northEast = 0;
             }
 
-            result = north
-                    + 2 * northEast
-                    + 4 * east
-                    + 8 * southEast
-                    + 16 * south
-                    + 32 * southWest
-                    + 64 * west
+            result = north + 2 * northEast + 4 * east + 8 * southEast + 16 * south + 32 * southWest + 64 * west
                     + 128 * northWest;
 
             if (create || !cascade) {
@@ -682,22 +612,22 @@ public class MapSystem extends AbstractGameSystem {
         dungeonGenerator.setMaxRoomsAmount(10);
         dungeonGenerator.addRoomTypes(DefaultRoomType.values());
 
-        //Max first, then min. Only odd values
+        // Max first, then min. Only odd values
         dungeonGenerator.setMaxRoomSize(21);
         dungeonGenerator.setMinRoomSize(9);
 
         dungeonGenerator.generate(result);
 
-        //result = carveCorridors(result);
+        // result = carveCorridors(result);
         return result;
     }
 
     /**
      * So I dont forget:
      *
-     * Go through grid, carve all corridors to be 2 wide in a copy Assign copy
-     * to grid Go through grid, set all tiles adjacent to floor or corridor to
-     * wall Create one or more entrances
+     * Go through grid, carve all corridors to be 2 wide in a copy Assign copy to
+     * grid Go through grid, set all tiles adjacent to floor or corridor to wall
+     * Create one or more entrances
      *
      */
     /**
@@ -712,10 +642,10 @@ public class MapSystem extends AbstractGameSystem {
         for (int i = 0; i < grid.getWidth(); i++) {
             for (int j = 0; j < grid.getHeight(); j++) {
                 if (grid.get(i, j) == NOISE4J_CORRIDOR) {
-                    //newGrid.set(i - 1, j - 1, 0f);
-                    //newGrid.set(i - 1, j, 0f);
-                    //newGrid.set(i - 1, j + 1, 0f);
-                    //newGrid.set(i + 1, j - 1, 0f);
+                    // newGrid.set(i - 1, j - 1, 0f);
+                    // newGrid.set(i - 1, j, 0f);
+                    // newGrid.set(i - 1, j + 1, 0f);
+                    // newGrid.set(i + 1, j - 1, 0f);
 
                     if (grid.get(i + 1, j) == NOISE4J_WALL && grid.get(i + 1, j) != NOISE4J_FLOOR) {
                         newGrid.set(i + 1, j, NOISE4J_CORRIDOR);
@@ -726,8 +656,8 @@ public class MapSystem extends AbstractGameSystem {
                     if (grid.get(i, j + 1) == NOISE4J_WALL && grid.get(i, j + 1) != NOISE4J_FLOOR) {
                         newGrid.set(i, j + 1, NOISE4J_CORRIDOR);
                     }
-                    //newGrid.set(i, j - 1, 0f);
-                    //newGrid.set(i, j, 0f);
+                    // newGrid.set(i, j - 1, 0f);
+                    // newGrid.set(i, j, 0f);
                 }
             }
         }
@@ -737,26 +667,22 @@ public class MapSystem extends AbstractGameSystem {
     }
 
     /**
-     * Creates map tiles from a Dungeon Grid. Default values: wallThreshold =
-     * 1f; floorThreshold = 0.5f; corridorThreshold = 0f; Use the statics
-     * NOISE4J_*
+     * Creates map tiles from a Dungeon Grid. Default values: wallThreshold = 1f;
+     * floorThreshold = 0.5f; corridorThreshold = 0f; Use the statics NOISE4J_*
      *
-     * @param grid the Grid to create entities from
+     * @param grid    the Grid to create entities from
      * @param offsetX the offset x-coordinate to create the entities in
      * @param offsetZ the offset y-coordinate to create the entities in
      */
     private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetZ) {
-        /*
-
-         */
         float f;
         for (int i = 0; i < grid.getHeight(); i++) {
             for (int j = 0; j < grid.getWidth(); j++) {
                 f = grid.get(j, i);
                 if (f == 0f || f == 0.5f) {
-                    //Floors (rooms) && Corridors
+                    // Floors (rooms) && Corridors
 
-                    //Should create maptiles around rooms and corridors
+                    // Should create maptiles around rooms and corridors
                     if (grid.get(j + 1, i) == 1f) {
                         sessionCreateTile(j + 1 + offsetX, i + offsetZ);
                     }
@@ -806,7 +732,7 @@ public class MapSystem extends AbstractGameSystem {
 
         @Override
         public EntityId call() throws Exception {
-            //EntityId id = GameEntities.createMapTile(m_file, s, loc, type, ed, time);
+            // EntityId id = GameEntities.createMapTile(m_file, s, loc, type, ed, time);
 
             EntityId id = GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, m_file, s, loc, type);
 
@@ -836,19 +762,19 @@ public class MapSystem extends AbstractGameSystem {
         Vec3d east = new Vec3d(loc.x + 1, 0, loc.z);
         Vec3d north = new Vec3d(loc.x, 0, loc.z + 1);
         Vec3d south = new Vec3d(loc.x, 0, loc.z - 1);
-        //((Check west))
+        // ((Check west))
         if (index.containsKey(west)) {
             result.add(west);
         }
-        //((Check east))
+        // ((Check east))
         if (index.containsKey(east)) {
             result.add(east);
         }
-        //((Check north))
+        // ((Check north))
         if (index.containsKey(north)) {
             result.add(north);
         }
-        //((Check south))
+        // ((Check south))
         if (index.containsKey(south)) {
             result.add(south);
         }

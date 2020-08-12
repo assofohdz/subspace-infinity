@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -33,17 +33,17 @@ import com.simsilica.es.EntityId;
  * @author Asser
  */
 public class Parent implements EntityComponent {
-    
+
     private final EntityId parentEntity;
-    
+
     public Parent() {
         parentEntity = new EntityId(0);
     }
-    
+
     public EntityId getParentEntity() {
         return parentEntity;
     }
-    
+
     public Parent(EntityId parentEntity) {
         this.parentEntity = parentEntity;
     }

@@ -1,30 +1,28 @@
 /*
  * Copyright (c) 2010-2016 William Bittle  http://www.dyn4j.org/
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
  * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions
  *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+ *     and the following disclaimer in the documentation and/or other materials provided with the
  *     distribution.
- *   * Neither the name of dyn4j nor the names of its contributors may be used to endorse or 
+ *   * Neither the name of dyn4j nor the names of its contributors may be used to endorse or
  *     promote products derived from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.sim;
-
-import infinity.sim.Filter;
 
 /**
  * A {@link Filter} for categorized fixtures.
@@ -33,35 +31,51 @@ import infinity.sim.Filter;
  * category integer and a mask integer.
  * <p>
  * The usage of this class can be explained as follows:
- * <pre> CategoryFilter f1 = new CategoryFilter(1, 1);
+ *
+ * <pre>
+ * CategoryFilter f1 = new CategoryFilter(1, 1);
  * CategoryFilter f2 = new CategoryFilter(2, 2);
  * CategoryFilter f3 = new CategoryFitler(3, 3);
  *
  * f1.isAllowed(f2); // returns false
- * f2.isAllowed(f3); // returns true?!</pre> This is because the integers passed
- * in are being used via their binary representation. If we examine the binary
- * representation of these numbers:
- * <pre> 1 = 0...0001
+ * f2.isAllowed(f3); // returns true?!
+ * </pre>
+ *
+ * This is because the integers passed in are being used via their binary
+ * representation. If we examine the binary representation of these numbers:
+ *
+ * <pre>
+ *  1 = 0...0001
  * 2 = 0...0010
- * 3 = 0...0011</pre> We see that 3 is actually a combination of 1 and 2.
- * Because of this <code>f3</code> will actually be part of category 1 and 2,
- * not its own category.
+ * 3 = 0...0011
+ * </pre>
+ *
+ * We see that 3 is actually a combination of 1 and 2. Because of this
+ * <code>f3</code> will actually be part of category 1 and 2, not its own
+ * category.
  * <p>
  * Because of this representation, there are a maximum of 64 categories that can
  * be represented:
- * <pre> category  1 =  1 = 2^0
+ *
+ * <pre>
+ *  category  1 =  1 = 2^0
  * category  2 =  2 = 2^1
  * category  3 =  4 = 2^2
  * category  4 =  8 = 2^3
  * category  5 = 16 = 2^4
  * ...
- * category 64 = Long.MAX_VALUE = 2^64</pre> In addition, the mask integer is
- * handled in a similar way.  <code>f3</code> will be able to collide with both
- * category 1 and 2 because of the binary representation of 3.
+ * category 64 = Long.MAX_VALUE = 2^64
+ * </pre>
+ *
+ * In addition, the mask integer is handled in a similar way. <code>f3</code>
+ * will be able to collide with both category 1 and 2 because of the binary
+ * representation of 3.
  * <p>
  * In general, the mask or category can be generated by OR-ing the categories.
  * For example:
- * <pre> final long CATEGORY_0 = 1;
+ *
+ * <pre>
+ * final long CATEGORY_0 = 1;
  * final long CATEGORY_1 = 2;
  * final long CATEGORY_2 = 4;
  * final long MASK_ALL = Long.MAX_VALUE;
@@ -82,9 +96,11 @@ import infinity.sim.Filter;
  *                   // even though f3 is allowed to collide with all categories (both must work)
  *
  * f2.isAllowed(f3); // returns true since f2 can collide with 0 or 2 and f3 is part of 2
- *                   // and because f3 can collide with all categories</pre> As its apparent from
- * the code above, both f1.isAllowed(f2) and f2.isAllowed(f1) must return true
- * if the entire result is to be deemed true.
+ *                   // and because f3 can collide with all categories
+ * </pre>
+ *
+ * As its apparent from the code above, both f1.isAllowed(f2) and
+ * f2.isAllowed(f1) must return true if the entire result is to be deemed true.
  * <p>
  * By default the {@link CategoryFilter} will be set to category 1 and have a
  * mask of all category bits.
@@ -119,7 +135,7 @@ public class CategoryFilter implements Filter {
      * Full constructor.
      *
      * @param category the category bits
-     * @param mask the mask bits
+     * @param mask     the mask bits
      */
     public CategoryFilter(long category, long mask) {
         super();
@@ -128,11 +144,11 @@ public class CategoryFilter implements Filter {
     }
 
     /**
-     * Returns true if the given {@link Filter} and this {@link Filter} allow
-     * the objects to interact.
+     * Returns true if the given {@link Filter} and this {@link Filter} allow the
+     * objects to interact.
      * <p>
-     * If the given {@link Filter} is not the same type as this {@link Filter}
-     * then a value of true is returned.
+     * If the given {@link Filter} is not the same type as this {@link Filter} then
+     * a value of true is returned.
      * <p>
      * If the given {@link Filter} is null, a value of true is returned.
      *
@@ -156,7 +172,9 @@ public class CategoryFilter implements Filter {
         return true;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -174,7 +192,9 @@ public class CategoryFilter implements Filter {
         return false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -185,15 +205,15 @@ public class CategoryFilter implements Filter {
         return hash;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see java.lang.Object#toString()
      */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("CategoryFilter[Category=").append(this.category)
-                .append("|Mask=").append(this.mask)
-                .append("]");
+        sb.append("CategoryFilter[Category=").append(this.category).append("|Mask=").append(this.mask).append("]");
         return sb.toString();
     }
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,9 +25,6 @@
  */
 package infinity.systems;
 
-import com.simsilica.es.EntityId;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -41,12 +38,12 @@ public class EntityQueueSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     protected void terminate() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

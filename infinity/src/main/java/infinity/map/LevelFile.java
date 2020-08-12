@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -37,7 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class LevelFile extends JPanel {
-
+    private static final long serialVersionUID = -4658344536954311587L;
     public String m_file;
     private BitMap m_bitmap;
     private BufferedInputStream m_stream;
@@ -48,13 +48,14 @@ public class LevelFile extends JPanel {
     public Vector eLvlAttrs = new Vector();
     public static final int DEFAULT_TAG_COUNT = 6;
 
-    // Vector of loaded reginons  
+    // Vector of loaded reginons
     public Vector regions;
 
     // unkownn ELVL chunks read in on load
     public Vector unknownELVLData = new Vector();
 
-    // the actual data we're going to save, as a Vector of Bytes... saved by makeELvlDataForSaving
+    // the actual data we're going to save, as a Vector of Bytes... saved by
+    // makeELvlDataForSaving
     public Vector eLVLData;
 
     private String m_type;
@@ -71,12 +72,12 @@ public class LevelFile extends JPanel {
     /**
      * Reads in a *.lvl file.
      *
-     * @param bufferedStream    The file to load/save to
-     * @param b    The tileset bitmap (note read in default bitmap if lvl file does
-     * not contain bitmap portion)
-     * @param hasBMP if the file has bmp information
-     * @param hasELVL if the file has the extended lvz information
-     * @param file string representation of the file (path)
+     * @param bufferedStream The file to load/save to
+     * @param b              The tileset bitmap (note read in default bitmap if lvl
+     *                       file does not contain bitmap portion)
+     * @param hasBMP         if the file has bmp information
+     * @param hasELVL        if the file has the extended lvz information
+     * @param file           string representation of the file (path)
      */
     public LevelFile(BufferedInputStream bufferedStream, BitMap b, boolean hasBMP, boolean hasELVL, String file) {
 
@@ -90,8 +91,8 @@ public class LevelFile extends JPanel {
     /**
      * Creates a new default lvl file
      *
-     * @param b    The tileset bitmap (note read in default bitmap if lvl file does
-     * not contain bitmap portion)
+     * @param b The tileset bitmap (note read in default bitmap if lvl file does not
+     *          contain bitmap portion)
      */
     public LevelFile(BitMap b) {
         m_bitmap = b;
@@ -155,8 +156,7 @@ public class LevelFile extends JPanel {
             ByteArray curData;
 
             if (!headerArray.readString(0, 4).equals("elvl")) {
-                error = "The elvl header tag was not detected at the start of "
-                        + " the eLVL data section.";
+                error = "The elvl header tag was not detected at the start of " + " the eLVL data section.";
             } else {
                 int size = headerArray.readLittleEndianInt(4); // total size of the metadata section
                 int current = 12; // current number of bytes read
@@ -180,8 +180,7 @@ public class LevelFile extends JPanel {
                             String attr = curData.readString(0, chunkLength);
                             String[] keyTag = attr.split("=");
                             if (keyTag.length != 2) {
-                                error = "ATTR tag does not contain exactly "
-                                        + "one '=' sign: " + attr;
+                                error = "ATTR tag does not contain exactly " + "one '=' sign: " + attr;
                                 break;
                             }
 
@@ -204,7 +203,7 @@ public class LevelFile extends JPanel {
                             regions.add(r);
                         } else // unknown chunk
                         {
-                            //System.out.println("unknown chunk: " + type);
+                            // System.out.println("unknown chunk: " + type);
                             curData = new ByteArray(readIn(chunkLength));
 
                             // encode header
@@ -282,7 +281,7 @@ public class LevelFile extends JPanel {
             }
         }
 
-        //Close the stream so it doesn't remain opened.
+        // Close the stream so it doesn't remain opened.
         try {
             m_stream.close();
         } catch (IOException e) {
@@ -294,9 +293,9 @@ public class LevelFile extends JPanel {
     /**
      * Save the level file with a different file name
      *
-     * @param where the new file to save it as
+     * @param where   the new file to save it as
      * @param tileset the tileset to save
-     * @param map the map array[][] to save
+     * @param map     the map array[][] to save
      * @param regions the vector of regions to save
      */
     public void saveLevelAs(String where, Image tileset, short[][] map, Vector regions) {
@@ -339,7 +338,7 @@ public class LevelFile extends JPanel {
                 eLVLData.add(new Byte(letter));
             }
 
-            //padding
+            // padding
             int padding = 4 - (chunkLength % 4);
             if (padding != 4) {
                 for (int c = 0; c < padding; ++c) {
@@ -371,8 +370,8 @@ public class LevelFile extends JPanel {
     }
 
     /**
-     * Save the ELVL data to the current position in the stream. It's stored in
-     * a vector of Bytes in eLVLData
+     * Save the ELVL data to the current position in the stream. It's stored in a
+     * vector of Bytes in eLVLData
      *
      * @param out the output stream to save to
      */
@@ -413,7 +412,7 @@ public class LevelFile extends JPanel {
      * Actually save the .lvl file
      *
      * @param tileset the tileset to save it with
-     * @param map the map aray[][] to save
+     * @param map     the map aray[][] to save
      * @param regions list of regions
      */
     public void saveLevel(Image tileset, short[][] map, Vector regions) {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,7 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Initial rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1
- * second). 
+ * second).
  *
  * @author ss
  */

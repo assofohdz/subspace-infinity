@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -44,11 +44,11 @@ public class SphereShape_old implements EntityComponent {
     }
 
     /**
-     * Creates a new sphere collision shape with the specified radius and
-     * 'center' relative to the natural origin of the object to which it
-     * applies. -CoG in most cases.
+     * Creates a new sphere collision shape with the specified radius and 'center'
+     * relative to the natural origin of the object to which it applies. -CoG in
+     * most cases.
      *
-     * @param radius the radius of the sphere
+     * @param radius       the radius of the sphere
      * @param centerOffset the offset relative to the object to which it applies
      */
     public SphereShape_old(double radius, Vec3d centerOffset) {

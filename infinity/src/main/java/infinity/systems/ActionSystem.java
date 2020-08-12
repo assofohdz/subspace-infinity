@@ -19,5 +19,5 @@ public class ActionSystem {
     public static final byte FIREROCKET = 0x5;
     public static final byte FIRETHOR = 0x6;
     public static final byte WARP = 0x7;
-    
+
 }

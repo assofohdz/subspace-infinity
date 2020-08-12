@@ -5,7 +5,6 @@
  */
 package infinity.server;
 
-import com.jme3.app.Application;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;
@@ -14,8 +13,8 @@ import com.jme3.network.service.HostedServiceManager;
 import com.jme3.system.JmeSystem;
 
 /**
- * Centralized server asset system. Used to loads settings files and resources (like maps)
- * that the server needs to create the game
+ * Centralized server asset system. Used to loads settings files and resources
+ * (like maps) that the server needs to create the game
  *
  * @author Asser Fahrenholz
  */
@@ -25,8 +24,10 @@ public class AssetLoaderService extends AbstractHostedService {
 
     @Override
     protected void onInitialize(HostedServiceManager serviceManager) {
-        //Need to register our own AssetManager because this is run server side so there's no jMonkeyEngine running
-        am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
+        // Need to register our own AssetManager because this is run server side so
+        // there's no jMonkeyEngine running
+        am = JmeSystem.newAssetManager(
+                Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
     }
 
     @Override

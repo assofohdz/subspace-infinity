@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,8 +25,9 @@
  */
 package infinity.sim;
 
-import com.simsilica.es.EntityId;
 import java.util.function.BiConsumer;
+
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -49,6 +50,5 @@ public class CommandConsumer {
     public BiConsumer<EntityId, String> getConsumer() {
         return consumer;
     }
-    
-    
+
 }

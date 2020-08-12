@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -26,6 +26,7 @@
 package infinity.client.audio;
 
 import com.jme3.audio.AudioNode;
+
 import com.simsilica.es.Entity;
 
 /**
@@ -36,10 +37,11 @@ public interface AudioFactory {
 
     /**
      * References the parent audio state
+     *
      * @param state the parent audio state to set
      */
-    public void setState(AudioState state);
-    
-    public AudioNode createAudio(Entity e);
+    void setState(AudioState state);
+
+    AudioNode createAudio(Entity e);
 
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -32,5 +32,5 @@ import com.simsilica.es.EntityComponent;
  * @author Asser
  */
 public class SteeringPath implements EntityComponent {
-    
+
 }

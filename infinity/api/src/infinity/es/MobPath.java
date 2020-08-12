@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.dongbat.walkable.FloatArray;
+
 import com.simsilica.es.EntityComponent;
 
 /**

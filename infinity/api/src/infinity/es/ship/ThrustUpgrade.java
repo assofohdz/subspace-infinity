@@ -7,6 +7,7 @@ package infinity.es.ship;
 
 /**
  * Amount added per 'Thruster' Prize
+ *
  * @author Asser Fahrenholz
  */
 public class ThrustUpgrade {

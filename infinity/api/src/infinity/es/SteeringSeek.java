@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -33,8 +33,8 @@ import com.simsilica.es.EntityId;
  * @author Asser
  */
 public class SteeringSeek implements EntityComponent {
-    
-    EntityId target; 
+
+    EntityId target;
 
     public EntityId getTarget() {
         return target;

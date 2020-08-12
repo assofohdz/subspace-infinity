@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,16 +25,15 @@
  */
 package infinity.systems;
 
+import java.util.Iterator;
+
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.mphys.AbstractShape;
-import com.simsilica.mphys.Contact;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import java.util.Iterator;
+
 import infinity.es.Delay;
 
 /**
@@ -54,17 +53,17 @@ public class DelaySystem extends AbstractGameSystem {
             if (d.getPercent() >= 1.0) {
                 Iterator<EntityComponent> componentIterator = d.getDelayedComponents().iterator();
                 switch (d.getType()) {
-                    case Delay.REMOVE:
-                        while (componentIterator.hasNext()) {
-                            ed.removeComponent(e.getId(), componentIterator.next().getClass());
-                        }
-                        break;
-                    case Delay.SET:
+                case Delay.REMOVE:
+                    while (componentIterator.hasNext()) {
+                        ed.removeComponent(e.getId(), componentIterator.next().getClass());
+                    }
+                    break;
+                case Delay.SET:
 
-                        while (componentIterator.hasNext()) {
-                            ed.setComponent(e.getId(), componentIterator.next());
-                        }
-                        break;
+                    while (componentIterator.hasNext()) {
+                        ed.setComponent(e.getId(), componentIterator.next());
+                    }
+                    break;
                 }
 
                 ed.removeComponent(e.getId(), Delay.class);
@@ -76,7 +75,7 @@ public class DelaySystem extends AbstractGameSystem {
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
 
-        entities = ed.getEntities(Delay.class); //This filters all entities that have delayed components
+        entities = ed.getEntities(Delay.class); // This filters all entities that have delayed components
     }
 
     @Override

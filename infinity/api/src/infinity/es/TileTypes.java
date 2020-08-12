@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -35,8 +35,8 @@ import com.simsilica.es.EntityData;
  */
 public class TileTypes {
 
-    public static final String LEGACY = "legacy"; //Legacy SS Map Tileset
-    public static final String WANGBLOB = "wangblob"; //Wang Blob Tileset
+    public static final String LEGACY = "legacy"; // Legacy SS Map Tileset
+    public static final String WANGBLOB = "wangblob"; // Wang Blob Tileset
 
     public static TileType legacy(String tileSet, short tileIndex, EntityData ed) {
         return TileType.create(LEGACY, tileSet, tileIndex, ed);

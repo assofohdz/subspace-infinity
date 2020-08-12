@@ -22,5 +22,5 @@ public interface AccountSessionListener {
      * @param loggedIn the boolean indicating if the client is logged in
      */
     @Asynchronous
-    public void notifyLoginStatus(boolean loggedIn);
+    void notifyLoginStatus(boolean loggedIn);
 }

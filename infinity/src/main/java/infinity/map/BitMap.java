@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,17 +25,20 @@
  */
 package infinity.map;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.io.*;
+import java.awt.Image;
+import java.awt.image.MemoryImageSource;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+
+import javax.swing.JPanel;
 
 public class BitMap extends JPanel {
-
-    public final static int BI_RGB = 0;          //No compression
-    public final static int BI_RLE8 = 1;         //RLE 8-bit / pixel 
-    public final static int BI_RLE4 = 2;         //RLE 4-bit / pixel 
-    public final static int BI_BITFIELDS = 3;    //Bitfields
+    private static final long serialVersionUID = -1228135782001412920L;
+    public final static int BI_RGB = 0; // No compression
+    public final static int BI_RLE8 = 1; // RLE 8-bit / pixel
+    public final static int BI_RLE4 = 2; // RLE 4-bit / pixel
+    public final static int BI_BITFIELDS = 3; // Bitfields
 
     private BufferedInputStream m_stream;
 
@@ -56,7 +59,7 @@ public class BitMap extends JPanel {
     private int[] m_image;
 
     private boolean m_validBMP = false;
-    public boolean hasELVL = false; // since ELVL headers are so interlocked with the bitmap, this is 
+    public boolean hasELVL = false; // since ELVL headers are so interlocked with the bitmap, this is
     // the appropriate place
     public int ELvlOffset = -1;
 
@@ -67,7 +70,7 @@ public class BitMap extends JPanel {
     public void readBitMap(boolean trans) {
         fileData = new ByteArray();
 
-        //Read 14 bytes for file header
+        // Read 14 bytes for file header
         fileHeader = readIn(14);
         ByteArray array = new ByteArray(fileHeader);
         fh_type = array.readString(0, 2);
@@ -85,7 +88,7 @@ public class BitMap extends JPanel {
         m_size = array.readLittleEndianInt(2);
         m_offset = array.readLittleEndianInt(10);
 
-        if (m_size != 49718) { // possible elvl header... check reserved bits to confirm 
+        if (m_size != 49718) { // possible elvl header... check reserved bits to confirm
             int offset = array.readLittleEndianShort(6);
             if (offset == 49720) { // currently this is the only place for the eLvl Header
                 ELvlOffset = 49720;
@@ -93,7 +96,7 @@ public class BitMap extends JPanel {
             }
         }
 
-        //Read 40 bytes for info header
+        // Read 40 bytes for info header
         infoHeader = readIn(40);
         array = new ByteArray(infoHeader);
         m_width = array.readLittleEndianInt(4);
@@ -102,21 +105,21 @@ public class BitMap extends JPanel {
         m_compressionType = array.readLittleEndianInt(16);
         m_colorsUsed = array.readLittleEndianInt(20);
 
-        //Create our image container
+        // Create our image container
         m_image = new int[m_width * m_height];
 
-        //If it is 8 bits or less it has a color table
+        // If it is 8 bits or less it has a color table
         if (m_bitCount <= 8) {
-            //Define our color tables/colors used
+            // Define our color tables/colors used
             m_colorTable = new int[(int) Math.pow(2, m_bitCount)];
             m_colorsUsed = (int) Math.pow(2, m_bitCount);
-            //Read in the color table
+            // Read in the color table
             for (int i = 0; i < m_colorsUsed; i++) {
                 byte c[] = readIn(4);
                 array = new ByteArray(c);
                 m_colorTable[i] = (array.readLittleEndianInt(0) & 0xffffff) + 0xff000000;
 
-                //Make black transparent. SS specific need, will adjust to be dynamic
+                // Make black transparent. SS specific need, will adjust to be dynamic
                 if (m_colorTable[i] == 0xff000000 && trans) {
                     m_colorTable[i] = m_colorTable[i] & 0x00000000;
                 }
@@ -137,10 +140,10 @@ public class BitMap extends JPanel {
             shift[i] = 8 - ((i + 1) * m_bitCount);
         }
 
-        //Create a mask for each pixel dependant on # of bitCount
+        // Create a mask for each pixel dependant on # of bitCount
         int mask = (1 << m_bitCount) - 1;
 
-        //How much padding after each line. Bitmaps pad to 32bits
+        // How much padding after each line. Bitmaps pad to 32bits
         int pad = 4 - (int) Math.ceil(m_width * m_bitCount / 8.0) % 4;
         if (pad == 4) {
             pad = 0;
@@ -160,7 +163,7 @@ public class BitMap extends JPanel {
                 bit = 0;
                 x = 0;
                 y--;
-                //Pad to 32 bits after each line
+                // Pad to 32 bits after each line
                 for (int j = 0; j < pad; j++) {
                     readByte();
                 }
@@ -184,7 +187,7 @@ public class BitMap extends JPanel {
 
         int a = readByte();
         int b = readByte();
-        while (!(a == 0 && b == 1)) {
+        while (((a != 0) || (b != 1))) {
 
             if (a == 0) {
                 if (b == 0) {
@@ -218,7 +221,7 @@ public class BitMap extends JPanel {
         byte[] b = new byte[n];
         try {
             m_stream.read(b);
-            //    fileData.addByteArray( b );
+            // fileData.addByteArray( b );
             return b;
         } catch (IOException e) {
             return new byte[0];
@@ -230,7 +233,7 @@ public class BitMap extends JPanel {
         byte[] b = new byte[1];
         try {
             m_stream.read(b);
-            //fileData.addByteArray( b );
+            // fileData.addByteArray( b );
             return b[0] & 255;
         } catch (IOException e) {
             return 0;
@@ -239,7 +242,7 @@ public class BitMap extends JPanel {
 
     public void appendTo(BufferedOutputStream out) {
         try {
-            //Write bitmap File Data
+            // Write bitmap File Data
             out.write(fileData.getByteArray(), 0, fileData.size());
             out.close();
         } catch (IOException e) {
@@ -253,6 +256,7 @@ public class BitMap extends JPanel {
     /**
      * Reads in a square tile of any size from the topleft. Good for getting the
      * first image in any of the /graphics/*.bm2
+     *
      * @param size the pixel size of the image to load
      * @return the image loaded
      */
@@ -286,10 +290,12 @@ public class BitMap extends JPanel {
         return m_size;
     }
 
+    @Override
     public int getWidth() {
         return m_width;
     }
 
+    @Override
     public int getHeight() {
         return m_height;
     }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,34 +25,32 @@
  */
 package infinity;
 
-import com.jme3.app.Application;
-import com.jme3.app.state.BaseAppState;
-import com.simsilica.es.EntityData;
-import com.simsilica.ethereal.SynchedTimeSource;
-
-import com.simsilica.ethereal.TimeSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.jme3.app.Application;
+import com.jme3.app.state.BaseAppState;
+
+import com.simsilica.ethereal.TimeSource;
+
 import infinity.sim.TimeManager;
 
-
 /**
- *  Provides a consistent frame time to the classes that want it.
- *  Time inevitably marches forward except in the case of this state.
- *  When update() is called, the frame time is locked such that getTime()
- *  will return the same value until after the next update().  This makes
- *  sure that small inter-frame time differences don't creep into interpolated
- *  visuals.
+ * Provides a consistent frame time to the classes that want it. Time inevitably
+ * marches forward except in the case of this state. When update() is called,
+ * the frame time is locked such that getTime() will return the same value until
+ * after the next update(). This makes sure that small inter-frame time
+ * differences don't creep into interpolated visuals.
  *
- *  For a simple game example like this, it isn't really necessary but it's
- *  a good pattern to follow.
+ * For a simple game example like this, it isn't really necessary but it's a
+ * good pattern to follow.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
-public class TimeState extends BaseAppState implements TimeManager{
+public class TimeState extends BaseAppState implements TimeManager {
 
     static Logger log = LoggerFactory.getLogger(TimeState.class);
-    
+
     private TimeSource timeSource;
     private long frameTime;
     private long realTime;
@@ -60,41 +58,42 @@ public class TimeState extends BaseAppState implements TimeManager{
     public TimeState() {
         log.info("Constructed TimeState");
     }
-    
-    public TimeState( TimeSource timeSource ) {
+
+    public TimeState(TimeSource timeSource) {
         this.timeSource = timeSource;
     }
- 
-    public void setTimeSource( TimeSource timeSource ) {
+
+    public void setTimeSource(TimeSource timeSource) {
         this.timeSource = timeSource;
     }
-    
+
     public TimeSource getTimeSource() {
         return timeSource;
     }
-    
+
     @Override
     public long getTime() {
-        return frameTime; 
+        return frameTime;
     }
-    
+
     public long getRealTime() {
         return realTime;
     }
-    
-    public void update( float tpf ) {
-        if( timeSource != null ) {
+
+    @Override
+    public void update(float tpf) {
+        if (timeSource != null) {
             this.frameTime = timeSource.getTime();
             this.realTime = System.nanoTime();
         }
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(Application app) {
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup(Application app) {
     }
 
     @Override

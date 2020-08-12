@@ -1,71 +1,67 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2018, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.server;
 
-import com.badlogic.gdx.ai.steer.proximities.InfiniteProximity;
-import com.jme3.math.ColorRGBA;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.jme3.network.*;
-import com.jme3.network.service.*;
+import com.jme3.network.HostedConnection;
+import com.jme3.network.service.AbstractHostedConnectionService;
+import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
-import com.simsilica.es.*;
-import com.simsilica.es.server.HostedEntityData;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.Name;
 import com.simsilica.es.server.EntityDataHostedService;
+import com.simsilica.es.server.HostedEntityData;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
-import com.simsilica.ext.mphys.Gravity;
 import com.simsilica.ext.mphys.MPhysSystem;
-import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.ext.mphys.SpawnPosition;
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.BinIndex;
-import com.simsilica.sim.*;
-
 import com.simsilica.mphys.PhysicsSpace;
-import infinity.es.ActionType;
+import com.simsilica.sim.GameSystemManager;
+
 import infinity.es.input.MovementInput;
-import infinity.es.PointLightComponent;
-import infinity.es.WeaponTypes;
 import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
@@ -73,7 +69,6 @@ import infinity.sim.GameEntities;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
 import infinity.systems.AttackSystem;
-import infinity.systems.AvatarSystem;
 import infinity.systems.MapSystem;
 
 /**
@@ -103,7 +98,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     @Override
     protected void onInitialize(HostedServiceManager s) {
-        // Grab the RMI service so we can easily use it later        
+        // Grab the RMI service so we can easily use it later
         this.rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("GameSessionHostedService requires an RMI service.");
@@ -161,11 +156,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             conn.setAttribute(ATTRIBUTE_SESSION, null);
 
             // If we don't do that then we'll be notified twice when the
-            // player logs off.  Once because we detect the connection shutting
+            // player logs off. Once because we detect the connection shutting
             // down and again because the account service has notified us the
-            // player has logged off.  This is ok because sometime there might
+            // player has logged off. This is ok because sometime there might
             // be a reason the player logs out of the game session but stays
-            // connected.  We just need to cover the double-event case by
+            // connected. We just need to cover the double-event case by
             // checking for an existing account session and then clearing it
             // when we've stopped hosting our service on it.
         }
@@ -208,8 +203,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
             this.attackSystem = gameSystems.get(AttackSystem.class, true);
-            //this.mapSystem = gameSystems.get(MapSystem.class, true);
-            
+            // this.mapSystem = gameSystems.get(MapSystem.class, true);
+
             this.binIndex = phys.getBinIndex();
 
             this.playerEntityId = ed.createEntity();
@@ -231,7 +226,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 getCallback(true).setAvatar(avatarEntityId);
             } else {
                 // Apparently when we call initialize to soon we don't have the delegate
-                // yet.  So this model only works with a separate login step.
+                // yet. So this model only works with a separate login step.
                 log.warn("No game session callback registered so can't send avatar entity.");
             }
 
@@ -247,7 +242,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (hed == null) {
                 throw new RuntimeException("Can't get hosted entity data for:" + conn);
             }
-            //hed.registerEntityVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
+            // hed.registerEntityVisibility(new
+            // BodyVisibility(ethereal.getStateListener(conn)));
             hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
 
             log.info("GameSessionImpl.initialized()");
@@ -256,12 +252,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         public void close() {
             log.debug("Closing game session for:" + conn);
             // Remove our physics body
-            ////physics.removeBody(shipEntity);
+            //// physics.removeBody(shipEntity);
             // Physics body is now removed as a side-effect of the entity
             // going away.
 
             // Remove the ship we created
-            //ed.removeEntity(shipEntity);
+            // ed.removeEntity(shipEntity);
         }
 
         @Override
@@ -276,7 +272,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         @Override
         public void setView(Quatd rotation, Vec3d location) {
-//log.info("setView(" + rotation + ", " + location + ")");        
+//log.info("setView(" + rotation + ", " + location + ")");
             if (!spawned) {
                 spawned = true;
             }
@@ -285,7 +281,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // This is a bit of a hack and not officially supported to keep
             // resetting yourself... but it works.
             NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
-            //nsl.setMaxMessageSize(2000);
+            // nsl.setMaxMessageSize(2000);
             if (nsl != null) {
                 nsl.setSelf(avatarEntityId.getId(), location);
             }
@@ -294,24 +290,25 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             lastViewOrient.set(rotation);
         }
 
-        /*        
-        public void spawn() {
-log.info("spawn():" + avatarEntity);        
-            // Place the player in the appropriate part of the level and
-            // let SimEthereal know about it.
-
-            Vec3d spawnLoc = gameSystems.get(GameLevelSystem.class).getSpawnPoint(playerEntity);
-log.info("spawn location:" + spawnLoc);
-
-            // Give the avatar its spawn location
-            ed.setComponent(avatarEntity, new SpawnPosition(spawnLoc, 0));
-
-            //Vec3d spawnLoc = new Vec3d(); // for the moment
-
-            // Setup to start using SimEthereal synching
-            getService(EtherealHost.class).startHostingOnConnection(conn);
-            getService(EtherealHost.class).setConnectionObject(conn, avatarEntity.getId(), spawnLoc);                   
-        }*/
+        /*
+         * public void spawn() { log.info("spawn():" + avatarEntity); // Place the
+         * player in the appropriate part of the level and // let SimEthereal know about
+         * it.
+         *
+         * Vec3d spawnLoc =
+         * gameSystems.get(GameLevelSystem.class).getSpawnPoint(playerEntity);
+         * log.info("spawn location:" + spawnLoc);
+         *
+         * // Give the avatar its spawn location ed.setComponent(avatarEntity, new
+         * SpawnPosition(spawnLoc, 0));
+         *
+         * //Vec3d spawnLoc = new Vec3d(); // for the moment
+         *
+         * // Setup to start using SimEthereal synching
+         * getService(EtherealHost.class).startHostingOnConnection(conn);
+         * getService(EtherealHost.class).setConnectionObject(conn,
+         * avatarEntity.getId(), spawnLoc); }
+         */
         protected GameSessionListener getCallback(boolean failFast) {
             if (callback == null) {
                 RmiRegistry rmi = rmiService.getRmiRegistry(conn);
@@ -352,22 +349,22 @@ log.info("spawn location:" + spawnLoc);
         @Override
         public void map(byte mapInput, Vec3d coords) {
             switch (mapInput) {
-                case MapSystem.CREATE:
-                    //mapSystem.sessionCreateTile(coords.x, coords.z);
-                    break;
-                case MapSystem.DELETE:
-                    //mapSystem.sessionRemoveTile(coords.x, coords.z);
-                    break;
-                case MapSystem.READ:
-                    
-                    break;
-                case MapSystem.UPDATE:
-                    
-                    break;
-                default:
-                    throw new AssertionError();
+            case MapSystem.CREATE:
+                // mapSystem.sessionCreateTile(coords.x, coords.z);
+                break;
+            case MapSystem.DELETE:
+                // mapSystem.sessionRemoveTile(coords.x, coords.z);
+                break;
+            case MapSystem.READ:
+
+                break;
+            case MapSystem.UPDATE:
+
+                break;
+            default:
+                throw new AssertionError();
             }
-            
+
         }
 
     }

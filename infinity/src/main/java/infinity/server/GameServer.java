@@ -1,43 +1,50 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2018, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.server;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+//import infinity.systems.WeaponSystem;
+import java.util.HashMap;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Network;
@@ -49,31 +56,38 @@ import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rpc.RpcHostedService;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.Name;
+import com.simsilica.es.base.DefaultEntityData;
+import com.simsilica.es.common.Decay;
+import com.simsilica.es.server.EntityDataHostedService;
+import com.simsilica.es.server.EntityUpdater; // from SiO2
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 import com.simsilica.ethereal.TimeSource;
-
-import com.simsilica.es.*;
-import com.simsilica.es.base.DefaultEntityData;
-import com.simsilica.es.server.EntityDataHostedService;
-import com.simsilica.es.server.EntityUpdater; // from SiO2
-
-import com.simsilica.es.common.*;
+import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
+import com.simsilica.ext.mblock.SphereFactory;
+import com.simsilica.ext.mphys.EntityBodyFactory;
+import com.simsilica.ext.mphys.Gravity;
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeFactory;
+import com.simsilica.ext.mphys.ShapeFactoryRegistry;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.MBlockCollisionSystem;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mworld.db.LeafDb;
+import com.simsilica.mworld.db.LeafDbCache;
+import com.simsilica.mworld.net.server.WorldHostedService;
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
-import com.simsilica.sim.common.*;
+import com.simsilica.sim.common.DecaySystem;
 
-import com.simsilica.ext.mblock.*;
-import com.simsilica.ext.mphys.*;
-import com.simsilica.mblock.phys.*;
-import com.simsilica.mphys.*;
-import com.simsilica.mworld.*;
-import com.simsilica.mworld.base.DefaultWorld;
-import com.simsilica.mworld.db.*;
-
-import com.simsilica.mworld.net.server.WorldHostedService;
 import infinity.InfinityConstants;
 import infinity.es.AudioType;
 import infinity.es.BodyPosition;
@@ -82,30 +96,27 @@ import infinity.es.Frequency;
 import infinity.es.Gold;
 import infinity.es.LargeGridCell;
 import infinity.es.LargeObject;
-import infinity.es.input.MovementInput;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
-import infinity.es.ship.Player;
+import infinity.es.input.MovementInput;
 import infinity.map.InfinityDefaultWorld;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
-import infinity.systems.InfinityTimeSystem;
 //import infinity.sim.InfinityMPhysSystem;
 import infinity.sim.PlayerDriver;
 import infinity.systems.ArenaSystem;
 import infinity.systems.AttackSystem;
-import infinity.systems.EnergySystem;
-import infinity.systems.MovementSystem;
-import infinity.systems.SettingsSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
+import infinity.systems.EnergySystem;
+import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
+import infinity.systems.MovementSystem;
+import infinity.systems.SettingsSystem;
 import infinity.util.AdaptiveLoadingService;
-//import infinity.systems.WeaponSystem;
-import java.util.HashMap;
 
 //import com.simsilica.sb.ai.*;
 //import com.simsilica.sb.ai.steer.*;
@@ -138,10 +149,8 @@ public class GameServer {
         this.loop = new GameLoop(systems);
 
         // Create the SpiderMonkey server and setup our standard
-        // initial hosted services 
-        this.server = Network.createServer(InfinityConstants.NAME,
-                InfinityConstants.PROTOCOL_VERSION,
-                port, port);
+        // initial hosted services
+        this.server = Network.createServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, port, port);
 
         // Create a separate channel to do chat stuff so it doesn't interfere
         // with any real game stuff.
@@ -153,26 +162,26 @@ public class GameServer {
         // And a separate channel for terrain stuff
         server.addChannel(port + 3);
 
-        // Adding a delay for the connectionAdded right after the serializer registration
-        // service gets to run let's the client get a small break in the buffer that should
-        // generally prevent the RpcCall messages from coming too quickly and getting processed
+        // Adding a delay for the connectionAdded right after the serializer
+        // registration
+        // service gets to run let's the client get a small break in the buffer that
+        // should
+        // generally prevent the RpcCall messages from coming too quickly and getting
+        // processed
         // before the SerializerRegistrationMessage has had a chance to process.
         server.getServices().addService(new DelayService());
 
         ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
 
-        server.getServices().addServices(new RpcHostedService(),
-                new RmiHostedService(),
-                //new GameSessionHostedService(systems),
-                //new AccountHostedService(description),
-                //new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
-                chp
-        );
+        server.getServices().addServices(new RpcHostedService(), new RmiHostedService(),
+                // new GameSessionHostedService(systems),
+                // new AccountHostedService(description),
+                // new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
+                chp);
 
         // Add the SimEtheral host that will serve object sync updates to
-        // the clients. 
-        EtherealHost ethereal = new EtherealHost(InfinityConstants.OBJECT_PROTOCOL,
-                InfinityConstants.ZONE_GRID,
+        // the clients.
+        EtherealHost ethereal = new EtherealHost(InfinityConstants.OBJECT_PROTOCOL, InfinityConstants.ZONE_GRID,
                 InfinityConstants.ZONE_RADIUS);
         ethereal.getZones().setSupportLargeObjects(true);
         ethereal.setTimeSource(new TimeSource() {
@@ -190,7 +199,7 @@ public class GameServer {
         server.getServices().addService(new EntityDataHostedService(InfinityConstants.ES_CHANNEL, ed));
 
         // Just create a test world for now
-        //LeafDb leafDb2 = new LeafDbCache(new TestLeafDb()); 
+        // LeafDb leafDb2 = new LeafDbCache(new TestLeafDb());
         LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
 
         InfinityDefaultWorld world = new InfinityDefaultWorld(leafDb);
@@ -208,12 +217,11 @@ public class GameServer {
         // Add some standard systems
         systems.addSystem(new DecaySystem());
 
-        
         // Setup the physics space
-        //--------------------------
-        
-        // Need a shape factory to turn ShapeInfo components into 
-        // MBlockShapes. 
+        // --------------------------
+
+        // Need a shape factory to turn ShapeInfo components into
+        // MBlockShapes.
         ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
@@ -225,7 +233,7 @@ public class GameServer {
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
-        systems.register(ShapeFactory.class, shapeFactory); 
+        systems.register(ShapeFactory.class, shapeFactory);
 
         // And give that to an EntityBodyFactory, for the moment without any
         // customization
@@ -233,49 +241,45 @@ public class GameServer {
         // upright driver as needed.
         HashMap<EntityId, PlayerDriver> map = new HashMap<>();
         /*
-        EntityBodyFactory<MBlockShape> bodyFactory = new EntityBodyFactory<MBlockShape>(ed,
-                InfinityConstants.DEFAULT_GRAVITY, shapeFactory) {
-            @Override
-            protected RigidBody<EntityId, MBlockShape> createRigidBody(EntityId id,
-                    SpawnPosition pos,
-                    ShapeInfo info,
-                    Mass mass,
-                    Gravity gravity) {
-                RigidBody<EntityId, MBlockShape> result = super.createRigidBody(id, pos, info, mass, gravity);
+         * EntityBodyFactory<MBlockShape> bodyFactory = new
+         * EntityBodyFactory<MBlockShape>(ed, InfinityConstants.DEFAULT_GRAVITY,
+         * shapeFactory) {
+         *
+         * @Override protected RigidBody<EntityId, MBlockShape> createRigidBody(EntityId
+         * id, SpawnPosition pos, ShapeInfo info, Mass mass, Gravity gravity) {
+         * RigidBody<EntityId, MBlockShape> result = super.createRigidBody(id, pos,
+         * info, mass, gravity);
+         *
+         * //If the entity is a player, we add a driver, so the player can control his
+         * ship if (getComponent(id, Player.class) != null) { PlayerDriver driver = new
+         * PlayerDriver<EntityId, MBlockShape>(); result.setControlDriver(driver);
+         * map.put(id, driver); } return result; } };
+         */
+        InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed, Gravity.ZERO.getLinearAcceleration(),
+                shapeFactory);
 
-                //If the entity is a player, we add a driver, so the player can control his ship
-                if (getComponent(id, Player.class) != null) {
-                    PlayerDriver driver = new PlayerDriver<EntityId, MBlockShape>();
-                    result.setControlDriver(driver);
-                    map.put(id, driver);
-                }
-                return result;
-            }
-        };*/
-        InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed, Gravity.ZERO.getLinearAcceleration(), shapeFactory);
+        MPhysSystem mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
-        MPhysSystem mphys = new MPhysSystem<MBlockShape>(InfinityConstants.PHYSICS_GRID, bodyFactory);
-
-        //mphys.setDriverIndex(map);
+        // mphys.setDriverIndex(map);
 
         mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(leafDb));
 
-        //mphys.addPhysicsListener(new PositionUpdater(ed));
-        //systems.register(InfinityMPhysSystem.class, mphys);
+        // mphys.addPhysicsListener(new PositionUpdater(ed));
+        // systems.register(InfinityMPhysSystem.class, mphys);
         systems.register(MPhysSystem.class, mphys);
         systems.register(PhysicsSpace.class, mphys.getPhysicsSpace());
         systems.register(InfinityPhysicsManager.class, new InfinityPhysicsManager(mphys.getPhysicsSpace()));
         systems.register(EntityBodyFactory.class, bodyFactory);
 
-        //Subspace Infinity Specific Systems:-->
-        //systems.register(WeaponSystem.class, new WeaponSystem());
+        // Subspace Infinity Specific Systems:-->
+        // systems.register(WeaponSystem.class, new WeaponSystem());
         systems.register(EnergySystem.class, new EnergySystem());
         systems.register(AvatarSystem.class, new AvatarSystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
         systems.register(AttackSystem.class, new AttackSystem());
         systems.register(ArenaSystem.class, new ArenaSystem());
-        
-        //Set up contacts to be filtered
+
+        // Set up contacts to be filtered
         ContactSystem contactSystem = new ContactSystem();
         systems.register(ContactSystem.class, contactSystem);
         mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
@@ -286,97 +290,98 @@ public class GameServer {
 
         AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
         server.getServices().addService(adaptiveLoader);
-        
+
         systems.register(SettingsSystem.class, new SettingsSystem(assetLoader, adaptiveLoader));
         systems.register(MapSystem.class, new MapSystem(assetLoader));
-        //<--
+        // <--
 
         // The physics system will need some way to load physics collision shapes
-        //CollisionShapes shapes = systems.register(CollisionShapes.class, 
-        //                                          new DefaultCollisionShapes(ed));
-        //BulletSystem bullet = new BulletSystem();
-        ////bullet.addPhysicsObjectListener(new PositionPublisher(ed));
-        ////bullet.addPhysicsObjectListener(new DebugPhysicsListener(ed));
-        //bullet.addEntityCollisionListener(new DefaultContactPublisher(ed) {
-        //        /**
-        //         *  Overridden to give some extra contact decay time so the
-        //         *  debug visualization always has a chance to see them. 
-        //         */
-        //        @Override
-        //        protected EntityId createEntity( Contact c ) {
-        //            EntityId result = ed.createEntity();
-        //            ed.setComponents(result, c,
-        //                             Decay.duration(systems.getStepTime().getTime(),
-        //                                            systems.getStepTime().toSimTime(0.1))
-        //                             );
-        //            return result;                
-        //        }               
-        //    });
-        //systems.register(BulletSystem.class, bullet);
-        //systems.register(Names.class, new DefaultNames());
-        //systems.register(BasicEnvironment.class, new BasicEnvironment());
-        //systems.register(GameEntities.class, new GameEntities());
+        // CollisionShapes shapes = systems.register(CollisionShapes.class,
+        // new DefaultCollisionShapes(ed));
+        // BulletSystem bullet = new BulletSystem();
+        //// bullet.addPhysicsObjectListener(new PositionPublisher(ed));
+        //// bullet.addPhysicsObjectListener(new DebugPhysicsListener(ed));
+        // bullet.addEntityCollisionListener(new DefaultContactPublisher(ed) {
+        // /**
+        // * Overridden to give some extra contact decay time so the
+        // * debug visualization always has a chance to see them.
+        // */
+        // @Override
+        // protected EntityId createEntity( Contact c ) {
+        // EntityId result = ed.createEntity();
+        // ed.setComponents(result, c,
+        // Decay.duration(systems.getStepTime().getTime(),
+        // systems.getStepTime().toSimTime(0.1))
+        // );
+        // return result;
+        // }
+        // });
+        // systems.register(BulletSystem.class, bullet);
+        // systems.register(Names.class, new DefaultNames());
+        // systems.register(BasicEnvironment.class, new BasicEnvironment());
+        // systems.register(GameEntities.class, new GameEntities());
 //systems.register(MovementSystem.class, new MovementSystem());
-        //systems.register(BehaviorSystem.class, new BehaviorSystem());
-        //systems.register(SteeringSystem.class, new SteeringSystem());
-        //systems.addSystem(new RoomContainmentSystem());
-        //systems.register(PickingSystem.class, new PickingSystem());
-        //systems.addSystem(new ActivationSystem());
-        //systems.addSystem(new TrackSystem());
-        //systems.addSystem(new SpawnSystem());
+        // systems.register(BehaviorSystem.class, new BehaviorSystem());
+        // systems.register(SteeringSystem.class, new SteeringSystem());
+        // systems.addSystem(new RoomContainmentSystem());
+        // systems.register(PickingSystem.class, new PickingSystem());
+        // systems.addSystem(new ActivationSystem());
+        // systems.addSystem(new TrackSystem());
+        // systems.addSystem(new SpawnSystem());
         // Add any hosted services that require those systems to already
         // exist
-        // Add a system that will forward physics changes to the Ethereal 
-        // zone manager       
+        // Add a system that will forward physics changes to the Ethereal
+        // zone manager
         systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
 
-        // And the system that will publish the BodyPosition components 
+        // And the system that will publish the BodyPosition components
         systems.addSystem(new BodyPositionPublisher());
 
         // Register some custom serializers
         registerSerializers();
 
-        //NavGraph navGraph = new NavGraph();
-        //systems.register(NavGraph.class, navGraph);
+        // NavGraph navGraph = new NavGraph();
+        // systems.register(NavGraph.class, navGraph);
         //
         //// Add a system for creating the basic "world" entities
-        ////systems.addSystem(new BasicEnvironment());
-        //GameLevelSystem levels = systems.register(GameLevelSystem.class, new GameLevelSystem());
-        //File levelDefFile = new File("samples/base.leveldef");
-        //File levelFile = new File("samples/test1.level");
-        //if( !levelDefFile.exists() ) {
-        //    levelDefFile = new File("../samples/base.leveldef");
-        //    levelFile = new File("../samples/test1.level"); 
-        //} 
-        //levels.setLevelDef(levelDefFile);
-        //levels.setLevelFile(levelFile);
-        //log.info("Initializing game systems...");
+        //// systems.addSystem(new BasicEnvironment());
+        // GameLevelSystem levels = systems.register(GameLevelSystem.class, new
+        // GameLevelSystem());
+        // File levelDefFile = new File("samples/base.leveldef");
+        // File levelFile = new File("samples/test1.level");
+        // if( !levelDefFile.exists() ) {
+        // levelDefFile = new File("../samples/base.leveldef");
+        // levelFile = new File("../samples/test1.level");
+        // }
+        // levels.setLevelDef(levelDefFile);
+        // levels.setLevelFile(levelFile);
+        // log.info("Initializing game systems...");
         // Initialize the game system manager to prepare to start later
-        //systems.initialize();        
+        // systems.initialize();
     }
 
     protected void registerSerializers() {
-        //Serializer.registerClass(Name.class, new FieldSerializer());
+        // Serializer.registerClass(Name.class, new FieldSerializer());
 
         Serializer.registerClass(SpawnPosition.class, new FieldSerializer());
         Serializer.registerClass(BodyPosition.class, new FieldSerializer());
         Serializer.registerClass(ShapeInfo.class, new FieldSerializer());
         Serializer.registerClass(Mass.class, new FieldSerializer());
-        //Serializer.registerClass(ObjectType.class, new FieldSerializer());
-        //Serializer.registerClass(Position.class, new FieldSerializer());
-        //Serializer.registerClass(ModelInfo.class, new FieldSerializer());
-        //Serializer.registerClass(SphereShape.class, new FieldSerializer());
+        // Serializer.registerClass(ObjectType.class, new FieldSerializer());
+        // Serializer.registerClass(Position.class, new FieldSerializer());
+        // Serializer.registerClass(ModelInfo.class, new FieldSerializer());
+        // Serializer.registerClass(SphereShape.class, new FieldSerializer());
         Serializer.registerClass(Quatd.class, new FieldSerializer());
         Serializer.registerClass(Vec3d.class, new FieldSerializer());
 
         Serializer.registerClass(LargeObject.class, new FieldSerializer());
         Serializer.registerClass(LargeGridCell.class, new FieldSerializer());
 
-        //Serializer.registerClass(Parent.class, new FieldSerializer());
-        //Serializer.registerClass(Mobility.class, new FieldSerializer());
-        //Serializer.registerClass(CharacterAction.class, new FieldSerializer());
-        //Serializer.registerClass(LitBy.class, new FieldSerializer());
-        //Serializer.registerClass(OverheadLight.class, new FieldSerializer());*/
+        // Serializer.registerClass(Parent.class, new FieldSerializer());
+        // Serializer.registerClass(Mobility.class, new FieldSerializer());
+        // Serializer.registerClass(CharacterAction.class, new FieldSerializer());
+        // Serializer.registerClass(LitBy.class, new FieldSerializer());
+        // Serializer.registerClass(OverheadLight.class, new FieldSerializer());*/
         Serializer.registerClass(Name.class, new FieldSerializer());
 
         Serializer.registerClass(Frequency.class, new FieldSerializer());
@@ -387,7 +392,7 @@ public class GameServer {
         Serializer.registerClass(TileType.class, new FieldSerializer());
         Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
         Serializer.registerClass(Decay.class, new FieldSerializer());
-        
+
         Serializer.registerClass(MovementInput.class, new FieldSerializer());
     }
 
@@ -404,16 +409,15 @@ public class GameServer {
      */
     public void start() {
         log.info("Starting game server...");
-        //systems.start();
+        // systems.start();
         server.start();
         loop.start();
         log.info("Game server started.");
     }
 
     /**
-     * Kicks all current connection, closes the network host, stops all systems,
-     * and finally terminates them. The GameServer is not restartable at this
-     * point.
+     * Kicks all current connection, closes the network host, stops all systems, and
+     * finally terminates them. The GameServer is not restartable at this point.
      */
     public void close(String kickMessage) {
         log.info("Stopping game server..." + kickMessage);
@@ -435,8 +439,8 @@ public class GameServer {
     }
 
     /**
-     * Closes the network host, stops all systems, and finally terminates them.
-     * The GameServer is not restartable at this point.
+     * Closes the network host, stops all systems, and finally terminates them. The
+     * GameServer is not restartable at this point.
      */
     public void close() {
         close(null);
@@ -456,17 +460,19 @@ public class GameServer {
                 log.info("[" + conn.getId() + "] No stats");
                 continue;
             }
-            log.info("[" + conn.getId() + "] Ping time: " + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
+            log.info("[" + conn.getId() + "] Ping time: "
+                    + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
             String miss = String.format("%.02f", listener.getConnectionStats().getAckMissPercent());
             log.info("[" + conn.getId() + "] Ack miss: " + miss + "%");
-            log.info("[" + conn.getId() + "] Average msg size: " + listener.getConnectionStats().getAverageMessageSize() + " bytes");
+            log.info("[" + conn.getId() + "] Average msg size: " + listener.getConnectionStats().getAverageMessageSize()
+                    + " bytes");
         }
     }
 
     /**
      * Allow running a basic dedicated server from the command line using the
-     * default port. If we want something more advanced then we should break it
-     * into a separate class with a proper shell and so on.
+     * default port. If we want something more advanced then we should break it into
+     * a separate class with a proper shell and so on.
      */
     public static void main(String... args) throws Exception {
 
@@ -516,11 +522,10 @@ public class GameServer {
     }
 
     /**
-     * This works around a limitation in SpiderMonkey that can cause problems
-     * for the SerializationRegistryService if there are other messages in the
-     * same buffer as the registry update call. This adds a slight delay to
-     * connections in the hopes that the messages will end up in separate
-     * buffers.
+     * This works around a limitation in SpiderMonkey that can cause problems for
+     * the SerializationRegistryService if there are other messages in the same
+     * buffer as the registry update call. This adds a slight delay to connections
+     * in the hopes that the messages will end up in separate buffers.
      */
     private class DelayService extends AbstractHostedService {
 

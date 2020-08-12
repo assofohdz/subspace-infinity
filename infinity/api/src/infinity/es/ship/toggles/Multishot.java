@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -42,7 +42,7 @@ public class Multishot implements EntityComponent {
     public Multishot(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     public Multishot() {
     }
 }

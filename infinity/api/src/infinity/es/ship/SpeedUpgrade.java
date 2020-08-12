@@ -5,8 +5,9 @@
  */
 package infinity.es.ship;
 
-/** 
+/**
  * Amount added per 'Speed' Prize
+ *
  * @author Asser Fahrenholz
  */
 public class SpeedUpgrade {

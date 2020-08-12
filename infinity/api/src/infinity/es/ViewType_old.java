@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,45 +25,45 @@
  */
 package infinity.es;
 
+import java.awt.Color;
 
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
-import java.awt.Color;
-
 
 /**
- *  For visible game objects, this is the type of object.
+ * For visible game objects, this is the type of object.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class ViewType_old implements EntityComponent {
-    
-    //Translates into the texture
+
+    // Translates into the texture
     private int type;
-    //Translates into the color overlay (not used at the moment, but could be later on)
+    // Translates into the color overlay (not used at the moment, but could be later
+    // on)
     private Color color;
- 
+
     protected ViewType_old() {
     }
-    
-    public ViewType_old( int type ) {
+
+    public ViewType_old(int type) {
         this.type = type;
     }
-    
-    public static ViewType_old create( String typeName, EntityData ed ) {
+
+    public static ViewType_old create(String typeName, EntityData ed) {
         return new ViewType_old(ed.getStrings().getStringId(typeName, true));
     }
-    
+
     public int getType() {
         return type;
     }
-    
-    public String getTypeName( EntityData ed ) {
-        return ed.getStrings().getString(type);                 
+
+    public String getTypeName(EntityData ed) {
+        return ed.getStrings().getString(type);
     }
- 
-    @Override   
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + "[type=" + type + "]";
-    }     
+    }
 }

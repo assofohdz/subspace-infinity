@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,8 +25,9 @@
  */
 package infinity.sim;
 
-import com.simsilica.es.EntityId;
 import java.util.regex.Pattern;
+
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -37,39 +38,41 @@ public interface ChatHostedPoster {
     /**
      * Posts a public message
      *
-     * @param from sender
-     * @param messageType the message type (@see infinity.api.sim.MessageTypes in the interface)
-     * project
-     * @param message the message
+     * @param from        sender
+     * @param messageType the message type (@see infinity.api.sim.MessageTypes in
+     *                    the interface) project
+     * @param message     the message
      */
-    public void postPublicMessage(String from, int messageType, String message);
+    void postPublicMessage(String from, int messageType, String message);
 
     /**
      * Sends a private message
-     * 
-     * @param from sender
-     * @param messageType the message type (@see infinity.api.sim.MessageTypes in the interface)
+     *
+     * @param from           sender
+     * @param messageType    the message type (@see infinity.api.sim.MessageTypes in
+     *                       the interface)
      * @param targetEntityId receiver
-     * @param message the message
+     * @param message        the message
      */
-    public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message);
+    void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message);
 
     /**
      * Sends a message to a team
      *
-     * @param from sender
-     * @param messageType the message type (@see infinity.api.sim.MessageTypes in the interface)
+     * @param from            sender
+     * @param messageType     the message type (@see infinity.api.sim.MessageTypes
+     *                        in the interface)
      * @param targetFrequency the receiving team
-     * @param message the message
+     * @param message         the message
      */
-    public void postTeamMessage(String from, int messageType, int targetFrequency, String message);
+    void postTeamMessage(String from, int messageType, int targetFrequency, String message);
 
-    public void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c);
+    void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c);
 
-    public void removePatternConsumer(Pattern pattern);
+    void removePatternConsumer(Pattern pattern);
 
-    public void registerCommandConsumer(String cmd, String helptext, CommandConsumer c);
+    void registerCommandConsumer(String cmd, String helptext, CommandConsumer c);
 
-    public void removeCommandConsumer(String cmd);
+    void removeCommandConsumer(String cmd);
 
 }

@@ -49,21 +49,21 @@ public class MathUtil {
     public boolean hasOutlier(List<?> values) {
         return getOutlier(values) != null;
     }
-    
-    public boolean hasOutlier(List<?> values, double significanceLevel){
+
+    public boolean hasOutlier(List<?> values, double significanceLevel) {
         return getOutlier(values, significanceLevel) != null;
     }
 
     /**
-     * Returns a statistical outlier with the default significance level (0.95),
-     * or null if no such outlier exists..
+     * Returns a statistical outlier with the default significance level (0.95), or
+     * null if no such outlier exists..
      */
     public <T> T getOutlier(List<T> values) {
         return getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
     }
 
     public <T> T getOutlier(List<T> values, double significanceLevel) {
-        AtomicReference<T> outlier = new AtomicReference<T>();
+        AtomicReference<T> outlier = new AtomicReference<>();
         double grubbs = getGrubbsTestStatistic(values, outlier);
         double size = values.size();
         if (size < 3) {
@@ -75,7 +75,7 @@ public class MathUtil {
             double criticalValueSquare = criticalValue * criticalValue;
             double grubbsCompareValue = ((size - 1) / Math.sqrt(size))
                     * Math.sqrt((criticalValueSquare) / (size - 2.0 + criticalValueSquare));
-            //System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
+            // System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
             if (grubbs > grubbsCompareValue) {
                 return outlier.get();
             } else {
@@ -131,11 +131,12 @@ public class MathUtil {
             }
         }
         double grubbs = maxDev / stddev;
-        //System.out.println("mean/stddev/maxDev/grubbs: " + mean + " - " + stddev + " - " + maxDev + " - " + grubbs);
+        // System.out.println("mean/stddev/maxDev/grubbs: " + mean + " - " + stddev + "
+        // - " + maxDev + " - " + grubbs);
         return grubbs;
     }
 
-    private static enum Operator {
+    private enum Operator {
         MIN, MAX
     }
 
@@ -148,7 +149,7 @@ public class MathUtil {
     }
 
     public double average(Collection<?> c) {
-        return sum(c) / (double) c.size();
+        return sum(c) / c.size();
     }
 
     public double avg(Collection<?> c) {
@@ -180,8 +181,7 @@ public class MathUtil {
         T obj = null;
         for (T o : values) {
             double d = toDouble(o);
-            if ((op == Operator.MIN && d < res)
-                    || (op == Operator.MAX && d > res)) {
+            if ((op == Operator.MIN && d < res) || (op == Operator.MAX && d > res)) {
                 res = d;
                 obj = o;
             }
@@ -190,7 +190,7 @@ public class MathUtil {
     }
 
     public List<Integer> asList(int[] values) {
-        List<Integer> result = new LinkedList<Integer>();
+        List<Integer> result = new LinkedList<>();
         for (int v : values) {
             result.add(v);
         }
@@ -198,7 +198,7 @@ public class MathUtil {
     }
 
     public List<Long> asList(long[] values) {
-        List<Long> result = new LinkedList<Long>();
+        List<Long> result = new LinkedList<>();
         for (long v : values) {
             result.add(v);
         }
@@ -206,7 +206,7 @@ public class MathUtil {
     }
 
     public List<Double> asList(double[] values) {
-        List<Double> result = new LinkedList<Double>();
+        List<Double> result = new LinkedList<>();
         for (double v : values) {
             result.add(v);
         }
@@ -226,16 +226,16 @@ public class MathUtil {
             return (Double) o;
         }
         if (o instanceof Integer) {
-            return (double) (int) (Integer) o;
+            return (double) (Integer) o;
         }
         if (o instanceof Long) {
-            return (double) (long) (Long) o;
+            return (double) (Long) o;
         }
         return Double.parseDouble("" + o);
     }
 
     public List<Double> toDoubles(List<?> values) {
-        List<Double> d = new LinkedList<Double>();
+        List<Double> d = new LinkedList<>();
         for (Object o : values) {
             double val = toDouble(o);
             d.add(val);

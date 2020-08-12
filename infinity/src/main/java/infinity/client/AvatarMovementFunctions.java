@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -26,10 +26,12 @@
 package infinity.client;
 
 import com.jme3.input.KeyInput;
+
 import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
+
 import infinity.es.ActionTypes;
 import infinity.es.ShapeNames;
 import infinity.es.ToggleTypes;
@@ -57,12 +59,12 @@ public class AvatarMovementFunctions {
     public static final FunctionId F_TURN = new FunctionId(G_MOVEMENT, "Turn");
     public static final FunctionId F_STOP = new FunctionId(G_MOVEMENT, "Stop");
 
-    //Map
+    // Map
     public static final FunctionId F_MOUSE1 = new FunctionId(G_MAP, "UpdateTile");
     public static final FunctionId F_MOUSE2 = new FunctionId(G_MAP, "RemoveTile");
     public static final FunctionId F_MOUSE3 = new FunctionId(G_MAP, "Mouse3");
 
-    //Weapons
+    // Weapons
     public static final FunctionId F_BOMB = new FunctionId(G_WEAPON, WeaponTypes.BOMB);
     public static final FunctionId F_GRAVBOMB = new FunctionId(G_WEAPON, WeaponTypes.GRAVITYBOMB);
     public static final FunctionId F_MINE = new FunctionId(G_WEAPON, WeaponTypes.MINE);
@@ -70,7 +72,7 @@ public class AvatarMovementFunctions {
     public static final FunctionId F_THOR = new FunctionId(G_WEAPON, WeaponTypes.THOR);
     public static final FunctionId F_BURST = new FunctionId(G_WEAPON, WeaponTypes.BURST);
 
-    //Actions
+    // Actions
     public static final FunctionId F_REPEL = new FunctionId(G_ACTION, ActionTypes.REPEL);
     public static final FunctionId F_WARP = new FunctionId(G_ACTION, ActionTypes.WARP);
     public static final FunctionId F_PORTAL = new FunctionId(G_ACTION, ActionTypes.PORTAL);
@@ -79,17 +81,17 @@ public class AvatarMovementFunctions {
     public static final FunctionId F_BRICK = new FunctionId(G_ACTION, ActionTypes.BRICK);
     public static final FunctionId F_ATTACH = new FunctionId(G_ACTION, ActionTypes.ATTACH);
 
-    //Toggles
+    // Toggles
     public static final FunctionId F_MULTI = new FunctionId(G_TOGGLE, ToggleTypes.MULTI);
     public static final FunctionId F_ANTI = new FunctionId(G_TOGGLE, ToggleTypes.ANTI);
     public static final FunctionId F_STEALTH = new FunctionId(G_TOGGLE, ToggleTypes.STEALTH);
     public static final FunctionId F_CLOAK = new FunctionId(G_TOGGLE, ToggleTypes.CLOAK);
     public static final FunctionId F_XRADAR = new FunctionId(G_TOGGLE, ToggleTypes.XRADAR);
 
-    //Tower defense
+    // Tower defense
     public static final FunctionId F_TOWER = new FunctionId(G_TOWER, "Tower");
 
-    //Ships
+    // Ships
     public static final FunctionId F_WARBIRD = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_WARBIRD);
     public static final FunctionId F_JAVELIN = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_JAVELIN);
     public static final FunctionId F_SPIDER = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_SPIDER);
@@ -106,7 +108,7 @@ public class AvatarMovementFunctions {
         if (!inputMapper.hasMappings(F_RUN)) {
             inputMapper.map(F_RUN, KeyInput.KEY_LSHIFT);
         }
-        
+
         if (!inputMapper.hasMappings(F_TURN)) {
             inputMapper.map(F_TURN, KeyInput.KEY_A);
             inputMapper.map(F_TURN, InputState.Negative, KeyInput.KEY_D);
@@ -121,10 +123,10 @@ public class AvatarMovementFunctions {
         if (!inputMapper.hasMappings(F_STOP)) {
             inputMapper.map(F_STOP, KeyInput.KEY_SPACE);
         }
-        //<---
+        // <---
 
         /*
-        Mouse
+         * Mouse
          */
         if (!inputMapper.hasMappings(F_MOUSE1)) {
             inputMapper.map(F_MOUSE1, Button.MOUSE_BUTTON1);
@@ -138,20 +140,18 @@ public class AvatarMovementFunctions {
             inputMapper.map(F_MOUSE3, Button.MOUSE_BUTTON3);
         }
         /*
-        Actions
+         * Actions
          */
         if (!inputMapper.hasMappings(F_WARP)) {
             inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
         }
         /*
-        if (!inputMapper.hasMappings(F_REPEL)) {
-            inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT);
-        }
+         * if (!inputMapper.hasMappings(F_REPEL)) { inputMapper.map(F_REPEL,
+         * KeyInput.KEY_LSHIFT); }
          */
- /*
-        if (!inputMapper.hasMappings(F_PORTAL)) {
-            inputMapper.map(F_REPEL, KeyInput.KEY_LSHIFT, KeyInput.KEY_INSERT);
-        }
+        /*
+         * if (!inputMapper.hasMappings(F_PORTAL)) { inputMapper.map(F_REPEL,
+         * KeyInput.KEY_LSHIFT, KeyInput.KEY_INSERT); }
          */
         if (!inputMapper.hasMappings(F_DECOY)) {
             inputMapper.map(F_REPEL, KeyInput.KEY_F5);
@@ -170,7 +170,7 @@ public class AvatarMovementFunctions {
         }
 
         /*
-        Weapons
+         * Weapons
          */
         if (!inputMapper.hasMappings(F_THOR)) {
             inputMapper.map(F_THOR, KeyInput.KEY_F12);
@@ -197,7 +197,7 @@ public class AvatarMovementFunctions {
         }
 
         /*
-        Tower defense
+         * Tower defense
          */
         if (!inputMapper.hasMappings(F_TOWER)) {
             inputMapper.map(F_TOWER, KeyInput.KEY_T);
@@ -230,7 +230,6 @@ public class AvatarMovementFunctions {
         if (!inputMapper.hasMappings(F_SHARK)) {
             inputMapper.map(F_SHARK, KeyInput.KEY_8);
         }
-
 
     }
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,9 +25,7 @@
  */
 package infinity.es;
 
-import com.jme3.math.FastMath;
 import com.simsilica.es.EntityComponent;
-import com.simsilica.mathd.Vec3d;
 
 /**
  *
@@ -37,11 +35,10 @@ public class GravityWell implements EntityComponent {
 
     public final static String PULL = "pull";
     public final static String PUSH = "push";
-    
+
     private double distance;
     private double force;
     private String gravityType;
-    
 
     public GravityWell(double distance, double force, String gravityType) {
         this.distance = distance;

@@ -6,14 +6,15 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
+
 import infinity.sim.CategoryFilter;
 
 /**
  *
  * @author AFahrenholz
  */
-public class CollisionCategory implements EntityComponent{
-    
+public class CollisionCategory implements EntityComponent {
+
     CategoryFilter filter;
 
     public CollisionCategory(CategoryFilter filter) {
@@ -23,5 +24,5 @@ public class CollisionCategory implements EntityComponent{
     public CategoryFilter getFilter() {
         return filter;
     }
-    
+
 }

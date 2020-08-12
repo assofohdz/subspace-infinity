@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -30,5 +30,5 @@ package infinity.sim;
  * @author Asser
  */
 public interface AccountManager {
-    
+
 }

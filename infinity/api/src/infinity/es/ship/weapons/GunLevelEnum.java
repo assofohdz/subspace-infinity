@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -30,10 +30,7 @@ package infinity.es.ship.weapons;
  * @author Asser
  */
 public enum GunLevelEnum {
-    LEVEL_1(1, 9),
-    LEVEL_2(2, 8),
-    LEVEL_3(3, 7),
-    LEVEL_4(4, 6);
+    LEVEL_1(1, 9), LEVEL_2(2, 8), LEVEL_3(3, 7), LEVEL_4(4, 6);
 
     /**
      * Level value

@@ -7,7 +7,7 @@ package infinity.sim;
  */
 public interface ArenaManager {
 
-    public String getDefaultArenaId();
-    
-    public String[] getActiveArenas();
+    String getDefaultArenaId();
+
+    String[] getActiveArenas();
 }

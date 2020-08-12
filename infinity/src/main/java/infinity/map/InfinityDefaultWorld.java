@@ -5,6 +5,12 @@
  */
 package infinity.map;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mworld.CellChangeEvent;
@@ -12,15 +18,10 @@ import com.simsilica.mworld.CellChangeListener;
 import com.simsilica.mworld.Coordinates;
 import com.simsilica.mworld.LeafData;
 import com.simsilica.mworld.World;
-import com.simsilica.mworld.base.DefaultWorld;
 import com.simsilica.mworld.base.WorldCellData;
 import com.simsilica.mworld.db.LeafDb;
+
 import infinity.client.view.BlockGeometryIndex;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -60,7 +61,7 @@ public class InfinityDefaultWorld implements World {
     }
 
     protected void fireCellChanged(long leafId, int x, int y, int z, int value) {
-//log.info("fireCellChanged(" + leafId + ", " + x + ", " + y + ", " + z + ", " + value + ") listeners count:" + cellListeners.size());    
+//log.info("fireCellChanged(" + leafId + ", " + x + ", " + y + ", " + z + ", " + value + ") listeners count:" + cellListeners.size());
         if (cellListeners.isEmpty()) {
             return;
         }
@@ -103,7 +104,7 @@ public class InfinityDefaultWorld implements World {
 
     @Override
     public int setWorldCell(Vec3d world, int type) {
-//log.info("setWorldCell(" + world + ", " + type + ")");    
+//log.info("setWorldCell(" + world + ", " + type + ")");
         LeafData leaf = getWorldLeaf(world);
         if (leaf == null) {
             return -1;
@@ -122,30 +123,31 @@ public class InfinityDefaultWorld implements World {
         int value = data.getCell(x, y, z);
 //log.info("set cell:" + x + ", " + y + ", " + z + "  to: " + MaskUtils.valueToString(value));
 
-        //Vec3i leafLoc = leaf.getInfo().location;
-        //fireCellChanged(leaf.getInfo().leafId, x - leafLoc.x, y - leafLoc.y, z - leafLoc.z, value);
+        // Vec3i leafLoc = leaf.getInfo().location;
+        // fireCellChanged(leaf.getInfo().leafId, x - leafLoc.x, y - leafLoc.y, z -
+        // leafLoc.z, value);
         // Push the changes back to the DB
         for (LeafData mod : data.getModified()) {
             leafDb.storeLeaf(mod);
         }
 
-        // Notify the listeners       
+        // Notify the listeners
         for (CellChangeEvent event : data.getChanges()) {
-//log.info("firing event:" + event);        
+//log.info("firing event:" + event);
             fireCellChanged(event);
         }
 
-        /*        
-        int x = Coordinates.worldToCell(world.x) - leaf.getInfo().location.x;
-        int y = Coordinates.worldToCell(world.y) - leaf.getInfo().location.y;
-        int z = Coordinates.worldToCell(world.z) - leaf.getInfo().location.z;
-        
- 
-        leaf.setCell(x, y, z, value);
-
-        //MaskUtils.recalculateSideMasks(leaf.getCells(), x, y, z, true);
- 
-        fireCellChanged(leaf.getInfo().leafId, x, y, z, value);
+        /*
+         * int x = Coordinates.worldToCell(world.x) - leaf.getInfo().location.x; int y =
+         * Coordinates.worldToCell(world.y) - leaf.getInfo().location.y; int z =
+         * Coordinates.worldToCell(world.z) - leaf.getInfo().location.z;
+         *
+         *
+         * leaf.setCell(x, y, z, value);
+         *
+         * //MaskUtils.recalculateSideMasks(leaf.getCells(), x, y, z, true);
+         *
+         * fireCellChanged(leaf.getInfo().leafId, x, y, z, value);
          */
         return value;
     }

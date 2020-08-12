@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -35,33 +35,38 @@ import com.simsilica.es.EntityData;
  */
 public class ActionTypes {
 
-    public static final String REPEL = "repel"; //Fast moving projectile
-    public static final String WARP = "warp"; //Fast moving projectile
-    public static final String PORTAL = "portal"; //Fast moving projectile
-    public static final String DECOY = "decoy"; //Fast moving projectile
-    public static final String ROCKET = "rocket"; //Fast moving projectile
-    public static final String BRICK = "brick"; //Fast moving projectile
-    public static final String ATTACH = "attach"; //Fast moving projectile
-    
+    public static final String REPEL = "repel"; // Fast moving projectile
+    public static final String WARP = "warp"; // Fast moving projectile
+    public static final String PORTAL = "portal"; // Fast moving projectile
+    public static final String DECOY = "decoy"; // Fast moving projectile
+    public static final String ROCKET = "rocket"; // Fast moving projectile
+    public static final String BRICK = "brick"; // Fast moving projectile
+    public static final String ATTACH = "attach"; // Fast moving projectile
 
     public static ActionType repel(EntityData ed) {
         return ActionType.create(REPEL, ed);
     }
+
     public static ActionType warp(EntityData ed) {
         return ActionType.create(WARP, ed);
     }
+
     public static ActionType portal(EntityData ed) {
         return ActionType.create(PORTAL, ed);
     }
+
     public static ActionType decoy(EntityData ed) {
         return ActionType.create(DECOY, ed);
     }
+
     public static ActionType rocket(EntityData ed) {
         return ActionType.create(ROCKET, ed);
     }
+
     public static ActionType brick(EntityData ed) {
         return ActionType.create(BRICK, ed);
     }
+
     public static ActionType attach(EntityData ed) {
         return ActionType.create(ATTACH, ed);
     }

@@ -5,6 +5,8 @@
  */
 package infinity.systems;
 
+import java.util.logging.Logger;
+
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -18,10 +20,10 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+
 import infinity.es.CollisionCategory;
 import infinity.es.Parent;
 import infinity.sim.CategoryFilter;
-import java.util.logging.Logger;
 
 /**
  *
@@ -59,28 +61,28 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
 
             Parent parentOfOne = ed.getComponent(one, Parent.class);
             if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
-                //We have a parent on entity one and its equal to two
+                // We have a parent on entity one and its equal to two
                 contact.disable();
                 return;
             }
 
             Parent parentOfTwo = ed.getComponent(two, Parent.class);
             if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
-                //We have a parent on entity two and its equal to one
+                // We have a parent on entity two and its equal to one
                 contact.disable();
                 return;
             }
-            
-            log.info("Collision between: "+bodyOne+" and "+bodyTwo);
-            
+
+            log.info("Collision between: " + bodyOne + " and " + bodyTwo);
+
         } else {
-            //This happens when a dynamic collides with a static body or the world
+            // This happens when a dynamic collides with a static body or the world
             if (bodyOne != null) {
-                log.info("Collided: " +bodyOne.toString() + " with null");
+                log.info("Collided: " + bodyOne.toString() + " with null");
             } else {
-                log.info("Collided: " +bodyTwo.toString() + " with null");
+                log.info("Collided: " + bodyTwo.toString() + " with null");
             }
-            
+
             contact.restitution = 1;
         }
 
@@ -88,19 +90,19 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
 
     @Override
     public void stop() {
-        super.stop(); //To change body of generated methods, choose Tools | Templates.
+        super.stop(); // To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void update(SimTime time) {
-        super.update(time); //To change body of generated methods, choose Tools | Templates.
+        super.update(time); // To change body of generated methods, choose Tools | Templates.
 
         categoryFilters.applyChanges();
     }
 
     @Override
     public void start() {
-        super.start(); //To change body of generated methods, choose Tools | Templates.
+        super.start(); // To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -109,7 +111,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = (MPhysSystem<MBlockShape>) getSystem(MPhysSystem.class);
+        this.physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }

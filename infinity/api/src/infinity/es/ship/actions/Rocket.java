@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Initial number of Rockets given to ships when they start
+ *
  * @author Asser
  */
 public class Rocket implements EntityComponent {

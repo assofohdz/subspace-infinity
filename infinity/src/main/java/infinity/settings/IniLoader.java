@@ -5,10 +5,12 @@
  */
 package infinity.settings;
 
+import java.io.IOException;
+
+import org.ini4j.Ini;
+
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
-import java.io.IOException;
-import org.ini4j.Ini;
 
 /**
  *

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,13 +25,14 @@
  */
 package infinity.map;
 
-import com.jme3.asset.AssetInfo;
-import com.jme3.asset.AssetLoader;
-import com.jme3.asset.AssetManager;
 import java.awt.Image;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.Vector;
+
+import com.jme3.asset.AssetInfo;
+import com.jme3.asset.AssetLoader;
+import com.jme3.asset.AssetManager;
 
 /**
  *
@@ -49,13 +50,14 @@ public class LevelLoader implements AssetLoader {
     public Vector eLvlAttrs = new Vector();
     public static final int DEFAULT_TAG_COUNT = 6;
 
-    // Vector of loaded reginons  
+    // Vector of loaded reginons
     public Vector regions;
 
     // unkownn ELVL chunks read in on load
     public Vector unknownELVLData = new Vector();
 
-    // the actual data we're going to save, as a Vector of Bytes... saved by makeELvlDataForSaving
+    // the actual data we're going to save, as a Vector of Bytes... saved by
+    // makeELvlDataForSaving
     public Vector eLVLData;
 
     private String m_type;
@@ -72,7 +74,7 @@ public class LevelLoader implements AssetLoader {
 
     private short[][] m_level = new short[1024][1024];
     private AssetManager am;
-    //The levelfile
+    // The levelfile
     public LevelFile m_lvlFile;
 
     @Override

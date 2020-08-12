@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.simsilica.es.EntityData;
+
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.es.ship.weapons.GunLevelEnum;
 
@@ -80,11 +81,11 @@ public class ViewTypes_old {
     public static final String FLAG_OURS = "flag_ours";
     public static final String FLAG_THEIRS = "flag_theirs";
 
-    //Will probably need more mob visuals along the way
+    // Will probably need more mob visuals along the way
     public static final String MOB = "mob";
-    //Will probably need more tower visuals along the way
+    // Will probably need more tower visuals along the way
     public static final String TOWER = "tower";
-    //Will probably need more tower visuals along the way
+    // Will probably need more tower visuals along the way
     public static final String BASE = "base";
 
     public static ViewType_old base(EntityData ed) {
@@ -100,7 +101,7 @@ public class ViewTypes_old {
     }
 
     /*
-    The different ships
+     * The different ships
      */
     public static ViewType_old ship_warbird(EntityData ed) {
         return ViewType_old.create(SHIP_WARBIRD, ed);
@@ -146,19 +147,19 @@ public class ViewTypes_old {
         return ViewType_old.create(EXPLOSION, ed);
     }
 
-    //Bullets
+    // Bullets
     public static ViewType_old bullet(EntityData ed, GunLevelEnum level) {
         switch (level.level) {
-            case 1:
-                return ViewType_old.create(BULLETL1, ed);
-            case 2:
-                return ViewType_old.create(BULLETL2, ed);
-            case 3:
-                return ViewType_old.create(BULLETL3, ed);
-            case 4:
-                return ViewType_old.create(BULLETL4, ed);
-            default:
-                return ViewType_old.create(BULLETL1, ed);
+        case 1:
+            return ViewType_old.create(BULLETL1, ed);
+        case 2:
+            return ViewType_old.create(BULLETL2, ed);
+        case 3:
+            return ViewType_old.create(BULLETL3, ed);
+        case 4:
+            return ViewType_old.create(BULLETL4, ed);
+        default:
+            return ViewType_old.create(BULLETL1, ed);
         }
     }
 
@@ -166,23 +167,23 @@ public class ViewTypes_old {
         return ViewType_old.create(PRIZE, ed);
     }
 
-    //Bombs
+    // Bombs
     public static ViewType_old bomb(EntityData ed, BombLevelEnum level) {
         switch (level.level) {
-            case 1:
-                return ViewType_old.create(BOMBL1, ed);
-            case 2:
-                return ViewType_old.create(BOMBL2, ed);
-            case 3:
-                return ViewType_old.create(BOMBL3, ed);
-            case 4:
-                return ViewType_old.create(BOMBL4, ed);
-            default:
-                return ViewType_old.create(BOMBL1, ed);
+        case 1:
+            return ViewType_old.create(BOMBL1, ed);
+        case 2:
+            return ViewType_old.create(BOMBL2, ed);
+        case 3:
+            return ViewType_old.create(BOMBL3, ed);
+        case 4:
+            return ViewType_old.create(BOMBL4, ed);
+        default:
+            return ViewType_old.create(BOMBL1, ed);
         }
     }
-    
-    public static ViewType_old thor(EntityData ed){
+
+    public static ViewType_old thor(EntityData ed) {
         return ViewType_old.create(THOR, ed);
     }
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -25,10 +25,11 @@
  */
 package infinity.map;
 
-import com.jme3.asset.AssetInfo;
-import com.jme3.asset.AssetLoader;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+
+import com.jme3.asset.AssetInfo;
+import com.jme3.asset.AssetLoader;
 
 /**
  *

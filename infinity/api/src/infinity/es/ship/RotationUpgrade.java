@@ -7,6 +7,7 @@ package infinity.es.ship;
 
 /**
  * Amount added per 'Rotation' Prize
+ *
  * @author Asser Fahrenholz
  */
 public class RotationUpgrade {
