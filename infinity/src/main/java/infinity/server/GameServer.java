@@ -258,7 +258,7 @@ public class GameServer {
         InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed, Gravity.ZERO.getLinearAcceleration(),
                 shapeFactory);
 
-        MPhysSystem mphys = new MPhysSystem<MBlockShape>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+        MPhysSystem mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
         // mphys.setDriverIndex(map);
 

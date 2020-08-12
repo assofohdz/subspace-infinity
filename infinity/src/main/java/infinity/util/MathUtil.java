@@ -63,7 +63,7 @@ public class MathUtil {
     }
 
     public <T> T getOutlier(List<T> values, double significanceLevel) {
-        AtomicReference<T> outlier = new AtomicReference<T>();
+        AtomicReference<T> outlier = new AtomicReference<>();
         double grubbs = getGrubbsTestStatistic(values, outlier);
         double size = values.size();
         if (size < 3) {
@@ -190,7 +190,7 @@ public class MathUtil {
     }
 
     public List<Integer> asList(int[] values) {
-        List<Integer> result = new LinkedList<Integer>();
+        List<Integer> result = new LinkedList<>();
         for (int v : values) {
             result.add(v);
         }
@@ -198,7 +198,7 @@ public class MathUtil {
     }
 
     public List<Long> asList(long[] values) {
-        List<Long> result = new LinkedList<Long>();
+        List<Long> result = new LinkedList<>();
         for (long v : values) {
             result.add(v);
         }
@@ -206,7 +206,7 @@ public class MathUtil {
     }
 
     public List<Double> asList(double[] values) {
-        List<Double> result = new LinkedList<Double>();
+        List<Double> result = new LinkedList<>();
         for (double v : values) {
             result.add(v);
         }
@@ -235,7 +235,7 @@ public class MathUtil {
     }
 
     public List<Double> toDoubles(List<?> values) {
-        List<Double> d = new LinkedList<Double>();
+        List<Double> d = new LinkedList<>();
         for (Object o : values) {
             double val = toDouble(o);
             d.add(val);

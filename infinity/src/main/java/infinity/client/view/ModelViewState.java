@@ -157,7 +157,7 @@ public class ModelViewState extends BaseAppState {
     private ModelContainer models;
     private LargeModelContainer largeModels;
 
-    private LinkedList<MarkVisible> markerQueue = new LinkedList<MarkVisible>();
+    private LinkedList<MarkVisible> markerQueue = new LinkedList<>();
 
     // Physics grid is 32x32 but SimEthereal's grid is 64x64... which
     // means the maximum we'll see updates for is 128< away. So for

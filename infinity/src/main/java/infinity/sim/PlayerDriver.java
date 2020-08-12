@@ -51,7 +51,7 @@ import infinity.systems.SettingsSystem;
  *
  * @author Paul Speed
  */
-public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
+public class PlayerDriver implements ControlDriver, Driver {
 
     static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
     // The entity that is controlling this driver

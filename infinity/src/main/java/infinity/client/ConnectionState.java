@@ -225,7 +225,7 @@ public class ConnectionState extends CompositeAppState {
             }
             getState(OptionPanelState.class).show(title, m, new ExitAction(fatal));
         } else {
-            getApplication().enqueue(new Callable<Object>() {
+            getApplication().enqueue(new Callable<>() {
                 @Override
                 public Object call() {
                     showError(title, e, fatal);
@@ -240,7 +240,7 @@ public class ConnectionState extends CompositeAppState {
         if (isRenderThread()) {
             this.client = client;
         } else {
-            getApplication().enqueue(new Callable<Object>() {
+            getApplication().enqueue(new Callable<>() {
                 @Override
                 public Object call() {
                     setClient(client);
@@ -313,7 +313,7 @@ public class ConnectionState extends CompositeAppState {
         @Override
         public void clientConnected(final Client c) {
             log.info("clientConnected(" + c + ")");
-            getApplication().enqueue(new Callable<Object>() {
+            getApplication().enqueue(new Callable<>() {
                 @Override
                 public Object call() {
                     onConnected();
@@ -325,7 +325,7 @@ public class ConnectionState extends CompositeAppState {
         @Override
         public void clientDisconnected(final Client c, final DisconnectInfo info) {
             log.info("clientDisconnected(" + c + ", " + info + ")");
-            getApplication().enqueue(new Callable<Object>() {
+            getApplication().enqueue(new Callable<>() {
                 @Override
                 public Object call() {
                     onDisconnected(info);

@@ -205,7 +205,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         myParentClassLoader = chainedClassLoader;
 
         // Create the cache of loaded classes
-        cache = new Hashtable<String, ClassCacheEntry>();
+        cache = new Hashtable<>();
 
         // Verify that all the repository are valid.
         Enumeration<File> e = classRepository.elements();
