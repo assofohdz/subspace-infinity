@@ -168,7 +168,7 @@ public class AudioState extends BaseAppState {
     protected void updateSound(Spatial spatial, Entity entity, boolean updatePosition) {
         if (updatePosition) {
             Parent p = entity.get(Parent.class);
-            if (p.getParentEntity().getId() == 0l) {
+            if (p.getParentEntity().getId() == 0L) {
                 // No position to update to
             } else {
                 BodyPosition pos = ed.getComponent(p.getParentEntity(), BodyPosition.class);
