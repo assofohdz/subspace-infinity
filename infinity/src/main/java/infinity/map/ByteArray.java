@@ -520,17 +520,17 @@ public class ByteArray {
     }
 
     public long readLong(int index) {
-        return (long) (((m_array[index] & 0xff) << 56) | ((m_array[index + 1] & 0xff) << 48)
+        return ((m_array[index] & 0xff) << 56) | ((m_array[index + 1] & 0xff) << 48)
                 | ((m_array[index + 2] & 0xff) << 40) | ((m_array[index + 3] & 0xff) << 32)
                 | ((m_array[index + 4] & 0xff) << 24) | ((m_array[index + 5] & 0xff) << 16)
-                | ((m_array[index + 6] & 0xff) << 8) | ((m_array[index + 7] & 0xff)));
+                | ((m_array[index + 6] & 0xff) << 8) | ((m_array[index + 7] & 0xff));
     }
 
     public long readLittleEndianLong(int index) {
-        return (long) (((m_array[index + 7] & 0xff) << 56) | ((m_array[index + 6] & 0xff) << 48)
+        return ((m_array[index + 7] & 0xff) << 56) | ((m_array[index + 6] & 0xff) << 48)
                 | ((m_array[index + 5] & 0xff) << 40) | ((m_array[index + 4] & 0xff) << 32)
                 | ((m_array[index + 3] & 0xff) << 24) | ((m_array[index + 2] & 0xff) << 16)
-                | ((m_array[index + 1] & 0xff) << 8) | ((m_array[index] & 0xff)));
+                | ((m_array[index + 1] & 0xff) << 8) | ((m_array[index] & 0xff));
     }
 
     public String readString(int index, int length) {

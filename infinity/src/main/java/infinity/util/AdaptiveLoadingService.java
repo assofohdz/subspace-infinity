@@ -194,22 +194,17 @@ public class AdaptiveLoadingService extends AbstractHostedService
                 ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
-            BaseGameModule javaObj = (BaseGameModule) c.newInstance(
-                    (ChatHostedPoster) getService(ChatHostedService.class),
-                    (AccountManager) getService(AccountHostedService.class), (AdaptiveLoader) this,
-                    (ArenaManager) gameSystems.get(ArenaSystem.class),
-                    (TimeManager) gameSystems.get(InfinityTimeSystem.class),
-                    (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
+            BaseGameModule javaObj = (BaseGameModule) c.newInstance(getService(ChatHostedService.class),
+                    getService(AccountHostedService.class), this, gameSystems.get(ArenaSystem.class),
+                    gameSystems.get(InfinityTimeSystem.class), gameSystems.get(InfinityPhysicsManager.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
             // classSettings.put(javaObj, settingsFile);
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
             BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class),
-                    getService(AccountHostedService.class), (AdaptiveLoader) this,
-                    (ArenaManager) gameSystems.get(ArenaSystem.class),
-                    (TimeManager) gameSystems.get(InfinityTimeSystem.class),
-                    (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
+                    getService(AccountHostedService.class), this, gameSystems.get(ArenaSystem.class),
+                    gameSystems.get(InfinityTimeSystem.class), gameSystems.get(InfinityPhysicsManager.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
             // classSettings.put(javaObj, settingsFile);
         }

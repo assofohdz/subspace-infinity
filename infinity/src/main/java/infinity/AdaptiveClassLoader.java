@@ -311,7 +311,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         Enumeration<ClassCacheEntry> e = cache.elements();
 
         while (e.hasMoreElements()) {
-            ClassCacheEntry entry = (ClassCacheEntry) e.nextElement();
+            ClassCacheEntry entry = e.nextElement();
 
             if (entry.isSystemClass()) {
                 continue;
@@ -424,7 +424,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         while (repEnum.hasMoreElements()) {
             byte[] classData = null;
 
-            File file = (File) repEnum.nextElement();
+            File file = repEnum.nextElement();
             File[] files = SimpleFileFilter.fileOrFiles(file);
 
             for (int i = 0; i < files.length; i++) {
@@ -641,7 +641,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             Enumeration<File> repEnum = repository.elements();
 
             while (repEnum.hasMoreElements()) {
-                File file = (File) repEnum.nextElement();
+                File file = repEnum.nextElement();
 
                 if (file.isDirectory()) {
                     s = loadResourceFromDirectory(file, name);
@@ -760,7 +760,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         Enumeration<File> repEnum = repository.elements();
 
         while (repEnum.hasMoreElements()) {
-            File file = (File) repEnum.nextElement();
+            File file = repEnum.nextElement();
 
             // Construct a file://-URL if the repository is a directory
             if (file.isDirectory()) {

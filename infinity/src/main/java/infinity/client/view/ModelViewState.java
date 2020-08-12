@@ -935,7 +935,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         public Model[] getArray() {
-            return (Model[]) super.getArray();
+            return super.getArray();
         }
 
         @Override
@@ -979,7 +979,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         public Model[] getArray() {
-            return (Model[]) super.getArray();
+            return super.getArray();
         }
 
         @Override

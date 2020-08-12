@@ -149,7 +149,7 @@ public class MathUtil {
     }
 
     public double average(Collection<?> c) {
-        return sum(c) / (double) c.size();
+        return sum(c) / c.size();
     }
 
     public double avg(Collection<?> c) {
@@ -226,10 +226,10 @@ public class MathUtil {
             return (Double) o;
         }
         if (o instanceof Integer) {
-            return (double) (int) (Integer) o;
+            return (double) (Integer) o;
         }
         if (o instanceof Long) {
-            return (double) (long) (Long) o;
+            return (double) (Long) o;
         }
         return Double.parseDouble("" + o);
     }

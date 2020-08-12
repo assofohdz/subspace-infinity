@@ -143,7 +143,7 @@ public class AvatarSystem extends AbstractGameSystem {
 
         // Allow ship change if no restrictions on frequency, or if restrictions allow
         // it
-        if (restrictor == null || restrictor.canSwitch(shipEntity, (byte) shipType, freq)) {
+        if (restrictor == null || restrictor.canSwitch(shipEntity, shipType, freq)) {
 
             switch (shipType) {
             case 1:

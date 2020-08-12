@@ -112,7 +112,7 @@ public class MapSystem extends AbstractGameSystem {
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = (MPhysSystem<MBlockShape>) getSystem(MPhysSystem.class);
+        this.physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }

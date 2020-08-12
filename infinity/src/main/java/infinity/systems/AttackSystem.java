@@ -87,7 +87,7 @@ public class AttackSystem extends AbstractGameSystem {
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = (MPhysSystem<MBlockShape>) getSystem(MPhysSystem.class);
+        this.physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
@@ -357,7 +357,7 @@ public class AttackSystem extends AbstractGameSystem {
         AttackInfo infoOrig = this.getAttackInfo(requestor, AttackSystem.BURST);
         for (int i = 0; i < CoreGameConstants.BURSTPROJECTILECOUNT; i++) {
             AttackInfo info = infoOrig.clone();
-            orientation = orientation.fromAngles(0, angle * (float) i, 0);
+            orientation = orientation.fromAngles(0, angle * i, 0);
 
             // log.info("Rotating (from original) degrees: "+rotation *
             // FastMath.RAD_TO_DEG);
