@@ -187,7 +187,7 @@ public class BitMap extends JPanel {
 
         int a = readByte();
         int b = readByte();
-        while (!(a == 0 && b == 1)) {
+        while (((a != 0) || (b != 1))) {
 
             if (a == 0) {
                 if (b == 0) {

@@ -229,7 +229,7 @@ public class AdaptiveClassLoader extends ClassLoader {
                     }
 
                     // Check that it is a directory or zip/jar file
-                    if (!(file.isDirectory() || isZipOrJarArchive(file))) {
+                    if ((!file.isDirectory() && !isZipOrJarArchive(file))) {
                         throw new IllegalArgumentException(
                                 file.getAbsolutePath() + " is not a directory or zip/jar file"
                                         + " or if it's a zip/jar file then it is corrupted.");
