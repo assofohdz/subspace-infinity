@@ -57,7 +57,7 @@ public class BitmapSaving {
         byte[] bitmapData = new byte[imageWidth * imageHeight];
         int counter = 0;
 
-        for (int y = imageHeight - 1; y >= 0; --y)
+        for (int y = imageHeight - 1; y >= 0; --y) {
             for (int x = 0; x < imageWidth; ++x) {
                 int[] rgb = getRGB(allPixels[x + y * imageWidth]);
 
@@ -65,6 +65,7 @@ public class BitmapSaving {
                 byte colorEntry = getColorEntry(col);
                 bitmapData[counter++] = colorEntry;
             }
+        }
 
         padColorTable(); // pad up to 256 entries, ss requirement
 
@@ -95,8 +96,9 @@ public class BitmapSaving {
         for (int x = 0; x < colorTable.size(); ++x) {
             RGBQuad item = (RGBQuad) colorTable.get(x);
 
-            if (item.equals(col))
+            if (item.equals(col)) {
                 return (byte) x;
+            }
         }
 
         if (colorTable.size() == 256) {
