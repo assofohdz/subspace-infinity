@@ -114,7 +114,7 @@ public class GridState extends BaseAppState {
             mat.getAdditionalRenderState().setDepthWrite(false);
             wireFloor.setMaterial(mat);
             wireFloor.setLocalTranslation(-(floorGridSize * 0.5f), 0, -(floorGridSize * 0.5f));
-            wireFloor.setUserData("layer", 1);
+            wireFloor.setUserData("layer", Integer.valueOf(1));
             wireFloor.setQueueBucket(Bucket.Transparent);
             floor.attachChild(wireFloor);
         }
@@ -134,7 +134,7 @@ public class GridState extends BaseAppState {
 
             flatFloor.rotate(-FastMath.HALF_PI, 0, 0);
             flatFloor.setLocalTranslation(-(floorGridSize * 0.5f), -0.001f, (floorGridSize * 0.5f));
-            flatFloor.setUserData("layer", 2);
+            flatFloor.setUserData("layer", Integer.valueOf(2));
             floor.attachChild(flatFloor);
         }
 
@@ -167,7 +167,7 @@ public class GridState extends BaseAppState {
                             z * grid.getSpacing().z + zHalf);
 
                     geom.setQueueBucket(Bucket.Transparent);
-                    geom.setUserData("layer", 3);
+                    geom.setUserData("layer", Integer.valueOf(3));
                     cellRoot.attachChild(geom);
                 }
             }

@@ -116,9 +116,9 @@ public class EnergySystem extends AbstractGameSystem {
             final HealthChange change = e.get(HealthChange.class);
             Integer hp = health.get(b.getTarget());
             if (hp == null) {
-                hp = change.getDelta();
+                hp = Integer.valueOf(change.getDelta());
             } else {
-                hp += change.getDelta();
+                hp = Integer.valueOf(hp.intValue() + change.getDelta());
             }
             health.put(b.getTarget(), hp);
 
@@ -133,21 +133,15 @@ public class EnergySystem extends AbstractGameSystem {
             if (maxLiving.containsId(e.getId())) {
                 if (getHealth(e.getId()) < getMaxHealth(e.getId())) {
                     final double tpf = time.getTpf();
-
                     final Recharge recharge = e.get(Recharge.class);
-
-                    final Double charge = tpf * recharge.getRechargePerSecond();
-
-                    createHealthChange(e.getId(), charge.intValue());
+                    final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
+                    createHealthChange(e.getId(), charge);
                 }
             } else {
                 final double tpf = time.getTpf();
-
                 final Recharge recharge = e.get(Recharge.class);
-
-                final Double charge = tpf * recharge.getRechargePerSecond();
-
-                createHealthChange(e.getId(), charge.intValue());
+                final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
+                createHealthChange(e.getId(), charge);
             }
         }
 
@@ -168,13 +162,13 @@ public class EnergySystem extends AbstractGameSystem {
 
             // If we dont have a max hitpoint, just set new hp
             if (!maxLiving.containsId(target.getId())) {
-                hp = hp.newAdjusted(entry.getValue());
+                hp = hp.newAdjusted(entry.getValue().intValue());
             } // If we do have a maximum
             else {
                 final EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
                 // Check if we go above max hp
-                if (entry.getValue() <= maxHp.getMaxHealth()) {
-                    hp = hp.newAdjusted(entry.getValue());
+                if (entry.getValue().intValue() <= maxHp.getMaxHealth()) {
+                    hp = hp.newAdjusted(entry.getValue().intValue());
                 } // Otherwise, set new hp
                 else {
                     hp = hp.newAdjusted(maxHp.getMaxHealth());

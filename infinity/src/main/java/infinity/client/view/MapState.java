@@ -28,6 +28,7 @@ package infinity.client.view;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -113,82 +114,86 @@ public class MapState extends BaseAppState {
     }
 
     public float getWangBlobRotations(final int indexNumber) {
-        if (!wangBlobIndexMap.containsKey(indexNumber)) {
+        if (!wangBlobIndexMap.containsKey(Integer.valueOf(indexNumber))) {
             throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
         }
-        return wangBlobIndexMap.get(indexNumber).getRotation();
+        return wangBlobIndexMap.get(Integer.valueOf(indexNumber)).getRotation();
     }
 
     public int getWangBlobTileNumber(final int indexNumber) {
-        if (!wangBlobIndexMap.containsKey(indexNumber)) {
+        if (!wangBlobIndexMap.containsKey(Integer.valueOf(indexNumber))) {
             throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
         }
-        return wangBlobIndexMap.get(indexNumber).getTileNumber();
+        return wangBlobIndexMap.get(Integer.valueOf(indexNumber)).getTileNumber();
     }
 
-    private void generateWangBlobInfoMap(final HashMap<Integer, WangInfo> map) {
+    private void addWang(final Map<Integer, WangInfo> map, final int key, final int tileNumber, final float rotation) {
+        map.put(Integer.valueOf(key), new WangInfo(tileNumber, rotation));
+    }
+
+    private void generateWangBlobInfoMap(final Map<Integer, WangInfo> map) {
         // Zero
-        map.put(0, new WangInfo(0, 0));
+        addWang(map, 0, 0, 0);
         // One
-        map.put(1, new WangInfo(1, 0));
-        map.put(4, new WangInfo(1, 1));
-        map.put(16, new WangInfo(1, 2));
-        map.put(64, new WangInfo(1, 3));
+        addWang(map, 1, 1, 0);
+        addWang(map, 4, 1, 1);
+        addWang(map, 16, 1, 2);
+        addWang(map, 64, 1, 3);
         // Five
-        map.put(5, new WangInfo(2, 0));
-        map.put(20, new WangInfo(2, 1));
-        map.put(80, new WangInfo(2, 2));
-        map.put(65, new WangInfo(2, 3));
+        addWang(map, 5, 2, 0);
+        addWang(map, 20, 2, 1);
+        addWang(map, 80, 2, 2);
+        addWang(map, 65, 2, 3);
         // Seven
-        map.put(7, new WangInfo(3, 0));
-        map.put(28, new WangInfo(3, 1));
-        map.put(112, new WangInfo(3, 2));
-        map.put(193, new WangInfo(3, 3));
+        addWang(map, 7, 3, 0);
+        addWang(map, 28, 3, 1);
+        addWang(map, 112, 3, 2);
+        addWang(map, 193, 3, 3);
         // Seventeen
-        map.put(17, new WangInfo(4, 0));
-        map.put(68, new WangInfo(4, 1));
+        addWang(map, 17, 4, 0);
+        addWang(map, 68, 4, 1);
         // Twentyone
-        map.put(21, new WangInfo(5, 0));
-        map.put(84, new WangInfo(5, 1));
-        map.put(81, new WangInfo(5, 2));
-        map.put(69, new WangInfo(5, 3));
+        addWang(map, 21, 5, 0);
+        addWang(map, 84, 5, 1);
+        addWang(map, 81, 5, 2);
+        addWang(map, 69, 5, 3);
         // Twentythree
-        map.put(23, new WangInfo(6, 0));
-        map.put(92, new WangInfo(6, 1));
-        map.put(113, new WangInfo(6, 2));
-        map.put(197, new WangInfo(6, 3));
+        addWang(map, 23, 6, 0);
+        addWang(map, 92, 6, 1);
+        addWang(map, 113, 6, 2);
+        addWang(map, 197, 6, 3);
         // TwentyNine
-        map.put(29, new WangInfo(7, 0));
-        map.put(116, new WangInfo(7, 1));
-        map.put(209, new WangInfo(7, 2));
-        map.put(71, new WangInfo(7, 3));
+        addWang(map, 29, 7, 0);
+        addWang(map, 116, 7, 1);
+        addWang(map, 209, 7, 2);
+        addWang(map, 71, 7, 3);
         // ThirtyOne
-        map.put(31, new WangInfo(8, 0));
-        map.put(124, new WangInfo(8, 1));
-        map.put(241, new WangInfo(8, 2));
-        map.put(199, new WangInfo(8, 3));
+        addWang(map, 31, 8, 0);
+        addWang(map, 124, 8, 1);
+        addWang(map, 241, 8, 2);
+        addWang(map, 199, 8, 3);
         // EightFive
-        map.put(85, new WangInfo(9, 0));
+        addWang(map, 85, 9, 0);
         // EightySeven
-        map.put(87, new WangInfo(10, 0));
-        map.put(93, new WangInfo(10, 1));
-        map.put(117, new WangInfo(10, 2));
-        map.put(213, new WangInfo(10, 3));
+        addWang(map, 87, 10, 0);
+        addWang(map, 93, 10, 1);
+        addWang(map, 117, 10, 2);
+        addWang(map, 213, 10, 3);
         // NinetyFive
-        map.put(95, new WangInfo(11, 0));
-        map.put(125, new WangInfo(11, 1));
-        map.put(245, new WangInfo(11, 2));
-        map.put(215, new WangInfo(11, 3));
+        addWang(map, 95, 11, 0);
+        addWang(map, 125, 11, 1);
+        addWang(map, 245, 11, 2);
+        addWang(map, 215, 11, 3);
         // OneHundredAndNineTeen
-        map.put(119, new WangInfo(12, 0));
-        map.put(221, new WangInfo(12, 1));
+        addWang(map, 119, 12, 0);
+        addWang(map, 221, 12, 1);
         // OneHundredAndTwentySeven
-        map.put(127, new WangInfo(13, 0));
-        map.put(253, new WangInfo(13, 1));
-        map.put(247, new WangInfo(13, 2));
-        map.put(223, new WangInfo(13, 3));
+        addWang(map, 127, 13, 0);
+        addWang(map, 253, 13, 1);
+        addWang(map, 247, 13, 2);
+        addWang(map, 223, 13, 3);
         // TwoHundredAndFiftyFive
-        map.put(255, new WangInfo(14, 0));
+        addWang(map, 255, 14, 0);
         // Second row
     }
 

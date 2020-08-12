@@ -304,7 +304,7 @@ public class MapSystem extends AbstractGameSystem {
 
                     final int mapId = 20;
                     final int tileId = Short.toUnsignedInt(s);
-                    tileSet.add(tileId);
+                    tileSet.add(Integer.valueOf(tileId));
 
                     final int value = tileId | (mapId << 8);
                     // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) =

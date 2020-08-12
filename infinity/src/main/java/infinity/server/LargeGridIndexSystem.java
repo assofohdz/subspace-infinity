@@ -231,10 +231,10 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
             entity.set(spawnPos);
 
             final LargeGridCell cell = LargeGridCell.create(largeGrid, spawnPos.getLocation());
-            if (lastCellId != null && cell.getCellId() == lastCellId) {
+            if (lastCellId != null && cell.getCellId() == lastCellId.longValue()) {
                 return;
             }
-            lastCellId = cell.getCellId();
+            lastCellId = Long.valueOf(cell.getCellId());
             // entity.set(cell);
         }
     }

@@ -130,7 +130,8 @@ public class PhysicsDebugState extends CompositeAppState {
         }
 
         if (contacts != null) {
-            frameTime.setObject(String.format("%.2f ms", stats.getDouble(PhysicsStats.STAT_FRAME_TIME) / 1000000.0));
+            frameTime.setObject(String.format("%.2f ms",
+                    Double.valueOf(stats.getDouble(PhysicsStats.STAT_FRAME_TIME) / 1000000.0)));
             contacts.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_CONTACTS)));
             binCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_BIN_COUNT)));
             activeBinCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_ACTIVE_BIN_COUNT)));

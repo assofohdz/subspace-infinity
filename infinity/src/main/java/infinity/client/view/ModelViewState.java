@@ -232,7 +232,7 @@ public class ModelViewState extends BaseAppState {
             log.info("pickObject()  picked:" + picked);
             if (picked != null) {
                 final Long oid = picked.getUserData("oid");
-                final EntityId entityId = new EntityId(oid);
+                final EntityId entityId = new EntityId(oid.longValue());
 
                 final Vector3f cp = cr.getContactPoint();
 
@@ -484,7 +484,7 @@ public class ModelViewState extends BaseAppState {
             for (int z = 0; z < size; z++) {
                 final long id = InfinityConstants.PHYSICS_GRID.cellToId(xOffset + x, 0, zOffset + z);
 //System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
-                final ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", id);
+                final ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", Long.valueOf(id));
                 gridFilters[x][z] = filter;
                 // filters.add(filter);
                 filters[index++] = filter;
@@ -511,7 +511,7 @@ public class ModelViewState extends BaseAppState {
             for (int z = 0; z < size; z++) {
                 final long id = InfinityConstants.LARGE_OBJECT_GRID.cellToId(xOffset + x, 0, zOffset + z);
 //System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
-                final ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", id);
+                final ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", Long.valueOf(id));
                 largeGridFilters[x][z] = filter;
                 // filters.add(filter);
                 filters[index++] = filter;

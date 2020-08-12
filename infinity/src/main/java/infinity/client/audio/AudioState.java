@@ -258,7 +258,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createPickUpPrize(final Entity entity) {
         // Node information:
         final Node result = new Node("pickupPrize:" + entity.getId());
-        result.setUserData("pickupPrizeId", entity.getId().getId());
+        result.setUserData("pickupPrizeId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -271,7 +271,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createFireThor(final Entity entity) {
         // Node information:
         final Node result = new Node("fireThor:" + entity.getId());
-        result.setUserData("fireThorId", entity.getId().getId());
+        result.setUserData("fireThorId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -284,7 +284,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createFireBombs(final Entity entity) {
         // Node information:
         final Node result = new Node("fireBombs:" + entity.getId());
-        result.setUserData("fireBombsId", entity.getId().getId());
+        result.setUserData("fireBombsId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -297,7 +297,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createFireGravBomb(final Entity entity) {
         // Node information:
         final Node result = new Node("fireGravBomb:" + entity.getId());
-        result.setUserData("fireGravBombId", entity.getId().getId());
+        result.setUserData("fireGravBombId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -310,7 +310,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createRepel(final Entity entity) {
         // Node information:
         final Node result = new Node("repel:" + entity.getId());
-        result.setUserData("repelId", entity.getId().getId());
+        result.setUserData("repelId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -323,7 +323,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createFireGuns(final Entity entity) {
         // Node information:
         final Node result = new Node("fireGuns:" + entity.getId());
-        result.setUserData("fireGunsId", entity.getId().getId());
+        result.setUserData("fireGunsId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -336,7 +336,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createExplosion2(final Entity entity) {
         // Node information:
         final Node result = new Node("explosion2:" + entity.getId());
-        result.setUserData("explosion2Id", entity.getId().getId());
+        result.setUserData("explosion2Id", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:
@@ -349,7 +349,7 @@ public class AudioState extends BaseAppState {
     private AudioNode createBurst(final Entity entity) {
         // Node information:
         final Node result = new Node("burstSound:" + entity.getId());
-        result.setUserData("burstSoundId", entity.getId().getId());
+        result.setUserData("burstSoundId", Long.valueOf(entity.getId().getId()));
         // result.setUserData(LayerComparator.LAYER, 1);
 
         // Spatial information:

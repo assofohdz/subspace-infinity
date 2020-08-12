@@ -147,6 +147,8 @@ public class InfinityCamControl extends AbstractControl {
                 spatial.setLocalRotation(worldDiff.addLocal(spatial.getLocalRotation()));
                 vars.release();
                 break;
+            default:
+                break;
             }
         }
     }

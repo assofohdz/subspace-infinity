@@ -569,20 +569,17 @@ public class AdaptiveClassLoader extends ClassLoader {
         // Translate class name to file name
         final String classFileName = name.replace('.', '/') + ".class";
 
-        final ZipFile zipfile = new ZipFile(file);
-
-        try {
+        try (ZipFile zipfile = new ZipFile(file)) {
             final ZipEntry entry = zipfile.getEntry(classFileName);
-
             if (entry != null) {
                 cache.origin = file;
-                return loadBytesFromStream(zipfile.getInputStream(entry), (int) entry.getSize());
+                try (InputStream is = zipfile.getInputStream(entry)) {
+                    return loadBytesFromStream(is, (int) entry.getSize());
+                }
             } else {
                 // Not found
                 return null;
             }
-        } finally {
-            zipfile.close();
         }
     }
 
@@ -613,6 +610,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param name the name of the resource, to be used as is.
      * @return an InputStream on the resource, or null if not found.
      */
+    @SuppressWarnings("resource")
     @Override
     public InputStream getResourceAsStream(final String name) {
         // Try to load it from the system class

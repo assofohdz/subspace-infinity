@@ -86,7 +86,7 @@ public class ResourceSystem extends AbstractGameSystem {
                 final int totalGold = g.getGold() + gold;
                 ed.setComponent(e.getId(), new Gold(totalGold));
 
-                goldMap.put(e.getId(), totalGold);
+                goldMap.put(e.getId(), Integer.valueOf(totalGold));
             }
         }
         // update time
@@ -111,7 +111,7 @@ public class ResourceSystem extends AbstractGameSystem {
      * @return true if the entity has enough gold
      */
     public boolean canAffordTower(final EntityId owner) {
-        return goldMap.get(owner) >= CoreGameConstants.TOWERCOST;
+        return goldMap.get(owner).intValue() >= CoreGameConstants.TOWERCOST;
     }
 
     /**
@@ -121,9 +121,9 @@ public class ResourceSystem extends AbstractGameSystem {
      * @param owner the entity purchasing the tower
      */
     public void buyTower(final EntityId owner) {
-        final int currentGold = goldMap.get(owner);
+        final int currentGold = goldMap.get(owner).intValue();
         final int newGold = currentGold - CoreGameConstants.TOWERCOST;
         ed.setComponent(owner, new Gold(newGold));
-        goldMap.put(owner, newGold);
+        goldMap.put(owner, Integer.valueOf(newGold));
     }
 }

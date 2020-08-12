@@ -133,7 +133,7 @@ public class HelpState extends BaseAppState {
             String s = commas.join(help.keyNames);
             keys.addChild(new Label(s, new ElementId("help.key.label")));
             s = lines.join(help.description);
-            keys.addChild(new Label(s, new ElementId("help.description.label")), 1);
+            keys.addChild(new Label(s, new ElementId("help.description.label")), Integer.valueOf(1));
         }
 
         // helpWindow.addChild(new ActionButton(new CallMethodAction("Done", this,
@@ -148,14 +148,14 @@ public class HelpState extends BaseAppState {
                 final Object o = m.getPrimaryActivator();
                 if (o instanceof Integer) {
                     final Integer keyCode = (Integer) o;
-                    System.out.println("      primary:" + KeyNames.getName(keyCode));
+                    System.out.println("      primary:" + KeyNames.getName(keyCode.intValue()));
                 } else {
                     System.out.println("      primary:" + o);
                 }
                 for (final Object mod : m.getModifiers()) {
                     if (mod instanceof Integer) {
                         final Integer keyCode = (Integer) mod;
-                        System.out.println("      modifier:" + KeyNames.getName(keyCode));
+                        System.out.println("      modifier:" + KeyNames.getName(keyCode.intValue()));
                     }
                 }
             }
@@ -226,7 +226,7 @@ public class HelpState extends BaseAppState {
                     continue;
                 } else if (o instanceof Integer) {
                     final Integer i = (Integer) o;
-                    primary = KeyNames.getName(i);
+                    primary = KeyNames.getName(i.intValue());
                 } else {
                     // Not a mapping we can deal with
                     continue;
@@ -242,7 +242,7 @@ public class HelpState extends BaseAppState {
                 final StringBuilder sb = new StringBuilder(primary);
                 for (final Object mod : m.getModifiers()) {
                     if (mod instanceof Integer) {
-                        final Integer iMod = (Integer) mod;
+                        final int iMod = ((Integer) mod).intValue();
                         if (iMod == KeyInput.KEY_LSHIFT) {
                             alt.insert(0, KeyNames.getName(KeyInput.KEY_RSHIFT) + "+");
                             comb.insert(0, "Shift+");
@@ -256,7 +256,7 @@ public class HelpState extends BaseAppState {
                             alt.insert(0, KeyNames.getName(KeyInput.KEY_LCONTROL) + "+");
                             comb.insert(0, "Ctrl+");
                         }
-                        sb.insert(0, KeyNames.getName((Integer) mod) + "+");
+                        sb.insert(0, KeyNames.getName(((Integer) mod).intValue()) + "+");
                     }
                 }
                 System.out.println(function + " normal:" + sb + "  alt:" + alt + "  comb:" + comb);
@@ -285,7 +285,7 @@ public class HelpState extends BaseAppState {
                 for (final Object mod : m.getModifiers()) {
                     if (mod instanceof Integer) {
                         sb.append("+");
-                        sb.append(KeyNames.getName((Integer) mod));
+                        sb.append(KeyNames.getName(((Integer) mod).intValue()));
                     }
                 }
                 names.add(sb.toString());

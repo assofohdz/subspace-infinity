@@ -154,7 +154,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * @return
      */
     public int getSetting(final String arenaId, final String section, final String setting) {
-        return Integer.valueOf(arenaSettingsMap.get(arenaId).get(section, setting));
+        return Integer.parseInt(arenaSettingsMap.get(arenaId).get(section, setting));
     }
 
     /**

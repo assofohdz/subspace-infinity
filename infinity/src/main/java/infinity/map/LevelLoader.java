@@ -28,6 +28,7 @@ package infinity.map;
 import java.awt.Image;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Vector;
 
 import com.jme3.asset.AssetInfo;
@@ -84,16 +85,14 @@ public class LevelLoader implements AssetLoader {
         m_file = assetInfo.getKey().getName();
 
         String errorWithELVL = null;
+        BitMap bmp;
 
-        try {
-            BitMap bmp = new BitMap(new BufferedInputStream(assetInfo.openStream()));
-
+        try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
+            bmp = new BitMap(bis);
             bmp.readBitMap(false);
-
-            final BufferedInputStream bis = new BufferedInputStream(assetInfo.openStream());
-
+        }
+        try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
             if (bmp.isBitMap()) {
-
                 m_lvlFile = new LevelFile(bis, bmp, true, bmp.hasELVL, m_file);
             } else {
                 bmp = loadDefaultTileset();
@@ -127,7 +126,7 @@ public class LevelLoader implements AssetLoader {
 
         } catch (final IOException e) {
             // Create our lvl file
-            final BitMap bmp = loadDefaultTileset();
+            bmp = loadDefaultTileset();
             m_lvlFile = new LevelFile(bmp);
 
             m_tileset = m_lvlFile.getTileSet();

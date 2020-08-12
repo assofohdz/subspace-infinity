@@ -127,7 +127,8 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
 //        + "  cog:" + body.shape.getMass().getCog()
 //        + "  shape info:" + body.shape.getCenter() + "  radius:" + body.shape.getRadius()
 //        + "  cog bounds:" + body.shape.getCogBounds());
-            zones.updateEntity(body.id.getId(), active, body.position, body.orientation, body.getWorldBounds());
+            zones.updateEntity(Long.valueOf(body.id.getId()), active, body.position, body.orientation,
+                    body.getWorldBounds());
         }
 
         @Override
@@ -143,7 +144,7 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
             if (log.isTraceEnabled()) {
                 log.trace("objectRemoved(" + id + ", " + body + ")");
             }
-            zones.remove(id.getId());
+            zones.remove(Long.valueOf(id.getId()));
         }
     }
 }

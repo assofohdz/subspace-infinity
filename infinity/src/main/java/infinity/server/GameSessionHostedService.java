@@ -239,7 +239,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Setup to start using SimEthereal synching
             final EtherealHost ethereal = getService(EtherealHost.class);
             ethereal.startHostingOnConnection(conn);
-            ethereal.setConnectionObject(conn, avatarEntityId.getId(), spawnLoc);
+            ethereal.setConnectionObject(conn, Long.valueOf(avatarEntityId.getId()), spawnLoc);
             final EntityDataHostedService eds = getService(EntityDataHostedService.class);
 
             // Setup a filter for BodyPosition components to match what
@@ -289,7 +289,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
             // nsl.setMaxMessageSize(2000);
             if (nsl != null) {
-                nsl.setSelf(avatarEntityId.getId(), location);
+                nsl.setSelf(Long.valueOf(avatarEntityId.getId()), location);
             }
 
             lastViewLoc.set(location);

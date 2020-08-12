@@ -154,7 +154,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
                     + "  pos:" + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());
         }
 
-        final EntityId id = new EntityId(obj.getEntityId());
+        final EntityId id = new EntityId(obj.getEntityId().longValue());
         final ObjectTracker tracker = getTracker(id, true);
         tracker.updateCount++;
 
@@ -199,7 +199,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
             log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:"
                     + obj.getNetworkId());
         }
-        final EntityId id = new EntityId(obj.getEntityId());
+        final EntityId id = new EntityId(obj.getEntityId().longValue());
         final Entity entity = entities.getEntity(id);
 
         final ObjectTracker tracker = getTracker(id, false);
@@ -249,7 +249,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     }
 
     protected ObjectTracker getTracker(final EntityId id, final boolean create) {
-        return getTracker(id.getId(), create);
+        return getTracker(Long.valueOf(id.getId()), create);
     }
 
     protected ObjectTracker getTracker(final Long id, final boolean create) {

@@ -136,7 +136,8 @@ public class BodyVisibility implements ComponentVisibility {
         // set
         for (final Iterator<EntityChange> it = updates.iterator(); it.hasNext();) {
             final EntityChange change = it.next();
-            if (change.getComponentType() == BodyPosition.class && !active.contains(change.getEntityId().getId())) {
+            if (change.getComponentType() == BodyPosition.class
+                    && !active.contains(Long.valueOf(change.getEntityId().getId()))) {
                 if (log.isTraceEnabled()) {
                     log.trace("removing irrelevant change:" + change);
                 }
@@ -147,7 +148,7 @@ public class BodyVisibility implements ComponentVisibility {
         // First process the removals
         for (final Iterator<EntityId> it = lastValues.keySet().iterator(); it.hasNext();) {
             final EntityId id = it.next();
-            if (active.contains(id.getId())) {
+            if (active.contains(Long.valueOf(id.getId()))) {
                 continue;
             }
             if (log.isTraceEnabled()) {
@@ -160,7 +161,7 @@ public class BodyVisibility implements ComponentVisibility {
 
         // Now the adds
         for (final Long l : active) {
-            final EntityId id = new EntityId(l);
+            final EntityId id = new EntityId(l.longValue());
             if (lastValues.containsKey(id)) {
                 continue;
             }

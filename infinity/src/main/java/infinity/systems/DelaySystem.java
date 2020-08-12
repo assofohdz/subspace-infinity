@@ -64,6 +64,8 @@ public class DelaySystem extends AbstractGameSystem {
                         ed.setComponent(e.getId(), componentIterator.next());
                     }
                     break;
+                default:
+                    break;
                 }
 
                 ed.removeComponent(e.getId(), Delay.class);

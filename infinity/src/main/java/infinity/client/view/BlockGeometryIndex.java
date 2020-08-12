@@ -123,12 +123,12 @@ public class BlockGeometryIndex {
     }
 
     private BlockType getBlockType(final int tileKey) {
-        BlockType type = tileKeyToBlockTypeMap.get(tileKey);
+        BlockType type = tileKeyToBlockTypeMap.get(Integer.valueOf(tileKey));
 
         if (type == null) {
             type = new BlockType(createFactory(tileKey, 1));
 
-            tileKeyToBlockTypeMap.put(tileKey, type);
+            tileKeyToBlockTypeMap.put(Integer.valueOf(tileKey), type);
         } else {
             // log.info("Found cached BlockType: "+type);
         }
@@ -139,11 +139,11 @@ public class BlockGeometryIndex {
     private BlockType getBlockType(final int tileId, final int mapId) {
 
         // Check to see if we have loaded this map before
-        if (!mapIdToLevels.containsKey(mapId)) {
+        if (!mapIdToLevels.containsKey(Integer.valueOf(mapId))) {
             // TODO: Lookup stringname based on mapId
             final String mapName = "aswz/aswz-el-blazer-01.lvl";
             final LevelFile level = loadMap("Maps/" + mapName);
-            mapIdToLevels.put(mapId, level);
+            mapIdToLevels.put(Integer.valueOf(mapId), level);
         }
 
         final int tileKey = tileId | (mapId << 8);
@@ -156,7 +156,7 @@ public class BlockGeometryIndex {
     // Second type of info:
     private MaterialType getMaterialType(final int tileKey) {
 
-        MaterialType matType = tileKeyToMaterialType.get(tileKey);
+        MaterialType matType = tileKeyToMaterialType.get(Integer.valueOf(tileKey));
 
         if (matType == null) {
 
@@ -171,7 +171,7 @@ public class BlockGeometryIndex {
 
             matType = new MaterialType(tileKey);
 
-            tileKeyToMaterialType.put(tileKey, matType);
+            tileKeyToMaterialType.put(Integer.valueOf(tileKey), matType);
         }
 
         return matType;
@@ -183,24 +183,24 @@ public class BlockGeometryIndex {
         final int tileId = tileKey & TILEID_MASK;
         final int mapId = (tileKey & MAPID_MASK) >> 8;
 
-        Material mat = materials.get(tileKey);
+        Material mat = materials.get(Integer.valueOf(tileKey));
 
         if (mat == null) {
             mat = new Material(am, "MatDefs/BlackTransparentShader.j3md");
 
             // int key = tileIndex | (mapId << 16);
-            Image jmeOutputImage = tileKeyToImageMap.get(tileKey);
+            Image jmeOutputImage = tileKeyToImageMap.get(Integer.valueOf(tileKey));
             if (jmeOutputImage == null) {
-                final java.awt.Image awtInputImage = mapIdToLevels.get(mapId).getTiles()[tileId - 1];
+                final java.awt.Image awtInputImage = mapIdToLevels.get(Integer.valueOf(mapId)).getTiles()[tileId - 1];
                 jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
 
-                tileKeyToImageMap.put(tileKey, jmeOutputImage);
+                tileKeyToImageMap.put(Integer.valueOf(tileKey), jmeOutputImage);
                 // log.info("Put tile: "+tileIndex+" image into map");
             }
             final Texture2D tex2D = new Texture2D(jmeOutputImage);
             mat.setTexture("ColorMap", tex2D);
             // mat = globals.createMaterial(texture, false).getMaterial();
-            materials.put(tileKey, mat);
+            materials.put(Integer.valueOf(tileKey), mat);
             jmeOutputImage.dispose();
         } else {
             // log.info("Found cached material: "+mat+" for tileKey = " + tileKey + " <=
@@ -238,7 +238,7 @@ public class BlockGeometryIndex {
                         // Coords: ["+x+", "+y+", "+z+"]");
                         continue;
                     }
-                    tileSet.add(tileId);
+                    tileSet.add(Integer.valueOf(tileId));
 
                     final int mapId = (MaskUtils.getType(val) & 0x000fff00) >> 8;
 

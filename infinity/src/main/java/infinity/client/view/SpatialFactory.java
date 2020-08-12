@@ -185,7 +185,7 @@ public class SpatialFactory {
         parts.setLocalScale((float) part.getScale());
         parts.setShadowMode(ShadowMode.CastAndReceive);
 
-        node.setUserData("oid", id.getId());
+        node.setUserData("oid", Long.valueOf(id.getId()));
 
         return node;
     }
@@ -213,7 +213,7 @@ public class SpatialFactory {
 
         geom.setShadowMode(ShadowMode.CastAndReceive);
 
-        geom.setUserData("oid", id.getId());
+        geom.setUserData("oid", Long.valueOf(id.getId()));
         return geom;
     }
 

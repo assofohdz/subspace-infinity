@@ -159,11 +159,12 @@ public final class Preconditions {
 
     private static String badElementIndex(final int index, final int size, final String desc) {
         if (index < 0) {
-            return String.format("%d (%d) must not be negative", desc, index);
+            return String.format("%d (%d) must not be negative", desc, Integer.valueOf(index));
         } else if (size < 0) {
             throw new IllegalArgumentException("negative size: " + size);
         } else {
-            return String.format("%s (%d) must be less than size (%d)", desc, index, size);
+            return String.format("%s (%d) must be less than size (%d)", desc, Integer.valueOf(index),
+                    Integer.valueOf(size));
         }
     }
 
@@ -180,11 +181,12 @@ public final class Preconditions {
 
     private static String badPositionIndex(final int index, final int size, final String desc) {
         if (index < 0) {
-            return String.format("%s (%d) must not be negative", desc, index);
+            return String.format("%s (%d) must not be negative", desc, Integer.valueOf(index));
         } else if (size < 0) {
             throw new IllegalArgumentException("negative size: " + size);
         } else {
-            return String.format("%s (%d) must not be greater than size (%d)", desc, index, size);
+            return String.format("%s (%d) must not be greater than size (%d)", desc, Integer.valueOf(index),
+                    Integer.valueOf(size));
         }
     }
 
@@ -201,7 +203,8 @@ public final class Preconditions {
         if (end < 0 || end > size) {
             return badPositionIndex(end, size, "end index");
         }
-        return String.format("end index (%d) must not be less than start index (%d)", end, start);
+        return String.format("end index (%d) must not be less than start index (%d)", Integer.valueOf(end),
+                Integer.valueOf(start));
     }
 
 }

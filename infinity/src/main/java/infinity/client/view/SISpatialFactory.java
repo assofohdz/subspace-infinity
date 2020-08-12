@@ -301,12 +301,16 @@ public class SISpatialFactory {
     }
 
     private Spatial createParticleEmitter(final EntityId eId, final String shapeName) {
-        Spatial result = null;
+        final Spatial result;
 
         switch (shapeName) {
         // Create a thrust ParticleEmitter
         case "thrust":
             result = createThrustEmitter(eId);
+            break;
+        default:
+            result = null;
+            break;
         }
         return result;
     }
@@ -423,7 +427,7 @@ public class SISpatialFactory {
         mat.setTransparent(true);
         geom.setMaterial(mat);
 
-        geom.setUserData("arena", true);
+        geom.setUserData("arena", Boolean.TRUE);
 
         return geom;
     }

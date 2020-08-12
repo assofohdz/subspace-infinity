@@ -256,6 +256,7 @@ public class MainMenuState extends BaseAppState {
     protected void onDisable() {
         GuiGlobals.getInstance().releaseCursorEnabled(this);
         mainWindow.removeFromParent();
-        GuiGlobals.getInstance().getInputMapper().removeMapping(CommandConsoleState.F_OPEN_CONSOLE, KeyInput.KEY_GRAVE);
+        GuiGlobals.getInstance().getInputMapper().removeMapping(CommandConsoleState.F_OPEN_CONSOLE,
+                Integer.valueOf(KeyInput.KEY_GRAVE));
     }
 }

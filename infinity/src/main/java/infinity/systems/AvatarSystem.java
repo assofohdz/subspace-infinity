@@ -100,7 +100,7 @@ public class AvatarSystem extends AbstractGameSystem {
     }
 
     private void joinTeam(final EntityId from, final String frequency) {
-        ed.setComponent(from, new Frequency(Integer.valueOf(frequency)));
+        ed.setComponent(from, new Frequency(Integer.valueOf(frequency).intValue()));
     }
 
     @Override
@@ -180,6 +180,8 @@ public class AvatarSystem extends AbstractGameSystem {
                 ed.setComponent(shipEntity,
                         ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed));
                 break;
+            default:
+                break;
             }
 
             EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
@@ -219,8 +221,8 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param restrict The new ShipRestrictor to use
      */
     public void setRestrictor(final int team, final ShipRestrictor restrict) {
-        if (!teamRestrictions.containsKey(team)) {
-            teamRestrictions.put(team, new ShipRestrictor() {
+        if (!teamRestrictions.containsKey(Integer.valueOf(team))) {
+            teamRestrictions.put(Integer.valueOf(team), new ShipRestrictor() {
                 @Override
                 public boolean canSwitch(final EntityId p, final byte ship, final int t) {
                     return true;
@@ -237,12 +239,12 @@ public class AvatarSystem extends AbstractGameSystem {
                 }
             });
         } else {
-            teamRestrictions.put(team, restrict);
+            teamRestrictions.put(Integer.valueOf(team), restrict);
         }
     }
 
     public ShipRestrictor getRestrictor(final int team) {
-        return teamRestrictions.get(team);
+        return teamRestrictions.get(Integer.valueOf(team));
     }
 
     /**
@@ -308,14 +310,14 @@ public class AvatarSystem extends AbstractGameSystem {
      */
     public int getShipCount(final int team, final ShapeInfo type) {
 
-        final ComponentFilter freqFilter = FieldFilter.create(Frequency.class, "freq", team);
+        final ComponentFilter freqFilter = FieldFilter.create(Frequency.class, "freq", Integer.valueOf(team));
         final EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShapeInfo.class);
 
         int count = 0;
 
         // Sum up the entities with the right type
         count = freq.stream().filter((e) -> (e.get(ShapeInfo.class).getShapeName(ed) == type.getShapeName(ed)))
-                .map((_item) -> 1).reduce(count, Integer::sum);
+                .map((_item) -> Integer.valueOf(1)).reduce(Integer.valueOf(count), Integer::sum).intValue();
 
         return count;
     }

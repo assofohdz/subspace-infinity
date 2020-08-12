@@ -333,8 +333,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
     public Ini loadSettings(final String iniFileName) throws IOException {
         // Ini files are considered resources
         final String settings = iniFileName + "/" + iniFileName + ".ini";
-        final InputStream inputStream = classLoader.getResourceAsStream(settings);
-        final Ini ini = new Ini(inputStream);
-        return ini;
+        final Ini result;
+        try (InputStream inputStream = classLoader.getResourceAsStream(settings)) {
+            result = new Ini(inputStream);
+        }
+        return result;
     }
 }

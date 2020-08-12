@@ -6,6 +6,7 @@
 package infinity.settings;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.ini4j.Ini;
 
@@ -20,9 +21,9 @@ public class IniLoader implements AssetLoader {
 
     @Override
     public Ini load(final AssetInfo assetInfo) throws IOException {
-
-        final Ini result = new Ini(assetInfo.openStream());
-
-        return result;
+        try (InputStream is = assetInfo.openStream()) {
+            final Ini result = new Ini(is);
+            return result;
+        }
     }
 }
