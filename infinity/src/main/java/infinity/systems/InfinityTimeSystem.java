@@ -41,9 +41,11 @@ public class InfinityTimeSystem extends AbstractGameSystem implements TimeManage
 
     @Override
     protected void initialize() {
+        return;
     }
 
     @Override
     protected void terminate() {
+        return;
     }
 }

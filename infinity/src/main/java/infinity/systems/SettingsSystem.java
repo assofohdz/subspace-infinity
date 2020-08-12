@@ -113,20 +113,22 @@ public class SettingsSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
     public void update(final SimTime tpf) {
-
+        return;
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     /**

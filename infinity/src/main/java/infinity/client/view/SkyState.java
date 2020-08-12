@@ -65,6 +65,7 @@ public class SkyState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
+        return;
     }
 
     @Override

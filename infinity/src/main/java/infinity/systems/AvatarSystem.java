@@ -115,23 +115,25 @@ public class AvatarSystem extends AbstractGameSystem {
 
         if (captains.applyChanges()) {
             for (final Entity e : captains.getAddedEntities()) {
-
+                // TODO implement me
             }
             for (final Entity e : captains.getChangedEntities()) {
-
+                // TODO implement me
             }
             for (final Entity e : captains.getRemovedEntities()) {
-
+                // TODO implement me
             }
         }
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     public void requestShipChange(final EntityId shipEntity, final byte shipType) {

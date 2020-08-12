@@ -209,6 +209,7 @@ public class MapState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
+        return;
     }
 
     @Override
@@ -395,7 +396,7 @@ public class MapState extends BaseAppState {
     }
 
     public void setMapEditingActive(final boolean active) {
-
+        return;
     }
 
     public void addArenaMouseListeners(final Spatial arena) {
@@ -410,7 +411,7 @@ public class MapState extends BaseAppState {
 
             @Override
             protected void click(final MouseButtonEvent event, final Spatial target, final Spatial capture) {
-
+                return;
             }
 
             @Override

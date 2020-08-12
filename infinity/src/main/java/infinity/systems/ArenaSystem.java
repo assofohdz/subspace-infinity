@@ -105,15 +105,17 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     @Override
     public void update(final SimTime tpf) {
-
+        return;
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     @Override
@@ -139,7 +141,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         }
 
         if (arenas.containsKey(name) && forceLoad) {
-
+            // TODO implement me
         }
     }
 

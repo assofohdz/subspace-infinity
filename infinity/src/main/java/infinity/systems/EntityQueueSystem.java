@@ -48,15 +48,16 @@ public class EntityQueueSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
-
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     @Override
     public void update(final SimTime tpf) {
-
+        return;
     }
 }

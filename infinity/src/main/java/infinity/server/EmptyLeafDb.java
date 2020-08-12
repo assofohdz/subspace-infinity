@@ -158,6 +158,7 @@ public class EmptyLeafDb implements LeafDb {
 
     @Override
     public void storeLeaf(final LeafData leaf) {
+        return;
     }
 
     /**

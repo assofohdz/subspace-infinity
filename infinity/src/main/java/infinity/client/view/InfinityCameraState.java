@@ -161,6 +161,6 @@ public class InfinityCameraState extends CameraState {
 
     @Override
     protected void onDisable() {
-
+        return;
     }
 }

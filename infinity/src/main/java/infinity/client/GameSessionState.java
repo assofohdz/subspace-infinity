@@ -127,6 +127,7 @@ public class GameSessionState extends CompositeAppState {
 
     @Override
     protected void cleanup(final Application app) {
+        return;
     }
 
     @Override

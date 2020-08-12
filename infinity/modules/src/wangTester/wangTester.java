@@ -85,7 +85,7 @@ public class wangTester extends BaseGameModule {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override

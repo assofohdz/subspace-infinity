@@ -92,7 +92,7 @@ public class warpTester extends BaseGameModule {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override

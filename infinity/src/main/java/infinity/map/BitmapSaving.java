@@ -120,31 +120,33 @@ public class BitmapSaving {
      * ", blue = " + pal[x * 4 + 1] + ", green = " + pal[x * 4 + 2]); } }
      */
 
-    public static byte[] toDWORD(int n) {
+    public static byte[] toDWORD(final int number) {
+        int i = number;
         final byte[] DWORD = new byte[4];
 
-        DWORD[0] = (byte) (n & 0xff);
-        n = n >> 8;
+        DWORD[0] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        DWORD[1] = (byte) (n & 0xff);
-        n = n >> 8;
+        DWORD[1] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        DWORD[2] = (byte) (n & 0xff);
-        n = n >> 8;
+        DWORD[2] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        DWORD[3] = (byte) (n & 0xff);
+        DWORD[3] = (byte) (i & 0xff);
 
         return DWORD;
     }
 
-    public static byte[] toWORD(int n) {
+    public static byte[] toWORD(final int number) {
+        int i = number;
         final byte[] WORD = new byte[2];
 
-        WORD[0] = (byte) (n & 0xff);
-        n = n >> 8;
+        WORD[0] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        WORD[1] = (byte) (n & 0xff);
-        n = n >> 8;
+        WORD[1] = (byte) (i & 0xff);
+        i = i >> 8;
 
         return WORD;
     }

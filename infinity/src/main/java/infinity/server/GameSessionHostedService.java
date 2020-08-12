@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
+import com.jme3.network.service.Service;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
@@ -94,6 +95,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         this.gameSystems = gameSystems;
 
         setAutoHost(true);
+    }
+
+    @Override
+    protected <T extends Service<HostedServiceManager>> T getService(final Class<T> type) {
+        return super.getService(type);
     }
 
     @Override
@@ -331,6 +337,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         @Override
         public void action(final byte actionInput) {
+            return;
         }
 
         @Override
@@ -340,10 +347,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         @Override
         public void avatar(final byte avatarInput) {
+            return;
         }
 
         @Override
         public void toggle(final byte toggleInput) {
+            return;
         }
 
         @Override

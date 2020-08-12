@@ -176,6 +176,7 @@ public class GridState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
+        return;
     }
 
     @Override

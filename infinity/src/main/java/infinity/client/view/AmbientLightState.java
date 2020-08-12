@@ -56,6 +56,7 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
+        return;
     }
 
     @Override

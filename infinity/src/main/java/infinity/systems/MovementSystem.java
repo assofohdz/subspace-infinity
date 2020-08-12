@@ -74,6 +74,12 @@ public class MovementSystem extends AbstractGameSystem {
     private EnergySystem health;
 
     public MovementSystem() {
+        super();
+    }
+
+    @Override
+    protected <T> T getSystem(final Class<T> type) {
+        return super.getSystem(type);
     }
 
     @Override
@@ -117,6 +123,7 @@ public class MovementSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
+        return;
     }
 
     @Override

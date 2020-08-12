@@ -123,5 +123,6 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
+        return;
     }
 }

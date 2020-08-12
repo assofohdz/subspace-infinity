@@ -253,25 +253,15 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @return true if the file is a ZIP/JAR archive, false otherwise.
      */
     private boolean isZipOrJarArchive(final File file) {
-        boolean isArchive = true;
-        ZipFile zipFile = null;
-
-        try {
-            zipFile = new ZipFile(file);
-        } catch (final ZipException zipCurrupted) {
-            isArchive = false;
-        } catch (final IOException anyIOError) {
-            isArchive = false;
-        } finally {
-            if (zipFile != null) {
-                try {
-                    zipFile.close();
-                } catch (final IOException ignored) {
-                }
-            }
+        boolean result = false;
+        try (ZipFile zipFile = new ZipFile(file)) {
+            result = true;
+        } catch (final ZipException e) {
+            result = false;
+        } catch (final IOException e) {
+            result = false;
         }
-
-        return isArchive;
+        return result;
     }
 
     /**
@@ -558,14 +548,9 @@ public class AdaptiveClassLoader extends ClassLoader {
 
         if (classFile.exists()) {
             cache.origin = classFile;
-            final InputStream in = new FileInputStream(classFile);
-
-            try {
+            try (InputStream in = new FileInputStream(classFile)) {
                 return loadBytesFromStream(in, (int) classFile.length());
-            } finally {
-                in.close();
             }
-
         } else {
             // Not found
             return null;
@@ -604,13 +589,14 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Loads all the bytes of an InputStream.
      */
-    private byte[] loadBytesFromStream(final InputStream in, int length) throws IOException {
-        final byte[] buf = new byte[length];
+    private byte[] loadBytesFromStream(final InputStream in, final int length) throws IOException {
+        int i = length;
+        final byte[] buf = new byte[i];
         int nRead, count = 0;
 
-        while ((length > 0) && ((nRead = in.read(buf, count, length)) != -1)) {
+        while ((i > 0) && ((nRead = in.read(buf, count, i)) != -1)) {
             count += nRead;
-            length -= nRead;
+            i -= nRead;
         }
 
         return buf;
@@ -692,38 +678,20 @@ public class AdaptiveClassLoader extends ClassLoader {
      * Loads resource from a zip file
      */
     private InputStream loadResourceFromZipfile(final File file, final String name) {
-        ZipFile zipfile = null;
-        InputStream resourceStream = null;
-
-        try {
-            zipfile = new ZipFile(file);
+        InputStream result = null;
+        try (ZipFile zipfile = new ZipFile(file)) {
             final ZipEntry entry = zipfile.getEntry(name);
-
             if (entry != null) {
                 final long length = entry.getSize();
-                resourceStream = zipfile.getInputStream(entry);
-                final byte[] data = loadBytesFromStream(resourceStream, (int) length);
-                return new ByteArrayInputStream(data);
-            } else {
-                return null;
+                try (InputStream resourceStream = zipfile.getInputStream(entry)) {
+                    final byte[] data = loadBytesFromStream(resourceStream, (int) length);
+                    result = new ByteArrayInputStream(data);
+                }
             }
         } catch (final IOException e) {
-            return null;
-        } finally {
-            if (resourceStream != null) {
-                try {
-                    resourceStream.close();
-                } catch (final IOException ignored) {
-                }
-            }
-
-            if (zipfile != null) {
-                try {
-                    zipfile.close();
-                } catch (final IOException ignored) {
-                }
-            }
+            result = null;
         }
+        return result;
     }
 
     /**
@@ -785,16 +753,15 @@ public class AdaptiveClassLoader extends ClassLoader {
                 // didn't between JVM's 1.1.6 and 1.3beta. Tested on JVM's from
                 // IBM, Blackdown, Microsoft, Sun @ Windows and Sun @ Solaris
                 try {
-                    final ZipFile zf = new ZipFile(file.getAbsolutePath());
-                    final ZipEntry ze = zf.getEntry(name);
-                    zf.close();
-
-                    if (ze != null) {
-                        try {
-                            return new URL("jar:file:" + file.getAbsolutePath() + "!/" + name);
-                        } catch (final java.net.MalformedURLException badurl) {
-                            badurl.printStackTrace();
-                            return null;
+                    try (ZipFile zf = new ZipFile(file.getAbsolutePath())) {
+                        final ZipEntry ze = zf.getEntry(name);
+                        if (ze != null) {
+                            try {
+                                return new URL("jar:file:" + file.getAbsolutePath() + "!/" + name);
+                            } catch (final java.net.MalformedURLException badurl) {
+                                badurl.printStackTrace();
+                                return null;
+                            }
                         }
                     }
                 } catch (final IOException ioe) {

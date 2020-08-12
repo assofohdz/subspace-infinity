@@ -256,7 +256,7 @@ public class LevelFile extends JPanel {
      *
      * @return null or the error message
      */
-    public String readLevel() {
+    public String readLevel() throws IOException {
         if (hasELVLData) {
             readIn(m_bitmap.ELvlOffset);
         } else if (m_containsBM) {
@@ -283,10 +283,7 @@ public class LevelFile extends JPanel {
         }
 
         // Close the stream so it doesn't remain opened.
-        try {
-            m_stream.close();
-        } catch (final IOException e) {
-        }
+        m_stream.close();
 
         return error;
     }
@@ -417,9 +414,8 @@ public class LevelFile extends JPanel {
      * @param regions list of regions
      */
     public void saveLevel(final Image tileset, final short[][] map, final Vector regions) {
-        try {
-            final BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(m_file));
-
+        try (FileOutputStream fos = new FileOutputStream(m_file);
+                BufferedOutputStream out = new BufferedOutputStream(fos)) {
             final boolean containsELVLData = eLvlAttrs.size() > 0;
             makeELvlDataForSaving(regions);
 
@@ -447,7 +443,7 @@ public class LevelFile extends JPanel {
             }
 
             out.close();
-        } catch (final Exception e) {
+        } catch (final IOException e) {
             JOptionPane.showMessageDialog(null, e.toString());
         }
 

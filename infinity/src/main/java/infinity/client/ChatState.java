@@ -102,10 +102,12 @@ public class ChatState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        return;
     }
 
     @Override
     protected void onDisable() {
+        return;
     }
 
     /**
@@ -119,7 +121,7 @@ public class ChatState extends BaseAppState {
     }
 
     /**
-     * Notified by the server about chat-releated events.
+     * Notified by the server about chat-related events.
      */
     private class ChatSessionObserver implements ChatSessionListener {
 
@@ -129,12 +131,12 @@ public class ChatState extends BaseAppState {
         }
 
         @Override
-        public void newMessage(final int clientId, final String playerName, String message) {
-            message = message.trim();
-            if (message.length() == 0) {
+        public void newMessage(final int clientId, final String playerName, final String message) {
+            final String m = message.trim();
+            if (m.length() == 0) {
                 return;
             }
-            getState(MessageState.class).addMessage(playerName + " said:" + message, ColorRGBA.White);
+            getState(MessageState.class).addMessage(playerName + " said:" + m, ColorRGBA.White);
         }
 
         @Override

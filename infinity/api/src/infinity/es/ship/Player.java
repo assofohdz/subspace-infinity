@@ -12,5 +12,5 @@ import com.simsilica.es.EntityComponent;
  * @author AFahrenholz
  */
 public class Player implements EntityComponent {
-
+    // TODO implement me
 }

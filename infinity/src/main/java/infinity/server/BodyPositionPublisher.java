@@ -119,6 +119,7 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
 
         @Override
         public void endFrame() {
+            return;
         }
 
         @Override

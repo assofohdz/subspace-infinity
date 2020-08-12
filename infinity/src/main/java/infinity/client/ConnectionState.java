@@ -130,14 +130,15 @@ public class ConnectionState extends CompositeAppState {
         log.info("Detached ConnectionState");
     }
 
-    public boolean join(String userName) {
-        log.info("join(" + userName + ")");
+    public boolean join(final String userName) {
+        String n = userName;
+        log.info("join(" + n + ")");
 
-        if (userName != null) {
-            userName = userName.trim();
+        if (n != null) {
+            n = n.trim();
         }
 
-        if (Strings.isNullOrEmpty(userName)) {
+        if (Strings.isNullOrEmpty(n)) {
             showError("Join Error", "Please specify a player name for use in game.", null, false);
             return false;
         }
@@ -198,10 +199,12 @@ public class ConnectionState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
+        return;
     }
 
     @Override
     protected void onDisable() {
+        return;
     }
 
     protected boolean isRenderThread() {

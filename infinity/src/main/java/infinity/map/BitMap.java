@@ -240,13 +240,10 @@ public class BitMap extends JPanel {
         }
     }
 
-    public void appendTo(final BufferedOutputStream out) {
-        try {
-            // Write bitmap File Data
-            out.write(fileData.getByteArray(), 0, fileData.size());
-            out.close();
-        } catch (final IOException e) {
-        }
+    public void appendTo(final BufferedOutputStream out) throws IOException {
+        // Write bitmap File Data
+        out.write(fileData.getByteArray(), 0, fileData.size());
+        out.close();
     }
 
     public Image getImage() {

@@ -82,7 +82,7 @@ public class prizeTester extends BaseGameModule {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override

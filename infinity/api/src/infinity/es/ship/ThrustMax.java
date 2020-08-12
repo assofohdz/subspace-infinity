@@ -11,5 +11,5 @@ package infinity.es.ship;
  * @author Asser Fahrenholz
  */
 public class ThrustMax {
-
+    // TODO implement me
 }

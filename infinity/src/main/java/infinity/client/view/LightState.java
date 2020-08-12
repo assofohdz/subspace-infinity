@@ -98,6 +98,7 @@ public class LightState extends BaseAppState {
 
     @Override
     protected void onDisable() {
+        return;
     }
 
     @Override

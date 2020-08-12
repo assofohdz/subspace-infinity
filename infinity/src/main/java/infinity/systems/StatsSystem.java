@@ -43,7 +43,7 @@ public class StatsSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
@@ -53,10 +53,12 @@ public class StatsSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     class Task extends TimerTask {

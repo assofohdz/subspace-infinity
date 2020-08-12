@@ -57,7 +57,7 @@ public class DeathSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
@@ -74,10 +74,12 @@ public class DeathSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
 }

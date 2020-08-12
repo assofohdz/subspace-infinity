@@ -386,20 +386,23 @@ public class BlockGeometryIndex {
         return result;
     }
 
-    // Subspace infinity version, we dont want to re-calculate below or above the
+    // Subspace infinity version, we don't want to re-calculate below or above the
     // layer
-    public static void recalculateSideMasks(final CellData data, int x, int y, int z) {
-        final int xStart = x;
-        final int yStart = Math.max(0, y); // y is 0 to infinity
-        final int zStart = z;
-        final int xEnd = x;
-        final int yEnd = y;
-        final int zEnd = z;
+    public static void recalculateSideMasks(final CellData data, final int x, final int y, final int z) {
+        int currX = x;
+        int currY = y;
+        int currZ = z;
+        final int xStart = currX;
+        final int yStart = Math.max(0, currY); // y is 0 to infinity
+        final int zStart = currZ;
+        final int xEnd = currX;
+        final int yEnd = currY;
+        final int zEnd = currZ;
 
-        for (x = xStart; x <= xEnd; x++) {
-            for (y = yStart; y <= yEnd; y++) {
-                for (z = zStart; z <= zEnd; z++) {
-                    final int val = data.getCell(x, y, z);
+        for (currX = xStart; currX <= xEnd; currX++) {
+            for (currY = yStart; currY <= yEnd; currY++) {
+                for (currZ = zStart; currZ <= zEnd; currZ++) {
+                    final int val = data.getCell(currX, currY, currZ);
                     final int tileId = MaskUtils.getType(val);
 //log.info("  [" + x + "][" + y + "][" + z + "] = " + val + " @" + type + " #" + Integer.toBinaryString(getSideMask(val)));
                     // if( type == 0 ) {
@@ -423,7 +426,7 @@ public class BlockGeometryIndex {
                     if (tileId != 0) {
                         // Calculate the mask right here
                         for (final Direction dir : Direction.values()) {
-                            final int next = MaskUtils.getType(data.getCell(x, y, z, dir, 0));
+                            final int next = MaskUtils.getType(data.getCell(currX, currY, currZ, dir, 0));
 //log.info("    " + dir + " -> " + next);
                             // Just a simple check for now
                             if (next == 0) {
@@ -433,7 +436,7 @@ public class BlockGeometryIndex {
                         }
                     }
 //log.info("    result:" + setSideMask(val, sideMask) + "   sides:" + Integer.toBinaryString(sideMask));
-                    data.setCell(x, y, z, MaskUtils.setSideMask(val, sideMask));
+                    data.setCell(currX, currY, currZ, MaskUtils.setSideMask(val, sideMask));
                 }
             }
         }

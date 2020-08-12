@@ -220,10 +220,12 @@ public class AdaptiveLoadingService extends AbstractHostedService
      */
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     /**

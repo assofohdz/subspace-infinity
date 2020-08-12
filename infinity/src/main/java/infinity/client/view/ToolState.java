@@ -104,6 +104,7 @@ public class ToolState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
+        return;
     }
 
     @Override
@@ -132,6 +133,7 @@ public class ToolState extends BaseAppState {
 
     @Override
     public void update(final float tpf) {
+        return;
     }
 
     private class ToolListener implements StateFunctionListener {

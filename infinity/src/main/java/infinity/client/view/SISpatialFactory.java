@@ -302,38 +302,31 @@ public class SISpatialFactory {
 
     private Spatial createParticleEmitter(final EntityId eId, final String shapeName) {
         Spatial result = null;
-        final ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); // will
-                                                                                                                // be
-        // overriden
-        // in switch
 
         switch (shapeName) {
-        // Create a thrust particle emitter
+        // Create a thrust ParticleEmitter
         case "thrust":
-            result = createThrustEmitter(particleEmitter, eId);
+            result = createThrustEmitter(eId);
         }
         return result;
     }
 
-    private Spatial createThrustEmitter(ParticleEmitter thrustEffect, final EntityId eId) {
-
+    private Spatial createThrustEmitter(final EntityId eId) {
         final Material smokeMat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         smokeMat.setTexture("Texture", assets.loadTexture("Effects/Smoke/Smoke.png"));
-
-        thrustEffect = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 250);
-        thrustEffect.setGravity(0, 0, 0);
-        thrustEffect.setMaterial(smokeMat);
-        thrustEffect.setImagesX(15);
-        thrustEffect.setImagesY(1); // 2x
-        thrustEffect.setEndColor(ColorRGBA.Black);
-        thrustEffect.setStartColor(ColorRGBA.Orange);
-        thrustEffect.setStartSize(0.1f);
-        thrustEffect.setEndSize(0f);
-        thrustEffect.setHighLife(0.25f); // Fits the decay
-        thrustEffect.setLowLife(0.1f);
-        thrustEffect.setNumParticles(1);
-
-        return thrustEffect;
+        final ParticleEmitter result = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 250);
+        result.setGravity(0, 0, 0);
+        result.setMaterial(smokeMat);
+        result.setImagesX(15);
+        result.setImagesY(1); // 2x
+        result.setEndColor(ColorRGBA.Black);
+        result.setStartColor(ColorRGBA.Orange);
+        result.setStartSize(0.1f);
+        result.setEndSize(0f);
+        result.setHighLife(0.25f); // Fits the decay
+        result.setLowLife(0.1f);
+        result.setNumParticles(1);
+        return result;
     }
 
     private Spatial createBomb(final EntityId eId, final BombLevelEnum level) {

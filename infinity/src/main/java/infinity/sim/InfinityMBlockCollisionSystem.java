@@ -11,4 +11,7 @@ package infinity.sim;
  */
 public class InfinityMBlockCollisionSystem {
 
+    public InfinityMBlockCollisionSystem() {
+        super();
+    }
 }

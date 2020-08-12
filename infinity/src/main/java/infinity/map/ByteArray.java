@@ -368,17 +368,12 @@ public class ByteArray {
      * @throws IOException if file is unavailable
      */
     public void addFileContents(final File file) throws IOException {
-        int length;
-        byte buffer[];
-        FileInputStream fileReader;
-
-        length = (int) file.length();
-        buffer = new byte[length];
-
-        fileReader = new FileInputStream(file);
-        fileReader.read(buffer, 0, length);
-        addByteArray(buffer);
-        fileReader.close();
+        try (FileInputStream fis = new FileInputStream(file)) {
+            final int length = (int) file.length();
+            final byte[] buffer = new byte[length];
+            fis.read(buffer, 0, length);
+            addByteArray(buffer);
+        }
     }
 
     /**

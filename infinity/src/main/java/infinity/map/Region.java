@@ -382,7 +382,7 @@ public class Region {
      *
      * @return a Vector of bytes containing the encoding
      */
-    private static Vector encodeEmptyRows(int count) {
+    private static Vector encodeEmptyRows(final int count) {
         /*
          * first, rows that contain no tiles at all can (optionally) be encoded
          * specially:
@@ -393,15 +393,16 @@ public class Region {
 
         final Vector code = new Vector();
 
-        if (count <= 32) {
-            count--; // cause it's 1-32 not 0-31
-            final byte encode = (byte) (count | 0x80);
+        int i = count;
+        if (i <= 32) {
+            i--; // cause it's 1-32 not 0-31
+            final byte encode = (byte) (i | 0x80);
             code.add(new Byte(encode));
 
         } else {
-            count--;
-            final byte one = (byte) ((count >> 8) | 0xA0);
-            final byte two = (byte) ((count & 0x00FF));
+            i--;
+            final byte one = (byte) ((i >> 8) | 0xA0);
+            final byte two = (byte) ((i & 0x00FF));
 
             code.add(new Byte(one));
             code.add(new Byte(two));
@@ -414,11 +415,11 @@ public class Region {
     /**
      * Encode a run
      *
-     * @param count    the number of tiles to cover
+     * @param i        the number of tiles to cover
      * @param inRegion is this a run of region tiles? (or empty spaces)
      * @return the Vector of encodedBytes for this run
      */
-    private static Vector encodeRun(int count, final boolean inRegion) {
+    private static Vector encodeRun(final int count, final boolean inRegion) {
         /*
          * for each row, split it into runs of empty tiles and present tiles. for each
          * run, output one of these bit sequences:
@@ -429,31 +430,32 @@ public class Region {
          */
 
         final Vector code = new Vector();
+        int i = count;
 
-        if (count <= 32) {
-            --count;
+        if (i <= 32) {
+            --i;
             byte one;
 
             if (!inRegion) {
-                one = (byte) count;
+                one = (byte) i;
             } else {
-                one = (byte) (count | 0x40);
+                one = (byte) (i | 0x40);
             }
 
             code.add(new Byte(one));
 
         } else {
-            --count;
+            --i;
             byte one, two;
 
             if (!inRegion) // empty tiles
             {
-                one = (byte) ((count >> 8) | 0x20);
-                two = (byte) (count & 0x00FF);
+                one = (byte) ((i >> 8) | 0x20);
+                two = (byte) (i & 0x00FF);
             } else // present tiles
             {
-                one = (byte) ((count >> 8) | 0x60);
-                two = (byte) (count & 0x00FF);
+                one = (byte) ((i >> 8) | 0x60);
+                two = (byte) (i & 0x00FF);
             }
 
             code.add(new Byte(one));
@@ -470,7 +472,7 @@ public class Region {
      * @param count the number of times we repeated
      * @return a Vector of Bytes containing the encoding of this repetition
      */
-    private static Vector encodeRepeatLastRow(int count) {
+    private static Vector encodeRepeatLastRow(final int count) {
         /*
          * if the same pattern of tiles appears in more than one consecutive row, you
          * can use these special codes to save more space:
@@ -480,15 +482,15 @@ public class Region {
          */
 
         final Vector code = new Vector();
-
-        if (count <= 32) {
-            count--; // cause it's 1-32 not 0-31
-            final byte encode = (byte) (count | 0xC0);
+        int i = count;
+        if (i <= 32) {
+            i--; // cause it's 1-32 not 0-31
+            final byte encode = (byte) (i | 0xC0);
             code.add(new Byte(encode));
         } else {
-            count--;
-            final byte one = (byte) ((count >> 8) | 0xE0);
-            final byte two = (byte) ((count & 0x00FF));
+            i--;
+            final byte one = (byte) ((i >> 8) | 0xE0);
+            final byte two = (byte) ((i & 0x00FF));
 
             code.add(new Byte(one));
             code.add(new Byte(two));
@@ -628,9 +630,10 @@ public class Region {
      * @param len    the length to read
      * @return the error String
      */
-    private String decodeTiles(final byte[] data, int offset, final int size) {
+    private String decodeTiles(final byte[] data, final int offset, final int size) {
         String error = null;
-        final int endByte = offset + size;
+        int o = offset;
+        final int endByte = o + size;
         final boolean[][] rgn = new boolean[1024][1024];
 
         // region starts empty
@@ -643,11 +646,11 @@ public class Region {
         int curX = 0;
         int curY = 0;
 
-        while (offset < endByte) {
-            final byte typeByte = data[offset];
+        while (o < endByte) {
+            final byte typeByte = data[o];
 
             final int type = getEncodedType(typeByte);
-            final int len = getEncodedLength(data, offset, type);
+            final int len = getEncodedLength(data, o, type);
 
             if (type == SMALL_EMPTY_RUN || type == LONG_EMPTY_RUN) {
                 if (len + curX > 1024) {
@@ -705,10 +708,10 @@ public class Region {
 
             if (type % 2 == 0) // short
             {
-                ++offset;
+                ++o;
             } else // long
             {
-                offset += 2;
+                o += 2;
             }
         }
 

@@ -160,10 +160,12 @@ public class HostState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        return;
     }
 
     @Override
     protected void onDisable() {
+        return;
     }
 
     protected void resetConnectionCount() {

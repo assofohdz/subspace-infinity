@@ -477,48 +477,48 @@ public class GameServer {
     public static void main(final String... args) throws Exception {
 
         final StringWriter sOut = new StringWriter();
-        final PrintWriter out = new PrintWriter(sOut);
-        boolean hasDescription = false;
-        for (int i = 0; i < args.length; i++) {
-            if ("-m".equals(args[i])) {
-                out.println(args[++i]);
-                hasDescription = true;
+        try (PrintWriter out = new PrintWriter(sOut)) {
+            boolean hasDescription = false;
+            for (int i = 0; i < args.length; i++) {
+                if ("-m".equals(args[i])) {
+                    out.println(args[++i]);
+                    hasDescription = true;
+                }
             }
-        }
-        if (!hasDescription) {
-            // Put a default description in
-            out.println("Dedicated Server");
-            out.println();
-            out.println("In game:");
-            out.println("WASD + mouse to move");
-            out.println("Enter to open chat bar");
-            out.println("F5 to toggle stats");
-            out.println("Esc to open in-game help");
-            out.println("PrtScrn to save a screen shot");
-        }
-
-        out.close();
-        final String desc = sOut.toString();
-
-        final GameServer gs = new GameServer(InfinityConstants.DEFAULT_PORT, desc);
-        gs.start();
-
-        final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        String line;
-        while ((line = in.readLine()) != null) {
-            if (line.length() == 0) {
-                continue;
+            if (!hasDescription) {
+                // Put a default description in
+                out.println("Dedicated Server");
+                out.println();
+                out.println("In game:");
+                out.println("WASD + mouse to move");
+                out.println("Enter to open chat bar");
+                out.println("F5 to toggle stats");
+                out.println("Esc to open in-game help");
+                out.println("PrtScrn to save a screen shot");
             }
-            if ("exit".equals(line)) {
-                break;
-            } else if ("stats".equals(line)) {
-                gs.logStats();
-            } else {
-                System.err.println("Unknown command:" + line);
-            }
-        }
 
-        gs.close();
+            out.close();
+            final String desc = sOut.toString();
+
+            final GameServer gs = new GameServer(InfinityConstants.DEFAULT_PORT, desc);
+            gs.start();
+
+            final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.length() == 0) {
+                    continue;
+                }
+                if ("exit".equals(line)) {
+                    break;
+                } else if ("stats".equals(line)) {
+                    gs.logStats();
+                } else {
+                    System.err.println("Unknown command:" + line);
+                }
+            }
+            gs.close();
+        }
     }
 
     /**
@@ -539,10 +539,12 @@ public class GameServer {
 
         @Override
         protected void onInitialize(final HostedServiceManager serviceManager) {
+            return;
         }
 
         @Override
         public void start() {
+            return;
         }
 
         @Override
