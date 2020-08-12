@@ -1,6 +1,16 @@
 # Subspace Infinity
 A java port of Subspace Continuum
 
+# Building and Contributing
+
+## Building
+
+See [BUILDING.md](https://github.com/assofohdz/Subspace-Infinity/blob/infinity/BUILDING.md) 
+
+## Contributing
+
+See [CONTRIBUTING.md](https://github.com/assofohdz/Subspace-Infinity/blob/infinity/CONTRIBUTING.md)
+
 # Community
 
 ## Discord
