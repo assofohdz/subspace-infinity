@@ -545,8 +545,8 @@ public class AdaptiveClassLoader extends ClassLoader {
             // Find real beginning of class name
             int start = 1;
 
-            while (!Character.isJavaIdentifierStart(classFileName.charAt(start++)))
-                ;
+            while (!Character.isJavaIdentifierStart(classFileName.charAt(start)))
+                start++;
 
             classFileName = classFileName.substring(start);
         }

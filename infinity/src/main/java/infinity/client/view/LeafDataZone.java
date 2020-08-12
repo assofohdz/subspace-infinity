@@ -117,7 +117,7 @@ public class LeafDataZone extends AbstractZone {
 
         public Factory(World world) {
             this.world = world;
-            ;
+
         }
 
         @Override
