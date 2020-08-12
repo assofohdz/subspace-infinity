@@ -17,7 +17,7 @@ public interface AccountSession {
      *
      * @return returns the server information
      */
-    public String getServerInfo();
+    String getServerInfo();
 
     /**
      * Called by the client to provide the player name for this connection and
@@ -32,5 +32,5 @@ public interface AccountSession {
      * @param playerName the name of the player
      */
     @Asynchronous
-    public void login(String playerName);
+    void login(String playerName);
 }

@@ -53,5 +53,5 @@ public interface GameSessionListener {
      * change during the game as the player dies/respawns/whatever.
      */
     @Asynchronous
-    public void setAvatar(EntityId avatar);
+    void setAvatar(EntityId avatar);
 }

@@ -51,10 +51,10 @@ public interface ChatSession {
      * Sends a new message to the chat.
      */
     @Asynchronous
-    public void sendMessage(String message);
+    void sendMessage(String message);
 
     /**
      * Returns the list of players currently in the chat.
      */
-    public List<String> getPlayerNames();
+    List<String> getPlayerNames();
 }

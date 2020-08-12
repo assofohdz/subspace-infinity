@@ -22,8 +22,8 @@ public interface AdaptiveLoader {
      * @return the Ini object containing the settings
      * @throws java.io.IOException if something goes wrong
      */
-    public Ini loadSettings(String settingsFileName) throws IOException;
+    Ini loadSettings(String settingsFileName) throws IOException;
 
-    public boolean validateSettings(Ini settings) throws IOException;
+    boolean validateSettings(Ini settings) throws IOException;
 
 }

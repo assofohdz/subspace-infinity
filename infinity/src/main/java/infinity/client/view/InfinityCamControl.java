@@ -60,7 +60,7 @@ public class InfinityCamControl extends AbstractControl {
 
     private float distanceToCam = 40;
 
-    public static enum ControlDirection {
+    public enum ControlDirection {
 
         /**
          * Means, that the Camera's transform is "copied" to the Transform of the

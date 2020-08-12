@@ -43,7 +43,7 @@ public interface ChatHostedPoster {
      *                    the interface) project
      * @param message     the message
      */
-    public void postPublicMessage(String from, int messageType, String message);
+    void postPublicMessage(String from, int messageType, String message);
 
     /**
      * Sends a private message
@@ -54,7 +54,7 @@ public interface ChatHostedPoster {
      * @param targetEntityId receiver
      * @param message        the message
      */
-    public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message);
+    void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message);
 
     /**
      * Sends a message to a team
@@ -65,14 +65,14 @@ public interface ChatHostedPoster {
      * @param targetFrequency the receiving team
      * @param message         the message
      */
-    public void postTeamMessage(String from, int messageType, int targetFrequency, String message);
+    void postTeamMessage(String from, int messageType, int targetFrequency, String message);
 
-    public void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c);
+    void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c);
 
-    public void removePatternConsumer(Pattern pattern);
+    void removePatternConsumer(Pattern pattern);
 
-    public void registerCommandConsumer(String cmd, String helptext, CommandConsumer c);
+    void registerCommandConsumer(String cmd, String helptext, CommandConsumer c);
 
-    public void removeCommandConsumer(String cmd);
+    void removeCommandConsumer(String cmd);
 
 }

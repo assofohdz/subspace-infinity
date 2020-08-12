@@ -11,5 +11,5 @@ package infinity.sim;
  */
 public interface TimeManager {
 
-    public long getTime();
+    long getTime();
 }

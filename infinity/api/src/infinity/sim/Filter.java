@@ -14,7 +14,7 @@ public interface Filter {
     /**
      * The default filter which always returns true
      */
-    public static final Filter DEFAULT_FILTER = new Filter() {
+    Filter DEFAULT_FILTER = new Filter() {
         /*
          * (non-Javadoc)
          *
@@ -50,5 +50,5 @@ public interface Filter {
      * @param filter the other {@link Filter}
      * @return boolean
      */
-    public abstract boolean isAllowed(Filter filter);
+    boolean isAllowed(Filter filter);
 }

@@ -40,8 +40,8 @@ public interface AudioFactory {
      *
      * @param state the parent audio state to set
      */
-    public void setState(AudioState state);
+    void setState(AudioState state);
 
-    public AudioNode createAudio(Entity e);
+    AudioNode createAudio(Entity e);
 
 }

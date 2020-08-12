@@ -33,6 +33,6 @@ import infinity.es.ArenaId;
  */
 public interface SettingListener {
 
-    public void arenaSettingsChange(ArenaId arenaId, String section, String setting);
+    void arenaSettingsChange(ArenaId arenaId, String section, String setting);
 
 }

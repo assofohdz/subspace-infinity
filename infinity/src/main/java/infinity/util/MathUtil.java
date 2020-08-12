@@ -136,7 +136,7 @@ public class MathUtil {
         return grubbs;
     }
 
-    private static enum Operator {
+    private enum Operator {
         MIN, MAX
     }
 

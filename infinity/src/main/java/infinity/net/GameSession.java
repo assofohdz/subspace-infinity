@@ -53,46 +53,46 @@ public interface GameSession {
     /**
      * Returns the ID of the player's current 'avatar' in the game.
      */
-    public EntityId getAvatar();
+    EntityId getAvatar();
 
-    public EntityId getPlayer();
-
-    /**
-     * For now we just direct-move the player avatar.
-     */
-    @Asynchronous(reliable = false)
-    public void setView(Quatd rotation, Vec3d location);
+    EntityId getPlayer();
 
     /**
      * For now we just direct-move the player avatar.
      */
     @Asynchronous(reliable = false)
-    public void move(MovementInput movementForces);
+    void setView(Quatd rotation, Vec3d location);
+
+    /**
+     * For now we just direct-move the player avatar.
+     */
+    @Asynchronous(reliable = false)
+    void move(MovementInput movementForces);
 
     /**
      * Perform an action, such as placing a brick, firing off burst, placing a decoy
      * etc.
      */
     @Asynchronous(reliable = true)
-    public void action(byte actionInput);
+    void action(byte actionInput);
 
     /**
      * Attack using guns, bombs, mines, gravbombs
      */
     @Asynchronous(reliable = true)
-    public void attack(byte attackInput);
+    void attack(byte attackInput);
 
     /**
      * Request a ship change or enter spectator mode
      */
     @Asynchronous(reliable = true)
-    public void avatar(byte avatarInput);
+    void avatar(byte avatarInput);
 
     /**
      * Toggle antiwarp, cloak, stealth etc.
      */
     @Asynchronous(reliable = true)
-    public void toggle(byte toggleInput);
+    void toggle(byte toggleInput);
 
     /**
      * Edit the map
@@ -100,7 +100,7 @@ public interface GameSession {
      * @param mapInput
      */
     @Asynchronous(reliable = true)
-    public void map(byte mapInput, Vec3d coords);
+    void map(byte mapInput, Vec3d coords);
 
 //
 //    /**
