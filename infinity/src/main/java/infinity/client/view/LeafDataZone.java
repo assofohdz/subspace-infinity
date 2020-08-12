@@ -68,7 +68,7 @@ public class LeafDataZone extends AbstractZone {
     public LeafDataZone(World world, Grid grid, int xCell, int yCell, int zCell) {
         super(grid, xCell, yCell, zCell);
         this.world = world;
-        this.leafId = Coordinates.leafToLeafId(xCell, yCell, zCell);
+        leafId = Coordinates.leafToLeafId(xCell, yCell, zCell);
     }
 
     @Override

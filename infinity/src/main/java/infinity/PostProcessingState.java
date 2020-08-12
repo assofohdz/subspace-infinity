@@ -63,10 +63,10 @@ public class PostProcessingState extends BaseAppState {
     }
 
     public void setShadowStrength(float f) {
-        if (this.shadowStrength == f) {
+        if (shadowStrength == f) {
             return;
         }
-        this.shadowStrength = f;
+        shadowStrength = f;
         resetShadowStrength();
     }
 

@@ -239,10 +239,10 @@ public class AdaptiveClassLoader extends ClassLoader {
         }
 
         // Store the class repository for use
-        this.repository = classRepository;
+        repository = classRepository;
 
         // Increment and store generation counter
-        this.generation = generationCounter++;
+        generation = generationCounter++;
     }
 
     // ------------------------------------------------------- Methods

@@ -110,7 +110,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     @Override
     protected void onInitialize(ClientServiceManager s) {
         log.debug("onInitialize(" + s + ")");
-        this.rmiService = getService(RmiClientService.class);
+        rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
             throw new RuntimeException("ChatClientService requires RMI service");
         }
@@ -136,7 +136,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         // game is doing something screwy.
         if (delegate == null) {
             // Look it up
-            this.delegate = rmiService.getRemoteObject(ChatSession.class);
+            delegate = rmiService.getRemoteObject(ChatSession.class);
             log.debug("delegate:" + delegate);
             if (delegate == null) {
                 throw new RuntimeException("No chat session found");

@@ -126,7 +126,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
         inputMapper.activateGroup(AvatarMovementFunctions.G_TOWER);
         inputMapper.activateGroup(AvatarMovementFunctions.G_ACTION);
 
-        this.session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        session = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -179,15 +179,15 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     @Override
     public void valueActive(FunctionId func, double value, double tpf) {
         if (func == AvatarMovementFunctions.F_THRUST) {
-            this.forward = value;
+            forward = value;
         } else if (func == AvatarMovementFunctions.F_TURN) {
-            this.rotate = value;
+            rotate = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE1) {
-            this.mouse1 = value;
+            mouse1 = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE2) {
-            this.mouse2 = value;
+            mouse2 = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE3) {
-            this.mouse3 = value;
+            mouse3 = value;
         }
     }
 

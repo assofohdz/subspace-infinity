@@ -111,7 +111,7 @@ public class ToolState extends BaseAppState {
         resetCursorPosition();
         getGuiNode().attachChild(cursor);
 
-        this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
 
         InputMapper input = GuiGlobals.getInstance().getInputMapper();
         input.addStateListener(toolListener, ToolFunctions.F_MAIN_TOOL, ToolFunctions.F_ALT_TOOL);

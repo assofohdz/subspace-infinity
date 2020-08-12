@@ -83,18 +83,18 @@ public class AttackSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = getSystem(MPhysSystem.class);
+        physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
 
-        this.space = physics.getPhysicsSpace();
-        this.binIndex = space.getBinIndex();
-        this.binEntityManager = physics.getBinEntityManager();
+        space = physics.getPhysicsSpace();
+        binIndex = space.getBinIndex();
+        binEntityManager = physics.getBinEntityManager();
 
         health = getSystem(EnergySystem.class);
 
@@ -158,7 +158,7 @@ public class AttackSystem extends AbstractGameSystem {
         while (iterator.hasNext()) {
             Attack a = iterator.next();
 
-            this.attack(a.getOwner(), a.getWeaponType());
+            attack(a.getOwner(), a.getWeaponType());
 
             iterator.remove();
         }
@@ -177,22 +177,22 @@ public class AttackSystem extends AbstractGameSystem {
     private void attack(EntityId requestor, byte flag) {
         switch (flag) {
         case AttackSystem.BOMB:
-            this.entityAttackBomb(requestor);
+            entityAttackBomb(requestor);
             break;
         case AttackSystem.GUN:
-            this.entityAttackGuns(requestor);
+            entityAttackGuns(requestor);
             break;
         case AttackSystem.BURST:
-            this.entityBurst(requestor);
+            entityBurst(requestor);
             break;
         case AttackSystem.GRAVBOMB:
-            this.entityAttackGravityBomb(requestor);
+            entityAttackGravityBomb(requestor);
             break;
         case AttackSystem.MINE:
-            this.entityPlaceMine(requestor);
+            entityPlaceMine(requestor);
             break;
         case AttackSystem.THOR:
-            this.entityAttackThor(requestor);
+            entityAttackThor(requestor);
             break;
         default:
             throw new UnsupportedOperationException("Unsupported weapontype " + Byte.toString(flag) + " in attack");
@@ -218,9 +218,9 @@ public class AttackSystem extends AbstractGameSystem {
          * health.createHealthChange(requestor, -1 * shipGuns.getCost());
          */
         // Perform attack
-        AttackInfo info = this.getAttackInfo(requestor, AttackSystem.THOR);
+        AttackInfo info = getAttackInfo(requestor, AttackSystem.THOR);
 
-        this.attackThor(info, new Damage(-20), requestor);
+        attackThor(info, new Damage(-20), requestor);
 
         // Set new cooldown
         // No cooldown on thors
@@ -262,9 +262,9 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipGunCost.getCost());
 
         // Perform attack
-        AttackInfo info = this.getAttackInfo(requestor, AttackSystem.GUN);
+        AttackInfo info = getAttackInfo(requestor, AttackSystem.GUN);
 
-        this.attackGuns(info, shipGuns.getLevel(), new Damage(-20), requestor);
+        attackGuns(info, shipGuns.getLevel(), new Damage(-20), requestor);
 
         // Set new cooldown
         ed.setComponent(requestor, shipGunCooldown.copy());
@@ -294,9 +294,9 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipBombCost.getCost());
 
         // Perform attack
-        AttackInfo info = this.getAttackInfo(requestor, AttackSystem.BOMB);
+        AttackInfo info = getAttackInfo(requestor, AttackSystem.BOMB);
 
-        this.attackBomb(info, shipBombs.getLevel(), new Damage(-20), requestor);
+        attackBomb(info, shipBombs.getLevel(), new Damage(-20), requestor);
 
         // Set new cooldown
         ed.setComponent(requestor, shipBombCooldown.copy());
@@ -327,9 +327,9 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipMineCost.getCost());
 
         // Perform attack
-        AttackInfo info = this.getAttackInfo(requestor, AttackSystem.MINE);
+        AttackInfo info = getAttackInfo(requestor, AttackSystem.MINE);
 
-        this.attackBomb(info, shipMines.getLevel(), new Damage(-20), requestor);
+        attackBomb(info, shipMines.getLevel(), new Damage(-20), requestor);
 
         // Set new cooldown
         ed.setComponent(requestor, shipMineCooldown.copy());
@@ -354,7 +354,7 @@ public class AttackSystem extends AbstractGameSystem {
 
         float angle = (360 / CoreGameConstants.BURSTPROJECTILECOUNT) * FastMath.DEG_TO_RAD;
 
-        AttackInfo infoOrig = this.getAttackInfo(requestor, AttackSystem.BURST);
+        AttackInfo infoOrig = getAttackInfo(requestor, AttackSystem.BURST);
         for (int i = 0; i < CoreGameConstants.BURSTPROJECTILECOUNT; i++) {
             AttackInfo info = infoOrig.clone();
             orientation = orientation.fromAngles(0, angle * i, 0);
@@ -374,7 +374,7 @@ public class AttackSystem extends AbstractGameSystem {
             // info.setOrientation(new Quatd(newOrientation));
             info.setAttackVelocity(newVelocity);
 
-            this.attackBurst(info, new Damage(-30), requestor);
+            attackBurst(info, new Damage(-30), requestor);
         }
 
         // Reduce count of bursts in inventory:
@@ -411,9 +411,9 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipGravBombCost.getCost());
 
         // Perform attack
-        AttackInfo info = this.getAttackInfo(requestor, AttackSystem.GRAVBOMB);
+        AttackInfo info = getAttackInfo(requestor, AttackSystem.GRAVBOMB);
 
-        this.attackGravBomb(info, shipGravityBombs.getLevel(), new Damage(-20), requestor);
+        attackGravBomb(info, shipGravityBombs.getLevel(), new Damage(-20), requestor);
 
         // Set new cooldown
         ed.setComponent(requestor, shipGravBombCooldown.copy());
@@ -558,7 +558,7 @@ public class AttackSystem extends AbstractGameSystem {
 
         @Override
         public AttackInfo clone() {
-            return new AttackInfo(this.location.clone(), this.attackVelocity.clone());
+            return new AttackInfo(location.clone(), attackVelocity.clone());
         }
     }
 

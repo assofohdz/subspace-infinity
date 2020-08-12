@@ -68,16 +68,16 @@ public class prizeTester extends BaseGameModule {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         try {
-            settings = this.getLoader().loadSettings("prizeTester");
+            settings = getLoader().loadSettings("prizeTester");
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 10);
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(), 10);
     }
 
     @Override
@@ -89,9 +89,9 @@ public class prizeTester extends BaseGameModule {
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+        getChp().registerPatternBiConsumer(prizeTesterCommand,
                 "The command to make this prizeTester do stuff is ~prizeTester <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
     }

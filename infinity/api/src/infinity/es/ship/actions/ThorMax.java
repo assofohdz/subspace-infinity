@@ -41,6 +41,6 @@ public class ThorMax implements EntityComponent {
     }
 
     public ThorMax(int count) {
-        this.max = count;
+        max = count;
     }
 }

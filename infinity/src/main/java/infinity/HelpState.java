@@ -204,7 +204,7 @@ public class HelpState extends BaseAppState {
         }
 
         public KeyHelp(String keys, String... description) {
-            this.keyNames = new String[] { keys };
+            keyNames = new String[] { keys };
             this.description = description;
         }
 

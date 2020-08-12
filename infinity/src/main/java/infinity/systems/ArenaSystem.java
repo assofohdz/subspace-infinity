@@ -77,7 +77,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     @Override
     protected void initialize() {
 
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
 
@@ -169,10 +169,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
                 return false;
             }
             final Vector2i other = (Vector2i) obj;
-            if (this.x != other.x) {
+            if (x != other.x) {
                 return false;
             }
-            if (this.z != other.z) {
+            if (z != other.z) {
                 return false;
             }
             return true;

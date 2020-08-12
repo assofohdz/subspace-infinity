@@ -83,8 +83,8 @@ public class TimeState extends BaseAppState implements TimeManager {
     @Override
     public void update(float tpf) {
         if (timeSource != null) {
-            this.frameTime = timeSource.getTime();
-            this.realTime = System.nanoTime();
+            frameTime = timeSource.getTime();
+            realTime = System.nanoTime();
         }
     }
 

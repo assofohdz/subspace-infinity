@@ -53,14 +53,14 @@ public class Position_old implements EntityComponent {
     }
 
     public Position_old(Vec3d loc, Quatd quat, double rotation) {
-        this.location = loc;
-        this.facing = quat;
+        location = loc;
+        facing = quat;
         this.rotation = rotation;
     }
 
     public Position_old(Vec3d loc, Quatd quat, double rotation, long cellId) {
-        this.location = loc;
-        this.facing = quat;
+        location = loc;
+        facing = quat;
         this.rotation = rotation;
         this.cellId = cellId;
     }

@@ -121,8 +121,8 @@ public class GameSessionState extends CompositeAppState {
 
         getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
 
-        this.getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
-        addChild(new MouseAppState(this.getApplication()));
+        getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
+        addChild(new MouseAppState(getApplication()));
     }
 
     @Override

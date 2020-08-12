@@ -107,18 +107,18 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = getSystem(MPhysSystem.class);
+        physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
 
-        this.space = physics.getPhysicsSpace();
-        this.binIndex = space.getBinIndex();
-        this.binEntityManager = physics.getBinEntityManager();
+        space = physics.getPhysicsSpace();
+        binIndex = space.getBinIndex();
+        binEntityManager = physics.getBinEntityManager();
 
         categoryFilters = ed.getEntities(CollisionCategory.class);
     }

@@ -97,7 +97,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      */
     public ChatHostedService(int channel) {
         this.channel = channel;
-        this.patternBiConsumers = new HashMap<>();
+        patternBiConsumers = new HashMap<>();
         // setAutoHost(false);
     }
 
@@ -109,7 +109,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     protected void onInitialize(HostedServiceManager s) {
 
         // Grab the RMI service so we can easily use it later
-        this.rmiService = getService(RmiHostedService.class);
+        rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("ChatHostedService requires an RMI service.");
         }
@@ -226,7 +226,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         patternBiConsumers.put(pattern, c);
 
         // TODO: Post message only to those who have the proper access level
-        this.postPublicMessage("System", MessageTypes.MESSAGE, description);
+        postPublicMessage("System", MessageTypes.MESSAGE, description);
     }
 
     /**
@@ -257,7 +257,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         // the command
 
         // TODO: Post message only to those who have the proper access level
-        this.postPublicMessage("System", MessageTypes.MESSAGE, helptext);
+        postPublicMessage("System", MessageTypes.MESSAGE, helptext);
 
     }
 
@@ -289,7 +289,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         }
 
         protected HostedConnection getConn() {
-            return this.conn;
+            return conn;
         }
 
         protected ChatSessionListener getCallback() {

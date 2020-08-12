@@ -41,6 +41,6 @@ public class BurstMax implements EntityComponent {
     }
 
     public BurstMax(int count) {
-        this.max = count;
+        max = count;
     }
 }

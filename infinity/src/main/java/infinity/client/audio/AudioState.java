@@ -85,21 +85,21 @@ public class AudioState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        this.factory.setState(this);
-        this.timeState = getState(TimeState.class);
-        this.ed = getState(ConnectionState.class).getEntityData();
+        factory.setState(this);
+        timeState = getState(TimeState.class);
+        ed = getState(ConnectionState.class).getEntityData();
 
         // This state just needs to know which sounds to play and where to play them
-        this.audio = ed.getEntities(AudioType.class, BodyPosition.class);
+        audio = ed.getEntities(AudioType.class, BodyPosition.class);
 
         // Get asset manager to be able to retrieve the sounds
-        this.assets = app.getAssetManager();
+        assets = app.getAssetManager();
         // Register default wave loader with the wa2 extension
-        this.assets.registerLoader(WAVLoader.class, "wa2");
-        this.listener = app.getListener();
+        assets.registerLoader(WAVLoader.class, "wa2");
+        listener = app.getListener();
 
-        this.soundRoot = new Node();
-        this.soundIndex = new HashMap<>();
+        soundRoot = new Node();
+        soundIndex = new HashMap<>();
 
     }
 

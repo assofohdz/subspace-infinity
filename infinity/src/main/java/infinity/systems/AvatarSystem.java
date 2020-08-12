@@ -85,17 +85,17 @@ public class AvatarSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
-        this.frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
-        this.captains = ed.getEntities(ShapeInfo.class, Captain.class);
+        frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
+        captains = ed.getEntities(ShapeInfo.class, Captain.class);
 
         teamRestrictions = new HashMap<>();
 
         // Register consuming methods for patterns
         chp.registerPatternBiConsumer(joinTeam,
                 "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> joinTeam(id, frequency)));
 
     }
 
@@ -139,7 +139,7 @@ public class AvatarSystem extends AbstractGameSystem {
 
         int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFreq();
 
-        ShipRestrictor restrictor = this.getRestrictor(freq);
+        ShipRestrictor restrictor = getRestrictor(freq);
 
         // Allow ship change if no restrictions on frequency, or if restrictions allow
         // it
@@ -235,12 +235,12 @@ public class AvatarSystem extends AbstractGameSystem {
                 }
             });
         } else {
-            this.teamRestrictions.put(team, restrict);
+            teamRestrictions.put(team, restrict);
         }
     }
 
     public ShipRestrictor getRestrictor(int team) {
-        return this.teamRestrictions.get(team);
+        return teamRestrictions.get(team);
     }
 
     /**

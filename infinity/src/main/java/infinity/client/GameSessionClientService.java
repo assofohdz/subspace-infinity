@@ -93,7 +93,7 @@ public class GameSessionClientService extends AbstractClientService implements G
         // state properly.
         if (delegate == null) {
             // Look it up
-            this.delegate = rmiService.getRemoteObject(GameSession.class);
+            delegate = rmiService.getRemoteObject(GameSession.class);
             log.debug("delegate:" + delegate);
             if (delegate == null) {
                 throw new RuntimeException("No game session found");
@@ -118,7 +118,7 @@ public class GameSessionClientService extends AbstractClientService implements G
     @Override
     protected void onInitialize(ClientServiceManager s) {
         log.info("onInitialize(" + s + ")");
-        this.rmiService = getService(RmiClientService.class);
+        rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
             throw new RuntimeException("GameSessionClientService requires RMI service");
         }

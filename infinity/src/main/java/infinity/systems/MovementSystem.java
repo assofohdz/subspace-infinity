@@ -78,16 +78,16 @@ public class MovementSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = getSystem(MPhysSystem.class);
+        physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
 
-        this.space = physics.getPhysicsSpace();
+        space = physics.getPhysicsSpace();
         physics.getBodyFactory().addDynamicInitializer(initializer);
 
         // There are two ways that a PlayerDriver can be set on a

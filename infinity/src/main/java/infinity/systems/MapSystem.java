@@ -108,11 +108,11 @@ public class MapSystem extends AbstractGameSystem {
     // int[][] multD = new int[5][];
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = getSystem(MPhysSystem.class);
+        physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
@@ -121,9 +121,9 @@ public class MapSystem extends AbstractGameSystem {
             throw new RuntimeException(getClass().getName() + " system requires the World system.");
         }
 
-        this.space = physics.getPhysicsSpace();
-        this.binIndex = space.getBinIndex();
-        this.binEntityManager = physics.getBinEntityManager();
+        space = physics.getPhysicsSpace();
+        binIndex = space.getBinIndex();
+        binEntityManager = physics.getBinEntityManager();
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
@@ -358,7 +358,7 @@ public class MapSystem extends AbstractGameSystem {
     @Override
     public void update(SimTime tpf) {
 
-        this.time = tpf;
+        time = tpf;
 
         // Create map:
         if (!mapCreated) {
@@ -724,7 +724,7 @@ public class MapSystem extends AbstractGameSystem {
         public MapTileCallable(String m_file, short s, Vec3d location, String type, EntityData ed, long time) {
             this.m_file = m_file;
             this.s = s;
-            this.loc = location;
+            loc = location;
             this.type = type;
             this.ed = ed;
             this.time = time;
@@ -736,7 +736,7 @@ public class MapSystem extends AbstractGameSystem {
 
             EntityId id = GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, m_file, s, loc, type);
 
-            log.debug("Called up creation of entity: " + id + ". " + this.toString());
+            log.debug("Called up creation of entity: " + id + ". " + toString());
             return id;
         }
 

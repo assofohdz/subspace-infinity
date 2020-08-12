@@ -68,18 +68,18 @@ public class wangTester extends BaseGameModule {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         try {
-            settings = this.getLoader().loadSettings("wangTester");
+            settings = getLoader().loadSettings("wangTester");
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 20);
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(), 20);
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
 
     }
 
@@ -92,9 +92,9 @@ public class wangTester extends BaseGameModule {
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+        getChp().registerPatternBiConsumer(prizeTesterCommand,
                 "The command to make this wangTester do stuff is ~wangTester <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
     }

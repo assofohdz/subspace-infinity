@@ -50,9 +50,9 @@ public class DeathSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
-        this.dead = ed.getEntities(Dead.class);
+        dead = ed.getEntities(Dead.class);
     }
 
     @Override

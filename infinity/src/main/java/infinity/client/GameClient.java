@@ -72,7 +72,7 @@ public class GameClient {
 
     public GameClient(String host, int port) throws IOException {
         log.info("Connecting to:" + host + " " + port);
-        this.client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
+        client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
 
         // client.addMessageListener(new MessageDebugger());
 
@@ -88,7 +88,7 @@ public class GameClient {
 
         // Can grab this even before started but you won't be able to retrieve
         // entities until the connection has been fully setup.
-        this.ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
+        ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
     }
 
     public TimeSource getTimeSource() {

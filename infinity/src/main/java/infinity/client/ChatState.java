@@ -80,7 +80,7 @@ public class ChatState extends BaseAppState {
 
         // Setup the chat related services
         getState(ConnectionState.class).getService(ChatClientService.class).addChatSessionListener(chatSessionObserver);
-        this.originalCommandEntry = getState(CommandConsoleState.class).getCommandEntry();
+        originalCommandEntry = getState(CommandConsoleState.class).getCommandEntry();
         getState(CommandConsoleState.class).setCommandEntry(chatEntry);
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();

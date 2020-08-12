@@ -59,8 +59,8 @@ public class MovementInput implements EntityComponent {
 
     public MovementInput(Vec3d move) {
         this.move = move;
-        this.facing = new Quatd();
-        this.flags = (byte) 0;
+        facing = new Quatd();
+        flags = (byte) 0;
     }
 
     public MovementInput(Vec3d move, Quatd facing, byte flags) {

@@ -73,18 +73,18 @@ public class LightState extends BaseAppState {
     @Override
     protected void initialize(Application app) {
 
-        this.ed = getState(ConnectionState.class).getEntityData();
+        ed = getState(ConnectionState.class).getEntityData();
 
-        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
-        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
+        movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
+        decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
 
-        this.timeState = getState(TimeState.class);
+        timeState = getState(TimeState.class);
     }
 
     @Override
     protected void cleanup(Application app) {
-        this.movingPointLights.release();
-        this.movingPointLights = null;
+        movingPointLights.release();
+        movingPointLights = null;
     }
 
     @Override
@@ -109,11 +109,11 @@ public class LightState extends BaseAppState {
 
         if (movingPointLights.hasChanges()) {
             for (Entity e : movingPointLights.getAddedEntities()) {
-                this.createPointLight(e);
+                createPointLight(e);
             }
 
             for (Entity e : movingPointLights.getRemovedEntities()) {
-                this.removePointLight(e);
+                removePointLight(e);
             }
         }
         /*

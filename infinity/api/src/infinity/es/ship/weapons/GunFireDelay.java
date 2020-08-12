@@ -37,13 +37,13 @@ public class GunFireDelay implements EntityComponent {
     private long delta;
 
     public GunFireDelay() {
-        this.start = System.nanoTime();
-        this.delta = 1000000 * 10;
+        start = System.nanoTime();
+        delta = 1000000 * 10;
     }
 
     public GunFireDelay(long deltaMillis) {
-        this.start = System.nanoTime();
-        this.delta = deltaMillis * 1000000;
+        start = System.nanoTime();
+        delta = deltaMillis * 1000000;
     }
 
     public double getPercent() {

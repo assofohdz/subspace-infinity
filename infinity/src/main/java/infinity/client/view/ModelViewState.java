@@ -280,11 +280,11 @@ public class ModelViewState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        this.ed = getState(ConnectionState.class).getEntityData();
-        this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
-        this.worldView = getState(WorldViewState.class);
-        this.objectRoot = new Node("objectRoot");
-        this.grid = InfinityConstants.PHYSICS_GRID;
+        ed = getState(ConnectionState.class).getEntityData();
+        timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+        worldView = getState(WorldViewState.class);
+        objectRoot = new Node("objectRoot");
+        grid = InfinityConstants.PHYSICS_GRID;
 
         DebugHudState debug = getState(DebugHudState.class);
         if (debug != null) {
@@ -296,7 +296,7 @@ public class ModelViewState extends BaseAppState {
 
         // this.shapeFactory =
         // (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);
-        this.shapeFactory = new ShapeFactoryRegistry<>();
+        shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
@@ -308,7 +308,7 @@ public class ModelViewState extends BaseAppState {
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
 
-        this.modelFactory = new SpatialFactory(ed, ((SimpleApplication) app).getRootNode(), app.getAssetManager());
+        modelFactory = new SpatialFactory(ed, ((SimpleApplication) app).getRootNode(), app.getAssetManager());
 
         // Some test objects
         // for( int i = 0; i < tests.length; i++ ) {
@@ -322,16 +322,16 @@ public class ModelViewState extends BaseAppState {
          *
          * //tests[i] = geom; tests.add(geom); }
          */
-        this.mobs = new MobContainer(ed);
-        this.models = new ModelContainer(ed);
-        this.largeModels = new LargeModelContainer(ed);
+        mobs = new MobContainer(ed);
+        models = new ModelContainer(ed);
+        largeModels = new LargeModelContainer(ed);
 
         resetModelFilter();
 
-        this.tileTypes = ed.getEntities(TileType.class);
+        tileTypes = ed.getEntities(TileType.class);
 
-        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
-        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
+        movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
+        decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
     }
 
     @Override
@@ -345,8 +345,8 @@ public class ModelViewState extends BaseAppState {
         tileTypes.release();
         tileTypes = null;
 
-        this.movingPointLights.release();
-        this.movingPointLights = null;
+        movingPointLights.release();
+        movingPointLights = null;
     }
 
     @Override
@@ -355,7 +355,7 @@ public class ModelViewState extends BaseAppState {
         mobs.start();
         models.start();
         largeModels.start();
-        this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -706,7 +706,7 @@ public class ModelViewState extends BaseAppState {
                 resetVisibility();
 
                 if (spatial.getUserDataKeys().contains("arena")) {
-                    this.markInvisible();
+                    markInvisible();
                 }
             }
         }
@@ -785,11 +785,11 @@ public class ModelViewState extends BaseAppState {
 
         public Mob(Entity entity) {
             if (entity.getId().getId() == watchedAvatar.getId().getId()) {
-                this.isAvatar = true;
+                isAvatar = true;
             }
 
             this.entity = entity;
-            this.model = getModel(entity.getId(), true);
+            model = getModel(entity.getId(), true);
             model.setDynamic(true);
         }
 
@@ -813,9 +813,9 @@ public class ModelViewState extends BaseAppState {
             // thread-safe history buffer. Everywhere it's used, it should
             // be 'initialized'.
             pos.initialize(entity.getId(), 12);
-            this.buffer = pos.getBuffer();
+            buffer = pos.getBuffer();
 
-            if (this.isAvatar) {
+            if (isAvatar) {
                 setAvatarBuffer(buffer);
             }
         }
@@ -853,12 +853,12 @@ public class ModelViewState extends BaseAppState {
 
         protected void setVisible(boolean f) {
 //log.info("setVisible(" + entity.getId() + ", " + f + ")");
-            if (this.visible == f) {
+            if (visible == f) {
                 return;
             }
 // For now, ignore setting false
 //if( !f ) return;
-            this.visible = f;
+            visible = f;
             // resetVisibility();
             if (visible) {
                 model.markVisible();
@@ -1019,18 +1019,18 @@ public class ModelViewState extends BaseAppState {
     }
 
     private void setAvatarBuffer(TransitionBuffer buffer) {
-        this.avatarBuffer = buffer;
+        avatarBuffer = buffer;
     }
 
     public TransitionBuffer<PositionTransition3d> getAvatarBuffer() {
-        return this.avatarBuffer;
+        return avatarBuffer;
     }
 
     private void setAvatarWorldPosition(Vector3f pos) {
-        this.avatarPos = pos;
+        avatarPos = pos;
     }
 
     public Vector3f getAvatarPosition() {
-        return this.avatarPos;
+        return avatarPos;
     }
 }

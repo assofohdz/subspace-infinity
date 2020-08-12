@@ -72,14 +72,14 @@ public class PlayerDriver implements ControlDriver, Driver {
     public PlayerDriver(EntityId shipEntityId, EntityData ed, SettingsSystem settings) {
         // Watch all the relevant movement components of the ship
         Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
-        this.shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
+        shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
         this.settings = settings;
         this.ed = ed;
     }
 
     @Override
     public void applyMovementState(MovementInput input) {
-        this.movementForces = input;
+        movementForces = input;
     }
 
     private double applyThrust(double v, double thrust, double tpf) {

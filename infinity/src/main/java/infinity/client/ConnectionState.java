@@ -171,7 +171,7 @@ public class ConnectionState extends CompositeAppState {
         connectingPanel = new OptionPanel("Connecting...", new ExitAction("Cancel", true));
         getState(OptionPanelState.class).show(connectingPanel);
 
-        this.renderThread = Thread.currentThread();
+        renderThread = Thread.currentThread();
         connector = new Connector();
         connector.start();
     }

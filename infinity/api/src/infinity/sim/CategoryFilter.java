@@ -127,8 +127,8 @@ public class CategoryFilter implements Filter {
      * By default the category is 1 and the mask is all categories.
      */
     public CategoryFilter() {
-        this.category = 1;
-        this.mask = Long.MAX_VALUE;
+        category = 1;
+        mask = Long.MAX_VALUE;
     }
 
     /**
@@ -166,7 +166,7 @@ public class CategoryFilter implements Filter {
             // cast the filter
             CategoryFilter cf = (CategoryFilter) filter;
             // perform the check
-            return (this.category & cf.mask) > 0 && (cf.category & this.mask) > 0;
+            return (category & cf.mask) > 0 && (cf.category & mask) > 0;
         }
         // if its not of right type always return true
         return true;
@@ -187,7 +187,7 @@ public class CategoryFilter implements Filter {
         }
         if (obj instanceof CategoryFilter) {
             CategoryFilter filter = (CategoryFilter) obj;
-            return filter.category == this.category && filter.mask == this.mask;
+            return filter.category == category && filter.mask == mask;
         }
         return false;
     }
@@ -200,8 +200,8 @@ public class CategoryFilter implements Filter {
     @Override
     public int hashCode() {
         int hash = 17;
-        hash = hash * 31 + (int) ((this.category >>> 32) ^ this.category);
-        hash = hash * 31 + (int) ((this.mask >>> 32) ^ this.mask);
+        hash = hash * 31 + (int) ((category >>> 32) ^ category);
+        hash = hash * 31 + (int) ((mask >>> 32) ^ mask);
         return hash;
     }
 
@@ -213,7 +213,7 @@ public class CategoryFilter implements Filter {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("CategoryFilter[Category=").append(this.category).append("|Mask=").append(this.mask).append("]");
+        sb.append("CategoryFilter[Category=").append(category).append("|Mask=").append(mask).append("]");
         return sb.toString();
     }
 
@@ -223,7 +223,7 @@ public class CategoryFilter implements Filter {
      * @return long the category bits
      */
     public long getCategory() {
-        return this.category;
+        return category;
     }
 
     /**
@@ -232,6 +232,6 @@ public class CategoryFilter implements Filter {
      * @return long the mask bits
      */
     public long getMask() {
-        return this.mask;
+        return mask;
     }
 }

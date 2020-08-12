@@ -64,7 +64,7 @@ public class StatsSystem extends AbstractGameSystem {
         private final GameServer localServer;
 
         public Task(GameServer server) {
-            this.localServer = server;
+            localServer = server;
         }
 
         int count = 1;

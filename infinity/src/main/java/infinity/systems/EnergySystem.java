@@ -131,14 +131,14 @@ public class EnergySystem extends AbstractGameSystem {
         for (Entity e : recharges) {
 
             if (maxLiving.containsId(e.getId())) {
-                if (this.getHealth(e.getId()) < this.getMaxHealth(e.getId())) {
+                if (getHealth(e.getId()) < getMaxHealth(e.getId())) {
                     double tpf = time.getTpf();
 
                     Recharge recharge = e.get(Recharge.class);
 
                     Double charge = tpf * recharge.getRechargePerSecond();
 
-                    this.createHealthChange(e.getId(), charge.intValue());
+                    createHealthChange(e.getId(), charge.intValue());
                 }
             } else {
                 double tpf = time.getTpf();
@@ -147,7 +147,7 @@ public class EnergySystem extends AbstractGameSystem {
 
                 Double charge = tpf * recharge.getRechargePerSecond();
 
-                this.createHealthChange(e.getId(), charge.intValue());
+                createHealthChange(e.getId(), charge.intValue());
             }
         }
 

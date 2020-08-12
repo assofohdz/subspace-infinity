@@ -201,7 +201,7 @@ public final class RandomSelector<T> {
             final double[] pr = new double[size];
             final int[] al = new int[size];
             this.probabilities = pr;
-            this.alias = al;
+            alias = al;
 
             while (largeSize != 0 && smallSize != 0) {
                 final int less = small[--smallSize];

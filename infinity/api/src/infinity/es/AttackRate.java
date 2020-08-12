@@ -43,7 +43,7 @@ public class AttackRate implements EntityComponent {
     }
 
     public int getRate() {
-        return this.rate;
+        return rate;
     }
 
 }

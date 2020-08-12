@@ -83,7 +83,7 @@ public class InfinityCameraState extends CameraState {
 
     @Override
     protected void initialize(Application app) {
-        this.cam = app.getCamera();
+        cam = app.getCamera();
 
         camNode = new CameraNode("Camera", cam);
         // SpatialToamera means the camera copies movement by the target
@@ -97,13 +97,13 @@ public class InfinityCameraState extends CameraState {
         // frustumSize, frustumSize, -frustumSize);
         app.getRenderManager().setCamera(cam, true);
 
-        this.ed = getState(ConnectionState.class).getEntityData();
+        ed = getState(ConnectionState.class).getEntityData();
 
-        this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+        timeSource = getState(ConnectionState.class).getRemoteTimeSource();
 
-        this.viewState = getState(ModelViewState.class);
+        viewState = getState(ModelViewState.class);
 
-        this.session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        session = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -155,7 +155,7 @@ public class InfinityCameraState extends CameraState {
 
     @Override
     protected void onEnable() {
-        this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
 
     }
 

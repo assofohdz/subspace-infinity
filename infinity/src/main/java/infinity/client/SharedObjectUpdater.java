@@ -89,7 +89,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     @Override
     protected void onInitialize(ClientServiceManager s) {
         log.info("onInitialize()");
-        this.ed = getService(EntityDataClientService.class).getEntityData();
+        ed = getService(EntityDataClientService.class).getEntityData();
     }
 
     @Override
@@ -97,7 +97,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
         log.info("start()");
         log.info("start() thread:" + Thread.currentThread());
         entities = ed.getEntities(BodyPosition.class);
-        this.frameTime = -1;
+        frameTime = -1;
         getService(EtherealClient.class).addObjectListener(this);
     }
 
@@ -113,7 +113,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
         if (log.isTraceEnabled()) {
             log.trace("** beginFrame(" + time + ")");
         }
-        this.frameTime = time;
+        frameTime = time;
         if (entities.applyChanges()) {
             // Make sure the added/updated entities have been initialized
             initializeBodyPosition(entities.getAddedEntities());
@@ -239,7 +239,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     @Override
     public void endFrame() {
         log.trace("** endFrame()");
-        this.frameTime = -1;
+        frameTime = -1;
 
         if (log.isTraceEnabled()) {
             if (trackers.size() != entities.size()) {

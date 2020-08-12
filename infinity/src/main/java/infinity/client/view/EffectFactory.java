@@ -64,8 +64,8 @@ public class EffectFactory {
     public void setState(ModelViewState state) {
 
         this.state = state;
-        this.assets = state.getApplication().getAssetManager();
-        this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
+        assets = state.getApplication().getAssetManager();
+        ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
 
         createFlame();
         createFlash();

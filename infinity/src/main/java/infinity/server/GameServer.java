@@ -145,12 +145,12 @@ public class GameServer {
         // Make sure we are running with a fresh serializer registry
         Serializer.initialize();
 
-        this.systems = new GameSystemManager();
-        this.loop = new GameLoop(systems);
+        systems = new GameSystemManager();
+        loop = new GameLoop(systems);
 
         // Create the SpiderMonkey server and setup our standard
         // initial hosted services
-        this.server = Network.createServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, port, port);
+        server = Network.createServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, port, port);
 
         // Create a separate channel to do chat stuff so it doesn't interfere
         // with any real game stuff.

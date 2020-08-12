@@ -41,6 +41,6 @@ public class BrickMax implements EntityComponent {
     }
 
     public BrickMax(int count) {
-        this.max = count;
+        max = count;
     }
 }

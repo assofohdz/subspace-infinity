@@ -134,22 +134,22 @@ public class AdaptiveLoadingService extends AbstractHostedService
         // Arrays.asList(directories).forEach(consumerDirectories);
         repositoryList.forEach(consumerDirectories);
 
-        this.classLoader = new AdaptiveClassLoader(repository);
+        classLoader = new AdaptiveClassLoader(repository);
         // this.classLoader = new AdaptiveClassLoader(directories);
 
         // Register consuming methods for patterns
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern,
                 "The command to start a new module is ~startModule <module>, where <module> is the module you want to start",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> startModule(id, module)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern,
                 "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.stopModule(id, module)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> stopModule(id, module)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern,
                 "The command to start a new module is ~startService <service>, where <service> is the service you want to start",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> this.startService(id, service)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> startService(id, service)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern,
                 "The command to start a new module is ~stopService <service>, where <service> is the service you want to stop",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> this.stopService(id, service)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> stopService(id, service)));
     }
 
     /**
@@ -238,7 +238,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
         if (!modules.containsKey(module)) {
             try {
                 // Try to load it
-                this.loadModule(module);
+                loadModule(module);
             } catch (IllegalAccessException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
             } catch (InstantiationException ex) {

@@ -68,27 +68,26 @@ public class warpTester extends BaseGameModule {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         try {
-            settings = this.getLoader().loadSettings("warpTester");
+            settings = getLoader().loadSettings("warpTester");
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(warpTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 13);
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(), 13);
 
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-7, 0, 7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7, 0, 7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(7, 7, 0), 5, 5000, GravityWell.PUSH);
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-7, 0, 7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7, 0, 7));
+        GameEntities.createOver5(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(7, 7, 0), 5, 5000, GravityWell.PUSH);
 
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(7, 0, -7), 5, 5, 5000, GravityWell.PULL,
-                new Vec3d(-7, 0, -7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-7, -7, 0), 5, 5000, GravityWell.PUSH);
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(7, 0, -7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7, 0, -7));
+        GameEntities.createOver5(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-7, -7, 0), 5, 5000, GravityWell.PUSH);
     }
 
     @Override
@@ -100,9 +99,9 @@ public class warpTester extends BaseGameModule {
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+        getChp().registerPatternBiConsumer(prizeTesterCommand,
                 "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
     }

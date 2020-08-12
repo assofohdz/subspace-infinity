@@ -89,8 +89,8 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
     @Override
     protected void initialize() {
 
-        this.ed = getSystem(EntityData.class, true);
-        this.phys = getSystem(PhysicsSpace.class, true);
+        ed = getSystem(EntityData.class, true);
+        phys = getSystem(PhysicsSpace.class, true);
 
         // The tricky bit here is that we don't want to
         // watch all static objects all the time like in a big entity
@@ -114,7 +114,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
 
         // Keep track of the large mobs to occasionally update their grid
         // information and spawn position.
-        this.lobs = new LobContainer(ed);
+        lobs = new LobContainer(ed);
     }
 
     @Override
@@ -212,7 +212,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
         }
 
         public void update() {
-            this.pos = entity.get(BodyPosition.class);
+            pos = entity.get(BodyPosition.class);
         }
 
         public void updateCell() {

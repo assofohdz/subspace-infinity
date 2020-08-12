@@ -35,11 +35,11 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
 
     public AmbientLightState(float time) {
         // lightDir.setObject(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
-        this.ambientColor = DEFAULT_AMBIENT.clone();
+        ambientColor = DEFAULT_AMBIENT.clone();
     }
 
     public void setAmbient(ColorRGBA ambient) {
-        this.ambientColor.set(ambient);
+        ambientColor.set(ambient);
     }
 
     public ColorRGBA getAmbient() {

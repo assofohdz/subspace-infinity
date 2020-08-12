@@ -103,12 +103,12 @@ public class GridState extends BaseAppState {
     @Override
     protected void initialize(Application app) {
 
-        this.floor = new Node("grid");
+        floor = new Node("grid");
 
         GuiGlobals globals = GuiGlobals.getInstance();
         {
             com.jme3.scene.debug.Grid mesh = new com.jme3.scene.debug.Grid(floorGridSize + 1, floorGridSize + 1, 1);
-            this.wireFloor = new Geometry("grid-lines", mesh);
+            wireFloor = new Geometry("grid-lines", mesh);
             Material mat = globals.createMaterial(gridColor, false).getMaterial();
             mat.getAdditionalRenderState().setDepthWrite(false);
             wireFloor.setMaterial(mat);
@@ -123,7 +123,7 @@ public class GridState extends BaseAppState {
             mesh.scaleTextureCoordinates(new Vector2f(floorGridSize, floorGridSize));
             Texture gridTexture = globals.loadTexture("Interface/grid-cell.png", true, false);
             Material mat = globals.createMaterial(gridTexture, false).getMaterial();
-            this.flatFloor = new Geometry("grid-quads", mesh);
+            flatFloor = new Geometry("grid-quads", mesh);
             mat.setColor("Color", cellColor);
             mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
             mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);

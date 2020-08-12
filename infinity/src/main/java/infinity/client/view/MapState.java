@@ -95,17 +95,17 @@ public class MapState extends BaseAppState {
 
     @Override
     protected void initialize(Application app) {
-        this.camera = app.getCamera();
+        camera = app.getCamera();
 
-        this.ed = getState(ConnectionState.class).getEntityData();
+        ed = getState(ConnectionState.class).getEntityData();
 
-        this.am = app.getAssetManager();
+        am = app.getAssetManager();
 
         am.registerLoader(LevelLoader.class, "lvl");
 
         imgLoader = new AWTLoader();
 
-        this.generateWangBlobInfoMap(wangBlobIndexMap);
+        generateWangBlobInfoMap(wangBlobIndexMap);
 
         // arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id",
         // ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class,
@@ -225,7 +225,7 @@ public class MapState extends BaseAppState {
 
     @Override
     public void update(float tpf) {
-        this.tpfTime = tpf;
+        tpfTime = tpf;
 
         tileImages.update();
     }
@@ -340,15 +340,15 @@ public class MapState extends BaseAppState {
         private final short tileIndex;
 
         public TileKey(String x, short y) {
-            this.tileSet = x;
-            this.tileIndex = y;
+            tileSet = x;
+            tileIndex = y;
         }
 
         @Override
         public int hashCode() {
             int hash = 7;
-            hash = 97 * hash + Objects.hashCode(this.tileSet);
-            hash = 97 * hash + this.tileIndex;
+            hash = 97 * hash + Objects.hashCode(tileSet);
+            hash = 97 * hash + tileIndex;
             return hash;
         }
 
@@ -364,10 +364,10 @@ public class MapState extends BaseAppState {
                 return false;
             }
             final TileKey other = (TileKey) obj;
-            if (this.tileIndex != other.tileIndex) {
+            if (tileIndex != other.tileIndex) {
                 return false;
             }
-            if (!Objects.equals(this.tileSet, other.tileSet)) {
+            if (!Objects.equals(tileSet, other.tileSet)) {
                 return false;
             }
             return true;
@@ -382,7 +382,7 @@ public class MapState extends BaseAppState {
 
         public WangInfo(int tileNumber, float rotation) {
             this.tileNumber = tileNumber;
-            this.radianRotation = rotation;
+            radianRotation = rotation;
         }
 
         public int getTileNumber() {

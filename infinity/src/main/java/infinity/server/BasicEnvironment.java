@@ -85,9 +85,9 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class, true);
-        this.phys = getSystem(PhysicsSpace.class, true);
-        this.world = getSystem(World.class, true);
+        ed = getSystem(EntityData.class, true);
+        phys = getSystem(PhysicsSpace.class, true);
+        world = getSystem(World.class, true);
         /*
          * // Setup some test entities EntityId test; test = ed.createEntity();
          * ed.setComponents(test, new SpawnPosition(phys.getGrid(), 5, 65, -5), // For
@@ -96,7 +96,7 @@ public class BasicEnvironment extends AbstractGameSystem {
          * displayed objects. //new Position(5, 1, -5), ShapeInfo.create("sphere", 1,
          * ed), new Mass(0) );
          */
-        this.createTestSphere(new Vec3d(0, 0, 0), 1d, false);
+        createTestSphere(new Vec3d(0, 0, 0), 1d, false);
 
     }
 

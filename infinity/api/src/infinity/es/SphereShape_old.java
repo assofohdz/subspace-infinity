@@ -53,12 +53,12 @@ public class SphereShape_old implements EntityComponent {
      */
     public SphereShape_old(double radius, Vec3d centerOffset) {
         this.radius = radius;
-        this.offset = centerOffset;
+        offset = centerOffset;
     }
 
     public SphereShape_old(double radius) {
         this.radius = radius;
-        this.offset = new Vec3d();
+        offset = new Vec3d();
     }
 
     public double getRadius() {

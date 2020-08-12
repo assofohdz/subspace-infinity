@@ -44,7 +44,7 @@ public class Gold implements EntityComponent {
     }
 
     public int getGold() {
-        return this.gold;
+        return gold;
     }
 
 }

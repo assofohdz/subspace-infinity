@@ -59,38 +59,38 @@ public class ResourceSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
-        this.ships = this.ed.getEntities(ShapeInfo.class);
+        ed = getSystem(EntityData.class);
+        ships = ed.getEntities(ShapeInfo.class);
     }
 
     @Override
     protected void terminate() {
-        this.ships.release();
-        this.ships = null;
+        ships.release();
+        ships = null;
     }
 
     @Override
     public void update(SimTime tpf) {
         // only update every RESOURCE_UPDATE_INTERVAL
-        this.ships.applyChanges();
+        ships.applyChanges();
 
-        if (this.time_since_last_update > CoreGameConstants.RESOURCE_UPDATE_INTERVAL) {
-            this.time_since_last_update = 0;
+        if (time_since_last_update > CoreGameConstants.RESOURCE_UPDATE_INTERVAL) {
+            time_since_last_update = 0;
 
             // TPF is in seconds
             int gold = (int) (tpf.getTpf() * CoreGameConstants.GOLD_PER_SECOND);
 
             // Handle old ships
-            for (Entity e : this.ships) {
-                Gold g = this.ed.getComponent(e.getId(), Gold.class);
+            for (Entity e : ships) {
+                Gold g = ed.getComponent(e.getId(), Gold.class);
                 int totalGold = g.getGold() + gold;
-                this.ed.setComponent(e.getId(), new Gold(totalGold));
+                ed.setComponent(e.getId(), new Gold(totalGold));
 
                 goldMap.put(e.getId(), totalGold);
             }
         }
         // update time
-        this.time_since_last_update += tpf.getTpf();
+        time_since_last_update += tpf.getTpf();
 
     }
 

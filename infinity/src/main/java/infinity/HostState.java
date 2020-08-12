@@ -86,9 +86,9 @@ public class HostState extends BaseAppState {
         try {
             this.singlePlayer = singlePlayer;
             this.port = port;
-            this.gameServer = new GameServer(port, description);
-            this.systems = gameServer.getSystems();
-            this.ed = systems.get(EntityData.class);
+            gameServer = new GameServer(port, description);
+            systems = gameServer.getSystems();
+            ed = systems.get(EntityData.class);
             gameServer.getServer().addConnectionListener(connectionListener);
         } catch (IOException e) {
             throw new RuntimeException("Error creating server", e);

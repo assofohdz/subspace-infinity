@@ -70,11 +70,11 @@ public class InfinityBlockFactory implements BlockFactory {
                 }
             }
         }
-        this.allSolid = all;
+        allSolid = all;
         if (transparency == null) {
-            this.isTransparent = false;
+            isTransparent = false;
         } else {
-            this.isTransparent = (transparency[0] + transparency[1] + transparency[2]) != 0;
+            isTransparent = (transparency[0] + transparency[1] + transparency[2]) != 0;
         }
     }
 

@@ -99,7 +99,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     @Override
     protected void onInitialize(HostedServiceManager s) {
         // Grab the RMI service so we can easily use it later
-        this.rmiService = getService(RmiHostedService.class);
+        rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("GameSessionHostedService requires an RMI service.");
         }
@@ -118,7 +118,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         if (eds == null) {
             throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
         }
-        this.ed = eds.getEntityData();
+        ed = eds.getEntityData();
     }
 
     @Override
@@ -200,14 +200,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         public GameSessionImpl(HostedConnection conn) {
             this.conn = conn;
 
-            this.phys = gameSystems.get(PhysicsSpace.class, true);
-            this.mphys = gameSystems.get(MPhysSystem.class, true);
-            this.attackSystem = gameSystems.get(AttackSystem.class, true);
+            phys = gameSystems.get(PhysicsSpace.class, true);
+            mphys = gameSystems.get(MPhysSystem.class, true);
+            attackSystem = gameSystems.get(AttackSystem.class, true);
             // this.mapSystem = gameSystems.get(MapSystem.class, true);
 
-            this.binIndex = phys.getBinIndex();
+            binIndex = phys.getBinIndex();
 
-            this.playerEntityId = ed.createEntity();
+            playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
 
             avatarEntityId = GameEntities.createWarbird(ed, playerEntityId, phys, 0);

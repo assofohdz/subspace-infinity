@@ -67,21 +67,21 @@ public class lightTester extends BaseGameModule {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         try {
-            settings = this.getLoader().loadSettings("lightTester");
+            settings = getLoader().loadSettings("lightTester");
         } catch (IOException ex) {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(10, 0, -10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-10, 0, -10));
     }
 
     @Override
@@ -93,9 +93,9 @@ public class lightTester extends BaseGameModule {
     @Override
     public void start() {
         EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        this.getChp().registerPatternBiConsumer(lightCommand,
+        getChp().registerPatternBiConsumer(lightCommand,
                 "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
     @Override

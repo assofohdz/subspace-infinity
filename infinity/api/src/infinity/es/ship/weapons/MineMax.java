@@ -41,6 +41,6 @@ public class MineMax implements EntityComponent {
     }
 
     public MineMax(int count) {
-        this.max = count;
+        max = count;
     }
 }

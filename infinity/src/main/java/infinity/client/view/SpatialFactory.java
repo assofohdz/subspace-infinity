@@ -81,7 +81,7 @@ public class SpatialFactory {
         rootNode.addLight(al);
 
         this.ed = ed;
-        this.SIFactory = new SISpatialFactory(ed, rootNode, assets);
+        SIFactory = new SISpatialFactory(ed, rootNode, assets);
     }
 
     public Spatial createModel(EntityId id, MBlockShape blockShape, ShapeInfo shapeInfo, Mass mass) {

@@ -43,6 +43,6 @@ public class AttackVelocity implements EntityComponent {
     }
 
     public double getVelocity() {
-        return this.velocity;
+        return velocity;
     }
 }

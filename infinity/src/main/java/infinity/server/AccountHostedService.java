@@ -83,7 +83,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     public AccountHostedService(String serverInfo) {
         this.serverInfo = serverInfo;
-        this.operators = new HashMap<>();
+        operators = new HashMap<>();
     }
 
     public static String getPlayerName(HostedConnection conn) {
@@ -98,7 +98,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     protected void onInitialize(HostedServiceManager s) {
 
         // Grab the RMI service so we can easily use it later
-        this.rmiService = getService(RmiHostedService.class);
+        rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("AccountHostedService requires an RMI service.");
         }
@@ -110,7 +110,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
         if (eds == null) {
             throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
         }
-        this.ed = eds.getEntityData();
+        ed = eds.getEntityData();
     }
 
     @Override

@@ -73,7 +73,7 @@ public class DelaySystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         entities = ed.getEntities(Delay.class); // This filters all entities that have delayed components
     }

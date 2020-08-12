@@ -41,27 +41,27 @@ public class basicTester extends BaseGameModule {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class, true);
+        ed = getSystem(EntityData.class, true);
 
         // Test the smallest asteroids
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(10, 0, 10), 1));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(10, 0, -10), 10));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-10, 0, 10), 100));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-10, 0, -10), 1000));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(10, 0, 10), 1));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(10, 0, -10), 10));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-10, 0, 10), 100));
+        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-10, 0, -10), 1000));
 
         // Test the medium asteroids
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(20, 0, 20)));
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(20, 0, -20)));
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-20, 0, 20)));
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-20, 0, -20)));
+        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(20, 0, 20)));
+        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(20, 0, -20)));
+        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-20, 0, 20)));
+        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-20, 0, -20)));
     }
 
     @Override
@@ -86,9 +86,9 @@ public class basicTester extends BaseGameModule {
         super.start();
 
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        this.getChp().registerPatternBiConsumer(basicCommand,
+        getChp().registerPatternBiConsumer(basicCommand,
                 "The command to make this basic tester do stuff is ~basic <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
     private CommandConsumer messageHandler(EntityId id, String s) {

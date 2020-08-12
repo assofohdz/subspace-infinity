@@ -41,6 +41,6 @@ public class PortalMax implements EntityComponent {
     }
 
     public PortalMax(int count) {
-        this.max = count;
+        max = count;
     }
 }

@@ -46,6 +46,6 @@ public class RotationMax implements EntityComponent {
     }
 
     public double getRadSecMax() {
-        return this.radSecMax;
+        return radSecMax;
     }
 }
