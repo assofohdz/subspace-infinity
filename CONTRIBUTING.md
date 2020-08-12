@@ -16,7 +16,7 @@ These instructions assume you are using Windows 10. Java is cross-platform and S
 1. Import Subspace-Infinity into Eclipse using File->Import->Gradle->Existing Gradle Project and select the folder C:\workspace\Subspace\Subspace-Infinity
 1. Let Eclipse finish importing and building Subspace-Infinity before proceeding to the next step
 1. If you want to view projects in a hierarchical view instead of flat, select Window->Show View->Project Explorer
-1. Select the infinity folder within the Subspace-Infinity project, right click, and select Run As...->Java Application, and put the following in for the VM Arguments parameter: `-Xmx1024m -Xms512m -XX:MaxDirectMemorySize=1024m --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED`
+1. Select the infinity folder within the Subspace-Infinity project, right click, and select Run As...->Java Application, select the class "infinity.Main" as the class to run, name the run configuration "Subspace-Infinity Main", and put the following in for the VM Arguments parameter: `-Xmx1024m -Xms512m -XX:MaxDirectMemorySize=1024m --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED`
 1. Click the Run button and Subspace-Infinity should launch, with logging appearing in the Eclipse console window
 
 ## Guildelines for Submitting PRs
