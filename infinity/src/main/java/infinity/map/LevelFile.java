@@ -37,7 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class LevelFile extends JPanel {
-
+    private static final long serialVersionUID = -4658344536954311587L;
     public String m_file;
     private BitMap m_bitmap;
     private BufferedInputStream m_stream;

@@ -675,9 +675,6 @@ public class MapSystem extends AbstractGameSystem {
      * @param offsetZ the offset y-coordinate to create the entities in
      */
     private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetZ) {
-        /*
-        
-         */
         float f;
         for (int i = 0; i < grid.getHeight(); i++) {
             for (int j = 0; j < grid.getWidth(); j++) {

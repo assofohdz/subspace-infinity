@@ -34,7 +34,7 @@ import java.io.IOException;
 import javax.swing.JPanel;
 
 public class BitMap extends JPanel {
-
+    private static final long serialVersionUID = -1228135782001412920L;
     public final static int BI_RGB = 0; // No compression
     public final static int BI_RLE8 = 1; // RLE 8-bit / pixel
     public final static int BI_RLE4 = 2; // RLE 4-bit / pixel
