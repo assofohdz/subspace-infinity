@@ -107,6 +107,7 @@ public class SimpleFileFilter implements FilenameFilter {
     /**
      * filenamefilter interface method
      */
+    @Override
     public boolean accept(File dir, String _name) {
         String name = _name.toLowerCase();
 

@@ -134,6 +134,7 @@ public class GameClient {
         public MessageDebugger() {
         }
 
+        @Override
         public void messageReceived(Client source, Message m) {
             if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
                 if (!objectStateStarted) {

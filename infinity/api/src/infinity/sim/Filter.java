@@ -31,6 +31,7 @@ public interface Filter {
          *
          * @see java.lang.Object#toString()
          */
+        @Override
         public String toString() {
             return "DefaultFilter[]";
         }

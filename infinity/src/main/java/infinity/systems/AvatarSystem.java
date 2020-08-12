@@ -229,6 +229,7 @@ public class AvatarSystem extends AbstractGameSystem {
                     return true;
                 }
 
+                @Override
                 public byte fallbackShip() {
                     return 0;
                 }

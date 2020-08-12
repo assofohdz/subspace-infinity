@@ -130,6 +130,7 @@ public class ToolState extends BaseAppState {
         cursor.setLocalTranslation(width * 0.5f - size * 0.5f, height * 0.5f - size * 0.5f, 0);
     }
 
+    @Override
     public void update(float tpf) {
     }
 
@@ -137,6 +138,7 @@ public class ToolState extends BaseAppState {
 
         private EntityId heldEntity;
 
+        @Override
         public void valueChanged(FunctionId func, InputState value, double tpf) {
             log.info("valueChanged(" + func + ", " + value + ", " + tpf + ")");
 

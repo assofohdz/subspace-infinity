@@ -375,6 +375,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @exception ClassNotFoundException if the class loader cannot find a the
      *                                   requested class.
      */
+    @Override
     protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         // The class object that will be returned.
         Class<?> c = null;
@@ -622,6 +623,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param name the name of the resource, to be used as is.
      * @return an InputStream on the resource, or null if not found.
      */
+    @Override
     public InputStream getResourceAsStream(String name) {
         // Try to load it from the system class
         InputStream s = null;
@@ -731,6 +733,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param name the name of the resource, to be used as is.
      * @return an URL on the resource, or null if not found.
      */
+    @Override
     public URL getResource(String name) {
 
         if (name == null) {

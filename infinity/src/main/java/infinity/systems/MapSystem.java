@@ -676,7 +676,7 @@ public class MapSystem extends AbstractGameSystem {
      */
     private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetZ) {
         /*
-
+        
          */
         float f;
         for (int i = 0; i < grid.getHeight(); i++) {

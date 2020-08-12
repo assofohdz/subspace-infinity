@@ -893,10 +893,12 @@ public class ModelViewState extends BaseAppState {
             super(ed, BodyPosition.class, ShapeInfo.class);
         }
 
+        @Override
         public Mob[] getArray() {
             return super.getArray();
         }
 
+        @Override
         protected Mob addObject(Entity e) {
             log.info("add mob for:" + e.getId());
             Mob object = new Mob(e);
@@ -904,11 +906,13 @@ public class ModelViewState extends BaseAppState {
             return object;
         }
 
+        @Override
         protected void updateObject(Mob object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(BodyPosition.class));
         }
 
+        @Override
         protected void removeObject(Mob object, Entity e) {
             log.info("remove mob for:" + e.getId());
             object.release();
@@ -924,14 +928,17 @@ public class ModelViewState extends BaseAppState {
             super(ed, SpawnPosition.class, ShapeInfo.class);
         }
 
+        @Override
         public void setFilter(ComponentFilter filter) {
             super.setFilter(filter);
         }
 
+        @Override
         public Model[] getArray() {
             return (Model[]) super.getArray();
         }
 
+        @Override
         protected Model addObject(Entity e) {
 //log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());
             Model object = getModel(e.getId(), true);
@@ -943,11 +950,13 @@ public class ModelViewState extends BaseAppState {
             return object;
         }
 
+        @Override
         protected void updateObject(Model object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(SpawnPosition.class));
         }
 
+        @Override
         protected void removeObject(Model object, Entity e) {
             log.info("remove model for:" + e.getId());
             releaseModel(e.getId());
@@ -963,14 +972,17 @@ public class ModelViewState extends BaseAppState {
             super(ed, SpawnPosition.class, ShapeInfo.class, LargeObject.class, LargeGridCell.class);
         }
 
+        @Override
         public void setFilter(ComponentFilter filter) {
             super.setFilter(filter);
         }
 
+        @Override
         public Model[] getArray() {
             return (Model[]) super.getArray();
         }
 
+        @Override
         protected Model addObject(Entity e) {
             log.info("LargeObject add model for:" + e.getId() + "   at time:" + timeSource.getTime());
             Model object = getModel(e.getId(), true);
@@ -982,11 +994,13 @@ public class ModelViewState extends BaseAppState {
             return object;
         }
 
+        @Override
         protected void updateObject(Model object, Entity e) {
             object.setShape(e.get(ShapeInfo.class));
             object.setPosition(e.get(SpawnPosition.class));
         }
 
+        @Override
         protected void removeObject(Model object, Entity e) {
             log.info("LargeObject remove model for:" + e.getId());
             releaseModel(e.getId());

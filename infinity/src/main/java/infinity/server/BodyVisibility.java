@@ -123,6 +123,7 @@ public class BodyVisibility implements ComponentVisibility {
         return lastValues.keySet();
     }
 
+    @Override
     public boolean collectChanges(Queue<EntityChange> updates) {
         Set<Long> active = netState.getActiveIds();
         boolean changed = false;

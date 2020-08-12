@@ -290,10 +290,12 @@ public class BitMap extends JPanel {
         return m_size;
     }
 
+    @Override
     public int getWidth() {
         return m_width;
     }
 
+    @Override
     public int getHeight() {
         return m_height;
     }

@@ -172,10 +172,12 @@ public class HostState extends BaseAppState {
 
     private class ConnectionObserver implements ConnectionListener {
 
+        @Override
         public void connectionAdded(Server server, HostedConnection conn) {
             resetConnectionCount();
         }
 
+        @Override
         public void connectionRemoved(Server server, HostedConnection conn) {
             resetConnectionCount();
         }

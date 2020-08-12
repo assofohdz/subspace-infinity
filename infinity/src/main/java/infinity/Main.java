@@ -120,6 +120,7 @@ public class Main extends SimpleApplication {
                 new ScreenshotAppState("", System.currentTimeMillis()));
     }
 
+    @Override
     public void simpleInitApp() {
 
         setPauseOnLostFocus(false);

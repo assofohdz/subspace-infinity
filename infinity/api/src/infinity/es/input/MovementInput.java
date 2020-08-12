@@ -85,6 +85,7 @@ public class MovementInput implements EntityComponent {
         return (flags & JUMP) != 0;
     }
 
+    @Override
     public String toString() {
         return "MovementInput[move=" + move + ", facing=" + facing + ", flags=" + Integer.toHexString(flags) + "]";
     }

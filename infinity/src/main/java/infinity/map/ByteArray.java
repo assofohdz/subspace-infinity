@@ -740,6 +740,7 @@ public class ByteArray {
         return (extractFrom >> rightIndex) & mask;
     }
 
+    @Override
     public String toString() {
         return new String(m_array);
     }

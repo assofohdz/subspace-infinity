@@ -556,6 +556,7 @@ public class AttackSystem extends AbstractGameSystem {
             this.attackVelocity = attackVelocity;
         }
 
+        @Override
         public AttackInfo clone() {
             return new AttackInfo(this.location.clone(), this.attackVelocity.clone());
         }

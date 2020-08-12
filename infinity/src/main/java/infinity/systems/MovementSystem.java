@@ -146,6 +146,7 @@ public class MovementSystem extends AbstractGameSystem {
             super(ed, MovementInput.class);
         }
 
+        @Override
         public PlayerDriver[] getArray() {
             return super.getArray();
         }

@@ -226,6 +226,7 @@ public class ConnectionState extends CompositeAppState {
             getState(OptionPanelState.class).show(title, m, new ExitAction(fatal));
         } else {
             getApplication().enqueue(new Callable<Object>() {
+                @Override
                 public Object call() {
                     showError(title, e, fatal);
                     return null;
@@ -240,6 +241,7 @@ public class ConnectionState extends CompositeAppState {
             this.client = client;
         } else {
             getApplication().enqueue(new Callable<Object>() {
+                @Override
                 public Object call() {
                     setClient(client);
                     return null;
@@ -299,6 +301,7 @@ public class ConnectionState extends CompositeAppState {
             this.close = close;
         }
 
+        @Override
         public void execute(Button source) {
             if (close) {
                 disconnect();
@@ -307,9 +310,11 @@ public class ConnectionState extends CompositeAppState {
     }
 
     private class ConnectionObserver implements ClientStateListener, ErrorListener<Client> {
+        @Override
         public void clientConnected(final Client c) {
             log.info("clientConnected(" + c + ")");
             getApplication().enqueue(new Callable<Object>() {
+                @Override
                 public Object call() {
                     onConnected();
                     return null;
@@ -317,9 +322,11 @@ public class ConnectionState extends CompositeAppState {
             });
         }
 
+        @Override
         public void clientDisconnected(final Client c, final DisconnectInfo info) {
             log.info("clientDisconnected(" + c + ", " + info + ")");
             getApplication().enqueue(new Callable<Object>() {
+                @Override
                 public Object call() {
                     onDisconnected(info);
                     return null;
@@ -327,6 +334,7 @@ public class ConnectionState extends CompositeAppState {
             });
         }
 
+        @Override
         public void handleError(Client source, Throwable t) {
             log.error("Connection error", t);
             showError("Connection Error", t, true);
@@ -350,6 +358,7 @@ public class ConnectionState extends CompositeAppState {
         public Connector() {
         }
 
+        @Override
         public void run() {
 
             try {

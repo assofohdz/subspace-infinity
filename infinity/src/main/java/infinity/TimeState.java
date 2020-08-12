@@ -80,6 +80,7 @@ public class TimeState extends BaseAppState implements TimeManager {
         return realTime;
     }
 
+    @Override
     public void update(float tpf) {
         if (timeSource != null) {
             this.frameTime = timeSource.getTime();

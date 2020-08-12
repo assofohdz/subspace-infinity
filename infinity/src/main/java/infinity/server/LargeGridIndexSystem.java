@@ -117,6 +117,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
         this.lobs = new LobContainer(ed);
     }
 
+    @Override
     public void update(SimTime time) {
         super.update(time);
 
@@ -247,10 +248,12 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
             super(ed, LargeObject.class, BodyPosition.class);
         }
 
+        @Override
         public Lob[] getArray() {
             return super.getArray();
         }
 
+        @Override
         protected Lob addObject(Entity e) {
             log.info("add LOB for:" + e.getId());
             Lob object = new Lob(e);
@@ -258,10 +261,12 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
             return object;
         }
 
+        @Override
         protected void updateObject(Lob object, Entity e) {
             object.update();
         }
 
+        @Override
         protected void removeObject(Lob object, Entity e) {
             log.info("remove LOB for:" + e.getId());
         }
