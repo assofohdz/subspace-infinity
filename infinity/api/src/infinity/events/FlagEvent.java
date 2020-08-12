@@ -32,11 +32,7 @@ package infinity.events;
 public class FlagEvent {
 
     /*
-    * FlagClaimed
-     * FlagDropped
-     * FlagPosition
-     * FlagReward
-     * FlagVictory
+     * FlagClaimed FlagDropped FlagPosition FlagReward FlagVictory
      */
-   
+
 }

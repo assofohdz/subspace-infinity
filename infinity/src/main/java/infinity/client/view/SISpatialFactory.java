@@ -64,18 +64,18 @@ public class SISpatialFactory {
 
     private EffectFactory ef;
     private Timer timer;
-    //private MapState mapState;
-    //private ModelViewState state;
+    // private MapState mapState;
+    // private ModelViewState state;
 
-    //Use to flip between using the lights and using unshaded textures
+    // Use to flip between using the lights and using unshaded textures
     private boolean unshaded = true;
     private final EntityData ed;
     private final Node rootNode;
 
     SISpatialFactory(EntityData ed, Node rootNode, AssetManager assets) {
         this.ed = ed;
-        //this.mapState = app.getStateManager().getState(MapState.class);
-        //this.state = app.getStateManager().getState(ModelViewState.class);
+        // this.mapState = app.getStateManager().getState(MapState.class);
+        // this.state = app.getStateManager().getState(ModelViewState.class);
         this.rootNode = rootNode;
         this.assets = assets;
     }
@@ -95,80 +95,79 @@ public class SISpatialFactory {
     public Spatial createModel(EntityId eId, String shapeName) {
 
         switch (shapeName) {
-            //case "thrust":
-            //    return createParticleEmitter(eId, shapeName);
-            case ShapeNames.BULLETL1:
-                return createBullet(eId, 1);
-            case ShapeNames.BOMBL1:
-                //Create bomb
-                return createBomb(eId, BombLevelEnum.BOMB_1);
-            case ShapeNames.BOMBL2:
-                //Create bomb
-                return createBomb(eId, BombLevelEnum.BOMB_2);
-            case ShapeNames.BOMBL3:
-                //Create bomb
-                return createBomb(eId, BombLevelEnum.BOMB_3);
-            case ShapeNames.BOMBL4:
-                //Create bomb
-                return createBomb(eId, BombLevelEnum.BOMB_4);
-            case ShapeNames.THOR:
-                //Create bomb
-                return createBomb(eId, BombLevelEnum.THOR);
-            case ShapeNames.BURST:
-                //Create bomb
-                return createBurst(eId);
-            case ShapeNames.EXPLOSION:
-                //Create explosion
-                return createExplosion(eId);
-            case ShapeNames.PRIZE:
-                //Create bounty
-                return createBounty(eId);
-            case ShapeNames.ARENA:
-                return createArena(eId);
-            /*case ShapeNames.MAPTILE:
-                return createMapTile(eId);*/
-            case ShapeNames.EXPLOSION2:
-                return createExplosion2(eId);
-            case ShapeNames.OVER5:
-                return createOver5(eId);
-            case ShapeNames.WORMHOLE:
-                return createWormhole(eId);
-            case ShapeNames.OVER1:
-                return createOver1(eId);
-            case ShapeNames.WARP:
-                return createWarp(eId);
-            case ShapeNames.REPEL:
-                return createRepel(eId);
-            case ShapeNames.OVER2:
-                return createOver2(eId);
-            case ShapeNames.SHIP_WARBIRD:
-                return createShip(31);
-            case ShapeNames.SHIP_JAVELIN:
-                return createShip(27);
-            case ShapeNames.SHIP_SPIDER:
-                return createShip(23);
-            case ShapeNames.SHIP_LEVI:
-                return createShip(19);
-            case ShapeNames.SHIP_TERRIER:
-                return createShip(15);
-            case ShapeNames.SHIP_WEASEL:
-                return createShip(11);
-            case ShapeNames.SHIP_LANCASTER:
-                return createShip(7);
-            case ShapeNames.SHIP_SHARK:
-                return createShip(3);
-            case ShapeNames.FLAG_OURS:
-                return createFlag(0);
-            case ShapeNames.FLAG_THEIRS:
-                return createFlag(1);
-            /*case "mob":
-                return createMob();
-            case "tower":
-                return createTower();
-            case "base":
-                return createBase();*/
-            default:
-                return null;
+        // case "thrust":
+        // return createParticleEmitter(eId, shapeName);
+        case ShapeNames.BULLETL1:
+            return createBullet(eId, 1);
+        case ShapeNames.BOMBL1:
+            // Create bomb
+            return createBomb(eId, BombLevelEnum.BOMB_1);
+        case ShapeNames.BOMBL2:
+            // Create bomb
+            return createBomb(eId, BombLevelEnum.BOMB_2);
+        case ShapeNames.BOMBL3:
+            // Create bomb
+            return createBomb(eId, BombLevelEnum.BOMB_3);
+        case ShapeNames.BOMBL4:
+            // Create bomb
+            return createBomb(eId, BombLevelEnum.BOMB_4);
+        case ShapeNames.THOR:
+            // Create bomb
+            return createBomb(eId, BombLevelEnum.THOR);
+        case ShapeNames.BURST:
+            // Create bomb
+            return createBurst(eId);
+        case ShapeNames.EXPLOSION:
+            // Create explosion
+            return createExplosion(eId);
+        case ShapeNames.PRIZE:
+            // Create bounty
+            return createBounty(eId);
+        case ShapeNames.ARENA:
+            return createArena(eId);
+        /*
+         * case ShapeNames.MAPTILE: return createMapTile(eId);
+         */
+        case ShapeNames.EXPLOSION2:
+            return createExplosion2(eId);
+        case ShapeNames.OVER5:
+            return createOver5(eId);
+        case ShapeNames.WORMHOLE:
+            return createWormhole(eId);
+        case ShapeNames.OVER1:
+            return createOver1(eId);
+        case ShapeNames.WARP:
+            return createWarp(eId);
+        case ShapeNames.REPEL:
+            return createRepel(eId);
+        case ShapeNames.OVER2:
+            return createOver2(eId);
+        case ShapeNames.SHIP_WARBIRD:
+            return createShip(31);
+        case ShapeNames.SHIP_JAVELIN:
+            return createShip(27);
+        case ShapeNames.SHIP_SPIDER:
+            return createShip(23);
+        case ShapeNames.SHIP_LEVI:
+            return createShip(19);
+        case ShapeNames.SHIP_TERRIER:
+            return createShip(15);
+        case ShapeNames.SHIP_WEASEL:
+            return createShip(11);
+        case ShapeNames.SHIP_LANCASTER:
+            return createShip(7);
+        case ShapeNames.SHIP_SHARK:
+            return createShip(3);
+        case ShapeNames.FLAG_OURS:
+            return createFlag(0);
+        case ShapeNames.FLAG_THEIRS:
+            return createFlag(1);
+        /*
+         * case "mob": return createMob(); case "tower": return createTower(); case
+         * "base": return createBase();
+         */
+        default:
+            return null;
 
         }
     }
@@ -240,7 +239,7 @@ public class SISpatialFactory {
         } else {
             geom.setMaterial(assets.loadMaterial("Materials/FlagMaterialLight.j3m"));
         }
-        //mat.setInt("numTilesOffsetY", flag);
+        // mat.setInt("numTilesOffsetY", flag);
         setFlagMaterialVariables(geom, flag);
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
@@ -278,23 +277,22 @@ public class SISpatialFactory {
 
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
-        
         PointLight myLight = new PointLight();
         myLight.setColor(ColorRGBA.White);
         myLight.setRadius(20);
         rootNode.addLight(myLight);
         ShipLightControl lightControl = new ShipLightControl(myLight);
         geom.addControl(lightControl);
-        
+
         return geom;
     }
 
     public void setShipMaterialVariables(Spatial s, int ship) {
         Geometry geom;
         if (s instanceof Geometry) {
-            geom = (Geometry) s; //From createShip
+            geom = (Geometry) s; // From createShip
         } else {
-            geom = (Geometry) ((Node) s).getChild("Ship"); //From ModelViewState
+            geom = (Geometry) ((Node) s).getChild("Ship"); // From ModelViewState
         }
         Material mat = geom.getMaterial();
         mat.setInt("numTilesOffsetY", ship);
@@ -304,12 +302,14 @@ public class SISpatialFactory {
 
     private Spatial createParticleEmitter(EntityId eId, String shapeName) {
         Spatial result = null;
-        ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); //will be overriden in switch
+        ParticleEmitter particleEmitter = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 30); // will be
+                                                                                                          // overriden
+                                                                                                          // in switch
 
         switch (shapeName) {
-            //Create a thrust particle emitter
-            case "thrust":
-                result = createThrustEmitter(particleEmitter, eId);
+        // Create a thrust particle emitter
+        case "thrust":
+            result = createThrustEmitter(particleEmitter, eId);
         }
         return result;
     }
@@ -328,7 +328,7 @@ public class SISpatialFactory {
         thrustEffect.setStartColor(ColorRGBA.Orange);
         thrustEffect.setStartSize(0.1f);
         thrustEffect.setEndSize(0f);
-        thrustEffect.setHighLife(0.25f); //Fits the decay
+        thrustEffect.setHighLife(0.25f); // Fits the decay
         thrustEffect.setLowLife(0.1f);
         thrustEffect.setNumParticles(1);
 
@@ -425,7 +425,7 @@ public class SISpatialFactory {
         geom.setQueueBucket(RenderQueue.Bucket.Transparent);
 
         Material mat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
-        //mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        // mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         mat.setTransparent(true);
         geom.setMaterial(mat);
 
@@ -435,46 +435,39 @@ public class SISpatialFactory {
     }
 
     /*
-    private Spatial createMapTile(EntityId eId) {
-        Quad quad = new Quad(CoreViewConstants.MAPTILESIZE, CoreViewConstants.MAPTILESIZE);
-        float halfSize = CoreViewConstants.MAPTILESIZE * 0.5f;
-        quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
-        quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
-        quad.updateBound();
-        
-        Geometry geom = new Geometry("MapTile", quad);
-
-        if (state.getType(eId).getTypeName(ed).equals(TileTypes.LEGACY)) {
-            Material mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
-
-            Image image = mapState.getImage(eId);
-
-            if (image == null) {
-                image = mapState.forceLoadImage(eId);
-            }
-
-            Texture2D tex2D = new Texture2D(image);
-            
-            //image.dispose();
-            
-            mat.setTexture("ColorMap", tex2D);
-            geom.setMaterial(mat);
-        } else {
-            TileType tileType = state.getType(eId);
-            
-            //TODO: Do some caching and re-use materials/shaders
-            Material mat = assets.loadMaterial("Materials/WangBlobLight.j3m"); //tileType.getTileSet()            
-                        
-            mat.setTransparent(false);
-            
-            
-            geom.setMaterial(mat);
-            geom.setQueueBucket(RenderQueue.Bucket.Opaque);
-            this.updateWangBlobTile(geom, tileType);
-        }
-
-        return geom;
-    }
+     * private Spatial createMapTile(EntityId eId) { Quad quad = new
+     * Quad(CoreViewConstants.MAPTILESIZE, CoreViewConstants.MAPTILESIZE); float
+     * halfSize = CoreViewConstants.MAPTILESIZE * 0.5f;
+     * quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
+     * quad.setBuffer(VertexBuffer.Type.Normal, 3,
+     * BufferUtils.createFloatBuffer(getNormals())); quad.updateBound();
+     * 
+     * Geometry geom = new Geometry("MapTile", quad);
+     * 
+     * if (state.getType(eId).getTypeName(ed).equals(TileTypes.LEGACY)) { Material
+     * mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
+     * 
+     * Image image = mapState.getImage(eId);
+     * 
+     * if (image == null) { image = mapState.forceLoadImage(eId); }
+     * 
+     * Texture2D tex2D = new Texture2D(image);
+     * 
+     * //image.dispose();
+     * 
+     * mat.setTexture("ColorMap", tex2D); geom.setMaterial(mat); } else { TileType
+     * tileType = state.getType(eId);
+     * 
+     * //TODO: Do some caching and re-use materials/shaders Material mat =
+     * assets.loadMaterial("Materials/WangBlobLight.j3m"); //tileType.getTileSet()
+     * 
+     * mat.setTransparent(false);
+     * 
+     * 
+     * geom.setMaterial(mat); geom.setQueueBucket(RenderQueue.Bucket.Opaque);
+     * this.updateWangBlobTile(geom, tileType); }
+     * 
+     * return geom; }
      */
     private Spatial createExplosion2(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
@@ -518,11 +511,11 @@ public class SISpatialFactory {
 
     private Spatial createWormhole(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.WORMHOLESIZE, CoreViewConstants.WORMHOLESIZE);
-        //<-- Move into the material?
+        // <-- Move into the material?
         float halfSize = CoreViewConstants.WORMHOLESIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
         quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
-        //-->
+        // -->
         quad.updateBound();
         Geometry geom = new Geometry("Wormhole", quad);
 
@@ -614,30 +607,22 @@ public class SISpatialFactory {
     }
 
     /*
-    public void updateWangBlobTile(Spatial s, TileType tileType) {
-        Geometry geom;
-        if (s instanceof Geometry) {
-            geom = (Geometry) s;
-        } else {
-            geom = (Geometry) ((Node) s).getChild("MapTile"); //From ModelViewState
-        }
-        Material mat = geom.getMaterial();
-        //Offset tile
-        mat.setInt("numTilesOffsetX", mapState.getWangBlobTileNumber(tileType.getTileIndex()));
-
-        //Rotate tile
-        Quaternion rot = new Quaternion();
-        float rotations = mapState.getWangBlobRotations(tileType.getTileIndex());
-        float ninety_degrees_to_radians = FastMath.PI / 2;
-
-        rot.fromAngleAxis(-ninety_degrees_to_radians * rotations, Vector3f.UNIT_Y);
-        //Reset rotation
-        geom.setLocalRotation(new Quaternion());
-        //Set correct rotation
-        geom.rotate(rot);
-
-        //log.info("Coords: "+s.getLocalTranslation() +" rotated: "+geom.getLocalRotation());
-    }
+     * public void updateWangBlobTile(Spatial s, TileType tileType) { Geometry geom;
+     * if (s instanceof Geometry) { geom = (Geometry) s; } else { geom = (Geometry)
+     * ((Node) s).getChild("MapTile"); //From ModelViewState } Material mat =
+     * geom.getMaterial(); //Offset tile mat.setInt("numTilesOffsetX",
+     * mapState.getWangBlobTileNumber(tileType.getTileIndex()));
+     * 
+     * //Rotate tile Quaternion rot = new Quaternion(); float rotations =
+     * mapState.getWangBlobRotations(tileType.getTileIndex()); float
+     * ninety_degrees_to_radians = FastMath.PI / 2;
+     * 
+     * rot.fromAngleAxis(-ninety_degrees_to_radians * rotations, Vector3f.UNIT_Y);
+     * //Reset rotation geom.setLocalRotation(new Quaternion()); //Set correct
+     * rotation geom.rotate(rot);
+     * 
+     * //log.info("Coords: "+s.getLocalTranslation()
+     * +" rotated: "+geom.getLocalRotation()); }
      */
     private Spatial createBurst(EntityId eId) {
         Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
@@ -665,25 +650,20 @@ public class SISpatialFactory {
      * @return array
      */
     private float[] getVertices(float halfSize) {
-        float[] res = new float[]{
-            halfSize, 0, -halfSize,
-            -halfSize, 0, -halfSize,
-            -halfSize, 0, halfSize,
-            halfSize, 0, halfSize
-        };
+        float[] res = new float[] { halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize, halfSize,
+                0, halfSize };
         return res;
     }
 
     /**
-     * This will create the normals that is point in the z unit vector
-     * direction. This is used in relation to the lighting on the quad (towards
-     * camera)
+     * This will create the normals that is point in the z unit vector direction.
+     * This is used in relation to the lighting on the quad (towards camera)
      *
      * @return float array containing the right normals
      */
     private float[] getNormals() {
         float[] normals;
-        normals = new float[]{0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
+        normals = new float[] { 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0 };
         return normals;
     }
 }

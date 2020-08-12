@@ -51,28 +51,29 @@ import com.jme3.util.TempVars;
 import com.simsilica.mathd.Vec3i;
 
 /**
- * This Control maintains a reference to a Camera,
- * which will be synched with the position (worldTranslation)
- * of the current spatial.
+ * This Control maintains a reference to a Camera, which will be synched with
+ * the position (worldTranslation) of the current spatial.
+ * 
  * @author tim
  */
 public class InfinityCamControl extends AbstractControl {
 
     private float distanceToCam = 40;
-    
+
     public static enum ControlDirection {
 
         /**
-         * Means, that the Camera's transform is "copied"
-         * to the Transform of the Spatial.
+         * Means, that the Camera's transform is "copied" to the Transform of the
+         * Spatial.
          */
         CameraToSpatial,
         /**
-         * Means, that the Spatial's transform is "copied"
-         * to the Transform of the Camera.
+         * Means, that the Spatial's transform is "copied" to the Transform of the
+         * Camera.
          */
         SpatialToCamera;
     }
+
     private Camera camera;
     private ControlDirection controlDir = ControlDirection.SpatialToCamera;
 
@@ -120,32 +121,34 @@ public class InfinityCamControl extends AbstractControl {
     protected void controlUpdate(float tpf) {
         if (spatial != null && camera != null) {
             switch (controlDir) {
-                case SpatialToCamera:
-                    Vector3f spatialLoc = new Vector3f(spatial.getWorldTranslation());
-                    Vector3f camLoc = new Vector3f(spatialLoc);
-                    camLoc.addLocal(0, distanceToCam, 0);
-                    
-                    camera.setLocation(camLoc);
-                    LOG.log(Level.INFO, "controlUpdate:: Setting camera location to : {0}", new Vec3i(camLoc));
-                    //camera.setRotation(spatial.getWorldRotation());
-                    camera.lookAt(spatialLoc, Vector3f.UNIT_Y);
-                    break;
-                case CameraToSpatial:
-                    // set the localtransform, so that the worldtransform would be equal to the camera's transform.
-                    // Location:
-                    TempVars vars = TempVars.get();
+            case SpatialToCamera:
+                Vector3f spatialLoc = new Vector3f(spatial.getWorldTranslation());
+                Vector3f camLoc = new Vector3f(spatialLoc);
+                camLoc.addLocal(0, distanceToCam, 0);
 
-                    Vector3f vecDiff = vars.vect1.set(camera.getLocation()).subtractLocal(spatial.getWorldTranslation());
-                    spatial.setLocalTranslation(vecDiff.addLocal(spatial.getLocalTranslation()));
+                camera.setLocation(camLoc);
+                LOG.log(Level.INFO, "controlUpdate:: Setting camera location to : {0}", new Vec3i(camLoc));
+                // camera.setRotation(spatial.getWorldRotation());
+                camera.lookAt(spatialLoc, Vector3f.UNIT_Y);
+                break;
+            case CameraToSpatial:
+                // set the localtransform, so that the worldtransform would be equal to the
+                // camera's transform.
+                // Location:
+                TempVars vars = TempVars.get();
 
-                    // Rotation:
-                    Quaternion worldDiff = vars.quat1.set(camera.getRotation()).subtractLocal(spatial.getWorldRotation());
-                    spatial.setLocalRotation(worldDiff.addLocal(spatial.getLocalRotation()));
-                    vars.release();
-                    break;
+                Vector3f vecDiff = vars.vect1.set(camera.getLocation()).subtractLocal(spatial.getWorldTranslation());
+                spatial.setLocalTranslation(vecDiff.addLocal(spatial.getLocalTranslation()));
+
+                // Rotation:
+                Quaternion worldDiff = vars.quat1.set(camera.getRotation()).subtractLocal(spatial.getWorldRotation());
+                spatial.setLocalRotation(worldDiff.addLocal(spatial.getLocalRotation()));
+                vars.release();
+                break;
             }
         }
     }
+
     private static final Logger LOG = Logger.getLogger(InfinityCamControl.class.getName());
 
     @Override
@@ -154,22 +157,22 @@ public class InfinityCamControl extends AbstractControl {
     }
 
     // default implementation from AbstractControl is equivalent
-    //@Override
-    //public Control cloneForSpatial(Spatial newSpatial) {
-    //    CameraControl control = new CameraControl(camera, controlDir);
-    //    control.setSpatial(newSpatial);
-    //    control.setEnabled(isEnabled());
-    //    return control;
-    //}
+    // @Override
+    // public Control cloneForSpatial(Spatial newSpatial) {
+    // CameraControl control = new CameraControl(camera, controlDir);
+    // control.setSpatial(newSpatial);
+    // control.setEnabled(isEnabled());
+    // return control;
+    // }
     private static final String CONTROL_DIR_NAME = "controlDir";
     private static final String CAMERA_NAME = "camera";
-    
+
     @Override
     public void read(JmeImporter im) throws IOException {
         super.read(im);
         InputCapsule ic = im.getCapsule(this);
         controlDir = ic.readEnum(CONTROL_DIR_NAME, ControlDirection.class, ControlDirection.SpatialToCamera);
-        camera = (Camera)ic.readSavable(CAMERA_NAME, null);
+        camera = (Camera) ic.readSavable(CAMERA_NAME, null);
     }
 
     @Override

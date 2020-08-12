@@ -41,43 +41,39 @@ import com.google.common.base.MoreObjects;
 import com.simsilica.event.EventType;
 
 /**
- *  Events that are published on the event bus for different client
- *  related state changes.
+ * Events that are published on the event bus for different client related state
+ * changes.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class ClientEvent {
- 
+
     /**
-     *  Indicates that the client has fully connected.
-     */   
+     * Indicates that the client has fully connected.
+     */
     public static EventType<ClientEvent> clientConnected = EventType.create("ClientConnected", ClientEvent.class);
-    
+
     /**
-     *  The game session has officially started, any visits back to the lobby
-     *  will be for death/respawn.
-     */   
+     * The game session has officially started, any visits back to the lobby will be
+     * for death/respawn.
+     */
     public static EventType<ClientEvent> sessionStarted = EventType.create("SessionStarted", ClientEvent.class);
-    
+
     /**
-     *  Indicates that the game session has ended.
-     */   
+     * Indicates that the game session has ended.
+     */
     public static EventType<ClientEvent> sessionEnded = EventType.create("SessionEnded", ClientEvent.class);
-    
+
     /**
-     *  Indicates that the client connection has been disconnected for some reason.
-     */   
+     * Indicates that the client connection has been disconnected for some reason.
+     */
     public static EventType<ClientEvent> clientDisconnected = EventType.create("ClientDisconnected", ClientEvent.class);
 
-    
     public ClientEvent() {
     }
-    
+
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass().getSimpleName())
-                    .toString();
-    }   
+        return MoreObjects.toStringHelper(getClass().getSimpleName()).toString();
+    }
 }
-
-

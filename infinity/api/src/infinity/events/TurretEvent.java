@@ -32,5 +32,5 @@ package infinity.events;
 public class TurretEvent {
     /*
      * TurretEvent
-    */
+     */
 }

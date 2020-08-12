@@ -74,54 +74,49 @@ public class GameSessionState extends CompositeAppState {
     private boolean hostIsLocal = false;
 
     public GameSessionState() {
-        super(
-                new AvatarMovementState(),
-                new CameraState(),
-                //new LightingState(),
+        super(new AvatarMovementState(), new CameraState(),
+                // new LightingState(),
                 new TimeState(), // Has to be before any visuals that might need it.
                 new SkyState(),
-                //new PostProcessingState(),
-                //new SkySettingsState(),
-                new BuilderState(4, 4),
-                new ModelViewState(),
-                new InfinityCameraState(),
-                new WorldViewState()
-        );
+                // new PostProcessingState(),
+                // new SkySettingsState(),
+                new BuilderState(4, 4), new ModelViewState(), new InfinityCameraState(), new WorldViewState());
 
         addChild(new HelpState(), true);
         addChild(new SettingsState(), true);
         addChild(new ChatState(), true);
-        //addChild(new MapState(), true);
-        //addChild(new ToolState(), true);
+        // addChild(new MapState(), true);
+        // addChild(new ToolState(), true);
     }
 
     @Override
     protected void initialize(Application app) {
-        //com.simsilica.mworld.World world = getState(ConnectionState.class).getService(com.simsilica.mworld.net.client.WorldClientService.class);
-        //log.info("World:" + world);
+        // com.simsilica.mworld.World world =
+        // getState(ConnectionState.class).getService(com.simsilica.mworld.net.client.WorldClientService.class);
+        // log.info("World:" + world);
 
-        //com.simsilica.mworld.LeafData data = world.getLeaf(0);
-        //log.info("Data for leafId 0:" + data);
-        //data = world.getLeaf(new Vec3i(0, 2, 0));
-        //log.info("Data for leaf 0, 2, 0:" + data);
-        //getState(CameraState.class).setFieldOfView(60);
+        // com.simsilica.mworld.LeafData data = world.getLeaf(0);
+        // log.info("Data for leafId 0:" + data);
+        // data = world.getLeaf(new Vec3i(0, 2, 0));
+        // log.info("Data for leaf 0, 2, 0:" + data);
+        // getState(CameraState.class).setFieldOfView(60);
         EntityId avatar = getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
-        // See if this is local host mode.  This stuff should maybe be moved
-        // to its own debug manager state. 
+        // See if this is local host mode. This stuff should maybe be moved
+        // to its own debug manager state.
         HostState host = getState(HostState.class);
         if (host != null) {
-            //addChild(new PhysicsDebugState(host), true);
-            //hostIsLocal = true;
+            // addChild(new PhysicsDebugState(host), true);
+            // hostIsLocal = true;
             // Then we can add some debug states
-            //addChild(new BinStatusState(host.getSystems().get(PhysicsSpace.class), 64)); 
-            //addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
-            //addChild(new ContactDebugState(host.getSystems().get(PhysicsSpace.class)));
+            // addChild(new BinStatusState(host.getSystems().get(PhysicsSpace.class), 64));
+            // addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
+            // addChild(new ContactDebugState(host.getSystems().get(PhysicsSpace.class)));
         }
 
-        //Camera should be set to orthogonal
-        //getState(InfinityCameraState.class).setAvatar(avatar);
-        //getState(InfinityCameraState.class).setFieldOfView(60);
-        //Modelview state
+        // Camera should be set to orthogonal
+        // getState(InfinityCameraState.class).setAvatar(avatar);
+        // getState(InfinityCameraState.class).setFieldOfView(60);
+        // Modelview state
         getState(ModelViewState.class).setAvatar(avatar);
 
         getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
@@ -136,36 +131,41 @@ public class GameSessionState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
-        /*if( hostIsLocal ) {
-            InputMapper input = GuiGlobals.getInstance().getInputMapper();
-            input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
-            input.addDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled"); 
-            input.addDelegate(DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
-        }*/
+        /*
+         * if( hostIsLocal ) { InputMapper input =
+         * GuiGlobals.getInstance().getInputMapper();
+         * input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class),
+         * "toggleEnabled"); input.addDelegate(DebugFunctions.F_BODY_DEBUG,
+         * getState(BodyDebugState.class), "toggleEnabled");
+         * input.addDelegate(DebugFunctions.F_CONTACT_DEBUG,
+         * getState(ContactDebugState.class), "toggleEnabled"); }
+         */
     }
 
-    /*public void update( float tpf ) {
-        //log.info("update");
-        
-        // This update() is called after the children.
-        BinStatusState binState = getState(BinStatusState.class); 
-        if( binState != null ) {
-            Vector3f loc = getState(WorldViewState.class).getViewLocation();
-            binState.setViewOrigin(loc.x, 0, loc.z);
-            BodyDebugState bodyState = getState(BodyDebugState.class);
-            bodyState.setViewOrigin(loc.x, 0, loc.z);
-            ContactDebugState contactState = getState(ContactDebugState.class);
-            contactState.setViewOrigin(loc.x, 0, loc.z);
-        }        
-         
-    }*/
+    /*
+     * public void update( float tpf ) { //log.info("update");
+     * 
+     * // This update() is called after the children. BinStatusState binState =
+     * getState(BinStatusState.class); if( binState != null ) { Vector3f loc =
+     * getState(WorldViewState.class).getViewLocation();
+     * binState.setViewOrigin(loc.x, 0, loc.z); BodyDebugState bodyState =
+     * getState(BodyDebugState.class); bodyState.setViewOrigin(loc.x, 0, loc.z);
+     * ContactDebugState contactState = getState(ContactDebugState.class);
+     * contactState.setViewOrigin(loc.x, 0, loc.z); }
+     * 
+     * }
+     */
     @Override
     protected void onDisable() {
-        /*if( hostIsLocal ) {
-            InputMapper input = GuiGlobals.getInstance().getInputMapper();
-            input.removeDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
-            input.removeDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled"); 
-            input.removeDelegate(DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
-        }*/
+        /*
+         * if( hostIsLocal ) { InputMapper input =
+         * GuiGlobals.getInstance().getInputMapper();
+         * input.removeDelegate(DebugFunctions.F_BIN_DEBUG,
+         * getState(BinStatusState.class), "toggleEnabled");
+         * input.removeDelegate(DebugFunctions.F_BODY_DEBUG,
+         * getState(BodyDebugState.class), "toggleEnabled");
+         * input.removeDelegate(DebugFunctions.F_CONTACT_DEBUG,
+         * getState(ContactDebugState.class), "toggleEnabled"); }
+         */
     }
 }

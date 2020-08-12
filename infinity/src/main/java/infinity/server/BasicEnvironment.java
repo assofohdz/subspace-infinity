@@ -89,18 +89,12 @@ public class BasicEnvironment extends AbstractGameSystem {
         this.phys = getSystem(PhysicsSpace.class, true);
         this.world = getSystem(World.class, true);
         /*
-        // Setup some test entities
-        EntityId test;
-        test = ed.createEntity();
-        ed.setComponents(test,
-                new SpawnPosition(phys.getGrid(), 5, 65, -5),
-                // For static objects, we set both position and spawn position.
-                // The physics engine needs spawn position for static objects.
-                // We need position for displayed objects.
-                //new Position(5, 1, -5),                
-                ShapeInfo.create("sphere", 1, ed),
-                new Mass(0)
-        );
+         * // Setup some test entities EntityId test; test = ed.createEntity();
+         * ed.setComponents(test, new SpawnPosition(phys.getGrid(), 5, 65, -5), // For
+         * static objects, we set both position and spawn position. // The physics
+         * engine needs spawn position for static objects. // We need position for
+         * displayed objects. //new Position(5, 1, -5), ShapeInfo.create("sphere", 1,
+         * ed), new Mass(0) );
          */
         this.createTestSphere(new Vec3d(0, 0, 0), 1d, false);
 
@@ -117,18 +111,11 @@ public class BasicEnvironment extends AbstractGameSystem {
         EntityId result = ed.createEntity();
 
         if (dynamic) {
-            ed.setComponents(result,
-                    new SpawnPosition(phys.getGrid(), loc),
-                    ShapeInfo.create("sphere", size, ed),
-                    new Mass(10),
-                    Gravity.ZERO
-            );
+            ed.setComponents(result, new SpawnPosition(phys.getGrid(), loc), ShapeInfo.create("sphere", size, ed),
+                    new Mass(10), Gravity.ZERO);
         } else {
-            ed.setComponents(result,
-                    new SpawnPosition(phys.getGrid(), loc),
-                    ShapeInfo.create("sphere", size, ed),
-                    new Mass(0)
-            );
+            ed.setComponents(result, new SpawnPosition(phys.getGrid(), loc), ShapeInfo.create("sphere", size, ed),
+                    new Mass(0));
         }
 
         return result;

@@ -31,19 +31,19 @@ import com.simsilica.es.EntityComponent;
  *
  * @author ss
  */
-public class AttackRate implements EntityComponent{
+public class AttackRate implements EntityComponent {
     private int rate; // [ms]
-    
-    public AttackRate(){
-        
+
+    public AttackRate() {
+
     }
-    
-    public AttackRate(int rate){
+
+    public AttackRate(int rate) {
         this.rate = rate;
     }
-    
-    public int getRate(){
+
+    public int getRate() {
         return this.rate;
     }
-    
+
 }

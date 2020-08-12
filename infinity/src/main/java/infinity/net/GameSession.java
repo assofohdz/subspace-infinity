@@ -70,8 +70,8 @@ public interface GameSession {
     public void move(MovementInput movementForces);
 
     /**
-     * Perform an action, such as placing a brick, firing off burst, placing a
-     * decoy etc.
+     * Perform an action, such as placing a brick, firing off burst, placing a decoy
+     * etc.
      */
     @Asynchronous(reliable = true)
     public void action(byte actionInput);
@@ -93,15 +93,15 @@ public interface GameSession {
      */
     @Asynchronous(reliable = true)
     public void toggle(byte toggleInput);
-    
+
     /**
      * Edit the map
-     * @param mapInput 
+     * 
+     * @param mapInput
      */
     @Asynchronous(reliable = true)
     public void map(byte mapInput, Vec3d coords);
-    
-    
+
 //    
 //    /**
 //     * RMI call to create a tile

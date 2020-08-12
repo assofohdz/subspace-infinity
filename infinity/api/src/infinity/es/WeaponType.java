@@ -28,37 +28,36 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 
-
 /**
- *  For attacking game objects, this is the type of attack
+ * For attacking game objects, this is the type of attack
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class WeaponType implements EntityComponent {
-    
+
     private int type;
- 
+
     protected WeaponType() {
     }
-    
-    public WeaponType( int type ) {
+
+    public WeaponType(int type) {
         this.type = type;
     }
-    
-    public static WeaponType create( String typeName, EntityData ed ) {
+
+    public static WeaponType create(String typeName, EntityData ed) {
         return new WeaponType(ed.getStrings().getStringId(typeName, true));
     }
-    
+
     public int getType() {
         return type;
     }
-    
-    public String getTypeName( EntityData ed ) {
-        return ed.getStrings().getString(type);                 
+
+    public String getTypeName(EntityData ed) {
+        return ed.getStrings().getString(type);
     }
- 
-    @Override   
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + "[type=" + type + "]";
-    }     
+    }
 }

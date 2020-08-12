@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Maximum number of Repels allowed in ships
+ * 
  * @author Asser
  */
 public class RepelMax implements EntityComponent {

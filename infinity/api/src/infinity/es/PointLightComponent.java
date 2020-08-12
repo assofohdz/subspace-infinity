@@ -56,8 +56,8 @@ public class PointLightComponent implements EntityComponent {
     public float getRadius() {
         return radius;
     }
-    
-    public Vec3d getOffset(){
+
+    public Vec3d getOffset() {
         return offset;
     }
 

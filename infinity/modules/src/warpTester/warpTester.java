@@ -57,12 +57,13 @@ public class warpTester extends BaseGameModule {
 
     static Logger log = LoggerFactory.getLogger(warpTester.class);
     private EntityData ed;
-    private final Pattern prizeTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");        
+    private final Pattern prizeTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");
 
     private Ini settings;
-    
-    public warpTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
-        super(chp, am, loader, arenas, time, physics);        
+
+    public warpTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
+            TimeManager time, PhysicsManager physics) {
+        super(chp, am, loader, arenas, time, physics);
     }
 
     @Override
@@ -74,18 +75,20 @@ public class warpTester extends BaseGameModule {
         } catch (IOException ex) {
             java.util.logging.Logger.getLogger(warpTester.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 13);
-        
 
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), 
-                new Vec3d(-7,0,7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7,0,7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(7,7,0), 5, 5000, GravityWell.PUSH);
-        
-        
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), 
-                new Vec3d(7,0,-7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7,0,-7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-7,-7,0), 5, 5000, GravityWell.PUSH);
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(), 13);
+
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(-7, 0, 7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7, 0, 7));
+        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(7, 7, 0), 5, 5000, GravityWell.PUSH);
+
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(7, 0, -7), 5, 5, 5000, GravityWell.PULL,
+                new Vec3d(-7, 0, -7));
+        GameEntities.createOver5(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(-7, -7, 0), 5, 5000, GravityWell.PUSH);
     }
 
     @Override
@@ -95,26 +98,29 @@ public class warpTester extends BaseGameModule {
 
     @Override
     public void start() {
-        //EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+        // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+                "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
 
-        //startGame();
+        // startGame();
     }
 
     @Override
     public void stop() {
-        //EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        //endGame();
+        // EventBus.removeListener(this, ShipEvent.shipDestroyed,
+        // ShipEvent.shipSpawned);
+        // endGame();
     }
 
     /**
      * Handle the message events
      *
      * @param id The entity id of the sender
-     * @param s The message to handle
+     * @param s  The message to handle
      */
     public void messageHandler(EntityId id, String s) {
-        log.info("Received command"+s);
+        log.info("Received command" + s);
     }
 }

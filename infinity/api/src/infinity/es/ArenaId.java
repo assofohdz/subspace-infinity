@@ -31,13 +31,13 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class ArenaId implements EntityComponent{
-    
+public class ArenaId implements EntityComponent {
+
     private String arenaId;
-    
-    //For serialization
-    public ArenaId(){
-        
+
+    // For serialization
+    public ArenaId() {
+
     }
 
     public ArenaId(String arenaId) {

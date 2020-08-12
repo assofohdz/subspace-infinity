@@ -50,6 +50,5 @@ public class CommandConsumer {
     public BiConsumer<EntityId, String> getConsumer() {
         return consumer;
     }
-    
-    
+
 }

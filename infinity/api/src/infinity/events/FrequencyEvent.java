@@ -31,7 +31,6 @@ package infinity.events;
  */
 public class FrequencyEvent {
     /*
-     * FrequencyChange
-     * FrequencyShipChange
+     * FrequencyChange FrequencyShipChange
      */
 }

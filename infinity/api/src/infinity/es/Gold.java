@@ -31,21 +31,20 @@ import com.simsilica.es.EntityComponent;
  *
  * @author ss
  */
-public class Gold implements EntityComponent{
- 
+public class Gold implements EntityComponent {
+
     private int gold;
-    
-    
+
     public Gold() {
     }
 
     public Gold(int gold) {
         this.gold = gold;
-                
+
     }
 
     public int getGold() {
         return this.gold;
     }
-    
+
 }

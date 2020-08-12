@@ -54,7 +54,7 @@ import infinity.systems.SettingsSystem;
 public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
 
     static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
-    //The entity that is controlling this driver
+    // The entity that is controlling this driver
     private DefaultWatchedEntity shipEntity;
 
     // Keep track of what the player has provided.
@@ -63,15 +63,15 @@ public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
 
     private double pickup = 3;
 
-    //Local reference to the body that we want to update
+    // Local reference to the body that we want to update
     private RigidBody body;
     private Vec3d velocity = new Vec3d();
     private final EntityData ed;
     private final SettingsSystem settings;
-    
+
     public PlayerDriver(EntityId shipEntityId, EntityData ed, SettingsSystem settings) {
-        //Watch all the relevant movement components of the ship
-        Class[] types = {Energy.class, Rotation.class, Speed.class, Thrust.class};
+        // Watch all the relevant movement components of the ship
+        Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
         this.shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
         this.settings = settings;
         this.ed = ed;
@@ -103,33 +103,35 @@ public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
 
     @Override
     public void update(long frameTime, double step) {
-        //Drivable bodies should not fall asleep, keep them awake at all times
+        // Drivable bodies should not fall asleep, keep them awake at all times
         body.wakeUp(true);
-        
+
         shipEntity.applyChanges();
 
-        //x-axis is side-to-side
-        //Grab local versions of the player settings in case another
-        //thread sets them while we are calculating.
-        //Quaternion quat = orientation;
+        // x-axis is side-to-side
+        // Grab local versions of the player settings in case another
+        // thread sets them while we are calculating.
+        // Quaternion quat = orientation;
         Vec3d vec = movementForces.getMove();
 
-        //x is rotate - we dont need to clamp that
-        //velocity.x = applyThrust(velocity.x, vec.x, step);
-        //z is forward
+        // x is rotate - we dont need to clamp that
+        // velocity.x = applyThrust(velocity.x, vec.x, step);
+        // z is forward
         velocity.z = applyThrust(velocity.z, vec.z, step);
 
-        //Rotate the ship according to left and right (should stop rotating right away when not pressing the keys
-        //Rotate around the y-axis (y is upwards)
+        // Rotate the ship according to left and right (should stop rotating right away
+        // when not pressing the keys
+        // Rotate around the y-axis (y is upwards)
         body.setRotationalVelocity(0, vec.x, 0);
 
-        //Set a clamped velocity on the forward axis rotated by the bodies current rotation
+        // Set a clamped velocity on the forward axis rotated by the bodies current
+        // rotation
         Vec3d newLinearVelocity = body.orientation.mult(velocity);
-        //body.setLinearVelocity(newLinearVelocity);
-        
-        
+        // body.setLinearVelocity(newLinearVelocity);
+
         body.addForce(newLinearVelocity.mult(20));
-        //log.info("Player (body) velocity (length of linvel): "+body.getLinearVelocity().length());
+        // log.info("Player (body) velocity (length of linvel):
+        // "+body.getLinearVelocity().length());
     }
 
     @Override
@@ -141,8 +143,8 @@ public class PlayerDriver<K extends EntityId> implements ControlDriver, Driver {
     public void terminate(RigidBody body) {
         this.body = null;
     }
-    
-    public void fireGuns(){
-        
+
+    public void fireGuns() {
+
     }
 }

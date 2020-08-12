@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Maximum number of Bursts allowed in ships
+ * 
  * @author Asser
  */
 public class BurstMax implements EntityComponent {

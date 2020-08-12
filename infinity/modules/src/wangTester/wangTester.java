@@ -61,7 +61,8 @@ public class wangTester extends BaseGameModule {
 
     private Ini settings;
 
-    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
+            TimeManager time, PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
@@ -75,9 +76,11 @@ public class wangTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 20);
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100,0,100));
-        
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(), 20);
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
+
     }
 
     @Override
@@ -87,24 +90,27 @@ public class wangTester extends BaseGameModule {
 
     @Override
     public void start() {
-        //EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+        // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand, "The command to make this wangTester do stuff is ~wangTester <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+                "The command to make this wangTester do stuff is ~wangTester <command>, where <command> is the command you want to execute",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
 
-        //startGame();
+        // startGame();
     }
 
     @Override
     public void stop() {
-        //EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        //endGame();
+        // EventBus.removeListener(this, ShipEvent.shipDestroyed,
+        // ShipEvent.shipSpawned);
+        // endGame();
     }
 
     /**
      * Handle the message events
      *
      * @param id The entity id of the sender
-     * @param s The message to handle
+     * @param s  The message to handle
      */
     public void messageHandler(EntityId id, String s) {
         log.info("Received command" + s);

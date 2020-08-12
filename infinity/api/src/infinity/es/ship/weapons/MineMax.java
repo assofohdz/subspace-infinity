@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Maximum number of Thor's Hammers allowed in ships
+ * 
  * @author Asser
  */
 public class MineMax implements EntityComponent {

@@ -56,6 +56,7 @@ public class ResourceSystem extends AbstractGameSystem {
     public ResourceSystem(HostedServiceManager serviceManager) {
         this.serviceManager = serviceManager;
     }
+
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
@@ -76,15 +77,15 @@ public class ResourceSystem extends AbstractGameSystem {
         if (this.time_since_last_update > CoreGameConstants.RESOURCE_UPDATE_INTERVAL) {
             this.time_since_last_update = 0;
 
-            //TPF is in seconds
+            // TPF is in seconds
             int gold = (int) (tpf.getTpf() * CoreGameConstants.GOLD_PER_SECOND);
 
-            //Handle old ships
+            // Handle old ships
             for (Entity e : this.ships) {
                 Gold g = this.ed.getComponent(e.getId(), Gold.class);
                 int totalGold = g.getGold() + gold;
                 this.ed.setComponent(e.getId(), new Gold(totalGold));
-                
+
                 goldMap.put(e.getId(), totalGold);
             }
         }
@@ -112,8 +113,8 @@ public class ResourceSystem extends AbstractGameSystem {
     }
 
     /**
-     * Buys a tower on behalf of the entity and deducts the cost of the tower
-     * from the entity
+     * Buys a tower on behalf of the entity and deducts the cost of the tower from
+     * the entity
      *
      * @param owner the entity purchasing the tower
      */

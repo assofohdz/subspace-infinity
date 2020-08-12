@@ -27,7 +27,6 @@ package infinity.settings;
 
 import infinity.es.ArenaId;
 
-
 /**
  *
  * @author Asser Fahrenholz
@@ -35,5 +34,5 @@ import infinity.es.ArenaId;
 public interface SettingListener {
 
     public void arenaSettingsChange(ArenaId arenaId, String section, String setting);
-    
+
 }

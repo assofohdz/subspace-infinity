@@ -65,8 +65,8 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     static Logger log = LoggerFactory.getLogger(AccountHostedService.class);
     /**
-     * This Hashmap contains all the operators Key: Name of the operator
-     * [lowercase] Value: level id (0-9)
+     * This Hashmap contains all the operators Key: Name of the operator [lowercase]
+     * Value: level id (0-9)
      */
     private static HashMap<EntityId, AccessLevel> operators;
 
@@ -97,7 +97,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     @Override
     protected void onInitialize(HostedServiceManager s) {
 
-        // Grab the RMI service so we can easily use it later        
+        // Grab the RMI service so we can easily use it later
         this.rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("AccountHostedService requires an RMI service.");
@@ -116,7 +116,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     @Override
     public void startHostingOnConnection(HostedConnection conn) {
 
-        //Add default access
+        // Add default access
         operators.put(conn.getAttribute(AccountHostedService.ATTRIBUTE_PLAYER_ENTITY), AccessLevel.PLAYER_LEVEL);
 
         log.debug("startHostingOnConnection(" + conn + ")");
@@ -149,7 +149,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * Manually adds an operator to the access list. For special use only. (Not
      * needed in any normal procedure.)
      *
-     * @param id the entity to add as operator
+     * @param id          the entity to add as operator
      * @param accessLevel Access level at which to add the name
      */
     public void addOperator(EntityId id, AccessLevel accessLevel) {
@@ -165,7 +165,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      *
      * @param eId the player EntityId
      * @return the HostedConnection object for that player if it exists. If no
-     * connection, returns null
+     *         connection, returns null
      */
     public HostedConnection getHostedConnection(EntityId eId) {
         if (playerConnectionMap.containsKey(eId)) {
@@ -223,7 +223,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
             getCallback().notifyLoginStatus(true);
 
             log.debug("publishing playerLoggedOn event for:" + conn);
-            // Notify 'logged in' only after we've told the player themselves            
+            // Notify 'logged in' only after we've told the player themselves
             EventBus.publish(AccountEvent.playerLoggedOn, new AccountEvent(conn, playerName, player));
         }
 
@@ -256,7 +256,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
             }
         }
 
-        //autoAssign.clear();
+        // autoAssign.clear();
     }
 
     /**
@@ -267,8 +267,8 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     }
 
     /**
-     * Given a id, return the access level associated. If none is found, return
-     * 0 (normal player).
+     * Given a id, return the access level associated. If none is found, return 0
+     * (normal player).
      *
      * @param entityId Entity in question
      * @return Access level of the id provided
@@ -304,22 +304,22 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     }
 
     /**
-     * Checks if a given id has bot operator level status. Bots automatically
-     * make themselves the bot operator level after logging in.
+     * Checks if a given id has bot operator level status. Bots automatically make
+     * themselves the bot operator level after logging in.
      *
      * @param id Name in question
      * @return True if player has the bot operator level status
      */
     public boolean isBotExact(EntityId id) {
 
-        return getAccessLevel(id) == AccessLevel.BOT_LEVEL; // || getAccessLevel(id) == SYSOP_LEVEL) && !sysops.contains(id)) {
+        return getAccessLevel(id) == AccessLevel.BOT_LEVEL; // || getAccessLevel(id) == SYSOP_LEVEL) &&
+                                                            // !sysops.contains(id)) {
     }
 
     /**
      * Check if a given id is at least of Outsider status. NOTE: Outsider is a
-     * special status provided to coders who are not members of staff. They are
-     * able to use some bot powers that ZHs can't, but can't generally use event
-     * bots.
+     * special status provided to coders who are not members of staff. They are able
+     * to use some bot powers that ZHs can't, but can't generally use event bots.
      *
      * @param id Name in question
      * @return True if player is at least an Outsider
@@ -429,10 +429,10 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     }
 
     /**
-     * Check if a given id is at least of HighMod status. NOTE: HighMod is a
-     * special status given to experienced mods, allowing them access to certain
-     * features that are normally only allowed to SMod+. Usually they are league
-     * ops or hold another important position requiring this status.
+     * Check if a given id is at least of HighMod status. NOTE: HighMod is a special
+     * status given to experienced mods, allowing them access to certain features
+     * that are normally only allowed to SMod+. Usually they are league ops or hold
+     * another important position requiring this status.
      *
      * @param id Name in question
      * @return True if player is at least a HighMod
@@ -529,8 +529,8 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      *
      * @param id Name in question
      * @return True if player is an owner
-     * @deprecated Exactly the same functionality as isOwner, as no higher
-     * access level exists.
+     * @deprecated Exactly the same functionality as isOwner, as no higher access
+     *             level exists.
      */
     @Deprecated
     public boolean isOwnerExact(EntityId id) {
@@ -541,8 +541,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     /**
      * Given an access level, returns all players who match that access level.
      *
-     * @param accessLevel A number corresponding to the OperatorList access
-     * standard
+     * @param accessLevel A number corresponding to the OperatorList access standard
      * @return HashSet of all players of that access level.
      */
     public HashSet<EntityId> getAllOfAccessLevel(AccessLevel accessLevel) {

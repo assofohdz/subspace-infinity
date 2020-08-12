@@ -31,19 +31,19 @@ import com.simsilica.es.EntityComponent;
  *
  * @author ss
  */
-public class AttackRange implements EntityComponent{
-    
+public class AttackRange implements EntityComponent {
+
     private double range;
-    
-    public AttackRange(){
+
+    public AttackRange() {
     }
-    
-    public AttackRange(double range){
+
+    public AttackRange(double range) {
         this.range = range;
     }
-    
-    public double getRange(){
+
+    public double getRange() {
         return this.range;
     }
-    
+
 }

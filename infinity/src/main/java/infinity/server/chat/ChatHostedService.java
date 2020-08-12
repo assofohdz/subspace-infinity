@@ -92,13 +92,13 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     }
 
     /**
-     * Creates a new chat service that will use the specified channel for
-     * reliable communication.
+     * Creates a new chat service that will use the specified channel for reliable
+     * communication.
      */
     public ChatHostedService(int channel) {
         this.channel = channel;
         this.patternBiConsumers = new HashMap<>();
-        //setAutoHost(false);
+        // setAutoHost(false);
     }
 
     protected ChatSessionImpl getChatSession(HostedConnection conn) {
@@ -108,7 +108,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     @Override
     protected void onInitialize(HostedServiceManager s) {
 
-        // Grab the RMI service so we can easily use it later        
+        // Grab the RMI service so we can easily use it later
         this.rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("ChatHostedService requires an RMI service.");
@@ -117,8 +117,8 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
     /**
      * Starts hosting the chat services on the specified connection using a
-     * specified player name. This causes the player to 'enter' the chat room
-     * and will then be able to send/receive messages.
+     * specified player name. This causes the player to 'enter' the chat room and
+     * will then be able to send/receive messages.
      */
     public void startHostingOnConnection(HostedConnection conn, String playerName) {
         log.debug("startHostingOnConnection(" + conn + ")");
@@ -163,7 +163,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
             // may call it and it will also be called during connection shutdown.
             conn.setAttribute(ATTRIBUTE_SESSION, null);
 
-            // Remove player session from the active sessions list 
+            // Remove player session from the active sessions list
             players.remove(player);
 
             // Send the leave event to other players
@@ -186,10 +186,11 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
                 matched = true;
                 EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
                 CommandConsumer cc = patternBiConsumers.get(p);
-                //TODO: Implement account service to manage security levels
-                //if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity, cc.getAccessLevelRequired())) {
-                    cc.getConsumer().accept(fromEntity, m.group(1));
-                //}
+                // TODO: Implement account service to manage security levels
+                // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
+                // cc.getAccessLevelRequired())) {
+                cc.getConsumer().accept(fromEntity, m.group(1));
+                // }
             }
         }
 
@@ -214,16 +215,17 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
     /**
      *
-     * @param pattern the pattern to match
+     * @param pattern     the pattern to match
      * @param description the help description of the pattern
-     * @param c a consumer taking the message and the sender entity id
+     * @param c           a consumer taking the message and the sender entity id
      */
     @Override
     public void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c) {
-        //TODO: For now, only one consumer per pattern (we could potentially have multiple)
+        // TODO: For now, only one consumer per pattern (we could potentially have
+        // multiple)
         patternBiConsumers.put(pattern, c);
 
-        //TODO: Post message only to those who have the proper access level
+        // TODO: Post message only to those who have the proper access level
         this.postPublicMessage("System", MessageTypes.MESSAGE, description);
     }
 
@@ -239,34 +241,38 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
     @Override
     public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public void postTeamMessage(String from, int messageType, int targetFrequency, String message) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public void registerCommandConsumer(String cmd, String helptext, CommandConsumer c) {
-        //TODO: Put together the pattern that will match, depending on the sender and the command
+        // TODO: Put together the pattern that will match, depending on the sender and
+        // the command
 
-        //TODO: Post message only to those who have the proper access level
+        // TODO: Post message only to those who have the proper access level
         this.postPublicMessage("System", MessageTypes.MESSAGE, helptext);
 
     }
 
     @Override
     public void removeCommandConsumer(String cmd) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
 
     }
 
     /**
-     * The connection-specific 'host' for the ChatSession. For convenience this
-     * also implements the ChatSessionListener. Since the methods don't collide
-     * at all it's convenient for our other code not to have to worry about the
-     * internal delegate.
+     * The connection-specific 'host' for the ChatSession. For convenience this also
+     * implements the ChatSessionListener. Since the methods don't collide at all
+     * it's convenient for our other code not to have to worry about the internal
+     * delegate.
      */
     private class ChatSessionImpl implements ChatSession, ChatSessionListener {
 

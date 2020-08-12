@@ -106,7 +106,7 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
         // We probably won't have many zones, if we even have more than one.
         // The physics objects do not provide any sort of accurate bounds so
         // we'll guess at a size that is "big enough" for any particular mobile
-        // object.  2x2x2 meters should be good enough... until it isn't.
+        // object. 2x2x2 meters should be good enough... until it isn't.
         private AaBBox box = new AaBBox(1);
 
         public PhysicsObserver() {
@@ -140,12 +140,12 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
             if (log.isTraceEnabled()) {
                 log.trace("objectLoaded(" + id + ", " + body + ")");
             }
-            // The server side needs hardly any backlog.  We'll use 3 just in case
-            // but 2 (even possibly 1) should be fine.  If we ever need to rewind
+            // The server side needs hardly any backlog. We'll use 3 just in case
+            // but 2 (even possibly 1) should be fine. If we ever need to rewind
             // for shot resolution then we can increase the backlog as necessary
             BodyPosition bPos = new BodyPosition(3);
 
-            // We have the body and the position, might as well just set it to 
+            // We have the body and the position, might as well just set it to
             // its initial value.
             bPos.addFrame(frameTime, body.position, body.orientation, true);
 
@@ -160,14 +160,14 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
             }
 
             // Note: objectRemoved() is called when the RigidBody has been removed
-            // from the physics space by the bin entity manager.  This generally only
+            // from the physics space by the bin entity manager. This generally only
             // happens when the entity itself has been 'removed' and therefore it is
-            // unlikely to have a BodyPosition anymore.  Also, this BodyPosition updating
+            // unlikely to have a BodyPosition anymore. Also, this BodyPosition updating
             // is only used on the server and so is unlikely to care about historical
             // visibility, etc..
             BodyPosition pos = ed.getComponent(id, BodyPosition.class);
             if (pos == null) {
-                return;  // just in case
+                return; // just in case
             }
 
             // Add the final frame with the invisible flag

@@ -38,13 +38,12 @@ public class Delay implements EntityComponent {
 
     public final static String SET = "set";
     public final static String REMOVE = "remove";
-    
-    
+
     private long start;
     private long delta;
     private HashSet<EntityComponent> delayedComponents;
     private String type;
-    
+
     public Delay(long deltaMillis, HashSet<EntityComponent> delayedComponents, String type) {
         this.start = System.nanoTime();
         this.delta = deltaMillis * 1000000;

@@ -51,7 +51,8 @@ import infinity.sim.CoreGameConstants;
 /**
  * State to keep track of different arenas. Arenas are composed of a tileset and
  * a ruleset and a location (since areanas are 1024x1024. This state keeps track
- * of where the next arena can be loaded and associates rulesets to each loaded arena
+ * of where the next arena can be loaded and associates rulesets to each loaded
+ * arena
  *
  * @author Asser
  */
@@ -68,7 +69,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     private HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
 
     private boolean createdDefaultArena = false;
-    
+
     private ListOrderedMap arenas = new ListOrderedMap();
     private MapSystem mapSystem;
     private int xCoord, zCoord;
@@ -78,15 +79,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
         this.ed = getSystem(EntityData.class);
 
-        arenaEntities = ed.getEntities(ArenaId.class); //This filters all entities that are in arenas
+        arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
 
-        AssetManager am = JmeSystem.newAssetManager(Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
+        AssetManager am = JmeSystem.newAssetManager(
+                Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
         am.registerLoader(LevelLoader.class, "lvl");
         am.registerLoader(LevelLoader.class, "lvz");
 
         staticBodyPositions = ed.getEntities(BodyPosition.class);
-        
+
         mapSystem = getSystem(MapSystem.class, true);
     }
 
@@ -129,25 +131,20 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     public String getDefaultArenaId() {
         return CoreGameConstants.DEFAULTARENAID;
     }
-    
-    public void loadArena(String name, boolean forceLoad){
+
+    public void loadArena(String name, boolean forceLoad) {
         if (!arenas.containsKey(name)) {
-            //find next coordinate pair to load map on
-            
-            
+            // find next coordinate pair to load map on
+
         }
-        
-        
+
         if (arenas.containsKey(name) && forceLoad) {
-            
-            
-            
-            
+
         }
     }
-    
-    private class Vector2i{
-        public int x,z;
+
+    private class Vector2i {
+        public int x, z;
 
         public Vector2i(int x, int z) {
             this.x = x;
@@ -180,7 +177,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
             }
             return true;
         }
-        
-        
+
     }
 }

@@ -40,15 +40,15 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 
 /**
- *  An entity that was picked, including where it was picked, etc.
+ * An entity that was picked, including where it was picked, etc.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class PickedObject {
     public EntityId entityId;
     public Vec3d location;
-    
-    public PickedObject( EntityId entityId, Vec3d location ) {
+
+    public PickedObject(EntityId entityId, Vec3d location) {
         this.entityId = entityId;
         this.location = location;
     }

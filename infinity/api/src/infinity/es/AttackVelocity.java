@@ -31,18 +31,18 @@ import com.simsilica.es.EntityComponent;
  *
  * @author ss
  */
-public class AttackVelocity implements EntityComponent{
+public class AttackVelocity implements EntityComponent {
     private double velocity;
-    
-    public AttackVelocity(){
-        
+
+    public AttackVelocity() {
+
     }
-    
-    public AttackVelocity(double velocity){
+
+    public AttackVelocity(double velocity) {
         this.velocity = velocity;
     }
-    
-    public double getVelocity(){
+
+    public double getVelocity() {
         return this.velocity;
     }
 }

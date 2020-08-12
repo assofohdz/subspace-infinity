@@ -28,7 +28,9 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Maximum rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1 second)
+ * Maximum rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1
+ * second)
+ * 
  * @author ss
  */
 public class RotationMax implements EntityComponent {

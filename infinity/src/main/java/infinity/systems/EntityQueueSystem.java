@@ -38,12 +38,12 @@ public class EntityQueueSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     protected void terminate() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

@@ -61,11 +61,10 @@ import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.net.GameSession;
 
-
 /**
- *  Manages the mouse/tool interaction with the scene/world.
+ * Manages the mouse/tool interaction with the scene/world.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class ToolState extends BaseAppState {
 
@@ -73,96 +72,92 @@ public class ToolState extends BaseAppState {
 
     private Spatial cursor;
     private int size = 48;
-    
+
     private ToolListener toolListener = new ToolListener();
-    
+
     private GameSession gameSession;
-    
+
     private ModelViewState models;
 
-    public ToolState() {        
+    public ToolState() {
     }
- 
+
     protected Node getGuiNode() {
-        return ((SimpleApplication)getApplication()).getGuiNode();
+        return ((SimpleApplication) getApplication()).getGuiNode();
     }
-    
+
     @Override
-    protected void initialize( Application app ) {
- 
+    protected void initialize(Application app) {
+
         models = getState(ModelViewState.class);
-        
-        GuiGlobals globals = GuiGlobals.getInstance(); 
-    
+
+        GuiGlobals globals = GuiGlobals.getInstance();
+
         Quad quad = new Quad(size, size);
-        Texture texture = globals.loadTexture("Interface/glass-orb-dark-48.png", false, false); 
-        
+        Texture texture = globals.loadTexture("Interface/glass-orb-dark-48.png", false, false);
+
         cursor = new Geometry("cursor", quad);
         Material mat = globals.createMaterial(texture, false).getMaterial();
-        mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);         
+        mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         cursor.setMaterial(mat);
     }
-    
+
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup(Application app) {
     }
-    
+
     @Override
     protected void onEnable() {
-        resetCursorPosition();   
+        resetCursorPosition();
         getGuiNode().attachChild(cursor);
-        
+
         this.gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
-        
+
         InputMapper input = GuiGlobals.getInstance().getInputMapper();
-        input.addStateListener(toolListener, 
-                               ToolFunctions.F_MAIN_TOOL,
-                               ToolFunctions.F_ALT_TOOL);        
+        input.addStateListener(toolListener, ToolFunctions.F_MAIN_TOOL, ToolFunctions.F_ALT_TOOL);
     }
-    
+
     @Override
     protected void onDisable() {
         cursor.removeFromParent();
         InputMapper input = GuiGlobals.getInstance().getInputMapper();
-        input.removeStateListener(toolListener, 
-                                  ToolFunctions.F_MAIN_TOOL,
-                                  ToolFunctions.F_ALT_TOOL);        
+        input.removeStateListener(toolListener, ToolFunctions.F_MAIN_TOOL, ToolFunctions.F_ALT_TOOL);
     }
-    
+
     protected void resetCursorPosition() {
         int width = getApplication().getCamera().getWidth();
         int height = getApplication().getCamera().getHeight();
         cursor.setLocalTranslation(width * 0.5f - size * 0.5f, height * 0.5f - size * 0.5f, 0);
     }
-    
-    public void update( float tpf ) {
+
+    public void update(float tpf) {
     }
-    
+
     private class ToolListener implements StateFunctionListener {
-    
+
         private EntityId heldEntity;
-    
-        public void valueChanged( FunctionId func, InputState value, double tpf ) {
+
+        public void valueChanged(FunctionId func, InputState value, double tpf) {
             log.info("valueChanged(" + func + ", " + value + ", " + tpf + ")");
- 
-            if( func == ToolFunctions.F_MAIN_TOOL ) {           
+
+            if (func == ToolFunctions.F_MAIN_TOOL) {
                 // Right now we'll just hard-code some tools
-                if( value == InputState.Positive ) {
-                
+                if (value == InputState.Positive) {
+
                     // See if we can grab anything
-                    PickedObject po = models.pickObject();                
-                    if( po != null ) {
-                        //gameSession.startHolding(po.entityId, po.location);
+                    PickedObject po = models.pickObject();
+                    if (po != null) {
+                        // gameSession.startHolding(po.entityId, po.location);
                         heldEntity = po.entityId;
                     } else {
                         // Just in case
                         heldEntity = null;
                     }
                 } else {
-                    //gameSession.stopHolding(heldEntity);
+                    // gameSession.stopHolding(heldEntity);
                     heldEntity = null;
                 }
-            } 
+            }
         }
     }
 }

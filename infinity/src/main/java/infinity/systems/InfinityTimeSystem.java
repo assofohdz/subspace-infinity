@@ -20,18 +20,18 @@ public class InfinityTimeSystem extends AbstractGameSystem implements TimeManage
 
     @Override
     public void stop() {
-        super.stop(); //To change body of generated methods, choose Tools | Templates.
+        super.stop(); // To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void update(SimTime time) {
-        super.update(time); //To change body of generated methods, choose Tools | Templates.
+        super.update(time); // To change body of generated methods, choose Tools | Templates.
         this.time = time.getTime();
     }
 
     @Override
     public void start() {
-        super.start(); //To change body of generated methods, choose Tools | Templates.
+        super.start(); // To change body of generated methods, choose Tools | Templates.
     }
 
     @Override

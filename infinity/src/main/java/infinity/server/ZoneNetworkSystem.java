@@ -55,71 +55,71 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 
 /**
- *  A game system that registers a listener with the SimplePhysics
- *  system and then forwards those events to the SimEtheral zone manager,
- *  which in turn will package them up for the clients in an efficient way.
+ * A game system that registers a listener with the SimplePhysics system and
+ * then forwards those events to the SimEtheral zone manager, which in turn will
+ * package them up for the clients in an efficient way.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSystem {
-  
+
     static Logger log = LoggerFactory.getLogger(ZoneNetworkSystem.class);
-    
+
     private ZoneManager zones;
     private PhysicsObserver physicsObserver = new PhysicsObserver();
-    
-    public ZoneNetworkSystem( ZoneManager zones ) {
+
+    public ZoneNetworkSystem(ZoneManager zones) {
         this.zones = zones;
     }
-     
+
     @Override
-    protected void initialize() {    
-        //getSystem(PhysicsSpace.class, true).addPhysicsListener(physicsObserver);
+    protected void initialize() {
+        // getSystem(PhysicsSpace.class, true).addPhysicsListener(physicsObserver);
         getSystem(MPhysSystem.class).addPhysicsListener(physicsObserver);
         getSystem(MPhysSystem.class).getBinEntityManager().addObjectStatusListener(physicsObserver);
     }
 
     @Override
     protected void terminate() {
-        //getSystem(PhysicsSpace.class, true).removePhysicsListener(physicsObserver);
+        // getSystem(PhysicsSpace.class, true).removePhysicsListener(physicsObserver);
         getSystem(MPhysSystem.class).addPhysicsListener(physicsObserver);
         getSystem(MPhysSystem.class).getBinEntityManager().addObjectStatusListener(physicsObserver);
     }
-    
+
     /**
-     *  Listens for changes in the physics objects and sends them
-     *  to the zone manager.
+     * Listens for changes in the physics objects and sends them to the zone
+     * manager.
      */
     private class PhysicsObserver implements PhysicsListener<EntityId, S>, ObjectStatusListener<S> {
 
         private Vector3f posf = new Vector3f();
-        private Quaternion orientf = new Quaternion();        
-        
+        private Quaternion orientf = new Quaternion();
+
         private Vec3d pos = new Vec3d();
         private Quatd orient = new Quatd();
-        
+
         // We probably won't have many zones, if we even have more than one.
         // The physics objects do not provide any sort of accurate bounds so
         // we'll guess at a size that is "big enough" for any particular mobile
-        // object.  2x2x2 meters should be good enough... until it isn't.
+        // object. 2x2x2 meters should be good enough... until it isn't.
         private AaBBox box = new AaBBox(1);
 
         public PhysicsObserver() {
         }
-        
-        @Override 
-        public void startFrame( long frameTime, double stepSize ) {
+
+        @Override
+        public void startFrame(long frameTime, double stepSize) {
             zones.beginUpdate(frameTime);
         }
-        
-        @Override 
+
+        @Override
         public void endFrame() {
             zones.endUpdate();
         }
-    
-        @Override 
-        public void update( RigidBody<EntityId, S> body ) {
-            if( log.isTraceEnabled() ) {
+
+        @Override
+        public void update(RigidBody<EntityId, S> body) {
+            if (log.isTraceEnabled()) {
                 log.trace("update(" + body.id + ", " + body.isSleepy() + ")");
             }
             boolean active = !body.isSleepy();
@@ -127,25 +127,23 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
 //        + "  cog:" + body.shape.getMass().getCog() 
 //        + "  shape info:" + body.shape.getCenter() + "  radius:" + body.shape.getRadius()
 //        + "  cog bounds:" + body.shape.getCogBounds());
-            zones.updateEntity(body.id.getId(), active, body.position, body.orientation, 
-                               body.getWorldBounds());
+            zones.updateEntity(body.id.getId(), active, body.position, body.orientation, body.getWorldBounds());
         }
-        
-        @Override 
-        public void objectLoaded( EntityId id, RigidBody<EntityId, S> body ) {
-            if( log.isTraceEnabled() ) {
+
+        @Override
+        public void objectLoaded(EntityId id, RigidBody<EntityId, S> body) {
+            if (log.isTraceEnabled()) {
                 log.trace("objectAdded(" + id + ", " + body + ")");
-            }        
+            }
             // Don't really care about this
         }
-        
-        @Override 
-        public void objectUnloaded( EntityId id, RigidBody<EntityId, S> body ) {
-            if( log.isTraceEnabled() ) {
+
+        @Override
+        public void objectUnloaded(EntityId id, RigidBody<EntityId, S> body) {
+            if (log.isTraceEnabled()) {
                 log.trace("objectRemoved(" + id + ", " + body + ")");
             }
             zones.remove(id.getId());
         }
     }
 }
-

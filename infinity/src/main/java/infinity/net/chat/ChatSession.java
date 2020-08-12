@@ -41,20 +41,20 @@ import java.util.List;
 import com.jme3.network.service.rmi.Asynchronous;
 
 /**
- *  A client's view of the chat services.
+ * A client's view of the chat services.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public interface ChatSession {
 
     /**
-     *  Sends a new message to the chat.
+     * Sends a new message to the chat.
      */
     @Asynchronous
-    public void sendMessage( String message );
+    public void sendMessage(String message);
 
     /**
-     *  Returns the list of players currently in the chat.
+     * Returns the list of players currently in the chat.
      */
-    public List<String> getPlayerNames();        
+    public List<String> getPlayerNames();
 }

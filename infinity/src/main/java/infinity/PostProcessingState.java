@@ -47,29 +47,29 @@ import com.simsilica.fx.shadow.DropShadowFilter;
 /**
  *
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class PostProcessingState extends BaseAppState {
 
     private FilterPostProcessor fpp;
     private DropShadowFilter shadows;
     private float shadowStrength = 0.7f;
-    
+
     public PostProcessingState() {
     }
 
-    public void setEnableShadows( boolean b ) {
+    public void setEnableShadows(boolean b) {
         shadows.setEnabled(b);
     }
 
-    public void setShadowStrength( float f ) {
-        if( this.shadowStrength == f ) {
+    public void setShadowStrength(float f) {
+        if (this.shadowStrength == f) {
             return;
         }
         this.shadowStrength = f;
         resetShadowStrength();
     }
-    
+
     public float getShadowStrength() {
         return shadowStrength;
     }
@@ -79,39 +79,39 @@ public class PostProcessingState extends BaseAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
-    
+    protected void initialize(Application app) {
+
         AssetManager assets = app.getAssetManager();
-        
+
         fpp = new FilterPostProcessor(assets);
         AppSettings settings = app.getContext().getSettings();
-        if( settings.getSamples() != 0 ) {
+        if (settings.getSamples() != 0) {
             fpp.setNumSamples(settings.getSamples());
         }
 
         shadows = new DropShadowFilter();
         shadows.setEnabled(true);
-        //shadows.setShowBox(true);
+        // shadows.setShowBox(true);
         fpp.addFilter(shadows);
-        
-        resetShadowStrength();                   
+
+        resetShadowStrength();
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup(Application app) {
     }
 
     @Override
     protected void onEnable() {
-        getApplication().getViewPort().addProcessor(fpp);        
+        getApplication().getViewPort().addProcessor(fpp);
     }
 
     @Override
-    public void update( float tpf ) {
+    public void update(float tpf) {
     }
 
     @Override
     protected void onDisable() {
-        getApplication().getViewPort().removeProcessor(fpp);        
+        getApplication().getViewPort().removeProcessor(fpp);
     }
 }

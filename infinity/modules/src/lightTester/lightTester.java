@@ -60,7 +60,8 @@ public class lightTester extends BaseGameModule {
 
     private Ini settings;
 
-    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
+            TimeManager time, PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
@@ -73,21 +74,28 @@ public class lightTester extends BaseGameModule {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(10, 0, -10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(), this.getTimeManager().getTime(), new Vec3d(-10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(-10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
+                this.getTimeManager().getTime(), new Vec3d(-10, 0, -10));
     }
 
     @Override
     protected void terminate() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public void start() {
         EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        this.getChp().registerPatternBiConsumer(lightCommand, "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+        this.getChp().registerPatternBiConsumer(lightCommand,
+                "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
     }
 
     @Override
@@ -96,6 +104,7 @@ public class lightTester extends BaseGameModule {
     }
 
     private CommandConsumer messageHandler(EntityId id, String s) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 }

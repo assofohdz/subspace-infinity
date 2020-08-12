@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Initial number of Thor's Hammers given to ships when they start
+ * 
  * @author Asser
  */
 public class Thor implements EntityComponent {

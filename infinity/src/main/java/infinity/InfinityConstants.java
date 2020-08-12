@@ -44,137 +44,143 @@ import com.simsilica.mathd.Vec3i;
 import com.simsilica.mathd.bits.QuatBits;
 import com.simsilica.mathd.bits.Vec3Bits;
 
-
 /**
- *  Game setup constants for things like game name, version, etc.
+ * Game setup constants for things like game name, version, etc.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class InfinityConstants {
     public static final String NAME = "MWorld Network Demo";
     public static final String TITLE = "MWorld Network Demo v1.0a";
     public static final int PROTOCOL_VERSION = 42;
-    
+
     public static final int DEFAULT_PORT = 6942;
-    
+
     /**
-     *  We add an extra channel on the client->server connection to send
-     *  chat related messages.  This is its own separate TCP socket that
-     *  avoids tying up the main connection.
+     * We add an extra channel on the client->server connection to send chat related
+     * messages. This is its own separate TCP socket that avoids tying up the main
+     * connection.
      */
     public static final int CHAT_CHANNEL = 0;
-    
+
     /**
-     *  Send entity-related messages over a separate channel to avoid 
-     *  clogging up the main channels.
+     * Send entity-related messages over a separate channel to avoid clogging up the
+     * main channels.
      */
-    public static final int ES_CHANNEL = 1; 
- 
+    public static final int ES_CHANNEL = 1;
+
     /**
-     *  Send terrain related messages over a separate channel.
+     * Send terrain related messages over a separate channel.
      */
-    public static final  int TERRAIN_CHANNEL = 2;
- 
+    public static final int TERRAIN_CHANNEL = 2;
+
     /**
-     *  The size of the rendered grid cells.  This is just a visualization
-     *  setting but it's best if it is at least a multiple/factor of the gridSize.
-     */       
+     * The size of the rendered grid cells. This is just a visualization setting but
+     * it's best if it is at least a multiple/factor of the gridSize.
+     */
     public static final int GRID_CELL_SIZE = 256;
-    
-    /** 
-     *  The grid that divides physical space into bins for management of the
-     *  rigid bodies.
+
+    /**
+     * The grid that divides physical space into bins for management of the rigid
+     * bodies.
      */
     public static final Grid PHYSICS_GRID = new Grid(GRID_CELL_SIZE, 0, GRID_CELL_SIZE);
- 
+
     /**
-     *  The grid for large objects.
+     * The grid for large objects.
      */
     public static final Grid LARGE_OBJECT_GRID = new Grid(128, 0, 128);
- 
+
     /**
-     *  Default gravity used for the physics simulation. - Changed from 0,-10,0 to 0,0,0 for ZERO gravity (space sim)
+     * Default gravity used for the physics simulation. - Changed from 0,-10,0 to
+     * 0,0,0 for ZERO gravity (space sim)
      */
-    public static final Vec3d DEFAULT_GRAVITY = new Vec3d(0, 0, 0);     
-    
+    public static final Vec3d DEFAULT_GRAVITY = new Vec3d(0, 0, 0);
+
     // To allow players to see farther in space, we'll use a larger grid
-    // size for the zone manager.  We could have also used a wider zone radius
-    // and we might use both.  The gridSize used in a real game is mostly a
+    // size for the zone manager. We could have also used a wider zone radius
+    // and we might use both. The gridSize used in a real game is mostly a
     // balance between how likely it is that an object will fall into more than
     // one zone at a time, with how many objects are likely to be in a zone.
     // Also, while the zone radius can be increased to include more surrounding
     // zones in a player's view, there is considerably more management involved
-    // with each new zone, more network messages, etc..  Finding the sweet spot
+    // with each new zone, more network messages, etc.. Finding the sweet spot
     // will depend largely on the game.
-    private static final int gridSize = 128; //32;
-    
+    private static final int gridSize = 128; // 32;
+
     /**
-     *  The 3D zone grid definition that defines how space is broken
-     *  up into network zones.  
+     * The 3D zone grid definition that defines how space is broken up into network
+     * zones.
      */
     public static final ZoneGrid ZONE_GRID = new ZoneGrid(gridSize, 0, gridSize);
- 
-    //public static final float MAX_OBJECT_RADIUS = 5;
+
+    // public static final float MAX_OBJECT_RADIUS = 5;
     public static final float MAX_OBJECT_RADIUS = 32; // with big ships, it needs to be bumped.
-    
-    //public static final int POSITION_BITS = 16;
-    public static final int POSITION_BIT_COUNT = 18;  // with bigger radius, we need more bits.
-    
+
+    // public static final int POSITION_BITS = 16;
+    public static final int POSITION_BIT_COUNT = 18; // with bigger radius, we need more bits.
+
     /**
-     *  Defines how many network message bits to encode the elements of position 
-     *  fields.  This will be a function of the grid size and resolution desired.  Keep in
-     *  mind that objects can be in a zone even if their raw position is not in that
-     *  zone because their radius may overlap that zone.  So the proper range needs
-     *  to account for this overlap or there will be odd position clipping at the
-     *  borders as objects cross zone boundaries.
-     */   
-    public static final Vec3Bits POSITION_BITS = new Vec3Bits(-MAX_OBJECT_RADIUS, 
-                                                              gridSize + MAX_OBJECT_RADIUS,
-                                                              POSITION_BIT_COUNT);
- 
-    /** 
-     *  Defines how many network message bits to encode the elements of rotation
-     *  fields.  Given that rotation Quaternion values are always between -1 and 1,
-     *  12 bits seems sufficient based on ultimate resolution and visual testing.  
+     * Defines how many network message bits to encode the elements of position
+     * fields. This will be a function of the grid size and resolution desired. Keep
+     * in mind that objects can be in a zone even if their raw position is not in
+     * that zone because their radius may overlap that zone. So the proper range
+     * needs to account for this overlap or there will be odd position clipping at
+     * the borders as objects cross zone boundaries.
+     */
+    public static final Vec3Bits POSITION_BITS = new Vec3Bits(-MAX_OBJECT_RADIUS, gridSize + MAX_OBJECT_RADIUS,
+            POSITION_BIT_COUNT);
+
+    /**
+     * Defines how many network message bits to encode the elements of rotation
+     * fields. Given that rotation Quaternion values are always between -1 and 1, 12
+     * bits seems sufficient based on ultimate resolution and visual testing.
      */
     public static final QuatBits ROTATION_BITS = new QuatBits(12);
- 
+
     /**
-     *  Defines the overall object protocol parameters for how many bits ar used
-     *  to encode the various parts of an object update message.  
+     * Defines the overall object protocol parameters for how many bits ar used to
+     * encode the various parts of an object update message.
      *
-     *  <p>The first parameter defines how many bits are used to encode zone IDs.  
-     *  Zones are always defined relative to the player so this will be a function of
-     *  the zone radius.  For example, a radius of (1, 1, 1) means a 3D grid that's
-     *  3x3x3 or 27 different zones.  At least 5 bits would be necessary to encode
-     *  those IDs.  I use 8 here arbitrarily to give some space for zone radius
-     *  experimentation.  8 bits should support a zone radius up to (3, 3, 2).</p>
+     * <p>
+     * The first parameter defines how many bits are used to encode zone IDs. Zones
+     * are always defined relative to the player so this will be a function of the
+     * zone radius. For example, a radius of (1, 1, 1) means a 3D grid that's 3x3x3
+     * or 27 different zones. At least 5 bits would be necessary to encode those
+     * IDs. I use 8 here arbitrarily to give some space for zone radius
+     * experimentation. 8 bits should support a zone radius up to (3, 3, 2).
+     * </p>
      *
-     *  <p>The second parameter is how many bits are associated with the real
-     *  object IDs.  These IDs are not sent with every message so it's important that
-     *  the value properly encompass all potential IDs.  For example, using a long ID
-     *  from an ES you would need 64 bits.  If game sessions are short lived and your
-     *  object IDs are only ever 'int' then 32 bits is the proper value.  This should
-     *  usually be 64 bits and I'm keeping it as such... even though this example
-     *  could get away with 32 bits.  Since these values are not sent with every message
-     *  and people might cut/paste these settings, I'm going with the safer choice.</p>
+     * <p>
+     * The second parameter is how many bits are associated with the real object
+     * IDs. These IDs are not sent with every message so it's important that the
+     * value properly encompass all potential IDs. For example, using a long ID from
+     * an ES you would need 64 bits. If game sessions are short lived and your
+     * object IDs are only ever 'int' then 32 bits is the proper value. This should
+     * usually be 64 bits and I'm keeping it as such... even though this example
+     * could get away with 32 bits. Since these values are not sent with every
+     * message and people might cut/paste these settings, I'm going with the safer
+     * choice.
+     * </p>
      *
-     *  <p>The last two parameters are the Vec3 and Quat bit sizes defined above.</p>   
-     */   
-    public static final ObjectStateProtocol OBJECT_PROTOCOL 
-                = new ObjectStateProtocol(8, 64, POSITION_BITS, ROTATION_BITS);
- 
+     * <p>
+     * The last two parameters are the Vec3 and Quat bit sizes defined above.
+     * </p>
+     */
+    public static final ObjectStateProtocol OBJECT_PROTOCOL = new ObjectStateProtocol(8, 64, POSITION_BITS,
+            ROTATION_BITS);
+
     /**
-     *  Defines the 3D zone radius around which updates will be sent.  The player
-     *  is always considered to be in the 'center' and this radius defines how
-     *  many zones in each direction are included in the view.  (A 2D game might
-     *  only define x,y and leave z as 0.)  So a radius of 1 in x means that the
-     *  player can see one zone to either side of their current zone.
-     *  A total zone radius of (1, 1, 1) means the player can see a total of 27
-     *  zones including the zone they are in.
-     */           
-    //public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
+     * Defines the 3D zone radius around which updates will be sent. The player is
+     * always considered to be in the 'center' and this radius defines how many
+     * zones in each direction are included in the view. (A 2D game might only
+     * define x,y and leave z as 0.) So a radius of 1 in x means that the player can
+     * see one zone to either side of their current zone. A total zone radius of (1,
+     * 1, 1) means the player can see a total of 27 zones including the zone they
+     * are in.
+     */
+    // public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
     public static final Vec3i ZONE_RADIUS = new Vec3i(1, 0, 1);
-    //public static final Vec3i ZONE_RADIUS = new Vec3i(2, 2, 2);
-    
+    // public static final Vec3i ZONE_RADIUS = new Vec3i(2, 2, 2);
+
 }

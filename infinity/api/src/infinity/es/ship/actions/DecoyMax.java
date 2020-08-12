@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Maximum number of Decoys allowed in ships
+ * 
  * @author Asser
  */
 public class DecoyMax implements EntityComponent {

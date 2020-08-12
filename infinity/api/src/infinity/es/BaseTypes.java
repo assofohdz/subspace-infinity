@@ -29,7 +29,6 @@ import com.simsilica.es.EntityData;
 
 public class BaseTypes {
 
-    
     public static final String BASE1 = "base1";
 
     public static BaseType base1(EntityData ed) {

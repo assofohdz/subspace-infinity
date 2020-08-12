@@ -42,9 +42,9 @@ public abstract class BaseGameService extends AbstractHostedService {
      * Instantiates a base game service with settings and reference to chat and
      * account services
      *
-     * @param chp reference to the hosted chat server
+     * @param chp    reference to the hosted chat server
      * @param loader reference to the adaptive loading service
-     * @param am reference to the account management service
+     * @param am     reference to the account management service
      * @param arenas
      */
     public BaseGameService(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
@@ -65,7 +65,7 @@ public abstract class BaseGameService extends AbstractHostedService {
     public AdaptiveLoader getLoader() {
         return loader;
     }
-    
+
     public ArenaManager getArenas() {
         return arenas;
     }

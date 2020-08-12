@@ -42,35 +42,33 @@ import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
-
 /**
- *  Defines a set of global game functions and some default key/control
- *  mappings.
+ * Defines a set of global game functions and some default key/control mappings.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class MainGameFunctions {
 
     public static final String IN_GAME = "In Game";
-    
-    public static final FunctionId F_IN_GAME_MENU = new FunctionId(IN_GAME, "Menu");   
-    //public static final FunctionId F_IN_GAME_HELP = new FunctionId(IN_GAME, "In-Game Help");
-    public static final FunctionId F_PLAYER_LIST = new FunctionId(IN_GAME, "Player List");    
-    public static final FunctionId F_CHAT_CONSOLE = new FunctionId(IN_GAME, "Chat"); 
-    //public static final FunctionId F_TIME_DEBUG = new FunctionId(IN_GAME, "Time Debug");
 
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
-    
+    public static final FunctionId F_IN_GAME_MENU = new FunctionId(IN_GAME, "Menu");
+    // public static final FunctionId F_IN_GAME_HELP = new FunctionId(IN_GAME,
+    // "In-Game Help");
+    public static final FunctionId F_PLAYER_LIST = new FunctionId(IN_GAME, "Player List");
+    public static final FunctionId F_CHAT_CONSOLE = new FunctionId(IN_GAME, "Chat");
+    // public static final FunctionId F_TIME_DEBUG = new FunctionId(IN_GAME, "Time
+    // Debug");
+
+    public static void initializeDefaultMappings(InputMapper inputMapper) {
+
         inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
         inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_SELECT); // the normal one
         inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_BUTTON8); // just in case it's not a gamepad
-        //inputMapper.map(F_IN_GAME_HELP, KeyInput.KEY_F1);
+        // inputMapper.map(F_IN_GAME_HELP, KeyInput.KEY_F1);
 
         inputMapper.map(F_PLAYER_LIST, KeyInput.KEY_F2);
 
         inputMapper.map(F_CHAT_CONSOLE, KeyInput.KEY_RETURN);
-        inputMapper.map(F_CHAT_CONSOLE, KeyInput.KEY_NUMPADENTER);        
-    }                                                                   
+        inputMapper.map(F_CHAT_CONSOLE, KeyInput.KEY_NUMPADENTER);
+    }
 }
-
-

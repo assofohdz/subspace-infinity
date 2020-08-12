@@ -57,48 +57,45 @@ import com.simsilica.ethereal.SharedObjectListener;
 
 import infinity.es.BodyPosition;
 
-
 /**
- *  Updates the entities local position from network state.
- *  Requires that the entity have the BodyPosition component
- *  to accumulate state history for some backlog.  Updates to
- *  entities without a BodyPosition will be ignored... the alternative
- *  would be to cache a BodyPosition in advance until we finally
- *  see the entity.  This will be necessary if strict starting visibility
- *  is ever a requirement as the message that updates the entity's component
- *  may come some time after we've been recieving valid updates.  Enough that
- *  we'll be missing some history.  (For example, a missile might look like
- *  it starts a bit down its path.) 
+ * Updates the entities local position from network state. Requires that the
+ * entity have the BodyPosition component to accumulate state history for some
+ * backlog. Updates to entities without a BodyPosition will be ignored... the
+ * alternative would be to cache a BodyPosition in advance until we finally see
+ * the entity. This will be necessary if strict starting visibility is ever a
+ * requirement as the message that updates the entity's component may come some
+ * time after we've been recieving valid updates. Enough that we'll be missing
+ * some history. (For example, a missile might look like it starts a bit down
+ * its path.)
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
-public class SharedObjectUpdater extends AbstractClientService
-                                 implements SharedObjectListener {
+public class SharedObjectUpdater extends AbstractClientService implements SharedObjectListener {
 
     static Logger log = LoggerFactory.getLogger(SharedObjectUpdater.class);
 
     private EntityData ed;
     private EntitySet entities;
     private long frameTime;
- 
+
     // All of the trackers will be accessed from the SharedObjectListener
     // methods: beginFrame(), objectUpdated(), objectRemoved(), etc. and
     // so should all be from the same thread.
     private Map<Long, ObjectTracker> trackers = new HashMap<>();
-    
+
     public SharedObjectUpdater() {
     }
-    
+
     @Override
     protected void onInitialize(ClientServiceManager s) {
-        log.info("onInitialize()");    
-        this.ed = getService(EntityDataClientService.class).getEntityData();         
+        log.info("onInitialize()");
+        this.ed = getService(EntityDataClientService.class).getEntityData();
     }
-    
+
     @Override
     public void start() {
         log.info("start()");
-log.info("start() thread:" + Thread.currentThread());                   
+        log.info("start() thread:" + Thread.currentThread());
         entities = ed.getEntities(BodyPosition.class);
         this.frameTime = -1;
         getService(EtherealClient.class).addObjectListener(this);
@@ -106,139 +103,136 @@ log.info("start() thread:" + Thread.currentThread());
 
     @Override
     public void stop() {
-        log.info("stop()");    
+        log.info("stop()");
         getService(EtherealClient.class).removeObjectListener(this);
         entities.release();
     }
 
     @Override
-    public void beginFrame( long time ) {
-        if( log.isTraceEnabled() ) {
+    public void beginFrame(long time) {
+        if (log.isTraceEnabled()) {
             log.trace("** beginFrame(" + time + ")");
         }
         this.frameTime = time;
-        if( entities.applyChanges() ) {
+        if (entities.applyChanges()) {
             // Make sure the added/updated entities have been initialized
             initializeBodyPosition(entities.getAddedEntities());
             initializeBodyPosition(entities.getChangedEntities());
-            if( log.isTraceEnabled() ) {
-                for( Entity e : entities.getRemovedEntities() ) {
+            if (log.isTraceEnabled()) {
+                for (Entity e : entities.getRemovedEntities()) {
                     log.trace("entity removed:" + e.getId());
                 }
             }
- 
+
             updateEntityTrackers(entities.getAddedEntities(), 1);
             updateEntityTrackers(entities.getRemovedEntities(), -1);
         }
     }
-    
-    protected void initializeBodyPosition( Set<Entity> set ) {
-        for( Entity e : set ) {
+
+    protected void initializeBodyPosition(Set<Entity> set) {
+        for (Entity e : set) {
             BodyPosition pos = e.get(BodyPosition.class);
-            
+
             // BodyPosition requires special management to make
             // sure all instances of BodyPosition are sharing the same
-            // thread-safe history buffer           
+            // thread-safe history buffer
             pos.initialize(e.getId(), 12);
-            if( log.isTraceEnabled() ) {
+            if (log.isTraceEnabled()) {
                 log.trace("BodyPos.initialize(" + e.getId() + ")");
-            }             
+            }
         }
     }
 
     @Override
-    public void objectUpdated( SharedObject obj ) {
-        if( log.isTraceEnabled() ) {
-            log.trace("****** Object moved[t=" + frameTime + "]:" + obj.getEntityId() + "  pos:" + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());    
+    public void objectUpdated(SharedObject obj) {
+        if (log.isTraceEnabled()) {
+            log.trace("****** Object moved[t=" + frameTime + "]:" + obj.getEntityId() + "  pos:"
+                    + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());
         }
-if( obj.getEntityId() == null ) {        
-    log.info("****** Object moved[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:" + obj.getNetworkId() + "  pos:" + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());
-}
-            
+        if (obj.getEntityId() == null) {
+            log.info("****** Object moved[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:" + obj.getNetworkId()
+                    + "  pos:" + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());
+        }
+
         EntityId id = new EntityId(obj.getEntityId());
         ObjectTracker tracker = getTracker(id, true);
         tracker.updateCount++;
-        
+
         Entity entity = entities.getEntity(id);
-        if( entity == null ) {
+        if (entity == null) {
             // This can happen either because we've received an update before we
             // have the entity or because we received the entity removal before we
-            // got the shared object update.  (The latter is probably more common
+            // got the shared object update. (The latter is probably more common
             // in my localhost test environment.)
             // Now with the ObjectTrackers we can detect how many times this happens
             // and only log the first few... and then an error at a certain point.
             // We skip the first one because in localhost testing it's really common.
-            if( tracker.updateCount > 1 && tracker.updateCount < 5 && log.isDebugEnabled() ) {
+            if (tracker.updateCount > 1 && tracker.updateCount < 5 && log.isDebugEnabled()) {
                 log.debug("update: No entity yet for:" + obj.getEntityId());
-            } else if( tracker.updateCount == 20 ) {
+            } else if (tracker.updateCount == 20) {
                 log.error("update: No entity for:" + obj.getEntityId() + "  after 20 updates.");
             }
             return;
-        }        
-        BodyPosition pos = entity.get(BodyPosition.class);        
-        if( pos == null ) {
+        }
+        BodyPosition pos = entity.get(BodyPosition.class);
+        if (pos == null) {
             // normal as it may take longer for that update to get here
-            if( log.isDebugEnabled() ) {
+            if (log.isDebugEnabled()) {
                 log.debug("Object doesn't have a BodyPosition yet for:" + obj.getEntityId());
             }
         } else {
-            // Temporary watchdog.  FIXME: when we are confident that this never
+            // Temporary watchdog. FIXME: when we are confident that this never
             // happens.
-            if( !pos.isInitialized() ) {
+            if (!pos.isInitialized()) {
                 log.error("BodyPos not initialized:" + id);
                 pos.initialize(id, 12);
             }
-            
+
             // Update our position buffer
-            pos.addFrame(frameTime, 
-                         obj.getWorldPosition(), 
-                         obj.getWorldRotation(),
-                         true);
+            pos.addFrame(frameTime, obj.getWorldPosition(), obj.getWorldRotation(), true);
         }
     }
 
     @Override
-    public void objectRemoved( SharedObject obj ) {
-        if( log.isDebugEnabled() ) {
-            log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:" + obj.getNetworkId());
+    public void objectRemoved(SharedObject obj) {
+        if (log.isDebugEnabled()) {
+            log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:"
+                    + obj.getNetworkId());
         }
         EntityId id = new EntityId(obj.getEntityId());
         Entity entity = entities.getEntity(id);
-        
+
         ObjectTracker tracker = getTracker(id, false);
-        if( tracker == null ) {
+        if (tracker == null) {
             log.warn("Received object removal for entity/object with no tracker:" + id);
         } else {
             tracker.objectRemoved++;
             tracker.checkRelease();
         }
-        
-        if( entity == null ) {
+
+        if (entity == null) {
             // Sometimes we recieve the entity removal before we receive the sim-ethereal
-            // removal... and so we will fail to find an entity.  If we really cared about
-            // proper warnings, we could probably keep track of this state.  Might be worth
+            // removal... and so we will fail to find an entity. If we really cared about
+            // proper warnings, we could probably keep track of this state. Might be worth
             // it in this test/demo app... but probably not in a real game.
-            // We do now... so I'm commenting out this log.  A missing tracker will trigger
+            // We do now... so I'm commenting out this log. A missing tracker will trigger
             // a real warning.
-            //if( log.isDebugEnabled() ) {
-            //    log.debug("No entity for removed object for:" + obj.getEntityId());
-            //}
+            // if( log.isDebugEnabled() ) {
+            // log.debug("No entity for removed object for:" + obj.getEntityId());
+            // }
             return;
-        }        
-        BodyPosition pos = entity.get(BodyPosition.class);        
-        if( pos == null ) {
+        }
+        BodyPosition pos = entity.get(BodyPosition.class);
+        if (pos == null) {
             // normal as it may take longer for that update to get here
-            if( log.isDebugEnabled() ) {
+            if (log.isDebugEnabled()) {
                 log.debug("Removed object doesn't have a BodyPosition yet for:" + obj.getEntityId());
             }
         } else {
-            if( log.isDebugEnabled() ) {            
+            if (log.isDebugEnabled()) {
                 log.debug("Setting entity to invisible for:" + obj.getEntityId());
             }
-            pos.addFrame(frameTime,  
-                         obj.getWorldPosition(), 
-                         obj.getWorldRotation(),
-                         false);
+            pos.addFrame(frameTime, obj.getWorldPosition(), obj.getWorldRotation(), false);
         }
     }
 
@@ -246,34 +240,34 @@ if( obj.getEntityId() == null ) {
     public void endFrame() {
         log.trace("** endFrame()");
         this.frameTime = -1;
- 
-        if( log.isTraceEnabled() ) {
-            if( trackers.size() != entities.size() ) {
+
+        if (log.isTraceEnabled()) {
+            if (trackers.size() != entities.size()) {
                 log.info("Tracker count:" + trackers.size() + "  entity count:" + entities.size());
             }
         }
     }
 
-    protected ObjectTracker getTracker( EntityId id, boolean create ) {
+    protected ObjectTracker getTracker(EntityId id, boolean create) {
         return getTracker(id.getId(), create);
     }
-    
-    protected ObjectTracker getTracker( Long id, boolean create ) {
+
+    protected ObjectTracker getTracker(Long id, boolean create) {
         ObjectTracker result = trackers.get(id);
-        if( result == null && create ) {
+        if (result == null && create) {
             result = new ObjectTracker(id);
             trackers.put(id, result);
         }
         return result;
     }
 
-    protected void updateEntityTrackers( Set<Entity> set, int delta ) {
-        for( Entity e : set ) {
-            if( delta > 0 ) {
+    protected void updateEntityTrackers(Set<Entity> set, int delta) {
+        for (Entity e : set) {
+            if (delta > 0) {
                 getTracker(e.getId(), true).entityAdded += delta;
             } else {
                 ObjectTracker tracker = getTracker(e.getId(), false);
-                if( tracker == null ) {
+                if (tracker == null) {
                     log.warn("Receiving entity removal for entity we've never seen:" + e.getId());
                 } else {
                     tracker.entityAdded += delta;
@@ -284,29 +278,26 @@ if( obj.getEntityId() == null ) {
     }
 
     /**
-     *  Keeps track of which objects we've seen events for.  A real application
-     *  wouldn't need this but because this demo acts as a test app, it's nice if
-     *  it can warn us _accurately_ when we are seeing messages that we shouldn't
-     *  be.
+     * Keeps track of which objects we've seen events for. A real application
+     * wouldn't need this but because this demo acts as a test app, it's nice if it
+     * can warn us _accurately_ when we are seeing messages that we shouldn't be.
      */
     private class ObjectTracker {
         Long id;
         int entityAdded;
         int objectRemoved;
         long updateCount;
-        
-        public ObjectTracker( Long id ) {
+
+        public ObjectTracker(Long id) {
             this.id = id;
         }
-        
+
         public void checkRelease() {
-            if( entityAdded == 0 && objectRemoved > 0 ) {
+            if (entityAdded == 0 && objectRemoved > 0) {
                 trackers.remove(id);
-            } else if( entityAdded < 0 ) {
+            } else if (entityAdded < 0) {
                 log.warn("ObjectTracker.entityAdded somehow went negative for:" + id);
-            } 
+            }
         }
     }
 }
-
-

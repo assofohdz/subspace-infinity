@@ -90,28 +90,29 @@ public class MovementSystem extends AbstractGameSystem {
         this.space = physics.getPhysicsSpace();
         physics.getBodyFactory().addDynamicInitializer(initializer);
 
-        // There are two ways that a PlayerDriver can be set on a 
+        // There are two ways that a PlayerDriver can be set on a
         // RigidBody.
-        // 1) when the body is created on demand, if the entity is already 
-        //    being managed by the 'players' EntityContainer then the above 
-        //    initialize will just set the existing driver.
+        // 1) when the body is created on demand, if the entity is already
+        // being managed by the 'players' EntityContainer then the above
+        // initialize will just set the existing driver.
         // 2) if the rigid body already exists when the entity as added
-        //    to the 'players' EntityContainer then the created driver is set
-        //    on the body then.     
+        // to the 'players' EntityContainer then the created driver is set
+        // on the body then.
         //
         // This covers all use-cases... bin becoming active before the player
         // container saw the entity, entity having its MovementInput removed/added
         // on the fly, body's bin going to sleep and getting activated again, etc..
         // All possible life cycle paths are handled by this two-prong approach.
-        // ...and probably a few I haven't thought of.  (One case we don't handle
+        // ...and probably a few I haven't thought of. (One case we don't handle
         // but would be easily handled is the case where we get a new MovementInput
-        // but the body is not active... we don't specifically activate it.  We
+        // but the body is not active... we don't specifically activate it. We
         // assume in our simple demo that the 'just added' body hasn't had a chance
         // to fall asleep yet.
         //
-        // This control driver handling is trickier than in some of the simpler ES 
-        // demos or the SiO2 bullet-char demo because the rigid bodies can be dynamically 
-        // loaded and unloaded in mphys.     
+        // This control driver handling is trickier than in some of the simpler ES
+        // demos or the SiO2 bullet-char demo because the rigid bodies can be
+        // dynamically
+        // loaded and unloaded in mphys.
     }
 
     @Override
@@ -176,7 +177,7 @@ public class MovementSystem extends AbstractGameSystem {
         @Override
         protected void removeObject(PlayerDriver driver, Entity e) {
             log.info("removeObject(" + e + ")");
-            //physics.setControlDriver(e.getId(), null);
+            // physics.setControlDriver(e.getId(), null);
         }
     }
 

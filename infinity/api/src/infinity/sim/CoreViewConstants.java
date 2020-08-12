@@ -34,7 +34,7 @@ import com.simsilica.mathd.Vec3d;
  */
 public class CoreViewConstants {
 
-    //Sizes
+    // Sizes
     public final static float BULLETSIZE = 0.25f;
     public final static float BOMBSIZE = 1f;
     public final static float THORSIZE = 1f;
@@ -55,15 +55,15 @@ public class CoreViewConstants {
     public final static float WARPSIZE = 3f;
     public final static float REPELSIZE = 4f;
 
-    //Game
+    // Game
     public final static int ARENASIZE = 1000;
 
-    //Decays must be in milliseconds
+    // Decays must be in milliseconds
     public final static long EXPLOSION2DECAY = 2000;
     public final static long WARPDECAY = 800;
     public final static long REPELDECAY = 400;
 
-    //LightSize radius
+    // LightSize radius
     public final static float SHIPLIGHTRADIUS = 500;
-    public final static Vec3d SHIPLIGHTOFFSET = new Vec3d(0,5,0);
+    public final static Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 5, 0);
 }

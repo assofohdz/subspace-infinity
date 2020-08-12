@@ -89,13 +89,13 @@ public class SpatialFactory {
         Part part = blockShape.getPart();
 
         Spatial result;
-        
+
         result = SIFactory.createModel(id, blockShape, shapeInfo, mass);
-        
+
         if (result != null) {
             return result;
         }
-        
+
         if (part instanceof CellArrayPart) {
             result = createPartSpatial(id, (CellArrayPart) part, true, mass);
         } else if (part instanceof Group) {
@@ -112,10 +112,10 @@ public class SpatialFactory {
     protected Spatial createPartSpatial(EntityId id, Group group, Mass mass) {
         Node node = new Node("Object:" + id);
         // For debugging cog... but we might as well use the non-networked demo
-        //node.attachChild(createBox(0.1f, ColorRGBA.Red));
+        // node.attachChild(createBox(0.1f, ColorRGBA.Red));
 
         // The root level will need to be positioned relative to the rigid body
-        // which is positioned at CoG relative to model space.  So we need to offset
+        // which is positioned at CoG relative to model space. So we need to offset
         // negative CoG.
         Node cogOffset = new Node("CoG:" + id);
         node.attachChild(cogOffset);
@@ -125,7 +125,7 @@ public class SpatialFactory {
 
         // Maybe someday when we have all the time in the world and are sitting
         // on a beach somewhere worrying about ways to micro-optimize, we can
-        // see about flattening this extra hierarchy.  Though, do note that 
+        // see about flattening this extra hierarchy. Though, do note that
         // the group hierarchy is already flat... because that's how I roll.
         return node;
     }
@@ -170,12 +170,13 @@ public class SpatialFactory {
             BodyMass bm = part.getMass();
 
             // The position of the object is its CoG... which means
-            // we need to offset our model's origin by it.  It should
+            // we need to offset our model's origin by it. It should
             // already be scaled and everything... just need to negate it.
             Vector3f cogOffset = bm.getCog().toVector3f().negate();
 
-            // We need to sort out what the center should be.  Directly out of generateBlocks()
-            // the geometry is all relative to the corner.   See cog-offset.txt
+            // We need to sort out what the center should be. Directly out of
+            // generateBlocks()
+            // the geometry is all relative to the corner. See cog-offset.txt
             parts.move(cogOffset);
         }
 
@@ -186,6 +187,7 @@ public class SpatialFactory {
 
         return node;
     }
+
     private static final Logger LOG = Logger.getLogger(SpatialFactory.class.getName());
 
     public Spatial createSphere(EntityId id, float radius, Mass mass) {
@@ -195,13 +197,15 @@ public class SpatialFactory {
         Geometry geom = new Geometry("Object:" + id, mesh);
 
         if (mass != null && mass.getMass() != 0) {
-            geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0, 0.6f, 0.6f, 1), true).getMaterial());
+            geom.setMaterial(
+                    GuiGlobals.getInstance().createMaterial(new ColorRGBA(0, 0.6f, 0.6f, 1), true).getMaterial());
 
             Texture texture = GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png", true, true);
             geom.getMaterial().setTexture("DiffuseMap", texture);
         } else {
             // Just a flat green
-            geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f, 0.6f, 0.2f, 1), true).getMaterial());
+            geom.setMaterial(
+                    GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f, 0.6f, 0.2f, 1), true).getMaterial());
         }
 
         geom.setShadowMode(ShadowMode.CastAndReceive);

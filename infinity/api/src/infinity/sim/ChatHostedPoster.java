@@ -38,30 +38,32 @@ public interface ChatHostedPoster {
     /**
      * Posts a public message
      *
-     * @param from sender
-     * @param messageType the message type (@see infinity.api.sim.MessageTypes in the interface)
-     * project
-     * @param message the message
+     * @param from        sender
+     * @param messageType the message type (@see infinity.api.sim.MessageTypes in
+     *                    the interface) project
+     * @param message     the message
      */
     public void postPublicMessage(String from, int messageType, String message);
 
     /**
      * Sends a private message
      * 
-     * @param from sender
-     * @param messageType the message type (@see infinity.api.sim.MessageTypes in the interface)
+     * @param from           sender
+     * @param messageType    the message type (@see infinity.api.sim.MessageTypes in
+     *                       the interface)
      * @param targetEntityId receiver
-     * @param message the message
+     * @param message        the message
      */
     public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message);
 
     /**
      * Sends a message to a team
      *
-     * @param from sender
-     * @param messageType the message type (@see infinity.api.sim.MessageTypes in the interface)
+     * @param from            sender
+     * @param messageType     the message type (@see infinity.api.sim.MessageTypes
+     *                        in the interface)
      * @param targetFrequency the receiving team
-     * @param message the message
+     * @param message         the message
      */
     public void postTeamMessage(String from, int messageType, int targetFrequency, String message);
 

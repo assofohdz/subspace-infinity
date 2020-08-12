@@ -11,7 +11,7 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser Fahrenholz
  */
-public class BombCost implements EntityComponent{
+public class BombCost implements EntityComponent {
 
     int cost;
 

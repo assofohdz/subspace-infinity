@@ -41,8 +41,8 @@ import java.nio.charset.UnsupportedCharsetException;
  */
 public class ByteArray {
 
-    byte[] m_array;             // Byte data of the array
-    int m_pointer = 0;       // Index of the current insertion point
+    byte[] m_array; // Byte data of the array
+    int m_pointer = 0; // Index of the current insertion point
 
     /**
      * Constructs an empty ByteArray.
@@ -51,8 +51,8 @@ public class ByteArray {
     }
 
     /**
-     * Constructs an empty ByteArray of a given size. If size is not ample,
-     * problems will occur (not a user-friendly datatype).
+     * Constructs an empty ByteArray of a given size. If size is not ample, problems
+     * will occur (not a user-friendly datatype).
      *
      * @param size Size of ByteArray to construct
      */
@@ -384,9 +384,9 @@ public class ByteArray {
     /**
      * Adds part of another ByteArray to this one.
      *
-     * @param byteArray ByteArray to add
+     * @param byteArray   ByteArray to add
      * @param sourceIndex Index to start the copyover
-     * @param length Size/length of the copy
+     * @param length      Size/length of the copy
      */
     public void addPartialByteArray(ByteArray byteArray, int sourceIndex, int length) {
         byte[] tempArray = byteArray.getByteArray();
@@ -398,10 +398,10 @@ public class ByteArray {
     /**
      * Adds part of another ByteArray to this one.
      *
-     * @param byteArray ByteArray to add
-     * @param destIndex Index to copy into in the source ByteArray
+     * @param byteArray   ByteArray to add
+     * @param destIndex   Index to copy into in the source ByteArray
      * @param sourceIndex Index to start the copyover
-     * @param length Size/length of the copy
+     * @param length      Size/length of the copy
      */
     public void addPartialByteArray(ByteArray byteArray, int destIndex, int sourceIndex, int length) {
         byte[] tempArray = byteArray.getByteArray();
@@ -412,9 +412,9 @@ public class ByteArray {
     /**
      * Adds part of a byte array to this one.
      *
-     * @param byteArray byte array to add
+     * @param byteArray   byte array to add
      * @param sourceIndex Index to start the copyover
-     * @param length Size/length of the copy
+     * @param length      Size/length of the copy
      */
     public void addPartialByteArray(byte[] byteArray, int sourceIndex, int length) {
 
@@ -425,10 +425,10 @@ public class ByteArray {
     /**
      * Adds part of a byte array to this one.
      *
-     * @param byteArray byte array to add
-     * @param destIndex Index to copy into in the source ByteArray
+     * @param byteArray   byte array to add
+     * @param destIndex   Index to copy into in the source ByteArray
      * @param sourceIndex Index to start the copyover
-     * @param length Size/length of the copy
+     * @param length      Size/length of the copy
      */
     public void addPartialByteArray(byte[] byteArray, int destIndex, int sourceIndex, int length) {
 
@@ -438,9 +438,9 @@ public class ByteArray {
     /**
      * Adds part of an int array to this one.
      *
-     * @param intArray int array to add
+     * @param intArray    int array to add
      * @param sourceIndex Index to start the copyover
-     * @param length Size/length of the copy
+     * @param length      Size/length of the copy
      */
     public void addPartialByteArray(int[] intArray, int sourceIndex, int length) {
 
@@ -452,10 +452,10 @@ public class ByteArray {
     /**
      * Adds part of an int array to this one.
      *
-     * @param intArray int array to add
-     * @param destIndex Index to copy into in the source ByteArray
+     * @param intArray    int array to add
+     * @param destIndex   Index to copy into in the source ByteArray
      * @param sourceIndex Index to start the copyover
-     * @param length Size/length of the copy
+     * @param length      Size/length of the copy
      */
     public void addPartialByteArray(int[] intArray, int destIndex, int sourceIndex, int length) {
 
@@ -541,8 +541,9 @@ public class ByteArray {
             targetSet = Charset.forName("ISO-8859-1");
         } catch (UnsupportedCharsetException uce) {
             targetSet = Charset.defaultCharset();
-            //TODO: Log this instead
-            //Tools.printLog("Unsupported charset used when decoding string (index=" + index + ",length=" + length + ") from bytearray: " + uce.getMessage());
+            // TODO: Log this instead
+            // Tools.printLog("Unsupported charset used when decoding string (index=" +
+            // index + ",length=" + length + ") from bytearray: " + uce.getMessage());
         }
 
         result = targetSet.decode(ByteBuffer.wrap(m_array, index, length)).toString().trim();
@@ -585,8 +586,7 @@ public class ByteArray {
     }
 
     /**
-     * Sends short contents of a passed byte array to the console, in hex
-     * format.
+     * Sends short contents of a passed byte array to the console, in hex format.
      *
      * @param b byte array to display
      */
@@ -651,13 +651,13 @@ public class ByteArray {
     }
 
     /**
-     * Gets the bit fragment from startIndex to endIndex. The indices are being
-     * read from right to left.
+     * Gets the bit fragment from startIndex to endIndex. The indices are being read
+     * from right to left.
      *
      * @param extractFrom The byte to extract from
-     * @param leftIndex The inclusive leftbound index: 7654 3210
-     * @param rightIndex The inclusive rightbound index: 7654 3210 and &lt;=
-     * leftIndex
+     * @param leftIndex   The inclusive leftbound index: 7654 3210
+     * @param rightIndex  The inclusive rightbound index: 7654 3210 and &lt;=
+     *                    leftIndex
      * @return The int extracted from the requested bits
      */
     public static int getPartial(byte extractFrom, int leftIndex, int rightIndex) {
@@ -668,16 +668,19 @@ public class ByteArray {
     }
 
     /**
-     * Gets the bit fragment from startIndex to endIndex. The indices are being
-     * read from right to left.
+     * Gets the bit fragment from startIndex to endIndex. The indices are being read
+     * from right to left.
      *
      * @param extractFrom The char to extract from
-     * @param leftIndex The inclusive leftbound index:
-     * <p>
-     * 15..8 7..0</p>
-     * @param rightIndex The inclusive rightbound index:
-     * <p>
-     * 15..8 7..0</p> and &lt;= leftIndex
+     * @param leftIndex   The inclusive leftbound index:
+     *                    <p>
+     *                    15..8 7..0
+     *                    </p>
+     * @param rightIndex  The inclusive rightbound index:
+     *                    <p>
+     *                    15..8 7..0
+     *                    </p>
+     *                    and &lt;= leftIndex
      * @return The int extracted from the requested bits
      */
     public static int getPartial(char extractFrom, int leftIndex, int rightIndex) {
@@ -688,13 +691,12 @@ public class ByteArray {
     }
 
     /**
-     * Get the bit fragment from startIndex to endIndex. The indices are being
-     * read from right to left.
+     * Get the bit fragment from startIndex to endIndex. The indices are being read
+     * from right to left.
      *
      * @param extractFrom The short to extract from.
-     * @param leftIndex The inclusive leftbound index: 15..8 7..0
-     * @param rightIndex The inclusive rightbound index: 15..8 7..0 &lt;=
-     * leftIndex
+     * @param leftIndex   The inclusive leftbound index: 15..8 7..0
+     * @param rightIndex  The inclusive rightbound index: 15..8 7..0 &lt;= leftIndex
      * @return The int extracted from the requested bits.
      */
     public static int getPartial(short extractFrom, int leftIndex, int rightIndex) {
@@ -705,13 +707,13 @@ public class ByteArray {
     }
 
     /**
-     * Get the bit fragment from startIndex to endIndex. The indices are being
-     * read from right to left.
+     * Get the bit fragment from startIndex to endIndex. The indices are being read
+     * from right to left.
      *
      * @param extractFrom The int to extract from.
-     * @param leftIndex The inclusive leftbound index: 31..16 15..0
-     * @param rightIndex The inclusive rightbound index: 31..16 15..0 and &lt;=
-     * leftIndex
+     * @param leftIndex   The inclusive leftbound index: 31..16 15..0
+     * @param rightIndex  The inclusive rightbound index: 31..16 15..0 and &lt;=
+     *                    leftIndex
      * @return The int extracted from the requested bits.
      */
     public static int getPartial(int extractFrom, int leftIndex, int rightIndex) {
@@ -722,13 +724,13 @@ public class ByteArray {
     }
 
     /**
-     * Get the bit fragment from startIndex to endIndex. The indices are being
-     * read from right to left.
+     * Get the bit fragment from startIndex to endIndex. The indices are being read
+     * from right to left.
      *
      * @param extractFrom The long to extract from.
-     * @param leftIndex The inclusive leftbound index: 63..32 31..0
-     * @param rightIndex The inclusive rightbound index: 63..32 31..0 and &lt;=
-     * leftIndex
+     * @param leftIndex   The inclusive leftbound index: 63..32 31..0
+     * @param rightIndex  The inclusive rightbound index: 63..32 31..0 and &lt;=
+     *                    leftIndex
      * @return The long extracted from the requested bits.
      */
     public static long getPartial(long extractFrom, int leftIndex, int rightIndex) {

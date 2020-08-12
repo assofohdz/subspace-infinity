@@ -27,26 +27,25 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
-
 /**
- *  A buff for health.
+ * A buff for health.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class HealthChange implements EntityComponent {
     private int delta;
- 
+
     public HealthChange() {
     }
-              
-    public HealthChange( int delta ) {
+
+    public HealthChange(int delta) {
         this.delta = delta;
     }
-    
+
     public int getDelta() {
         return delta;
     }
-    
+
     @Override
     public String toString() {
         return "HealthChange[" + delta + "]";

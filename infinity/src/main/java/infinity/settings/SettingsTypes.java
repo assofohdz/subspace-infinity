@@ -378,52 +378,89 @@ public class SettingsTypes {
     private static String ALL_MULTIFIREENERGY = "All-MultiFireEnergy";
     private static String ALL_MULTIFIREDELAY = "All-MultiFireDelay";
     private static String ALL_MULTIFIREANGLE = "All-MultiFireAngle";
-    private static String ALL_DOUBLEBARREL = "All_DoubleBarrel", ALL_DOUBLEBARREL_DESC_ = "Whether ships fire with double barrel bullets 0=no 1=yes";
+    private static String ALL_DOUBLEBARREL = "All_DoubleBarrel",
+            ALL_DOUBLEBARREL_DESC_ = "Whether ships fire with double barrel bullets 0=no 1=yes";
 
-    private static String ALL_BOMBFIREENERGY = "All_BombFireEnergy", ALL_BOMBFIREENERGY_DESC_ = "Amount of energy it takes a ship to fire a single bomb";
-    private static String ALL_BOMBFIREENERGYUPGRADE = "All_BombFireEnergyUpgrade", ALL_BOMBFIREENERGYUPGRADE_DESC_ = "Extra amount of energy it takes a ship to fire an upgraded bomb. ie. L2 = BombFireEnergy+BombFireEnergyUpgrade";
-    private static String ALL_BOMBTHRUST = "All_BombThrust", ALL_BOMBTHRUST_DESC_ = "Amount of back-thrust you receive when firing a bomb.";
-    private static String ALL_BOMBBOUNCECOUNT = "All_BombBounceCount", ALL_BOMBBOUNCECOUNT_DESC_ = "Number of times a ship's bombs bounce before they explode on impact";
+    private static String ALL_BOMBFIREENERGY = "All_BombFireEnergy",
+            ALL_BOMBFIREENERGY_DESC_ = "Amount of energy it takes a ship to fire a single bomb";
+    private static String ALL_BOMBFIREENERGYUPGRADE = "All_BombFireEnergyUpgrade",
+            ALL_BOMBFIREENERGYUPGRADE_DESC_ = "Extra amount of energy it takes a ship to fire an upgraded bomb. ie. L2 = BombFireEnergy+BombFireEnergyUpgrade";
+    private static String ALL_BOMBTHRUST = "All_BombThrust",
+            ALL_BOMBTHRUST_DESC_ = "Amount of back-thrust you receive when firing a bomb.";
+    private static String ALL_BOMBBOUNCECOUNT = "All_BombBounceCount",
+            ALL_BOMBBOUNCECOUNT_DESC_ = "Number of times a ship's bombs bounce before they explode on impact";
     private static String ALL_BOMBSPEED = "All_BombSpeed", ALL_BOMBSPEED_DESC_ = "How fast bombs travel";
-    private static String ALL_BOMBFIREDELAY = "All_BombFireDelay", ALL_BOMBFIREDELAY_DESC_ = "delay that ship waits after a bomb is fired until another weapon may be fired (in hundredths of a second)";
+    private static String ALL_BOMBFIREDELAY = "All_BombFireDelay",
+            ALL_BOMBFIREDELAY_DESC_ = "delay that ship waits after a bomb is fired until another weapon may be fired (in hundredths of a second)";
     private static String ALL_EMPBOMB = "All_EmpBomb", ALL_EMPBOMB_DESC_ = "Whether ships fire EMP bombs 0=no 1=yes";
-    private static String ALL_SEEBOMBLEVEL = "All_SeeBombLevel", ALL_SEEBOMBLEVEL_DESC_ = "If ship can see bombs on radar (0=Disabled, 1=All, 2=L2 and up, 3=L3 and up, 4=L4 bombs only)";
+    private static String ALL_SEEBOMBLEVEL = "All_SeeBombLevel",
+            ALL_SEEBOMBLEVEL_DESC_ = "If ship can see bombs on radar (0=Disabled, 1=All, 2=L2 and up, 3=L3 and up, 4=L4 bombs only)";
 
-    private static String ALL_MAXMINES = "All_MaxMines", ALL_MAXMINES_DESC_ = "Maximum number of mines allowed in ships";
-    private static String ALL_SEEMINES = "All_SeeMines", ALL_SEEMINES_DESC_ = "Whether ships see mines on radar 0=no 1=yes";
-    private static String ALL_LANDMINEFIREENERGY = "All_LandmineFireEnergy", ALL_LANDMINEFIREENERGY_DESC_ = "Amount of energy it takes a ship to place a single L1 mine";
-    private static String ALL_LANDMINEFIREENERGYUPGRADE = "All_LandmineFireEnergyUpgrade", ALL_LANDMINEFIREENERGYUPGRADE_DESC_ = "Extra amount of energy it takes to place an upgraded landmine.  ie. L2 = LandmineFireEnergy+LandmineFireEnergyUpgrade";
-    private static String ALL_LANDMINEFIREDELAY = "All_LandmineFireDelay", ALL_LANDMINEFIREDELAY_DESC_ = "delay that ship waits after a mine is fired until another weapon may be fired (in hundredths of a second)";
+    private static String ALL_MAXMINES = "All_MaxMines",
+            ALL_MAXMINES_DESC_ = "Maximum number of mines allowed in ships";
+    private static String ALL_SEEMINES = "All_SeeMines",
+            ALL_SEEMINES_DESC_ = "Whether ships see mines on radar 0=no 1=yes";
+    private static String ALL_LANDMINEFIREENERGY = "All_LandmineFireEnergy",
+            ALL_LANDMINEFIREENERGY_DESC_ = "Amount of energy it takes a ship to place a single L1 mine";
+    private static String ALL_LANDMINEFIREENERGYUPGRADE = "All_LandmineFireEnergyUpgrade",
+            ALL_LANDMINEFIREENERGYUPGRADE_DESC_ = "Extra amount of energy it takes to place an upgraded landmine.  ie. L2 = LandmineFireEnergy+LandmineFireEnergyUpgrade";
+    private static String ALL_LANDMINEFIREDELAY = "All_LandmineFireDelay",
+            ALL_LANDMINEFIREDELAY_DESC_ = "delay that ship waits after a mine is fired until another weapon may be fired (in hundredths of a second)";
 
-    private static String ALL_SHRAPNELMAX = "All_ShrapnelMax", ALL_SHRAPNELMAX_DESC_ = "Maximum amount of shrapnel released from a ship's bomb";
-    private static String ALL_SHRAPNELRATE = "All_ShrapnelRate", ALL_SHRAPNELRATE_DESC_ = "Amount of additional shrapnel gained by a 'Shrapnel Upgrade' prize.";
-    private static String ALL_BURSTSPEED = "All_BurstSpeed", ALL_BURSTSPEED_DESC_ = "How fast the burst shrapnel is for this ship.";
-    private static String ALL_BURSTSHRAPNEL = "All_BurstShrapnel", ALL_BURSTSHRAPNEL_DESC_ = "Number of bullets released when a 'Burst' is activated";
+    private static String ALL_SHRAPNELMAX = "All_ShrapnelMax",
+            ALL_SHRAPNELMAX_DESC_ = "Maximum amount of shrapnel released from a ship's bomb";
+    private static String ALL_SHRAPNELRATE = "All_ShrapnelRate",
+            ALL_SHRAPNELRATE_DESC_ = "Amount of additional shrapnel gained by a 'Shrapnel Upgrade' prize.";
+    private static String ALL_BURSTSPEED = "All_BurstSpeed",
+            ALL_BURSTSPEED_DESC_ = "How fast the burst shrapnel is for this ship.";
+    private static String ALL_BURSTSHRAPNEL = "All_BurstShrapnel",
+            ALL_BURSTSHRAPNEL_DESC_ = "Number of bullets released when a 'Burst' is activated";
 
-    private static String ALL_TURRETTHRUSTPENALTY = "All_TurretThrustPenalty", ALL_TURRETTHRUSTPENALTY_DESC_ = "Amount the ship's thrust is decreased with a turret riding";
-    private static String ALL_TURRETSPEEDPENALTY = "All_TurretSpeedPenalty", ALL_TURRETSPEEDPENALTY_DESC_ = "Amount the ship's speed is decreased with a turret riding";
-    private static String ALL_TURRETLIMIT = "All_TurretLimit", ALL_TURRETLIMIT_DESC_ = "Number of turrets allowed on a ship.";
-    private static String ALL_ROCKETTIME = "All_RocketTime", ALL_ROCKETTIME_DESC_ = "How long a Rocket lasts (in hundredths of a second)";
-    private static String ALL_INITIALBOUNTY = "All_InitialBounty", ALL_INITIALBOUNTY_DESC_ = "Number of 'Greens' given to ships when they start";
-    private static String ALL_ATTACHBOUNTY = "All_AttachBounty", ALL_ATTACHBOUNTY_DESC_ = "Bounty required by ships to attach as a turret";
-    private static String ALL_AFTERBURNERENERGY = "All_AfterburnerEnergy", ALL_AFTERBURNERENERGY_DESC_ = "Amount of energy required to have 'Afterburners' activated.";
-    private static String ALL_DISABLEFASTSHOOTING = "All_DisableFastShooting", ALL_DISABLEFASTSHOOTING_DESC_ = "If firing bullets, bombs, or thors is disabled after using afterburners (1=enabled)";
+    private static String ALL_TURRETTHRUSTPENALTY = "All_TurretThrustPenalty",
+            ALL_TURRETTHRUSTPENALTY_DESC_ = "Amount the ship's thrust is decreased with a turret riding";
+    private static String ALL_TURRETSPEEDPENALTY = "All_TurretSpeedPenalty",
+            ALL_TURRETSPEEDPENALTY_DESC_ = "Amount the ship's speed is decreased with a turret riding";
+    private static String ALL_TURRETLIMIT = "All_TurretLimit",
+            ALL_TURRETLIMIT_DESC_ = "Number of turrets allowed on a ship.";
+    private static String ALL_ROCKETTIME = "All_RocketTime",
+            ALL_ROCKETTIME_DESC_ = "How long a Rocket lasts (in hundredths of a second)";
+    private static String ALL_INITIALBOUNTY = "All_InitialBounty",
+            ALL_INITIALBOUNTY_DESC_ = "Number of 'Greens' given to ships when they start";
+    private static String ALL_ATTACHBOUNTY = "All_AttachBounty",
+            ALL_ATTACHBOUNTY_DESC_ = "Bounty required by ships to attach as a turret";
+    private static String ALL_AFTERBURNERENERGY = "All_AfterburnerEnergy",
+            ALL_AFTERBURNERENERGY_DESC_ = "Amount of energy required to have 'Afterburners' activated.";
+    private static String ALL_DISABLEFASTSHOOTING = "All_DisableFastShooting",
+            ALL_DISABLEFASTSHOOTING_DESC_ = "If firing bullets, bombs, or thors is disabled after using afterburners (1=enabled)";
 
-    private static String ALL_RADIUS = "All_Radius", ALL_RADIUS_DESC_ = "The ship's radius from center to outside, in pixels. Standard value is 14 pixels.";
-    private static String ALL_DAMAGEFACTOR = "All_DamageFactor", ALL_DAMAGEFACTOR_DESC_ = "How likely a the ship is to take damamage (ie. lose a prize) (0=special-case-never, 1=extremely likely, 5000=almost never)";
-    private static String ALL_PRIZESHARELIMIT = "All_PrizeShareLimit", ALL_PRIZESHARELIMIT_DESC_ = "Maximum bounty that ships receive Team Prizes";
-    private static String ALL_SUPERTIME = "All_SuperTime", ALL_SUPERTIME_DESC_ = "How long Super lasts on the ship (in hundredths of a second)";
-    private static String ALL_SHIELDSTIME = "All_ShieldsTime", ALL_SHIELDSTIME_DESC_ = "How long Shields lasts on the ship (in hundredths of a second)";
-    private static String ALL_GRAVITY = "All_Gravity", ALL_GRAVITY_DESC_ = "Uses this formula, where R = raduis (tiles) and g = this setting; R = 1.325 * (g ^ 0.507)  IE";
-    private static String ALL_GRAVITYTOPSPEED = "All_GravityTopSpeed", ALL_GRAVITYTOPSPEED_DESC_ = "Ship are allowed to move faster than their maximum speed while effected by a wormhole.  This determines how much faster they can go (0 = no extra speed)";
+    private static String ALL_RADIUS = "All_Radius",
+            ALL_RADIUS_DESC_ = "The ship's radius from center to outside, in pixels. Standard value is 14 pixels.";
+    private static String ALL_DAMAGEFACTOR = "All_DamageFactor",
+            ALL_DAMAGEFACTOR_DESC_ = "How likely a the ship is to take damamage (ie. lose a prize) (0=special-case-never, 1=extremely likely, 5000=almost never)";
+    private static String ALL_PRIZESHARELIMIT = "All_PrizeShareLimit",
+            ALL_PRIZESHARELIMIT_DESC_ = "Maximum bounty that ships receive Team Prizes";
+    private static String ALL_SUPERTIME = "All_SuperTime",
+            ALL_SUPERTIME_DESC_ = "How long Super lasts on the ship (in hundredths of a second)";
+    private static String ALL_SHIELDSTIME = "All_ShieldsTime",
+            ALL_SHIELDSTIME_DESC_ = "How long Shields lasts on the ship (in hundredths of a second)";
+    private static String ALL_GRAVITY = "All_Gravity",
+            ALL_GRAVITY_DESC_ = "Uses this formula, where R = raduis (tiles) and g = this setting; R = 1.325 * (g ^ 0.507)  IE";
+    private static String ALL_GRAVITYTOPSPEED = "All_GravityTopSpeed",
+            ALL_GRAVITYTOPSPEED_DESC_ = "Ship are allowed to move faster than their maximum speed while effected by a wormhole.  This determines how much faster they can go (0 = no extra speed)";
 
-    private static String ALL_SOCCERBALLFRICTION = "All_SoccerBallFriction", ALL_SOCCERBALLFRICTION_DESC_ = "Amount the friction on the soccer ball (how quickly it slows down -- higher numbers mean faster slowdown)";
-    private static String ALL_SOCCERBALLPROXIMITY = "All_SoccerBallProximity", ALL_SOCCERBALLPROXIMITY_DESC_ = "How close the player must be in order to pick up ball (in pixels)";
-    private static String ALL_SOCCERBALLSPEED = "All_SoccerBallSpeed", ALL_SOCCERBALLSPEED_DESC_ = "Initial speed given to the ball when fired by the carrier.";
-    private static String ALL_SOCCERTHROWTIME = "All_SoccerThrowTime", ALL_SOCCERTHROWTIME_DESC_ = "Time player has to carry soccer ball (in hundredths of a second)";
+    private static String ALL_SOCCERBALLFRICTION = "All_SoccerBallFriction",
+            ALL_SOCCERBALLFRICTION_DESC_ = "Amount the friction on the soccer ball (how quickly it slows down -- higher numbers mean faster slowdown)";
+    private static String ALL_SOCCERBALLPROXIMITY = "All_SoccerBallProximity",
+            ALL_SOCCERBALLPROXIMITY_DESC_ = "How close the player must be in order to pick up ball (in pixels)";
+    private static String ALL_SOCCERBALLSPEED = "All_SoccerBallSpeed",
+            ALL_SOCCERBALLSPEED_DESC_ = "Initial speed given to the ball when fired by the carrier.";
+    private static String ALL_SOCCERTHROWTIME = "All_SoccerThrowTime",
+            ALL_SOCCERTHROWTIME_DESC_ = "Time player has to carry soccer ball (in hundredths of a second)";
 
-    private static String SPECTATOR_HIDEFLAGS = "Spectator_HideFlags", SPECTATOR_HIDEFLAGS_DESC_ = "If flags are to be shown to specs when they are dropped (1=can't see them)";
-    private static String SPECTATOR_NOXRADAR = "Spectator_NoXRadar", SPECTATOR_NOXRADAR_DESC_ = "If specs are allowed to have X (0=yes, 1=no)";
+    private static String SPECTATOR_HIDEFLAGS = "Spectator_HideFlags",
+            SPECTATOR_HIDEFLAGS_DESC_ = "If flags are to be shown to specs when they are dropped (1=can't see them)";
+    private static String SPECTATOR_NOXRADAR = "Spectator_NoXRadar",
+            SPECTATOR_NOXRADAR_DESC_ = "If specs are allowed to have X (0=yes, 1=no)";
 
     private static String MAKER_MAKER = "Maker_Maker";
 

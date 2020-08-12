@@ -28,7 +28,9 @@ package infinity.es.ship.toggles;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Amount of energy required to have 'Stealth' activated (thousanths per hundredth of a second)
+ * Amount of energy required to have 'Stealth' activated (thousanths per
+ * hundredth of a second)
+ * 
  * @author Asser
  */
 public class StealthEnergy implements EntityComponent {

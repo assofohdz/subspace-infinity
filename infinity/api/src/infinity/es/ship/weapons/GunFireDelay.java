@@ -59,6 +59,7 @@ public class GunFireDelay implements EntityComponent {
     public GunFireDelay copy() {
         return new GunFireDelay(delta / 1000000);
     }
+
     @Override
     public String toString() {
         return "GunsCooldown[" + (delta / 1000000.0) + " ms]";

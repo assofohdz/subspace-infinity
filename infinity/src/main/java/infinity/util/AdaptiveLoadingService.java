@@ -71,11 +71,12 @@ import infinity.systems.InfinityTimeSystem;
  *
  * @author Asser
  */
-public class AdaptiveLoadingService extends AbstractHostedService implements AdaptiveLoader /*implements CommandListener*/ {
+public class AdaptiveLoadingService extends AbstractHostedService
+        implements AdaptiveLoader /* implements CommandListener */ {
 
     // Create GroovyClassLoader.
     AdaptiveClassLoader classLoader;
-    //final GroovyClassLoader classLoader = new GroovyClassLoader();
+    // final GroovyClassLoader classLoader = new GroovyClassLoader();
     private String[] directories;
     private final Vector<File> repository;
 
@@ -89,26 +90,25 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
     private Matcher m;
 
     List<String> repositoryList = Arrays.asList(
-            //Loading extensions:
-            //Used in distribution
+            // Loading extensions:
+            // Used in distribution
             "modules\\modules-1.0.0-SNAPSHOT.jar",
-            //Used from SDK
+            // Used from SDK
             "build\\modules\\libs\\modules-1.0.0-SNAPSHOT.jar",
-            //Extras
-            "modules"
-    );
+            // Extras
+            "modules");
 
     private GameSystemManager gameSystems;
 
     public AdaptiveLoadingService(GameSystemManager gameSystems) {
         repository = new Vector<>();
-        //classSettings = new HashMap<>();
+        // classSettings = new HashMap<>();
 
         modules = new HashMap<>();
         services = new HashMap<>();
 
-        //this.getManager();
-        //TODO: Register with ChatHostedService as Pattern Listener
+        // this.getManager();
+        // TODO: Register with ChatHostedService as Pattern Listener
         this.gameSystems = gameSystems;
     }
 
@@ -121,8 +121,8 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
     protected void onInitialize(HostedServiceManager serviceManager) {
 
         /*
-        File file = new File("modules");
-        directories = file.list((File current, String name) -> new File(current, name).exists());
+         * File file = new File("modules"); directories = file.list((File current,
+         * String name) -> new File(current, name).exists());
          */
         Consumer<String> consumerDirectories = folder -> {
             File fileFolder = new File(folder);
@@ -131,17 +131,25 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
             }
         };
 
-        //Arrays.asList(directories).forEach(consumerDirectories);
+        // Arrays.asList(directories).forEach(consumerDirectories);
         repositoryList.forEach(consumerDirectories);
 
         this.classLoader = new AdaptiveClassLoader(repository);
-        //this.classLoader = new AdaptiveClassLoader(directories);
+        // this.classLoader = new AdaptiveClassLoader(directories);
 
-        //Register consuming methods for patterns
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern, "The command to start a new module is ~startModule <module>, where <module> is the module you want to start", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern, "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.stopModule(id, module)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern, "The command to start a new module is ~startService <service>, where <service> is the service you want to start", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> this.startService(id, service)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern, "The command to start a new module is ~stopService <service>, where <service> is the service you want to stop", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> this.stopService(id, service)));
+        // Register consuming methods for patterns
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern,
+                "The command to start a new module is ~startModule <module>, where <module> is the module you want to start",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.startModule(id, module)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern,
+                "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> this.stopModule(id, module)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern,
+                "The command to start a new module is ~startService <service>, where <service> is the service you want to start",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> this.startService(id, service)));
+        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern,
+                "The command to start a new module is ~stopService <service>, where <service> is the service you want to stop",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> this.stopService(id, service)));
     }
 
     /**
@@ -156,19 +164,20 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
      * @throws IllegalArgumentException
      * @throws InvocationTargetException
      */
-    private void loadModule(String moduleName) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-        //Class prepended with their package name
+    private void loadModule(String moduleName) throws IllegalAccessException, InstantiationException, IOException,
+            ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+        // Class prepended with their package name
         String clazz = moduleName + "." + moduleName;
-        //Ini ini = loadSettings(settings);
+        // Ini ini = loadSettings(settings);
         loadClass(clazz);
     }
 
     /**
      * Loads the .class file
      *
-     * @param file the file to load
+     * @param file         the file to load
      * @param settingsFile the .ini-file to to load and use when instancing the
-     * .class file
+     *                     .class file
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException
@@ -177,26 +186,32 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
      * @throws IllegalArgumentException
      * @throws InvocationTargetException
      */
-    //Loads the class
-    private void loadClass(String file) throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+    // Loads the class
+    private void loadClass(String file) throws IllegalAccessException, InstantiationException, IOException,
+            ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         Class java = classLoader.loadClass(file);
-        Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class, ArenaManager.class, TimeManager.class, PhysicsManager.class);
+        Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class,
+                ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
             BaseGameModule javaObj = (BaseGameModule) c.newInstance(
-                    (ChatHostedPoster) getService(ChatHostedService.class), 
-                    (AccountManager) getService(AccountHostedService.class), 
-                    (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaSystem.class), 
-                    (TimeManager) gameSystems.get(InfinityTimeSystem.class), 
+                    (ChatHostedPoster) getService(ChatHostedService.class),
+                    (AccountManager) getService(AccountHostedService.class), (AdaptiveLoader) this,
+                    (ArenaManager) gameSystems.get(ArenaSystem.class),
+                    (TimeManager) gameSystems.get(InfinityTimeSystem.class),
                     (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
-            //classSettings.put(javaObj, settingsFile);
+            // classSettings.put(javaObj, settingsFile);
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
-            BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class), getService(AccountHostedService.class), (AdaptiveLoader) this, (ArenaManager) gameSystems.get(ArenaSystem.class), (TimeManager) gameSystems.get(InfinityTimeSystem.class), (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
+            BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class),
+                    getService(AccountHostedService.class), (AdaptiveLoader) this,
+                    (ArenaManager) gameSystems.get(ArenaSystem.class),
+                    (TimeManager) gameSystems.get(InfinityTimeSystem.class),
+                    (PhysicsManager) gameSystems.get(InfinityPhysicsManager.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
-            //classSettings.put(javaObj, settingsFile);
+            // classSettings.put(javaObj, settingsFile);
         }
 
     }
@@ -217,17 +232,17 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
     }
 
     /**
-     * Starts the given module. Is called when the "~startModule <module>"
-     * command is given
+     * Starts the given module. Is called when the "~startModule <module>" command
+     * is given
      *
      * @param module the module to start
-     * @param id caller of the command
+     * @param id     caller of the command
      */
     private void startModule(EntityId id, String module) {
         BaseGameModule bgm;
         if (!modules.containsKey(module)) {
             try {
-                //Try to load it
+                // Try to load it
                 this.loadModule(module);
             } catch (IllegalAccessException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
@@ -255,21 +270,20 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
         gameSystems.addSystem(bgm);
 
         /*
-        if (bgm instanceof CommandListener) {
-            CommandListener cl = (CommandListener) bgm;
-            HashMap<Pattern, CommandConsumer> map = cl.getPatternBiConsumers();
-            for (Pattern p : map.keySet()) {
-                this.getService(ChatHostedService.class).registerPatternBiConsumer(p, map.get(p));
-            }
-        }*/
+         * if (bgm instanceof CommandListener) { CommandListener cl = (CommandListener)
+         * bgm; HashMap<Pattern, CommandConsumer> map = cl.getPatternBiConsumers(); for
+         * (Pattern p : map.keySet()) {
+         * this.getService(ChatHostedService.class).registerPatternBiConsumer(p,
+         * map.get(p)); } }
+         */
     }
 
     /**
-     * Stop the given module. Is called when the "~stopModule <module>" command
-     * is given
+     * Stop the given module. Is called when the "~stopModule <module>" command is
+     * given
      *
      * @param module the module to stop
-     * @param id caller of the command
+     * @param id     caller of the command
      */
     private void stopModule(EntityId id, String module) {
         gameSystems.removeSystem(modules.get(module));
@@ -280,26 +294,26 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
      * command is given
      *
      * @param service the service to start
-     * @param id caller of the command
+     * @param id      caller of the command
      */
     private void startService(EntityId id, String service) {
         getServiceManager().addService(services.get(service));
     }
 
     /**
-     * Stops the given service. Is called when the "~stopService <service>"
-     * command is given
+     * Stops the given service. Is called when the "~stopService <service>" command
+     * is given
      *
      * @param service the service to stop
-     * @param id caller of the command
+     * @param id      caller of the command
      */
     private void stopService(EntityId id, String service) {
         getServiceManager().removeService(services.get(service));
     }
 
     /**
-     * Will validate the settings against core mechanics. The template.sss file
-     * is used to validate settings
+     * Will validate the settings against core mechanics. The template.sss file is
+     * used to validate settings
      *
      * @param settings
      * @return true if settings are ok, false if not
@@ -307,7 +321,8 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
      */
     @Override
     public boolean validateSettings(Ini settings) throws IOException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     /**
@@ -319,7 +334,7 @@ public class AdaptiveLoadingService extends AbstractHostedService implements Ada
      */
     @Override
     public Ini loadSettings(String iniFileName) throws IOException {
-        //Ini files are considered resources
+        // Ini files are considered resources
         String settings = iniFileName + "/" + iniFileName + ".ini";
         InputStream inputStream = classLoader.getResourceAsStream(settings);
         Ini ini = new Ini(inputStream);

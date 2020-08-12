@@ -31,13 +31,13 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class Bounty implements EntityComponent { 
-    
+public class Bounty implements EntityComponent {
+
     private int bounty;
 
-    public Bounty(){
+    public Bounty() {
     }
-    
+
     public Bounty(int bounty) {
         this.bounty = bounty;
     }

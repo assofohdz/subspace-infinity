@@ -47,55 +47,51 @@ import com.simsilica.mathd.trans.PositionTransition3d;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
 /**
- *  BodyPosition components hold a buffer that should be shared
- *  across all references to the same entity.  It's not your normal
- *  immutable component so special care must be taken.  
- *  This is really outside the normal scope of Zay-ES so we will kind
- *  of back into it by keeping a cache of the internal buffers.
- *  BodyPosition will check this cache when initialized.
+ * BodyPosition components hold a buffer that should be shared across all
+ * references to the same entity. It's not your normal immutable component so
+ * special care must be taken. This is really outside the normal scope of Zay-ES
+ * so we will kind of back into it by keeping a cache of the internal buffers.
+ * BodyPosition will check this cache when initialized.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class BodyPositionCache {
- 
+
     private static BodyPositionCache instance = new BodyPositionCache();
- 
+
     /**
-     *  Keeps track of the weak references that are ready to remove
-     *  from our map.
+     * Keeps track of the weak references that are ready to remove from our map.
      */
     private ReferenceQueue<TransitionBuffer<PositionTransition3d>> refs = new ReferenceQueue<>();
- 
+
     /**
-     *  A map with weakly referenced values.  We'll clean out the values
-     *  from the queue whenever a new get() is performed.  The theory
-     *  is that garbage hanging around is less bad if no one is requesting
-     *  it anyway.
+     * A map with weakly referenced values. We'll clean out the values from the
+     * queue whenever a new get() is performed. The theory is that garbage hanging
+     * around is less bad if no one is requesting it anyway.
      */
     private Map<EntityId, WeakReference<TransitionBuffer<PositionTransition3d>>> map = new HashMap<>();
- 
-    
-    public static TransitionBuffer<PositionTransition3d> getBuffer( EntityId id, int size ) {
+
+    public static TransitionBuffer<PositionTransition3d> getBuffer(EntityId id, int size) {
         return instance.get(id, size);
     }
- 
-    protected synchronized TransitionBuffer<PositionTransition3d> get( EntityId id, int size ) {
-    
+
+    protected synchronized TransitionBuffer<PositionTransition3d> get(EntityId id, int size) {
+
         // See if we've already got one
         WeakReference<TransitionBuffer<PositionTransition3d>> result = map.get(id);
-        if( result == null || result.get() == null ) {
+        if (result == null || result.get() == null) {
             // Need to create a new one
             TransitionBuffer<PositionTransition3d> buffer = PositionTransition3d.createBuffer(size);
             result = new WeakReference<>(buffer, refs);
-            map.put(id, result);    
+            map.put(id, result);
         }
- 
+
         // Clean out any dead references to keep our map from growing and growing
         Reference toRemove;
-        while( (toRemove = refs.poll()) != null ) {
+        while ((toRemove = refs.poll()) != null) {
             map.values().remove(toRemove);
-        }                    
-    
+        }
+
         return result.get();
-    } 
+    }
 }

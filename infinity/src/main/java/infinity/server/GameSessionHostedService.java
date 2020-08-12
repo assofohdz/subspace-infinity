@@ -98,7 +98,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     @Override
     protected void onInitialize(HostedServiceManager s) {
-        // Grab the RMI service so we can easily use it later        
+        // Grab the RMI service so we can easily use it later
         this.rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("GameSessionHostedService requires an RMI service.");
@@ -156,11 +156,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             conn.setAttribute(ATTRIBUTE_SESSION, null);
 
             // If we don't do that then we'll be notified twice when the
-            // player logs off.  Once because we detect the connection shutting
+            // player logs off. Once because we detect the connection shutting
             // down and again because the account service has notified us the
-            // player has logged off.  This is ok because sometime there might
+            // player has logged off. This is ok because sometime there might
             // be a reason the player logs out of the game session but stays
-            // connected.  We just need to cover the double-event case by
+            // connected. We just need to cover the double-event case by
             // checking for an existing account session and then clearing it
             // when we've stopped hosting our service on it.
         }
@@ -203,8 +203,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.phys = gameSystems.get(PhysicsSpace.class, true);
             this.mphys = gameSystems.get(MPhysSystem.class, true);
             this.attackSystem = gameSystems.get(AttackSystem.class, true);
-            //this.mapSystem = gameSystems.get(MapSystem.class, true);
-            
+            // this.mapSystem = gameSystems.get(MapSystem.class, true);
+
             this.binIndex = phys.getBinIndex();
 
             this.playerEntityId = ed.createEntity();
@@ -226,7 +226,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 getCallback(true).setAvatar(avatarEntityId);
             } else {
                 // Apparently when we call initialize to soon we don't have the delegate
-                // yet.  So this model only works with a separate login step.
+                // yet. So this model only works with a separate login step.
                 log.warn("No game session callback registered so can't send avatar entity.");
             }
 
@@ -242,7 +242,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             if (hed == null) {
                 throw new RuntimeException("Can't get hosted entity data for:" + conn);
             }
-            //hed.registerEntityVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
+            // hed.registerEntityVisibility(new
+            // BodyVisibility(ethereal.getStateListener(conn)));
             hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
 
             log.info("GameSessionImpl.initialized()");
@@ -251,12 +252,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         public void close() {
             log.debug("Closing game session for:" + conn);
             // Remove our physics body
-            ////physics.removeBody(shipEntity);
+            //// physics.removeBody(shipEntity);
             // Physics body is now removed as a side-effect of the entity
             // going away.
 
             // Remove the ship we created
-            //ed.removeEntity(shipEntity);
+            // ed.removeEntity(shipEntity);
         }
 
         @Override
@@ -280,7 +281,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // This is a bit of a hack and not officially supported to keep
             // resetting yourself... but it works.
             NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
-            //nsl.setMaxMessageSize(2000);
+            // nsl.setMaxMessageSize(2000);
             if (nsl != null) {
                 nsl.setSelf(avatarEntityId.getId(), location);
             }
@@ -289,24 +290,25 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             lastViewOrient.set(rotation);
         }
 
-        /*        
-        public void spawn() {
-log.info("spawn():" + avatarEntity);        
-            // Place the player in the appropriate part of the level and
-            // let SimEthereal know about it.
-
-            Vec3d spawnLoc = gameSystems.get(GameLevelSystem.class).getSpawnPoint(playerEntity);
-log.info("spawn location:" + spawnLoc);
-
-            // Give the avatar its spawn location
-            ed.setComponent(avatarEntity, new SpawnPosition(spawnLoc, 0));
-
-            //Vec3d spawnLoc = new Vec3d(); // for the moment
-
-            // Setup to start using SimEthereal synching
-            getService(EtherealHost.class).startHostingOnConnection(conn);
-            getService(EtherealHost.class).setConnectionObject(conn, avatarEntity.getId(), spawnLoc);                   
-        }*/
+        /*
+         * public void spawn() { log.info("spawn():" + avatarEntity); // Place the
+         * player in the appropriate part of the level and // let SimEthereal know about
+         * it.
+         * 
+         * Vec3d spawnLoc =
+         * gameSystems.get(GameLevelSystem.class).getSpawnPoint(playerEntity);
+         * log.info("spawn location:" + spawnLoc);
+         * 
+         * // Give the avatar its spawn location ed.setComponent(avatarEntity, new
+         * SpawnPosition(spawnLoc, 0));
+         * 
+         * //Vec3d spawnLoc = new Vec3d(); // for the moment
+         * 
+         * // Setup to start using SimEthereal synching
+         * getService(EtherealHost.class).startHostingOnConnection(conn);
+         * getService(EtherealHost.class).setConnectionObject(conn,
+         * avatarEntity.getId(), spawnLoc); }
+         */
         protected GameSessionListener getCallback(boolean failFast) {
             if (callback == null) {
                 RmiRegistry rmi = rmiService.getRmiRegistry(conn);
@@ -347,22 +349,22 @@ log.info("spawn location:" + spawnLoc);
         @Override
         public void map(byte mapInput, Vec3d coords) {
             switch (mapInput) {
-                case MapSystem.CREATE:
-                    //mapSystem.sessionCreateTile(coords.x, coords.z);
-                    break;
-                case MapSystem.DELETE:
-                    //mapSystem.sessionRemoveTile(coords.x, coords.z);
-                    break;
-                case MapSystem.READ:
-                    
-                    break;
-                case MapSystem.UPDATE:
-                    
-                    break;
-                default:
-                    throw new AssertionError();
+            case MapSystem.CREATE:
+                // mapSystem.sessionCreateTile(coords.x, coords.z);
+                break;
+            case MapSystem.DELETE:
+                // mapSystem.sessionRemoveTile(coords.x, coords.z);
+                break;
+            case MapSystem.READ:
+
+                break;
+            case MapSystem.UPDATE:
+
+                break;
+            default:
+                throw new AssertionError();
             }
-            
+
         }
 
     }

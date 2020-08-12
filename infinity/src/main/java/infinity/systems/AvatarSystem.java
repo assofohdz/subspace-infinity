@@ -58,7 +58,7 @@ public class AvatarSystem extends AbstractGameSystem {
     private EntityData ed;
     private EntitySet freqInput, avatarInput;
     private EntitySet frequencies;
-    
+
     public static final byte SPEC = 0x0;
     public static final byte WARBIRD = 0x1;
     public static final byte JAVELIN = 0x2;
@@ -75,7 +75,7 @@ public class AvatarSystem extends AbstractGameSystem {
     private HashMap<Integer, ShipRestrictor> teamRestrictions;
     private EntitySet captains;
 
-    //Matches =214 to capture frequency 214
+    // Matches =214 to capture frequency 214
     private final Pattern joinTeam = Pattern.compile("\\=(\\d+)");
     private final ChatHostedService chp;
 
@@ -92,8 +92,10 @@ public class AvatarSystem extends AbstractGameSystem {
 
         teamRestrictions = new HashMap<>();
 
-        //Register consuming methods for patterns
-        chp.registerPatternBiConsumer(joinTeam, "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join", new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+        // Register consuming methods for patterns
+        chp.registerPatternBiConsumer(joinTeam,
+                "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
 
     }
 
@@ -110,7 +112,6 @@ public class AvatarSystem extends AbstractGameSystem {
 
     @Override
     public void update(SimTime tpf) {
-
 
         if (captains.applyChanges()) {
             for (Entity e : captains.getAddedEntities()) {
@@ -134,40 +135,49 @@ public class AvatarSystem extends AbstractGameSystem {
     }
 
     public void requestShipChange(EntityId shipEntity, byte shipType) {
-        //TODO: Check for energy (full energy to switch ships)
+        // TODO: Check for energy (full energy to switch ships)
 
         int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFreq();
 
         ShipRestrictor restrictor = this.getRestrictor(freq);
 
-        //Allow ship change if no restrictions on frequency, or if restrictions allow it
+        // Allow ship change if no restrictions on frequency, or if restrictions allow
+        // it
         if (restrictor == null || restrictor.canSwitch(shipEntity, (byte) shipType, freq)) {
 
             switch (shipType) {
-                case 1:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 2:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 3:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 4:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 5:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 6:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 7:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
-                case 8:
-                    ed.setComponent(shipEntity, ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-                    break;
+            case 1:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 2:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 3:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 4:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 5:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 6:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 7:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
+            case 8:
+                ed.setComponent(shipEntity,
+                        ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+                break;
             }
 
             EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
@@ -189,20 +199,21 @@ public class AvatarSystem extends AbstractGameSystem {
     /**
      * Requests a frequency change for an entity
      *
-     * @param eId the entity to change frequency for
+     * @param eId     the entity to change frequency for
      * @param newFreq the new freuency
      */
     public void requestFreqChange(EntityId eId, int newFreq) {
-        //TODO: Check the ship restrictor in place to make sure the new frequency is allowed
+        // TODO: Check the ship restrictor in place to make sure the new frequency is
+        // allowed
         ed.setComponent(eId, new Frequency(newFreq));
     }
 
     /**
-     * Sets the ShipRestrictor this team uses to restrict ship access. If
-     * restrictor is null, the team will be set to use a Restrictor that allows
-     * full access to all ships.
+     * Sets the ShipRestrictor this team uses to restrict ship access. If restrictor
+     * is null, the team will be set to use a Restrictor that allows full access to
+     * all ships.
      *
-     * @param team Frequency
+     * @param team     Frequency
      * @param restrict The new ShipRestrictor to use
      */
     public void setRestrictor(int team, ShipRestrictor restrict) {
@@ -232,17 +243,14 @@ public class AvatarSystem extends AbstractGameSystem {
     }
 
     /**
-     * Resets this team to completely empty, just as when it was instantiated
-     * This does not change the ShipRestrictor, however
+     * Resets this team to completely empty, just as when it was instantiated This
+     * does not change the ShipRestrictor, however
      *
      * @param team the team to clear and reset
      */
     public void reset(int team) {
         /*
-        players.clear();
-        changed = true;
-        plist = null;
-        ships = new Player[8][0];
+         * players.clear(); changed = true; plist = null; ships = new Player[8][0];
          */
     }
 
@@ -252,7 +260,8 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param eId the player entity to remove
      */
     public void removePlayer(EntityId eId) {
-        //Could perhaps be that we should set frequency to 0 instead of removing frequency
+        // Could perhaps be that we should set frequency to 0 instead of removing
+        // frequency
         if (eId != null) {
             Frequency freq = new Frequency(0);
             ed.setComponent(eId, freq);
@@ -301,8 +310,9 @@ public class AvatarSystem extends AbstractGameSystem {
 
         int count = 0;
 
-        //Sum up the entities with the right type
-        count = freq.stream().filter((e) -> (e.get(ShapeInfo.class).getShapeName(ed) == type.getShapeName(ed))).map((_item) -> 1).reduce(count, Integer::sum);
+        // Sum up the entities with the right type
+        count = freq.stream().filter((e) -> (e.get(ShapeInfo.class).getShapeName(ed) == type.getShapeName(ed)))
+                .map((_item) -> 1).reduce(count, Integer::sum);
 
         return count;
     }

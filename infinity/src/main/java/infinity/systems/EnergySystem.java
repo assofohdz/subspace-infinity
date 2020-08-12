@@ -67,7 +67,7 @@ public class EnergySystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        
+
         ed = getSystem(EntityData.class);
         living = ed.getEntities(Energy.class);
         changes = ed.getEntities(Buff.class, HealthChange.class);
@@ -96,15 +96,15 @@ public class EnergySystem extends AbstractGameSystem {
     @Override
     public void update(SimTime time) {
 
-        // We accumulate all health adjustments together that are 
-        // in effect at this time... and then apply them all at once.       
+        // We accumulate all health adjustments together that are
+        // in effect at this time... and then apply them all at once.
         // Make sure our entity views are up-to-date as of
-        // now.       
+        // now.
         living.applyChanges();
         maxLiving.applyChanges();
         changes.applyChanges();
 
-        // Collect all of the relevant health updates       
+        // Collect all of the relevant health updates
         for (Entity e : changes) {
             Buff b = e.get(Buff.class);
 
@@ -126,7 +126,7 @@ public class EnergySystem extends AbstractGameSystem {
             ed.removeEntity(e.getId());
         }
 
-        //Perform recharges
+        // Perform recharges
         recharges.applyChanges();
         for (Entity e : recharges) {
 
@@ -154,29 +154,28 @@ public class EnergySystem extends AbstractGameSystem {
         // Now apply all accumulated adjustments
         for (Map.Entry<EntityId, Integer> entry : health.entrySet()) {
             Entity target = living.getEntity(entry.getKey());
-            
-            
+
             if (target == null) {
                 log.warn("No target for id:" + entry.getKey());
                 continue;
             }
 
             Energy hp = target.get(Energy.class);
-            
-            //if (log.isInfoEnabled()) {
-            //    log.info("Applying " + entry.getValue() + " to:" + target + " result:" + hp);
-            //}
 
-            //If we dont have a max hitpoint, just set new hp
+            // if (log.isInfoEnabled()) {
+            // log.info("Applying " + entry.getValue() + " to:" + target + " result:" + hp);
+            // }
+
+            // If we dont have a max hitpoint, just set new hp
             if (!maxLiving.containsId(target.getId())) {
                 hp = hp.newAdjusted(entry.getValue());
-            } //If we do have a maximum
+            } // If we do have a maximum
             else {
                 EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
-                //Check if we go above max hp
+                // Check if we go above max hp
                 if (entry.getValue() <= maxHp.getMaxHealth()) {
                     hp = hp.newAdjusted(entry.getValue());
-                } //Otherwise, set new hp
+                } // Otherwise, set new hp
                 else {
                     hp = hp.newAdjusted(maxHp.getMaxHealth());
                 }
@@ -223,8 +222,9 @@ public class EnergySystem extends AbstractGameSystem {
     }
 
     /**
-     * @param eId the entity to create a health change for
-     * @param deltaHitPoints the change in hitpoints (can be both positive an negative)
+     * @param eId            the entity to create a health change for
+     * @param deltaHitPoints the change in hitpoints (can be both positive an
+     *                       negative)
      */
     public void createHealthChange(EntityId eId, int deltaHitPoints) {
         EntityId healthChange = ed.createEntity();

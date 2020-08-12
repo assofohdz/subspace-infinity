@@ -55,12 +55,11 @@ import com.simsilica.ethereal.NetworkStateListener;
 
 import infinity.es.BodyPosition;
 
-
 /**
- *  Limits the client's visibility of any entity containing a BodyPosition
- *  to just what the SimEthereal visibility says they can see.
+ * Limits the client's visibility of any entity containing a BodyPosition to
+ * just what the SimEthereal visibility says they can see.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class BodyVisibility implements ComponentVisibility {
 
@@ -71,14 +70,14 @@ public class BodyVisibility implements ComponentVisibility {
 
     private Set<Long> lastActiveIds;
 
-    private Map<EntityId, BodyPosition> lastValues = new HashMap<>(); 
+    private Map<EntityId, BodyPosition> lastValues = new HashMap<>();
 
-    protected BodyVisibility( NetworkStateListener netState, Set<Long> lastActiveIds ) {
+    protected BodyVisibility(NetworkStateListener netState, Set<Long> lastActiveIds) {
         this.netState = netState;
         this.lastActiveIds = lastActiveIds;
-    } 
-    
-    public BodyVisibility( NetworkStateListener netState ) {
+    }
+
+    public BodyVisibility(NetworkStateListener netState) {
         this(netState, null);
     }
 
@@ -86,102 +85,98 @@ public class BodyVisibility implements ComponentVisibility {
     public Class<? extends EntityComponent> getComponentType() {
         return BodyPosition.class;
     }
-    
+
     @Override
-    public void initialize( EntityData ed ) {
+    public void initialize(EntityData ed) {
         this.ed = ed;
     }
 
     @Override
-    public <T extends EntityComponent> T getComponent( EntityId entityId, Class<T> type ) {
-log.info("getComponent(" + entityId + ", " + type + ")");    
-        //if( !netState.getActiveIds().contains(entityId) ) {
-        //    return null;
-        //}
-        if( !lastValues.containsKey(entityId) ) {
+    public <T extends EntityComponent> T getComponent(EntityId entityId, Class<T> type) {
+        log.info("getComponent(" + entityId + ", " + type + ")");
+        // if( !netState.getActiveIds().contains(entityId) ) {
+        // return null;
+        // }
+        if (!lastValues.containsKey(entityId)) {
             return null;
         }
         return ed.getComponent(entityId, type);
     }
 
     @Override
-    public Set<EntityId> getEntityIds( ComponentFilter filter ) {
-        if( log.isTraceEnabled() ) {
+    public Set<EntityId> getEntityIds(ComponentFilter filter) {
+        if (log.isTraceEnabled()) {
             log.trace("getEntityIds(" + filter + ")");
-        }    
-        if( filter != null ) {
+        }
+        if (filter != null) {
             throw new UnsupportedOperationException("Filtering + body visibility not yet supported");
         }
 
-        /*Set<Long> active = netState.getActiveIds();
-        log.info("active:" + active);
- 
-        Set<EntityId> results = new HashSet<>();
-        for( Long l : active ) {
-            results.add(new EntityId(l));
-        }
-    
-        return results;*/
-        return lastValues.keySet();    
+        /*
+         * Set<Long> active = netState.getActiveIds(); log.info("active:" + active);
+         * 
+         * Set<EntityId> results = new HashSet<>(); for( Long l : active ) {
+         * results.add(new EntityId(l)); }
+         * 
+         * return results;
+         */
+        return lastValues.keySet();
     }
 
-    public boolean collectChanges( Queue<EntityChange> updates ) {
+    public boolean collectChanges(Queue<EntityChange> updates) {
         Set<Long> active = netState.getActiveIds();
         boolean changed = false;
-        if( log.isTraceEnabled() ) {
+        if (log.isTraceEnabled()) {
             log.trace("active:" + active);
             log.info("updates before:" + updates);
         }
- 
+
         // Remove any BodyPosition updates that don't belong to the active
         // set
-        for( Iterator<EntityChange> it = updates.iterator(); it.hasNext(); ) {
+        for (Iterator<EntityChange> it = updates.iterator(); it.hasNext();) {
             EntityChange change = it.next();
-            if( change.getComponentType() == BodyPosition.class 
-                && !active.contains(change.getEntityId().getId()) ) {
-                if( log.isTraceEnabled() ) {
+            if (change.getComponentType() == BodyPosition.class && !active.contains(change.getEntityId().getId())) {
+                if (log.isTraceEnabled()) {
                     log.trace("removing irrelevant change:" + change);
-                }                
+                }
                 it.remove();
             }
-        }        
-        
+        }
+
         // First process the removals
-        for( Iterator<EntityId> it = lastValues.keySet().iterator(); it.hasNext(); ) {
+        for (Iterator<EntityId> it = lastValues.keySet().iterator(); it.hasNext();) {
             EntityId id = it.next();
-            if( active.contains(id.getId()) ) {
+            if (active.contains(id.getId())) {
                 continue;
             }
-            if( log.isTraceEnabled() ) {
+            if (log.isTraceEnabled()) {
                 log.trace("removing:" + id);
             }
             updates.add(new EntityChange(id, BodyPosition.class));
             it.remove();
             changed = true;
         }
-        
+
         // Now the adds
-        for( Long l : active ) {
+        for (Long l : active) {
             EntityId id = new EntityId(l);
-            if( lastValues.containsKey(id) ) {
+            if (lastValues.containsKey(id)) {
                 continue;
             }
-            if( log.isTraceEnabled() ) {
+            if (log.isTraceEnabled()) {
                 log.trace("adding:" + id);
             }
             BodyPosition pos = ed.getComponent(id, BodyPosition.class);
             lastValues.put(id, pos);
-            updates.add(new EntityChange(id, pos)); 
+            updates.add(new EntityChange(id, pos));
             changed = true;
         }
 
-if( changed ) {
-    log.info("done collectChanges() " + active);
-} 
-        
+        if (changed) {
+            log.info("done collectChanges() " + active);
+        }
+
         return changed;
     }
 
-
 }
-

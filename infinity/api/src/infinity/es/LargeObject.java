@@ -39,13 +39,12 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
- *  Mapping this as a separate component for now to indicate a large
- *  object that is using the large object proximity grid.  It may be
- *  that this is unnecessary and the cell component is enough.
- *  Benefits of a separate component is that it can apply to dynamic
- *  objects also. 
+ * Mapping this as a separate component for now to indicate a large object that
+ * is using the large object proximity grid. It may be that this is unnecessary
+ * and the cell component is enough. Benefits of a separate component is that it
+ * can apply to dynamic objects also.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class LargeObject implements EntityComponent {
 }

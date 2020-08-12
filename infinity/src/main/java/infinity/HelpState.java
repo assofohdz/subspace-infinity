@@ -65,9 +65,9 @@ import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 
 /**
- *  Presents a help popup to the user when they press F1.
+ * Presents a help popup to the user when they press F1.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class HelpState extends BaseAppState {
 
@@ -75,228 +75,223 @@ public class HelpState extends BaseAppState {
 
     private Container helpWindow;
     private boolean movementState = false;
-    
-    private KeyHelp[] keyHelp = {
-        new KeyHelp(F_HELP, "Opens/closes this help window."),
-        new KeyHelp(CameraMovementFunctions.F_X_LOOK, "Rotates left/right."),
-        new KeyHelp(CameraMovementFunctions.F_Y_LOOK, "Rotates up/down."),
-        new KeyHelp(CameraMovementFunctions.F_MOVE, "Flies forward and back."),
-        new KeyHelp(CameraMovementFunctions.F_STRAFE, "Flies side to side."),
-        new KeyHelp(CameraMovementFunctions.F_ELEVATE, "Flies up or down."),
-        new KeyHelp(CameraMovementFunctions.F_RUN, "Increases speed."),
-        new KeyHelp(MainGameFunctions.F_IN_GAME_MENU, "In Game Menu"),
-        new KeyHelp(MainGameFunctions.F_CHAT_CONSOLE, "Chat Console"),
-        new KeyHelp(ToolFunctions.F_MAIN_TOOL, "Main Tool"), 
-        new KeyHelp(ToolFunctions.F_ALT_TOOL, "Alt. Tool"), 
-        new KeyHelp(SettingsState.F_SETTINGS, "Opens the in-game settings panel."),
-        new KeyHelp(DebugFunctions.F_BIN_DEBUG, "Toggle Bin Status"),
-        new KeyHelp(DebugFunctions.F_BODY_DEBUG, "Toggle Body Debug"),
-        new KeyHelp(DebugFunctions.F_CONTACT_DEBUG, "Toggle Contact Debug"), 
-        new KeyHelp("PrtScrn", "Takes a screen shot."),
-        new KeyHelp("F5", "Toggles display stats."),
-        new KeyHelp("F6", "Toggles rendering frame timings.")
-    };
+
+    private KeyHelp[] keyHelp = { new KeyHelp(F_HELP, "Opens/closes this help window."),
+            new KeyHelp(CameraMovementFunctions.F_X_LOOK, "Rotates left/right."),
+            new KeyHelp(CameraMovementFunctions.F_Y_LOOK, "Rotates up/down."),
+            new KeyHelp(CameraMovementFunctions.F_MOVE, "Flies forward and back."),
+            new KeyHelp(CameraMovementFunctions.F_STRAFE, "Flies side to side."),
+            new KeyHelp(CameraMovementFunctions.F_ELEVATE, "Flies up or down."),
+            new KeyHelp(CameraMovementFunctions.F_RUN, "Increases speed."),
+            new KeyHelp(MainGameFunctions.F_IN_GAME_MENU, "In Game Menu"),
+            new KeyHelp(MainGameFunctions.F_CHAT_CONSOLE, "Chat Console"),
+            new KeyHelp(ToolFunctions.F_MAIN_TOOL, "Main Tool"), new KeyHelp(ToolFunctions.F_ALT_TOOL, "Alt. Tool"),
+            new KeyHelp(SettingsState.F_SETTINGS, "Opens the in-game settings panel."),
+            new KeyHelp(DebugFunctions.F_BIN_DEBUG, "Toggle Bin Status"),
+            new KeyHelp(DebugFunctions.F_BODY_DEBUG, "Toggle Body Debug"),
+            new KeyHelp(DebugFunctions.F_CONTACT_DEBUG, "Toggle Contact Debug"),
+            new KeyHelp("PrtScrn", "Takes a screen shot."), new KeyHelp("F5", "Toggles display stats."),
+            new KeyHelp("F6", "Toggles rendering frame timings.") };
 
     public HelpState() {
         setEnabled(false);
     }
- 
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
+
+    public static void initializeDefaultMappings(InputMapper inputMapper) {
         inputMapper.map(F_HELP, KeyInput.KEY_F1);
     }
- 
+
     public void close() {
         setEnabled(false);
     }
-    
+
     public void toggleEnabled() {
         setEnabled(!isEnabled());
     }
-        
-    @Override 
-    protected void initialize( Application app ) {
-        
+
+    @Override
+    protected void initialize(Application app) {
+
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.addDelegate(F_HELP, this, "toggleEnabled");
- 
+
         helpWindow = new Container();
-        Label title = helpWindow.addChild(new Label("In-Game Help", new ElementId("title"))); 
-        //title.setFontSize(24);
+        Label title = helpWindow.addChild(new Label("In-Game Help", new ElementId("title")));
+        // title.setFontSize(24);
         title.setInsets(new Insets3f(2, 2, 0, 2));
- 
+
         Container sub = helpWindow.addChild(new Container());
         sub.setInsets(new Insets3f(10, 10, 10, 10));
-        sub.addChild(new Label("Key Bindings")); 
+        sub.addChild(new Label("Key Bindings"));
 
         Container keys = sub.addChild(new Container());
- 
+
         Joiner commas = Joiner.on(", ");
-        Joiner lines = Joiner.on("\n"); 
-        for( KeyHelp help : keyHelp ) {
+        Joiner lines = Joiner.on("\n");
+        for (KeyHelp help : keyHelp) {
             help.updateKeys(inputMapper);
             String s = commas.join(help.keyNames);
             keys.addChild(new Label(s, new ElementId("help.key.label")));
             s = lines.join(help.description);
-            keys.addChild(new Label(s, new ElementId("help.description.label")), 1);                     
-        }       
+            keys.addChild(new Label(s, new ElementId("help.description.label")), 1);
+        }
 
-        //helpWindow.addChild(new ActionButton(new CallMethodAction("Done", this, "close")));
-                
-        System.out.println("All InputMapper function mappings:");       
-        for( FunctionId id : inputMapper.getFunctionIds() ) {
+        // helpWindow.addChild(new ActionButton(new CallMethodAction("Done", this,
+        // "close")));
+
+        System.out.println("All InputMapper function mappings:");
+        for (FunctionId id : inputMapper.getFunctionIds()) {
             System.out.println(id);
             System.out.println("  mappings:");
-            for( Mapping m : inputMapper.getMappings(id) ) {
+            for (Mapping m : inputMapper.getMappings(id)) {
                 System.out.println("    " + m);
                 Object o = m.getPrimaryActivator();
-                if( o instanceof Integer ) {
-                    Integer keyCode = (Integer)o;
-                    System.out.println("      primary:" + KeyNames.getName(keyCode));                    
+                if (o instanceof Integer) {
+                    Integer keyCode = (Integer) o;
+                    System.out.println("      primary:" + KeyNames.getName(keyCode));
                 } else {
                     System.out.println("      primary:" + o);
                 }
-                for( Object mod : m.getModifiers() ) {
-                    if( mod instanceof Integer ) {
-                        Integer keyCode = (Integer)mod;
-                        System.out.println("      modifier:" + KeyNames.getName(keyCode));                    
+                for (Object mod : m.getModifiers()) {
+                    if (mod instanceof Integer) {
+                        Integer keyCode = (Integer) mod;
+                        System.out.println("      modifier:" + KeyNames.getName(keyCode));
                     }
                 }
             }
         }
     }
-    
-    @Override 
-    protected void cleanup( Application app ) {
+
+    @Override
+    protected void cleanup(Application app) {
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.removeDelegate(F_HELP, this, "toggleEnabled");
     }
-    
+
     @Override
     protected void onEnable() {
-        Node gui = ((SimpleApplication)getApplication()).getGuiNode();
-        
+        Node gui = ((SimpleApplication) getApplication()).getGuiNode();
+
         int width = getApplication().getCamera().getWidth();
         int height = getApplication().getCamera().getHeight();
- 
-        // Base size and positioning off of 1.5x the 'standard scale' 
-        //float standardScale = 1; 
-        //helpWindow.setLocalScale(1.5f * standardScale);
-        
+
+        // Base size and positioning off of 1.5x the 'standard scale'
+        // float standardScale = 1;
+        // helpWindow.setLocalScale(1.5f * standardScale);
+
         Vector3f pref = helpWindow.getPreferredSize();
-        //pref.multLocal(1.5f * standardScale);
-        
-        helpWindow.setLocalTranslation(width * 0.5f - pref.x * 0.5f,
-                                       height * 0.5f + pref.y * 0.5f,
-                                       100);
-        
+        // pref.multLocal(1.5f * standardScale);
+
+        helpWindow.setLocalTranslation(width * 0.5f - pref.x * 0.5f, height * 0.5f + pref.y * 0.5f, 100);
+
         gui.attachChild(helpWindow);
         GuiGlobals.getInstance().requestFocus(helpWindow);
     }
-    
+
     @Override
     protected void onDisable() {
         helpWindow.removeFromParent();
     }
-    
+
     private class KeyHelp {
         FunctionId function;
         String[] keyNames;
         String[] description;
-        
-        public KeyHelp( FunctionId function, String... description ) {
+
+        public KeyHelp(FunctionId function, String... description) {
             this.function = function;
             this.description = description;
         }
-        
-        public KeyHelp( String keys, String... description ) {
+
+        public KeyHelp(String keys, String... description) {
             this.keyNames = new String[] { keys };
             this.description = description;
-        } 
-        
-        public void updateKeys( InputMapper inputMapper ) {
-            if( function == null ) {
+        }
+
+        public void updateKeys(InputMapper inputMapper) {
+            if (function == null) {
                 return;
             }
-            
+
             List<String> names = new ArrayList<>();
- 
-            // Capture all of the keys first           
-            for( Mapping m : inputMapper.getMappings(function) ) {
+
+            // Capture all of the keys first
+            for (Mapping m : inputMapper.getMappings(function)) {
                 Object o = m.getPrimaryActivator();
- 
+
                 String primary;
-                if( o instanceof Button ) {
+                if (o instanceof Button) {
                     continue;
-                } else if( o instanceof Axis ) {
+                } else if (o instanceof Axis) {
                     continue;
-                } else if( o instanceof Integer ) {
-                    Integer i = (Integer)o;
+                } else if (o instanceof Integer) {
+                    Integer i = (Integer) o;
                     primary = KeyNames.getName(i);
                 } else {
                     // Not a mapping we can deal with
                     continue;
                 }
- 
+
                 // Keep track of the mirrored form and combined forms
                 // in case we want to swap out an older mirrored form
-                // for the combined form.  For example, Left Shift + F4
+                // for the combined form. For example, Left Shift + F4
                 // and Right Shift + F4 combined to Shift + F4.
                 StringBuilder alt = new StringBuilder(primary);
                 StringBuilder comb = new StringBuilder(primary);
- 
-                StringBuilder sb = new StringBuilder(primary);                              
-                for( Object mod : m.getModifiers() ) {
-                    if( mod instanceof Integer ) {
-                        Integer iMod = (Integer)mod;
-                        if( iMod == KeyInput.KEY_LSHIFT ) {
+
+                StringBuilder sb = new StringBuilder(primary);
+                for (Object mod : m.getModifiers()) {
+                    if (mod instanceof Integer) {
+                        Integer iMod = (Integer) mod;
+                        if (iMod == KeyInput.KEY_LSHIFT) {
                             alt.insert(0, KeyNames.getName(KeyInput.KEY_RSHIFT) + "+");
-                            comb.insert(0, "Shift+");   
-                        } else if( iMod == KeyInput.KEY_RSHIFT ) {
+                            comb.insert(0, "Shift+");
+                        } else if (iMod == KeyInput.KEY_RSHIFT) {
                             alt.insert(0, KeyNames.getName(KeyInput.KEY_LSHIFT) + "+");
-                            comb.insert(0, "Shift+");   
-                        } else if( iMod == KeyInput.KEY_LCONTROL ) {
+                            comb.insert(0, "Shift+");
+                        } else if (iMod == KeyInput.KEY_LCONTROL) {
                             alt.insert(0, KeyNames.getName(KeyInput.KEY_RCONTROL) + "+");
-                            comb.insert(0, "Ctrl+");   
-                        } else if( iMod == KeyInput.KEY_RCONTROL ) {
+                            comb.insert(0, "Ctrl+");
+                        } else if (iMod == KeyInput.KEY_RCONTROL) {
                             alt.insert(0, KeyNames.getName(KeyInput.KEY_LCONTROL) + "+");
-                            comb.insert(0, "Ctrl+");   
+                            comb.insert(0, "Ctrl+");
                         }
-                        sb.insert(0, KeyNames.getName((Integer)mod) + "+");
+                        sb.insert(0, KeyNames.getName((Integer) mod) + "+");
                     }
                 }
-System.out.println(function + " normal:" + sb + "  alt:" + alt + "  comb:" + comb);
-                if( names.remove(alt.toString()) ) {
+                System.out.println(function + " normal:" + sb + "  alt:" + alt + "  comb:" + comb);
+                if (names.remove(alt.toString())) {
                     names.add(comb.toString());
                 } else {
                     names.add(sb.toString());
-                }               
+                }
             }
- 
-            // Then capture axis and buttons           
-            for( Mapping m : inputMapper.getMappings(function) ) {
+
+            // Then capture axis and buttons
+            for (Mapping m : inputMapper.getMappings(function)) {
                 Object o = m.getPrimaryActivator();
- 
+
                 String primary;
-                if( o instanceof Button ) {
-                    primary = ((Button)o).getName();
-                } else if( o instanceof Axis ) {
-                    primary = ((Axis)o).getName();
+                if (o instanceof Button) {
+                    primary = ((Button) o).getName();
+                } else if (o instanceof Axis) {
+                    primary = ((Axis) o).getName();
                 } else {
                     // Not a mapping we can deal with
                     continue;
                 }
-                                
+
                 StringBuilder sb = new StringBuilder(primary);
-                for( Object mod : m.getModifiers() ) {
-                    if( mod instanceof Integer ) {
+                for (Object mod : m.getModifiers()) {
+                    if (mod instanceof Integer) {
                         sb.append("+");
-                        sb.append(KeyNames.getName((Integer)mod));
+                        sb.append(KeyNames.getName((Integer) mod));
                     }
                 }
-                names.add(sb.toString());               
+                names.add(sb.toString());
             }
             keyNames = new String[names.size()];
-            keyNames = names.toArray(keyNames); 
+            keyNames = names.toArray(keyNames);
         }
     }
 }

@@ -40,24 +40,21 @@ import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
-
 /**
- *  Defines some in-game tool controls.
+ * Defines some in-game tool controls.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class ToolFunctions {
 
     public static final String IN_GAME = "In Game";
-    
-    public static final FunctionId F_MAIN_TOOL = new FunctionId(IN_GAME, "Main Tool");   
-    public static final FunctionId F_ALT_TOOL = new FunctionId(IN_GAME, "Alt. Tool");   
 
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
-    
+    public static final FunctionId F_MAIN_TOOL = new FunctionId(IN_GAME, "Main Tool");
+    public static final FunctionId F_ALT_TOOL = new FunctionId(IN_GAME, "Alt. Tool");
+
+    public static void initializeDefaultMappings(InputMapper inputMapper) {
+
         inputMapper.map(F_MAIN_TOOL, Button.MOUSE_BUTTON1);
         inputMapper.map(F_ALT_TOOL, Button.MOUSE_BUTTON2);
-    }                                                                   
+    }
 }
-
-

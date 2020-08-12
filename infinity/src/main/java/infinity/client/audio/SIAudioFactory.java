@@ -62,30 +62,30 @@ public class SIAudioFactory implements AudioFactory {
         AudioType type = e.get(AudioType.class);
 
         switch (type.getTypeName(ed)) {
-            case AudioTypes.FIRE_THOR:
-                return createFIRE_THOR(e);
-            case AudioTypes.PICKUP_PRIZE:
-                return createPICKUP_PRIZE(e);
-            case AudioTypes.FIRE_BOMBS_L1:
-            case AudioTypes.FIRE_BOMBS_L2:
-            case AudioTypes.FIRE_BOMBS_L3:
-            case AudioTypes.FIRE_BOMBS_L4:
-                return createFIRE_BOMB(e, BombLevelEnum.BOMB_1);
-            case AudioTypes.FIRE_GUNS_L1:
-            case AudioTypes.FIRE_GUNS_L2:
-            case AudioTypes.FIRE_GUNS_L3:
-            case AudioTypes.FIRE_GUNS_L4:
-                return createFIRE_BULLET(e, GunLevelEnum.LEVEL_1);
-            case AudioTypes.FIRE_GRAVBOMB:
-                return createFIRE_GRAVBOMB(e);
-            case AudioTypes.EXPLOSION2:
-                return createEXPLOSION2(e);
-            case AudioTypes.BURST:
-                return createFIRE_BURST(e);
-            case AudioTypes.REPEL:
-                return createREPEL(e);
-            default:
-                throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
+        case AudioTypes.FIRE_THOR:
+            return createFIRE_THOR(e);
+        case AudioTypes.PICKUP_PRIZE:
+            return createPICKUP_PRIZE(e);
+        case AudioTypes.FIRE_BOMBS_L1:
+        case AudioTypes.FIRE_BOMBS_L2:
+        case AudioTypes.FIRE_BOMBS_L3:
+        case AudioTypes.FIRE_BOMBS_L4:
+            return createFIRE_BOMB(e, BombLevelEnum.BOMB_1);
+        case AudioTypes.FIRE_GUNS_L1:
+        case AudioTypes.FIRE_GUNS_L2:
+        case AudioTypes.FIRE_GUNS_L3:
+        case AudioTypes.FIRE_GUNS_L4:
+            return createFIRE_BULLET(e, GunLevelEnum.LEVEL_1);
+        case AudioTypes.FIRE_GRAVBOMB:
+            return createFIRE_GRAVBOMB(e);
+        case AudioTypes.EXPLOSION2:
+            return createEXPLOSION2(e);
+        case AudioTypes.BURST:
+            return createFIRE_BURST(e);
+        case AudioTypes.REPEL:
+            return createREPEL(e);
+        default:
+            throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
         }
 
     }
@@ -105,20 +105,20 @@ public class SIAudioFactory implements AudioFactory {
     private AudioNode createFIRE_BOMB(Entity e, BombLevelEnum bombLevel) {
         String sound = "";
         switch (bombLevel.level) {
-            case 1:
-                sound = "Sounds/Subspace/bomb1.wa2";
-                break;
-            case 2:
-                sound = "Sounds/Subspace/bomb2.wa2";
-                break;
-            case 3:
-                sound = "Sounds/Subspace/bomb3.wa2";
-                break;
-            case 4:
-                sound = "Sounds/Subspace/bomb4.wa2";
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown bomb level: " + bombLevel.level);
+        case 1:
+            sound = "Sounds/Subspace/bomb1.wa2";
+            break;
+        case 2:
+            sound = "Sounds/Subspace/bomb2.wa2";
+            break;
+        case 3:
+            sound = "Sounds/Subspace/bomb3.wa2";
+            break;
+        case 4:
+            sound = "Sounds/Subspace/bomb4.wa2";
+            break;
+        default:
+            throw new UnsupportedOperationException("Unknown bomb level: " + bombLevel.level);
         }
         AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
         this.setDefaults(an);
@@ -128,20 +128,20 @@ public class SIAudioFactory implements AudioFactory {
     private AudioNode createFIRE_BULLET(Entity e, GunLevelEnum gunLevel) {
         String sound = "";
         switch (gunLevel.level) {
-            case 1:
-                sound = "Sounds/Subspace/gun1.wa2";
-                break;
-            case 2:
-                sound = "Sounds/Subspace/gun2.wa2";
-                break;
-            case 3:
-                sound = "Sounds/Subspace/gun3.wa2";
-                break;
-            case 4:
-                sound = "Sounds/Subspace/gun4.wa2";
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown gun level: " + gunLevel.level);
+        case 1:
+            sound = "Sounds/Subspace/gun1.wa2";
+            break;
+        case 2:
+            sound = "Sounds/Subspace/gun2.wa2";
+            break;
+        case 3:
+            sound = "Sounds/Subspace/gun3.wa2";
+            break;
+        case 4:
+            sound = "Sounds/Subspace/gun4.wa2";
+            break;
+        default:
+            throw new UnsupportedOperationException("Unknown gun level: " + gunLevel.level);
         }
         AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
         this.setDefaults(an);

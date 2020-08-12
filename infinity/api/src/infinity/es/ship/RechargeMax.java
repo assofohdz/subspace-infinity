@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Maximum recharge rate, or how quickly this ship recharges its energy.
+ * 
  * @author Asser
  */
 public class RechargeMax implements EntityComponent {

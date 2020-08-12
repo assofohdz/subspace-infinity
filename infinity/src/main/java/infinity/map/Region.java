@@ -31,17 +31,12 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 /**
- * This class represents a region defined by several things: 
- * name         -    rNam
- * isBase    -    rBSE 
- * isNoFlags    -    rNFL 
- * isNoWeps    -    rNWP 
- * isNoAnti    -    rNAW 
- * isAutoWarp    -       rAWP
+ * This class represents a region defined by several things: name - rNam isBase
+ * - rBSE isNoFlags - rNFL isNoWeps - rNWP isNoAnti - rNAW isAutoWarp - rAWP
  *
  * autoWarp x, y, and arena (in case of autowarp) arena is max 15 letters
  *
- * vector of rectangles    - rTIL
+ * vector of rectangles - rTIL
  *
  * @author baks
  */
@@ -153,7 +148,7 @@ public class Region {
                     encoding.add(new Byte(word[c]));
                 }
 
-                //save y
+                // save y
                 word = BitmapSaving.toWORD(y);
 
                 for (int c = 0; c < 2; ++c) {
@@ -187,7 +182,7 @@ public class Region {
                     encoding.add(new Byte(word[c]));
                 }
 
-                //save y
+                // save y
                 word = BitmapSaving.toWORD(y);
 
                 for (int c = 0; c < 2; ++c) {
@@ -223,13 +218,14 @@ public class Region {
             }
         }
 
-        // encode tiles        
+        // encode tiles
         encoding.add(new Byte((byte) 'r'));
         encoding.add(new Byte((byte) 'T'));
         encoding.add(new Byte((byte) 'I'));
         encoding.add(new Byte((byte) 'L'));
 
-        // we now need the length! yuck! ok let's make another vector containing just the encoding
+        // we now need the length! yuck! ok let's make another vector containing just
+        // the encoding
         Vector tileData = getCompressedRGN();
 
         dword = BitmapSaving.toDWORD(tileData.size());
@@ -361,7 +357,7 @@ public class Region {
                 lastRowSameCount++;
 
                 if (curRow == 1023) {
-                    //save same as Last Row #
+                    // save same as Last Row #
                     bytes.addAll(encodeRepeatLastRow(lastRowSameCount));
                 }
             } else {
@@ -387,11 +383,13 @@ public class Region {
      * @return a Vector of bytes containing the encoding
      */
     private static Vector encodeEmptyRows(int count) {
-        /*first, rows that contain no
-        tiles at all can (optionally) be encoded specially:
-
-        100n nnnn          - n+1 (1-32) rows of all empty
-        1010 00nn  nnnn nnnn - n+1 (1-1024) rows of all empty*/
+        /*
+         * first, rows that contain no tiles at all can (optionally) be encoded
+         * specially:
+         * 
+         * 100n nnnn - n+1 (1-32) rows of all empty 1010 00nn nnnn nnnn - n+1 (1-1024)
+         * rows of all empty
+         */
 
         Vector code = new Vector();
 
@@ -416,18 +414,19 @@ public class Region {
     /**
      * Encode a run
      *
-     * @param count the number of tiles to cover
+     * @param count    the number of tiles to cover
      * @param inRegion is this a run of region tiles? (or empty spaces)
      * @return the Vector of encodedBytes for this run
      */
     private static Vector encodeRun(int count, boolean inRegion) {
-        /*for each row, split it into runs of empty tiles and present tiles. for
-        each run, output one of these bit sequences:
-
-        000n nnnn            - n+1 (1-32) empty tiles in a row
-        0010 00nn  nnnn nnnn - n+1 (1-1024) empty tiles in a row
-        010n nnnn            - n+1 (1-32) present tiles in a row
-        0110 00nn  nnnn nnnn - n+1 (1-1024) present tiles in a row*/
+        /*
+         * for each row, split it into runs of empty tiles and present tiles. for each
+         * run, output one of these bit sequences:
+         * 
+         * 000n nnnn - n+1 (1-32) empty tiles in a row 0010 00nn nnnn nnnn - n+1
+         * (1-1024) empty tiles in a row 010n nnnn - n+1 (1-32) present tiles in a row
+         * 0110 00nn nnnn nnnn - n+1 (1-1024) present tiles in a row
+         */
 
         Vector code = new Vector();
 
@@ -472,11 +471,13 @@ public class Region {
      * @return a Vector of Bytes containing the encoding of this repetition
      */
     private static Vector encodeRepeatLastRow(int count) {
-        /*if the same pattern of tiles appears in more than one
-        consecutive row, you can use these special codes to save more space:
-
-        110n nnnn            - repeat last row n+1 (1-32) times
-        1110 00nn  nnnn nnnn - repeat last row n+1 (1-1024) times*/
+        /*
+         * if the same pattern of tiles appears in more than one consecutive row, you
+         * can use these special codes to save more space:
+         * 
+         * 110n nnnn - repeat last row n+1 (1-32) times 1110 00nn nnnn nnnn - repeat
+         * last row n+1 (1-1024) times
+         */
 
         Vector code = new Vector();
 
@@ -535,19 +536,19 @@ public class Region {
             int len = encoding.readLittleEndianInt(cur);
             cur += 4;
 
-            //"rBSE" - whether the region represents a base in a flag game
+            // "rBSE" - whether the region represents a base in a flag game
             if (type.equals("rBSE") && len == 0) {
                 isBase = true;
-            } //"rNAW" - no antiwarp
+            } // "rNAW" - no antiwarp
             else if (type.equals("rNAW") && len == 0) {
                 isNoAnti = true;
-            } //"rNWP" - no weapons
+            } // "rNWP" - no weapons
             else if (type.equals("rNWP") && len == 0) {
                 isNoWeps = true;
-            } //"rNFL" - no flag drops
+            } // "rNFL" - no flag drops
             else if (type.equals("rNFL") && len == 0) {
                 isNoFlags = true;
-            } //"rAWP" - auto-warp
+            } // "rAWP" - auto-warp
             else if (type.equals("rAWP")) {
                 isAutoWarp = true;
                 x = encoding.readLittleEndianShort(cur);
@@ -559,7 +560,7 @@ public class Region {
                     arena = encoding.readNullTerminatedString(cur);
                     cur += 16;
                 }
-            } //"rNAM" - a descriptive name for the region
+            } // "rNAM" - a descriptive name for the region
             else if (type.equals("rNAM")) {
                 name = encoding.readString(cur, len);
                 cur += len;
@@ -568,7 +569,7 @@ public class Region {
                 if (padding != 4) {
                     cur += padding;
                 }
-            } //"rTIL" - tile data, the definition of the region
+            } // "rTIL" - tile data, the definition of the region
             else if (type.equals("rTIL")) {
                 error = decodeTiles(encoding.m_array, cur, len);
 
@@ -612,8 +613,8 @@ public class Region {
         }
 
         if (error == null && cur != superChunkLen) {
-            error = "REGN chunk eLVL data went past encoded length, cur = " + cur
-                    + ", superChunkLength = " + superChunkLen;
+            error = "REGN chunk eLVL data went past encoded length, cur = " + cur + ", superChunkLength = "
+                    + superChunkLen;
         }
 
         return error;
@@ -622,9 +623,9 @@ public class Region {
     /**
      * decode the rTIL section into the vector of rectangles
      *
-     * @param data the byte[] of data loaded
+     * @param data   the byte[] of data loaded
      * @param offset the offset to start reading
-     * @param len the length to read
+     * @param len    the length to read
      * @return the error String
      */
     private String decodeTiles(byte[] data, int offset, int size) {
@@ -801,9 +802,9 @@ public class Region {
     /**
      * Get an encoded length for this rTil entry
      *
-     * @param data the data array
+     * @param data   the data array
      * @param offset the current offset
-     * @param type the type of the fragment at offset in data
+     * @param type   the type of the fragment at offset in data
      * @return the length that's encoded
      */
     private static int getEncodedLength(byte[] data, int offset, int type) {
@@ -842,8 +843,8 @@ public class Region {
     }
 
     /**
-     * Get the type of encoding this is for eLVL rTIL encoding... will be a
-     * constant such as Region.SMALL_EMPTY_RUN or Region.LONG_REPEAT
+     * Get the type of encoding this is for eLVL rTIL encoding... will be a constant
+     * such as Region.SMALL_EMPTY_RUN or Region.LONG_REPEAT
      *
      * @param typeByte
      * @return
@@ -856,8 +857,8 @@ public class Region {
      * get the bit fragment from startIndex to endIndex
      *
      * @param extractFrom the byte to extract from
-     * @param startIndex the inclusive leftbound index: 1234 5678
-     * @param endIndex the inclusive rightbound index 1234 5678 and startIndex
+     * @param startIndex  the inclusive leftbound index: 1234 5678
+     * @param endIndex    the inclusive rightbound index 1234 5678 and startIndex
      * @return the int extracted from the requested bits
      */
     public static int getBitFragment(byte extractFrom, int startIndex, int endIndex) {

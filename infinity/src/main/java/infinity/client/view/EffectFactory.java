@@ -44,7 +44,7 @@ import infinity.client.ConnectionState;
  *
  * @author Asser
  */
-public class EffectFactory{
+public class EffectFactory {
 
     private ModelViewState state;
     private AssetManager assets;
@@ -52,22 +52,21 @@ public class EffectFactory{
     private float time = 0;
     private int state2 = 0;
     private Node explosionEffect = new Node("explosionFX");
-    private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris,
-            shockwave;
+    private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris, shockwave;
 
-    
     private static final int COUNT_FACTOR = 1;
     private static final float COUNT_FACTOR_F = 1f;
 
     private static final boolean POINT_SPRITE = true;
-    private static final ParticleMesh.Type EMITTER_TYPE = POINT_SPRITE ? ParticleMesh.Type.Point : ParticleMesh.Type.Triangle;
+    private static final ParticleMesh.Type EMITTER_TYPE = POINT_SPRITE ? ParticleMesh.Type.Point
+            : ParticleMesh.Type.Triangle;
 
     public void setState(ModelViewState state) {
 
         this.state = state;
         this.assets = state.getApplication().getAssetManager();
         this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
-        
+
         createFlame();
         createFlash();
         createSpark();
@@ -77,7 +76,7 @@ public class EffectFactory{
         createShockwave();
         explosionEffect.setLocalScale(0.5f);
         state.getApplication().getRenderManager().preloadScene(explosionEffect);
-        
+
     }
 
     private void createFlame() {
@@ -240,9 +239,8 @@ public class EffectFactory{
         shockwave.setMaterial(mat);
         explosionEffect.attachChild(shockwave);
     }
-    
-    public Spatial createExplosion()
-    {
+
+    public Spatial createExplosion() {
         return explosionEffect.deepClone();
     }
 

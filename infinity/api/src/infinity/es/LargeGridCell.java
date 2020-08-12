@@ -42,40 +42,38 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 
 /**
- *  Mapping this as a separate component for now to indicate a large
- *  object that is using the large object proximity grid.  It may be
- *  that this is unnecessary and the cell component is enough. 
+ * Mapping this as a separate component for now to indicate a large object that
+ * is using the large object proximity grid. It may be that this is unnecessary
+ * and the cell component is enough.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class LargeGridCell implements EntityComponent {
 
     private long cellId;
-    
+
     private LargeGridCell() {
     }
-    
-    public LargeGridCell( long cellId ) {
+
+    public LargeGridCell(long cellId) {
         this.cellId = cellId;
     }
- 
-    public static LargeGridCell create( Grid grid, double x, double y, double z ) {
+
+    public static LargeGridCell create(Grid grid, double x, double y, double z) {
         return create(grid, new Vec3d(x, y, z));
     }
-    
-    public static LargeGridCell create( Grid grid, Vec3d location ) {
+
+    public static LargeGridCell create(Grid grid, Vec3d location) {
         Vec3i cell = grid.worldToCell(location);
-        return new LargeGridCell(grid.cellToId(cell.x, cell.y, cell.z));        
+        return new LargeGridCell(grid.cellToId(cell.x, cell.y, cell.z));
     }
-        
+
     public long getCellId() {
-        return cellId; 
+        return cellId;
     }
-    
+
     @Override
     public String toString() {
         return "LargeGridCell[" + cellId + "]";
     }
 }
-
-

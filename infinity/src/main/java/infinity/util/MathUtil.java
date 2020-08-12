@@ -49,14 +49,14 @@ public class MathUtil {
     public boolean hasOutlier(List<?> values) {
         return getOutlier(values) != null;
     }
-    
-    public boolean hasOutlier(List<?> values, double significanceLevel){
+
+    public boolean hasOutlier(List<?> values, double significanceLevel) {
         return getOutlier(values, significanceLevel) != null;
     }
 
     /**
-     * Returns a statistical outlier with the default significance level (0.95),
-     * or null if no such outlier exists..
+     * Returns a statistical outlier with the default significance level (0.95), or
+     * null if no such outlier exists..
      */
     public <T> T getOutlier(List<T> values) {
         return getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
@@ -75,7 +75,7 @@ public class MathUtil {
             double criticalValueSquare = criticalValue * criticalValue;
             double grubbsCompareValue = ((size - 1) / Math.sqrt(size))
                     * Math.sqrt((criticalValueSquare) / (size - 2.0 + criticalValueSquare));
-            //System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
+            // System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
             if (grubbs > grubbsCompareValue) {
                 return outlier.get();
             } else {
@@ -131,7 +131,8 @@ public class MathUtil {
             }
         }
         double grubbs = maxDev / stddev;
-        //System.out.println("mean/stddev/maxDev/grubbs: " + mean + " - " + stddev + " - " + maxDev + " - " + grubbs);
+        // System.out.println("mean/stddev/maxDev/grubbs: " + mean + " - " + stddev + "
+        // - " + maxDev + " - " + grubbs);
         return grubbs;
     }
 
@@ -180,8 +181,7 @@ public class MathUtil {
         T obj = null;
         for (T o : values) {
             double d = toDouble(o);
-            if ((op == Operator.MIN && d < res)
-                    || (op == Operator.MAX && d > res)) {
+            if ((op == Operator.MIN && d < res) || (op == Operator.MAX && d > res)) {
                 res = d;
                 obj = o;
             }

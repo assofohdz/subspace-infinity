@@ -83,10 +83,10 @@ public class WorldViewState extends BaseAppState {
     public WorldViewState() {
     }
 
-    public void setViewLocation( Vector3f viewLoc ) {
-        //viewLoc = viewLoc.setY(30);
+    public void setViewLocation(Vector3f viewLoc) {
+        // viewLoc = viewLoc.setY(30);
         this.viewLoc.set(viewLoc);
-        //log.info("setViewLocation:: viewLoc is now: "+viewLoc);
+        // log.info("setViewLocation:: viewLoc is now: "+viewLoc);
         if (pager != null) {
             pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
 
@@ -95,17 +95,17 @@ public class WorldViewState extends BaseAppState {
             // The grid may be in 3D but the pager considers it a 2D grid for the
             // sake of center placement.
             viewCell.y = 0;
-            //log.info("setViewLocation:: viewCell is now: "+viewCell);
+            // log.info("setViewLocation:: viewCell is now: "+viewCell);
         }
     }
 
     public Vector3f getViewLocation() {
-        //log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
+        // log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
         return viewLoc;
     }
 
     public Vector3f getViewCell() {
-        //log.info("getViewCell:: Getting viewCell: "+viewCell);
+        // log.info("getViewCell:: Getting viewCell: "+viewCell);
         return viewCell;
     }
 
@@ -119,19 +119,18 @@ public class WorldViewState extends BaseAppState {
     @Override
     protected void initialize(Application app) {
         world = getState(ConnectionState.class).getService(WorldClientService.class);
-        //log.info("World:" + world);
+        // log.info("World:" + world);
 
-        //LeafData data = world.getLeaf(0);
-        //log.info("Data for leafId 0:" + data);
+        // LeafData data = world.getLeaf(0);
+        // log.info("Data for leafId 0:" + data);
 
-        //data = world.getLeaf(new Vec3i(0, 2, 0));
-        //log.info("Data for leaf 0, 2, 0:" + data);
-        
+        // data = world.getLeaf(new Vec3i(0, 2, 0));
+        // log.info("Data for leaf 0, 2, 0:" + data);
+
         Builder builder = getState(BuilderState.class).getBuilder();
 
         Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
 
-                                                                   
         ZoneFactory rootFactory = new LeafDataZone.Factory(world);
 
         pager = new PagedGrid(rootFactory, builder, rootGrid, 5, 5);
@@ -141,7 +140,8 @@ public class WorldViewState extends BaseAppState {
 
         boolean showGrid = true;
         if (showGrid) {
-            Material boxMaterial = GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false).getMaterial();
+            Material boxMaterial = GuiGlobals.getInstance()
+                    .createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false).getMaterial();
             boxMaterial.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
             boxMaterial.getAdditionalRenderState().setWireframe(true);
             ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
@@ -150,8 +150,6 @@ public class WorldViewState extends BaseAppState {
             worldRoot.attachChild(gridPager.getGridRoot());
         }
 
-
- 
         world.addCellChangeListener(cellObserver);
 
     }
@@ -168,12 +166,12 @@ public class WorldViewState extends BaseAppState {
         pager.release();
     }
 
-    /*public void update( float tpf ) {
-        // For now just directly forward the camera location
-        Vector3f loc = getApplication().getCamera().getLocation();
-        
-        pager.setCenterWorldLocation(loc.x, loc.z);
-    }*/
+    /*
+     * public void update( float tpf ) { // For now just directly forward the camera
+     * location Vector3f loc = getApplication().getCamera().getLocation();
+     * 
+     * pager.setCenterWorldLocation(loc.x, loc.z); }
+     */
 
     @Override
     protected void onEnable() {

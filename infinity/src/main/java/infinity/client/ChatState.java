@@ -53,95 +53,93 @@ import infinity.MainGameFunctions;
 import infinity.client.chat.ChatClientService;
 import infinity.net.chat.ChatSessionListener;
 
-
 /**
- *  Manages the chat entry and allows always-on toggling, etc..
+ * Manages the chat entry and allows always-on toggling, etc..
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class ChatState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(ChatState.class);
 
     private ChatSessionObserver chatSessionObserver = new ChatSessionObserver();
-    private ChatCommandEntry    chatEntry = new ChatCommandEntry();
-    private CommandEntry        originalCommandEntry;
+    private ChatCommandEntry chatEntry = new ChatCommandEntry();
+    private CommandEntry originalCommandEntry;
 
     public ChatState() {
     }
- 
-    @Override   
-    protected void initialize( Application app ) {
+
+    @Override
+    protected void initialize(Application app) {
         log.info("initialize()");
-        
+
         // Add a self-message because we're too late to have caught the
-        // player joined message for ourselves.  (Please we'd want it to look like this, anyway.)
+        // player joined message for ourselves. (Please we'd want it to look like this,
+        // anyway.)
         getState(MessageState.class).addMessage("> You have joined the game.", ColorRGBA.Yellow);
 
         // Setup the chat related services
         getState(ConnectionState.class).getService(ChatClientService.class).addChatSessionListener(chatSessionObserver);
-        this.originalCommandEntry = getState(CommandConsoleState.class).getCommandEntry(); 
+        this.originalCommandEntry = getState(CommandConsoleState.class).getCommandEntry();
         getState(CommandConsoleState.class).setCommandEntry(chatEntry);
 
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
-        inputMapper.addDelegate(MainGameFunctions.F_CHAT_CONSOLE, 
-                                getState(CommandConsoleState.class), "toggleConsole");               
+        inputMapper.addDelegate(MainGameFunctions.F_CHAT_CONSOLE, getState(CommandConsoleState.class), "toggleConsole");
     }
-    
-    @Override   
-    protected void cleanup( Application app ) {
-        
+
+    @Override
+    protected void cleanup(Application app) {
+
         InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
-        inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);        
-        inputMapper.removeDelegate(MainGameFunctions.F_CHAT_CONSOLE, 
-                                   getState(CommandConsoleState.class), "toggleConsole");       
-         
+        inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);
+        inputMapper.removeDelegate(MainGameFunctions.F_CHAT_CONSOLE, getState(CommandConsoleState.class),
+                "toggleConsole");
+
         getState(MessageState.class).addMessage("> You have left the game.", ColorRGBA.Yellow);
         getState(CommandConsoleState.class).setCommandEntry(originalCommandEntry);
     }
 
     @Override
     protected void onEnable() {
-    }            
+    }
 
     @Override
     protected void onDisable() {
-    }            
-    
+    }
+
     /**
-     *  Hooks into the CommandConsoleState to forward messages to the
-     *  chat service.
+     * Hooks into the CommandConsoleState to forward messages to the chat service.
      */
     private class ChatCommandEntry implements CommandEntry {
         @Override
-        public void runCommand( String cmd ) {
+        public void runCommand(String cmd) {
             getState(ConnectionState.class).getService(ChatClientService.class).sendMessage(cmd);
         }
-    } 
-    
+    }
+
     /**
-     *  Notified by the server about chat-releated events.
+     * Notified by the server about chat-releated events.
      */
     private class ChatSessionObserver implements ChatSessionListener {
-    
+
         @Override
-        public void playerJoined( int clientId, String playerName ) {
+        public void playerJoined(int clientId, String playerName) {
             getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
         }
- 
+
         @Override
-        public void newMessage( int clientId, String playerName, String message ) {
+        public void newMessage(int clientId, String playerName, String message) {
             message = message.trim();
-            if( message.length() == 0 ) {
+            if (message.length() == 0) {
                 return;
             }
-            getState(MessageState.class).addMessage(playerName + " said:" + message, ColorRGBA.White);  
+            getState(MessageState.class).addMessage(playerName + " said:" + message, ColorRGBA.White);
         }
-    
+
         @Override
-        public void playerLeft( int clientId, String playerName ) {
-            getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);  
+        public void playerLeft(int clientId, String playerName) {
+            getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);
         }
     }
 }

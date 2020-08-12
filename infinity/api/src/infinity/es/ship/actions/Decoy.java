@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Initial number of Decoys given to ships when they start
+ * 
  * @author Asser
  */
 public class Decoy implements EntityComponent {

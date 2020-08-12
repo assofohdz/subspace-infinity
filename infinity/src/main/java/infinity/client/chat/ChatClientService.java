@@ -51,136 +51,134 @@ import infinity.net.chat.ChatSession;
 import infinity.net.chat.ChatSessionListener;
 
 /**
- *  Client-side service providing access to the chat server.
+ * Client-side service providing access to the chat server.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
-public class ChatClientService extends AbstractClientService 
-                                  implements ChatSession {
+public class ChatClientService extends AbstractClientService implements ChatSession {
 
     static Logger log = LoggerFactory.getLogger(ChatClientService.class);
-    
+
     private RmiClientService rmiService;
     private int channel;
     private ChatSession delegate;
-    
+
     private String playerName;
 
     private ChatSessionCallback sessionCallback = new ChatSessionCallback();
-    private List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();  
- 
+    private List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();
+
     /**
-     *  Creates a new chat service that will use the default reliable
-     *  channel for communication.
-     */   
+     * Creates a new chat service that will use the default reliable channel for
+     * communication.
+     */
     public ChatClientService() {
         this(MessageConnection.CHANNEL_DEFAULT_RELIABLE);
     }
- 
+
     /**
-     *  Creates a new chat service that will use the specified channel
-     *  for any reliable communication.
-     */   
-    public ChatClientService( int channel ) {
+     * Creates a new chat service that will use the specified channel for any
+     * reliable communication.
+     */
+    public ChatClientService(int channel) {
         this.channel = channel;
     }
 
     @Override
-    public void sendMessage( String message ) {
+    public void sendMessage(String message) {
         getDelegate().sendMessage(message);
     }
 
     @Override
     public List<String> getPlayerNames() {
         return getDelegate().getPlayerNames();
-    }        
-        
+    }
+
     /**
-     *  Adds a listener that will be notified about account-related events.
-     *  Note that these listeners are called on the networking thread and
-     *  as such are not suitable for modifying the visualization directly.
+     * Adds a listener that will be notified about account-related events. Note that
+     * these listeners are called on the networking thread and as such are not
+     * suitable for modifying the visualization directly.
      */
-    public void addChatSessionListener( ChatSessionListener l ) {
+    public void addChatSessionListener(ChatSessionListener l) {
         listeners.add(l);
     }
-    
-    public void removeChatSessionListener( ChatSessionListener l ) {
+
+    public void removeChatSessionListener(ChatSessionListener l) {
         listeners.remove(l);
     }
- 
+
     @Override
-    protected void onInitialize( ClientServiceManager s ) {
+    protected void onInitialize(ClientServiceManager s) {
         log.debug("onInitialize(" + s + ")");
         this.rmiService = getService(RmiClientService.class);
-        if( rmiService == null ) {
+        if (rmiService == null) {
             throw new RuntimeException("ChatClientService requires RMI service");
         }
-        log.debug("Sharing session callback.");  
-        rmiService.share((byte)channel, sessionCallback, ChatSessionListener.class);
+        log.debug("Sharing session callback.");
+        rmiService.share((byte) channel, sessionCallback, ChatSessionListener.class);
     }
- 
+
     /**
-     *  Called during connection setup once the server-side services have been initialized
-     *  for this connection and any shared objects, etc. should be available.
-     */   
+     * Called during connection setup once the server-side services have been
+     * initialized for this connection and any shared objects, etc. should be
+     * available.
+     */
     @Override
     public void start() {
         log.debug("start()");
         super.start();
     }
-    
+
     private ChatSession getDelegate() {
         // We look up the delegate lazily to make the service more
-        // flexible.  This way we don't have to know anything about the
+        // flexible. This way we don't have to know anything about the
         // connection lifecycle and can simply report an error if the
         // game is doing something screwy.
-        if( delegate == null ) {
+        if (delegate == null) {
             // Look it up
             this.delegate = rmiService.getRemoteObject(ChatSession.class);
-            log.debug("delegate:" + delegate);       
-            if( delegate == null ) {
+            log.debug("delegate:" + delegate);
+            if (delegate == null) {
                 throw new RuntimeException("No chat session found");
-            }            
+            }
         }
         return delegate;
     }
-    
+
     /**
-     *  Shared with the server over RMI so that it can notify us about account
-     *  related stuff.
+     * Shared with the server over RMI so that it can notify us about account
+     * related stuff.
      */
     private class ChatSessionCallback implements ChatSessionListener {
- 
-        @Override   
-        public void playerJoined( int clientId, String playerName ) {
-            if( log.isTraceEnabled() ) {            
+
+        @Override
+        public void playerJoined(int clientId, String playerName) {
+            if (log.isTraceEnabled()) {
                 log.trace("playerJoined(" + clientId + ", " + playerName + ")");
             }
-            for( ChatSessionListener l : listeners ) {
+            for (ChatSessionListener l : listeners) {
                 l.playerJoined(clientId, playerName);
             }
         }
- 
-        @Override   
-        public void newMessage( int clientId, String playerName, String message ) {
-            if( log.isTraceEnabled() ) {            
+
+        @Override
+        public void newMessage(int clientId, String playerName, String message) {
+            if (log.isTraceEnabled()) {
                 log.trace("newMessage(" + clientId + ", " + playerName + ", " + message + ")");
             }
-            for( ChatSessionListener l : listeners ) {
+            for (ChatSessionListener l : listeners) {
                 l.newMessage(clientId, playerName, message);
             }
         }
-    
-        @Override   
-        public void playerLeft( int clientId, String playerName ) {
-            if( log.isTraceEnabled() ) {            
+
+        @Override
+        public void playerLeft(int clientId, String playerName) {
+            if (log.isTraceEnabled()) {
                 log.trace("playerLeft(" + clientId + ", " + playerName + ")");
             }
-            for( ChatSessionListener l : listeners ) {
+            for (ChatSessionListener l : listeners) {
                 l.playerLeft(clientId, playerName);
             }
         }
     }
 }
-
-

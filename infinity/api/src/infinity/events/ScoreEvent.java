@@ -31,7 +31,6 @@ package infinity.events;
  */
 public class ScoreEvent {
     /*
-     * ScoreReset
-     * ScoreUpdate
+     * ScoreReset ScoreUpdate
      */
 }

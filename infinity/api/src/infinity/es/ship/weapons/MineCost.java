@@ -11,7 +11,7 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser Fahrenholz
  */
-public class MineCost  implements EntityComponent{
+public class MineCost implements EntityComponent {
 
     int cost;
 

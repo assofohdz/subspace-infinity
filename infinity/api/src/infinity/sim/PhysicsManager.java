@@ -12,7 +12,7 @@ import com.simsilica.mphys.PhysicsSpace;
  * @author AFahrenholz
  */
 public interface PhysicsManager {
-    
+
     public PhysicsSpace getPhysics();
-    
+
 }

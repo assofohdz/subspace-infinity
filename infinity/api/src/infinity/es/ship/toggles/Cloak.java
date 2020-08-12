@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Indicates if a ship has cloak enabled
+ * 
  * @author Asser
  */
 public class Cloak implements EntityComponent {
@@ -42,7 +43,7 @@ public class Cloak implements EntityComponent {
     public Cloak(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     public Cloak() {
     }
 }

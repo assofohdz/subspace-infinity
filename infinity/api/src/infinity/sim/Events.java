@@ -30,8 +30,7 @@ package infinity.sim;
  * @author Asser
  */
 public enum Events {
-    
-    DEATHEVENT,
-    WEAPONFIRED
-    
+
+    DEATHEVENT, WEAPONFIRED
+
 }

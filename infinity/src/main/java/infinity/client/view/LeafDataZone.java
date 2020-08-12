@@ -75,14 +75,16 @@ public class LeafDataZone extends AbstractZone {
     public void build() {
         LeafData leaf = world.getLeaf(leafId);
         if (leaf.isEmpty()) {
-            //System.out.println("--- skipping:" + leafId);
+            // System.out.println("--- skipping:" + leafId);
             return;
         }
-        //log.info("build() " + leafId+", loc: "+leaf.getInfo().location+", empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:" + leaf.getRawCells());
+        // log.info("build() " + leafId+", loc: "+leaf.getInfo().location+", empty
+        // cells:" + leaf.getEmptyCellCount() + " isEmpty:" + leaf.isEmpty() + " cells:"
+        // + leaf.getRawCells());
 
-        lastLeafNode = leafNode;       
+        lastLeafNode = leafNode;
         leafNode = new Node("leaf:" + leafId);
-        //log.info("Calling generateBlocks from LeafDataZone");
+        // log.info("Calling generateBlocks from LeafDataZone");
         geomIndex.generateBlocks(leafNode, leaf.getRawCells());
     }
 
@@ -100,13 +102,13 @@ public class LeafDataZone extends AbstractZone {
     @Override
     public void release(Builder builder) {
 //log.info("release():" + leafId);
-        //Mesh mesh = boxGeom.getMesh();
-        //for( VertexBuffer vb : mesh.getBufferList() ) {
-        //    if( log.isDebugEnabled() ) {
-        //        log.debug("--destroying buffer:" + vb);
-        //    }
-        //    BufferUtils.destroyDirectBuffer( vb.getData() );
-        //}        
+        // Mesh mesh = boxGeom.getMesh();
+        // for( VertexBuffer vb : mesh.getBufferList() ) {
+        // if( log.isDebugEnabled() ) {
+        // log.debug("--destroying buffer:" + vb);
+        // }
+        // BufferUtils.destroyDirectBuffer( vb.getData() );
+        // }
     }
 
     public static class Factory implements ZoneFactory {
@@ -114,7 +116,8 @@ public class LeafDataZone extends AbstractZone {
         private World world;
 
         public Factory(World world) {
-            this.world = world;;
+            this.world = world;
+            ;
         }
 
         @Override

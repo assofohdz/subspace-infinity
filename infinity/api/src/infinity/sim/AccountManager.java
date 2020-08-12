@@ -30,5 +30,5 @@ package infinity.sim;
  * @author Asser
  */
 public interface AccountManager {
-    
+
 }

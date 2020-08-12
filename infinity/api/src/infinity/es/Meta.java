@@ -11,8 +11,8 @@ import com.simsilica.es.EntityComponent;
  *
  * @author asser
  */
-public class Meta implements EntityComponent{
-    
+public class Meta implements EntityComponent {
+
     long timeCreated;
 
     public Meta(long timeCreated) {
@@ -22,5 +22,5 @@ public class Meta implements EntityComponent{
     public long getTimeCreated() {
         return timeCreated;
     }
-    
+
 }

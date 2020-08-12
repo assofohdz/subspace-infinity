@@ -16,8 +16,7 @@ import org.ini4j.Ini;
 public interface AdaptiveLoader {
 
     /**
-     * Used to load settings. Could be used to load the original server.cfg
-     * file. 
+     * Used to load settings. Could be used to load the original server.cfg file.
      *
      * @param settingsFileName the file
      * @return the Ini object containing the settings

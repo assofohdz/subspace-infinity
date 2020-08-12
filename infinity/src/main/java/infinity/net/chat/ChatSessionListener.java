@@ -39,29 +39,29 @@ package infinity.net.chat;
 import com.jme3.network.service.rmi.Asynchronous;
 
 /**
- *  The asynchronous callbacks the server-side chat service
- *  uses to send information to the client.
+ * The asynchronous callbacks the server-side chat service uses to send
+ * information to the client.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public interface ChatSessionListener {
-    
+
     /**
-     *  Called when a new player has joined the chat.
+     * Called when a new player has joined the chat.
      */
-    @Asynchronous   
-    public void playerJoined( int clientId, String playerName );
- 
+    @Asynchronous
+    public void playerJoined(int clientId, String playerName);
+
     /**
-     *  Called when a player has sent a message to the chat.
+     * Called when a player has sent a message to the chat.
      */
-    @Asynchronous   
-    public void newMessage( int clientId, String playerName, String message );
-    
+    @Asynchronous
+    public void newMessage(int clientId, String playerName, String message);
+
     /**
-     *  Called when an existing player has left the chat.
-     */   
-    @Asynchronous   
-    public void playerLeft( int clientId, String playerName );
-    
+     * Called when an existing player has left the chat.
+     */
+    @Asynchronous
+    public void playerLeft(int clientId, String playerName);
+
 }

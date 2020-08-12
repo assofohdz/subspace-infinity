@@ -42,7 +42,7 @@ public class Multishot implements EntityComponent {
     public Multishot(boolean enabled) {
         this.enabled = enabled;
     }
-    
+
     public Multishot() {
     }
 }

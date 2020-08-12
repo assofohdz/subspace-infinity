@@ -35,7 +35,7 @@
  */
 
 package infinity.client;
-                             
+
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ import infinity.client.chat.ChatClientService;
 /**
  *
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class GameClient {
 
@@ -69,33 +69,26 @@ public class GameClient {
 
     private Client client;
     private EntityData ed;
-    
-    public GameClient( String host, int port ) throws IOException {
+
+    public GameClient(String host, int port) throws IOException {
         log.info("Connecting to:" + host + " " + port);
-        this.client = Network.connectToServer(InfinityConstants.NAME,
-                                              InfinityConstants.PROTOCOL_VERSION,
-                                              host, port);
- 
-        //client.addMessageListener(new MessageDebugger());
- 
- 
-        log.info("Adding services...");                                             
-        client.getServices().addServices(new RpcClientService(),
-                                         new RmiClientService(),
-                                         //new AccountClientService(),
-                                         new GameSessionClientService(),
-                                         new EntityDataClientService(InfinityConstants.ES_CHANNEL),
-                                         new ChatClientService(InfinityConstants.CHAT_CHANNEL),
-                                         new WorldClientService(InfinityConstants.TERRAIN_CHANNEL),
-                                         new EtherealClient(InfinityConstants.OBJECT_PROTOCOL,
-                                                            InfinityConstants.ZONE_GRID,
-                                                            InfinityConstants.ZONE_RADIUS),
-                                         new SharedObjectUpdater()                                         
-                                         );
+        this.client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
+
+        // client.addMessageListener(new MessageDebugger());
+
+        log.info("Adding services...");
+        client.getServices().addServices(new RpcClientService(), new RmiClientService(),
+                // new AccountClientService(),
+                new GameSessionClientService(), new EntityDataClientService(InfinityConstants.ES_CHANNEL),
+                new ChatClientService(InfinityConstants.CHAT_CHANNEL),
+                new WorldClientService(InfinityConstants.TERRAIN_CHANNEL),
+                new EtherealClient(InfinityConstants.OBJECT_PROTOCOL, InfinityConstants.ZONE_GRID,
+                        InfinityConstants.ZONE_RADIUS),
+                new SharedObjectUpdater());
 
         // Can grab this even before started but you won't be able to retrieve
         // entities until the connection has been fully setup.
-        this.ed = client.getServices().getService(EntityDataClientService.class).getEntityData();                                         
+        this.ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
     }
 
     public TimeSource getTimeSource() {
@@ -115,44 +108,42 @@ public class GameClient {
         client.start();
     }
 
-    public void addService( ClientService service ) {
+    public void addService(ClientService service) {
         client.getServices().addService(service);
     }
 
-    public void removeService( ClientService service ) {
+    public void removeService(ClientService service) {
         client.getServices().removeService(service);
     }
 
-    public <T extends ClientService> T getService( Class<T> type ) {
+    public <T extends ClientService> T getService(Class<T> type) {
         return client.getServices().getService(type);
     }
-    
+
     public void close() {
         log.info("close()");
-        if( client.isStarted() ) {
+        if (client.isStarted()) {
             client.close();
         }
     }
-    
+
     private class MessageDebugger implements MessageListener<Client> {
         Logger log = LoggerFactory.getLogger("diagnostics.MessageDebugger");
         private boolean objectStateStarted = false;
-        
+
         public MessageDebugger() {
         }
-                
-        public void messageReceived( Client source, Message m ) {
-            if( m instanceof com.simsilica.ethereal.net.ObjectStateMessage ) {
-                if( !objectStateStarted ) {
+
+        public void messageReceived(Client source, Message m) {
+            if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
+                if (!objectStateStarted) {
                     log.info("Object state updates started.");
                     objectStateStarted = true;
                 }
-            } else if( log.isInfoEnabled() ) {
+            } else if (log.isInfoEnabled()) {
                 log.info("Received:" + m);
             }
         }
     }
-                                                   
+
 }
-
-

@@ -10,17 +10,17 @@ package infinity.es;
  * @author Asser Fahrenholz
  */
 public class TileKey {
-    
-    public static final String LEGACY = "legacy"; //Legacy SS Map Tileset
-    public static final String WANGBLOB = "wangblob"; //Wang Blob Tileset
-    
+
+    public static final String LEGACY = "legacy"; // Legacy SS Map Tileset
+    public static final String WANGBLOB = "wangblob"; // Wang Blob Tileset
+
     private String tileType;
     private String tileSet;
     private short tileIndex;
-    
-    //For serialization
-    public TileKey(){
-        
+
+    // For serialization
+    public TileKey() {
+
     }
 
     public TileKey(String tileType, String tileSet, short tileIndex) {
@@ -45,5 +45,5 @@ public class TileKey {
     public String toString() {
         return "TileKey{" + "tileType=" + tileType + ", tileSet=" + tileSet + ", tileIndex=" + tileIndex + '}';
     }
-    
+
 }

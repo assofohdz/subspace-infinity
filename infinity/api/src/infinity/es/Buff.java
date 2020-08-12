@@ -28,36 +28,34 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
-
 /**
- *  Associated with entities that apply some effect to
- *  another entity.
+ * Associated with entities that apply some effect to another entity.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
-public class Buff implements EntityComponent { 
+public class Buff implements EntityComponent {
     private EntityId target;
     private EntityId source;
     private long startTime;
- 
+
     public Buff() {
     }
-    
-    public Buff( EntityId target, long startTime ) {
+
+    public Buff(EntityId target, long startTime) {
         this.target = target;
         this.startTime = startTime;
     }
-    
+
     public EntityId getTarget() {
         return target;
     }
-    
+
     public long getStartTime() {
         return startTime;
     }
-    
+
     @Override
     public String toString() {
         return "Buff[" + target + ", at:" + startTime + "]";
-    }    
+    }
 }

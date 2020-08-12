@@ -43,15 +43,14 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.trans.PositionTransition3d;
 import com.simsilica.mathd.trans.TransitionBuffer;
 
-
 /**
- *  A component representing the position of mobile objects that internally 
- *  keeps track of a small history of position, rotation, and visibility changes.   
- *  This is not a normal immutable component and thus manages its own threading.  
- *  Furthermore, special care is taken to make sure that all BodyPosition objecst for
- *  a particular entity share the internal data buffer.
+ * A component representing the position of mobile objects that internally keeps
+ * track of a small history of position, rotation, and visibility changes. This
+ * is not a normal immutable component and thus manages its own threading.
+ * Furthermore, special care is taken to make sure that all BodyPosition objecst
+ * for a particular entity share the internal data buffer.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public final class BodyPosition implements EntityComponent {
     private transient int size;
@@ -60,76 +59,74 @@ public final class BodyPosition implements EntityComponent {
 
     public BodyPosition() {
     }
-    
-    public BodyPosition( int history ) {
-        this.size = (byte)history;
-        this.position = PositionTransition3d.createBuffer(history);    
+
+    public BodyPosition(int history) {
+        this.size = (byte) history;
+        this.position = PositionTransition3d.createBuffer(history);
     }
- 
+
     /**
-     *  Called for a retrieved entity to make sure this BodyPosition
-     *  has it's shared transition buffer.  It must be called for
-     *  all retrieved BodyPosition components before use.
+     * Called for a retrieved entity to make sure this BodyPosition has it's shared
+     * transition buffer. It must be called for all retrieved BodyPosition
+     * components before use.
      */
-    public void initialize( EntityId id, int size ) {
-        if( this.position == null ) {
+    public void initialize(EntityId id, int size) {
+        if (this.position == null) {
             this.size = size;
             this.position = BodyPositionCache.getBuffer(id, size);
         }
     }
- 
+
     public boolean isInitialized() {
         return position != null;
     }
-    
+
     public TransitionBuffer<PositionTransition3d> getBuffer() {
         return position;
     }
- 
-    public void addFrame( long endTime, Vec3d pos, Quatd quat, boolean visible ) {
+
+    public void addFrame(long endTime, Vec3d pos, Quatd quat, boolean visible) {
         PositionTransition3d trans = new PositionTransition3d(endTime, pos, quat, visible);
         getBuffer().addTransition(trans);
-        this.lastTransition = trans; 
-    }        
- 
-    public PositionTransition3d getFrame( long time ) {
-        return getBuffer().getTransition(time);        
+        this.lastTransition = trans;
     }
- 
+
+    public PositionTransition3d getFrame(long time) {
+        return getBuffer().getTransition(time);
+    }
+
     /**
-     *  A convenience method for the server-side code to get the most recent update
-     *  applied through addFrame().
+     * A convenience method for the server-side code to get the most recent update
+     * applied through addFrame().
      */
     public PositionTransition3d getLastFrame() {
         return lastTransition;
     }
 
     /**
-     *  A convenience method for the server-side code to get the most recent position
-     *  applied through addFrame().
-     */    
+     * A convenience method for the server-side code to get the most recent position
+     * applied through addFrame().
+     */
     public Vec3d getLastLocation() {
-        if( lastTransition == null ) {
+        if (lastTransition == null) {
             return null;
         }
         return lastTransition.getPosition(lastTransition.getEndTime(), true);
     }
 
     /**
-     *  A convenience method for the server-side code to get the most recent orientation
-     *  applied through addFrame().
-     */    
+     * A convenience method for the server-side code to get the most recent
+     * orientation applied through addFrame().
+     */
     public Quatd getLastOrientation() {
-        if( lastTransition == null ) {
+        if (lastTransition == null) {
             return null;
         }
         return lastTransition.getRotation(lastTransition.getEndTime(), true);
     }
-    
+
     @Override
     public String toString() {
         return "BodyPosition[" + position + "]";
-    } 
+    }
 }
-
-

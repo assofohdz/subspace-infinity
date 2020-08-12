@@ -32,5 +32,5 @@ import com.simsilica.es.EntityComponent;
  * @author Asser
  */
 public class SteeringPath implements EntityComponent {
-    
+
 }

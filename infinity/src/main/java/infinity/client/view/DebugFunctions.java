@@ -41,27 +41,24 @@ import com.jme3.input.KeyInput;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
-
 /**
- *  Defines some in-game debug toggles.
+ * Defines some in-game debug toggles.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public class DebugFunctions {
 
     public static final String IN_GAME = "In Game";
-    
-    public static final FunctionId F_BIN_DEBUG = new FunctionId(IN_GAME, "Bin Status Toggle");   
-    public static final FunctionId F_BODY_DEBUG = new FunctionId(IN_GAME, "Body Debug Toggle");    
-    public static final FunctionId F_CONTACT_DEBUG = new FunctionId(IN_GAME, "Contact Debug Toggle"); 
 
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
-    
+    public static final FunctionId F_BIN_DEBUG = new FunctionId(IN_GAME, "Bin Status Toggle");
+    public static final FunctionId F_BODY_DEBUG = new FunctionId(IN_GAME, "Body Debug Toggle");
+    public static final FunctionId F_CONTACT_DEBUG = new FunctionId(IN_GAME, "Contact Debug Toggle");
+
+    public static void initializeDefaultMappings(InputMapper inputMapper) {
+
         inputMapper.map(F_BIN_DEBUG, KeyInput.KEY_F3);
-        inputMapper.map(F_BODY_DEBUG, KeyInput.KEY_F4); 
-        inputMapper.map(F_CONTACT_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_LSHIFT); 
-        inputMapper.map(F_CONTACT_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_RSHIFT); 
-    }                                                                   
+        inputMapper.map(F_BODY_DEBUG, KeyInput.KEY_F4);
+        inputMapper.map(F_CONTACT_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_LSHIFT);
+        inputMapper.map(F_CONTACT_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_RSHIFT);
+    }
 }
-
-

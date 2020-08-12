@@ -7,6 +7,7 @@ package infinity.es.ship;
 
 /**
  * Amount added per 'Energy Upgrade' Prize
+ * 
  * @author Asser Fahrenholz
  */
 public class EnergyUpgrade {

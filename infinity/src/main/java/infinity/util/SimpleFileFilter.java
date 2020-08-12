@@ -93,7 +93,7 @@ public class SimpleFileFilter implements FilenameFilter {
     private String[] extensions;
 
     public SimpleFileFilter(String ext) {
-        this(new String[]{ext});
+        this(new String[] { ext });
     }
 
     public SimpleFileFilter(String[] exts) {
@@ -120,10 +120,11 @@ public class SimpleFileFilter implements FilenameFilter {
     }
 
     /**
-     * this method checks to see if an asterisk is imbedded in the filename, if
-     * it is, it does an "ls" or "dir" of the parent directory returning a list
-     * of files that match eg. /usr/home/mjennings/*.jar would expand out to all
-     * of the files with a .jar extension in the /usr/home/mjennings directory
+     * this method checks to see if an asterisk is imbedded in the filename, if it
+     * is, it does an "ls" or "dir" of the parent directory returning a list of
+     * files that match eg. /usr/home/mjennings/*.jar would expand out to all of the
+     * files with a .jar extension in the /usr/home/mjennings directory
+     * 
      * @param f the filename
      * @return the matching files in the directory
      */

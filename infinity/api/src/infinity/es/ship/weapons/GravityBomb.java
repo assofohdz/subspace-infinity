@@ -32,7 +32,7 @@ import com.simsilica.es.EntityComponent;
  * @author Asser
  */
 public class GravityBomb implements EntityComponent {
-    
+
     BombLevelEnum level;
 
     public GravityBomb(BombLevelEnum level) {

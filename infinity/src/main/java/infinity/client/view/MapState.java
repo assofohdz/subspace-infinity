@@ -107,7 +107,9 @@ public class MapState extends BaseAppState {
 
         this.generateWangBlobInfoMap(wangBlobIndexMap);
 
-        //arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id", ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class, BodyPosition.class);
+        // arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id",
+        // ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class,
+        // BodyPosition.class);
     }
 
     public float getWangBlobRotations(int indexNumber) {
@@ -125,69 +127,69 @@ public class MapState extends BaseAppState {
     }
 
     private void generateWangBlobInfoMap(HashMap<Integer, WangInfo> map) {
-        //Zero
+        // Zero
         map.put(0, new WangInfo(0, 0));
-        //One
+        // One
         map.put(1, new WangInfo(1, 0));
         map.put(4, new WangInfo(1, 1));
         map.put(16, new WangInfo(1, 2));
         map.put(64, new WangInfo(1, 3));
-        //Five
+        // Five
         map.put(5, new WangInfo(2, 0));
         map.put(20, new WangInfo(2, 1));
         map.put(80, new WangInfo(2, 2));
         map.put(65, new WangInfo(2, 3));
-        //Seven
+        // Seven
         map.put(7, new WangInfo(3, 0));
         map.put(28, new WangInfo(3, 1));
         map.put(112, new WangInfo(3, 2));
         map.put(193, new WangInfo(3, 3));
-        //Seventeen
+        // Seventeen
         map.put(17, new WangInfo(4, 0));
         map.put(68, new WangInfo(4, 1));
-        //Twentyone
+        // Twentyone
         map.put(21, new WangInfo(5, 0));
         map.put(84, new WangInfo(5, 1));
         map.put(81, new WangInfo(5, 2));
         map.put(69, new WangInfo(5, 3));
-        //Twentythree
+        // Twentythree
         map.put(23, new WangInfo(6, 0));
         map.put(92, new WangInfo(6, 1));
         map.put(113, new WangInfo(6, 2));
         map.put(197, new WangInfo(6, 3));
-        //TwentyNine
+        // TwentyNine
         map.put(29, new WangInfo(7, 0));
         map.put(116, new WangInfo(7, 1));
         map.put(209, new WangInfo(7, 2));
         map.put(71, new WangInfo(7, 3));
-        //ThirtyOne
+        // ThirtyOne
         map.put(31, new WangInfo(8, 0));
         map.put(124, new WangInfo(8, 1));
         map.put(241, new WangInfo(8, 2));
         map.put(199, new WangInfo(8, 3));
-        //EightFive
+        // EightFive
         map.put(85, new WangInfo(9, 0));
-        //EightySeven
+        // EightySeven
         map.put(87, new WangInfo(10, 0));
         map.put(93, new WangInfo(10, 1));
         map.put(117, new WangInfo(10, 2));
         map.put(213, new WangInfo(10, 3));
-        //NinetyFive
+        // NinetyFive
         map.put(95, new WangInfo(11, 0));
         map.put(125, new WangInfo(11, 1));
         map.put(245, new WangInfo(11, 2));
         map.put(215, new WangInfo(11, 3));
-        //OneHundredAndNineTeen
+        // OneHundredAndNineTeen
         map.put(119, new WangInfo(12, 0));
         map.put(221, new WangInfo(12, 1));
-        //OneHundredAndTwentySeven
+        // OneHundredAndTwentySeven
         map.put(127, new WangInfo(13, 0));
         map.put(253, new WangInfo(13, 1));
         map.put(247, new WangInfo(13, 2));
         map.put(223, new WangInfo(13, 3));
-        //TwoHundredAndFiftyFive
+        // TwoHundredAndFiftyFive
         map.put(255, new WangInfo(14, 0));
-        //Second row
+        // Second row
     }
 
     public Image getImage(EntityId entityId) {
@@ -247,11 +249,11 @@ public class MapState extends BaseAppState {
 
         // Draw the image on to the buffered image
         Graphics2D bGr = bimage.createGraphics();
-        //bGr.drawImage(img, 0, 0, null);                          //No flip
-        //bGr.drawImage(img, 0 + width, 0, -width, height, null);  //Horisontal flip
-        //bGr.drawImage(img, 0, 0 + height, width, -height, null);   //Vertical flip
+        // bGr.drawImage(img, 0, 0, null); //No flip
+        // bGr.drawImage(img, 0 + width, 0, -width, height, null); //Horisontal flip
+        // bGr.drawImage(img, 0, 0 + height, width, -height, null); //Vertical flip
         bGr.drawImage(img, img.getHeight(null), 0, -img.getWidth(null), img.getHeight(null), null);
-        
+
         bGr.dispose();
 
         // Return the buffered image
@@ -268,14 +270,14 @@ public class MapState extends BaseAppState {
         if (!imageMap.containsKey(key)) {
 
             if (!levelFiles.containsKey(tileSet)) {
-                LevelFile lf = loadMap(tileSet); //TODO: Should be done in a non-intrusive way
+                LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
                 levelFiles.put(tileSet, lf);
 
             }
 
             java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
             Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
-            //jmeOutputImage.dispose();
+            // jmeOutputImage.dispose();
 
             imageMap.put(key, jmeOutputImage);
 
@@ -283,7 +285,7 @@ public class MapState extends BaseAppState {
         return imageMap.get(key);
     }
 
-    //Map the entities to their texture
+    // Map the entities to their texture
     private class LegacyMapImageContainer extends EntityContainer<Image> {
 
         public LegacyMapImageContainer(EntityData ed) {
@@ -305,7 +307,7 @@ public class MapState extends BaseAppState {
             if (!imageMap.containsKey(key)) {
 
                 if (!levelFiles.containsKey(tileSet)) {
-                    LevelFile lf = loadMap(tileSet); //TODO: Should be done in a non-intrusive way
+                    LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
                     levelFiles.put(tileSet, lf);
 
                 }
@@ -322,13 +324,13 @@ public class MapState extends BaseAppState {
 
         @Override
         protected void updateObject(Image object, Entity e) {
-            //Does not support mass updating tiles right now
-            //TODO: The tileIndex in a TileInfo component could change
+            // Does not support mass updating tiles right now
+            // TODO: The tileIndex in a TileInfo component could change
         }
 
         @Override
         protected void removeObject(Image object, Entity e) {
-            //We leave the levels loaded
+            // We leave the levels loaded
         }
     }
 
@@ -398,8 +400,7 @@ public class MapState extends BaseAppState {
 
     public void addArenaMouseListeners(Spatial arena) {
 
-        MouseEventControl.addListenersToSpatial(arena,
-                new DefaultMouseListener() {
+        MouseEventControl.addListenersToSpatial(arena, new DefaultMouseListener() {
 
             boolean isPressed;
             int keyIndex;
@@ -429,14 +430,14 @@ public class MapState extends BaseAppState {
 
             @Override
             public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
-                //Material m = ((Geometry) target).getMaterial();
-                //m.setColor("Color", ColorRGBA.Yellow);
+                // Material m = ((Geometry) target).getMaterial();
+                // m.setColor("Color", ColorRGBA.Yellow);
             }
 
             @Override
             public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
-                //Material m = ((Geometry) target).getMaterial();
-                //m.setColor("Color", ColorRGBA.Blue);
+                // Material m = ((Geometry) target).getMaterial();
+                // m.setColor("Color", ColorRGBA.Blue);
             }
 
             @Override
@@ -450,7 +451,8 @@ public class MapState extends BaseAppState {
                     Vector2f click2d = new Vector2f(event.getX(), event.getY());
 
                     Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+                    Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
+                            .normalizeLocal();
 
                     Ray ray = new Ray(click3d, dir);
                     CollisionResults results = new CollisionResults();
@@ -460,7 +462,7 @@ public class MapState extends BaseAppState {
                     }
                     Vector3f contactPoint = results.getCollision(0).getContactPoint();
                     session.map(MapSystem.CREATE, new Vec3d(contactPoint.x, 0, contactPoint.z));
-                    //session.createTile("", contactPoint.x, contactPoint.y);
+                    // session.createTile("", contactPoint.x, contactPoint.y);
                 }
 
                 if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
@@ -472,7 +474,8 @@ public class MapState extends BaseAppState {
                     Vector2f click2d = new Vector2f(event.getX(), event.getY());
 
                     Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d).normalizeLocal();
+                    Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
+                            .normalizeLocal();
 
                     Ray ray = new Ray(click3d, dir);
                     CollisionResults results = new CollisionResults();
@@ -482,7 +485,7 @@ public class MapState extends BaseAppState {
                     }
                     Vector3f contactPoint = results.getCollision(0).getContactPoint();
                     session.map(MapSystem.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.y));
-                    //session.removeTile(contactPoint.x, contactPoint.y);
+                    // session.removeTile(contactPoint.x, contactPoint.y);
                 }
             }
         });

@@ -44,13 +44,14 @@ public abstract class BaseGameModule extends AbstractGameSystem {
      * Instantiates a base game module with settings and reference to chat and
      * account services
      *
-     * @param chp reference to the hosted chat server
-     * @param am reference to the account management service
+     * @param chp    reference to the hosted chat server
+     * @param am     reference to the account management service
      * @param loader reference to the adaptive loading service
      * @param arenas
      * @param time
      */
-    public BaseGameModule(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas, TimeManager time, PhysicsManager physics) {
+    public BaseGameModule(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
+            TimeManager time, PhysicsManager physics) {
         this.chp = chp;
         this.am = am;
         this.loader = loader;
@@ -59,7 +60,6 @@ public abstract class BaseGameModule extends AbstractGameSystem {
         this.physics = physics;
     }
 
-
     public ChatHostedPoster getChp() {
         return chp;
     }
@@ -67,21 +67,21 @@ public abstract class BaseGameModule extends AbstractGameSystem {
     public AccountManager getAm() {
         return am;
     }
-    
-    public AdaptiveLoader getLoader(){
+
+    public AdaptiveLoader getLoader() {
         return loader;
     }
 
     public ArenaManager getArenas() {
         return arenas;
     }
-    
-    public TimeManager getTimeManager(){
+
+    public TimeManager getTimeManager() {
         return time;
     }
-    
-    public PhysicsManager getPhysicsManager(){
+
+    public PhysicsManager getPhysicsManager() {
         return physics;
     }
-    
+
 }

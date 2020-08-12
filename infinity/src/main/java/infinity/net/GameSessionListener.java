@@ -41,17 +41,17 @@ import com.jme3.network.service.rmi.Asynchronous;
 import com.simsilica.es.EntityId;
 
 /**
- *  The asynchronous callbacks that the game back-end uses to
- *  send game-session information to the player.
+ * The asynchronous callbacks that the game back-end uses to send game-session
+ * information to the player.
  *
- *  @author    Paul Speed
+ * @author Paul Speed
  */
 public interface GameSessionListener {
- 
+
     /**
-     *  Called to tell the player what their current avatar entity is.
-     *  This may change during the game as the player dies/respawns/whatever.
+     * Called to tell the player what their current avatar entity is. This may
+     * change during the game as the player dies/respawns/whatever.
      */
     @Asynchronous
-    public void setAvatar( EntityId avatar );
+    public void setAvatar(EntityId avatar);
 }
