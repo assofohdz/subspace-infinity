@@ -1,8 +1,5 @@
-Project is un-archived - lets see if we can push some more into this game :D
-
 # Subspace Infinity
-A java port of Subspace Continuum, built on JME, Lemur, Zay-ES, Zay-ES-Net, SpiderMonkey, and the SimEthereal real-time
-object synching library.  This modifies the sim-eth-basic to be ES based using the Zay-ES library.
+A java port of Subspace Continuum
 
 # Community
 
@@ -18,6 +15,11 @@ Join Discord here: https://discord.gg/tfyWxbK
 
 ## Acknowledgments
 
-Big thanks to the JME community and Paul Speed who has laid the foundation with the awesome Zay-ES framework and his game example.
+Big thanks to the [jMonkeyEngine community](https://hub.jmonkeyengine.org/) for tremendous help and [Paul Speed](https://github.com/pspeed42) who has laid the foundation with the awesome:
+
+- [Zay-ES + Zay-ES-Net framework](https://github.com/jMonkeyEngine-Contributions/zay-es)
+- [SiO2 framework](https://github.com/Simsilica/SiO2)
+- [SimEthereal framework](https://github.com/Simsilica/SimEthereal)
+- [Pager framework](https://github.com/Simsilica/Pager)
 
 Thanks to the Subspace/Continuum developers who keeps the game alive. If not for them, this java port would not be here.
