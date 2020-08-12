@@ -38,11 +38,11 @@ public class TileTypes {
     public static final String LEGACY = "legacy"; // Legacy SS Map Tileset
     public static final String WANGBLOB = "wangblob"; // Wang Blob Tileset
 
-    public static TileType legacy(String tileSet, short tileIndex, EntityData ed) {
+    public static TileType legacy(final String tileSet, final short tileIndex, final EntityData ed) {
         return TileType.create(LEGACY, tileSet, tileIndex, ed);
     }
 
-    public static TileType wangblob(String tileSet, short tileIndex, EntityData ed) {
+    public static TileType wangblob(final String tileSet, final short tileIndex, final EntityData ed) {
         return TileType.create(WANGBLOB, tileSet, tileIndex, ed);
     }
 }

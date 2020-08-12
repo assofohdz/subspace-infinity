@@ -58,7 +58,7 @@ public class EnergySystem extends AbstractGameSystem {
     private EntityData ed;
     private EntitySet living;
     private EntitySet changes;
-    private Map<EntityId, Integer> health = new HashMap<>();
+    private final Map<EntityId, Integer> health = new HashMap<>();
     private EntitySet recharges;
     private EntitySet maxLiving;
 
@@ -94,7 +94,7 @@ public class EnergySystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
 
         // We accumulate all health adjustments together that are
         // in effect at this time... and then apply them all at once.
@@ -105,15 +105,15 @@ public class EnergySystem extends AbstractGameSystem {
         changes.applyChanges();
 
         // Collect all of the relevant health updates
-        for (Entity e : changes) {
-            Buff b = e.get(Buff.class);
+        for (final Entity e : changes) {
+            final Buff b = e.get(Buff.class);
 
             // Does the buff apply yet
             if (b.getStartTime() > time.getTime()) {
                 continue;
             }
 
-            HealthChange change = e.get(HealthChange.class);
+            final HealthChange change = e.get(HealthChange.class);
             Integer hp = health.get(b.getTarget());
             if (hp == null) {
                 hp = change.getDelta();
@@ -128,32 +128,32 @@ public class EnergySystem extends AbstractGameSystem {
 
         // Perform recharges
         recharges.applyChanges();
-        for (Entity e : recharges) {
+        for (final Entity e : recharges) {
 
             if (maxLiving.containsId(e.getId())) {
                 if (getHealth(e.getId()) < getMaxHealth(e.getId())) {
-                    double tpf = time.getTpf();
+                    final double tpf = time.getTpf();
 
-                    Recharge recharge = e.get(Recharge.class);
+                    final Recharge recharge = e.get(Recharge.class);
 
-                    Double charge = tpf * recharge.getRechargePerSecond();
+                    final Double charge = tpf * recharge.getRechargePerSecond();
 
                     createHealthChange(e.getId(), charge.intValue());
                 }
             } else {
-                double tpf = time.getTpf();
+                final double tpf = time.getTpf();
 
-                Recharge recharge = e.get(Recharge.class);
+                final Recharge recharge = e.get(Recharge.class);
 
-                Double charge = tpf * recharge.getRechargePerSecond();
+                final Double charge = tpf * recharge.getRechargePerSecond();
 
                 createHealthChange(e.getId(), charge.intValue());
             }
         }
 
         // Now apply all accumulated adjustments
-        for (Map.Entry<EntityId, Integer> entry : health.entrySet()) {
-            Entity target = living.getEntity(entry.getKey());
+        for (final Map.Entry<EntityId, Integer> entry : health.entrySet()) {
+            final Entity target = living.getEntity(entry.getKey());
 
             if (target == null) {
                 log.warn("No target for id:" + entry.getKey());
@@ -171,7 +171,7 @@ public class EnergySystem extends AbstractGameSystem {
                 hp = hp.newAdjusted(entry.getValue());
             } // If we do have a maximum
             else {
-                EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
+                final EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
                 // Check if we go above max hp
                 if (entry.getValue() <= maxHp.getMaxHealth()) {
                     hp = hp.newAdjusted(entry.getValue());
@@ -201,7 +201,7 @@ public class EnergySystem extends AbstractGameSystem {
      * @param eId the entityid to check
      * @return true if the entity has health, false if not
      */
-    public boolean hasEnergy(EntityId eId) {
+    public boolean hasEnergy(final EntityId eId) {
         return living.containsId(eId);
     }
 
@@ -209,7 +209,7 @@ public class EnergySystem extends AbstractGameSystem {
      * @param eId the entityid to check
      * @return the health of the entity
      */
-    public int getHealth(EntityId eId) {
+    public int getHealth(final EntityId eId) {
         return living.getEntity(eId).get(Energy.class).getHealth();
     }
 
@@ -217,7 +217,7 @@ public class EnergySystem extends AbstractGameSystem {
      * @param eId the entity to check
      * @return the maximum health of the entity
      */
-    public int getMaxHealth(EntityId eId) {
+    public int getMaxHealth(final EntityId eId) {
         return maxLiving.getEntity(eId).get(EnergyMax.class).getMaxHealth();
     }
 
@@ -226,8 +226,8 @@ public class EnergySystem extends AbstractGameSystem {
      * @param deltaHitPoints the change in hitpoints (can be both positive an
      *                       negative)
      */
-    public void createHealthChange(EntityId eId, int deltaHitPoints) {
-        EntityId healthChange = ed.createEntity();
+    public void createHealthChange(final EntityId eId, final int deltaHitPoints) {
+        final EntityId healthChange = ed.createEntity();
         ed.setComponents(healthChange, new Buff(eId, 0), new HealthChange(deltaHitPoints));
     }
 }

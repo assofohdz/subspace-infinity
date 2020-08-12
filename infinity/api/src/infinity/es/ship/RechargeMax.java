@@ -36,7 +36,7 @@ public class RechargeMax implements EntityComponent {
 
     double maxRechargePerSecond;
 
-    public RechargeMax(double maxRechargePerSecond) {
+    public RechargeMax(final double maxRechargePerSecond) {
         this.maxRechargePerSecond = maxRechargePerSecond;
     }
 

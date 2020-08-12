@@ -55,16 +55,16 @@ public class LargeGridCell implements EntityComponent {
     private LargeGridCell() {
     }
 
-    public LargeGridCell(long cellId) {
+    public LargeGridCell(final long cellId) {
         this.cellId = cellId;
     }
 
-    public static LargeGridCell create(Grid grid, double x, double y, double z) {
+    public static LargeGridCell create(final Grid grid, final double x, final double y, final double z) {
         return create(grid, new Vec3d(x, y, z));
     }
 
-    public static LargeGridCell create(Grid grid, Vec3d location) {
-        Vec3i cell = grid.worldToCell(location);
+    public static LargeGridCell create(final Grid grid, final Vec3d location) {
+        final Vec3i cell = grid.worldToCell(location);
         return new LargeGridCell(grid.cellToId(cell.x, cell.y, cell.z));
     }
 

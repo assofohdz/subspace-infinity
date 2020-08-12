@@ -79,13 +79,13 @@ public class MapState extends BaseAppState {
     AndFilter andFilter;
     private EntityData ed;
     private LegacyMapImageContainer tileImages;
-    private java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
+    private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
-    private HashMap<String, LevelFile> levelFiles = new HashMap<>();
+    private final HashMap<String, LevelFile> levelFiles = new HashMap<>();
     private AWTLoader imgLoader;
-    private HashMap<TileKey, Image> imageMap = new HashMap<>();
+    private final HashMap<TileKey, Image> imageMap = new HashMap<>();
 
-    private HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
+    private final HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     private float tpfTime;
     private Camera camera;
 
@@ -94,7 +94,7 @@ public class MapState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         camera = app.getCamera();
 
         ed = getState(ConnectionState.class).getEntityData();
@@ -112,21 +112,21 @@ public class MapState extends BaseAppState {
         // BodyPosition.class);
     }
 
-    public float getWangBlobRotations(int indexNumber) {
+    public float getWangBlobRotations(final int indexNumber) {
         if (!wangBlobIndexMap.containsKey(indexNumber)) {
             throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
         }
         return wangBlobIndexMap.get(indexNumber).getRotation();
     }
 
-    public int getWangBlobTileNumber(int indexNumber) {
+    public int getWangBlobTileNumber(final int indexNumber) {
         if (!wangBlobIndexMap.containsKey(indexNumber)) {
             throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
         }
         return wangBlobIndexMap.get(indexNumber).getTileNumber();
     }
 
-    private void generateWangBlobInfoMap(HashMap<Integer, WangInfo> map) {
+    private void generateWangBlobInfoMap(final HashMap<Integer, WangInfo> map) {
         // Zero
         map.put(0, new WangInfo(0, 0));
         // One
@@ -192,23 +192,23 @@ public class MapState extends BaseAppState {
         // Second row
     }
 
-    public Image getImage(EntityId entityId) {
+    public Image getImage(final EntityId entityId) {
         return tileImages.getObject(entityId);
     }
 
-    protected LevelFile loadMap(String tileSet) {
+    protected LevelFile loadMap(final String tileSet) {
 
-        LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
+        final LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
 
         return localMap;
     }
 
-    public EntityId getEntityId(Vec3d coord) {
+    public EntityId getEntityId(final Vec3d coord) {
         return index.get(coord);
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
     }
 
     @Override
@@ -224,7 +224,7 @@ public class MapState extends BaseAppState {
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
         tpfTime = tpf;
 
         tileImages.update();
@@ -236,19 +236,19 @@ public class MapState extends BaseAppState {
      * @param img The Image to be converted
      * @return The converted BufferedImage
      */
-    private BufferedImage toBufferedImage(java.awt.Image img) {
+    private BufferedImage toBufferedImage(final java.awt.Image img) {
         if (img instanceof BufferedImage) {
             return (BufferedImage) img;
         }
 
-        int width = img.getWidth(null);
-        int height = img.getHeight(null);
+        final int width = img.getWidth(null);
+        final int height = img.getHeight(null);
 
         // Create a buffered image with transparency
-        BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        final BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         // Draw the image on to the buffered image
-        Graphics2D bGr = bimage.createGraphics();
+        final Graphics2D bGr = bimage.createGraphics();
         // bGr.drawImage(img, 0, 0, null); //No flip
         // bGr.drawImage(img, 0 + width, 0, -width, height, null); //Horisontal flip
         // bGr.drawImage(img, 0, 0 + height, width, -height, null); //Vertical flip
@@ -260,23 +260,23 @@ public class MapState extends BaseAppState {
         return bimage;
     }
 
-    public Image forceLoadImage(EntityId id) {
-        Entity e = ed.getEntity(id, TileType.class);
-        TileType ti = e.get(TileType.class);
-        String tileSet = ti.getTileSet();
-        short tileIndex = ti.getTileIndex();
-        TileKey key = new TileKey(tileSet, tileIndex);
+    public Image forceLoadImage(final EntityId id) {
+        final Entity e = ed.getEntity(id, TileType.class);
+        final TileType ti = e.get(TileType.class);
+        final String tileSet = ti.getTileSet();
+        final short tileIndex = ti.getTileIndex();
+        final TileKey key = new TileKey(tileSet, tileIndex);
 
         if (!imageMap.containsKey(key)) {
 
             if (!levelFiles.containsKey(tileSet)) {
-                LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
+                final LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
                 levelFiles.put(tileSet, lf);
 
             }
 
-            java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
-            Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
+            final java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
+            final Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
             // jmeOutputImage.dispose();
 
             imageMap.put(key, jmeOutputImage);
@@ -288,7 +288,7 @@ public class MapState extends BaseAppState {
     // Map the entities to their texture
     private class LegacyMapImageContainer extends EntityContainer<Image> {
 
-        public LegacyMapImageContainer(EntityData ed) {
+        public LegacyMapImageContainer(final EntityData ed) {
             super(ed, TileType.class, BodyPosition.class);
         }
 
@@ -298,22 +298,22 @@ public class MapState extends BaseAppState {
         }
 
         @Override
-        protected Image addObject(Entity e) {
-            TileType ti = e.get(TileType.class);
-            String tileSet = ti.getTileSet();
-            short tileIndex = ti.getTileIndex();
-            TileKey key = new TileKey(tileSet, tileIndex);
+        protected Image addObject(final Entity e) {
+            final TileType ti = e.get(TileType.class);
+            final String tileSet = ti.getTileSet();
+            final short tileIndex = ti.getTileIndex();
+            final TileKey key = new TileKey(tileSet, tileIndex);
 
             if (!imageMap.containsKey(key)) {
 
                 if (!levelFiles.containsKey(tileSet)) {
-                    LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
+                    final LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
                     levelFiles.put(tileSet, lf);
 
                 }
 
-                java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
-                Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
+                final java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
+                final Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
 
                 imageMap.put(key, jmeOutputImage);
 
@@ -323,13 +323,13 @@ public class MapState extends BaseAppState {
         }
 
         @Override
-        protected void updateObject(Image object, Entity e) {
+        protected void updateObject(final Image object, final Entity e) {
             // Does not support mass updating tiles right now
             // TODO: The tileIndex in a TileInfo component could change
         }
 
         @Override
-        protected void removeObject(Image object, Entity e) {
+        protected void removeObject(final Image object, final Entity e) {
             // We leave the levels loaded
         }
     }
@@ -339,7 +339,7 @@ public class MapState extends BaseAppState {
         private final String tileSet;
         private final short tileIndex;
 
-        public TileKey(String x, short y) {
+        public TileKey(final String x, final short y) {
             tileSet = x;
             tileIndex = y;
         }
@@ -353,7 +353,7 @@ public class MapState extends BaseAppState {
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(final Object obj) {
             if (this == obj) {
                 return true;
             }
@@ -380,7 +380,7 @@ public class MapState extends BaseAppState {
         private final int tileNumber;
         private final float radianRotation;
 
-        public WangInfo(int tileNumber, float rotation) {
+        public WangInfo(final int tileNumber, final float rotation) {
             this.tileNumber = tileNumber;
             radianRotation = rotation;
         }
@@ -394,11 +394,11 @@ public class MapState extends BaseAppState {
         }
     }
 
-    public void setMapEditingActive(boolean active) {
+    public void setMapEditingActive(final boolean active) {
 
     }
 
-    public void addArenaMouseListeners(Spatial arena) {
+    public void addArenaMouseListeners(final Spatial arena) {
 
         MouseEventControl.addListenersToSpatial(arena, new DefaultMouseListener() {
 
@@ -409,12 +409,12 @@ public class MapState extends BaseAppState {
             private int yDown;
 
             @Override
-            protected void click(MouseButtonEvent event, Spatial target, Spatial capture) {
+            protected void click(final MouseButtonEvent event, final Spatial target, final Spatial capture) {
 
             }
 
             @Override
-            public void mouseButtonEvent(MouseButtonEvent event, Spatial target, Spatial capture) {
+            public void mouseButtonEvent(final MouseButtonEvent event, final Spatial target, final Spatial capture) {
                 event.setConsumed();
 
                 isPressed = event.isPressed();
@@ -429,61 +429,63 @@ public class MapState extends BaseAppState {
             }
 
             @Override
-            public void mouseEntered(MouseMotionEvent event, Spatial target, Spatial capture) {
+            public void mouseEntered(final MouseMotionEvent event, final Spatial target, final Spatial capture) {
                 // Material m = ((Geometry) target).getMaterial();
                 // m.setColor("Color", ColorRGBA.Yellow);
             }
 
             @Override
-            public void mouseExited(MouseMotionEvent event, Spatial target, Spatial capture) {
+            public void mouseExited(final MouseMotionEvent event, final Spatial target, final Spatial capture) {
                 // Material m = ((Geometry) target).getMaterial();
                 // m.setColor("Color", ColorRGBA.Blue);
             }
 
             @Override
-            public void mouseMoved(MouseMotionEvent event, Spatial target, Spatial capture) {
+            public void mouseMoved(final MouseMotionEvent event, final Spatial target, final Spatial capture) {
                 if (isPressed && keyIndex == MouseInput.BUTTON_LEFT) {
-                    GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+                    final GameSession session = getState(ConnectionState.class)
+                            .getService(GameSessionClientService.class);
                     if (session == null) {
                         throw new RuntimeException("ModelViewState requires an active game session.");
                     }
 
-                    Vector2f click2d = new Vector2f(event.getX(), event.getY());
+                    final Vector2f click2d = new Vector2f(event.getX(), event.getY());
 
-                    Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
+                    final Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
+                    final Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
                             .normalizeLocal();
 
-                    Ray ray = new Ray(click3d, dir);
-                    CollisionResults results = new CollisionResults();
+                    final Ray ray = new Ray(click3d, dir);
+                    final CollisionResults results = new CollisionResults();
                     target.collideWith(ray, results);
                     if (results.size() != 1) {
                         log.error("There should only be one collision with the arena when the user clicks it");
                     }
-                    Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                    final Vector3f contactPoint = results.getCollision(0).getContactPoint();
                     session.map(MapSystem.CREATE, new Vec3d(contactPoint.x, 0, contactPoint.z));
                     // session.createTile("", contactPoint.x, contactPoint.y);
                 }
 
                 if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
-                    GameSession session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+                    final GameSession session = getState(ConnectionState.class)
+                            .getService(GameSessionClientService.class);
                     if (session == null) {
                         throw new RuntimeException("ModelViewState requires an active game session.");
                     }
 
-                    Vector2f click2d = new Vector2f(event.getX(), event.getY());
+                    final Vector2f click2d = new Vector2f(event.getX(), event.getY());
 
-                    Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
+                    final Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
+                    final Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
                             .normalizeLocal();
 
-                    Ray ray = new Ray(click3d, dir);
-                    CollisionResults results = new CollisionResults();
+                    final Ray ray = new Ray(click3d, dir);
+                    final CollisionResults results = new CollisionResults();
                     target.collideWith(ray, results);
                     if (results.size() != 1) {
                         log.error("There should only be one collision with the arena when the user clicks it");
                     }
-                    Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                    final Vector3f contactPoint = results.getCollision(0).getContactPoint();
                     session.map(MapSystem.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.y));
                     // session.removeTile(contactPoint.x, contactPoint.y);
                 }

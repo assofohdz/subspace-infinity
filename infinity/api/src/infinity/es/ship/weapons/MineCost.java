@@ -19,7 +19,7 @@ public class MineCost implements EntityComponent {
         return cost;
     }
 
-    public MineCost(int cost) {
+    public MineCost(final int cost) {
         this.cost = cost;
     }
 }

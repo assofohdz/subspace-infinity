@@ -59,13 +59,13 @@ public class LeafDataZone extends AbstractZone {
 
     static Logger log = LoggerFactory.getLogger(LeafDataZone.class);
 
-    private World world;
-    private long leafId;
+    private final World world;
+    private final long leafId;
     private Node leafNode;
     private Node lastLeafNode;
     private static BlockGeometryIndex geomIndex = new BlockGeometryIndex();
 
-    public LeafDataZone(World world, Grid grid, int xCell, int yCell, int zCell) {
+    public LeafDataZone(final World world, final Grid grid, final int xCell, final int yCell, final int zCell) {
         super(grid, xCell, yCell, zCell);
         this.world = world;
         leafId = Coordinates.leafToLeafId(xCell, yCell, zCell);
@@ -73,7 +73,7 @@ public class LeafDataZone extends AbstractZone {
 
     @Override
     public void build() {
-        LeafData leaf = world.getLeaf(leafId);
+        final LeafData leaf = world.getLeaf(leafId);
         if (leaf.isEmpty()) {
             // System.out.println("--- skipping:" + leafId);
             return;
@@ -89,7 +89,7 @@ public class LeafDataZone extends AbstractZone {
     }
 
     @Override
-    public void apply(Builder builder) {
+    public void apply(final Builder builder) {
 //log.info("apply():" + leafId);
         if (lastLeafNode != null) {
             lastLeafNode.removeFromParent();
@@ -100,7 +100,7 @@ public class LeafDataZone extends AbstractZone {
     }
 
     @Override
-    public void release(Builder builder) {
+    public void release(final Builder builder) {
 //log.info("release():" + leafId);
         // Mesh mesh = boxGeom.getMesh();
         // for( VertexBuffer vb : mesh.getBufferList() ) {
@@ -113,16 +113,16 @@ public class LeafDataZone extends AbstractZone {
 
     public static class Factory implements ZoneFactory {
 
-        private World world;
+        private final World world;
 
-        public Factory(World world) {
+        public Factory(final World world) {
             this.world = world;
 
         }
 
         @Override
-        public Zone createZone(PagedGrid pg, int xCell, int yCell, int zCell) {
-            Zone result = new LeafDataZone(world, pg.getGrid(), xCell, yCell, zCell);
+        public Zone createZone(final PagedGrid pg, final int xCell, final int yCell, final int zCell) {
+            final Zone result = new LeafDataZone(world, pg.getGrid(), xCell, yCell, zCell);
             return result;
         }
     }

@@ -81,13 +81,13 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     // All of the trackers will be accessed from the SharedObjectListener
     // methods: beginFrame(), objectUpdated(), objectRemoved(), etc. and
     // so should all be from the same thread.
-    private Map<Long, ObjectTracker> trackers = new HashMap<>();
+    private final Map<Long, ObjectTracker> trackers = new HashMap<>();
 
     public SharedObjectUpdater() {
     }
 
     @Override
-    protected void onInitialize(ClientServiceManager s) {
+    protected void onInitialize(final ClientServiceManager s) {
         log.info("onInitialize()");
         ed = getService(EntityDataClientService.class).getEntityData();
     }
@@ -109,7 +109,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     }
 
     @Override
-    public void beginFrame(long time) {
+    public void beginFrame(final long time) {
         if (log.isTraceEnabled()) {
             log.trace("** beginFrame(" + time + ")");
         }
@@ -119,7 +119,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
             initializeBodyPosition(entities.getAddedEntities());
             initializeBodyPosition(entities.getChangedEntities());
             if (log.isTraceEnabled()) {
-                for (Entity e : entities.getRemovedEntities()) {
+                for (final Entity e : entities.getRemovedEntities()) {
                     log.trace("entity removed:" + e.getId());
                 }
             }
@@ -129,9 +129,9 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
         }
     }
 
-    protected void initializeBodyPosition(Set<Entity> set) {
-        for (Entity e : set) {
-            BodyPosition pos = e.get(BodyPosition.class);
+    protected void initializeBodyPosition(final Set<Entity> set) {
+        for (final Entity e : set) {
+            final BodyPosition pos = e.get(BodyPosition.class);
 
             // BodyPosition requires special management to make
             // sure all instances of BodyPosition are sharing the same
@@ -144,7 +144,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     }
 
     @Override
-    public void objectUpdated(SharedObject obj) {
+    public void objectUpdated(final SharedObject obj) {
         if (log.isTraceEnabled()) {
             log.trace("****** Object moved[t=" + frameTime + "]:" + obj.getEntityId() + "  pos:"
                     + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());
@@ -154,11 +154,11 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
                     + "  pos:" + obj.getWorldPosition() + "  removed:" + obj.isMarkedRemoved());
         }
 
-        EntityId id = new EntityId(obj.getEntityId());
-        ObjectTracker tracker = getTracker(id, true);
+        final EntityId id = new EntityId(obj.getEntityId());
+        final ObjectTracker tracker = getTracker(id, true);
         tracker.updateCount++;
 
-        Entity entity = entities.getEntity(id);
+        final Entity entity = entities.getEntity(id);
         if (entity == null) {
             // This can happen either because we've received an update before we
             // have the entity or because we received the entity removal before we
@@ -174,7 +174,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
             }
             return;
         }
-        BodyPosition pos = entity.get(BodyPosition.class);
+        final BodyPosition pos = entity.get(BodyPosition.class);
         if (pos == null) {
             // normal as it may take longer for that update to get here
             if (log.isDebugEnabled()) {
@@ -194,15 +194,15 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
     }
 
     @Override
-    public void objectRemoved(SharedObject obj) {
+    public void objectRemoved(final SharedObject obj) {
         if (log.isDebugEnabled()) {
             log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:"
                     + obj.getNetworkId());
         }
-        EntityId id = new EntityId(obj.getEntityId());
-        Entity entity = entities.getEntity(id);
+        final EntityId id = new EntityId(obj.getEntityId());
+        final Entity entity = entities.getEntity(id);
 
-        ObjectTracker tracker = getTracker(id, false);
+        final ObjectTracker tracker = getTracker(id, false);
         if (tracker == null) {
             log.warn("Received object removal for entity/object with no tracker:" + id);
         } else {
@@ -222,7 +222,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
             // }
             return;
         }
-        BodyPosition pos = entity.get(BodyPosition.class);
+        final BodyPosition pos = entity.get(BodyPosition.class);
         if (pos == null) {
             // normal as it may take longer for that update to get here
             if (log.isDebugEnabled()) {
@@ -248,11 +248,11 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
         }
     }
 
-    protected ObjectTracker getTracker(EntityId id, boolean create) {
+    protected ObjectTracker getTracker(final EntityId id, final boolean create) {
         return getTracker(id.getId(), create);
     }
 
-    protected ObjectTracker getTracker(Long id, boolean create) {
+    protected ObjectTracker getTracker(final Long id, final boolean create) {
         ObjectTracker result = trackers.get(id);
         if (result == null && create) {
             result = new ObjectTracker(id);
@@ -261,12 +261,12 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
         return result;
     }
 
-    protected void updateEntityTrackers(Set<Entity> set, int delta) {
-        for (Entity e : set) {
+    protected void updateEntityTrackers(final Set<Entity> set, final int delta) {
+        for (final Entity e : set) {
             if (delta > 0) {
                 getTracker(e.getId(), true).entityAdded += delta;
             } else {
-                ObjectTracker tracker = getTracker(e.getId(), false);
+                final ObjectTracker tracker = getTracker(e.getId(), false);
                 if (tracker == null) {
                     log.warn("Receiving entity removal for entity we've never seen:" + e.getId());
                 } else {
@@ -288,7 +288,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
         int objectRemoved;
         long updateCount;
 
-        public ObjectTracker(Long id) {
+        public ObjectTracker(final Long id) {
             this.id = id;
         }
 

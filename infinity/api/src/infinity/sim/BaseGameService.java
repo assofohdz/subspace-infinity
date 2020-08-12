@@ -47,7 +47,8 @@ public abstract class BaseGameService extends AbstractHostedService {
      * @param am     reference to the account management service
      * @param arenas
      */
-    public BaseGameService(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas) {
+    public BaseGameService(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas) {
         this.chp = chp;
         this.am = am;
         this.loader = loader;

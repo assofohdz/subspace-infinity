@@ -65,10 +65,10 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
 
     static Logger log = LoggerFactory.getLogger(ZoneNetworkSystem.class);
 
-    private ZoneManager zones;
-    private PhysicsObserver physicsObserver = new PhysicsObserver();
+    private final ZoneManager zones;
+    private final PhysicsObserver physicsObserver = new PhysicsObserver();
 
-    public ZoneNetworkSystem(ZoneManager zones) {
+    public ZoneNetworkSystem(final ZoneManager zones) {
         this.zones = zones;
     }
 
@@ -92,23 +92,23 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
      */
     private class PhysicsObserver implements PhysicsListener<EntityId, S>, ObjectStatusListener<S> {
 
-        private Vector3f posf = new Vector3f();
-        private Quaternion orientf = new Quaternion();
+        private final Vector3f posf = new Vector3f();
+        private final Quaternion orientf = new Quaternion();
 
-        private Vec3d pos = new Vec3d();
-        private Quatd orient = new Quatd();
+        private final Vec3d pos = new Vec3d();
+        private final Quatd orient = new Quatd();
 
         // We probably won't have many zones, if we even have more than one.
         // The physics objects do not provide any sort of accurate bounds so
         // we'll guess at a size that is "big enough" for any particular mobile
         // object. 2x2x2 meters should be good enough... until it isn't.
-        private AaBBox box = new AaBBox(1);
+        private final AaBBox box = new AaBBox(1);
 
         public PhysicsObserver() {
         }
 
         @Override
-        public void startFrame(long frameTime, double stepSize) {
+        public void startFrame(final long frameTime, final double stepSize) {
             zones.beginUpdate(frameTime);
         }
 
@@ -118,11 +118,11 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
         }
 
         @Override
-        public void update(RigidBody<EntityId, S> body) {
+        public void update(final RigidBody<EntityId, S> body) {
             if (log.isTraceEnabled()) {
                 log.trace("update(" + body.id + ", " + body.isSleepy() + ")");
             }
-            boolean active = !body.isSleepy();
+            final boolean active = !body.isSleepy();
 //log.info("update body:" + body.id + "  bounds:" + body.getWorldBounds()
 //        + "  cog:" + body.shape.getMass().getCog()
 //        + "  shape info:" + body.shape.getCenter() + "  radius:" + body.shape.getRadius()
@@ -131,7 +131,7 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
         }
 
         @Override
-        public void objectLoaded(EntityId id, RigidBody<EntityId, S> body) {
+        public void objectLoaded(final EntityId id, final RigidBody<EntityId, S> body) {
             if (log.isTraceEnabled()) {
                 log.trace("objectAdded(" + id + ", " + body + ")");
             }
@@ -139,7 +139,7 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
         }
 
         @Override
-        public void objectUnloaded(EntityId id, RigidBody<EntityId, S> body) {
+        public void objectUnloaded(final EntityId id, final RigidBody<EntityId, S> body) {
             if (log.isTraceEnabled()) {
                 log.trace("objectRemoved(" + id + ", " + body + ")");
             }

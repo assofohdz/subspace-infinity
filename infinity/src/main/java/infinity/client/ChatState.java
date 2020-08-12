@@ -62,15 +62,15 @@ public class ChatState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(ChatState.class);
 
-    private ChatSessionObserver chatSessionObserver = new ChatSessionObserver();
-    private ChatCommandEntry chatEntry = new ChatCommandEntry();
+    private final ChatSessionObserver chatSessionObserver = new ChatSessionObserver();
+    private final ChatCommandEntry chatEntry = new ChatCommandEntry();
     private CommandEntry originalCommandEntry;
 
     public ChatState() {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         log.info("initialize()");
 
         // Add a self-message because we're too late to have caught the
@@ -83,15 +83,15 @@ public class ChatState extends BaseAppState {
         originalCommandEntry = getState(CommandConsoleState.class).getCommandEntry();
         getState(CommandConsoleState.class).setCommandEntry(chatEntry);
 
-        InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
+        final InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
         inputMapper.addDelegate(MainGameFunctions.F_CHAT_CONSOLE, getState(CommandConsoleState.class), "toggleConsole");
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
 
-        InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
+        final InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);
         inputMapper.removeDelegate(MainGameFunctions.F_CHAT_CONSOLE, getState(CommandConsoleState.class),
                 "toggleConsole");
@@ -113,7 +113,7 @@ public class ChatState extends BaseAppState {
      */
     private class ChatCommandEntry implements CommandEntry {
         @Override
-        public void runCommand(String cmd) {
+        public void runCommand(final String cmd) {
             getState(ConnectionState.class).getService(ChatClientService.class).sendMessage(cmd);
         }
     }
@@ -124,12 +124,12 @@ public class ChatState extends BaseAppState {
     private class ChatSessionObserver implements ChatSessionListener {
 
         @Override
-        public void playerJoined(int clientId, String playerName) {
+        public void playerJoined(final int clientId, final String playerName) {
             getState(MessageState.class).addMessage("> " + playerName + " has joined.", ColorRGBA.Yellow);
         }
 
         @Override
-        public void newMessage(int clientId, String playerName, String message) {
+        public void newMessage(final int clientId, final String playerName, String message) {
             message = message.trim();
             if (message.length() == 0) {
                 return;
@@ -138,7 +138,7 @@ public class ChatState extends BaseAppState {
         }
 
         @Override
-        public void playerLeft(int clientId, String playerName) {
+        public void playerLeft(final int clientId, final String playerName) {
             getState(MessageState.class).addMessage("> " + playerName + " has left.", ColorRGBA.Yellow);
         }
     }

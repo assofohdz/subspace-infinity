@@ -139,7 +139,7 @@ public class GameServer {
 
     private String description;
 
-    public GameServer(int port, String description) throws IOException {
+    public GameServer(final int port, final String description) throws IOException {
         this.description = description;
 
         // Make sure we are running with a fresh serializer registry
@@ -171,7 +171,7 @@ public class GameServer {
         // before the SerializerRegistrationMessage has had a chance to process.
         server.getServices().addService(new DelayService());
 
-        ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
+        final ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
 
         server.getServices().addServices(new RpcHostedService(), new RmiHostedService(),
                 // new GameSessionHostedService(systems),
@@ -181,7 +181,7 @@ public class GameServer {
 
         // Add the SimEtheral host that will serve object sync updates to
         // the clients.
-        EtherealHost ethereal = new EtherealHost(InfinityConstants.OBJECT_PROTOCOL, InfinityConstants.ZONE_GRID,
+        final EtherealHost ethereal = new EtherealHost(InfinityConstants.OBJECT_PROTOCOL, InfinityConstants.ZONE_GRID,
                 InfinityConstants.ZONE_RADIUS);
         ethereal.getZones().setSupportLargeObjects(true);
         ethereal.setTimeSource(new TimeSource() {
@@ -200,9 +200,9 @@ public class GameServer {
 
         // Just create a test world for now
         // LeafDb leafDb2 = new LeafDbCache(new TestLeafDb());
-        LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+        final LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
 
-        InfinityDefaultWorld world = new InfinityDefaultWorld(leafDb);
+        final InfinityDefaultWorld world = new InfinityDefaultWorld(leafDb);
         systems.register(InfinityDefaultWorld.class, world);
         server.getServices().addService(new WorldHostedService(world, InfinityConstants.TERRAIN_CHANNEL));
 
@@ -222,7 +222,7 @@ public class GameServer {
 
         // Need a shape factory to turn ShapeInfo components into
         // MBlockShapes.
-        ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
+        final ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
@@ -239,7 +239,7 @@ public class GameServer {
         // customization
         // Override the default body factory behavior so that we can apply the
         // upright driver as needed.
-        HashMap<EntityId, PlayerDriver> map = new HashMap<>();
+        final HashMap<EntityId, PlayerDriver> map = new HashMap<>();
         /*
          * EntityBodyFactory<MBlockShape> bodyFactory = new
          * EntityBodyFactory<MBlockShape>(ed, InfinityConstants.DEFAULT_GRAVITY,
@@ -255,10 +255,10 @@ public class GameServer {
          * PlayerDriver<EntityId, MBlockShape>(); result.setControlDriver(driver);
          * map.put(id, driver); } return result; } };
          */
-        InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed, Gravity.ZERO.getLinearAcceleration(),
-                shapeFactory);
+        final InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed,
+                Gravity.ZERO.getLinearAcceleration(), shapeFactory);
 
-        MPhysSystem mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+        final MPhysSystem mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
         // mphys.setDriverIndex(map);
 
@@ -280,15 +280,15 @@ public class GameServer {
         systems.register(ArenaSystem.class, new ArenaSystem());
 
         // Set up contacts to be filtered
-        ContactSystem contactSystem = new ContactSystem();
+        final ContactSystem contactSystem = new ContactSystem();
         systems.register(ContactSystem.class, contactSystem);
         mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
         systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
-        AssetLoaderService assetLoader = new AssetLoaderService();
+        final AssetLoaderService assetLoader = new AssetLoaderService();
         server.getServices().addService(assetLoader);
 
-        AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
+        final AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
         server.getServices().addService(adaptiveLoader);
 
         systems.register(SettingsSystem.class, new SettingsSystem(assetLoader, adaptiveLoader));
@@ -419,12 +419,12 @@ public class GameServer {
      * Kicks all current connection, closes the network host, stops all systems, and
      * finally terminates them. The GameServer is not restartable at this point.
      */
-    public void close(String kickMessage) {
+    public void close(final String kickMessage) {
         log.info("Stopping game server..." + kickMessage);
         loop.stop();
 
         if (kickMessage != null) {
-            for (HostedConnection conn : server.getConnections()) {
+            for (final HostedConnection conn : server.getConnections()) {
                 conn.close(kickMessage);
             }
         }
@@ -451,18 +451,18 @@ public class GameServer {
      */
     public void logStats() {
 
-        EtherealHost host = server.getServices().getService(EtherealHost.class);
+        final EtherealHost host = server.getServices().getService(EtherealHost.class);
 
-        for (HostedConnection conn : server.getConnections()) {
+        for (final HostedConnection conn : server.getConnections()) {
             log.info("Client[" + conn.getId() + "] address:" + conn.getAddress());
-            NetworkStateListener listener = host.getStateListener(conn);
+            final NetworkStateListener listener = host.getStateListener(conn);
             if (listener == null) {
                 log.info("[" + conn.getId() + "] No stats");
                 continue;
             }
             log.info("[" + conn.getId() + "] Ping time: "
                     + (listener.getConnectionStats().getAveragePingTime() / 1000000.0) + " ms");
-            String miss = String.format("%.02f", listener.getConnectionStats().getAckMissPercent());
+            final String miss = String.format("%.02f", listener.getConnectionStats().getAckMissPercent());
             log.info("[" + conn.getId() + "] Ack miss: " + miss + "%");
             log.info("[" + conn.getId() + "] Average msg size: " + listener.getConnectionStats().getAverageMessageSize()
                     + " bytes");
@@ -474,10 +474,10 @@ public class GameServer {
      * default port. If we want something more advanced then we should break it into
      * a separate class with a proper shell and so on.
      */
-    public static void main(String... args) throws Exception {
+    public static void main(final String... args) throws Exception {
 
-        StringWriter sOut = new StringWriter();
-        PrintWriter out = new PrintWriter(sOut);
+        final StringWriter sOut = new StringWriter();
+        final PrintWriter out = new PrintWriter(sOut);
         boolean hasDescription = false;
         for (int i = 0; i < args.length; i++) {
             if ("-m".equals(args[i])) {
@@ -498,12 +498,12 @@ public class GameServer {
         }
 
         out.close();
-        String desc = sOut.toString();
+        final String desc = sOut.toString();
 
-        GameServer gs = new GameServer(InfinityConstants.DEFAULT_PORT, desc);
+        final GameServer gs = new GameServer(InfinityConstants.DEFAULT_PORT, desc);
         gs.start();
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+        final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         String line;
         while ((line = in.readLine()) != null) {
             if (line.length() == 0) {
@@ -529,16 +529,16 @@ public class GameServer {
      */
     private class DelayService extends AbstractHostedService {
 
-        private void safeSleep(long ms) {
+        private void safeSleep(final long ms) {
             try {
                 Thread.sleep(ms);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException("Checked exceptions are lame", e);
             }
         }
 
         @Override
-        protected void onInitialize(HostedServiceManager serviceManager) {
+        protected void onInitialize(final HostedServiceManager serviceManager) {
         }
 
         @Override
@@ -546,7 +546,7 @@ public class GameServer {
         }
 
         @Override
-        public void connectionAdded(Server server, HostedConnection hc) {
+        public void connectionAdded(final Server server, final HostedConnection hc) {
             // Just in case
             super.connectionAdded(server, hc);
             log.debug("DelayService.connectionAdded(" + hc + ")");

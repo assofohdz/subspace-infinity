@@ -67,21 +67,21 @@ public class BasicEnvironment extends AbstractGameSystem {
     private World world;
 
     // Some constantly emitted test objects... need to track the time
-    private double nextTime = 5;
-    private Random rand = new Random(0);
+    private final double nextTime = 5;
+    private final Random rand = new Random(0);
 
     private EntityId toggle1;
     private EntityId toggle2;
-    private double toggleTime = 5;
-    private boolean moved = false;
+    private final double toggleTime = 5;
+    private final boolean moved = false;
 
-    private Vec3d putLoc = new Vec3d(0, 66, -10);
-    private double putTime = 5;
+    private final Vec3d putLoc = new Vec3d(0, 66, -10);
+    private final double putTime = 5;
 
-    private Vec3d putLoc2 = new Vec3d(4, 64, -4);
+    private final Vec3d putLoc2 = new Vec3d(4, 64, -4);
 
     private EntityId spawner;
-    private Vec3d spawnerOffset = new Vec3d(0, 10, 0);
+    private final Vec3d spawnerOffset = new Vec3d(0, 10, 0);
 
     @Override
     protected void initialize() {
@@ -101,14 +101,14 @@ public class BasicEnvironment extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
 
-        double secs = time.getTimeInSeconds();
+        final double secs = time.getTimeInSeconds();
 
     }
 
-    public EntityId createTestSphere(Vec3d loc, double size, boolean dynamic) {
-        EntityId result = ed.createEntity();
+    public EntityId createTestSphere(final Vec3d loc, final double size, final boolean dynamic) {
+        final EntityId result = ed.createEntity();
 
         if (dynamic) {
             ed.setComponents(result, new SpawnPosition(phys.getGrid(), loc), ShapeInfo.create("sphere", size, ed),

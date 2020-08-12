@@ -41,7 +41,7 @@ public class Rotation implements EntityComponent {
 
     }
 
-    public Rotation(double radSec) {
+    public Rotation(final double radSec) {
         this.radSec = radSec;
     }
 

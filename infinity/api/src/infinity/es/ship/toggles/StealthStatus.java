@@ -18,7 +18,7 @@ public class StealthStatus {
         return status;
     }
 
-    public StealthStatus(int status) {
+    public StealthStatus(final int status) {
         this.status = status;
     }
 }

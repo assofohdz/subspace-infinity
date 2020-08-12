@@ -45,7 +45,7 @@ public class ShipEvent {
 
     private final EntityId shipId;
 
-    public ShipEvent(EntityId shipId) {
+    public ShipEvent(final EntityId shipId) {
         this.shipId = shipId;
     }
 

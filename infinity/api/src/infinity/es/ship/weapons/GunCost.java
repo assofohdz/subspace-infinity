@@ -19,7 +19,7 @@ public class GunCost implements EntityComponent {
         return cost;
     }
 
-    public GunCost(int cost) {
+    public GunCost(final int cost) {
         this.cost = cost;
     }
 }

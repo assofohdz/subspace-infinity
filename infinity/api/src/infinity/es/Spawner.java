@@ -41,11 +41,11 @@ public class Spawner implements EntityComponent {
         return maxCount;
     }
 
-    public void setMaxCount(int maxCount) {
+    public void setMaxCount(final int maxCount) {
         this.maxCount = maxCount;
     }
 
-    public Spawner(int maxCount, SpawnType type) {
+    public Spawner(final int maxCount, final SpawnType type) {
         this.maxCount = maxCount;
         this.type = type;
     }
@@ -61,11 +61,11 @@ public class Spawner implements EntityComponent {
         return type;
     }
 
-    public void setType(SpawnType type) {
+    public void setType(final SpawnType type) {
         this.type = type;
     }
 
-    public Spawner(SpawnType type) {
+    public Spawner(final SpawnType type) {
         this.type = type;
     }
 }

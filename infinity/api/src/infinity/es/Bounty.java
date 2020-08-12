@@ -38,7 +38,7 @@ public class Bounty implements EntityComponent {
     public Bounty() {
     }
 
-    public Bounty(int bounty) {
+    public Bounty(final int bounty) {
         this.bounty = bounty;
     }
 
@@ -46,7 +46,7 @@ public class Bounty implements EntityComponent {
         return bounty;
     }
 
-    public void setBounty(int bounty) {
+    public void setBounty(final int bounty) {
         this.bounty = bounty;
     }
 }

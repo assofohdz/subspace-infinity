@@ -66,13 +66,13 @@ public class SettingsState extends BaseAppState {
 
     private TabbedPanel tabs;
 
-    private boolean originalCursorEventsEnabled = false;
+    private final boolean originalCursorEventsEnabled = false;
 
     public SettingsState() {
         setEnabled(false);
     }
 
-    public static void initializeDefaultMappings(InputMapper inputMapper) {
+    public static void initializeDefaultMappings(final InputMapper inputMapper) {
         inputMapper.map(F_SETTINGS, KeyInput.KEY_TAB);
     }
 
@@ -85,7 +85,7 @@ public class SettingsState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         GuiGlobals.getInstance().getInputMapper().addDelegate(F_SETTINGS, this, "toggleEnabled");
 
         mainWindow = new Container(new BorderLayout(), new ElementId("window"), "glass");
@@ -127,7 +127,7 @@ public class SettingsState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
         GuiGlobals.getInstance().getInputMapper().removeDelegate(F_SETTINGS, this, "toggleEnabled");
     }
 

@@ -38,7 +38,7 @@ public class AttackRange implements EntityComponent {
     public AttackRange() {
     }
 
-    public AttackRange(double range) {
+    public AttackRange(final double range) {
         this.range = range;
     }
 

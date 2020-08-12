@@ -54,7 +54,7 @@ public enum BombLevelEnum {
     public final ColorRGBA lightColor;
     public final float lightRadius;
 
-    private BombLevelEnum(int level, int viewOffset, ColorRGBA lightColor, float lightRadius) {
+    private BombLevelEnum(final int level, final int viewOffset, final ColorRGBA lightColor, final float lightRadius) {
         this.level = level;
         this.viewOffset = viewOffset;
         this.lightColor = lightColor;

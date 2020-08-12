@@ -73,7 +73,7 @@ public class Region {
         color = getRandomColor();
     }
 
-    public Region(String newName, Color newColor) {
+    public Region(final String newName, final Color newColor) {
         name = newName;
         color = newColor;
     }
@@ -84,7 +84,7 @@ public class Region {
      * @return a Vector of Bytes representing this region
      */
     public Vector getEncodedRegion() {
-        Vector encoding = new Vector();
+        final Vector encoding = new Vector();
         // encode isBase
         if (isBase) {
             encoding.add(new Byte((byte) 'r'));
@@ -136,7 +136,7 @@ public class Region {
             encoding.add(new Byte((byte) 'W'));
             encoding.add(new Byte((byte) 'P'));
             if (!arena.equals("")) { // encode with arena, size = 20
-                byte[] dword = BitmapSaving.toDWORD(20);
+                final byte[] dword = BitmapSaving.toDWORD(20);
                 for (int c = 0; c < 4; ++c) {
                     encoding.add(new Byte(dword[c]));
                 }
@@ -160,7 +160,7 @@ public class Region {
                     arena = arena.substring(15);
                 }
 
-                int len = arena.length();
+                final int len = arena.length();
                 for (int c = 0; c < len; ++c) {
                     encoding.add(new Byte((byte) arena.charAt(c)));
                 }
@@ -170,7 +170,7 @@ public class Region {
                 }
 
             } else { // no arena, size = 4
-                byte[] dword = BitmapSaving.toDWORD(4);
+                final byte[] dword = BitmapSaving.toDWORD(4);
                 for (int c = 0; c < 4; ++c) {
                     encoding.add(new Byte(dword[c]));
                 }
@@ -200,7 +200,7 @@ public class Region {
         encoding.add(new Byte((byte) 'A'));
         encoding.add(new Byte((byte) 'M'));
 
-        int len = name.length();
+        final int len = name.length();
         byte[] dword = BitmapSaving.toDWORD(len);
         for (int c = 0; c < 4; ++c) {
             encoding.add(new Byte(dword[c]));
@@ -226,7 +226,7 @@ public class Region {
 
         // we now need the length! yuck! ok let's make another vector containing just
         // the encoding
-        Vector tileData = getCompressedRGN();
+        final Vector tileData = getCompressedRGN();
 
         dword = BitmapSaving.toDWORD(tileData.size());
         for (int c = 0; c < 4; ++c) {
@@ -254,9 +254,9 @@ public class Region {
      * @return the vector of bytes represting the encoding of this tiledata
      */
     private Vector getCompressedRGN() {
-        Vector bytes = new Vector();
+        final Vector bytes = new Vector();
 
-        boolean rgn[][] = new boolean[1024][1024];
+        final boolean rgn[][] = new boolean[1024][1024];
 
         // start empty
         for (int y = 0; y < 1024; ++y) {
@@ -266,11 +266,11 @@ public class Region {
         }
 
         // add rectangles
-        for (Object rect : rects) {
-            Rectangle r = (Rectangle) rect;
+        for (final Object rect : rects) {
+            final Rectangle r = (Rectangle) rect;
 
-            int endX = r.x + r.width;
-            int endY = r.y + r.height;
+            final int endX = r.x + r.width;
+            final int endY = r.y + r.height;
 
             for (int y = r.y; y < endY; ++y) {
                 for (int x = r.x; x < endX; ++x) {
@@ -321,10 +321,10 @@ public class Region {
             }
 
             // we have to encode a single row
-            Vector encodedRow = new Vector();
+            final Vector encodedRow = new Vector();
             curY = 0;
             while (curY < 1024) {
-                boolean encodingTiles = rgn[curRow][curY];
+                final boolean encodingTiles = rgn[curRow][curY];
 
                 int count = 0;
 
@@ -391,17 +391,17 @@ public class Region {
          * rows of all empty
          */
 
-        Vector code = new Vector();
+        final Vector code = new Vector();
 
         if (count <= 32) {
             count--; // cause it's 1-32 not 0-31
-            byte encode = (byte) (count | 0x80);
+            final byte encode = (byte) (count | 0x80);
             code.add(new Byte(encode));
 
         } else {
             count--;
-            byte one = (byte) ((count >> 8) | 0xA0);
-            byte two = (byte) ((count & 0x00FF));
+            final byte one = (byte) ((count >> 8) | 0xA0);
+            final byte two = (byte) ((count & 0x00FF));
 
             code.add(new Byte(one));
             code.add(new Byte(two));
@@ -418,7 +418,7 @@ public class Region {
      * @param inRegion is this a run of region tiles? (or empty spaces)
      * @return the Vector of encodedBytes for this run
      */
-    private static Vector encodeRun(int count, boolean inRegion) {
+    private static Vector encodeRun(int count, final boolean inRegion) {
         /*
          * for each row, split it into runs of empty tiles and present tiles. for each
          * run, output one of these bit sequences:
@@ -428,7 +428,7 @@ public class Region {
          * 0110 00nn nnnn nnnn - n+1 (1-1024) present tiles in a row
          */
 
-        Vector code = new Vector();
+        final Vector code = new Vector();
 
         if (count <= 32) {
             --count;
@@ -479,16 +479,16 @@ public class Region {
          * last row n+1 (1-1024) times
          */
 
-        Vector code = new Vector();
+        final Vector code = new Vector();
 
         if (count <= 32) {
             count--; // cause it's 1-32 not 0-31
-            byte encode = (byte) (count | 0xC0);
+            final byte encode = (byte) (count | 0xC0);
             code.add(new Byte(encode));
         } else {
             count--;
-            byte one = (byte) ((count >> 8) | 0xE0);
-            byte two = (byte) ((count & 0x00FF));
+            final byte one = (byte) ((count >> 8) | 0xE0);
+            final byte two = (byte) ((count & 0x00FF));
 
             code.add(new Byte(one));
             code.add(new Byte(two));
@@ -502,7 +502,7 @@ public class Region {
      *
      * @param b the byte to convert
      */
-    private static String getBinaryStringOfByte(byte b) {
+    private static String getBinaryStringOfByte(final byte b) {
         int mask = 0x00000080;
         String rv = "";
 
@@ -520,9 +520,9 @@ public class Region {
      * @param encoding an eLVL REGN chunk, without the header
      * @return the error String, or null
      */
-    public String decodeRegion(ByteArray encoding) {
+    public String decodeRegion(final ByteArray encoding) {
         String error = null;
-        int superChunkLen = encoding.m_array.length;
+        final int superChunkLen = encoding.m_array.length;
         int cur = 0;
 
         while (cur < superChunkLen) {
@@ -531,9 +531,9 @@ public class Region {
                 error = "Not enogh bytes to make a subchunk header in REGN superchunk.";
                 break;
             }
-            String type = encoding.readString(cur, 4);
+            final String type = encoding.readString(cur, 4);
             cur += 4;
-            int len = encoding.readLittleEndianInt(cur);
+            final int len = encoding.readLittleEndianInt(cur);
             cur += 4;
 
             // "rBSE" - whether the region represents a base in a flag game
@@ -565,7 +565,7 @@ public class Region {
                 name = encoding.readString(cur, len);
                 cur += len;
 
-                int padding = 4 - len % 4;
+                final int padding = 4 - len % 4;
                 if (padding != 4) {
                     cur += padding;
                 }
@@ -579,7 +579,7 @@ public class Region {
 
                 cur += len;
 
-                int padding = 4 - len % 4;
+                final int padding = 4 - len % 4;
                 if (padding != 4) {
                     cur += padding;
                 }
@@ -590,21 +590,21 @@ public class Region {
                 unknownBytes.add(new Byte((byte) type.charAt(1)));
                 unknownBytes.add(new Byte((byte) type.charAt(2)));
                 unknownBytes.add(new Byte((byte) type.charAt(3)));
-                byte[] dword = BitmapSaving.toDWORD(len);
+                final byte[] dword = BitmapSaving.toDWORD(len);
                 for (int c = 0; c < 4; ++c) {
                     unknownBytes.add(new Byte(dword[c]));
                 }
 
                 // encode data
-                int endIndex = cur + len;
+                final int endIndex = cur + len;
                 for (int c = cur; c < endIndex; ++c) {
-                    byte b = encoding.readByte(c);
+                    final byte b = encoding.readByte(c);
                     unknownBytes.add(new Byte(b));
                 }
                 cur += len;
 
                 // encode padding
-                int padding = 4 - len % 4;
+                final int padding = 4 - len % 4;
                 if (padding != 4) {
                     unknownBytes.add(new Byte((byte) 0));
                     cur += padding;
@@ -628,10 +628,10 @@ public class Region {
      * @param len    the length to read
      * @return the error String
      */
-    private String decodeTiles(byte[] data, int offset, int size) {
+    private String decodeTiles(final byte[] data, int offset, final int size) {
         String error = null;
-        int endByte = offset + size;
-        boolean[][] rgn = new boolean[1024][1024];
+        final int endByte = offset + size;
+        final boolean[][] rgn = new boolean[1024][1024];
 
         // region starts empty
         for (int x = 0; x < 1024; ++x) {
@@ -644,10 +644,10 @@ public class Region {
         int curY = 0;
 
         while (offset < endByte) {
-            byte typeByte = data[offset];
+            final byte typeByte = data[offset];
 
-            int type = getEncodedType(typeByte);
-            int len = getEncodedLength(data, offset, type);
+            final int type = getEncodedType(typeByte);
+            final int len = getEncodedLength(data, offset, type);
 
             if (type == SMALL_EMPTY_RUN || type == LONG_EMPTY_RUN) {
                 if (len + curX > 1024) {
@@ -662,7 +662,7 @@ public class Region {
                     break;
                 }
 
-                int stopX = curX + len;
+                final int stopX = curX + len;
 
                 for (int x = curX; x < stopX; ++x) {
                     rgn[curY][x] = true;
@@ -686,8 +686,8 @@ public class Region {
                     break;
                 }
 
-                int stopY = curY + len;
-                int copyY = curY - 1;
+                final int stopY = curY + len;
+                final int copyY = curY - 1;
 
                 for (int x = 0; x < 1024; ++x) {
                     for (int y = curY; y < stopY; ++y) {
@@ -722,7 +722,7 @@ public class Region {
 
             while (curY < 1024) {
                 if (rgn[curY][curX] == true) {
-                    Rectangle r = new Rectangle();
+                    final Rectangle r = new Rectangle();
                     r.x = curX;
                     r.y = curY;
 
@@ -739,7 +739,7 @@ public class Region {
 
                     int h = 1;
                     for (int y = r.y + 1; y < 1024; ++y) {
-                        int endX = r.x + r.width;
+                        final int endX = r.x + r.width;
                         boolean sameRow = true;
                         for (int x = r.x; x < endX; ++x) {
                             if (rgn[y][x] == false) {
@@ -757,8 +757,8 @@ public class Region {
 
                     r.height = h;
 
-                    int endX = r.x + r.width;
-                    int endY = r.y + r.height;
+                    final int endX = r.x + r.width;
+                    final int endY = r.y + r.height;
 
                     for (int y = r.y; y < endY; ++y) {
                         for (int x = r.x; x < endX; ++x) {
@@ -807,7 +807,7 @@ public class Region {
      * @param type   the type of the fragment at offset in data
      * @return the length that's encoded
      */
-    private static int getEncodedLength(byte[] data, int offset, int type) {
+    private static int getEncodedLength(final byte[] data, final int offset, final int type) {
         int len = -1;
 
         if (type % 2 == 0) // short
@@ -826,7 +826,7 @@ public class Region {
      * @param one the byte for this encoding
      * @return an in 1-32 represeting the length that's currently encoded
      */
-    private static int getEncodedLength(byte one) {
+    private static int getEncodedLength(final byte one) {
         return getBitFragment(one, 4, 8) + 1;
     }
 
@@ -837,8 +837,8 @@ public class Region {
      * @param two the second byte for this encoding
      * @return an in 1-1024 represeting the length that's currently encoded
      */
-    private static int getEncodedLength(byte one, byte two) {
-        int highByte = getBitFragment(one, 7, 8) << 8;
+    private static int getEncodedLength(final byte one, final byte two) {
+        final int highByte = getBitFragment(one, 7, 8) << 8;
         return (highByte | (0xFF & two)) + 1;
     }
 
@@ -849,7 +849,7 @@ public class Region {
      * @param typeByte
      * @return
      */
-    private static int getEncodedType(byte typeByte) {
+    private static int getEncodedType(final byte typeByte) {
         return getBitFragment(typeByte, 1, 3);
     }
 
@@ -861,10 +861,10 @@ public class Region {
      * @param endIndex    the inclusive rightbound index 1234 5678 and startIndex
      * @return the int extracted from the requested bits
      */
-    public static int getBitFragment(byte extractFrom, int startIndex, int endIndex) {
-        int shift = 8 - endIndex;
-        int numBits = endIndex - startIndex + 1;
-        byte mask = (byte) ((0x01 << numBits) - 1);
+    public static int getBitFragment(final byte extractFrom, final int startIndex, final int endIndex) {
+        final int shift = 8 - endIndex;
+        final int numBits = endIndex - startIndex + 1;
+        final byte mask = (byte) ((0x01 << numBits) - 1);
 
         return (extractFrom >> shift) & mask;
     }

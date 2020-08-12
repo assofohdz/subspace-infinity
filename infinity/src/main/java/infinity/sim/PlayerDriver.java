@@ -55,34 +55,34 @@ public class PlayerDriver implements ControlDriver, Driver {
 
     static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
     // The entity that is controlling this driver
-    private DefaultWatchedEntity shipEntity;
+    private final DefaultWatchedEntity shipEntity;
 
     // Keep track of what the player has provided.
     private volatile Quaternion orientation = new Quaternion();
     private volatile MovementInput movementForces = new MovementInput(new Vec3d());
 
-    private double pickup = 3;
+    private final double pickup = 3;
 
     // Local reference to the body that we want to update
     private RigidBody body;
-    private Vec3d velocity = new Vec3d();
+    private final Vec3d velocity = new Vec3d();
     private final EntityData ed;
     private final SettingsSystem settings;
 
-    public PlayerDriver(EntityId shipEntityId, EntityData ed, SettingsSystem settings) {
+    public PlayerDriver(final EntityId shipEntityId, final EntityData ed, final SettingsSystem settings) {
         // Watch all the relevant movement components of the ship
-        Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
+        final Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
         shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
         this.settings = settings;
         this.ed = ed;
     }
 
     @Override
-    public void applyMovementState(MovementInput input) {
+    public void applyMovementState(final MovementInput input) {
         movementForces = input;
     }
 
-    private double applyThrust(double v, double thrust, double tpf) {
+    private double applyThrust(double v, final double thrust, final double tpf) {
         if (thrust > 0) {
             // Accelerate
             v = Math.min(thrust, v + pickup * tpf);
@@ -102,7 +102,7 @@ public class PlayerDriver implements ControlDriver, Driver {
     }
 
     @Override
-    public void update(long frameTime, double step) {
+    public void update(final long frameTime, final double step) {
         // Drivable bodies should not fall asleep, keep them awake at all times
         body.wakeUp(true);
 
@@ -112,7 +112,7 @@ public class PlayerDriver implements ControlDriver, Driver {
         // Grab local versions of the player settings in case another
         // thread sets them while we are calculating.
         // Quaternion quat = orientation;
-        Vec3d vec = movementForces.getMove();
+        final Vec3d vec = movementForces.getMove();
 
         // x is rotate - we dont need to clamp that
         // velocity.x = applyThrust(velocity.x, vec.x, step);
@@ -126,7 +126,7 @@ public class PlayerDriver implements ControlDriver, Driver {
 
         // Set a clamped velocity on the forward axis rotated by the bodies current
         // rotation
-        Vec3d newLinearVelocity = body.orientation.mult(velocity);
+        final Vec3d newLinearVelocity = body.orientation.mult(velocity);
         // body.setLinearVelocity(newLinearVelocity);
 
         body.addForce(newLinearVelocity.mult(20));
@@ -135,12 +135,12 @@ public class PlayerDriver implements ControlDriver, Driver {
     }
 
     @Override
-    public void initialize(RigidBody body) {
+    public void initialize(final RigidBody body) {
         this.body = body;
     }
 
     @Override
-    public void terminate(RigidBody body) {
+    public void terminate(final RigidBody body) {
         this.body = null;
     }
 

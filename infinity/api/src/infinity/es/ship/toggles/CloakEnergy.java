@@ -41,7 +41,7 @@ public class CloakEnergy implements EntityComponent {
         return energyDrain;
     }
 
-    public CloakEnergy(int energyDrain) {
+    public CloakEnergy(final int energyDrain) {
         this.energyDrain = energyDrain;
     }
 }

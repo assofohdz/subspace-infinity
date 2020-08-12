@@ -41,17 +41,19 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
     EntitySet categoryFilters;
 
     @Override
-    public void newContact(Contact contact) {
-        RigidBody bodyOne = contact.body1;
-        RigidBody bodyTwo = contact.body2;
+    public void newContact(final Contact contact) {
+        final RigidBody bodyOne = contact.body1;
+        final RigidBody bodyTwo = contact.body2;
 
         if (bodyOne != null && bodyTwo != null) {
-            EntityId one = (EntityId) contact.body1.id;
-            EntityId two = (EntityId) contact.body2.id;
+            final EntityId one = (EntityId) contact.body1.id;
+            final EntityId two = (EntityId) contact.body2.id;
 
             if (categoryFilters.containsId(two) && categoryFilters.containsId(one)) {
-                CategoryFilter filterOne = categoryFilters.getEntity(one).get(CollisionCategory.class).getFilter();
-                CategoryFilter filterTwo = categoryFilters.getEntity(two).get(CollisionCategory.class).getFilter();
+                final CategoryFilter filterOne = categoryFilters.getEntity(one).get(CollisionCategory.class)
+                        .getFilter();
+                final CategoryFilter filterTwo = categoryFilters.getEntity(two).get(CollisionCategory.class)
+                        .getFilter();
 
                 if (!filterTwo.isAllowed(filterOne)) {
                     contact.disable();
@@ -59,14 +61,14 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
                 }
             }
 
-            Parent parentOfOne = ed.getComponent(one, Parent.class);
+            final Parent parentOfOne = ed.getComponent(one, Parent.class);
             if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
                 // We have a parent on entity one and its equal to two
                 contact.disable();
                 return;
             }
 
-            Parent parentOfTwo = ed.getComponent(two, Parent.class);
+            final Parent parentOfTwo = ed.getComponent(two, Parent.class);
             if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
                 // We have a parent on entity two and its equal to one
                 contact.disable();
@@ -94,7 +96,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
         super.update(time); // To change body of generated methods, choose Tools | Templates.
 
         categoryFilters.applyChanges();

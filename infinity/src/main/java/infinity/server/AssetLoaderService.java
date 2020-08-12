@@ -23,7 +23,7 @@ public class AssetLoaderService extends AbstractHostedService {
     private AssetManager am;
 
     @Override
-    protected void onInitialize(HostedServiceManager serviceManager) {
+    protected void onInitialize(final HostedServiceManager serviceManager) {
         // Need to register our own AssetManager because this is run server side so
         // there's no jMonkeyEngine running
         am = JmeSystem.newAssetManager(
@@ -31,7 +31,7 @@ public class AssetLoaderService extends AbstractHostedService {
     }
 
     @Override
-    public void terminate(HostedServiceManager serviceManager) {
+    public void terminate(final HostedServiceManager serviceManager) {
 
     }
 
@@ -43,15 +43,15 @@ public class AssetLoaderService extends AbstractHostedService {
     public void stop() {
     }
 
-    public void registerLoader(Class<? extends AssetLoader> loaderClass, String... extensions) {
+    public void registerLoader(final Class<? extends AssetLoader> loaderClass, final String... extensions) {
         am.registerLoader(loaderClass, extensions);
     }
 
-    public <T> T loadAsset(AssetKey<T> key) {
+    public <T> T loadAsset(final AssetKey<T> key) {
         return am.loadAsset(key);
     }
 
-    public Object loadAsset(String name) {
+    public Object loadAsset(final String name) {
         return am.loadAsset(name);
     }
 

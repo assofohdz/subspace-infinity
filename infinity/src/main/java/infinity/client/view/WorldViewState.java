@@ -72,18 +72,18 @@ public class WorldViewState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(WorldViewState.class);
 
     private World world;
-    private CellObserver cellObserver = new CellObserver();
+    private final CellObserver cellObserver = new CellObserver();
 
     private PagedGrid pager;
     private Node worldRoot;
 
-    private Vector3f viewLoc = new Vector3f(20, 40.5f, 20);
-    private Vector3f viewCell = new Vector3f();
+    private final Vector3f viewLoc = new Vector3f(20, 40.5f, 20);
+    private final Vector3f viewCell = new Vector3f();
 
     public WorldViewState() {
     }
 
-    public void setViewLocation(Vector3f viewLoc) {
+    public void setViewLocation(final Vector3f viewLoc) {
         // viewLoc = viewLoc.setY(30);
         this.viewLoc.set(viewLoc);
         // log.info("setViewLocation:: viewLoc is now: "+viewLoc);
@@ -109,7 +109,7 @@ public class WorldViewState extends BaseAppState {
         return viewCell;
     }
 
-    public Vector3f cellToWorld(Vec3i cell, Vector3f target) {
+    public Vector3f cellToWorld(final Vec3i cell, final Vector3f target) {
         if (pager == null) {
             return target;
         }
@@ -117,7 +117,7 @@ public class WorldViewState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         world = getState(ConnectionState.class).getService(WorldClientService.class);
         // log.info("World:" + world);
 
@@ -127,26 +127,26 @@ public class WorldViewState extends BaseAppState {
         // data = world.getLeaf(new Vec3i(0, 2, 0));
         // log.info("Data for leaf 0, 2, 0:" + data);
 
-        Builder builder = getState(BuilderState.class).getBuilder();
+        final Builder builder = getState(BuilderState.class).getBuilder();
 
-        Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
+        final Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
 
-        ZoneFactory rootFactory = new LeafDataZone.Factory(world);
+        final ZoneFactory rootFactory = new LeafDataZone.Factory(world);
 
         pager = new PagedGrid(rootFactory, builder, rootGrid, 5, 5);
 
         worldRoot = new Node("worldRoot");
         worldRoot.attachChild(pager.getGridRoot());
 
-        boolean showGrid = true;
+        final boolean showGrid = true;
         if (showGrid) {
-            Material boxMaterial = GuiGlobals.getInstance()
+            final Material boxMaterial = GuiGlobals.getInstance()
                     .createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false).getMaterial();
             boxMaterial.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
             boxMaterial.getAdditionalRenderState().setWireframe(true);
-            ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
+            final ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
 
-            PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 5, 5);
+            final PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 5, 5);
             worldRoot.attachChild(gridPager.getGridRoot());
         }
 
@@ -154,14 +154,14 @@ public class WorldViewState extends BaseAppState {
 
     }
 
-    protected void cellChanged(CellChangeEvent event) {
+    protected void cellChanged(final CellChangeEvent event) {
         log.info("cellChanged(" + event + ")");
-        Vec3i loc = event.getLeafWorld();
+        final Vec3i loc = event.getLeafWorld();
         pager.rebuildCell(loc.x, loc.y, loc.z);
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
         world.removeCellChangeListener(cellObserver);
         pager.release();
     }
@@ -189,7 +189,7 @@ public class WorldViewState extends BaseAppState {
     private class CellObserver implements CellChangeListener {
 
         @Override
-        public void cellChanged(CellChangeEvent event) {
+        public void cellChanged(final CellChangeEvent event) {
             WorldViewState.this.cellChanged(event);
 //BlockGeometryIndex.debug = true;
         }

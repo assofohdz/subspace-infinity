@@ -18,7 +18,7 @@ public class CloakStatus {
         return status;
     }
 
-    public CloakStatus(int status) {
+    public CloakStatus(final int status) {
         this.status = status;
     }
 }

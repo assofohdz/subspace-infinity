@@ -67,7 +67,7 @@ public class EventPublisherSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
 
     }
 }

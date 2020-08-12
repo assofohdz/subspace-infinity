@@ -41,7 +41,7 @@ public class StealthEnergy implements EntityComponent {
         return energyDrain;
     }
 
-    public StealthEnergy(int energyDrain) {
+    public StealthEnergy(final int energyDrain) {
         this.energyDrain = energyDrain;
     }
 }

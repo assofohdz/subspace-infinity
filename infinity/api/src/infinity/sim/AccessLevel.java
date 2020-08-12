@@ -45,7 +45,7 @@ public enum AccessLevel {
      */
     public final String text;
 
-    private AccessLevel(int level, String text) {
+    private AccessLevel(final int level, final String text) {
         this.level = level;
         this.text = text;
     }

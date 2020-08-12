@@ -116,18 +116,18 @@ public class AdaptiveClassLoader extends ClassLoader {
      * instances.
      */
     @SuppressWarnings("unused")
-    private int generation;
+    private final int generation;
 
     /**
      * Cache of the loaded classes. This contains ClassCacheEntry keyed by class
      * names.
      */
-    private Hashtable<String, ClassCacheEntry> cache;
+    private final Hashtable<String, ClassCacheEntry> cache;
 
     /**
      * Save our class loader for chaining, and speed purposes.
      */
-    private ClassLoader myParentClassLoader;
+    private final ClassLoader myParentClassLoader;
 
     /**
      * The classpath which this classloader searches for class definitions. Each
@@ -136,7 +136,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * <p>
      * It may be empty when only system classes are controlled.
      */
-    private Vector<File> repository;
+    private final Vector<File> repository;
 
     /**
      * Private class used to maintain information about the classes that we loaded.
@@ -181,7 +181,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      *                                            the file is not a valid directory
      *                                            or a zip/jar file.
      */
-    public AdaptiveClassLoader(Vector<File> classRepository) throws IllegalArgumentException {
+    public AdaptiveClassLoader(final Vector<File> classRepository) throws IllegalArgumentException {
         this(classRepository, null);
     }
 
@@ -200,7 +200,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      *                                            the file is not a valid directory
      *                                            or a zip/jar file.
      */
-    public AdaptiveClassLoader(Vector<File> classRepository, ClassLoader chainedClassLoader)
+    public AdaptiveClassLoader(final Vector<File> classRepository, final ClassLoader chainedClassLoader)
             throws IllegalArgumentException {
         myParentClassLoader = chainedClassLoader;
 
@@ -208,7 +208,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         cache = new Hashtable<>();
 
         // Verify that all the repository are valid.
-        Enumeration<File> e = classRepository.elements();
+        final Enumeration<File> e = classRepository.elements();
 
         while (e.hasMoreElements()) {
             File file = e.nextElement();
@@ -217,7 +217,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             files = SimpleFileFilter.fileOrFiles(file);
 
             if (files != null) {
-                for (File file2 : files) {
+                for (final File file2 : files) {
                     file = file2;
 
                     // Check to see if we have proper access.
@@ -252,21 +252,21 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param file the file to be tested.
      * @return true if the file is a ZIP/JAR archive, false otherwise.
      */
-    private boolean isZipOrJarArchive(File file) {
+    private boolean isZipOrJarArchive(final File file) {
         boolean isArchive = true;
         ZipFile zipFile = null;
 
         try {
             zipFile = new ZipFile(file);
-        } catch (ZipException zipCurrupted) {
+        } catch (final ZipException zipCurrupted) {
             isArchive = false;
-        } catch (IOException anyIOError) {
+        } catch (final IOException anyIOError) {
             isArchive = false;
         } finally {
             if (zipFile != null) {
                 try {
                     zipFile.close();
-                } catch (IOException ignored) {
+                } catch (final IOException ignored) {
                 }
             }
         }
@@ -281,9 +281,9 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param classname The name of the class to check for modification.
      * @return true if the class should be reloaded, false if not
      */
-    public synchronized boolean shouldReload(String classname) {
+    public synchronized boolean shouldReload(final String classname) {
 
-        ClassCacheEntry entry = cache.get(classname);
+        final ClassCacheEntry entry = cache.get(classname);
 
         if (entry == null) {
             // class wasn't even loaded
@@ -292,7 +292,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             // System classes cannot be reloaded
             return false;
         } else {
-            boolean reload = (entry.origin.lastModified() != entry.lastModified);
+            final boolean reload = (entry.origin.lastModified() != entry.lastModified);
             return reload;
         }
     }
@@ -308,10 +308,10 @@ public class AdaptiveClassLoader extends ClassLoader {
     public synchronized boolean shouldReload() {
 
         // Check whether any class has changed
-        Enumeration<ClassCacheEntry> e = cache.elements();
+        final Enumeration<ClassCacheEntry> e = cache.elements();
 
         while (e.hasMoreElements()) {
-            ClassCacheEntry entry = e.nextElement();
+            final ClassCacheEntry entry = e.nextElement();
 
             if (entry.isSystemClass()) {
                 continue;
@@ -322,7 +322,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             // reload if a class origin file is now missing. This
             // probably makes things a bit more fragile, but is OK in
             // a servlet development situation. <mbp@pharos.com.au>
-            long msOrigin = entry.origin.lastModified();
+            final long msOrigin = entry.origin.lastModified();
 
             if (msOrigin == 0) {
                 // class no longer exists
@@ -376,13 +376,13 @@ public class AdaptiveClassLoader extends ClassLoader {
      *                                   requested class.
      */
     @Override
-    protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+    protected synchronized Class<?> loadClass(final String name, final boolean resolve) throws ClassNotFoundException {
         // The class object that will be returned.
         Class<?> c = null;
 
         // Use the cached value, if this class is already loaded into
         // this classloader.
-        ClassCacheEntry entry = cache.get(name);
+        final ClassCacheEntry entry = cache.get(name);
 
         if (entry != null) {
             // Class found in our cache
@@ -410,24 +410,24 @@ public class AdaptiveClassLoader extends ClassLoader {
 
                 return c;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             c = null;
         }
 
         // Try to load it from each repository
-        Enumeration<File> repEnum = repository.elements();
-        StringBuffer repoList = new StringBuffer();
+        final Enumeration<File> repEnum = repository.elements();
+        final StringBuffer repoList = new StringBuffer();
 
         // Cache entry.
-        ClassCacheEntry classCache = new ClassCacheEntry();
+        final ClassCacheEntry classCache = new ClassCacheEntry();
 
         while (repEnum.hasMoreElements()) {
             byte[] classData = null;
 
             File file = repEnum.nextElement();
-            File[] files = SimpleFileFilter.fileOrFiles(file);
+            final File[] files = SimpleFileFilter.fileOrFiles(file);
 
-            for (File file2 : files) {
+            for (final File file2 : files) {
                 file = file2;
 
                 try {
@@ -436,7 +436,7 @@ public class AdaptiveClassLoader extends ClassLoader {
                     } else {
                         classData = loadClassFromZipfile(file, name, classCache);
                     }
-                } catch (IOException ioe) {
+                } catch (final IOException ioe) {
                     // Error while reading in data, consider it as not found
                     classData = null;
                 }
@@ -478,16 +478,17 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @exception NoClassDefFoundError   if the class loader cannot find a
      *                                   definition for the class.
      */
-    private Class<?> loadSystemClass(String name, boolean resolve) throws NoClassDefFoundError, ClassNotFoundException {
+    private Class<?> loadSystemClass(final String name, final boolean resolve)
+            throws NoClassDefFoundError, ClassNotFoundException {
         if (myParentClassLoader != null) {
             return myParentClassLoader.loadClass(name);
         }
 
-        Class<?> c = findSystemClass(name);
+        final Class<?> c = findSystemClass(name);
         // Throws if not found.
 
         // Add cache entry
-        ClassCacheEntry cacheEntry = new ClassCacheEntry();
+        final ClassCacheEntry cacheEntry = new ClassCacheEntry();
         cacheEntry.origin = null;
         cacheEntry.loadedClass = c;
         cacheEntry.lastModified = Long.MAX_VALUE;
@@ -508,9 +509,9 @@ public class AdaptiveClassLoader extends ClassLoader {
     // loaded from org.apache.jserv.*? Would it introduce security
     // problems if people could override classes here?
     // <mbp@humbug.org.au 1998-07-29>
-    private boolean securityAllowsClass(String className) {
+    private boolean securityAllowsClass(final String className) {
         try {
-            SecurityManager security = System.getSecurityManager();
+            final SecurityManager security = System.getSecurityManager();
 
             if (security == null) {
                 // if there's no security manager then all classes
@@ -518,12 +519,12 @@ public class AdaptiveClassLoader extends ClassLoader {
                 return true;
             }
 
-            int lastDot = className.lastIndexOf('.');
+            final int lastDot = className.lastIndexOf('.');
             // Check if we are allowed to load the class' package
             security.checkPackageDefinition((lastDot > -1) ? className.substring(0, lastDot) : "");
             // Throws if not allowed
             return true;
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             return false;
         }
     }
@@ -535,7 +536,8 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param name  The classname
      * @param cache The cache entry to set the file if successful.
      */
-    private byte[] loadClassFromDirectory(File dir, String name, ClassCacheEntry cache) throws IOException {
+    private byte[] loadClassFromDirectory(final File dir, final String name, final ClassCacheEntry cache)
+            throws IOException {
         // Translate class name to file name
         String classFileName = name.replace('.', File.separatorChar) + ".class";
 
@@ -552,11 +554,11 @@ public class AdaptiveClassLoader extends ClassLoader {
             classFileName = classFileName.substring(start);
         }
 
-        File classFile = new File(dir, classFileName);
+        final File classFile = new File(dir, classFileName);
 
         if (classFile.exists()) {
             cache.origin = classFile;
-            InputStream in = new FileInputStream(classFile);
+            final InputStream in = new FileInputStream(classFile);
 
             try {
                 return loadBytesFromStream(in, (int) classFile.length());
@@ -577,14 +579,15 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @param name  The classname
      * @param cache The cache entry to set the file if successful.
      */
-    private byte[] loadClassFromZipfile(File file, String name, ClassCacheEntry cache) throws IOException {
+    private byte[] loadClassFromZipfile(final File file, final String name, final ClassCacheEntry cache)
+            throws IOException {
         // Translate class name to file name
-        String classFileName = name.replace('.', '/') + ".class";
+        final String classFileName = name.replace('.', '/') + ".class";
 
-        ZipFile zipfile = new ZipFile(file);
+        final ZipFile zipfile = new ZipFile(file);
 
         try {
-            ZipEntry entry = zipfile.getEntry(classFileName);
+            final ZipEntry entry = zipfile.getEntry(classFileName);
 
             if (entry != null) {
                 cache.origin = file;
@@ -601,8 +604,8 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Loads all the bytes of an InputStream.
      */
-    private byte[] loadBytesFromStream(InputStream in, int length) throws IOException {
-        byte[] buf = new byte[length];
+    private byte[] loadBytesFromStream(final InputStream in, int length) throws IOException {
+        final byte[] buf = new byte[length];
         int nRead, count = 0;
 
         while ((length > 0) && ((nRead = in.read(buf, count, length)) != -1)) {
@@ -625,7 +628,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @return an InputStream on the resource, or null if not found.
      */
     @Override
-    public InputStream getResourceAsStream(String name) {
+    public InputStream getResourceAsStream(final String name) {
         // Try to load it from the system class
         InputStream s = null;
 
@@ -639,18 +642,18 @@ public class AdaptiveClassLoader extends ClassLoader {
 
         if (s == null) {
             // Try to find it from every repository
-            Enumeration<File> repEnum = repository.elements();
+            final Enumeration<File> repEnum = repository.elements();
 
             while (repEnum.hasMoreElements()) {
-                File file = repEnum.nextElement();
+                final File file = repEnum.nextElement();
 
                 if (file.isDirectory()) {
                     s = loadResourceFromDirectory(file, name);
                 } else if (name.endsWith(".initArgs")) {
-                    String parentFile = file.getParent();
+                    final String parentFile = file.getParent();
 
                     if (parentFile != null) {
-                        File dir = new File(parentFile);
+                        final File dir = new File(parentFile);
                         s = loadResourceFromDirectory(dir, name);
                     }
                 } else {
@@ -669,15 +672,15 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Loads resource from a directory.
      */
-    private InputStream loadResourceFromDirectory(File dir, String name) {
+    private InputStream loadResourceFromDirectory(final File dir, final String name) {
         // Name of resources are always separated by /
-        String fileName = name.replace('/', File.separatorChar);
-        File resFile = new File(dir, fileName);
+        final String fileName = name.replace('/', File.separatorChar);
+        final File resFile = new File(dir, fileName);
 
         if (resFile.exists()) {
             try {
                 return new FileInputStream(resFile);
-            } catch (FileNotFoundException shouldnothappen) {
+            } catch (final FileNotFoundException shouldnothappen) {
                 return null;
             }
         } else {
@@ -688,36 +691,36 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Loads resource from a zip file
      */
-    private InputStream loadResourceFromZipfile(File file, String name) {
+    private InputStream loadResourceFromZipfile(final File file, final String name) {
         ZipFile zipfile = null;
         InputStream resourceStream = null;
 
         try {
             zipfile = new ZipFile(file);
-            ZipEntry entry = zipfile.getEntry(name);
+            final ZipEntry entry = zipfile.getEntry(name);
 
             if (entry != null) {
-                long length = entry.getSize();
+                final long length = entry.getSize();
                 resourceStream = zipfile.getInputStream(entry);
-                byte[] data = loadBytesFromStream(resourceStream, (int) length);
+                final byte[] data = loadBytesFromStream(resourceStream, (int) length);
                 return new ByteArrayInputStream(data);
             } else {
                 return null;
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             return null;
         } finally {
             if (resourceStream != null) {
                 try {
                     resourceStream.close();
-                } catch (IOException ignored) {
+                } catch (final IOException ignored) {
                 }
             }
 
             if (zipfile != null) {
                 try {
                     zipfile.close();
-                } catch (IOException ignored) {
+                } catch (final IOException ignored) {
                 }
             }
         }
@@ -735,7 +738,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @return an URL on the resource, or null if not found.
      */
     @Override
-    public URL getResource(String name) {
+    public URL getResource(final String name) {
 
         if (name == null) {
             return null;
@@ -758,21 +761,21 @@ public class AdaptiveClassLoader extends ClassLoader {
 
         // We got here so we have to look for the resource in our list of repository
         // elements
-        Enumeration<File> repEnum = repository.elements();
+        final Enumeration<File> repEnum = repository.elements();
 
         while (repEnum.hasMoreElements()) {
-            File file = repEnum.nextElement();
+            final File file = repEnum.nextElement();
 
             // Construct a file://-URL if the repository is a directory
             if (file.isDirectory()) {
-                String fileName = name.replace('/', File.separatorChar);
-                File resFile = new File(file, fileName);
+                final String fileName = name.replace('/', File.separatorChar);
+                final File resFile = new File(file, fileName);
 
                 if (resFile.exists()) {
                     // Build a file:// URL form the file name
                     try {
                         return new URL("file", null, resFile.getAbsolutePath());
-                    } catch (java.net.MalformedURLException badurl) {
+                    } catch (final java.net.MalformedURLException badurl) {
                         badurl.printStackTrace();
                         return null;
                     }
@@ -782,19 +785,19 @@ public class AdaptiveClassLoader extends ClassLoader {
                 // didn't between JVM's 1.1.6 and 1.3beta. Tested on JVM's from
                 // IBM, Blackdown, Microsoft, Sun @ Windows and Sun @ Solaris
                 try {
-                    ZipFile zf = new ZipFile(file.getAbsolutePath());
-                    ZipEntry ze = zf.getEntry(name);
+                    final ZipFile zf = new ZipFile(file.getAbsolutePath());
+                    final ZipEntry ze = zf.getEntry(name);
                     zf.close();
 
                     if (ze != null) {
                         try {
                             return new URL("jar:file:" + file.getAbsolutePath() + "!/" + name);
-                        } catch (java.net.MalformedURLException badurl) {
+                        } catch (final java.net.MalformedURLException badurl) {
                             badurl.printStackTrace();
                             return null;
                         }
                     }
-                } catch (IOException ioe) {
+                } catch (final IOException ioe) {
                     ioe.printStackTrace();
                     return null;
                 }
@@ -812,8 +815,8 @@ public class AdaptiveClassLoader extends ClassLoader {
      * @return the timestamp for when it was last modified
      * @throws ClassNotFoundException if class is not found
      */
-    public long lastModified(String name) throws ClassNotFoundException {
-        ClassCacheEntry entry = cache.get(name);
+    public long lastModified(final String name) throws ClassNotFoundException {
+        final ClassCacheEntry entry = cache.get(name);
 
         if (entry == null) {
             throw new ClassNotFoundException("Could not find class: " + name);

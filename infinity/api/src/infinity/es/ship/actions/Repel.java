@@ -40,11 +40,11 @@ public class Repel implements EntityComponent {
         return count;
     }
 
-    public Repel(int count) {
+    public Repel(final int count) {
         this.count = count;
     }
 
-    public Repel decrement(int decrement) {
+    public Repel decrement(final int decrement) {
         return new Repel(count - decrement);
     }
 }

@@ -33,21 +33,21 @@ import com.simsilica.es.EntityComponent;
  */
 public class GunFireDelay implements EntityComponent {
 
-    private long start;
-    private long delta;
+    private final long start;
+    private final long delta;
 
     public GunFireDelay() {
         start = System.nanoTime();
         delta = 1000000 * 10;
     }
 
-    public GunFireDelay(long deltaMillis) {
+    public GunFireDelay(final long deltaMillis) {
         start = System.nanoTime();
         delta = deltaMillis * 1000000;
     }
 
     public double getPercent() {
-        long time = System.nanoTime();
+        final long time = System.nanoTime();
         return (double) (time - start) / delta;
     }
 

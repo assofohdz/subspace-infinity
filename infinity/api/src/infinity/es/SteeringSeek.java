@@ -40,7 +40,7 @@ public class SteeringSeek implements EntityComponent {
         return target;
     }
 
-    public SteeringSeek(EntityId target) {
+    public SteeringSeek(final EntityId target) {
         this.target = target;
     }
 }

@@ -40,7 +40,7 @@ public class PortalMax implements EntityComponent {
         return max;
     }
 
-    public PortalMax(int count) {
+    public PortalMax(final int count) {
         max = count;
     }
 }

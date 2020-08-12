@@ -69,14 +69,14 @@ import com.simsilica.mphys.BodyMass;
  */
 public class SpatialFactory {
 
-    private SISpatialFactory SIFactory;
+    private final SISpatialFactory SIFactory;
 
-    private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
+    private final BlockGeometryIndex geomIndex = new BlockGeometryIndex();
     private final EntityData ed;
 
-    public SpatialFactory(EntityData ed, Node rootNode, AssetManager assets) {
+    public SpatialFactory(final EntityData ed, final Node rootNode, final AssetManager assets) {
 
-        AmbientLight al = new AmbientLight();
+        final AmbientLight al = new AmbientLight();
         al.setColor(ColorRGBA.White.mult(1.3f));
         rootNode.addLight(al);
 
@@ -84,9 +84,10 @@ public class SpatialFactory {
         SIFactory = new SISpatialFactory(ed, rootNode, assets);
     }
 
-    public Spatial createModel(EntityId id, MBlockShape blockShape, ShapeInfo shapeInfo, Mass mass) {
+    public Spatial createModel(final EntityId id, final MBlockShape blockShape, final ShapeInfo shapeInfo,
+            final Mass mass) {
 
-        Part part = blockShape.getPart();
+        final Part part = blockShape.getPart();
 
         Spatial result;
 
@@ -109,17 +110,17 @@ public class SpatialFactory {
     /**
      * Creates a root-level spatial for the specified root group.
      */
-    protected Spatial createPartSpatial(EntityId id, Group group, Mass mass) {
-        Node node = new Node("Object:" + id);
+    protected Spatial createPartSpatial(final EntityId id, final Group group, final Mass mass) {
+        final Node node = new Node("Object:" + id);
         // For debugging cog... but we might as well use the non-networked demo
         // node.attachChild(createBox(0.1f, ColorRGBA.Red));
 
         // The root level will need to be positioned relative to the rigid body
         // which is positioned at CoG relative to model space. So we need to offset
         // negative CoG.
-        Node cogOffset = new Node("CoG:" + id);
+        final Node cogOffset = new Node("CoG:" + id);
         node.attachChild(cogOffset);
-        Vec3d cog = group.getMass().getCog();
+        final Vec3d cog = group.getMass().getCog();
         cogOffset.move((float) -cog.x, (float) -cog.y, (float) -cog.z);
         createPartSpatial(cogOffset, id, group, mass);
 
@@ -133,10 +134,10 @@ public class SpatialFactory {
     /**
      * Creates a child spatial for the specified child group.
      */
-    protected Spatial createPartSpatial(Node parent, EntityId id, Group group, Mass mass) {
-        for (Part child : group.getChildren()) {
+    protected Spatial createPartSpatial(final Node parent, final EntityId id, final Group group, final Mass mass) {
+        for (final Part child : group.getChildren()) {
             if (child instanceof CellArrayPart) {
-                Spatial ps = createPartSpatial(id, (CellArrayPart) child, false, mass);
+                final Spatial ps = createPartSpatial(id, (CellArrayPart) child, false, mass);
                 ps.setLocalTranslation(child.getShapeRelativePosition().toVector3f());
                 ps.setLocalRotation(child.getShapeRelativeOrientation().toQuaternion());
                 parent.attachChild(ps);
@@ -152,13 +153,14 @@ public class SpatialFactory {
     /**
      * Creates a root-level spatial for the specified root part.
      */
-    protected Spatial createPartSpatial(EntityId id, CellArrayPart part, boolean isRoot, Mass mass) {
+    protected Spatial createPartSpatial(final EntityId id, final CellArrayPart part, final boolean isRoot,
+            final Mass mass) {
         if (part.getCells() == null) {
             return createSphere(id, (float) part.getMass().getRadius(), mass);
         }
 
-        Node node = new Node("Object:" + id);
-        Node parts = new Node("Parts:" + id);
+        final Node node = new Node("Object:" + id);
+        final Node parts = new Node("Parts:" + id);
         node.attachChild(parts);
 
         LOG.info("Calling generateBlocks from SpatialFactory");
@@ -167,12 +169,12 @@ public class SpatialFactory {
         // If we are the root level then we'll need a cog shift
         // to match with the rigid body
         if (isRoot) {
-            BodyMass bm = part.getMass();
+            final BodyMass bm = part.getMass();
 
             // The position of the object is its CoG... which means
             // we need to offset our model's origin by it. It should
             // already be scaled and everything... just need to negate it.
-            Vector3f cogOffset = bm.getCog().toVector3f().negate();
+            final Vector3f cogOffset = bm.getCog().toVector3f().negate();
 
             // We need to sort out what the center should be. Directly out of
             // generateBlocks()
@@ -190,17 +192,18 @@ public class SpatialFactory {
 
     private static final Logger LOG = Logger.getLogger(SpatialFactory.class.getName());
 
-    public Spatial createSphere(EntityId id, float radius, Mass mass) {
-        Sphere mesh = new Sphere(24, 24, radius);
+    public Spatial createSphere(final EntityId id, final float radius, final Mass mass) {
+        final Sphere mesh = new Sphere(24, 24, radius);
         mesh.setTextureMode(Sphere.TextureMode.Projected);
         mesh.scaleTextureCoordinates(new Vector2f(4, 2));
-        Geometry geom = new Geometry("Object:" + id, mesh);
+        final Geometry geom = new Geometry("Object:" + id, mesh);
 
         if (mass != null && mass.getMass() != 0) {
             geom.setMaterial(
                     GuiGlobals.getInstance().createMaterial(new ColorRGBA(0, 0.6f, 0.6f, 1), true).getMaterial());
 
-            Texture texture = GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png", true, true);
+            final Texture texture = GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png", true,
+                    true);
             geom.getMaterial().setTexture("DiffuseMap", texture);
         } else {
             // Just a flat green
@@ -214,9 +217,9 @@ public class SpatialFactory {
         return geom;
     }
 
-    protected Geometry createBox(float size, ColorRGBA color) {
-        Box box = new Box(size, size, size);
-        Geometry geom = new Geometry("box", box);
+    protected Geometry createBox(final float size, final ColorRGBA color) {
+        final Box box = new Box(size, size, size);
+        final Geometry geom = new Geometry("box", box);
         geom.setMaterial(GuiGlobals.getInstance().createMaterial(color, false).getMaterial());
 
         return geom;

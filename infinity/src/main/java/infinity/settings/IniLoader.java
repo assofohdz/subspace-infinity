@@ -19,9 +19,9 @@ import com.jme3.asset.AssetLoader;
 public class IniLoader implements AssetLoader {
 
     @Override
-    public Ini load(AssetInfo assetInfo) throws IOException {
+    public Ini load(final AssetInfo assetInfo) throws IOException {
 
-        Ini result = new Ini(assetInfo.openStream());
+        final Ini result = new Ini(assetInfo.openStream());
 
         return result;
     }

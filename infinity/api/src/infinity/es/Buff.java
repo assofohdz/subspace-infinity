@@ -41,7 +41,7 @@ public class Buff implements EntityComponent {
     public Buff() {
     }
 
-    public Buff(EntityId target, long startTime) {
+    public Buff(final EntityId target, final long startTime) {
         this.target = target;
         this.startTime = startTime;
     }

@@ -36,7 +36,7 @@ public class BombMax implements EntityComponent {
 
     BombLevelEnum level;
 
-    public BombMax(BombLevelEnum level) {
+    public BombMax(final BombLevelEnum level) {
         this.level = level;
     }
 

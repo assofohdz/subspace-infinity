@@ -18,7 +18,7 @@ public class RechargeUpgrade {
         return energyUpgrade;
     }
 
-    public RechargeUpgrade(int energyUpgrade) {
+    public RechargeUpgrade(final int energyUpgrade) {
         this.energyUpgrade = energyUpgrade;
     }
 }

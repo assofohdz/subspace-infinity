@@ -46,12 +46,12 @@ public class DelaySystem extends AbstractGameSystem {
     private EntitySet entities;
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
         entities.applyChanges();
-        for (Entity e : entities) {
-            Delay d = e.get(Delay.class);
+        for (final Entity e : entities) {
+            final Delay d = e.get(Delay.class);
             if (d.getPercent() >= 1.0) {
-                Iterator<EntityComponent> componentIterator = d.getDelayedComponents().iterator();
+                final Iterator<EntityComponent> componentIterator = d.getDelayedComponents().iterator();
                 switch (d.getType()) {
                 case Delay.REMOVE:
                     while (componentIterator.hasNext()) {

@@ -38,8 +38,8 @@ import com.jme3.asset.AssetLoader;
 public class BitMapLoader implements AssetLoader {
 
     @Override
-    public BitMap load(AssetInfo assetInfo) throws IOException {
-        BitMap bmp = new BitMap(new BufferedInputStream(assetInfo.openStream()));
+    public BitMap load(final AssetInfo assetInfo) throws IOException {
+        final BitMap bmp = new BitMap(new BufferedInputStream(assetInfo.openStream()));
         bmp.readBitMap(false);
         return bmp;
     }

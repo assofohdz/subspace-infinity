@@ -31,7 +31,7 @@ public class StatsSystem extends AbstractGameSystem {
     private Timer timer;
     SimTime localTime;
 
-    public StatsSystem(GameServer server) {
+    public StatsSystem(final GameServer server) {
         this.server = server;
     }
 
@@ -47,7 +47,7 @@ public class StatsSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
         localTime = tpf;
     }
 
@@ -63,7 +63,7 @@ public class StatsSystem extends AbstractGameSystem {
 
         private final GameServer localServer;
 
-        public Task(GameServer server) {
+        public Task(final GameServer server) {
             localServer = server;
         }
 

@@ -62,25 +62,25 @@ public class SettingsSystem extends AbstractGameSystem {
     // Server settings
     private Ini serverSettings;
     // Arena settings (can overrule server settings)
-    private HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
+    private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
 
     private ArrayList<String[]> asssTemplate;
 
     // private ArenaSettings defaultArenaSettings;
-    private AdaptiveLoadingService adaptiveLoader;
+    private final AdaptiveLoadingService adaptiveLoader;
     private ArrayList<String[]> asssSettings;
 
-    public SettingsSystem(AssetLoaderService assetLoader, AdaptiveLoadingService adaptiveLoader) {
+    public SettingsSystem(final AssetLoaderService assetLoader, final AdaptiveLoadingService adaptiveLoader) {
 
         this.assetLoader = assetLoader;
         this.adaptiveLoader = adaptiveLoader;
     }
 
-    public void addListener(SettingListener listener) {
+    public void addListener(final SettingListener listener) {
         listeners.add(listener);
     }
 
-    public void removeListener(SettingListener listener) {
+    public void removeListener(final SettingListener listener) {
         listeners.remove(listener);
     }
 
@@ -117,7 +117,7 @@ public class SettingsSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
 
     }
 
@@ -137,8 +137,8 @@ public class SettingsSystem extends AbstractGameSystem {
      * @param section the section of the setting
      * @param setting the setting to retrieve
      */
-    private void settingChanged(ArenaId arenaId, String section, String setting) {
-        for (SettingListener listener : listeners) {
+    private void settingChanged(final ArenaId arenaId, final String section, final String setting) {
+        for (final SettingListener listener : listeners) {
             listener.arenaSettingsChange(arenaId, section, setting);
         }
     }
@@ -151,7 +151,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * @param setting the setting to retrieve
      * @return
      */
-    public int getSetting(String arenaId, String section, String setting) {
+    public int getSetting(final String arenaId, final String section, final String setting) {
         return Integer.valueOf(arenaSettingsMap.get(arenaId).get(section, setting));
     }
 
@@ -161,7 +161,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * @param arenaId
      * @return the settings object
      */
-    public Ini getArenaSettings(String arenaId) {
+    public Ini getArenaSettings(final String arenaId) {
         return arenaSettingsMap.get(arenaId);
     }
 

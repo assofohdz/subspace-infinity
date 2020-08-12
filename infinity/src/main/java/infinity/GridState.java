@@ -66,26 +66,26 @@ import com.simsilica.mathd.Vec3i;
  */
 public class GridState extends BaseAppState {
 
-    private Grid grid;
+    private final Grid grid;
 
     private Node floor;
     private Geometry wireFloor;
     private Geometry flatFloor;
 
     private Camera camera;
-    private Vec3i pos = new Vec3i();
-    private Vec3i lastPos = new Vec3i();
+    private final Vec3i pos = new Vec3i();
+    private final Vec3i lastPos = new Vec3i();
 
-    private int floorGridSize = 100;
+    private final int floorGridSize = 100;
 
-    private ColorRGBA gridColor = new ColorRGBA(0.5f, 0.75f, 0.75f, 1);
-    private ColorRGBA cellColor = new ColorRGBA(0.5f, 0.45f, 0.45f, 0.25f);
-    private ColorRGBA boxColor = new ColorRGBA(1, 1, 0, 0.45f);
+    private final ColorRGBA gridColor = new ColorRGBA(0.5f, 0.75f, 0.75f, 1);
+    private final ColorRGBA cellColor = new ColorRGBA(0.5f, 0.45f, 0.45f, 0.25f);
+    private final ColorRGBA boxColor = new ColorRGBA(1, 1, 0, 0.45f);
     // private ColorRGBA boxColor = new ColorRGBA(1, 1, 0, 1f);
 
     private Node cellRoot;
 
-    public GridState(Grid grid) {
+    public GridState(final Grid grid) {
         this.grid = grid;
     }
 
@@ -101,15 +101,16 @@ public class GridState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
         floor = new Node("grid");
 
-        GuiGlobals globals = GuiGlobals.getInstance();
+        final GuiGlobals globals = GuiGlobals.getInstance();
         {
-            com.jme3.scene.debug.Grid mesh = new com.jme3.scene.debug.Grid(floorGridSize + 1, floorGridSize + 1, 1);
+            final com.jme3.scene.debug.Grid mesh = new com.jme3.scene.debug.Grid(floorGridSize + 1, floorGridSize + 1,
+                    1);
             wireFloor = new Geometry("grid-lines", mesh);
-            Material mat = globals.createMaterial(gridColor, false).getMaterial();
+            final Material mat = globals.createMaterial(gridColor, false).getMaterial();
             mat.getAdditionalRenderState().setDepthWrite(false);
             wireFloor.setMaterial(mat);
             wireFloor.setLocalTranslation(-(floorGridSize * 0.5f), 0, -(floorGridSize * 0.5f));
@@ -119,10 +120,10 @@ public class GridState extends BaseAppState {
         }
 
         {
-            Quad mesh = new Quad(floorGridSize, floorGridSize);
+            final Quad mesh = new Quad(floorGridSize, floorGridSize);
             mesh.scaleTextureCoordinates(new Vector2f(floorGridSize, floorGridSize));
-            Texture gridTexture = globals.loadTexture("Interface/grid-cell.png", true, false);
-            Material mat = globals.createMaterial(gridTexture, false).getMaterial();
+            final Texture gridTexture = globals.loadTexture("Interface/grid-cell.png", true, false);
+            final Material mat = globals.createMaterial(gridTexture, false).getMaterial();
             flatFloor = new Geometry("grid-quads", mesh);
             mat.setColor("Color", cellColor);
             mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
@@ -143,24 +144,24 @@ public class GridState extends BaseAppState {
             // vertical bounds
             cellRoot = new Node("cellRoot");
 
-            Texture texture = globals.loadTexture("Interface/bottom-corners.png", true, true);
-            Material mat = globals.createMaterial(boxColor, false).getMaterial();
+            final Texture texture = globals.loadTexture("Interface/bottom-corners.png", true, true);
+            final Material mat = globals.createMaterial(boxColor, false).getMaterial();
             mat.setTexture("ColorMap", texture);
             mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
             mat.getAdditionalRenderState().setDepthWrite(false);
             // mat.setFloat("AlphaDiscardThreshold", 0.05f);
 
-            float xHalf = grid.getSpacing().x * 0.5f;
-            float zHalf = grid.getSpacing().z * 0.5f;
-            float height = 2f;
-            WireBox box = new WireBox(xHalf, height, zHalf);
+            final float xHalf = grid.getSpacing().x * 0.5f;
+            final float zHalf = grid.getSpacing().z * 0.5f;
+            final float height = 2f;
+            final WireBox box = new WireBox(xHalf, height, zHalf);
             box.setBuffer(Type.TexCoord, 2, new float[] { 0, 0, 1, 0, 1, 0.5f, 0, 0.5f,
 
                     1, 0, 0, 0, 0, 0.5f, 1, 0.5f });
-            int radius = 4;
+            final int radius = 4;
             for (int x = -radius; x <= radius; x++) {
                 for (int z = -radius; z <= radius; z++) {
-                    Geometry geom = new Geometry("cell[" + x + ", " + z + "]", box);
+                    final Geometry geom = new Geometry("cell[" + x + ", " + z + "]", box);
                     geom.setMaterial(mat);
                     geom.setLocalTranslation(x * grid.getSpacing().x + xHalf, height, // + 0.01f,
                             z * grid.getSpacing().z + zHalf);
@@ -174,7 +175,7 @@ public class GridState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
     }
 
     @Override
@@ -190,8 +191,8 @@ public class GridState extends BaseAppState {
     }
 
     @Override
-    public void update(float tpf) {
-        Vector3f cameraPos = getCamera().getLocation();
+    public void update(final float tpf) {
+        final Vector3f cameraPos = getCamera().getLocation();
         pos.x = (int) Math.floor(cameraPos.x);
         pos.z = (int) Math.floor(cameraPos.z);
 
@@ -201,8 +202,8 @@ public class GridState extends BaseAppState {
 
             // Get our latest grid location and make sure the zones are
             // set right, too.
-            Vec3i cell = grid.worldToCell(cameraPos.x, cameraPos.y, cameraPos.z);
-            Vec3i world = grid.cellToWorld(cell);
+            final Vec3i cell = grid.worldToCell(cameraPos.x, cameraPos.y, cameraPos.z);
+            final Vec3i world = grid.cellToWorld(cell);
             cellRoot.setLocalTranslation(world.x, world.y, world.z);
         }
     }

@@ -35,7 +35,7 @@ public class Mine implements EntityComponent {
 
     BombLevelEnum level;
 
-    public Mine(BombLevelEnum level) {
+    public Mine(final BombLevelEnum level) {
         this.level = level;
     }
 

@@ -80,21 +80,21 @@ public class InfinityCamControl extends AbstractControl {
     /**
      * Constructor used for Serialization.
      */
-    public InfinityCamControl(float distanceToCam) {
+    public InfinityCamControl(final float distanceToCam) {
         this.distanceToCam = distanceToCam;
     }
 
     /**
      * @param camera The Camera to be synced.
      */
-    public InfinityCamControl(Camera camera, float distanceToCam) {
+    public InfinityCamControl(final Camera camera, final float distanceToCam) {
         this.camera = camera;
     }
 
     /**
      * @param camera The Camera to be synced.
      */
-    public InfinityCamControl(Camera camera, ControlDirection controlDir, float distanceToCam) {
+    public InfinityCamControl(final Camera camera, final ControlDirection controlDir, final float distanceToCam) {
         this.camera = camera;
         this.controlDir = controlDir;
         this.distanceToCam = distanceToCam;
@@ -104,7 +104,7 @@ public class InfinityCamControl extends AbstractControl {
         return camera;
     }
 
-    public void setCamera(Camera camera) {
+    public void setCamera(final Camera camera) {
         this.camera = camera;
     }
 
@@ -112,18 +112,18 @@ public class InfinityCamControl extends AbstractControl {
         return controlDir;
     }
 
-    public void setControlDir(ControlDirection controlDir) {
+    public void setControlDir(final ControlDirection controlDir) {
         this.controlDir = controlDir;
     }
 
     // fields used, when inversing ControlDirection:
     @Override
-    protected void controlUpdate(float tpf) {
+    protected void controlUpdate(final float tpf) {
         if (spatial != null && camera != null) {
             switch (controlDir) {
             case SpatialToCamera:
-                Vector3f spatialLoc = new Vector3f(spatial.getWorldTranslation());
-                Vector3f camLoc = new Vector3f(spatialLoc);
+                final Vector3f spatialLoc = new Vector3f(spatial.getWorldTranslation());
+                final Vector3f camLoc = new Vector3f(spatialLoc);
                 camLoc.addLocal(0, distanceToCam, 0);
 
                 camera.setLocation(camLoc);
@@ -135,13 +135,15 @@ public class InfinityCamControl extends AbstractControl {
                 // set the localtransform, so that the worldtransform would be equal to the
                 // camera's transform.
                 // Location:
-                TempVars vars = TempVars.get();
+                final TempVars vars = TempVars.get();
 
-                Vector3f vecDiff = vars.vect1.set(camera.getLocation()).subtractLocal(spatial.getWorldTranslation());
+                final Vector3f vecDiff = vars.vect1.set(camera.getLocation())
+                        .subtractLocal(spatial.getWorldTranslation());
                 spatial.setLocalTranslation(vecDiff.addLocal(spatial.getLocalTranslation()));
 
                 // Rotation:
-                Quaternion worldDiff = vars.quat1.set(camera.getRotation()).subtractLocal(spatial.getWorldRotation());
+                final Quaternion worldDiff = vars.quat1.set(camera.getRotation())
+                        .subtractLocal(spatial.getWorldRotation());
                 spatial.setLocalRotation(worldDiff.addLocal(spatial.getLocalRotation()));
                 vars.release();
                 break;
@@ -152,7 +154,7 @@ public class InfinityCamControl extends AbstractControl {
     private static final Logger LOG = Logger.getLogger(InfinityCamControl.class.getName());
 
     @Override
-    protected void controlRender(RenderManager rm, ViewPort vp) {
+    protected void controlRender(final RenderManager rm, final ViewPort vp) {
         // nothing to do
     }
 
@@ -168,17 +170,17 @@ public class InfinityCamControl extends AbstractControl {
     private static final String CAMERA_NAME = "camera";
 
     @Override
-    public void read(JmeImporter im) throws IOException {
+    public void read(final JmeImporter im) throws IOException {
         super.read(im);
-        InputCapsule ic = im.getCapsule(this);
+        final InputCapsule ic = im.getCapsule(this);
         controlDir = ic.readEnum(CONTROL_DIR_NAME, ControlDirection.class, ControlDirection.SpatialToCamera);
         camera = (Camera) ic.readSavable(CAMERA_NAME, null);
     }
 
     @Override
-    public void write(JmeExporter ex) throws IOException {
+    public void write(final JmeExporter ex) throws IOException {
         super.write(ex);
-        OutputCapsule oc = ex.getCapsule(this);
+        final OutputCapsule oc = ex.getCapsule(this);
         oc.write(controlDir, CONTROL_DIR_NAME, ControlDirection.SpatialToCamera);
         oc.write(camera, CAMERA_NAME, null);
     }

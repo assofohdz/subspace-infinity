@@ -101,7 +101,7 @@ public class AvatarMovementFunctions {
     public static final FunctionId F_WEASEL = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_WEASEL);
     public static final FunctionId F_SHARK = new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_SHARK);
 
-    public static void initializeDefaultMappings(InputMapper inputMapper) {
+    public static void initializeDefaultMappings(final InputMapper inputMapper) {
 
         // Default key mappings
         // Movement:--->>

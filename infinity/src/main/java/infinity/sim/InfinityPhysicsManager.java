@@ -15,7 +15,7 @@ public class InfinityPhysicsManager implements PhysicsManager {
 
     PhysicsSpace space;
 
-    public InfinityPhysicsManager(PhysicsSpace space) {
+    public InfinityPhysicsManager(final PhysicsSpace space) {
         this.space = space;
     }
 

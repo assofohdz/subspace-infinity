@@ -39,12 +39,12 @@ public class Delay implements EntityComponent {
     public final static String SET = "set";
     public final static String REMOVE = "remove";
 
-    private long start;
-    private long delta;
-    private HashSet<EntityComponent> delayedComponents;
-    private String type;
+    private final long start;
+    private final long delta;
+    private final HashSet<EntityComponent> delayedComponents;
+    private final String type;
 
-    public Delay(long deltaMillis, HashSet<EntityComponent> delayedComponents, String type) {
+    public Delay(final long deltaMillis, final HashSet<EntityComponent> delayedComponents, final String type) {
         start = System.nanoTime();
         delta = deltaMillis * 1000000;
         this.delayedComponents = delayedComponents;
@@ -52,7 +52,7 @@ public class Delay implements EntityComponent {
     }
 
     public double getPercent() {
-        long time = System.nanoTime();
+        final long time = System.nanoTime();
         return (double) (time - start) / delta;
     }
 

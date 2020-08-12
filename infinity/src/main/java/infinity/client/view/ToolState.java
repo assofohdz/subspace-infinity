@@ -71,9 +71,9 @@ public class ToolState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(ToolState.class);
 
     private Spatial cursor;
-    private int size = 48;
+    private final int size = 48;
 
-    private ToolListener toolListener = new ToolListener();
+    private final ToolListener toolListener = new ToolListener();
 
     private GameSession gameSession;
 
@@ -87,23 +87,23 @@ public class ToolState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
         models = getState(ModelViewState.class);
 
-        GuiGlobals globals = GuiGlobals.getInstance();
+        final GuiGlobals globals = GuiGlobals.getInstance();
 
-        Quad quad = new Quad(size, size);
-        Texture texture = globals.loadTexture("Interface/glass-orb-dark-48.png", false, false);
+        final Quad quad = new Quad(size, size);
+        final Texture texture = globals.loadTexture("Interface/glass-orb-dark-48.png", false, false);
 
         cursor = new Geometry("cursor", quad);
-        Material mat = globals.createMaterial(texture, false).getMaterial();
+        final Material mat = globals.createMaterial(texture, false).getMaterial();
         mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         cursor.setMaterial(mat);
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
     }
 
     @Override
@@ -113,25 +113,25 @@ public class ToolState extends BaseAppState {
 
         gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
 
-        InputMapper input = GuiGlobals.getInstance().getInputMapper();
+        final InputMapper input = GuiGlobals.getInstance().getInputMapper();
         input.addStateListener(toolListener, ToolFunctions.F_MAIN_TOOL, ToolFunctions.F_ALT_TOOL);
     }
 
     @Override
     protected void onDisable() {
         cursor.removeFromParent();
-        InputMapper input = GuiGlobals.getInstance().getInputMapper();
+        final InputMapper input = GuiGlobals.getInstance().getInputMapper();
         input.removeStateListener(toolListener, ToolFunctions.F_MAIN_TOOL, ToolFunctions.F_ALT_TOOL);
     }
 
     protected void resetCursorPosition() {
-        int width = getApplication().getCamera().getWidth();
-        int height = getApplication().getCamera().getHeight();
+        final int width = getApplication().getCamera().getWidth();
+        final int height = getApplication().getCamera().getHeight();
         cursor.setLocalTranslation(width * 0.5f - size * 0.5f, height * 0.5f - size * 0.5f, 0);
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
     }
 
     private class ToolListener implements StateFunctionListener {
@@ -139,7 +139,7 @@ public class ToolState extends BaseAppState {
         private EntityId heldEntity;
 
         @Override
-        public void valueChanged(FunctionId func, InputState value, double tpf) {
+        public void valueChanged(final FunctionId func, final InputState value, final double tpf) {
             log.info("valueChanged(" + func + ", " + value + ", " + tpf + ")");
 
             if (func == ToolFunctions.F_MAIN_TOOL) {
@@ -147,7 +147,7 @@ public class ToolState extends BaseAppState {
                 if (value == InputState.Positive) {
 
                     // See if we can grab anything
-                    PickedObject po = models.pickObject();
+                    final PickedObject po = models.pickObject();
                     if (po != null) {
                         // gameSession.startHolding(po.entityId, po.location);
                         heldEntity = po.entityId;

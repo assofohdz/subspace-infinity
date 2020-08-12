@@ -41,7 +41,7 @@ public class AntiwarpEnergy implements EntityComponent {
         return enabled;
     }
 
-    public AntiwarpEnergy(boolean enabled) {
+    public AntiwarpEnergy(final boolean enabled) {
         this.enabled = enabled;
     }
 

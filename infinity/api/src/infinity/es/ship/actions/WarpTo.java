@@ -36,7 +36,7 @@ public class WarpTo implements EntityComponent {
 
     Vec3d targetLocation;
 
-    public WarpTo(Vec3d targetLocation) {
+    public WarpTo(final Vec3d targetLocation) {
         this.targetLocation = targetLocation;
     }
 

@@ -36,7 +36,7 @@ public class Gun implements EntityComponent {
 
     GunLevelEnum level;
 
-    public Gun(GunLevelEnum level) {
+    public Gun(final GunLevelEnum level) {
         this.level = level;
     }
 

@@ -73,16 +73,16 @@ public class HostState extends BaseAppState {
     private GameSystemManager systems;
     private EntityData ed;
 
-    private VersionedHolder<String> hostingState = new VersionedHolder<>("");
-    private VersionedHolder<String> connectionCount = new VersionedHolder<>("");
+    private final VersionedHolder<String> hostingState = new VersionedHolder<>("");
+    private final VersionedHolder<String> connectionCount = new VersionedHolder<>("");
 
-    private ConnectionListener connectionListener = new ConnectionObserver();
+    private final ConnectionListener connectionListener = new ConnectionObserver();
 
-    public HostState(int port, String description) {
+    public HostState(final int port, final String description) {
         this(port, description, false);
     }
 
-    public HostState(int port, String description, boolean singlePlayer) {
+    public HostState(final int port, final String description, final boolean singlePlayer) {
         try {
             this.singlePlayer = singlePlayer;
             this.port = port;
@@ -90,7 +90,7 @@ public class HostState extends BaseAppState {
             systems = gameServer.getSystems();
             ed = systems.get(EntityData.class);
             gameServer.getServer().addConnectionListener(connectionListener);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Error creating server", e);
         }
     }
@@ -129,7 +129,7 @@ public class HostState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
         // Just double checking we aren't double-hosting because of some
         // bug
@@ -151,7 +151,7 @@ public class HostState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
         gameServer.close("Shutting down.");
         hostingState.setObject("Offline");
 
@@ -173,12 +173,12 @@ public class HostState extends BaseAppState {
     private class ConnectionObserver implements ConnectionListener {
 
         @Override
-        public void connectionAdded(Server server, HostedConnection conn) {
+        public void connectionAdded(final Server server, final HostedConnection conn) {
             resetConnectionCount();
         }
 
         @Override
-        public void connectionRemoved(Server server, HostedConnection conn) {
+        public void connectionRemoved(final Server server, final HostedConnection conn) {
             resetConnectionCount();
         }
     }

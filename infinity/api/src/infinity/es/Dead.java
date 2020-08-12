@@ -38,7 +38,7 @@ public class Dead implements EntityComponent {
     public Dead() {
     }
 
-    public Dead(long time) {
+    public Dead(final long time) {
         this.time = time;
     }
 

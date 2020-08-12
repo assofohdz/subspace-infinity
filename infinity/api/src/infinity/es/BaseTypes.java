@@ -31,7 +31,7 @@ public class BaseTypes {
 
     public static final String BASE1 = "base1";
 
-    public static BaseType base1(EntityData ed) {
+    public static BaseType base1(final EntityData ed) {
         return BaseType.create(BASE1, ed);
     }
 }

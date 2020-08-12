@@ -65,8 +65,8 @@ public class GameSessionClientService extends AbstractClientService implements G
     private RmiClientService rmiService;
     private GameSession delegate;
 
-    private GameSessionCallback sessionCallback = new GameSessionCallback();
-    private List<GameSessionListener> listeners = new CopyOnWriteArrayList<>();
+    private final GameSessionCallback sessionCallback = new GameSessionCallback();
+    private final List<GameSessionListener> listeners = new CopyOnWriteArrayList<>();
 
     public GameSessionClientService() {
     }
@@ -77,7 +77,7 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
-    public void setView(Quatd rotation, Vec3d location) {
+    public void setView(final Quatd rotation, final Vec3d location) {
         if (log.isTraceEnabled()) {
             log.trace("setView(" + rotation + ", " + location + ")");
         }
@@ -107,16 +107,16 @@ public class GameSessionClientService extends AbstractClientService implements G
      * these listeners are called on the networking thread and as such are not
      * suitable for modifying the visualization directly.
      */
-    public void addGameSessionListener(GameSessionListener l) {
+    public void addGameSessionListener(final GameSessionListener l) {
         listeners.add(l);
     }
 
-    public void removeGameSessionListener(GameSessionListener l) {
+    public void removeGameSessionListener(final GameSessionListener l) {
         listeners.remove(l);
     }
 
     @Override
-    protected void onInitialize(ClientServiceManager s) {
+    protected void onInitialize(final ClientServiceManager s) {
         log.info("onInitialize(" + s + ")");
         rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
@@ -144,7 +144,7 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
-    public void move(MovementInput movementForces) {
+    public void move(final MovementInput movementForces) {
         // log.debug("move(" + movementForces + ")");
         getDelegate().move(movementForces);
     }
@@ -155,27 +155,27 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
-    public void action(byte actionInput) {
+    public void action(final byte actionInput) {
         getDelegate().action(actionInput);
     }
 
     @Override
-    public void attack(byte attackInput) {
+    public void attack(final byte attackInput) {
         getDelegate().attack(attackInput);
     }
 
     @Override
-    public void avatar(byte avatarInput) {
+    public void avatar(final byte avatarInput) {
         getDelegate().avatar(avatarInput);
     }
 
     @Override
-    public void toggle(byte toggleInput) {
+    public void toggle(final byte toggleInput) {
         getDelegate().toggle(toggleInput);
     }
 
     @Override
-    public void map(byte mapInput, Vec3d coords) {
+    public void map(final byte mapInput, final Vec3d coords) {
         getDelegate().map(mapInput, coords);
     }
 
@@ -186,10 +186,10 @@ public class GameSessionClientService extends AbstractClientService implements G
     private class GameSessionCallback implements GameSessionListener {
 
         @Override
-        public void setAvatar(EntityId avatar) {
+        public void setAvatar(final EntityId avatar) {
 
             log.info("setAvatar(" + avatar + ")");
-            for (GameSessionListener l : listeners) {
+            for (final GameSessionListener l : listeners) {
                 l.setAvatar(avatar);
             }
         }

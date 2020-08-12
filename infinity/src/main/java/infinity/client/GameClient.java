@@ -67,10 +67,10 @@ public class GameClient {
 
     static Logger log = LoggerFactory.getLogger(GameClient.class);
 
-    private Client client;
-    private EntityData ed;
+    private final Client client;
+    private final EntityData ed;
 
-    public GameClient(String host, int port) throws IOException {
+    public GameClient(final String host, final int port) throws IOException {
         log.info("Connecting to:" + host + " " + port);
         client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
 
@@ -108,15 +108,15 @@ public class GameClient {
         client.start();
     }
 
-    public void addService(ClientService service) {
+    public void addService(final ClientService service) {
         client.getServices().addService(service);
     }
 
-    public void removeService(ClientService service) {
+    public void removeService(final ClientService service) {
         client.getServices().removeService(service);
     }
 
-    public <T extends ClientService> T getService(Class<T> type) {
+    public <T extends ClientService> T getService(final Class<T> type) {
         return client.getServices().getService(type);
     }
 
@@ -135,7 +135,7 @@ public class GameClient {
         }
 
         @Override
-        public void messageReceived(Client source, Message m) {
+        public void messageReceived(final Client source, final Message m) {
             if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
                 if (!objectStateStarted) {
                     log.info("Object state updates started.");

@@ -37,7 +37,7 @@ public class ConvertHex {
      * @param b byte to process
      * @return String containing the hexadecimal equivalent of the provided byte
      */
-    public static String byteToHex(byte b) {
+    public static String byteToHex(final byte b) {
         if ((b & 0xf0) == 0) {
             return 0 + Integer.toHexString(b & 0xFF);
         } else {
@@ -52,7 +52,7 @@ public class ConvertHex {
      * @param theByte byte to process
      * @return String containing the hexadecimal equivalent of the provided byte
      */
-    public static String byteToHex(int theByte) {
+    public static String byteToHex(final int theByte) {
         if ((theByte & 0x00F0) == 0) {
             return 0 + Integer.toHexString(theByte & 0xFF);
         } else {
@@ -67,9 +67,9 @@ public class ConvertHex {
      * @param s Source string to be decoded.
      * @return Byte array representing the original hex values in the string.
      */
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
+    public static byte[] hexStringToByteArray(final String s) {
+        final int len = s.length();
+        final byte[] data = new byte[len / 2];
 
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));

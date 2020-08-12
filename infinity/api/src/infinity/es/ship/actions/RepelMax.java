@@ -40,7 +40,7 @@ public class RepelMax implements EntityComponent {
         return max;
     }
 
-    public RepelMax(int count) {
+    public RepelMax(final int count) {
         max = count;
     }
 }

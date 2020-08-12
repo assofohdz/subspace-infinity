@@ -74,7 +74,7 @@ public class AttackSystem extends AbstractGameSystem {
     private BinEntityManager binEntityManager;
 
     static Logger log = LoggerFactory.getLogger(AttackSystem.class);
-    private LinkedHashSet<Attack> sessionAttackCreations = new LinkedHashSet<>();
+    private final LinkedHashSet<Attack> sessionAttackCreations = new LinkedHashSet<>();
     private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
 
     private SimTime time;
@@ -134,7 +134,7 @@ public class AttackSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
         time = tpf;
 
         // Update who has what ship weapons
@@ -154,9 +154,9 @@ public class AttackSystem extends AbstractGameSystem {
          * Default pattern to let multiple sessions call methods and then process them
          * one by one
          */
-        Iterator<Attack> iterator = sessionAttackCreations.iterator();
+        final Iterator<Attack> iterator = sessionAttackCreations.iterator();
         while (iterator.hasNext()) {
-            Attack a = iterator.next();
+            final Attack a = iterator.next();
 
             attack(a.getOwner(), a.getWeaponType());
 
@@ -174,7 +174,7 @@ public class AttackSystem extends AbstractGameSystem {
      * @param requestor the requesting entity
      * @param type      the weapon type to attack with
      */
-    private void attack(EntityId requestor, byte flag) {
+    private void attack(final EntityId requestor, final byte flag) {
         switch (flag) {
         case AttackSystem.BOMB:
             entityAttackBomb(requestor);
@@ -204,12 +204,12 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private void entityAttackThor(EntityId requestor) {
+    private void entityAttackThor(final EntityId requestor) {
         // Check authorization and cooldown
         if (!thors.containsId(requestor)) {
             return;
         }
-        Thor shipThors = thors.getEntity(requestor).get(Thor.class);
+        final Thor shipThors = thors.getEntity(requestor).get(Thor.class);
 
         /*
          * Health check disabled because Thors are free to use //Check health if
@@ -218,7 +218,7 @@ public class AttackSystem extends AbstractGameSystem {
          * health.createHealthChange(requestor, -1 * shipGuns.getCost());
          */
         // Perform attack
-        AttackInfo info = getAttackInfo(requestor, AttackSystem.THOR);
+        final AttackInfo info = getAttackInfo(requestor, AttackSystem.THOR);
 
         attackThor(info, new Damage(-20), requestor);
 
@@ -239,15 +239,15 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private void entityAttackGuns(EntityId requestor) {
-        Entity entity = guns.getEntity(requestor);
+    private void entityAttackGuns(final EntityId requestor) {
+        final Entity entity = guns.getEntity(requestor);
         // Entity doesnt have guns
         if (entity == null) {
             return;
         }
-        Gun shipGuns = entity.get(Gun.class);
-        GunCost shipGunCost = entity.get(GunCost.class);
-        GunFireDelay shipGunCooldown = entity.get(GunFireDelay.class);
+        final Gun shipGuns = entity.get(Gun.class);
+        final GunCost shipGunCost = entity.get(GunCost.class);
+        final GunFireDelay shipGunCooldown = entity.get(GunFireDelay.class);
 
         // Check authorization and check cooldown
         if (!guns.containsId(requestor) || shipGunCooldown.getPercent() < 1.0) {
@@ -262,7 +262,7 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipGunCost.getCost());
 
         // Perform attack
-        AttackInfo info = getAttackInfo(requestor, AttackSystem.GUN);
+        final AttackInfo info = getAttackInfo(requestor, AttackSystem.GUN);
 
         attackGuns(info, shipGuns.getLevel(), new Damage(-20), requestor);
 
@@ -275,11 +275,11 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private void entityAttackBomb(EntityId requestor) {
-        Entity entity = bombs.getEntity(requestor);
-        Bomb shipBombs = entity.get(Bomb.class);
-        BombFireDelay shipBombCooldown = entity.get(BombFireDelay.class);
-        BombCost shipBombCost = entity.get(BombCost.class);
+    private void entityAttackBomb(final EntityId requestor) {
+        final Entity entity = bombs.getEntity(requestor);
+        final Bomb shipBombs = entity.get(Bomb.class);
+        final BombFireDelay shipBombCooldown = entity.get(BombFireDelay.class);
+        final BombCost shipBombCost = entity.get(BombCost.class);
 
         // Check authorization
         if (!bombs.containsId(requestor) || shipBombCooldown.getPercent() < 1.0) {
@@ -294,7 +294,7 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipBombCost.getCost());
 
         // Perform attack
-        AttackInfo info = getAttackInfo(requestor, AttackSystem.BOMB);
+        final AttackInfo info = getAttackInfo(requestor, AttackSystem.BOMB);
 
         attackBomb(info, shipBombs.getLevel(), new Damage(-20), requestor);
 
@@ -308,11 +308,11 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private void entityPlaceMine(EntityId requestor) {
-        Entity entity = mines.getEntity(requestor);
-        Mine shipMines = entity.get(Mine.class);
-        MineCost shipMineCost = entity.get(MineCost.class);
-        MineFireDelay shipMineCooldown = entity.get(MineFireDelay.class);
+    private void entityPlaceMine(final EntityId requestor) {
+        final Entity entity = mines.getEntity(requestor);
+        final Mine shipMines = entity.get(Mine.class);
+        final MineCost shipMineCost = entity.get(MineCost.class);
+        final MineFireDelay shipMineCooldown = entity.get(MineFireDelay.class);
 
         // Check authorization and cooldown
         if (!mines.containsId(requestor) || shipMineCooldown.getPercent() < 1.0) {
@@ -327,7 +327,7 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipMineCost.getCost());
 
         // Perform attack
-        AttackInfo info = getAttackInfo(requestor, AttackSystem.MINE);
+        final AttackInfo info = getAttackInfo(requestor, AttackSystem.MINE);
 
         attackBomb(info, shipMines.getLevel(), new Damage(-20), requestor);
 
@@ -340,23 +340,23 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private void entityBurst(EntityId requestor) {
+    private void entityBurst(final EntityId requestor) {
 
         // Check authorization
         if (!bursts.containsId(requestor)) {
             return;
         }
-        Burst shipBursts = bursts.getEntity(requestor).get(Burst.class);
+        final Burst shipBursts = bursts.getEntity(requestor).get(Burst.class);
 
         // No health check for these
         // Perform attack
         Quatd orientation = new Quatd();
 
-        float angle = (360 / CoreGameConstants.BURSTPROJECTILECOUNT) * FastMath.DEG_TO_RAD;
+        final float angle = (360 / CoreGameConstants.BURSTPROJECTILECOUNT) * FastMath.DEG_TO_RAD;
 
-        AttackInfo infoOrig = getAttackInfo(requestor, AttackSystem.BURST);
+        final AttackInfo infoOrig = getAttackInfo(requestor, AttackSystem.BURST);
         for (int i = 0; i < CoreGameConstants.BURSTPROJECTILECOUNT; i++) {
-            AttackInfo info = infoOrig.clone();
+            final AttackInfo info = infoOrig.clone();
             orientation = orientation.fromAngles(0, angle * i, 0);
 
             // log.info("Rotating (from original) degrees: "+rotation *
@@ -390,18 +390,18 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private void entityAttackGravityBomb(EntityId requestor) {
-        Entity entity = gravityBombs.getEntity(requestor);
+    private void entityAttackGravityBomb(final EntityId requestor) {
+        final Entity entity = gravityBombs.getEntity(requestor);
 
-        GravityBombFireDelay shipGravBombCooldown = entity.get(GravityBombFireDelay.class);
-        GravityBombCost shipGravBombCost = entity.get(GravityBombCost.class);
+        final GravityBombFireDelay shipGravBombCooldown = entity.get(GravityBombFireDelay.class);
+        final GravityBombCost shipGravBombCost = entity.get(GravityBombCost.class);
 
         // Check authorization
         if (!gravityBombs.containsId(requestor) || shipGravBombCooldown.getPercent() < 1.0) {
             return;
         }
 
-        GravityBomb shipGravityBombs = entity.get(GravityBomb.class);
+        final GravityBomb shipGravityBombs = entity.get(GravityBomb.class);
 
         // Check health
         if (!health.hasEnergy(requestor) || health.getHealth(requestor) < shipGravBombCost.getCost()) {
@@ -411,7 +411,7 @@ public class AttackSystem extends AbstractGameSystem {
         health.createHealthChange(requestor, -1 * shipGravBombCost.getCost());
 
         // Perform attack
-        AttackInfo info = getAttackInfo(requestor, AttackSystem.GRAVBOMB);
+        final AttackInfo info = getAttackInfo(requestor, AttackSystem.GRAVBOMB);
 
         attackGravBomb(info, shipGravityBombs.getLevel(), new Damage(-20), requestor);
 
@@ -426,8 +426,9 @@ public class AttackSystem extends AbstractGameSystem {
      * @param level  the bomb level
      * @param damage the damage of the bomb
      */
-    private void attackBomb(AttackInfo info, BombLevelEnum level, Damage damage, EntityId owner) {
-        EntityId projectile = GameEntities.createBomb(ed, owner, space, time.getTime(), info.getLocation(),
+    private void attackBomb(final AttackInfo info, final BombLevelEnum level, final Damage damage,
+            final EntityId owner) {
+        final EntityId projectile = GameEntities.createBomb(ed, owner, space, time.getTime(), info.getLocation(),
                 info.getAttackVelocity(), CoreGameConstants.BULLETDECAY, level);
         ed.setComponent(projectile, damage);
         GameSounds.createBombSound(ed, owner, space, time.getTime(), info.getLocation(), level);
@@ -440,7 +441,7 @@ public class AttackSystem extends AbstractGameSystem {
      * @param burstCount how many burst projectiles are we to create
      * @param damage     the damage of the bomb
      */
-    private void attackBurst(AttackInfo info, Damage damage, EntityId owner) {
+    private void attackBurst(final AttackInfo info, final Damage damage, final EntityId owner) {
         EntityId projectile;
         projectile = GameEntities.createBurst(ed, owner, space, time.getTime(), info.getLocation(),
                 info.getAttackVelocity(), CoreGameConstants.BULLETDECAY);
@@ -455,9 +456,10 @@ public class AttackSystem extends AbstractGameSystem {
      * @param level  the bullet level
      * @param damage the damage of the bullet
      */
-    private void attackGuns(AttackInfo info, GunLevelEnum level, Damage damage, EntityId owner) {
+    private void attackGuns(final AttackInfo info, final GunLevelEnum level, final Damage damage,
+            final EntityId owner) {
 
-        String shapeName = "bullet_l" + level.level;
+        final String shapeName = "bullet_l" + level.level;
 
         EntityId projectile;
         projectile = GameEntities.createBullet(ed, owner, space, time.getTime(), info.getLocation(),
@@ -473,9 +475,10 @@ public class AttackSystem extends AbstractGameSystem {
      * @param level  the bomb level
      * @param damage the damage of the bomb
      */
-    private void attackGravBomb(AttackInfo info, BombLevelEnum level, Damage damage, EntityId owner) {
+    private void attackGravBomb(final AttackInfo info, final BombLevelEnum level, final Damage damage,
+            final EntityId owner) {
         EntityId projectile;
-        HashSet<EntityComponent> delayedComponents = new HashSet<>();
+        final HashSet<EntityComponent> delayedComponents = new HashSet<>();
         delayedComponents.add(new GravityWell(5, CoreGameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL)); // Suck
                                                                                                               // everything
                                                                                                               // in
@@ -496,7 +499,7 @@ public class AttackSystem extends AbstractGameSystem {
      * @param info   the attack information
      * @param damage the damage of the thor
      */
-    private void attackThor(AttackInfo info, Damage damage, EntityId owner) {
+    private void attackThor(final AttackInfo info, final Damage damage, final EntityId owner) {
         EntityId projectile;
 
         projectile = GameEntities.createThor(ed, owner, space, time.getTime(), info.getLocation(),
@@ -512,7 +515,7 @@ public class AttackSystem extends AbstractGameSystem {
         final EntityId owner;
         final byte flag;
 
-        public Attack(EntityId owner, byte flag) {
+        public Attack(final EntityId owner, final byte flag) {
             this.owner = owner;
             this.flag = flag;
         }
@@ -535,7 +538,7 @@ public class AttackSystem extends AbstractGameSystem {
         private Vec3d location;
         private Vec3d attackVelocity;
 
-        public AttackInfo(Vec3d location, Vec3d attackVelocity) {
+        public AttackInfo(final Vec3d location, final Vec3d attackVelocity) {
             this.location = location;
             this.attackVelocity = attackVelocity;
         }
@@ -548,11 +551,11 @@ public class AttackSystem extends AbstractGameSystem {
             return attackVelocity;
         }
 
-        public void setLocation(Vec3d location) {
+        public void setLocation(final Vec3d location) {
             this.location = location;
         }
 
-        public void setAttackVelocity(Vec3d attackVelocity) {
+        public void setAttackVelocity(final Vec3d attackVelocity) {
             this.attackVelocity = attackVelocity;
         }
 
@@ -567,10 +570,10 @@ public class AttackSystem extends AbstractGameSystem {
      *
      * @param requestor requesting entity
      */
-    private AttackInfo getAttackInfo(EntityId attacker, byte flag) {
+    private AttackInfo getAttackInfo(final EntityId attacker, final byte flag) {
         // Default velocity for projectiles:
         Vec3d projectileVelocity = new Vec3d(0, 0, 1);
-        RigidBody shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
+        final RigidBody shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
 
         // Step 1: Scale the velocity based on weapon type, weapon level and ship type
         // TODO: Look these settings up in SettingsSystem
@@ -590,8 +593,8 @@ public class AttackSystem extends AbstractGameSystem {
         }
 
         // Step 2: Rotate the scaled velocity
-        Quatd shipRotation = new Quatd(shipBody.orientation);
-        Vec3d shipVelocity = shipBody.getLinearVelocity();
+        final Quatd shipRotation = new Quatd(shipBody.orientation);
+        final Vec3d shipVelocity = shipBody.getLinearVelocity();
         projectileVelocity = shipRotation.mult(projectileVelocity);
 
         // Step 3: Add ship velocity:
@@ -607,7 +610,7 @@ public class AttackSystem extends AbstractGameSystem {
         }
 
         // Step 4: Find the translation
-        Vec3d shipPosition = new Vec3d(shipBody.position);
+        final Vec3d shipPosition = new Vec3d(shipBody.position);
         // Default position is at the tip of the ship;
         Vec3d projectilePosition = new Vec3d(0, 0, 0);// CorePhysicsConstants.SHIPSIZERADIUS);
         // Offset with the radius of the projectile
@@ -639,7 +642,7 @@ public class AttackSystem extends AbstractGameSystem {
      * @param attacker   the attacking entity
      * @param weaponType the weapon of choice
      */
-    public void sessionAttack(EntityId attacker, byte flag) {
+    public void sessionAttack(final EntityId attacker, final byte flag) {
         sessionAttackCreations.add(new Attack(attacker, flag));
     }
 }

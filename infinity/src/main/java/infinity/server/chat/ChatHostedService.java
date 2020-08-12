@@ -76,11 +76,11 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     private static final String ATTRIBUTE_SESSION = "chat.session";
 
     private RmiHostedService rmiService;
-    private int channel;
+    private final int channel;
 
-    private List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
+    private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
 
-    private HashMap<Pattern, CommandConsumer> patternBiConsumers;
+    private final HashMap<Pattern, CommandConsumer> patternBiConsumers;
     private Matcher m;
 
     /**
@@ -95,18 +95,18 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      * Creates a new chat service that will use the specified channel for reliable
      * communication.
      */
-    public ChatHostedService(int channel) {
+    public ChatHostedService(final int channel) {
         this.channel = channel;
         patternBiConsumers = new HashMap<>();
         // setAutoHost(false);
     }
 
-    protected ChatSessionImpl getChatSession(HostedConnection conn) {
+    protected ChatSessionImpl getChatSession(final HostedConnection conn) {
         return conn.getAttribute(ATTRIBUTE_SESSION);
     }
 
     @Override
-    protected void onInitialize(HostedServiceManager s) {
+    protected void onInitialize(final HostedServiceManager s) {
 
         // Grab the RMI service so we can easily use it later
         rmiService = getService(RmiHostedService.class);
@@ -120,20 +120,20 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      * specified player name. This causes the player to 'enter' the chat room and
      * will then be able to send/receive messages.
      */
-    public void startHostingOnConnection(HostedConnection conn, String playerName) {
+    public void startHostingOnConnection(final HostedConnection conn, final String playerName) {
         log.debug("startHostingOnConnection(" + conn + ")");
 
-        ChatSessionImpl session = new ChatSessionImpl(conn, playerName);
+        final ChatSessionImpl session = new ChatSessionImpl(conn, playerName);
         conn.setAttribute(ATTRIBUTE_SESSION, session);
 
         // Expose the session as an RMI resource to the client
-        RmiRegistry rmi = rmiService.getRmiRegistry(conn);
+        final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
         rmi.share((byte) channel, session, ChatSession.class);
 
         players.add(session);
 
         // Send the enter event to other players
-        for (ChatSessionImpl chatter : players) {
+        for (final ChatSessionImpl chatter : players) {
             if (chatter == session) {
                 // Don't send our enter event to ourselves
                 continue;
@@ -147,14 +147,14 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      * generated player name.
      */
     @Override
-    public void startHostingOnConnection(HostedConnection conn) {
+    public void startHostingOnConnection(final HostedConnection conn) {
         startHostingOnConnection(conn, "Client:" + conn.getId());
     }
 
     @Override
-    public void stopHostingOnConnection(HostedConnection conn) {
+    public void stopHostingOnConnection(final HostedConnection conn) {
         log.debug("stopHostingOnConnection(" + conn + ")");
-        ChatSessionImpl player = getChatSession(conn);
+        final ChatSessionImpl player = getChatSession(conn);
         if (player != null) {
 
             // Then we are still hosting on the connection... it's
@@ -167,7 +167,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
             players.remove(player);
 
             // Send the leave event to other players
-            for (ChatSessionImpl chatter : players) {
+            for (final ChatSessionImpl chatter : players) {
                 if (chatter == player) {
                     // Don't send our enter event to ourselves
                     continue;
@@ -177,15 +177,15 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         }
     }
 
-    protected void postMessage(ChatSessionImpl from, String message) {
-        HashSet<Pattern> set = new HashSet<>(patternBiConsumers.keySet());
+    protected void postMessage(final ChatSessionImpl from, final String message) {
+        final HashSet<Pattern> set = new HashSet<>(patternBiConsumers.keySet());
         boolean matched = false;
-        for (Pattern p : set) {
-            Matcher m = p.matcher(message);
+        for (final Pattern p : set) {
+            final Matcher m = p.matcher(message);
             if (m.matches()) {
                 matched = true;
-                EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
-                CommandConsumer cc = patternBiConsumers.get(p);
+                final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
+                final CommandConsumer cc = patternBiConsumers.get(p);
                 // TODO: Implement account service to manage security levels
                 // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
                 // cc.getAccessLevelRequired())) {
@@ -199,16 +199,16 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         }
 
         log.info("chat> " + from.name + " said:" + message);
-        for (ChatSessionImpl chatter : players) {
+        for (final ChatSessionImpl chatter : players) {
             chatter.newMessage(from.conn.getId(), from.name, message);
         }
     }
 //This method doesn't match patterns. It is only called from other modules, not from player clients. Could potentially allow matching to allow modules to chain commands to other modules
 
     @Override
-    public void postPublicMessage(String from, int messageType, String message) {
+    public void postPublicMessage(final String from, final int messageType, final String message) {
         log.info("chat> " + from + " said:" + message);
-        for (ChatSessionImpl chatter : players) {
+        for (final ChatSessionImpl chatter : players) {
             chatter.newMessage(0, from, message);
         }
     }
@@ -220,7 +220,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      * @param c           a consumer taking the message and the sender entity id
      */
     @Override
-    public void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c) {
+    public void registerPatternBiConsumer(final Pattern pattern, final String description, final CommandConsumer c) {
         // TODO: For now, only one consumer per pattern (we could potentially have
         // multiple)
         patternBiConsumers.put(pattern, c);
@@ -235,24 +235,26 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      * @param pattern the pattern to remove comsumption of
      */
     @Override
-    public void removePatternConsumer(Pattern pattern) {
+    public void removePatternConsumer(final Pattern pattern) {
         patternBiConsumers.remove(pattern);
     }
 
     @Override
-    public void postPrivateMessage(String from, int messageType, EntityId targetEntityId, String message) {
+    public void postPrivateMessage(final String from, final int messageType, final EntityId targetEntityId,
+            final String message) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }
 
     @Override
-    public void postTeamMessage(String from, int messageType, int targetFrequency, String message) {
+    public void postTeamMessage(final String from, final int messageType, final int targetFrequency,
+            final String message) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }
 
     @Override
-    public void registerCommandConsumer(String cmd, String helptext, CommandConsumer c) {
+    public void registerCommandConsumer(final String cmd, final String helptext, final CommandConsumer c) {
         // TODO: Put together the pattern that will match, depending on the sender and
         // the command
 
@@ -262,7 +264,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     }
 
     @Override
-    public void removeCommandConsumer(String cmd) {
+    public void removeCommandConsumer(final String cmd) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
 
@@ -276,11 +278,11 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
      */
     private class ChatSessionImpl implements ChatSession, ChatSessionListener {
 
-        private HostedConnection conn;
+        private final HostedConnection conn;
         private ChatSessionListener callback;
-        private String name;
+        private final String name;
 
-        public ChatSessionImpl(HostedConnection conn, String name) {
+        public ChatSessionImpl(final HostedConnection conn, final String name) {
             this.conn = conn;
             this.name = name;
 
@@ -294,7 +296,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
 
         protected ChatSessionListener getCallback() {
             if (callback == null) {
-                RmiRegistry rmi = rmiService.getRmiRegistry(conn);
+                final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
                 callback = rmi.getRemoteObject(ChatSessionListener.class);
                 if (callback == null) {
                     throw new RuntimeException("Unable to locate client callback for ChatSessionListener");
@@ -304,31 +306,31 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         }
 
         @Override
-        public void sendMessage(String message) {
+        public void sendMessage(final String message) {
             postMessage(this, message);
         }
 
         @Override
         public List<String> getPlayerNames() {
-            List<String> results = new ArrayList<>();
-            for (ChatSessionImpl chatter : players) {
+            final List<String> results = new ArrayList<>();
+            for (final ChatSessionImpl chatter : players) {
                 results.add(chatter.name);
             }
             return results;
         }
 
         @Override
-        public void playerJoined(int clientId, String playerName) {
+        public void playerJoined(final int clientId, final String playerName) {
             getCallback().playerJoined(clientId, playerName);
         }
 
         @Override
-        public void newMessage(int clientId, String playerName, String message) {
+        public void newMessage(final int clientId, final String playerName, final String message) {
             getCallback().newMessage(clientId, playerName, message);
         }
 
         @Override
-        public void playerLeft(int clientId, String playerName) {
+        public void playerLeft(final int clientId, final String playerName) {
             getCallback().playerLeft(clientId, playerName);
         }
     }

@@ -33,9 +33,9 @@ import com.simsilica.es.EntityComponent;
  */
 public class Damage implements EntityComponent {
 
-    private int damage;
+    private final int damage;
 
-    public Damage(int damage) {
+    public Damage(final int damage) {
         this.damage = damage;
     }
 

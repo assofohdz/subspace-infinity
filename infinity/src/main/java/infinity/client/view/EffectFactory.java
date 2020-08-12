@@ -49,9 +49,9 @@ public class EffectFactory {
     private ModelViewState state;
     private AssetManager assets;
     private EntityData ed;
-    private float time = 0;
-    private int state2 = 0;
-    private Node explosionEffect = new Node("explosionFX");
+    private final float time = 0;
+    private final int state2 = 0;
+    private final Node explosionEffect = new Node("explosionFX");
     private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris, shockwave;
 
     private static final int COUNT_FACTOR = 1;
@@ -61,7 +61,7 @@ public class EffectFactory {
     private static final ParticleMesh.Type EMITTER_TYPE = POINT_SPRITE ? ParticleMesh.Type.Point
             : ParticleMesh.Type.Triangle;
 
-    public void setState(ModelViewState state) {
+    public void setState(final ModelViewState state) {
 
         this.state = state;
         assets = state.getApplication().getAssetManager();
@@ -95,7 +95,7 @@ public class EffectFactory {
         flame.getParticleInfluencer().setVelocityVariation(1f);
         flame.setImagesX(2);
         flame.setImagesY(2);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/flame.png"));
         mat.setBoolean("PointSprite", POINT_SPRITE);
         flame.setMaterial(mat);
@@ -118,7 +118,7 @@ public class EffectFactory {
         flash.setVelocityVariation(1);
         flash.setImagesX(2);
         flash.setImagesY(2);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/flash.png"));
         mat.setBoolean("PointSprite", POINT_SPRITE);
         flash.setMaterial(mat);
@@ -140,7 +140,7 @@ public class EffectFactory {
         roundspark.setVelocityVariation(.5f);
         roundspark.setImagesX(1);
         roundspark.setImagesY(1);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/roundspark.png"));
         mat.setBoolean("PointSprite", POINT_SPRITE);
         roundspark.setMaterial(mat);
@@ -162,7 +162,7 @@ public class EffectFactory {
         spark.getParticleInfluencer().setVelocityVariation(1);
         spark.setImagesX(1);
         spark.setImagesY(1);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/spark.png"));
         spark.setMaterial(mat);
         explosionEffect.attachChild(spark);
@@ -185,7 +185,7 @@ public class EffectFactory {
         smoketrail.setVelocityVariation(1);
         smoketrail.setImagesX(1);
         smoketrail.setImagesY(3);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/smoketrail.png"));
         smoketrail.setMaterial(mat);
         explosionEffect.attachChild(smoketrail);
@@ -210,7 +210,7 @@ public class EffectFactory {
         debris.setVelocityVariation(.60f);
         debris.setImagesX(3);
         debris.setImagesY(3);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/Debris.png"));
         debris.setMaterial(mat);
         explosionEffect.attachChild(debris);
@@ -234,7 +234,7 @@ public class EffectFactory {
         shockwave.setVelocityVariation(0f);
         shockwave.setImagesX(1);
         shockwave.setImagesY(1);
-        Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
+        final Material mat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", assets.loadTexture("Effects/Explosion/shockwave.png"));
         shockwave.setMaterial(mat);
         explosionEffect.attachChild(shockwave);

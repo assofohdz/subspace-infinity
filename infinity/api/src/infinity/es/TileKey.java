@@ -23,7 +23,7 @@ public class TileKey {
 
     }
 
-    public TileKey(String tileType, String tileSet, short tileIndex) {
+    public TileKey(final String tileType, final String tileSet, final short tileIndex) {
         this.tileType = tileType;
         this.tileSet = tileSet;
         this.tileIndex = tileIndex;

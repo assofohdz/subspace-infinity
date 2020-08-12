@@ -137,7 +137,7 @@ public class CategoryFilter implements Filter {
      * @param category the category bits
      * @param mask     the mask bits
      */
-    public CategoryFilter(long category, long mask) {
+    public CategoryFilter(final long category, final long mask) {
         super();
         this.category = category;
         this.mask = mask;
@@ -156,7 +156,7 @@ public class CategoryFilter implements Filter {
      * @return boolean
      */
     @Override
-    public boolean isAllowed(Filter filter) {
+    public boolean isAllowed(final Filter filter) {
         // make sure the given filter is not null
         if (filter == null) {
             return true;
@@ -164,7 +164,7 @@ public class CategoryFilter implements Filter {
         // check the type
         if (filter instanceof CategoryFilter) {
             // cast the filter
-            CategoryFilter cf = (CategoryFilter) filter;
+            final CategoryFilter cf = (CategoryFilter) filter;
             // perform the check
             return (category & cf.mask) > 0 && (cf.category & mask) > 0;
         }
@@ -178,7 +178,7 @@ public class CategoryFilter implements Filter {
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -186,7 +186,7 @@ public class CategoryFilter implements Filter {
             return true;
         }
         if (obj instanceof CategoryFilter) {
-            CategoryFilter filter = (CategoryFilter) obj;
+            final CategoryFilter filter = (CategoryFilter) obj;
             return filter.category == category && filter.mask == mask;
         }
         return false;
@@ -212,7 +212,7 @@ public class CategoryFilter implements Filter {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("CategoryFilter[Category=").append(category).append("|Mask=").append(mask).append("]");
         return sb.toString();
     }

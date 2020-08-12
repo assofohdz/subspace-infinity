@@ -40,7 +40,7 @@ public class BitMap extends JPanel {
     public final static int BI_RLE4 = 2; // RLE 4-bit / pixel
     public final static int BI_BITFIELDS = 3; // Bitfields
 
-    private BufferedInputStream m_stream;
+    private final BufferedInputStream m_stream;
 
     private byte[] fileHeader;
     private byte[] infoHeader;
@@ -63,11 +63,11 @@ public class BitMap extends JPanel {
     // the appropriate place
     public int ELvlOffset = -1;
 
-    public BitMap(BufferedInputStream stream) {
+    public BitMap(final BufferedInputStream stream) {
         m_stream = stream;
     }
 
-    public void readBitMap(boolean trans) {
+    public void readBitMap(final boolean trans) {
         fileData = new ByteArray();
 
         // Read 14 bytes for file header
@@ -89,7 +89,7 @@ public class BitMap extends JPanel {
         m_offset = array.readLittleEndianInt(10);
 
         if (m_size != 49718) { // possible elvl header... check reserved bits to confirm
-            int offset = array.readLittleEndianShort(6);
+            final int offset = array.readLittleEndianShort(6);
             if (offset == 49720) { // currently this is the only place for the eLvl Header
                 ELvlOffset = 49720;
                 hasELVL = true;
@@ -115,7 +115,7 @@ public class BitMap extends JPanel {
             m_colorsUsed = (int) Math.pow(2, m_bitCount);
             // Read in the color table
             for (int i = 0; i < m_colorsUsed; i++) {
-                byte c[] = readIn(4);
+                final byte c[] = readIn(4);
                 array = new ByteArray(c);
                 m_colorTable[i] = (array.readLittleEndianInt(0) & 0xffffff) + 0xff000000;
 
@@ -135,13 +135,13 @@ public class BitMap extends JPanel {
 
     public void readInRGB() {
 
-        int shift[] = new int[8 / m_bitCount];
+        final int shift[] = new int[8 / m_bitCount];
         for (int i = 0; i < 8 / m_bitCount; i++) {
             shift[i] = 8 - ((i + 1) * m_bitCount);
         }
 
         // Create a mask for each pixel dependant on # of bitCount
-        int mask = (1 << m_bitCount) - 1;
+        final int mask = (1 << m_bitCount) - 1;
 
         // How much padding after each line. Bitmaps pad to 32bits
         int pad = 4 - (int) Math.ceil(m_width * m_bitCount / 8.0) % 4;
@@ -216,36 +216,36 @@ public class BitMap extends JPanel {
         }
     }
 
-    public byte[] readIn(int n) {
+    public byte[] readIn(final int n) {
 
-        byte[] b = new byte[n];
+        final byte[] b = new byte[n];
         try {
             m_stream.read(b);
             // fileData.addByteArray( b );
             return b;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             return new byte[0];
         }
     }
 
     public int readByte() {
 
-        byte[] b = new byte[1];
+        final byte[] b = new byte[1];
         try {
             m_stream.read(b);
             // fileData.addByteArray( b );
             return b[0] & 255;
-        } catch (IOException e) {
+        } catch (final IOException e) {
             return 0;
         }
     }
 
-    public void appendTo(BufferedOutputStream out) {
+    public void appendTo(final BufferedOutputStream out) {
         try {
             // Write bitmap File Data
             out.write(fileData.getByteArray(), 0, fileData.size());
             out.close();
-        } catch (IOException e) {
+        } catch (final IOException e) {
         }
     }
 
@@ -260,9 +260,9 @@ public class BitMap extends JPanel {
      * @param size the pixel size of the image to load
      * @return the image loaded
      */
-    public Image getImage(int size) {
+    public Image getImage(final int size) {
 
-        int image[] = new int[size * size];
+        final int image[] = new int[size * size];
         for (int y = 0; y < size; y++) {
             for (int x = 0; x < size; x++) {
                 image[y * size + x] = m_image[y * m_width + x];
@@ -271,9 +271,9 @@ public class BitMap extends JPanel {
         return createImage(new MemoryImageSource(size, size, image, 0, size));
     }
 
-    public Image getImage(int width, int height) {
+    public Image getImage(final int width, final int height) {
 
-        int image[] = new int[width * height];
+        final int image[] = new int[width * height];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 image[y * width + x] = m_image[y * m_width + x];

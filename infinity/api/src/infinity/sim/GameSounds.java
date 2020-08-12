@@ -27,9 +27,9 @@ import infinity.es.ship.weapons.GunLevelEnum;
  */
 public class GameSounds {
 
-    public static void createBombSound(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            BombLevelEnum level) {
-        EntityId result = ed.createEntity();
+    public static void createBombSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+            final long createdTime, final Vec3d pos, final BombLevelEnum level) {
+        final EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_bomb(ed, level),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), // Three
@@ -42,9 +42,9 @@ public class GameSounds {
         ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static void createExplosionSound(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos) {
-        EntityId result = ed.createEntity();
+    public static void createExplosionSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+            final long createdTime, final Vec3d pos) {
+        final EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.explosion2(ed),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), // Three
@@ -57,9 +57,9 @@ public class GameSounds {
         ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static EntityId createSound(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            String audioType) {
-        EntityId result = ed.createEntity();
+    public static EntityId createSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+            final long createdTime, final Vec3d pos, final String audioType) {
+        final EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioType.create(audioType, ed),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), // Three
@@ -74,9 +74,9 @@ public class GameSounds {
         return result;
     }
 
-    public static void createBulletSound(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            GunLevelEnum level) {
-        EntityId result = ed.createEntity();
+    public static void createBulletSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+            final long createdTime, final Vec3d pos, final GunLevelEnum level) {
+        final EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_bullet(ed, level),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)), // Three
@@ -91,8 +91,9 @@ public class GameSounds {
 
     }
 
-    public static void createBurstSound(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos) {
-        EntityId result = ed.createEntity();
+    public static void createBurstSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+            final long createdTime, final Vec3d pos) {
+        final EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_burst(ed),
                 new Decay(createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)) // Three

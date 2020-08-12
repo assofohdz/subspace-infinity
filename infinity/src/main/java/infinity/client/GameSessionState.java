@@ -71,7 +71,7 @@ public class GameSessionState extends CompositeAppState {
 
     static Logger log = LoggerFactory.getLogger(GameSessionState.class);
 
-    private boolean hostIsLocal = false;
+    private final boolean hostIsLocal = false;
 
     public GameSessionState() {
         super(new AvatarMovementState(), new CameraState(),
@@ -90,7 +90,7 @@ public class GameSessionState extends CompositeAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         // com.simsilica.mworld.World world =
         // getState(ConnectionState.class).getService(com.simsilica.mworld.net.client.WorldClientService.class);
         // log.info("World:" + world);
@@ -100,10 +100,10 @@ public class GameSessionState extends CompositeAppState {
         // data = world.getLeaf(new Vec3i(0, 2, 0));
         // log.info("Data for leaf 0, 2, 0:" + data);
         // getState(CameraState.class).setFieldOfView(60);
-        EntityId avatar = getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
+        final EntityId avatar = getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
         // See if this is local host mode. This stuff should maybe be moved
         // to its own debug manager state.
-        HostState host = getState(HostState.class);
+        final HostState host = getState(HostState.class);
         if (host != null) {
             // addChild(new PhysicsDebugState(host), true);
             // hostIsLocal = true;
@@ -126,7 +126,7 @@ public class GameSessionState extends CompositeAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
     }
 
     @Override

@@ -51,20 +51,20 @@ public class SkyState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
-        Texture texture1 = app.getAssetManager().loadTexture("Textures/galaxy+Z.jpg");
-        Texture texture2 = app.getAssetManager().loadTexture("Textures/galaxy-Z.jpg");
-        Texture texture3 = app.getAssetManager().loadTexture("Textures/galaxy+X.jpg");
-        Texture texture4 = app.getAssetManager().loadTexture("Textures/galaxy-X.jpg");
-        Texture texture5 = app.getAssetManager().loadTexture("Textures/galaxy+Y.jpg");
-        Texture texture6 = app.getAssetManager().loadTexture("Textures/galaxy-Y.jpg");
+        final Texture texture1 = app.getAssetManager().loadTexture("Textures/galaxy+Z.jpg");
+        final Texture texture2 = app.getAssetManager().loadTexture("Textures/galaxy-Z.jpg");
+        final Texture texture3 = app.getAssetManager().loadTexture("Textures/galaxy+X.jpg");
+        final Texture texture4 = app.getAssetManager().loadTexture("Textures/galaxy-X.jpg");
+        final Texture texture5 = app.getAssetManager().loadTexture("Textures/galaxy+Y.jpg");
+        final Texture texture6 = app.getAssetManager().loadTexture("Textures/galaxy-Y.jpg");
 
         sky = SkyFactory.createSky(app.getAssetManager(), texture1, texture2, texture3, texture4, texture5, texture6);
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
     }
 
     @Override

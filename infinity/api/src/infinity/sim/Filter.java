@@ -21,7 +21,7 @@ public interface Filter {
          * @see org.dyn4j.collision.Filter#isAllowed(org.dyn4j.collision.Filter)
          */
         @Override
-        public boolean isAllowed(Filter filter) {
+        public boolean isAllowed(final Filter filter) {
             // always return true
             return true;
         }

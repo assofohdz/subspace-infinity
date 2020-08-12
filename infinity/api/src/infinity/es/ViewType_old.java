@@ -46,11 +46,11 @@ public class ViewType_old implements EntityComponent {
     protected ViewType_old() {
     }
 
-    public ViewType_old(int type) {
+    public ViewType_old(final int type) {
         this.type = type;
     }
 
-    public static ViewType_old create(String typeName, EntityData ed) {
+    public static ViewType_old create(final String typeName, final EntityData ed) {
         return new ViewType_old(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -58,7 +58,7 @@ public class ViewType_old implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

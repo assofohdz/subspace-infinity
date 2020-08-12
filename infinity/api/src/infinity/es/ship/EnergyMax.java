@@ -39,11 +39,11 @@ public class EnergyMax implements EntityComponent {
     public EnergyMax() {
     }
 
-    public EnergyMax(int health) {
+    public EnergyMax(final int health) {
         this.health = health;
     }
 
-    public EnergyMax newAdjusted(int delta) {
+    public EnergyMax newAdjusted(final int delta) {
         return new EnergyMax(health + delta);
     }
 

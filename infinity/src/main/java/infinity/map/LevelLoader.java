@@ -72,13 +72,13 @@ public class LevelLoader implements AssetLoader {
     protected Image[] m_tiles;
     protected short[][] m_map;
 
-    private short[][] m_level = new short[1024][1024];
+    private final short[][] m_level = new short[1024][1024];
     private AssetManager am;
     // The levelfile
     public LevelFile m_lvlFile;
 
     @Override
-    public LevelFile load(AssetInfo assetInfo) throws IOException {
+    public LevelFile load(final AssetInfo assetInfo) throws IOException {
 
         am = assetInfo.getManager();
         m_file = assetInfo.getKey().getName();
@@ -90,7 +90,7 @@ public class LevelLoader implements AssetLoader {
 
             bmp.readBitMap(false);
 
-            BufferedInputStream bis = new BufferedInputStream(assetInfo.openStream());
+            final BufferedInputStream bis = new BufferedInputStream(assetInfo.openStream());
 
             if (bmp.isBitMap()) {
 
@@ -104,7 +104,7 @@ public class LevelLoader implements AssetLoader {
             if (errorWithELVL != null) {
 
                 m_lvlFile = new LevelFile(bis, bmp, false, false, m_file); // attempt load without meta data
-                String error = m_lvlFile.readLevel();
+                final String error = m_lvlFile.readLevel();
 
                 if (error != null) { // I give up
                     System.out.println("First error = " + errorWithELVL);
@@ -125,9 +125,9 @@ public class LevelLoader implements AssetLoader {
                 System.out.println("Error with eLVL Data!");
             }
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             // Create our lvl file
-            BitMap bmp = loadDefaultTileset();
+            final BitMap bmp = loadDefaultTileset();
             m_lvlFile = new LevelFile(bmp);
 
             m_tileset = m_lvlFile.getTileSet();
@@ -140,7 +140,7 @@ public class LevelLoader implements AssetLoader {
 
     private BitMap loadDefaultTileset() {
         am.registerLoader(BitMapLoader.class, "bmp");
-        BitMap bmp = (BitMap) am.loadAsset("Textures/Tilesets/default.bmp");
+        final BitMap bmp = (BitMap) am.loadAsset("Textures/Tilesets/default.bmp");
         return bmp;
     }
 

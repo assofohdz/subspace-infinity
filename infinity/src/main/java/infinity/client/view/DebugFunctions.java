@@ -54,7 +54,7 @@ public class DebugFunctions {
     public static final FunctionId F_BODY_DEBUG = new FunctionId(IN_GAME, "Body Debug Toggle");
     public static final FunctionId F_CONTACT_DEBUG = new FunctionId(IN_GAME, "Contact Debug Toggle");
 
-    public static void initializeDefaultMappings(InputMapper inputMapper) {
+    public static void initializeDefaultMappings(final InputMapper inputMapper) {
 
         inputMapper.map(F_BIN_DEBUG, KeyInput.KEY_F3);
         inputMapper.map(F_BODY_DEBUG, KeyInput.KEY_F4);

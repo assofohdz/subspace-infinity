@@ -30,12 +30,12 @@ import infinity.sim.TimeManager;
  */
 public class basicTester extends BaseGameModule {
 
-    private Pattern basicCommand = Pattern.compile("\\~basictest\\s(\\w+)");
+    private final Pattern basicCommand = Pattern.compile("\\~basictest\\s(\\w+)");
     private EntityData ed;
-    private HashSet<EntityId> createdEntities = new HashSet<>();
+    private final HashSet<EntityId> createdEntities = new HashSet<>();
 
-    public basicTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public basicTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
@@ -77,7 +77,7 @@ public class basicTester extends BaseGameModule {
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
         super.update(time); // To change body of generated methods, choose Tools | Templates.
     }
 
@@ -91,7 +91,7 @@ public class basicTester extends BaseGameModule {
                 new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
-    private CommandConsumer messageHandler(EntityId id, String s) {
+    private CommandConsumer messageHandler(final EntityId id, final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }

@@ -68,7 +68,7 @@ public class MovementSystem extends AbstractGameSystem {
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
     private PlayerContainer players;
-    private MovementBodyInitializer initializer = new MovementBodyInitializer();
+    private final MovementBodyInitializer initializer = new MovementBodyInitializer();
     private PhysicsSpace<EntityId, MBlockShape> space;
     private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
     private EnergySystem health;
@@ -126,7 +126,7 @@ public class MovementSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
         players.update();
     }
 
@@ -142,7 +142,7 @@ public class MovementSystem extends AbstractGameSystem {
      */
     private class PlayerContainer extends EntityContainer<PlayerDriver> {
 
-        public PlayerContainer(EntityData ed) {
+        public PlayerContainer(final EntityData ed) {
             super(ed, MovementInput.class);
         }
 
@@ -152,12 +152,12 @@ public class MovementSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected PlayerDriver addObject(Entity e) {
+        protected PlayerDriver addObject(final Entity e) {
             log.info("addObject(" + e + ")");
-            PlayerDriver result = new PlayerDriver(e.getId(), ed, getSystem(SettingsSystem.class));
+            final PlayerDriver result = new PlayerDriver(e.getId(), ed, getSystem(SettingsSystem.class));
 
             // See if the physics engine already has a body for this entity
-            RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
+            final RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
             log.info("existing body:" + body);
             if (body != null) {
                 body.setControlDriver(result);
@@ -167,16 +167,16 @@ public class MovementSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected void updateObject(PlayerDriver driver, Entity e) {
+        protected void updateObject(final PlayerDriver driver, final Entity e) {
             if (log.isTraceEnabled()) {
                 log.trace("updateObject(" + e + ")");
             }
-            MovementInput ms = e.get(MovementInput.class);
+            final MovementInput ms = e.get(MovementInput.class);
             driver.applyMovementState(ms);
         }
 
         @Override
-        protected void removeObject(PlayerDriver driver, Entity e) {
+        protected void removeObject(final PlayerDriver driver, final Entity e) {
             log.info("removeObject(" + e + ")");
             // physics.setControlDriver(e.getId(), null);
         }
@@ -185,9 +185,9 @@ public class MovementSystem extends AbstractGameSystem {
     private class MovementBodyInitializer implements Function<RigidBody<EntityId, MBlockShape>, Void> {
 
         @Override
-        public Void apply(RigidBody<EntityId, MBlockShape> body) {
+        public Void apply(final RigidBody<EntityId, MBlockShape> body) {
             // See if this is one of the ones we need to add a player driver to
-            PlayerDriver driver = players.getObject(body.id);
+            final PlayerDriver driver = players.getObject(body.id);
             log.info("MovementBodyInitializer.apply(" + body + ")  driver:" + driver);
             if (driver != null) {
                 body.setControlDriver(driver);

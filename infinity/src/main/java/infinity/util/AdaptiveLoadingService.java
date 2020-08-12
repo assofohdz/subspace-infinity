@@ -80,8 +80,8 @@ public class AdaptiveLoadingService extends AbstractHostedService
     private String[] directories;
     private final Vector<File> repository;
 
-    private HashMap<String, BaseGameModule> modules;
-    private HashMap<String, BaseGameService> services;
+    private final HashMap<String, BaseGameModule> modules;
+    private final HashMap<String, BaseGameService> services;
 
     private final Pattern startModulePattern = Pattern.compile("\\~startModule\\s(\\w+)");
     private final Pattern startServicePattern = Pattern.compile("\\~startService\\s(\\w+)");
@@ -98,9 +98,9 @@ public class AdaptiveLoadingService extends AbstractHostedService
             // Extras
             "modules");
 
-    private GameSystemManager gameSystems;
+    private final GameSystemManager gameSystems;
 
-    public AdaptiveLoadingService(GameSystemManager gameSystems) {
+    public AdaptiveLoadingService(final GameSystemManager gameSystems) {
         repository = new Vector<>();
         // classSettings = new HashMap<>();
 
@@ -118,14 +118,14 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @param serviceManager the hosted service manager parent
      */
     @Override
-    protected void onInitialize(HostedServiceManager serviceManager) {
+    protected void onInitialize(final HostedServiceManager serviceManager) {
 
         /*
          * File file = new File("modules"); directories = file.list((File current,
          * String name) -> new File(current, name).exists());
          */
-        Consumer<String> consumerDirectories = folder -> {
-            File fileFolder = new File(folder);
+        final Consumer<String> consumerDirectories = folder -> {
+            final File fileFolder = new File(folder);
             if (fileFolder.exists()) {
                 repository.add(fileFolder);
             }
@@ -164,10 +164,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @throws IllegalArgumentException
      * @throws InvocationTargetException
      */
-    private void loadModule(String moduleName) throws IllegalAccessException, InstantiationException, IOException,
+    private void loadModule(final String moduleName) throws IllegalAccessException, InstantiationException, IOException,
             ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         // Class prepended with their package name
-        String clazz = moduleName + "." + moduleName;
+        final String clazz = moduleName + "." + moduleName;
         // Ini ini = loadSettings(settings);
         loadClass(clazz);
     }
@@ -187,14 +187,14 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @throws InvocationTargetException
      */
     // Loads the class
-    private void loadClass(String file) throws IllegalAccessException, InstantiationException, IOException,
+    private void loadClass(final String file) throws IllegalAccessException, InstantiationException, IOException,
             ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-        Class java = classLoader.loadClass(file);
-        Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class,
+        final Class java = classLoader.loadClass(file);
+        final Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class,
                 ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
-            BaseGameModule javaObj = (BaseGameModule) c.newInstance(getService(ChatHostedService.class),
+            final BaseGameModule javaObj = (BaseGameModule) c.newInstance(getService(ChatHostedService.class),
                     getService(AccountHostedService.class), this, gameSystems.get(ArenaSystem.class),
                     gameSystems.get(InfinityTimeSystem.class), gameSystems.get(InfinityPhysicsManager.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
@@ -202,7 +202,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
-            BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class),
+            final BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class),
                     getService(AccountHostedService.class), this, gameSystems.get(ArenaSystem.class),
                     gameSystems.get(InfinityTimeSystem.class), gameSystems.get(InfinityPhysicsManager.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
@@ -233,25 +233,25 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @param module the module to start
      * @param id     caller of the command
      */
-    private void startModule(EntityId id, String module) {
+    private void startModule(final EntityId id, final String module) {
         BaseGameModule bgm;
         if (!modules.containsKey(module)) {
             try {
                 // Try to load it
                 loadModule(module);
-            } catch (IllegalAccessException ex) {
+            } catch (final IllegalAccessException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InstantiationException ex) {
+            } catch (final InstantiationException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ClassNotFoundException ex) {
+            } catch (final ClassNotFoundException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (NoSuchMethodException ex) {
+            } catch (final NoSuchMethodException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalArgumentException ex) {
+            } catch (final IllegalArgumentException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InvocationTargetException ex) {
+            } catch (final InvocationTargetException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
             }
 
@@ -280,7 +280,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @param module the module to stop
      * @param id     caller of the command
      */
-    private void stopModule(EntityId id, String module) {
+    private void stopModule(final EntityId id, final String module) {
         gameSystems.removeSystem(modules.get(module));
     }
 
@@ -291,7 +291,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @param service the service to start
      * @param id      caller of the command
      */
-    private void startService(EntityId id, String service) {
+    private void startService(final EntityId id, final String service) {
         getServiceManager().addService(services.get(service));
     }
 
@@ -302,7 +302,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @param service the service to stop
      * @param id      caller of the command
      */
-    private void stopService(EntityId id, String service) {
+    private void stopService(final EntityId id, final String service) {
         getServiceManager().removeService(services.get(service));
     }
 
@@ -315,7 +315,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @throws IOException if file io goes wrong
      */
     @Override
-    public boolean validateSettings(Ini settings) throws IOException {
+    public boolean validateSettings(final Ini settings) throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }
@@ -328,11 +328,11 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @throws IOException
      */
     @Override
-    public Ini loadSettings(String iniFileName) throws IOException {
+    public Ini loadSettings(final String iniFileName) throws IOException {
         // Ini files are considered resources
-        String settings = iniFileName + "/" + iniFileName + ".ini";
-        InputStream inputStream = classLoader.getResourceAsStream(settings);
-        Ini ini = new Ini(inputStream);
+        final String settings = iniFileName + "/" + iniFileName + ".ini";
+        final InputStream inputStream = classLoader.getResourceAsStream(settings);
+        final Ini ini = new Ini(inputStream);
         return ini;
     }
 }

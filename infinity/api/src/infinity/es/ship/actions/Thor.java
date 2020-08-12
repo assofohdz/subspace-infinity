@@ -40,7 +40,7 @@ public class Thor implements EntityComponent {
         return count;
     }
 
-    public Thor(int count) {
+    public Thor(final int count) {
         this.count = count;
     }
 }

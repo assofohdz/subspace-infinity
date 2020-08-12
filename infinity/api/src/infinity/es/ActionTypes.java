@@ -43,31 +43,31 @@ public class ActionTypes {
     public static final String BRICK = "brick"; // Fast moving projectile
     public static final String ATTACH = "attach"; // Fast moving projectile
 
-    public static ActionType repel(EntityData ed) {
+    public static ActionType repel(final EntityData ed) {
         return ActionType.create(REPEL, ed);
     }
 
-    public static ActionType warp(EntityData ed) {
+    public static ActionType warp(final EntityData ed) {
         return ActionType.create(WARP, ed);
     }
 
-    public static ActionType portal(EntityData ed) {
+    public static ActionType portal(final EntityData ed) {
         return ActionType.create(PORTAL, ed);
     }
 
-    public static ActionType decoy(EntityData ed) {
+    public static ActionType decoy(final EntityData ed) {
         return ActionType.create(DECOY, ed);
     }
 
-    public static ActionType rocket(EntityData ed) {
+    public static ActionType rocket(final EntityData ed) {
         return ActionType.create(ROCKET, ed);
     }
 
-    public static ActionType brick(EntityData ed) {
+    public static ActionType brick(final EntityData ed) {
         return ActionType.create(BRICK, ed);
     }
 
-    public static ActionType attach(EntityData ed) {
+    public static ActionType attach(final EntityData ed) {
         return ActionType.create(ATTACH, ed);
     }
 }

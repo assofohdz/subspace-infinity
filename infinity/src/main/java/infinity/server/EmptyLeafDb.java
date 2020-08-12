@@ -59,12 +59,12 @@ public class EmptyLeafDb implements LeafDb {
 
     public static final int LEAF_SIZE = LeafInfo.SIZE;
 
-    private double yMin = 0; // -64;
-    private double yMax = 128;
-    private double yRange = yMax - yMin;
-    private double xScale = 256;
-    private double zScale = 256;
-    private CellData worldData = new GeneratedCellData();
+    private final double yMin = 0; // -64;
+    private final double yMax = 128;
+    private final double yRange = yMax - yMin;
+    private final double xScale = 256;
+    private final double zScale = 256;
+    private final CellData worldData = new GeneratedCellData();
 
     public EmptyLeafDb() {
         /*
@@ -117,30 +117,30 @@ public class EmptyLeafDb implements LeafDb {
      */
 
     @Override
-    public LeafData loadLeaf(long leafId) {
-        Vec3i world = Coordinates.leafIdToWorld(leafId);
+    public LeafData loadLeaf(final long leafId) {
+        final Vec3i world = Coordinates.leafIdToWorld(leafId);
 
         // Create the CellArray for the leaf
-        CellArray cells = new CellArray(LEAF_SIZE);
+        final CellArray cells = new CellArray(LEAF_SIZE);
 
         // Copy the world data into the local cells array
         int empty = LeafInfo.CELL_COUNT;
         for (int i = 0; i < LEAF_SIZE; i++) {
             for (int j = 0; j < LEAF_SIZE; j++) {
                 for (int k = 0; k < LEAF_SIZE; k++) {
-                    int x = world.x + i;
-                    int y = world.y + j;
-                    int z = world.z + k;
-                    int val = worldData.getCell(x, y, z);
+                    final int x = world.x + i;
+                    final int y = world.y + j;
+                    final int z = world.z + k;
+                    final int val = worldData.getCell(x, y, z);
                     if (val == 0) {
                         // No need to set it or to calculate masks... 0 is always empty
                         continue;
                     }
 
                     // Calculate the world mask for this cell
-                    int sideMask = MaskUtils.calculateSideMask(x, y, z, worldData);
+                    final int sideMask = MaskUtils.calculateSideMask(x, y, z, worldData);
 
-                    int cell = MaskUtils.setSideMask(val, sideMask);
+                    final int cell = MaskUtils.setSideMask(val, sideMask);
                     cells.setCell(i, j, k, cell);
 
                     empty--;
@@ -157,7 +157,7 @@ public class EmptyLeafDb implements LeafDb {
     }
 
     @Override
-    public void storeLeaf(LeafData leaf) {
+    public void storeLeaf(final LeafData leaf) {
     }
 
     /**
@@ -168,24 +168,24 @@ public class EmptyLeafDb implements LeafDb {
     private class GeneratedCellData implements CellData {
 
         @Override
-        public int getCell(int x, int y, int z) {
+        public int getCell(final int x, final int y, final int z) {
 
             return 0;
         }
 
         @Override
-        public int getCell(int x, int y, int z, int defaultValue) {
+        public int getCell(final int x, final int y, final int z, final int defaultValue) {
             return getCell(x, y, z);
         }
 
         @Override
-        public int getCell(int x, int y, int z, Direction dir, int defaultValue) {
-            Vec3i v = dir.getVec3i();
+        public int getCell(final int x, final int y, final int z, final Direction dir, final int defaultValue) {
+            final Vec3i v = dir.getVec3i();
             return getCell(x + v.x, y + v.y, z + v.z, defaultValue);
         }
 
         @Override
-        public void setCell(int x, int y, int z, int type) {
+        public void setCell(final int x, final int y, final int z, final int type) {
             throw new UnsupportedOperationException("Cannot set values back to function-generated data.");
         }
 

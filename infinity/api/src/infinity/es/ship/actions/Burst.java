@@ -36,7 +36,7 @@ public class Burst implements EntityComponent {
 
     private final int count;
 
-    public Burst(int count) {
+    public Burst(final int count) {
         this.count = count;
     }
 

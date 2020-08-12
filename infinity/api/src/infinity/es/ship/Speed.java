@@ -14,7 +14,7 @@ public class Speed {
 
     int speed;
 
-    public Speed(int speed) {
+    public Speed(final int speed) {
         this.speed = speed;
     }
 

@@ -35,11 +35,11 @@ public class MobType implements EntityComponent {
     protected MobType() {
     }
 
-    public MobType(int type) {
+    public MobType(final int type) {
         this.type = type;
     }
 
-    public static MobType create(String typeName, EntityData ed) {
+    public static MobType create(final String typeName, final EntityData ed) {
         return new MobType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -47,7 +47,7 @@ public class MobType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

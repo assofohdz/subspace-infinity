@@ -40,7 +40,7 @@ public class Brick implements EntityComponent {
         return count;
     }
 
-    public Brick(int count) {
+    public Brick(final int count) {
         this.count = count;
     }
 }

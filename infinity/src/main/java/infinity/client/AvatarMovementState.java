@@ -52,18 +52,18 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     // The information that will be sent to the server
     private double speed = 1;
 
-    private double rotateSpeed = 1.5;
-    private Vec3d thrust = new Vec3d(); // not a direction, just 3 values
+    private final double rotateSpeed = 1.5;
+    private final Vec3d thrust = new Vec3d(); // not a direction, just 3 values
     private MovementInput movementInput;
-    private Quatd facing = new Quatd();
-    private byte flags = (byte) 0;
+    private final Quatd facing = new Quatd();
+    private final byte flags = (byte) 0;
 
     private InputManager inputManager;
     private GameSession session;
     private Camera cam;
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
         cam = getApplication().getCamera();
 
@@ -100,7 +100,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
 
         inputMapper.removeAnalogListener(this, AvatarMovementFunctions.F_THRUST, AvatarMovementFunctions.F_TURN);
         inputMapper.removeStateListener(this,
@@ -141,7 +141,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
         timeSinceLastSend += tpf;
 
         // if (timeSinceLastSend > sendFrequency) {
@@ -177,7 +177,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    public void valueActive(FunctionId func, double value, double tpf) {
+    public void valueActive(final FunctionId func, final double value, final double tpf) {
         if (func == AvatarMovementFunctions.F_THRUST) {
             forward = value;
         } else if (func == AvatarMovementFunctions.F_TURN) {
@@ -192,8 +192,8 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    public void valueChanged(FunctionId func, InputState value, double tpf) {
-        boolean b = value == InputState.Positive;
+    public void valueChanged(final FunctionId func, final InputState value, final double tpf) {
+        final boolean b = value == InputState.Positive;
 
         if (func == AvatarMovementFunctions.F_RUN) {
             if (b) {
@@ -256,11 +256,11 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
      * CameraMovementTarget during initialization if no other target has been
      * provided.
      */
-    public void setMovementTarget(MovementTarget target) {
+    public void setMovementTarget(final MovementTarget target) {
         this.target = target;
     }
 
-    void setSession(GameSession session) {
+    void setSession(final GameSession session) {
         this.session = session;
     }
 }

@@ -42,7 +42,7 @@ public enum GunLevelEnum {
      */
     public final int viewOffset;
 
-    private GunLevelEnum(int level, int viewOffset) {
+    private GunLevelEnum(final int level, final int viewOffset) {
         this.level = level;
         this.viewOffset = viewOffset;
     }

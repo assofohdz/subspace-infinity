@@ -60,7 +60,7 @@ public final class BodyPosition implements EntityComponent {
     public BodyPosition() {
     }
 
-    public BodyPosition(int history) {
+    public BodyPosition(final int history) {
         size = (byte) history;
         position = PositionTransition3d.createBuffer(history);
     }
@@ -70,7 +70,7 @@ public final class BodyPosition implements EntityComponent {
      * transition buffer. It must be called for all retrieved BodyPosition
      * components before use.
      */
-    public void initialize(EntityId id, int size) {
+    public void initialize(final EntityId id, final int size) {
         if (position == null) {
             this.size = size;
             position = BodyPositionCache.getBuffer(id, size);
@@ -85,13 +85,13 @@ public final class BodyPosition implements EntityComponent {
         return position;
     }
 
-    public void addFrame(long endTime, Vec3d pos, Quatd quat, boolean visible) {
-        PositionTransition3d trans = new PositionTransition3d(endTime, pos, quat, visible);
+    public void addFrame(final long endTime, final Vec3d pos, final Quatd quat, final boolean visible) {
+        final PositionTransition3d trans = new PositionTransition3d(endTime, pos, quat, visible);
         getBuffer().addTransition(trans);
         lastTransition = trans;
     }
 
-    public PositionTransition3d getFrame(long time) {
+    public PositionTransition3d getFrame(final long time) {
         return getBuffer().getTransition(time);
     }
 

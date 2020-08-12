@@ -40,7 +40,7 @@ public class ThorMax implements EntityComponent {
         return max;
     }
 
-    public ThorMax(int count) {
+    public ThorMax(final int count) {
         max = count;
     }
 }

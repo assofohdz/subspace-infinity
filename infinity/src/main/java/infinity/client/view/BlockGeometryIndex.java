@@ -64,23 +64,23 @@ public class BlockGeometryIndex {
 
     static Logger log = LoggerFactory.getLogger(BlockGeometryIndex.class);
 
-    private Map<Integer, Material> materials = new HashMap<>();
+    private final Map<Integer, Material> materials = new HashMap<>();
 
     // private MaterialType[] materialTypes;
     // private BlockType[] types;
-    private Map<Integer, BlockType> tileKeyToBlockTypeMap = new HashMap<>();
-    private Map<Integer, MaterialType> tileKeyToMaterialType = new HashMap<>();
+    private final Map<Integer, BlockType> tileKeyToBlockTypeMap = new HashMap<>();
+    private final Map<Integer, MaterialType> tileKeyToMaterialType = new HashMap<>();
 
     public static boolean debug = false;
     private boolean logged;
-    private AWTLoader imgLoader;
+    private final AWTLoader imgLoader;
 
-    private Map<Integer, LevelFile> mapIdToLevels = new HashMap<>();
+    private final Map<Integer, LevelFile> mapIdToLevels = new HashMap<>();
 
     private final DesktopAssetManager am;
 
     // Map from tilekey to image
-    private HashMap<Integer, Image> tileKeyToImageMap = new HashMap<>();
+    private final HashMap<Integer, Image> tileKeyToImageMap = new HashMap<>();
 
     public BlockGeometryIndex() {
         am = new DesktopAssetManager(true);
@@ -99,18 +99,18 @@ public class BlockGeometryIndex {
          */
     }
 
-    private BlockFactory createFactory(int tileKey, int color) {
-        int x = color & 0x7;
-        int y = (color & 0x38) >> 3;
+    private BlockFactory createFactory(final int tileKey, final int color) {
+        final int x = color & 0x7;
+        final int y = (color & 0x38) >> 3;
 
-        float textureScale = 0.125f; // 1/8th
-        float halfScale = textureScale * 0.5f;
-        float s = x * textureScale + halfScale;
-        float t = 1f - (y * textureScale + halfScale);
+        final float textureScale = 0.125f; // 1/8th
+        final float halfScale = textureScale * 0.5f;
+        final float s = x * textureScale + halfScale;
+        final float t = 1f - (y * textureScale + halfScale);
         // float t = y * 0.125f;
 
         // log.info("createFactory:: tileKey = "+tileKey);
-        InfinityBlockFactory result = InfinityBlockFactory.createCube(0, getMaterialType(tileKey));
+        final InfinityBlockFactory result = InfinityBlockFactory.createCube(0, getMaterialType(tileKey));
         /*
          * for (PartFactory partFactory : result.getDirParts()) { for (GeomPart part :
          * ((DefaultPartFactory) partFactory).getTemplates()) {
@@ -122,7 +122,7 @@ public class BlockGeometryIndex {
         return result;
     }
 
-    private BlockType getBlockType(int tileKey) {
+    private BlockType getBlockType(final int tileKey) {
         BlockType type = tileKeyToBlockTypeMap.get(tileKey);
 
         if (type == null) {
@@ -136,17 +136,17 @@ public class BlockGeometryIndex {
     }
 
     // First type of information:
-    private BlockType getBlockType(int tileId, int mapId) {
+    private BlockType getBlockType(final int tileId, final int mapId) {
 
         // Check to see if we have loaded this map before
         if (!mapIdToLevels.containsKey(mapId)) {
             // TODO: Lookup stringname based on mapId
-            String mapName = "aswz/aswz-el-blazer-01.lvl";
-            LevelFile level = loadMap("Maps/" + mapName);
+            final String mapName = "aswz/aswz-el-blazer-01.lvl";
+            final LevelFile level = loadMap("Maps/" + mapName);
             mapIdToLevels.put(mapId, level);
         }
 
-        int tileKey = tileId | (mapId << 8);
+        final int tileKey = tileId | (mapId << 8);
         // log.info("getBlockType:: tileKey = " + tileKey + " <= (Tile,Map) = (" +
         // tileId + "," + mapId + ")");
 
@@ -154,20 +154,20 @@ public class BlockGeometryIndex {
     }
 
     // Second type of info:
-    private MaterialType getMaterialType(int tileKey) {
+    private MaterialType getMaterialType(final int tileKey) {
 
         MaterialType matType = tileKeyToMaterialType.get(tileKey);
 
         if (matType == null) {
 
-            int tileId = tileKey & TILEID_MASK;
-            int mapId = (tileKey & MAPID_MASK) >> 8;
+            final int tileId = tileKey & TILEID_MASK;
+            final int mapId = (tileKey & MAPID_MASK) >> 8;
             // TODO: Lookup the levelname, using the id:
 
             // log.info("getMaterialType:: tileKey = " + tileKey + " => (Tile,Map) = (" +
             // tileId + "," + mapId + ")");
 
-            String mapName = "aswz.lvl";
+            final String mapName = "aswz.lvl";
 
             matType = new MaterialType(tileKey);
 
@@ -178,10 +178,10 @@ public class BlockGeometryIndex {
     }
 
     // Third type of information:
-    private Material getMaterial(int tileKey) {
+    private Material getMaterial(final int tileKey) {
         // int tileKey = tileId | (mapId << 16);
-        int tileId = tileKey & TILEID_MASK;
-        int mapId = (tileKey & MAPID_MASK) >> 8;
+        final int tileId = tileKey & TILEID_MASK;
+        final int mapId = (tileKey & MAPID_MASK) >> 8;
 
         Material mat = materials.get(tileKey);
 
@@ -191,13 +191,13 @@ public class BlockGeometryIndex {
             // int key = tileIndex | (mapId << 16);
             Image jmeOutputImage = tileKeyToImageMap.get(tileKey);
             if (jmeOutputImage == null) {
-                java.awt.Image awtInputImage = mapIdToLevels.get(mapId).getTiles()[tileId - 1];
+                final java.awt.Image awtInputImage = mapIdToLevels.get(mapId).getTiles()[tileId - 1];
                 jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
 
                 tileKeyToImageMap.put(tileKey, jmeOutputImage);
                 // log.info("Put tile: "+tileIndex+" image into map");
             }
-            Texture2D tex2D = new Texture2D(jmeOutputImage);
+            final Texture2D tex2D = new Texture2D(jmeOutputImage);
             mat.setTexture("ColorMap", tex2D);
             // mat = globals.createMaterial(texture, false).getMaterial();
             materials.put(tileKey, mat);
@@ -209,29 +209,29 @@ public class BlockGeometryIndex {
         return mat;
     }
 
-    public Node generateBlocks(Node target, CellArray cells) {
+    public Node generateBlocks(final Node target, final CellArray cells) {
 
-        Set<Integer> tileSet = new HashSet<>();
+        final Set<Integer> tileSet = new HashSet<>();
         int count = 0;
-        int count2 = 0;
+        final int count2 = 0;
 //System.out.println("===============generateBlocks(" + target + ", " + cells + ")");
-        long start = System.nanoTime();
-        Node result = target;
+        final long start = System.nanoTime();
+        final Node result = target;
         result.detachAllChildren();
 
-        DefaultPartBuffer buffer = new DefaultPartBuffer();
+        final DefaultPartBuffer buffer = new DefaultPartBuffer();
 
-        int xSize = cells.getSizeX();
-        int ySize = cells.getSizeY();
-        int zSize = cells.getSizeZ();
+        final int xSize = cells.getSizeX();
+        final int ySize = cells.getSizeY();
+        final int zSize = cells.getSizeZ();
 
         for (int x = 0; x < xSize; x++) {
             for (int y = 0; y < ySize; y++) {
                 for (int z = 0; z < zSize; z++) {
-                    int val = cells.getCell(x, y, z);
+                    final int val = cells.getCell(x, y, z);
                     count++;
 //System.out.println("[" + x + "][" + y + "][" + z + "] val:" + val);
-                    int tileId = MaskUtils.getType(val) & 0x000000ff;
+                    final int tileId = MaskUtils.getType(val) & 0x000000ff;
 
                     if (tileId == 0) {
                         // log.info("TileID == 0 for val = " + val + " => (Tile) = (" + tileId + ") -
@@ -240,14 +240,14 @@ public class BlockGeometryIndex {
                     }
                     tileSet.add(tileId);
 
-                    int mapId = (MaskUtils.getType(val) & 0x000fff00) >> 8;
+                    final int mapId = (MaskUtils.getType(val) & 0x000fff00) >> 8;
 
-                    Vector3f targetLoc = target.getWorldTranslation();
-                    Vector3f worldLoc = targetLoc.add(x, y, z);
+                    final Vector3f targetLoc = target.getWorldTranslation();
+                    final Vector3f worldLoc = targetLoc.add(x, y, z);
                     // log.info("generateBlocks:: val = " + val + " => (Tile,Map) = (" + tileId +
                     // "," + mapId + ") - Coords: ["+worldLoc+"]");
 
-                    BlockType blockType = getBlockType(tileId, mapId);
+                    final BlockType blockType = getBlockType(tileId, mapId);
 
                     if (blockType == null) {
                         // log.info("BlockType was null for val = " + val + " => (Tile,Map) = (" +
@@ -255,8 +255,8 @@ public class BlockGeometryIndex {
                         continue;
                     }
                     // No masks for now so we'll force it
-                    int lightMask = 0;
-                    int sideMask = MaskUtils.getSideMask(val);
+                    final int lightMask = 0;
+                    final int sideMask = MaskUtils.getSideMask(val);
                     if (debug && sideMask != 0) {
                         log.info("[" + x + "][" + y + "][" + z + "] val:" + val + " @" + tileId + " #"
                                 + Integer.toBinaryString(sideMask));
@@ -271,7 +271,7 @@ public class BlockGeometryIndex {
         // log.info("Counted: " + count2 + " cells with value != 0");
         // log.info("Counted: " + tileSet.size() + " different tiles");
 
-        for (DefaultPartBuffer.PartList list : buffer.getPartLists()) {
+        for (final DefaultPartBuffer.PartList list : buffer.getPartLists()) {
 //            System.out.println("Part list:" + list);
 
             if (list.list.isEmpty()) {
@@ -282,34 +282,34 @@ public class BlockGeometryIndex {
 
             // We know we have simplified geometry so our mesh generation
             // can also be simplified
-            int vertCount = list.vertCount;
-            FloatBuffer pos = BufferUtils.createFloatBuffer(vertCount * 3);
+            final int vertCount = list.vertCount;
+            final FloatBuffer pos = BufferUtils.createFloatBuffer(vertCount * 3);
             // ByteBuffer texes = BufferUtils.createByteBuffer(vertCount * 2);
-            FloatBuffer texes = BufferUtils.createFloatBuffer(vertCount * 2);
-            ShortBuffer indexes = BufferUtils.createShortBuffer(list.triCount * 3);
+            final FloatBuffer texes = BufferUtils.createFloatBuffer(vertCount * 2);
+            final ShortBuffer indexes = BufferUtils.createShortBuffer(list.triCount * 3);
             // ByteBuffer normalIndexes = BufferUtils.createByteBuffer(vertCount);
 
             // We'll create real normals for now to avoid a custom material
-            FloatBuffer norms = BufferUtils.createFloatBuffer(vertCount * 3);
+            final FloatBuffer norms = BufferUtils.createFloatBuffer(vertCount * 3);
 
             int baseIndex = 0;
-            for (DefaultPartBuffer.PartEntry entry : list.list) {
+            for (final DefaultPartBuffer.PartEntry entry : list.list) {
 
-                int i = entry.i;
-                int j = entry.j;
-                int k = entry.k;
-                GeomPart part = entry.part;
+                final int i = entry.i;
+                final int j = entry.j;
+                final int k = entry.k;
+                final GeomPart part = entry.part;
 
-                int dir = part.getDirection();
+                final int dir = part.getDirection();
 //System.out.println("dir:" + dir);
-                int size = part.getVertexCount();
-                float[] verts = part.getCoords();
+                final int size = part.getVertexCount();
+                final float[] verts = part.getCoords();
                 int vIndex = 0;
-                int tIndex = 0;
+                final int tIndex = 0;
                 for (int v = 0; v < size; v++) {
-                    float x = verts[vIndex++];
-                    float y = verts[vIndex++];
-                    float z = verts[vIndex++];
+                    final float x = verts[vIndex++];
+                    final float y = verts[vIndex++];
+                    final float z = verts[vIndex++];
 //System.out.println("pos:" + (i + x) + ", " + (j + y) + ", " + (k + z));
                     pos.put(i + x);
                     pos.put(j + y);
@@ -338,8 +338,8 @@ public class BlockGeometryIndex {
                     }
                 }
 
-                float[] texArray = part.getTexCoords();
-                for (float element : texArray) {
+                final float[] texArray = part.getTexCoords();
+                for (final float element : texArray) {
                     if (element < 0 || element > 1) {
                         throw new RuntimeException(
                                 "Entry has out of bounds texcoord:" + element + " type:" + part.getMaterialType());
@@ -349,14 +349,14 @@ public class BlockGeometryIndex {
                 }
 
                 // The indexes need to be offset also
-                for (short s : part.getIndexes()) {
+                for (final short s : part.getIndexes()) {
                     indexes.put((short) (baseIndex + s));
                 }
                 baseIndex += size;
             }
 //System.out.println("Index count:" + baseIndex);
 
-            Mesh mesh = new Mesh();
+            final Mesh mesh = new Mesh();
             mesh.setBuffer(VertexBuffer.Type.Position, 3, pos);
             mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, texes);
             mesh.setBuffer(VertexBuffer.Type.Index, 3, indexes);
@@ -364,7 +364,7 @@ public class BlockGeometryIndex {
             mesh.setStatic();
             mesh.updateBound();
 
-            Quad quad = new Quad(1, 1);
+            final Quad quad = new Quad(1, 1);
             quad.setBuffer(VertexBuffer.Type.Position, 3, pos);
             quad.setBuffer(VertexBuffer.Type.Index, 3, indexes);
             quad.setBuffer(VertexBuffer.Type.Normal, 3, norms);
@@ -374,33 +374,33 @@ public class BlockGeometryIndex {
 
             // Geometry geom = new Geometry("mesh:" + list.materialType + ":" +
             // list.primitiveType, mesh);
-            Geometry geom = new Geometry("mesh:" + list.materialType + ":" + list.primitiveType, quad);
+            final Geometry geom = new Geometry("mesh:" + list.materialType + ":" + list.primitiveType, quad);
             geom.setMaterial(getMaterial(list.materialType.getId()));
             result.attachChild(geom);
             count++;
         }
 
         // log.info("Counted: " + count + " meshes added to world");
-        long end = System.nanoTime();
+        final long end = System.nanoTime();
 //        System.out.println("Generated in:" + ((end - start)/1000000.0) + " ms");
         return result;
     }
 
     // Subspace infinity version, we dont want to re-calculate below or above the
     // layer
-    public static void recalculateSideMasks(CellData data, int x, int y, int z) {
-        int xStart = x;
-        int yStart = Math.max(0, y); // y is 0 to infinity
-        int zStart = z;
-        int xEnd = x;
-        int yEnd = y;
-        int zEnd = z;
+    public static void recalculateSideMasks(final CellData data, int x, int y, int z) {
+        final int xStart = x;
+        final int yStart = Math.max(0, y); // y is 0 to infinity
+        final int zStart = z;
+        final int xEnd = x;
+        final int yEnd = y;
+        final int zEnd = z;
 
         for (x = xStart; x <= xEnd; x++) {
             for (y = yStart; y <= yEnd; y++) {
                 for (z = zStart; z <= zEnd; z++) {
-                    int val = data.getCell(x, y, z);
-                    int tileId = MaskUtils.getType(val);
+                    final int val = data.getCell(x, y, z);
+                    final int tileId = MaskUtils.getType(val);
 //log.info("  [" + x + "][" + y + "][" + z + "] = " + val + " @" + type + " #" + Integer.toBinaryString(getSideMask(val)));
                     // if( type == 0 ) {
                     // // 0 is always empty space
@@ -422,8 +422,8 @@ public class BlockGeometryIndex {
                     // nothing.
                     if (tileId != 0) {
                         // Calculate the mask right here
-                        for (Direction dir : Direction.values()) {
-                            int next = MaskUtils.getType(data.getCell(x, y, z, dir, 0));
+                        for (final Direction dir : Direction.values()) {
+                            final int next = MaskUtils.getType(data.getCell(x, y, z, dir, 0));
 //log.info("    " + dir + " -> " + next);
                             // Just a simple check for now
                             if (next == 0) {
@@ -440,8 +440,8 @@ public class BlockGeometryIndex {
 
     }
 
-    protected LevelFile loadMap(String tileSet) {
-        LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
+    protected LevelFile loadMap(final String tileSet) {
+        final LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
 
         return localMap;
     }
@@ -452,19 +452,19 @@ public class BlockGeometryIndex {
      * @param img The Image to be converted
      * @return The converted BufferedImage
      */
-    private BufferedImage toBufferedImage(java.awt.Image img) {
+    private BufferedImage toBufferedImage(final java.awt.Image img) {
         if (img instanceof BufferedImage) {
             return (BufferedImage) img;
         }
 
-        int width = img.getWidth(null);
-        int height = img.getHeight(null);
+        final int width = img.getWidth(null);
+        final int height = img.getHeight(null);
 
         // Create a buffered image with transparency
         BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         // Draw the image on to the buffered image
-        Graphics2D bGr = bimage.createGraphics();
+        final Graphics2D bGr = bimage.createGraphics();
         bGr.drawImage(img, 0, 0, null); // No flip
         // bGr.drawImage(img, 0 + width, 0, -width, height, null); //Horisontal flip
         // bGr.drawImage(img, 0, 0 + height, width, -height, null); //Vertical flip
@@ -472,9 +472,9 @@ public class BlockGeometryIndex {
 
         bGr.dispose();
 
-        AffineTransform tx = AffineTransform.getScaleInstance(-11, -1);
+        final AffineTransform tx = AffineTransform.getScaleInstance(-11, -1);
         tx.translate(-bimage.getWidth(null), -bimage.getHeight(null));
-        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        final AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
         bimage = op.filter(bimage, null);
 
         // Return the buffered image
@@ -488,9 +488,9 @@ public class BlockGeometryIndex {
      * @param halfSize
      * @return array
      */
-    private float[] getVertices(float halfSize) {
-        float[] res = new float[] { halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize, halfSize,
-                0, halfSize };
+    private float[] getVertices(final float halfSize) {
+        final float[] res = new float[] { halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize,
+                halfSize, 0, halfSize };
         return res;
     }
 

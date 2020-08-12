@@ -44,7 +44,7 @@ public class Parent implements EntityComponent {
         return parentEntity;
     }
 
-    public Parent(EntityId parentEntity) {
+    public Parent(final EntityId parentEntity) {
         this.parentEntity = parentEntity;
     }
 }

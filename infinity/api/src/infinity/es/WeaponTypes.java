@@ -42,27 +42,27 @@ public class WeaponTypes {
     public static final String BURST = "burst"; // Stationary bomb
     public static final String THOR = "thor"; // Bomb that can penetrate walls
 
-    public static WeaponType bullet(EntityData ed) {
+    public static WeaponType bullet(final EntityData ed) {
         return WeaponType.create(BULLET, ed);
     }
 
-    public static WeaponType burst(EntityData ed) {
+    public static WeaponType burst(final EntityData ed) {
         return WeaponType.create(BURST, ed);
     }
 
-    public static WeaponType bomb(EntityData ed) {
+    public static WeaponType bomb(final EntityData ed) {
         return WeaponType.create(BOMB, ed);
     }
 
-    public static WeaponType gravityBomb(EntityData ed) {
+    public static WeaponType gravityBomb(final EntityData ed) {
         return WeaponType.create(GRAVITYBOMB, ed);
     }
 
-    public static WeaponType mine(EntityData ed) {
+    public static WeaponType mine(final EntityData ed) {
         return WeaponType.create(MINE, ed);
     }
 
-    public static WeaponType thor(EntityData ed) {
+    public static WeaponType thor(final EntityData ed) {
         return WeaponType.create(THOR, ed);
     }
 }

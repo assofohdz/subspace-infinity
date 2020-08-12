@@ -73,13 +73,13 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
 
     static Logger log = LoggerFactory.getLogger(LargeGridIndexSystem.class);
 
-    private Grid largeGrid = InfinityConstants.LARGE_OBJECT_GRID;
+    private final Grid largeGrid = InfinityConstants.LARGE_OBJECT_GRID;
 
     private EntityData ed;
     private PhysicsSpace phys;
-    private EntityChangeObserver entityObserver = new EntityChangeObserver();
-    private ConcurrentLinkedQueue<EntityId> changes = new ConcurrentLinkedQueue<>();
-    private Set<EntityId> processed = new HashSet<>();
+    private final EntityChangeObserver entityObserver = new EntityChangeObserver();
+    private final ConcurrentLinkedQueue<EntityId> changes = new ConcurrentLinkedQueue<>();
+    private final Set<EntityId> processed = new HashSet<>();
 
     private LobContainer lobs;
 
@@ -118,7 +118,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
         super.update(time);
 
         updateLobs(time);
@@ -136,8 +136,8 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
             }
 
 //log.info("check large object changed:" + id);
-            LargeObject lo = ed.getComponent(id, LargeObject.class);
-            LargeGridCell cell = ed.getComponent(id, LargeGridCell.class);
+            final LargeObject lo = ed.getComponent(id, LargeObject.class);
+            final LargeGridCell cell = ed.getComponent(id, LargeGridCell.class);
             if (lo == null) {
                 if (cell != null) {
                     log.info("Removing large grid cell:" + cell + " from:" + id);
@@ -148,13 +148,13 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
             }
 
             // Get the latest position
-            SpawnPosition pos = ed.getComponent(id, SpawnPosition.class);
+            final SpawnPosition pos = ed.getComponent(id, SpawnPosition.class);
             if (pos == null) {
                 // Doesn't need updating.
                 continue;
             }
 
-            LargeGridCell newCell = LargeGridCell.create(largeGrid, pos.getLocation());
+            final LargeGridCell newCell = LargeGridCell.create(largeGrid, pos.getLocation());
 
             if (cell == null || newCell.getCellId() != cell.getCellId()) {
                 // Update the cell position
@@ -167,10 +167,10 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
     }
 
     private double nextTime = 0;
-    private double timeInterval = 0.05f; // 20 times a second
+    private final double timeInterval = 0.05f; // 20 times a second
 
-    private void updateLobs(SimTime time) {
-        double secs = time.getTimeInSeconds();
+    private void updateLobs(final SimTime time) {
+        final double secs = time.getTimeInSeconds();
         if (secs < nextTime) {
             return;
         }
@@ -178,7 +178,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
 
         lobs.update();
 
-        for (Lob lob : lobs.getArray()) {
+        for (final Lob lob : lobs.getArray()) {
             lob.updateCell();
         }
     }
@@ -201,13 +201,13 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
     }
 
     private class Lob {
-        private Entity entity;
+        private final Entity entity;
         private BodyPosition pos;
-        private Vec3d lastLoc = new Vec3d();
-        private Quatd lastOrient = new Quatd();
+        private final Vec3d lastLoc = new Vec3d();
+        private final Quatd lastOrient = new Quatd();
         private Long lastCellId = null;
 
-        public Lob(Entity entity) {
+        public Lob(final Entity entity) {
             this.entity = entity;
         }
 
@@ -216,8 +216,8 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
         }
 
         public void updateCell() {
-            Vec3d loc = pos.getLastLocation();
-            Quatd orient = pos.getLastOrientation();
+            final Vec3d loc = pos.getLastLocation();
+            final Quatd orient = pos.getLastOrientation();
             if (loc == null || orient == null) {
                 return;
             }
@@ -227,10 +227,10 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
             lastLoc.set(loc);
             lastOrient.set(orient);
 
-            SpawnPosition spawnPos = new SpawnPosition(phys.getGrid(), loc, orient);
+            final SpawnPosition spawnPos = new SpawnPosition(phys.getGrid(), loc, orient);
             entity.set(spawnPos);
 
-            LargeGridCell cell = LargeGridCell.create(largeGrid, spawnPos.getLocation());
+            final LargeGridCell cell = LargeGridCell.create(largeGrid, spawnPos.getLocation());
             if (lastCellId != null && cell.getCellId() == lastCellId) {
                 return;
             }
@@ -244,7 +244,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
      * LargeGridCells up to date.
      */
     private class LobContainer extends EntityContainer<Lob> {
-        public LobContainer(EntityData ed) {
+        public LobContainer(final EntityData ed) {
             super(ed, LargeObject.class, BodyPosition.class);
         }
 
@@ -254,20 +254,20 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected Lob addObject(Entity e) {
+        protected Lob addObject(final Entity e) {
             log.info("add LOB for:" + e.getId());
-            Lob object = new Lob(e);
+            final Lob object = new Lob(e);
             updateObject(object, e);
             return object;
         }
 
         @Override
-        protected void updateObject(Lob object, Entity e) {
+        protected void updateObject(final Lob object, final Entity e) {
             object.update();
         }
 
         @Override
-        protected void removeObject(Lob object, Entity e) {
+        protected void removeObject(final Lob object, final Entity e) {
             log.info("remove LOB for:" + e.getId());
         }
     }
@@ -275,10 +275,10 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
     private class EntityChangeObserver implements EntityComponentListener {
 
         @Override
-        public void componentChange(EntityChange change) {
+        public void componentChange(final EntityChange change) {
             // We only care about a few components and we should quickly
             // short-circuit otherwise to avoid lag
-            Class type = change.getComponentType();
+            final Class type = change.getComponentType();
             if (type != SpawnPosition.class && type != LargeObject.class) {
                 return;
             }

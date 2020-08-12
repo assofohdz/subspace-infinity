@@ -70,7 +70,7 @@ public class MainMenuState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MainMenuState.class);
 
-    private Node menuRoot = new Node("menuRoot");
+    private final Node menuRoot = new Node("menuRoot");
     private Container mainWindow;
     private Node originalGuiNode;
 
@@ -92,9 +92,9 @@ public class MainMenuState extends BaseAppState {
      * Returns the camera size unscaled by getStandardScale().
      */
     public Vector2f getScreenSize() {
-        int width = getApplication().getCamera().getWidth();
-        int height = getApplication().getCamera().getHeight();
-        float standardScale = getStandardScale();
+        final int width = getApplication().getCamera().getWidth();
+        final int height = getApplication().getCamera().getHeight();
+        final float standardScale = getStandardScale();
         return new Vector2f(width / standardScale, height / standardScale);
     }
 
@@ -104,11 +104,11 @@ public class MainMenuState extends BaseAppState {
      * the 'ideal size'... in this case height = 720.
      */
     public float getStandardScale() {
-        int height = getApplication().getCamera().getHeight();
+        final int height = getApplication().getCamera().getHeight();
         return Math.min(1, height / 720f);
     }
 
-    public void showError(String title, String error) {
+    public void showError(final String title, final String error) {
         getState(OptionPanelState.class).show(title, error);
     }
 
@@ -141,10 +141,10 @@ public class MainMenuState extends BaseAppState {
 
             // Disable ourselves
             setEnabled(false);
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             log.error("Error setting up single player host/connection", e);
             String message = "Error setting up loopback on port:" + 8969;
-            Throwable cause = e.getCause();
+            final Throwable cause = e.getCause();
             if (cause != null) {
                 message += "\n" + cause.getClass().getSimpleName() + ":" + cause.getMessage();
             }
@@ -152,7 +152,7 @@ public class MainMenuState extends BaseAppState {
         }
     }
 
-    protected void onClientConnected(ClientEvent event) {
+    protected void onClientConnected(final ClientEvent event) {
 
         log.info("onClientConnected(" + event + ")");
 
@@ -164,7 +164,7 @@ public class MainMenuState extends BaseAppState {
 
     }
 
-    protected void onClientDisconnected(ClientEvent event) {
+    protected void onClientDisconnected(final ClientEvent event) {
         if (host != null) {
             // Clean the hosting state up since there is no
             // more connection. The connection state cleans itself up
@@ -186,55 +186,56 @@ public class MainMenuState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
         mainWindow = new Container(new ElementId("window.container"));
 
-        Label title = mainWindow.addChild(new Label("Network Demo"));
+        final Label title = mainWindow.addChild(new Label("Network Demo"));
         title.setInsets(new Insets3f(10, 10, 0, 10));
 
-        Container singlePanel = mainWindow.addChild(new Container());
+        final Container singlePanel = mainWindow.addChild(new Container());
         singlePanel.setInsets(new Insets3f(10, 10, 10, 10));
         singlePanel.addChild(new Label("Single Player", new ElementId("title")));
         singlePanel.addChild(new ActionButton(new CallMethodAction("New Game...", this, "newSinglePlayer")));
 
-        Container multiPanel = mainWindow.addChild(new Container());
+        final Container multiPanel = mainWindow.addChild(new Container());
         multiPanel.setInsets(new Insets3f(10, 10, 10, 10));
         multiPanel.addChild(new Label("Multiplayer", new ElementId("title")));
         multiPanel.addChild(new ActionButton(new CallMethodAction("Connect...", this, "connect")));
         multiPanel.addChild(new ActionButton(new CallMethodAction("Host...", this, "host")));
 
-        ActionButton options = mainWindow.addChild(new ActionButton(new CallMethodAction(this, "options")));
+        final ActionButton options = mainWindow.addChild(new ActionButton(new CallMethodAction(this, "options")));
         options.setInsets(new Insets3f(5, 10, 5, 10));
 
-        ActionButton exit = mainWindow.addChild(new ActionButton(new CallMethodAction("Exit Game", this, "exitGame")));
+        final ActionButton exit = mainWindow
+                .addChild(new ActionButton(new CallMethodAction("Exit Game", this, "exitGame")));
         exit.setInsets(new Insets3f(5, 10, 10, 10));
 
         // Calculate a standard scale and position from the app's camera
         // height
-        Vector3f pref = mainWindow.getPreferredSize().clone();
-        float standardScale = getStandardScale();
+        final Vector3f pref = mainWindow.getPreferredSize().clone();
+        final float standardScale = getStandardScale();
         menuRoot.setLocalScale(standardScale, standardScale, 1);
-        Vector2f screenSize = getScreenSize();
+        final Vector2f screenSize = getScreenSize();
 
         // With a slight bias toward the top
-        float y = screenSize.y * 0.6f + pref.y * 0.5f;
+        final float y = screenSize.y * 0.6f + pref.y * 0.5f;
 
         mainWindow.setLocalTranslation(screenSize.x * 0.128f, y, 0);
 
         // As long the main menu state is attached, we will manage a
         // properly scaled GUI
-        Node gui = ((SimpleApplication) getApplication()).getGuiNode();
+        final Node gui = ((SimpleApplication) getApplication()).getGuiNode();
         gui.attachChild(menuRoot);
 
-        GuiGlobals globals = GuiGlobals.getInstance();
+        final GuiGlobals globals = GuiGlobals.getInstance();
         originalGuiNode = globals.getPopupState().getGuiNode();
         globals.getPopupState().setGuiNode(menuRoot);
     }
 
     @Override
-    protected void cleanup(Application app) {
-        GuiGlobals globals = GuiGlobals.getInstance();
+    protected void cleanup(final Application app) {
+        final GuiGlobals globals = GuiGlobals.getInstance();
         globals.getPopupState().setGuiNode(originalGuiNode);
         menuRoot.removeFromParent();
     }

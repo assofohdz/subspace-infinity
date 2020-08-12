@@ -40,7 +40,7 @@ public class XRadar implements EntityComponent {
         return enabled;
     }
 
-    public XRadar(boolean enabled) {
+    public XRadar(final boolean enabled) {
         this.enabled = enabled;
     }
 

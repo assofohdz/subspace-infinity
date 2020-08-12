@@ -33,21 +33,21 @@ import com.simsilica.es.EntityComponent;
  */
 public class MineFireDelay implements EntityComponent {
 
-    private long start;
-    private long delta;
+    private final long start;
+    private final long delta;
 
     public MineFireDelay() {
         start = System.nanoTime();
         delta = 1000000 * 10;
     }
 
-    public MineFireDelay(long deltaMillis) {
+    public MineFireDelay(final long deltaMillis) {
         start = System.nanoTime();
         delta = deltaMillis * 1000000;
     }
 
     public double getPercent() {
-        long time = System.nanoTime();
+        final long time = System.nanoTime();
         return (double) (time - start) / delta;
     }
 

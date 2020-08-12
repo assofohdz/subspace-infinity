@@ -40,7 +40,7 @@ public class Rocket implements EntityComponent {
         return count;
     }
 
-    public Rocket(int count) {
+    public Rocket(final int count) {
         this.count = count;
     }
 }

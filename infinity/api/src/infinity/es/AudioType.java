@@ -40,11 +40,11 @@ public class AudioType implements EntityComponent {
     protected AudioType() {
     }
 
-    public AudioType(int type) {
+    public AudioType(final int type) {
         this.type = type;
     }
 
-    public static AudioType create(String typeName, EntityData ed) {
+    public static AudioType create(final String typeName, final EntityData ed) {
         return new AudioType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -52,7 +52,7 @@ public class AudioType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

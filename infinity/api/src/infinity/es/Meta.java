@@ -15,7 +15,7 @@ public class Meta implements EntityComponent {
 
     long timeCreated;
 
-    public Meta(long timeCreated) {
+    public Meta(final long timeCreated) {
         this.timeCreated = timeCreated;
     }
 

@@ -55,13 +55,13 @@ import infinity.sim.TimeManager;
  */
 public class lightTester extends BaseGameModule {
 
-    private Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
+    private final Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
     private EntityData ed;
 
     private Ini settings;
 
-    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public lightTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
@@ -70,7 +70,7 @@ public class lightTester extends BaseGameModule {
         ed = getSystem(EntityData.class);
         try {
             settings = getLoader().loadSettings("lightTester");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -103,7 +103,7 @@ public class lightTester extends BaseGameModule {
         EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
     }
 
-    private CommandConsumer messageHandler(EntityId id, String s) {
+    private CommandConsumer messageHandler(final EntityId id, final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }

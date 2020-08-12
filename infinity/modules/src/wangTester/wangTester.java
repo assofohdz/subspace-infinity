@@ -61,8 +61,8 @@ public class wangTester extends BaseGameModule {
 
     private Ini settings;
 
-    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public wangTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
@@ -72,7 +72,7 @@ public class wangTester extends BaseGameModule {
 
         try {
             settings = getLoader().loadSettings("wangTester");
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
@@ -112,7 +112,7 @@ public class wangTester extends BaseGameModule {
      * @param id The entity id of the sender
      * @param s  The message to handle
      */
-    public void messageHandler(EntityId id, String s) {
+    public void messageHandler(final EntityId id, final String s) {
         log.info("Received command" + s);
     }
 }

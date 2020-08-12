@@ -62,26 +62,26 @@ public class BodyPositionCache {
     /**
      * Keeps track of the weak references that are ready to remove from our map.
      */
-    private ReferenceQueue<TransitionBuffer<PositionTransition3d>> refs = new ReferenceQueue<>();
+    private final ReferenceQueue<TransitionBuffer<PositionTransition3d>> refs = new ReferenceQueue<>();
 
     /**
      * A map with weakly referenced values. We'll clean out the values from the
      * queue whenever a new get() is performed. The theory is that garbage hanging
      * around is less bad if no one is requesting it anyway.
      */
-    private Map<EntityId, WeakReference<TransitionBuffer<PositionTransition3d>>> map = new HashMap<>();
+    private final Map<EntityId, WeakReference<TransitionBuffer<PositionTransition3d>>> map = new HashMap<>();
 
-    public static TransitionBuffer<PositionTransition3d> getBuffer(EntityId id, int size) {
+    public static TransitionBuffer<PositionTransition3d> getBuffer(final EntityId id, final int size) {
         return instance.get(id, size);
     }
 
-    protected synchronized TransitionBuffer<PositionTransition3d> get(EntityId id, int size) {
+    protected synchronized TransitionBuffer<PositionTransition3d> get(final EntityId id, final int size) {
 
         // See if we've already got one
         WeakReference<TransitionBuffer<PositionTransition3d>> result = map.get(id);
         if (result == null || result.get() == null) {
             // Need to create a new one
-            TransitionBuffer<PositionTransition3d> buffer = PositionTransition3d.createBuffer(size);
+            final TransitionBuffer<PositionTransition3d> buffer = PositionTransition3d.createBuffer(size);
             result = new WeakReference<>(buffer, refs);
             map.put(id, result);
         }

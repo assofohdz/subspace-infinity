@@ -61,16 +61,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     private EntityData ed;
     private EntitySet arenaEntities;
     private EntitySet staticBodyPositions;
-    private java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
+    private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
     static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
     private SimTime time;
 
-    private HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
+    private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
 
-    private boolean createdDefaultArena = false;
+    private final boolean createdDefaultArena = false;
 
-    private ListOrderedMap arenas = new ListOrderedMap();
+    private final ListOrderedMap arenas = new ListOrderedMap();
     private MapSystem mapSystem;
     private int xCoord, zCoord;
 
@@ -81,7 +81,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
         arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
 
-        AssetManager am = JmeSystem.newAssetManager(
+        final AssetManager am = JmeSystem.newAssetManager(
                 Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
         am.registerLoader(LevelLoader.class, "lvl");
@@ -92,7 +92,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         mapSystem = getSystem(MapSystem.class, true);
     }
 
-    public EntityId getEntityId(Vec3d coord) {
+    public EntityId getEntityId(final Vec3d coord) {
         return index.get(coord);
     }
 
@@ -104,7 +104,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
 
     }
 
@@ -121,7 +121,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         return (String[]) currentOpenArenas.keySet().toArray();
     }
 
-    private void closeArena(String arenaId) {
+    private void closeArena(final String arenaId) {
         ed.removeEntity(currentOpenArenas.get(arenaId));
 
         currentOpenArenas.remove(arenaId);
@@ -132,7 +132,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         return CoreGameConstants.DEFAULTARENAID;
     }
 
-    public void loadArena(String name, boolean forceLoad) {
+    public void loadArena(final String name, final boolean forceLoad) {
         if (!arenas.containsKey(name)) {
             // find next coordinate pair to load map on
 
@@ -146,19 +146,19 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     private class Vector2i {
         public int x, z;
 
-        public Vector2i(int x, int z) {
+        public Vector2i(final int x, final int z) {
             this.x = x;
             this.z = z;
         }
 
         @Override
         public int hashCode() {
-            int hash = 7;
+            final int hash = 7;
             return hash;
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(final Object obj) {
             if (this == obj) {
                 return true;
             }

@@ -68,9 +68,9 @@ public class InfinityCameraState extends CameraState {
     Spatial avatarSpatial;
     private GameSessionClientService gameSession;
     private Vector3f avatarPos;
-    private float frustumSize = 1;
+    private final float frustumSize = 1;
 
-    private boolean initializedCam = false;
+    private final boolean initializedCam = false;
 
     private CameraNode camNode;
 
@@ -82,7 +82,7 @@ public class InfinityCameraState extends CameraState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         cam = app.getCamera();
 
         camNode = new CameraNode("Camera", cam);
@@ -107,7 +107,7 @@ public class InfinityCameraState extends CameraState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
         // Will only happen if we are closing the game
         /*
          * if (watchedAvatar != null) { watchedAvatar.release(); }
@@ -115,8 +115,8 @@ public class InfinityCameraState extends CameraState {
     }
 
     @Override
-    public void update(float tpf) {
-        long time = timeSource.getTime();
+    public void update(final float tpf) {
+        final long time = timeSource.getTime();
         /*
          * if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
          * avatarSpatial = viewState.getAvatarSpatial(); } else if (!initializedCam &&

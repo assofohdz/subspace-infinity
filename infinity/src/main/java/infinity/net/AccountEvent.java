@@ -51,11 +51,11 @@ public class AccountEvent {
      */
     public static EventType<AccountEvent> playerLoggedOff = EventType.create("PlayerLoggedOff", AccountEvent.class);
 
-    private HostedConnection conn;
-    private String playerName;
-    private EntityId playerEntity;
+    private final HostedConnection conn;
+    private final String playerName;
+    private final EntityId playerEntity;
 
-    public AccountEvent(HostedConnection conn, String playerName, EntityId playerEntity) {
+    public AccountEvent(final HostedConnection conn, final String playerName, final EntityId playerEntity) {
         this.conn = conn;
         this.playerName = playerName;
         this.playerEntity = playerEntity;

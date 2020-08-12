@@ -38,7 +38,7 @@ public class AttackVelocity implements EntityComponent {
 
     }
 
-    public AttackVelocity(double velocity) {
+    public AttackVelocity(final double velocity) {
         this.velocity = velocity;
     }
 
