@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -386,7 +386,7 @@ public class Region {
         /*
          * first, rows that contain no tiles at all can (optionally) be encoded
          * specially:
-         * 
+         *
          * 100n nnnn - n+1 (1-32) rows of all empty 1010 00nn nnnn nnnn - n+1 (1-1024)
          * rows of all empty
          */
@@ -422,7 +422,7 @@ public class Region {
         /*
          * for each row, split it into runs of empty tiles and present tiles. for each
          * run, output one of these bit sequences:
-         * 
+         *
          * 000n nnnn - n+1 (1-32) empty tiles in a row 0010 00nn nnnn nnnn - n+1
          * (1-1024) empty tiles in a row 010n nnnn - n+1 (1-32) present tiles in a row
          * 0110 00nn nnnn nnnn - n+1 (1-1024) present tiles in a row
@@ -474,7 +474,7 @@ public class Region {
         /*
          * if the same pattern of tiles appears in more than one consecutive row, you
          * can use these special codes to save more space:
-         * 
+         *
          * 110n nnnn - repeat last row n+1 (1-32) times 1110 00nn nnnn nnnn - repeat
          * last row n+1 (1-1024) times
          */

@@ -219,52 +219,52 @@ public class MapSystem extends AbstractGameSystem {
                      * transparent) tile Row 10, tile 17 - Flyunder (black = transparent) tile Row
                      * 10, tile 18 - Flyunder (black = transparent) tile Row 10, tile 19 - Flyunder
                      * (black = transparent) tile
-                     * 
+                     *
                      * /* VIE tile constants.
-                     * 
+                     *
                      * public static final char vieNoTile = 0;
-                     * 
+                     *
                      * public static final char vieNormalStart = 1; public static final char
                      * vieBorder = 20; // Borders are not included in the .lvl files public static
                      * final char vieNormalEnd = 161; // Tiles up to this point are part of sec.chk
-                     * 
+                     *
                      * public static final char vieVDoorStart = 162; public static final char
                      * vieVDoorEnd = 165;
-                     * 
+                     *
                      * public static final char vieHDoorStart = 166; public static final char
                      * vieHDoorEnd = 169;
-                     * 
+                     *
                      * public static final char vieTurfFlag = 170;
-                     * 
+                     *
                      * public static final char vieSafeZone = 171; // Also included in sec.chk
-                     * 
+                     *
                      * public static final char vieGoalArea = 172;
-                     * 
+                     *
                      * public static final char vieFlyOverStart = 173; public static final char
                      * vieFlyOverEnd = 175; public static final char vieFlyUnderStart = 176; public
                      * static final char vieFlyUnderEnd = 190;
-                     * 
+                     *
                      * public static final char vieAsteroidStart = 216; public static final char
                      * vieAsteroidEnd = 218;
-                     * 
+                     *
                      * public static final char vieStation = 219;
-                     * 
+                     *
                      * public static final char vieWormhole = 220;
-                     * 
+                     *
                      * public static final char ssbTeamBrick = 221; // These are internal public
                      * static final char ssbEnemyBrick = 222;
-                     * 
+                     *
                      * public static final char ssbTeamGoal = 223; public static final char
                      * ssbEnemyGoal = 224;
-                     * 
+                     *
                      * public static final char ssbTeamFlag = 225; public static final char
                      * ssbEnemyFlag = 226;
-                     * 
+                     *
                      * public static final char ssbPrize = 227;
-                     * 
+                     *
                      * public static final char ssbBorder = 228; // Use ssbBorder instead of
                      * vieBorder to fill border
-                     * 
+                     *
                      * 20: Border 162: Door Horizontal 1 163: Door Horizontal 2 164: Door Horizontal
                      * 3 165: Door Horizontal 4 166: Door Vertical 1 167: Door Vertical 2 168: Door
                      * Vertical 3 169: Door Vertical 4 170: flag 171: safe 172: goal 173: fly over 1
@@ -289,7 +289,7 @@ public class MapSystem extends AbstractGameSystem {
                      * Visible, invisible on radar. Items and ship go through. 254: invisible, not
                      * on radar. Impossible to lay bricks while on/near it. 255: animated green.
                      * visible, not on radar. Items and ship go through.
-                     * 
+                     *
                      */
 
                     if (s > 190) {
@@ -325,7 +325,7 @@ public class MapSystem extends AbstractGameSystem {
          * bottomPlane = new Vec3d(i % 19, 0, (Math.floor(i / 19))); Vec3d topPlane =
          * new Vec3d(i % 19, 1, (Math.floor(i / 19))); int mapId = 20; int tileId =
          * Short.toUnsignedInt(s); tileSet.add(tileId);
-         * 
+         *
          * int value = tileId | (mapId << 8);
          * log.info("createEntitiesFromLegacyMap:: value = " + value +
          * " <= (Tile,Map) = (" + tileId + "," + mapId + ") - Coords: " + bottomPlane);
@@ -676,7 +676,7 @@ public class MapSystem extends AbstractGameSystem {
      */
     private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetZ) {
         /*
-        
+
          */
         float f;
         for (int i = 0; i < grid.getHeight(); i++) {

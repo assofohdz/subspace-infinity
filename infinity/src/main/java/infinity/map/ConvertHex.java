@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -33,7 +33,7 @@ public class ConvertHex {
 
     /**
      * Given a byte, return a String containing the hexadecimal equivalent.
-     * 
+     *
      * @param b byte to process
      * @return String containing the hexadecimal equivalent of the provided byte
      */
@@ -48,7 +48,7 @@ public class ConvertHex {
     /**
      * Given an integer representation of a byte, return a String containing the
      * hexadecimal equivalent.
-     * 
+     *
      * @param theByte byte to process
      * @return String containing the hexadecimal equivalent of the provided byte
      */
@@ -63,7 +63,7 @@ public class ConvertHex {
     /**
      * Given a string containing hexadecimals, returns the byte equivalent in a byte
      * array
-     * 
+     *
      * @param s Source string to be decoded.
      * @return Byte array representing the original hex values in the string.
      */

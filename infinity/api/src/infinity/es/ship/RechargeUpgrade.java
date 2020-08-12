@@ -7,7 +7,7 @@ package infinity.es.ship;
 
 /**
  * Amount added per 'Recharge Rate' Prize
- * 
+ *
  * @author Asser Fahrenholz
  */
 public class RechargeUpgrade {

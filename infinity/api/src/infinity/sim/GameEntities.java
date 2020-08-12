@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -169,12 +169,12 @@ public class GameEntities {
      * pos, Convex c, double invMass, String tileType, EntityData ed, Ini settings,
      * long createdTime, PhysicsSpace phys) { EntityId lastTileInfo =
      * ed.createEntity();
-     * 
+     *
      * ed.setComponents(lastTileInfo, TileType.create(tileType, tileSet, tileIndex,
      * ed), ViewTypes.mapTile(ed), new SpawnPosition(phys.getGrid(), pos),
      * PhysicsMassTypes.infinite(ed), PhysicsShapes.mapTile(c));
      * ed.setComponent(lastTileInfo, new Meta(createdTime));
-     * 
+     *
      * return lastTileInfo; }
      */
     // Explosion is for now only visual, so only object type and position
@@ -209,15 +209,15 @@ public class GameEntities {
      * EntityData ed, Ini settings, long createdTime, PhysicsSpace phys) { EntityId
      * lastAttack = ed.createEntity(); ed.setComponents(lastAttack, new
      * Attack(owner), WeaponType.create(attackType, ed), new Damage(-20));
-     * 
+     *
      * return lastAttack; }
-     * 
+     *
      * public static EntityId createForce(EntityId owner, Force force, Vec3d
      * forceWorldCoords, EntityData ed, Ini settings, long createdTime, PhysicsSpace
      * phys) { EntityId lastForce = ed.createEntity(); ed.setComponents(lastForce,
      * new PhysicsForce(owner, force, forceWorldCoords)); ed.setComponent(lastForce,
      * new Meta(createdTime));
-     * 
+     *
      * return lastForce; }
      */
     public static EntityId createOver5(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
@@ -455,7 +455,7 @@ public class GameEntities {
      * forceWorldCoords, EntityData ed, long createdTime, PhysicsSpace phys) {
      * EntityId lastForce = ed.createEntity(); ed.setComponents(lastForce, new
      * PhysicsForce(owner, force, forceWorldCoords));
-     * 
+     *
      * ed.setComponent(lastForce, new Meta(createdTime)); return lastForce; }
      */
     public static EntityId createRepel(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos) {

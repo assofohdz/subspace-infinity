@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,7 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Indicates if a ship has stealth enabled
- * 
+ *
  * @author Asser
  */
 public class Stealth implements EntityComponent {

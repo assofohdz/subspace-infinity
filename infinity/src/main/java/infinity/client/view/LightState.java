@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -149,21 +149,21 @@ public class LightState extends BaseAppState {
 
     /*
      * //Not working yet
-     * 
+     *
      * @Deprecated private void updatePointLight(Entity e, long time) { PointLight
      * pl = pointLightMap.get(e.getId()); TransitionBuffer<PositionTransition3d>
      * buffer = bufferMap.get(e.getId());
-     * 
+     *
      * // Vec3d location = p.getLocation(); // Look back in the brief history that
      * we've kept and // pull an interpolated value. To do this, we grab the // span
      * of time that contains the time we want. PositionTransition // represents a
      * starting and an ending pos+rot over a span of time. PositionTransition3d
      * trans = buffer.getTransition(time);
-     * 
+     *
      * if (trans != null) { Vector3f res = trans.getPosition(time,
      * true).add(pointLightOffset).toVector3f(); System.out.println("Light pos: " +
      * res); pl.setPosition(res); }
-     * 
+     *
      * }
      */
 

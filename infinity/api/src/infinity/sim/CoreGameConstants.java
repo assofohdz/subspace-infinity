@@ -7,7 +7,7 @@ package infinity.sim;
 
 /**
  * Time must be specified in milliseconds
- * 
+ *
  * @author Asser Fahrenholz
  */
 public class CoreGameConstants {

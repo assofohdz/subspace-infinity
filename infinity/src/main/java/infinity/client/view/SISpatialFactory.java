@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -377,10 +377,10 @@ public class SISpatialFactory {
 
         return ef.createExplosion();
 
-//        /** Explosion effect. Uses Texture from jme3-test-data library! */ 
+//        /** Explosion effect. Uses Texture from jme3-test-data library! */
 //        Material debrisMat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
 //        debrisMat.setTexture("Texture", assets.loadTexture("Effects/Explosion/Debris.png"));
-//        
+//
 //        ParticleEmitter debrisEffect = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 10);
 //        debrisEffect.setMaterial(debrisMat);
 //        debrisEffect.setImagesX(3); debrisEffect.setImagesY(3); // 3x3 texture animation
@@ -441,32 +441,32 @@ public class SISpatialFactory {
      * quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
      * quad.setBuffer(VertexBuffer.Type.Normal, 3,
      * BufferUtils.createFloatBuffer(getNormals())); quad.updateBound();
-     * 
+     *
      * Geometry geom = new Geometry("MapTile", quad);
-     * 
+     *
      * if (state.getType(eId).getTypeName(ed).equals(TileTypes.LEGACY)) { Material
      * mat = new Material(assets, "MatDefs/BlackTransparentShader.j3md");
-     * 
+     *
      * Image image = mapState.getImage(eId);
-     * 
+     *
      * if (image == null) { image = mapState.forceLoadImage(eId); }
-     * 
+     *
      * Texture2D tex2D = new Texture2D(image);
-     * 
+     *
      * //image.dispose();
-     * 
+     *
      * mat.setTexture("ColorMap", tex2D); geom.setMaterial(mat); } else { TileType
      * tileType = state.getType(eId);
-     * 
+     *
      * //TODO: Do some caching and re-use materials/shaders Material mat =
      * assets.loadMaterial("Materials/WangBlobLight.j3m"); //tileType.getTileSet()
-     * 
+     *
      * mat.setTransparent(false);
-     * 
-     * 
+     *
+     *
      * geom.setMaterial(mat); geom.setQueueBucket(RenderQueue.Bucket.Opaque);
      * this.updateWangBlobTile(geom, tileType); }
-     * 
+     *
      * return geom; }
      */
     private Spatial createExplosion2(EntityId eId) {
@@ -612,15 +612,15 @@ public class SISpatialFactory {
      * ((Node) s).getChild("MapTile"); //From ModelViewState } Material mat =
      * geom.getMaterial(); //Offset tile mat.setInt("numTilesOffsetX",
      * mapState.getWangBlobTileNumber(tileType.getTileIndex()));
-     * 
+     *
      * //Rotate tile Quaternion rot = new Quaternion(); float rotations =
      * mapState.getWangBlobRotations(tileType.getTileIndex()); float
      * ninety_degrees_to_radians = FastMath.PI / 2;
-     * 
+     *
      * rot.fromAngleAxis(-ninety_degrees_to_radians * rotations, Vector3f.UNIT_Y);
      * //Reset rotation geom.setLocalRotation(new Quaternion()); //Set correct
      * rotation geom.rotate(rot);
-     * 
+     *
      * //log.info("Coords: "+s.getLocalTranslation()
      * +" rotated: "+geom.getLocalRotation()); }
      */

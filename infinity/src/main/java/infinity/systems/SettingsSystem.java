@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -167,53 +167,53 @@ public class SettingsSystem extends AbstractGameSystem {
 
     /*
      * private class SettingsValidator implements Savable {
-     * 
+     *
      * private ArrayList<SettingType> settings = new ArrayList<>(); private
      * HashMap<String, SettingType> map = new HashMap<>();
-     * 
+     *
      * public SettingType getSetting(String catAndKey) { return map.get(catAndKey);
      * }
-     * 
+     *
      * @Override public void write(JmeExporter ex) throws IOException { throw new
      * UnsupportedOperationException("Not supported yet."); //To change body of
      * generated methods, choose Tools | Templates. }
-     * 
+     *
      * @Override public void read(JmeImporter im) throws IOException { throw new
      * UnsupportedOperationException("Not supported yet."); //To change body of
      * generated methods, choose Tools | Templates. }
-     * 
+     *
      * public SettingsValidator(ArrayList<String[]> validatorASSS) {
      * validatorASSS.forEach((String[] s) -> { try { SettingType set = new
      * SettingType(s[1], s[2], Integer.valueOf(s[3]), Integer.valueOf(s[4]), s[5]);
      * settings.add(set); map.put(s[1] + "-" + s[2], set);
-     * 
+     *
      * } catch (NumberFormatException ex) { log.error("Trying to import:" +
      * Arrays.toString(s) + " and failed with exception: " + ex.getMessage()); } });
      * } }
      */
     /*
      * private class ArenaSettings implements Savable {
-     * 
+     *
      * private ArrayList<SettingType> settings = new ArrayList<>(); private
      * HashMap<String, SettingType> map = new HashMap<>();
-     * 
+     *
      * public SettingType getSetting(String catAndKey) { return map.get(catAndKey);
      * }
-     * 
-     * 
+     *
+     *
      * public ArenaSettings(ArrayList<String[]> settingsASSS) {
-     * 
+     *
      * settingsASSS.forEach((String[] s) -> { try { SettingType set = new
      * SettingType(s[1], s[2], Integer.valueOf(s[3]), Integer.valueOf(s[4]),
      * Integer.valueOf(s[5]), s[6]); settings.add(set); map.put(s[1] + "-" + s[2],
      * set);
-     * 
+     *
      * } catch (NumberFormatException ex) { log.error("Trying to import:" +
      * Arrays.toString(s) + " and failed with exception: " + ex.getMessage()); } });
      * }
-     * 
+     *
      * public void loadDefaultSVS() {
-     * 
+     *
      * }
      */
     /*
@@ -224,7 +224,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * Notes:Note2:::Any other misc notes you wish to add Notes:Note3:::Any other
      * misc notes you wish to add Notes:Note4:::Any other misc notes you wish to add
      * Notes:Note5:::Any other misc notes you wish to add
-     * 
+     *
      * Bomb:BombDamageLevel:::Amount of damage a bomb causes at its center point
      * (for all bomb levels) Bomb:BombAliveTime:::Time bomb is alive (in hundredths
      * of a second) Bomb:BombExplodeDelay:::How long after the proximity sensor is
@@ -240,20 +240,20 @@ public class SettingsSystem extends AbstractGameSystem {
      * Bomb:EBombDamagePercent:::Percentage of normal damage applied to an EMP bomb
      * 0=0% 1000=100% 2000=200% Bomb:BBombDamagePercent:::Percentage of normal
      * damage applied to a bouncing bomb 0=0% 1000=100% 2000=200%
-     * 
+     *
      * Brick:BrickTime:::How long bricks last (in hundredths of a second)
      * Brick:BrickSpan:::How many tiles bricks are able to span
-     * 
+     *
      * Bullet:BulletDamageLevel:::Maximum amount of damage that a L1 bullet will
      * cause. Formula; damage = squareroot(rand# * (max damage^2 + 1))
      * Bullet:BulletDamageUpgrade:::Amount of extra damage each bullet level will
      * cause Bullet:BulletAliveTime:::How long bullets live before disappearing (in
      * hundredths of a second) Bullet:ExactDamage:0:1:If damage is to be random or
      * not (1=exact, 0=random)
-     * 
+     *
      * Burst:BurstDamageLevel:::Maximum amount of damage caused by a single burst
      * bullet.
-     * 
+     *
      * Cost:PurchaseAnytime:0:1:Where prizes can be purchased 0 = safe zone, 1 =
      * anywhere Cost:Recharge:::Cost (in points) to purchase this prize
      * Cost:Energy:::Cost (in points) to purchase this prize Cost:Rotation:::Cost
@@ -273,15 +273,15 @@ public class SettingsSystem extends AbstractGameSystem {
      * prize Cost:Thor:::Cost (in points) to purchase this prize Cost:Brick:::Cost
      * (in points) to purchase this prize Cost:Rocket:::Cost (in points) to purchase
      * this prize Cost:Portal:::Cost (in points) to purchase this prize
-     * 
+     *
      * Custom:SaveStatsTime:100000:100000000:How often a custom arena saves its
      * scores to the hard drive (in case something goes wrong)
-     * 
+     *
      * Door:DoorDelay:::How often doors attempt to switch their state.
      * Door:DoorMode:::Door mode (-2=all doors completely random, -1=weighted random
      * (some doors open more often than others), 0-255=fixed doors (1 bit of byte
      * for each door specifying whether it is open or not)
-     * 
+     *
      * Flag:FlaggerOnRadar:::Whether the flaggers appear on radar in red 0=no 1=yes
      * Flag:FlaggerKillMultiplier:::Number of times more points are given to a
      * flagger (1 = double points, 2 = triple points)
@@ -323,7 +323,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * the drop-centroid is randomly adjusted from the actual drop location) (note:
      * 1024 = hide anywhere on level) Flag:FriendlyTransfer:0:1:Whether the flaggers
      * can transfer flags to other teammates (0=no 1=yes)
-     * 
+     *
      * Kill:MaxBonus:::Let's ignore these for now. Or let's not. :) This is if you
      * have flags, can add more points per a kill. Founded by MGB
      * Kill:MaxPenalty:::Let's ignore these for now. Or let's not. :) This is if you
@@ -345,7 +345,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * given for any kill (regardless of bounty) (-1 = use bounty as always)
      * Kill:JackpotBountyPercent:::Percentage of kill value added to Jackpot 0=No
      * Jackpot Game 1000=100% 2000=200%
-     * 
+     *
      * King:DeathCount:::Number of deaths a player is allowed until his crown is
      * removed King:ExpireTime:::Initial time given to each player at beginning of
      * 'King of the Hill' round King:RewardFactor:::Number of points given to winner
@@ -354,7 +354,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * crown King:NonCrownMinimumBounty:::Minimum amount of bounty a player must
      * have in order to receive the extra time. King:CrownRecoverKills:::Number of
      * crown kills a non-crown player must get in order to get their crown back.
-     * 
+     *
      * Latency:SendRoutePercent:300:800:Percentage of the ping time that is spent on
      * the ClientToServer portion of the ping. (used in more accurately syncronizing
      * clocks) Latency:KickOutDelay:100:2000:Amount of time the server can receive
@@ -391,7 +391,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * Latency:NegativeClientSlowPacketTime:::Packets with future timestamp farther
      * in future than this variable are considered as slow packets (0=disabled).
      * Feature is still experimental.
-     * 
+     *
      * Message:MessageReliable:0:1:Whether messages are sent reliably.
      * Message:AllowAudioMessages:0:1:Whether players can send audio messages (0=no
      * 1=yes) Message:BongAllowed:0:1:Whether players can play bong sounds (0=no
@@ -399,11 +399,11 @@ public class SettingsSystem extends AbstractGameSystem {
      * sent in a row before player is kicked.
      * Message:MessageTeamReliable:0:1:Whether team messages are sent reliably.
      * Message:MessageDistance:::Don't think this is used anymore....
-     * 
+     *
      * Mine:MineAliveTime:0:60000:Time that mines are active (in hundredths of a
      * second) Mine:TeamMaxMines:0:32000:Maximum number of mines allowed to be
      * placed by an entire team
-     * 
+     *
      * Misc:FrequencyShipTypes:0:1:Whether ship type is based on frequency player is
      * on or not (0=no 1=yes) Misc:WarpPointDelay:::How long a Portal point is
      * active. Misc:DecoyAliveTime:::Time a decoy is alive (in hundredths of a
@@ -467,9 +467,9 @@ public class SettingsSystem extends AbstractGameSystem {
      * warp/portal/attach again for (like a temp antiwarp enabled for them only)
      * Misc:SaveSpawnScore:::If set to 1, will save spawn scores to arenaname.scr.
      * If set to 0, or blank, will not create useless .scr files.
-     * 
+     *
      * Owner:UserId:::User ID number for Users name Owner:Name:::Owners Username
-     * 
+     *
      * PacketLoss:C2SKickOutPercent:::ClientToServer packetloss percentage before
      * being kicked (this is percentage that make it 800 = 80% good or allow 20%
      * packetloss) PacketLoss:S2CKickOutPercent:::ServerToClient packetloss
@@ -478,13 +478,13 @@ public class SettingsSystem extends AbstractGameSystem {
      * extra packetloss a spectator is allowed to have.
      * PacketLoss:PacketLossDisableWeapons:0:1:Whether the server disables weapons
      * for high packetloss or not (1=yes 0=no)
-     * 
+     *
      * Periodic:RewardDelay:0:720000:Time interval between each periodic reward
      * (0=no periodic reward) Periodic:RewardMinimumPlayers:0:255:Number of players
      * that must be in the arena before periodic rewards will occur
      * Periodic:RewardPoints:-500:1000:Number of points given out to team members
      * (per flag owned). (Negative numbers = flagCount * playersInArena)
-     * 
+     *
      * Prize:MultiPrizeCount:::Number of random 'Greens' given with a 'MultiPrize'
      * Prize:PrizeFactor:::Number of prizes hidden is based on number of players in
      * game. This number adjusts the formula, higher numbers mean more prizes.
@@ -504,7 +504,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * Shutdown' Prize (in hundredth of a second)
      * Prize:TakePrizeReliable:0:1:Whether prize packets are sent reliably (C2S)
      * Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
-     * 
+     *
      * PrizeWeight:Recharge:::Likelyhood of 'Full Charge' prize appearing (NOTE!
      * This is FULL CHARGE, not Recharge!! stupid vie)
      * PrizeWeight:QuickCharge:::Likelyhood of 'Recharge' prize appearing
@@ -534,21 +534,21 @@ public class SettingsSystem extends AbstractGameSystem {
      * PrizeWeight:Brick:::Likelyhood of 'Brick' prize appearing
      * PrizeWeight:Rocket:::Likelyhood of 'Rocket' prize appearing
      * PrizeWeight:MultiPrize:::Likelyhood of 'Multi-Prize' prize appearing
-     * 
+     *
      * Radar:RadarMode:0:4:Radar mode (0=normal, 1=half/half, 2=quarters,
      * 3=half/half-see team mates, 4=quarters-see team mates)
      * Radar:RadarNeutralSize:0:1024:Size of area between blinded radar zones (in
      * pixels) Radar:MapZoomFactor:8:1000:A number representing how far you can see
      * on radar.
-     * 
+     *
      * Repel:RepelSpeed:::Speed at which players are repelled Repel:RepelTime:::Time
      * players are affected by the repel (in hundredths of a second)
      * Repel:RepelDistance:::Number of pixels from the player that are affected by a
      * repel.
-     * 
+     *
      * Rocket:RocketThrust:::Thrust value given while a rocket is active.
      * Rocket:RocketSpeed:::Speed value given while a rocket is active.
-     * 
+     *
      * Routing:RadarFavor:1:7:Number of packets somebody on radar receives (1 =
      * every packet, 3 = every fourth packet, 7 = every eighth packet)
      * Routing:CloseEnoughBulletAdjust:0:512:Distance off edge of screen in pixels
@@ -565,7 +565,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * screen edge are queued, default 30 ms Routing:PosSendClose:::How long close
      * packets are queue, default 20 ms Routing:ClosePosPixels:::How near are
      * packets considered close, default 250 pixels
-     * 
+     *
      * Security:S2CKickOutPercentWeapons:::The percent kickout for not getting
      * weapon packets. Security:SecurityKickOff:0:1:Whether players doing security
      * violations get kicked off or not. Security:SuicideLimit:::Maximum number of
@@ -576,14 +576,14 @@ public class SettingsSystem extends AbstractGameSystem {
      * before a security violation is triggered.
      * Security:MaxDeathWithoutFiring:::Number of times a player can die without
      * firing before being removed from the arena.
-     * 
+     *
      * Shrapnel:ShrapnelSpeed:::Speed that shrapnel travels
      * Shrapnel:InactiveShrapDamage:::Amount of damage shrapnel causes in it's first
      * 1/4 second of life. Shrapnel:ShrapnelDamagePercent:::Percentage of normal
      * damage applied to shrapnel (relative to bullets of same level) 0=0% 1000=100%
      * 2000=200% Shrapnel:Random:0:1:Whether shrapnel spreads in circular or random
      * patterns 0=circular 1=random
-     * 
+     *
      * Spawn:Team0-X:::If set to a value, this is the center point where Freq 0 will
      * start Spawn:Team0-Y:::If set to a value, this is the center point where Freq
      * 0 will start Spawn:Team0-Radius:::How large of a circle from center point can
@@ -601,7 +601,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * is the center point where Freq 3 will start *NOTE: Repeats, Freq 4 will use
      * Team0's, Freq 5 use Team1's, etc Spawn:Team3-Radius:::How large of a circle
      * from center point can they warp (in Tiles)
-     * 
+     *
      * Soccer:BallBounce:0:1:Whether the ball bounces off walls (0=ball go through
      * walls, 1=ball bounces off walls) Soccer:AllowBombs:0:1:Whether the ball
      * carrier can fire his bombs (0=no 1=yes) Soccer:AllowGuns:0:1:Whether the ball
@@ -629,7 +629,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * Soccer:DisableWallPass:::Set to 1 to disable passing of ball through a wall
      * Soccer:DisableBallKilling:::Set to 1 to disable people dieing in safety with
      * the ball
-     * 
+     *
      * Team:MaxFrequency:::Maximum number of frequencies allowed in arena (5 would
      * allow frequencies 0,1,2,3,4) Team:MaxPerTeam:::Maximum number of players on a
      * non-private frequency Team:MaxPerPrivateTeam:::Maximum number of players on a
@@ -639,7 +639,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * to change teams if it would make the teams uneven. 0 = no restrictions, 1-10
      * = allowed variance Team:SpectatorFrequency:::Frequency reserved for
      * spectators (does not have to be within MaxFrequency limit)
-     * 
+     *
      * Territory:RewardDelay:::Time interval between each territory reward (0=no
      * territory reward) Territory:RewardBaseFlags:::Minimum number of flags
      * required to receive the territory reward
@@ -647,13 +647,13 @@ public class SettingsSystem extends AbstractGameSystem {
      * to receive the territory reward Territory:RewardPoints:::Amount of points
      * given out to the players at end of each time interval (formula is
      * complicated)
-     * 
+     *
      * Toggle:AntiWarpPixels:::Distance Anti-Warp affects other players (in pixels)
      * (note: enemy must also be on radar)
-     * 
+     *
      * Wormhole:GravityBombs:0:1:Whether a wormhole affects bombs (0=no 1=yes)
      * Wormhole:SwitchTime:::How often the wormhole switches its destination.
-     * 
+     *
      * All:InitialRotation:::Initial rotation rate of the ship (0 = can't rotate,
      * 400 = full rotation in 1 second) All:InitialThrust:::Initial thrust of ship
      * (0 = none) All:InitialSpeed:::Initial speed of ship (0 = can't move)
@@ -669,7 +669,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * All:UpgradeSpeed:::Amount added per 'Speed' Prize
      * All:UpgradeRecharge:::Amount added per 'Recharge Rate' Prize
      * All:UpgradeEnergy:::Amount added per 'Energy Upgrade' Prize
-     * 
+     *
      * All:CloakStatus:0:2:Whether ships are allowed to receive 'Cloak' 0=no 1=yes
      * 2=yes/start-with All:StealthStatus:0:2:Whether ships are allowed to receive
      * 'Stealth' 0=no 1=yes 2=yes/start-with All:XRadarStatus:0:2:Whether ships are
@@ -683,7 +683,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * activated (thousanths per hundredth of a second)
      * All:AntiWarpEnergy:0:32000:Amount of energy required to have 'Anti-Warp'
      * activated (thousanths per hundredth of a second)
-     * 
+     *
      * All:InitialRepel:::Initial number of Repels given to ships when they start
      * All:InitialBurst:::Initial number of Bursts given to ships when they start
      * All:InitialBrick:::Initial number of Bricks given to ships when they start
@@ -702,7 +702,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * All:PortalMax:::Maximum number of Portals allowed in ships
      * All:MaxGuns:0:3:Maximum level a ship's guns can fire 0=no guns
      * All:MaxBombs:0:3:Maximum level a ship's bombs can fire 0=no bombs
-     * 
+     *
      * All:BulletFireEnergy:::Amount of energy it takes a ship to fire a single L1
      * bullet All:BulletSpeed:::How fast bullets travel All:BulletFireDelay:::delay
      * that ship waits after a bullet is fired until another weapon may be fired (in
@@ -713,7 +713,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * bullets and standard forward firing bullets. (111 = 1 degree, 1000 = 1
      * ship-rotation-point) All:DoubleBarrel:0:1:Whether ships fire with double
      * barrel bullets 0=no 1=yes
-     * 
+     *
      * All:BombFireEnergy:::Amount of energy it takes a ship to fire a single bomb
      * All:BombFireEnergyUpgrade:::Extra amount of energy it takes a ship to fire an
      * upgraded bomb. ie. L2 = BombFireEnergy+BombFireEnergyUpgrade
@@ -724,7 +724,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * weapon may be fired (in hundredths of a second) All:EmpBomb:0:1:Whether ships
      * fire EMP bombs 0=no 1=yes All:SeeBombLevel:0:4:If ship can see bombs on radar
      * (0=Disabled, 1=All, 2=L2 and up, 3=L3 and up, 4=L4 bombs only)
-     * 
+     *
      * All:MaxMines:::Maximum number of mines allowed in ships
      * All:SeeMines:0:1:Whether ships see mines on radar 0=no 1=yes
      * All:LandmineFireEnergy:::Amount of energy it takes a ship to place a single
@@ -733,13 +733,13 @@ public class SettingsSystem extends AbstractGameSystem {
      * LandmineFireEnergy+LandmineFireEnergyUpgrade All:LandmineFireDelay:::delay
      * that ship waits after a mine is fired until another weapon may be fired (in
      * hundredths of a second)
-     * 
+     *
      * All:ShrapnelMax:0:31:Maximum amount of shrapnel released from a ship's bomb
      * All:ShrapnelRate:0:31:Amount of additional shrapnel gained by a 'Shrapnel
      * Upgrade' prize. All:BurstSpeed:::How fast the burst shrapnel is for this
      * ship. All:BurstShrapnel:::Number of bullets released when a 'Burst' is
      * activated
-     * 
+     *
      * All:TurretThrustPenalty:::Amount the ship's thrust is decreased with a turret
      * riding All:TurretSpeedPenalty:::Amount the ship's speed is decreased with a
      * turret riding All:TurretLimit:::Number of turrets allowed on a ship.
@@ -749,7 +749,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * All:AfterburnerEnergy:::Amount of energy required to have 'Afterburners'
      * activated. All:DisableFastShooting:0:1:If firing bullets, bombs, or thors is
      * disabled after using afterburners (1=enabled)
-     * 
+     *
      * All:Radius:::The ship's radius from center to outside, in pixels. Standard
      * value is 14 pixels. All:DamageFactor:::How likely a the ship is to take
      * damamage (ie. lose a prize) (0=special-case-never, 1=extremely likely,
@@ -762,28 +762,28 @@ public class SettingsSystem extends AbstractGameSystem {
      * tiles of it All:GravityTopSpeed:::Ship are allowed to move faster than their
      * maximum speed while effected by a wormhole. This determines how much faster
      * they can go (0 = no extra speed)
-     * 
+     *
      * All:SoccerBallFriction:::Amount the friction on the soccer ball (how quickly
      * it slows down -- higher numbers mean faster slowdown)
      * All:SoccerBallProximity:::How close the player must be in order to pick up
      * ball (in pixels) All:SoccerBallSpeed:::Initial speed given to the ball when
      * fired by the carrier. All:SoccerThrowTime:::Time player has to carry soccer
      * ball (in hundredths of a second)
-     * 
+     *
      * Spectator:HideFlags:0:1:If flags are to be shown to specs when they are
      * dropped (1=can't see them) Spectator:NoXRadar:0:1:If specs are allowed to
      * have X (0=yes, 1=no)
-     * 
+     *
      * +Maker:Maker:::Editing was done by Mine GO BOOM with the help of the letter
      * K. Version 1.34.14 For more help, visit http://www.shanky.com/server/
-     * 
+     *
      */
     /*
      * @Override public void write(JmeExporter ex) throws IOException {
      * OutputCapsule capsule = ex.getCapsule(this); //capsule.write(someIntValue,
      * "someIntValue", 1); //capsule.write(someFloatValue, "someFloatValue", 0f);
      * //capsule.write(someJmeObject, "someJmeObject", new Material()); }
-     * 
+     *
      * @Override public void read(JmeImporter im) throws IOException { InputCapsule
      * capsule = im.getCapsule(this); //someIntValue =
      * capsule.readInt("someIntValue", 1); //someFloatValue =

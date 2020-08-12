@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -29,7 +29,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Maximum number of Repels allowed in ships
- * 
+ *
  * @author Asser
  */
 public class RepelMax implements EntityComponent {

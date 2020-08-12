@@ -1,6 +1,6 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2017, Simsilica, LLC
  * All rights reserved.
  */
@@ -114,7 +114,7 @@ public class BlockGeometryIndex {
         /*
          * for (PartFactory partFactory : result.getDirParts()) { for (GeomPart part :
          * ((DefaultPartFactory) partFactory).getTemplates()) {
-         * 
+         *
          * // Convenient that we want all texture coordinates to be the same float[]
          * texes = part.getTexCoords(); for (int i = 0; i < texes.length; i += 2) {
          * texes[i] = s; texes[i + 1] = t; } } }
@@ -230,7 +230,7 @@ public class BlockGeometryIndex {
                 for (int z = 0; z < zSize; z++) {
                     int val = cells.getCell(x, y, z);
                     count++;
-//System.out.println("[" + x + "][" + y + "][" + z + "] val:" + val);                    
+//System.out.println("[" + x + "][" + y + "][" + z + "] val:" + val);
                     int tileId = MaskUtils.getType(val) & 0x000000ff;
 
                     if (tileId == 0) {
@@ -301,7 +301,7 @@ public class BlockGeometryIndex {
                 GeomPart part = entry.part;
 
                 int dir = part.getDirection();
-//System.out.println("dir:" + dir); 
+//System.out.println("dir:" + dir);
                 int size = part.getVertexCount();
                 float[] verts = part.getCoords();
                 int vIndex = 0;
@@ -310,7 +310,7 @@ public class BlockGeometryIndex {
                     float x = verts[vIndex++];
                     float y = verts[vIndex++];
                     float z = verts[vIndex++];
-//System.out.println("pos:" + (i + x) + ", " + (j + y) + ", " + (k + z));                      
+//System.out.println("pos:" + (i + x) + ", " + (j + y) + ", " + (k + z));
                     pos.put(i + x);
                     pos.put(j + y);
                     pos.put(k + z);
@@ -354,7 +354,7 @@ public class BlockGeometryIndex {
                 }
                 baseIndex += size;
             }
-//System.out.println("Index count:" + baseIndex);            
+//System.out.println("Index count:" + baseIndex);
 
             Mesh mesh = new Mesh();
             mesh.setBuffer(VertexBuffer.Type.Position, 3, pos);
@@ -401,7 +401,7 @@ public class BlockGeometryIndex {
                 for (z = zStart; z <= zEnd; z++) {
                     int val = data.getCell(x, y, z);
                     int tileId = MaskUtils.getType(val);
-//log.info("  [" + x + "][" + y + "][" + z + "] = " + val + " @" + type + " #" + Integer.toBinaryString(getSideMask(val)));                
+//log.info("  [" + x + "][" + y + "][" + z + "] = " + val + " @" + type + " #" + Integer.toBinaryString(getSideMask(val)));
                     // if( type == 0 ) {
                     // // 0 is always empty space
                     // continue;
@@ -432,7 +432,7 @@ public class BlockGeometryIndex {
                             }
                         }
                     }
-//log.info("    result:" + setSideMask(val, sideMask) + "   sides:" + Integer.toBinaryString(sideMask));                    
+//log.info("    result:" + setSideMask(val, sideMask) + "   sides:" + Integer.toBinaryString(sideMask));
                     data.setCell(x, y, z, MaskUtils.setSideMask(val, sideMask));
                 }
             }

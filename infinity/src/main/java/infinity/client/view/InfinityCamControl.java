@@ -53,7 +53,7 @@ import com.simsilica.mathd.Vec3i;
 /**
  * This Control maintains a reference to a Camera, which will be synched with
  * the position (worldTranslation) of the current spatial.
- * 
+ *
  * @author tim
  */
 public class InfinityCamControl extends AbstractControl {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -31,7 +31,7 @@ import com.simsilica.sim.SimTime;
 /**
  * An event publisher state. Other states will queue up events in this state,
  * and this state will act as interface to 'bots' that subscribe to the events
- * 
+ *
  * @author Asser
  */
 public class EventPublisherSystem extends AbstractGameSystem {

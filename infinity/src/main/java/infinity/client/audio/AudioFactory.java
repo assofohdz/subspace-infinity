@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -37,7 +37,7 @@ public interface AudioFactory {
 
     /**
      * References the parent audio state
-     * 
+     *
      * @param state the parent audio state to set
      */
     public void setState(AudioState state);

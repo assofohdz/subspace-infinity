@@ -61,7 +61,7 @@ public class InfinityDefaultWorld implements World {
     }
 
     protected void fireCellChanged(long leafId, int x, int y, int z, int value) {
-//log.info("fireCellChanged(" + leafId + ", " + x + ", " + y + ", " + z + ", " + value + ") listeners count:" + cellListeners.size());    
+//log.info("fireCellChanged(" + leafId + ", " + x + ", " + y + ", " + z + ", " + value + ") listeners count:" + cellListeners.size());
         if (cellListeners.isEmpty()) {
             return;
         }
@@ -104,7 +104,7 @@ public class InfinityDefaultWorld implements World {
 
     @Override
     public int setWorldCell(Vec3d world, int type) {
-//log.info("setWorldCell(" + world + ", " + type + ")");    
+//log.info("setWorldCell(" + world + ", " + type + ")");
         LeafData leaf = getWorldLeaf(world);
         if (leaf == null) {
             return -1;
@@ -133,7 +133,7 @@ public class InfinityDefaultWorld implements World {
 
         // Notify the listeners
         for (CellChangeEvent event : data.getChanges()) {
-//log.info("firing event:" + event);        
+//log.info("firing event:" + event);
             fireCellChanged(event);
         }
 
@@ -141,12 +141,12 @@ public class InfinityDefaultWorld implements World {
          * int x = Coordinates.worldToCell(world.x) - leaf.getInfo().location.x; int y =
          * Coordinates.worldToCell(world.y) - leaf.getInfo().location.y; int z =
          * Coordinates.worldToCell(world.z) - leaf.getInfo().location.z;
-         * 
-         * 
+         *
+         *
          * leaf.setCell(x, y, z, value);
-         * 
+         *
          * //MaskUtils.recalculateSideMasks(leaf.getCells(), x, y, z, true);
-         * 
+         *
          * fireCellChanged(leaf.getInfo().leafId, x, y, z, value);
          */
         return value;

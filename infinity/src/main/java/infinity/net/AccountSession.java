@@ -14,7 +14,7 @@ public interface AccountSession {
      * It would be better to split this into an asynchronous request but this is way
      * simpler. This could be expanded to include capabilities, accepted password
      * hashes, and so on.
-     * 
+     *
      * @return returns the server information
      */
     public String getServerInfo();

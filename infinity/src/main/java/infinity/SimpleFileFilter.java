@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -124,7 +124,7 @@ public class SimpleFileFilter implements FilenameFilter {
      * is, it does an "ls" or "dir" of the parent directory returning a list of
      * files that match eg. /usr/home/mjennings/*.jar would expand out to all of the
      * files with a .jar extension in the /usr/home/mjennings directory
-     * 
+     *
      * @param f the filename
      * @return the matching files in the directory
      */

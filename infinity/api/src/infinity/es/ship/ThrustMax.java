@@ -7,7 +7,7 @@ package infinity.es.ship;
 
 /**
  * Maximum thrust of ship (0 = none)
- * 
+ *
  * @author Asser Fahrenholz
  */
 public class ThrustMax {

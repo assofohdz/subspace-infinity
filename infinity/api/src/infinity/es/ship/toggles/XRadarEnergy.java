@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -30,7 +30,7 @@ import com.simsilica.es.EntityComponent;
 /**
  * Amount of energy required to have 'X-Radar' activated (thousanths per
  * hundredth of a second)
- * 
+ *
  * @author Asser
  */
 public class XRadarEnergy implements EntityComponent {

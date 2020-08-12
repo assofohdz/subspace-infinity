@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -30,7 +30,7 @@ import com.simsilica.es.EntityComponent;
 /**
  * Maximum rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1
  * second)
- * 
+ *
  * @author ss
  */
 public class RotationMax implements EntityComponent {

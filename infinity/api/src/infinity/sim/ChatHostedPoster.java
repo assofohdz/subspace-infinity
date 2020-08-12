@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -47,7 +47,7 @@ public interface ChatHostedPoster {
 
     /**
      * Sends a private message
-     * 
+     *
      * @param from           sender
      * @param messageType    the message type (@see infinity.api.sim.MessageTypes in
      *                       the interface)

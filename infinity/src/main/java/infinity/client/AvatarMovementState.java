@@ -161,14 +161,14 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
 
         /*
          * if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
-         * 
+         *
          * Quatd cameraRotation = new
          * Quatd(getApplication().getCamera().getRotation().clone()); Vec3d
          * avatarWorldTranslation = new
          * Vec3d(model.spatial.getWorldTranslation().clone());
-         * 
+         *
          * gameSession.setView(cameraRotation, avatarWorldTranslation);
-         * 
+         *
          * Vector3f cameraWorldTranslation = new Vec3d(avatarWorldTranslation).add(0,
          * 40, 0).toVector3f();
          * getState(WorldViewState.class).setViewLocation(cameraWorldTranslation); }

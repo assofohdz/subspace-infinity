@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -256,7 +256,7 @@ public class BitMap extends JPanel {
     /**
      * Reads in a square tile of any size from the topleft. Good for getting the
      * first image in any of the /graphics/*.bm2
-     * 
+     *
      * @param size the pixel size of the image to load
      * @return the image loaded
      */

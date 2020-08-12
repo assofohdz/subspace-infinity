@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -237,12 +237,12 @@ public class AudioState extends BaseAppState {
          * if (result != null) { BodyPosition bp = ed.getComponent(entity.getId(),
          * BodyPosition.class); Position pos = ed.getComponent(entity.getId(),
          * Position.class); if (bp != null) {
-         * 
+         *
          * PositionTransition trans = bp.getBuffer().getTransition(time); if (trans !=
          * null) { Vector3f bodyPositionPos = trans.getPosition(time, true); volume =
          * this.calculateVolume(bodyPositionPos); } } else if (pos != null) { volume =
          * this.calculateVolume(pos.getLocation().toVector3f()); }
-         * 
+         *
          * result.setVolume(volume); result.playInstance(); } else { throw new
          * NullPointerException("Resulting audio node is null"); }
          */

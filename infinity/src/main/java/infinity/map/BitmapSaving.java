@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -112,7 +112,7 @@ public class BitmapSaving {
     /*
      * public static void debug(BufferedInputStream bis) throws IOException { byte
      * []pal = new byte[256 * 4]; bis.read(pal,0,54); bis.read(pal,0,256 * 4);
-     * 
+     *
      * for (int x = 0; x < 256; ++x) { System.out.println("red = " + pal[x * 4] +
      * ", blue = " + pal[x * 4 + 1] + ", green = " + pal[x * 4 + 2]); } }
      */
@@ -189,7 +189,7 @@ public class BitmapSaving {
 
         /**
          * Make a new bitmap file header
-         * 
+         *
          * @param eLVLDataSize the size of the ELVL data section
          */
         public BitmapFileHeader(int eLVLDataSize) {

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2018, Asser Fahrenholz
  * All rights reserved.
  *
@@ -358,7 +358,7 @@ public class AdaptiveClassLoader extends ClassLoader {
      * cache classes so that it can handle repeated requests for the same class. On
      * the other hand, the JLS seems to imply that each classloader is only asked to
      * load each class once. Is this a contradiction?
-     * 
+     *
      * Perhaps the second call only applies to classes which have been
      * garbage-collected?
      */

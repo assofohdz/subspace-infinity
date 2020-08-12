@@ -1,36 +1,36 @@
 /*
  * $Id$
- * 
+ *
  * Copyright (c) 2018, Simsilica, LLC
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions 
+ * modification, are permitted provided that the following conditions
  * are met:
- * 
- * 1. Redistributions of source code must retain the above copyright 
+ *
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in 
- *    the documentation and/or other materials provided with the 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
  *    distribution.
- * 
- * 3. Neither the name of the copyright holder nor the names of its 
- *    contributors may be used to endorse or promote products derived 
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package infinity.client.view;
@@ -319,7 +319,7 @@ public class ModelViewState extends BaseAppState {
          * geom.setMaterial(com.simsilica.lemur.GuiGlobals.getInstance().createMaterial(
          * ColorRGBA.Blue, true).getMaterial()); geom.setLocalTranslation(coord.x +
          * coord.w, coord.y + coord.w, coord.z + coord.w); objectRoot.attachChild(geom);
-         * 
+         *
          * //tests[i] = geom; tests.add(geom); }
          */
         this.mobs = new MobContainer(ed);
@@ -367,7 +367,7 @@ public class ModelViewState extends BaseAppState {
         movingPointLights.applyChanges();
 
         tileTypes.applyChanges();
-//log.info("update");    
+//log.info("update");
         updateCenter(worldView.getViewLocation());
         mobs.update();
         models.update();
@@ -376,17 +376,17 @@ public class ModelViewState extends BaseAppState {
         for (Mob mob : mobs.getArray()) {
             mob.update(time);
         }
-//log.info("checking marker queue");        
+//log.info("checking marker queue");
         while (!markerQueue.isEmpty()) {
             // Update static model visibility
             MarkVisible marker = markerQueue.peek();
-//log.info("marker visibleTime:" + marker.visibleTime + "  time:" + time);            
+//log.info("marker visibleTime:" + marker.visibleTime + "  time:" + time);
             if (marker.visibleTime > time) {
                 // The earliest item in the queue is not ready yet
                 break;
             }
             marker = markerQueue.poll();
-//log.info("time:" + time + "  marker time:" + marker.visibleTime);            
+//log.info("time:" + time + "  marker time:" + marker.visibleTime);
             marker.update();
         }
 
@@ -476,20 +476,20 @@ public class ModelViewState extends BaseAppState {
         ComponentFilter[] filters = new ComponentFilter[size * size];
 
 //System.out.println("************************************************");
-//System.out.println("New grid center:" + modelCenter);        
+//System.out.println("New grid center:" + modelCenter);
         int xOffset = modelCenter.x - gridRadius;
         int zOffset = modelCenter.z - gridRadius;
         int index = 0;
         for (int x = 0; x < size; x++) {
             for (int z = 0; z < size; z++) {
                 long id = InfinityConstants.PHYSICS_GRID.cellToId(xOffset + x, 0, zOffset + z);
-//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");                                                
+//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
                 ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", id);
                 gridFilters[x][z] = filter;
                 // filters.add(filter);
                 filters[index++] = filter;
             }
-//System.out.println();            
+//System.out.println();
         }
         log.info("Setting static model filter to: " + Arrays.toString(filters));
         models.setFilter(Filters.or(SpawnPosition.class, filters));
@@ -503,20 +503,20 @@ public class ModelViewState extends BaseAppState {
         ComponentFilter[] filters = new ComponentFilter[size * size];
 
 //System.out.println("************************************************");
-//System.out.println("New grid center:" + modelCenter);        
+//System.out.println("New grid center:" + modelCenter);
         int xOffset = largeModelCenter.x - gridRadius;
         int zOffset = largeModelCenter.z - gridRadius;
         int index = 0;
         for (int x = 0; x < size; x++) {
             for (int z = 0; z < size; z++) {
                 long id = InfinityConstants.LARGE_OBJECT_GRID.cellToId(xOffset + x, 0, zOffset + z);
-//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");                                                
+//System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
                 ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", id);
                 largeGridFilters[x][z] = filter;
                 // filters.add(filter);
                 filters[index++] = filter;
             }
-//System.out.println();            
+//System.out.println();
         }
         largeModels.setFilter(Filters.or(LargeGridCell.class, filters));
 
@@ -528,46 +528,46 @@ public class ModelViewState extends BaseAppState {
          * Spatial spatial; CellArray cells = shape.getCells(); if( cells != null ) {
          * Node node = new Node("Object:" + id); Node parts = new Node("Parts:" + id);
          * node.attachChild(parts); spatial = node;
-         * 
+         *
          * geomIndex.generateBlocks(parts, cells);
-         * 
+         *
          * // For the time being, we'll just consider the CoG to be the center // of the
          * model. //Vector3f cogOffset = cells.getSize().toVector3f();
          * //cogOffset.multLocal((float)(-0.5 * shape.getScale()));
-         * 
+         *
          * BodyMass bm = shape.getMass();
-         * 
+         *
          * // The position of the object is its CoG... which means // we need to offset
          * our model's origin by it. It should // already be scaled and everything...
          * just need to negate it. Vector3f cogOffset =
          * bm.getCog().toVector3f().negate();
-         * 
+         *
          * // We need to sort out what the center should be. Directly out of
          * generateBlocks() // the geometry is all relative to the corner. See
          * cog-offset.txt parts.move(cogOffset);
          * parts.setLocalScale((float)shape.getScale());
          * parts.setShadowMode(ShadowMode.CastAndReceive);
-         * 
+         *
          * } else { float radius = (float)shape.getMass().getRadius(); Sphere mesh = new
          * Sphere(24, 24, radius); mesh.setTextureMode(Sphere.TextureMode.Projected);
          * mesh.scaleTextureCoordinates(new Vector2f(4, 2)); Geometry geom = new
          * Geometry("Object:" + id, mesh); spatial = geom;
-         * 
+         *
          * if( mass != null && mass.getMass() != 0 ) {
          * geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0,
          * 0.6f, 0.6f, 1), true).getMaterial());
-         * 
+         *
          * Texture texture =
          * GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png",
          * true, true); geom.getMaterial().setTexture("DiffuseMap", texture); } else {
          * // Just a flat green
          * geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f,
          * 0.6f, 0.2f, 1), true).getMaterial()); }
-         * 
+         *
          * spatial.setShadowMode(ShadowMode.CastAndReceive); }
-         * 
+         *
          * spatial.setUserData("oid", id.getId());
-         * 
+         *
          * return spatial;
          */
     }
@@ -717,7 +717,7 @@ public class ModelViewState extends BaseAppState {
         }
 
         public void updateRelativePosition() {
-//log.info("updateRelativePosition entityId:" + entityId + "  dynamic:" + dynamic);        
+//log.info("updateRelativePosition entityId:" + entityId + "  dynamic:" + dynamic);
             if (!dynamic) {
                 if (pos == null) {
                     // We are not a static model and we are probably being removed
@@ -757,12 +757,12 @@ public class ModelViewState extends BaseAppState {
         }
 
         protected void resetVisibility() {
-//log.info("resetVisibility():" + visibleCount);        
+//log.info("resetVisibility():" + visibleCount);
             if (visibleCount > 0) {
-//log.info("visible:" + entityId);            
+//log.info("visible:" + entityId);
                 spatial.setCullHint(Spatial.CullHint.Inherit);
             } else {
-//log.info("invisible:" + entityId);            
+//log.info("invisible:" + entityId);
                 spatial.setCullHint(Spatial.CullHint.Always);
             }
         }
@@ -852,12 +852,12 @@ public class ModelViewState extends BaseAppState {
         }
 
         protected void setVisible(boolean f) {
-//log.info("setVisible(" + entity.getId() + ", " + f + ")");            
+//log.info("setVisible(" + entity.getId() + ", " + f + ")");
             if (this.visible == f) {
                 return;
             }
 // For now, ignore setting false
-//if( !f ) return;            
+//if( !f ) return;
             this.visible = f;
             // resetVisibility();
             if (visible) {
@@ -933,7 +933,7 @@ public class ModelViewState extends BaseAppState {
         }
 
         protected Model addObject(Entity e) {
-//log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());        
+//log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());
             Model object = getModel(e.getId(), true);
             updateObject(object, e);
 

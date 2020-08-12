@@ -121,7 +121,7 @@ public class InfinityCameraState extends CameraState {
          * if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
          * avatarSpatial = viewState.getAvatarSpatial(); } else if (!initializedCam &&
          * avatarSpatial != null) { //avatarSpatial.addControl(camControl);
-         * 
+         *
          * initializedCam = true; }
          */
         // if (initializedCam) {
@@ -129,19 +129,19 @@ public class InfinityCameraState extends CameraState {
         /*
          * avatarTransBuffer = viewState.getAvatarBuffer(); avatarPos =
          * viewState.getAvatarPosition();
-         * 
+         *
          * if (avatarTransBuffer != null) {
-         * 
+         *
          * PositionTransition3d trans = avatarTransBuffer.getTransition(time); if (trans
          * != null) { Vector3f pos = trans.getPosition(time, true).toVector3f();
          * //log.info("update():: avatarPos = "+avatarPos);
          * getState(WorldViewState.class).setViewLocation(pos);
-         * 
+         *
          * pos.subtractLocal(getState(ModelViewState.class).get)
-         * 
+         *
          * cam.setLocation(pos.add(0, DISTANCETOPLANE, 0)); cam.lookAt(pos,
          * Vector3f.UNIT_Y);
-         * 
+         *
          * //getState(WorldViewState.class).setViewLocation(avatarSpatial.
          * getWorldTranslation()); session.setView(new Quatd(cam.getRotation()), new
          * Vec3d(pos)); } }
