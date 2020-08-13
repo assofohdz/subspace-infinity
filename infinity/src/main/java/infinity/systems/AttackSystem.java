@@ -572,7 +572,7 @@ public class AttackSystem extends AbstractGameSystem {
     private AttackInfo getAttackInfo(final EntityId attacker, final byte flag) {
         // Default velocity for projectiles:
         Vec3d projectileVelocity = new Vec3d(0, 0, 1);
-        final RigidBody shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
+        final RigidBody<?, ?> shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
 
         // Step 1: Scale the velocity based on weapon type, weapon level and ship type
         // TODO: Look these settings up in SettingsSystem

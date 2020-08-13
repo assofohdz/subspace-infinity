@@ -26,7 +26,7 @@ import infinity.sim.CategoryFilter;
  *
  * @author AFahrenholz
  */
-public class ContactSystem extends AbstractGameSystem implements ContactListener {
+public class ContactSystem extends AbstractGameSystem implements ContactListener<EntityId, MBlockShape> {
 
     private static final Logger log = Logger.getLogger(ContactSystem.class.getName());
 
@@ -38,13 +38,13 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
     EntitySet categoryFilters;
 
     @Override
-    public void newContact(final Contact contact) {
-        final RigidBody bodyOne = contact.body1;
-        final RigidBody bodyTwo = contact.body2;
+    public void newContact(final Contact<EntityId, MBlockShape> contact) {
+        final RigidBody<EntityId, MBlockShape> bodyOne = contact.body1;
+        final RigidBody<EntityId, MBlockShape> bodyTwo = contact.body2;
 
         if (bodyOne != null && bodyTwo != null) {
-            final EntityId one = (EntityId) contact.body1.id;
-            final EntityId two = (EntityId) contact.body2.id;
+            final EntityId one = contact.body1.id;
+            final EntityId two = contact.body2.id;
 
             if (categoryFilters.containsId(two) && categoryFilters.containsId(one)) {
                 final CategoryFilter filterOne = categoryFilters.getEntity(one).get(CollisionCategory.class)

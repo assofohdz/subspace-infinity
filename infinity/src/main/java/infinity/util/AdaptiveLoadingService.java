@@ -188,8 +188,8 @@ public class AdaptiveLoadingService extends AbstractHostedService
     // Loads the class
     private void loadClass(final String file) throws IllegalAccessException, InstantiationException, IOException,
             ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-        final Class java = classLoader.loadClass(file);
-        final Constructor c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class,
+        final Class<?> java = classLoader.loadClass(file);
+        final Constructor<?> c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class,
                 ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {

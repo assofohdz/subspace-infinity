@@ -81,6 +81,7 @@ public class MovementSystem extends AbstractGameSystem {
         return super.getSystem(type);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
@@ -148,6 +149,7 @@ public class MovementSystem extends AbstractGameSystem {
      */
     private class PlayerContainer extends EntityContainer<PlayerDriver> {
 
+        @SuppressWarnings("unchecked")
         public PlayerContainer(final EntityData ed) {
             super(ed, MovementInput.class);
         }

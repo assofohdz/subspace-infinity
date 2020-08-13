@@ -136,6 +136,7 @@ public class AudioState extends BaseAppState {
      */
     private class AudioContainer extends EntityContainer<Spatial> {
 
+        @SuppressWarnings("unchecked")
         public AudioContainer(final EntityData ed) {
             super(ed, AudioType.class, Parent.class);
         }

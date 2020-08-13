@@ -54,7 +54,6 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.filter.AndFilter;
 import com.simsilica.lemur.event.DefaultMouseListener;
 import com.simsilica.lemur.event.MouseEventControl;
 import com.simsilica.mathd.Vec3d;
@@ -77,7 +76,7 @@ public class MapState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MapState.class);
 
-    AndFilter andFilter;
+    // AndFilter andFilter;
     private EntityData ed;
     private LegacyMapImageContainer tileImages;
     private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
@@ -293,6 +292,7 @@ public class MapState extends BaseAppState {
     // Map the entities to their texture
     private class LegacyMapImageContainer extends EntityContainer<Image> {
 
+        @SuppressWarnings("unchecked")
         public LegacyMapImageContainer(final EntityData ed) {
             super(ed, TileType.class, BodyPosition.class);
         }

@@ -140,7 +140,7 @@ public class ModelViewState extends BaseAppState {
     private WatchedEntity watchedAvatar;
     private GameSessionClientService gameSession;
     // private Spatial avatarSpatial;
-    private TransitionBuffer avatarBuffer;
+    private TransitionBuffer<PositionTransition3d> avatarBuffer;
     private Vector3f avatarPos;
 
     {
@@ -171,9 +171,9 @@ public class ModelViewState extends BaseAppState {
     private final Vec3i modelCenter = new Vec3i();
     private final Vec3i largeModelCenter = new Vec3i();
     private final int gridRadius = 1; // 3;
-    private ComponentFilter[][] gridFilters;
+    private ComponentFilter<SpawnPosition>[][] gridFilters;
 
-    private ComponentFilter[][] largeGridFilters;
+    private ComponentFilter<LargeGridCell>[][] largeGridFilters;
 
     private final Map<EntityId, Model> modelIndex = new HashMap<>();
 
@@ -467,11 +467,12 @@ public class ModelViewState extends BaseAppState {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected void resetModelFilter() {
         final int size = gridRadius * 2 + 1;
         gridFilters = new ComponentFilter[size][size];
         // List<ComponentFilter> filters = new ArrayList<>();
-        final ComponentFilter[] filters = new ComponentFilter[size * size];
+        final ComponentFilter<SpawnPosition>[] filters = new ComponentFilter[size * size];
 
 //System.out.println("************************************************");
 //System.out.println("New grid center:" + modelCenter);
@@ -482,7 +483,8 @@ public class ModelViewState extends BaseAppState {
             for (int z = 0; z < size; z++) {
                 final long id = InfinityConstants.PHYSICS_GRID.cellToId(xOffset + x, 0, zOffset + z);
 //System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
-                final ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", Long.valueOf(id));
+                final ComponentFilter<SpawnPosition> filter = Filters.fieldEquals(SpawnPosition.class, "binId",
+                        Long.valueOf(id));
                 gridFilters[x][z] = filter;
                 // filters.add(filter);
                 filters[index++] = filter;
@@ -493,12 +495,13 @@ public class ModelViewState extends BaseAppState {
         models.setFilter(Filters.or(SpawnPosition.class, filters));
     }
 
+    @SuppressWarnings("unchecked")
     protected void resetLargeModelFilter() {
         // Update the large objects filter also... we'll use the same
         // radius/size for now
         final int size = gridRadius * 2 + 1;
         largeGridFilters = new ComponentFilter[size][size];
-        final ComponentFilter[] filters = new ComponentFilter[size * size];
+        final ComponentFilter<LargeGridCell>[] filters = new ComponentFilter[size * size];
 
 //System.out.println("************************************************");
 //System.out.println("New grid center:" + modelCenter);
@@ -509,7 +512,8 @@ public class ModelViewState extends BaseAppState {
             for (int z = 0; z < size; z++) {
                 final long id = InfinityConstants.LARGE_OBJECT_GRID.cellToId(xOffset + x, 0, zOffset + z);
 //System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id) + "]");
-                final ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", Long.valueOf(id));
+                final ComponentFilter<LargeGridCell> filter = Filters.fieldEquals(LargeGridCell.class, "cellId",
+                        Long.valueOf(id));
                 largeGridFilters[x][z] = filter;
                 // filters.add(filter);
                 filters[index++] = filter;
@@ -887,6 +891,7 @@ public class ModelViewState extends BaseAppState {
 
     private class MobContainer extends EntityContainer<Mob> {
 
+        @SuppressWarnings("unchecked")
         public MobContainer(final EntityData ed) {
             // Because at least in this demo, shape and model are the same thing
             super(ed, BodyPosition.class, ShapeInfo.class);
@@ -923,6 +928,7 @@ public class ModelViewState extends BaseAppState {
      */
     private class ModelContainer extends EntityContainer<Model> {
 
+        @SuppressWarnings("unchecked")
         public ModelContainer(final EntityData ed) {
             super(ed, SpawnPosition.class, ShapeInfo.class);
         }
@@ -967,6 +973,7 @@ public class ModelViewState extends BaseAppState {
      */
     private class LargeModelContainer extends EntityContainer<Model> {
 
+        @SuppressWarnings("unchecked")
         public LargeModelContainer(final EntityData ed) {
             super(ed, SpawnPosition.class, ShapeInfo.class, LargeObject.class, LargeGridCell.class);
         }
@@ -1017,7 +1024,7 @@ public class ModelViewState extends BaseAppState {
         return spatialIndex.get(eId);
     }
 
-    private void setAvatarBuffer(final TransitionBuffer buffer) {
+    private void setAvatarBuffer(final TransitionBuffer<PositionTransition3d> buffer) {
         avatarBuffer = buffer;
     }
 

@@ -13,14 +13,14 @@ import com.simsilica.mphys.PhysicsSpace;
  */
 public class InfinityPhysicsManager implements PhysicsManager {
 
-    PhysicsSpace space;
+    PhysicsSpace<?, ?> space;
 
-    public InfinityPhysicsManager(final PhysicsSpace space) {
+    public InfinityPhysicsManager(final PhysicsSpace<?, ?> space) {
         this.space = space;
     }
 
     @Override
-    public PhysicsSpace getPhysics() {
+    public PhysicsSpace<?, ?> getPhysics() {
         return space;
     }
 }

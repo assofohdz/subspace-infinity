@@ -27,7 +27,7 @@ import infinity.es.ship.weapons.GunLevelEnum;
  */
 public class GameSounds {
 
-    public static void createBombSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+    public static void createBombSound(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
             final long createdTime, final Vec3d pos, final BombLevelEnum level) {
         final EntityId result = ed.createEntity();
 
@@ -42,7 +42,7 @@ public class GameSounds {
         ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static void createExplosionSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+    public static void createExplosionSound(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
             final long createdTime, final Vec3d pos) {
         final EntityId result = ed.createEntity();
 
@@ -57,7 +57,7 @@ public class GameSounds {
         ed.setComponent(result, new Meta(createdTime));
     }
 
-    public static EntityId createSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+    public static EntityId createSound(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
             final long createdTime, final Vec3d pos, final String audioType) {
         final EntityId result = ed.createEntity();
 
@@ -74,7 +74,7 @@ public class GameSounds {
         return result;
     }
 
-    public static void createBulletSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
+    public static void createBulletSound(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
             final long createdTime, final Vec3d pos, final GunLevelEnum level) {
         final EntityId result = ed.createEntity();
 
@@ -92,7 +92,7 @@ public class GameSounds {
     }
 
     public static void createBurstSound(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
-            @SuppressWarnings("unused") final PhysicsSpace phys, final long createdTime,
+            @SuppressWarnings("unused") final PhysicsSpace<?, ?> phys, final long createdTime,
             @SuppressWarnings("unused") final Vec3d pos) {
         final EntityId result = ed.createEntity();
 

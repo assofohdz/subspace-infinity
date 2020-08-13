@@ -1,4 +1,4 @@
-#Wed Aug 12 22:23:02 CDT 2020
+#Wed Aug 12 22:59:03 CDT 2020
 \!/=
 /configuration/org.eclipse.buildship.ui/org.eclipse.buildship.ui.wizard.project.import.showWelcomePage=false
 /configuration/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true
@@ -78,7 +78,7 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.fallthroughCase=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.fatalOptionalError=disabled
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.fieldHiding=warning
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.finalParameterBound=ignore
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.finalParameterBound=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.finallyBlockNotCompletingNormally=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.forbiddenReference=error
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.hiddenCatchBlock=warning
@@ -111,7 +111,7 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.possibleAccidentalBooleanAssignment=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.potentialNullReference=ignore
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.potentiallyUnclosedCloseable=warning
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.rawTypeReference=ignore
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.rawTypeReference=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.redundantNullAnnotation=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.redundantNullCheck=ignore
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.redundantSpecificationOfTypeArguments=warning
@@ -122,13 +122,13 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.staticAccessReceiver=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.suppressOptionalErrors=disabled
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.suppressWarnings=enabled
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.suppressWarningsNotFullyAnalysed=ignore
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.suppressWarningsNotFullyAnalysed=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.syntacticNullAnalysisForFields=disabled
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.syntheticAccessEmulation=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.terminalDeprecation=error
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.typeParameterHiding=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unavoidableGenericTypeProblems=disabled
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation=ignore
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unclosedCloseable=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.undocumentedEmptyBlock=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unhandledWarningToken=warning

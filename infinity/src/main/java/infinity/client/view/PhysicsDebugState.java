@@ -82,11 +82,11 @@ public class PhysicsDebugState extends CompositeAppState {
 
     @Override
     protected void initialize(final Application app) {
-        final PhysicsSpace phys = host.getSystems().get(PhysicsSpace.class);
+        final PhysicsSpace<?, ?> phys = host.getSystems().get(PhysicsSpace.class);
         stats = phys.getStats();
-        addChild(new BinStatusState(phys, 64));
-        addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
-        addChild(new ContactDebugState(phys));
+        addChild(new BinStatusState<>(phys, 64));
+        addChild(new BodyDebugState<>(host.getSystems().get(MPhysSystem.class)));
+        addChild(new ContactDebugState<>(phys));
 
         final DebugHudState debug = getState(DebugHudState.class);
         if (debug != null) {
@@ -119,13 +119,13 @@ public class PhysicsDebugState extends CompositeAppState {
 
         // We should be the last child of the GameSessionState... so everything
         // should be up-to-date.
-        final BinStatusState binState = getState(BinStatusState.class);
+        final BinStatusState<?> binState = getState(BinStatusState.class);
         if (binState != null) {
             final Vector3f loc = getState(WorldViewState.class).getViewLocation();
             binState.setViewOrigin(loc.x, 0, loc.z);
-            final BodyDebugState bodyState = getState(BodyDebugState.class);
+            final BodyDebugState<?> bodyState = getState(BodyDebugState.class);
             bodyState.setViewOrigin(loc.x, 0, loc.z);
-            final ContactDebugState contactState = getState(ContactDebugState.class);
+            final ContactDebugState<?> contactState = getState(ContactDebugState.class);
             contactState.setViewOrigin(loc.x, 0, loc.z);
         }
 

@@ -32,6 +32,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultWatchedEntity;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.ControlDriver;
 import com.simsilica.mphys.RigidBody;
 
@@ -49,7 +50,7 @@ import infinity.systems.SettingsSystem;
  *
  * @author Paul Speed
  */
-public class PlayerDriver implements ControlDriver, Driver {
+public class PlayerDriver implements ControlDriver<EntityId, MBlockShape>, Driver {
 
     static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
     // The entity that is controlling this driver
@@ -62,14 +63,16 @@ public class PlayerDriver implements ControlDriver, Driver {
     private final double pickup = 3;
 
     // Local reference to the body that we want to update
-    private RigidBody body;
+    private RigidBody<?, ?> body;
     private final Vec3d velocity = new Vec3d();
     // private final EntityData ed;
     // private final SettingsSystem settings;
 
+    @SuppressWarnings({ "unchecked" })
     public PlayerDriver(final EntityId shipEntityId, final EntityData ed,
             @SuppressWarnings("unused") final SettingsSystem settings) {
         // Watch all the relevant movement components of the ship
+        @SuppressWarnings("rawtypes")
         final Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
         shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
         // this.settings = settings;
@@ -135,12 +138,12 @@ public class PlayerDriver implements ControlDriver, Driver {
     }
 
     @Override
-    public void initialize(final RigidBody rigidBody) {
+    public void initialize(final RigidBody<EntityId, MBlockShape> rigidBody) {
         body = rigidBody;
     }
 
     @Override
-    public void terminate(final RigidBody rigidBody) {
+    public void terminate(final RigidBody<EntityId, MBlockShape> rigidBody) {
         body = null;
     }
 

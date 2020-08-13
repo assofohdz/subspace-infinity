@@ -190,7 +190,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private final Vec3d lastViewLoc = new Vec3d();
         private final Quatd lastViewOrient = new Quatd();
         // private final Vec3d relativeLoc = null;
-        private final PhysicsSpace phys;
+        private final PhysicsSpace<?, ?> phys;
         // private final MPhysSystem mphys;
 
         // private PlayerDriver driver;

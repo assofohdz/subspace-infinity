@@ -69,7 +69,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     // private final boolean createdDefaultArena = false;
 
-    private final ListOrderedMap arenas = new ListOrderedMap();
+    private final ListOrderedMap<String, String> arenas = new ListOrderedMap<>();
     // private MapSystem mapSystem;
     // private int xCoord, zCoord;
 

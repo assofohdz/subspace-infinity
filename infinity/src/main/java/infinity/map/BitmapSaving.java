@@ -90,12 +90,12 @@ public class BitmapSaving {
         }
     }
 
-    Vector colorTable = new Vector();
+    Vector<RGBQuad> colorTable = new Vector<>();
 
     // gets the color entry for the color col, adding if necessary
     byte getColorEntry(final RGBQuad col) {
         for (int x = 0; x < colorTable.size(); ++x) {
-            final RGBQuad item = (RGBQuad) colorTable.get(x);
+            final RGBQuad item = colorTable.get(x);
 
             if (item.equals(col)) {
                 return (byte) x;

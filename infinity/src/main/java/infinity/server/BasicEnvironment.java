@@ -60,7 +60,7 @@ public class BasicEnvironment extends AbstractGameSystem {
     static Logger log = LoggerFactory.getLogger(BasicEnvironment.class);
 
     private EntityData ed;
-    private PhysicsSpace phys;
+    private PhysicsSpace<?, ?> phys;
     // private World world;
 
     // Some constantly emitted test objects... need to track the time

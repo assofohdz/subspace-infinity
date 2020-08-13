@@ -311,7 +311,8 @@ public class AvatarSystem extends AbstractGameSystem {
      */
     public int getShipCount(final int team, final ShapeInfo type) {
 
-        final ComponentFilter freqFilter = FieldFilter.create(Frequency.class, "freq", Integer.valueOf(team));
+        final ComponentFilter<Frequency> freqFilter = FieldFilter.create(Frequency.class, "freq",
+                Integer.valueOf(team));
         final EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShapeInfo.class);
 
         int count = 0;

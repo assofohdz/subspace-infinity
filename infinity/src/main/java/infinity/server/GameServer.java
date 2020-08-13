@@ -254,7 +254,7 @@ public class GameServer {
         final InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed,
                 Gravity.ZERO.getLinearAcceleration(), shapeFactory);
 
-        final MPhysSystem mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+        final MPhysSystem<MBlockShape> mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
         // mphys.setDriverIndex(map);
 
@@ -328,10 +328,10 @@ public class GameServer {
         // exist
         // Add a system that will forward physics changes to the Ethereal
         // zone manager
-        systems.addSystem(new ZoneNetworkSystem(ethereal.getZones()));
+        systems.addSystem(new ZoneNetworkSystem<>(ethereal.getZones()));
 
         // And the system that will publish the BodyPosition components
-        systems.addSystem(new BodyPositionPublisher());
+        systems.addSystem(new BodyPositionPublisher<>());
 
         // Register some custom serializers
         registerSerializers();

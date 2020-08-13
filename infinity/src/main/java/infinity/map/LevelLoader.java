@@ -48,18 +48,18 @@ public class LevelLoader implements AssetLoader {
     // private boolean hasELVLData;
 
     // eLVL ATTR tags... vector of vector of Strings
-    public Vector eLvlAttrs = new Vector();
+    public Vector<Vector<String>> eLvlAttrs = new Vector<>();
     public static final int DEFAULT_TAG_COUNT = 6;
 
     // Vector of loaded regions
-    public Vector regions;
+    public Vector<Region> regions;
 
     // unknown ELVL chunks read in on load
-    public Vector unknownELVLData = new Vector();
+    public Vector<Byte> unknownELVLData = new Vector<>();
 
     // the actual data we're going to save, as a Vector of Bytes... saved by
     // makeELvlDataForSaving
-    public Vector eLVLData;
+    public Vector<Byte> eLVLData;
 
     // private String m_type;
     // private int m_size;

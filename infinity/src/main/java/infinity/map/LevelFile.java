@@ -45,18 +45,18 @@ public class LevelFile extends JPanel {
     private boolean hasELVLData;
 
     // eLVL ATTR tags... vector of vector of Strings
-    public Vector eLvlAttrs = new Vector();
+    public Vector<Vector<String>> eLvlAttrs = new Vector<>();
     public static final int DEFAULT_TAG_COUNT = 6;
 
     // Vector of loaded regions
-    public Vector loadedRegions;
+    public Vector<Region> loadedRegions;
 
     // unknown ELVL chunks read in on load
-    public Vector unknownELVLData = new Vector();
+    public Vector<Byte> unknownELVLData = new Vector<>();
 
     // the actual data we're going to save, as a Vector of Bytes... saved by
     // makeELvlDataForSaving
-    public Vector eLVLData;
+    public Vector<Byte> eLVLData;
 
     // private String m_type;
     // private int m_size;
@@ -108,32 +108,32 @@ public class LevelFile extends JPanel {
             userName = "User";
         }
 
-        Vector row = new Vector();
+        Vector<String> row = new Vector<>();
         row.add("NAME");
         row.add("Unnamed");
         eLvlAttrs.add(row);
 
-        row = new Vector();
+        row = new Vector<>();
         row.add("VERSION");
         row.add("1.0");
         eLvlAttrs.add(row);
 
-        row = new Vector();
+        row = new Vector<>();
         row.add("ZONE");
         row.add(userName + "'s Zone");
         eLvlAttrs.add(row);
 
-        row = new Vector();
+        row = new Vector<>();
         row.add("MAPCREATOR");
         row.add(userName);
         eLvlAttrs.add(row);
 
-        row = new Vector();
+        row = new Vector<>();
         row.add("TILESETCREATOR");
         row.add(userName);
         eLvlAttrs.add(row);
 
-        row = new Vector();
+        row = new Vector<>();
         row.add("PROGRAM");
         row.add("Continuum Level Ini Tool");
         eLvlAttrs.add(row);
@@ -146,7 +146,7 @@ public class LevelFile extends JPanel {
      */
     private String readELvlData() {
         String error = null;
-        loadedRegions = new Vector();
+        loadedRegions = new Vector<>();
 
         if (!available(12)) {
             error = "File ended before we could read the eLVL header.";
@@ -185,7 +185,7 @@ public class LevelFile extends JPanel {
                                 break;
                             }
 
-                            final Vector row = new Vector();
+                            final Vector<String> row = new Vector<>();
                             row.add(keyTag[0]);
                             row.add(keyTag[1]);
                             eLvlAttrs.add(row);
@@ -296,7 +296,8 @@ public class LevelFile extends JPanel {
      * @param map     the map array[][] to save
      * @param regions the vector of regions to save
      */
-    public void saveLevelAs(final String where, final Image tileset, final short[][] map, final Vector regions) {
+    public void saveLevelAs(final String where, final Image tileset, final short[][] map,
+            final Vector<Region> regions) {
         m_file = where;
         saveLevel(tileset, map, regions);
     }
@@ -307,15 +308,15 @@ public class LevelFile extends JPanel {
      *
      * @param regions the vector of Regions
      */
-    private void makeELvlDataForSaving(final Vector regions) {
-        eLVLData = new Vector();
+    private void makeELvlDataForSaving(final Vector<Region> regions) {
+        eLVLData = new Vector<>();
 
         // first save the ATTR tags
         final int size = eLvlAttrs.size();
         for (int x = 0; x < size; ++x) {
-            final Vector row = (Vector) eLvlAttrs.get(x);
-            final String one = ((String) row.get(0)).replace('=', '-');
-            final String two = ((String) row.get(1)).replace('=', '-');
+            final Vector<String> row = eLvlAttrs.get(x);
+            final String one = row.get(0).replace('=', '-');
+            final String two = row.get(1).replace('=', '-');
             final String save = one + "=" + two;
 
             // save chunk header
@@ -346,15 +347,15 @@ public class LevelFile extends JPanel {
         }
 
         // now the REGN tags
-        for (int x = 0; x < regions.size(); ++x) {
-            final Region r = (Region) regions.get(x);
+        for (final Object region : regions) {
+            final Region r = (Region) region;
 
             eLVLData.add(Byte.valueOf((byte) 'R'));
             eLVLData.add(Byte.valueOf((byte) 'E'));
             eLVLData.add(Byte.valueOf((byte) 'G'));
             eLVLData.add(Byte.valueOf((byte) 'N'));
 
-            final Vector curRegionEncoded = r.getEncodedRegion();
+            final Vector<Byte> curRegionEncoded = r.getEncodedRegion();
             final byte[] dword = BitmapSaving.toDWORD(curRegionEncoded.size());
             for (int c = 0; c < 4; ++c) {
                 eLVLData.add(Byte.valueOf(dword[c]));
@@ -398,7 +399,7 @@ public class LevelFile extends JPanel {
 
         // save data
         for (int x = 0; x < size; ++x) {
-            array[x] = ((Byte) eLVLData.get(x)).byteValue();
+            array[x] = eLVLData.get(x).byteValue();
         }
 
         out.write(array);
@@ -413,7 +414,7 @@ public class LevelFile extends JPanel {
      * @param map     the map aray[][] to save
      * @param regions list of regions
      */
-    public void saveLevel(final Image tileset, final short[][] map, final Vector regions) {
+    public void saveLevel(final Image tileset, final short[][] map, final Vector<Region> regions) {
         try (FileOutputStream fos = new FileOutputStream(m_file);
                 BufferedOutputStream out = new BufferedOutputStream(fos)) {
             // final boolean containsELVLData = eLvlAttrs.size() > 0;

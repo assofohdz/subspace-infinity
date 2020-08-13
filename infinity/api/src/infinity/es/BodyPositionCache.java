@@ -87,7 +87,7 @@ public class BodyPositionCache {
         }
 
         // Clean out any dead references to keep our map from growing and growing
-        Reference toRemove;
+        Reference<? extends TransitionBuffer<PositionTransition3d>> toRemove;
         while ((toRemove = refs.poll()) != null) {
             map.values().remove(toRemove);
         }

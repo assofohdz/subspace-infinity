@@ -76,7 +76,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
     private final Grid largeGrid = InfinityConstants.LARGE_OBJECT_GRID;
 
     private EntityData ed;
-    private PhysicsSpace phys;
+    private PhysicsSpace<?, ?> phys;
     private final EntityChangeObserver entityObserver = new EntityChangeObserver();
     private final ConcurrentLinkedQueue<EntityId> changes = new ConcurrentLinkedQueue<>();
     private final Set<EntityId> processed = new HashSet<>();
@@ -244,6 +244,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
      * LargeGridCells up to date.
      */
     private class LobContainer extends EntityContainer<Lob> {
+        @SuppressWarnings("unchecked")
         public LobContainer(final EntityData ed) {
             super(ed, LargeObject.class, BodyPosition.class);
         }
@@ -278,7 +279,7 @@ public class LargeGridIndexSystem extends AbstractGameSystem {
         public void componentChange(final EntityChange change) {
             // We only care about a few components and we should quickly
             // short-circuit otherwise to avoid lag
-            final Class type = change.getComponentType();
+            final Class<?> type = change.getComponentType();
             if (type != SpawnPosition.class && type != LargeObject.class) {
                 return;
             }

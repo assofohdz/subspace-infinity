@@ -65,8 +65,8 @@ public class Region {
     public int x = 512, y = 512;
     public String arena = "";
 
-    public ArrayList rects = new ArrayList();
-    public Vector unknownBytes = new Vector(); // region bytes loaded... but unknown or unused by the program
+    public ArrayList<Rectangle> rects = new ArrayList<>();
+    public Vector<Byte> unknownBytes = new Vector<>(); // region bytes loaded... but unknown or unused by the program
 
     public Region() {
         name = "@THIS_IS_A_BUG->ERROR"; // the user should never see this
@@ -83,8 +83,8 @@ public class Region {
      *
      * @return a Vector of Bytes representing this region
      */
-    public Vector getEncodedRegion() {
-        final Vector encoding = new Vector();
+    public Vector<Byte> getEncodedRegion() {
+        final Vector<Byte> encoding = new Vector<>();
         // encode isBase
         if (isBase) {
             encoding.add(Byte.valueOf((byte) 'r'));
@@ -191,8 +191,8 @@ public class Region {
             }
         }
         // encode unknown bytes
-        for (int c = 0; c < unknownBytes.size(); ++c) {
-            encoding.add(unknownBytes.get(c));
+        for (final Byte unknownByte : unknownBytes) {
+            encoding.add(unknownByte);
         }
         // encoded name
         encoding.add(Byte.valueOf((byte) 'r'));
@@ -226,15 +226,15 @@ public class Region {
 
         // we now need the length! yuck! ok let's make another vector containing just
         // the encoding
-        final Vector tileData = getCompressedRGN();
+        final Vector<Byte> tileData = getCompressedRGN();
 
         dword = BitmapSaving.toDWORD(tileData.size());
         for (int c = 0; c < 4; ++c) {
             encoding.add(Byte.valueOf(dword[c]));
         }
 
-        for (int c = 0; c < tileData.size(); ++c) {
-            encoding.add(tileData.get(c));
+        for (final Byte element : tileData) {
+            encoding.add(element);
         }
 
         // pad it
@@ -251,10 +251,10 @@ public class Region {
     /**
      * Get the compressed tiledata as a vector of Bytes
      *
-     * @return the vector of bytes represting the encoding of this tiledata
+     * @return the vector of bytes representing the encoding of this tiledata
      */
-    private Vector getCompressedRGN() {
-        final Vector bytes = new Vector();
+    private Vector<Byte> getCompressedRGN() {
+        final Vector<Byte> bytes = new Vector<>();
 
         final boolean rgn[][] = new boolean[1024][1024];
 
@@ -279,7 +279,7 @@ public class Region {
             }
         }
 
-        Vector lastRow = null;
+        Vector<Byte> lastRow = null;
         int lastRowSameCount = 0;
         int emptyRowCount = 0;
 
@@ -321,7 +321,7 @@ public class Region {
             }
 
             // we have to encode a single row
-            final Vector encodedRow = new Vector();
+            final Vector<Byte> encodedRow = new Vector<>();
             curY = 0;
             while (curY < 1024) {
                 final boolean encodingTiles = rgn[curRow][curY];
@@ -382,7 +382,7 @@ public class Region {
      *
      * @return a Vector of bytes containing the encoding
      */
-    private static Vector encodeEmptyRows(final int count) {
+    private static Vector<Byte> encodeEmptyRows(final int count) {
         /*
          * first, rows that contain no tiles at all can (optionally) be encoded
          * specially:
@@ -391,7 +391,7 @@ public class Region {
          * rows of all empty
          */
 
-        final Vector code = new Vector();
+        final Vector<Byte> code = new Vector<>();
 
         int i = count;
         if (i <= 32) {
@@ -419,7 +419,7 @@ public class Region {
      * @param inRegion is this a run of region tiles? (or empty spaces)
      * @return the Vector of encodedBytes for this run
      */
-    private static Vector encodeRun(final int count, final boolean inRegion) {
+    private static Vector<Byte> encodeRun(final int count, final boolean inRegion) {
         /*
          * for each row, split it into runs of empty tiles and present tiles. for each
          * run, output one of these bit sequences:
@@ -429,7 +429,7 @@ public class Region {
          * 0110 00nn nnnn nnnn - n+1 (1-1024) present tiles in a row
          */
 
-        final Vector code = new Vector();
+        final Vector<Byte> code = new Vector<>();
         int i = count;
 
         if (i <= 32) {
@@ -472,7 +472,7 @@ public class Region {
      * @param count the number of times we repeated
      * @return a Vector of Bytes containing the encoding of this repetition
      */
-    private static Vector encodeRepeatLastRow(final int count) {
+    private static Vector<Byte> encodeRepeatLastRow(final int count) {
         /*
          * if the same pattern of tiles appears in more than one consecutive row, you
          * can use these special codes to save more space:
@@ -481,7 +481,7 @@ public class Region {
          * last row n+1 (1-1024) times
          */
 
-        final Vector code = new Vector();
+        final Vector<Byte> code = new Vector<>();
         int i = count;
         if (i <= 32) {
             i--; // cause it's 1-32 not 0-31
