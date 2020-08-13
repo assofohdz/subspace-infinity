@@ -2,18 +2,3 @@ include ':infinity'
 include ':infinity:assets'
 include ':infinity:api'
 include ':infinity:modules'
-
-
-include ":mphys"
-project(":mphys").projectDir = file("../pspeed42/moss/mphys")
-
-include ":mblock"
-project(":mblock").projectDir = file("../pspeed42/moss/mblock")
-include ":mblock-physb"
-project(":mblock-physb").projectDir = file("../pspeed42/moss/mblock-physb")
-include ":sio2-mblock"
-project(":sio2-mblock").projectDir = file("../pspeed42/moss/sio2-mblock")
-include ":sio2-mphys"
-project(":sio2-mphys").projectDir = file("../pspeed42/moss/sio2-mphys")
-include ":mworld"
-project(":mworld").projectDir = file("../pspeed42/moss/mworld")

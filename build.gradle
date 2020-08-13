@@ -1,8 +1,22 @@
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-
-
 allprojects {
+	apply plugin: "maven-publish"
+
+	group="subspace.infinity"
+	version="1.0.0-SNAPSHOT"
+
+	//ext.jmeVersion = "3.1.0-stable"
+	//ext.jmeVersion = "[3.3,)"
+	ext.jmeVersion = "3.3.2-stable"
+	ext.lemurVersion = "1.14.0"
+	ext.lemurProtoVersion = "1.11.0"
+	ext.lemurPropsVersion = "1.1.1"
+	ext.mossVersion = "1.0.0-SNAPSHOT"
+	ext.simMathVersion = "1.4.1-SNAPSHOT"
+	ext.sio2Version = "1.4.0"
+	ext.simEtherealVersion = "1.6.0-SNAPSHOT"
+	ext.zayEsVersion = "1.3.2"
+	ext.zayEsNetVersion = "1.4.2"
+
     repositories {
         mavenLocal()
         jcenter()
@@ -15,62 +29,36 @@ allprojects {
 }
 
 subprojects {
+    apply plugin: "checkstyle"
+    apply plugin: "groovy"
+	apply plugin: "java"
+	apply plugin: "maven-publish"
 
-    apply plugin: 'java'
-    apply plugin: 'groovy'
-    apply plugin: 'maven-publish'
-    apply plugin: 'checkstyle'
-
-    group='subspace.infinity'
-    version='1.0.0-SNAPSHOT'
-
-    //ext.jmeVersion = '3.1.0-stable'
-    ext.jmeVersion = '3.3.2-stable'   
-    //ext.jmeVersion = "[3.3,)"
-    ext.lemurVersion = '1.14.0'
-    ext.lemurProtoVersion = '1.11.0'
-    ext.lemurPropsVersion = '1.1.1'
-    ext.simMathVersion = '1.4.1-SNAPSHOT'
-    ext.sio2Version = '1.4.0'
-    ext.simEtherealVersion = '1.6.0-SNAPSHOT'
-    ext.zayEsVersion = '1.3.2'
-    ext.zayEsNetVersion = '1.4.2'
-
-    repositories {
-        mavenLocal()
-
-        if( JavaVersion.current() == JavaVersion.VERSION_1_7 ) {
-            // Fallback for JDK 7 that can no longer connect to jcenter with https
-            maven { url "http://jcenter.bintray.com" }
-        } else {
-            jcenter()
-        }
-    }
+	sourceCompatibility = 1.14
 
     checkstyle {
-        configFile = rootProject.file('checkstyle.xml')
+        configFile = rootProject.file("checkstyle.xml")
         configProperties = [projectRoot: "${rootDir}"]
     }
 
-    sourceCompatibility = 1.14
     compileJava {
-        options.encoding = 'UTF-8'
+        options.encoding = "UTF-8"
         //options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     }
 
     dependencies {
-        implementation 'com.google.guava:guava:19.0'
+        implementation "com.google.guava:guava:19.0"
 
         testImplementation(
-            'junit:junit:4.12',
-            'org.codehaus.groovy:groovy-all:2.4.11',
-            'org.slf4j:slf4j-api:1.7.13',
-            'org.apache.logging.log4j:log4j-api:2.5',
-            'org.apache.logging.log4j:log4j-core:2.5'
+            "junit:junit:4.12",
+            "org.codehaus.groovy:groovy-all:2.4.11",
+            "org.slf4j:slf4j-api:1.7.13",
+            "org.apache.logging.log4j:log4j-api:2.5",
+            "org.apache.logging.log4j:log4j-core:2.5"
         )
 
         testRuntimeOnly(
-            'org.apache.logging.log4j:log4j-slf4j-impl:2.5'
+            "org.apache.logging.log4j:log4j-slf4j-impl:2.5"
         )
     }
 
@@ -79,7 +67,7 @@ subprojects {
             // Uncomment and tests will run even when nothing has changed
             //outputs.upToDateWhen {false}
             showStandardStreams = true
-            exceptionFormat = 'full'
+            exceptionFormat = "full"
         }
     }
 }
