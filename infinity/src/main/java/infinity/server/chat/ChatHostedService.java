@@ -180,16 +180,16 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     protected void postMessage(final ChatSessionImpl from, final String message) {
         final HashSet<Pattern> set = new HashSet<>(patternBiConsumers.keySet());
         boolean matched = false;
-        for (final Pattern p : set) {
-            final Matcher m = p.matcher(message);
-            if (m.matches()) {
+        for (final Pattern pattern : set) {
+            final Matcher matcher = pattern.matcher(message);
+            if (matcher.matches()) {
                 matched = true;
                 final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
-                final CommandConsumer cc = patternBiConsumers.get(p);
+                final CommandConsumer cc = patternBiConsumers.get(pattern);
                 // TODO: Implement account service to manage security levels
                 // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
                 // cc.getAccessLevelRequired())) {
-                cc.getConsumer().accept(fromEntity, m.group(1));
+                cc.getConsumer().accept(fromEntity, matcher.group(1));
                 // }
             }
         }

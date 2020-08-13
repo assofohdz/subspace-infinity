@@ -528,7 +528,7 @@ public class GameServer {
      * buffer as the registry update call. This adds a slight delay to connections
      * in the hopes that the messages will end up in separate buffers.
      */
-    private class DelayService extends AbstractHostedService {
+    private static class DelayService extends AbstractHostedService {
 
         private void safeSleep(final long ms) {
             try {

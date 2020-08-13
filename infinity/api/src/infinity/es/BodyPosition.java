@@ -70,10 +70,10 @@ public final class BodyPosition implements EntityComponent {
      * transition buffer. It must be called for all retrieved BodyPosition
      * components before use.
      */
-    public void initialize(final EntityId id, final int size) {
+    public void initialize(final EntityId id, final int sz) {
         if (position == null) {
-            this.size = size;
-            position = BodyPositionCache.getBuffer(id, size);
+            size = sz;
+            position = BodyPositionCache.getBuffer(id, sz);
         }
     }
 

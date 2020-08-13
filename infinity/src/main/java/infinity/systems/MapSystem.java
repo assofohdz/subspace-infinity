@@ -714,7 +714,7 @@ public class MapSystem extends AbstractGameSystem {
         }
     }
 
-    class MapTileCallable implements Callable<EntityId> {
+    private static final class MapTileCallable implements Callable<EntityId> {
 
         String m_file;
         short s;
@@ -722,15 +722,17 @@ public class MapSystem extends AbstractGameSystem {
         String type;
         EntityData ed;
         long time;
+        PhysicsSpace<EntityId, MBlockShape> space;
 
         public MapTileCallable(final String m_file, final short s, final Vec3d location, final String type,
-                final EntityData ed, final long time) {
+                final EntityData ed, final long time, final PhysicsSpace<EntityId, MBlockShape> space) {
             this.m_file = m_file;
             this.s = s;
             loc = location;
             this.type = type;
             this.ed = ed;
             this.time = time;
+            this.space = space;
         }
 
         @Override

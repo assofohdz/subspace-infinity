@@ -152,32 +152,32 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     private class ChatSessionCallback implements ChatSessionListener {
 
         @Override
-        public void playerJoined(final int clientId, final String playerName) {
+        public void playerJoined(final int clientId, final String name) {
             if (log.isTraceEnabled()) {
-                log.trace("playerJoined(" + clientId + ", " + playerName + ")");
+                log.trace("playerJoined(" + clientId + ", " + name + ")");
             }
             for (final ChatSessionListener l : listeners) {
-                l.playerJoined(clientId, playerName);
+                l.playerJoined(clientId, name);
             }
         }
 
         @Override
-        public void newMessage(final int clientId, final String playerName, final String message) {
+        public void newMessage(final int clientId, final String name, final String message) {
             if (log.isTraceEnabled()) {
-                log.trace("newMessage(" + clientId + ", " + playerName + ", " + message + ")");
+                log.trace("newMessage(" + clientId + ", " + name + ", " + message + ")");
             }
             for (final ChatSessionListener l : listeners) {
-                l.newMessage(clientId, playerName, message);
+                l.newMessage(clientId, name, message);
             }
         }
 
         @Override
-        public void playerLeft(final int clientId, final String playerName) {
+        public void playerLeft(final int clientId, final String name) {
             if (log.isTraceEnabled()) {
-                log.trace("playerLeft(" + clientId + ", " + playerName + ")");
+                log.trace("playerLeft(" + clientId + ", " + name + ")");
             }
             for (final ChatSessionListener l : listeners) {
-                l.playerLeft(clientId, playerName);
+                l.playerLeft(clientId, name);
             }
         }
     }

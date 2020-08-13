@@ -113,8 +113,8 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
         }
 
         @Override
-        public void startFrame(final long frameTime, final double stepSize) {
-            this.frameTime = frameTime;
+        public void startFrame(final long time, final double stepSize) {
+            frameTime = time;
         }
 
         @Override
@@ -127,13 +127,13 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
             if (log.isTraceEnabled()) {
                 log.trace("update(" + body + ")");
             }
-            final BodyPosition pos = ed.getComponent(body.id, BodyPosition.class);
-            if (pos == null) {
+            final BodyPosition p = ed.getComponent(body.id, BodyPosition.class);
+            if (p == null) {
                 // Until we have remove notifications
                 log.error("No body position for:" + body.id);
                 return;
             }
-            pos.addFrame(frameTime, body.position, body.orientation, true);
+            p.addFrame(frameTime, body.position, body.orientation, true);
         }
 
         @Override
@@ -166,13 +166,13 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
             // unlikely to have a BodyPosition anymore. Also, this BodyPosition updating
             // is only used on the server and so is unlikely to care about historical
             // visibility, etc..
-            final BodyPosition pos = ed.getComponent(id, BodyPosition.class);
-            if (pos == null) {
+            final BodyPosition p = ed.getComponent(id, BodyPosition.class);
+            if (p == null) {
                 return; // just in case
             }
 
             // Add the final frame with the invisible flag
-            pos.addFrame(frameTime, body.position, body.orientation, false);
+            p.addFrame(frameTime, body.position, body.orientation, false);
         }
     }
 }

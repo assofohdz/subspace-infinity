@@ -81,11 +81,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
         arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
 
-        final AssetManager am = JmeSystem.newAssetManager(
+        final AssetManager assetManager = JmeSystem.newAssetManager(
                 Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
-        am.registerLoader(LevelLoader.class, "lvl");
-        am.registerLoader(LevelLoader.class, "lvz");
+        assetManager.registerLoader(LevelLoader.class, "lvl");
+        assetManager.registerLoader(LevelLoader.class, "lvz");
 
         staticBodyPositions = ed.getEntities(BodyPosition.class);
 

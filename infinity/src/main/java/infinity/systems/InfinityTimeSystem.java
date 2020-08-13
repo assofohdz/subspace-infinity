@@ -24,9 +24,9 @@ public class InfinityTimeSystem extends AbstractGameSystem implements TimeManage
     }
 
     @Override
-    public void update(final SimTime time) {
-        super.update(time); // To change body of generated methods, choose Tools | Templates.
-        this.time = time.getTime();
+    public void update(final SimTime simTime) {
+        super.update(simTime); // To change body of generated methods, choose Tools | Templates.
+        time = simTime.getTime();
     }
 
     @Override

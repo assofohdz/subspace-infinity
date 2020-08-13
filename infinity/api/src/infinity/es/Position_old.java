@@ -65,8 +65,8 @@ public class Position_old implements EntityComponent {
         this.cellId = cellId;
     }
 
-    public Position_old newCellId(final long cellId) {
-        return new Position_old(location, facing, rotation, cellId);
+    public Position_old newCellId(final long id) {
+        return new Position_old(location, facing, rotation, id);
     }
 
     // public Position changeLocation( Vec3d location ) {

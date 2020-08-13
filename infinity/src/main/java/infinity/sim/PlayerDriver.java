@@ -82,8 +82,8 @@ public class PlayerDriver implements ControlDriver, Driver {
         movementForces = input;
     }
 
-    private double applyThrust(final double velocity, final double thrust, final double tpf) {
-        double v = velocity;
+    private double applyThrust(final double vel, final double thrust, final double tpf) {
+        double v = vel;
         if (thrust > 0) {
             // Accelerate
             v = Math.min(thrust, v + pickup * tpf);
@@ -136,13 +136,13 @@ public class PlayerDriver implements ControlDriver, Driver {
     }
 
     @Override
-    public void initialize(final RigidBody body) {
-        this.body = body;
+    public void initialize(final RigidBody rigidBody) {
+        body = rigidBody;
     }
 
     @Override
-    public void terminate(final RigidBody body) {
-        this.body = null;
+    public void terminate(final RigidBody rigidBody) {
+        body = null;
     }
 
     public void fireGuns() {

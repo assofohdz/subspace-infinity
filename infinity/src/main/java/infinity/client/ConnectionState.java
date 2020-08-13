@@ -359,6 +359,7 @@ public class ConnectionState extends CompositeAppState {
     private class Connector extends Thread {
 
         public Connector() {
+            super();
         }
 
         @Override
@@ -366,19 +367,19 @@ public class ConnectionState extends CompositeAppState {
 
             try {
                 log.info("Creating game client for:" + host + " " + port);
-                final GameClient client = new GameClient(host, port);
+                final GameClient c = new GameClient(host, port);
                 if (closing) {
                     return;
                 }
-                setClient(client);
-                client.getClient().addClientStateListener(connectionObserver);
-                client.getClient().addErrorListener(connectionObserver);
+                setClient(c);
+                c.getClient().addClientStateListener(connectionObserver);
+                c.getClient().addErrorListener(connectionObserver);
                 if (closing) {
                     return;
                 }
 
                 log.info("Starting client...");
-                client.start();
+                c.start();
                 log.info("Client started.");
             } catch (final IOException e) {
                 if (closing) {

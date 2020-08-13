@@ -829,12 +829,12 @@ public class ModelViewState extends BaseAppState {
             // represents a starting and an ending pos+rot over a span of time.
             final PositionTransition3d trans = buffer.getTransition(time);
             if (trans != null) {
-                final Vector3f pos = trans.getPosition(time, true).toVector3f();
+                final Vector3f p = trans.getPosition(time, true).toVector3f();
 
                 // Make the position relative to our "conveyor"
-                pos.subtractLocal(centerCellWorld);
+                p.subtractLocal(centerCellWorld);
 
-                model.spatial.setLocalTranslation(pos);
+                model.spatial.setLocalTranslation(p);
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
                 // log.info("Mob[" + entity.getId() + "] position:" +
                 // model.spatial.getLocalTranslation());
@@ -845,7 +845,7 @@ public class ModelViewState extends BaseAppState {
                     getApplication().getCamera().setLocation(avatarWorldPos.add(0, 40, 0));
                     getApplication().getCamera().lookAt(avatarWorldPos, Vector3f.UNIT_Y);
 
-                    getState(WorldViewState.class).setViewLocation(pos.clone().addLocal(centerCellWorld));
+                    getState(WorldViewState.class).setViewLocation(p.clone().addLocal(centerCellWorld));
                     gameSession.setView(new Quatd(getApplication().getCamera().getRotation()),
                             new Vec3d(getApplication().getCamera().getLocation()));
                 }

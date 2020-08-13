@@ -105,6 +105,7 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
         private final AaBBox box = new AaBBox(1);
 
         public PhysicsObserver() {
+            super();
         }
 
         @Override

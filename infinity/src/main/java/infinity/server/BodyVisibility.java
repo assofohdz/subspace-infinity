@@ -87,8 +87,8 @@ public class BodyVisibility implements ComponentVisibility {
     }
 
     @Override
-    public void initialize(final EntityData ed) {
-        this.ed = ed;
+    public void initialize(final EntityData entityData) {
+        ed = entityData;
     }
 
     @Override

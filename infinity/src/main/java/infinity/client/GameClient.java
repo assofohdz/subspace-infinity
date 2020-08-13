@@ -128,7 +128,7 @@ public class GameClient {
     }
 
     private class MessageDebugger implements MessageListener<Client> {
-        Logger log = LoggerFactory.getLogger("diagnostics.MessageDebugger");
+        Logger debugLog = LoggerFactory.getLogger("diagnostics.MessageDebugger");
         private boolean objectStateStarted = false;
 
         public MessageDebugger() {
@@ -138,11 +138,11 @@ public class GameClient {
         public void messageReceived(final Client source, final Message m) {
             if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
                 if (!objectStateStarted) {
-                    log.info("Object state updates started.");
+                    debugLog.info("Object state updates started.");
                     objectStateStarted = true;
                 }
-            } else if (log.isInfoEnabled()) {
-                log.info("Received:" + m);
+            } else if (debugLog.isInfoEnabled()) {
+                debugLog.info("Received:" + m);
             }
         }
     }

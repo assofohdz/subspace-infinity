@@ -522,11 +522,11 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Tries to load the class from a directory.
      *
-     * @param dir   The directory that contains classes.
-     * @param name  The classname
-     * @param cache The cache entry to set the file if successful.
+     * @param dir        The directory that contains classes.
+     * @param name       The classname
+     * @param cacheEntry The cache entry to set the file if successful.
      */
-    private byte[] loadClassFromDirectory(final File dir, final String name, final ClassCacheEntry cache)
+    private byte[] loadClassFromDirectory(final File dir, final String name, final ClassCacheEntry cacheEntry)
             throws IOException {
         // Translate class name to file name
         String classFileName = name.replace('.', File.separatorChar) + ".class";
@@ -547,7 +547,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         final File classFile = new File(dir, classFileName);
 
         if (classFile.exists()) {
-            cache.origin = classFile;
+            cacheEntry.origin = classFile;
             try (InputStream in = new FileInputStream(classFile)) {
                 return loadBytesFromStream(in, (int) classFile.length());
             }
@@ -560,11 +560,11 @@ public class AdaptiveClassLoader extends ClassLoader {
     /**
      * Tries to load the class from a zip file.
      *
-     * @param file  The zipfile that contains classes.
-     * @param name  The classname
-     * @param cache The cache entry to set the file if successful.
+     * @param file       The zipfile that contains classes.
+     * @param name       The classname
+     * @param cacheEntry The cache entry to set the file if successful.
      */
-    private byte[] loadClassFromZipfile(final File file, final String name, final ClassCacheEntry cache)
+    private byte[] loadClassFromZipfile(final File file, final String name, final ClassCacheEntry cacheEntry)
             throws IOException {
         // Translate class name to file name
         final String classFileName = name.replace('.', '/') + ".class";
@@ -572,7 +572,7 @@ public class AdaptiveClassLoader extends ClassLoader {
         try (ZipFile zipfile = new ZipFile(file)) {
             final ZipEntry entry = zipfile.getEntry(classFileName);
             if (entry != null) {
-                cache.origin = file;
+                cacheEntry.origin = file;
                 try (InputStream is = zipfile.getInputStream(entry)) {
                     return loadBytesFromStream(is, (int) entry.getSize());
                 }

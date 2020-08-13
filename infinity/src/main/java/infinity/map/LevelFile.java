@@ -48,8 +48,8 @@ public class LevelFile extends JPanel {
     public Vector eLvlAttrs = new Vector();
     public static final int DEFAULT_TAG_COUNT = 6;
 
-    // Vector of loaded reginons
-    public Vector regions;
+    // Vector of loaded regions
+    public Vector loadedRegions;
 
     // unkownn ELVL chunks read in on load
     public Vector unknownELVLData = new Vector();
@@ -146,7 +146,7 @@ public class LevelFile extends JPanel {
      */
     private String readELvlData() {
         String error = null;
-        regions = new Vector();
+        loadedRegions = new Vector();
 
         if (!available(12)) {
             error = "File ended before we could read the eLVL header.";
@@ -201,7 +201,7 @@ public class LevelFile extends JPanel {
                                 break;
                             }
 
-                            regions.add(r);
+                            loadedRegions.add(r);
                         } else // unknown chunk
                         {
                             // System.out.println("unknown chunk: " + type);

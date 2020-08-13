@@ -259,9 +259,9 @@ public class Region {
         final boolean rgn[][] = new boolean[1024][1024];
 
         // start empty
-        for (int y = 0; y < 1024; ++y) {
-            for (int x = 0; x < 1024; ++x) {
-                rgn[y][x] = false;
+        for (int yPos = 0; yPos < 1024; ++yPos) {
+            for (int xPos = 0; xPos < 1024; ++xPos) {
+                rgn[yPos][xPos] = false;
             }
         }
 
@@ -272,9 +272,9 @@ public class Region {
             final int endX = r.x + r.width;
             final int endY = r.y + r.height;
 
-            for (int y = r.y; y < endY; ++y) {
-                for (int x = r.x; x < endX; ++x) {
-                    rgn[y][x] = true;
+            for (int yPos = r.y; yPos < endY; ++yPos) {
+                for (int xPos = r.x; xPos < endX; ++xPos) {
+                    rgn[yPos][xPos] = true;
                 }
             }
         }
@@ -637,9 +637,9 @@ public class Region {
         final boolean[][] rgn = new boolean[1024][1024];
 
         // region starts empty
-        for (int x = 0; x < 1024; ++x) {
-            for (int y = 0; y < 1024; ++y) {
-                rgn[x][y] = false;
+        for (int xPos = 0; xPos < 1024; ++xPos) {
+            for (int yPos = 0; yPos < 1024; ++yPos) {
+                rgn[xPos][yPos] = false;
             }
         }
 
@@ -667,8 +667,8 @@ public class Region {
 
                 final int stopX = curX + len;
 
-                for (int x = curX; x < stopX; ++x) {
-                    rgn[curY][x] = true;
+                for (int xPos = curX; xPos < stopX; ++xPos) {
+                    rgn[curY][xPos] = true;
                 }
 
                 curX += len;
@@ -692,9 +692,9 @@ public class Region {
                 final int stopY = curY + len;
                 final int copyY = curY - 1;
 
-                for (int x = 0; x < 1024; ++x) {
-                    for (int y = curY; y < stopY; ++y) {
-                        rgn[y][x] = rgn[copyY][x];
+                for (int xPos = 0; xPos < 1024; ++xPos) {
+                    for (int yPos = curY; yPos < stopY; ++yPos) {
+                        rgn[yPos][xPos] = rgn[copyY][xPos];
                     }
                 }
 
@@ -730,8 +730,8 @@ public class Region {
                     r.y = curY;
 
                     int w = 1;
-                    for (int x = curX + 1; x < 1024; ++x) {
-                        if (rgn[curY][x] == false) {
+                    for (int XPos = curX + 1; XPos < 1024; ++XPos) {
+                        if (rgn[curY][XPos] == false) {
                             break;
                         }
 
@@ -741,11 +741,11 @@ public class Region {
                     r.width = w;
 
                     int h = 1;
-                    for (int y = r.y + 1; y < 1024; ++y) {
+                    for (int yPos = r.y + 1; yPos < 1024; ++yPos) {
                         final int endX = r.x + r.width;
                         boolean sameRow = true;
-                        for (int x = r.x; x < endX; ++x) {
-                            if (rgn[y][x] == false) {
+                        for (int xPos = r.x; xPos < endX; ++xPos) {
+                            if (rgn[yPos][xPos] == false) {
                                 sameRow = false;
                                 break;
                             }
@@ -763,9 +763,9 @@ public class Region {
                     final int endX = r.x + r.width;
                     final int endY = r.y + r.height;
 
-                    for (int y = r.y; y < endY; ++y) {
-                        for (int x = r.x; x < endX; ++x) {
-                            rgn[y][x] = false; // this part has been proccessed
+                    for (int yPos = r.y; yPos < endY; ++yPos) {
+                        for (int xPos = r.x; xPos < endX; ++xPos) {
+                            rgn[yPos][xPos] = false; // this part has been proccessed
                         }
                     }
 
