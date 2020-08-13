@@ -83,9 +83,10 @@ public class PhysicsDebugState extends CompositeAppState {
     @Override
     protected void initialize(final Application app) {
         final PhysicsSpace<?, ?> phys = host.getSystems().get(PhysicsSpace.class);
+        final MPhysSystem<?> mPhysSystem = host.getSystems().get(MPhysSystem.class);
         stats = phys.getStats();
         addChild(new BinStatusState<>(phys, 64));
-        addChild(new BodyDebugState<>(host.getSystems().get(MPhysSystem.class)));
+        addChild(new BodyDebugState<>(mPhysSystem));
         addChild(new ContactDebugState<>(phys));
 
         final DebugHudState debug = getState(DebugHudState.class);

@@ -105,7 +105,7 @@ public class BodyVisibility implements ComponentVisibility {
     }
 
     @Override
-    public Set<EntityId> getEntityIds(final ComponentFilter filter) {
+    public Set<EntityId> getEntityIds(@SuppressWarnings("rawtypes") final ComponentFilter filter) {
         if (log.isTraceEnabled()) {
             log.trace("getEntityIds(" + filter + ")");
         }

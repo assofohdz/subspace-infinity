@@ -79,13 +79,20 @@ public class AttackSystem extends AbstractGameSystem {
     private EnergySystem health;
     // private SettingsSystem settings;
 
+    protected MPhysSystem<MBlockShape> getPhysicsSystem() {
+        final MPhysSystem<?> s = getSystem(MPhysSystem.class);
+        @SuppressWarnings("unchecked")
+        final MPhysSystem<MBlockShape> result = (MPhysSystem<MBlockShape>) s;
+        return result;
+    }
+
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        physics = getSystem(MPhysSystem.class);
+        physics = getPhysicsSystem();
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }

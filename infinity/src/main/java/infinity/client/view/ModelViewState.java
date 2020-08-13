@@ -467,12 +467,16 @@ public class ModelViewState extends BaseAppState {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected void resetModelFilter() {
         final int size = gridRadius * 2 + 1;
-        gridFilters = new ComponentFilter[size][size];
+        final ComponentFilter<?>[][] cf1 = new ComponentFilter<?>[size][size];
+        @SuppressWarnings("unchecked")
+        final ComponentFilter<SpawnPosition>[][] cf2 = (ComponentFilter<SpawnPosition>[][]) cf1;
+        gridFilters = cf2;
         // List<ComponentFilter> filters = new ArrayList<>();
-        final ComponentFilter<SpawnPosition>[] filters = new ComponentFilter[size * size];
+        final ComponentFilter<?>[] f1 = new ComponentFilter<?>[size * size];
+        @SuppressWarnings("unchecked")
+        final ComponentFilter<SpawnPosition>[] filters = (ComponentFilter<SpawnPosition>[]) f1;
 
 //System.out.println("************************************************");
 //System.out.println("New grid center:" + modelCenter);
@@ -500,8 +504,11 @@ public class ModelViewState extends BaseAppState {
         // Update the large objects filter also... we'll use the same
         // radius/size for now
         final int size = gridRadius * 2 + 1;
-        largeGridFilters = new ComponentFilter[size][size];
-        final ComponentFilter<LargeGridCell>[] filters = new ComponentFilter[size * size];
+        final ComponentFilter<?>[][] cf1 = new ComponentFilter<?>[size][size];
+        final ComponentFilter<LargeGridCell>[][] cf2 = (ComponentFilter<LargeGridCell>[][]) cf1;
+        largeGridFilters = cf2;
+        final ComponentFilter<?>[] f1 = new ComponentFilter<?>[size * size];
+        final ComponentFilter<LargeGridCell>[] filters = (ComponentFilter<LargeGridCell>[]) f1;
 
 //System.out.println("************************************************");
 //System.out.println("New grid center:" + modelCenter);
@@ -936,7 +943,7 @@ public class ModelViewState extends BaseAppState {
         }
 
         @Override
-        public void setFilter(final ComponentFilter filter) {
+        public void setFilter(@SuppressWarnings("rawtypes") final ComponentFilter filter) {
             super.setFilter(filter);
         }
 
@@ -981,7 +988,7 @@ public class ModelViewState extends BaseAppState {
         }
 
         @Override
-        public void setFilter(final ComponentFilter filter) {
+        public void setFilter(@SuppressWarnings("rawtypes") final ComponentFilter filter) {
             super.setFilter(filter);
         }
 

@@ -102,6 +102,13 @@ public class MapSystem extends AbstractGameSystem {
         this.assetLoader = assetLoader;
     }
 
+    protected MPhysSystem<MBlockShape> getPhysicsSystem() {
+        final MPhysSystem<?> s = getSystem(MPhysSystem.class);
+        @SuppressWarnings("unchecked")
+        final MPhysSystem<MBlockShape> result = (MPhysSystem<MBlockShape>) s;
+        return result;
+    }
+
     // int[][] multD = new int[5][];
     @Override
     protected void initialize() {
@@ -109,7 +116,7 @@ public class MapSystem extends AbstractGameSystem {
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        physics = getSystem(MPhysSystem.class);
+        physics = getPhysicsSystem();
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }

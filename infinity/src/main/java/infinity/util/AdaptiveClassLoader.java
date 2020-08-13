@@ -255,6 +255,7 @@ public class AdaptiveClassLoader extends ClassLoader {
     private boolean isZipOrJarArchive(final File file) {
         boolean result = false;
         try (ZipFile zipFile = new ZipFile(file)) {
+            zipFile.size();
             result = true;
         } catch (@SuppressWarnings("unused") final ZipException e) {
             result = false;

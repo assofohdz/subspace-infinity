@@ -494,7 +494,7 @@ public class GameServer {
                 out.println("PrtScrn to save a screen shot");
             }
 
-            out.close();
+            out.flush();
             final String desc = sOut.toString();
 
             final GameServer gs = new GameServer(InfinityConstants.DEFAULT_PORT, desc);

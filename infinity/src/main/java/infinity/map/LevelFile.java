@@ -442,8 +442,6 @@ public class LevelFile extends JPanel {
                     out.write(ar);
                 }
             }
-
-            out.close();
         } catch (final IOException e) {
             JOptionPane.showMessageDialog(null, e.toString());
         }

@@ -1,4 +1,4 @@
-#Wed Aug 12 23:44:30 CDT 2020
+#Thu Aug 13 00:46:20 CDT 2020
 \!/=
 /configuration/org.eclipse.buildship.ui/org.eclipse.buildship.ui.wizard.project.import.showWelcomePage=false
 /configuration/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true
@@ -127,7 +127,7 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.syntheticAccessEmulation=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.terminalDeprecation=error
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.typeParameterHiding=warning
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unavoidableGenericTypeProblems=disabled
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unavoidableGenericTypeProblems=enabled
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unclosedCloseable=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.undocumentedEmptyBlock=warning
@@ -606,7 +606,7 @@
 /instance/org.eclipse.jdt.ui/cleanup.use_var=false
 /instance/org.eclipse.jdt.ui/cleanup_profile=_Subspace-Infinity
 /instance/org.eclipse.jdt.ui/cleanup_settings_version=2
-/instance/org.eclipse.jdt.ui/content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="java.lang.Number"><rhs name\="java.lang.Integer"/></lhs></history>
+/instance/org.eclipse.jdt.ui/content_assist_lru_history=<?xml version\="1.0" encoding\="UTF-8" standalone\="no"?><history maxLHS\="100" maxRHS\="10"><lhs name\="java.lang.Number"><rhs name\="java.lang.Integer"/></lhs><lhs name\="com.simsilica.mphys.AbstractShape"><rhs name\="com.simsilica.mblock.phys.MBlockShape"/></lhs></history>
 /instance/org.eclipse.jdt.ui/content_assist_number_of_computers=12
 /instance/org.eclipse.jdt.ui/content_assist_proposals_background=255,255,255
 /instance/org.eclipse.jdt.ui/content_assist_proposals_foreground=0,0,0

@@ -31,7 +31,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
     private static final Logger log = Logger.getLogger(ContactSystem.class.getName());
 
     private EntityData ed;
-    private MPhysSystem<MBlockShape> physics;
+    private MPhysSystem<?> physics;
     // private PhysicsSpace<EntityId, MBlockShape> space;
     // private BinIndex binIndex;
     // private BinEntityManager binEntityManager;

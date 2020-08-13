@@ -66,18 +66,27 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
         this.zones = zones;
     }
 
+    protected MPhysSystem<S> getPhysicsSystem() {
+        final MPhysSystem<?> s = getSystem(MPhysSystem.class);
+        @SuppressWarnings("unchecked")
+        final MPhysSystem<S> result = (MPhysSystem<S>) s;
+        return result;
+    }
+
     @Override
     protected void initialize() {
         // getSystem(PhysicsSpace.class, true).addPhysicsListener(physicsObserver);
-        getSystem(MPhysSystem.class).addPhysicsListener(physicsObserver);
-        getSystem(MPhysSystem.class).getBinEntityManager().addObjectStatusListener(physicsObserver);
+        final MPhysSystem<S> system = getPhysicsSystem();
+        system.addPhysicsListener(physicsObserver);
+        system.getBinEntityManager().addObjectStatusListener(physicsObserver);
     }
 
     @Override
     protected void terminate() {
         // getSystem(PhysicsSpace.class, true).removePhysicsListener(physicsObserver);
-        getSystem(MPhysSystem.class).addPhysicsListener(physicsObserver);
-        getSystem(MPhysSystem.class).getBinEntityManager().addObjectStatusListener(physicsObserver);
+        final MPhysSystem<S> system = getPhysicsSystem();
+        system.addPhysicsListener(physicsObserver);
+        system.getBinEntityManager().addObjectStatusListener(physicsObserver);
     }
 
     /**

@@ -71,20 +71,29 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
     private final PhysicsObserver observer = new PhysicsObserver();
 
     public BodyPositionPublisher() {
+        super();
+    }
+
+    protected MPhysSystem<S> getPhysicsSystem() {
+        final MPhysSystem<?> s = getSystem(MPhysSystem.class);
+        @SuppressWarnings("unchecked")
+        final MPhysSystem<S> result = (MPhysSystem<S>) s;
+        return result;
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-
-        getSystem(MPhysSystem.class).addPhysicsListener(observer);
-        getSystem(MPhysSystem.class).getBinEntityManager().addObjectStatusListener(observer);
+        final MPhysSystem<S> system = getPhysicsSystem();
+        system.addPhysicsListener(observer);
+        system.getBinEntityManager().addObjectStatusListener(observer);
     }
 
     @Override
     protected void terminate() {
-        getSystem(MPhysSystem.class).getBinEntityManager().removeObjectStatusListener(observer);
-        getSystem(MPhysSystem.class).removePhysicsListener(observer);
+        final MPhysSystem<S> system = getPhysicsSystem();
+        system.getBinEntityManager().removeObjectStatusListener(observer);
+        system.removePhysicsListener(observer);
     }
 
     private class PhysicsObserver implements PhysicsListener<EntityId, S>, ObjectStatusListener<S> {
