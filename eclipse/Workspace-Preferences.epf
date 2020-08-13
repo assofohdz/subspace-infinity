@@ -1,4 +1,4 @@
-#Wed Aug 12 19:08:28 CDT 2020
+#Wed Aug 12 19:12:47 CDT 2020
 \!/=
 /configuration/org.eclipse.buildship.ui/org.eclipse.buildship.ui.wizard.project.import.showWelcomePage=false
 /configuration/org.eclipse.core.net/org.eclipse.core.net.hasMigrated=true
@@ -68,10 +68,10 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.autoboxing=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.comparingIdentical=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.deadCode=warning
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.deprecation=ignore
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.deprecation=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.deprecationInDeprecatedCode=disabled
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.deprecationWhenOverridingDeprecatedMethod=disabled
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.discouragedReference=warning
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.deprecationWhenOverridingDeprecatedMethod=enabled
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.discouragedReference=error
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.emptyStatement=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.enumIdentifier=error
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.explicitlyClosedAutoCloseable=warning
@@ -125,7 +125,7 @@
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.suppressWarningsNotFullyAnalysed=ignore
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.syntacticNullAnalysisForFields=disabled
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.syntheticAccessEmulation=warning
-/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.terminalDeprecation=warning
+/instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.terminalDeprecation=error
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.typeParameterHiding=warning
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.unavoidableGenericTypeProblems=disabled
 /instance/org.eclipse.jdt.core/org.eclipse.jdt.core.compiler.problem.uncheckedTypeOperation=ignore

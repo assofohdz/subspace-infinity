@@ -87,72 +87,72 @@ public class Region {
         final Vector encoding = new Vector();
         // encode isBase
         if (isBase) {
-            encoding.add(new Byte((byte) 'r'));
-            encoding.add(new Byte((byte) 'B'));
-            encoding.add(new Byte((byte) 'S'));
-            encoding.add(new Byte((byte) 'E'));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
+            encoding.add(Byte.valueOf((byte) 'r'));
+            encoding.add(Byte.valueOf((byte) 'B'));
+            encoding.add(Byte.valueOf((byte) 'S'));
+            encoding.add(Byte.valueOf((byte) 'E'));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
         }
         // encode noFlags
         if (isNoFlags) {
-            encoding.add(new Byte((byte) 'r'));
-            encoding.add(new Byte((byte) 'N'));
-            encoding.add(new Byte((byte) 'F'));
-            encoding.add(new Byte((byte) 'L'));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
+            encoding.add(Byte.valueOf((byte) 'r'));
+            encoding.add(Byte.valueOf((byte) 'N'));
+            encoding.add(Byte.valueOf((byte) 'F'));
+            encoding.add(Byte.valueOf((byte) 'L'));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
         }
         // encode noWeps
         if (isNoWeps) {
-            encoding.add(new Byte((byte) 'r'));
-            encoding.add(new Byte((byte) 'N'));
-            encoding.add(new Byte((byte) 'W'));
-            encoding.add(new Byte((byte) 'P'));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
+            encoding.add(Byte.valueOf((byte) 'r'));
+            encoding.add(Byte.valueOf((byte) 'N'));
+            encoding.add(Byte.valueOf((byte) 'W'));
+            encoding.add(Byte.valueOf((byte) 'P'));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
         }
         // encode noAnti
         if (isNoAnti) {
-            encoding.add(new Byte((byte) 'r'));
-            encoding.add(new Byte((byte) 'N'));
-            encoding.add(new Byte((byte) 'A'));
-            encoding.add(new Byte((byte) 'W'));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
-            encoding.add(new Byte((byte) 0));
+            encoding.add(Byte.valueOf((byte) 'r'));
+            encoding.add(Byte.valueOf((byte) 'N'));
+            encoding.add(Byte.valueOf((byte) 'A'));
+            encoding.add(Byte.valueOf((byte) 'W'));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
+            encoding.add(Byte.valueOf((byte) 0));
         }
         // encode isAutoWArp
         if (isAutoWarp) {
-            encoding.add(new Byte((byte) 'r'));
-            encoding.add(new Byte((byte) 'A'));
-            encoding.add(new Byte((byte) 'W'));
-            encoding.add(new Byte((byte) 'P'));
+            encoding.add(Byte.valueOf((byte) 'r'));
+            encoding.add(Byte.valueOf((byte) 'A'));
+            encoding.add(Byte.valueOf((byte) 'W'));
+            encoding.add(Byte.valueOf((byte) 'P'));
             if (!arena.equals("")) { // encode with arena, size = 20
                 final byte[] dword = BitmapSaving.toDWORD(20);
                 for (int c = 0; c < 4; ++c) {
-                    encoding.add(new Byte(dword[c]));
+                    encoding.add(Byte.valueOf(dword[c]));
                 }
 
                 // save x
                 byte[] word = BitmapSaving.toWORD(x);
 
                 for (int c = 0; c < 2; ++c) {
-                    encoding.add(new Byte(word[c]));
+                    encoding.add(Byte.valueOf(word[c]));
                 }
 
                 // save y
                 word = BitmapSaving.toWORD(y);
 
                 for (int c = 0; c < 2; ++c) {
-                    encoding.add(new Byte(word[c]));
+                    encoding.add(Byte.valueOf(word[c]));
                 }
 
                 // save arena
@@ -162,31 +162,31 @@ public class Region {
 
                 final int len = arena.length();
                 for (int c = 0; c < len; ++c) {
-                    encoding.add(new Byte((byte) arena.charAt(c)));
+                    encoding.add(Byte.valueOf((byte) arena.charAt(c)));
                 }
 
                 for (int c = len; c < 16; ++c) {
-                    encoding.add(new Byte((byte) 0));
+                    encoding.add(Byte.valueOf((byte) 0));
                 }
 
             } else { // no arena, size = 4
                 final byte[] dword = BitmapSaving.toDWORD(4);
                 for (int c = 0; c < 4; ++c) {
-                    encoding.add(new Byte(dword[c]));
+                    encoding.add(Byte.valueOf(dword[c]));
                 }
 
                 // save x
                 byte[] word = BitmapSaving.toWORD(x);
 
                 for (int c = 0; c < 2; ++c) {
-                    encoding.add(new Byte(word[c]));
+                    encoding.add(Byte.valueOf(word[c]));
                 }
 
                 // save y
                 word = BitmapSaving.toWORD(y);
 
                 for (int c = 0; c < 2; ++c) {
-                    encoding.add(new Byte(word[c]));
+                    encoding.add(Byte.valueOf(word[c]));
                 }
             }
         }
@@ -195,34 +195,34 @@ public class Region {
             encoding.add(unknownBytes.get(c));
         }
         // encoded name
-        encoding.add(new Byte((byte) 'r'));
-        encoding.add(new Byte((byte) 'N'));
-        encoding.add(new Byte((byte) 'A'));
-        encoding.add(new Byte((byte) 'M'));
+        encoding.add(Byte.valueOf((byte) 'r'));
+        encoding.add(Byte.valueOf((byte) 'N'));
+        encoding.add(Byte.valueOf((byte) 'A'));
+        encoding.add(Byte.valueOf((byte) 'M'));
 
         final int len = name.length();
         byte[] dword = BitmapSaving.toDWORD(len);
         for (int c = 0; c < 4; ++c) {
-            encoding.add(new Byte(dword[c]));
+            encoding.add(Byte.valueOf(dword[c]));
         }
 
         for (int c = 0; c < len; ++c) {
-            encoding.add(new Byte((byte) name.charAt(c)));
+            encoding.add(Byte.valueOf((byte) name.charAt(c)));
         }
 
         // pad it
         int padding = 4 - len % 4;
         if (padding != 4) {
             for (int c = 0; c < padding; ++c) {
-                encoding.add(new Byte((byte) 0));
+                encoding.add(Byte.valueOf((byte) 0));
             }
         }
 
         // encode tiles
-        encoding.add(new Byte((byte) 'r'));
-        encoding.add(new Byte((byte) 'T'));
-        encoding.add(new Byte((byte) 'I'));
-        encoding.add(new Byte((byte) 'L'));
+        encoding.add(Byte.valueOf((byte) 'r'));
+        encoding.add(Byte.valueOf((byte) 'T'));
+        encoding.add(Byte.valueOf((byte) 'I'));
+        encoding.add(Byte.valueOf((byte) 'L'));
 
         // we now need the length! yuck! ok let's make another vector containing just
         // the encoding
@@ -230,7 +230,7 @@ public class Region {
 
         dword = BitmapSaving.toDWORD(tileData.size());
         for (int c = 0; c < 4; ++c) {
-            encoding.add(new Byte(dword[c]));
+            encoding.add(Byte.valueOf(dword[c]));
         }
 
         for (int c = 0; c < tileData.size(); ++c) {
@@ -241,7 +241,7 @@ public class Region {
         padding = 4 - tileData.size() % 4;
         if (padding != 4) {
             for (int c = 0; c < padding; ++c) {
-                encoding.add(new Byte((byte) 0));
+                encoding.add(Byte.valueOf((byte) 0));
             }
         }
 
@@ -397,15 +397,15 @@ public class Region {
         if (i <= 32) {
             i--; // cause it's 1-32 not 0-31
             final byte encode = (byte) (i | 0x80);
-            code.add(new Byte(encode));
+            code.add(Byte.valueOf(encode));
 
         } else {
             i--;
             final byte one = (byte) ((i >> 8) | 0xA0);
             final byte two = (byte) ((i & 0x00FF));
 
-            code.add(new Byte(one));
-            code.add(new Byte(two));
+            code.add(Byte.valueOf(one));
+            code.add(Byte.valueOf(two));
 
         }
 
@@ -442,7 +442,7 @@ public class Region {
                 one = (byte) (i | 0x40);
             }
 
-            code.add(new Byte(one));
+            code.add(Byte.valueOf(one));
 
         } else {
             --i;
@@ -458,8 +458,8 @@ public class Region {
                 two = (byte) (i & 0x00FF);
             }
 
-            code.add(new Byte(one));
-            code.add(new Byte(two));
+            code.add(Byte.valueOf(one));
+            code.add(Byte.valueOf(two));
 
         }
 
@@ -486,14 +486,14 @@ public class Region {
         if (i <= 32) {
             i--; // cause it's 1-32 not 0-31
             final byte encode = (byte) (i | 0xC0);
-            code.add(new Byte(encode));
+            code.add(Byte.valueOf(encode));
         } else {
             i--;
             final byte one = (byte) ((i >> 8) | 0xE0);
             final byte two = (byte) ((i & 0x00FF));
 
-            code.add(new Byte(one));
-            code.add(new Byte(two));
+            code.add(Byte.valueOf(one));
+            code.add(Byte.valueOf(two));
         }
 
         return code;
@@ -588,27 +588,27 @@ public class Region {
             } // other - unknown tiles, or maybe that python stuff
             else {
                 // encode header
-                unknownBytes.add(new Byte((byte) type.charAt(0)));
-                unknownBytes.add(new Byte((byte) type.charAt(1)));
-                unknownBytes.add(new Byte((byte) type.charAt(2)));
-                unknownBytes.add(new Byte((byte) type.charAt(3)));
+                unknownBytes.add(Byte.valueOf((byte) type.charAt(0)));
+                unknownBytes.add(Byte.valueOf((byte) type.charAt(1)));
+                unknownBytes.add(Byte.valueOf((byte) type.charAt(2)));
+                unknownBytes.add(Byte.valueOf((byte) type.charAt(3)));
                 final byte[] dword = BitmapSaving.toDWORD(len);
                 for (int c = 0; c < 4; ++c) {
-                    unknownBytes.add(new Byte(dword[c]));
+                    unknownBytes.add(Byte.valueOf(dword[c]));
                 }
 
                 // encode data
                 final int endIndex = cur + len;
                 for (int c = cur; c < endIndex; ++c) {
                     final byte b = encoding.readByte(c);
-                    unknownBytes.add(new Byte(b));
+                    unknownBytes.add(Byte.valueOf(b));
                 }
                 cur += len;
 
                 // encode padding
                 final int padding = 4 - len % 4;
                 if (padding != 4) {
-                    unknownBytes.add(new Byte((byte) 0));
+                    unknownBytes.add(Byte.valueOf((byte) 0));
                     cur += padding;
                 }
             }

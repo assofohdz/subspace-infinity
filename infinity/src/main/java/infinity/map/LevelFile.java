@@ -208,25 +208,25 @@ public class LevelFile extends JPanel {
                             curData = new ByteArray(readIn(chunkLength));
 
                             // encode header
-                            unknownELVLData.add(new Byte((byte) type.charAt(0)));
-                            unknownELVLData.add(new Byte((byte) type.charAt(1)));
-                            unknownELVLData.add(new Byte((byte) type.charAt(2)));
-                            unknownELVLData.add(new Byte((byte) type.charAt(3)));
+                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(0)));
+                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(1)));
+                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(2)));
+                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(3)));
                             final byte[] dword = BitmapSaving.toDWORD(chunkLength);
                             for (int c = 0; c < 4; ++c) {
-                                unknownELVLData.add(new Byte(dword[c]));
+                                unknownELVLData.add(Byte.valueOf(dword[c]));
                             }
 
                             // encode data
                             for (int c = 0; c < chunkLength; ++c) {
                                 final byte b = curData.readByte(c);
-                                unknownELVLData.add(new Byte(b));
+                                unknownELVLData.add(Byte.valueOf(b));
                             }
 
                             // encode padding
                             final int padding = 4 - chunkLength % 4;
                             if (padding != 4) {
-                                unknownELVLData.add(new Byte((byte) 0));
+                                unknownELVLData.add(Byte.valueOf((byte) 0));
                             }
                         }
 
@@ -319,28 +319,28 @@ public class LevelFile extends JPanel {
             final String save = one + "=" + two;
 
             // save chunk header
-            eLVLData.add(new Byte((byte) 'A'));
-            eLVLData.add(new Byte((byte) 'T'));
-            eLVLData.add(new Byte((byte) 'T'));
-            eLVLData.add(new Byte((byte) 'R'));
+            eLVLData.add(Byte.valueOf((byte) 'A'));
+            eLVLData.add(Byte.valueOf((byte) 'T'));
+            eLVLData.add(Byte.valueOf((byte) 'T'));
+            eLVLData.add(Byte.valueOf((byte) 'R'));
 
             final int chunkLength = save.length();
             final byte[] chunkSizeBytes = BitmapSaving.toDWORD(chunkLength);
             for (int c = 0; c < 4; ++c) {
-                eLVLData.add(new Byte(chunkSizeBytes[c]));
+                eLVLData.add(Byte.valueOf(chunkSizeBytes[c]));
             }
 
             final int len = save.length();
             for (int c = 0; c < len; ++c) {
                 final byte letter = (byte) save.charAt(c);
-                eLVLData.add(new Byte(letter));
+                eLVLData.add(Byte.valueOf(letter));
             }
 
             // padding
             final int padding = 4 - (chunkLength % 4);
             if (padding != 4) {
                 for (int c = 0; c < padding; ++c) {
-                    eLVLData.add(new Byte((byte) 0)); // padding byte
+                    eLVLData.add(Byte.valueOf((byte) 0)); // padding byte
                 }
             }
         }
@@ -349,15 +349,15 @@ public class LevelFile extends JPanel {
         for (int x = 0; x < regions.size(); ++x) {
             final Region r = (Region) regions.get(x);
 
-            eLVLData.add(new Byte((byte) 'R'));
-            eLVLData.add(new Byte((byte) 'E'));
-            eLVLData.add(new Byte((byte) 'G'));
-            eLVLData.add(new Byte((byte) 'N'));
+            eLVLData.add(Byte.valueOf((byte) 'R'));
+            eLVLData.add(Byte.valueOf((byte) 'E'));
+            eLVLData.add(Byte.valueOf((byte) 'G'));
+            eLVLData.add(Byte.valueOf((byte) 'N'));
 
             final Vector curRegionEncoded = r.getEncodedRegion();
             final byte[] dword = BitmapSaving.toDWORD(curRegionEncoded.size());
             for (int c = 0; c < 4; ++c) {
-                eLVLData.add(new Byte(dword[c]));
+                eLVLData.add(Byte.valueOf(dword[c]));
             }
 
             eLVLData.addAll(curRegionEncoded);
