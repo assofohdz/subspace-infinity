@@ -87,7 +87,7 @@ public class MapState extends BaseAppState {
     private final HashMap<TileKey, Image> imageMap = new HashMap<>();
 
     private final HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
-    private float tpfTime;
+    // private float tpfTime;
     private Camera camera;
 
     public MapState() {
@@ -231,8 +231,7 @@ public class MapState extends BaseAppState {
 
     @Override
     public void update(final float tpf) {
-        tpfTime = tpf;
-
+        // tpfTime = tpf;
         tileImages.update();
     }
 
@@ -400,7 +399,7 @@ public class MapState extends BaseAppState {
         }
     }
 
-    public void setMapEditingActive(final boolean active) {
+    public void setMapEditingActive(@SuppressWarnings("unused") final boolean active) {
         return;
     }
 

@@ -56,7 +56,7 @@ import infinity.sim.CorePhysicsConstants;
 public class AvatarSystem extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet freqInput, avatarInput;
+    // private EntitySet freqInput, avatarInput;
     private EntitySet frequencies;
 
     public static final byte SPEC = 0x0;
@@ -110,6 +110,7 @@ public class AvatarSystem extends AbstractGameSystem {
         frequencies = null;
     }
 
+    @SuppressWarnings("unused")
     @Override
     public void update(final SimTime tpf) {
 

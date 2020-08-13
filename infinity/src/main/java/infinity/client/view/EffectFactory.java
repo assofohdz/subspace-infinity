@@ -36,21 +36,17 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
-import com.simsilica.es.EntityData;
-
-import infinity.client.ConnectionState;
-
 /**
  *
  * @author Asser
  */
 public class EffectFactory {
 
-    private ModelViewState state;
+    // private ModelViewState state;
     private AssetManager assets;
-    private EntityData ed;
-    private final float time = 0;
-    private final int state2 = 0;
+    // private EntityData ed;
+    // private final float time = 0;
+    // private final int state2 = 0;
     private final Node explosionEffect = new Node("explosionFX");
     private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris, shockwave;
 
@@ -63,9 +59,10 @@ public class EffectFactory {
 
     public void setState(final ModelViewState state) {
 
-        this.state = state;
+        // this.state = state;
         assets = state.getApplication().getAssetManager();
-        ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
+        // ed =
+        // state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
 
         createFlame();
         createFlash();

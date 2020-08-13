@@ -43,12 +43,9 @@ import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mathd.Vec3i;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
@@ -79,8 +76,8 @@ public class MapSystem extends AbstractGameSystem {
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
     private PhysicsSpace<EntityId, MBlockShape> space;
-    private BinIndex binIndex;
-    private BinEntityManager binEntityManager;
+    // private BinIndex binIndex;
+    // private BinEntityManager binEntityManager;
     private SimTime time;
 
     private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
@@ -98,7 +95,7 @@ public class MapSystem extends AbstractGameSystem {
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
     private InfinityDefaultWorld world;
-    private final boolean logged = false;
+    // private final boolean logged = false;
 
     public MapSystem(final AssetLoaderService assetLoader) {
 
@@ -122,8 +119,8 @@ public class MapSystem extends AbstractGameSystem {
         }
 
         space = physics.getPhysicsSpace();
-        binIndex = space.getBinIndex();
-        binEntityManager = physics.getBinEntityManager();
+        // binIndex = space.getBinIndex();
+        // binEntityManager = physics.getBinEntityManager();
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
@@ -189,7 +186,7 @@ public class MapSystem extends AbstractGameSystem {
     public void createEntitiesFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
         final Set<Integer> tileSet = new HashSet<>();
         final short[][] tiles = map.getMap();
-        int count = 0;
+        // int count = 0;
 
         // for (int xpos = 510; xpos < 516; xpos++) {
         for (int xpos = 0; xpos < tiles.length; xpos++) {
@@ -300,7 +297,7 @@ public class MapSystem extends AbstractGameSystem {
                     final Vec3d bottomPlane = new Vec3d(xpos, 0, zpos).add(arenaOffset);
                     // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
-                    final Vec3i i = new Vec3i(bottomPlane.toVector3f());
+                    // final Vec3i i = new Vec3i(bottomPlane.toVector3f());
 
                     final int mapId = 20;
                     final int tileId = Short.toUnsignedInt(s);
@@ -314,7 +311,7 @@ public class MapSystem extends AbstractGameSystem {
 
                     // world.setWorldCell(topPlane, 0);
 
-                    count++;
+                    // count++;
                 }
             }
         }
@@ -601,6 +598,7 @@ public class MapSystem extends AbstractGameSystem {
         sessionTileCreations.add(clampedLocation);
     }
 
+    @SuppressWarnings("unused")
     private Grid createDungeonGrid() {
         final Grid result = new Grid(100, 100);
 
@@ -638,6 +636,7 @@ public class MapSystem extends AbstractGameSystem {
      * @param grid the Grid to expand corridors in
      * @return the new Grid with expanded corridors
      */
+    @SuppressWarnings("unused")
     private Grid expandCorridors(final Grid grid) {
         final Grid newGrid = grid.copy();
 
@@ -676,6 +675,7 @@ public class MapSystem extends AbstractGameSystem {
      * @param offsetX the offset x-coordinate to create the entities in
      * @param offsetZ the offset y-coordinate to create the entities in
      */
+    @SuppressWarnings("unused")
     private void createMapTilesFromDungeonGrid(final Grid grid, final float offsetX, final float offsetZ) {
         float f;
         for (int i = 0; i < grid.getHeight(); i++) {
@@ -724,6 +724,7 @@ public class MapSystem extends AbstractGameSystem {
         long time;
         PhysicsSpace<EntityId, MBlockShape> space;
 
+        @SuppressWarnings("unused")
         public MapTileCallable(final String m_file, final short s, final Vec3d location, final String type,
                 final EntityData ed, final long time, final PhysicsSpace<EntityId, MBlockShape> space) {
             this.m_file = m_file;

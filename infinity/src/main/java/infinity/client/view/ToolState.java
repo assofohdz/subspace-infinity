@@ -57,10 +57,6 @@ import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 
-import infinity.client.ConnectionState;
-import infinity.client.GameSessionClientService;
-import infinity.net.GameSession;
-
 /**
  * Manages the mouse/tool interaction with the scene/world.
  *
@@ -75,11 +71,12 @@ public class ToolState extends BaseAppState {
 
     private final ToolListener toolListener = new ToolListener();
 
-    private GameSession gameSession;
+    // private GameSession gameSession;
 
     private ModelViewState models;
 
     public ToolState() {
+        super();
     }
 
     protected Node getGuiNode() {
@@ -112,7 +109,8 @@ public class ToolState extends BaseAppState {
         resetCursorPosition();
         getGuiNode().attachChild(cursor);
 
-        gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        // gameSession =
+        // getState(ConnectionState.class).getService(GameSessionClientService.class);
 
         final InputMapper input = GuiGlobals.getInstance().getInputMapper();
         input.addStateListener(toolListener, ToolFunctions.F_MAIN_TOOL, ToolFunctions.F_ALT_TOOL);
@@ -138,6 +136,7 @@ public class ToolState extends BaseAppState {
 
     private class ToolListener implements StateFunctionListener {
 
+        @SuppressWarnings("unused")
         private EntityId heldEntity;
 
         @Override

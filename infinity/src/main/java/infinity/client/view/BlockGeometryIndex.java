@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.asset.DesktopAssetManager;
 import com.jme3.material.Material;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -56,8 +55,8 @@ public class BlockGeometryIndex {
     private static int TILEID_MASK = 0x000000ff;
     private static int MAPID_MASK = 0x000fff00;
 
-    private static String INVISIBLE = "invisible";
-    private static String TILE = "tile";
+    // private static String INVISIBLE = "invisible";
+    // private static String TILE = "tile";
 
     public static int BOTTOM_TILE_LAYER = 1;
     public static int TOP_INVISIBLE_LAYER = 2;
@@ -72,7 +71,7 @@ public class BlockGeometryIndex {
     private final Map<Integer, MaterialType> tileKeyToMaterialType = new HashMap<>();
 
     public static boolean debug = false;
-    private boolean logged;
+    // private boolean logged;
     private final AWTLoader imgLoader;
 
     private final Map<Integer, LevelFile> mapIdToLevels = new HashMap<>();
@@ -99,14 +98,14 @@ public class BlockGeometryIndex {
          */
     }
 
-    private BlockFactory createFactory(final int tileKey, final int color) {
-        final int x = color & 0x7;
-        final int y = (color & 0x38) >> 3;
+    private BlockFactory createFactory(final int tileKey, @SuppressWarnings("unused") final int color) {
+        // final int x = color & 0x7;
+        // final int y = (color & 0x38) >> 3;
 
-        final float textureScale = 0.125f; // 1/8th
-        final float halfScale = textureScale * 0.5f;
-        final float s = x * textureScale + halfScale;
-        final float t = 1f - (y * textureScale + halfScale);
+        // final float textureScale = 0.125f; // 1/8th
+        // final float halfScale = textureScale * 0.5f;
+        // final float s = x * textureScale + halfScale;
+        // final float t = 1f - (y * textureScale + halfScale);
         // float t = y * 0.125f;
 
         // log.info("createFactory:: tileKey = "+tileKey);
@@ -160,14 +159,14 @@ public class BlockGeometryIndex {
 
         if (matType == null) {
 
-            final int tileId = tileKey & TILEID_MASK;
-            final int mapId = (tileKey & MAPID_MASK) >> 8;
+            // final int tileId = tileKey & TILEID_MASK;
+            // final int mapId = (tileKey & MAPID_MASK) >> 8;
             // TODO: Lookup the levelname, using the id:
 
             // log.info("getMaterialType:: tileKey = " + tileKey + " => (Tile,Map) = (" +
             // tileId + "," + mapId + ")");
 
-            final String mapName = "aswz.lvl";
+            // final String mapName = "aswz.lvl";
 
             matType = new MaterialType(tileKey);
 
@@ -212,10 +211,10 @@ public class BlockGeometryIndex {
     public Node generateBlocks(final Node target, final CellArray cells) {
 
         final Set<Integer> tileSet = new HashSet<>();
-        int count = 0;
-        final int count2 = 0;
+        // int count = 0;
+        // final int count2 = 0;
 //System.out.println("===============generateBlocks(" + target + ", " + cells + ")");
-        final long start = System.nanoTime();
+        // final long start = System.nanoTime();
         final Node result = target;
         result.detachAllChildren();
 
@@ -229,7 +228,7 @@ public class BlockGeometryIndex {
             for (int y = 0; y < ySize; y++) {
                 for (int z = 0; z < zSize; z++) {
                     final int val = cells.getCell(x, y, z);
-                    count++;
+                    // count++;
 //System.out.println("[" + x + "][" + y + "][" + z + "] val:" + val);
                     final int tileId = MaskUtils.getType(val) & 0x000000ff;
 
@@ -242,8 +241,8 @@ public class BlockGeometryIndex {
 
                     final int mapId = (MaskUtils.getType(val) & 0x000fff00) >> 8;
 
-                    final Vector3f targetLoc = target.getWorldTranslation();
-                    final Vector3f worldLoc = targetLoc.add(x, y, z);
+                    // final Vector3f targetLoc = target.getWorldTranslation();
+                    // final Vector3f worldLoc = targetLoc.add(x, y, z);
                     // log.info("generateBlocks:: val = " + val + " => (Tile,Map) = (" + tileId +
                     // "," + mapId + ") - Coords: ["+worldLoc+"]");
 
@@ -305,7 +304,7 @@ public class BlockGeometryIndex {
                 final int size = part.getVertexCount();
                 final float[] verts = part.getCoords();
                 int vIndex = 0;
-                final int tIndex = 0;
+                // final int tIndex = 0;
                 for (int v = 0; v < size; v++) {
                     final float x = verts[vIndex++];
                     final float y = verts[vIndex++];
@@ -377,11 +376,11 @@ public class BlockGeometryIndex {
             final Geometry geom = new Geometry("mesh:" + list.materialType + ":" + list.primitiveType, quad);
             geom.setMaterial(getMaterial(list.materialType.getId()));
             result.attachChild(geom);
-            count++;
+            // count++;
         }
 
         // log.info("Counted: " + count + " meshes added to world");
-        final long end = System.nanoTime();
+        // final long end = System.nanoTime();
 //        System.out.println("Generated in:" + ((end - start)/1000000.0) + " ms");
         return result;
     }
@@ -491,6 +490,7 @@ public class BlockGeometryIndex {
      * @param halfSize
      * @return array
      */
+    @SuppressWarnings("unused")
     private float[] getVertices(final float halfSize) {
         final float[] res = new float[] { halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize,
                 halfSize, 0, halfSize };
@@ -503,6 +503,7 @@ public class BlockGeometryIndex {
      *
      * @return float array containing the right normals
      */
+    @SuppressWarnings("unused")
     private float[] getNormals() {
         float[] normals;
         normals = new float[] { 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0 };

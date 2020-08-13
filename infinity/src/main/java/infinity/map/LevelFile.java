@@ -51,21 +51,21 @@ public class LevelFile extends JPanel {
     // Vector of loaded regions
     public Vector loadedRegions;
 
-    // unkownn ELVL chunks read in on load
+    // unknown ELVL chunks read in on load
     public Vector unknownELVLData = new Vector();
 
     // the actual data we're going to save, as a Vector of Bytes... saved by
     // makeELvlDataForSaving
     public Vector eLVLData;
 
-    private String m_type;
-    private int m_size;
-    private int m_offset;
-    private int m_width;
-    private int m_height;
-    private int m_bitCount;
-    private int m_compressionType;
-    private int m_colorsUsed;
+    // private String m_type;
+    // private int m_size;
+    // private int m_offset;
+    // private int m_width;
+    // private int m_height;
+    // private int m_bitCount;
+    // private int m_compressionType;
+    // private int m_colorsUsed;
 
     private final short[][] m_level = new short[1024][1024];
 
@@ -416,7 +416,7 @@ public class LevelFile extends JPanel {
     public void saveLevel(final Image tileset, final short[][] map, final Vector regions) {
         try (FileOutputStream fos = new FileOutputStream(m_file);
                 BufferedOutputStream out = new BufferedOutputStream(fos)) {
-            final boolean containsELVLData = eLvlAttrs.size() > 0;
+            // final boolean containsELVLData = eLvlAttrs.size() > 0;
             makeELvlDataForSaving(regions);
 
             // save bitmap

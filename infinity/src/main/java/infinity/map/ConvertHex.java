@@ -38,11 +38,13 @@ public class ConvertHex {
      * @return String containing the hexadecimal equivalent of the provided byte
      */
     public static String byteToHex(final byte b) {
+        final String result;
         if ((b & 0xf0) == 0) {
-            return 0 + Integer.toHexString(b & 0xFF);
+            result = 0 + Integer.toHexString(b & 0xFF);
         } else {
-            return Integer.toHexString(b & 0xFF);
+            result = Integer.toHexString(b & 0xFF);
         }
+        return result;
     }
 
     /**
@@ -53,16 +55,18 @@ public class ConvertHex {
      * @return String containing the hexadecimal equivalent of the provided byte
      */
     public static String byteToHex(final int theByte) {
+        final String result;
         if ((theByte & 0x00F0) == 0) {
-            return 0 + Integer.toHexString(theByte & 0xFF);
+            result = 0 + Integer.toHexString(theByte & 0xFF);
         } else {
-            return Integer.toHexString(theByte & 0xFF);
+            result = Integer.toHexString(theByte & 0xFF);
         }
+        return result;
     }
 
     /**
-     * Given a string containing hexadecimals, returns the byte equivalent in a byte
-     * array
+     * Given a string containing hexadecimal characters, returns the byte equivalent
+     * in a byte array
      *
      * @param s Source string to be decoded.
      * @return Byte array representing the original hex values in the string.

@@ -80,68 +80,70 @@ public class SISpatialFactory {
         this.assets = assets;
     }
 
-    Spatial createModel(final EntityId id, final MBlockShape shape, final ShapeInfo shapeInfo, final Mass mass) {
+    Spatial createModel(@SuppressWarnings("unused") final EntityId id,
+            @SuppressWarnings("unused") final MBlockShape shape, final ShapeInfo shapeInfo,
+            @SuppressWarnings("unused") final Mass mass) {
         final String shapeName = shapeInfo.getShapeName(ed);
 
         if (shapeName == null || shapeName == "") {
             throw new NullPointerException("Model shapeInfo name cannot be null or empty");
         }
 
-        final Spatial s = this.createModel(id, shapeName);
+        final Spatial s = this.createModel(shapeName);
 
         return s;
     }
 
-    public Spatial createModel(final EntityId eId, final String shapeName) {
+    public Spatial createModel(final String shapeName) {
 
         switch (shapeName) {
         // case "thrust":
         // return createParticleEmitter(eId, shapeName);
         case ShapeNames.BULLETL1:
-            return createBullet(eId, 1);
+            return createBullet(1);
         case ShapeNames.BOMBL1:
             // Create bomb
-            return createBomb(eId, BombLevelEnum.BOMB_1);
+            return createBomb(BombLevelEnum.BOMB_1);
         case ShapeNames.BOMBL2:
             // Create bomb
-            return createBomb(eId, BombLevelEnum.BOMB_2);
+            return createBomb(BombLevelEnum.BOMB_2);
         case ShapeNames.BOMBL3:
             // Create bomb
-            return createBomb(eId, BombLevelEnum.BOMB_3);
+            return createBomb(BombLevelEnum.BOMB_3);
         case ShapeNames.BOMBL4:
             // Create bomb
-            return createBomb(eId, BombLevelEnum.BOMB_4);
+            return createBomb(BombLevelEnum.BOMB_4);
         case ShapeNames.THOR:
             // Create bomb
-            return createBomb(eId, BombLevelEnum.THOR);
+            return createBomb(BombLevelEnum.THOR);
         case ShapeNames.BURST:
             // Create bomb
-            return createBurst(eId);
+            return createBurst();
         case ShapeNames.EXPLOSION:
             // Create explosion
-            return createExplosion(eId);
+            return createExplosion();
         case ShapeNames.PRIZE:
             // Create bounty
-            return createBounty(eId);
+            return createBounty();
         case ShapeNames.ARENA:
-            return createArena(eId);
+            return createArena();
         /*
          * case ShapeNames.MAPTILE: return createMapTile(eId);
          */
         case ShapeNames.EXPLOSION2:
-            return createExplosion2(eId);
+            return createExplosion2();
         case ShapeNames.OVER5:
-            return createOver5(eId);
+            return createOver5();
         case ShapeNames.WORMHOLE:
-            return createWormhole(eId);
+            return createWormhole();
         case ShapeNames.OVER1:
-            return createOver1(eId);
+            return createOver1();
         case ShapeNames.WARP:
-            return createWarp(eId);
+            return createWarp();
         case ShapeNames.REPEL:
-            return createRepel(eId);
+            return createRepel();
         case ShapeNames.OVER2:
-            return createOver2(eId);
+            return createOver2();
         case ShapeNames.SHIP_WARBIRD:
             return createShip(31);
         case ShapeNames.SHIP_JAVELIN:
@@ -172,6 +174,7 @@ public class SISpatialFactory {
         }
     }
 
+    @SuppressWarnings("unused")
     private Spatial createBase() {
         final Quad quad = new Quad(CoreViewConstants.BASESIZE, CoreViewConstants.BASESIZE);
         final float halfSize = CoreViewConstants.BASESIZE * 0.5f;
@@ -190,6 +193,7 @@ public class SISpatialFactory {
         return geom;
     }
 
+    @SuppressWarnings("unused")
     private Spatial createMob() {
         final Quad quad = new Quad(CoreViewConstants.MOBSIZE, CoreViewConstants.MOBSIZE);
         final float halfSize = CoreViewConstants.MOBSIZE * 0.5f;
@@ -208,6 +212,7 @@ public class SISpatialFactory {
         return geom;
     }
 
+    @SuppressWarnings("unused")
     private Spatial createTower() {
         final Quad quad = new Quad(CoreViewConstants.TOWERSIZE, CoreViewConstants.TOWERSIZE);
         final float halfSize = CoreViewConstants.TOWERSIZE * 0.5f;
@@ -300,13 +305,14 @@ public class SISpatialFactory {
         log.info("Setting geometry material on spatial:" + s + "; ship:" + ship);
     }
 
+    @SuppressWarnings("unused")
     private Spatial createParticleEmitter(final EntityId eId, final String shapeName) {
         final Spatial result;
 
         switch (shapeName) {
         // Create a thrust ParticleEmitter
         case "thrust":
-            result = createThrustEmitter(eId);
+            result = createThrustEmitter();
             break;
         default:
             result = null;
@@ -315,7 +321,7 @@ public class SISpatialFactory {
         return result;
     }
 
-    private Spatial createThrustEmitter(final EntityId eId) {
+    private Spatial createThrustEmitter() {
         final Material smokeMat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
         smokeMat.setTexture("Texture", assets.loadTexture("Effects/Smoke/Smoke.png"));
         final ParticleEmitter result = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 250);
@@ -333,7 +339,7 @@ public class SISpatialFactory {
         return result;
     }
 
-    private Spatial createBomb(final EntityId eId, final BombLevelEnum level) {
+    private Spatial createBomb(final BombLevelEnum level) {
         final Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
         final float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -352,7 +358,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createBullet(final EntityId eId, final int offSet) {
+    private Spatial createBullet(final int offSet) {
         final Quad quad = new Quad(CoreViewConstants.BULLETSIZE, CoreViewConstants.BULLETSIZE);
         final float halfSize = CoreViewConstants.BULLETSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -371,7 +377,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createExplosion(final EntityId eId) {
+    private Spatial createExplosion() {
 
         return ef.createExplosion();
 
@@ -392,7 +398,7 @@ public class SISpatialFactory {
 //        return debrisEffect;
     }
 
-    private Spatial createBounty(final EntityId eId) {
+    private Spatial createBounty() {
         final Quad quad = new Quad(CoreViewConstants.PRIZESIZE, CoreViewConstants.PRIZESIZE);
         final float halfSize = CoreViewConstants.PRIZESIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -411,7 +417,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createArena(final EntityId eId) {
+    private Spatial createArena() {
         final Quad quad = new Quad(CoreViewConstants.ARENASIZE, CoreViewConstants.ARENASIZE);
         final float halfSize = CoreViewConstants.ARENASIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -467,7 +473,7 @@ public class SISpatialFactory {
      *
      * return geom; }
      */
-    private Spatial createExplosion2(final EntityId eId) {
+    private Spatial createExplosion2() {
         final Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
         final float halfSize = CoreViewConstants.EXPLOSION2SIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -487,7 +493,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createOver5(final EntityId eId) {
+    private Spatial createOver5() {
         final Quad quadOver5 = new Quad(CoreViewConstants.OVER5SIZE, CoreViewConstants.OVER5SIZE);
         final float halfSizeOver5 = CoreViewConstants.OVER5SIZE * 0.5f;
         quadOver5.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSizeOver5));
@@ -507,7 +513,7 @@ public class SISpatialFactory {
 
     }
 
-    private Spatial createWormhole(final EntityId eId) {
+    private Spatial createWormhole() {
         final Quad quad = new Quad(CoreViewConstants.WORMHOLESIZE, CoreViewConstants.WORMHOLESIZE);
         // <-- Move into the material?
         final float halfSize = CoreViewConstants.WORMHOLESIZE * 0.5f;
@@ -528,7 +534,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createOver1(final EntityId eId) {
+    private Spatial createOver1() {
         final Quad quad = new Quad(CoreViewConstants.OVER1SIZE, CoreViewConstants.OVER1SIZE);
         final float halfSize = CoreViewConstants.OVER1SIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -547,7 +553,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createOver2(final EntityId eId) {
+    private Spatial createOver2() {
         final Quad quad = new Quad(CoreViewConstants.OVER2SIZE, CoreViewConstants.OVER2SIZE);
         final float halfSize = CoreViewConstants.OVER2SIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -566,7 +572,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createWarp(final EntityId eId) {
+    private Spatial createWarp() {
         final Quad quad = new Quad(CoreViewConstants.WARPSIZE, CoreViewConstants.WARPSIZE);
         final float halfSize = CoreViewConstants.WARPSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -585,7 +591,7 @@ public class SISpatialFactory {
         return geom;
     }
 
-    private Spatial createRepel(final EntityId eId) {
+    private Spatial createRepel() {
         final Quad quad = new Quad(CoreViewConstants.REPELSIZE, CoreViewConstants.REPELSIZE);
         final float halfSize = CoreViewConstants.REPELSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
@@ -622,7 +628,7 @@ public class SISpatialFactory {
      * //log.info("Coords: "+s.getLocalTranslation()
      * +" rotated: "+geom.getLocalRotation()); }
      */
-    private Spatial createBurst(final EntityId eId) {
+    private Spatial createBurst() {
         final Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
         final float halfSize = CoreViewConstants.BURSTSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));

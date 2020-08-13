@@ -280,11 +280,13 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
         final AccessLevel accessLevel = operators.get(entityId);
 
+        final AccessLevel result;
         if (accessLevel == null) {
-            return AccessLevel.PLAYER_LEVEL;
+            result = AccessLevel.PLAYER_LEVEL;
         } else {
-            return accessLevel;
+            result = accessLevel;
         }
+        return result;
     }
 
     public boolean isAtLeastAtAccessLevel(final EntityId id, final AccessLevel accessLevel) {

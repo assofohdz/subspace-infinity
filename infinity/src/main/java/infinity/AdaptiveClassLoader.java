@@ -256,9 +256,9 @@ public class AdaptiveClassLoader extends ClassLoader {
         boolean result = false;
         try (ZipFile zipFile = new ZipFile(file)) {
             result = true;
-        } catch (final ZipException e) {
+        } catch (@SuppressWarnings("unused") final ZipException e) {
             result = false;
-        } catch (final IOException e) {
+        } catch (@SuppressWarnings("unused") final IOException e) {
             result = false;
         }
         return result;
@@ -400,7 +400,7 @@ public class AdaptiveClassLoader extends ClassLoader {
 
                 return c;
             }
-        } catch (final Exception e) {
+        } catch (@SuppressWarnings("unused") final Exception e) {
             c = null;
         }
 
@@ -426,7 +426,7 @@ public class AdaptiveClassLoader extends ClassLoader {
                     } else {
                         classData = loadClassFromZipfile(file, name, classCache);
                     }
-                } catch (final IOException ioe) {
+                } catch (@SuppressWarnings("unused") final IOException ioe) {
                     // Error while reading in data, consider it as not found
                     classData = null;
                 }
@@ -514,7 +514,7 @@ public class AdaptiveClassLoader extends ClassLoader {
             security.checkPackageDefinition((lastDot > -1) ? className.substring(0, lastDot) : "");
             // Throws if not allowed
             return true;
-        } catch (final SecurityException e) {
+        } catch (@SuppressWarnings("unused") final SecurityException e) {
             return false;
         }
     }
@@ -546,15 +546,17 @@ public class AdaptiveClassLoader extends ClassLoader {
 
         final File classFile = new File(dir, classFileName);
 
+        final byte[] result;
         if (classFile.exists()) {
             cacheEntry.origin = classFile;
             try (InputStream in = new FileInputStream(classFile)) {
-                return loadBytesFromStream(in, (int) classFile.length());
+                result = loadBytesFromStream(in, (int) classFile.length());
             }
         } else {
             // Not found
-            return null;
+            result = null;
         }
+        return result;
     }
 
     /**
@@ -568,19 +570,19 @@ public class AdaptiveClassLoader extends ClassLoader {
             throws IOException {
         // Translate class name to file name
         final String classFileName = name.replace('.', '/') + ".class";
-
+        final byte[] result;
         try (ZipFile zipfile = new ZipFile(file)) {
             final ZipEntry entry = zipfile.getEntry(classFileName);
             if (entry != null) {
                 cacheEntry.origin = file;
                 try (InputStream is = zipfile.getInputStream(entry)) {
-                    return loadBytesFromStream(is, (int) entry.getSize());
+                    result = loadBytesFromStream(is, (int) entry.getSize());
                 }
             } else {
-                // Not found
-                return null;
+                result = null;
             }
         }
+        return result;
     }
 
     /**
@@ -661,15 +663,17 @@ public class AdaptiveClassLoader extends ClassLoader {
         final String fileName = name.replace('/', File.separatorChar);
         final File resFile = new File(dir, fileName);
 
+        FileInputStream result;
         if (resFile.exists()) {
             try {
-                return new FileInputStream(resFile);
-            } catch (final FileNotFoundException shouldnothappen) {
-                return null;
+                result = new FileInputStream(resFile);
+            } catch (@SuppressWarnings("unused") final FileNotFoundException e) {
+                result = null;
             }
         } else {
-            return null;
+            result = null;
         }
+        return result;
     }
 
     /**
@@ -686,7 +690,7 @@ public class AdaptiveClassLoader extends ClassLoader {
                     result = new ByteArrayInputStream(data);
                 }
             }
-        } catch (final IOException e) {
+        } catch (@SuppressWarnings("unused") final IOException e) {
             result = null;
         }
         return result;
@@ -782,11 +786,9 @@ public class AdaptiveClassLoader extends ClassLoader {
      */
     public long lastModified(final String name) throws ClassNotFoundException {
         final ClassCacheEntry entry = cache.get(name);
-
         if (entry == null) {
             throw new ClassNotFoundException("Could not find class: " + name);
-        } else {
-            return entry.lastModified;
         }
+        return entry.lastModified;
     }
 }

@@ -68,13 +68,14 @@ public class BodyVisibility implements ComponentVisibility {
     private final NetworkStateListener netState;
     private EntityData ed;
 
-    private final Set<Long> lastActiveIds;
+    // private final Set<Long> lastActiveIds;
 
     private final Map<EntityId, BodyPosition> lastValues = new HashMap<>();
 
-    protected BodyVisibility(final NetworkStateListener netState, final Set<Long> lastActiveIds) {
+    protected BodyVisibility(final NetworkStateListener netState,
+            @SuppressWarnings("unused") final Set<Long> lastActiveIds) {
         this.netState = netState;
-        this.lastActiveIds = lastActiveIds;
+        // this.lastActiveIds = lastActiveIds;
     }
 
     public BodyVisibility(final NetworkStateListener netState) {

@@ -64,7 +64,7 @@ public class DeathSystem extends AbstractGameSystem {
     public void update(final SimTime tpf) {
         if (dead.applyChanges()) {
             for (final Entity e : dead) {
-                final Dead d = e.get(Dead.class);
+                // final Dead d = e.get(Dead.class);
                 ed.removeComponent(e.getId(), Dead.class);
 
                 ed.setComponent(e.getId(), new Decay(tpf.getTime(), tpf.getTime()));

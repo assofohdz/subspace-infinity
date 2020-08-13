@@ -58,6 +58,7 @@ public class lightTester extends BaseGameModule {
     private final Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
     private EntityData ed;
 
+    @SuppressWarnings("unused")
     private Ini settings;
 
     public lightTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
@@ -103,6 +104,7 @@ public class lightTester extends BaseGameModule {
         EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
     }
 
+    @SuppressWarnings("unused")
     private CommandConsumer messageHandler(final EntityId id, final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.

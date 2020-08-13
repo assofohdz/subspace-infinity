@@ -52,7 +52,9 @@ public class LargeGridCell implements EntityComponent {
 
     private long cellId;
 
+    @SuppressWarnings("unused")
     private LargeGridCell() {
+        super();
     }
 
     public LargeGridCell(final long cellId) {

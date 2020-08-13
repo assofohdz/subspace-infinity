@@ -37,7 +37,6 @@ import java.util.Vector;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.ini4j.Ini;
@@ -77,7 +76,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
     // Create GroovyClassLoader.
     AdaptiveClassLoader classLoader;
     // final GroovyClassLoader classLoader = new GroovyClassLoader();
-    private String[] directories;
+    // private String[] directories;
     private final Vector<File> repository;
 
     private final HashMap<String, BaseGameModule> modules;
@@ -87,7 +86,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
     private final Pattern startServicePattern = Pattern.compile("\\~startService\\s(\\w+)");
     private final Pattern stopModulePattern = Pattern.compile("\\~stopModule\\s(\\w+)");
     private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");
-    private Matcher m;
+    // private Matcher m;
 
     List<String> repositoryList = Arrays.asList(
             // Loading extensions:

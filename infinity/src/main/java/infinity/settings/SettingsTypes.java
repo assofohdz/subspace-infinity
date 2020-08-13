@@ -9,6 +9,7 @@ package infinity.settings;
  *
  * @author Asser Fahrenholz
  */
+@SuppressWarnings("unused")
 public class SettingsTypes {
 
     private static String NOTES_SETTINGNAME = "Notes-SettingName";

@@ -58,6 +58,7 @@ public class prizeTester extends BaseGameModule {
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
 
+    @SuppressWarnings("unused")
     private Ini settings;
 
     public prizeTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,

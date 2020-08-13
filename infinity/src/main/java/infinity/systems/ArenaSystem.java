@@ -43,7 +43,6 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import infinity.es.ArenaId;
-import infinity.es.BodyPosition;
 import infinity.map.LevelLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.CoreGameConstants;
@@ -60,19 +59,19 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     private EntityData ed;
     private EntitySet arenaEntities;
-    private EntitySet staticBodyPositions;
+    // private EntitySet staticBodyPositions;
     private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
-    private AssetManager am;
+    // private AssetManager am;
     static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
-    private SimTime time;
+    // private SimTime time;
 
     private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
 
-    private final boolean createdDefaultArena = false;
+    // private final boolean createdDefaultArena = false;
 
     private final ListOrderedMap arenas = new ListOrderedMap();
-    private MapSystem mapSystem;
-    private int xCoord, zCoord;
+    // private MapSystem mapSystem;
+    // private int xCoord, zCoord;
 
     @Override
     protected void initialize() {
@@ -87,9 +86,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         assetManager.registerLoader(LevelLoader.class, "lvl");
         assetManager.registerLoader(LevelLoader.class, "lvz");
 
-        staticBodyPositions = ed.getEntities(BodyPosition.class);
+        // staticBodyPositions = ed.getEntities(BodyPosition.class);
 
-        mapSystem = getSystem(MapSystem.class, true);
+        // mapSystem = getSystem(MapSystem.class, true);
     }
 
     public EntityId getEntityId(final Vec3d coord) {
@@ -123,9 +122,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         return (String[]) currentOpenArenas.keySet().toArray();
     }
 
+    @SuppressWarnings("unused")
     private void closeArena(final String arenaId) {
         ed.removeEntity(currentOpenArenas.get(arenaId));
-
         currentOpenArenas.remove(arenaId);
     }
 
@@ -145,10 +144,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         }
     }
 
-    private class Vector2i {
-        public int x, z;
+    @SuppressWarnings("unused")
+    private static class Vector2i {
+        int x, z;
 
-        public Vector2i(final int x, final int z) {
+        Vector2i(final int x, final int z) {
             this.x = x;
             this.z = z;
         }

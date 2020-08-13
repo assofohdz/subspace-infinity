@@ -71,7 +71,7 @@ public class GameSessionState extends CompositeAppState {
 
     static Logger log = LoggerFactory.getLogger(GameSessionState.class);
 
-    private final boolean hostIsLocal = false;
+    // private final boolean hostIsLocal = false;
 
     public GameSessionState() {
         super(new AvatarMovementState(), new CameraState(),

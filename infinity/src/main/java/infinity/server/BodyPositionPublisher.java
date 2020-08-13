@@ -38,16 +38,10 @@ package infinity.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
-
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.ObjectStatusListener;
-import com.simsilica.mathd.AaBBox;
-import com.simsilica.mathd.Quatd;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.PhysicsListener;
 import com.simsilica.mphys.RigidBody;
@@ -97,17 +91,17 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
 
         private long frameTime;
 
-        private final Vector3f posf = new Vector3f();
-        private final Quaternion orientf = new Quaternion();
+        // private final Vector3f posf = new Vector3f();
+        // private final Quaternion orientf = new Quaternion();
 
-        private final Vec3d pos = new Vec3d();
-        private final Quatd orient = new Quatd();
+        // private final Vec3d pos = new Vec3d();
+        // private final Quatd orient = new Quatd();
 
         // We probably won't have many zones, if we even have more than one.
         // The physics objects do not provide any sort of accurate bounds so
         // we'll guess at a size that is "big enough" for any particular mobile
         // object. 2x2x2 meters should be good enough... until it isn't.
-        private final AaBBox box = new AaBBox(1);
+        // private final AaBBox box = new AaBBox(1);
 
         public PhysicsObserver() {
         }

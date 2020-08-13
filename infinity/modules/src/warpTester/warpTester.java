@@ -59,6 +59,7 @@ public class warpTester extends BaseGameModule {
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");
 
+    @SuppressWarnings("unused")
     private Ini settings;
 
     public warpTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,

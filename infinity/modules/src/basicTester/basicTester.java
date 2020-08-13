@@ -91,7 +91,8 @@ public class basicTester extends BaseGameModule {
                 new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
-    private CommandConsumer messageHandler(final EntityId id, final String s) {
+    private CommandConsumer messageHandler(@SuppressWarnings("unused") final EntityId id,
+            @SuppressWarnings("unused") final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }

@@ -54,7 +54,9 @@ public class MovementInput implements EntityComponent {
     private Quatd facing;
     private byte flags;
 
+    @SuppressWarnings("unused")
     private MovementInput() {
+        super();
     }
 
     public MovementInput(final Vec3d move) {

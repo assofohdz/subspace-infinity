@@ -51,10 +51,10 @@ public class ResourceSystem extends AbstractGameSystem {
     private EntitySet ships;
     private double time_since_last_update;
     private final HashMap<EntityId, Integer> goldMap = new HashMap<>();
-    private final HostedServiceManager serviceManager;
+    // private final HostedServiceManager serviceManager;
 
-    public ResourceSystem(final HostedServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
+    public ResourceSystem(@SuppressWarnings("unused") final HostedServiceManager serviceManager) {
+        // this.serviceManager = serviceManager;
     }
 
     @Override

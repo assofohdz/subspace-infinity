@@ -504,6 +504,7 @@ public class Region {
      *
      * @param b the byte to convert
      */
+    @SuppressWarnings("unused")
     private static String getBinaryStringOfByte(final byte b) {
         int mask = 0x00000080;
         String rv = "";

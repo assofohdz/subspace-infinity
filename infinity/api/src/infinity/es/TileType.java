@@ -61,7 +61,7 @@ public class TileType implements EntityComponent {
         return ed.getStrings().getString(type);
     }
 
-    public TileType newTileIndex(final short newTileIndex, final EntityData ed) {
+    public TileType newTileIndex(final short newTileIndex) {
         return new TileType(type, tileSet, newTileIndex);
     }
 

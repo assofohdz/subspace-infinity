@@ -46,9 +46,9 @@ public class BitMap extends JPanel {
     private byte[] infoHeader;
     private ByteArray fileData;
 
-    private String fh_type;
+    // private String fh_type;
     private int m_size;
-    private int m_offset;
+    // private int m_offset;
     private int m_width;
     private int m_height;
     private int m_bitCount;
@@ -73,7 +73,7 @@ public class BitMap extends JPanel {
         // Read 14 bytes for file header
         fileHeader = readIn(14);
         ByteArray array = new ByteArray(fileHeader);
-        fh_type = array.readString(0, 2);
+        // fh_type = array.readString(0, 2);
 
         if (array.readString(0, 2).equals("BM")) {
             m_validBMP = true;
@@ -86,7 +86,7 @@ public class BitMap extends JPanel {
             return;
         }
         m_size = array.readLittleEndianInt(2);
-        m_offset = array.readLittleEndianInt(10);
+        // m_offset = array.readLittleEndianInt(10);
 
         if (m_size != 49718) { // possible elvl header... check reserved bits to confirm
             final int offset = array.readLittleEndianShort(6);
@@ -223,19 +223,18 @@ public class BitMap extends JPanel {
             m_stream.read(b);
             // fileData.addByteArray( b );
             return b;
-        } catch (final IOException e) {
+        } catch (@SuppressWarnings("unused") final IOException e) {
             return new byte[0];
         }
     }
 
     public int readByte() {
-
-        final byte[] b = new byte[1];
         try {
+            final byte[] b = new byte[1];
             m_stream.read(b);
             // fileData.addByteArray( b );
             return b[0] & 255;
-        } catch (final IOException e) {
+        } catch (@SuppressWarnings("unused") final IOException e) {
             return 0;
         }
     }

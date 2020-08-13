@@ -33,7 +33,7 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
         this(FastMath.atan2(1, 0.3f) / FastMath.PI);
     }
 
-    public AmbientLightState(final float time) {
+    public AmbientLightState(@SuppressWarnings("unused") final float time) {
         // lightDir.setObject(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
         ambientColor = DEFAULT_AMBIENT.clone();
     }

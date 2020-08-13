@@ -81,7 +81,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
     private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
 
     private final HashMap<Pattern, CommandConsumer> patternBiConsumers;
-    private Matcher m;
+    // private Matcher m;
 
     /**
      * Creates a new chat service that will use the default reliable channel for

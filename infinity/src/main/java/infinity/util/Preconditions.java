@@ -1,5 +1,7 @@
 package infinity.util;
 
+import java.text.MessageFormat;
+
 /*
  * Copyright 2015 Olivier Grégoire.
  *
@@ -31,71 +33,63 @@ public final class Preconditions {
     }
 
     public static <T> T checkNotNull(@Nullable final T reference) {
-        if (reference != null) {
-            return reference;
-        } else {
+        if (reference == null) {
             throw new NullPointerException();
         }
+        return reference;
     }
 
     public static <T> T checkNotNull(@Nullable final T reference, @Nullable final Object message) {
-        if (reference != null) {
-            return reference;
-        } else {
+        if (reference == null) {
             throw new NullPointerException(String.valueOf(message));
         }
+        return reference;
     }
 
     public static <T> T checkNotNull(@Nullable final T reference, final String messageFormat,
             final Object... parameters) {
-        if (reference != null) {
-            return reference;
-        } else {
-            throw new NullPointerException(String.format(messageFormat, parameters));
+        if (reference == null) {
+            throw new NullPointerException(MessageFormat.format(messageFormat, parameters));
         }
+        return reference;
     }
 
     public static <T> T checkNotNull(@Nullable final T reference, final Supplier<String> messageSupplier) {
-        if (reference != null) {
-            return reference;
-        } else {
-            throw new NullPointerException(messageSupplier.get());
+        if (reference == null) {
+            throw new NullPointerException(messageSupplier == null ? null : messageSupplier.get());
         }
+        return reference;
     }
 
     public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
+        if (!predicate.test(value)) {
             throw new IllegalArgumentException();
         }
+        return value;
     }
 
     public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate,
             @Nullable final Object message) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
+        if (!predicate.test(value)) {
             throw new IllegalArgumentException(String.valueOf(message));
         }
+        return value;
     }
 
     public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate,
             final String messageFormat, final Object... parameters) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
+        if (!predicate.test(value)) {
             throw new IllegalArgumentException(String.format(messageFormat, parameters));
         }
+        return value;
     }
 
     public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate,
             final Supplier<String> messageSupplier) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
+        if (!predicate.test(value)) {
             throw new IllegalArgumentException(messageSupplier.get());
         }
+        return value;
     }
 
     public static void checkArgument(final boolean expression) {

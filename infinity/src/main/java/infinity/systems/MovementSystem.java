@@ -44,7 +44,6 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
@@ -70,8 +69,8 @@ public class MovementSystem extends AbstractGameSystem {
     private PlayerContainer players;
     private final MovementBodyInitializer initializer = new MovementBodyInitializer();
     private PhysicsSpace<EntityId, MBlockShape> space;
-    private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
-    private EnergySystem health;
+    // private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
+    // private EnergySystem health;
 
     public MovementSystem() {
         super();

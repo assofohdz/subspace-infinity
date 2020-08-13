@@ -114,7 +114,8 @@ public class InfinityBlockFactory implements BlockFactory {
      * specified transparency and PartFactories created by calling
      * DefaultPartFactory.createFace() with each of the specified material types.
      */
-    public static InfinityBlockFactory createCube(final double transparency, final int tileId, final int mapId,
+    public static InfinityBlockFactory createCube(final double transparency,
+            @SuppressWarnings("unused") final int tileId, @SuppressWarnings("unused") final int mapId,
             final MaterialType... materialTypes) {
         return createCube(transparency,
                 DefaultPartFactory.createCubeFace(materialTypes[Direction.North.ordinal()], Direction.North),
@@ -139,7 +140,8 @@ public class InfinityBlockFactory implements BlockFactory {
      * values based on the supplied part factories.
      */
     public static InfinityBlockFactory create(final PartFactory[] dirParts, final PartFactory internalParts,
-            final double[] transparency, final int tileId, final int mapId) {
+            final double[] transparency, @SuppressWarnings("unused") final int tileId,
+            @SuppressWarnings("unused") final int mapId) {
 
         if (dirParts == null && internalParts == null) {
             throw new IllegalArgumentException("dirParts and internalParts cannot both be null");

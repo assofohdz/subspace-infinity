@@ -74,7 +74,7 @@ public class HelpState extends BaseAppState {
     public static final FunctionId F_HELP = new FunctionId("Help");
 
     private Container helpWindow;
-    private final boolean movementState = false;
+    // private final boolean movementState = false;
 
     private final KeyHelp[] keyHelp = { new KeyHelp(F_HELP, "Opens/closes this help window."),
             new KeyHelp(CameraMovementFunctions.F_X_LOOK, "Rotates left/right."),

@@ -28,8 +28,6 @@ package infinity.sim;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jme3.math.Quaternion;
-
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultWatchedEntity;
@@ -58,7 +56,7 @@ public class PlayerDriver implements ControlDriver, Driver {
     private final DefaultWatchedEntity shipEntity;
 
     // Keep track of what the player has provided.
-    private volatile Quaternion orientation = new Quaternion();
+    // private volatile Quaternion orientation = new Quaternion();
     private volatile MovementInput movementForces = new MovementInput(new Vec3d());
 
     private final double pickup = 3;
@@ -66,15 +64,16 @@ public class PlayerDriver implements ControlDriver, Driver {
     // Local reference to the body that we want to update
     private RigidBody body;
     private final Vec3d velocity = new Vec3d();
-    private final EntityData ed;
-    private final SettingsSystem settings;
+    // private final EntityData ed;
+    // private final SettingsSystem settings;
 
-    public PlayerDriver(final EntityId shipEntityId, final EntityData ed, final SettingsSystem settings) {
+    public PlayerDriver(final EntityId shipEntityId, final EntityData ed,
+            @SuppressWarnings("unused") final SettingsSystem settings) {
         // Watch all the relevant movement components of the ship
         final Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
         shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
-        this.settings = settings;
-        this.ed = ed;
+        // this.settings = settings;
+        // this.ed = ed;
     }
 
     @Override

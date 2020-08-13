@@ -91,8 +91,9 @@ public class GameSounds {
 
     }
 
-    public static void createBurstSound(final EntityData ed, final EntityId owner, final PhysicsSpace phys,
-            final long createdTime, final Vec3d pos) {
+    public static void createBurstSound(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            @SuppressWarnings("unused") final PhysicsSpace phys, final long createdTime,
+            @SuppressWarnings("unused") final Vec3d pos) {
         final EntityId result = ed.createEntity();
 
         ed.setComponents(result, AudioTypes.fire_burst(ed),

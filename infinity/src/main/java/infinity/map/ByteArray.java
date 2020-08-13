@@ -276,7 +276,7 @@ public class ByteArray {
 
         try {
             bytearr = str.getBytes("ISO-8859-1");
-        } catch (final UnsupportedEncodingException e) {
+        } catch (@SuppressWarnings("unused") final UnsupportedEncodingException e) {
             bytearr = str.getBytes();
         }
 
@@ -537,7 +537,7 @@ public class ByteArray {
 
         try {
             targetSet = Charset.forName("ISO-8859-1");
-        } catch (final UnsupportedCharsetException uce) {
+        } catch (@SuppressWarnings("unused") final UnsupportedCharsetException uce) {
             targetSet = Charset.defaultCharset();
             // TODO: Log this instead
             // Tools.printLog("Unsupported charset used when decoding string (index=" +

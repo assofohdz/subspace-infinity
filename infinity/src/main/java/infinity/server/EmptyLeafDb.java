@@ -59,11 +59,11 @@ public class EmptyLeafDb implements LeafDb {
 
     public static final int LEAF_SIZE = LeafInfo.SIZE;
 
-    private final double yMin = 0; // -64;
-    private final double yMax = 128;
-    private final double yRange = yMax - yMin;
-    private final double xScale = 256;
-    private final double zScale = 256;
+    // private final double yMin = 0; // -64;
+    // private final double yMax = 128;
+    // private final double yRange = yMax - yMin;
+    // private final double xScale = 256;
+    // private final double zScale = 256;
     private final CellData worldData = new GeneratedCellData();
 
     public EmptyLeafDb() {

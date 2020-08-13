@@ -72,7 +72,7 @@ public class SpatialFactory {
     private final SISpatialFactory SIFactory;
 
     private final BlockGeometryIndex geomIndex = new BlockGeometryIndex();
-    private final EntityData ed;
+    // private final EntityData ed;
 
     public SpatialFactory(final EntityData ed, final Node rootNode, final AssetManager assets) {
 
@@ -80,7 +80,7 @@ public class SpatialFactory {
         al.setColor(ColorRGBA.White.mult(1.3f));
         rootNode.addLight(al);
 
-        this.ed = ed;
+        // this.ed = ed;
         SIFactory = new SISpatialFactory(ed, rootNode, assets);
     }
 

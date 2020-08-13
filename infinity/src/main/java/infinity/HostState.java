@@ -47,7 +47,6 @@ import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
 
-import com.simsilica.es.EntityData;
 import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.sim.GameSystemManager;
@@ -68,10 +67,10 @@ public class HostState extends BaseAppState {
 
     // Used to enable/disable some UI elements until we move them
     // to their own state
-    private boolean singlePlayer;
+    // private boolean singlePlayer;
 
     private GameSystemManager systems;
-    private EntityData ed;
+    // private EntityData ed;
 
     private final VersionedHolder<String> hostingState = new VersionedHolder<>("");
     private final VersionedHolder<String> connectionCount = new VersionedHolder<>("");
@@ -82,13 +81,13 @@ public class HostState extends BaseAppState {
         this(port, description, false);
     }
 
-    public HostState(final int port, final String description, final boolean singlePlayer) {
+    public HostState(final int port, final String description, @SuppressWarnings("unused") final boolean singlePlayer) {
         try {
-            this.singlePlayer = singlePlayer;
+            // this.singlePlayer = singlePlayer;
             this.port = port;
             gameServer = new GameServer(port, description);
             systems = gameServer.getSystems();
-            ed = systems.get(EntityData.class);
+            // ed = systems.get(EntityData.class);
             gameServer.getServer().addConnectionListener(connectionListener);
         } catch (final IOException e) {
             throw new RuntimeException("Error creating server", e);

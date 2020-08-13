@@ -20,11 +20,17 @@ import com.jme3.asset.AssetLoader;
  */
 public class SSSLoader implements AssetLoader {
 
+    @SuppressWarnings("unused")
     private static final int GROUP = 1;
+    @SuppressWarnings("unused")
     private static final int KEY = 2;
+    @SuppressWarnings("unused")
     private static final int VALUE = 3;
+    @SuppressWarnings("unused")
     private static final int MIN = 4;
+    @SuppressWarnings("unused")
     private static final int MAX = 5;
+    @SuppressWarnings("unused")
     private static final int DESC = 6;
 
     @Override

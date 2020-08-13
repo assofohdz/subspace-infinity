@@ -52,7 +52,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
-import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -79,7 +78,6 @@ import com.simsilica.ext.mphys.ShapeFactoryRegistry;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
@@ -114,12 +112,12 @@ public class ModelViewState extends BaseAppState {
 
     int spatialMovedTwiceInOneFrameCount = 0;
 
-    private Grid grid;
+    // private Grid grid;
 
     private ShapeFactoryRegistry<MBlockShape> shapeFactory;
     // private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
     private SpatialFactory modelFactory;
-    private SISpatialFactory siModelFactory;
+    // private SISpatialFactory siModelFactory;
 
     // The root node to which all managed objects will be added
     private Node objectRoot;
@@ -141,7 +139,7 @@ public class ModelViewState extends BaseAppState {
     private final List<Vector4f> testCoords = new ArrayList<>();
     private WatchedEntity watchedAvatar;
     private GameSessionClientService gameSession;
-    private Spatial avatarSpatial;
+    // private Spatial avatarSpatial;
     private TransitionBuffer avatarBuffer;
     private Vector3f avatarPos;
 
@@ -189,8 +187,8 @@ public class ModelViewState extends BaseAppState {
 
     // Lights-->
     private EntitySet movingPointLights, decayingPointLights;
-    private final HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
-    private final Vec3d pointLightOffset = new Vec3d(0, 5, 0);
+    // private final HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
+    // private final Vec3d pointLightOffset = new Vec3d(0, 5, 0);
 
     // <<--Lights
     public ModelViewState() {
@@ -284,7 +282,7 @@ public class ModelViewState extends BaseAppState {
         timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         worldView = getState(WorldViewState.class);
         objectRoot = new Node("objectRoot");
-        grid = InfinityConstants.PHYSICS_GRID;
+        // grid = InfinityConstants.PHYSICS_GRID;
 
         final DebugHudState debug = getState(DebugHudState.class);
         if (debug != null) {
@@ -781,7 +779,7 @@ public class ModelViewState extends BaseAppState {
         private TransitionBuffer<PositionTransition3d> buffer;
 
         boolean visible;
-        boolean forceInvisible; // just in case
+        // boolean forceInvisible; // just in case
         boolean isAvatar = false;
 
         public Mob(final Entity entity) {
@@ -1027,6 +1025,7 @@ public class ModelViewState extends BaseAppState {
         return avatarBuffer;
     }
 
+    @SuppressWarnings("unused")
     private void setAvatarWorldPosition(final Vector3f pos) {
         avatarPos = pos;
     }

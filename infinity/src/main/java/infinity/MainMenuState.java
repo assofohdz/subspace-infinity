@@ -164,7 +164,7 @@ public class MainMenuState extends BaseAppState {
 
     }
 
-    protected void onClientDisconnected(final ClientEvent event) {
+    protected void onClientDisconnected(@SuppressWarnings("unused") final ClientEvent event) {
         if (host != null) {
             // Clean the hosting state up since there is no
             // more connection. The connection state cleans itself up

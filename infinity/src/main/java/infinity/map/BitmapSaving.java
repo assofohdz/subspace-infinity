@@ -159,7 +159,7 @@ public class BitmapSaving {
         final PixelGrabber pg = new PixelGrabber(theImage, 0, 0, w, h, storeHere, 0, w);
         try {
             pg.grabPixels();
-        } catch (final InterruptedException e) {
+        } catch (@SuppressWarnings("unused") final InterruptedException e) {
             JOptionPane.showMessageDialog(null, "interrupted waiting for pixels!");
             storeHere = null;
             return null;

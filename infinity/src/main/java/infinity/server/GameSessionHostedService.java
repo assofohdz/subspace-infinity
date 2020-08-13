@@ -55,10 +55,8 @@ import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.es.server.HostedEntityData;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
-import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.GameSystemManager;
 
@@ -67,8 +65,6 @@ import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
-//import infinity.sim.InfinityMPhysSystem;
-import infinity.sim.PlayerDriver;
 import infinity.systems.AttackSystem;
 import infinity.systems.MapSystem;
 
@@ -184,34 +180,34 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         private final Vec3d spawnLoc = new Vec3d();
 
-        private final EntityId activation = null;
-        private final EntityId fireMain = null;
-        private final EntityId fireAlt = null;
+        // private final EntityId activation = null;
+        // private final EntityId fireMain = null;
+        // private final EntityId fireAlt = null;
 
         private boolean spawned;
 
-        private final EntityId test = null;
+        // private final EntityId test = null;
         private final Vec3d lastViewLoc = new Vec3d();
         private final Quatd lastViewOrient = new Quatd();
-        private final Vec3d relativeLoc = null;
+        // private final Vec3d relativeLoc = null;
         private final PhysicsSpace phys;
-        private final MPhysSystem mphys;
+        // private final MPhysSystem mphys;
 
-        private PlayerDriver driver;
+        // private PlayerDriver driver;
         private final EntityId playerEntityId;
-        private final BinIndex binIndex;
+        // private final BinIndex binIndex;
         private final AttackSystem attackSystem;
-        private MapSystem mapSystem;
+        // private MapSystem mapSystem;
 
         public GameSessionImpl(final HostedConnection conn) {
             this.conn = conn;
 
             phys = gameSystems.get(PhysicsSpace.class, true);
-            mphys = gameSystems.get(MPhysSystem.class, true);
+            // mphys = gameSystems.get(MPhysSystem.class, true);
             attackSystem = gameSystems.get(AttackSystem.class, true);
             // this.mapSystem = gameSystems.get(MapSystem.class, true);
 
-            binIndex = phys.getBinIndex();
+            // binIndex = phys.getBinIndex();
 
             playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
@@ -322,9 +318,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
                 if (callback == null) {
                     if (failFast) {
                         throw new RuntimeException("Unable to locate client callback for GameSessionListener");
-                    } else {
-                        log.warn("Unable to locate client callback for GameSessionListener");
                     }
+                    log.warn("Unable to locate client callback for GameSessionListener");
                 }
             }
             return callback;

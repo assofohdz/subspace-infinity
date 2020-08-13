@@ -87,7 +87,7 @@ public class InfinityCamControl extends AbstractControl {
     /**
      * @param camera The Camera to be synced.
      */
-    public InfinityCamControl(final Camera camera, final float distanceToCam) {
+    public InfinityCamControl(final Camera camera, @SuppressWarnings("unused") final float distanceToCam) {
         this.camera = camera;
     }
 

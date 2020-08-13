@@ -66,7 +66,7 @@ public class SettingsState extends BaseAppState {
 
     private TabbedPanel tabs;
 
-    private final boolean originalCursorEventsEnabled = false;
+    // private final boolean originalCursorEventsEnabled = false;
 
     public SettingsState() {
         setEnabled(false);

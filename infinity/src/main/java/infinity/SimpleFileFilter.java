@@ -130,41 +130,34 @@ public class SimpleFileFilter implements FilenameFilter {
      * @return the matching files in the directory
      */
     public static File[] fileOrFiles(final File f) {
+        final File[] result;
         if (f == null) {
-            return null;
-        }
-
-        final String parentstring = f.getParent();
-        File parent;
-
-        if (parentstring != null) {
-            parent = new File(parentstring);
+            result = null;
         } else {
-            parent = new File("");
-        }
-
-        final String fname = f.getName();
-        File[] files;
-
-        if (fname.length() > 0 && fname.charAt(0) == '*') {
-            final String filter = fname.substring(1, fname.length());
-            final String[] names = parent.list(new SimpleFileFilter(filter));
-
-            if (names == null) {
-                return null;
+            final String parentstring = f.getParent();
+            final File parent;
+            if (parentstring != null) {
+                parent = new File(parentstring);
+            } else {
+                parent = new File("");
             }
-
-            files = new File[names.length];
-
-            for (int i = 0; i < names.length; i++) {
-                files[i] = new File(parent.getPath() + File.separator + names[i]);
+            final String fname = f.getName();
+            if (fname.length() > 0 && fname.charAt(0) == '*') {
+                final String filter = fname.substring(1, fname.length());
+                final String[] names = parent.list(new SimpleFileFilter(filter));
+                if (names == null) {
+                    result = null;
+                } else {
+                    result = new File[names.length];
+                    for (int i = 0; i < names.length; i++) {
+                        result[i] = new File(parent.getPath() + File.separator + names[i]);
+                    }
+                }
+            } else {
+                result = new File[1];
+                result[0] = f;
             }
-
-            return files;
-        } else {
-            files = new File[1];
-            files[0] = f;
-            return files;
         }
+        return result;
     }
 }

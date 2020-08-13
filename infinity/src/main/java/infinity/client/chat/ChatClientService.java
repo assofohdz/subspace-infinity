@@ -63,7 +63,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     private final int channel;
     private ChatSession delegate;
 
-    private String playerName;
+    // private String playerName;
 
     private final ChatSessionCallback sessionCallback = new ChatSessionCallback();
     private final List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();

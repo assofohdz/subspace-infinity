@@ -127,6 +127,7 @@ public class GameClient {
         }
     }
 
+    @SuppressWarnings("unused")
     private class MessageDebugger implements MessageListener<Client> {
         Logger debugLog = LoggerFactory.getLogger("diagnostics.MessageDebugger");
         private boolean objectStateStarted = false;

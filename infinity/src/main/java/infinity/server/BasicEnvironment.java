@@ -35,8 +35,6 @@
  */
 package infinity.server;
 
-import java.util.Random;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +46,6 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -64,30 +61,30 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     private EntityData ed;
     private PhysicsSpace phys;
-    private World world;
+    // private World world;
 
     // Some constantly emitted test objects... need to track the time
-    private final double nextTime = 5;
-    private final Random rand = new Random(0);
+    // private final double nextTime = 5;
+    // private final Random rand = new Random(0);
 
-    private EntityId toggle1;
-    private EntityId toggle2;
-    private final double toggleTime = 5;
-    private final boolean moved = false;
+    // private EntityId toggle1;
+    // private EntityId toggle2;
+    // private final double toggleTime = 5;
+    // private final boolean moved = false;
 
-    private final Vec3d putLoc = new Vec3d(0, 66, -10);
-    private final double putTime = 5;
+    // private final Vec3d putLoc = new Vec3d(0, 66, -10);
+    // private final double putTime = 5;
 
-    private final Vec3d putLoc2 = new Vec3d(4, 64, -4);
+    // private final Vec3d putLoc2 = new Vec3d(4, 64, -4);
 
-    private EntityId spawner;
-    private final Vec3d spawnerOffset = new Vec3d(0, 10, 0);
+    // private EntityId spawner;
+    // private final Vec3d spawnerOffset = new Vec3d(0, 10, 0);
 
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class, true);
         phys = getSystem(PhysicsSpace.class, true);
-        world = getSystem(World.class, true);
+        // world = getSystem(World.class, true);
         /*
          * // Setup some test entities EntityId test; test = ed.createEntity();
          * ed.setComponents(test, new SpawnPosition(phys.getGrid(), 5, 65, -5), // For
@@ -102,9 +99,7 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     @Override
     public void update(final SimTime time) {
-
-        final double secs = time.getTimeInSeconds();
-
+        // final double secs = time.getTimeInSeconds();
     }
 
     public EntityId createTestSphere(final Vec3d loc, final double size, final boolean dynamic) {

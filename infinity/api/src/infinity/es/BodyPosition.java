@@ -53,7 +53,7 @@ import com.simsilica.mathd.trans.TransitionBuffer;
  * @author Paul Speed
  */
 public final class BodyPosition implements EntityComponent {
-    private transient int size;
+    // private transient int size;
     private transient TransitionBuffer<PositionTransition3d> position;
     private transient PositionTransition3d lastTransition;
 
@@ -61,7 +61,7 @@ public final class BodyPosition implements EntityComponent {
     }
 
     public BodyPosition(final int history) {
-        size = (byte) history;
+        // size = (byte) history;
         position = PositionTransition3d.createBuffer(history);
     }
 
@@ -72,7 +72,7 @@ public final class BodyPosition implements EntityComponent {
      */
     public void initialize(final EntityId id, final int sz) {
         if (position == null) {
-            size = sz;
+            // size = sz;
             position = BodyPositionCache.getBuffer(id, sz);
         }
     }

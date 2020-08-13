@@ -64,59 +64,60 @@ public class MathUtil {
     }
 
     public <T> T getOutlier(final List<T> values, final double significanceLevel) {
+        final T result;
         final AtomicReference<T> outlier = new AtomicReference<>();
         final double grubbs = getGrubbsTestStatistic(values, outlier);
         final double size = values.size();
         if (size < 3) {
-            return null;
-        }
-        final TDistributionImpl t = new TDistributionImpl(size - 2.0);
-        try {
-            final double criticalValue = t.inverseCumulativeProbability((1.0 - significanceLevel) / (2.0 * size));
-            final double criticalValueSquare = criticalValue * criticalValue;
-            final double grubbsCompareValue = ((size - 1) / Math.sqrt(size))
-                    * Math.sqrt((criticalValueSquare) / (size - 2.0 + criticalValueSquare));
-            // System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
-            if (grubbs > grubbsCompareValue) {
-                return outlier.get();
-            } else {
-                return null;
+            result = null;
+        } else {
+            final TDistributionImpl t = new TDistributionImpl(size - 2.0);
+            try {
+                final double criticalValue = t.inverseCumulativeProbability((1.0 - significanceLevel) / (2.0 * size));
+                final double criticalValueSquare = criticalValue * criticalValue;
+                final double grubbsCompareValue = ((size - 1) / Math.sqrt(size))
+                        * Math.sqrt((criticalValueSquare) / (size - 2.0 + criticalValueSquare));
+                // System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
+                if (grubbs > grubbsCompareValue) {
+                    result = outlier.get();
+                } else {
+                    result = null;
+                }
+            } catch (final MathException e) {
+                throw new RuntimeException(e);
             }
-        } catch (final MathException e) {
-            throw new RuntimeException(e);
         }
+        return result;
     }
 
     /**
      * returns a minimum outlier (if one exists)
      */
     public <T> T getOutlierMin(final List<T> values) {
-        final T d = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
-        if (d == null) {
-            return null;
+        T result = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
+        if (result != null) {
+            final double d1 = toDouble(result).doubleValue();
+            final double d2 = toDouble(min(values)).doubleValue();
+            if (d1 != d2) {
+                result = null;
+            }
         }
-        final double d1 = toDouble(d).doubleValue();
-        final double d2 = toDouble(min(values)).doubleValue();
-        if (d1 == d2) {
-            return d;
-        }
-        return null;
+        return result;
     }
 
     /**
      * returns a minimum outlier (if one exists)
      */
     public <T> T getOutlierMax(final List<T> values) {
-        final T d = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
-        if (d == null) {
-            return null;
+        T result = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
+        if (result != null) {
+            final double d1 = toDouble(result).doubleValue();
+            final double d2 = toDouble(max(values)).doubleValue();
+            if (d1 != d2) {
+                result = null;
+            }
         }
-        final double d1 = toDouble(d).doubleValue();
-        final double d2 = toDouble(max(values)).doubleValue();
-        if (d1 == d2) {
-            return d;
-        }
-        return null;
+        return result;
     }
 
     public <T> double getGrubbsTestStatistic(final List<T> values, final AtomicReference<T> outlier) {
@@ -260,7 +261,7 @@ public class MathUtil {
         }
         try {
             return Integer.valueOf(in);
-        } catch (final Exception e) {
+        } catch (@SuppressWarnings("unused") final Exception e) {
             return null;
         }
     }

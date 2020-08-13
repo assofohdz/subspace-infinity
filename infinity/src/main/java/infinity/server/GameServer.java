@@ -40,8 +40,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-//import infinity.systems.WeaponSystem;
-import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,8 +103,6 @@ import infinity.map.InfinityDefaultWorld;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
-//import infinity.sim.InfinityMPhysSystem;
-import infinity.sim.PlayerDriver;
 import infinity.systems.ArenaSystem;
 import infinity.systems.AttackSystem;
 import infinity.systems.AvatarSystem;
@@ -137,10 +133,10 @@ public class GameServer {
     private GameSystemManager systems;
     private GameLoop loop;
 
-    private String description;
+    // private String description;
 
-    public GameServer(final int port, final String description) throws IOException {
-        this.description = description;
+    public GameServer(final int port, @SuppressWarnings("unused") final String description) throws IOException {
+        // this.description = description;
 
         // Make sure we are running with a fresh serializer registry
         Serializer.initialize();
@@ -239,7 +235,7 @@ public class GameServer {
         // customization
         // Override the default body factory behavior so that we can apply the
         // upright driver as needed.
-        final HashMap<EntityId, PlayerDriver> map = new HashMap<>();
+        // final HashMap<EntityId, PlayerDriver> map = new HashMap<>();
         /*
          * EntityBodyFactory<MBlockShape> bodyFactory = new
          * EntityBodyFactory<MBlockShape>(ed, InfinityConstants.DEFAULT_GRAVITY,

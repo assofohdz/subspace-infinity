@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
-import com.jme3.renderer.Camera;
 
 import com.simsilica.input.MovementTarget;
 import com.simsilica.lemur.GuiGlobals;
@@ -35,19 +34,20 @@ import infinity.systems.AvatarSystem;
  */
 public class AvatarMovementState extends BaseAppState implements AnalogFunctionListener, StateFunctionListener {
 
-    private float timeSinceLastSend = 0;
-    private final float sendFrequency = 1f / 20f; // 20 times a second, every 50 ms
+    // private float timeSinceLastSend = 0;
+    // private final float sendFrequency = 1f / 20f; // 20 times a second, every 50
+    // ms
 
     static Logger log = LoggerFactory.getLogger(AvatarMovementState.class);
-    private MovementTarget target;
+    // private MovementTarget target;
     private InputMapper inputMapper;
 
     // Picking up the input from the client
     private double forward;
     private double rotate;
-    private double mouse1;
-    private double mouse3;
-    private double mouse2;
+    // private double mouse1;
+    // private double mouse3;
+    // private double mouse2;
 
     // The information that will be sent to the server
     private double speed = 1;
@@ -60,12 +60,12 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
 
     private InputManager inputManager;
     private GameSession session;
-    private Camera cam;
+    // private Camera cam;
 
     @Override
     protected void initialize(final Application app) {
 
-        cam = getApplication().getCamera();
+        // cam = getApplication().getCamera();
 
         log.debug("initialize()");
 
@@ -142,7 +142,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
 
     @Override
     public void update(final float tpf) {
-        timeSinceLastSend += tpf;
+        // timeSinceLastSend += tpf;
 
         // if (timeSinceLastSend > sendFrequency) {
 
@@ -157,7 +157,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
         session.move(movementInput);
         // }
 
-        timeSinceLastSend = 0;
+        // timeSinceLastSend = 0;
 
         /*
          * if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
@@ -183,11 +183,11 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
         } else if (func == AvatarMovementFunctions.F_TURN) {
             rotate = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE1) {
-            mouse1 = value;
+            // mouse1 = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE2) {
-            mouse2 = value;
+            // mouse2 = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE3) {
-            mouse3 = value;
+            // mouse3 = value;
         }
     }
 
@@ -256,8 +256,8 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
      * CameraMovementTarget during initialization if no other target has been
      * provided.
      */
-    public void setMovementTarget(final MovementTarget target) {
-        this.target = target;
+    public void setMovementTarget(@SuppressWarnings("unused") final MovementTarget target) {
+        // this.target = target;
     }
 
     void setSession(final GameSession session) {

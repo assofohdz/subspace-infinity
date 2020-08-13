@@ -19,12 +19,10 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
@@ -70,8 +68,8 @@ public class AttackSystem extends AbstractGameSystem {
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
     private PhysicsSpace<EntityId, MBlockShape> space;
-    private BinIndex binIndex;
-    private BinEntityManager binEntityManager;
+    // private BinIndex binIndex;
+    // private BinEntityManager binEntityManager;
 
     static Logger log = LoggerFactory.getLogger(AttackSystem.class);
     private final LinkedHashSet<Attack> sessionAttackCreations = new LinkedHashSet<>();
@@ -79,7 +77,7 @@ public class AttackSystem extends AbstractGameSystem {
 
     private SimTime time;
     private EnergySystem health;
-    private SettingsSystem settings;
+    // private SettingsSystem settings;
 
     @Override
     protected void initialize() {
@@ -93,8 +91,8 @@ public class AttackSystem extends AbstractGameSystem {
         }
 
         space = physics.getPhysicsSpace();
-        binIndex = space.getBinIndex();
-        binEntityManager = physics.getBinEntityManager();
+        // binIndex = space.getBinIndex();
+        // binEntityManager = physics.getBinEntityManager();
 
         health = getSystem(EnergySystem.class);
 
@@ -533,7 +531,7 @@ public class AttackSystem extends AbstractGameSystem {
      * AttackInfo is where attacks originate (location, orientation, rotation and
      * velocity)
      */
-    private class AttackInfo {
+    private static class AttackInfo {
 
         private Vec3d location;
         private Vec3d attackVelocity;
@@ -551,6 +549,7 @@ public class AttackSystem extends AbstractGameSystem {
             return attackVelocity;
         }
 
+        @SuppressWarnings("unused")
         public void setLocation(final Vec3d location) {
             this.location = location;
         }

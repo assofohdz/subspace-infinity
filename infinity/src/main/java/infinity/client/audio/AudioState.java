@@ -36,7 +36,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioNode;
-import com.jme3.audio.Listener;
 import com.jme3.audio.plugins.WAVLoader;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -45,9 +44,7 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 
-import infinity.TimeState;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
@@ -62,20 +59,20 @@ public class AudioState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(AudioState.class);
 
-    private final static float FULLVOLUMEDISTANCE = 10f;
-    private final static float ZEROVOLUMEDISTANCE = 30f;
+    // private final static float FULLVOLUMEDISTANCE = 10f;
+    // private final static float ZEROVOLUMEDISTANCE = 30f;
 
-    private TimeState timeState;
+    // private TimeState timeState;
     private EntityData ed;
-    private EntitySet audio;
+    // private EntitySet audio;
     private AssetManager assets;
-    private Listener listener;
+    // private Listener listener;
     private final SIAudioFactory factory;
     private AudioContainer sounds;
     private Map<EntityId, AudioNode> soundIndex = new HashMap<>();
     private Node soundRoot;
 
-    private long time;
+    // private long time;
 
     public AudioState(final SIAudioFactory factory) {
         this.factory = factory;
@@ -86,17 +83,17 @@ public class AudioState extends BaseAppState {
     @Override
     protected void initialize(final Application app) {
         factory.setState(this);
-        timeState = getState(TimeState.class);
+        // timeState = getState(TimeState.class);
         ed = getState(ConnectionState.class).getEntityData();
 
         // This state just needs to know which sounds to play and where to play them
-        audio = ed.getEntities(AudioType.class, BodyPosition.class);
+        // audio = ed.getEntities(AudioType.class, BodyPosition.class);
 
         // Get asset manager to be able to retrieve the sounds
         assets = app.getAssetManager();
         // Register default wave loader with the wa2 extension
         assets.registerLoader(WAVLoader.class, "wa2");
-        listener = app.getListener();
+        // listener = app.getListener();
 
         soundRoot = new Node();
         soundIndex = new HashMap<>();
@@ -129,7 +126,7 @@ public class AudioState extends BaseAppState {
         // listener.setRotation(cam.getRotation());
 
         // Grab a consistent time for this frame
-        time = timeState.getTime();
+        // time = timeState.getTime();
 
         sounds.update();
     }
@@ -233,7 +230,7 @@ public class AudioState extends BaseAppState {
         soundIndex.put(entity.getId(), result);
         soundRoot.attachChild(result);
 
-        final float volume = 1f;
+        // final float volume = 1f;
         /*
          * if (result != null) { BodyPosition bp = ed.getComponent(entity.getId(),
          * BodyPosition.class); Position pos = ed.getComponent(entity.getId(),

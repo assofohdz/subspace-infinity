@@ -35,16 +35,9 @@ import com.jme3.scene.CameraNode;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.control.CameraControl;
 
-import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.WatchedEntity;
-import com.simsilica.ethereal.TimeSource;
-import com.simsilica.mathd.trans.PositionTransition3d;
-import com.simsilica.mathd.trans.TransitionBuffer;
 import com.simsilica.state.CameraState;
-
-import infinity.client.ConnectionState;
-import infinity.client.GameSessionClientService;
 
 /**
  * A state to manage in-game camera. It simply follows the avatar of the player
@@ -60,25 +53,26 @@ public class InfinityCameraState extends CameraState {
 
     public static final float DISTANCETOPLANE = 40;
     private Camera cam;
-    private EntityData ed;
+    // private EntityData ed;
     Vector3f viewLoc = new Vector3f(0, DISTANCETOPLANE, 0);
-    private TimeSource timeSource;
+    // private TimeSource timeSource;
 
     ModelViewState viewState;
     Spatial avatarSpatial;
-    private GameSessionClientService gameSession;
-    private Vector3f avatarPos;
-    private final float frustumSize = 1;
+    // private GameSessionClientService gameSession;
+    // private Vector3f avatarPos;
+    // private final float frustumSize = 1;
 
-    private final boolean initializedCam = false;
+    // private final boolean initializedCam = false;
 
     private CameraNode camNode;
 
-    private InfinityCamControl camControl;
-    private GameSessionClientService session;
-    private TransitionBuffer<PositionTransition3d> avatarTransBuffer;
+    // private InfinityCamControl camControl;
+    // private GameSessionClientService session;
+    // private TransitionBuffer<PositionTransition3d> avatarTransBuffer;
 
     public InfinityCameraState() {
+        super();
     }
 
     @Override
@@ -89,7 +83,8 @@ public class InfinityCameraState extends CameraState {
         // SpatialToamera means the camera copies movement by the target
         camNode.setControlDir(CameraControl.ControlDirection.SpatialToCamera);
 
-        camControl = new InfinityCamControl(cam, InfinityCamControl.ControlDirection.SpatialToCamera, DISTANCETOPLANE);
+        // camControl = new InfinityCamControl(cam,
+        // InfinityCamControl.ControlDirection.SpatialToCamera, DISTANCETOPLANE);
 
         // this.camera.setParallelProjection(true);
         // float aspect = (float) this.camera.getWidth() / this.camera.getHeight();
@@ -97,13 +92,14 @@ public class InfinityCameraState extends CameraState {
         // frustumSize, frustumSize, -frustumSize);
         app.getRenderManager().setCamera(cam, true);
 
-        ed = getState(ConnectionState.class).getEntityData();
+        // ed = getState(ConnectionState.class).getEntityData();
 
-        timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+        // timeSource = getState(ConnectionState.class).getRemoteTimeSource();
 
         viewState = getState(ModelViewState.class);
 
-        session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        // session =
+        // getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -116,7 +112,7 @@ public class InfinityCameraState extends CameraState {
 
     @Override
     public void update(final float tpf) {
-        final long time = timeSource.getTime();
+        // final long time = timeSource.getTime();
         /*
          * if (avatarSpatial == null && viewState.getAvatarSpatial() != null) {
          * avatarSpatial = viewState.getAvatarSpatial(); } else if (!initializedCam &&
@@ -155,7 +151,8 @@ public class InfinityCameraState extends CameraState {
 
     @Override
     protected void onEnable() {
-        gameSession = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        // gameSession =
+        // getState(ConnectionState.class).getService(GameSessionClientService.class);
 
     }
 

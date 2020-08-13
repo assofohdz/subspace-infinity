@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.light.PointLight;
-import com.jme3.scene.LightNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
@@ -142,7 +141,7 @@ public class LightState extends BaseAppState {
     }
 
     private void removePointLight(final Entity e) {
-        final PointLightComponent lt = e.get(PointLightComponent.class);
+        // final PointLightComponent lt = e.get(PointLightComponent.class);
         final PointLight pl = pointLightMap.remove(e.getId());
         rootNode.removeLight(pl);
 
@@ -189,7 +188,7 @@ public class LightState extends BaseAppState {
         bufferMap.put(e.getId(), bp.getBuffer());
 
         rootNode.addLight(pl);
-        final LightNode ln = new LightNode(e.getId().toString(), pl);
+        // final LightNode ln = new LightNode(e.getId().toString(), pl);
         // s.getp.attachChild(ln);
     }
 }
