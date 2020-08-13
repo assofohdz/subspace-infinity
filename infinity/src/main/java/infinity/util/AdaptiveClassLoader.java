@@ -682,10 +682,12 @@ public class AdaptiveClassLoader extends ClassLoader {
      * Loads resource from a zip file
      */
     private InputStream loadResourceFromZipfile(final File file, final String name) {
-        InputStream result = null;
+        InputStream result;
         try (ZipFile zipfile = new ZipFile(file)) {
             final ZipEntry entry = zipfile.getEntry(name);
-            if (entry != null) {
+            if (entry == null) {
+                result = null;
+            } else {
                 final long length = entry.getSize();
                 try (InputStream resourceStream = zipfile.getInputStream(entry)) {
                     final byte[] data = loadBytesFromStream(resourceStream, (int) length);

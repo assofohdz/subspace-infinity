@@ -78,7 +78,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
             // This happens when a dynamic collides with a static body or the world
             if (bodyOne != null) {
                 log.info("Collided: " + bodyOne.toString() + " with null");
-            } else {
+            } else if (bodyTwo != null) {
                 log.info("Collided: " + bodyTwo.toString() + " with null");
             }
 

@@ -581,7 +581,9 @@ public class ModelViewState extends BaseAppState {
             result = new Model(entityId);
             modelIndex.put(entityId, result);
         }
-        result.acquire();
+        if (result != null) {
+            result.acquire();
+        }
         return result;
     }
 
