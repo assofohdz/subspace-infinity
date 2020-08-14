@@ -56,31 +56,32 @@ public class SettingsSystem extends AbstractGameSystem {
 
     static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
     private Ini svsSettings;
-    private Ini coreServerSettings;
+    // private Ini coreServerSettings;
     private final AssetLoaderService assetLoader;
 
     // Server settings
-    private Ini serverSettings;
+    // private Ini serverSettings;
     // Arena settings (can overrule server settings)
-    private HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
+    private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
 
-    private ArrayList<String[]> asssTemplate;
+    // private ArrayList<String[]> asssTemplate;
 
     // private ArenaSettings defaultArenaSettings;
-    private AdaptiveLoadingService adaptiveLoader;
-    private ArrayList<String[]> asssSettings;
+    // private final AdaptiveLoadingService adaptiveLoader;
+    // private ArrayList<String[]> asssSettings;
 
-    public SettingsSystem(AssetLoaderService assetLoader, AdaptiveLoadingService adaptiveLoader) {
+    public SettingsSystem(final AssetLoaderService assetLoader,
+            @SuppressWarnings("unused") final AdaptiveLoadingService adaptiveLoader) {
 
         this.assetLoader = assetLoader;
-        this.adaptiveLoader = adaptiveLoader;
+        // this.adaptiveLoader = adaptiveLoader;
     }
 
-    public void addListener(SettingListener listener) {
+    public void addListener(final SettingListener listener) {
         listeners.add(listener);
     }
 
-    public void removeListener(SettingListener listener) {
+    public void removeListener(final SettingListener listener) {
         listeners.remove(listener);
     }
 
@@ -96,16 +97,16 @@ public class SettingsSystem extends AbstractGameSystem {
         // Load Subgame2: Subspace Vie Settings
         svsSettings = (Ini) assetLoader.loadAsset("/svsSettings.cfg");
         // Load Subgame2: Subspace Vie Settings
-        serverSettings = (Ini) assetLoader.loadAsset("/server.ini");
+        // serverSettings = (Ini) assetLoader.loadAsset("/server.ini");
 
         // Load ASSS: settings
-        asssSettings = (ArrayList<String[]>) assetLoader.loadAsset("/server.set");
+        // asssSettings = (ArrayList<String[]>) assetLoader.loadAsset("/server.set");
 
         // Defauælt arena settings are the svs settings
         arenaSettingsMap.put(CoreGameConstants.DEFAULTARENAID, svsSettings);
 
         // Load ASSS: Template
-        asssTemplate = (ArrayList<String[]>) assetLoader.loadAsset("/template.sss");
+        // asssTemplate = (ArrayList<String[]>) assetLoader.loadAsset("/template.sss");
 
         // SettingsValidator validator = new SettingsValidator(asssTemplate);
         // validator.getSetting("Notes:Maker");
@@ -113,20 +114,22 @@ public class SettingsSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
-    public void update(SimTime tpf) {
-
+    public void update(final SimTime tpf) {
+        return;
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     /**
@@ -137,8 +140,9 @@ public class SettingsSystem extends AbstractGameSystem {
      * @param section the section of the setting
      * @param setting the setting to retrieve
      */
-    private void settingChanged(ArenaId arenaId, String section, String setting) {
-        for (SettingListener listener : listeners) {
+    @SuppressWarnings("unused")
+    private void settingChanged(final ArenaId arenaId, final String section, final String setting) {
+        for (final SettingListener listener : listeners) {
             listener.arenaSettingsChange(arenaId, section, setting);
         }
     }
@@ -151,8 +155,8 @@ public class SettingsSystem extends AbstractGameSystem {
      * @param setting the setting to retrieve
      * @return
      */
-    public int getSetting(String arenaId, String section, String setting) {
-        return Integer.valueOf(arenaSettingsMap.get(arenaId).get(section, setting));
+    public int getSetting(final String arenaId, final String section, final String setting) {
+        return Integer.parseInt(arenaSettingsMap.get(arenaId).get(section, setting));
     }
 
     /**
@@ -161,7 +165,7 @@ public class SettingsSystem extends AbstractGameSystem {
      * @param arenaId
      * @return the settings object
      */
-    public Ini getArenaSettings(String arenaId) {
+    public Ini getArenaSettings(final String arenaId) {
         return arenaSettingsMap.get(arenaId);
     }
 

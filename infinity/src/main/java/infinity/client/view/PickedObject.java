@@ -48,7 +48,7 @@ public class PickedObject {
     public EntityId entityId;
     public Vec3d location;
 
-    public PickedObject(EntityId entityId, Vec3d location) {
+    public PickedObject(final EntityId entityId, final Vec3d location) {
         this.entityId = entityId;
         this.location = location;
     }

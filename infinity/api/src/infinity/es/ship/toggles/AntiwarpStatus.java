@@ -18,7 +18,7 @@ public class AntiwarpStatus {
         return status;
     }
 
-    public AntiwarpStatus(int status) {
+    public AntiwarpStatus(final int status) {
         this.status = status;
     }
 }

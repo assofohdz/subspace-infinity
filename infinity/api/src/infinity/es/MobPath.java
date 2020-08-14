@@ -35,9 +35,9 @@ import com.simsilica.es.EntityComponent;
  */
 public class MobPath implements EntityComponent {
 
-    private FloatArray path;
+    private final FloatArray path;
 
-    public MobPath(FloatArray path) {
+    public MobPath(final FloatArray path) {
         this.path = path;
     }
 

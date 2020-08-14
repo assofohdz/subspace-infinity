@@ -40,7 +40,7 @@ public class ArenaId implements EntityComponent {
 
     }
 
-    public ArenaId(String arenaId) {
+    public ArenaId(final String arenaId) {
         this.arenaId = arenaId;
     }
 

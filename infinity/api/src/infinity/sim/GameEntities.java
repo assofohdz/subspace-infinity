@@ -100,20 +100,21 @@ public class GameEntities {
     // from the constants
     // TODO: All parameters should be dumb types and should be the basis of the
     // complex types used in the backend
-    public static EntityId createGravSphere(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, double radius) {
-        EntityId result = ed.createEntity();
+    public static EntityId createGravSphere(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos,
+            @SuppressWarnings("unused") final double radius) {
+        final EntityId result = ed.createEntity();
         ed.setComponents(result, ShapeInfo.create("gravitysphere", 1, ed), new SpawnPosition(phys.getGrid(), pos));
 
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
-    public static EntityId createDelayedBomb(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, Vec3d linearVelocity, long decayMillis, long scheduledMillis,
-            HashSet<EntityComponent> delayedComponents, BombLevelEnum level) {
+    public static EntityId createDelayedBomb(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime, final Vec3d pos, final Vec3d linearVelocity, final long decayMillis,
+            final long scheduledMillis, final HashSet<EntityComponent> delayedComponents, final BombLevelEnum level) {
 
-        EntityId lastDelayedBomb = GameEntities.createBomb(ed, owner, phys, createdTime, pos, linearVelocity,
+        final EntityId lastDelayedBomb = GameEntities.createBomb(ed, owner, phys, createdTime, pos, linearVelocity,
                 decayMillis, level);
 
         ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
@@ -122,9 +123,10 @@ public class GameEntities {
         return lastDelayedBomb;
     }
 
-    public static EntityId createBomb(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            Vec3d linearVelocity, long decayMillis, BombLevelEnum level) {
-        EntityId lastBomb = ed.createEntity();
+    public static EntityId createBomb(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime, final Vec3d pos, final Vec3d linearVelocity, final long decayMillis,
+            final BombLevelEnum level) {
+        final EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ShapeInfo.create("bomb_l" + level.level, 0.5, ed),
                 new SpawnPosition(phys.getGrid(), pos), new Mass(5),
@@ -138,9 +140,10 @@ public class GameEntities {
         return lastBomb;
     }
 
-    public static EntityId createBullet(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            Vec3d linearVelocity, long decayMillis, GunLevelEnum level, String shapeName) {
-        EntityId lastBullet = ed.createEntity();
+    public static EntityId createBullet(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime, final Vec3d pos, final Vec3d linearVelocity, final long decayMillis,
+            @SuppressWarnings("unused") final GunLevelEnum level, final String shapeName) {
+        final EntityId lastBullet = ed.createEntity();
 
         ed.setComponents(lastBullet, ShapeInfo.create(shapeName, 0.125, ed), new SpawnPosition(phys.getGrid(), pos),
                 new Mass(1),
@@ -153,9 +156,10 @@ public class GameEntities {
         return lastBullet;
     }
 
-    public static EntityId createArena(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            String arenaId, Vec3d pos) {
-        EntityId lastArena = ed.createEntity();
+    public static EntityId createArena(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final String arenaId,
+            @SuppressWarnings("unused") final Vec3d pos) {
+        final EntityId lastArena = ed.createEntity();
 
         ed.setComponents(lastArena, ShapeInfo.create(ShapeNames.ARENA, 1, ed),
                 new SpawnPosition(phys.getGrid(), new Vec3d()), new ArenaId(arenaId));
@@ -178,9 +182,9 @@ public class GameEntities {
      * return lastTileInfo; }
      */
     // Explosion is for now only visual, so only object type and position
-    public static EntityId createExplosion2(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, long decayMillis) {
-        EntityId lastExplosion = ed.createEntity();
+    public static EntityId createExplosion2(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final long decayMillis) {
+        final EntityId lastExplosion = ed.createEntity();
 
         // Explosion is a ghost
         ed.setComponents(lastExplosion, ShapeInfo.create(ShapeNames.EXPLOSION2, 0, ed),
@@ -191,9 +195,11 @@ public class GameEntities {
         return lastExplosion;
     }
 
-    public static EntityId createWormhole(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            double gravityRadius, double targetAreaRadius, double force, String gravityType, Vec3d warpTargetLocation) {
-        EntityId lastWormhole = ed.createEntity();
+    public static EntityId createWormhole(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final double gravityRadius,
+            @SuppressWarnings("unused") final double targetAreaRadius, final double force, final String gravityType,
+            final Vec3d warpTargetLocation) {
+        final EntityId lastWormhole = ed.createEntity();
 
         // Wormhome is also a ghost
         ed.setComponents(lastWormhole, ShapeInfo.create(ShapeNames.WORMHOLE, 0, ed),
@@ -220,9 +226,10 @@ public class GameEntities {
      *
      * return lastForce; }
      */
-    public static EntityId createOver5(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            double force, double gravityRadius, String gravityType) {
-        EntityId lastOver5 = ed.createEntity();
+    public static EntityId createOver5(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final double force,
+            final double gravityRadius, final String gravityType) {
+        final EntityId lastOver5 = ed.createEntity();
 
         ed.setComponents(lastOver5, ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.OVER5SIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos), new GravityWell(gravityRadius, force, gravityType));
@@ -237,9 +244,10 @@ public class GameEntities {
      * @param ed the entitydata set to create the entity in
      * @return the entityid of the created entity
      */
-    public static EntityId createOver1(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            int mass) {
-        EntityId lastOver1 = ed.createEntity();
+    public static EntityId createOver1(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos,
+            @SuppressWarnings("unused") final int mass) {
+        final EntityId lastOver1 = ed.createEntity();
 
         ed.setComponents(lastOver1, ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.OVER1SIZERADIUS, ed),
                 // new Mass(mass),
@@ -257,8 +265,9 @@ public class GameEntities {
      * @param settings the settings to load this medium asteroid with
      * @return the entityid of the created entity
      */
-    public static EntityId createOver2(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos) {
-        EntityId lastOver2 = ed.createEntity();
+    public static EntityId createOver2(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos) {
+        final EntityId lastOver2 = ed.createEntity();
 
         ed.setComponents(lastOver2, ShapeInfo.create(ShapeNames.OVER2, CorePhysicsConstants.OVER2SIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos));
@@ -267,9 +276,9 @@ public class GameEntities {
         return lastOver2;
     }
 
-    public static EntityId createWarpEffect(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, long decayMillis) {
-        EntityId lastWarpTo = ed.createEntity();
+    public static EntityId createWarpEffect(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final long decayMillis) {
+        final EntityId lastWarpTo = ed.createEntity();
 
         // Warp is a ghost
         ed.setComponents(lastWarpTo, ShapeInfo.create(ShapeNames.WARP, 0, ed), new SpawnPosition(phys.getGrid(), pos),
@@ -279,9 +288,9 @@ public class GameEntities {
         return lastWarpTo;
     }
 
-    public static EntityId createCaptureTheFlag(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos) {
-        EntityId lastFlag = ed.createEntity();
+    public static EntityId createCaptureTheFlag(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos) {
+        final EntityId lastFlag = ed.createEntity();
 
         ed.setComponents(lastFlag, ShapeInfo.create(ShapeNames.FLAG_OURS, CorePhysicsConstants.FLAGSIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos), new Flag(), new Frequency(0));
@@ -290,10 +299,11 @@ public class GameEntities {
         return lastFlag;
     }
 
-    public static EntityId createHealthBuff(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            int healthChange, EntityId target) {
+    public static EntityId createHealthBuff(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            @SuppressWarnings("unused") final PhysicsSpace<?, ?> phys, final long createdTime, final int healthChange,
+            final EntityId target) {
 
-        EntityId lastHealthBuff = ed.createEntity();
+        final EntityId lastHealthBuff = ed.createEntity();
 
         ed.setComponents(lastHealthBuff, new HealthChange(healthChange), // apply the damage
                 new Buff(target, 0)); // apply right away
@@ -302,9 +312,10 @@ public class GameEntities {
         return lastHealthBuff;
     }
 
-    public static EntityId createLight(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos) {
+    public static EntityId createLight(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos) {
 
-        EntityId lastLight = ed.createEntity();
+        final EntityId lastLight = ed.createEntity();
 
         ed.setComponents(lastLight, new SpawnPosition(phys.getGrid(), pos));
         ed.setComponent(lastLight, new Meta(createdTime));
@@ -316,9 +327,10 @@ public class GameEntities {
     // from the constants
     // TODO: All parameters should be dumb types and should be the basis of the
     // complex types used in the backend
-    public static EntityId createWarbird(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime) {
-        EntityId result = ed.createEntity();
-        Name name = ed.getComponent(owner, Name.class);
+    public static EntityId createWarbird(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime) {
+        final EntityId result = ed.createEntity();
+        final Name name = ed.getComponent(owner, Name.class);
         ed.setComponent(result, name);
 
         ed.setComponents(result, ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
@@ -378,9 +390,9 @@ public class GameEntities {
         return result;
     }
 
-    public static EntityId createPrize(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            String prizeType) {
-        EntityId result = ed.createEntity();
+    public static EntityId createPrize(final EntityData ed, final PhysicsSpace<?, ?> phys, final long createdTime,
+            final Vec3d pos, final String prizeType) {
+        final EntityId result = ed.createEntity();
 
         ed.setComponents(result, ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos), new Bounty(CoreGameConstants.BOUNTYVALUE),
@@ -391,9 +403,10 @@ public class GameEntities {
         return result;
     }
 
-    public static EntityId createPrizeSpawner(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            Vec3d pos, double radius) {
-        EntityId result = ed.createEntity();
+    public static EntityId createPrizeSpawner(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos,
+            @SuppressWarnings("unused") final double radius) {
+        final EntityId result = ed.createEntity();
         ed.setComponents(result,
                 // Possible to add model if we want the players to be able to see the spawner
                 new SpawnPosition(phys.getGrid(), pos),
@@ -402,9 +415,10 @@ public class GameEntities {
         return result;
     }
 
-    public static EntityId createBurst(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            Vec3d linearVelocity, long decayMillis) {
-        EntityId lastBomb = ed.createEntity();
+    public static EntityId createBurst(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime, final Vec3d pos, @SuppressWarnings("unused") final Vec3d linearVelocity,
+            final long decayMillis) {
+        final EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb,
                 // ViewTypes.burst(ed),
@@ -422,9 +436,10 @@ public class GameEntities {
         return lastBomb;
     }
 
-    public static EntityId createMapTile(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            String tileSet, short tileIndex, Vec3d pos, String tileType) {
-        EntityId lastTileInfo = ed.createEntity();
+    public static EntityId createMapTile(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final String tileSet, final short tileIndex,
+            final Vec3d pos, final String tileType) {
+        final EntityId lastTileInfo = ed.createEntity();
 
         ed.setComponents(lastTileInfo, TileType.create(tileType, tileSet, tileIndex, ed),
                 // TODO: Register map tiles with a block shape factory instead of default sphere
@@ -439,8 +454,9 @@ public class GameEntities {
 
     // This is called by the server when it has calculcated the correct tileIndex
     // number
-    public static EntityId updateWangBlobEntity(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime,
-            EntityId entity, String tileSet, short tileIndex, Vec3d pos) {
+    public static EntityId updateWangBlobEntity(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+            final PhysicsSpace<?, ?> phys, final long createdTime, final EntityId entity, final String tileSet,
+            final short tileIndex, final Vec3d pos) {
 
         // TODO: Update the shapename to something from ShapeNames
         ed.setComponents(entity, TileTypes.wangblob(tileSet, tileIndex, ed), ShapeInfo.create("wangblob", 1, ed),
@@ -458,8 +474,9 @@ public class GameEntities {
      *
      * ed.setComponent(lastForce, new Meta(createdTime)); return lastForce; }
      */
-    public static EntityId createRepel(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos) {
-        EntityId lastWarpTo = ed.createEntity();
+    public static EntityId createRepel(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime, final Vec3d pos) {
+        final EntityId lastWarpTo = ed.createEntity();
 
         ed.setComponents(lastWarpTo, ShapeInfo.create(ShapeNames.REPEL, CorePhysicsConstants.REPELRADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),
@@ -472,9 +489,10 @@ public class GameEntities {
         return lastWarpTo;
     }
 
-    public static EntityId createThor(EntityData ed, EntityId owner, PhysicsSpace phys, long createdTime, Vec3d pos,
-            Vec3d attackVelocity, long thorDecay) {
-        EntityId lastBomb = ed.createEntity();
+    public static EntityId createThor(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+            final long createdTime, final Vec3d pos, @SuppressWarnings("unused") final Vec3d attackVelocity,
+            final long thorDecay) {
+        final EntityId lastBomb = ed.createEntity();
 
         ed.setComponents(lastBomb, ShapeInfo.create(ShapeNames.THOR, CorePhysicsConstants.THORSIZERADIUS, ed),
                 new SpawnPosition(phys.getGrid(), pos),

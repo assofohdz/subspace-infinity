@@ -38,16 +38,10 @@ package infinity.server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
-
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.ObjectStatusListener;
-import com.simsilica.mathd.AaBBox;
-import com.simsilica.mathd.Quatd;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.PhysicsListener;
 import com.simsilica.mphys.RigidBody;
@@ -74,76 +68,86 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
     static Logger log = LoggerFactory.getLogger(BodyPositionPublisher.class);
 
     private EntityData ed;
-    private PhysicsObserver observer = new PhysicsObserver();
+    private final PhysicsObserver observer = new PhysicsObserver();
 
     public BodyPositionPublisher() {
+        super();
+    }
+
+    protected MPhysSystem<S> getPhysicsSystem() {
+        final MPhysSystem<?> s = getSystem(MPhysSystem.class);
+        @SuppressWarnings("unchecked")
+        final MPhysSystem<S> result = (MPhysSystem<S>) s;
+        return result;
     }
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-
-        getSystem(MPhysSystem.class).addPhysicsListener(observer);
-        getSystem(MPhysSystem.class).getBinEntityManager().addObjectStatusListener(observer);
+        final MPhysSystem<S> system = getPhysicsSystem();
+        system.addPhysicsListener(observer);
+        system.getBinEntityManager().addObjectStatusListener(observer);
     }
 
     @Override
     protected void terminate() {
-        getSystem(MPhysSystem.class).getBinEntityManager().removeObjectStatusListener(observer);
-        getSystem(MPhysSystem.class).removePhysicsListener(observer);
+        final MPhysSystem<S> system = getPhysicsSystem();
+        system.getBinEntityManager().removeObjectStatusListener(observer);
+        system.removePhysicsListener(observer);
     }
 
     private class PhysicsObserver implements PhysicsListener<EntityId, S>, ObjectStatusListener<S> {
 
         private long frameTime;
 
-        private Vector3f posf = new Vector3f();
-        private Quaternion orientf = new Quaternion();
+        // private final Vector3f posf = new Vector3f();
+        // private final Quaternion orientf = new Quaternion();
 
-        private Vec3d pos = new Vec3d();
-        private Quatd orient = new Quatd();
+        // private final Vec3d pos = new Vec3d();
+        // private final Quatd orient = new Quatd();
 
         // We probably won't have many zones, if we even have more than one.
         // The physics objects do not provide any sort of accurate bounds so
         // we'll guess at a size that is "big enough" for any particular mobile
         // object. 2x2x2 meters should be good enough... until it isn't.
-        private AaBBox box = new AaBBox(1);
+        // private final AaBBox box = new AaBBox(1);
 
         public PhysicsObserver() {
         }
 
         @Override
-        public void startFrame(long frameTime, double stepSize) {
-            this.frameTime = frameTime;
+        public void startFrame(final long time, final double stepSize) {
+            frameTime = time;
         }
 
         @Override
         public void endFrame() {
+            return;
         }
 
         @Override
-        public void update(RigidBody<EntityId, S> body) {
+        public void update(final RigidBody<EntityId, S> body) {
             if (log.isTraceEnabled()) {
                 log.trace("update(" + body + ")");
             }
-            BodyPosition pos = ed.getComponent(body.id, BodyPosition.class);
-            if (pos == null) {
+            final BodyPosition p = ed.getComponent(body.id, BodyPosition.class);
+            if (p == null) {
                 // Until we have remove notifications
                 log.error("No body position for:" + body.id);
                 return;
             }
-            pos.addFrame(frameTime, body.position, body.orientation, true);
+            p.addFrame(frameTime, body.position, body.orientation, true);
         }
 
         @Override
-        public void objectLoaded(EntityId id, RigidBody<EntityId, S> body) {
+        public void objectLoaded(final EntityId id, final RigidBody<EntityId, S> body) {
             if (log.isTraceEnabled()) {
                 log.trace("objectLoaded(" + id + ", " + body + ")");
             }
             // The server side needs hardly any backlog. We'll use 3 just in case
             // but 2 (even possibly 1) should be fine. If we ever need to rewind
             // for shot resolution then we can increase the backlog as necessary
-            BodyPosition bPos = new BodyPosition(3);
+            final BodyPosition bPos = new BodyPosition(3);
 
             // We have the body and the position, might as well just set it to
             // its initial value.
@@ -154,7 +158,7 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
         }
 
         @Override
-        public void objectUnloaded(EntityId id, RigidBody<EntityId, S> body) {
+        public void objectUnloaded(final EntityId id, final RigidBody<EntityId, S> body) {
             if (log.isTraceEnabled()) {
                 log.trace("objectUnloaded(" + id + ", " + body + ")");
             }
@@ -165,13 +169,13 @@ public class BodyPositionPublisher<S extends AbstractShape> extends AbstractGame
             // unlikely to have a BodyPosition anymore. Also, this BodyPosition updating
             // is only used on the server and so is unlikely to care about historical
             // visibility, etc..
-            BodyPosition pos = ed.getComponent(id, BodyPosition.class);
-            if (pos == null) {
+            final BodyPosition p = ed.getComponent(id, BodyPosition.class);
+            if (p == null) {
                 return; // just in case
             }
 
             // Add the final frame with the invisible flag
-            pos.addFrame(frameTime, body.position, body.orientation, false);
+            p.addFrame(frameTime, body.position, body.orientation, false);
         }
     }
 }

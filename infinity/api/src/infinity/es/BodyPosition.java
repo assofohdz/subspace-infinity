@@ -53,16 +53,16 @@ import com.simsilica.mathd.trans.TransitionBuffer;
  * @author Paul Speed
  */
 public final class BodyPosition implements EntityComponent {
-    private transient int size;
+    // private transient int size;
     private transient TransitionBuffer<PositionTransition3d> position;
     private transient PositionTransition3d lastTransition;
 
     public BodyPosition() {
     }
 
-    public BodyPosition(int history) {
-        this.size = (byte) history;
-        this.position = PositionTransition3d.createBuffer(history);
+    public BodyPosition(final int history) {
+        // size = (byte) history;
+        position = PositionTransition3d.createBuffer(history);
     }
 
     /**
@@ -70,10 +70,10 @@ public final class BodyPosition implements EntityComponent {
      * transition buffer. It must be called for all retrieved BodyPosition
      * components before use.
      */
-    public void initialize(EntityId id, int size) {
-        if (this.position == null) {
-            this.size = size;
-            this.position = BodyPositionCache.getBuffer(id, size);
+    public void initialize(final EntityId id, final int sz) {
+        if (position == null) {
+            // size = sz;
+            position = BodyPositionCache.getBuffer(id, sz);
         }
     }
 
@@ -85,13 +85,13 @@ public final class BodyPosition implements EntityComponent {
         return position;
     }
 
-    public void addFrame(long endTime, Vec3d pos, Quatd quat, boolean visible) {
-        PositionTransition3d trans = new PositionTransition3d(endTime, pos, quat, visible);
+    public void addFrame(final long endTime, final Vec3d pos, final Quatd quat, final boolean visible) {
+        final PositionTransition3d trans = new PositionTransition3d(endTime, pos, quat, visible);
         getBuffer().addTransition(trans);
-        this.lastTransition = trans;
+        lastTransition = trans;
     }
 
-    public PositionTransition3d getFrame(long time) {
+    public PositionTransition3d getFrame(final long time) {
         return getBuffer().getTransition(time);
     }
 

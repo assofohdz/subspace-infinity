@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
+import com.jme3.network.service.Service;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 
@@ -54,10 +55,8 @@ import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.es.server.HostedEntityData;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
-import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.GameSystemManager;
 
@@ -66,8 +65,6 @@ import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
-//import infinity.sim.InfinityMPhysSystem;
-import infinity.sim.PlayerDriver;
 import infinity.systems.AttackSystem;
 import infinity.systems.MapSystem;
 
@@ -82,14 +79,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     private static final String ATTRIBUTE_SESSION = "game.session";
 
-    private GameSystemManager gameSystems;
+    private final GameSystemManager gameSystems;
     private EntityData ed;
 
     private RmiHostedService rmiService;
 
-    private List<GameSessionImpl> players = new CopyOnWriteArrayList<>();
+    private final List<GameSessionImpl> players = new CopyOnWriteArrayList<>();
 
-    public GameSessionHostedService(GameSystemManager gameSystems) {
+    public GameSessionHostedService(final GameSystemManager gameSystems) {
 
         this.gameSystems = gameSystems;
 
@@ -97,16 +94,21 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     }
 
     @Override
-    protected void onInitialize(HostedServiceManager s) {
+    protected <T extends Service<HostedServiceManager>> T getService(final Class<T> type) {
+        return super.getService(type);
+    }
+
+    @Override
+    protected void onInitialize(final HostedServiceManager s) {
         // Grab the RMI service so we can easily use it later
-        this.rmiService = getService(RmiHostedService.class);
+        rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("GameSessionHostedService requires an RMI service.");
         }
     }
 
     @Override
-    public void terminate(HostedServiceManager serviceManager) {
+    public void terminate(final HostedServiceManager serviceManager) {
         super.terminate(serviceManager);
     }
 
@@ -114,38 +116,38 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     public void start() {
         super.start();
 
-        EntityDataHostedService eds = getService(EntityDataHostedService.class);
+        final EntityDataHostedService eds = getService(EntityDataHostedService.class);
         if (eds == null) {
             throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
         }
-        this.ed = eds.getEntityData();
+        ed = eds.getEntityData();
     }
 
     @Override
-    public void startHostingOnConnection(HostedConnection conn) {
+    public void startHostingOnConnection(final HostedConnection conn) {
 
         log.debug("startHostingOnConnection(" + conn + ")");
 
-        GameSessionImpl session = new GameSessionImpl(conn);
+        final GameSessionImpl session = new GameSessionImpl(conn);
         conn.setAttribute(ATTRIBUTE_SESSION, session);
 
         // Expose the session as an RMI resource to the client
-        RmiRegistry rmi = rmiService.getRmiRegistry(conn);
+        final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
         rmi.share(session, GameSession.class);
 
         players.add(session);
         session.initialize();
     }
 
-    protected GameSessionImpl getGameSession(HostedConnection conn) {
+    protected GameSessionImpl getGameSession(final HostedConnection conn) {
         return conn.getAttribute(ATTRIBUTE_SESSION);
     }
 
     @Override
-    public void stopHostingOnConnection(HostedConnection conn) {
+    public void stopHostingOnConnection(final HostedConnection conn) {
         log.debug("stopHostingOnConnection(" + conn + ")");
 
-        GameSessionImpl session = getGameSession(conn);
+        final GameSessionImpl session = getGameSession(conn);
         if (session != null) {
 
             session.close();
@@ -171,43 +173,43 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
      */
     private class GameSessionImpl implements GameSession {
 
-        private HostedConnection conn;
+        private final HostedConnection conn;
         private GameSessionListener callback;
 
-        private EntityId avatarEntityId;
+        private final EntityId avatarEntityId;
 
-        private Vec3d spawnLoc = new Vec3d();
+        private final Vec3d spawnLoc = new Vec3d();
 
-        private EntityId activation = null;
-        private EntityId fireMain = null;
-        private EntityId fireAlt = null;
+        // private final EntityId activation = null;
+        // private final EntityId fireMain = null;
+        // private final EntityId fireAlt = null;
 
         private boolean spawned;
 
-        private EntityId test = null;
-        private Vec3d lastViewLoc = new Vec3d();
-        private Quatd lastViewOrient = new Quatd();
-        private Vec3d relativeLoc = null;
-        private PhysicsSpace phys;
-        private MPhysSystem mphys;
+        // private final EntityId test = null;
+        private final Vec3d lastViewLoc = new Vec3d();
+        private final Quatd lastViewOrient = new Quatd();
+        // private final Vec3d relativeLoc = null;
+        private final PhysicsSpace<?, ?> phys;
+        // private final MPhysSystem mphys;
 
-        private PlayerDriver driver;
-        private EntityId playerEntityId;
-        private final BinIndex binIndex;
-        private AttackSystem attackSystem;
-        private MapSystem mapSystem;
+        // private PlayerDriver driver;
+        private final EntityId playerEntityId;
+        // private final BinIndex binIndex;
+        private final AttackSystem attackSystem;
+        // private MapSystem mapSystem;
 
-        public GameSessionImpl(HostedConnection conn) {
+        public GameSessionImpl(final HostedConnection conn) {
             this.conn = conn;
 
-            this.phys = gameSystems.get(PhysicsSpace.class, true);
-            this.mphys = gameSystems.get(MPhysSystem.class, true);
-            this.attackSystem = gameSystems.get(AttackSystem.class, true);
+            phys = gameSystems.get(PhysicsSpace.class, true);
+            // mphys = gameSystems.get(MPhysSystem.class, true);
+            attackSystem = gameSystems.get(AttackSystem.class, true);
             // this.mapSystem = gameSystems.get(MapSystem.class, true);
 
-            this.binIndex = phys.getBinIndex();
+            // binIndex = phys.getBinIndex();
 
-            this.playerEntityId = ed.createEntity();
+            playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
 
             avatarEntityId = GameEntities.createWarbird(ed, playerEntityId, phys, 0);
@@ -231,14 +233,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             }
 
             // Setup to start using SimEthereal synching
-            EtherealHost ethereal = getService(EtherealHost.class);
+            final EtherealHost ethereal = getService(EtherealHost.class);
             ethereal.startHostingOnConnection(conn);
-            ethereal.setConnectionObject(conn, avatarEntityId.getId(), spawnLoc);
-            EntityDataHostedService eds = getService(EntityDataHostedService.class);
+            ethereal.setConnectionObject(conn, Long.valueOf(avatarEntityId.getId()), spawnLoc);
+            final EntityDataHostedService eds = getService(EntityDataHostedService.class);
 
             // Setup a filter for BodyPosition components to match what
             // SimEthereal says is visible for the client.
-            HostedEntityData hed = eds.getHostedEntityData(conn);
+            final HostedEntityData hed = eds.getHostedEntityData(conn);
             if (hed == null) {
                 throw new RuntimeException("Can't get hosted entity data for:" + conn);
             }
@@ -271,7 +273,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         }
 
         @Override
-        public void setView(Quatd rotation, Vec3d location) {
+        public void setView(final Quatd rotation, final Vec3d location) {
 //log.info("setView(" + rotation + ", " + location + ")");
             if (!spawned) {
                 spawned = true;
@@ -280,10 +282,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Force our viewpoint to the network view.
             // This is a bit of a hack and not officially supported to keep
             // resetting yourself... but it works.
-            NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
+            final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
             // nsl.setMaxMessageSize(2000);
             if (nsl != null) {
-                nsl.setSelf(avatarEntityId.getId(), location);
+                nsl.setSelf(Long.valueOf(avatarEntityId.getId()), location);
             }
 
             lastViewLoc.set(location);
@@ -309,45 +311,47 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
          * getService(EtherealHost.class).setConnectionObject(conn,
          * avatarEntity.getId(), spawnLoc); }
          */
-        protected GameSessionListener getCallback(boolean failFast) {
+        protected GameSessionListener getCallback(final boolean failFast) {
             if (callback == null) {
-                RmiRegistry rmi = rmiService.getRmiRegistry(conn);
+                final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
                 callback = rmi.getRemoteObject(GameSessionListener.class);
                 if (callback == null) {
                     if (failFast) {
                         throw new RuntimeException("Unable to locate client callback for GameSessionListener");
-                    } else {
-                        log.warn("Unable to locate client callback for GameSessionListener");
                     }
+                    log.warn("Unable to locate client callback for GameSessionListener");
                 }
             }
             return callback;
         }
 
         @Override
-        public void move(MovementInput movementForces) {
+        public void move(final MovementInput movementForces) {
             ed.setComponent(avatarEntityId, movementForces);
         }
 
         @Override
-        public void action(byte actionInput) {
+        public void action(final byte actionInput) {
+            return;
         }
 
         @Override
-        public void attack(byte attackInput) {
+        public void attack(final byte attackInput) {
             attackSystem.sessionAttack(avatarEntityId, attackInput);
         }
 
         @Override
-        public void avatar(byte avatarInput) {
+        public void avatar(final byte avatarInput) {
+            return;
         }
 
         @Override
-        public void toggle(byte toggleInput) {
+        public void toggle(final byte toggleInput) {
+            return;
         }
 
         @Override
-        public void map(byte mapInput, Vec3d coords) {
+        public void map(final byte mapInput, final Vec3d coords) {
             switch (mapInput) {
             case MapSystem.CREATE:
                 // mapSystem.sessionCreateTile(coords.x, coords.z);

@@ -65,19 +65,20 @@ public class BodyVisibility implements ComponentVisibility {
 
     static Logger log = LoggerFactory.getLogger(BodyVisibility.class);
 
-    private NetworkStateListener netState;
+    private final NetworkStateListener netState;
     private EntityData ed;
 
-    private Set<Long> lastActiveIds;
+    // private final Set<Long> lastActiveIds;
 
-    private Map<EntityId, BodyPosition> lastValues = new HashMap<>();
+    private final Map<EntityId, BodyPosition> lastValues = new HashMap<>();
 
-    protected BodyVisibility(NetworkStateListener netState, Set<Long> lastActiveIds) {
+    protected BodyVisibility(final NetworkStateListener netState,
+            @SuppressWarnings("unused") final Set<Long> lastActiveIds) {
         this.netState = netState;
-        this.lastActiveIds = lastActiveIds;
+        // this.lastActiveIds = lastActiveIds;
     }
 
-    public BodyVisibility(NetworkStateListener netState) {
+    public BodyVisibility(final NetworkStateListener netState) {
         this(netState, null);
     }
 
@@ -87,12 +88,12 @@ public class BodyVisibility implements ComponentVisibility {
     }
 
     @Override
-    public void initialize(EntityData ed) {
-        this.ed = ed;
+    public void initialize(final EntityData entityData) {
+        ed = entityData;
     }
 
     @Override
-    public <T extends EntityComponent> T getComponent(EntityId entityId, Class<T> type) {
+    public <T extends EntityComponent> T getComponent(final EntityId entityId, final Class<T> type) {
         log.info("getComponent(" + entityId + ", " + type + ")");
         // if( !netState.getActiveIds().contains(entityId) ) {
         // return null;
@@ -104,7 +105,7 @@ public class BodyVisibility implements ComponentVisibility {
     }
 
     @Override
-    public Set<EntityId> getEntityIds(ComponentFilter filter) {
+    public Set<EntityId> getEntityIds(@SuppressWarnings("rawtypes") final ComponentFilter filter) {
         if (log.isTraceEnabled()) {
             log.trace("getEntityIds(" + filter + ")");
         }
@@ -124,8 +125,8 @@ public class BodyVisibility implements ComponentVisibility {
     }
 
     @Override
-    public boolean collectChanges(Queue<EntityChange> updates) {
-        Set<Long> active = netState.getActiveIds();
+    public boolean collectChanges(final Queue<EntityChange> updates) {
+        final Set<Long> active = netState.getActiveIds();
         boolean changed = false;
         if (log.isTraceEnabled()) {
             log.trace("active:" + active);
@@ -134,9 +135,10 @@ public class BodyVisibility implements ComponentVisibility {
 
         // Remove any BodyPosition updates that don't belong to the active
         // set
-        for (Iterator<EntityChange> it = updates.iterator(); it.hasNext();) {
-            EntityChange change = it.next();
-            if (change.getComponentType() == BodyPosition.class && !active.contains(change.getEntityId().getId())) {
+        for (final Iterator<EntityChange> it = updates.iterator(); it.hasNext();) {
+            final EntityChange change = it.next();
+            if (change.getComponentType() == BodyPosition.class
+                    && !active.contains(Long.valueOf(change.getEntityId().getId()))) {
                 if (log.isTraceEnabled()) {
                     log.trace("removing irrelevant change:" + change);
                 }
@@ -145,9 +147,9 @@ public class BodyVisibility implements ComponentVisibility {
         }
 
         // First process the removals
-        for (Iterator<EntityId> it = lastValues.keySet().iterator(); it.hasNext();) {
-            EntityId id = it.next();
-            if (active.contains(id.getId())) {
+        for (final Iterator<EntityId> it = lastValues.keySet().iterator(); it.hasNext();) {
+            final EntityId id = it.next();
+            if (active.contains(Long.valueOf(id.getId()))) {
                 continue;
             }
             if (log.isTraceEnabled()) {
@@ -159,15 +161,15 @@ public class BodyVisibility implements ComponentVisibility {
         }
 
         // Now the adds
-        for (Long l : active) {
-            EntityId id = new EntityId(l);
+        for (final Long l : active) {
+            final EntityId id = new EntityId(l.longValue());
             if (lastValues.containsKey(id)) {
                 continue;
             }
             if (log.isTraceEnabled()) {
                 log.trace("adding:" + id);
             }
-            BodyPosition pos = ed.getComponent(id, BodyPosition.class);
+            final BodyPosition pos = ed.getComponent(id, BodyPosition.class);
             lastValues.put(id, pos);
             updates.add(new EntityChange(id, pos));
             changed = true;

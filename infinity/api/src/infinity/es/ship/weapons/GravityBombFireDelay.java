@@ -33,21 +33,21 @@ import com.simsilica.es.EntityComponent;
  */
 public class GravityBombFireDelay implements EntityComponent {
 
-    private long start;
-    private long delta;
+    private final long start;
+    private final long delta;
 
     public GravityBombFireDelay() {
-        this.start = System.nanoTime();
-        this.delta = 1000000 * 10;
+        start = System.nanoTime();
+        delta = 1000000 * 10;
     }
 
-    public GravityBombFireDelay(long deltaMillis) {
-        this.start = System.nanoTime();
-        this.delta = deltaMillis * 1000000;
+    public GravityBombFireDelay(final long deltaMillis) {
+        start = System.nanoTime();
+        delta = deltaMillis * 1000000;
     }
 
     public double getPercent() {
-        long time = System.nanoTime();
+        final long time = System.nanoTime();
         return (double) (time - start) / delta;
     }
 

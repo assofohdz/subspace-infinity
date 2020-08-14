@@ -39,11 +39,11 @@ public class PrizeType implements EntityComponent {
     protected PrizeType() {
     }
 
-    public PrizeType(int type) {
+    public PrizeType(final int type) {
         this.type = type;
     }
 
-    public static PrizeType create(String typeName, EntityData ed) {
+    public static PrizeType create(final String typeName, final EntityData ed) {
         return new PrizeType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -51,7 +51,7 @@ public class PrizeType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

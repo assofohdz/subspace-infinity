@@ -40,11 +40,11 @@ public class ActionType implements EntityComponent {
     protected ActionType() {
     }
 
-    public ActionType(int type) {
+    public ActionType(final int type) {
         this.type = type;
     }
 
-    public static ActionType create(String typeName, EntityData ed) {
+    public static ActionType create(final String typeName, final EntityData ed) {
         return new ActionType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -52,7 +52,7 @@ public class ActionType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

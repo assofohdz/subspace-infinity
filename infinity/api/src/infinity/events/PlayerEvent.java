@@ -37,7 +37,7 @@ public class PlayerEvent extends PlayerEntityEvent {
 
     public static EventType<PlayerEvent> playerBanned = EventType.create("PlayerBanned", PlayerEvent.class);
 
-    public PlayerEvent(EntityId player) {
+    public PlayerEvent(final EntityId player) {
         super(player);
     }
 

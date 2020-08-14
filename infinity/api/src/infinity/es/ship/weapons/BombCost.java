@@ -19,7 +19,7 @@ public class BombCost implements EntityComponent {
         return cost;
     }
 
-    public BombCost(int cost) {
+    public BombCost(final int cost) {
         this.cost = cost;
     }
 }

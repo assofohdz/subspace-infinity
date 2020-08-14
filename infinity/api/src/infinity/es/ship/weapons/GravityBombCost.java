@@ -19,7 +19,7 @@ public class GravityBombCost implements EntityComponent {
         return cost;
     }
 
-    public GravityBombCost(int cost) {
+    public GravityBombCost(final int cost) {
         this.cost = cost;
     }
 }

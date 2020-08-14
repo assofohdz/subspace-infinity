@@ -12,8 +12,6 @@ These instructions assume you are using Windows 10. Java is cross-platform and S
 1. Eclipse will prompt you for a workspace folder, select the workspace folder you created when you followed the build instructions, for example: `C:\workspace\Subspace`
 1. Use the Eclipse Marketplace: `Help->Eclipse Marketplace...` to install `Yaml Editor 1.6.2` and `Checkstyle Plug-in 8.34.0`
 1. Import the Workspace Preferences with `File->Import->General->Preferences`, and select the file `C:\workspace\Subspace\Subspace-Infinity\eclipse\Workspace-Preferences.epf`. Eclipse will suggest you restart, do that.
-1. Import MOSS into Eclipse using `File->Import->Gradle->Existing Gradle Project` and select the folder `C:\workspace\Subspace\pspeed42\moss`
-1. Let Eclipse finish importing and building MOSS before proceeding to the next step
 1. Import Subspace-Infinity into Eclipse using `File->Import->Gradle->Existing Gradle Project` and select the folder `C:\workspace\Subspace\Subspace-Infinity`
 1. Let Eclipse finish importing and building Subspace-Infinity before proceeding to the next step
 1. If you want to view projects in a hierarchical view instead of flat, select `Window->Show View->Project Explorer`

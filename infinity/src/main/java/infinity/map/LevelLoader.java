@@ -28,6 +28,7 @@ package infinity.map;
 import java.awt.Image;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Vector;
 
 import com.jme3.asset.AssetInfo;
@@ -41,59 +42,57 @@ import com.jme3.asset.AssetManager;
 public class LevelLoader implements AssetLoader {
 
     private String m_file;
-    private BitMap m_bitmap;
-    private BufferedInputStream m_stream;
-    private boolean m_containsBM;
-    private boolean hasELVLData;
+    // private BitMap m_bitmap;
+    // private BufferedInputStream m_stream;
+    // private boolean m_containsBM;
+    // private boolean hasELVLData;
 
     // eLVL ATTR tags... vector of vector of Strings
-    public Vector eLvlAttrs = new Vector();
+    public Vector<Vector<String>> eLvlAttrs = new Vector<>();
     public static final int DEFAULT_TAG_COUNT = 6;
 
-    // Vector of loaded reginons
-    public Vector regions;
+    // Vector of loaded regions
+    public Vector<Region> regions;
 
-    // unkownn ELVL chunks read in on load
-    public Vector unknownELVLData = new Vector();
+    // unknown ELVL chunks read in on load
+    public Vector<Byte> unknownELVLData = new Vector<>();
 
     // the actual data we're going to save, as a Vector of Bytes... saved by
     // makeELvlDataForSaving
-    public Vector eLVLData;
+    public Vector<Byte> eLVLData;
 
-    private String m_type;
-    private int m_size;
-    private int m_offset;
-    private int m_width;
-    private int m_height;
-    private int m_bitCount;
-    private int m_compressionType;
-    private int m_colorsUsed;
+    // private String m_type;
+    // private int m_size;
+    // private int m_offset;
+    // private int m_width;
+    // private int m_height;
+    // private int m_bitCount;
+    // private int m_compressionType;
+    // private int m_colorsUsed;
     protected Image m_tileset;
     protected Image[] m_tiles;
     protected short[][] m_map;
 
-    private short[][] m_level = new short[1024][1024];
+    // private final short[][] m_level = new short[1024][1024];
     private AssetManager am;
     // The levelfile
     public LevelFile m_lvlFile;
 
     @Override
-    public LevelFile load(AssetInfo assetInfo) throws IOException {
+    public LevelFile load(final AssetInfo assetInfo) throws IOException {
 
         am = assetInfo.getManager();
         m_file = assetInfo.getKey().getName();
 
         String errorWithELVL = null;
+        BitMap bmp;
 
-        try {
-            BitMap bmp = new BitMap(new BufferedInputStream(assetInfo.openStream()));
-
+        try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
+            bmp = new BitMap(bis);
             bmp.readBitMap(false);
-
-            BufferedInputStream bis = new BufferedInputStream(assetInfo.openStream());
-
+        }
+        try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
             if (bmp.isBitMap()) {
-
                 m_lvlFile = new LevelFile(bis, bmp, true, bmp.hasELVL, m_file);
             } else {
                 bmp = loadDefaultTileset();
@@ -104,16 +103,14 @@ public class LevelLoader implements AssetLoader {
             if (errorWithELVL != null) {
 
                 m_lvlFile = new LevelFile(bis, bmp, false, false, m_file); // attempt load without meta data
-                String error = m_lvlFile.readLevel();
+                final String error = m_lvlFile.readLevel();
 
                 if (error != null) { // I give up
                     System.out.println("First error = " + errorWithELVL);
                     System.out.println("NON eLVL Load: " + error);
-
                     throw new IOException("Corrupt LVL File");
-                } else {
-                    System.out.println("NON eLVL Load sucessful! Previous error: " + errorWithELVL);
                 }
+                System.out.println("NON eLVL Load sucessful! Previous error: " + errorWithELVL);
             }
 
             m_tileset = m_lvlFile.getTileSet();
@@ -125,9 +122,9 @@ public class LevelLoader implements AssetLoader {
                 System.out.println("Error with eLVL Data!");
             }
 
-        } catch (IOException e) {
+        } catch (@SuppressWarnings("unused") final IOException e) {
             // Create our lvl file
-            BitMap bmp = loadDefaultTileset();
+            bmp = loadDefaultTileset();
             m_lvlFile = new LevelFile(bmp);
 
             m_tileset = m_lvlFile.getTileSet();
@@ -140,7 +137,7 @@ public class LevelLoader implements AssetLoader {
 
     private BitMap loadDefaultTileset() {
         am.registerLoader(BitMapLoader.class, "bmp");
-        BitMap bmp = (BitMap) am.loadAsset("Textures/Tilesets/default.bmp");
+        final BitMap bmp = (BitMap) am.loadAsset("Textures/Tilesets/default.bmp");
         return bmp;
     }
 

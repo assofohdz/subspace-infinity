@@ -43,12 +43,9 @@ import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mathd.Vec3i;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
@@ -79,17 +76,17 @@ public class MapSystem extends AbstractGameSystem {
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
     private PhysicsSpace<EntityId, MBlockShape> space;
-    private BinIndex binIndex;
-    private BinEntityManager binEntityManager;
+    // private BinIndex binIndex;
+    // private BinEntityManager binEntityManager;
     private SimTime time;
 
-    private java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
+    private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
     public static final int MAP_SIZE = 1024;
     private static final int HALF = 512;
     private EntitySet tileTypes;
 
-    private LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
-    private LinkedHashSet<Vec3d> sessionTileCreations = new LinkedHashSet<>();
+    private final LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
+    private final LinkedHashSet<Vec3d> sessionTileCreations = new LinkedHashSet<>();
 
     public static final float NOISE4J_CORRIDOR = 0f;
     public static final float NOISE4J_FLOOR = 0.5f;
@@ -98,21 +95,28 @@ public class MapSystem extends AbstractGameSystem {
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
     private InfinityDefaultWorld world;
-    private boolean logged = false;
+    // private final boolean logged = false;
 
-    public MapSystem(AssetLoaderService assetLoader) {
+    public MapSystem(final AssetLoaderService assetLoader) {
 
         this.assetLoader = assetLoader;
+    }
+
+    protected MPhysSystem<MBlockShape> getPhysicsSystem() {
+        final MPhysSystem<?> s = getSystem(MPhysSystem.class);
+        @SuppressWarnings("unchecked")
+        final MPhysSystem<MBlockShape> result = (MPhysSystem<MBlockShape>) s;
+        return result;
     }
 
     // int[][] multD = new int[5][];
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = getSystem(MPhysSystem.class);
+        physics = getPhysicsSystem();
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
@@ -121,20 +125,20 @@ public class MapSystem extends AbstractGameSystem {
             throw new RuntimeException(getClass().getName() + " system requires the World system.");
         }
 
-        this.space = physics.getPhysicsSpace();
-        this.binIndex = space.getBinIndex();
-        this.binEntityManager = physics.getBinEntityManager();
+        space = physics.getPhysicsSpace();
+        // binIndex = space.getBinIndex();
+        // binEntityManager = physics.getBinEntityManager();
 
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
         // Create entities, so the tile types will be in the string index (we use the
         // tiletypes as filters)
-        EntityId e = ed.createEntity();
-        short s = 0;
+        final EntityId e = ed.createEntity();
+        final short s = 0;
         ed.setComponent(e, TileTypes.legacy("empty", s, ed));
 
-        EntityId e2 = ed.createEntity();
-        short s2 = 0;
+        final EntityId e2 = ed.createEntity();
+        final short s2 = 0;
         ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
 
         tileTypes = ed.getEntities(TileType.class, BodyPosition.class);
@@ -158,12 +162,12 @@ public class MapSystem extends AbstractGameSystem {
      * @param currentZCoord the y-coordinate
      * @return the Vec3d center coordinate
      */
-    public Vec3d getCenterOfArena(double currentXCoord, double currentZCoord) {
-        double xArenaCoord = Math.floor(currentXCoord / MAP_SIZE);
-        double zArenaCoord = Math.floor(currentZCoord / MAP_SIZE);
+    public Vec3d getCenterOfArena(final double currentXCoord, final double currentZCoord) {
+        final double xArenaCoord = Math.floor(currentXCoord / MAP_SIZE);
+        final double zArenaCoord = Math.floor(currentZCoord / MAP_SIZE);
 
-        double centerOfArenaX = currentXCoord < 0 ? xArenaCoord - HALF : xArenaCoord + HALF;
-        double centerOfArenaZ = currentZCoord < 0 ? zArenaCoord - HALF : zArenaCoord + HALF;
+        final double centerOfArenaX = currentXCoord < 0 ? xArenaCoord - HALF : xArenaCoord + HALF;
+        final double centerOfArenaZ = currentZCoord < 0 ? zArenaCoord - HALF : zArenaCoord + HALF;
 
         return new Vec3d(centerOfArenaX, 0, centerOfArenaZ);
     }
@@ -174,8 +178,8 @@ public class MapSystem extends AbstractGameSystem {
      * @param mapFile the lvz-map to load
      * @return the lvz-map wrapped in a LevelFile
      */
-    public LevelFile loadMap(String mapFile) {
-        LevelFile map = (LevelFile) assetLoader.loadAsset(mapFile);
+    public LevelFile loadMap(final String mapFile) {
+        final LevelFile map = (LevelFile) assetLoader.loadAsset(mapFile);
         // log.info("loadMap:: Loading map = "+map+":"+map.readLevel());
         return map;
     }
@@ -186,10 +190,10 @@ public class MapSystem extends AbstractGameSystem {
      * @param map         the lvz-based-map to create create entities from
      * @param arenaOffset where to position the map
      */
-    public void createEntitiesFromLegacyMap(LevelFile map, Vec3d arenaOffset) {
-        Set<Integer> tileSet = new HashSet<>();
-        short[][] tiles = map.getMap();
-        int count = 0;
+    public void createEntitiesFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
+        final Set<Integer> tileSet = new HashSet<>();
+        final short[][] tiles = map.getMap();
+        // int count = 0;
 
         // for (int xpos = 510; xpos < 516; xpos++) {
         for (int xpos = 0; xpos < tiles.length; xpos++) {
@@ -297,16 +301,16 @@ public class MapSystem extends AbstractGameSystem {
                         s = 1;
                     }
 
-                    Vec3d bottomPlane = new Vec3d(xpos, 0, zpos).add(arenaOffset);
+                    final Vec3d bottomPlane = new Vec3d(xpos, 0, zpos).add(arenaOffset);
                     // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
-                    Vec3i i = new Vec3i(bottomPlane.toVector3f());
+                    // final Vec3i i = new Vec3i(bottomPlane.toVector3f());
 
-                    int mapId = 20;
-                    int tileId = Short.toUnsignedInt(s);
-                    tileSet.add(tileId);
+                    final int mapId = 20;
+                    final int tileId = Short.toUnsignedInt(s);
+                    tileSet.add(Integer.valueOf(tileId));
 
-                    int value = tileId | (mapId << 8);
+                    final int value = tileId | (mapId << 8);
                     // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) =
                     // (" + tileId + "," + mapId + ") - Coords: " + i);
                     // value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
@@ -314,7 +318,7 @@ public class MapSystem extends AbstractGameSystem {
 
                     // world.setWorldCell(topPlane, 0);
 
-                    count++;
+                    // count++;
                 }
             }
         }
@@ -342,7 +346,7 @@ public class MapSystem extends AbstractGameSystem {
      * @param coord the x,y-coordinate to lookup
      * @return the entityid of the map tile
      */
-    public EntityId getEntityId(Vec3d coord) {
+    public EntityId getEntityId(final Vec3d coord) {
         return index.get(coord);
     }
 
@@ -356,9 +360,9 @@ public class MapSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
 
-        this.time = tpf;
+        time = tpf;
 
         // Create map:
         if (!mapCreated) {
@@ -372,38 +376,38 @@ public class MapSystem extends AbstractGameSystem {
             mapCreated = true;
         }
 
-        for (Vec3d remove : sessionTileRemovals) {
-            Vec3d clampedLocation = getKey(remove);
+        for (final Vec3d remove : sessionTileRemovals) {
+            final Vec3d clampedLocation = getKey(remove);
 
             if (index.containsKey(clampedLocation)) {
-                EntityId eId = index.get(clampedLocation);
+                final EntityId eId = index.get(clampedLocation);
                 ed.removeEntity(eId);
 
                 index.remove(remove);
             }
             // Update surrounding tiles
-            ArrayList<Vec3d> locations = new ArrayList<>();
+            final ArrayList<Vec3d> locations = new ArrayList<>();
             locations.add(clampedLocation);
             updateWangBlobIndexNumber(locations, true, false);
         }
         sessionTileRemovals.clear();
 
-        for (Vec3d create : sessionTileCreations) {
+        for (final Vec3d create : sessionTileCreations) {
             // Clamp location
-            Vec3d clampedLocation = getKey(create);
+            final Vec3d clampedLocation = getKey(create);
             if (index.containsKey(clampedLocation)) {
                 // A map entity already exists here
                 continue;
             }
 
-            ArrayList<Vec3d> locations = new ArrayList<>();
+            final ArrayList<Vec3d> locations = new ArrayList<>();
             locations.add(clampedLocation);
 
-            EntityId eId = ed.createEntity();
+            final EntityId eId = ed.createEntity();
 
             index.put(clampedLocation, eId);
 
-            short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
+            final short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
 
             GameEntities.updateWangBlobEntity(ed, eId, space, time.getTime(), eId, "", tileIndexNumber,
                     new Vec3d(clampedLocation.x, 0, clampedLocation.z));
@@ -422,7 +426,7 @@ public class MapSystem extends AbstractGameSystem {
                     mapTileQueue.pop().call();
 
                 }
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 log.error(ex.getMessage());
                 ex.printStackTrace();
             }
@@ -438,15 +442,16 @@ public class MapSystem extends AbstractGameSystem {
      * @param create    create or remove tile
      * @return the tileindex of the current tile being updated
      */
-    private short updateWangBlobIndexNumber(ArrayList<Vec3d> locations, boolean cascade, boolean create) {
+    private short updateWangBlobIndexNumber(final ArrayList<Vec3d> locations, final boolean cascade,
+            final boolean create) {
         int result = 0;
-        ArrayList<Vec3d> cascadedLocations = new ArrayList<>();
+        final ArrayList<Vec3d> cascadedLocations = new ArrayList<>();
 
-        for (Vec3d clampedLocation : locations) {
+        for (final Vec3d clampedLocation : locations) {
             int north = 0, northEast = 0, east = 0, southEast = 0, south = 0, southWest = 0, west = 0, northWest = 0;
 
             north = 0;
-            Vec3d northKey = clampedLocation.clone().add(0, 0, 1);
+            final Vec3d northKey = clampedLocation.clone().add(0, 0, 1);
             if (index.containsKey(northKey)) {
                 north = 1;
                 if (cascade) {
@@ -455,7 +460,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             northEast = 0;
-            Vec3d northEastKey = clampedLocation.clone().add(1, 0, 1);
+            final Vec3d northEastKey = clampedLocation.clone().add(1, 0, 1);
             if (index.containsKey(northEastKey)) {
                 northEast = 1;
                 if (cascade) {
@@ -464,7 +469,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             east = 0;
-            Vec3d eastKey = clampedLocation.clone().add(1, 0, 0);
+            final Vec3d eastKey = clampedLocation.clone().add(1, 0, 0);
             if (index.containsKey(eastKey)) {
                 east = 1;
                 if (cascade) {
@@ -473,7 +478,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             southEast = 0;
-            Vec3d southEastKey = clampedLocation.clone().add(1, 0, -1);
+            final Vec3d southEastKey = clampedLocation.clone().add(1, 0, -1);
             if (index.containsKey(southEastKey)) {
                 southEast = 1;
                 if (cascade) {
@@ -482,7 +487,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             south = 0;
-            Vec3d southKey = clampedLocation.clone().add(0, 0, -1);
+            final Vec3d southKey = clampedLocation.clone().add(0, 0, -1);
             if (index.containsKey(southKey)) {
                 south = 1;
                 if (cascade) {
@@ -491,7 +496,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             southWest = 0;
-            Vec3d southWestKey = clampedLocation.clone().add(-1, 0, -1);
+            final Vec3d southWestKey = clampedLocation.clone().add(-1, 0, -1);
             if (index.containsKey(southWestKey)) {
                 southWest = 1;
                 if (cascade) {
@@ -500,7 +505,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             west = 0;
-            Vec3d westKey = clampedLocation.clone().add(-1, 0, 0);
+            final Vec3d westKey = clampedLocation.clone().add(-1, 0, 0);
             if (index.containsKey(westKey)) {
                 west = 1;
                 if (cascade) {
@@ -509,7 +514,7 @@ public class MapSystem extends AbstractGameSystem {
             }
 
             northWest = 0;
-            Vec3d northWestkey = clampedLocation.clone().add(-1, 0, 1);
+            final Vec3d northWestkey = clampedLocation.clone().add(-1, 0, 1);
             if (index.containsKey(northWestkey)) {
                 northWest = 1;
                 if (cascade) {
@@ -542,8 +547,8 @@ public class MapSystem extends AbstractGameSystem {
 
             if (create || !cascade) {
 
-                EntityId currentEntity = index.get(clampedLocation);
-                TileType tt = TileTypes.wangblob("", (short) result, ed);
+                final EntityId currentEntity = index.get(clampedLocation);
+                final TileType tt = TileTypes.wangblob("", (short) result, ed);
 
                 ed.setComponent(currentEntity, tt);
             }
@@ -559,11 +564,12 @@ public class MapSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
-
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     /**
@@ -572,8 +578,8 @@ public class MapSystem extends AbstractGameSystem {
      * @param location the Vec3d to clamp
      * @return the clamped Vec3d location
      */
-    private Vec3d getKey(Vec3d location) {
-        Vec3d coordinates = new Vec3d(Math.round(location.x - 0.5) + 0.5, 0, Math.round(location.z - 0.5) + 0.5);
+    private Vec3d getKey(final Vec3d location) {
+        final Vec3d coordinates = new Vec3d(Math.round(location.x - 0.5) + 0.5, 0, Math.round(location.z - 0.5) + 0.5);
         return coordinates;
     }
 
@@ -583,8 +589,8 @@ public class MapSystem extends AbstractGameSystem {
      * @param x the x-coordinate
      * @param z the y-coordinate
      */
-    public void sessionRemoveTile(double x, double z) {
-        Vec3d clampedLocation = getKey(new Vec3d(x, 0, z));
+    public void sessionRemoveTile(final double x, final double z) {
+        final Vec3d clampedLocation = getKey(new Vec3d(x, 0, z));
         sessionTileRemovals.add(clampedLocation);
     }
 
@@ -594,15 +600,16 @@ public class MapSystem extends AbstractGameSystem {
      * @param x the x-coordinate
      * @param z the y-coordinate
      */
-    public void sessionCreateTile(double x, double z) {
-        Vec3d clampedLocation = getKey(new Vec3d(x, 0, z));
+    public void sessionCreateTile(final double x, final double z) {
+        final Vec3d clampedLocation = getKey(new Vec3d(x, 0, z));
         sessionTileCreations.add(clampedLocation);
     }
 
+    @SuppressWarnings("unused")
     private Grid createDungeonGrid() {
-        Grid result = new Grid(100, 100);
+        final Grid result = new Grid(100, 100);
 
-        DungeonGenerator dungeonGenerator = new DungeonGenerator();
+        final DungeonGenerator dungeonGenerator = new DungeonGenerator();
 
         dungeonGenerator.setCorridorThreshold(NOISE4J_CORRIDOR);
         dungeonGenerator.setFloorThreshold(NOISE4J_FLOOR);
@@ -636,8 +643,9 @@ public class MapSystem extends AbstractGameSystem {
      * @param grid the Grid to expand corridors in
      * @return the new Grid with expanded corridors
      */
-    private Grid expandCorridors(Grid grid) {
-        Grid newGrid = grid.copy();
+    @SuppressWarnings("unused")
+    private Grid expandCorridors(final Grid grid) {
+        final Grid newGrid = grid.copy();
 
         for (int i = 0; i < grid.getWidth(); i++) {
             for (int j = 0; j < grid.getHeight(); j++) {
@@ -674,7 +682,8 @@ public class MapSystem extends AbstractGameSystem {
      * @param offsetX the offset x-coordinate to create the entities in
      * @param offsetZ the offset y-coordinate to create the entities in
      */
-    private void createMapTilesFromDungeonGrid(Grid grid, float offsetX, float offsetZ) {
+    @SuppressWarnings("unused")
+    private void createMapTilesFromDungeonGrid(final Grid grid, final float offsetX, final float offsetZ) {
         float f;
         for (int i = 0; i < grid.getHeight(); i++) {
             for (int j = 0; j < grid.getWidth(); j++) {
@@ -712,7 +721,7 @@ public class MapSystem extends AbstractGameSystem {
         }
     }
 
-    class MapTileCallable implements Callable<EntityId> {
+    private static final class MapTileCallable implements Callable<EntityId> {
 
         String m_file;
         short s;
@@ -720,29 +729,33 @@ public class MapSystem extends AbstractGameSystem {
         String type;
         EntityData ed;
         long time;
+        PhysicsSpace<EntityId, MBlockShape> space;
 
-        public MapTileCallable(String m_file, short s, Vec3d location, String type, EntityData ed, long time) {
+        @SuppressWarnings("unused")
+        public MapTileCallable(final String m_file, final short s, final Vec3d location, final String type,
+                final EntityData ed, final long time, final PhysicsSpace<EntityId, MBlockShape> space) {
             this.m_file = m_file;
             this.s = s;
-            this.loc = location;
+            loc = location;
             this.type = type;
             this.ed = ed;
             this.time = time;
+            this.space = space;
         }
 
         @Override
         public EntityId call() throws Exception {
             // EntityId id = GameEntities.createMapTile(m_file, s, loc, type, ed, time);
 
-            EntityId id = GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, m_file, s, loc, type);
+            final EntityId id = GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, m_file, s, loc, type);
 
-            log.debug("Called up creation of entity: " + id + ". " + this.toString());
+            log.debug("Called up creation of entity: " + id + ". " + toString());
             return id;
         }
 
         @Override
         public String toString() {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             sb.append("MapTileCallable{m_file=").append(m_file);
             sb.append(", s=").append(s);
             sb.append(", loc=").append(loc);
@@ -754,14 +767,14 @@ public class MapSystem extends AbstractGameSystem {
         }
     }
 
-    public ArrayList<Vec3d> getNeighbours(double locX, double locZ) {
-        Vec3d loc = new Vec3d(locX, 0, locZ);
-        ArrayList<Vec3d> result = new ArrayList<>();
+    public ArrayList<Vec3d> getNeighbours(final double locX, final double locZ) {
+        final Vec3d loc = new Vec3d(locX, 0, locZ);
+        final ArrayList<Vec3d> result = new ArrayList<>();
 
-        Vec3d west = new Vec3d(loc.x - 1, 0, loc.z);
-        Vec3d east = new Vec3d(loc.x + 1, 0, loc.z);
-        Vec3d north = new Vec3d(loc.x, 0, loc.z + 1);
-        Vec3d south = new Vec3d(loc.x, 0, loc.z - 1);
+        final Vec3d west = new Vec3d(loc.x - 1, 0, loc.z);
+        final Vec3d east = new Vec3d(loc.x + 1, 0, loc.z);
+        final Vec3d north = new Vec3d(loc.x, 0, loc.z + 1);
+        final Vec3d south = new Vec3d(loc.x, 0, loc.z - 1);
         // ((Check west))
         if (index.containsKey(west)) {
             result.add(west);

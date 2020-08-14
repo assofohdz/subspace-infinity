@@ -35,8 +35,6 @@
  */
 package infinity.server;
 
-import java.util.Random;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +46,6 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -63,31 +60,31 @@ public class BasicEnvironment extends AbstractGameSystem {
     static Logger log = LoggerFactory.getLogger(BasicEnvironment.class);
 
     private EntityData ed;
-    private PhysicsSpace phys;
-    private World world;
+    private PhysicsSpace<?, ?> phys;
+    // private World world;
 
     // Some constantly emitted test objects... need to track the time
-    private double nextTime = 5;
-    private Random rand = new Random(0);
+    // private final double nextTime = 5;
+    // private final Random rand = new Random(0);
 
-    private EntityId toggle1;
-    private EntityId toggle2;
-    private double toggleTime = 5;
-    private boolean moved = false;
+    // private EntityId toggle1;
+    // private EntityId toggle2;
+    // private final double toggleTime = 5;
+    // private final boolean moved = false;
 
-    private Vec3d putLoc = new Vec3d(0, 66, -10);
-    private double putTime = 5;
+    // private final Vec3d putLoc = new Vec3d(0, 66, -10);
+    // private final double putTime = 5;
 
-    private Vec3d putLoc2 = new Vec3d(4, 64, -4);
+    // private final Vec3d putLoc2 = new Vec3d(4, 64, -4);
 
-    private EntityId spawner;
-    private Vec3d spawnerOffset = new Vec3d(0, 10, 0);
+    // private EntityId spawner;
+    // private final Vec3d spawnerOffset = new Vec3d(0, 10, 0);
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class, true);
-        this.phys = getSystem(PhysicsSpace.class, true);
-        this.world = getSystem(World.class, true);
+        ed = getSystem(EntityData.class, true);
+        phys = getSystem(PhysicsSpace.class, true);
+        // world = getSystem(World.class, true);
         /*
          * // Setup some test entities EntityId test; test = ed.createEntity();
          * ed.setComponents(test, new SpawnPosition(phys.getGrid(), 5, 65, -5), // For
@@ -96,19 +93,17 @@ public class BasicEnvironment extends AbstractGameSystem {
          * displayed objects. //new Position(5, 1, -5), ShapeInfo.create("sphere", 1,
          * ed), new Mass(0) );
          */
-        this.createTestSphere(new Vec3d(0, 0, 0), 1d, false);
+        createTestSphere(new Vec3d(0, 0, 0), 1d, false);
 
     }
 
     @Override
-    public void update(SimTime time) {
-
-        double secs = time.getTimeInSeconds();
-
+    public void update(final SimTime time) {
+        // final double secs = time.getTimeInSeconds();
     }
 
-    public EntityId createTestSphere(Vec3d loc, double size, boolean dynamic) {
-        EntityId result = ed.createEntity();
+    public EntityId createTestSphere(final Vec3d loc, final double size, final boolean dynamic) {
+        final EntityId result = ed.createEntity();
 
         if (dynamic) {
             ed.setComponents(result, new SpawnPosition(phys.getGrid(), loc), ShapeInfo.create("sphere", size, ed),
@@ -123,5 +118,6 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
+        return;
     }
 }

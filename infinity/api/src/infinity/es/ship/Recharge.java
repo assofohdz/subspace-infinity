@@ -36,7 +36,7 @@ public class Recharge implements EntityComponent {
 
     double rechargePerSecond;
 
-    public Recharge(double rechargePerSecond) {
+    public Recharge(final double rechargePerSecond) {
         this.rechargePerSecond = rechargePerSecond;
     }
 

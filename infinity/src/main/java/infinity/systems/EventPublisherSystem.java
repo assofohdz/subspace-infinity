@@ -48,7 +48,7 @@ public class EventPublisherSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-
+        return;
     }
 
     @Override
@@ -59,15 +59,16 @@ public class EventPublisherSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
-
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     @Override
-    public void update(SimTime tpf) {
-
+    public void update(final SimTime tpf) {
+        return;
     }
 }

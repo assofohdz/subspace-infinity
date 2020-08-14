@@ -43,7 +43,6 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import infinity.es.ArenaId;
-import infinity.es.BodyPosition;
 import infinity.map.LevelLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.CoreGameConstants;
@@ -60,39 +59,39 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     private EntityData ed;
     private EntitySet arenaEntities;
-    private EntitySet staticBodyPositions;
-    private java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
-    private AssetManager am;
+    // private EntitySet staticBodyPositions;
+    private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
+    // private AssetManager am;
     static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
-    private SimTime time;
+    // private SimTime time;
 
-    private HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
+    private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
 
-    private boolean createdDefaultArena = false;
+    // private final boolean createdDefaultArena = false;
 
-    private ListOrderedMap arenas = new ListOrderedMap();
-    private MapSystem mapSystem;
-    private int xCoord, zCoord;
+    private final ListOrderedMap<String, String> arenas = new ListOrderedMap<>();
+    // private MapSystem mapSystem;
+    // private int xCoord, zCoord;
 
     @Override
     protected void initialize() {
 
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
 
-        AssetManager am = JmeSystem.newAssetManager(
+        final AssetManager assetManager = JmeSystem.newAssetManager(
                 Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
 
-        am.registerLoader(LevelLoader.class, "lvl");
-        am.registerLoader(LevelLoader.class, "lvz");
+        assetManager.registerLoader(LevelLoader.class, "lvl");
+        assetManager.registerLoader(LevelLoader.class, "lvz");
 
-        staticBodyPositions = ed.getEntities(BodyPosition.class);
+        // staticBodyPositions = ed.getEntities(BodyPosition.class);
 
-        mapSystem = getSystem(MapSystem.class, true);
+        // mapSystem = getSystem(MapSystem.class, true);
     }
 
-    public EntityId getEntityId(Vec3d coord) {
+    public EntityId getEntityId(final Vec3d coord) {
         return index.get(coord);
     }
 
@@ -104,16 +103,18 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
 
     @Override
-    public void update(SimTime tpf) {
-
+    public void update(final SimTime tpf) {
+        return;
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     @Override
@@ -121,9 +122,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         return (String[]) currentOpenArenas.keySet().toArray();
     }
 
-    private void closeArena(String arenaId) {
+    @SuppressWarnings("unused")
+    private void closeArena(final String arenaId) {
         ed.removeEntity(currentOpenArenas.get(arenaId));
-
         currentOpenArenas.remove(arenaId);
     }
 
@@ -132,33 +133,34 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         return CoreGameConstants.DEFAULTARENAID;
     }
 
-    public void loadArena(String name, boolean forceLoad) {
+    public void loadArena(final String name, final boolean forceLoad) {
         if (!arenas.containsKey(name)) {
             // find next coordinate pair to load map on
 
         }
 
         if (arenas.containsKey(name) && forceLoad) {
-
+            // TODO implement me
         }
     }
 
-    private class Vector2i {
-        public int x, z;
+    @SuppressWarnings("unused")
+    private static class Vector2i {
+        int x, z;
 
-        public Vector2i(int x, int z) {
+        Vector2i(final int x, final int z) {
             this.x = x;
             this.z = z;
         }
 
         @Override
         public int hashCode() {
-            int hash = 7;
+            final int hash = 7;
             return hash;
         }
 
         @Override
-        public boolean equals(Object obj) {
+        public boolean equals(final Object obj) {
             if (this == obj) {
                 return true;
             }
@@ -169,10 +171,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
                 return false;
             }
             final Vector2i other = (Vector2i) obj;
-            if (this.x != other.x) {
+            if (x != other.x) {
                 return false;
             }
-            if (this.z != other.z) {
+            if (z != other.z) {
                 return false;
             }
             return true;

@@ -40,7 +40,7 @@ public class Portal implements EntityComponent {
         return count;
     }
 
-    public Portal(int count) {
+    public Portal(final int count) {
         this.count = count;
     }
 }

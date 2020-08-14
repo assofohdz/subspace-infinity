@@ -43,8 +43,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.badlogic.gdx.Application;
-
 import com.jme3.app.BasicProfilerState;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
@@ -81,12 +79,12 @@ public class Main extends SimpleApplication {
 
     // private static Grid grid = new Grid(32, 0, 32);
 
-    public static void main(String... args) throws Exception {
+    public static void main(final String... args) throws Exception {
 
-        Application app;
+        // final Application app;
 
-        Main main = new Main();
-        AppSettings settings = new AppSettings(true);
+        final Main main = new Main();
+        final AppSettings settings = new AppSettings(true);
 
         // Set some defaults that will get overwritten if
         // there were previously saved settings from the last time the user
@@ -130,7 +128,7 @@ public class Main extends SimpleApplication {
         GuiGlobals.initialize(this);
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
 
-        GuiGlobals globals = GuiGlobals.getInstance();
+        final GuiGlobals globals = GuiGlobals.getInstance();
 
         MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
         // CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
@@ -144,7 +142,7 @@ public class Main extends SimpleApplication {
         globals.getStyles().setDefaultStyle("glass");
 
         // Some manual styling for the debug HUD
-        Styles styles = globals.getStyles();
+        final Styles styles = globals.getStyles();
 
         Attributes attrs = styles.getSelector(DebugHudState.CONTAINER_ID, "glass");
         attrs.set("background", null);
@@ -165,15 +163,15 @@ public class Main extends SimpleApplication {
         // sky.setShowGroundDisc(true);
 
         // get a RuntimeMXBean reference
-        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
 
         // get the jvm's input arguments as a list of strings
-        List<String> listOfArguments = runtimeMxBean.getInputArguments();
+        final List<String> listOfArguments = runtimeMxBean.getInputArguments();
         listOfArguments.forEach(s -> System.out.println("ARG:" + s));
     }
 
     @Override
-    public void simpleUpdate(float tpf) {
+    public void simpleUpdate(final float tpf) {
         // log.info("simpleUpdate()");
     }
 }

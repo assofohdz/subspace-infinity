@@ -10,13 +10,10 @@ import java.util.logging.Logger;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.BinIndex;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
-import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
@@ -29,29 +26,31 @@ import infinity.sim.CategoryFilter;
  *
  * @author AFahrenholz
  */
-public class ContactSystem extends AbstractGameSystem implements ContactListener {
+public class ContactSystem extends AbstractGameSystem implements ContactListener<EntityId, MBlockShape> {
 
     private static final Logger log = Logger.getLogger(ContactSystem.class.getName());
 
     private EntityData ed;
-    private MPhysSystem<MBlockShape> physics;
-    private PhysicsSpace<EntityId, MBlockShape> space;
-    private BinIndex binIndex;
-    private BinEntityManager binEntityManager;
+    private MPhysSystem<?> physics;
+    // private PhysicsSpace<EntityId, MBlockShape> space;
+    // private BinIndex binIndex;
+    // private BinEntityManager binEntityManager;
     EntitySet categoryFilters;
 
     @Override
-    public void newContact(Contact contact) {
-        RigidBody bodyOne = contact.body1;
-        RigidBody bodyTwo = contact.body2;
+    public void newContact(final Contact<EntityId, MBlockShape> contact) {
+        final RigidBody<EntityId, MBlockShape> bodyOne = contact.body1;
+        final RigidBody<EntityId, MBlockShape> bodyTwo = contact.body2;
 
         if (bodyOne != null && bodyTwo != null) {
-            EntityId one = (EntityId) contact.body1.id;
-            EntityId two = (EntityId) contact.body2.id;
+            final EntityId one = contact.body1.id;
+            final EntityId two = contact.body2.id;
 
             if (categoryFilters.containsId(two) && categoryFilters.containsId(one)) {
-                CategoryFilter filterOne = categoryFilters.getEntity(one).get(CollisionCategory.class).getFilter();
-                CategoryFilter filterTwo = categoryFilters.getEntity(two).get(CollisionCategory.class).getFilter();
+                final CategoryFilter filterOne = categoryFilters.getEntity(one).get(CollisionCategory.class)
+                        .getFilter();
+                final CategoryFilter filterTwo = categoryFilters.getEntity(two).get(CollisionCategory.class)
+                        .getFilter();
 
                 if (!filterTwo.isAllowed(filterOne)) {
                     contact.disable();
@@ -59,14 +58,14 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
                 }
             }
 
-            Parent parentOfOne = ed.getComponent(one, Parent.class);
+            final Parent parentOfOne = ed.getComponent(one, Parent.class);
             if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
                 // We have a parent on entity one and its equal to two
                 contact.disable();
                 return;
             }
 
-            Parent parentOfTwo = ed.getComponent(two, Parent.class);
+            final Parent parentOfTwo = ed.getComponent(two, Parent.class);
             if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
                 // We have a parent on entity two and its equal to one
                 contact.disable();
@@ -79,7 +78,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
             // This happens when a dynamic collides with a static body or the world
             if (bodyOne != null) {
                 log.info("Collided: " + bodyOne.toString() + " with null");
-            } else {
+            } else if (bodyTwo != null) {
                 log.info("Collided: " + bodyTwo.toString() + " with null");
             }
 
@@ -94,7 +93,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
     }
 
     @Override
-    public void update(SimTime time) {
+    public void update(final SimTime time) {
         super.update(time); // To change body of generated methods, choose Tools | Templates.
 
         categoryFilters.applyChanges();
@@ -107,18 +106,18 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         if (ed == null) {
             throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
         }
-        this.physics = getSystem(MPhysSystem.class);
+        physics = getSystem(MPhysSystem.class);
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
 
-        this.space = physics.getPhysicsSpace();
-        this.binIndex = space.getBinIndex();
-        this.binEntityManager = physics.getBinEntityManager();
+        // space = physics.getPhysicsSpace();
+        // binIndex = space.getBinIndex();
+        // binEntityManager = physics.getBinEntityManager();
 
         categoryFilters = ed.getEntities(CollisionCategory.class);
     }

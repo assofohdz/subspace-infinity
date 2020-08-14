@@ -18,7 +18,7 @@ public class RotationUpgrade {
         return energyUpgrade;
     }
 
-    public RotationUpgrade(int energyUpgrade) {
+    public RotationUpgrade(final int energyUpgrade) {
         this.energyUpgrade = energyUpgrade;
     }
 }

@@ -40,11 +40,11 @@ public class WeaponType implements EntityComponent {
     protected WeaponType() {
     }
 
-    public WeaponType(int type) {
+    public WeaponType(final int type) {
         this.type = type;
     }
 
-    public static WeaponType create(String typeName, EntityData ed) {
+    public static WeaponType create(final String typeName, final EntityData ed) {
         return new WeaponType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -52,7 +52,7 @@ public class WeaponType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

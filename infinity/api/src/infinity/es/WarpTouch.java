@@ -37,14 +37,14 @@ public class WarpTouch implements EntityComponent {
     double targetAreaRadius; // The uncertainty of where you pop up
     Vec3d targetLocation; // The target area for warping to{
 
-    public WarpTouch(double targetAreaRadius, Vec3d targetLocation) {
+    public WarpTouch(final double targetAreaRadius, final Vec3d targetLocation) {
         this.targetAreaRadius = targetAreaRadius;
         this.targetLocation = targetLocation;
     }
 
-    public WarpTouch(Vec3d targetLocation) {
+    public WarpTouch(final Vec3d targetLocation) {
         this.targetLocation = targetLocation;
-        this.targetAreaRadius = 0.0d;
+        targetAreaRadius = 0.0d;
     }
 
     public double getTargetAreaRadius() {

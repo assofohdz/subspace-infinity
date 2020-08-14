@@ -18,7 +18,7 @@ public class ThrustUpgrade {
         return energyUpgrade;
     }
 
-    public ThrustUpgrade(int energyUpgrade) {
+    public ThrustUpgrade(final int energyUpgrade) {
         this.energyUpgrade = energyUpgrade;
     }
 }

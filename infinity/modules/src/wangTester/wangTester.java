@@ -59,42 +59,43 @@ public class wangTester extends BaseGameModule {
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~wangTester\\s(\\w+)");
 
+    @SuppressWarnings("unused")
     private Ini settings;
 
-    public wangTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public wangTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         try {
-            settings = this.getLoader().loadSettings("wangTester");
-        } catch (IOException ex) {
+            settings = getLoader().loadSettings("wangTester");
+        } catch (final IOException ex) {
             java.util.logging.Logger.getLogger(wangTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 20);
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(), 20);
+        GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
 
     }
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+        getChp().registerPatternBiConsumer(prizeTesterCommand,
                 "The command to make this wangTester do stuff is ~wangTester <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
     }
@@ -112,7 +113,7 @@ public class wangTester extends BaseGameModule {
      * @param id The entity id of the sender
      * @param s  The message to handle
      */
-    public void messageHandler(EntityId id, String s) {
+    public void messageHandler(final EntityId id, final String s) {
         log.info("Received command" + s);
     }
 }

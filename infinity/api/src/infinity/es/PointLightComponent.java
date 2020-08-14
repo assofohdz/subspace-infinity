@@ -40,7 +40,7 @@ public class PointLightComponent implements EntityComponent {
     float radius;
     Vec3d offset;
 
-    public PointLightComponent(ColorRGBA color, float radius, Vec3d offset) {
+    public PointLightComponent(final ColorRGBA color, final float radius, final Vec3d offset) {
         this.color = color;
         this.radius = radius;
         this.offset = offset;

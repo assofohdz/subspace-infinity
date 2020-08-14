@@ -58,40 +58,41 @@ public class prizeTester extends BaseGameModule {
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
 
+    @SuppressWarnings("unused")
     private Ini settings;
 
-    public prizeTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public prizeTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
 
     }
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
         try {
-            settings = this.getLoader().loadSettings("prizeTester");
-        } catch (IOException ex) {
+            settings = getLoader().loadSettings("prizeTester");
+        } catch (final IOException ex) {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(), 10);
+        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(), 10);
     }
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        this.getChp().registerPatternBiConsumer(prizeTesterCommand,
+        getChp().registerPatternBiConsumer(prizeTesterCommand,
                 "The command to make this prizeTester do stuff is ~prizeTester <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
     }
@@ -109,7 +110,7 @@ public class prizeTester extends BaseGameModule {
      * @param id The entity id of the sender
      * @param s  The message to handle
      */
-    public void messageHandler(EntityId id, String s) {
+    public void messageHandler(final EntityId id, final String s) {
         log.info("Received command" + s);
     }
 }

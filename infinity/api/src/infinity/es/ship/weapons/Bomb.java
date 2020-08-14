@@ -36,7 +36,7 @@ public class Bomb implements EntityComponent {
 
     BombLevelEnum level;
 
-    public Bomb(BombLevelEnum level) {
+    public Bomb(final BombLevelEnum level) {
         this.level = level;
     }
 

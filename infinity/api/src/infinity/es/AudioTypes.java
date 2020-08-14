@@ -51,24 +51,24 @@ public class AudioTypes {
     public static final String BURST = "burst";
     public static final String REPEL = "repel";
 
-    public static AudioType repel(EntityData ed) {
+    public static AudioType repel(final EntityData ed) {
         return AudioType.create(REPEL, ed);
     }
 
-    public static AudioType fire_thor(EntityData ed) {
+    public static AudioType fire_thor(final EntityData ed) {
         return AudioType.create(FIRE_THOR, ed);
     }
 
-    public static AudioType pickup_prize(EntityData ed) {
+    public static AudioType pickup_prize(final EntityData ed) {
         return AudioType.create(PICKUP_PRIZE, ed);
     }
 
-    public static AudioType fire_gravbomb(EntityData ed) {
+    public static AudioType fire_gravbomb(final EntityData ed) {
         return AudioType.create(FIRE_GRAVBOMB, ed);
     }
 
     // Bombs
-    public static AudioType fire_bomb(EntityData ed, BombLevelEnum level) {
+    public static AudioType fire_bomb(final EntityData ed, final BombLevelEnum level) {
         switch (level.level) {
         case 1:
             return AudioType.create(FIRE_BOMBS_L1, ed);
@@ -84,7 +84,7 @@ public class AudioTypes {
     }
 
     // Bullets
-    public static AudioType fire_bullet(EntityData ed, GunLevelEnum level) {
+    public static AudioType fire_bullet(final EntityData ed, final GunLevelEnum level) {
         switch (level.level) {
         case 1:
             return AudioType.create(FIRE_GUNS_L1, ed);
@@ -99,11 +99,11 @@ public class AudioTypes {
         }
     }
 
-    public static AudioType explosion2(EntityData ed) {
+    public static AudioType explosion2(final EntityData ed) {
         return AudioType.create(EXPLOSION2, ed);
     }
 
-    public static AudioType fire_burst(EntityData ed) {
+    public static AudioType fire_burst(final EntityData ed) {
         return AudioType.create(BURST, ed);
     }
 }

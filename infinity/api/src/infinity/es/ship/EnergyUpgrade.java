@@ -18,7 +18,7 @@ public class EnergyUpgrade {
         return energyUpgrade;
     }
 
-    public EnergyUpgrade(int energyUpgrade) {
+    public EnergyUpgrade(final int energyUpgrade) {
         this.energyUpgrade = energyUpgrade;
     }
 }

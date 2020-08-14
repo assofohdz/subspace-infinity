@@ -38,13 +38,14 @@ public class BitmapSaving {
     private static final int imageWidth = 304;
     private static final int imageHeight = 160;
 
-    public static void saveAs256ColorBitmap(BufferedOutputStream bos, Image i, int eLVLDataSize) throws IOException {
-        BitmapSaving bs = new BitmapSaving();
+    public static void saveAs256ColorBitmap(final BufferedOutputStream bos, final Image i, final int eLVLDataSize)
+            throws IOException {
+        final BitmapSaving bs = new BitmapSaving();
         bs.saveBitmap(bos, i, eLVLDataSize);
     }
 
-    public void saveBitmap(BufferedOutputStream bos, Image i, int eLVLDataSize) throws IOException {
-        BitmapFileHeader bfh = new BitmapFileHeader(eLVLDataSize);
+    public void saveBitmap(final BufferedOutputStream bos, final Image i, final int eLVLDataSize) throws IOException {
+        final BitmapFileHeader bfh = new BitmapFileHeader(eLVLDataSize);
 
         bfh.save(bos);
 
@@ -53,18 +54,19 @@ public class BitmapSaving {
         // before we can get a color table we need to make our image... sounds weird but
         // how else would we know
         // what do use for our color table
-        int[] allPixels = getAllColors(i);
-        byte[] bitmapData = new byte[imageWidth * imageHeight];
+        final int[] allPixels = getAllColors(i);
+        final byte[] bitmapData = new byte[imageWidth * imageHeight];
         int counter = 0;
 
-        for (int y = imageHeight - 1; y >= 0; --y)
+        for (int y = imageHeight - 1; y >= 0; --y) {
             for (int x = 0; x < imageWidth; ++x) {
-                int[] rgb = getRGB(allPixels[x + y * imageWidth]);
+                final int[] rgb = getRGB(allPixels[x + y * imageWidth]);
 
-                RGBQuad col = new RGBQuad((byte) rgb[0], (byte) rgb[1], (byte) rgb[2]);
-                byte colorEntry = getColorEntry(col);
+                final RGBQuad col = new RGBQuad((byte) rgb[0], (byte) rgb[1], (byte) rgb[2]);
+                final byte colorEntry = getColorEntry(col);
                 bitmapData[counter++] = colorEntry;
             }
+        }
 
         padColorTable(); // pad up to 256 entries, ss requirement
 
@@ -73,8 +75,8 @@ public class BitmapSaving {
         // 304 = 76 * 4, always on 32 bit boundry
 
         // now color table
-        for (int x = 0; x < colorTable.size(); ++x) {
-            RGBQuad item = (RGBQuad) colorTable.get(x);
+        for (final Object element : colorTable) {
+            final RGBQuad item = (RGBQuad) element;
             item.save(bos);
         }
 
@@ -88,15 +90,16 @@ public class BitmapSaving {
         }
     }
 
-    Vector colorTable = new Vector();
+    Vector<RGBQuad> colorTable = new Vector<>();
 
     // gets the color entry for the color col, adding if necessary
-    byte getColorEntry(RGBQuad col) {
+    byte getColorEntry(final RGBQuad col) {
         for (int x = 0; x < colorTable.size(); ++x) {
-            RGBQuad item = (RGBQuad) colorTable.get(x);
+            final RGBQuad item = colorTable.get(x);
 
-            if (item.equals(col))
+            if (item.equals(col)) {
                 return (byte) x;
+            }
         }
 
         if (colorTable.size() == 256) {
@@ -117,44 +120,46 @@ public class BitmapSaving {
      * ", blue = " + pal[x * 4 + 1] + ", green = " + pal[x * 4 + 2]); } }
      */
 
-    public static byte[] toDWORD(int n) {
-        byte[] DWORD = new byte[4];
+    public static byte[] toDWORD(final int number) {
+        int i = number;
+        final byte[] DWORD = new byte[4];
 
-        DWORD[0] = (byte) (n & 0xff);
-        n = n >> 8;
+        DWORD[0] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        DWORD[1] = (byte) (n & 0xff);
-        n = n >> 8;
+        DWORD[1] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        DWORD[2] = (byte) (n & 0xff);
-        n = n >> 8;
+        DWORD[2] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        DWORD[3] = (byte) (n & 0xff);
+        DWORD[3] = (byte) (i & 0xff);
 
         return DWORD;
     }
 
-    public static byte[] toWORD(int n) {
-        byte[] WORD = new byte[2];
+    public static byte[] toWORD(final int number) {
+        int i = number;
+        final byte[] WORD = new byte[2];
 
-        WORD[0] = (byte) (n & 0xff);
-        n = n >> 8;
+        WORD[0] = (byte) (i & 0xff);
+        i = i >> 8;
 
-        WORD[1] = (byte) (n & 0xff);
-        n = n >> 8;
+        WORD[1] = (byte) (i & 0xff);
+        i = i >> 8;
 
         return WORD;
     }
 
-    public static int[] getAllColors(Image theImage) {
-        int w = theImage.getWidth(null);
-        int h = theImage.getHeight(null);
+    public static int[] getAllColors(final Image theImage) {
+        final int w = theImage.getWidth(null);
+        final int h = theImage.getHeight(null);
 
         int[] storeHere = new int[w * h];
-        PixelGrabber pg = new PixelGrabber(theImage, 0, 0, w, h, storeHere, 0, w);
+        final PixelGrabber pg = new PixelGrabber(theImage, 0, 0, w, h, storeHere, 0, w);
         try {
             pg.grabPixels();
-        } catch (InterruptedException e) {
+        } catch (@SuppressWarnings("unused") final InterruptedException e) {
             JOptionPane.showMessageDialog(null, "interrupted waiting for pixels!");
             storeHere = null;
             return null;
@@ -168,8 +173,8 @@ public class BitmapSaving {
         return storeHere;
     }
 
-    public static int[] getRGB(int pixel) {
-        int[] rgb = new int[3];
+    public static int[] getRGB(final int pixel) {
+        final int[] rgb = new int[3];
 
         rgb[0] = (pixel >> 16) & 0xff;
         rgb[1] = (pixel >> 8) & 0xff;
@@ -192,7 +197,7 @@ public class BitmapSaving {
          *
          * @param eLVLDataSize the size of the ELVL data section
          */
-        public BitmapFileHeader(int eLVLDataSize) {
+        public BitmapFileHeader(final int eLVLDataSize) {
             bfType[0] = 'B';
             bfType[1] = 'M';
 
@@ -215,11 +220,11 @@ public class BitmapSaving {
             bfReserved2[0] = 0;
             bfReserved2[1] = 0;
 
-            int offset = BitmapFileHeader.SIZE + BitmapInfoHeader.SIZE + 4 * 256;
+            final int offset = BitmapFileHeader.SIZE + BitmapInfoHeader.SIZE + 4 * 256;
             bfOffBits = toDWORD(offset);
         }
 
-        public void save(BufferedOutputStream bos) throws IOException {
+        public void save(final BufferedOutputStream bos) throws IOException {
             bos.write(bfType);
             bos.write(bfSize);
             bos.write(bfReserved1);
@@ -234,19 +239,19 @@ public class BitmapSaving {
         byte rgbRed;
         byte rgbReserved;
 
-        public RGBQuad(byte r, byte g, byte b) {
+        public RGBQuad(final byte r, final byte g, final byte b) {
             rgbRed = r;
             rgbGreen = g;
             rgbBlue = b;
             rgbReserved = 0;
         }
 
-        public boolean equals(RGBQuad other) {
+        public boolean equals(final RGBQuad other) {
             return (rgbBlue == other.rgbBlue && rgbRed == other.rgbRed && rgbGreen == other.rgbGreen);
         }
 
-        public void save(BufferedOutputStream bof) throws IOException {
-            byte[] ar = new byte[4];
+        public void save(final BufferedOutputStream bof) throws IOException {
+            final byte[] ar = new byte[4];
             ar[0] = rgbBlue;
             ar[1] = rgbGreen;
             ar[2] = rgbRed;
@@ -300,7 +305,7 @@ public class BitmapSaving {
             biClrImportant = toDWORD(256);
         }
 
-        public void save(BufferedOutputStream bos) throws IOException {
+        public void save(final BufferedOutputStream bos) throws IOException {
             bos.write(biSize);
             bos.write(biWidth);
             bos.write(biHeight);

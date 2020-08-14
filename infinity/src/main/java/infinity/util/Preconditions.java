@@ -1,5 +1,7 @@
 package infinity.util;
 
+import java.text.MessageFormat;
+
 /*
  * Copyright 2015 Olivier Grégoire.
  *
@@ -30,176 +32,173 @@ public final class Preconditions {
     private Preconditions() {
     }
 
-    public static <T> T checkNotNull(@Nullable T reference) {
-        if (reference != null) {
-            return reference;
-        } else {
+    public static <T> T checkNotNull(@Nullable final T reference) {
+        if (reference == null) {
             throw new NullPointerException();
         }
+        return reference;
     }
 
-    public static <T> T checkNotNull(@Nullable T reference, @Nullable Object message) {
-        if (reference != null) {
-            return reference;
-        } else {
+    public static <T> T checkNotNull(@Nullable final T reference, @Nullable final Object message) {
+        if (reference == null) {
             throw new NullPointerException(String.valueOf(message));
         }
+        return reference;
     }
 
-    public static <T> T checkNotNull(@Nullable T reference, String messageFormat, Object... parameters) {
-        if (reference != null) {
-            return reference;
-        } else {
-            throw new NullPointerException(String.format(messageFormat, parameters));
+    public static <T> T checkNotNull(@Nullable final T reference, final String messageFormat,
+            final Object... parameters) {
+        if (reference == null) {
+            throw new NullPointerException(MessageFormat.format(messageFormat, parameters));
         }
+        return reference;
     }
 
-    public static <T> T checkNotNull(@Nullable T reference, Supplier<String> messageSupplier) {
-        if (reference != null) {
-            return reference;
-        } else {
-            throw new NullPointerException(messageSupplier.get());
+    public static <T> T checkNotNull(@Nullable final T reference, final Supplier<String> messageSupplier) {
+        if (reference == null) {
+            throw new NullPointerException(messageSupplier == null ? null : messageSupplier.get());
         }
+        return reference;
     }
 
-    public static <T> T checkArgument(@Nullable T value, Predicate<? super T> predicate) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
+    public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate) {
+        if (!predicate.test(value)) {
+            throw new IllegalArgumentException();
+        }
+        return value;
+    }
+
+    public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate,
+            @Nullable final Object message) {
+        if (!predicate.test(value)) {
+            throw new IllegalArgumentException(String.valueOf(message));
+        }
+        return value;
+    }
+
+    public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate,
+            final String messageFormat, final Object... parameters) {
+        if (!predicate.test(value)) {
+            throw new IllegalArgumentException(String.format(messageFormat, parameters));
+        }
+        return value;
+    }
+
+    public static <T> T checkArgument(@Nullable final T value, final Predicate<? super T> predicate,
+            final Supplier<String> messageSupplier) {
+        if (!predicate.test(value)) {
+            throw new IllegalArgumentException(messageSupplier.get());
+        }
+        return value;
+    }
+
+    public static void checkArgument(final boolean expression) {
+        if (!expression) {
             throw new IllegalArgumentException();
         }
     }
 
-    public static <T> T checkArgument(@Nullable T value, Predicate<? super T> predicate, @Nullable Object message) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
-            throw new IllegalArgumentException(String.valueOf(message));
-        }
-    }
-
-    public static <T> T checkArgument(@Nullable T value, Predicate<? super T> predicate, String messageFormat,
-            Object... parameters) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
-            throw new IllegalArgumentException(String.format(messageFormat, parameters));
-        }
-    }
-
-    public static <T> T checkArgument(@Nullable T value, Predicate<? super T> predicate,
-            Supplier<String> messageSupplier) {
-        if (predicate.test(value)) {
-            return value;
-        } else {
-            throw new IllegalArgumentException(messageSupplier.get());
-        }
-    }
-
-    public static void checkArgument(boolean expression) {
-        if (!expression) {
-            throw new IllegalArgumentException();
-        }
-    }
-
-    public static void checkArgument(boolean expression, @Nullable Object message) {
+    public static void checkArgument(final boolean expression, @Nullable final Object message) {
         if (!expression) {
             throw new IllegalArgumentException(String.valueOf(message));
         }
     }
 
-    public static void checkArgument(boolean expression, String messageFormat, Object... parameters) {
+    public static void checkArgument(final boolean expression, final String messageFormat, final Object... parameters) {
         if (!expression) {
             throw new IllegalArgumentException(String.format(messageFormat, parameters));
         }
     }
 
-    public static void checkArgument(boolean expression, Supplier<String> messageSupplier) {
+    public static void checkArgument(final boolean expression, final Supplier<String> messageSupplier) {
         if (!expression) {
             throw new IllegalArgumentException(messageSupplier.get());
         }
     }
 
-    public static void checkState(boolean expression) {
+    public static void checkState(final boolean expression) {
         if (!expression) {
             throw new IllegalStateException();
         }
     }
 
-    public static void checkState(boolean expression, @Nullable Object message) {
+    public static void checkState(final boolean expression, @Nullable final Object message) {
         if (!expression) {
             throw new IllegalStateException(String.valueOf(message));
         }
     }
 
-    public static void checkState(boolean expression, String messageFormat, Object... parameters) {
+    public static void checkState(final boolean expression, final String messageFormat, final Object... parameters) {
         if (!expression) {
             throw new IllegalStateException(String.format(messageFormat, parameters));
         }
     }
 
-    public static void checkState(boolean expression, Supplier<String> messageSupplier) {
+    public static void checkState(final boolean expression, final Supplier<String> messageSupplier) {
         if (!expression) {
             throw new IllegalStateException(messageSupplier.get());
         }
     }
 
-    public static int checkElementIndex(int index, int size) {
+    public static int checkElementIndex(final int index, final int size) {
         return checkElementIndex(index, size, "index");
     }
 
-    public static int checkElementIndex(int index, int size, @Nullable String desc) {
+    public static int checkElementIndex(final int index, final int size, @Nullable final String desc) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException(badElementIndex(index, size, desc));
         }
         return index;
     }
 
-    private static String badElementIndex(int index, int size, String desc) {
+    private static String badElementIndex(final int index, final int size, final String desc) {
         if (index < 0) {
-            return String.format("%d (%d) must not be negative", desc, index);
+            return String.format("%d (%d) must not be negative", desc, Integer.valueOf(index));
         } else if (size < 0) {
             throw new IllegalArgumentException("negative size: " + size);
         } else {
-            return String.format("%s (%d) must be less than size (%d)", desc, index, size);
+            return String.format("%s (%d) must be less than size (%d)", desc, Integer.valueOf(index),
+                    Integer.valueOf(size));
         }
     }
 
-    public static int checkPositionIndex(int index, int size) {
+    public static int checkPositionIndex(final int index, final int size) {
         return checkPositionIndex(index, size, "index");
     }
 
-    public static int checkPositionIndex(int index, int size, @Nullable String desc) {
+    public static int checkPositionIndex(final int index, final int size, @Nullable final String desc) {
         if (index < 0 || index > size) {
             throw new IndexOutOfBoundsException(badPositionIndex(index, size, desc));
         }
         return index;
     }
 
-    private static String badPositionIndex(int index, int size, String desc) {
+    private static String badPositionIndex(final int index, final int size, final String desc) {
         if (index < 0) {
-            return String.format("%s (%d) must not be negative", desc, index);
+            return String.format("%s (%d) must not be negative", desc, Integer.valueOf(index));
         } else if (size < 0) {
             throw new IllegalArgumentException("negative size: " + size);
         } else {
-            return String.format("%s (%d) must not be greater than size (%d)", desc, index, size);
+            return String.format("%s (%d) must not be greater than size (%d)", desc, Integer.valueOf(index),
+                    Integer.valueOf(size));
         }
     }
 
-    public static void checkPositionIndexes(int start, int end, int size) {
+    public static void checkPositionIndexes(final int start, final int end, final int size) {
         if (start < 0 || end < start || end > size) {
             throw new IndexOutOfBoundsException(badPositionIndexes(start, end, size));
         }
     }
 
-    private static String badPositionIndexes(int start, int end, int size) {
+    private static String badPositionIndexes(final int start, final int end, final int size) {
         if (start < 0 || start > size) {
             return badPositionIndex(start, size, "start index");
         }
         if (end < 0 || end > size) {
             return badPositionIndex(end, size, "end index");
         }
-        return String.format("end index (%d) must not be less than start index (%d)", end, start);
+        return String.format("end index (%d) must not be less than start index (%d)", Integer.valueOf(end),
+                Integer.valueOf(start));
     }
 
 }

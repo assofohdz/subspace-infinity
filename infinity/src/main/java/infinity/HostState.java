@@ -47,7 +47,6 @@ import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
 
-import com.simsilica.es.EntityData;
 import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.sim.GameSystemManager;
@@ -68,29 +67,29 @@ public class HostState extends BaseAppState {
 
     // Used to enable/disable some UI elements until we move them
     // to their own state
-    private boolean singlePlayer;
+    // private boolean singlePlayer;
 
     private GameSystemManager systems;
-    private EntityData ed;
+    // private EntityData ed;
 
-    private VersionedHolder<String> hostingState = new VersionedHolder<>("");
-    private VersionedHolder<String> connectionCount = new VersionedHolder<>("");
+    private final VersionedHolder<String> hostingState = new VersionedHolder<>("");
+    private final VersionedHolder<String> connectionCount = new VersionedHolder<>("");
 
-    private ConnectionListener connectionListener = new ConnectionObserver();
+    private final ConnectionListener connectionListener = new ConnectionObserver();
 
-    public HostState(int port, String description) {
+    public HostState(final int port, final String description) {
         this(port, description, false);
     }
 
-    public HostState(int port, String description, boolean singlePlayer) {
+    public HostState(final int port, final String description, @SuppressWarnings("unused") final boolean singlePlayer) {
         try {
-            this.singlePlayer = singlePlayer;
+            // this.singlePlayer = singlePlayer;
             this.port = port;
-            this.gameServer = new GameServer(port, description);
-            this.systems = gameServer.getSystems();
-            this.ed = systems.get(EntityData.class);
+            gameServer = new GameServer(port, description);
+            systems = gameServer.getSystems();
+            // ed = systems.get(EntityData.class);
             gameServer.getServer().addConnectionListener(connectionListener);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new RuntimeException("Error creating server", e);
         }
     }
@@ -129,7 +128,7 @@ public class HostState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
         // Just double checking we aren't double-hosting because of some
         // bug
@@ -151,7 +150,7 @@ public class HostState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
         gameServer.close("Shutting down.");
         hostingState.setObject("Offline");
 
@@ -160,10 +159,12 @@ public class HostState extends BaseAppState {
 
     @Override
     protected void onEnable() {
+        return;
     }
 
     @Override
     protected void onDisable() {
+        return;
     }
 
     protected void resetConnectionCount() {
@@ -173,12 +174,12 @@ public class HostState extends BaseAppState {
     private class ConnectionObserver implements ConnectionListener {
 
         @Override
-        public void connectionAdded(Server server, HostedConnection conn) {
+        public void connectionAdded(final Server server, final HostedConnection conn) {
             resetConnectionCount();
         }
 
         @Override
-        public void connectionRemoved(Server server, HostedConnection conn) {
+        public void connectionRemoved(final Server server, final HostedConnection conn) {
             resetConnectionCount();
         }
     }

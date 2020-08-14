@@ -60,12 +60,8 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     gradle install
     cd $env:SubspaceWorkspace\Simsilica\SiO2
     gradle install
-    
-    ```
-1. Build MOSS, which is referenced from Subspace-Infinity as project level dependencies, so they don't need to be installed
-    ```shell
     cd $env:SubspaceWorkspace\pspeed42\moss
-    gradle build
+    gradle install
     
     ```
 1. Build Subspace-Infinity

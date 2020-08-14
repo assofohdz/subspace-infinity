@@ -60,13 +60,13 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     static Logger log = LoggerFactory.getLogger(ChatClientService.class);
 
     private RmiClientService rmiService;
-    private int channel;
+    private final int channel;
     private ChatSession delegate;
 
-    private String playerName;
+    // private String playerName;
 
-    private ChatSessionCallback sessionCallback = new ChatSessionCallback();
-    private List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();
+    private final ChatSessionCallback sessionCallback = new ChatSessionCallback();
+    private final List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
      * Creates a new chat service that will use the default reliable channel for
@@ -80,12 +80,12 @@ public class ChatClientService extends AbstractClientService implements ChatSess
      * Creates a new chat service that will use the specified channel for any
      * reliable communication.
      */
-    public ChatClientService(int channel) {
+    public ChatClientService(final int channel) {
         this.channel = channel;
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(final String message) {
         getDelegate().sendMessage(message);
     }
 
@@ -99,18 +99,18 @@ public class ChatClientService extends AbstractClientService implements ChatSess
      * these listeners are called on the networking thread and as such are not
      * suitable for modifying the visualization directly.
      */
-    public void addChatSessionListener(ChatSessionListener l) {
+    public void addChatSessionListener(final ChatSessionListener l) {
         listeners.add(l);
     }
 
-    public void removeChatSessionListener(ChatSessionListener l) {
+    public void removeChatSessionListener(final ChatSessionListener l) {
         listeners.remove(l);
     }
 
     @Override
-    protected void onInitialize(ClientServiceManager s) {
+    protected void onInitialize(final ClientServiceManager s) {
         log.debug("onInitialize(" + s + ")");
-        this.rmiService = getService(RmiClientService.class);
+        rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
             throw new RuntimeException("ChatClientService requires RMI service");
         }
@@ -136,7 +136,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         // game is doing something screwy.
         if (delegate == null) {
             // Look it up
-            this.delegate = rmiService.getRemoteObject(ChatSession.class);
+            delegate = rmiService.getRemoteObject(ChatSession.class);
             log.debug("delegate:" + delegate);
             if (delegate == null) {
                 throw new RuntimeException("No chat session found");
@@ -152,32 +152,32 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     private class ChatSessionCallback implements ChatSessionListener {
 
         @Override
-        public void playerJoined(int clientId, String playerName) {
+        public void playerJoined(final int clientId, final String name) {
             if (log.isTraceEnabled()) {
-                log.trace("playerJoined(" + clientId + ", " + playerName + ")");
+                log.trace("playerJoined(" + clientId + ", " + name + ")");
             }
-            for (ChatSessionListener l : listeners) {
-                l.playerJoined(clientId, playerName);
+            for (final ChatSessionListener l : listeners) {
+                l.playerJoined(clientId, name);
             }
         }
 
         @Override
-        public void newMessage(int clientId, String playerName, String message) {
+        public void newMessage(final int clientId, final String name, final String message) {
             if (log.isTraceEnabled()) {
-                log.trace("newMessage(" + clientId + ", " + playerName + ", " + message + ")");
+                log.trace("newMessage(" + clientId + ", " + name + ", " + message + ")");
             }
-            for (ChatSessionListener l : listeners) {
-                l.newMessage(clientId, playerName, message);
+            for (final ChatSessionListener l : listeners) {
+                l.newMessage(clientId, name, message);
             }
         }
 
         @Override
-        public void playerLeft(int clientId, String playerName) {
+        public void playerLeft(final int clientId, final String name) {
             if (log.isTraceEnabled()) {
-                log.trace("playerLeft(" + clientId + ", " + playerName + ")");
+                log.trace("playerLeft(" + clientId + ", " + name + ")");
             }
-            for (ChatSessionListener l : listeners) {
-                l.playerLeft(clientId, playerName);
+            for (final ChatSessionListener l : listeners) {
+                l.playerLeft(clientId, name);
             }
         }
     }

@@ -39,7 +39,7 @@ public class TileType implements EntityComponent {
     private String tileSet;
     private short tileIndex;
 
-    public TileType(int type, String tileSet, short tileIndex) {
+    public TileType(final int type, final String tileSet, final short tileIndex) {
         this.type = type;
         this.tileSet = tileSet;
         this.tileIndex = tileIndex;
@@ -48,7 +48,8 @@ public class TileType implements EntityComponent {
     protected TileType() {
     }
 
-    public static TileType create(String typeName, String tileSet, short tileIndex, EntityData ed) {
+    public static TileType create(final String typeName, final String tileSet, final short tileIndex,
+            final EntityData ed) {
         return new TileType(ed.getStrings().getStringId(typeName, true), tileSet, tileIndex);
     }
 
@@ -56,11 +57,11 @@ public class TileType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 
-    public TileType newTileIndex(short newTileIndex, EntityData ed) {
+    public TileType newTileIndex(final short newTileIndex) {
         return new TileType(type, tileSet, newTileIndex);
     }
 

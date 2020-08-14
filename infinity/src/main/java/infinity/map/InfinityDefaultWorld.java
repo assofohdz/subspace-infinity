@@ -31,24 +31,24 @@ public class InfinityDefaultWorld implements World {
 
     static Logger log = LoggerFactory.getLogger(InfinityDefaultWorld.class);
 
-    private LeafDb leafDb;
+    private final LeafDb leafDb;
 
-    private List<CellChangeListener> cellListeners = new ArrayList<>();
+    private final List<CellChangeListener> cellListeners = new ArrayList<>();
     private CellChangeListener[] cellListenerArray;
-    private CellChangeListener[] emptyCellListenerArray = new CellChangeListener[0];
+    private final CellChangeListener[] emptyCellListenerArray = new CellChangeListener[0];
 
-    public InfinityDefaultWorld(LeafDb leafDb) {
+    public InfinityDefaultWorld(final LeafDb leafDb) {
         this.leafDb = leafDb;
     }
 
     @Override
-    public void addCellChangeListener(CellChangeListener l) {
+    public void addCellChangeListener(final CellChangeListener l) {
         cellListeners.add(l);
         cellListenerArray = null;
     }
 
     @Override
-    public void removeCellChangeListener(CellChangeListener l) {
+    public void removeCellChangeListener(final CellChangeListener l) {
         cellListeners.remove(l);
         cellListenerArray = null;
     }
@@ -60,79 +60,79 @@ public class InfinityDefaultWorld implements World {
         return cellListenerArray;
     }
 
-    protected void fireCellChanged(long leafId, int x, int y, int z, int value) {
+    protected void fireCellChanged(final long leafId, final int x, final int y, final int z, final int value) {
 //log.info("fireCellChanged(" + leafId + ", " + x + ", " + y + ", " + z + ", " + value + ") listeners count:" + cellListeners.size());
         if (cellListeners.isEmpty()) {
             return;
         }
-        CellChangeEvent event = new CellChangeEvent(leafId, x, y, z, value);
+        final CellChangeEvent event = new CellChangeEvent(leafId, x, y, z, value);
         fireCellChanged(event);
     }
 
-    protected void fireCellChanged(CellChangeEvent event) {
-        for (CellChangeListener l : getCellListenerArray()) {
+    protected void fireCellChanged(final CellChangeEvent event) {
+        for (final CellChangeListener l : getCellListenerArray()) {
             l.cellChanged(event);
         }
     }
 
     @Override
-    public int getWorldCell(Vec3d world) {
-        LeafData leaf = getWorldLeaf(world);
+    public int getWorldCell(final Vec3d world) {
+        final LeafData leaf = getWorldLeaf(world);
         if (leaf == null) {
             return -1;
         }
-        int x = Coordinates.worldToCell(world.x) - leaf.getInfo().location.x;
-        int y = Coordinates.worldToCell(world.y) - leaf.getInfo().location.y;
-        int z = Coordinates.worldToCell(world.z) - leaf.getInfo().location.z;
+        final int x = Coordinates.worldToCell(world.x) - leaf.getInfo().location.x;
+        final int y = Coordinates.worldToCell(world.y) - leaf.getInfo().location.y;
+        final int z = Coordinates.worldToCell(world.z) - leaf.getInfo().location.z;
         return leaf.getCell(x, y, z);
     }
 
     @Override
-    public LeafData getWorldLeaf(Vec3d worldLocation) {
+    public LeafData getWorldLeaf(final Vec3d worldLocation) {
         return getLeaf(Coordinates.worldToLeafId(worldLocation.x, worldLocation.y, worldLocation.z));
     }
 
     @Override
-    public LeafData getLeaf(Vec3i leafLoc) {
+    public LeafData getLeaf(final Vec3i leafLoc) {
         return getLeaf(Coordinates.leafToLeafId(leafLoc.x, leafLoc.y, leafLoc.z));
     }
 
     @Override
-    public LeafData getLeaf(long leafId) {
+    public LeafData getLeaf(final long leafId) {
         return leafDb.loadLeaf(leafId);
     }
 
     @Override
-    public int setWorldCell(Vec3d world, int type) {
+    public int setWorldCell(final Vec3d world, final int type) {
 //log.info("setWorldCell(" + world + ", " + type + ")");
-        LeafData leaf = getWorldLeaf(world);
+        final LeafData leaf = getWorldLeaf(world);
         if (leaf == null) {
             return -1;
         }
 
-        WorldCellData data = new WorldCellData(leaf, this);
+        final WorldCellData data = new WorldCellData(leaf, this);
 
-        int x = Coordinates.worldToCell(world.x);
-        int y = Coordinates.worldToCell(world.y);
-        int z = Coordinates.worldToCell(world.z);
+        final int x = Coordinates.worldToCell(world.x);
+        final int y = Coordinates.worldToCell(world.y);
+        final int z = Coordinates.worldToCell(world.z);
 
         data.setCell(x, y, z, type);
         BlockGeometryIndex.recalculateSideMasks(data, x, y, z);
 
         // Get the newly masked value to fire in the event
-        int value = data.getCell(x, y, z);
+        final int value = data.getCell(x, y, z);
 //log.info("set cell:" + x + ", " + y + ", " + z + "  to: " + MaskUtils.valueToString(value));
 
         // Vec3i leafLoc = leaf.getInfo().location;
         // fireCellChanged(leaf.getInfo().leafId, x - leafLoc.x, y - leafLoc.y, z -
         // leafLoc.z, value);
         // Push the changes back to the DB
-        for (LeafData mod : data.getModified()) {
+        for (final LeafData mod : data.getModified()) {
             leafDb.storeLeaf(mod);
         }
 
         // Notify the listeners
-        for (CellChangeEvent event : data.getChanges()) {
+        for (final CellChangeEvent event : data.getChanges()) {
 //log.info("firing event:" + event);
             fireCellChanged(event);
         }

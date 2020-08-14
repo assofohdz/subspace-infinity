@@ -17,7 +17,7 @@ public class CollisionCategory implements EntityComponent {
 
     CategoryFilter filter;
 
-    public CollisionCategory(CategoryFilter filter) {
+    public CollisionCategory(final CategoryFilter filter) {
         this.filter = filter;
     }
 

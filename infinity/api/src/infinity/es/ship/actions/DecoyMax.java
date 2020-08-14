@@ -40,7 +40,7 @@ public class DecoyMax implements EntityComponent {
         return max;
     }
 
-    public DecoyMax(int count) {
-        this.max = count;
+    public DecoyMax(final int count) {
+        max = count;
     }
 }

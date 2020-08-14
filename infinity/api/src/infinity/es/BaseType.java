@@ -35,11 +35,11 @@ public class BaseType implements EntityComponent {
     protected BaseType() {
     }
 
-    public BaseType(int type) {
+    public BaseType(final int type) {
         this.type = type;
     }
 
-    public static BaseType create(String typeName, EntityData ed) {
+    public static BaseType create(final String typeName, final EntityData ed) {
         return new BaseType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -47,7 +47,7 @@ public class BaseType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

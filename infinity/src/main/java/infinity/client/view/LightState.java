@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.light.PointLight;
-import com.jme3.scene.LightNode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 
@@ -62,8 +61,8 @@ public class LightState extends BaseAppState {
     private EntityData ed;
     private EntitySet movingPointLights, decayingPointLights;
     private Node rootNode;
-    private HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
-    private HashMap<EntityId, TransitionBuffer<PositionTransition3d>> bufferMap = new HashMap<>();
+    private final HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
+    private final HashMap<EntityId, TransitionBuffer<PositionTransition3d>> bufferMap = new HashMap<>();
     private TimeState timeState;
 
     public LightState() {
@@ -71,20 +70,20 @@ public class LightState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
-        this.ed = getState(ConnectionState.class).getEntityData();
+        ed = getState(ConnectionState.class).getEntityData();
 
-        this.movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
-        this.decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
+        movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
+        decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
 
-        this.timeState = getState(TimeState.class);
+        timeState = getState(TimeState.class);
     }
 
     @Override
-    protected void cleanup(Application app) {
-        this.movingPointLights.release();
-        this.movingPointLights = null;
+    protected void cleanup(final Application app) {
+        movingPointLights.release();
+        movingPointLights = null;
     }
 
     @Override
@@ -98,22 +97,23 @@ public class LightState extends BaseAppState {
 
     @Override
     protected void onDisable() {
+        return;
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
         // Grab a consistent time for this frame
-        long time = timeState.getTime();
+        final long time = timeState.getTime();
 
         movingPointLights.applyChanges();
 
         if (movingPointLights.hasChanges()) {
-            for (Entity e : movingPointLights.getAddedEntities()) {
-                this.createPointLight(e);
+            for (final Entity e : movingPointLights.getAddedEntities()) {
+                createPointLight(e);
             }
 
-            for (Entity e : movingPointLights.getRemovedEntities()) {
-                this.removePointLight(e);
+            for (final Entity e : movingPointLights.getRemovedEntities()) {
+                removePointLight(e);
             }
         }
         /*
@@ -121,18 +121,18 @@ public class LightState extends BaseAppState {
          */
         decayingPointLights.applyChanges();
 
-        for (Entity e : decayingPointLights) {
+        for (final Entity e : decayingPointLights) {
 
             if (pointLightMap.containsKey(e.getId())) {
-                PointLightComponent plc = e.get(PointLightComponent.class);
-                Decay d = e.get(Decay.class);
+                final PointLightComponent plc = e.get(PointLightComponent.class);
+                final Decay d = e.get(Decay.class);
 
-                PointLight pl = pointLightMap.get(e.getId());
+                final PointLight pl = pointLightMap.get(e.getId());
 
                 // double percentage = 1-d.getPercentRemaining(time);
                 // float factor = Math.max((float) (1 - (FastMath.pow((float)percentage,
                 // 5f))),0f);
-                float percentageRemFloat = (float) d.getPercentRemaining(time);
+                final float percentageRemFloat = (float) d.getPercentRemaining(time);
 
                 pl.setColor(plc.getColor().mult(percentageRemFloat));
 
@@ -140,9 +140,9 @@ public class LightState extends BaseAppState {
         }
     }
 
-    private void removePointLight(Entity e) {
-        PointLightComponent lt = e.get(PointLightComponent.class);
-        PointLight pl = pointLightMap.remove(e.getId());
+    private void removePointLight(final Entity e) {
+        // final PointLightComponent lt = e.get(PointLightComponent.class);
+        final PointLight pl = pointLightMap.remove(e.getId());
         rootNode.removeLight(pl);
 
     }
@@ -167,13 +167,13 @@ public class LightState extends BaseAppState {
      * }
      */
 
-    private void createPointLight(Entity e) {
-        Spatial s = getState(ModelViewState.class).getModelSpatial(e.getId(), true).getParent();
+    private void createPointLight(final Entity e) {
+        final Spatial s = getState(ModelViewState.class).getModelSpatial(e.getId(), true).getParent();
 
-        PointLightComponent plc = e.get(PointLightComponent.class);
-        BodyPosition bp = e.get(BodyPosition.class);
+        final PointLightComponent plc = e.get(PointLightComponent.class);
+        final BodyPosition bp = e.get(BodyPosition.class);
 
-        PointLight pl = new PointLight();
+        final PointLight pl = new PointLight();
         pl.setColor(plc.getColor());
         pl.setRadius(plc.getRadius());
         // Set the pointlights starting position and offset it
@@ -188,7 +188,7 @@ public class LightState extends BaseAppState {
         bufferMap.put(e.getId(), bp.getBuffer());
 
         rootNode.addLight(pl);
-        LightNode ln = new LightNode(e.getId().toString(), pl);
+        // final LightNode ln = new LightNode(e.getId().toString(), pl);
         // s.getp.attachChild(ln);
     }
 }

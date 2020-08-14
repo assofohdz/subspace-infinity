@@ -76,29 +76,29 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     private RmiHostedService rmiService;
 
-    private String serverInfo;
+    private final String serverInfo;
     private EntityData ed;
 
-    private HashMap<EntityId, HostedConnection> playerConnectionMap = new HashMap<>();
+    private final HashMap<EntityId, HostedConnection> playerConnectionMap = new HashMap<>();
 
-    public AccountHostedService(String serverInfo) {
+    public AccountHostedService(final String serverInfo) {
         this.serverInfo = serverInfo;
-        this.operators = new HashMap<>();
+        operators = new HashMap<>();
     }
 
-    public static String getPlayerName(HostedConnection conn) {
+    public static String getPlayerName(final HostedConnection conn) {
         return conn.getAttribute(ATTRIBUTE_PLAYER_NAME);
     }
 
-    public static EntityId getPlayerEntity(HostedConnection conn) {
+    public static EntityId getPlayerEntity(final HostedConnection conn) {
         return conn.getAttribute(ATTRIBUTE_PLAYER_ENTITY);
     }
 
     @Override
-    protected void onInitialize(HostedServiceManager s) {
+    protected void onInitialize(final HostedServiceManager s) {
 
         // Grab the RMI service so we can easily use it later
-        this.rmiService = getService(RmiHostedService.class);
+        rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
             throw new RuntimeException("AccountHostedService requires an RMI service.");
         }
@@ -106,35 +106,35 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     @Override
     public void start() {
-        EntityDataHostedService eds = getService(EntityDataHostedService.class);
+        final EntityDataHostedService eds = getService(EntityDataHostedService.class);
         if (eds == null) {
             throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
         }
-        this.ed = eds.getEntityData();
+        ed = eds.getEntityData();
     }
 
     @Override
-    public void startHostingOnConnection(HostedConnection conn) {
+    public void startHostingOnConnection(final HostedConnection conn) {
 
         // Add default access
         operators.put(conn.getAttribute(AccountHostedService.ATTRIBUTE_PLAYER_ENTITY), AccessLevel.PLAYER_LEVEL);
 
         log.debug("startHostingOnConnection(" + conn + ")");
 
-        AccountSessionImpl session = new AccountSessionImpl(conn);
+        final AccountSessionImpl session = new AccountSessionImpl(conn);
         conn.setAttribute(ATTRIBUTE_SESSION, session);
 
         // Expose the session as an RMI resource to the client
-        RmiRegistry rmi = rmiService.getRmiRegistry(conn);
+        final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
         rmi.share(session, AccountSession.class);
     }
 
     @Override
-    public void stopHostingOnConnection(HostedConnection conn) {
+    public void stopHostingOnConnection(final HostedConnection conn) {
         log.debug("stopHostingOnConnection(" + conn + ")");
-        AccountSessionImpl account = conn.getAttribute(ATTRIBUTE_SESSION);
+        final AccountSessionImpl account = conn.getAttribute(ATTRIBUTE_SESSION);
         if (account != null) {
-            String playerName = getPlayerName(conn);
+            final String playerName = getPlayerName(conn);
             log.debug("publishing playerLoggedOff event for:" + conn);
             // Was really logged on before
             EventBus.publish(AccountEvent.playerLoggedOff, new AccountEvent(conn, playerName, account.player));
@@ -152,7 +152,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id          the entity to add as operator
      * @param accessLevel Access level at which to add the name
      */
-    public void addOperator(EntityId id, AccessLevel accessLevel) {
+    public void addOperator(final EntityId id, final AccessLevel accessLevel) {
         if (accessLevel.level < AccessLevel.PLAYER_LEVEL.level || accessLevel.level > AccessLevel.OWNER_LEVEL.level) {
             return;
         }
@@ -167,7 +167,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @return the HostedConnection object for that player if it exists. If no
      *         connection, returns null
      */
-    public HostedConnection getHostedConnection(EntityId eId) {
+    public HostedConnection getHostedConnection(final EntityId eId) {
         if (playerConnectionMap.containsKey(eId)) {
             return playerConnectionMap.get(eId);
         }
@@ -179,11 +179,11 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      */
     private class AccountSessionImpl implements AccountSession {
 
-        private HostedConnection conn;
+        private final HostedConnection conn;
         private AccountSessionListener callback;
         private EntityId player;
 
-        public AccountSessionImpl(HostedConnection conn) {
+        public AccountSessionImpl(final HostedConnection conn) {
             this.conn = conn;
 
             // Note: at this point we won't be able to look up the callback
@@ -192,7 +192,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
         protected AccountSessionListener getCallback() {
             if (callback == null) {
-                RmiRegistry rmi = rmiService.getRmiRegistry(conn);
+                final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
                 callback = rmi.getRemoteObject(AccountSessionListener.class);
                 if (callback == null) {
                     throw new RuntimeException("Unable to locate client callback for AccountSessionListener");
@@ -207,7 +207,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
         }
 
         @Override
-        public void login(String playerName) {
+        public void login(final String playerName) {
             log.info("login(" + playerName + ")");
             conn.setAttribute(ATTRIBUTE_PLAYER_NAME, playerName);
 
@@ -242,13 +242,13 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
         // Custom clean method of operators
         // Leave the bot operator list entries intact
-        Set<Entry<EntityId, AccessLevel>> operatorNames = operators.entrySet();
+        final Set<Entry<EntityId, AccessLevel>> operatorNames = operators.entrySet();
 
         synchronized (operators) {
-            Iterator<Entry<EntityId, AccessLevel>> it = operatorNames.iterator(); // Must be in synchronized block
+            final Iterator<Entry<EntityId, AccessLevel>> it = operatorNames.iterator(); // Must be in synchronized block
 
             while (it.hasNext()) {
-                Entry<EntityId, AccessLevel> operator = it.next();
+                final Entry<EntityId, AccessLevel> operator = it.next();
 
                 if (operator.getValue() != AccessLevel.BOT_LEVEL) {
                     it.remove();
@@ -273,21 +273,23 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param entityId Entity in question
      * @return Access level of the id provided
      */
-    public AccessLevel getAccessLevel(EntityId entityId) {
+    public AccessLevel getAccessLevel(final EntityId entityId) {
         if (entityId == null) {
             return AccessLevel.PLAYER_LEVEL;
         }
 
-        AccessLevel accessLevel = operators.get(entityId);
+        final AccessLevel accessLevel = operators.get(entityId);
 
+        final AccessLevel result;
         if (accessLevel == null) {
-            return AccessLevel.PLAYER_LEVEL;
+            result = AccessLevel.PLAYER_LEVEL;
         } else {
-            return accessLevel;
+            result = accessLevel;
         }
+        return result;
     }
 
-    public boolean isAtLeastAtAccessLevel(EntityId id, AccessLevel accessLevel) {
+    public boolean isAtLeastAtAccessLevel(final EntityId id, final AccessLevel accessLevel) {
         return getAccessLevel(id).level >= accessLevel.level;
     }
 
@@ -298,7 +300,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player has at least the bot operator level status
      */
-    public boolean isBot(EntityId id) {
+    public boolean isBot(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.BOT_LEVEL.level;
     }
@@ -310,7 +312,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player has the bot operator level status
      */
-    public boolean isBotExact(EntityId id) {
+    public boolean isBotExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.BOT_LEVEL; // || getAccessLevel(id) == SYSOP_LEVEL) &&
                                                             // !sysops.contains(id)) {
@@ -324,7 +326,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least an Outsider
      */
-    public boolean isOutsider(EntityId id) {
+    public boolean isOutsider(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.OUTSIDER_LEVEL.level;
     }
@@ -335,7 +337,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is a Outsider
      */
-    public boolean isOutsiderExact(EntityId id) {
+    public boolean isOutsiderExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.OUTSIDER_LEVEL;
     }
@@ -346,7 +348,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least an ER
      */
-    public boolean isLR(EntityId id) {
+    public boolean isLR(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.LR_LEVEL.level;
     }
@@ -357,7 +359,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is an ER
      */
-    public boolean isLRExact(EntityId id) {
+    public boolean isLRExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.LR_LEVEL;
     }
@@ -368,7 +370,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least a ZH
      */
-    public boolean isZH(EntityId id) {
+    public boolean isZH(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.ZH_LEVEL.level;
     }
@@ -379,7 +381,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is a ZH
      */
-    public boolean isZHExact(EntityId id) {
+    public boolean isZHExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.ZH_LEVEL;
     }
@@ -390,7 +392,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least an ER
      */
-    public boolean isER(EntityId id) {
+    public boolean isER(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.ER_LEVEL.level;
     }
@@ -401,7 +403,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is an ER
      */
-    public boolean isERExact(EntityId id) {
+    public boolean isERExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.ER_LEVEL;
     }
@@ -412,7 +414,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least a Mod
      */
-    public boolean isModerator(EntityId id) {
+    public boolean isModerator(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.MODERATOR_LEVEL.level;
     }
@@ -423,7 +425,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is a Mod
      */
-    public boolean isModeratorExact(EntityId id) {
+    public boolean isModeratorExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.MODERATOR_LEVEL;
     }
@@ -437,7 +439,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least a HighMod
      */
-    public boolean isHighmod(EntityId id) {
+    public boolean isHighmod(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.HIGHMOD_LEVEL.level;
     }
@@ -448,7 +450,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is a HighMod
      */
-    public boolean isHighmodExact(EntityId id) {
+    public boolean isHighmodExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.HIGHMOD_LEVEL;
     }
@@ -459,7 +461,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least an ER
      */
-    public boolean isDeveloper(EntityId id) {
+    public boolean isDeveloper(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.DEV_LEVEL.level;
     }
@@ -470,7 +472,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is a Developer
      */
-    public boolean isDeveloperExact(EntityId id) {
+    public boolean isDeveloperExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.DEV_LEVEL;
     }
@@ -481,7 +483,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least a SMod
      */
-    public boolean isSmod(EntityId id) {
+    public boolean isSmod(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.SMOD_LEVEL.level;
     }
@@ -492,7 +494,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is a SMod.
      */
-    public boolean isSmodExact(EntityId id) {
+    public boolean isSmodExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.SMOD_LEVEL;
     }
@@ -503,12 +505,12 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is at least a Sysop
      */
-    public boolean isSysop(EntityId id) {
+    public boolean isSysop(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.SYSOP_LEVEL.level;
     }
 
-    public boolean isSysopExact(EntityId id) {
+    public boolean isSysopExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.SYSOP_LEVEL; // || sysops.contains(id)) {
     }
@@ -519,7 +521,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param id Name in question
      * @return True if player is an owner
      */
-    public boolean isOwner(EntityId id) {
+    public boolean isOwner(final EntityId id) {
 
         return getAccessLevel(id).level >= AccessLevel.OWNER_LEVEL.level;
     }
@@ -533,7 +535,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      *             level exists.
      */
     @Deprecated
-    public boolean isOwnerExact(EntityId id) {
+    public boolean isOwnerExact(final EntityId id) {
 
         return getAccessLevel(id) == AccessLevel.OWNER_LEVEL;
     }
@@ -544,14 +546,14 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param accessLevel A number corresponding to the OperatorList access standard
      * @return HashSet of all players of that access level.
      */
-    public HashSet<EntityId> getAllOfAccessLevel(AccessLevel accessLevel) {
+    public HashSet<EntityId> getAllOfAccessLevel(final AccessLevel accessLevel) {
         if (accessLevel.level < AccessLevel.PLAYER_LEVEL.level || accessLevel.level > AccessLevel.OWNER_LEVEL.level) {
             return null;
         }
 
-        HashSet<EntityId> gathered = new HashSet<>();
+        final HashSet<EntityId> gathered = new HashSet<>();
 
-        for (Entry<EntityId, AccessLevel> operator : operators.entrySet()) {
+        for (final Entry<EntityId, AccessLevel> operator : operators.entrySet()) {
             if (operator.getValue() == accessLevel) {
                 gathered.add(operator.getKey());
             }

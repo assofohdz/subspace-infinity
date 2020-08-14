@@ -5,6 +5,7 @@
  */
 package infinity.util;
 
+import java.util.ArrayList;
 /**
  *
  * @author asser
@@ -42,15 +43,15 @@ public class MathUtil {
     public static final double DEFAULT_015 = 0.15;
     public static final double DEFAULT_005 = 0.05;
 
-    public boolean hasOutlier(Object... values) {
+    public boolean hasOutlier(final Object... values) {
         return hasOutlier(Arrays.asList(values));
     }
 
-    public boolean hasOutlier(List<?> values) {
+    public boolean hasOutlier(final List<?> values) {
         return getOutlier(values) != null;
     }
 
-    public boolean hasOutlier(List<?> values, double significanceLevel) {
+    public boolean hasOutlier(final List<?> values, final double significanceLevel) {
         return getOutlier(values, significanceLevel) != null;
     }
 
@@ -58,79 +59,80 @@ public class MathUtil {
      * Returns a statistical outlier with the default significance level (0.95), or
      * null if no such outlier exists..
      */
-    public <T> T getOutlier(List<T> values) {
+    public <T> T getOutlier(final List<T> values) {
         return getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
     }
 
-    public <T> T getOutlier(List<T> values, double significanceLevel) {
-        AtomicReference<T> outlier = new AtomicReference<>();
-        double grubbs = getGrubbsTestStatistic(values, outlier);
-        double size = values.size();
+    public <T> T getOutlier(final List<T> values, final double significanceLevel) {
+        final T result;
+        final AtomicReference<T> outlier = new AtomicReference<>();
+        final double grubbs = getGrubbsTestStatistic(values, outlier);
+        final double size = values.size();
         if (size < 3) {
-            return null;
-        }
-        TDistributionImpl t = new TDistributionImpl(size - 2.0);
-        try {
-            double criticalValue = t.inverseCumulativeProbability((1.0 - significanceLevel) / (2.0 * size));
-            double criticalValueSquare = criticalValue * criticalValue;
-            double grubbsCompareValue = ((size - 1) / Math.sqrt(size))
-                    * Math.sqrt((criticalValueSquare) / (size - 2.0 + criticalValueSquare));
-            // System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
-            if (grubbs > grubbsCompareValue) {
-                return outlier.get();
-            } else {
-                return null;
+            result = null;
+        } else {
+            final TDistributionImpl t = new TDistributionImpl(size - 2.0);
+            try {
+                final double criticalValue = t.inverseCumulativeProbability((1.0 - significanceLevel) / (2.0 * size));
+                final double criticalValueSquare = criticalValue * criticalValue;
+                final double grubbsCompareValue = ((size - 1) / Math.sqrt(size))
+                        * Math.sqrt((criticalValueSquare) / (size - 2.0 + criticalValueSquare));
+                // System.out.println("critical value: " + grubbs + " - " + grubbsCompareValue);
+                if (grubbs > grubbsCompareValue) {
+                    result = outlier.get();
+                } else {
+                    result = null;
+                }
+            } catch (final MathException e) {
+                throw new RuntimeException(e);
             }
-        } catch (MathException e) {
-            throw new RuntimeException(e);
         }
+        return result;
     }
 
     /**
      * returns a minimum outlier (if one exists)
      */
-    public <T> T getOutlierMin(List<T> values) {
-        T d = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
-        if (d == null) {
-            return null;
+    public <T> T getOutlierMin(final List<T> values) {
+        T result = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
+        if (result != null) {
+            final double d1 = toDouble(result).doubleValue();
+            final double d2 = toDouble(min(values)).doubleValue();
+            if (d1 != d2) {
+                result = null;
+            }
         }
-        double d1 = toDouble(d);
-        double d2 = toDouble(min(values));
-        if (d1 == d2) {
-            return d;
-        }
-        return null;
+        return result;
     }
 
     /**
      * returns a minimum outlier (if one exists)
      */
-    public <T> T getOutlierMax(List<T> values) {
-        T d = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
-        if (d == null) {
-            return null;
+    public <T> T getOutlierMax(final List<T> values) {
+        T result = getOutlier(values, DEFAULT_SIGNIFICANCE_LEVEL);
+        if (result != null) {
+            final double d1 = toDouble(result).doubleValue();
+            final double d2 = toDouble(max(values)).doubleValue();
+            if (d1 != d2) {
+                result = null;
+            }
         }
-        double d1 = toDouble(d);
-        double d2 = toDouble(max(values));
-        if (d1 == d2) {
-            return d;
-        }
-        return null;
+        return result;
     }
 
-    public <T> double getGrubbsTestStatistic(List<T> values, AtomicReference<T> outlier) {
-        double[] array = toArray(values);
-        double mean = StatUtils.mean(array);
-        double stddev = stdDev(values);
+    public <T> double getGrubbsTestStatistic(final List<T> values, final AtomicReference<T> outlier) {
+        final double[] array = toArray(values);
+        final double mean = StatUtils.mean(array);
+        final double stddev = stdDev(values).doubleValue();
         double maxDev = 0;
-        for (T o : values) {
-            double d = toDouble(o);
+        for (final T o : values) {
+            final double d = toDouble(o).doubleValue();
             if (Math.abs(mean - d) > maxDev) {
                 maxDev = Math.abs(mean - d);
                 outlier.set(o);
             }
         }
-        double grubbs = maxDev / stddev;
+        final double grubbs = maxDev / stddev;
         // System.out.println("mean/stddev/maxDev/grubbs: " + mean + " - " + stddev + "
         // - " + maxDev + " - " + grubbs);
         return grubbs;
@@ -140,47 +142,47 @@ public class MathUtil {
         MIN, MAX
     }
 
-    public double sum(Collection<?> c) {
+    public double sum(final Collection<?> c) {
         double s = 0;
-        for (Object o : c) {
+        for (final Object o : c) {
             s += Double.parseDouble("" + o);
         }
         return s;
     }
 
-    public double average(Collection<?> c) {
+    public double average(final Collection<?> c) {
         return sum(c) / c.size();
     }
 
-    public double avg(Collection<?> c) {
+    public double avg(final Collection<?> c) {
         return average(c);
     }
 
-    public <T> T min(List<T> values) {
+    public <T> T min(final List<T> values) {
         return executeOp(values, Operator.MIN);
     }
 
-    public <T> T max(List<T> values) {
+    public <T> T max(final List<T> values) {
         return executeOp(values, Operator.MAX);
     }
 
-    public double max(double[] values) {
-        return executeOp(asList(values), Operator.MAX);
+    public double max(final double[] values) {
+        return executeOp(asList(values), Operator.MAX).doubleValue();
     }
 
-    public int max(int[] values) {
-        return executeOp(asList(values), Operator.MAX);
+    public int max(final int[] values) {
+        return executeOp(asList(values), Operator.MAX).intValue();
     }
 
-    public long max(long[] values) {
-        return executeOp(asList(values), Operator.MAX);
+    public long max(final long[] values) {
+        return executeOp(asList(values), Operator.MAX).longValue();
     }
 
-    private <T> T executeOp(List<T> values, Operator op) {
+    private <T> T executeOp(final List<T> values, final Operator op) {
         double res = op == Operator.MIN ? Double.MAX_VALUE : Double.MIN_VALUE;
         T obj = null;
-        for (T o : values) {
-            double d = toDouble(o);
+        for (final T o : values) {
+            final double d = toDouble(o).doubleValue();
             if ((op == Operator.MIN && d < res) || (op == Operator.MAX && d > res)) {
                 res = d;
                 obj = o;
@@ -189,77 +191,77 @@ public class MathUtil {
         return obj;
     }
 
-    public List<Integer> asList(int[] values) {
-        List<Integer> result = new LinkedList<>();
-        for (int v : values) {
-            result.add(v);
+    public List<Integer> asList(final int... values) {
+        final List<Integer> result = new ArrayList<>(values.length);
+        for (final int v : values) {
+            result.add(Integer.valueOf(v));
         }
         return result;
     }
 
-    public List<Long> asList(long[] values) {
-        List<Long> result = new LinkedList<>();
-        for (long v : values) {
-            result.add(v);
+    public List<Long> asList(final long... values) {
+        final List<Long> result = new ArrayList<>(values.length);
+        for (final long v : values) {
+            result.add(Long.valueOf(v));
         }
         return result;
     }
 
-    public List<Double> asList(double[] values) {
-        List<Double> result = new LinkedList<>();
-        for (double v : values) {
-            result.add(v);
+    public List<Double> asList(final double... values) {
+        final List<Double> result = new ArrayList<>(values.length);
+        for (final double v : values) {
+            result.add(Double.valueOf(v));
         }
         return result;
     }
 
-    public Double stdDev(List<?> values) {
+    public Double stdDev(final List<?> values) {
         return stdDev(toArray(values));
     }
 
-    public Double stdDev(double[] values) {
-        return Math.sqrt(StatUtils.variance(values));
+    public Double stdDev(final double[] values) {
+        return Double.valueOf(Math.sqrt(StatUtils.variance(values)));
     }
 
-    public Double toDouble(Object o) {
+    public Double toDouble(final Object o) {
         if (o instanceof Double) {
             return (Double) o;
         }
         if (o instanceof Integer) {
-            return (double) (Integer) o;
+            return Double.valueOf(((Integer) o).intValue());
         }
         if (o instanceof Long) {
-            return (double) (Long) o;
+            return Double.valueOf(((Long) o).longValue());
         }
-        return Double.parseDouble("" + o);
+        return Double.valueOf(String.valueOf(o));
     }
 
-    public List<Double> toDoubles(List<?> values) {
-        List<Double> d = new LinkedList<>();
-        for (Object o : values) {
-            double val = toDouble(o);
+    public List<Double> toDoubles(final List<?> values) {
+        final List<Double> d = new LinkedList<>();
+        for (final Object o : values) {
+            final Double val = toDouble(o);
             d.add(val);
         }
         return d;
     }
 
-    public double[] toArray(List<?> values) {
-        double[] d = new double[values.size()];
+    public double[] toArray(final List<?> values) {
+        final double[] result = new double[values.size()];
         int count = 0;
-        for (Object o : values) {
-            double val = o instanceof Double ? (Double) o : Double.parseDouble("" + o);
-            d[count++] = val;
+        for (final Object o : values) {
+            final Double d = o instanceof Double ? (Double) o : Double.valueOf(String.valueOf(o));
+            result[count++] = d.doubleValue();
         }
-        return d;
+        return result;
     }
 
-    public Integer toInteger(String in) {
+    public Integer toInteger(final String in) {
         if (in == null) {
             return null;
         }
         try {
-            return Integer.parseInt(in);
-        } catch (Exception e) {
+            return Integer.valueOf(in);
+        } catch (@SuppressWarnings("unused") final Exception e) {
             return null;
         }
     }
@@ -270,34 +272,34 @@ public class MathUtil {
         return instance;
     }
 
-    private static void assertion(boolean value) {
+    private static void assertion(final boolean value) {
         if (!value) {
             throw new RuntimeException("Assertion failed.");
         }
     }
 
-    public static void main(String[] args) {
-        MathUtil m = new MathUtil();
+    public static void main(final String[] args) {
+        final MathUtil m = new MathUtil();
 
-        Integer d0 = m.getOutlier(Arrays.asList(1, 2), 0.95);
+        final Integer d0 = m.getOutlier(m.asList(1, 2), 0.95);
         assertion(d0 == null);
 
-        Integer d1 = m.getOutlier(Arrays.asList(1, 2, 3, 8, 4, 10, 20), 0.95);
+        final Integer d1 = m.getOutlier(m.asList(1, 2, 3, 8, 4, 10, 20), 0.95);
         assertion(d1 == null);
 
-        Integer d2 = m.getOutlier(Arrays.asList(1, 2, 3, 8, 4, 10, 50), 0.95);
+        final Integer d2 = m.getOutlier(m.asList(1, 2, 3, 8, 4, 10, 50), 0.95);
         assertion(d2 != null);
 
-        Integer d3 = m.getOutlier(Arrays.asList(1, 2, 3, 8, 4, 10, 100), 0.95);
+        final Integer d3 = m.getOutlier(m.asList(1, 2, 3, 8, 4, 10, 100), 0.95);
         assertion(d3 != null);
 
-        Object d4 = m.getOutlier(Arrays.asList(), 0.95);
+        final Object d4 = m.getOutlier(m.asList(), 0.95);
         assertion(d4 == null);
 
-        Integer d5 = m.getOutlier(Arrays.asList(1, 2, 3, 8, 4, 10, 100), 0.9999999);
+        final Integer d5 = m.getOutlier(m.asList(1, 2, 3, 8, 4, 10, 100), 0.9999999);
         assertion(d5 == null);
 
-        Integer d6 = m.getOutlier(Arrays.asList(1, 2, 3, 8, 4, 10, 100), 0.999);
+        final Integer d6 = m.getOutlier(m.asList(1, 2, 3, 8, 4, 10, 100), 0.999);
         assertion(d6 != null);
 
     }

@@ -41,11 +41,11 @@ public class RotationMax implements EntityComponent {
 
     }
 
-    public RotationMax(double radSecMax) {
+    public RotationMax(final double radSecMax) {
         this.radSecMax = radSecMax;
     }
 
     public double getRadSecMax() {
-        return this.radSecMax;
+        return radSecMax;
     }
 }

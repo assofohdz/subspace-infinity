@@ -40,7 +40,7 @@ public class Decoy implements EntityComponent {
         return count;
     }
 
-    public Decoy(int count) {
+    public Decoy(final int count) {
         this.count = count;
     }
 }

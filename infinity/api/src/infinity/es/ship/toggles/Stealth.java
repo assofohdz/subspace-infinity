@@ -40,7 +40,7 @@ public class Stealth implements EntityComponent {
         return enabled;
     }
 
-    public Stealth(boolean enabled) {
+    public Stealth(final boolean enabled) {
         this.enabled = enabled;
     }
 

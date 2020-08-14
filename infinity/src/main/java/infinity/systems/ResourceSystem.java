@@ -50,56 +50,58 @@ public class ResourceSystem extends AbstractGameSystem {
     private EntityData ed;
     private EntitySet ships;
     private double time_since_last_update;
-    private HashMap<EntityId, Integer> goldMap = new HashMap<>();
-    private final HostedServiceManager serviceManager;
+    private final HashMap<EntityId, Integer> goldMap = new HashMap<>();
+    // private final HostedServiceManager serviceManager;
 
-    public ResourceSystem(HostedServiceManager serviceManager) {
-        this.serviceManager = serviceManager;
+    public ResourceSystem(@SuppressWarnings("unused") final HostedServiceManager serviceManager) {
+        // this.serviceManager = serviceManager;
     }
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
-        this.ships = this.ed.getEntities(ShapeInfo.class);
+        ed = getSystem(EntityData.class);
+        ships = ed.getEntities(ShapeInfo.class);
     }
 
     @Override
     protected void terminate() {
-        this.ships.release();
-        this.ships = null;
+        ships.release();
+        ships = null;
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
         // only update every RESOURCE_UPDATE_INTERVAL
-        this.ships.applyChanges();
+        ships.applyChanges();
 
-        if (this.time_since_last_update > CoreGameConstants.RESOURCE_UPDATE_INTERVAL) {
-            this.time_since_last_update = 0;
+        if (time_since_last_update > CoreGameConstants.RESOURCE_UPDATE_INTERVAL) {
+            time_since_last_update = 0;
 
             // TPF is in seconds
-            int gold = (int) (tpf.getTpf() * CoreGameConstants.GOLD_PER_SECOND);
+            final int gold = (int) (tpf.getTpf() * CoreGameConstants.GOLD_PER_SECOND);
 
             // Handle old ships
-            for (Entity e : this.ships) {
-                Gold g = this.ed.getComponent(e.getId(), Gold.class);
-                int totalGold = g.getGold() + gold;
-                this.ed.setComponent(e.getId(), new Gold(totalGold));
+            for (final Entity e : ships) {
+                final Gold g = ed.getComponent(e.getId(), Gold.class);
+                final int totalGold = g.getGold() + gold;
+                ed.setComponent(e.getId(), new Gold(totalGold));
 
-                goldMap.put(e.getId(), totalGold);
+                goldMap.put(e.getId(), Integer.valueOf(totalGold));
             }
         }
         // update time
-        this.time_since_last_update += tpf.getTpf();
+        time_since_last_update += tpf.getTpf();
 
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
     /**
@@ -108,8 +110,8 @@ public class ResourceSystem extends AbstractGameSystem {
      * @param owner the entity requesting a tower
      * @return true if the entity has enough gold
      */
-    public boolean canAffordTower(EntityId owner) {
-        return goldMap.get(owner) >= CoreGameConstants.TOWERCOST;
+    public boolean canAffordTower(final EntityId owner) {
+        return goldMap.get(owner).intValue() >= CoreGameConstants.TOWERCOST;
     }
 
     /**
@@ -118,10 +120,10 @@ public class ResourceSystem extends AbstractGameSystem {
      *
      * @param owner the entity purchasing the tower
      */
-    public void buyTower(EntityId owner) {
-        int currentGold = goldMap.get(owner);
-        int newGold = currentGold - CoreGameConstants.TOWERCOST;
+    public void buyTower(final EntityId owner) {
+        final int currentGold = goldMap.get(owner).intValue();
+        final int newGold = currentGold - CoreGameConstants.TOWERCOST;
         ed.setComponent(owner, new Gold(newGold));
-        goldMap.put(owner, newGold);
+        goldMap.put(owner, Integer.valueOf(newGold));
     }
 }

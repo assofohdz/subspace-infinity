@@ -40,11 +40,11 @@ public class Energy implements EntityComponent {
     public Energy() {
     }
 
-    public Energy(int health) {
+    public Energy(final int health) {
         this.health = health;
     }
 
-    public Energy newAdjusted(int delta) {
+    public Energy newAdjusted(final int delta) {
         return new Energy(health + delta);
     }
 

@@ -64,115 +64,115 @@ public class PrizeTypes {
     public static final String WARP = "Warp";
     public static final String XRADAR = "XRadar";
 
-    public static PrizeType allWeapons(EntityData ed) {
+    public static PrizeType allWeapons(final EntityData ed) {
         return PrizeType.create(ALLWEAPONS, ed);
     }
 
-    public static PrizeType antiWarp(EntityData ed) {
+    public static PrizeType antiWarp(final EntityData ed) {
         return PrizeType.create(ANTIWARP, ed);
     }
 
-    public static PrizeType bomb(EntityData ed) {
+    public static PrizeType bomb(final EntityData ed) {
         return PrizeType.create(BOMB, ed);
     }
 
-    public static PrizeType bouncingBullets(EntityData ed) {
+    public static PrizeType bouncingBullets(final EntityData ed) {
         return PrizeType.create(BOUNCINGBULLETS, ed);
     }
 
-    public static PrizeType brick(EntityData ed) {
+    public static PrizeType brick(final EntityData ed) {
         return PrizeType.create(BRICK, ed);
     }
 
-    public static PrizeType burst(EntityData ed) {
+    public static PrizeType burst(final EntityData ed) {
         return PrizeType.create(BURST, ed);
     }
 
-    public static PrizeType cloak(EntityData ed) {
+    public static PrizeType cloak(final EntityData ed) {
         return PrizeType.create(CLOAK, ed);
     }
 
-    public static PrizeType decoy(EntityData ed) {
+    public static PrizeType decoy(final EntityData ed) {
         return PrizeType.create(DECOY, ed);
     }
 
-    public static PrizeType energy(EntityData ed) {
+    public static PrizeType energy(final EntityData ed) {
         return PrizeType.create(ENERGY, ed);
     }
 
-    public static PrizeType glue(EntityData ed) {
+    public static PrizeType glue(final EntityData ed) {
         return PrizeType.create(GLUE, ed);
     }
 
-    public static PrizeType gun(EntityData ed) {
+    public static PrizeType gun(final EntityData ed) {
         return PrizeType.create(GUN, ed);
     }
 
-    public static PrizeType multifire(EntityData ed) {
+    public static PrizeType multifire(final EntityData ed) {
         return PrizeType.create(MULTIFIRE, ed);
     }
 
-    public static PrizeType multiprize(EntityData ed) {
+    public static PrizeType multiprize(final EntityData ed) {
         return PrizeType.create(MULTIPRIZE, ed);
     }
 
-    public static PrizeType portal(EntityData ed) {
+    public static PrizeType portal(final EntityData ed) {
         return PrizeType.create(PORTAL, ed);
     }
 
-    public static PrizeType proximity(EntityData ed) {
+    public static PrizeType proximity(final EntityData ed) {
         return PrizeType.create(PROXIMITY, ed);
     }
 
-    public static PrizeType quickCharge(EntityData ed) {
+    public static PrizeType quickCharge(final EntityData ed) {
         return PrizeType.create(QUICKCHARGE, ed);
     }
 
-    public static PrizeType recharge(EntityData ed) {
+    public static PrizeType recharge(final EntityData ed) {
         return PrizeType.create(RECHARGE, ed);
     }
 
-    public static PrizeType repel(EntityData ed) {
+    public static PrizeType repel(final EntityData ed) {
         return PrizeType.create(REPEL, ed);
     }
 
-    public static PrizeType rocket(EntityData ed) {
+    public static PrizeType rocket(final EntityData ed) {
         return PrizeType.create(ROCKET, ed);
     }
 
-    public static PrizeType rotation(EntityData ed) {
+    public static PrizeType rotation(final EntityData ed) {
         return PrizeType.create(ROTATION, ed);
     }
 
-    public static PrizeType shields(EntityData ed) {
+    public static PrizeType shields(final EntityData ed) {
         return PrizeType.create(SHIELDS, ed);
     }
 
-    public static PrizeType shrapnel(EntityData ed) {
+    public static PrizeType shrapnel(final EntityData ed) {
         return PrizeType.create(SHRAPNEL, ed);
     }
 
-    public static PrizeType stealth(EntityData ed) {
+    public static PrizeType stealth(final EntityData ed) {
         return PrizeType.create(STEALTH, ed);
     }
 
-    public static PrizeType thor(EntityData ed) {
+    public static PrizeType thor(final EntityData ed) {
         return PrizeType.create(THOR, ed);
     }
 
-    public static PrizeType thruster(EntityData ed) {
+    public static PrizeType thruster(final EntityData ed) {
         return PrizeType.create(THRUSTER, ed);
     }
 
-    public static PrizeType topspeed(EntityData ed) {
+    public static PrizeType topspeed(final EntityData ed) {
         return PrizeType.create(TOPSPEED, ed);
     }
 
-    public static PrizeType warp(EntityData ed) {
+    public static PrizeType warp(final EntityData ed) {
         return PrizeType.create(WARP, ed);
     }
 
-    public static PrizeType xradar(EntityData ed) {
+    public static PrizeType xradar(final EntityData ed) {
         return PrizeType.create(XRADAR, ed);
     }
 }

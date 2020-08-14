@@ -56,7 +56,7 @@ import infinity.sim.CorePhysicsConstants;
 public class AvatarSystem extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet freqInput, avatarInput;
+    // private EntitySet freqInput, avatarInput;
     private EntitySet frequencies;
 
     public static final byte SPEC = 0x0;
@@ -79,28 +79,28 @@ public class AvatarSystem extends AbstractGameSystem {
     private final Pattern joinTeam = Pattern.compile("\\=(\\d+)");
     private final ChatHostedService chp;
 
-    public AvatarSystem(ChatHostedService chp) {
+    public AvatarSystem(final ChatHostedService chp) {
         this.chp = chp;
     }
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
-        this.frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
-        this.captains = ed.getEntities(ShapeInfo.class, Captain.class);
+        frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
+        captains = ed.getEntities(ShapeInfo.class, Captain.class);
 
         teamRestrictions = new HashMap<>();
 
         // Register consuming methods for patterns
         chp.registerPatternBiConsumer(joinTeam,
                 "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> this.joinTeam(id, frequency)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> joinTeam(id, frequency)));
 
     }
 
-    private void joinTeam(EntityId from, String frequency) {
-        ed.setComponent(from, new Frequency(Integer.valueOf(frequency)));
+    private void joinTeam(final EntityId from, final String frequency) {
+        ed.setComponent(from, new Frequency(Integer.valueOf(frequency).intValue()));
     }
 
     @Override
@@ -110,36 +110,39 @@ public class AvatarSystem extends AbstractGameSystem {
         frequencies = null;
     }
 
+    @SuppressWarnings("unused")
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
 
         if (captains.applyChanges()) {
-            for (Entity e : captains.getAddedEntities()) {
-
+            for (final Entity e : captains.getAddedEntities()) {
+                // TODO implement me
             }
-            for (Entity e : captains.getChangedEntities()) {
-
+            for (final Entity e : captains.getChangedEntities()) {
+                // TODO implement me
             }
-            for (Entity e : captains.getRemovedEntities()) {
-
+            for (final Entity e : captains.getRemovedEntities()) {
+                // TODO implement me
             }
         }
     }
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
-    public void requestShipChange(EntityId shipEntity, byte shipType) {
+    public void requestShipChange(final EntityId shipEntity, final byte shipType) {
         // TODO: Check for energy (full energy to switch ships)
 
-        int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFreq();
+        final int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFreq();
 
-        ShipRestrictor restrictor = this.getRestrictor(freq);
+        final ShipRestrictor restrictor = getRestrictor(freq);
 
         // Allow ship change if no restrictions on frequency, or if restrictions allow
         // it
@@ -178,6 +181,8 @@ public class AvatarSystem extends AbstractGameSystem {
                 ed.setComponent(shipEntity,
                         ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed));
                 break;
+            default:
+                break;
             }
 
             EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
@@ -190,8 +195,8 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param entityId the entity to check
      * @return the frequency of the entity
      */
-    public int getFrequency(EntityId entityId) {
-        Frequency freq = ed.getComponent(entityId, Frequency.class);
+    public int getFrequency(final EntityId entityId) {
+        final Frequency freq = ed.getComponent(entityId, Frequency.class);
 
         return freq.getFreq();
     }
@@ -202,7 +207,7 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param eId     the entity to change frequency for
      * @param newFreq the new freuency
      */
-    public void requestFreqChange(EntityId eId, int newFreq) {
+    public void requestFreqChange(final EntityId eId, final int newFreq) {
         // TODO: Check the ship restrictor in place to make sure the new frequency is
         // allowed
         ed.setComponent(eId, new Frequency(newFreq));
@@ -216,16 +221,16 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param team     Frequency
      * @param restrict The new ShipRestrictor to use
      */
-    public void setRestrictor(int team, ShipRestrictor restrict) {
-        if (!teamRestrictions.containsKey(team)) {
-            teamRestrictions.put(team, new ShipRestrictor() {
+    public void setRestrictor(final int team, final ShipRestrictor restrict) {
+        if (!teamRestrictions.containsKey(Integer.valueOf(team))) {
+            teamRestrictions.put(Integer.valueOf(team), new ShipRestrictor() {
                 @Override
-                public boolean canSwitch(EntityId p, byte ship, int t) {
+                public boolean canSwitch(final EntityId p, final byte ship, final int t) {
                     return true;
                 }
 
                 @Override
-                public boolean canSwap(EntityId p1, EntityId p2, int t) {
+                public boolean canSwap(final EntityId p1, final EntityId p2, final int t) {
                     return true;
                 }
 
@@ -235,12 +240,12 @@ public class AvatarSystem extends AbstractGameSystem {
                 }
             });
         } else {
-            this.teamRestrictions.put(team, restrict);
+            teamRestrictions.put(Integer.valueOf(team), restrict);
         }
     }
 
-    public ShipRestrictor getRestrictor(int team) {
-        return this.teamRestrictions.get(team);
+    public ShipRestrictor getRestrictor(final int team) {
+        return teamRestrictions.get(Integer.valueOf(team));
     }
 
     /**
@@ -249,7 +254,7 @@ public class AvatarSystem extends AbstractGameSystem {
      *
      * @param team the team to clear and reset
      */
-    public void reset(int team) {
+    public void reset(final int team) {
         /*
          * players.clear(); changed = true; plist = null; ships = new Player[8][0];
          */
@@ -260,11 +265,11 @@ public class AvatarSystem extends AbstractGameSystem {
      *
      * @param eId the player entity to remove
      */
-    public void removePlayer(EntityId eId) {
+    public void removePlayer(final EntityId eId) {
         // Could perhaps be that we should set frequency to 0 instead of removing
         // frequency
         if (eId != null) {
-            Frequency freq = new Frequency(0);
+            final Frequency freq = new Frequency(0);
             ed.setComponent(eId, freq);
         }
     }
@@ -274,7 +279,7 @@ public class AvatarSystem extends AbstractGameSystem {
      *
      * @param eId the player to demote
      */
-    public void removeCaptainFromTeam(EntityId eId) {
+    public void removeCaptainFromTeam(final EntityId eId) {
         ed.removeComponent(eId, Captain.class);
     }
 
@@ -284,7 +289,7 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param eId the entity to check
      * @return true if the player is a team captain, false otherwise
      */
-    public boolean isCaptain(EntityId eId) {
+    public boolean isCaptain(final EntityId eId) {
         return (captains.containsId(eId));
     }
 
@@ -293,7 +298,7 @@ public class AvatarSystem extends AbstractGameSystem {
      *
      * @param eId the EntityId of the player to be promoted
      */
-    public void addCaptain(EntityId eId) {
+    public void addCaptain(final EntityId eId) {
         ed.setComponent(eId, new Captain());
     }
 
@@ -304,16 +309,17 @@ public class AvatarSystem extends AbstractGameSystem {
      * @param type the type of ship
      * @return the count of the ship type
      */
-    public int getShipCount(int team, ShapeInfo type) {
+    public int getShipCount(final int team, final ShapeInfo type) {
 
-        ComponentFilter freqFilter = FieldFilter.create(Frequency.class, "freq", team);
-        EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShapeInfo.class);
+        final ComponentFilter<Frequency> freqFilter = FieldFilter.create(Frequency.class, "freq",
+                Integer.valueOf(team));
+        final EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShapeInfo.class);
 
         int count = 0;
 
         // Sum up the entities with the right type
         count = freq.stream().filter((e) -> (e.get(ShapeInfo.class).getShapeName(ed) == type.getShapeName(ed)))
-                .map((_item) -> 1).reduce(count, Integer::sum);
+                .map((_item) -> Integer.valueOf(1)).reduce(Integer.valueOf(count), Integer::sum).intValue();
 
         return count;
     }

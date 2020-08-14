@@ -40,7 +40,7 @@ public class Antiwarp implements EntityComponent {
         return enabled;
     }
 
-    public Antiwarp(boolean enabled) {
+    public Antiwarp(final boolean enabled) {
         this.enabled = enabled;
     }
 

@@ -38,13 +38,13 @@ public class Gold implements EntityComponent {
     public Gold() {
     }
 
-    public Gold(int gold) {
+    public Gold(final int gold) {
         this.gold = gold;
 
     }
 
     public int getGold() {
-        return this.gold;
+        return gold;
     }
 
 }

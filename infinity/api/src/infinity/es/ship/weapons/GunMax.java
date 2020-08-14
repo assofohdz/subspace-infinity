@@ -36,7 +36,7 @@ public class GunMax implements EntityComponent {
 
     GunLevelEnum level;
 
-    public GunMax(GunLevelEnum level) {
+    public GunMax(final GunLevelEnum level) {
         this.level = level;
     }
 

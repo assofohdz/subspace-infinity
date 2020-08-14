@@ -21,7 +21,7 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
 
     // private ColorRGBA sunColor;
     // private DirectionalLight sun;
-    private ColorRGBA ambientColor;
+    private final ColorRGBA ambientColor;
     private AmbientLight ambient;
     // private float timeOfDay = FastMath.atan2(1, 0.3f) / FastMath.PI;
     // private float inclination = FastMath.HALF_PI - FastMath.atan2(1, 0.4f);
@@ -33,13 +33,13 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
         this(FastMath.atan2(1, 0.3f) / FastMath.PI);
     }
 
-    public AmbientLightState(float time) {
+    public AmbientLightState(@SuppressWarnings("unused") final float time) {
         // lightDir.setObject(new Vector3f(-0.2f, -1, -0.3f).normalizeLocal());
-        this.ambientColor = DEFAULT_AMBIENT.clone();
+        ambientColor = DEFAULT_AMBIENT.clone();
     }
 
-    public void setAmbient(ColorRGBA ambient) {
-        this.ambientColor.set(ambient);
+    public void setAmbient(final ColorRGBA ambient) {
+        ambientColor.set(ambient);
     }
 
     public ColorRGBA getAmbient() {
@@ -47,7 +47,7 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
         ambient = new AmbientLight();
         ambient.setColor(ambientColor);
 
@@ -55,7 +55,8 @@ public class AmbientLightState extends com.jme3.app.state.BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
+        return;
     }
 
     @Override

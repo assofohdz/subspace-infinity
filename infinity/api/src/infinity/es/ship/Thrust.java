@@ -18,7 +18,7 @@ public class Thrust {
         return thrust;
     }
 
-    public Thrust(int thrust) {
+    public Thrust(final int thrust) {
         this.thrust = thrust;
     }
 }

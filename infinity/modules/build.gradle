@@ -1,37 +1,35 @@
+apply plugin: "java"
 
-project(":infinity:modules") {
-    apply plugin: 'java'
-    sourceCompatibility = 1.14
-    
-    buildDir = file("../build/modules")
-    sourceSets {
-        main {
-            java {
-                srcDir 'src'
-                filter.exclude("**/*.ini", "**/*.set")
-                filter.include("**/.java")
-            }
-            resources {
-                srcDir 'src'
-                filter.include("**/*.ini", "**/*.set")
-                filter.exclude("**/.java")
-            }
-        }
-    }
-    
-    dependencies {
-        //Ini4j to parse settings files
-        //http://ini4j.sourceforge.net/// 
-        //https://mvnrepository.com/artifact/org.ini4j/ini4j
-        compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
+sourceSets {
+	main {
+		java {
+			srcDir "src"
+			filter.exclude("**/*.ini", "**/*.set")
+			filter.include("**/.java")
+		}
+		resources {
+			srcDir "src"
+			filter.include("**/*.ini", "**/*.set")
+			filter.exclude("**/.java")
+		}
+	}
+}
 
-        
-        implementation project(':infinity:api')
-        
-        implementation "com.simsilica:sim-ethereal:$simEtherealVersion"
-        implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
-        implementation "com.simsilica:zay-es:$zayEsVersion"
-        implementation "com.simsilica:sio2:$sio2Version"
-        implementation project(":sio2-mphys")
-    }
+dependencies {
+	//Ini4j to parse settings files
+	//http://ini4j.sourceforge.net/// 
+	//https://mvnrepository.com/artifact/org.ini4j/ini4j
+	implementation "org.ini4j:ini4j:0.5.4"
+
+	// Simsilica
+	implementation "com.simsilica:sim-ethereal:$simEtherealVersion"
+	implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
+	implementation "com.simsilica:zay-es:$zayEsVersion"
+	implementation "com.simsilica:sio2:$sio2Version"
+	
+	// Simsilica MOSS
+	implementation "com.simsilica:sio2-mphys:1.0.0-SNAPSHOT"
+
+	// Local dependencies
+	implementation project(":infinity:api")
 }

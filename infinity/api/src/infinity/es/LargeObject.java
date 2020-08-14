@@ -47,4 +47,5 @@ import com.simsilica.es.EntityComponent;
  * @author Paul Speed
  */
 public class LargeObject implements EntityComponent {
+    // TODO implement me
 }

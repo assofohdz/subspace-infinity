@@ -59,7 +59,7 @@ public class MainGameFunctions {
     // public static final FunctionId F_TIME_DEBUG = new FunctionId(IN_GAME, "Time
     // Debug");
 
-    public static void initializeDefaultMappings(InputMapper inputMapper) {
+    public static void initializeDefaultMappings(final InputMapper inputMapper) {
 
         inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
         inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_SELECT); // the normal one

@@ -51,14 +51,14 @@ public class SphereShape_old implements EntityComponent {
      * @param radius       the radius of the sphere
      * @param centerOffset the offset relative to the object to which it applies
      */
-    public SphereShape_old(double radius, Vec3d centerOffset) {
+    public SphereShape_old(final double radius, final Vec3d centerOffset) {
         this.radius = radius;
-        this.offset = centerOffset;
+        offset = centerOffset;
     }
 
-    public SphereShape_old(double radius) {
+    public SphereShape_old(final double radius) {
         this.radius = radius;
-        this.offset = new Vec3d();
+        offset = new Vec3d();
     }
 
     public double getRadius() {

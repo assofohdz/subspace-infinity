@@ -20,27 +20,33 @@ import com.jme3.asset.AssetLoader;
  */
 public class SSSLoader implements AssetLoader {
 
+    @SuppressWarnings("unused")
     private static final int GROUP = 1;
+    @SuppressWarnings("unused")
     private static final int KEY = 2;
+    @SuppressWarnings("unused")
     private static final int VALUE = 3;
+    @SuppressWarnings("unused")
     private static final int MIN = 4;
+    @SuppressWarnings("unused")
     private static final int MAX = 5;
+    @SuppressWarnings("unused")
     private static final int DESC = 6;
 
     @Override
-    public ArrayList<String[]> load(AssetInfo assetInfo) throws IOException {
+    public ArrayList<String[]> load(final AssetInfo assetInfo) throws IOException {
 
-        ArrayList<String[]> result = new ArrayList<>();
+        final ArrayList<String[]> result = new ArrayList<>();
 
-        InputStream stream = assetInfo.openStream();
+        final InputStream stream = assetInfo.openStream();
 
-        InputStreamReader streamReader = new InputStreamReader(stream);
+        final InputStreamReader streamReader = new InputStreamReader(stream);
 
         try (BufferedReader br = new BufferedReader(streamReader)) {
             String line;
 
             while ((line = br.readLine()) != null) {
-                String[] values = line.split(":");
+                final String[] values = line.split(":");
                 /*
                  * for (String str : values) { System.out.println(str); }
                  */

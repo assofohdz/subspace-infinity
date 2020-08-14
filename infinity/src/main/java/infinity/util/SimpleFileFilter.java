@@ -90,13 +90,13 @@ import java.io.FilenameFilter;
  */
 public class SimpleFileFilter implements FilenameFilter {
 
-    private String[] extensions;
+    private final String[] extensions;
 
-    public SimpleFileFilter(String ext) {
+    public SimpleFileFilter(final String ext) {
         this(new String[] { ext });
     }
 
-    public SimpleFileFilter(String[] exts) {
+    public SimpleFileFilter(final String[] exts) {
         extensions = new String[exts.length];
 
         for (int i = 0; i < exts.length; i++) {
@@ -108,11 +108,11 @@ public class SimpleFileFilter implements FilenameFilter {
      * filenamefilter interface method
      */
     @Override
-    public boolean accept(File dir, String _name) {
-        String name = _name.toLowerCase();
+    public boolean accept(final File dir, final String _name) {
+        final String name = _name.toLowerCase();
 
-        for (int i = 0; i < extensions.length; i++) {
-            if (name.endsWith(extensions[i])) {
+        for (final String extension : extensions) {
+            if (name.endsWith(extension)) {
                 return true;
             }
         }
@@ -129,42 +129,35 @@ public class SimpleFileFilter implements FilenameFilter {
      * @param f the filename
      * @return the matching files in the directory
      */
-    public static File[] fileOrFiles(File f) {
+    public static File[] fileOrFiles(final File f) {
+        final File[] result;
         if (f == null) {
-            return null;
-        }
-
-        String parentstring = f.getParent();
-        File parent;
-
-        if (parentstring != null) {
-            parent = new File(parentstring);
+            result = null;
         } else {
-            parent = new File("");
-        }
-
-        String fname = f.getName();
-        File[] files;
-
-        if (fname.length() > 0 && fname.charAt(0) == '*') {
-            String filter = fname.substring(1, fname.length());
-            String[] names = parent.list(new SimpleFileFilter(filter));
-
-            if (names == null) {
-                return null;
+            final String parentstring = f.getParent();
+            final File parent;
+            if (parentstring != null) {
+                parent = new File(parentstring);
+            } else {
+                parent = new File("");
             }
-
-            files = new File[names.length];
-
-            for (int i = 0; i < names.length; i++) {
-                files[i] = new File(parent.getPath() + File.separator + names[i]);
+            final String fname = f.getName();
+            if (fname.length() > 0 && fname.charAt(0) == '*') {
+                final String filter = fname.substring(1, fname.length());
+                final String[] names = parent.list(new SimpleFileFilter(filter));
+                if (names == null) {
+                    result = null;
+                } else {
+                    result = new File[names.length];
+                    for (int i = 0; i < names.length; i++) {
+                        result[i] = new File(parent.getPath() + File.separator + names[i]);
+                    }
+                }
+            } else {
+                result = new File[1];
+                result[0] = f;
             }
-
-            return files;
-        } else {
-            files = new File[1];
-            files[0] = f;
-            return files;
         }
+        return result;
     }
 }

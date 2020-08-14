@@ -41,7 +41,7 @@ public class XRadarEnergy implements EntityComponent {
         return energyDrain;
     }
 
-    public XRadarEnergy(int energyDrain) {
+    public XRadarEnergy(final int energyDrain) {
         this.energyDrain = energyDrain;
     }
 }

@@ -18,17 +18,17 @@ public class ShipLightControl extends LightControl {
     PointLight pointLight;
     Vector3f pos;
 
-    public ShipLightControl(PointLight pointLight) {
+    public ShipLightControl(final PointLight pointLight) {
         super(pointLight);
 
         this.pointLight = pointLight;
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
         // super.update(tpf);
-        if (this.enabled && this.getSpatial() != null && pointLight != null) {
-            pos = this.getSpatial().getWorldTranslation();
+        if (enabled && getSpatial() != null && pointLight != null) {
+            pos = getSpatial().getWorldTranslation();
             pointLight.setPosition(pos.add(0, 2, 0));
         }
     }

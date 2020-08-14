@@ -38,7 +38,7 @@ public class HealthChange implements EntityComponent {
     public HealthChange() {
     }
 
-    public HealthChange(int delta) {
+    public HealthChange(final int delta) {
         this.delta = delta;
     }
 

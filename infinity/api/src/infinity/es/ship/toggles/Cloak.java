@@ -40,7 +40,7 @@ public class Cloak implements EntityComponent {
         return enabled;
     }
 
-    public Cloak(boolean enabled) {
+    public Cloak(final boolean enabled) {
         this.enabled = enabled;
     }
 

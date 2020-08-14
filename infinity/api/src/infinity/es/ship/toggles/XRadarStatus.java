@@ -18,7 +18,7 @@ public class XRadarStatus {
         return status;
     }
 
-    public XRadarStatus(int status) {
+    public XRadarStatus(final int status) {
         this.status = status;
     }
 }

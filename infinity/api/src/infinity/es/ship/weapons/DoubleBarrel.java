@@ -17,7 +17,7 @@ public class DoubleBarrel {
         return doubleBarrel;
     }
 
-    public DoubleBarrel(boolean doubleBarrel) {
+    public DoubleBarrel(final boolean doubleBarrel) {
         this.doubleBarrel = doubleBarrel;
     }
 }

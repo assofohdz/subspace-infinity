@@ -59,11 +59,11 @@ public class TimeState extends BaseAppState implements TimeManager {
         log.info("Constructed TimeState");
     }
 
-    public TimeState(TimeSource timeSource) {
+    public TimeState(final TimeSource timeSource) {
         this.timeSource = timeSource;
     }
 
-    public void setTimeSource(TimeSource timeSource) {
+    public void setTimeSource(final TimeSource timeSource) {
         this.timeSource = timeSource;
     }
 
@@ -81,26 +81,30 @@ public class TimeState extends BaseAppState implements TimeManager {
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
         if (timeSource != null) {
-            this.frameTime = timeSource.getTime();
-            this.realTime = System.nanoTime();
+            frameTime = timeSource.getTime();
+            realTime = System.nanoTime();
         }
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
+        return;
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
+        return;
     }
 
     @Override
     protected void onEnable() {
+        return;
     }
 
     @Override
     protected void onDisable() {
+        return;
     }
 }

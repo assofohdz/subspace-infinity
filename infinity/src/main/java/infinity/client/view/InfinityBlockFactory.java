@@ -52,8 +52,8 @@ public class InfinityBlockFactory implements BlockFactory {
      * transparency array is null then all directions are considered transparency =
      * 0, ie: fully opaque.
      */
-    public InfinityBlockFactory(PartFactory[] dirParts, PartFactory internalParts, boolean[] solid,
-            double[] transparency, double volume, Vec3d min, Vec3d max) {
+    public InfinityBlockFactory(final PartFactory[] dirParts, final PartFactory internalParts, final boolean[] solid,
+            final double[] transparency, final double volume, final Vec3d min, final Vec3d max) {
         this.dirParts = dirParts;
         this.internalParts = internalParts;
         this.solid = solid;
@@ -64,17 +64,17 @@ public class InfinityBlockFactory implements BlockFactory {
 
         boolean all = true;
         if (solid != null) {
-            for (boolean b : solid) {
+            for (final boolean b : solid) {
                 if (!b) {
                     all = false;
                 }
             }
         }
-        this.allSolid = all;
+        allSolid = all;
         if (transparency == null) {
-            this.isTransparent = false;
+            isTransparent = false;
         } else {
-            this.isTransparent = (transparency[0] + transparency[1] + transparency[2]) != 0;
+            isTransparent = (transparency[0] + transparency[1] + transparency[2]) != 0;
         }
     }
 
@@ -83,7 +83,7 @@ public class InfinityBlockFactory implements BlockFactory {
      * specified transparency. It is assumed that all of the part factories are full
      * size and that the min is 0,0,0 and the max is 1,1,1, etc.
      */
-    public static InfinityBlockFactory createCube(double transparency, PartFactory... dirParts) {
+    public static InfinityBlockFactory createCube(final double transparency, final PartFactory... dirParts) {
         if (dirParts.length != Direction.values().length) {
             throw new IllegalArgumentException("Incorrect number of part factories:" + dirParts.length + ", requires:"
                     + Direction.values().length);
@@ -100,7 +100,7 @@ public class InfinityBlockFactory implements BlockFactory {
      * specified transparency and PartFactories created by calling
      * DefaultPartFactory.createFace() all using the specified material type.
      */
-    public static InfinityBlockFactory createCube(double transparency, MaterialType materialType) {
+    public static InfinityBlockFactory createCube(final double transparency, final MaterialType materialType) {
         return createCube(transparency, DefaultPartFactory.createCubeFace(materialType, Direction.North),
                 DefaultPartFactory.createCubeFace(materialType, Direction.South),
                 DefaultPartFactory.createCubeFace(materialType, Direction.East),
@@ -114,8 +114,9 @@ public class InfinityBlockFactory implements BlockFactory {
      * specified transparency and PartFactories created by calling
      * DefaultPartFactory.createFace() with each of the specified material types.
      */
-    public static InfinityBlockFactory createCube(double transparency, int tileId, int mapId,
-            MaterialType... materialTypes) {
+    public static InfinityBlockFactory createCube(final double transparency,
+            @SuppressWarnings("unused") final int tileId, @SuppressWarnings("unused") final int mapId,
+            final MaterialType... materialTypes) {
         return createCube(transparency,
                 DefaultPartFactory.createCubeFace(materialTypes[Direction.North.ordinal()], Direction.North),
                 DefaultPartFactory.createCubeFace(materialTypes[Direction.South.ordinal()], Direction.South),
@@ -129,8 +130,8 @@ public class InfinityBlockFactory implements BlockFactory {
      * Constructs a new block factory, calculating the min/max, volume,
      * transparency, and solid values based on the supplied part factories.
      */
-    public static InfinityBlockFactory create(PartFactory[] dirParts, PartFactory internalParts, int tileId,
-            int mapId) {
+    public static InfinityBlockFactory create(final PartFactory[] dirParts, final PartFactory internalParts,
+            final int tileId, final int mapId) {
         return create(dirParts, internalParts, null, tileId, mapId);
     }
 
@@ -138,36 +139,37 @@ public class InfinityBlockFactory implements BlockFactory {
      * Constructs a new block factory, calculating the min/max, volume, and solid
      * values based on the supplied part factories.
      */
-    public static InfinityBlockFactory create(PartFactory[] dirParts, PartFactory internalParts, double[] transparency,
-            int tileId, int mapId) {
+    public static InfinityBlockFactory create(final PartFactory[] dirParts, final PartFactory internalParts,
+            final double[] transparency, @SuppressWarnings("unused") final int tileId,
+            @SuppressWarnings("unused") final int mapId) {
 
         if (dirParts == null && internalParts == null) {
             throw new IllegalArgumentException("dirParts and internalParts cannot both be null");
         }
 
-        boolean[] solid = new boolean[Direction.values().length];
-        double[] newTrans = transparency == null ? new double[] { 1, 1, 1 } : null;
+        final boolean[] solid = new boolean[Direction.values().length];
+        final double[] newTrans = transparency == null ? new double[] { 1, 1, 1 } : null;
 
-        Vec3d min = new Vec3d(100, 100, 100); // just needs to be relatively big
-        Vec3d max = new Vec3d(-100, -100, -100); // just needs to be relatively small
+        final Vec3d min = new Vec3d(100, 100, 100); // just needs to be relatively big
+        final Vec3d max = new Vec3d(-100, -100, -100); // just needs to be relatively small
 
         if (dirParts != null) {
-            for (Direction dir : Direction.values()) {
-                PartFactory face = dirParts[dir.ordinal()];
+            for (final Direction dir : Direction.values()) {
+                final PartFactory face = dirParts[dir.ordinal()];
                 if (face == null) {
                     continue;
                 }
                 min.minLocal(face.getMin());
                 max.maxLocal(face.getMax());
-                BoundaryShape shape = face.getBoundaryShape();
-                double area = shape.getArea();
+                final BoundaryShape shape = face.getBoundaryShape();
+                final double area = shape.getArea();
                 if (area >= 1) {
                     solid[dir.ordinal()] = true;
                 }
 
                 if (newTrans != null) {
-                    double t = Math.max(0, 1 - area);
-                    int a = dir.getAxis().ordinal();
+                    final double t = Math.max(0, 1 - area);
+                    final int a = dir.getAxis().ordinal();
                     newTrans[a] = Math.min(newTrans[a], t);
                 }
             }
@@ -178,11 +180,11 @@ public class InfinityBlockFactory implements BlockFactory {
             max.maxLocal(internalParts.getMax());
         }
 
-        double x = max.x - min.x;
-        double y = max.y - min.y;
-        double z = max.z - min.z;
+        final double x = max.x - min.x;
+        final double y = max.y - min.y;
+        final double z = max.z - min.z;
 
-        double volume = x * y * z;
+        final double volume = x * y * z;
 
         return new InfinityBlockFactory(dirParts, internalParts, solid, newTrans != null ? newTrans : transparency,
                 volume, min, max);
@@ -193,8 +195,8 @@ public class InfinityBlockFactory implements BlockFactory {
     }
 
     @Override
-    public int addGeometryToBuffer(GeomPartBuffer buffer, int i, int j, int k, int xWorld, int yWorld, int zWorld,
-            int sideMask, int lightMask, BlockType type) {
+    public int addGeometryToBuffer(final GeomPartBuffer buffer, final int i, final int j, final int k, final int xWorld,
+            final int yWorld, final int zWorld, final int sideMask, final int lightMask, final BlockType type) {
 
         if (yWorld == 1) {
             return 0;
@@ -203,12 +205,12 @@ public class InfinityBlockFactory implements BlockFactory {
         int count = 0;
 
         if (dirParts != null) {
-            for (Direction dir : Direction.values()) {
+            for (final Direction dir : Direction.values()) {
 
                 /*
                  * if (yWorld == 0 && dir.compareTo(Direction.Up) != 0) { continue; }
                  */
-                PartFactory part = dirParts[dir.ordinal()];
+                final PartFactory part = dirParts[dir.ordinal()];
                 if (part == null || (sideMask & dir.getBitMask()) == 0) {
                     continue;
                 }
@@ -227,8 +229,8 @@ public class InfinityBlockFactory implements BlockFactory {
     }
 
     @Override
-    public final BoundaryShape getShape(Direction dir) {
-        PartFactory factory = dirParts[dir.ordinal()];
+    public final BoundaryShape getShape(final Direction dir) {
+        final PartFactory factory = dirParts[dir.ordinal()];
         if (factory == null) {
             return BoundaryShapes.NULL_SHAPE;
         }
@@ -236,7 +238,7 @@ public class InfinityBlockFactory implements BlockFactory {
     }
 
     @Override
-    public final boolean isSolid(Direction dir) {
+    public final boolean isSolid(final Direction dir) {
         return solid == null ? true : solid[dir.ordinal()];
     }
 
@@ -246,7 +248,7 @@ public class InfinityBlockFactory implements BlockFactory {
     }
 
     @Override
-    public final double getTransparency(Axis axis) {
+    public final double getTransparency(final Axis axis) {
         return transparency == null ? 0 : transparency[axis.ordinal()];
     }
 

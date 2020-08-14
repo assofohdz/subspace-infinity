@@ -75,6 +75,7 @@ public final class RandomSelector<T> {
         checkArgument(!elements.isEmpty(), "collection must not be empty");
 
         final int size = elements.size();
+        @SuppressWarnings("unchecked")
         final T[] els = elements.toArray((T[]) new Object[size]);
 
         return new RandomSelector<>(els, r -> r.nextInt(size));
@@ -103,6 +104,7 @@ public final class RandomSelector<T> {
         checkArgument(!elements.isEmpty(), "elements must not be empty");
 
         final int size = elements.size();
+        @SuppressWarnings("unchecked")
         final T[] elementArray = elements.toArray((T[]) new Object[size]);
 
         double totalWeight = 0d;
@@ -201,7 +203,7 @@ public final class RandomSelector<T> {
             final double[] pr = new double[size];
             final int[] al = new int[size];
             this.probabilities = pr;
-            this.alias = al;
+            alias = al;
 
             while (largeSize != 0 && smallSize != 0) {
                 final int less = small[--smallSize];

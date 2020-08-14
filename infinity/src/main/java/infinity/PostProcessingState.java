@@ -58,15 +58,15 @@ public class PostProcessingState extends BaseAppState {
     public PostProcessingState() {
     }
 
-    public void setEnableShadows(boolean b) {
+    public void setEnableShadows(final boolean b) {
         shadows.setEnabled(b);
     }
 
-    public void setShadowStrength(float f) {
-        if (this.shadowStrength == f) {
+    public void setShadowStrength(final float f) {
+        if (shadowStrength == f) {
             return;
         }
-        this.shadowStrength = f;
+        shadowStrength = f;
         resetShadowStrength();
     }
 
@@ -79,12 +79,12 @@ public class PostProcessingState extends BaseAppState {
     }
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
-        AssetManager assets = app.getAssetManager();
+        final AssetManager assets = app.getAssetManager();
 
         fpp = new FilterPostProcessor(assets);
-        AppSettings settings = app.getContext().getSettings();
+        final AppSettings settings = app.getContext().getSettings();
         if (settings.getSamples() != 0) {
             fpp.setNumSamples(settings.getSamples());
         }
@@ -98,7 +98,8 @@ public class PostProcessingState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
+        return;
     }
 
     @Override
@@ -107,7 +108,8 @@ public class PostProcessingState extends BaseAppState {
     }
 
     @Override
-    public void update(float tpf) {
+    public void update(final float tpf) {
+        return;
     }
 
     @Override

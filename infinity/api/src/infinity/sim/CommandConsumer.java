@@ -38,7 +38,7 @@ public class CommandConsumer {
     private final AccessLevel accessLevelRequired;
     private final BiConsumer<EntityId, String> consumer;
 
-    public CommandConsumer(AccessLevel accessLevelRequired, BiConsumer<EntityId, String> consumer) {
+    public CommandConsumer(final AccessLevel accessLevelRequired, final BiConsumer<EntityId, String> consumer) {
         this.accessLevelRequired = accessLevelRequired;
         this.consumer = consumer;
     }

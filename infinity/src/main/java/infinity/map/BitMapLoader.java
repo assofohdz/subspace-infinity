@@ -27,6 +27,7 @@ package infinity.map;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
@@ -38,9 +39,11 @@ import com.jme3.asset.AssetLoader;
 public class BitMapLoader implements AssetLoader {
 
     @Override
-    public BitMap load(AssetInfo assetInfo) throws IOException {
-        BitMap bmp = new BitMap(new BufferedInputStream(assetInfo.openStream()));
-        bmp.readBitMap(false);
-        return bmp;
+    public BitMap load(final AssetInfo assetInfo) throws IOException {
+        try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
+            final BitMap bmp = new BitMap(bis);
+            bmp.readBitMap(false);
+            return bmp;
+        }
     }
 }

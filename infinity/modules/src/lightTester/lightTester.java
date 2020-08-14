@@ -55,33 +55,34 @@ import infinity.sim.TimeManager;
  */
 public class lightTester extends BaseGameModule {
 
-    private Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
+    private final Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
     private EntityData ed;
 
+    @SuppressWarnings("unused")
     private Ini settings;
 
-    public lightTester(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public lightTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
         try {
-            settings = this.getLoader().loadSettings("lightTester");
-        } catch (IOException ex) {
+            settings = getLoader().loadSettings("lightTester");
+        } catch (final IOException ex) {
             Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(10, 0, -10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, this.getPhysicsManager().getPhysics(),
-                this.getTimeManager().getTime(), new Vec3d(-10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(10, 0, -10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-10, 0, 10));
+        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-10, 0, -10));
     }
 
     @Override
@@ -93,9 +94,9 @@ public class lightTester extends BaseGameModule {
     @Override
     public void start() {
         EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        this.getChp().registerPatternBiConsumer(lightCommand,
+        getChp().registerPatternBiConsumer(lightCommand,
                 "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> this.messageHandler(id, s)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
     @Override
@@ -103,7 +104,8 @@ public class lightTester extends BaseGameModule {
         EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
     }
 
-    private CommandConsumer messageHandler(EntityId id, String s) {
+    @SuppressWarnings("unused")
+    private CommandConsumer messageHandler(final EntityId id, final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }

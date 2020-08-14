@@ -40,7 +40,7 @@ public class RocketMax implements EntityComponent {
         return max;
     }
 
-    public RocketMax(int count) {
-        this.max = count;
+    public RocketMax(final int count) {
+        max = count;
     }
 }

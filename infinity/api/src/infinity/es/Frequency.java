@@ -39,7 +39,7 @@ public class Frequency implements EntityComponent {
 
     }
 
-    public Frequency(int freq) {
+    public Frequency(final int freq) {
         this.freq = freq;
     }
 

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
-import com.jme3.renderer.Camera;
 
 import com.simsilica.input.MovementTarget;
 import com.simsilica.lemur.GuiGlobals;
@@ -35,37 +34,38 @@ import infinity.systems.AvatarSystem;
  */
 public class AvatarMovementState extends BaseAppState implements AnalogFunctionListener, StateFunctionListener {
 
-    private float timeSinceLastSend = 0;
-    private final float sendFrequency = 1f / 20f; // 20 times a second, every 50 ms
+    // private float timeSinceLastSend = 0;
+    // private final float sendFrequency = 1f / 20f; // 20 times a second, every 50
+    // ms
 
     static Logger log = LoggerFactory.getLogger(AvatarMovementState.class);
-    private MovementTarget target;
+    // private MovementTarget target;
     private InputMapper inputMapper;
 
     // Picking up the input from the client
     private double forward;
     private double rotate;
-    private double mouse1;
-    private double mouse3;
-    private double mouse2;
+    // private double mouse1;
+    // private double mouse3;
+    // private double mouse2;
 
     // The information that will be sent to the server
     private double speed = 1;
 
-    private double rotateSpeed = 1.5;
-    private Vec3d thrust = new Vec3d(); // not a direction, just 3 values
+    private final double rotateSpeed = 1.5;
+    private final Vec3d thrust = new Vec3d(); // not a direction, just 3 values
     private MovementInput movementInput;
-    private Quatd facing = new Quatd();
-    private byte flags = (byte) 0;
+    private final Quatd facing = new Quatd();
+    private final byte flags = (byte) 0;
 
     private InputManager inputManager;
     private GameSession session;
-    private Camera cam;
+    // private Camera cam;
 
     @Override
-    protected void initialize(Application app) {
+    protected void initialize(final Application app) {
 
-        cam = getApplication().getCamera();
+        // cam = getApplication().getCamera();
 
         log.debug("initialize()");
 
@@ -100,7 +100,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    protected void cleanup(Application app) {
+    protected void cleanup(final Application app) {
 
         inputMapper.removeAnalogListener(this, AvatarMovementFunctions.F_THRUST, AvatarMovementFunctions.F_TURN);
         inputMapper.removeStateListener(this,
@@ -126,7 +126,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
         inputMapper.activateGroup(AvatarMovementFunctions.G_TOWER);
         inputMapper.activateGroup(AvatarMovementFunctions.G_ACTION);
 
-        this.session = getState(ConnectionState.class).getService(GameSessionClientService.class);
+        session = getState(ConnectionState.class).getService(GameSessionClientService.class);
     }
 
     @Override
@@ -141,8 +141,8 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    public void update(float tpf) {
-        timeSinceLastSend += tpf;
+    public void update(final float tpf) {
+        // timeSinceLastSend += tpf;
 
         // if (timeSinceLastSend > sendFrequency) {
 
@@ -157,7 +157,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
         session.move(movementInput);
         // }
 
-        timeSinceLastSend = 0;
+        // timeSinceLastSend = 0;
 
         /*
          * if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
@@ -177,23 +177,23 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     }
 
     @Override
-    public void valueActive(FunctionId func, double value, double tpf) {
+    public void valueActive(final FunctionId func, final double value, final double tpf) {
         if (func == AvatarMovementFunctions.F_THRUST) {
-            this.forward = value;
+            forward = value;
         } else if (func == AvatarMovementFunctions.F_TURN) {
-            this.rotate = value;
+            rotate = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE1) {
-            this.mouse1 = value;
+            // mouse1 = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE2) {
-            this.mouse2 = value;
+            // mouse2 = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE3) {
-            this.mouse3 = value;
+            // mouse3 = value;
         }
     }
 
     @Override
-    public void valueChanged(FunctionId func, InputState value, double tpf) {
-        boolean b = value == InputState.Positive;
+    public void valueChanged(final FunctionId func, final InputState value, final double tpf) {
+        final boolean b = value == InputState.Positive;
 
         if (func == AvatarMovementFunctions.F_RUN) {
             if (b) {
@@ -256,11 +256,11 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
      * CameraMovementTarget during initialization if no other target has been
      * provided.
      */
-    public void setMovementTarget(MovementTarget target) {
-        this.target = target;
+    public void setMovementTarget(@SuppressWarnings("unused") final MovementTarget target) {
+        // this.target = target;
     }
 
-    void setSession(GameSession session) {
+    void setSession(final GameSession session) {
         this.session = session;
     }
 }

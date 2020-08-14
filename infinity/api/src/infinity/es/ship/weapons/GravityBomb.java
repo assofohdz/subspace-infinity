@@ -35,7 +35,7 @@ public class GravityBomb implements EntityComponent {
 
     BombLevelEnum level;
 
-    public GravityBomb(BombLevelEnum level) {
+    public GravityBomb(final BombLevelEnum level) {
         this.level = level;
     }
 

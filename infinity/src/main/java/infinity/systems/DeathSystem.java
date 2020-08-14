@@ -50,21 +50,21 @@ public class DeathSystem extends AbstractGameSystem {
 
     @Override
     protected void initialize() {
-        this.ed = getSystem(EntityData.class);
+        ed = getSystem(EntityData.class);
 
-        this.dead = ed.getEntities(Dead.class);
+        dead = ed.getEntities(Dead.class);
     }
 
     @Override
     protected void terminate() {
-
+        return;
     }
 
     @Override
-    public void update(SimTime tpf) {
+    public void update(final SimTime tpf) {
         if (dead.applyChanges()) {
-            for (Entity e : dead) {
-                Dead d = e.get(Dead.class);
+            for (final Entity e : dead) {
+                // final Dead d = e.get(Dead.class);
                 ed.removeComponent(e.getId(), Dead.class);
 
                 ed.setComponent(e.getId(), new Decay(tpf.getTime(), tpf.getTime()));
@@ -74,10 +74,12 @@ public class DeathSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
+        return;
     }
 
     @Override
     public void stop() {
+        return;
     }
 
 }

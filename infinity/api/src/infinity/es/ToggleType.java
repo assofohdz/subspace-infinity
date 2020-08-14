@@ -40,11 +40,11 @@ public class ToggleType implements EntityComponent {
     protected ToggleType() {
     }
 
-    public ToggleType(int type) {
+    public ToggleType(final int type) {
         this.type = type;
     }
 
-    public static ToggleType create(String typeName, EntityData ed) {
+    public static ToggleType create(final String typeName, final EntityData ed) {
         return new ToggleType(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -52,7 +52,7 @@ public class ToggleType implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

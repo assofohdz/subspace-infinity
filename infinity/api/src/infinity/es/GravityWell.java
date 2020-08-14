@@ -36,11 +36,11 @@ public class GravityWell implements EntityComponent {
     public final static String PULL = "pull";
     public final static String PUSH = "push";
 
-    private double distance;
-    private double force;
-    private String gravityType;
+    private final double distance;
+    private final double force;
+    private final String gravityType;
 
-    public GravityWell(double distance, double force, String gravityType) {
+    public GravityWell(final double distance, final double force, final String gravityType) {
         this.distance = distance;
         this.force = Math.abs(force);
         this.gravityType = gravityType;

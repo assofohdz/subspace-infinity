@@ -25,8 +25,6 @@
  */
 package infinity.es;
 
-import java.awt.Color;
-
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 
@@ -41,16 +39,16 @@ public class ViewType_old implements EntityComponent {
     private int type;
     // Translates into the color overlay (not used at the moment, but could be later
     // on)
-    private Color color;
+    // private Color color;
 
     protected ViewType_old() {
     }
 
-    public ViewType_old(int type) {
+    public ViewType_old(final int type) {
         this.type = type;
     }
 
-    public static ViewType_old create(String typeName, EntityData ed) {
+    public static ViewType_old create(final String typeName, final EntityData ed) {
         return new ViewType_old(ed.getStrings().getStringId(typeName, true));
     }
 
@@ -58,7 +56,7 @@ public class ViewType_old implements EntityComponent {
         return type;
     }
 
-    public String getTypeName(EntityData ed) {
+    public String getTypeName(final EntityData ed) {
         return ed.getStrings().getString(type);
     }
 

@@ -29,28 +29,31 @@ public class InfinityEntityBodyFactory extends EntityBodyFactory<MBlockShape> {
 
     EntityData ed;
 
-    public InfinityEntityBodyFactory(EntityData ed, Vec3d defaultGravity, ShapeFactory<MBlockShape> shapeFactory) {
+    public InfinityEntityBodyFactory(final EntityData ed, final Vec3d defaultGravity,
+            final ShapeFactory<MBlockShape> shapeFactory) {
         super(ed, defaultGravity, shapeFactory);
         this.ed = ed;
     }
 
     @Override
-    protected StaticBody<EntityId, MBlockShape> createStaticBody(EntityId id, SpawnPosition pos, ShapeInfo info,
-            Mass mass) {
-        StaticBody<EntityId, MBlockShape> result = super.createStaticBody(id, pos, info, mass);
+    protected StaticBody<EntityId, MBlockShape> createStaticBody(final EntityId id, final SpawnPosition pos,
+            final ShapeInfo info, final Mass mass) {
+        final StaticBody<EntityId, MBlockShape> result = super.createStaticBody(id, pos, info, mass);
         // Do whatever to the static body
 
         return result;// To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    protected RigidBody<EntityId, MBlockShape> createRigidBody(EntityId id, SpawnPosition pos, ShapeInfo info,
-            Mass mass, Gravity gravity) {
-        RigidBody<EntityId, MBlockShape> result = super.createRigidBody(id, pos, info, mass, gravity); // To change body
-                                                                                                       // of generated
-                                                                                                       // methods,
-                                                                                                       // choose Tools |
-                                                                                                       // Templates.
+    protected RigidBody<EntityId, MBlockShape> createRigidBody(final EntityId id, final SpawnPosition pos,
+            final ShapeInfo info, final Mass mass, final Gravity gravity) {
+        final RigidBody<EntityId, MBlockShape> result = super.createRigidBody(id, pos, info, mass, gravity); // To
+                                                                                                             // change
+                                                                                                             // body
+        // of generated
+        // methods,
+        // choose Tools |
+        // Templates.
 
         // Do whatever we want to the body depending on the ShapeInfo
         switch (info.getShapeName(ed)) {

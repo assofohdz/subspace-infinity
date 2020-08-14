@@ -45,64 +45,65 @@ import infinity.es.ship.weapons.GunLevelEnum;
  */
 public class SIAudioFactory implements AudioFactory {
 
-    private AudioState audioState;
+    // private AudioState audioState;
     private EntityData ed;
     private AssetManager assets;
 
     @Override
-    public void setState(AudioState state) {
-        this.audioState = state;
-        this.assets = state.getApplication().getAssetManager();
-        this.ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
-        this.assets.registerLoader(WAVLoader.class, "wa2");
+    public void setState(final AudioState state) {
+        // audioState = state;
+        assets = state.getApplication().getAssetManager();
+        ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
+        assets.registerLoader(WAVLoader.class, "wa2");
     }
 
     @Override
-    public AudioNode createAudio(Entity e) {
-        AudioType type = e.get(AudioType.class);
+    public AudioNode createAudio(final Entity e) {
+        final AudioType type = e.get(AudioType.class);
 
         switch (type.getTypeName(ed)) {
         case AudioTypes.FIRE_THOR:
-            return createFIRE_THOR(e);
+            return createFIRE_THOR();
         case AudioTypes.PICKUP_PRIZE:
-            return createPICKUP_PRIZE(e);
+            return createPICKUP_PRIZE();
         case AudioTypes.FIRE_BOMBS_L1:
         case AudioTypes.FIRE_BOMBS_L2:
         case AudioTypes.FIRE_BOMBS_L3:
         case AudioTypes.FIRE_BOMBS_L4:
-            return createFIRE_BOMB(e, BombLevelEnum.BOMB_1);
+            return createFIRE_BOMB(BombLevelEnum.BOMB_1);
         case AudioTypes.FIRE_GUNS_L1:
         case AudioTypes.FIRE_GUNS_L2:
         case AudioTypes.FIRE_GUNS_L3:
         case AudioTypes.FIRE_GUNS_L4:
-            return createFIRE_BULLET(e, GunLevelEnum.LEVEL_1);
+            return createFIRE_BULLET(GunLevelEnum.LEVEL_1);
         case AudioTypes.FIRE_GRAVBOMB:
-            return createFIRE_GRAVBOMB(e);
+            return createFIRE_GRAVBOMB();
         case AudioTypes.EXPLOSION2:
-            return createEXPLOSION2(e);
+            return createEXPLOSION2();
         case AudioTypes.BURST:
-            return createFIRE_BURST(e);
+            return createFIRE_BURST();
         case AudioTypes.REPEL:
-            return createREPEL(e);
+            return createREPEL();
         default:
             throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
         }
 
     }
 
-    private void setDefaults(AudioNode an) {
+    private void setDefaults(final AudioNode an) {
         an.setPositional(true);
         an.setLooping(false);
         an.setVolume(1);
     }
 
-    private void setStreamingDefaults(AudioNode an) {
+    @SuppressWarnings("unused")
+    private void setStreamingDefaults(final AudioNode an) {
         an.setPositional(true);
         an.setLooping(true);
         an.setVolume(1);
     }
 
-    private AudioNode createFIRE_BOMB(Entity e, BombLevelEnum bombLevel) {
+    private AudioNode createFIRE_BOMB(final BombLevelEnum bombLevel) {
         String sound = "";
         switch (bombLevel.level) {
         case 1:
@@ -120,12 +121,12 @@ public class SIAudioFactory implements AudioFactory {
         default:
             throw new UnsupportedOperationException("Unknown bomb level: " + bombLevel.level);
         }
-        AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
-        this.setDefaults(an);
+        final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_BULLET(Entity e, GunLevelEnum gunLevel) {
+    private AudioNode createFIRE_BULLET(final GunLevelEnum gunLevel) {
         String sound = "";
         switch (gunLevel.level) {
         case 1:
@@ -143,44 +144,44 @@ public class SIAudioFactory implements AudioFactory {
         default:
             throw new UnsupportedOperationException("Unknown gun level: " + gunLevel.level);
         }
-        AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
-        this.setDefaults(an);
+        final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_THOR(Entity e) {
-        AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
-        this.setDefaults(an);
+    private AudioNode createFIRE_THOR() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createPICKUP_PRIZE(Entity e) {
-        AudioNode an = new AudioNode(assets, "Sounds/Subspace/prize.wa2", AudioData.DataType.Buffer);
-        this.setDefaults(an);
+    private AudioNode createPICKUP_PRIZE() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/prize.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_GRAVBOMB(Entity e) {
-        AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
-        this.setDefaults(an);
+    private AudioNode createFIRE_GRAVBOMB() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createEXPLOSION2(Entity e) {
-        AudioNode an = new AudioNode(assets, "Sounds/Subspace/explode2.wa2", AudioData.DataType.Buffer);
-        this.setDefaults(an);
+    private AudioNode createEXPLOSION2() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/explode2.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_BURST(Entity e) {
-        AudioNode an = new AudioNode(assets, "Sounds/Subspace/burst.wa2", AudioData.DataType.Buffer);
-        this.setDefaults(an);
+    private AudioNode createFIRE_BURST() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/burst.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 
-    private AudioNode createREPEL(Entity e) {
-        AudioNode an = new AudioNode(assets, "Sounds/Subspace/repel.wa2", AudioData.DataType.Buffer);
-        this.setDefaults(an);
+    private AudioNode createREPEL() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/repel.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
         return an;
     }
 }

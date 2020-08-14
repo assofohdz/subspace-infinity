@@ -67,12 +67,12 @@ public class GameClient {
 
     static Logger log = LoggerFactory.getLogger(GameClient.class);
 
-    private Client client;
-    private EntityData ed;
+    private final Client client;
+    private final EntityData ed;
 
-    public GameClient(String host, int port) throws IOException {
+    public GameClient(final String host, final int port) throws IOException {
         log.info("Connecting to:" + host + " " + port);
-        this.client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
+        client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
 
         // client.addMessageListener(new MessageDebugger());
 
@@ -88,7 +88,7 @@ public class GameClient {
 
         // Can grab this even before started but you won't be able to retrieve
         // entities until the connection has been fully setup.
-        this.ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
+        ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
     }
 
     public TimeSource getTimeSource() {
@@ -108,15 +108,15 @@ public class GameClient {
         client.start();
     }
 
-    public void addService(ClientService service) {
+    public void addService(final ClientService service) {
         client.getServices().addService(service);
     }
 
-    public void removeService(ClientService service) {
+    public void removeService(final ClientService service) {
         client.getServices().removeService(service);
     }
 
-    public <T extends ClientService> T getService(Class<T> type) {
+    public <T extends ClientService> T getService(final Class<T> type) {
         return client.getServices().getService(type);
     }
 
@@ -127,22 +127,23 @@ public class GameClient {
         }
     }
 
+    @SuppressWarnings("unused")
     private class MessageDebugger implements MessageListener<Client> {
-        Logger log = LoggerFactory.getLogger("diagnostics.MessageDebugger");
+        Logger debugLog = LoggerFactory.getLogger("diagnostics.MessageDebugger");
         private boolean objectStateStarted = false;
 
         public MessageDebugger() {
         }
 
         @Override
-        public void messageReceived(Client source, Message m) {
+        public void messageReceived(final Client source, final Message m) {
             if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
                 if (!objectStateStarted) {
-                    log.info("Object state updates started.");
+                    debugLog.info("Object state updates started.");
                     objectStateStarted = true;
                 }
-            } else if (log.isInfoEnabled()) {
-                log.info("Received:" + m);
+            } else if (debugLog.isInfoEnabled()) {
+                debugLog.info("Received:" + m);
             }
         }
     }

@@ -52,7 +52,7 @@ public class ToolFunctions {
     public static final FunctionId F_MAIN_TOOL = new FunctionId(IN_GAME, "Main Tool");
     public static final FunctionId F_ALT_TOOL = new FunctionId(IN_GAME, "Alt. Tool");
 
-    public static void initializeDefaultMappings(InputMapper inputMapper) {
+    public static void initializeDefaultMappings(final InputMapper inputMapper) {
 
         inputMapper.map(F_MAIN_TOOL, Button.MOUSE_BUTTON1);
         inputMapper.map(F_ALT_TOOL, Button.MOUSE_BUTTON2);

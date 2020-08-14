@@ -50,8 +50,8 @@ public abstract class BaseGameModule extends AbstractGameSystem {
      * @param arenas
      * @param time
      */
-    public BaseGameModule(ChatHostedPoster chp, AccountManager am, AdaptiveLoader loader, ArenaManager arenas,
-            TimeManager time, PhysicsManager physics) {
+    public BaseGameModule(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         this.chp = chp;
         this.am = am;
         this.loader = loader;
