@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.texture.plugins.AWTLoader;
 //import com.jme3.math.Vector3f;
 
@@ -55,6 +56,7 @@ import infinity.HostState;
 import infinity.SettingsState;
 import infinity.TimeState;
 import infinity.client.view.InfinityCameraState;
+import infinity.client.view.MiniMapState;
 import infinity.client.view.ModelViewState;
 import infinity.client.view.SkyState;
 import infinity.client.view.WorldViewState;
@@ -123,6 +125,8 @@ public class GameSessionState extends CompositeAppState {
 
         getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
         addChild(new MouseAppState(getApplication()));
+
+        addChild(new MiniMapState(((SimpleApplication) getApplication()).getRootNode(), 64, 200));
     }
 
     @Override

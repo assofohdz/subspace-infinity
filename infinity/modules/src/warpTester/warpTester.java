@@ -23,6 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package warpTester;
 
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class warpTester extends BaseGameModule {
 
     static Logger log = LoggerFactory.getLogger(warpTester.class);
     private EntityData ed;
-    private final Pattern prizeTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");
+    private final Pattern warpTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");
 
     @SuppressWarnings("unused")
     private Ini settings;
@@ -100,7 +101,7 @@ public class warpTester extends BaseGameModule {
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        getChp().registerPatternBiConsumer(prizeTesterCommand,
+        getChp().registerPatternBiConsumer(warpTesterCommand,
                 "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute",
                 new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
