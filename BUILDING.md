@@ -31,6 +31,7 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     git clone https://github.com/jchamlin/clipper-java
     cd $env:SubspaceWorkspace\jMonkeyEngine
     git clone https://github.com/jMonkeyEngine-Contributions/Lemur.git
+    git clone https://github.com/jMonkeyEngine-Contributions/zay-es.git
     cd $env:SubspaceWorkspace\Simsilica
     git clone https://github.com/Simsilica/Pager.git
     git clone https://github.com/Simsilica/SimArboreal.git
@@ -50,6 +51,12 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     gradle publishToMavenLocal
     cd $env:SubspaceWorkspace\jMonkeyEngine\Lemur
     gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\Lemur\extensions\LemurProps
+    gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\Zay-ES
+    gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\Zay-ES\extensions\Zay-ES-Net
+    gradle install    
     cd $env:SubspaceWorkspace\Simsilica\Pager
     gradle install
     cd $env:SubspaceWorkspace\Simsilica\SimArboreal
