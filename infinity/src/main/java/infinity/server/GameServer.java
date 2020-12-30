@@ -76,9 +76,13 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.config.DefaultBlockSet;
+import com.simsilica.mblock.phys.Collider;
 import com.simsilica.mblock.phys.MBlockCollisionSystem;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mblock.phys.collision.ColliderFactories;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mworld.base.DefaultWorld;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.db.LeafDbCache;
 import com.simsilica.mworld.net.server.WorldHostedService;
@@ -99,7 +103,6 @@ import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.input.MovementInput;
-import infinity.map.InfinityDefaultWorld;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
@@ -198,8 +201,8 @@ public class GameServer {
         // LeafDb leafDb2 = new LeafDbCache(new TestLeafDb());
         final LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
 
-        final InfinityDefaultWorld world = new InfinityDefaultWorld(leafDb);
-        systems.register(InfinityDefaultWorld.class, world);
+        final DefaultWorld world = new DefaultWorld(leafDb);
+        systems.register(DefaultWorld.class, world);
         server.getServices().addService(new WorldHostedService(world, InfinityConstants.TERRAIN_CHANNEL));
 
         // Add the game session service last so that it has access to everything else
@@ -258,7 +261,9 @@ public class GameServer {
 
         // mphys.setDriverIndex(map);
 
-        mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(leafDb));
+        final Collider[] colliders = new ColliderFactories(true).createColliders(DefaultBlockSet.createBlockTypes());
+
+        mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(leafDb, colliders));
 
         // mphys.addPhysicsListener(new PositionUpdater(ed));
         // systems.register(InfinityMPhysSystem.class, mphys);

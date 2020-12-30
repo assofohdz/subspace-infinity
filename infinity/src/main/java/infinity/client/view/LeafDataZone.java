@@ -33,6 +33,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.client.view;
 
 import org.slf4j.Logger;
@@ -56,35 +57,35 @@ import com.simsilica.pager.ZoneFactory;
  * @author Paul Speed
  */
 public class LeafDataZone extends AbstractZone {
-
     static Logger log = LoggerFactory.getLogger(LeafDataZone.class);
 
     private final World world;
     private final long leafId;
     private Node leafNode;
     private Node lastLeafNode;
-    private static BlockGeometryIndex geomIndex = new BlockGeometryIndex();
+    private final BlockGeometryIndex geomIndex;
 
-    public LeafDataZone(final World world, final Grid grid, final int xCell, final int yCell, final int zCell) {
+    public LeafDataZone(final World world, final Grid grid, final int xCell, final int yCell, final int zCell,
+            final BlockGeometryIndex geomIndex) {
         super(grid, xCell, yCell, zCell);
         this.world = world;
         leafId = Coordinates.leafToLeafId(xCell, yCell, zCell);
+        this.geomIndex = geomIndex;
     }
 
     @Override
     public void build() {
+//log.info("build():" + leafId);
         final LeafData leaf = world.getLeaf(leafId);
+        log.info("build() leaf empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:"
+                + leaf.getRawCells());
         if (leaf.isEmpty()) {
             // System.out.println("--- skipping:" + leafId);
             return;
         }
-        // log.info("build() " + leafId+", loc: "+leaf.getInfo().location+", empty
-        // cells:" + leaf.getEmptyCellCount() + " isEmpty:" + leaf.isEmpty() + " cells:"
-        // + leaf.getRawCells());
 
         lastLeafNode = leafNode;
         leafNode = new Node("leaf:" + leafId);
-        // log.info("Calling generateBlocks from LeafDataZone");
         geomIndex.generateBlocks(leafNode, leaf.getRawCells());
     }
 
@@ -112,17 +113,17 @@ public class LeafDataZone extends AbstractZone {
     }
 
     public static class Factory implements ZoneFactory {
-
         private final World world;
+        private final BlockGeometryIndex geomIndex;
 
-        public Factory(final World world) {
+        public Factory(final World world, final BlockGeometryIndex geomIndex) {
             this.world = world;
-
+            this.geomIndex = geomIndex;
         }
 
         @Override
         public Zone createZone(final PagedGrid pg, final int xCell, final int yCell, final int zCell) {
-            final Zone result = new LeafDataZone(world, pg.getGrid(), xCell, yCell, zCell);
+            final Zone result = new LeafDataZone(world, pg.getGrid(), xCell, yCell, zCell, geomIndex);
             return result;
         }
     }

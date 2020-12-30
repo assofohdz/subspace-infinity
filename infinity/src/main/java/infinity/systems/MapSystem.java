@@ -47,13 +47,13 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mworld.base.DefaultWorld;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import infinity.es.BodyPosition;
 import infinity.es.TileType;
 import infinity.es.TileTypes;
-import infinity.map.InfinityDefaultWorld;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
@@ -94,7 +94,7 @@ public class MapSystem extends AbstractGameSystem {
     private final AssetLoaderService assetLoader;
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
-    private InfinityDefaultWorld world;
+    private DefaultWorld world;
     // private final boolean logged = false;
 
     public MapSystem(final AssetLoaderService assetLoader) {
@@ -120,7 +120,7 @@ public class MapSystem extends AbstractGameSystem {
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
-        world = getSystem(InfinityDefaultWorld.class);
+        world = getSystem(DefaultWorld.class);
         if (world == null) {
             throw new RuntimeException(getClass().getName() + " system requires the World system.");
         }
@@ -314,7 +314,8 @@ public class MapSystem extends AbstractGameSystem {
                     // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) =
                     // (" + tileId + "," + mapId + ") - Coords: " + i);
                     // value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
-                    world.setWorldCell(bottomPlane, value);
+                    // world.setWorldCell(bottomPlane, value);
+                    world.setWorldCell(bottomPlane, 10);
 
                     // world.setWorldCell(topPlane, 0);
 

@@ -80,6 +80,8 @@ public class WorldViewState extends BaseAppState {
     private final Vector3f viewLoc = new Vector3f(20, 40.5f, 20);
     private final Vector3f viewCell = new Vector3f();
 
+    private BlockGeometryIndex geomIndex;
+
     public WorldViewState() {
     }
 
@@ -119,6 +121,8 @@ public class WorldViewState extends BaseAppState {
     @Override
     protected void initialize(final Application app) {
         world = getState(ConnectionState.class).getService(WorldClientService.class);
+
+        geomIndex = new BlockGeometryIndex(app.getAssetManager());
         // log.info("World:" + world);
 
         // LeafData data = world.getLeaf(0);
@@ -131,7 +135,7 @@ public class WorldViewState extends BaseAppState {
 
         final Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
 
-        final ZoneFactory rootFactory = new LeafDataZone.Factory(world);
+        final ZoneFactory rootFactory = new LeafDataZone.Factory(world, geomIndex);
 
         pager = new PagedGrid(rootFactory, builder, rootGrid, 5, 5);
 

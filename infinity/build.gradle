@@ -58,7 +58,7 @@ dependencies {
     implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
 
 	// Simsilica MOSS
-    implementation "com.simsilica:mphys:$mossVersion"
+    //implementation "com.simsilica:mphys:$mossVersion"
     implementation "com.simsilica:mblock:$mossVersion"
     implementation "com.simsilica:mblock-physb:$mossVersion"
     implementation "com.simsilica:mworld:$mossVersion"

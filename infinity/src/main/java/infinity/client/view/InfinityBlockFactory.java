@@ -15,6 +15,7 @@ import com.google.common.base.MoreObjects;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.Axis;
 import com.simsilica.mblock.BlockType;
+import com.simsilica.mblock.CellData;
 import com.simsilica.mblock.Direction;
 import com.simsilica.mblock.geom.BlockFactory;
 import com.simsilica.mblock.geom.BoundaryShape;
@@ -194,7 +195,6 @@ public class InfinityBlockFactory implements BlockFactory {
         return dirParts;
     }
 
-    @Override
     public int addGeometryToBuffer(final GeomPartBuffer buffer, final int i, final int j, final int k, final int xWorld,
             final int yWorld, final int zWorld, final int sideMask, final int lightMask, final BlockType type) {
 
@@ -247,7 +247,6 @@ public class InfinityBlockFactory implements BlockFactory {
         return allSolid;
     }
 
-    @Override
     public final double getTransparency(final Axis axis) {
         return transparency == null ? 0 : transparency[axis.ordinal()];
     }
@@ -276,5 +275,24 @@ public class InfinityBlockFactory implements BlockFactory {
     public String toString() {
         return MoreObjects.toStringHelper(getClass().getSimpleName()).add("dirParts", Arrays.asList(dirParts))
                 .add("internalParts", internalParts).add("min", min).add("max", max).toString();
+    }
+
+    @Override
+    public int addGeometryToBuffer(final GeomPartBuffer buffer, final int i, final int j, final int k, final int xWorld,
+            final int yWorld, final int zWorld, final int sideMask, final CellData cells, final BlockType type) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public double getTransparency(final Direction dir) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public BlockFactory rotate(final int dirDelta) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

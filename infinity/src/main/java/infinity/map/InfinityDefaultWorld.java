@@ -21,7 +21,7 @@ import com.simsilica.mworld.World;
 import com.simsilica.mworld.base.WorldCellData;
 import com.simsilica.mworld.db.LeafDb;
 
-import infinity.client.view.BlockGeometryIndex;
+import infinity.client.view.InfinityBlockGeometryIndex;
 
 /**
  *
@@ -117,7 +117,7 @@ public class InfinityDefaultWorld implements World {
         final int z = Coordinates.worldToCell(world.z);
 
         data.setCell(x, y, z, type);
-        BlockGeometryIndex.recalculateSideMasks(data, x, y, z);
+        InfinityBlockGeometryIndex.recalculateSideMasks(data, x, y, z);
 
         // Get the newly masked value to fire in the event
         final int value = data.getCell(x, y, z);
