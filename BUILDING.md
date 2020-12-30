@@ -12,6 +12,8 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
 1. Launch [PowerShell](https://docs.microsoft.com/en-us/PowerShell/scripting/windows-PowerShell/install/installing-windows-PowerShell?view=PowerShell-7) as Administrator, or use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701) run as Administrator.
 1. Install [Chocolatey](https://chocolatey.org/install)
 1. Install the following development tools with choco: `choco install git adoptopenjdk gradle`
+1. Add/update JAVA_HOME system variable
+1. Add %JAVA_HOME%/bin to your Path system variable
 1. Close your Administrator PowerShell and open a new PowerShell session
 1. Create a folder to hold everything. We'll refer to this as the _Workspace_ folder. For this example, we will use "C:\workspace\Subspace" and setup an environment variable to hold the value:
     ``` shell
@@ -29,6 +31,7 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     git clone https://github.com/jchamlin/clipper-java
     cd $env:SubspaceWorkspace\jMonkeyEngine
     git clone https://github.com/jMonkeyEngine-Contributions/Lemur.git
+    git clone https://github.com/jMonkeyEngine-Contributions/zay-es.git
     cd $env:SubspaceWorkspace\Simsilica
     git clone https://github.com/Simsilica/Pager.git
     git clone https://github.com/Simsilica/SimArboreal.git
@@ -48,6 +51,12 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     gradle publishToMavenLocal
     cd $env:SubspaceWorkspace\jMonkeyEngine\Lemur
     gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\Lemur\extensions\LemurProps
+    gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\Zay-ES
+    gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\Zay-ES\extensions\Zay-ES-Net
+    gradle install    
     cd $env:SubspaceWorkspace\Simsilica\Pager
     gradle install
     cd $env:SubspaceWorkspace\Simsilica\SimArboreal
