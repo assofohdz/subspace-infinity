@@ -77,8 +77,8 @@ public class LeafDataZone extends AbstractZone {
     public void build() {
 //log.info("build():" + leafId);
         final LeafData leaf = world.getLeaf(leafId);
-        log.info("build() leaf empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:"
-                + leaf.getRawCells());
+        //log.info("build() leaf empty cells:" + leaf.getEmptyCellCount() + "  isEmpty:" + leaf.isEmpty() + "  cells:"
+                //+ leaf.getRawCells());
         if (leaf.isEmpty()) {
             // System.out.println("--- skipping:" + leafId);
             return;

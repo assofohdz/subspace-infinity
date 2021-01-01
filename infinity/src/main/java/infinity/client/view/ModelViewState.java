@@ -847,8 +847,6 @@ public class ModelViewState extends BaseAppState {
 
                 model.spatial.setLocalTranslation(p);
                 model.spatial.setLocalRotation(trans.getRotation(time, true).toQuaternion());
-                // log.info("Mob[" + entity.getId() + "] position:" +
-                // model.spatial.getLocalTranslation());
                 setVisible(trans.getVisibility(time));
 
                 if (isAvatar) {
@@ -857,8 +855,12 @@ public class ModelViewState extends BaseAppState {
                     getApplication().getCamera().lookAt(avatarWorldPos, Vector3f.UNIT_Y);
 
                     getState(WorldViewState.class).setViewLocation(p.clone().addLocal(centerCellWorld));
-                    gameSession.setView(new Quatd(getApplication().getCamera().getRotation()),
-                            new Vec3d(getApplication().getCamera().getLocation()));
+                    //gameSession.setView(new Quatd(getApplication().getCamera().getRotation()),
+                    //        new Vec3d(getApplication().getCamera().getLocation()));
+
+                    gameSession.setView(new Quatd(model.spatial.getLocalRotation()), new Vec3d(model.spatial.getLocalTranslation()));
+                    //log.debug("Mob[" + entity.getId() + "] LOCAL: position:" + model.spatial.getLocalTranslation() +", rotation:"+ model.spatial.getLocalRotation());
+                    //log.debug("Mob[" + entity.getId() + "] WORLD: position:" + model.spatial.getWorldTranslation() +", rotation:"+ model.spatial.getWorldRotation());
                 }
             }
         }
@@ -889,6 +891,9 @@ public class ModelViewState extends BaseAppState {
          * } }
          */
         public void release() {
+            if (isAvatar) {
+                log.warn("Releasing avatar! position:" + model.spatial.getLocalTranslation() +", rotation:"+ model.spatial.getLocalRotation());
+            }
             releaseModel(entity.getId());
             model.setDynamic(false);
             // model.release();
@@ -913,7 +918,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected Mob addObject(final Entity e) {
-            log.info("add mob for:" + e.getId());
+            //log.info("add mob for:" + e.getId());
             final Mob object = new Mob(e);
             updateObject(object, e);
             return object;
@@ -927,7 +932,7 @@ public class ModelViewState extends BaseAppState {
 
         @Override
         protected void removeObject(final Mob object, final Entity e) {
-            log.info("remove mob for:" + e.getId());
+            //log.info("remove mob for:" + e.getId() + ", e:" + e.toString());
             object.release();
         }
     }

@@ -67,7 +67,7 @@ dependencies {
 
     //jWalkable for 2d polygonal pathfinding
     //https://github.com/implicit-invocation/jwalkable
-    implementation "com.github.implicit-invocation:jwalkable:master-SNAPSHOT"
+    //implementation "com.github.implicit-invocation:jwalkable:master-SNAPSHOT"
     
     //Noise4j dungeon generation
     //https://github.com/czyzby/noise4j

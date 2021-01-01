@@ -57,6 +57,7 @@ import com.simsilica.ethereal.SharedObjectListener;
 
 import infinity.es.BodyPosition;
 
+
 /**
  * Updates the entities local position from network state. Requires that the
  * entity have the BodyPosition component to accumulate state history for some
@@ -199,7 +200,7 @@ public class SharedObjectUpdater extends AbstractClientService implements Shared
             log.debug("****** Object removed[t=" + frameTime + "]:" + obj.getEntityId() + "  netId:"
                     + obj.getNetworkId());
         }
-        final EntityId id = new EntityId(obj.getEntityId().longValue());
+        final EntityId id = new EntityId(obj.getEntityId());
         final Entity entity = entities.getEntity(id);
 
         final ObjectTracker tracker = getTracker(id, false);

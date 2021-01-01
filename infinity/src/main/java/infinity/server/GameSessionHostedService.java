@@ -173,6 +173,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
      */
     private class GameSessionImpl implements GameSession {
 
+        private boolean selfSet = false;
+
         private final HostedConnection conn;
         private GameSessionListener callback;
 
@@ -235,7 +237,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // Setup to start using SimEthereal synching
             final EtherealHost ethereal = getService(EtherealHost.class);
             ethereal.startHostingOnConnection(conn);
-            ethereal.setConnectionObject(conn, Long.valueOf(avatarEntityId.getId()), spawnLoc);
+            ethereal.setConnectionObject(conn, avatarEntityId.getId(), spawnLoc);
             final EntityDataHostedService eds = getService(EntityDataHostedService.class);
 
             // Setup a filter for BodyPosition components to match what
@@ -284,8 +286,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // resetting yourself... but it works.
             final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
             // nsl.setMaxMessageSize(2000);
-            if (nsl != null) {
-                nsl.setSelf(Long.valueOf(avatarEntityId.getId()), location);
+            if (nsl != null && !selfSet) {
+                nsl.setSelf(avatarEntityId.getId(), location);
+                //log.debug("Setting NSL self location to: "+location);
+                selfSet = true;
             }
 
             lastViewLoc.set(location);

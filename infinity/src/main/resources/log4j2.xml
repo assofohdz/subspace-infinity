@@ -15,10 +15,8 @@
   </Appenders>
   
   <Loggers>
-
     <Logger name="com.simsilica.mphys" level="DEBUG"/>
-
-    <Logger name="infinity" level="INFO"/>
+    <Logger name="infinity" level="DEBUG"/>
     <Logger name="com.simsilica.lemur.style" level="DEBUG"/>
     <!--<Logger name="com.simsilica.lemur.input" level="TRACE"/>-->
     <Logger name="com.simsilica.es" level="INFO"/>

@@ -35,6 +35,7 @@
  */
 package infinity.client.view;
 
+import infinity.InfinityConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,7 +160,7 @@ public class WorldViewState extends BaseAppState {
     }
 
     protected void cellChanged(final CellChangeEvent event) {
-        log.info("cellChanged(" + event + ")");
+        //log.info("cellChanged(" + event + ")");
         final Vec3i loc = event.getLeafWorld();
         pager.rebuildCell(loc.x, loc.y, loc.z);
     }

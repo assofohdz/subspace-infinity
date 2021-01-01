@@ -95,6 +95,7 @@ public class MapSystem extends AbstractGameSystem {
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
     private DefaultWorld world;
+    private double accumulatedTime;
     // private final boolean logged = false;
 
     public MapSystem(final AssetLoaderService assetLoader) {
@@ -301,7 +302,7 @@ public class MapSystem extends AbstractGameSystem {
                         s = 1;
                     }
 
-                    final Vec3d bottomPlane = new Vec3d(xpos, 0, zpos).add(arenaOffset);
+                    final Vec3d location = new Vec3d(xpos, 0, zpos).add(arenaOffset);
                     // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
                     // final Vec3i i = new Vec3i(bottomPlane.toVector3f());
@@ -311,11 +312,13 @@ public class MapSystem extends AbstractGameSystem {
                     tileSet.add(Integer.valueOf(tileId));
 
                     final int value = tileId | (mapId << 8);
-                    // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map) =
-                    // (" + tileId + "," + mapId + ") - Coords: " + i);
+                    // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map)
+                    // =(" + tileId + ","
+                    // + mapId + ") - Coords: " + i);
                     // value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
                     // world.setWorldCell(bottomPlane, value);
-                    world.setWorldCell(bottomPlane, 10);
+                    //log.info("Creating block at: " + location);
+                    world.setWorldCell(location, 10);
 
                     // world.setWorldCell(topPlane, 0);
 
@@ -364,9 +367,10 @@ public class MapSystem extends AbstractGameSystem {
     public void update(final SimTime tpf) {
 
         time = tpf;
+        accumulatedTime += tpf.getTpf();
 
         // Create map:
-        if (!mapCreated) {
+        if (!mapCreated && accumulatedTime > 2) {
             createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE * 0.5));
             // createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new
             // Vec3d(-MAP_SIZE, 0, MAP_SIZE));
