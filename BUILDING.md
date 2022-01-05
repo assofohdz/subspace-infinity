@@ -12,7 +12,7 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
 1. Launch [PowerShell](https://docs.microsoft.com/en-us/PowerShell/scripting/windows-PowerShell/install/installing-windows-PowerShell?view=PowerShell-7) as Administrator, or use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701) run as Administrator.
 1. Install [Chocolatey](https://chocolatey.org/install)
 1. Install the following development tools with choco: `choco install git adoptopenjdk`
-1. Install gradle: `choco install gradle --version=6.8.3`
+1. Install gradle: `choco install gradle --version=5.6.4`
 3. Add/update JAVA_HOME system variable (eg. Variable = JAVA_HOME, Value = "C:\Program Files\AdoptOpenJDK\jdk-16.0.1.9-hotspot")
 4. Add %JAVA_HOME%/bin to your Path system variable
 5. Close your Administrator PowerShell and open a new PowerShell session
