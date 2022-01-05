@@ -11,11 +11,12 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
 ## Building
 1. Launch [PowerShell](https://docs.microsoft.com/en-us/PowerShell/scripting/windows-PowerShell/install/installing-windows-PowerShell?view=PowerShell-7) as Administrator, or use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701) run as Administrator.
 1. Install [Chocolatey](https://chocolatey.org/install)
-1. Install the following development tools with choco: `choco install git adoptopenjdk gradle`
-1. Add/update JAVA_HOME system variable (eg. Variable = JAVA_HOME, Value = "C:\Program Files\AdoptOpenJDK\jdk-16.0.1.9-hotspot")
-1. Add %JAVA_HOME%/bin to your Path system variable
-1. Close your Administrator PowerShell and open a new PowerShell session
-1. Create a folder to hold everything. We'll refer to this as the _Workspace_ folder. For this example, we will use "C:\workspace\Subspace" and setup an environment variable to hold the value:
+1. Install the following development tools with choco: `choco install git adoptopenjdk`
+1. Install gradle: `choco install gradle --version=6.8.3`
+3. Add/update JAVA_HOME system variable (eg. Variable = JAVA_HOME, Value = "C:\Program Files\AdoptOpenJDK\jdk-16.0.1.9-hotspot")
+4. Add %JAVA_HOME%/bin to your Path system variable
+5. Close your Administrator PowerShell and open a new PowerShell session
+6. Create a folder to hold everything. We'll refer to this as the _Workspace_ folder. For this example, we will use "C:\workspace\Subspace" and setup an environment variable to hold the value:
     ``` shell
     $env:SubspaceWorkspace = "C:\workspace\Subspace"
     mkdir $env:SubspaceWorkspace
