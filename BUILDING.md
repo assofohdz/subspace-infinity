@@ -52,7 +52,11 @@ If you want to setup an IDE and be able to contribute to Subspace-Infinity, you 
     ``` shell
     cd $env:SubspaceWorkspace\Clipper\clipper-java
     gradle publishToMavenLocal
+    cd $env:SubspaceWorkspace\jMonkeyEngine
+    git checkout v3.4.1-stable
     cd $env:SubspaceWorkspace\jMonkeyEngine\jmonkeyengine\jme3-core
+    gradle install
+    cd $env:SubspaceWorkspace\jMonkeyEngine\jmonkeyengine\jme3-networking
     gradle install
     cd $env:SubspaceWorkspace\jMonkeyEngine\Lemur
     gradle install
