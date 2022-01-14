@@ -63,6 +63,8 @@ import com.simsilica.pager.debug.BBoxZone;
 
 import infinity.client.ConnectionState;
 
+import static infinity.client.view.InfinityCameraState.DISTANCETOPLANE;
+
 /**
  *
  *
@@ -78,7 +80,7 @@ public class WorldViewState extends BaseAppState {
     private PagedGrid pager;
     private Node worldRoot;
 
-    private final Vector3f viewLoc = new Vector3f(20, 40.5f, 20);
+    private final Vector3f viewLoc = new Vector3f(20, InfinityCameraState.DISTANCETOPLANE, 20);
     private final Vector3f viewCell = new Vector3f();
 
     private BlockGeometryIndex geomIndex;
@@ -89,7 +91,7 @@ public class WorldViewState extends BaseAppState {
     public void setViewLocation(final Vector3f viewLoc) {
         // viewLoc = viewLoc.setY(30);
         this.viewLoc.set(viewLoc);
-        // log.info("setViewLocation:: viewLoc is now: "+viewLoc);
+        //log.info("setViewLocation:: viewLoc is now: "+viewLoc);
         if (pager != null) {
             pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
 
@@ -98,17 +100,17 @@ public class WorldViewState extends BaseAppState {
             // The grid may be in 3D but the pager considers it a 2D grid for the
             // sake of center placement.
             viewCell.y = 0;
-            // log.info("setViewLocation:: viewCell is now: "+viewCell);
+            //log.info("setViewLocation:: viewCell is now: "+viewCell);
         }
     }
 
     public Vector3f getViewLocation() {
-        // log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
+        //log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
         return viewLoc;
     }
 
     public Vector3f getViewCell() {
-        // log.info("getViewCell:: Getting viewCell: "+viewCell);
+        //log.info("getViewCell:: Getting viewCell: "+viewCell);
         return viewCell;
     }
 
@@ -121,9 +123,10 @@ public class WorldViewState extends BaseAppState {
 
     @Override
     protected void initialize(final Application app) {
-        world = getState(ConnectionState.class).getService(WorldClientService.class);
 
         geomIndex = new BlockGeometryIndex(app.getAssetManager());
+
+        world = getState(ConnectionState.class).getService(WorldClientService.class);
         // log.info("World:" + world);
 
         // LeafData data = world.getLeaf(0);
@@ -136,9 +139,10 @@ public class WorldViewState extends BaseAppState {
 
         final Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
 
+
         final ZoneFactory rootFactory = new LeafDataZone.Factory(world, geomIndex);
 
-        pager = new PagedGrid(rootFactory, builder, rootGrid, 5, 5);
+        pager = new PagedGrid(rootFactory, builder, rootGrid, 1, 5);
 
         worldRoot = new Node("worldRoot");
         worldRoot.attachChild(pager.getGridRoot());
@@ -151,7 +155,7 @@ public class WorldViewState extends BaseAppState {
             boxMaterial.getAdditionalRenderState().setWireframe(true);
             final ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
 
-            final PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 5, 5);
+            final PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 1, 5);
             worldRoot.attachChild(gridPager.getGridRoot());
         }
 
@@ -183,7 +187,8 @@ public class WorldViewState extends BaseAppState {
         ((SimpleApplication) getApplication()).getRootNode().attachChild(worldRoot);
 
         pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
-        getApplication().getCamera().setLocation(new Vector3f(20, 40, 20));
+        getApplication().getCamera().setLocation(new Vector3f(0, viewLoc.y, 0));
+        getApplication().getCamera().lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
     }
 
     @Override
@@ -198,5 +203,9 @@ public class WorldViewState extends BaseAppState {
             WorldViewState.this.cellChanged(event);
 //BlockGeometryIndex.debug = true;
         }
+    }
+
+    public BlockGeometryIndex getGeomIndex() {
+        return geomIndex;
     }
 }

@@ -106,7 +106,7 @@ public class InfinityConstants {
     // zones in a player's view, there is considerably more management involved
     // with each new zone, more network messages, etc.. Finding the sweet spot
     // will depend largely on the game.
-    private static final int gridSize = 128; // 32;
+    private static final int gridSize = 32; // 64;
 
     /**
      * The 3D zone grid definition that defines how space is broken up into network
@@ -179,7 +179,7 @@ public class InfinityConstants {
      * 1, 1) means the player can see a total of 27 zones including the zone they
      * are in.
      */
-    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 0, 1);
+    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
     //public static final Vec3i ZONE_RADIUS = new Vec3i(1, 0, 1);
     // public static final Vec3i ZONE_RADIUS = new Vec3i(2, 2, 2);
 

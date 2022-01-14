@@ -7,18 +7,21 @@
 
 package infinity.client.view;
 
+import com.simsilica.mblock.*;
+import com.simsilica.mblock.config.MaterialRegistry;
+import com.simsilica.mblock.io.BlockTypeData;
+import com.simsilica.mblock.io.FluidTypeData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
+import com.jme3.material.Material;
 
-import com.simsilica.mblock.CellArray;
-import com.simsilica.mblock.CellData;
-import com.simsilica.mblock.ConstantCellData;
-import com.simsilica.mblock.LightUtils;
 import com.simsilica.mblock.config.DefaultBlockSet;
 import com.simsilica.mblock.geom.GeometryFactory;
+
+import java.util.Map;
 
 /**
  *
@@ -29,14 +32,23 @@ public class BlockGeometryIndex {
 
     static Logger log = LoggerFactory.getLogger(BlockGeometryIndex.class);
 
-    private final DefaultBlockSet blockSet;
     private final GeometryFactory geomFactory;
 
     public BlockGeometryIndex(final AssetManager assets) {
 
-        blockSet = new DefaultBlockSet(assets, "Textures/palette1.png", "Textures/palette2.png", "Textures/bad.jpg");
+        //blockSet = new DefaultBlockSet(assets, "Textures/palette1.png", "Textures/palette2.png", "Textures/bad.jpg");
 
-        geomFactory = blockSet.createGeometryFactory();
+        try {
+            if( !BlockTypeIndex.isInitialized() ) {
+                BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
+                FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
+            }
+
+            Map<String, Material> materials = MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
+            geomFactory = new GeometryFactory(materials);
+        } catch( Exception e ) {
+            throw new RuntimeException("Error initializing block set configuration", e);
+        }
     }
 
     public Node generateBlocks(final Node target, final CellArray cells) {

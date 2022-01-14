@@ -46,6 +46,7 @@ import com.simsilica.ext.mphys.ObjectStatusListener;
 import com.simsilica.mphys.AbstractShape;
 import com.simsilica.mphys.PhysicsListener;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.AbstractGameSystem;
 
 /**
@@ -149,6 +150,18 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
                 log.trace("objectRemoved(" + id + ", " + body + ")");
             }
             zones.remove(Long.valueOf(id.getId()));
+        }
+
+        @Override
+        public void staticObjectLoaded(EntityId entity, StaticBody<EntityId, S> body) {
+            // TODO Auto-generated method stub
+            
+        }
+
+        @Override
+        public void staticObjectUnloaded(EntityId entity, StaticBody<EntityId, S> body) {
+            // TODO Auto-generated method stub
+            
         }
     }
 }

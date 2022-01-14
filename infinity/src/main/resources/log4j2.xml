@@ -15,6 +15,11 @@
   </Appenders>
   
   <Loggers>
+    <Logger name="com.simsilica.mworld.net.server.WorldHostedService" level="FATAL"/>
+    <Logger name="com.simsilica.mworld.net.client.WorldClientService" level="FATAL"/>
+    <Logger name="com.simsilica.mworld.net.client.RemoteWorldData" level="FATAL"/>
+    <Logger name="com.simsilica.mblock.geom.ColliderlessMesh" level="FATAL"/>
+    <Logger name="com.simsilica.mblock.phys.collision.ColliderFactories" level="FATAL"/>
     <Logger name="com.simsilica.mphys" level="DEBUG"/>
     <Logger name="infinity" level="DEBUG"/>
     <Logger name="com.simsilica.lemur.style" level="DEBUG"/>
@@ -24,11 +29,10 @@
     <Logger name="com.simsilica.sim.common.DecaySystem" level="TRACE"/>
     <Logger name="com.simsilica.ext.mphys" level="DEBUG"/>
     <Logger name="com.simsilica.mblock" level="DEBUG"/>
-    <Logger name="com.simsilica.mworld" level="DEBUG"/>
+    <!--<Logger name="com.simsilica.mworld" level="DEBUG"/>-->
     <Logger name="com.simsilica.builderr" level="INFO"/>
     <Logger name="com.simsilica.pager" level="INFO"/>
- 
-    <Root level="WARN">
+    <Root level="INFO">
       <AppenderRef ref="RollingFile"/>
       <AppenderRef ref="STDOUT"/>
     </Root>

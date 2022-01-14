@@ -110,14 +110,14 @@ public class AvatarMovementFunctions {
         }
 
         if (!inputMapper.hasMappings(F_TURN)) {
-            inputMapper.map(F_TURN, KeyInput.KEY_A);
-            inputMapper.map(F_TURN, InputState.Negative, KeyInput.KEY_D);
+            inputMapper.map(F_TURN, KeyInput.KEY_LEFT);
+            inputMapper.map(F_TURN, InputState.Negative, KeyInput.KEY_RIGHT);
 
         }
 
         if (!inputMapper.hasMappings(F_THRUST)) {
-            inputMapper.map(F_THRUST, KeyInput.KEY_W);
-            inputMapper.map(F_THRUST, InputState.Negative, KeyInput.KEY_S);
+            inputMapper.map(F_THRUST, KeyInput.KEY_UP);
+            inputMapper.map(F_THRUST, InputState.Negative, KeyInput.KEY_DOWN);
         }
 
         if (!inputMapper.hasMappings(F_STOP)) {

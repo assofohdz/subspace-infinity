@@ -12,6 +12,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.RigidBody;
@@ -40,7 +41,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
     @Override
     public void newContact(final Contact<EntityId, MBlockShape> contact) {
         final RigidBody<EntityId, MBlockShape> bodyOne = contact.body1;
-        final RigidBody<EntityId, MBlockShape> bodyTwo = contact.body2;
+        final AbstractBody<EntityId, MBlockShape> bodyTwo = contact.body2;
 
         if (bodyOne != null && bodyTwo != null) {
             final EntityId one = contact.body1.id;
@@ -53,14 +54,17 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
                         .getFilter();
 
                 if (!filterTwo.isAllowed(filterOne)) {
+                    log.info("Disabling contact: "+contact.toString());
                     contact.disable();
                     return;
                 }
             }
 
             final Parent parentOfOne = ed.getComponent(one, Parent.class);
+
             if (parentOfOne != null && parentOfOne.getParentEntity().compareTo(two) == 0) {
                 // We have a parent on entity one and its equal to two
+                log.info("Disabling contact: "+contact.toString());
                 contact.disable();
                 return;
             }
@@ -68,6 +72,7 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
             final Parent parentOfTwo = ed.getComponent(two, Parent.class);
             if (parentOfTwo != null && parentOfTwo.getParentEntity().compareTo(one) == 0) {
                 // We have a parent on entity two and its equal to one
+                log.info("Disabling contact: "+contact.toString());
                 contact.disable();
                 return;
             }

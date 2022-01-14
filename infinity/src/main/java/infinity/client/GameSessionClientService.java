@@ -84,6 +84,11 @@ public class GameSessionClientService extends AbstractClientService implements G
         getDelegate().setView(rotation, location);
     }
 
+    @Override
+    public void setMovementInput(MovementInput input) {
+        getDelegate().setMovementInput(input);
+    }
+
     private GameSession getDelegate() {
         // We look up the delegate lazily to make the service more
         // flexible. Otherwise we'd have to listen to the account service

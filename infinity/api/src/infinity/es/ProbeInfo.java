@@ -1,7 +1,7 @@
 /*
  * $Id$
  * 
- * Copyright (c) 2019, Simsilica, LLC
+ * Copyright (c) 2021, Simsilica, LLC
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -34,42 +34,49 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.client.view;
+package infinity.es;
 
-import com.jme3.input.KeyInput;
-import com.simsilica.lemur.input.Button;
-import com.simsilica.lemur.input.FunctionId;
-import com.simsilica.lemur.input.InputMapper;
+import com.google.common.base.MoreObjects;
 
-import com.simsilica.ext.mphys.debug.BinStatusState;
+import com.simsilica.es.*;
+import com.simsilica.mathd.*;
 
 /**
- *  Defines some in-game debug toggles.
+ *
  *
  *  @author    Paul Speed
  */
-public class DebugFunctions {
+public class ProbeInfo implements EntityComponent {
 
-    public static final String IN_GAME = "In Game";
+    // For now at least, just offset and radius.  The
+    // probes will always be spheres and have a specific
+    // set of query flags set by the using driver.
+    // We'll also put them directly on the entity until
+    // we have some use-case for multiple probes.
+    private Vec3d offset;
+    private double radius;
     
-    public static final FunctionId F_BIN_DEBUG = new FunctionId(IN_GAME, "Bin Status Toggle");   
-    public static final FunctionId F_BODY_DEBUG = new FunctionId(IN_GAME, "Body Debug Toggle");    
-    public static final FunctionId F_CONTACT_DEBUG = new FunctionId(IN_GAME, "Contact Debug Toggle");
+    protected ProbeInfo() {
+    }
     
-    public static final FunctionId F_PROBE_DEBUG = new FunctionId(IN_GAME, "Probe Toggle"); 
+    public ProbeInfo( Vec3d offset, double radius ) {
+        this.offset = offset;
+        this.radius = radius;
+    }
+    
+    public Vec3d getOffset() {
+        return offset;
+    }
+    
+    public double getRadius() {
+        return radius;
+    }    
 
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
-    
-        inputMapper.map(F_BIN_DEBUG, KeyInput.KEY_F3);
-        inputMapper.map(BinStatusState.F_PHYSICS_DUMP, KeyInput.KEY_F3, KeyInput.KEY_LSHIFT); 
-        inputMapper.map(BinStatusState.F_PHYSICS_DUMP, KeyInput.KEY_F3, KeyInput.KEY_RSHIFT); 
-        inputMapper.map(F_BODY_DEBUG, KeyInput.KEY_F4); 
-        inputMapper.map(F_CONTACT_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_LSHIFT); 
-        inputMapper.map(F_CONTACT_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_RSHIFT);
-        
-        inputMapper.map(F_PROBE_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_LCONTROL);  
-        inputMapper.map(F_PROBE_DEBUG, KeyInput.KEY_F4, KeyInput.KEY_RCONTROL);  
-    }                                                                   
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(getClass().getSimpleName())
+            .add("offset", offset)
+            .add("radius", radius)
+            .toString();
+    }
 }
-
-

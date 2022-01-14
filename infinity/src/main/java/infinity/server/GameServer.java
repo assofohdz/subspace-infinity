@@ -35,12 +35,11 @@
  */
 package infinity.server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 
+import com.simsilica.bpos.mphys.BodyPositionPublisher;
+import com.simsilica.bpos.mphys.LargeGridIndexSystem;
+import com.simsilica.mworld.LeafId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,13 +75,17 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mblock.config.DefaultBlockSet;
+import com.simsilica.mblock.BlockTypeIndex;
+import com.simsilica.mblock.FluidTypeIndex;
+import com.simsilica.mblock.io.BlockTypeData;
+import com.simsilica.mblock.io.FluidTypeData;
 import com.simsilica.mblock.phys.Collider;
 import com.simsilica.mblock.phys.MBlockCollisionSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mblock.phys.collision.ColliderFactories;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.base.DefaultWorld;
+import com.simsilica.mworld.World;
+import com.simsilica.mworld.base.DefaultLeafWorld;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.db.LeafDbCache;
 import com.simsilica.mworld.net.server.WorldHostedService;
@@ -92,24 +95,19 @@ import com.simsilica.sim.common.DecaySystem;
 
 import infinity.InfinityConstants;
 import infinity.es.AudioType;
-import infinity.es.BodyPosition;
 import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.Gold;
-import infinity.es.LargeGridCell;
-import infinity.es.LargeObject;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.input.MovementInput;
 import infinity.server.chat.ChatHostedService;
-import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.systems.ArenaSystem;
 import infinity.systems.AttackSystem;
 import infinity.systems.AvatarSystem;
-import infinity.systems.ContactSystem;
 import infinity.systems.EnergySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
@@ -170,13 +168,18 @@ public class GameServer {
         // before the SerializerRegistrationMessage has had a chance to process.
         server.getServices().addService(new DelayService());
 
-        final ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
+        ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
 
-        server.getServices().addServices(new RpcHostedService(), new RmiHostedService(),
-                // new GameSessionHostedService(systems),
-                // new AccountHostedService(description),
-                // new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
-                chp);
+        server.getServices().addServices(new RpcHostedService(),
+                                         new RmiHostedService(),
+                                         //new GameSessionHostedService(systems),
+                                         //new AccountHostedService(description),
+                                         //new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
+                                         chp
+                                         );
+
+
+        server.getServices().getService(ChatHostedService.class).setAutoHost(true);
 
         // Add the SimEtheral host that will serve object sync updates to
         // the clients.
@@ -199,22 +202,32 @@ public class GameServer {
 
         // Just create a test world for now
         // LeafDb leafDb2 = new LeafDbCache(new TestLeafDb());
-        final LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+        // Just create a test world for now
+        LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+        World world = new DefaultLeafWorld(leafDb);
 
-        final DefaultWorld world = new DefaultWorld(leafDb);
-        systems.register(DefaultWorld.class, world);
+        systems.register(World.class, world);
         server.getServices().addService(new WorldHostedService(world, InfinityConstants.TERRAIN_CHANNEL));
 
         // Add the game session service last so that it has access to everything else
         server.getServices().addService(new GameSessionHostedService(systems));
 
-        systems.addSystem(new LargeGridIndexSystem());
+        
+        systems.addSystem(new LargeGridIndexSystem(InfinityConstants.LARGE_OBJECT_GRID));
 
         // Add it to the game systems so that we send updates properly
         systems.addSystem(new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));
 
         // Add some standard systems
         systems.addSystem(new DecaySystem());
+
+        // We'll need the block set in order to have physics collision
+        // information.  Eventually we'll want to do this differently... probably.
+        //DefaultBlockSet.initializeBlockTypes();
+        if( !BlockTypeIndex.isInitialized() ) {
+            BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
+            FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
+        }
 
         // Setup the physics space
         // --------------------------
@@ -236,37 +249,15 @@ public class GameServer {
 
         // And give that to an EntityBodyFactory, for the moment without any
         // customization
-        // Override the default body factory behavior so that we can apply the
-        // upright driver as needed.
-        // final HashMap<EntityId, PlayerDriver> map = new HashMap<>();
-        /*
-         * EntityBodyFactory<MBlockShape> bodyFactory = new
-         * EntityBodyFactory<MBlockShape>(ed, InfinityConstants.DEFAULT_GRAVITY,
-         * shapeFactory) {
-         *
-         * @Override protected RigidBody<EntityId, MBlockShape> createRigidBody(EntityId
-         * id, SpawnPosition pos, ShapeInfo info, Mass mass, Gravity gravity) {
-         * RigidBody<EntityId, MBlockShape> result = super.createRigidBody(id, pos,
-         * info, mass, gravity);
-         *
-         * //If the entity is a player, we add a driver, so the player can control his
-         * ship if (getComponent(id, Player.class) != null) { PlayerDriver driver = new
-         * PlayerDriver<EntityId, MBlockShape>(); result.setControlDriver(driver);
-         * map.put(id, driver); } return result; } };
-         */
-        final InfinityEntityBodyFactory bodyFactory = new InfinityEntityBodyFactory(ed,
-                Gravity.ZERO.getLinearAcceleration(), shapeFactory);
+        EntityBodyFactory<MBlockShape> bodyFactory = new EntityBodyFactory<>(ed,
+                                                                             Gravity.ZERO.getLinearAcceleration(),
+                                                                             shapeFactory);
 
-        final MPhysSystem<MBlockShape> mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
-
-        // mphys.setDriverIndex(map);
-
-        final Collider[] colliders = new ColliderFactories(true).createColliders(DefaultBlockSet.createBlockTypes());
-
-        mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(leafDb, colliders));
-
+        MPhysSystem<MBlockShape> mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+        Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
+        mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
         // mphys.addPhysicsListener(new PositionUpdater(ed));
-        // systems.register(InfinityMPhysSystem.class, mphys);
+
         systems.register(MPhysSystem.class, mphys);
         systems.register(PhysicsSpace.class, mphys.getPhysicsSpace());
         systems.register(InfinityPhysicsManager.class, new InfinityPhysicsManager(mphys.getPhysicsSpace()));
@@ -281,9 +272,10 @@ public class GameServer {
         systems.register(ArenaSystem.class, new ArenaSystem());
 
         // Set up contacts to be filtered
-        final ContactSystem contactSystem = new ContactSystem();
-        systems.register(ContactSystem.class, contactSystem);
-        mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
+        //final ContactSystem contactSystem = new ContactSystem();
+        //systems.register(ContactSystem.class, contactSystem);
+
+        //mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
         systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
         final AssetLoaderService assetLoader = new AssetLoaderService();
@@ -333,7 +325,7 @@ public class GameServer {
         // exist
         // Add a system that will forward physics changes to the Ethereal
         // zone manager
-        systems.addSystem(new ZoneNetworkSystem<>(ethereal.getZones()));
+        systems.register(ZoneNetworkSystem.class, new ZoneNetworkSystem(ethereal.getZones()));
 
         // And the system that will publish the BodyPosition components
         systems.addSystem(new BodyPositionPublisher<>());
@@ -365,9 +357,11 @@ public class GameServer {
         // Serializer.registerClass(Name.class, new FieldSerializer());
 
         Serializer.registerClass(SpawnPosition.class, new FieldSerializer());
-        Serializer.registerClass(BodyPosition.class, new FieldSerializer());
+        Serializer.registerClass(com.simsilica.bpos.BodyPosition.class, new FieldSerializer());
         Serializer.registerClass(ShapeInfo.class, new FieldSerializer());
         Serializer.registerClass(Mass.class, new FieldSerializer());
+        Serializer.registerClass(MovementInput.class, new FieldSerializer());
+        Serializer.registerClass(LeafId.class, new FieldSerializer());
         // Serializer.registerClass(ObjectType.class, new FieldSerializer());
         // Serializer.registerClass(Position.class, new FieldSerializer());
         // Serializer.registerClass(ModelInfo.class, new FieldSerializer());
@@ -375,8 +369,8 @@ public class GameServer {
         Serializer.registerClass(Quatd.class, new FieldSerializer());
         Serializer.registerClass(Vec3d.class, new FieldSerializer());
 
-        Serializer.registerClass(LargeObject.class, new FieldSerializer());
-        Serializer.registerClass(LargeGridCell.class, new FieldSerializer());
+        Serializer.registerClass(com.simsilica.bpos.LargeObject.class, new FieldSerializer());
+        Serializer.registerClass(com.simsilica.bpos.LargeGridCell.class, new FieldSerializer());
 
         // Serializer.registerClass(Parent.class, new FieldSerializer());
         // Serializer.registerClass(Mobility.class, new FieldSerializer());
@@ -393,6 +387,8 @@ public class GameServer {
         Serializer.registerClass(TileType.class, new FieldSerializer());
         Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
         Serializer.registerClass(Decay.class, new FieldSerializer());
+
+        //Serializer.registerClass(LeafId.class, new FieldSerializer());
 
         Serializer.registerClass(MovementInput.class, new FieldSerializer());
     }

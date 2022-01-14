@@ -64,6 +64,12 @@ public interface GameSession {
     void setView(Quatd rotation, Vec3d location);
 
     /**
+     *  Send movement input for this player's character.
+     */
+    @Asynchronous(reliable=false)
+    void setMovementInput(MovementInput input);
+
+    /**
      * For now we just direct-move the player avatar.
      */
     @Asynchronous(reliable = false)

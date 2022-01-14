@@ -33,6 +33,9 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.simsilica.bpos.BodyPosition;
+import com.simsilica.mworld.World;
+import com.simsilica.mworld.base.DefaultLeafWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +54,14 @@ import com.simsilica.mworld.base.DefaultWorld;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
-import infinity.es.BodyPosition;
 import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.sim.GameEntities;
+
+
 
 /**
  * State
@@ -94,7 +98,7 @@ public class MapSystem extends AbstractGameSystem {
     private final AssetLoaderService assetLoader;
     private boolean mapCreated = false;
     private LinkedList<MapTileCallable> mapTileQueue;
-    private DefaultWorld world;
+    private World world;
     private double accumulatedTime;
     // private final boolean logged = false;
 
@@ -121,7 +125,8 @@ public class MapSystem extends AbstractGameSystem {
         if (physics == null) {
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
-        world = getSystem(DefaultWorld.class);
+        world = super.getManager().get(World.class);
+        //world = getSystem(DefaultLeafWorld.class);
         if (world == null) {
             throw new RuntimeException(getClass().getName() + " system requires the World system.");
         }

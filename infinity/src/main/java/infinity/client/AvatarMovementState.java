@@ -57,6 +57,7 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
     private MovementInput movementInput;
     private final Quatd facing = new Quatd();
     private final byte flags = (byte) 0;
+    private double localValue = 0;
 
     private InputManager inputManager;
     private GameSession session;
@@ -154,11 +155,20 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
 
         // TODO: Figure out a way to only send when we are pressing keys
         // if (thrust.x != 0.0 || thrust.y != 0.0) {
-        session.move(movementInput);
+
+        //Send input only if we are pressing a key, or if we have just released the key
+        if (localValue == 1 || localValue == 0 || localValue == -1){
+            session.move(movementInput);
+
+            //If value is 0 then we released the key, mark value so we dont send more input
+            if(localValue == 0){
+                localValue = -2;
+            }
+        }
         // }
 
         // timeSinceLastSend = 0;
-
+/* 
         /*
          * if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
          *
@@ -172,14 +182,17 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
          * Vector3f cameraWorldTranslation = new Vec3d(avatarWorldTranslation).add(0,
          * 40, 0).toVector3f();
          * getState(WorldViewState.class).setViewLocation(cameraWorldTranslation); }
-         */
+         */ 
         // }
     }
 
     @Override
     public void valueActive(final FunctionId func, final double value, final double tpf) {
+        //Set value, so we know if we have to send input. 1 and -1 is received repeatedly. 0 is received once.
+        localValue = value;
         if (func == AvatarMovementFunctions.F_THRUST) {
             forward = value;
+
         } else if (func == AvatarMovementFunctions.F_TURN) {
             rotate = value;
         } else if (func == AvatarMovementFunctions.F_MOUSE1) {

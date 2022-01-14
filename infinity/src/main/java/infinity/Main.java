@@ -40,6 +40,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.List;
 
+import infinity.client.view.CameraMovementFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,14 +108,17 @@ public class Main extends SimpleApplication {
                 // new CameraMovementState(),
                 new OptionPanelState(), // from Lemur
                 // new HelpState(),
-                new DebugHudState(), new MemoryDebugState(), new MainMenuState(), new MessageState(),
+                new DebugHudState(), 
+                new MemoryDebugState(), 
+                new MainMenuState(), 
+                new MessageState(),
                 new CommandConsoleState(),
                 // new LightingState(),
                 // new SkyState(),
                 // new SkySettingsState(),
                 // new PostProcessingState(),
                 // new GridState(grid),
-                // new SettingsState(),
+                new SettingsState(),
                 new ScreenshotAppState("", System.currentTimeMillis()));
     }
 
@@ -126,13 +130,14 @@ public class Main extends SimpleApplication {
         setDisplayStatView(false);
 
         GuiGlobals.initialize(this);
+
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
 
         final GuiGlobals globals = GuiGlobals.getInstance();
 
         MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
-        // CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
-        // SettingsState.initializeDefaultMappings(globals.getInputMapper());
+        //CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
+        SettingsState.initializeDefaultMappings(globals.getInputMapper());
         DebugFunctions.initializeDefaultMappings(globals.getInputMapper());
         ToolFunctions.initializeDefaultMappings(globals.getInputMapper());
         HelpState.initializeDefaultMappings(globals.getInputMapper());

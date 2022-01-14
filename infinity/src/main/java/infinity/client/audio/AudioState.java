@@ -28,6 +28,7 @@ package infinity.client.audio;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.simsilica.bpos.BodyPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,6 @@ import com.simsilica.es.EntityId;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
-import infinity.es.BodyPosition;
 import infinity.es.Parent;
 
 /**

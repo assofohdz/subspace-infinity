@@ -33,6 +33,8 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultWatchedEntity;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.AbstractControlDriver;
+import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ControlDriver;
 import com.simsilica.mphys.RigidBody;
 
@@ -50,23 +52,16 @@ import infinity.systems.SettingsSystem;
  *
  * @author Paul Speed
  */
-public class PlayerDriver implements ControlDriver<EntityId, MBlockShape>, Driver {
+public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
 
     static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
-    // The entity that is controlling this driver
-    private final DefaultWatchedEntity shipEntity;
-
-    // Keep track of what the player has provided.
-    // private volatile Quaternion orientation = new Quaternion();
-    private volatile MovementInput movementForces = new MovementInput(new Vec3d());
-
     private final double pickup = 3;
 
     // Local reference to the body that we want to update
-    private RigidBody<?, ?> body;
     private final Vec3d velocity = new Vec3d();
     // private final EntityData ed;
     // private final SettingsSystem settings;
+    private Vec3d movementForces = new Vec3d();
 
     @SuppressWarnings({ "unchecked" })
     public PlayerDriver(final EntityId shipEntityId, final EntityData ed,
@@ -74,14 +69,16 @@ public class PlayerDriver implements ControlDriver<EntityId, MBlockShape>, Drive
         // Watch all the relevant movement components of the ship
         @SuppressWarnings("rawtypes")
         final Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
-        shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
+        //shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
         // this.settings = settings;
         // this.ed = ed;
     }
 
-    @Override
-    public void applyMovementState(final MovementInput input) {
-        movementForces = input;
+    public void applyMovementInput( MovementInput input ) {
+        movementForces = input.getMove();
+        if( log.isTraceEnabled() ) {
+            log.trace("applyInput(" + input + ")");
+        }
     }
 
     private double applyThrust(final double vel, final double thrust, final double tpf) {
@@ -106,48 +103,35 @@ public class PlayerDriver implements ControlDriver<EntityId, MBlockShape>, Drive
 
     @Override
     public void update(final long frameTime, final double step) {
-        // Drivable bodies should not fall asleep, keep them awake at all times
-        body.wakeUp(true);
+        RigidBody<EntityId, MBlockShape> body = getBody();
+        if (body != null){
+            // Drivable bodies should not fall asleep, keep them awake at all times
+            body.wakeUp(true);
 
-        shipEntity.applyChanges();
+            // x-axis is side-to-side
+            // Grab local versions of the player settings in case another
+            // thread sets them while we are calculating.
+            // Quaternion quat = orientation;
+            final Vec3d vec = movementForces.clone();
 
-        // x-axis is side-to-side
-        // Grab local versions of the player settings in case another
-        // thread sets them while we are calculating.
-        // Quaternion quat = orientation;
-        final Vec3d vec = movementForces.getMove();
+            // x is rotate - we dont need to clamp that
+            // velocity.x = applyThrust(velocity.x, vec.x, step);
+            // z is forward
+            velocity.z = applyThrust(velocity.z, vec.z, step);
 
-        // x is rotate - we dont need to clamp that
-        // velocity.x = applyThrust(velocity.x, vec.x, step);
-        // z is forward
-        velocity.z = applyThrust(velocity.z, vec.z, step);
+            // Rotate the ship according to left and right (should stop rotating right away
+            // when not pressing the keys
+            // Rotate around the y-axis (y is upwards)
+            body.setRotationalVelocity(0, vec.x, 0);
 
-        // Rotate the ship according to left and right (should stop rotating right away
-        // when not pressing the keys
-        // Rotate around the y-axis (y is upwards)
-        body.setRotationalVelocity(0, vec.x, 0);
+            // Set a clamped velocity on the forward axis rotated by the bodies current
+            // rotation
+            final Vec3d newLinearVelocity = body.orientation.mult(velocity);
+            // body.setLinearVelocity(newLinearVelocity);
 
-        // Set a clamped velocity on the forward axis rotated by the bodies current
-        // rotation
-        final Vec3d newLinearVelocity = body.orientation.mult(velocity);
-        // body.setLinearVelocity(newLinearVelocity);
-
-        body.addForce(newLinearVelocity.mult(20));
-        // log.info("Player (body) velocity (length of linvel):
-        // "+body.getLinearVelocity().length());
-    }
-
-    @Override
-    public void initialize(final RigidBody<EntityId, MBlockShape> rigidBody) {
-        body = rigidBody;
-    }
-
-    @Override
-    public void terminate(final RigidBody<EntityId, MBlockShape> rigidBody) {
-        body = null;
-    }
-
-    public void fireGuns() {
-        return;
+            body.addForce(newLinearVelocity.mult(20));
+            // log.info("Player (body) velocity (length of linvel):
+            // "+body.getLinearVelocity().length());
+        }
     }
 }

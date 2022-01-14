@@ -180,7 +180,7 @@ public class MovementSystem extends AbstractGameSystem {
                 log.trace("updateObject(" + e + ")");
             }
             final MovementInput ms = e.get(MovementInput.class);
-            driver.applyMovementState(ms);
+            driver.applyMovementInput(ms);
         }
 
         @Override
@@ -192,7 +192,6 @@ public class MovementSystem extends AbstractGameSystem {
 
     private class MovementBodyInitializer implements Function<RigidBody<EntityId, MBlockShape>, Void> {
 
-        @Override
         public Void apply(final RigidBody<EntityId, MBlockShape> body) {
             // See if this is one of the ones we need to add a player driver to
             final PlayerDriver driver = players.getObject(body.id);

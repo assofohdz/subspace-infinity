@@ -115,8 +115,10 @@ public class ChatState extends BaseAppState {
      */
     private class ChatCommandEntry implements CommandEntry {
         @Override
-        public void runCommand(final String cmd) {
+        public boolean runCommand(final String cmd) {
             getState(ConnectionState.class).getService(ChatClientService.class).sendMessage(cmd);
+
+            return true;
         }
     }
 

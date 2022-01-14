@@ -35,6 +35,17 @@
  */
 package infinity.client;
 
+import com.jme3.math.Vector3f;
+import com.simsilica.ethereal.TimeSource;
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.debug.BinStatusState;
+import com.simsilica.ext.mphys.debug.BodyDebugState;
+import com.simsilica.ext.mphys.debug.ContactDebugState;
+import com.simsilica.fx.LightingState;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.input.InputMapper;
+import com.simsilica.mphys.PhysicsSpace;
+import infinity.client.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,11 +66,6 @@ import infinity.HelpState;
 import infinity.HostState;
 import infinity.SettingsState;
 import infinity.TimeState;
-import infinity.client.view.InfinityCameraState;
-import infinity.client.view.MiniMapState;
-import infinity.client.view.ModelViewState;
-import infinity.client.view.SkyState;
-import infinity.client.view.WorldViewState;
 
 //import com.simsilica.mphys.PhysicsSpace;
 //import com.simsilica.ext.mphys.MPhysSystem;
@@ -72,23 +78,33 @@ import infinity.client.view.WorldViewState;
 public class GameSessionState extends CompositeAppState {
 
     static Logger log = LoggerFactory.getLogger(GameSessionState.class);
+    private boolean hostIsLocal;
+    private TimeSource timeSource;
 
     // private final boolean hostIsLocal = false;
 
     public GameSessionState() {
-        super(new AvatarMovementState(), new CameraState(),
-                // new LightingState(),
-                new TimeState(), // Has to be before any visuals that might need it.
+        super(
+                //new CameraMovementState(),
+                new AvatarMovementState(),
+                //new CameraState(),
+                new LightingState(),
+                //new TimeState(), // Has to be before any visuals that might need it.
                 new SkyState(),
                 // new PostProcessingState(),
                 // new SkySettingsState(),
-                new BuilderState(4, 4), new ModelViewState(), new InfinityCameraState(), new WorldViewState());
+                new BuilderState(4, 4),
+                new WorldViewState(),
+                new ModelViewState(),
+                new AmbientLightState());
 
         addChild(new HelpState(), true);
         addChild(new SettingsState(), true);
         addChild(new ChatState(), true);
+
         // addChild(new MapState(), true);
         // addChild(new ToolState(), true);
+
     }
 
     @Override
@@ -107,26 +123,31 @@ public class GameSessionState extends CompositeAppState {
         // to its own debug manager state.
         final HostState host = getState(HostState.class);
         if (host != null) {
-            // addChild(new PhysicsDebugState(host), true);
-            // hostIsLocal = true;
+            //addChild(new PhysicsDebugState(host), true);
+            hostIsLocal = true;
             // Then we can add some debug states
-            // addChild(new BinStatusState(host.getSystems().get(PhysicsSpace.class), 64));
-            // addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
-            // addChild(new ContactDebugState(host.getSystems().get(PhysicsSpace.class)));
+            //addChild(new BinStatusState(host.getSystems().get(PhysicsSpace.class), 0));
+            //addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
+            //addChild(new ContactDebugState(host.getSystems().get(PhysicsSpace.class)));
         }
 
+        this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+
+        InfinityCameraState cameraState = new InfinityCameraState(avatar, timeSource);
+        addChild(cameraState);
         // Camera should be set to orthogonal
         // getState(InfinityCameraState.class).setAvatar(avatar);
         // getState(InfinityCameraState.class).setFieldOfView(60);
         // Modelview state
-        getState(ModelViewState.class).setAvatar(avatar);
 
-        getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
+        getState(ModelViewState.class).setAvatarEntityId(avatar);
+
+        //getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
 
         getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
         addChild(new MouseAppState(getApplication()));
 
-        addChild(new MiniMapState(((SimpleApplication) getApplication()).getRootNode(), 64, 200));
+        //addChild(new MiniMapState(((SimpleApplication) getApplication()).getRootNode(), 64, 200));
     }
 
     @Override
@@ -136,41 +157,14 @@ public class GameSessionState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
-        /*
-         * if( hostIsLocal ) { InputMapper input =
-         * GuiGlobals.getInstance().getInputMapper();
-         * input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class),
-         * "toggleEnabled"); input.addDelegate(DebugFunctions.F_BODY_DEBUG,
-         * getState(BodyDebugState.class), "toggleEnabled");
-         * input.addDelegate(DebugFunctions.F_CONTACT_DEBUG,
-         * getState(ContactDebugState.class), "toggleEnabled"); }
-         */
+
     }
 
-    /*
-     * public void update( float tpf ) { //log.info("update");
-     *
-     * // This update() is called after the children. BinStatusState binState =
-     * getState(BinStatusState.class); if( binState != null ) { Vector3f loc =
-     * getState(WorldViewState.class).getViewLocation();
-     * binState.setViewOrigin(loc.x, 0, loc.z); BodyDebugState bodyState =
-     * getState(BodyDebugState.class); bodyState.setViewOrigin(loc.x, 0, loc.z);
-     * ContactDebugState contactState = getState(ContactDebugState.class);
-     * contactState.setViewOrigin(loc.x, 0, loc.z); }
-     *
-     * }
-     */
+    public void update( float tpf ) {
+
+    }
     @Override
     protected void onDisable() {
-        /*
-         * if( hostIsLocal ) { InputMapper input =
-         * GuiGlobals.getInstance().getInputMapper();
-         * input.removeDelegate(DebugFunctions.F_BIN_DEBUG,
-         * getState(BinStatusState.class), "toggleEnabled");
-         * input.removeDelegate(DebugFunctions.F_BODY_DEBUG,
-         * getState(BodyDebugState.class), "toggleEnabled");
-         * input.removeDelegate(DebugFunctions.F_CONTACT_DEBUG,
-         * getState(ContactDebugState.class), "toggleEnabled"); }
-         */
+
     }
 }

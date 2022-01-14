@@ -38,11 +38,13 @@ import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
+import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
 import infinity.es.ArenaId;
 import infinity.es.AudioTypes;
+
 import infinity.es.Bounty;
 import infinity.es.Buff;
 import infinity.es.CollisionCategory;
@@ -61,6 +63,7 @@ import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.es.WarpTouch;
 import infinity.es.WeaponTypes;
+import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Recharge;
@@ -260,9 +263,7 @@ public class GameEntities {
     /**
      * Medium asteroid with animation
      *
-     * @param location the Vec3d position of the asteroid
      * @param ed       the entitydata set to create the entity in
-     * @param settings the settings to load this medium asteroid with
      * @return the entityid of the created entity
      */
     public static EntityId createOver2(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
@@ -327,20 +328,29 @@ public class GameEntities {
     // from the constants
     // TODO: All parameters should be dumb types and should be the basis of the
     // complex types used in the backend
-    public static EntityId createWarbird(final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+    public static EntityId createWarbird(final Vec3d spawnLoc, final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
             final long createdTime) {
         final EntityId result = ed.createEntity();
-        final Name name = ed.getComponent(owner, Name.class);
-        ed.setComponent(result, name);
+        //final Name name = ed.getComponent(owner, Name.class);
+        ed.setComponent(result, new Name("player"));
 
-        ed.setComponents(result, ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+        ShapeInfo si = ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        ed.setComponents(result, si);
 
         // ViewTypes.ship_warbird(ed),
         // PhysicsMassTypes.normal(ed),
         // PhysicsShapes.ship());
-        ed.setComponent(result, new SpawnPosition(phys.getGrid(), new Vec3d(20, 0.5, 20)));
-        ed.setComponent(result, new Mass(1));
-        ed.setComponent(result, Gravity.ZERO);
+        SpawnPosition sp = new SpawnPosition(phys.getGrid(), spawnLoc);
+        ed.setComponent(result, sp);
+
+        Mass m = new Mass(1);
+        ed.setComponent(result, m);
+
+        Gravity g = Gravity.ZERO;
+        ed.setComponent(result, g);
+
+        byte flags = 0x0;
+        ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(),flags));
 
         ed.setComponent(result, new Frequency(1));
         ed.setComponent(result, new Gold(0));

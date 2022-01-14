@@ -60,7 +60,6 @@ import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputMapper.Mapping;
 import com.simsilica.lemur.style.ElementId;
 
-import infinity.client.CameraMovementFunctions;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 
@@ -77,12 +76,12 @@ public class HelpState extends BaseAppState {
     // private final boolean movementState = false;
 
     private final KeyHelp[] keyHelp = { new KeyHelp(F_HELP, "Opens/closes this help window."),
-            new KeyHelp(CameraMovementFunctions.F_X_LOOK, "Rotates left/right."),
-            new KeyHelp(CameraMovementFunctions.F_Y_LOOK, "Rotates up/down."),
-            new KeyHelp(CameraMovementFunctions.F_MOVE, "Flies forward and back."),
-            new KeyHelp(CameraMovementFunctions.F_STRAFE, "Flies side to side."),
-            new KeyHelp(CameraMovementFunctions.F_ELEVATE, "Flies up or down."),
-            new KeyHelp(CameraMovementFunctions.F_RUN, "Increases speed."),
+            //new KeyHelp(CameraMovementFunctions.F_X_LOOK, "Rotates left/right."),
+            //new KeyHelp(CameraMovementFunctions.F_Y_LOOK, "Rotates up/down."),
+            //new KeyHelp(CameraMovementFunctions.F_MOVE, "Flies forward and back."),
+            //new KeyHelp(CameraMovementFunctions.F_STRAFE, "Flies side to side."),
+            //new KeyHelp(CameraMovementFunctions.F_ELEVATE, "Flies up or down."),
+            //new KeyHelp(CameraMovementFunctions.F_RUN, "Increases speed."),
             new KeyHelp(MainGameFunctions.F_IN_GAME_MENU, "In Game Menu"),
             new KeyHelp(MainGameFunctions.F_CHAT_CONSOLE, "Chat Console"),
             new KeyHelp(ToolFunctions.F_MAIN_TOOL, "Main Tool"), new KeyHelp(ToolFunctions.F_ALT_TOOL, "Alt. Tool"),

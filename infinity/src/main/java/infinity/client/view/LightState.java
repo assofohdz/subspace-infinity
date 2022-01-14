@@ -27,6 +27,10 @@ package infinity.client.view;
 
 import java.util.HashMap;
 
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
+import com.simsilica.bpos.BodyPosition;
+import com.simsilica.bpos.ChildPositionTransition3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +51,6 @@ import com.simsilica.mathd.trans.TransitionBuffer;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.client.ConnectionState;
-import infinity.es.BodyPosition;
 import infinity.es.PointLightComponent;
 
 /**
@@ -62,7 +65,7 @@ public class LightState extends BaseAppState {
     private EntitySet movingPointLights, decayingPointLights;
     private Node rootNode;
     private final HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
-    private final HashMap<EntityId, TransitionBuffer<PositionTransition3d>> bufferMap = new HashMap<>();
+    private final HashMap<EntityId, TransitionBuffer<ChildPositionTransition3d>> bufferMap = new HashMap<>();
     private TimeState timeState;
 
     public LightState() {
@@ -91,8 +94,8 @@ public class LightState extends BaseAppState {
         rootNode = ((Main) getApplication()).getRootNode();
 
         // Add a central light to the scene
-        // PointLight pl = new PointLight(new Vector3f(0, 2, 0), ColorRGBA.White, 1000);
-        // rootNode.addLight(pl);
+        PointLight pl = new PointLight(new Vector3f(0, 2, 0), ColorRGBA.White, 1000);
+        rootNode.addLight(pl);
     }
 
     @Override
@@ -168,7 +171,7 @@ public class LightState extends BaseAppState {
      */
 
     private void createPointLight(final Entity e) {
-        final Spatial s = getState(ModelViewState.class).getModelSpatial(e.getId(), true).getParent();
+        final Spatial s = getState(ModelViewState.class).getModelSpatial(e.getId(), true);
 
         final PointLightComponent plc = e.get(PointLightComponent.class);
         final BodyPosition bp = e.get(BodyPosition.class);

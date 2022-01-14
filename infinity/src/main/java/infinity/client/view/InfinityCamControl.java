@@ -49,6 +49,7 @@ import com.jme3.scene.control.AbstractControl;
 import com.jme3.util.TempVars;
 
 import com.simsilica.mathd.Vec3i;
+import org.slf4j.LoggerFactory;
 
 /**
  * This Control maintains a reference to a Camera, which will be synched with
@@ -58,7 +59,9 @@ import com.simsilica.mathd.Vec3i;
  */
 public class InfinityCamControl extends AbstractControl {
 
-    private float distanceToCam = 40;
+    static org.slf4j.Logger log = LoggerFactory.getLogger(InfinityCamControl.class);
+
+    private float distanceToCam = 31;
 
     public enum ControlDirection {
 
@@ -127,7 +130,12 @@ public class InfinityCamControl extends AbstractControl {
                 camLoc.addLocal(0, distanceToCam, 0);
 
                 camera.setLocation(camLoc);
-                LOG.log(Level.INFO, "controlUpdate:: Setting camera location to : {0}", new Vec3i(camLoc));
+                if (camLoc.x != 20){
+                    //   log.info("controlUpdate:: Setting camera location to :"+camLoc);
+                }
+                if (camLoc.x == 20){
+                    //    log.info("controlUpdate:: Setting camera location to :"+camLoc);
+                }
                 // camera.setRotation(spatial.getWorldRotation());
                 camera.lookAt(spatialLoc, Vector3f.UNIT_Y);
                 break;
@@ -152,8 +160,6 @@ public class InfinityCamControl extends AbstractControl {
             }
         }
     }
-
-    private static final Logger LOG = Logger.getLogger(InfinityCamControl.class.getName());
 
     @Override
     protected void controlRender(final RenderManager rm, final ViewPort vp) {

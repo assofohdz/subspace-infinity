@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.simsilica.bpos.BodyPosition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +61,6 @@ import com.simsilica.mathd.Vec3d;
 
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
-import infinity.es.BodyPosition;
 import infinity.es.TileType;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;

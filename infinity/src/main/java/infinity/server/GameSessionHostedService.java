@@ -38,6 +38,7 @@ package infinity.server;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.simsilica.bpos.net.BodyVisibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,7 +181,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         private final EntityId avatarEntityId;
 
-        private final Vec3d spawnLoc = new Vec3d();
+        private final Vec3d spawnLoc = new Vec3d(20, 0, 20);
 
         // private final EntityId activation = null;
         // private final EntityId fireMain = null;
@@ -192,7 +193,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         private final Vec3d lastViewLoc = new Vec3d();
         private final Quatd lastViewOrient = new Quatd();
         // private final Vec3d relativeLoc = null;
-        private final PhysicsSpace<?, ?> phys;
+        private PhysicsSpace<?, ?> phys;
         // private final MPhysSystem mphys;
 
         // private PlayerDriver driver;
@@ -214,7 +215,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
 
-            avatarEntityId = GameEntities.createWarbird(ed, playerEntityId, phys, 0);
+            avatarEntityId = GameEntities.createWarbird(spawnLoc, ed, playerEntityId, phys, 0);
 
             ed.setComponent(avatarEntityId, new Player());
 
@@ -249,6 +250,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // hed.registerEntityVisibility(new
             // BodyVisibility(ethereal.getStateListener(conn)));
             hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
+
+            this.phys = gameSystems.get(PhysicsSpace.class, true);
 
             log.info("GameSessionImpl.initialized()");
         }
@@ -286,35 +289,22 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             // resetting yourself... but it works.
             final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
             // nsl.setMaxMessageSize(2000);
-            if (nsl != null && !selfSet) {
+            if (nsl != null) {
+                //&& !selfSet) {
                 nsl.setSelf(avatarEntityId.getId(), location);
                 //log.debug("Setting NSL self location to: "+location);
-                selfSet = true;
+                //selfSet = true;
             }
 
             lastViewLoc.set(location);
             lastViewOrient.set(rotation);
         }
 
-        /*
-         * public void spawn() { log.info("spawn():" + avatarEntity); // Place the
-         * player in the appropriate part of the level and // let SimEthereal know about
-         * it.
-         *
-         * Vec3d spawnLoc =
-         * gameSystems.get(GameLevelSystem.class).getSpawnPoint(playerEntity);
-         * log.info("spawn location:" + spawnLoc);
-         *
-         * // Give the avatar its spawn location ed.setComponent(avatarEntity, new
-         * SpawnPosition(spawnLoc, 0));
-         *
-         * //Vec3d spawnLoc = new Vec3d(); // for the moment
-         *
-         * // Setup to start using SimEthereal synching
-         * getService(EtherealHost.class).startHostingOnConnection(conn);
-         * getService(EtherealHost.class).setConnectionObject(conn,
-         * avatarEntity.getId(), spawnLoc); }
-         */
+        @Override
+        public void setMovementInput( MovementInput input ) {
+            ed.setComponent(avatarEntityId, input);
+        }
+
         protected GameSessionListener getCallback(final boolean failFast) {
             if (callback == null) {
                 final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
