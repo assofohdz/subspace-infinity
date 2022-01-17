@@ -44,24 +44,24 @@ public class basicTester extends BaseGameModule {
         ed = getSystem(EntityData.class, true);
 
         // Test the smallest asteroids
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(10, 0, 10), 1));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(10, 0, -10), 10));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(-10, 0, 10), 100));
-        createdEntities.add(GameEntities.createOver1(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(-10, 0, -10), 1000));
+        createdEntities.add(GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(10, 0, 10),1));
+        createdEntities.add(GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(10, 0, -10),1));
+        createdEntities.add(GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-10, 0, 10),1));
+        createdEntities.add(GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-10, 0, -10),1));
 
         // Test the medium asteroids
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(20, 0, 20)));
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(20, 0, -20)));
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(-20, 0, 20)));
-        createdEntities.add(GameEntities.createOver2(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(-20, 0, -20)));
+        createdEntities.add(GameEntities.createAsteroidMedium(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(20, 0, 20),1));
+        createdEntities.add(GameEntities.createAsteroidMedium(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(20, 0, -20),1));
+        createdEntities.add(GameEntities.createAsteroidMedium(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-20, 0, 20),1));
+        createdEntities.add(GameEntities.createAsteroidMedium(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+                getTimeManager().getTime(), new Vec3d(-20, 0, -20),1));
     }
 
     @Override

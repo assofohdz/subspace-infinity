@@ -50,7 +50,7 @@ import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.ElementId;
 
-import infinity.client.view.InfinityCameraState;
+import infinity.client.states.InfinityCameraState;
 
 /**
  *

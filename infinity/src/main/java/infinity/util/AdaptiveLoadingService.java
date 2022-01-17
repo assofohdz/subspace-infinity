@@ -92,6 +92,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
             // Loading extensions:
             // Used in distribution
             "modules\\modules-1.0.0-SNAPSHOT.jar",
+            "modules\\build\\libs\\modules-1.0.0-SNAPSHOT.jar",
             // Used from SDK
             "build\\modules\\libs\\modules-1.0.0-SNAPSHOT.jar",
             // Extras
@@ -175,8 +176,6 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * Loads the .class file
      *
      * @param file         the file to load
-     * @param settingsFile the .ini-file to to load and use when instancing the
-     *                     .class file
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException

@@ -23,8 +23,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client.view;
+package infinity.client.states;
 
+import infinity.client.view.EffectFactory;
+import infinity.client.view.ShipLightControl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,9 +59,9 @@ import infinity.sim.CoreViewConstants;
  *
  * @author Asser
  */
-public class SIRadarSpatialFactory {
+public class SISpatialFactory {
 
-    static Logger log = LoggerFactory.getLogger(SIRadarSpatialFactory.class);
+    static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
     private final AssetManager assets;
 
     private EffectFactory ef;
@@ -72,12 +74,13 @@ public class SIRadarSpatialFactory {
     private final EntityData ed;
     private final Node rootNode;
 
-    SIRadarSpatialFactory(final EntityData ed, final Node rootNode, final AssetManager assets) {
+    SISpatialFactory(final EntityData ed, final Node rootNode, final AssetManager assets, final Timer timer) {
         this.ed = ed;
         // this.mapState = app.getStateManager().getState(MapState.class);
         // this.state = app.getStateManager().getState(ModelViewState.class);
         this.rootNode = rootNode;
         this.assets = assets;
+        this.timer = timer;
     }
 
     Spatial createModel(@SuppressWarnings("unused") final EntityId id,

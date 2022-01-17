@@ -10,12 +10,10 @@ import java.util.logging.Logger;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.ext.mphys.BinEntityManager;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.AbstractBody;
-import com.simsilica.mphys.Contact;
-import com.simsilica.mphys.ContactListener;
-import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.*;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -33,9 +31,9 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
 
     private EntityData ed;
     private MPhysSystem<?> physics;
-    // private PhysicsSpace<EntityId, MBlockShape> space;
-    // private BinIndex binIndex;
-    // private BinEntityManager binEntityManager;
+    private PhysicsSpace<EntityId, ?> space;
+    private BinIndex binIndex;
+    private BinEntityManager binEntityManager;
     EntitySet categoryFilters;
 
     @Override
@@ -120,9 +118,9 @@ public class ContactSystem extends AbstractGameSystem implements ContactListener
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
         }
 
-        // space = physics.getPhysicsSpace();
-        // binIndex = space.getBinIndex();
-        // binEntityManager = physics.getBinEntityManager();
+        space = physics.getPhysicsSpace();
+        binIndex = space.getBinIndex();
+        binEntityManager = physics.getBinEntityManager();
 
         categoryFilters = ed.getEntities(CollisionCategory.class);
     }

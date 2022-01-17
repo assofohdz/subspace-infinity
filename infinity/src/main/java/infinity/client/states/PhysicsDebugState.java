@@ -34,8 +34,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.client.view;
+package infinity.client.states;
 
+import infinity.client.view.DebugFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

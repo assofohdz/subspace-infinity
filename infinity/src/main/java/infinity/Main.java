@@ -40,7 +40,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.List;
 
-import infinity.client.view.CameraMovementFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

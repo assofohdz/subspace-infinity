@@ -10,7 +10,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.control.LightControl;
 
 /**
- *
+ * TODO: Should be updated to reflect how body positions work
  * @author AFahrenholz
  */
 public class ShipLightControl extends LightControl {

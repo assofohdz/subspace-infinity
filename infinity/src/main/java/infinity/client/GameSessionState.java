@@ -35,22 +35,15 @@
  */
 package infinity.client;
 
-import com.jme3.math.Vector3f;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.ext.mphys.MPhysSystem;
-import com.simsilica.ext.mphys.debug.BinStatusState;
-import com.simsilica.ext.mphys.debug.BodyDebugState;
-import com.simsilica.ext.mphys.debug.ContactDebugState;
 import com.simsilica.fx.LightingState;
-import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.lemur.input.InputMapper;
-import com.simsilica.mphys.PhysicsSpace;
+import infinity.TimeState;
+import infinity.client.states.*;
 import infinity.client.view.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.texture.plugins.AWTLoader;
 //import com.jme3.math.Vector3f;
 
@@ -59,13 +52,11 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.builder.BuilderState;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.event.MouseAppState;
-import com.simsilica.state.CameraState;
 import com.simsilica.state.CompositeAppState;
 
 import infinity.HelpState;
 import infinity.HostState;
 import infinity.SettingsState;
-import infinity.TimeState;
 
 //import com.simsilica.mphys.PhysicsSpace;
 //import com.simsilica.ext.mphys.MPhysSystem;
@@ -88,21 +79,23 @@ public class GameSessionState extends CompositeAppState {
                 //new CameraMovementState(),
                 new AvatarMovementState(),
                 //new CameraState(),
-                new LightingState(),
-                //new TimeState(), // Has to be before any visuals that might need it.
+                //new LightingState(),
+                new TimeState(), // Has to be before any visuals that might need it.
                 new SkyState(),
                 // new PostProcessingState(),
                 // new SkySettingsState(),
                 new BuilderState(4, 4),
                 new WorldViewState(),
                 new ModelViewState(),
-                new AmbientLightState());
+                new LightState()//,
+                //new AmbientLightState()
+        );
 
         addChild(new HelpState(), true);
         addChild(new SettingsState(), true);
         addChild(new ChatState(), true);
 
-        // addChild(new MapState(), true);
+        addChild(new MapState(), true);
         // addChild(new ToolState(), true);
 
     }
@@ -132,6 +125,8 @@ public class GameSessionState extends CompositeAppState {
         }
 
         this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+
+        getState(TimeState.class).setTimeSource(this.timeSource);
 
         InfinityCameraState cameraState = new InfinityCameraState(avatar, timeSource);
         addChild(cameraState);

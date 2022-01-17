@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client.view;
+package infinity.client.states;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;

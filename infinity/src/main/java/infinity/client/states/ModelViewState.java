@@ -34,12 +34,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.client.view;
+package infinity.client.states;
 
 import java.util.*;
 
 import infinity.InfinityConstants;
 import infinity.client.ConnectionState;
+import infinity.client.view.BlockGeometryIndex;
+import infinity.client.view.InfinityBlockGeometryIndex;
+import infinity.client.view.PickedObject;
 import infinity.es.ShapeNames;
 import org.slf4j.*;
 
@@ -49,7 +52,6 @@ import com.jme3.app.state.BaseAppState;
 import com.jme3.anim.*;
 import com.jme3.collision.*;
 import com.jme3.math.*;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.*;
 import com.jme3.scene.shape.*;
 
@@ -266,7 +268,7 @@ public class ModelViewState extends BaseAppState {
         this.worldView = getState(WorldViewState.class);
         this.objectRoot = new Node("objectRoot");
 
-        this.SImodelFactory = new SISpatialFactory(ed, objectRoot, app.getAssetManager());
+        this.SImodelFactory = new SISpatialFactory(ed, objectRoot, app.getAssetManager(), this.getApplication().getTimer());
 
         this.grid = InfinityConstants.PHYSICS_GRID;
 
@@ -283,6 +285,13 @@ public class ModelViewState extends BaseAppState {
         // (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);
         shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), new SphereFactory());
@@ -291,6 +300,9 @@ public class ModelViewState extends BaseAppState {
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
 
         // Some test objects

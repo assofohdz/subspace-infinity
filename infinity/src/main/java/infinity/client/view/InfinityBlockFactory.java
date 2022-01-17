@@ -7,6 +7,7 @@ package infinity.client.view;
 
 import java.util.Arrays;
 
+import com.simsilica.mblock.geom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,19 +18,12 @@ import com.simsilica.mblock.Axis;
 import com.simsilica.mblock.BlockType;
 import com.simsilica.mblock.CellData;
 import com.simsilica.mblock.Direction;
-import com.simsilica.mblock.geom.BlockFactory;
-import com.simsilica.mblock.geom.BoundaryShape;
-import com.simsilica.mblock.geom.BoundaryShapes;
-import com.simsilica.mblock.geom.DefaultPartFactory;
-import com.simsilica.mblock.geom.GeomPartBuffer;
-import com.simsilica.mblock.geom.MaterialType;
-import com.simsilica.mblock.geom.PartFactory;
 
 /**
  *
  * @author AFahrenholz
  */
-public class InfinityBlockFactory implements BlockFactory {
+public class InfinityBlockFactory extends DefaultBlockFactory {
     static final long serialVersionUID = 42L;
 
     static Logger log = LoggerFactory.getLogger(InfinityBlockFactory.class);
@@ -55,6 +49,8 @@ public class InfinityBlockFactory implements BlockFactory {
      */
     public InfinityBlockFactory(final PartFactory[] dirParts, final PartFactory internalParts, final boolean[] solid,
             final double[] transparency, final double volume, final Vec3d min, final Vec3d max) {
+        super(dirParts, internalParts, solid, transparency, volume, min, max);
+
         this.dirParts = dirParts;
         this.internalParts = internalParts;
         this.solid = solid;
@@ -226,73 +222,5 @@ public class InfinityBlockFactory implements BlockFactory {
         }
 
         return count;
-    }
-
-    @Override
-    public final BoundaryShape getShape(final Direction dir) {
-        final PartFactory factory = dirParts[dir.ordinal()];
-        if (factory == null) {
-            return BoundaryShapes.NULL_SHAPE;
-        }
-        return factory.getBoundaryShape();
-    }
-
-    @Override
-    public final boolean isSolid(final Direction dir) {
-        return solid == null ? true : solid[dir.ordinal()];
-    }
-
-    @Override
-    public final boolean isSolid() {
-        return allSolid;
-    }
-
-    public final double getTransparency(final Axis axis) {
-        return transparency == null ? 0 : transparency[axis.ordinal()];
-    }
-
-    @Override
-    public final boolean isTransparent() {
-        return isTransparent;
-    }
-
-    @Override
-    public final double getVolume() {
-        return volume;
-    }
-
-    @Override
-    public final Vec3d getMin() {
-        return min;
-    }
-
-    @Override
-    public final Vec3d getMax() {
-        return max;
-    }
-
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(getClass().getSimpleName()).add("dirParts", Arrays.asList(dirParts))
-                .add("internalParts", internalParts).add("min", min).add("max", max).toString();
-    }
-
-    @Override
-    public int addGeometryToBuffer(final GeomPartBuffer buffer, final int i, final int j, final int k, final int xWorld,
-            final int yWorld, final int zWorld, final int sideMask, final CellData cells, final BlockType type) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public double getTransparency(final Direction dir) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public BlockFactory rotate(final int dirDelta) {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

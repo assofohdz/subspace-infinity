@@ -32,7 +32,7 @@ public class BlockGeometryIndex {
 
     static Logger log = LoggerFactory.getLogger(BlockGeometryIndex.class);
 
-    private final GeometryFactory geomFactory;
+    protected final GeometryFactory geomFactory;
 
     public BlockGeometryIndex(final AssetManager assets) {
 

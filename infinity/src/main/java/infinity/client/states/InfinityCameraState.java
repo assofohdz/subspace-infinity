@@ -23,17 +23,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client.view;
+package infinity.client.states;
 
 import com.simsilica.bpos.BodyPosition;
 import com.simsilica.bpos.ChildPositionTransition3d;
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.mathd.GridCell;
-import infinity.InfinityConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +55,7 @@ public class InfinityCameraState extends CameraState {
 
     static Logger log = LoggerFactory.getLogger(InfinityCameraState.class);
 
-    public static final float DISTANCETOPLANE = 50;
+    public static final float DISTANCETOPLANE = 100;
     private TimeSource time;
     private Camera cam;
 

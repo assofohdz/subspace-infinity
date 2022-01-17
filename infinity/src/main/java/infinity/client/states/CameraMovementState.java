@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.client.view;
+package infinity.client.states;
 
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;

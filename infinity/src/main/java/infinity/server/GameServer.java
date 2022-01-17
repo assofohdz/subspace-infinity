@@ -40,6 +40,7 @@ import java.io.*;
 import com.simsilica.bpos.mphys.BodyPositionPublisher;
 import com.simsilica.bpos.mphys.LargeGridIndexSystem;
 import com.simsilica.mworld.LeafId;
+import infinity.systems.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,14 +106,6 @@ import infinity.es.TileType;
 import infinity.es.input.MovementInput;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.InfinityPhysicsManager;
-import infinity.systems.ArenaSystem;
-import infinity.systems.AttackSystem;
-import infinity.systems.AvatarSystem;
-import infinity.systems.EnergySystem;
-import infinity.systems.InfinityTimeSystem;
-import infinity.systems.MapSystem;
-import infinity.systems.MovementSystem;
-import infinity.systems.SettingsSystem;
 import infinity.util.AdaptiveLoadingService;
 
 //import com.simsilica.sb.ai.*;
@@ -236,6 +229,13 @@ public class GameServer {
         // MBlockShapes.
         final ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), new SphereFactory());
@@ -244,6 +244,9 @@ public class GameServer {
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), new SphereFactory());
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
         systems.register(ShapeFactory.class, shapeFactory);
 
@@ -272,10 +275,10 @@ public class GameServer {
         systems.register(ArenaSystem.class, new ArenaSystem());
 
         // Set up contacts to be filtered
-        //final ContactSystem contactSystem = new ContactSystem();
-        //systems.register(ContactSystem.class, contactSystem);
+        final ContactSystem contactSystem = new ContactSystem();
+        systems.register(ContactSystem.class, contactSystem);
 
-        //mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
+        mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
         systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
         final AssetLoaderService assetLoader = new AssetLoaderService();

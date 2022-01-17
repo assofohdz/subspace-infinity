@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.simsilica.bpos.BodyPosition;
 import com.simsilica.mworld.World;
-import com.simsilica.mworld.base.DefaultLeafWorld;
+import infinity.es.GravityWell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,6 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.base.DefaultWorld;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -75,11 +74,13 @@ public class MapSystem extends AbstractGameSystem {
     public static final byte UPDATE = 0x2;
     public static final byte DELETE = 0x3;
 
+    public static String MAPNAME = "Maps/trench.lvl";
+
     static Logger log = LoggerFactory.getLogger(MapSystem.class);
 
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
-    private PhysicsSpace<EntityId, MBlockShape> space;
+    private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
     // private BinIndex binIndex;
     // private BinEntityManager binEntityManager;
     private SimTime time;
@@ -131,7 +132,7 @@ public class MapSystem extends AbstractGameSystem {
             throw new RuntimeException(getClass().getName() + " system requires the World system.");
         }
 
-        space = physics.getPhysicsSpace();
+        physicsSpace = physics.getPhysicsSpace();
         // binIndex = space.getBinIndex();
         // binEntityManager = physics.getBinEntityManager();
 
@@ -302,32 +303,65 @@ public class MapSystem extends AbstractGameSystem {
                      *
                      */
 
-                    if (s > 190) {
-                        // TODO: will handle special tiles later
-                        s = 1;
-                    }
 
                     final Vec3d location = new Vec3d(xpos, 0, zpos).add(arenaOffset);
+
+                    // TODO: add more special cases here:
+                    // TODO: Fetch settings for the given coordinates and create the right gravity
+                    switch (s){
+                        //turf flag
+                        case 170:
+                            GameEntities.createCaptureTheFlag(ed,null,physicsSpace,time.getTime(),location);
+                            break;
+                        //small asteroid
+                        case 216:
+                            GameEntities.createAsteroidSmall(ed,null,physicsSpace,time.getTime(),location, 1);
+                            break;
+                        //large asteroid
+                        case 217:
+                            GameEntities.createAsteroidMedium(ed,null,physicsSpace,time.getTime(),location, 2);
+                            break;
+                        //small Asteroid 2
+                        case 218:
+                            GameEntities.createAsteroidLarge(ed,null,physicsSpace,time.getTime(),location);
+                            break;
+                        //wormhole
+                        case 220:
+                            GameEntities.createWormhole(ed,null,physicsSpace,time.getTime(),location,5,5,5, GravityWell.PULL, new Vec3d(0,0,0));
+                            break;
+                        default:
+                            //TODO: Translate mapId from a level name (see InfinityBlockGeometryIndex)
+                            final int mapId = 20;
+                            final int tileId = Short.toUnsignedInt(s);
+                            tileSet.add(Integer.valueOf(tileId));
+
+                            final int value = tileId | (mapId << 8);
+                            world.setWorldCell(location, 10);
+                            break;
+                    }
+
                     // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
                     // final Vec3i i = new Vec3i(bottomPlane.toVector3f());
 
-                    final int mapId = 20;
-                    final int tileId = Short.toUnsignedInt(s);
-                    tileSet.add(Integer.valueOf(tileId));
-
-                    final int value = tileId | (mapId << 8);
-                    // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map)
-                    // =(" + tileId + ","
-                    // + mapId + ") - Coords: " + i);
-                    // value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
-                    // world.setWorldCell(bottomPlane, value);
-                    //log.info("Creating block at: " + location);
-                    world.setWorldCell(location, 10);
-
-                    // world.setWorldCell(topPlane, 0);
-
-                    // count++;
+//
+//                    //TODO: Translate mapId from a level name (see InfinityBlockGeometryIndex)
+//                    final int mapId = 20;
+//                    final int tileId = Short.toUnsignedInt(s);
+//                    tileSet.add(Integer.valueOf(tileId));
+//
+//                    final int value = tileId | (mapId << 8);
+//                    // log.info("createEntitiesFromLegacyMap:: value = " + value + " <= (Tile,Map)
+//                    // =(" + tileId + ","
+//                    // + mapId + ") - Coords: " + i);
+//                    // value = InfinityMaskUtils.setSideMask(value, DirectionMasks.UP_MASK);
+//                    // world.setWorldCell(bottomPlane, value);
+//                    //log.info("Creating block at: " + location);
+//                    world.setWorldCell(location, 10);
+//
+//                    // world.setWorldCell(topPlane, 0);
+//
+//                    // count++;
                 }
             }
         }
@@ -376,7 +410,8 @@ public class MapSystem extends AbstractGameSystem {
 
         // Create map:
         if (!mapCreated && accumulatedTime > 2) {
-            createEntitiesFromLegacyMap(loadMap("Maps/aswz/aswz.lvl"), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE * 0.5));
+            //TODO: See InfinityBlockGeometryIndex - same map name is used there to translate back
+            createEntitiesFromLegacyMap(loadMap( MAPNAME), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE * 0.5));
             // createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new
             // Vec3d(-MAP_SIZE, 0, MAP_SIZE));
             // createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new
@@ -419,7 +454,7 @@ public class MapSystem extends AbstractGameSystem {
 
             final short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
 
-            GameEntities.updateWangBlobEntity(ed, eId, space, time.getTime(), eId, "", tileIndexNumber,
+            GameEntities.updateWangBlobEntity(ed, eId, physicsSpace, time.getTime(), eId, "", tileIndexNumber,
                     new Vec3d(clampedLocation.x, 0, clampedLocation.z));
         }
         sessionTileCreations.clear();
@@ -759,7 +794,7 @@ public class MapSystem extends AbstractGameSystem {
 
             final EntityId id = GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, m_file, s, loc, type);
 
-            log.debug("Called up creation of entity: " + id + ". " + toString());
+            log.debug("Called up creation of entity: " + id + ". " + this);
             return id;
         }
 

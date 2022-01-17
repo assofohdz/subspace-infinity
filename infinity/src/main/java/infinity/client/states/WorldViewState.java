@@ -33,9 +33,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client.view;
+package infinity.client.states;
 
-import infinity.InfinityConstants;
+import infinity.client.view.BlockGeometryIndex;
+import infinity.client.view.InfinityBlockGeometryIndex;
+import infinity.client.view.LeafDataZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,8 +64,6 @@ import com.simsilica.pager.ZoneFactory;
 import com.simsilica.pager.debug.BBoxZone;
 
 import infinity.client.ConnectionState;
-
-import static infinity.client.view.InfinityCameraState.DISTANCETOPLANE;
 
 /**
  *

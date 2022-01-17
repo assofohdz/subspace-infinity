@@ -17,6 +17,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.jme3.asset.AssetManager;
+import com.simsilica.mblock.*;
+import infinity.systems.MapSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +35,6 @@ import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
 import com.jme3.util.BufferUtils;
 
-import com.simsilica.mblock.BlockName;
-import com.simsilica.mblock.BlockType;
-import com.simsilica.mblock.CellArray;
-import com.simsilica.mblock.CellData;
-import com.simsilica.mblock.Direction;
-import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mblock.geom.BlockFactory;
 import com.simsilica.mblock.geom.DefaultPartBuffer;
 import com.simsilica.mblock.geom.GeomPart;
@@ -51,7 +48,7 @@ import infinity.map.LevelLoader;
  *
  * @author Paul Speed
  */
-public class InfinityBlockGeometryIndex {
+public class InfinityBlockGeometryIndex extends BlockGeometryIndex{
 
     private static int TILEID_MASK = 0x000000ff;
     private static int MAPID_MASK = 0x000fff00;
@@ -77,14 +74,15 @@ public class InfinityBlockGeometryIndex {
 
     private final Map<Integer, LevelFile> mapIdToLevels = new HashMap<>();
 
-    private final DesktopAssetManager am;
+    private DesktopAssetManager am;
 
     // Map from tilekey to image
     private final HashMap<Integer, Image> tileKeyToImageMap = new HashMap<>();
 
-    public InfinityBlockGeometryIndex() {
-        am = new DesktopAssetManager(true);
-        am.registerLoader(LevelLoader.class, "lvl");
+    public InfinityBlockGeometryIndex(AssetManager am) {
+        super(am);
+        this.am = new DesktopAssetManager(true);
+        this.am.registerLoader(LevelLoader.class, "lvl");
         imgLoader = new AWTLoader();
 
         // Just hard code some stuff for now
@@ -141,8 +139,8 @@ public class InfinityBlockGeometryIndex {
         // Check to see if we have loaded this map before
         if (!mapIdToLevels.containsKey(Integer.valueOf(mapId))) {
             // TODO: Lookup stringname based on mapId
-            final String mapName = "aswz/aswz-el-blazer-01.lvl";
-            final LevelFile level = loadMap("Maps/" + mapName);
+            //For now, use same mapname as server side
+            final LevelFile level = loadMap(MapSystem.MAPNAME);
             mapIdToLevels.put(Integer.valueOf(mapId), level);
         }
 
@@ -210,8 +208,11 @@ public class InfinityBlockGeometryIndex {
         return mat;
     }
 
-    public Node generateBlocks(final Node target, final CellArray cells) {
+    public Node generateBlocks(final Node target, final CellArray cells, final CellData lightData,
+                               final boolean smoothLighting) {
 
+        return geomFactory.generateBlocks(target, cells, lightData, smoothLighting);
+        /*
         final Set<Integer> tileSet = new HashSet<>();
         // int count = 0;
         // final int count2 = 0;
@@ -379,7 +380,9 @@ public class InfinityBlockGeometryIndex {
             final Geometry geom = new Geometry("mesh:" + list.materialType + ":" + list.primitiveType, quad);
 
             // geom.setMaterial(getMaterial(list.materialType.getId()));
-            geom.setMaterial(getMaterial(Integer.valueOf(list.materialType.getId())));
+            String id = list.materialType.getId();
+
+            geom.setMaterial(getMaterial(Integer.valueOf(id)));
 
             result.attachChild(geom);
             // count++;
@@ -389,6 +392,8 @@ public class InfinityBlockGeometryIndex {
         // final long end = System.nanoTime();
 //        System.out.println("Generated in:" + ((end - start)/1000000.0) + " ms");
         return result;
+
+        */
     }
 
     // Subspace infinity version, we don't want to re-calculate below or above the

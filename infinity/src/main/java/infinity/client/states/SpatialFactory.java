@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.client.view;
+package infinity.client.states;
 
 import com.jme3.math.*;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
@@ -49,6 +49,7 @@ import com.simsilica.mathd.*;
 import com.simsilica.mphys.*;
 import com.simsilica.mblock.phys.*;
 import com.simsilica.ext.mphys.*;
+import infinity.client.view.BlockGeometryIndex;
 
 /**
  *  Convenience methods for creating Spatials from

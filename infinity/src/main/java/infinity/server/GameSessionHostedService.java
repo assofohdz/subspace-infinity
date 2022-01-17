@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.simsilica.bpos.net.BodyVisibility;
+import infinity.systems.AvatarSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,7 +216,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             playerEntityId = ed.createEntity();
             ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
 
-            avatarEntityId = GameEntities.createWarbird(spawnLoc, ed, playerEntityId, phys, 0);
+            avatarEntityId = GameEntities.createShip(spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD);
 
             ed.setComponent(avatarEntityId, new Player());
 

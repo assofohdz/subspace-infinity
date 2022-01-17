@@ -28,6 +28,7 @@ package infinity.sim;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
+import com.jme3.math.ColorRGBA;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -42,27 +43,8 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-import infinity.es.ArenaId;
-import infinity.es.AudioTypes;
+import infinity.es.*;
 
-import infinity.es.Bounty;
-import infinity.es.Buff;
-import infinity.es.CollisionCategory;
-import infinity.es.Delay;
-import infinity.es.Flag;
-import infinity.es.Frequency;
-import infinity.es.Gold;
-import infinity.es.GravityWell;
-import infinity.es.HealthChange;
-import infinity.es.Meta;
-import infinity.es.Parent;
-import infinity.es.PrizeType;
-import infinity.es.ShapeNames;
-import infinity.es.Spawner;
-import infinity.es.TileType;
-import infinity.es.TileTypes;
-import infinity.es.WarpTouch;
-import infinity.es.WeaponTypes;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
@@ -229,13 +211,17 @@ public class GameEntities {
      *
      * return lastForce; }
      */
-    public static EntityId createOver5(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
-            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final double force,
-            final double gravityRadius, final String gravityType) {
+    public static EntityId createAsteroidLarge(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+                                               final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos
+            //, final double force,
+            //                                   final double gravityRadius, final String gravityType
+                                               ) {
         final EntityId lastOver5 = ed.createEntity();
 
         ed.setComponents(lastOver5, ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.OVER5SIZERADIUS, ed),
-                new SpawnPosition(phys.getGrid(), pos), new GravityWell(gravityRadius, force, gravityType));
+                new SpawnPosition(phys.getGrid(), pos)
+                //, new GravityWell(gravityRadius, force, gravityType)
+                );
         ed.setComponent(lastOver5, new Meta(createdTime));
 
         return lastOver5;
@@ -247,13 +233,12 @@ public class GameEntities {
      * @param ed the entitydata set to create the entity in
      * @return the entityid of the created entity
      */
-    public static EntityId createOver1(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
-            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos,
-            @SuppressWarnings("unused") final int mass) {
+    public static EntityId createAsteroidSmall(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+                                               final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final double mass) {
         final EntityId lastOver1 = ed.createEntity();
 
         ed.setComponents(lastOver1, ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.OVER1SIZERADIUS, ed),
-                // new Mass(mass),
+                new Mass(mass),
                 new SpawnPosition(phys.getGrid(), pos));
         ed.setComponent(lastOver1, new Meta(createdTime));
 
@@ -266,12 +251,12 @@ public class GameEntities {
      * @param ed       the entitydata set to create the entity in
      * @return the entityid of the created entity
      */
-    public static EntityId createOver2(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
-            final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos) {
+    public static EntityId createAsteroidMedium(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
+                                                final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos, final double mass) {
         final EntityId lastOver2 = ed.createEntity();
 
         ed.setComponents(lastOver2, ShapeInfo.create(ShapeNames.OVER2, CorePhysicsConstants.OVER2SIZERADIUS, ed),
-                new SpawnPosition(phys.getGrid(), pos));
+                new SpawnPosition(phys.getGrid(), pos), new Mass(mass));
         ed.setComponent(lastOver2, new Meta(createdTime));
 
         return lastOver2;
@@ -328,14 +313,48 @@ public class GameEntities {
     // from the constants
     // TODO: All parameters should be dumb types and should be the basis of the
     // complex types used in the backend
-    public static EntityId createWarbird(final Vec3d spawnLoc, final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
-            final long createdTime) {
+    public static EntityId createShip(final Vec3d spawnLoc, final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
+                                      final long createdTime, byte ship) {
         final EntityId result = ed.createEntity();
         //final Name name = ed.getComponent(owner, Name.class);
         ed.setComponent(result, new Name("player"));
 
-        ShapeInfo si = ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, si);
+        switch(ship){
+            case 0x0:
+                break;
+            case 0x1:
+                ShapeInfo wb = ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, wb);
+                break;
+            case 0x2:
+                ShapeInfo jav = ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, jav);
+                break;
+            case 0x3:
+                ShapeInfo spider = ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, spider);
+                break;
+            case 0x4:
+                ShapeInfo levi = ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, levi);
+                break;
+            case 0x5:
+                ShapeInfo terr = ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, terr);
+                break;
+            case 0x6:
+                ShapeInfo lanc = ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, lanc);
+                break;
+            case 0x7:
+                ShapeInfo weas = ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, weas);
+                break;
+            case 0x8:
+                ShapeInfo shark = ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+                ed.setComponents(result, shark);
+                break;
+        }
 
         // ViewTypes.ship_warbird(ed),
         // PhysicsMassTypes.normal(ed),
@@ -394,8 +413,8 @@ public class GameEntities {
 
         ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
-        // ed.setComponent(result, new PointLightComponent(ColorRGBA.White,
-        // CoreViewConstants.SHIPLIGHTRADIUS, CorePhysicsConstants.SHIPLIGHTOFFSET));
+        ed.setComponent(result, new PointLightComponent(ColorRGBA.White,
+        CoreViewConstants.SHIPLIGHTRADIUS, CoreViewConstants.SHIPLIGHTOFFSET));
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }

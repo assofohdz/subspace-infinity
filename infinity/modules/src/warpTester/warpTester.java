@@ -83,13 +83,17 @@ public class warpTester extends BaseGameModule {
 
         GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
                 new Vec3d(-7, 0, 7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7, 0, 7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(7, 7, 0), 5, 5000, GravityWell.PUSH);
+        GameEntities.createAsteroidLarge(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(7, 7, 0)
+                //, 5, 5000, GravityWell.PUSH
+                );
 
         GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
                 new Vec3d(7, 0, -7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7, 0, -7));
-        GameEntities.createOver5(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(-7, -7, 0), 5, 5000, GravityWell.PUSH);
+        GameEntities.createAsteroidLarge(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
+                new Vec3d(-7, -7, 0)
+                //, 5, 5000, GravityWell.PUSH
+                );
     }
 
     @Override
