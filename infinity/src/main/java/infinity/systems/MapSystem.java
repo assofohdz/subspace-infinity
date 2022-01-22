@@ -315,11 +315,11 @@ public class MapSystem extends AbstractGameSystem {
                             break;
                         //small asteroid
                         case 216:
-                            GameEntities.createAsteroidSmall(ed,null,physicsSpace,time.getTime(),location, 1);
+                            GameEntities.createAsteroidSmall(ed,null,physicsSpace,time.getTime(),location, 0);
                             break;
                         //large asteroid
                         case 217:
-                            GameEntities.createAsteroidMedium(ed,null,physicsSpace,time.getTime(),location, 2);
+                            GameEntities.createAsteroidMedium(ed,null,physicsSpace,time.getTime(),location, 0);
                             break;
                         //small Asteroid 2
                         case 218:

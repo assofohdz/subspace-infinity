@@ -411,7 +411,7 @@ public class GameServer {
         log.info("Starting game server...");
         // systems.start();
         server.start();
-        loop.start();
+        loop.start(true);
         log.info("Game server started.");
     }
 
