@@ -6,7 +6,9 @@ allprojects {
 
 	//ext.jmeVersion = "3.1.0-stable"
 	//ext.jmeVersion = "[3.3,)"
-	ext.jmeVersion = "3.4.1-stable"
+	//ext.jmeVersion = "3.4.1-stable"
+    //ext.jmeVersion = "3.5.0-beta9"
+    ext.jmeVersion = "3.6.0-SNAPSHOT"
 	ext.lemurVersion = "1.15.1-SNAPSHOT"
 	ext.lemurProtoVersion = "1.12.1-SNAPSHOT"
 	ext.lemurPropsVersion = "1.1.1"

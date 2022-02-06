@@ -34,10 +34,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.demo.sim.ai;
+package infinity.sim.ai;
 
 import java.util.*;
 
+import infinity.es.MobType;
+import infinity.es.ProbeInfo;
 import org.slf4j.*;
 
 import com.google.common.base.Function;
@@ -50,8 +52,6 @@ import com.simsilica.sim.*;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.*;
-
-import com.simsilica.demo.es.*;
 
 /**
  *

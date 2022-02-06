@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.demo.es;
+package infinity.es;
 
 import org.slf4j.*;
 

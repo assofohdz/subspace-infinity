@@ -34,10 +34,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.demo.sim.ai;
+package infinity.sim.ai;
 
 import java.util.*;
 
+import com.simsilica.crig.RigShape;
+import infinity.es.ProbeInfo;
+import infinity.es.Speech;
 import org.slf4j.*;
 
 import com.google.common.base.Predicate;
@@ -49,10 +52,8 @@ import com.simsilica.mathd.*;
 import com.simsilica.mblock.phys.*;
 import com.simsilica.mphys.*;
 
-import com.simsilica.crig.*;
 import com.simsilica.ext.mphys.*;
 
-import com.simsilica.demo.es.*;
 
 /**
  *  When an AI Mob is a phyics rigid body, it will be controlled

@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.demo.sim.ai;
+package infinity.sim.ai;
 
 /**
  *  One of the perception events, this one for perceived object movement.

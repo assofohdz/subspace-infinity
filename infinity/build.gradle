@@ -65,6 +65,7 @@ dependencies {
     implementation "com.simsilica:sio2-mblock:$mossVersion"
     implementation "com.simsilica:sio2-mphys:$mossVersion"
     implementation "com.simsilica:bpos:$mossVersion"
+    implementation "com.simsilica:crig:$mossVersion"
 
     //jWalkable for 2d polygonal pathfinding
     //https://github.com/implicit-invocation/jwalkable

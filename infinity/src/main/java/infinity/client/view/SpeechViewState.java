@@ -34,8 +34,11 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.demo.view;
+package infinity.client.view;
 
+import infinity.client.ConnectionState;
+import infinity.client.states.ModelViewState;
+import infinity.es.Speech;
 import org.slf4j.*;
 
 import com.google.common.collect.*;
@@ -54,10 +57,6 @@ import com.simsilica.es.*;
 import com.simsilica.es.common.*;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.lemur.GuiGlobals;
-
-import com.simsilica.demo.client.ConnectionState;
-import com.simsilica.demo.es.*;
-
 /**
  *
  *
@@ -138,7 +137,7 @@ public class SpeechViewState extends BaseAppState {
         private float yOffset;
         private float lineOffset = 0;
  
-        public SpeechBubble( EntityId entityId, Speech speech, Decay decay ) {
+        public SpeechBubble(EntityId entityId, Speech speech, Decay decay ) {
             this.entityId = entityId;
             this.decay = decay; 
             this.speaker = speech.getSpeaker();

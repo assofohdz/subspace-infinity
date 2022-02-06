@@ -40,6 +40,7 @@ import java.io.*;
 import com.simsilica.bpos.mphys.BodyPositionPublisher;
 import com.simsilica.bpos.mphys.LargeGridIndexSystem;
 import com.simsilica.mworld.LeafId;
+import infinity.sim.ai.MobSystem;
 import infinity.systems.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -271,6 +272,9 @@ public class GameServer {
         systems.register(EnergySystem.class, new EnergySystem());
         systems.register(AvatarSystem.class, new AvatarSystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
+
+        systems.register(MobSystem.class, new MobSystem());
+
         systems.register(AttackSystem.class, new AttackSystem());
         systems.register(ArenaSystem.class, new ArenaSystem());
 

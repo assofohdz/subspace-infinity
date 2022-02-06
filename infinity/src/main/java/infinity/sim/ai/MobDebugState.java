@@ -34,8 +34,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.simsilica.demo.sim.ai;
+package infinity.sim.ai;
 
+import infinity.es.MobType;
+import infinity.es.ProbeInfo;
 import org.slf4j.*;
 
 import com.jme3.app.Application;
@@ -56,11 +58,6 @@ import com.simsilica.sim.GameSystemManager;
 import com.simsilica.state.DebugHudState;
 
 import com.simsilica.mphys.*;
-import com.simsilica.ext.mphys.*;
-
-import com.simsilica.demo.HostState;
-import com.simsilica.demo.es.MobType;
-import com.simsilica.demo.es.ProbeInfo;
 
 /**
  *
