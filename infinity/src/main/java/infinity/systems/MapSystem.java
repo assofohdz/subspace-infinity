@@ -304,7 +304,7 @@ public class MapSystem extends AbstractGameSystem {
                      */
 
 
-                    final Vec3d location = new Vec3d(xpos, 0, zpos).add(arenaOffset);
+                    final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
 
                     // TODO: add more special cases here:
                     // TODO: Fetch settings for the given coordinates and create the right gravity
@@ -335,8 +335,7 @@ public class MapSystem extends AbstractGameSystem {
                             final int tileId = Short.toUnsignedInt(s);
                             tileSet.add(Integer.valueOf(tileId));
 
-                            final int value = tileId | (mapId << 8);
-                            world.setWorldCell(location, 10);
+                            final int value = tileId | (mapId << 8);world.setWorldCell(location, 10);
                             break;
                     }
 

@@ -51,7 +51,6 @@ import com.jme3.texture.plugins.AWTLoader;
 //import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.builder.BuilderState;
 import com.simsilica.es.EntityId;
-import com.simsilica.lemur.event.MouseAppState;
 import com.simsilica.state.CompositeAppState;
 
 import infinity.HelpState;
@@ -140,7 +139,8 @@ public class GameSessionState extends CompositeAppState {
         //getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
 
         getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
-        addChild(new MouseAppState(getApplication()));
+
+        //addChild(new MouseAppState(getApplication()));
 
         //addChild(new MiniMapState(((SimpleApplication) getApplication()).getRootNode(), 64, 200));
     }

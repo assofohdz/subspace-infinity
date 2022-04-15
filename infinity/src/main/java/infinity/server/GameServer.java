@@ -198,7 +198,7 @@ public class GameServer {
         // LeafDb leafDb2 = new LeafDbCache(new TestLeafDb());
         // Just create a test world for now
         LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
-        World world = new DefaultLeafWorld(leafDb);
+        World world = new DefaultLeafWorld(leafDb, 10);
 
         systems.register(World.class, world);
         server.getServices().addService(new WorldHostedService(world, InfinityConstants.TERRAIN_CHANNEL));
@@ -368,7 +368,7 @@ public class GameServer {
         Serializer.registerClass(ShapeInfo.class, new FieldSerializer());
         Serializer.registerClass(Mass.class, new FieldSerializer());
         Serializer.registerClass(MovementInput.class, new FieldSerializer());
-        Serializer.registerClass(LeafId.class, new FieldSerializer());
+        //Serializer.registerClass(LeafId.class, new FieldSerializer());
         // Serializer.registerClass(ObjectType.class, new FieldSerializer());
         // Serializer.registerClass(Position.class, new FieldSerializer());
         // Serializer.registerClass(ModelInfo.class, new FieldSerializer());
