@@ -44,7 +44,6 @@ import infinity.es.input.MovementInput;
 import com.google.common.base.Function;
 
 import com.simsilica.es.*;
-import com.simsilica.mathd.*;
 import com.simsilica.sim.*;
 
 import com.simsilica.ext.mphys.MPhysSystem;

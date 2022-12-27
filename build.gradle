@@ -1,98 +1,21 @@
-allprojects {
-	apply plugin: "maven-publish"
+subprojects {
 
-	group="subspace.infinity"
-    
     version='1.0.0-SNAPSHOT'
 
     ext.jmeVersion = '3.6.0-SNAPSHOT'
+    //ext.jmeVersion = '3.5.2-stable'
     ext.lemurVersion = '1.16.0-SNAPSHOT'
-    ext.lemurProtoVersion = '1.13.0'
-    ext.lemurPropsVersion = '1.2.0'
-    ext.simMathVersion = '1.5.0'
-    ext.sio2Version = '1.7.0'
-    ext.simEtherealVersion = '1.7.0'
-    ext.zayEsVersion = '1.4.0'
-    ext.zayEsNetVersion = '1.5.0'
+    ext.lemurProtoVersion = '1.12.1-SNAPSHOT'
+    ext.lemurPropsVersion = '1.1.1'
+    ext.simMathVersion = '1.6.0-SNAPSHOT'
+    ext.sio2Version = '1.8.0-SNAPSHOT'
+    ext.simEtherealVersion = '1.8.0-SNAPSHOT'
+    ext.zayEsVersion = '1.4.0-SNAPSHOT'
+    ext.zayEsNetVersion = '1.5.0-SNAPSHOT'
 
     ext.groovyVersion = '2.4.11'  // 2.4.21 is the latest 2.4.x
     ext.log4jVersion = '2.15.0'
     ext.slf4jVersion = '1.7.32'
 
     ext.mossVersion = "1.0.0-SNAPSHOT"
-
-    repositories {
-        mavenLocal()
-        //jcenter()
-        mavenCentral()
-        //maven { url "https://jcenter.bintray.com" }
-        //maven { url "https://jitpack.io" }
-        //maven { url "https://oss.sonatype.org/content/repositories/snapshots"}
-        //maven { url "https://oss.sonatype.org/content/repositories/releases/" }
-        //maven { url "https://plugins.gradle.org/m2/"}
-    }
 }
-
-subprojects {
-    apply plugin: "checkstyle"
-    apply plugin: "groovy"
-	apply plugin: "java"
-	apply plugin: "maven-publish"
-
-	sourceCompatibility = 1.11
-
-    checkstyle {
-        configFile = rootProject.file("checkstyle.xml")
-        configProperties = [projectRoot: "${rootDir}"]
-    }
-
-    compileJava {
-        options.encoding = "UTF-8"
-        options.compilerArgs << '-Xlint:cast'
-        options.compilerArgs << '-Xlint:classfile'
-        options.compilerArgs << '-Xlint:deprecation'
-        options.compilerArgs << '-Xlint:dep-ann'
-        options.compilerArgs << '-Xlint:divzero'
-        options.compilerArgs << '-Xlint:empty'
-        options.compilerArgs << '-Xlint:fallthrough'
-        options.compilerArgs << '-Xlint:finally'
-        options.compilerArgs << '-Xlint:options'
-        options.compilerArgs << '-Xlint:overrides'
-        options.compilerArgs << '-Xlint:path'
-        options.compilerArgs << '-Xlint:processing'
-        options.compilerArgs << '-Xlint:rawtypes'
-        options.compilerArgs << '-Xlint:serial'
-        options.compilerArgs << '-Xlint:static'
-        options.compilerArgs << '-Xlint:try'
-        options.compilerArgs << '-Xlint:unchecked'
-        options.compilerArgs << '-Xlint:varargs'
-        options.deprecation = true
-    }
-
-    dependencies {
-        implementation "com.google.guava:guava:19.0"
-
-        testImplementation(
-            "junit:junit:4.12",
-            "org.codehaus.groovy:groovy-all:2.4.11",
-            "org.slf4j:slf4j-api:1.7.36",
-            "org.apache.logging.log4j:log4j-api:2.17.2",
-            "org.apache.logging.log4j:log4j-core:2.5"
-        )
-
-        testRuntimeOnly(
-            "org.apache.logging.log4j:log4j-slf4j-impl:2.5"
-        )
-    }
-
-    test {
-        testLogging {
-            // Uncomment and tests will run even when nothing has changed
-            //outputs.upToDateWhen {false}
-            showStandardStreams = true
-            exceptionFormat = "full"
-        }
-    }
-}
-
-

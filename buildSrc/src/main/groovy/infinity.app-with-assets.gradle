@@ -1,0 +1,25 @@
+plugins {
+    id 'infinity.java-conventions'
+    id 'application'
+}
+
+// This is not quite as good as a separate assets.jar but it a lot
+// easier to configure.  Having a separate assets project was a little
+// of a pain, too, and ultimately not supported well in the latest gradle.
+// I think the "right way" is to have a separate assets configuration
+// and then setup jar tasks, etc. for that.  I'm going to punt on that
+// for the moment since it so far doesn't help me... Mythruna itself already
+// has a separate project for its jarrable assets.
+sourceSets {
+    main {
+        resources {
+            srcDirs += "assets"
+            excludes += [
+                "**/*.psd",
+                "**/*.glb",
+                "**/*.gltf"
+            ]
+        }
+    }
+}
+

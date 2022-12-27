@@ -1,0 +1,80 @@
+/**
+ *  Conventions for all moss java-based modules.
+ */
+
+plugins {
+    id 'java'
+    id 'groovy'
+    id 'checkstyle'
+}
+
+// Projects should use Maven Central for external dependencies
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// Standard dependencies that we expect all of the java projects
+// to have/need.
+dependencies {
+    implementation 'com.google.guava:guava:19.0'
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+
+    testImplementation (
+        'junit:junit:4.12',
+        "org.codehaus.groovy:groovy-all:${groovyVersion}",
+        "org.slf4j:slf4j-api:$slf4jVersion",
+        "org.apache.logging.log4j:log4j-api:$log4jVersion",
+        "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    )
+
+    testRuntimeOnly (
+        "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+    )
+}
+
+
+//checkstyle {
+//    config = ...
+//    maxWarnings = 0
+//}
+
+compileJava { // compile-time options:
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-Xlint:unchecked'
+    options.deprecation = true
+    if( JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_10) ) {
+        options.release = 8
+    }
+}
+
+java {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    withJavadocJar()
+    withSourcesJar()
+}
+
+javadoc {
+    // Disable doclint for JDK8+.
+    if( JavaVersion.current().isJava8Compatible() ) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
+test {
+    testLogging {
+        // I want to see the tests that are run and pass, etc.
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        exceptionFormat "full"
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            exclude "**/.backups/**"
+        }
+    }
+}
+

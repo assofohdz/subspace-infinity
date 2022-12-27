@@ -30,8 +30,6 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import org.ini4j.Ini;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -55,11 +53,9 @@ import infinity.sim.TimeManager;
  */
 public class wangTester extends BaseGameModule {
 
-    static Logger log = LoggerFactory.getLogger(wangTester.class);
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~wangTester\\s(\\w+)");
 
-    @SuppressWarnings("unused")
     private Ini settings;
 
     public wangTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
@@ -114,6 +110,6 @@ public class wangTester extends BaseGameModule {
      * @param s  The message to handle
      */
     public void messageHandler(final EntityId id, final String s) {
-        log.info("Received command" + s);
+        //log.info("Received command" + s);
     }
 }

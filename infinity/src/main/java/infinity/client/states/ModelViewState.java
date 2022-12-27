@@ -41,7 +41,6 @@ import java.util.*;
 import infinity.InfinityConstants;
 import infinity.client.ConnectionState;
 import infinity.client.view.BlockGeometryIndex;
-import infinity.client.view.InfinityBlockGeometryIndex;
 import infinity.client.view.PickedObject;
 import infinity.es.ShapeNames;
 import org.slf4j.*;

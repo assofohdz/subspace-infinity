@@ -30,12 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.base.DefaultWatchedEntity;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractControlDriver;
-import com.simsilica.mphys.Contact;
-import com.simsilica.mphys.ControlDriver;
 import com.simsilica.mphys.RigidBody;
 
 import infinity.es.input.MovementInput;

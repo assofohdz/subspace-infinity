@@ -1,18 +1,5 @@
-apply plugin: "java"
-
-sourceSets {
-	main {
-		java {
-			srcDir "src"
-			filter.exclude("**/*.ini", "**/*.set")
-			filter.include("**/.java")
-		}
-		resources {
-			srcDir "src"
-			filter.include("**/*.ini", "**/*.set")
-			filter.exclude("**/.java")
-		}
-	}
+plugins {
+	id 'infinity.published-library'
 }
 
 dependencies {
@@ -34,5 +21,5 @@ dependencies {
 	implementation "com.simsilica:sio2-mphys:1.0.0-SNAPSHOT"
 
 	// Local dependencies
-	implementation project(":infinity:api")
+	implementation project(":api")
 }

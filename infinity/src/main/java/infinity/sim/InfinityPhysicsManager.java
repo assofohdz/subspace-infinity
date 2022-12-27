@@ -6,7 +6,6 @@
 package infinity.sim;
 
 import com.simsilica.mphys.PhysicsSpace;
-import infinity.sim.PhysicsManager;
 
 /**
  *

@@ -88,7 +88,7 @@ public class PhysicsDebugState extends CompositeAppState {
         stats = phys.getStats();
         addChild(new BinStatusState<>(phys, 64));
         addChild(new BodyDebugState<>(mPhysSystem));
-        addChild(new ContactDebugState<>(phys));
+        addChild(new ContactDebugState(phys));
 
         final DebugHudState debug = getState(DebugHudState.class);
         if (debug != null) {

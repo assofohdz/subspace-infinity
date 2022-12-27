@@ -1,9 +1,11 @@
-apply plugin: "java"
+plugins {
+	id 'infinity.published-library'
+}
 
 sourceSets {
 	main {
 		java {
-			srcDir "src"
+			srcDirs = ["src"]
 		}
 	}
 }

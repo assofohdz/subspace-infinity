@@ -39,7 +39,6 @@ import java.io.*;
 
 import com.simsilica.bpos.mphys.BodyPositionPublisher;
 import com.simsilica.bpos.mphys.LargeGridIndexSystem;
-import com.simsilica.mworld.LeafId;
 import infinity.sim.ai.MobSystem;
 import infinity.systems.*;
 import org.slf4j.Logger;
