@@ -27,7 +27,6 @@ package infinity.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -39,6 +38,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.ClassPath;
 import org.ini4j.Ini;
 
 import com.jme3.network.service.AbstractHostedService;
@@ -82,7 +83,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
     private final HashMap<String, BaseGameModule> modules;
     private final HashMap<String, BaseGameService> services;
 
-    private final Pattern startModulePattern = Pattern.compile("\\~startModule\\s(\\w+)");
+    private final Pattern startModulePattern = Pattern.compile("~startModule\\s(\\w+)");
     private final Pattern startServicePattern = Pattern.compile("\\~startService\\s(\\w+)");
     private final Pattern stopModulePattern = Pattern.compile("\\~stopModule\\s(\\w+)");
     private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");
@@ -91,12 +92,12 @@ public class AdaptiveLoadingService extends AbstractHostedService
     List<String> repositoryList = Arrays.asList(
             // Loading extensions:
             // Used in distribution
-            "modules\\modules-1.0.0-SNAPSHOT.jar",
-            "modules\\build\\libs\\modules-1.0.0-SNAPSHOT.jar",
+            "..\\modules\\modules-1.0.0-SNAPSHOT.jar",
+            "..\\modules\\build\\libs\\modules-1.0.0-SNAPSHOT.jar",
             // Used from SDK
-            "build\\modules\\libs\\modules-1.0.0-SNAPSHOT.jar",
+            "..\\build\\modules\\libs\\modules-1.0.0-SNAPSHOT.jar",
             // Extras
-            "modules");
+            "..\\modules");
 
     private final GameSystemManager gameSystems;
 
@@ -126,8 +127,19 @@ public class AdaptiveLoadingService extends AbstractHostedService
          */
         final Consumer<String> consumerDirectories = folder -> {
             final File fileFolder = new File(folder);
+
             if (fileFolder.exists()) {
-                repository.add(fileFolder);
+
+                String canonPath = null;
+                try {
+                    canonPath = fileFolder.getCanonicalPath();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                File canonPahFile = new File(canonPath);
+
+                repository.add(canonPahFile);
             }
         };
 
@@ -140,7 +152,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
         // Register consuming methods for patterns
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern,
                 "The command to start a new module is ~startModule <module>, where <module> is the module you want to start",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> startModule(id, module)));
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id1, module1) -> startModule(id1, module1)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern,
                 "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop",
                 new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> stopModule(id, module)));
@@ -167,15 +179,56 @@ public class AdaptiveLoadingService extends AbstractHostedService
     private void loadModule(final String moduleName) throws IllegalAccessException, InstantiationException, IOException,
             ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
         // Class prepended with their package name
-        final String clazz = moduleName + "." + moduleName;
-        // Ini ini = loadSettings(settings);
-        loadClass(clazz);
+
+        final String packageName = "infinity.modules."+moduleName;
+        //final String clazz = packageName + "." + moduleName+"."+moduleName; //every module class is inside a package of their own name
+
+        Class<?> javaGuava = getClassGuava(packageName, moduleName);
+        if (javaGuava != null) {
+            loadClass(javaGuava);
+            return;
+        }
+
+        Class<?> java = getClass(packageName);
+        if (java != null){
+            loadClass(javaGuava);
+            return;
+        }
     }
+
+
+    private Class<?> getClassGuava(String packageName, String className){
+
+        final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+        try {
+            ImmutableSet<ClassPath.ClassInfo> topLevelClasses = ClassPath.from(loader).getTopLevelClasses();
+            for (final ClassPath.ClassInfo info : topLevelClasses) {
+                if (info.getPackageName().equals(packageName) && info.getSimpleName().equals(className)) {
+                    System.out.println("PackageName: "+packageName+", className:"+className);
+                    System.out.println("info.getSimpleName(): "+info.getSimpleName());
+                    System.out.println("info.getName(): "+info.getName());
+                    System.out.println("info.getPackageName(): "+info.getPackageName());
+                    Class<?> clazz = info.load();
+                    System.out.println("Found class: "+clazz.toString());
+                    return clazz;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Loads the class
+    private Class<?> getClass(final String file) throws ClassNotFoundException {
+        return classLoader.loadClass(file);
+    }
+
 
     /**
      * Loads the .class file
      *
-     * @param file         the file to load
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException
@@ -185,9 +238,9 @@ public class AdaptiveLoadingService extends AbstractHostedService
      * @throws InvocationTargetException
      */
     // Loads the class
-    private void loadClass(final String file) throws IllegalAccessException, InstantiationException, IOException,
+    private void loadClass(Class<?> java) throws IllegalAccessException, InstantiationException, IOException,
             ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-        final Class<?> java = classLoader.loadClass(file);
+        //final Class<?> java = classLoader.loadClass(file);
         final Constructor<?> c = java.getConstructor(ChatHostedPoster.class, AccountManager.class, AdaptiveLoader.class,
                 ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
@@ -318,23 +371,5 @@ public class AdaptiveLoadingService extends AbstractHostedService
     public boolean validateSettings(final Ini settings) throws IOException {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
-    }
-
-    /**
-     * Loads the .ini file with Ini4J
-     *
-     * @param iniFileName name of the file (without filetype)
-     * @return the Ini object holding all settings inside the ini-file
-     * @throws IOException
-     */
-    @Override
-    public Ini loadSettings(final String iniFileName) throws IOException {
-        // Ini files are considered resources
-        final String settings = iniFileName + "/" + iniFileName + ".ini";
-        final Ini result;
-        try (InputStream inputStream = classLoader.getResourceAsStream(settings)) {
-            result = new Ini(inputStream);
-        }
-        return result;
     }
 }

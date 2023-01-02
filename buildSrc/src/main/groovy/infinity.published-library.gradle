@@ -3,10 +3,16 @@
  */
 
 plugins {
-    id 'java-library'
+    id 'java-library-distribution'
     id 'maven-publish'
     id 'infinity.java-conventions'
     id 'signing'
+}
+
+distributions {
+    main {
+        distributionBaseName = 'infinity-modules'
+    }
 }
 
 group = 'infinity'

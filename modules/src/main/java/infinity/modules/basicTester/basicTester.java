@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package basicTester;
+package infinity.modules.basicTester;
 
 import java.util.HashSet;
 import java.util.regex.Pattern;

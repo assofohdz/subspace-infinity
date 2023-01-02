@@ -23,3 +23,23 @@ dependencies {
 	// Local dependencies
 	implementation project(":api")
 }
+
+checkstyle {
+	sourceSets = []
+}
+
+tasks.withType(Tar){
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(Zip){
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+sourceSets {
+	main {
+		resources {
+			sourceSets.main.resources { srcDirs = ["src/main/java"]; exclude "**/*.java"; includes += "**/*.ini"; }
+		}
+	}
+}

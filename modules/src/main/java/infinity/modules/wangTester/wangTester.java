@@ -23,16 +23,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package warpTester;
+package infinity.modules.wangTester;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+import infinity.modules.prizeTester.prizeTester;
 import org.ini4j.Ini;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -54,16 +53,14 @@ import infinity.sim.TimeManager;
  *
  * @author Asser
  */
-public class warpTester extends BaseGameModule {
+public class wangTester extends BaseGameModule {
 
-    static Logger log = LoggerFactory.getLogger(warpTester.class);
     private EntityData ed;
-    private final Pattern warpTesterCommand = Pattern.compile("\\~warpTester\\s(\\w+)");
+    private final Pattern prizeTesterCommand = Pattern.compile("\\~wangTester\\s(\\w+)");
 
-    @SuppressWarnings("unused")
     private Ini settings;
 
-    public warpTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+    public wangTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
             final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         super(chp, am, loader, arenas, time, physics);
     }
@@ -71,29 +68,19 @@ public class warpTester extends BaseGameModule {
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
-
+        settings = new Ini();
         try {
-            settings = getLoader().loadSettings("warpTester");
+            InputStream is = prizeTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
+            settings = new Ini(is);
         } catch (final IOException ex) {
-            java.util.logging.Logger.getLogger(warpTester.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(), 13);
-
+                getTimeManager().getTime(), new Vec3d(), 20);
         GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(-7, 0, 7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7, 0, 7));
-        GameEntities.createAsteroidLarge(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(7, 7, 0)
-                //, 5, 5000, GravityWell.PUSH
-                );
+                new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
 
-        GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(7, 0, -7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7, 0, -7));
-        GameEntities.createAsteroidLarge(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(-7, -7, 0)
-                //, 5, 5000, GravityWell.PUSH
-                );
     }
 
     @Override
@@ -105,8 +92,8 @@ public class warpTester extends BaseGameModule {
     public void start() {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         //
-        getChp().registerPatternBiConsumer(warpTesterCommand,
-                "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute",
+        getChp().registerPatternBiConsumer(prizeTesterCommand,
+                "The command to make this wangTester do stuff is ~wangTester <command>, where <command> is the command you want to execute",
                 new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
@@ -126,6 +113,6 @@ public class warpTester extends BaseGameModule {
      * @param s  The message to handle
      */
     public void messageHandler(final EntityId id, final String s) {
-        log.info("Received command" + s);
+        //log.info("Received command" + s);
     }
 }

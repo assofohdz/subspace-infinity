@@ -23,13 +23,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package lightTester;
+package infinity.modules.lightTester;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import infinity.modules.prizeTester.prizeTester;
 import org.ini4j.Ini;
 
 import com.simsilica.es.EntityData;
@@ -68,11 +70,15 @@ public class lightTester extends BaseGameModule {
 
     @Override
     protected void initialize() {
+
         ed = getSystem(EntityData.class);
+
+        settings = new Ini();
         try {
-            settings = getLoader().loadSettings("lightTester");
+            InputStream is = prizeTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
+            settings = new Ini(is);
         } catch (final IOException ex) {
-            Logger.getLogger(lightTester.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),

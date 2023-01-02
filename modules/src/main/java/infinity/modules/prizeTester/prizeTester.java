@@ -23,9 +23,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package prizeTester;
+package infinity.modules.prizeTester;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
@@ -57,8 +58,6 @@ public class prizeTester extends BaseGameModule {
     static Logger log = LoggerFactory.getLogger(prizeTester.class);
     private EntityData ed;
     private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
-
-    @SuppressWarnings("unused")
     private Ini settings;
 
     public prizeTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
@@ -70,9 +69,10 @@ public class prizeTester extends BaseGameModule {
     @Override
     protected void initialize() {
         ed = getSystem(EntityData.class);
-
+        settings = new Ini();
         try {
-            settings = getLoader().loadSettings("prizeTester");
+            InputStream is = prizeTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
+            settings = new Ini(is);
         } catch (final IOException ex) {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
