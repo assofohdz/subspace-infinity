@@ -57,7 +57,7 @@ public class InfinityConstants {
     public static final int DEFAULT_PORT = 6942;
 
     /**
-     * We add an extra channel on the client->server connection to send chat related
+     * We add an extra channel on the client-server connection to send chat related
      * messages. This is its own separate TCP socket that avoids tying up the main
      * connection.
      */

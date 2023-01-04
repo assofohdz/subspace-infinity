@@ -1,4 +1,4 @@
-Material WarpMaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteShader.j3md {
+Material WarpMaterialUnshaded : MatDefs/Multiline/AnimateMultilineSpriteUnshaded.j3md {
     MaterialParameters {
         ColorMap : Flip Textures/Subspace/warp.bm2
         numTilesX : 6

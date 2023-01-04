@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.simsilica.bpos.net.BodyVisibility;
-import infinity.systems.AvatarSystem;
+import infinity.systems.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +67,6 @@ import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
-import infinity.systems.AttackSystem;
-import infinity.systems.MapSystem;
 
 /**
  *
@@ -175,6 +173,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
      */
     private class GameSessionImpl implements GameSession {
 
+        private WarpSystem warpSys;
         private boolean selfSet = false;
 
         private final HostedConnection conn;
@@ -224,6 +223,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
             log.info("createdAvatar:" + avatarEntityId);
 
+
         }
 
         public void initialize() {
@@ -255,6 +255,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             this.phys = gameSystems.get(PhysicsSpace.class, true);
 
             log.info("GameSessionImpl.initialized()");
+
+            warpSys = gameSystems.get(WarpSystem.class);
         }
 
         public void close() {
@@ -327,6 +329,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         @Override
         public void action(final byte actionInput) {
+            if (actionInput == ActionSystem.WARP){
+                warpSys.requestWarpToCenter(avatarEntityId);
+            }
             return;
         }
 
@@ -363,7 +368,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
             default:
                 throw new AssertionError();
             }
-
         }
 
     }

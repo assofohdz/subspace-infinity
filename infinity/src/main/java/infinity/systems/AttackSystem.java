@@ -646,7 +646,7 @@ public class AttackSystem extends AbstractGameSystem {
      * Queue up an attack
      *
      * @param attacker   the attacking entity
-     * @param weaponType the weapon of choice
+     * @param flag the weapon of choice
      */
     public void sessionAttack(final EntityId attacker, final byte flag) {
         sessionAttackCreations.add(new Attack(attacker, flag));

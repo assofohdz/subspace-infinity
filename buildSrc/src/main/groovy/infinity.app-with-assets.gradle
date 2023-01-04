@@ -19,6 +19,37 @@ sourceSets {
                 "**/*.glb",
                 "**/*.gltf"
             ]
+            //includes += [
+            //    "**/*.bset",
+            //    "**/*.blocks",
+            //    "**/*.fset",
+            //    "**/*.ogg",
+            //    "**/*.wav",
+            //    "**/*.png",
+            //    "**/*.jpg",
+            //    "**/*.j3md",
+            //    "**/*.frag",
+            //    "**/*.vert",
+            //    "**/*.glsllib",
+            //    "**/*.fnt",
+            //    "**/*.j3m",
+            //    "**/*.j3md",
+            //    "**/*.j3o",
+            //    "**/*.blocks",
+            //    //Sounds
+            //    "**/*.wa2",
+            //   //Levels and tilesets
+            //    "**/*.bmp",
+            //   "**/*.bm2",
+            //    "**/*.lvl",
+            //    "**/*.lvz",
+            //    //Log config
+            //    "**/*.xml",
+            //    //Server settings
+            //    "**/*.cfg",
+            //    "**/*.ini",
+            //    "**/*.sss"
+            //]
         }
     }
 }

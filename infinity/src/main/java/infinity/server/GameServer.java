@@ -295,6 +295,8 @@ public class GameServer {
 
         systems.register(SettingsSystem.class, new SettingsSystem(assetLoader, adaptiveLoader));
         systems.register(MapSystem.class, new MapSystem(assetLoader));
+
+        systems.register(WarpSystem.class, new WarpSystem());
         // <--
 
         // The physics system will need some way to load physics collision shapes

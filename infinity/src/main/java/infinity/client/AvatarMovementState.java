@@ -153,7 +153,6 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
 
         movementInput = new MovementInput(thrust, facing, flags);
 
-        // TODO: Figure out a way to only send when we are pressing keys
         // if (thrust.x != 0.0 || thrust.y != 0.0) {
 
         //Send input only if we are pressing a key, or if we have just released the key
