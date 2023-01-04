@@ -276,6 +276,7 @@ public class GameServer {
 
         systems.register(AttackSystem.class, new AttackSystem());
         systems.register(ArenaSystem.class, new ArenaSystem());
+        systems.register(PrizeSystem.class, new PrizeSystem(mphys.getPhysicsSpace()));
 
         // Set up contacts to be filtered
         final ContactSystem contactSystem = new ContactSystem();
@@ -286,6 +287,8 @@ public class GameServer {
 
         final AssetLoaderService assetLoader = new AssetLoaderService();
         server.getServices().addService(assetLoader);
+
+
 
         final AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
         server.getServices().addService(adaptiveLoader);

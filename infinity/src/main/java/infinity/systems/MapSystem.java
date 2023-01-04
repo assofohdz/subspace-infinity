@@ -335,7 +335,8 @@ public class MapSystem extends AbstractGameSystem {
                             final int tileId = Short.toUnsignedInt(s);
                             tileSet.add(Integer.valueOf(tileId));
 
-                            final int value = tileId | (mapId << 8);world.setWorldCell(location, 10);
+                            final int value = tileId | (mapId << 8);
+                            world.setWorldCell(location, 10);
                             break;
                     }
 

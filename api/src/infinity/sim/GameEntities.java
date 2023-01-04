@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import com.jme3.math.ColorRGBA;
+import com.jme3.scene.shape.Sphere;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -439,7 +440,8 @@ public class GameEntities {
         ed.setComponents(result,
                 // Possible to add model if we want the players to be able to see the spawner
                 new SpawnPosition(phys.getGrid(), pos),
-                new Spawner(CoreGameConstants.PRIZEMAXCOUNT, Spawner.SpawnType.Prizes));
+                new Spawner(CoreGameConstants.PRIZEMAXCOUNT, Spawner.SpawnType.Prizes),
+                new SphereShape(radius));
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }

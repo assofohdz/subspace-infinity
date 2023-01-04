@@ -18,19 +18,22 @@ repositories {
 // to have/need.
 dependencies {
     implementation "com.google.guava:guava:${guavaVersion}"
-    implementation "org.slf4j:slf4j-api:$slf4jVersion"
 
     testImplementation (
-        'junit:junit:4.12',
-        "org.codehaus.groovy:groovy-all:${groovyVersion}",
-        "org.slf4j:slf4j-api:$slf4jVersion",
-        "org.apache.logging.log4j:log4j-api:$log4jVersion",
-        "org.apache.logging.log4j:log4j-core:$log4jVersion"
+        'junit:junit:4.12'
     )
 
-    testRuntimeOnly (
-        "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
-    )
+    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    //A simple binding
+    //implementation "org.slf4j:slf4j-simple:$slf4jVersion"
+    //Log4j binding
+    //log4j-slf4j-impl should be used with SLF4J 1.7.x releases or older.
+    //log4j-slf4j2-impl should be used with SLF4J 2.0.x releases or newer.
+    implementation "org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
 }
 
 

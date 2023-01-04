@@ -78,7 +78,7 @@ public class prizeTester extends BaseGameModule {
         }
 
         GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(), 10);
+                getTimeManager().getTime(), new Vec3d(0,1,0), 100);
     }
 
     @Override
