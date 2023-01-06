@@ -140,8 +140,8 @@ public class InfinityBlockGeometryIndex extends BlockGeometryIndex{
         if (!mapIdToLevels.containsKey(Integer.valueOf(mapId))) {
             // TODO: Lookup stringname based on mapId
             //For now, use same mapname as server side
-            final LevelFile level = loadMap(MapSystem.MAPNAME);
-            mapIdToLevels.put(Integer.valueOf(mapId), level);
+            //final LevelFile level = loadMap(MapSystem.MAPNAME);
+            //mapIdToLevels.put(Integer.valueOf(mapId), level);
         }
 
         final int tileKey = tileId | (mapId << 8);

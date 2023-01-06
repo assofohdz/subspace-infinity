@@ -25,17 +25,15 @@
  */
 package infinity.systems;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
-import com.simsilica.bpos.BodyPosition;
 import com.simsilica.mworld.World;
 import infinity.es.GravityWell;
+import infinity.server.chat.ChatHostedService;
+import infinity.sim.AccessLevel;
+import infinity.sim.CommandConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +51,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
-import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
@@ -63,29 +60,36 @@ import infinity.sim.GameEntities;
 
 
 /**
- * State
+ * State to keep track of loaded maps, load them, unload them
+ * The map names are unique identifiers of each map
  *
  * @author Asser
  */
 public class MapSystem extends AbstractGameSystem {
+
+    private final ChatHostedService chat;
+    //Map that holds all block coordinates for a given map:
+    private HashMap<String, HashSet<Vec3d>> activeMaps = new HashMap<>();
+    //Map that holds the offset coordinates of each map:
+    private HashMap<String, Vec3d> mapCoordinates = new HashMap<>();
 
     public static final byte CREATE = 0x0;
     public static final byte READ = 0x1;
     public static final byte UPDATE = 0x2;
     public static final byte DELETE = 0x3;
 
-    public static String MAPNAME = "Maps/trench.lvl";
+    private final String mapDirectory = "Maps";
+
+    private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
+    private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
 
     static Logger log = LoggerFactory.getLogger(MapSystem.class);
 
     private EntityData ed;
     private MPhysSystem<MBlockShape> physics;
     private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
-    // private BinIndex binIndex;
-    // private BinEntityManager binEntityManager;
     private SimTime time;
 
-    private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
     public static final int MAP_SIZE = 1024;
     private static final int HALF = 512;
     private EntitySet tileTypes;
@@ -103,8 +107,9 @@ public class MapSystem extends AbstractGameSystem {
     private double accumulatedTime;
     // private final boolean logged = false;
 
-    public MapSystem(final AssetLoaderService assetLoader) {
+    public MapSystem(ChatHostedService chat, final AssetLoaderService assetLoader) {
 
+        this.chat = chat;
         this.assetLoader = assetLoader;
     }
 
@@ -133,9 +138,6 @@ public class MapSystem extends AbstractGameSystem {
         }
 
         physicsSpace = physics.getPhysicsSpace();
-        // binIndex = space.getBinIndex();
-        // binEntityManager = physics.getBinEntityManager();
-
         assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
 
         // Create entities, so the tile types will be in the string index (we use the
@@ -148,17 +150,20 @@ public class MapSystem extends AbstractGameSystem {
         final short s2 = 0;
         ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
 
-        tileTypes = ed.getEntities(TileType.class, BodyPosition.class);
-
-        // GameEntities.createArena(ed, EntityId.NULL_ID, space, 0l, "default", new
-        // Vec3d());
-
         /*
          * Grid dungeon = this.createDungeonGrid(); dungeon =
          * this.expandCorridors(dungeon); this.createMapTilesFromDungeonGrid(dungeon,
          * -50f, -50f);
          */
         mapTileQueue = new LinkedList<>();
+
+        // Register consuming methods for patterns
+        chat.registerPatternBiConsumer(loadMap,
+                "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name of the map you want to load",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadMap(id, map)));
+        chat.registerPatternBiConsumer(unloadMap,
+                "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the name of the map you want to unload",
+                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadMap(id, map)));
 
     }
 
@@ -179,16 +184,57 @@ public class MapSystem extends AbstractGameSystem {
         return new Vec3d(centerOfArenaX, 0, centerOfArenaZ);
     }
 
+    private Vec3d calculateNextOffset(){
+        Vec3d nextOffset = new Vec3d();
+
+
+        return nextOffset;
+    }
+
     /**
      * Loads a given lvz-map
      *
-     * @param mapFile the lvz-map to load
+     * @param id the entity requesting the load
+     * @param mapName the lvz-map to load
      * @return the lvz-map wrapped in a LevelFile
      */
-    public LevelFile loadMap(final String mapFile) {
-        final LevelFile map = (LevelFile) assetLoader.loadAsset(mapFile);
-        // log.info("loadMap:: Loading map = "+map+":"+map.readLevel());
-        return map;
+    public boolean loadMap(EntityId id, final String mapName) {
+        log.info("Loading map: "+mapName);
+        if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
+            return false;
+        }
+        String fileName = mapDirectory+"/"+mapName;
+        LevelFile res = (LevelFile) assetLoader.loadAsset(fileName);
+        Vec3d offset = calculateNextOffset();
+        log.info("Loading map at coordinates: "+offset);
+        HashSet<Vec3d> coordinates = this.createBlocksFromLegacyMap(res,offset);
+        res.setMapName(mapName);
+
+        activeMaps.put(mapName, coordinates);
+        mapCoordinates.put(mapName, offset);
+        log.info("Done loading map: "+mapName);
+        return true;
+    }
+
+    /**
+     * Unloads a given lvz-map
+     *
+     * @param id the entity requesting the unload
+     * @param mapName the lvz-map to load
+     * @return true if unloaded, false otherwise
+     */
+    public boolean unloadMap(EntityId id, final String mapName){
+        if (!activeMaps.containsValue(mapName))
+            return false;
+
+        HashSet<Vec3d> coordinates = activeMaps.get(mapName);
+        for(Vec3d location : coordinates){
+            world.setWorldCell(location, 0);
+        }
+
+        activeMaps.remove(mapName);
+        mapCoordinates.remove(mapName);
+        return true;
     }
 
     /**
@@ -197,8 +243,11 @@ public class MapSystem extends AbstractGameSystem {
      * @param map         the lvz-based-map to create create entities from
      * @param arenaOffset where to position the map
      */
-    public void createEntitiesFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
+    public HashSet<Vec3d> createBlocksFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
         final Set<Integer> tileSet = new HashSet<>();
+
+        HashSet<Vec3d> coordinates = new HashSet<>();
+
         final short[][] tiles = map.getMap();
         // int count = 0;
 
@@ -305,7 +354,7 @@ public class MapSystem extends AbstractGameSystem {
 
 
                     final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
-
+                    coordinates.add(location);
                     // TODO: add more special cases here:
                     // TODO: Fetch settings for the given coordinates and create the right gravity
                     switch (s){
@@ -379,18 +428,7 @@ public class MapSystem extends AbstractGameSystem {
          * world.setWorldCell(bottomPlane, value); world.setWorldCell(topPlane, 0);
          * count++; }
          */
-        // log.info("Counted: " + count + " tiles in the world");
-        // log.info("Counted: " + tileSet.size() + " different tiles added to world");
-    }
-
-    /**
-     * Finds the map tile entity for the given coordinate
-     *
-     * @param coord the x,y-coordinate to lookup
-     * @return the entityid of the map tile
-     */
-    public EntityId getEntityId(final Vec3d coord) {
-        return index.get(coord);
+        return coordinates;
     }
 
     @Override
@@ -409,202 +447,17 @@ public class MapSystem extends AbstractGameSystem {
         accumulatedTime += tpf.getTpf();
 
         // Create map:
-        if (!mapCreated && accumulatedTime > 2) {
+        //if (!mapCreated && accumulatedTime > 2) {
             //TODO: See InfinityBlockGeometryIndex - same map name is used there to translate back
-            createEntitiesFromLegacyMap(loadMap( MAPNAME), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE * 0.5));
+            //createEntitiesFromLegacyMap(loadMap(trenchMap), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE * 0.5));
             // createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new
             // Vec3d(-MAP_SIZE, 0, MAP_SIZE));
             // createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new
             // Vec3d(-HALF,HALF,0 , 0));
             // createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new
             // Vec3d(0,MAP_SIZE,0,0));
-            mapCreated = true;
-        }
-
-        for (final Vec3d remove : sessionTileRemovals) {
-            final Vec3d clampedLocation = getKey(remove);
-
-            if (index.containsKey(clampedLocation)) {
-                final EntityId eId = index.get(clampedLocation);
-                ed.removeEntity(eId);
-
-                index.remove(remove);
-            }
-            // Update surrounding tiles
-            final ArrayList<Vec3d> locations = new ArrayList<>();
-            locations.add(clampedLocation);
-            updateWangBlobIndexNumber(locations, true, false);
-        }
-        sessionTileRemovals.clear();
-
-        for (final Vec3d create : sessionTileCreations) {
-            // Clamp location
-            final Vec3d clampedLocation = getKey(create);
-            if (index.containsKey(clampedLocation)) {
-                // A map entity already exists here
-                continue;
-            }
-
-            final ArrayList<Vec3d> locations = new ArrayList<>();
-            locations.add(clampedLocation);
-
-            final EntityId eId = ed.createEntity();
-
-            index.put(clampedLocation, eId);
-
-            final short tileIndexNumber = updateWangBlobIndexNumber(locations, true, true);
-
-            GameEntities.updateWangBlobEntity(ed, eId, physicsSpace, time.getTime(), eId, "", tileIndexNumber,
-                    new Vec3d(clampedLocation.x, 0, clampedLocation.z));
-        }
-        sessionTileCreations.clear();
-
-        // Create the legacy maps in an ordered fashion instead of all at once:
-        if (mapTileQueue.size() > 0) {
-            try {
-                if (mapTileQueue.size() > 2) {
-                    mapTileQueue.pop().call();
-                    mapTileQueue.pop().call();
-
-                }
-                if (mapTileQueue.size() > 0) {
-                    mapTileQueue.pop().call();
-
-                }
-            } catch (final Exception ex) {
-                log.error(ex.getMessage());
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * Updates the wang blob index number in the locations given
-     *
-     * @param locations the clamped locations to update wangblob tile index number
-     *                  for
-     * @param cascade   cascade to surrounding tiles
-     * @param create    create or remove tile
-     * @return the tileindex of the current tile being updated
-     */
-    private short updateWangBlobIndexNumber(final ArrayList<Vec3d> locations, final boolean cascade,
-            final boolean create) {
-        int result = 0;
-        final ArrayList<Vec3d> cascadedLocations = new ArrayList<>();
-
-        for (final Vec3d clampedLocation : locations) {
-            int north = 0, northEast = 0, east = 0, southEast = 0, south = 0, southWest = 0, west = 0, northWest = 0;
-
-            north = 0;
-            final Vec3d northKey = clampedLocation.clone().add(0, 0, 1);
-            if (index.containsKey(northKey)) {
-                north = 1;
-                if (cascade) {
-                    cascadedLocations.add(northKey);
-                }
-            }
-
-            northEast = 0;
-            final Vec3d northEastKey = clampedLocation.clone().add(1, 0, 1);
-            if (index.containsKey(northEastKey)) {
-                northEast = 1;
-                if (cascade) {
-                    cascadedLocations.add(northEastKey);
-                }
-            }
-
-            east = 0;
-            final Vec3d eastKey = clampedLocation.clone().add(1, 0, 0);
-            if (index.containsKey(eastKey)) {
-                east = 1;
-                if (cascade) {
-                    cascadedLocations.add(eastKey);
-                }
-            }
-
-            southEast = 0;
-            final Vec3d southEastKey = clampedLocation.clone().add(1, 0, -1);
-            if (index.containsKey(southEastKey)) {
-                southEast = 1;
-                if (cascade) {
-                    cascadedLocations.add(southEastKey);
-                }
-            }
-
-            south = 0;
-            final Vec3d southKey = clampedLocation.clone().add(0, 0, -1);
-            if (index.containsKey(southKey)) {
-                south = 1;
-                if (cascade) {
-                    cascadedLocations.add(southKey);
-                }
-            }
-
-            southWest = 0;
-            final Vec3d southWestKey = clampedLocation.clone().add(-1, 0, -1);
-            if (index.containsKey(southWestKey)) {
-                southWest = 1;
-                if (cascade) {
-                    cascadedLocations.add(southWestKey);
-                }
-            }
-
-            west = 0;
-            final Vec3d westKey = clampedLocation.clone().add(-1, 0, 0);
-            if (index.containsKey(westKey)) {
-                west = 1;
-                if (cascade) {
-                    cascadedLocations.add(westKey);
-                }
-            }
-
-            northWest = 0;
-            final Vec3d northWestkey = clampedLocation.clone().add(-1, 0, 1);
-            if (index.containsKey(northWestkey)) {
-                northWest = 1;
-                if (cascade) {
-                    cascadedLocations.add(northWestkey);
-                }
-            }
-
-            if (north == 0) {
-                northEast = 0;
-                northWest = 0;
-            }
-
-            if (west == 0) {
-                northWest = 0;
-                southWest = 0;
-            }
-
-            if (south == 0) {
-                southEast = 0;
-                southWest = 0;
-            }
-
-            if (east == 0) {
-                southEast = 0;
-                northEast = 0;
-            }
-
-            result = north + 2 * northEast + 4 * east + 8 * southEast + 16 * south + 32 * southWest + 64 * west
-                    + 128 * northWest;
-
-            if (create || !cascade) {
-
-                final EntityId currentEntity = index.get(clampedLocation);
-                final TileType tt = TileTypes.wangblob("", (short) result, ed);
-
-                ed.setComponent(currentEntity, tt);
-            }
-
-        }
-
-        if (cascade && cascadedLocations.size() > 0) {
-            updateWangBlobIndexNumber(cascadedLocations, false, create);
-        }
-
-        return (short) result;
+            //mapCreated = true;
+        //}
     }
 
     @Override
@@ -810,33 +663,5 @@ public class MapSystem extends AbstractGameSystem {
             sb.append('}');
             return sb.toString();
         }
-    }
-
-    public ArrayList<Vec3d> getNeighbours(final double locX, final double locZ) {
-        final Vec3d loc = new Vec3d(locX, 0, locZ);
-        final ArrayList<Vec3d> result = new ArrayList<>();
-
-        final Vec3d west = new Vec3d(loc.x - 1, 0, loc.z);
-        final Vec3d east = new Vec3d(loc.x + 1, 0, loc.z);
-        final Vec3d north = new Vec3d(loc.x, 0, loc.z + 1);
-        final Vec3d south = new Vec3d(loc.x, 0, loc.z - 1);
-        // ((Check west))
-        if (index.containsKey(west)) {
-            result.add(west);
-        }
-        // ((Check east))
-        if (index.containsKey(east)) {
-            result.add(east);
-        }
-        // ((Check north))
-        if (index.containsKey(north)) {
-            result.add(north);
-        }
-        // ((Check south))
-        if (index.containsKey(south)) {
-            result.add(south);
-        }
-
-        return result;
     }
 }

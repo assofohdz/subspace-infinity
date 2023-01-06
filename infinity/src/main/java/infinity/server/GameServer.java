@@ -294,7 +294,8 @@ public class GameServer {
         server.getServices().addService(adaptiveLoader);
 
         systems.register(SettingsSystem.class, new SettingsSystem(assetLoader, adaptiveLoader));
-        systems.register(MapSystem.class, new MapSystem(assetLoader));
+
+        systems.register(MapSystem.class, new MapSystem(server.getServices().getService(ChatHostedService.class), assetLoader));
 
         systems.register(WarpSystem.class, new WarpSystem());
         // <--

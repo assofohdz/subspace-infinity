@@ -83,7 +83,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
     private final HashMap<String, BaseGameModule> modules;
     private final HashMap<String, BaseGameService> services;
 
-    private final Pattern startModulePattern = Pattern.compile("~startModule\\s(\\w+)");
+    private final Pattern startModulePattern = Pattern.compile("\\~startModule\\s(\\w+)");
     private final Pattern startServicePattern = Pattern.compile("\\~startService\\s(\\w+)");
     private final Pattern stopModulePattern = Pattern.compile("\\~stopModule\\s(\\w+)");
     private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");

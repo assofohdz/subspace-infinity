@@ -174,12 +174,12 @@ public class InfinityConstants {
      * Defines the 3D zone radius around which updates will be sent. The player is
      * always considered to be in the 'center' and this radius defines how many
      * zones in each direction are included in the view. (A 2D game might only
-     * define x,y and leave z as 0.) So a radius of 1 in x means that the player can
+     * define x,z and leave y as 0.) So a radius of 1 in x means that the player can
      * see one zone to either side of their current zone. A total zone radius of (1,
      * 1, 1) means the player can see a total of 27 zones including the zone they
      * are in.
      */
-    public static final Vec3i ZONE_RADIUS = new Vec3i(1, 1, 1);
+    public static final Vec3i ZONE_RADIUS = new Vec3i(2, 0, 2);
     //public static final Vec3i ZONE_RADIUS = new Vec3i(1, 0, 1);
     // public static final Vec3i ZONE_RADIUS = new Vec3i(2, 2, 2);
 

@@ -43,6 +43,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.jme3.network.Message;
+import com.simsilica.mblock.config.MaterialConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

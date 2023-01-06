@@ -43,6 +43,15 @@ public class LevelFile extends JPanel {
     private BufferedInputStream m_stream;
     private boolean m_containsBM;
     private boolean hasELVLData;
+    private String mapName;
+
+    public String getMapName() {
+        return mapName;
+    }
+
+    public void setMapName(String mapName) {
+        this.mapName = mapName;
+    }
 
     // eLVL ATTR tags... vector of vector of Strings
     public Vector<Vector<String>> eLvlAttrs = new Vector<>();
