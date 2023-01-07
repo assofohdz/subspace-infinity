@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN" name="MyApp" packages="">
+<Configuration status="WARN">
   <Appenders>
-    <RollingFile name="RollingFile" fileName="demo.log" ignoreExceptions="false"                
-                 filePattern="logs/$${date:yyyy-MM}/demo-%d{MM-dd-yyyy}-%i.log.gz">
-      <PatternLayout>
-        <Pattern>%d{ABSOLUTE} %t %-5p [%c{1}] %m%n</Pattern>        
-      </PatternLayout>
-      <OnStartupTriggeringPolicy />
-    </RollingFile>
-    
-    <Console name="STDOUT" target="SYSTEM_OUT" ignoreExceptions="false">
-      <PatternLayout pattern="%d{ABSOLUTE} %-5p [%c{10}] %m%n"/>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
   </Appenders>
-  
   <Loggers>
+    <Logger name="infinity.systems" level="debug" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.simsilica.ext.mblock.SphereFactory" level="FATAL"/>
     <Logger name="com.simsilica.ext.mphys.EntityBodyFactory" level="FATAL"/>
     <Logger name="com.simsilica.ext.mphys.BinEntityManager" level="FATAL"/>
@@ -24,7 +18,6 @@
     <Logger name="com.simsilica.mblock.geom.ColliderlessMesh" level="FATAL"/>
     <Logger name="com.simsilica.mblock.phys.collision.ColliderFactories" level="FATAL"/>
     <Logger name="com.simsilica.mphys" level="DEBUG"/>
-    <Logger name="infinity" level="INFO"/>
     <Logger name="com.simsilica.lemur.style" level="DEBUG"/>
     <!--<Logger name="com.simsilica.lemur.input" level="TRACE"/>-->
     <Logger name="com.simsilica.es" level="INFO"/>
@@ -35,10 +28,8 @@
     <!--<Logger name="com.simsilica.mworld" level="DEBUG"/>-->
     <Logger name="com.simsilica.builderr" level="INFO"/>
     <Logger name="com.simsilica.pager" level="INFO"/>
-    <Root level="INFO">
-      <AppenderRef ref="RollingFile"/>
-      <AppenderRef ref="STDOUT"/>
+    <Root level="error">
+      <AppenderRef ref="Console"/>
     </Root>
   </Loggers>
 </Configuration>
-
