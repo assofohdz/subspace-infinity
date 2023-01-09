@@ -14,6 +14,10 @@ See [BUILDING.md](https://github.com/assofohdz/Subspace-Infinity/blob/infinity/B
 
 See [CONTRIBUTING.md](https://github.com/assofohdz/Subspace-Infinity/blob/infinity/CONTRIBUTING.md)
 
+### Latest public build
+
+Game available on Itch.io [here](https://assofohdz.itch.io/subspace-infinity)
+
 ## Community
 
 ### Discord
