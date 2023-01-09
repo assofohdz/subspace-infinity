@@ -22,7 +22,10 @@ Game available on Itch.io [here](https://assofohdz.itch.io/subspace-infinity)
 
 ### Discord
 
-Join Discord here: https://discord.gg/tfyWxbK
+- [Subspace infinity discord](https://discord.gg/tfyWxbK)
+- [Quantum Space discord](https://discord.gg/gvtnSAcy)
+- [Subspace Continuum discord](https://discord.gg/y3AanC8Z)
+- [Extreme Games zone discord](https://discord.gg/hY3gjeJ9)
 
 ## Acknowledgments
 
@@ -46,7 +49,7 @@ Big thanks to:
 - The developers of the map editors
 - The developers who worked on the Trench Wars modules
 
-Related:
+### Related:
 - [A Small Subspace Server Repository](https://bitbucket.org/grelminar/asss)
 - [Trench Wars Core](https://github.com/Trench-Wars/twcore)
 - [SubspaceServer Repository](https://github.com/gigamon-dev/SubspaceServer)
