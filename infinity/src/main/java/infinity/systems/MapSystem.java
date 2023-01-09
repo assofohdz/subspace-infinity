@@ -26,7 +26,7 @@
 package infinity.systems;
 
 import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 import com.simsilica.mworld.World;
@@ -71,7 +71,8 @@ public class MapSystem extends AbstractGameSystem {
     //Map that holds all block coordinates for a given map:
     private HashMap<String, HashSet<Vec3d>> activeMaps = new HashMap<>();
     //Map that holds the offset coordinates of each map:
-    private HashMap<String, Vec3d> mapCoordinates = new HashMap<>();
+    private LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
+    private Vec3d currentMapLoc = new Vec3d();
 
     public static final byte CREATE = 0x0;
     public static final byte READ = 0x1;
@@ -91,7 +92,7 @@ public class MapSystem extends AbstractGameSystem {
     private SimTime time;
 
     public static final int MAP_SIZE = 1024;
-    private static final int HALF = 512;
+    private static final int HALF = MAP_SIZE/2;
     private EntitySet tileTypes;
 
     private final LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
@@ -184,11 +185,64 @@ public class MapSystem extends AbstractGameSystem {
         return new Vec3d(centerOfArenaX, 0, centerOfArenaZ);
     }
 
-    private Vec3d calculateNextOffset(){
-        Vec3d nextOffset = new Vec3d();
+    private enum Direction {
+        E(1, 0) {
+            Direction next() {
+                return N;
+            }
+        },
+        N(0, 1) {
+            Direction next() {
+                return W;
+            }
+        },
+        W(-1, 0) {
+            Direction next() {
+                return S;
+            }
+        },
+        S(0, -1) {
+            Direction next() {
+                return E;
+            }
+        };
+        private int dx;
+        private int dz;
 
+        Vec3d advance(Vec3d point) {
+            return new Vec3d(point.x + dx, 0, point.z + dz);
+        }
 
-        return nextOffset;
+        abstract Direction next();
+
+        Direction(int dx, int dz) {
+            this.dx = dx;
+            this.dz = dz;
+        }
+    };
+    private Direction   direction   = Direction.S;
+
+    private Vec3d calculateNextOffset() {
+        log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
+        Direction testDirection = direction.next();
+        log.debug("Direction: "+direction+", testDirection:"+testDirection);
+        Vec3d testMapLoc = testDirection.advance(currentMapLoc);
+        log.debug("testMapLoc: "+testMapLoc);
+
+        //First time we will land here:
+        if (!mapCoordinates.containsValue(currentMapLoc)) {
+            return currentMapLoc;
+        }
+        //Test if we should go new direction
+        else if(!mapCoordinates.containsValue(testMapLoc)){
+            currentMapLoc = testMapLoc;
+            direction = testDirection;
+            return currentMapLoc;
+        }
+
+        //If we have to continue straight ahead in our direction:
+        currentMapLoc = direction.advance(currentMapLoc);
+        return currentMapLoc;
     }
 
     /**
@@ -205,14 +259,26 @@ public class MapSystem extends AbstractGameSystem {
         }
         String fileName = mapDirectory+"/"+mapName;
         LevelFile res = (LevelFile) assetLoader.loadAsset(fileName);
+        //The offset we get will be local based map location (0,0), (0,1), (1,0) etc. so we multiply by mapsize
         Vec3d offset = calculateNextOffset();
-        log.info("Loading map at coordinates: "+offset);
-        HashSet<Vec3d> coordinates = this.createBlocksFromLegacyMap(res,offset);
-        res.setMapName(mapName);
+        Vec3d worldOffset = offset.mult(MAP_SIZE);
+        //FIXME add the space between maps of 1 cell size
+        log.info("Loading map at local coords: "+currentMapLoc+" in world:"+offset);
 
-        activeMaps.put(mapName, coordinates);
-        mapCoordinates.put(mapName, offset);
+        //HashSet<Vec3d> coordinates = this.createBlocksFromLegacyMap(res,offset);
+
+        // Try to do this asynchronosly (loading a map takes about 3 seconds depending on density of map)
+        CompletableFuture<HashSet<Vec3d>> completableFuture
+                = CompletableFuture.supplyAsync(() -> this.createBlocksFromLegacyMap(res,worldOffset));
+        //CompletableFuture<Void> future =
+        completableFuture.thenAccept(s -> activeMaps.put(mapName, s));
+        //
+
+        res.setMapName(mapName);
         log.info("Done loading map: "+mapName);
+        //activeMaps.put(mapName, coordinates);
+        mapCoordinates.put(mapName, offset);
+
         return true;
     }
 
@@ -224,7 +290,7 @@ public class MapSystem extends AbstractGameSystem {
      * @return true if unloaded, false otherwise
      */
     public boolean unloadMap(EntityId id, final String mapName){
-        if (!activeMaps.containsValue(mapName))
+        if (!activeMaps.containsKey(mapName))
             return false;
 
         HashSet<Vec3d> coordinates = activeMaps.get(mapName);
@@ -256,7 +322,14 @@ public class MapSystem extends AbstractGameSystem {
             // for (int zpos = 260; zpos >= 250; zpos--) {
             for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
                 short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
-                if (s != 0) {
+
+                //I'd like the maps to be "framed" by a boundary
+                if (xpos == 0 || zpos == 0 || xpos == tiles.length-1 || zpos == tiles[xpos].length-1){
+                    final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
+                    coordinates.add(location);
+                    world.setWorldCell(location, 10);
+                }
+                else if (s != 0) {
                     // TODO: Check on the short and only create the map tiles, not the extras
                     // (asteroids, wormholes etc.)
                     /*
@@ -412,8 +485,10 @@ public class MapSystem extends AbstractGameSystem {
 //
 //                    // count++;
                 }
+
             }
         }
+
 
         // Test:
         /*
@@ -428,8 +503,11 @@ public class MapSystem extends AbstractGameSystem {
          * world.setWorldCell(bottomPlane, value); world.setWorldCell(topPlane, 0);
          * count++; }
          */
+
         return coordinates;
     }
+
+
 
     @Override
     protected void terminate() {
