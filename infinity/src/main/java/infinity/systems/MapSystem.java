@@ -292,14 +292,22 @@ public class MapSystem extends AbstractGameSystem {
     public boolean unloadMap(EntityId id, final String mapName){
         if (!activeMaps.containsKey(mapName))
             return false;
-
         HashSet<Vec3d> coordinates = activeMaps.get(mapName);
+        // Try to do this asynchronosly (loading a map takes about 3 seconds depending on density of map)
+        CompletableFuture<Boolean> completableFuture
+                = CompletableFuture.supplyAsync(() -> this.removeBlocksFromLegacyMap(coordinates));
+        //CompletableFuture<Void> future =
+        completableFuture.thenAccept(s -> activeMaps.remove(mapName));
+        completableFuture.thenAccept(s -> mapCoordinates.remove(mapName));
+
+        return true;
+    }
+
+    private boolean removeBlocksFromLegacyMap(HashSet<Vec3d> coordinates){
         for(Vec3d location : coordinates){
             world.setWorldCell(location, 0);
-        }
 
-        activeMaps.remove(mapName);
-        mapCoordinates.remove(mapName);
+        }
         return true;
     }
 
