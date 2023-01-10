@@ -37,8 +37,6 @@ Game available on Itch.io [here](https://assofohdz.itch.io/subspace-infinity)
   <img alt="Dark" src="screenshots/image2.png?raw=true" width="45%">
 </p>
 
-![Image3](screenshots/image3.png?raw=true "Title")
-
 Big thanks to the [jMonkeyEngine community](https://hub.jmonkeyengine.org/) for tremendous help and [Paul Speed](https://github.com/pspeed42) who has laid the foundation with the awesome:
 
 - [Zay-ES + Zay-ES-Net framework](https://github.com/jMonkeyEngine-Contributions/zay-es)
