@@ -31,7 +31,12 @@ Game available on Itch.io [here](https://assofohdz.itch.io/subspace-infinity)
 
 ### Java Development: 
 
-![Image1](screenshots/image.png?raw=true "Title")![Image2](screenshots/image2.png?raw=true "Title")
+<p align="center">
+  <img alt="Light" src="screenshots/image.png?raw=true" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="screenshots/image2.png?raw=true" width="45%">
+</p>
+
 ![Image3](screenshots/image3.png?raw=true "Title")
 
 Big thanks to the [jMonkeyEngine community](https://hub.jmonkeyengine.org/) for tremendous help and [Paul Speed](https://github.com/pspeed42) who has laid the foundation with the awesome:
