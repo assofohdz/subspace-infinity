@@ -147,7 +147,7 @@ public class WorldViewState extends BaseAppState {
         worldRoot = new Node("worldRoot");
         worldRoot.attachChild(pager.getGridRoot());
 
-        final boolean showGrid = true;
+        final boolean showGrid = false;
         if (showGrid) {
             final Material boxMaterial = GuiGlobals.getInstance()
                     .createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false).getMaterial();

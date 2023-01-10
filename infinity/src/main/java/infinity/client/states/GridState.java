@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.client.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -106,6 +106,7 @@ public class GridState extends BaseAppState {
         floor = new Node("grid");
 
         final GuiGlobals globals = GuiGlobals.getInstance();
+        /*
         {
             final com.jme3.scene.debug.Grid mesh = new com.jme3.scene.debug.Grid(floorGridSize + 1, floorGridSize + 1,
                     1);
@@ -137,7 +138,7 @@ public class GridState extends BaseAppState {
             flatFloor.setUserData("layer", Integer.valueOf(2));
             floor.attachChild(flatFloor);
         }
-
+*/
         {
             // Create the 3D grid cell zones. We know we are only using a 2D
             // grid right now so we'll simplify and simply give a reasonable max

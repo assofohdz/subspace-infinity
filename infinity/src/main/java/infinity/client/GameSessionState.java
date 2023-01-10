@@ -35,9 +35,10 @@
  */
 package infinity.client;
 
+import com.jme3.math.ColorRGBA;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.fx.LightingState;
-import infinity.TimeState;
+import com.simsilica.mathd.Grid;
+import infinity.*;
 import infinity.client.states.*;
 import infinity.client.view.*;
 import org.slf4j.Logger;
@@ -52,10 +53,6 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.builder.BuilderState;
 import com.simsilica.es.EntityId;
 import com.simsilica.state.CompositeAppState;
-
-import infinity.HelpState;
-import infinity.HostState;
-import infinity.SettingsState;
 
 //import com.simsilica.mphys.PhysicsSpace;
 //import com.simsilica.ext.mphys.MPhysSystem;
@@ -86,6 +83,8 @@ public class GameSessionState extends CompositeAppState {
                 new BuilderState(4, 4),
                 new WorldViewState(),
                 new ModelViewState(),
+                //new GridState(new Grid(InfinityConstants.GRID_CELL_SIZE)),
+                new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2,  new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
                 new LightState()//,
                 //new AmbientLightState()
         );

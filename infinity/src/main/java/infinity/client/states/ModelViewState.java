@@ -230,6 +230,7 @@ public class ModelViewState extends BaseAppState {
         return null;
     }
 
+
     protected void addTestObject( Vector3f loc, float size ) {
 
         Vector4f coord = new Vector4f(loc.x, loc.y, loc.z, size);
@@ -303,7 +304,7 @@ public class ModelViewState extends BaseAppState {
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), new SphereFactory());
         shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), new SphereFactory());
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
-
+        /*
         // Some test objects
         //for( int i = 0; i < tests.length; i++ ) {
         for( Vector4f coord : testCoords ) {
@@ -317,6 +318,7 @@ public class ModelViewState extends BaseAppState {
             //tests[i] = geom;
             tests.add(geom);
         }
+        */
 
         this.bodies = new BodyContainer(ed);
         this.models = new ModelContainer(ed);
