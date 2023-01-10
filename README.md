@@ -4,6 +4,12 @@
 ## About Subspace Infinity
 This is a cross-platform Subspace client and server written in Java. It was developed from scratch on the idea of extensibility and modularity. The server is based on modules/frameworks highly optimized for scaled, networked, grid-based physics. The client is based on the [JMonkeyEngine](https://jmonkeyengine.org/), a minimalistic modern developer friendly game engine
 
+<p align="center">
+  <img alt="Light" src="screenshots/image.png?raw=true" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="screenshots/image2.png?raw=true" width="45%">
+</p>
+
 ## Building and Contributing
 
 ### Building
