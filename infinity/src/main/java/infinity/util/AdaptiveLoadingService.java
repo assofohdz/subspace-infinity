@@ -294,18 +294,25 @@ public class AdaptiveLoadingService extends AbstractHostedService
                 loadModule(module);
             } catch (final IllegalAccessException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             } catch (final InstantiationException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             } catch (final IOException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             } catch (final ClassNotFoundException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             } catch (final NoSuchMethodException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             } catch (final IllegalArgumentException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             } catch (final InvocationTargetException ex) {
                 Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
+                return;
             }
 
             bgm = modules.get(module);
