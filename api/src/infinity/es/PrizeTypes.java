@@ -63,6 +63,8 @@ public class PrizeTypes {
     public static final String TOPSPEED = "TopSpeed";
     public static final String WARP = "Warp";
     public static final String XRADAR = "XRadar";
+    public static final String DUD = "Dud";
+    public static final String SUPER = "Super";
 
     public static PrizeType allWeapons(final EntityData ed) {
         return PrizeType.create(ALLWEAPONS, ed);

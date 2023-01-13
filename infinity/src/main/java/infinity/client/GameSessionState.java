@@ -39,6 +39,8 @@ import com.jme3.math.ColorRGBA;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.mathd.Grid;
 import infinity.*;
+import infinity.client.audio.AudioState;
+import infinity.client.audio.SIAudioFactory;
 import infinity.client.states.*;
 import infinity.client.view.*;
 import org.slf4j.Logger;
@@ -83,6 +85,7 @@ public class GameSessionState extends CompositeAppState {
                 new BuilderState(4, 4),
                 new WorldViewState(),
                 new ModelViewState(),
+                new AudioState(new SIAudioFactory()),
                 //new GridState(new Grid(InfinityConstants.GRID_CELL_SIZE)),
                 new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2,  new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
                 new LightState()//,

@@ -28,44 +28,60 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
- *
  * @author Asser
  */
 public class Spawner implements EntityComponent {
 
-    public enum SpawnType {
-        Players, Prizes
-    }
+  private int maxCount;
+  private SpawnType type;
+  // Add option to have a spawn interval between spawning, in milliseconds
+  private double spawnInterval;
+  // add option to spawn on the radius or in the circle
+  private boolean spawnOnRing;
 
-    public int getMaxCount() {
-        return maxCount;
-    }
+  public Spawner(
+      final int maxCount,
+      final double spawnInterval,
+      final boolean spawnAllOver,
+      final SpawnType type) {
+    this.maxCount = maxCount;
+    this.type = type;
+    this.spawnInterval = spawnInterval;
+    this.spawnOnRing = spawnAllOver;
+  }
 
-    public void setMaxCount(final int maxCount) {
-        this.maxCount = maxCount;
-    }
+  public Spawner() {}
 
-    public Spawner(final int maxCount, final SpawnType type) {
-        this.maxCount = maxCount;
-        this.type = type;
-    }
+  public Spawner(final SpawnType type) {
+    this.type = type;
+  }
 
-    private int maxCount;
-    private SpawnType type;
+  public boolean spawnOnRing() {
+    return spawnOnRing;
+  }
 
-    public Spawner() {
+  public double getSpawnInterval() {
+    return spawnInterval;
+  }
 
-    }
+  public int getMaxCount() {
+    return maxCount;
+  }
 
-    public SpawnType getType() {
-        return type;
-    }
+  public void setMaxCount(final int maxCount) {
+    this.maxCount = maxCount;
+  }
 
-    public void setType(final SpawnType type) {
-        this.type = type;
-    }
+  public SpawnType getType() {
+    return type;
+  }
 
-    public Spawner(final SpawnType type) {
-        this.type = type;
-    }
+  public void setType(final SpawnType type) {
+    this.type = type;
+  }
+
+  public enum SpawnType {
+    Players,
+    Prizes
+  }
 }
