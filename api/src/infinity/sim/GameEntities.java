@@ -310,10 +310,6 @@ public class GameEntities {
         return lastLight;
     }
 
-    // TODO: All constants should come through the parameters - for now, they come
-    // from the constants
-    // TODO: All parameters should be dumb types and should be the basis of the
-    // complex types used in the backend
     public static EntityId createShip(final Vec3d spawnLoc, final EntityData ed, final EntityId owner, final PhysicsSpace<?, ?> phys,
                                       final long createdTime, byte ship) {
         final EntityId result = ed.createEntity();
@@ -429,13 +425,21 @@ public class GameEntities {
                 PrizeType.create(prizeType, ed), new Decay(createdTime, createdTime
                         + TimeUnit.NANOSECONDS.convert(CoreGameConstants.PRIZEDECAY, TimeUnit.MILLISECONDS)));
 
+        ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS));
+
+        Mass m = new Mass(0);
+        ed.setComponent(result, m);
+
+        Gravity g = Gravity.ZERO;
+        ed.setComponent(result, g);
+
         ed.setComponent(result, new Meta(createdTime));
         return result;
     }
 
     public static EntityId createPrizeSpawner(final EntityData ed, @SuppressWarnings("unused") final EntityId owner,
             final PhysicsSpace<?, ?> phys, final long createdTime, final Vec3d pos,
-            @SuppressWarnings("unused") final double radius) {
+            final double radius) {
         final EntityId result = ed.createEntity();
         ed.setComponents(result,
                 // Possible to add model if we want the players to be able to see the spawner
