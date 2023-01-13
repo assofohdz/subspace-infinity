@@ -37,8 +37,11 @@ package infinity.server;
 
 import java.io.*;
 
+import com.jme3.scene.shape.Sphere;
 import com.simsilica.bpos.mphys.BodyPositionPublisher;
 import com.simsilica.bpos.mphys.LargeGridIndexSystem;
+import infinity.sim.CorePhysicsConstants;
+import infinity.sim.InfinityContactDispatcher;
 import infinity.sim.ai.MobSystem;
 import infinity.systems.*;
 import org.slf4j.Logger;
@@ -228,25 +231,27 @@ public class GameServer {
         // Need a shape factory to turn ShapeInfo components into
         // MBlockShapes.
         final ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL1, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), new SphereFactory());
-        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), new SphereFactory());
+        SphereFactory sphereFac = new SphereFactory();
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed),sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed),sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, CorePhysicsConstants.BOMBSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, CorePhysicsConstants.BOMBSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, CorePhysicsConstants.BOMBSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, CorePhysicsConstants.BOMBSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL1, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
+        shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed), sphereFac);
         shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
         systems.register(ShapeFactory.class, shapeFactory);
 
@@ -257,6 +262,12 @@ public class GameServer {
                                                                              shapeFactory);
 
         MPhysSystem<MBlockShape> mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+
+        InfinityContactDispatcher dispatcher = new InfinityContactDispatcher();
+        systems.register(InfinityContactDispatcher.class, dispatcher);
+        mphys.getPhysicsSpace().setContactDispatcher(dispatcher);
+
+
         Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
         mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
         // mphys.addPhysicsListener(new PositionUpdater(ed));
@@ -279,10 +290,10 @@ public class GameServer {
         systems.register(PrizeSystem.class, new PrizeSystem(mphys.getPhysicsSpace()));
 
         // Set up contacts to be filtered
-        final ContactSystem contactSystem = new ContactSystem();
-        systems.register(ContactSystem.class, contactSystem);
+        //final ContactSystem contactSystem = new ContactSystem();
+        //systems.register(ContactSystem.class, contactSystem);
 
-        mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
+        //mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
         systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
         final AssetLoaderService assetLoader = new AssetLoaderService();

@@ -14,17 +14,18 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.*;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import java.util.*;
 
-import infinity.es.PrizeType;
-import infinity.es.PrizeTypes;
-import infinity.es.Spawner;
-import infinity.es.SphereShape;
+import infinity.es.*;
+import infinity.server.GameServer;
+import infinity.sim.CategoryFilter;
+import infinity.sim.CollisionFilters;
 import infinity.sim.GameEntities;
+import infinity.sim.InfinityContactDispatcher;
 import infinity.util.RandomSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,22 +34,23 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class PrizeSystem extends AbstractGameSystem {
+public class PrizeSystem extends AbstractGameSystem implements ContactListener {
 
     private final PhysicsSpace phys;
     private EntityData ed;
 
     private EntitySet prizeSpawners;
 
-    private HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<EntityId, HashSet<EntityId>>();
+    private HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<>();
     private HashMap<String, Integer> prizeWeights = new HashMap<>();
 
     RandomSelector<String> rc;
     Random random;
     private EntitySet prizes;
-    //private EntitySet ships;
     static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
     private long ourTime;
+    private EntitySet ships;
+    private InfinityContactDispatcher dispatcher;
 
     public PrizeSystem(PhysicsSpace phys){
         this.phys = phys;
@@ -69,8 +71,14 @@ public class PrizeSystem extends AbstractGameSystem {
 
         rc = RandomSelector.weighted(prizeWeights.keySet(), s -> prizeWeights.get(s));
 
-        //ships = ed.getEntities(ShipType.class);
-        prizes = ed.getEntities(PrizeType.class);
+        ComponentFilter shipColliderFilter = FieldFilter.create(CollisionCategory.class, "filter", CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS);
+        ComponentFilter prizeColliderFilter = FieldFilter.create(CollisionCategory.class, "filter", CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS);
+
+        ships = ed.getEntities(shipColliderFilter);
+        prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
+
+        dispatcher = getSystem(InfinityContactDispatcher.class);
+        dispatcher.addListener(this);
     }
 
     private void loadPrizeWeights() {
@@ -114,6 +122,8 @@ public class PrizeSystem extends AbstractGameSystem {
 
         prizeSpawners.release();
         prizeSpawners = null;
+
+        dispatcher.removeListener(this);
     }
 
     @Override
@@ -129,7 +139,7 @@ public class PrizeSystem extends AbstractGameSystem {
                 HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
                 spawnerBountySet.remove(idBounty);
                 spawnerBounties.put(entitySpawner.getId(),spawnerBountySet);
-                log.info(String.valueOf(spawnerBountySet.size()));
+                //log.info(String.valueOf(spawnerBountySet.size()));
             }
         }
 
@@ -147,14 +157,14 @@ public class PrizeSystem extends AbstractGameSystem {
                 HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
                 spawnerBountySet.add(idBounty);
                 spawnerBounties.put(entitySpawner.getId(),spawnerBountySet);
-                log.info(String.valueOf(spawnerBountySet.size()));
-            } else {
+                //log.info(String.valueOf(spawnerBountySet.size()));
+            } else if(!spawnerBounties.containsKey(entitySpawner.getId())){
                 EntityId idBounty = spawnRandomBounty(p.getLocation(), c.getRadius(), false);
 
                 HashSet<EntityId> spawnerBountySet = new HashSet<>();
                 spawnerBountySet.add(idBounty);
                 spawnerBounties.put(entitySpawner.getId(),spawnerBountySet);
-                log.info(String.valueOf(spawnerBountySet.size()));
+                //log.info(String.valueOf(spawnerBountySet.size()));
             }
         }
     }
@@ -175,7 +185,7 @@ public class PrizeSystem extends AbstractGameSystem {
         double x = Math.cos(angle) * lengthFromCenter + spawnCenter.x;
         double z = Math.sin(angle) * lengthFromCenter + spawnCenter.z;
 
-        return new Vec3d(x, 0, z);
+        return new Vec3d(x, spawnCenter.y, z);
     }
 
     private EntityId spawnRandomBounty(Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
@@ -183,33 +193,6 @@ public class PrizeSystem extends AbstractGameSystem {
 
         return GameEntities.createPrize(ed, phys, ourTime, location, PrizeTypes.BRICK);
     }
-
-    //Handle colissions between players and ships:
-    /*
-    //Contact manifold created by the manifold solver
-    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
-        EntityId one = (EntityId) body1.getUserData();
-        EntityId two = (EntityId) body2.getUserData();
-
-        //Only interact with collision if a ship collides with a prize or vice verca
-        if (prizes.containsId(one) && ships.containsId(two)) {
-            PrizeType pt = prizes.getEntity(one).get(PrizeType.class);
-            this.handlePrizeAcquisition(pt, two);
-            //Remove prize
-            ed.removeEntity(one);
-            return false;
-        } else if (prizes.containsId(two) && ships.containsId(one)) {
-            PrizeType pt = prizes.getEntity(two).get(PrizeType.class);
-            this.handlePrizeAcquisition(pt, one);
-            //Remove prize
-            ed.removeEntity(two);
-            return false;
-        }
-
-        return true;
-    }
-    */
 
     private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {
         log.info("Ship " + ship + " picked up prize:" + pt.getTypeName(ed));
@@ -273,5 +256,46 @@ public class PrizeSystem extends AbstractGameSystem {
             default:
                 throw new UnsupportedOperationException("Prize type: " + pt.getTypeName(ed) + " is not supported by");
         }
+    }
+
+    @Override
+    public void newContact(Contact contact) {
+        log.info("PrizeSystem collision detected: "+contact.toString());
+        /*
+        RigidBody body1 = contact.getBody1();
+        RigidBody body2 = contact.getBody2();
+
+        EntityId idOne = (EntityId) body1.id;
+        EntityId idTwo = (EntityId) body2.id;
+
+        CollisionCategory filter1 = ed.getComponent(idOne, CollisionCategory.class);
+        CollisionCategory filter2 = ed.getComponent(idTwo, CollisionCategory.class);
+
+        if(filter1.getFilter().isAllowed(filter2.getFilter())){
+            log.info("Filter allows the contact");
+        }
+        else{
+            log.info("Filter DOES NOT allow the contact");
+        }
+
+        //Only interact with collision if a ship collides with a prize or vice verca
+        if (prizes.containsId(idOne) && ships.containsId(idTwo)) {
+            log.info("Entitysets contact resolution found it to be valid");
+            PrizeType pt = prizes.getEntity(idOne).get(PrizeType.class);
+            this.handlePrizeAcquisition(pt, idTwo);
+            //Remove prize
+            ed.removeEntity(idOne);
+            //Disable contact for further resolution
+            contact.disable();
+        } else if (prizes.containsId(idTwo) && ships.containsId(idOne)) {
+            log.info("Entitysets contact resolution found it to be valid");
+            PrizeType pt = prizes.getEntity(idTwo).get(PrizeType.class);
+            this.handlePrizeAcquisition(pt, idOne);
+            //Remove prize
+            ed.removeEntity(idTwo);
+            //Disable contact for further resolution
+            contact.disable();
+        }
+        */
     }
 }
