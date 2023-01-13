@@ -14,7 +14,7 @@
     </Logger>
     <Logger name="com.simsilica.ext.mblock.SphereFactory" level="FATAL"/>
     <Logger name="com.simsilica.ext.mphys.EntityBodyFactory" level="FATAL"/>
-    <Logger name="com.simsilica.ext.mphys.BinEntityManager" level="INFO"/>
+    <Logger name="com.simsilica.ext.mphys.BinEntityManager" level="FATAL"/>
     <Logger name="com.simsilica.mworld.net.server.WorldHostedService" level="FATAL"/>
     <Logger name="com.simsilica.mworld.net.client.WorldClientService" level="FATAL"/>
     <Logger name="com.simsilica.mworld.net.client.RemoteWorldData" level="FATAL"/>
@@ -28,7 +28,7 @@
     <!--<Logger name="com.simsilica.lemur.input" level="TRACE"/>-->
     <Logger name="com.simsilica.es" level="INFO"/>
     <Logger name="com.simsilica.ethereal" level="INFO"/>
-    <Logger name="com.simsilica.sim.common.DecaySystem" level="TRACE"/>
+    <Logger name="com.simsilica.sim.common.DecaySystem" level="FATAL"/>
     <Logger name="com.simsilica.ext.mphys" level="DEBUG"/>
     <Logger name="com.simsilica.mblock" level="DEBUG"/>
     <!--<Logger name="com.simsilica.mworld" level="DEBUG"/>-->
