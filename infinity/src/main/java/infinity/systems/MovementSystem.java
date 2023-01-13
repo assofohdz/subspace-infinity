@@ -195,7 +195,7 @@ public class MovementSystem extends AbstractGameSystem {
         public Void apply(final RigidBody<EntityId, MBlockShape> body) {
             // See if this is one of the ones we need to add a player driver to
             final PlayerDriver driver = players.getObject(body.id);
-            log.info("MovementBodyInitializer.apply(" + body + ")  driver:" + driver);
+            //log.info("MovementBodyInitializer.apply(" + body + ")  driver:" + driver);
             if (driver != null) {
                 body.setControlDriver(driver);
             }
