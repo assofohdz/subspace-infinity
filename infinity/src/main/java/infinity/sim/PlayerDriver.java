@@ -25,6 +25,7 @@
  */
 package infinity.sim;
 
+import com.simsilica.mphys.Contact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,5 +131,17 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
             // log.info("Player (body) velocity (length of linvel):
             // "+body.getLinearVelocity().length());
         }
+    }
+
+    /**
+     *  Default implementation does nothing.
+     * @param contact
+     */
+    @Override
+    public void newContact(Contact<EntityId, MBlockShape> contact ) {
+        //log.info("PLayerDriver collision detected: "+contact.toString());
+
+
+
     }
 }
