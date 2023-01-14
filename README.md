@@ -18,13 +18,9 @@ developer friendly game engine
 </p>
 
 <p align="center">
-  <img alt="Image3" src="screenshots/image3.png?raw=true" width="45%">
+  <img alt="Image4" src="screenshots/image5.png?raw=true" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Image4" src="screenshots/image4.png?raw=true" width="45%">
-</p>
-
-<p align="center">
-  <img alt="Image4" src="screenshots/image5.png?raw=true" width="45%">
 </p>
 
 ## Building and Contributing
