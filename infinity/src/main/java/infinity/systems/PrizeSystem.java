@@ -19,7 +19,6 @@ import infinity.es.ship.Player;
 import infinity.sim.CollisionFilters;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
-import infinity.sim.InfinityContactDispatcher;
 import infinity.util.RandomSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   private EntitySet prizes;
   private SimTime ourTime;
   private EntitySet ships;
-  private InfinityContactDispatcher dispatcher;
 
   public PrizeSystem(PhysicsSpace phys) {
     this.phys = phys;
@@ -83,8 +81,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     ships = ed.getEntities(shipColliderFilter, Player.class);
     prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
 
-    dispatcher = getSystem(InfinityContactDispatcher.class);
-    dispatcher.addListener(this);
+    getSystem(ContactSystem.class).addListener(this);
   }
 
   private void initializePrizeMap() {
@@ -160,7 +157,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     prizeSpawners.release();
     prizeSpawners = null;
 
-    dispatcher.removeListener(this);
+    getSystem(ContactSystem.class).removeListener(this);
   }
 
   @Override
