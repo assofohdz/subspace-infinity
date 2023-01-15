@@ -25,7 +25,7 @@ import com.simsilica.mathd.Vec3d;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.systems.ActionSystem;
-import infinity.systems.AttackSystem;
+import infinity.systems.WeaponsSystem;
 import infinity.systems.AvatarSystem;
 
 /**
@@ -218,13 +218,13 @@ public class AvatarMovementState extends BaseAppState implements AnalogFunctionL
         if (value == InputState.Off) {
             // Attack functions first:
             if (func == AvatarMovementFunctions.F_SHOOT) {
-                session.attack(AttackSystem.GUN);
+                session.attack(WeaponsSystem.GUN);
             } else if (func == AvatarMovementFunctions.F_BOMB) {
-                session.attack(AttackSystem.BOMB);
+                session.attack(WeaponsSystem.BOMB);
             } else if (func == AvatarMovementFunctions.F_GRAVBOMB) {
-                session.attack(AttackSystem.GRAVBOMB);
+                session.attack(WeaponsSystem.GRAVBOMB);
             } else if (func == AvatarMovementFunctions.F_MINE) {
-                session.attack(AttackSystem.MINE);
+                session.attack(WeaponsSystem.MINE);
                 // <..
                 // Actions-->
             } else if (func == AvatarMovementFunctions.F_THOR) {

@@ -282,7 +282,7 @@ public class GameServer {
 
         systems.register(MobSystem.class, new MobSystem());
 
-        systems.register(AttackSystem.class, new AttackSystem());
+        systems.register(WeaponsSystem.class, new WeaponsSystem());
         systems.register(ArenaSystem.class, new ArenaSystem());
         systems.register(PrizeSystem.class, new PrizeSystem(mphys.getPhysicsSpace()));
 
