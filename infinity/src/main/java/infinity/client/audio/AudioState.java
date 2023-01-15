@@ -34,7 +34,6 @@ import com.jme3.audio.plugins.WAVLoader;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.simsilica.bpos.BodyPosition;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
@@ -134,7 +133,7 @@ public class AudioState extends BaseAppState {
       final Spatial spatial, final Entity entity, final boolean updatePosition) {
     if (updatePosition) {
       final Parent p = entity.get(Parent.class);
-      if (p.getParentEntity().getId() == 0L) {
+      if (p.getParentEntityId().getId() == 0L) {
         // No position to update to
       } else {
         final SpawnPosition pos = entity.get(SpawnPosition.class);

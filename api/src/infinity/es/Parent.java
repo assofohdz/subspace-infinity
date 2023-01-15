@@ -40,7 +40,7 @@ public class Parent implements EntityComponent {
         parentEntity = new EntityId(0);
     }
 
-    public EntityId getParentEntity() {
+    public EntityId getParentEntityId() {
         return parentEntity;
     }
 
