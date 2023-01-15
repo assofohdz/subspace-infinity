@@ -37,11 +37,9 @@ package infinity.server;
 
 import java.io.*;
 
-import com.jme3.scene.shape.Sphere;
 import com.simsilica.bpos.mphys.BodyPositionPublisher;
 import com.simsilica.bpos.mphys.LargeGridIndexSystem;
 import infinity.sim.CorePhysicsConstants;
-import infinity.sim.InfinityContactDispatcher;
 import infinity.sim.ai.MobSystem;
 import infinity.systems.*;
 import org.slf4j.Logger;
@@ -263,11 +261,6 @@ public class GameServer {
 
         MPhysSystem<MBlockShape> mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
-        InfinityContactDispatcher dispatcher = new InfinityContactDispatcher();
-        systems.register(InfinityContactDispatcher.class, dispatcher);
-        mphys.getPhysicsSpace().setContactDispatcher(dispatcher);
-
-
         Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
         mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
         // mphys.addPhysicsListener(new PositionUpdater(ed));
@@ -278,7 +271,11 @@ public class GameServer {
         systems.register(EntityBodyFactory.class, bodyFactory);
 
         // Subspace Infinity Specific Systems:-->
-        // systems.register(WeaponSystem.class, new WeaponSystem());
+        // Set up contacts to be filtered first:
+        ContactSystem contactSystem = new ContactSystem();
+        systems.register(ContactSystem.class, contactSystem);
+        mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
+        //Then add gamesystems:
         systems.register(EnergySystem.class, new EnergySystem());
         systems.register(AvatarSystem.class, new AvatarSystem(chp));
         systems.register(MovementSystem.class, new MovementSystem());
@@ -289,17 +286,11 @@ public class GameServer {
         systems.register(ArenaSystem.class, new ArenaSystem());
         systems.register(PrizeSystem.class, new PrizeSystem(mphys.getPhysicsSpace()));
 
-        // Set up contacts to be filtered
-        //final ContactSystem contactSystem = new ContactSystem();
-        //systems.register(ContactSystem.class, contactSystem);
 
-        //mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
         systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
         final AssetLoaderService assetLoader = new AssetLoaderService();
         server.getServices().addService(assetLoader);
-
-
 
         final AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
         server.getServices().addService(adaptiveLoader);
