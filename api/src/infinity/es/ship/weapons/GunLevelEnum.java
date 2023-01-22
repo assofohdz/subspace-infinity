@@ -46,4 +46,8 @@ public enum GunLevelEnum {
         this.level = level;
         this.viewOffset = viewOffset;
     }
+
+    public GunLevelEnum getNextLevel() {
+        return values()[ordinal() + 1];
+    }
 }

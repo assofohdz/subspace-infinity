@@ -23,7 +23,7 @@ import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
-import infinity.util.InfinityRunTimeException;
+import infinity.sim.util.InfinityRunTimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

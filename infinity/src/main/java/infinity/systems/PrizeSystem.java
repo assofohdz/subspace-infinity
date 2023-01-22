@@ -3,43 +3,66 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package infinity.systems;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.simsilica.es.*;
+import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mphys.*;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.AbstractBody;
+import com.simsilica.mphys.Contact;
+import com.simsilica.mphys.ContactListener;
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.es.*;
+import infinity.es.CollisionCategory;
+import infinity.es.PrizeType;
+import infinity.es.PrizeTypes;
+import infinity.es.Spawner;
+import infinity.es.SphereShape;
 import infinity.es.ship.Player;
+import infinity.es.ship.actions.Burst;
+import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.weapons.Gun;
+import infinity.es.ship.weapons.GunCost;
+import infinity.es.ship.weapons.GunFireDelay;
+import infinity.es.ship.weapons.GunLevelEnum;
+import infinity.es.ship.weapons.GunMax;
 import infinity.sim.CollisionFilters;
+import infinity.sim.CoreGameConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.util.RandomSelector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * This system spawns prizes and handles prize acquisition.
+ *
  * @author Asser
  */
 public class PrizeSystem extends AbstractGameSystem implements ContactListener {
-
-  BiMap<Integer, String> prizeMap = HashBiMap.create();
 
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
   private final PhysicsSpace phys;
   private final HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<>();
   private final HashMap<String, Integer> prizeWeights = new HashMap<>();
   private final HashMap<EntityId, Double> spawnerLastSpawned = new HashMap<>();
+  BiMap<Integer, String> prizeMap = HashBiMap.create();
   RandomSelector<String> rc;
   Random random;
   private EntityData ed;
@@ -48,7 +71,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   private SimTime ourTime;
   private EntitySet ships;
 
-  public PrizeSystem(PhysicsSpace phys) {
+  public PrizeSystem(PhysicsSpace<EntityId, MBlockShape> phys) {
     this.phys = phys;
   }
 
@@ -69,7 +92,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
 
     this.loadPrizeWeights();
 
-    rc = RandomSelector.weighted(prizeWeights.keySet(), s -> prizeWeights.get(s));
+    rc = RandomSelector.weighted(prizeWeights.keySet(), prizeWeights::get);
 
     ComponentFilter shipColliderFilter =
         FieldFilter.create(
@@ -174,11 +197,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
         spawnerBountySet.remove(idBounty);
         spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
-        // log.info(String.valueOf(spawnerBountySet.size()));
       }
     }
-
-    // ships.applyChanges();
 
     prizeSpawners.applyChanges();
 
@@ -197,7 +217,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
 
         spawnerLastSpawned.put(entitySpawner.getId(), 0d);
 
-        // log.info(String.valueOf(spawnerBountySet.size()));
       } else if (spawnerBounties.containsKey(spawnerId)
           && spawnerBounties.get(spawnerId).size() < s.getMaxCount()
           && spawnerLastSpawned.get(spawnerId) > s.getSpawnInterval()) {
@@ -208,9 +227,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
         spawnerBountySet.add(idBounty);
         spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
-        // log.info(String.valueOf(spawnerBountySet.size()));
-      } else {
-
       }
 
       spawnerLastSpawned.put(
@@ -220,10 +236,16 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   }
 
   @Override
-  public void start() {}
+  public void start() {
+    // TODO Auto-generated method stub
+    // Nothing to do yet when starting game, handled in initialize
+  }
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // TODO Auto-generated method stub
+    // Nothing to do yet when stopping game, handled in terminate
+  }
 
   private Vec3d getRandomWeightedCircleSpawnLocation(
       Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
@@ -251,67 +273,97 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   }
 
   private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {
-    log.info("Ship " + ship + " picked up prize:" + pt.getTypeName(ed));
+    log.info("Ship {} picked up prize: {}", ship, pt.getTypeName(ed));
     switch (pt.getTypeName(ed)) {
       case PrizeTypes.ALLWEAPONS:
+        //TODO: Handle aquiring all weapons
         break;
       case PrizeTypes.ANTIWARP:
+        //TODO: Handle acquiring antiwarp
         break;
       case PrizeTypes.BOMB:
+        //TODO: Handle acquiring bomb
         break;
       case PrizeTypes.BOUNCINGBULLETS:
+        //TODO: Handle acquiring bouncing bullets
         break;
       case PrizeTypes.BRICK:
+        //TODO: Handle acquiring brick
         break;
       case PrizeTypes.BURST:
+        handleAcquireBurst(ship);
         break;
       case PrizeTypes.CLOAK:
+        //TODO: Handle acquiring cloak
         break;
       case PrizeTypes.DECOY:
+        //TODO: Handle acquiring decoy
         break;
       case PrizeTypes.ENERGY:
+        //TODO: Handle acquiring energy
         break;
       case PrizeTypes.GLUE:
+        //TODO: Handle acquiring glue
         break;
       case PrizeTypes.GUN:
+        handleAcquireGun(ship);
         break;
       case PrizeTypes.MULTIFIRE:
+        //TODO: Handle acquiring multifire
         break;
       case PrizeTypes.MULTIPRIZE:
+        //TODO: Handle acquiring multiprize
         break;
       case PrizeTypes.PORTAL:
+        //TODO: Handle acquiring portal
         break;
       case PrizeTypes.PROXIMITY:
+        //TODO: Handle acquiring proximity
         break;
       case PrizeTypes.QUICKCHARGE:
+        //TODO: Handle acquiring quickcharge
         break;
       case PrizeTypes.RECHARGE:
+        //TODO: Handle acquiring recharge
         break;
       case PrizeTypes.REPEL:
+        //TODO: Handle acquiring repel
         break;
       case PrizeTypes.ROCKET:
+        //TODO: Handle acquiring rocket
         break;
       case PrizeTypes.ROTATION:
+        //TODO: Handle acquiring rotation
         break;
       case PrizeTypes.SHIELDS:
+        //TODO: Handle acquiring shields
         break;
       case PrizeTypes.SHRAPNEL:
+        //TODO: Handle acquiring shrapnel
         break;
       case PrizeTypes.STEALTH:
+        //TODO: Handle acquiring stealth
         break;
       case PrizeTypes.THOR:
+        //TODO: Handle acquiring thor
         break;
       case PrizeTypes.THRUSTER:
+        //TODO: Handle acquiring thruster
         break;
       case PrizeTypes.TOPSPEED:
+        //TODO: Handle acquiring topspeed
         break;
       case PrizeTypes.WARP:
+        //TODO: Handle acquiring warp
         break;
       case PrizeTypes.XRADAR:
+        //TODO: Handle acquiring xradar
         break;
       case PrizeTypes.SUPER:
+        //TODO: Handle acquiring super
         break;
       case PrizeTypes.DUD:
+        //TODO: Handle acquiring dud
         break;
       default:
         throw new UnsupportedOperationException(
@@ -322,15 +374,41 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     }
   }
 
+  private void handleAcquireBurst(EntityId ship) {
+    Burst burst = ed.getComponent(ship, Burst.class);
+    BurstMax burstMax = ed.getComponent(ship, BurstMax.class);
+    if (burst != null && burstMax != null && burst.getCount() < burstMax.getCount()) {
+      log.info("Ship {} picked up burst prize and now has {} bursts", ship, burst.getCount() + 1);
+      ed.setComponent(ship, new Burst(burst.getCount() + 1));
+    } else if (burst == null && burstMax != null) {
+      log.info("Ship {} picked up burst prize", ship);
+      ed.setComponent(ship, new Burst(1));
+    }
+  }
+
+  private void handleAcquireGun(EntityId ship) {
+    Gun gun = ed.getComponent(ship, Gun.class);
+    GunMax max = ed.getComponent(ship, GunMax.class);
+    if (gun != null && gun.getLevel().level < max.getLevel().level) {
+      log.info("Gun level increased to {}", (gun.getLevel().level + 1));
+      ed.setComponent(ship, new Gun(gun.getLevel().getNextLevel()));
+    } else if (gun == null) {
+      log.info("Ship {} just acquired guns and now has level {} guns", ship, 1);
+      ed.setComponent(ship, new Gun(GunLevelEnum.LEVEL_1));
+      ed.setComponent(ship, new GunCost(CoreGameConstants.GUNCOST));
+      ed.setComponent(ship, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
+      ed.setComponent(ship, new GunMax(GunLevelEnum.LEVEL_4));
+    }
+  }
+
   @Override
   public void newContact(Contact contact) {
-    // log.info("PrizeSystem collision detected: " + contact.toString());
-    RigidBody body1 = contact.body1;
-    AbstractBody body2 = contact.body2;
+    RigidBody<EntityId, MBlockShape> body1 = contact.body1;
+    AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
-    if (body2 != null && body2 instanceof StaticBody) {
-      EntityId idOne = (EntityId) body1.id;
-      EntityId idTwo = (EntityId) body2.id;
+    if (body2 instanceof StaticBody) {
+      EntityId idOne = body1.id;
+      EntityId idTwo = body2.id;
       CollisionCategory filter1 = ed.getComponent(idOne, CollisionCategory.class);
       CollisionCategory filter2 = ed.getComponent(idTwo, CollisionCategory.class);
       if (filter1.getFilter().isAllowed(filter2.getFilter())) {
@@ -339,19 +417,20 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         log.trace("Filter DOES NOT allow the contact");
       }
       // Only interact with collision if a ship collides with a prize or vice verca
-      // We only need to test this way around for ships and prizes since the rigidbody (ship) will always be body1
+      // We only need to test this way around for ships and prizes since the rigidbody (ship) will
+      // always be body1
       if (prizes.containsId(idTwo) && ships.containsId(idOne)) {
         log.trace("Entitysets contact resolution found it to be valid");
 
         PrizeType pt = prizes.getEntity(idTwo).get(PrizeType.class);
-        GameSounds.createPrizeSound(ed, ourTime.getTime(), idOne, body1.position,phys );
+        GameSounds.createPrizeSound(ed, ourTime.getTime(), idOne, body1.position, phys);
 
         this.handlePrizeAcquisition(pt, idOne);
         // Remove prize
         ed.removeEntity(idTwo);
         // Disable contact for further resolution
         contact.disable();
-      }  else {
+      } else {
         log.trace("Entitysets contact resolution found it to NOT be valid");
       }
     }

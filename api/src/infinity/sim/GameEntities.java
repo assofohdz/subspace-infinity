@@ -44,6 +44,7 @@ import infinity.es.ship.Recharge;
 import infinity.es.ship.actions.*;
 import infinity.es.ship.weapons.*;
 
+import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
@@ -368,8 +369,8 @@ public class GameEntities {
 
   public static EntityId createHealthBuff(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
-      @SuppressWarnings("unused") final PhysicsSpace<?, ?> phys,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final int healthChange,
       final EntityId target) {
@@ -408,7 +409,7 @@ public class GameEntities {
       final long createdTime,
       byte ship) {
     final EntityId result = ed.createEntity();
-    // final Name name = ed.getComponent(owner, Name.class);
+
     ed.setComponent(result, new Name("player"));
 
     switch (ship) {
@@ -455,12 +456,9 @@ public class GameEntities {
         ed.setComponents(result, shark);
         break;
       default:
-        throw new RuntimeException("Unknown ship type: " + ship);
+        throw new InfinityRunTimeException("Unknown ship type: " + ship);
     }
 
-    // ViewTypes.ship_warbird(ed),
-    // PhysicsMassTypes.normal(ed),
-    // PhysicsShapes.ship());
     SpawnPosition sp = new SpawnPosition(phys.getGrid(), spawnLoc);
     ed.setComponent(result, sp);
 
@@ -490,9 +488,11 @@ public class GameEntities {
     ed.setComponent(result, new BurstMax(5));
 
     // Add guns:
-    ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
-    ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
-    ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
+    //FIXME: Try without guns, see if we can pick it up
+    //ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
+    //ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
+    //ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
+    //ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
 
     // Add gravity bombs
     ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
@@ -611,7 +611,7 @@ public class GameEntities {
 
   public static EntityId createMapTile(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
+      final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final String tileSet,
@@ -638,7 +638,7 @@ public class GameEntities {
   // number
   public static EntityId updateWangBlobEntity(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
+      final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final EntityId entity,

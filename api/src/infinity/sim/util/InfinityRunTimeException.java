@@ -1,4 +1,4 @@
-package infinity.util;
+package infinity.sim.util;
 
 public class InfinityRunTimeException extends RuntimeException {
 
