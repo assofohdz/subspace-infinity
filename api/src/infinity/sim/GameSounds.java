@@ -120,7 +120,12 @@ public class GameSounds {
     ed.setComponent(result, new Meta(createdTime));
   }
 
-  public static void createPrizeSound(final @NotNull EntityData ed, final long createdTime, EntityId parent, Vec3d loc, @NotNull PhysicsSpace phys) {
+  public static void createPrizeSound(
+      final @NotNull EntityData ed,
+      final long createdTime,
+      EntityId parent,
+      Vec3d loc,
+      @NotNull PhysicsSpace phys) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
@@ -130,5 +135,39 @@ public class GameSounds {
         new Decay(
             createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)));
     ed.setComponent(result, new Meta(createdTime));
+  }
+
+  public static void createThorSound(
+      final @NotNull EntityData ed,
+      final long createdTime,
+      EntityId parent,
+      Vec3d loc,
+      @NotNull PhysicsSpace phys) {
+    final EntityId result = ed.createEntity();
+    ed.setComponents(
+        result,
+        AudioTypes.fire_thor(ed),
+        new Parent(parent),
+        new SpawnPosition(phys.getGrid(), loc),
+        new Decay(
+            createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)));
+    ed.setComponent(result, new Meta(createdTime));
+  }
+
+  public static void createMineSound(
+      EntityData ed,
+      EntityId requester,
+      @NotNull PhysicsSpace phys,
+      long time,
+      Vec3d location,
+      BombLevelEnum level) {
+    final EntityId result = ed.createEntity();
+    ed.setComponents(
+        result,
+        AudioTypes.fire_mine(ed, level),
+        new Parent(requester),
+        new SpawnPosition(phys.getGrid(), location),
+        new Decay(time, time + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)));
+    ed.setComponent(result, new Meta(time));
   }
 }

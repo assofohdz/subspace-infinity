@@ -56,17 +56,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class GameEntities {
 
-  // TODO: All constants should come through the parameters - for now, they come
-  // from the constants
-  // TODO: All parameters should be dumb types and should be the basis of the
-  // complex types used in the backend
+  private GameEntities() {
+  }
+
+  // TODO: All constants should come through the parameters - for now, they come from the constants
+  // TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
   public static EntityId createGravSphere(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
+      final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      @SuppressWarnings("unused") final double radius) {
+      final double radius) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result, ShapeInfo.create("gravitysphere", 1, ed), new SpawnPosition(phys.getGrid(), pos));
@@ -85,11 +86,11 @@ public class GameEntities {
       final long decayMillis,
       final long scheduledMillis,
       final HashSet<EntityComponent> delayedComponents,
-      final BombLevelEnum level) {
+      final String shapeName) {
 
     final EntityId lastDelayedBomb =
         GameEntities.createBomb(
-            ed, owner, phys, createdTime, pos, linearVelocity, decayMillis, level);
+            ed, owner, phys, createdTime, pos, linearVelocity, decayMillis, shapeName);
 
     ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
     ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -105,12 +106,12 @@ public class GameEntities {
       final Vec3d pos,
       final Vec3d linearVelocity,
       final long decayMillis,
-      final BombLevelEnum level) {
+      final String shapeName) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
-        ShapeInfo.create("bomb_l" + level.level, 0.5, ed),
+        ShapeInfo.create(shapeName, 0.5, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(5),
         new Decay(
@@ -135,13 +136,12 @@ public class GameEntities {
       final Vec3d pos,
       final Vec3d linearVelocity,
       final long decayMillis,
-      @SuppressWarnings("unused") final GunLevelEnum level,
       final String shapeName) {
     final EntityId lastBullet = ed.createEntity();
 
     ed.setComponents(
         lastBullet,
-        ShapeInfo.create(shapeName, 0.125, ed),
+        ShapeInfo.create(shapeName, CorePhysicsConstants.BULLETSIZERADIUS, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(1),
         new Decay(
@@ -454,6 +454,8 @@ public class GameEntities {
             ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed);
         ed.setComponents(result, shark);
         break;
+      default:
+        throw new RuntimeException("Unknown ship type: " + ship);
     }
 
     // ViewTypes.ship_warbird(ed),
@@ -489,8 +491,8 @@ public class GameEntities {
 
     // Add guns:
     ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
-    ed.setComponent(result, new GunCost(10));
-    ed.setComponent(result, new GunFireDelay(250));
+    ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
+    ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
 
     // Add gravity bombs
     ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));

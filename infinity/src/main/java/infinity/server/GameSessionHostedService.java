@@ -199,7 +199,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         // private PlayerDriver driver;
         private final EntityId playerEntityId;
         // private final BinIndex binIndex;
-        private final WeaponsSystem attackSystem;
+        private final WeaponsSystem weaponsSystem;
         // private MapSystem mapSystem;
 
         public GameSessionImpl(final HostedConnection conn) {
@@ -207,7 +207,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
             phys = gameSystems.get(PhysicsSpace.class, true);
             // mphys = gameSystems.get(MPhysSystem.class, true);
-            attackSystem = gameSystems.get(WeaponsSystem.class, true);
+            weaponsSystem = gameSystems.get(WeaponsSystem.class, true);
             // this.mapSystem = gameSystems.get(MapSystem.class, true);
 
             // binIndex = phys.getBinIndex();
@@ -337,7 +337,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
         @Override
         public void attack(final byte attackInput) {
-            attackSystem.sessionAttack(avatarEntityId, attackInput);
+            weaponsSystem.sessionAttack(avatarEntityId, attackInput);
         }
 
         @Override

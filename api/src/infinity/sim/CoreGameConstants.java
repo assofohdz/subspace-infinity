@@ -20,7 +20,6 @@ public class CoreGameConstants {
   public static final double THORPROJECTILESPEED = 30;
   public static final double BURSTPROJECTILESPEED = 50;
 
-  // Decays
   // Decays must be in milliseconds
   public static final long BULLETDECAY = 1500;
   public static final long PRIZEDECAY = 20000;
@@ -35,6 +34,10 @@ public class CoreGameConstants {
   // Cooldowns
   public static final long THORCOOLDOWN = 500;
   public static final long BURSTCOOLDOWN = 250;
+  public static final long GUNCOOLDOWN = 250;
+
+  // Cost of firing
+  public static final int GUNCOST = 10;
 
   public static final long BURSTPROJECTILECOUNT = 30;
 
@@ -55,4 +58,5 @@ public class CoreGameConstants {
   public static final int TOWERCOST = 1000;
 
   public static final String DEFAULTARENAID = "default";
+  public static final String BOMBLEVELPREPENDTEXT = "bomb_l";
 }

@@ -50,6 +50,11 @@ public class AudioTypes {
     public static final String EXPLOSION2 = "explosion2";
     public static final String BURST = "burst";
     public static final String REPEL = "repel";
+    public static final String FIRE_MINE_L1 = "fire_mine_l1";
+    public static final String FIRE_MINE_L2 = "fire_mine_l2";
+    public static final String FIRE_MINE_L3 = "fire_mine_l3";
+    public static final String FIRE_MINE_L4 = "fire_mine_l4";
+
 
     public static AudioType repel(final EntityData ed) {
         return AudioType.create(REPEL, ed);
@@ -65,6 +70,21 @@ public class AudioTypes {
 
     public static AudioType fire_gravbomb(final EntityData ed) {
         return AudioType.create(FIRE_GRAVBOMB, ed);
+    }
+
+    public static AudioType fire_mine(final EntityData ed, final BombLevelEnum level){
+        switch(level.level){
+            case 1:
+                return AudioType.create(FIRE_MINE_L1, ed);
+            case 2:
+                return AudioType.create(FIRE_MINE_L2, ed);
+            case 3:
+                return AudioType.create(FIRE_MINE_L3, ed);
+            case 4:
+                return AudioType.create(FIRE_MINE_L4, ed);
+            default:
+                throw new IllegalArgumentException("Unknown level: " + level);
+        }
     }
 
     // Bombs

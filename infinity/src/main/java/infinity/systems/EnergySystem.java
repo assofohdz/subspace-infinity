@@ -135,13 +135,13 @@ public class EnergySystem extends AbstractGameSystem {
                     final double tpf = time.getTpf();
                     final Recharge recharge = e.get(Recharge.class);
                     final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-                    createHealthChange(e.getId(), charge);
+                    damage(e.getId(), charge);
                 }
             } else {
                 final double tpf = time.getTpf();
                 final Recharge recharge = e.get(Recharge.class);
                 final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-                createHealthChange(e.getId(), charge);
+                damage(e.getId(), charge);
             }
         }
 
@@ -220,7 +220,7 @@ public class EnergySystem extends AbstractGameSystem {
      * @param deltaHitPoints the change in hitpoints (can be both positive an
      *                       negative)
      */
-    public void createHealthChange(final EntityId eId, final int deltaHitPoints) {
+    public void damage(final EntityId eId, final int deltaHitPoints) {
         final EntityId healthChange = ed.createEntity();
         ed.setComponents(healthChange, new Buff(eId, 0), new HealthChange(deltaHitPoints));
     }
