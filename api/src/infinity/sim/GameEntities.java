@@ -559,7 +559,7 @@ public class GameEntities {
     return result;
   }
 
-  public static EntityId createPrizeSpawner(
+  public static EntityId createWeightedPrizeSpawner(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
@@ -574,7 +574,7 @@ public class GameEntities {
         result,
         // Possible to add model if we want the players to be able to see the spawner
         new SpawnPosition(phys.getGrid(), pos),
-        new Spawner(CoreGameConstants.PRIZEMAXCOUNT, spawnInterval, spawnOnRing, Spawner.SpawnType.Prizes),
+        new Spawner(CoreGameConstants.PRIZEMAXCOUNT, spawnInterval, spawnOnRing, Spawner.SpawnType.Prizes, true),
         new SphereShape(radius));
     ed.setComponent(result, new Meta(createdTime));
     return result;

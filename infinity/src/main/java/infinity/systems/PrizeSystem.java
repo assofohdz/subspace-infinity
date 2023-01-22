@@ -139,34 +139,34 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   }
 
   private void loadPrizeWeights() {
-    prizeWeights.put(PrizeTypes.ALLWEAPONS, 40);
-    prizeWeights.put(PrizeTypes.ANTIWARP, 40);
-    prizeWeights.put(PrizeTypes.BOMB, 40);
-    prizeWeights.put(PrizeTypes.BOUNCINGBULLETS, 40);
-    prizeWeights.put(PrizeTypes.BRICK, 40);
-    prizeWeights.put(PrizeTypes.BURST, 40);
-    prizeWeights.put(PrizeTypes.CLOAK, 40);
-    prizeWeights.put(PrizeTypes.DECOY, 40);
-    prizeWeights.put(PrizeTypes.ENERGY, 40);
-    prizeWeights.put(PrizeTypes.GLUE, 40);
-    prizeWeights.put(PrizeTypes.GUN, 40);
-    prizeWeights.put(PrizeTypes.MULTIFIRE, 40);
-    prizeWeights.put(PrizeTypes.MULTIPRIZE, 40);
-    prizeWeights.put(PrizeTypes.PORTAL, 40);
-    prizeWeights.put(PrizeTypes.PROXIMITY, 40);
-    prizeWeights.put(PrizeTypes.QUICKCHARGE, 40);
-    prizeWeights.put(PrizeTypes.RECHARGE, 40);
-    prizeWeights.put(PrizeTypes.REPEL, 40);
-    prizeWeights.put(PrizeTypes.ROCKET, 40);
-    prizeWeights.put(PrizeTypes.ROTATION, 40);
-    prizeWeights.put(PrizeTypes.SHIELDS, 40);
-    prizeWeights.put(PrizeTypes.SHRAPNEL, 40);
-    prizeWeights.put(PrizeTypes.STEALTH, 40);
-    prizeWeights.put(PrizeTypes.THOR, 40);
-    prizeWeights.put(PrizeTypes.THRUSTER, 40);
-    prizeWeights.put(PrizeTypes.TOPSPEED, 40);
-    prizeWeights.put(PrizeTypes.WARP, 40);
-    prizeWeights.put(PrizeTypes.XRADAR, 40);
+    prizeWeights.put(PrizeTypes.ALLWEAPONS, 5);
+    prizeWeights.put(PrizeTypes.ANTIWARP, 10);
+    prizeWeights.put(PrizeTypes.BOMB, 25);
+    prizeWeights.put(PrizeTypes.BOUNCINGBULLETS, 5);
+    prizeWeights.put(PrizeTypes.BRICK, 5);
+    prizeWeights.put(PrizeTypes.BURST, 5);
+    prizeWeights.put(PrizeTypes.CLOAK, 5);
+    prizeWeights.put(PrizeTypes.DECOY, 5);
+    prizeWeights.put(PrizeTypes.ENERGY, 5);
+    prizeWeights.put(PrizeTypes.GLUE, 5);
+    prizeWeights.put(PrizeTypes.GUN, 25);
+    prizeWeights.put(PrizeTypes.MULTIFIRE, 5);
+    prizeWeights.put(PrizeTypes.MULTIPRIZE, 5);
+    prizeWeights.put(PrizeTypes.PORTAL, 5);
+    prizeWeights.put(PrizeTypes.PROXIMITY, 5);
+    prizeWeights.put(PrizeTypes.QUICKCHARGE, 5);
+    prizeWeights.put(PrizeTypes.RECHARGE, 5);
+    prizeWeights.put(PrizeTypes.REPEL, 5);
+    prizeWeights.put(PrizeTypes.ROCKET, 5);
+    prizeWeights.put(PrizeTypes.ROTATION, 5);
+    prizeWeights.put(PrizeTypes.SHIELDS, 5);
+    prizeWeights.put(PrizeTypes.SHRAPNEL, 5);
+    prizeWeights.put(PrizeTypes.STEALTH, 5);
+    prizeWeights.put(PrizeTypes.THOR, 5);
+    prizeWeights.put(PrizeTypes.THRUSTER, 5);
+    prizeWeights.put(PrizeTypes.TOPSPEED, 5);
+    prizeWeights.put(PrizeTypes.WARP, 5);
+    prizeWeights.put(PrizeTypes.XRADAR, 5);
   }
 
   @Override
@@ -209,7 +209,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
       SphereShape c = entitySpawner.get(SphereShape.class);
 
       if (!spawnerBounties.containsKey(spawnerId)) {
-        EntityId idBounty = spawnRandomBounty(p.getLocation(), c.getRadius(), s.spawnOnRing());
+        EntityId idBounty = spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
 
         HashSet<EntityId> spawnerBountySet = new HashSet<>();
         spawnerBountySet.add(idBounty);
@@ -220,7 +220,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
       } else if (spawnerBounties.containsKey(spawnerId)
           && spawnerBounties.get(spawnerId).size() < s.getMaxCount()
           && spawnerLastSpawned.get(spawnerId) > s.getSpawnInterval()) {
-        EntityId idBounty = spawnRandomBounty(p.getLocation(), c.getRadius(), s.spawnOnRing());
+
+        EntityId idBounty = spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
 
         spawnerLastSpawned.put(entitySpawner.getId(), 0d);
 
@@ -232,6 +233,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
       spawnerLastSpawned.put(
           entitySpawner.getId(),
           spawnerLastSpawned.get(entitySpawner.getId()) + 1000 * time.getTpf());
+    }
+  }
+
+  private EntityId spawnBounty(Vec3d location, double radius, boolean spawnOnRing, boolean weighted) {
+    if (weighted) {
+      return spawnWeightedBounty(location, radius, spawnOnRing);
+    } else {
+      return spawnRandomBounty(location, radius, spawnOnRing);
     }
   }
 
@@ -257,6 +266,16 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     double z = Math.sin(angle) * lengthFromCenter + spawnCenter.z;
 
     return new Vec3d(x, spawnCenter.y, z);
+  }
+
+  private EntityId spawnWeightedBounty(Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
+    Vec3d location =
+        this.getRandomWeightedCircleSpawnLocation(
+            spawnCenter, radius, onlyOnCistringWeightsumference);
+
+    String prizeType = rc.next(random);
+
+    return GameEntities.createPrize(ed, phys, ourTime.getTime(), location, prizeType);
   }
 
   private EntityId spawnRandomBounty(

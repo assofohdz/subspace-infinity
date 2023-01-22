@@ -23,37 +23,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
 /**
+ * This component enables an entity that spawns different types of entities.
+ *
  * @author Asser
  */
 public class Spawner implements EntityComponent {
 
+  private boolean weighted;
   private int maxCount;
   private SpawnType type;
   // Add option to have a spawn interval between spawning, in milliseconds
   private double spawnInterval;
   // add option to spawn on the radius or in the circle
   private boolean spawnOnRing;
-
   public Spawner(
       final int maxCount,
       final double spawnInterval,
       final boolean spawnAllOver,
-      final SpawnType type) {
+      final SpawnType type,
+      final boolean weighted) {
     this.maxCount = maxCount;
     this.type = type;
     this.spawnInterval = spawnInterval;
     this.spawnOnRing = spawnAllOver;
+    this.weighted = weighted;
   }
 
   public Spawner() {}
 
   public Spawner(final SpawnType type) {
     this.type = type;
+  }
+
+  public boolean isWeighted() {
+    return weighted;
   }
 
   public boolean spawnOnRing() {

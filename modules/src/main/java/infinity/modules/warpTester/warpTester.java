@@ -82,7 +82,7 @@ public class warpTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+        GameEntities.createWeightedPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
                 getTimeManager().getTime(), new Vec3d(), 5000, true, 13);
 
         GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),

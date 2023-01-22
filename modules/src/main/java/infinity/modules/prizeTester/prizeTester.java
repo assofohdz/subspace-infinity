@@ -77,7 +77,7 @@ public class prizeTester extends BaseGameModule {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        GameEntities.createPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
+        GameEntities.createWeightedPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
                 getTimeManager().getTime(), new Vec3d(0,1,0), 1000, true, 10);
     }
 
