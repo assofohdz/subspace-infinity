@@ -28,12 +28,12 @@ package infinity.systems;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.ShapeInfo;
+import infinity.es.arena.ArenaSettings;
 import infinity.es.ShapeNames;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 
 import java.util.List;
@@ -65,129 +65,147 @@ import infinity.util.AdaptiveLoadingService;
  */
 public class SettingsSystem extends AbstractGameSystem {
 
+  private static final String BULLET_GROUP = "Bullet";
+  private static final String BOMB_GROUP = "Bomb";
+  private static final String MISC_GROUP = "Misc";
+  private static final String TEAM_GROUP = "Team";
+  private static final String REPEL_GROUP = "Repel";
+  private static final String MINE_GROUP = "Mine";
+  private static final String BURST_GROUP = "Burst";
+  private static final String FLAG_GROUP = "Flag";
+  private static final String ROCKET_GROUP = "Rocket";
+  private static final String SHRAPNEL_GROUP = "Shrapnel";
+  private static final String WORMHOLE_GROUP = "Wormhole";
+  private static final String KILL_GROUP = "Kill";
+  private static final String PRIZE_GROUP = "Prize";
+  private static final String LATENCY_GROUP = "Latency";
+  private static final String DOOR_GROUP = "Door";
+  private static final String TOGGLE_GROUP = "Toggle";
+  private static final String BRICK_GROUP = "Brick";
+  private static final String RADAR_GROUP = "Radar";
+  private static final String SOCCER_GROUP = "Soccer";
+  private static final String UNUSED_GROUP = "Unused";
+  private static final String MESSAGE_GROUP = "Message";
+  private static final String CHAT_GROUP = "Chat";
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
-  // private Ini coreServerSettings;
   private final AssetLoaderService assetLoader;
-  // Server settings
-  // private Ini serverSettings;
-  // Arena settings (can overrule server settings)
   private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
   private final List<SimpleEntry<String, String>> intSettings =
       Arrays.asList(
-          new SimpleEntry<>("Bullet", "BulletDamageLevel"),
-          new SimpleEntry<>("Bomb", "BombDamageLevel"),
-          new SimpleEntry<>("Bullet", "BulletAliveTime"),
-          new SimpleEntry<>("Bomb", "BombAliveTime"),
-          new SimpleEntry<>("Misc", "DecoyAliveTime"),
-          new SimpleEntry<>("Misc", "SafetyLimit"),
-          new SimpleEntry<>("Misc", "FrequencyShift"),
-          new SimpleEntry<>("Team", "MaxFrequency"),
-          new SimpleEntry<>("Repel", "RepelSpeed"),
-          new SimpleEntry<>("Mine", "MineAliveTime"),
-          new SimpleEntry<>("Burst", "BurstDamageLevel"),
-          new SimpleEntry<>("Bullet", "BulletDamageUpgrade"),
-          new SimpleEntry<>("Flag", "FlagDropDelay"),
-          new SimpleEntry<>("Flag", "EnterGameFlaggingDelay"),
-          new SimpleEntry<>("Rocket", "RocketThrust"),
-          new SimpleEntry<>("Rocket", "RocketSpeed"),
-          new SimpleEntry<>("Shrapnel", "InactiveShrapDamage"),
-          new SimpleEntry<>("Wormhole", "SwitchTime"),
-          new SimpleEntry<>("Misc", "ActivateAppShutdownTime"),
-          new SimpleEntry<>("Shrapnel", "ShrapnelSpeed"));
+          new SimpleEntry<>(BULLET_GROUP, "BulletDamageLevel"),
+          new SimpleEntry<>(BOMB_GROUP, "BombDamageLevel"),
+          new SimpleEntry<>(BULLET_GROUP, "BulletAliveTime"),
+          new SimpleEntry<>(BOMB_GROUP, "BombAliveTime"),
+          new SimpleEntry<>(MISC_GROUP, "DecoyAliveTime"),
+          new SimpleEntry<>(MISC_GROUP, "SafetyLimit"),
+          new SimpleEntry<>(MISC_GROUP, "FrequencyShift"),
+          new SimpleEntry<>(TEAM_GROUP, "MaxFrequency"),
+          new SimpleEntry<>(REPEL_GROUP, "RepelSpeed"),
+          new SimpleEntry<>(MINE_GROUP, "MineAliveTime"),
+          new SimpleEntry<>(BURST_GROUP, "BurstDamageLevel"),
+          new SimpleEntry<>(BULLET_GROUP, "BulletDamageUpgrade"),
+          new SimpleEntry<>(FLAG_GROUP, "FlagDropDelay"),
+          new SimpleEntry<>(FLAG_GROUP, "EnterGameFlaggingDelay"),
+          new SimpleEntry<>(ROCKET_GROUP, "RocketThrust"),
+          new SimpleEntry<>(ROCKET_GROUP, "RocketSpeed"),
+          new SimpleEntry<>(SHRAPNEL_GROUP, "InactiveShrapDamage"),
+          new SimpleEntry<>(WORMHOLE_GROUP, "SwitchTime"),
+          new SimpleEntry<>(MISC_GROUP, "ActivateAppShutdownTime"),
+          new SimpleEntry<>(SHRAPNEL_GROUP, "ShrapnelSpeed"));
   private final List<SimpleEntry<String, String>> shortSettings =
       Arrays.asList(
-          new SimpleEntry<>("Latency", "SendRoutePercent"),
-          new SimpleEntry<>("Bomb", "BombExplodeDelay"),
-          new SimpleEntry<>("Misc", "SendPositionDelay"),
-          new SimpleEntry<>("Bomb", "BombExplodePixels"),
-          new SimpleEntry<>("Prize", "DeathPrizeTime"),
-          new SimpleEntry<>("Bomb", "JitterTime"),
-          new SimpleEntry<>("Kill", "EnterDelay"),
-          new SimpleEntry<>("Prize", "EngineShutdownTime"),
-          new SimpleEntry<>("Bomb", "ProximityDistance"),
-          new SimpleEntry<>("Kill", "BountyIncreaseForKill"),
-          new SimpleEntry<>("Misc", "BounceFactor"),
-          new SimpleEntry<>("Radar", "MapZoomFactor"),
-          new SimpleEntry<>("Kill", "MaxBonus"),
-          new SimpleEntry<>("Kill", "MaxPenalty"),
-          new SimpleEntry<>("Kill", "RewardBase"),
-          new SimpleEntry<>("Repel", "RepelTime"),
-          new SimpleEntry<>("Repel", "RepelDistance"),
-          new SimpleEntry<>("Misc", "TickerDelay"),
-          new SimpleEntry<>("Flag", "FlaggerOnRadar"),
-          new SimpleEntry<>("Flag", "FlaggerKillMultiplier"),
-          new SimpleEntry<>("Prize", "PrizeFactor"),
-          new SimpleEntry<>("Prize", "PrizeDelay"),
-          new SimpleEntry<>("Prize", "MinimumVirtual"),
-          new SimpleEntry<>("Prize", "UpgradeVirtual"),
-          new SimpleEntry<>("Prize", "PrizeMaxExist"),
-          new SimpleEntry<>("Prize", "PrizeMinExist"),
-          new SimpleEntry<>("Prize", "PrizeNegativeFactor"),
-          new SimpleEntry<>("Door", "DoorDelay"),
-          new SimpleEntry<>("Toggle", "AntiWarpPixels"),
-          new SimpleEntry<>("Door", "DoorMode"),
-          new SimpleEntry<>("Flag", "FlagBlankDelay"),
-          new SimpleEntry<>("Flag", "NoDataFlagDropDelay"),
-          new SimpleEntry<>("Prize", "MultiPrizeCount"),
-          new SimpleEntry<>("Brick", "BrickTime"),
-          new SimpleEntry<>("Misc", "WarpRadiusLimit"),
-          new SimpleEntry<>("Bomb", "EBombShutdownTime"),
-          new SimpleEntry<>("Bomb", "EBombDamagePercent"),
-          new SimpleEntry<>("Radar", "RadarNeutralSize"),
-          new SimpleEntry<>("Misc", "WarpPointDelay"),
-          new SimpleEntry<>("Misc", "NearDeathLevel"),
-          new SimpleEntry<>("Bomb", "BBombDamagePercent"),
-          new SimpleEntry<>("Shrapnel", "ShrapnelDamagePercent"),
-          new SimpleEntry<>("Latency", "ClientSlowPacketTime"),
-          new SimpleEntry<>("Flag", "FlagDropResetReward"),
-          new SimpleEntry<>("Flag", "FlaggerFireCostPercent"),
-          new SimpleEntry<>("Flag", "FlaggerDamagePercent"),
-          new SimpleEntry<>("Flag", "FlaggerBombFireDelay"),
-          new SimpleEntry<>("Soccer", "PassDelay"),
-          new SimpleEntry<>("Soccer", "BallBlankDelay"),
-          new SimpleEntry<>("Latency", "S2CNoDataKickoutDelay"),
-          new SimpleEntry<>("Flag", "FlaggerThrustAdjustment"),
-          new SimpleEntry<>("Flag", "FlaggerSpeedAdjustment"),
-          new SimpleEntry<>("Latency", "ClientSlowPacketSampleSize"),
-          new SimpleEntry<>("Unused", "Unused5"),
-          new SimpleEntry<>("Unused", "Unused4"),
-          new SimpleEntry<>("Unused", "Unused3"),
-          new SimpleEntry<>("Unused", "Unused2"),
-          new SimpleEntry<>("Unused", "Unused1"));
+          new SimpleEntry<>(LATENCY_GROUP, "SendRoutePercent"),
+          new SimpleEntry<>(BOMB_GROUP, "BombExplodeDelay"),
+          new SimpleEntry<>(MISC_GROUP, "SendPositionDelay"),
+          new SimpleEntry<>(BOMB_GROUP, "BombExplodePixels"),
+          new SimpleEntry<>(PRIZE_GROUP, "DeathPrizeTime"),
+          new SimpleEntry<>(BOMB_GROUP, "JitterTime"),
+          new SimpleEntry<>(KILL_GROUP, "EnterDelay"),
+          new SimpleEntry<>(PRIZE_GROUP, "EngineShutdownTime"),
+          new SimpleEntry<>(BOMB_GROUP, "ProximityDistance"),
+          new SimpleEntry<>(KILL_GROUP, "BountyIncreaseForKill"),
+          new SimpleEntry<>(MISC_GROUP, "BounceFactor"),
+          new SimpleEntry<>(RADAR_GROUP, "MapZoomFactor"),
+          new SimpleEntry<>(KILL_GROUP, "MaxBonus"),
+          new SimpleEntry<>(KILL_GROUP, "MaxPenalty"),
+          new SimpleEntry<>(KILL_GROUP, "RewardBase"),
+          new SimpleEntry<>(REPEL_GROUP, "RepelTime"),
+          new SimpleEntry<>(REPEL_GROUP, "RepelDistance"),
+          new SimpleEntry<>(MISC_GROUP, "TickerDelay"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerOnRadar"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerKillMultiplier"),
+          new SimpleEntry<>(PRIZE_GROUP, "PrizeFactor"),
+          new SimpleEntry<>(PRIZE_GROUP, "PrizeDelay"),
+          new SimpleEntry<>(PRIZE_GROUP, "MinimumVirtual"),
+          new SimpleEntry<>(PRIZE_GROUP, "UpgradeVirtual"),
+          new SimpleEntry<>(PRIZE_GROUP, "PrizeMaxExist"),
+          new SimpleEntry<>(PRIZE_GROUP, "PrizeMinExist"),
+          new SimpleEntry<>(PRIZE_GROUP, "PrizeNegativeFactor"),
+          new SimpleEntry<>(DOOR_GROUP, "DoorDelay"),
+          new SimpleEntry<>(TOGGLE_GROUP, "AntiWarpPixels"),
+          new SimpleEntry<>(DOOR_GROUP, "DoorMode"),
+          new SimpleEntry<>(FLAG_GROUP, "FlagBlankDelay"),
+          new SimpleEntry<>(FLAG_GROUP, "NoDataFlagDropDelay"),
+          new SimpleEntry<>(PRIZE_GROUP, "MultiPrizeCount"),
+          new SimpleEntry<>(BRICK_GROUP, "BrickTime"),
+          new SimpleEntry<>(MISC_GROUP, "WarpRadiusLimit"),
+          new SimpleEntry<>(BOMB_GROUP, "EBombShutdownTime"),
+          new SimpleEntry<>(BOMB_GROUP, "EBombDamagePercent"),
+          new SimpleEntry<>(RADAR_GROUP, "RadarNeutralSize"),
+          new SimpleEntry<>(MISC_GROUP, "WarpPointDelay"),
+          new SimpleEntry<>(MISC_GROUP, "NearDeathLevel"),
+          new SimpleEntry<>(BOMB_GROUP, "BBombDamagePercent"),
+          new SimpleEntry<>(SHRAPNEL_GROUP, "ShrapnelDamagePercent"),
+          new SimpleEntry<>(LATENCY_GROUP, "ClientSlowPacketTime"),
+          new SimpleEntry<>(FLAG_GROUP, "FlagDropResetReward"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerFireCostPercent"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerDamagePercent"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerBombFireDelay"),
+          new SimpleEntry<>(SOCCER_GROUP, "PassDelay"),
+          new SimpleEntry<>(SOCCER_GROUP, "BallBlankDelay"),
+          new SimpleEntry<>(LATENCY_GROUP, "S2CNoDataKickoutDelay"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerThrustAdjustment"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerSpeedAdjustment"),
+          new SimpleEntry<>(LATENCY_GROUP, "ClientSlowPacketSampleSize"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused5"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused4"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused3"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused2"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused1"));
   private final List<SimpleEntry<String, String>> byteSettings =
       Arrays.asList(
-          new SimpleEntry<>("Shrapnel", "Random"),
-          new SimpleEntry<>("Soccer", "BallBounce"),
-          new SimpleEntry<>("Soccer", "AllowBombs"),
-          new SimpleEntry<>("Soccer", "AllowGuns"),
-          new SimpleEntry<>("Soccer", "Mode"),
-          new SimpleEntry<>("Team", "MaxPerTeam"),
-          new SimpleEntry<>("Team", "MaxPerPrivateTeam"),
-          new SimpleEntry<>("Mine", "TeamMaxMines"),
-          new SimpleEntry<>("Wormhole", "GravityBombs"),
-          new SimpleEntry<>("Bomb", "BombSafety"),
-          new SimpleEntry<>("Chat", "MessageReliable"),
-          new SimpleEntry<>("Prize", "TakePrizeReliable"),
-          new SimpleEntry<>("Message", "AllowAudioMessages"),
-          new SimpleEntry<>("Prize", "PrizeHideCount"),
-          new SimpleEntry<>("Misc", "ExtraPositionData"),
-          new SimpleEntry<>("Misc", "SlowFrameCheck"),
-          new SimpleEntry<>("Flag", "CarryFlags"),
-          new SimpleEntry<>("Misc", "AllowSavedShips"),
-          new SimpleEntry<>("Radar", "RadarMode"),
-          new SimpleEntry<>("Misc", "VictoryMusic"),
-          new SimpleEntry<>("Flag", "FlaggerGunUpgrade"),
-          new SimpleEntry<>("Flag", "FlaggerBombUpgrade"),
-          new SimpleEntry<>("Soccer", "UseFlagger"),
-          new SimpleEntry<>("Soccer", "BallLocation"),
-          new SimpleEntry<>("Misc", "AntiWarpSettleDelay"),
-          new SimpleEntry<>("Unused", "Unused7"),
-          new SimpleEntry<>("Unused", "Unused6"),
-          new SimpleEntry<>("Unused", "Unused5"),
-          new SimpleEntry<>("Unused", "Unused4"),
-          new SimpleEntry<>("Unused", "Unused3"),
-          new SimpleEntry<>("Unused", "Unused2"),
-          new SimpleEntry<>("Unused", "Unused1"));
+          new SimpleEntry<>(SHRAPNEL_GROUP, "Random"),
+          new SimpleEntry<>(SOCCER_GROUP, "BallBounce"),
+          new SimpleEntry<>(SOCCER_GROUP, "AllowBombs"),
+          new SimpleEntry<>(SOCCER_GROUP, "AllowGuns"),
+          new SimpleEntry<>(SOCCER_GROUP, "Mode"),
+          new SimpleEntry<>(TEAM_GROUP, "MaxPerTeam"),
+          new SimpleEntry<>(TEAM_GROUP, "MaxPerPrivateTeam"),
+          new SimpleEntry<>(MINE_GROUP, "TeamMaxMines"),
+          new SimpleEntry<>(WORMHOLE_GROUP, "GravityBombs"),
+          new SimpleEntry<>(BOMB_GROUP, "BombSafety"),
+          new SimpleEntry<>(CHAT_GROUP, "MessageReliable"),
+          new SimpleEntry<>(PRIZE_GROUP, "TakePrizeReliable"),
+          new SimpleEntry<>(MESSAGE_GROUP, "AllowAudioMessages"),
+          new SimpleEntry<>(PRIZE_GROUP, "PrizeHideCount"),
+          new SimpleEntry<>(MISC_GROUP, "ExtraPositionData"),
+          new SimpleEntry<>(MISC_GROUP, "SlowFrameCheck"),
+          new SimpleEntry<>(FLAG_GROUP, "CarryFlags"),
+          new SimpleEntry<>(MISC_GROUP, "AllowSavedShips"),
+          new SimpleEntry<>(RADAR_GROUP, "RadarMode"),
+          new SimpleEntry<>(MISC_GROUP, "VictoryMusic"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerGunUpgrade"),
+          new SimpleEntry<>(FLAG_GROUP, "FlaggerBombUpgrade"),
+          new SimpleEntry<>(SOCCER_GROUP, "UseFlagger"),
+          new SimpleEntry<>(SOCCER_GROUP, "BallLocation"),
+          new SimpleEntry<>(MISC_GROUP, "AntiWarpSettleDelay"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused7"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused6"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused5"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused4"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused3"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused2"),
+          new SimpleEntry<>(UNUSED_GROUP, "Unused1"));
   private final List<String> shipByteSettings =
       Arrays.asList(
           "TurretLimit",
@@ -265,18 +283,11 @@ public class SettingsSystem extends AbstractGameSystem {
   private EntityData ed;
   private ArrayList<String[]> asssSettings;
 
-  // private ArrayList<String[]> asssTemplate;
-
-  // private ArenaSettings defaultArenaSettings;
-  // private final AdaptiveLoadingService adaptiveLoader;
-  // private ArrayList<String[]> asssSettings;
-
   public SettingsSystem(
       final AssetLoaderService assetLoader,
       @SuppressWarnings("unused") final AdaptiveLoadingService adaptiveLoader) {
 
     this.assetLoader = assetLoader;
-    // this.adaptiveLoader = adaptiveLoader;
   }
 
   public void addListener(final SettingListener listener) {
@@ -302,24 +313,29 @@ public class SettingsSystem extends AbstractGameSystem {
     // Load Subgame2: Subspace Vie Settings
     svsSettings = (Ini) assetLoader.loadAsset("/svsSettings.cfg");
 
-    // Load ASSS: settings
-    asssSettings = (ArrayList<String[]>) assetLoader.loadAsset("/server.set");
-
     // Defauælt arena settings are the svs settings
     arenaSettingsMap.put(CoreGameConstants.DEFAULTARENAID, svsSettings);
   }
 
   @Override
-  protected void terminate() {}
+  protected void terminate() {
+    // Nothing to do
+  }
 
   @Override
-  public void update(final SimTime tpf) {}
+  public void update(final SimTime tpf) {
+    // Nothing to do
+  }
 
   @Override
-  public void start() {}
+  public void start() {
+    // Nothing to do here
+  }
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // Nothing to do here
+  }
 
   private void loadDefaultSettings() {
     // TODO: Load the arena settings found in the zone/(default)-folder
@@ -364,6 +380,23 @@ public class SettingsSystem extends AbstractGameSystem {
     }
 
     Section sec = settings.get(section);
+  }
+
+  /*
+   * This method is called to load a specific arena. It will load the config-file corresponding to
+   * that arena (for now its just one file containing all the config) and then it will create an
+   * arena entity that holds the settings for that arena. This will allow other systems to look up
+   * the settings when needed
+   */
+  public EntityId loadArenaSettings(final String arenaId, EntityId arenaEntityId) {
+    // Load the settings from file
+    // TODO: Find the right folder-placement for the file, for now in the root of resources
+    Ini settings = (Ini) assetLoader.loadAsset("/" + arenaId + ".cfg");
+
+    // Create the entity for the arena
+    ed.setComponents(arenaEntityId, new ArenaSettings(arenaId, settings));
+
+    return arenaEntityId;
   }
 
   public double getShipSetting(
