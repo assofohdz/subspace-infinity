@@ -23,35 +23,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.systems;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.ShapeInfo;
-import infinity.es.arena.ArenaSettings;
-import infinity.es.ShapeNames;
-import infinity.sim.util.InfinityRunTimeException;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-
-import java.util.List;
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-
 import infinity.es.ArenaId;
+import infinity.es.ShapeNames;
+import infinity.es.arena.ArenaSettings;
 import infinity.server.AssetLoaderService;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.CoreGameConstants;
+import infinity.sim.util.InfinityRunTimeException;
 import infinity.util.AdaptiveLoadingService;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This state loads the settings for all arenas and notifies all listeners of the new settings.
@@ -382,11 +380,14 @@ public class SettingsSystem extends AbstractGameSystem {
     Section sec = settings.get(section);
   }
 
-  /*
+  /**
    * This method is called to load a specific arena. It will load the config-file corresponding to
    * that arena (for now its just one file containing all the config) and then it will create an
    * arena entity that holds the settings for that arena. This will allow other systems to look up
-   * the settings when needed
+   * the settings when needed.
+   *
+   * @param arenaId The id of the arena to load
+   * @return The entity id of the arena entity
    */
   public EntityId loadArenaSettings(final String arenaId, EntityId arenaEntityId) {
     // Load the settings from file
@@ -399,26 +400,8 @@ public class SettingsSystem extends AbstractGameSystem {
     return arenaEntityId;
   }
 
-  public double getShipSetting(
-      final String arenaId, final String shipName, final String settingName) {
-    Ini arenaSettings = arenaSettingsMap.get(arenaId);
-    if (arenaSettings == null) {
-      // TODO: Handle default/arena settings later
-      throw new InfinityRunTimeException("No settings found for arena " + arenaId);
-    }
-    return Double.parseDouble(arenaSettings.get(shipName, settingName));
-  }
-
-  public double getSetting(String arenaId, String setting) {
-    Ini arenaSettings = arenaSettingsMap.get(arenaId);
-    if (arenaSettings == null) {
-      arenaSettings = arenaSettingsMap.get(CoreGameConstants.DEFAULTARENAID);
-    }
-    return Double.parseDouble(arenaSettings.get("Settings", setting));
-  }
-
   /**
-   * Called when some setting change and listeners has to update their local copy of the settings
+   * Called when some setting change and listeners has to update their local copy of the settings.
    *
    * @param arenaId the arena to lookup settings for
    * @param section the section of the setting
