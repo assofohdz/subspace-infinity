@@ -57,6 +57,20 @@ and [Paul Speed](https://github.com/pspeed42) who has laid the foundation with t
 - [SiO2 framework](https://github.com/Simsilica/SiO2)
 - [SimEthereal framework](https://github.com/Simsilica/SimEthereal)
 - [Pager framework](https://github.com/Simsilica/Pager)
+- MOSS: Mythruna Open Source Software (not yet open source):
+  - action - object runtime type/actions and scripting framework
+  - crig - physics-compatible and networkable character rig stuff
+  - fractal - fractal generation
+  - fsm - finite state machine
+  - mblock-phys - mblock shapes and collision system for mphys
+  - mblock - block type factories and geometry generation
+  - mgen - generative block shapes (buildings, dungeons, etc.)
+  - mphys - distributes physics library for dealing with large worlds
+  - mworld - world terrain management and far terrain/building generation
+  - sio2-mblock - SiO2 game systems and Zay-ES mblock integration
+  - sio2-mphys - SiO2 game systems and Zay-ES mphys+mblock integration
+  - tools - tools for making block types, making block objects, and defining character rigs and custom clothing, etc.
+
 
 ### Subspace Development:
 
