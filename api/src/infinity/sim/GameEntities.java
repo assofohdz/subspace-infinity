@@ -36,6 +36,7 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import infinity.es.*;
+import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
@@ -171,7 +172,7 @@ public class GameEntities {
         lastArena,
         ShapeInfo.create(ShapeNames.ARENA, 1, ed),
         new SpawnPosition(phys.getGrid(), new Vec3d()),
-        new ArenaId(arenaId));
+        new ArenaId(arenaId, owner));
     ed.setComponent(lastArena, new Meta(createdTime));
 
     return lastArena;

@@ -23,17 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.systems;
-
-import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.commons.collections4.map.ListOrderedMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.jme3.asset.AssetManager;
-import com.jme3.system.JmeSystem;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -41,144 +32,132 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-
-import infinity.es.ArenaId;
-import infinity.map.LevelLoader;
+import infinity.es.arena.ArenaId;
+import infinity.es.arena.ArenaMap;
+import infinity.es.arena.ArenaSettings;
+import infinity.server.chat.ChatHostedService;
+import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
+import infinity.sim.ChatHostedPoster;
+import infinity.sim.CommandConsumer;
 import infinity.sim.CoreGameConstants;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import org.apache.commons.collections4.map.ListOrderedMap;
+import org.ini4j.Ini;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * State to keep track of different arenas. Arenas are composed of a tileset and
- * a ruleset and a location (since areanas are 1024x1024. This state keeps track
- * of where the next arena can be loaded and associates rulesets to each loaded
- * arena
+ * State to keep track of different arenas. Arenas are composed of a tileset and a ruleset and a
+ * location (since areanas are 1024x1024. This state keeps track of where the next arena can be
+ * loaded and associates rulesets to each loaded arena
  *
  * @author Asser
  */
 public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
-    private EntityData ed;
-    private EntitySet arenaEntities;
-    // private EntitySet staticBodyPositions;
-    private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
-    // private AssetManager am;
-    static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
-    // private SimTime time;
+  static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
+  private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
+  private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
+  private final ListOrderedMap<String, String> arenas = new ListOrderedMap<>();
+  private final Pattern loadArena = Pattern.compile("\\~loadArena\\s(\\w+.(?:lvl|lvz))");
+  private final Pattern unloadArena = Pattern.compile("\\~unloadArena\\s(\\w+.(?:lvl|lvz))");
+  private EntityData ed;
+  private EntitySet arenaEntities;
+  private ChatHostedPoster chat;
 
-    private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
+  @Override
+  protected void initialize() {
 
-    // private final boolean createdDefaultArena = false;
+    this.chat = getSystem(ChatHostedService.class);
 
-    private final ListOrderedMap<String, String> arenas = new ListOrderedMap<>();
-    // private MapSystem mapSystem;
-    // private int xCoord, zCoord;
+    ed = getSystem(EntityData.class);
 
-    @Override
-    protected void initialize() {
+    arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
 
-        ed = getSystem(EntityData.class);
+    // Register consuming methods for patterns
+    chat.registerPatternBiConsumer(
+        loadArena,
+        "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
+            + "name of the map you want to load",
+        new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadArena(id, map)));
+    chat.registerPatternBiConsumer(
+        unloadArena,
+        "The command to unload a new map is ~unloadArena <mapName>, where <mapName> is the "
+            + "name of the map you want to unload",
+        new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadArena(id, map)));
+  }
 
-        arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
+  /**
+   * This method will load up a new Arena entity and attach the right components, then call
+   * MapSystem and load the map, then call SettingsSystem and load the settings for this arena.
+   *
+   * @param requester EntityId of the player that sent the command
+   * @param map String of the map name
+   */
+  private void loadArena(final EntityId requester, final String map) {
+    // First create the map entity
+    EntityId arena = ed.createEntity();
+    ed.setComponent(arena, new ArenaId(map, requester));
 
-        final AssetManager assetManager = JmeSystem.newAssetManager(
-                Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
+    // Then load the map
+    getSystem(MapSystem.class).loadMap(requester, map);
+    Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(map);
+    Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(map);
+    // Add mapbounds information to the arena entity
+    ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
 
-        assetManager.registerLoader(LevelLoader.class, "lvl");
-        assetManager.registerLoader(LevelLoader.class, "lvz");
+    // Then load the settings
+    getSystem(SettingsSystem.class).loadSettings(requester, map);
+    Ini ini = getSystem(SettingsSystem.class).getIni(map);
+    // Add settings information to the arena entity
+    ed.setComponents(arena, new ArenaSettings(map, ini));
+  }
 
-        // staticBodyPositions = ed.getEntities(BodyPosition.class);
+  /**
+   * This method will unload an arena and remove the related arena entity. It will then call the
+   * MapSystem.java to unload the map and the SettingsSystem.java to unload the settings
+   *
+   * @param id EntityId of the player that sent the command
+   * @param map String of the map name
+   */
+  private void unloadArena(final EntityId id, final String map) {}
 
-        // mapSystem = getSystem(MapSystem.class, true);
-    }
+  public EntityId getEntityId(final Vec3d coord) {
+    return index.get(coord);
+  }
 
-    public EntityId getEntityId(final Vec3d coord) {
-        return index.get(coord);
-    }
+  @Override
+  protected void terminate() {
+    // Release the entity set we grabbed previously
+    arenaEntities.release();
+    arenaEntities = null;
+  }
 
-    @Override
-    protected void terminate() {
-        // Release the entity set we grabbed previously
-        arenaEntities.release();
-        arenaEntities = null;
-    }
+  @Override
+  public void update(final SimTime tpf) {}
 
-    @Override
-    public void update(final SimTime tpf) {
-        return;
-    }
+  @Override
+  public void start() {}
 
-    @Override
-    public void start() {
-        return;
-    }
+  @Override
+  public void stop() {}
 
-    @Override
-    public void stop() {
-        return;
-    }
+  @Override
+  public String[] getActiveArenas() {
+    return (String[]) currentOpenArenas.keySet().toArray();
+  }
 
-    @Override
-    public String[] getActiveArenas() {
-        return (String[]) currentOpenArenas.keySet().toArray();
-    }
+  @SuppressWarnings("unused")
+  private void closeArena(final String arenaId) {
+    ed.removeEntity(currentOpenArenas.get(arenaId));
+    currentOpenArenas.remove(arenaId);
+  }
 
-    @SuppressWarnings("unused")
-    private void closeArena(final String arenaId) {
-        ed.removeEntity(currentOpenArenas.get(arenaId));
-        currentOpenArenas.remove(arenaId);
-    }
-
-    @Override
-    public String getDefaultArenaId() {
-        return CoreGameConstants.DEFAULTARENAID;
-    }
-
-    public void loadArena(final String name, final boolean forceLoad) {
-        if (!arenas.containsKey(name)) {
-            // find next coordinate pair to load map on
-
-        }
-
-        if (arenas.containsKey(name) && forceLoad) {
-            // TODO implement me
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private static class Vector2i {
-        int x, z;
-
-        Vector2i(final int x, final int z) {
-            this.x = x;
-            this.z = z;
-        }
-
-        @Override
-        public int hashCode() {
-            final int hash = 7;
-            return hash;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final Vector2i other = (Vector2i) obj;
-            if (x != other.x) {
-                return false;
-            }
-            if (z != other.z) {
-                return false;
-            }
-            return true;
-        }
-
-    }
+  @Override
+  public String getDefaultArenaId() {
+    return CoreGameConstants.DEFAULTARENAID;
+  }
 }

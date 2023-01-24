@@ -23,28 +23,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.es;
+
+package infinity.es.arena;
 
 import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityId;
 
 /**
- *
  * @author Asser
  */
 public class ArenaId implements EntityComponent {
 
-    private String arenaId;
+  private String arenaId;
+  private EntityId owner;
 
-    // For serialization
-    public ArenaId() {
+  // For serialization
+  public ArenaId() {}
 
-    }
+  public ArenaId(final String arenaId, EntityId owner) {
+    this.arenaId = arenaId;
+    this.owner = owner;
+  }
 
-    public ArenaId(final String arenaId) {
-        this.arenaId = arenaId;
-    }
+  public String getArenaId() {
+    return arenaId;
+  }
 
-    public String getArenaId() {
-        return arenaId;
-    }
+  public EntityId getOwner() {
+    return owner;
+  }
 }

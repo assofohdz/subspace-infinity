@@ -31,16 +31,14 @@ import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.es.ArenaId;
 import infinity.es.ShapeNames;
-import infinity.es.arena.ArenaSettings;
+import infinity.es.arena.ArenaId;
 import infinity.server.AssetLoaderService;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.CoreGameConstants;
 import infinity.sim.util.InfinityRunTimeException;
-import infinity.util.AdaptiveLoadingService;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,7 +84,7 @@ public class SettingsSystem extends AbstractGameSystem {
   private static final String MESSAGE_GROUP = "Message";
   private static final String CHAT_GROUP = "Chat";
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
-  private final AssetLoaderService assetLoader;
+  private AssetLoaderService assetLoader;
   private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
   private final List<SimpleEntry<String, String>> intSettings =
       Arrays.asList(
@@ -281,11 +279,8 @@ public class SettingsSystem extends AbstractGameSystem {
   private EntityData ed;
   private ArrayList<String[]> asssSettings;
 
-  public SettingsSystem(
-      final AssetLoaderService assetLoader,
-      @SuppressWarnings("unused") final AdaptiveLoadingService adaptiveLoader) {
+  public SettingsSystem() {
 
-    this.assetLoader = assetLoader;
   }
 
   public void addListener(final SettingListener listener) {
@@ -298,6 +293,9 @@ public class SettingsSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
+
+    this.assetLoader = getSystem(AssetLoaderService.class);
+
 
     ed = getSystem(EntityData.class);
 
@@ -394,9 +392,6 @@ public class SettingsSystem extends AbstractGameSystem {
     // TODO: Find the right folder-placement for the file, for now in the root of resources
     Ini settings = (Ini) assetLoader.loadAsset("/" + arenaId + ".cfg");
 
-    // Create the entity for the arena
-    ed.setComponents(arenaEntityId, new ArenaSettings(arenaId, settings));
-
     return arenaEntityId;
   }
 
@@ -412,6 +407,13 @@ public class SettingsSystem extends AbstractGameSystem {
     for (final SettingListener listener : listeners) {
       listener.arenaSettingsChange(arenaId, section, setting);
     }
+  }
+
+  public void loadSettings(EntityId id, String map) {
+  }
+
+  public Ini getIni(String map) {
+    return arenaSettingsMap.get(map);
   }
 
   /*

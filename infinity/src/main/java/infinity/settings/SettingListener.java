@@ -25,7 +25,7 @@
  */
 package infinity.settings;
 
-import infinity.es.ArenaId;
+import infinity.es.arena.ArenaId;
 
 /**
  *
