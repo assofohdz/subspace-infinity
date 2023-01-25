@@ -26,6 +26,7 @@
 
 package infinity.systems;
 
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.ShapeInfo;
@@ -37,7 +38,6 @@ import infinity.server.AssetLoaderService;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
-import infinity.sim.CoreGameConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -83,8 +83,11 @@ public class SettingsSystem extends AbstractGameSystem {
   private static final String UNUSED_GROUP = "Unused";
   private static final String MESSAGE_GROUP = "Message";
   private static final String CHAT_GROUP = "Chat";
+  private static final String ZONE_FOLDER = "zone";
+  private static final String ARENA_FOLDER = "arenas";
+  private static final String DEFAULT_ARENA_FOLDER = "(default)";
+  private static final String ARENA_CONFIG_FILE = "arena.conf";
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
-  private AssetLoaderService assetLoader;
   private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
   private final List<SimpleEntry<String, String>> intSettings =
       Arrays.asList(
@@ -275,13 +278,9 @@ public class SettingsSystem extends AbstractGameSystem {
           "SoccerBallSpeed");
   private final List<String> shipIntSettings = Arrays.asList("SuperTime", "ShieldsTime");
   ArrayList<SettingListener> listeners = new ArrayList<>();
-  private Ini svsSettings;
+  private AssetLoaderService assetLoader;
   private EntityData ed;
   private ArrayList<String[]> asssSettings;
-
-  public SettingsSystem() {
-
-  }
 
   public void addListener(final SettingListener listener) {
     listeners.add(listener);
@@ -296,7 +295,6 @@ public class SettingsSystem extends AbstractGameSystem {
 
     this.assetLoader = getSystem(AssetLoaderService.class);
 
-
     ed = getSystem(EntityData.class);
 
     assetLoader.registerLoader(IniLoader.class, "ini");
@@ -305,12 +303,6 @@ public class SettingsSystem extends AbstractGameSystem {
 
     assetLoader.registerLoader(SSSLoader.class, "sss");
     assetLoader.registerLoader(SSSLoader.class, "set");
-
-    // Load Subgame2: Subspace Vie Settings
-    svsSettings = (Ini) assetLoader.loadAsset("/svsSettings.cfg");
-
-    // Defauælt arena settings are the svs settings
-    arenaSettingsMap.put(CoreGameConstants.DEFAULTARENAID, svsSettings);
   }
 
   @Override
@@ -331,10 +323,6 @@ public class SettingsSystem extends AbstractGameSystem {
   @Override
   public void stop() {
     // Nothing to do here
-  }
-
-  private void loadDefaultSettings() {
-    // TODO: Load the arena settings found in the zone/(default)-folder
   }
 
   private void updateShipSettings(EntityId entityId, Ini settings) {
@@ -379,37 +367,79 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
-   * This method is called to load a specific arena. It will load the config-file corresponding to
-   * that arena (for now its just one file containing all the config) and then it will create an
-   * arena entity that holds the settings for that arena. This will allow other systems to look up
-   * the settings when needed.
-   *
-   * @param arenaId The id of the arena to load
-   * @return The entity id of the arena entity
-   */
-  public EntityId loadArenaSettings(final String arenaId, EntityId arenaEntityId) {
-    // Load the settings from file
-    // TODO: Find the right folder-placement for the file, for now in the root of resources
-    Ini settings = (Ini) assetLoader.loadAsset("/" + arenaId + ".cfg");
-
-    return arenaEntityId;
-  }
-
-  /**
    * Called when some setting change and listeners has to update their local copy of the settings.
    *
    * @param arenaId the arena to lookup settings for
    * @param section the section of the setting
    * @param setting the setting to retrieve
    */
-  @SuppressWarnings("unused")
   private void settingChanged(final ArenaId arenaId, final String section, final String setting) {
     for (final SettingListener listener : listeners) {
       listener.arenaSettingsChange(arenaId, section, setting);
     }
   }
 
-  public void loadSettings(EntityId id, String map) {
+  /**
+   * This method is called to load a specific arena. It will load the config-file corresponding to
+   * that arena (for now its just one file containing all the config).
+   *
+   * @param requester The entity that requested the settings
+   * @param map The id of the map to load settings for
+   */
+  public void loadSettings(EntityId requester, String map) {
+
+    // Load the settings from file
+    // Example: /zone/arenas/trench/trench.conf
+    Ini settings =
+        (Ini)
+            assetLoader.loadAsset(
+                "/" + ZONE_FOLDER + "/" + ARENA_FOLDER + "/" + map + "/" + ARENA_CONFIG_FILE);
+
+    if (settings == null) {
+      log.warn("Settings file not found for map {}, loading default map instead", map);
+      if (arenaSettingsMap.get(DEFAULT_ARENA_FOLDER) != null) {
+        arenaSettingsMap.put(map, arenaSettingsMap.get(DEFAULT_ARENA_FOLDER));
+      } else {
+        Ini defaultSettings =
+            (Ini)
+                assetLoader.loadAsset(
+                    "/"
+                        + ZONE_FOLDER
+                        + "/"
+                        + ARENA_FOLDER
+                        + "/"
+                        + DEFAULT_ARENA_FOLDER
+                        + "/"
+                        + ARENA_CONFIG_FILE);
+
+        arenaSettingsMap.put(map, defaultSettings);
+      }
+    } else {
+      arenaSettingsMap.put(map, settings);
+    }
+  }
+
+  /**
+   * Method to load settings if we only know the arena entity id and not the specific map
+   * name.
+   *
+   * @param requester The entity that requested the settings
+   * @param arenaEntityId The arena entity id that holds informatio on the map
+   */
+  public void loadSettings(EntityId requester, EntityId arenaEntityId) {
+    Entity arena = ed.getEntity(arenaEntityId);
+    if (arena == null) {
+      throw new InfinityRunTimeException("Arena entity " + arenaEntityId + " does not exist");
+    }
+
+    ArenaId arenaId = arena.get(ArenaId.class);
+    if (arenaId == null) {
+      throw new InfinityRunTimeException(
+          "Arena entity " + arenaEntityId + " has no ArenaId component");
+    }
+
+    // Load the settings from file
+    loadSettings(requester, arenaId.getArena());
   }
 
   public Ini getIni(String map) {
