@@ -24,9 +24,9 @@ dependencies {
 	implementation project(":api")
 }
 
-checkstyle {
-	sourceSets = []
-}
+//checkstyle {
+//	sourceSets = []
+//}
 
 tasks.withType(Tar){
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE

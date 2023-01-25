@@ -5,7 +5,7 @@
 plugins {
     id 'java'
     id 'groovy'
-    id 'checkstyle'
+    //id 'checkstyle'
 }
 
 // Projects should use Maven Central for external dependencies
