@@ -389,11 +389,10 @@ public class SettingsSystem extends AbstractGameSystem {
   public void loadSettings(EntityId requester, String map) {
 
     // Load the settings from file
-    // Example: /zone/arenas/trench/trench.conf
+    // Example: /arenas/trench/trench.conf
+    // (we already load the folder "zone" as resource folder, so not including it in the call here
     Ini settings =
-        (Ini)
-            assetLoader.loadAsset(
-                "/" + ZONE_FOLDER + "/" + ARENA_FOLDER + "/" + map + "/" + ARENA_CONFIG_FILE);
+        (Ini) assetLoader.loadAsset("/" + ARENA_FOLDER + "/" + map + "/" + ARENA_CONFIG_FILE);
 
     if (settings == null) {
       log.warn("Settings file not found for map {}, loading default map instead", map);
@@ -403,14 +402,7 @@ public class SettingsSystem extends AbstractGameSystem {
         Ini defaultSettings =
             (Ini)
                 assetLoader.loadAsset(
-                    "/"
-                        + ZONE_FOLDER
-                        + "/"
-                        + ARENA_FOLDER
-                        + "/"
-                        + DEFAULT_ARENA_FOLDER
-                        + "/"
-                        + ARENA_CONFIG_FILE);
+                    "/" + ARENA_FOLDER + "/" + DEFAULT_ARENA_FOLDER + "/" + ARENA_CONFIG_FILE);
 
         arenaSettingsMap.put(map, defaultSettings);
       }
@@ -420,8 +412,7 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
-   * Method to load settings if we only know the arena entity id and not the specific map
-   * name.
+   * Method to load settings if we only know the arena entity id and not the specific map name.
    *
    * @param requester The entity that requested the settings
    * @param arenaEntityId The arena entity id that holds informatio on the map

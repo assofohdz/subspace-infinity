@@ -109,8 +109,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     // Add mapbounds information to the arena entity
     ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
 
-    // Then load the settings
-    getSystem(SettingsSystem.class).loadSettings(requester, map);
+    // Then load the settings (remove file ending first)
+    getSystem(SettingsSystem.class).loadSettings(requester, map.substring(0, map.lastIndexOf('.')));
     Ini ini = getSystem(SettingsSystem.class).getIni(map);
     // Add settings information to the arena entity
     ed.setComponents(arena, new ArenaSettings(map, ini));
