@@ -13,7 +13,7 @@ plugins {
 sourceSets {
     main {
         resources {
-            srcDirs = ['assets', 'zone']
+            srcDirs += ['assets', 'zone']
             excludes += [
                 "**/*.psd",
                 "**/*.glb",

@@ -78,7 +78,7 @@ public class MapSystem extends AbstractGameSystem {
   public static final float NOISE4J_WALL = 1f;
   private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
-  private final String mapDirectory = "Maps";
+  private final String mapDirectory = "maps";
   private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
   private final LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
