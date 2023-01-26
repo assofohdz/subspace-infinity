@@ -26,6 +26,7 @@
 
 package infinity.systems;
 
+import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -38,11 +39,13 @@ import infinity.server.AssetLoaderService;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
+import infinity.sim.CoreGameConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
@@ -280,7 +283,8 @@ public class SettingsSystem extends AbstractGameSystem {
   ArrayList<SettingListener> listeners = new ArrayList<>();
   private AssetLoaderService assetLoader;
   private EntityData ed;
-  private ArrayList<String[]> asssSettings;
+  private double timeSinceLastSettingsUpdate_ms = 0;
+
 
   public void addListener(final SettingListener listener) {
     listeners.add(listener);
@@ -303,6 +307,7 @@ public class SettingsSystem extends AbstractGameSystem {
 
     assetLoader.registerLoader(SSSLoader.class, "sss");
     assetLoader.registerLoader(SSSLoader.class, "set");
+
   }
 
   @Override
@@ -312,7 +317,7 @@ public class SettingsSystem extends AbstractGameSystem {
 
   @Override
   public void update(final SimTime tpf) {
-    // Nothing to do
+
   }
 
   @Override
@@ -437,57 +442,6 @@ public class SettingsSystem extends AbstractGameSystem {
     return arenaSettingsMap.get(map);
   }
 
-  /*
-   * private class SettingsValidator implements Savable {
-   *
-   * private ArrayList<SettingType> settings = new ArrayList<>(); private
-   * HashMap<String, SettingType> map = new HashMap<>();
-   *
-   * public SettingType getSetting(String catAndKey) { return map.get(catAndKey);
-   * }
-   *
-   * @Override public void write(JmeExporter ex) throws IOException { throw new
-   * UnsupportedOperationException("Not supported yet."); //To change body of
-   * generated methods, choose Tools | Templates. }
-   *
-   * @Override public void read(JmeImporter im) throws IOException { throw new
-   * UnsupportedOperationException("Not supported yet."); //To change body of
-   * generated methods, choose Tools | Templates. }
-   *
-   * public SettingsValidator(ArrayList<String[]> validatorASSS) {
-   * validatorASSS.forEach((String[] s) -> { try { SettingType set = new
-   * SettingType(s[1], s[2], Integer.valueOf(s[3]), Integer.valueOf(s[4]), s[5]);
-   * settings.add(set); map.put(s[1] + "-" + s[2], set);
-   *
-   * } catch (NumberFormatException ex) { log.error("Trying to import:" +
-   * Arrays.toString(s) + " and failed with exception: " + ex.getMessage()); } });
-   * } }
-   */
-  /*
-   * private class ArenaSettings implements Savable {
-   *
-   * private ArrayList<SettingType> settings = new ArrayList<>(); private
-   * HashMap<String, SettingType> map = new HashMap<>();
-   *
-   * public SettingType getSetting(String catAndKey) { return map.get(catAndKey);
-   * }
-   *
-   *
-   * public ArenaSettings(ArrayList<String[]> settingsASSS) {
-   *
-   * settingsASSS.forEach((String[] s) -> { try { SettingType set = new
-   * SettingType(s[1], s[2], Integer.valueOf(s[3]), Integer.valueOf(s[4]),
-   * Integer.valueOf(s[5]), s[6]); settings.add(set); map.put(s[1] + "-" + s[2],
-   * set);
-   *
-   * } catch (NumberFormatException ex) { log.error("Trying to import:" +
-   * Arrays.toString(s) + " and failed with exception: " + ex.getMessage()); } });
-   * }
-   *
-   * public void loadDefaultSVS() {
-   *
-   * }
-   */
   /*
    * Notes:SettingName:::Name of the Game the settings "create"
    * Notes:Maker:::Creator of the settings Notes:CoMaker:::Original and/or helper
@@ -777,8 +731,7 @@ public class SettingsSystem extends AbstractGameSystem {
    * Prize:TakePrizeReliable:0:1:Whether prize packets are sent reliably (C2S)
    * Prize:S2CTakePrizeReliable:0:1:Whether prize packets are sent reliably (S2C)
    *
-   * PrizeWeight:Recharge:::Likelyhood of 'Full Charge' prize appearing (NOTE!
-   * This is FULL CHARGE, not Recharge!! stupid vie)
+   * PrizeWeight:Recharge:::Likelyhood of 'Full Charge' prize appearing (NOTE! This is FULL CHARGE, not Recharge!! stupid vie)
    * PrizeWeight:QuickCharge:::Likelyhood of 'Recharge' prize appearing
    * PrizeWeight:Energy:::Likelyhood of 'Energy Upgrade' prize appearing
    * PrizeWeight:Rotation:::Likelyhood of 'Rotation' prize appearing
@@ -789,8 +742,8 @@ public class SettingsSystem extends AbstractGameSystem {
    * PrizeWeight:Warp:::Likelyhood of 'Warp' prize appearing
    * PrizeWeight:Gun:::Likelyhood of 'Gun Upgrade' prize appearing
    * PrizeWeight:Bomb:::Likelyhood of 'Bomb Upgrade' prize appearing
-   * PrizeWeight:BouncingBullets:::Likelyhood of 'Bouncing Bullets' prize
-   * appearing PrizeWeight:Thruster:::Likelyhood of 'Thruster' prize appearing
+   * PrizeWeight:BouncingBullets:::Likelyhood of 'Bouncing Bullets' prize appearing
+   * PrizeWeight:Thruster:::Likelyhood of 'Thruster' prize appearing
    * PrizeWeight:TopSpeed:::Likelyhood of 'Speed' prize appearing
    * PrizeWeight:MultiFire:::Likelyhood of 'MultiFire' prize appearing
    * PrizeWeight:Proximity:::Likelyhood of 'Proximity Bomb' prize appearing
@@ -926,17 +879,16 @@ public class SettingsSystem extends AbstractGameSystem {
    * Wormhole:GravityBombs:0:1:Whether a wormhole affects bombs (0=no 1=yes)
    * Wormhole:SwitchTime:::How often the wormhole switches its destination.
    *
-   * All:InitialRotation:::Initial rotation rate of the ship (0 = can't rotate,
-   * 400 = full rotation in 1 second) All:InitialThrust:::Initial thrust of ship
-   * (0 = none) All:InitialSpeed:::Initial speed of ship (0 = can't move)
-   * All:InitialRecharge:::Initial recharge rate, or how quickly this ship
-   * recharges its energy. All:InitialEnergy:::Initial amount of energy that the
-   * ship can have. All:MaximumRotation:::Maximum rotation rate of the ship (0 =
-   * can't rotate, 400 = full rotation in 1 second) All:MaximumThrust:::Maximum
-   * thrust of ship (0 = none) All:MaximumSpeed:::Maximum speed of ship (0 = can't
-   * move) All:MaximumRecharge:::Maximum recharge rate, or how quickly this ship
-   * recharges its energy. All:MaximumEnergy:::Maximum amount of energy that the
-   * ship can have. All:UpgradeRotation:::Amount added per 'Rotation' Prize
+   * All:InitialRotation:::Initial rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1 second)
+   * All:InitialThrust:::Initial thrust of ship (0 = none) All:InitialSpeed:::Initial speed of ship (0 = can't move)
+   * All:InitialRecharge:::Initial recharge rate, or how quickly this ship recharges its energy.
+   * All:InitialEnergy:::Initial amount of energy that the ship can have.
+   * All:MaximumRotation:::Maximum rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1 second)
+   * All:MaximumThrust:::Maximum thrust of ship (0 = none)
+   * All:MaximumSpeed:::Maximum speed of ship (0 = can't move)
+   * All:MaximumRecharge:::Maximum recharge rate, or how quickly this ship recharges its energy.
+   * All:MaximumEnergy:::Maximum amount of energy that the ship can have.
+   * All:UpgradeRotation:::Amount added per 'Rotation' Prize
    * All:UpgradeThrust:::Amount added per 'Thruster' Prize
    * All:UpgradeSpeed:::Amount added per 'Speed' Prize
    * All:UpgradeRecharge:::Amount added per 'Recharge Rate' Prize
