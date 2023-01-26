@@ -26,15 +26,20 @@
 
 package infinity.systems;
 
+import com.simsilica.bpos.BodyPosition;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.mathd.GridCell;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.InfinityConstants;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
+import infinity.es.ship.Player;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
@@ -44,7 +49,6 @@ import infinity.sim.CoreGameConstants;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import org.apache.commons.collections4.map.ListOrderedMap;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,12 +65,14 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
   private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
   private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
-  private final ListOrderedMap<String, String> arenas = new ListOrderedMap<>();
   private final Pattern loadArena = Pattern.compile("\\~loadArena\\s(\\w+.(?:lvl|lvz))");
   private final Pattern unloadArena = Pattern.compile("\\~unloadArena\\s(\\w+.(?:lvl|lvz))");
+  private final HashMap<EntityId, GridCell> arenaCells = new HashMap<>();
   private EntityData ed;
   private EntitySet arenaEntities;
+  private EntitySet playerEntities;
   private ChatHostedPoster chat;
+  private double timeSinceLastSettingsUpdateMs = 0;
 
   @Override
   protected void initialize() {
@@ -74,8 +80,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     this.chat = getSystem(ChatHostedService.class);
 
     ed = getSystem(EntityData.class);
-
-    arenaEntities = ed.getEntities(ArenaId.class); // This filters all entities that are in arenas
+    // This filters all entities that are in arenas
+    arenaEntities = ed.getEntities(ArenaId.class);
+    // This filters all entities that are players
+    playerEntities = ed.getEntities(Player.class, BodyPosition.class);
 
     // Register consuming methods for patterns
     chat.registerPatternBiConsumer(
@@ -88,6 +96,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         "The command to unload a new map is ~unloadArena <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
         new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadArena(id, map)));
+
+    arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
   }
 
   /**
@@ -114,6 +124,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     Ini ini = getSystem(SettingsSystem.class).getIni(map);
     // Add settings information to the arena entity
     ed.setComponents(arena, new ArenaSettings(map, ini));
+
+    // Get the containing cell for this arena add it to our arenaindex
+    GridCell cell =
+        InfinityConstants.LARGE_OBJECT_GRID.getContainingCell(
+            mapBoundsMax.subtract(mapBoundsMin).divide(2));
+    arenaCells.put(arena, cell);
   }
 
   /**
@@ -137,7 +153,33 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   @Override
-  public void update(final SimTime tpf) {}
+  public void update(final SimTime tpf) {
+    playerEntities.applyChanges();
+    arenaEntities.applyChanges();
+
+    if (timeSinceLastSettingsUpdateMs > CoreGameConstants.UPDATE_SETTINGS_INTERVAL_MS) {
+      // Update the filter and search for ships we need to update
+      for (Entity arena : arenaEntities) {
+        GridCell cell = arenaCells.get(arena.getId());
+        log.info("Checking players in: " + arena.get(ArenaId.class).getArenaBaseName());
+
+        for (Entity player : playerEntities) {
+          if (cell.contains(player.get(BodyPosition.class).getLastLocation())) {
+            // Update the settings for this player
+            // getSystem(SettingsSystem.class).updateSettings(player.getId(),
+            // arena.get(ArenaId.class).getArenaBaseName());
+          }
+        }
+
+        // arenaFilters.add(filter);
+      }
+      // reset our timer
+      timeSinceLastSettingsUpdateMs = 0;
+    } else {
+      // Add tpf in ms to our time since last update
+      timeSinceLastSettingsUpdateMs += tpf.getTpf()*1000;
+    }
+  }
 
   @Override
   public void start() {}
@@ -150,7 +192,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     return (String[]) currentOpenArenas.keySet().toArray();
   }
 
-  @SuppressWarnings("unused")
   private void closeArena(final String arenaId) {
     ed.removeEntity(currentOpenArenas.get(arenaId));
     currentOpenArenas.remove(arenaId);
