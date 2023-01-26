@@ -59,4 +59,6 @@ public class CoreGameConstants {
 
   public static final String DEFAULTARENAID = "default";
   public static final String BOMBLEVELPREPENDTEXT = "bomb_l";
+
+  public static final double UPDATE_SETTINGS_INTERVAL_MS = 1000;
 }
