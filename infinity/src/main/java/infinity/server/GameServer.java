@@ -60,7 +60,6 @@ import com.simsilica.ethereal.TimeSource;
 import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
 import com.simsilica.ext.mblock.SphereFactory;
 import com.simsilica.ext.mphys.EntityBodyFactory;
-import com.simsilica.ext.mphys.Gravity;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeFactory;
@@ -307,28 +306,27 @@ public class GameServer {
     // And give that to an EntityBodyFactory, for the moment without any
     // customization
     EntityBodyFactory<MBlockShape> bodyFactory =
-        new EntityBodyFactory<>(ed, Gravity.ZERO.getLinearAcceleration(), shapeFactory);
+        new EntityBodyFactory<>(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
 
-    MPhysSystem<MBlockShape> mphys = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+    MPhysSystem<MBlockShape> mBlockShapeMPhysSystem = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
 
     Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
-    mphys.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
+    mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
     // mphys.addPhysicsListener(new PositionUpdater(ed));
 
-    // Can we register services here?
     systems.register(ChatHostedService.class, chp);
 
-    systems.register(MPhysSystem.class, mphys);
-    systems.register(PhysicsSpace.class, mphys.getPhysicsSpace());
+    systems.register(MPhysSystem.class, mBlockShapeMPhysSystem);
+    systems.register(PhysicsSpace.class, mBlockShapeMPhysSystem.getPhysicsSpace());
     systems.register(
-        InfinityPhysicsManager.class, new InfinityPhysicsManager(mphys.getPhysicsSpace()));
+        InfinityPhysicsManager.class, new InfinityPhysicsManager(mBlockShapeMPhysSystem.getPhysicsSpace()));
     systems.register(EntityBodyFactory.class, bodyFactory);
 
     // Subspace Infinity Specific Systems:-->
     // Set up contacts to be filtered first:
     ContactSystem contactSystem = new ContactSystem();
     systems.register(ContactSystem.class, contactSystem);
-    mphys.getPhysicsSpace().setContactDispatcher(contactSystem);
+    mBlockShapeMPhysSystem.getPhysicsSpace().setContactDispatcher(contactSystem);
     // Then add gamesystems:
     systems.register(EnergySystem.class, new EnergySystem());
     systems.register(AvatarSystem.class, new AvatarSystem(chp));
@@ -338,7 +336,7 @@ public class GameServer {
 
     systems.register(WeaponsSystem.class, new WeaponsSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
-    systems.register(PrizeSystem.class, new PrizeSystem(mphys.getPhysicsSpace()));
+    systems.register(PrizeSystem.class, new PrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
 
     systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
@@ -609,12 +607,10 @@ public class GameServer {
     }
 
     @Override
-    protected void onInitialize(final HostedServiceManager serviceManager) {
-    }
+    protected void onInitialize(final HostedServiceManager serviceManager) {}
 
     @Override
-    public void start() {
-    }
+    public void start() {}
 
     @Override
     public void connectionAdded(final Server server, final HostedConnection hc) {
