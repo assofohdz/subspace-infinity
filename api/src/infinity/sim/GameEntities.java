@@ -26,6 +26,7 @@
 package infinity.sim;
 
 import com.jme3.math.ColorRGBA;
+import com.simsilica.bpos.LargeGridCell;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -413,9 +414,8 @@ public class GameEntities {
 
     ed.setComponent(result, new Name("player"));
 
+
     switch (ship) {
-      case 0x0:
-        break;
       case 0x1:
         ShapeInfo wb =
             ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
