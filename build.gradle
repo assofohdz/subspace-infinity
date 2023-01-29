@@ -2,22 +2,26 @@ subprojects {
 
     version='1.0.0-SNAPSHOT'
 
+    //For now we want the latest version of everything except JMonkeyEngine
+    //Could also specify major versions like 4.+
     ext.jmeVersion = '3.6.0-SNAPSHOT'
-    ext.guavaVersion = '31.1-jre'
-    //ext.jmeVersion = '3.5.2-stable'
-    ext.lemurVersion = '1.16.0-SNAPSHOT'
-    ext.lemurProtoVersion = '1.13.0'
-    ext.lemurPropsVersion = '1.2.0'
-    ext.simMathVersion = '1.6.0-SNAPSHOT'
-    ext.sio2Version = '1.8.0-SNAPSHOT'
-    ext.simEtherealVersion = '1.8.0-SNAPSHOT'
-    ext.zayEsVersion = '1.4.0-SNAPSHOT'
-    ext.zayEsNetVersion = '1.5.0-SNAPSHOT'
+    ext.guavaVersion = '+'
+    ext.lemurVersion = '+'
+    ext.lemurProtoVersion = '+'
+    ext.lemurPropsVersion = '+'
+    ext.simEtherealVersion = '+'
+    ext.simMathVersion = '+'
+    ext.sio2Version = '+'
+    ext.zayEsVersion = '+'
+    ext.zayEsNetVersion = '+'
 
-    ext.groovyVersion = '3.0.14'  // 2.4.21 is the latest 2.4.x
-    ext.gsonVersion = '2.9.0'
-    ext.log4jVersion = '2.19.0'
-    ext.slf4jVersion = '2.0.6'
+    ext.groovyVersion = '+'
+    ext.gsonVersion = '+'
+    ext.log4jVersion = '+'
+    ext.slf4jVersion = '+'
 
-    ext.mossVersion = "1.0.0-SNAPSHOT"
+    ext.mossVersion = "+"
+
+    ext.jetbrainsAnnotationsVersion = '+'
+    ext.junitVersion = '+'
 }

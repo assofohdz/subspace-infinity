@@ -31,7 +31,8 @@ dependencies {
 
 	// Simsilica MOSS
 	implementation "com.simsilica:sio2-mphys:1.0.0-SNAPSHOT"
-    implementation 'org.jetbrains:annotations:20.1.0'
+
+    implementation "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
 
 	//jWalkable for 2d polygonal pathfinding
     //https://github.com/implicit-invocation/jwalkable
