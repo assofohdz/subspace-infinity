@@ -36,13 +36,9 @@
 
 package infinity.client.states;
 
-import infinity.client.view.DebugFunctions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
-
+import com.simsilica.ext.mblock.PartDebugShapeFactory;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.debug.BinStatusState;
 import com.simsilica.ext.mphys.debug.BodyDebugState;
@@ -54,107 +50,112 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.PhysicsStats;
 import com.simsilica.state.CompositeAppState;
 import com.simsilica.state.DebugHudState;
-
 import infinity.HostState;
+import infinity.client.view.DebugFunctions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * When the physics is running locally, this state manages the various debug
- * views that are available.
+ * When the physics is running locally, this state manages the various debug views that are
+ * available.
  *
  * @author Paul Speed
  */
 public class PhysicsDebugState extends CompositeAppState {
 
-    static Logger log = LoggerFactory.getLogger(PhysicsDebugState.class);
+  static Logger log = LoggerFactory.getLogger(PhysicsDebugState.class);
 
-    private final HostState host;
-    private PhysicsStats stats;
+  private final HostState host;
+  private PhysicsStats stats;
 
-    private VersionedHolder<String> contacts;
-    private VersionedHolder<String> frameTime;
-    private VersionedHolder<String> binCount;
-    private VersionedHolder<String> activeBinCount;
-    private VersionedHolder<String> bodyCount;
-    private VersionedHolder<String> activeBodyCount;
+  private VersionedHolder<String> contacts;
+  private VersionedHolder<String> frameTime;
+  private VersionedHolder<String> binCount;
+  private VersionedHolder<String> activeBinCount;
+  private VersionedHolder<String> bodyCount;
+  private VersionedHolder<String> activeBodyCount;
 
-    public PhysicsDebugState(final HostState host) {
-        this.host = host;
+  public PhysicsDebugState(HostState host) {
+    this.host = host;
+  }
+
+  @Override
+  protected void initialize(Application app) {
+    PhysicsSpace phys = host.getSystems().get(PhysicsSpace.class);
+    this.stats = phys.getStats();
+    addChild(new BinStatusState(phys, 64));
+    addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
+    addChild(new ContactDebugState(phys));
+
+    getChild(BodyDebugState.class).addDebugShapeFactory(new PartDebugShapeFactory());
+
+    DebugHudState debug = getState(DebugHudState.class);
+    if (debug != null) {
+      frameTime = debug.createDebugValue("Phys Time", DebugHudState.Location.Right);
+      contacts = debug.createDebugValue("Contacts", DebugHudState.Location.Right);
+      binCount = debug.createDebugValue("Bins", DebugHudState.Location.Right);
+      activeBinCount = debug.createDebugValue("Active Bins", DebugHudState.Location.Right);
+      bodyCount = debug.createDebugValue("Bodies", DebugHudState.Location.Right);
+      activeBodyCount = debug.createDebugValue("Active Bodies", DebugHudState.Location.Right);
+    }
+  }
+
+  @Override
+  protected void cleanup(Application app) {
+    DebugHudState debug = getState(DebugHudState.class);
+    if (debug != null) {
+      debug.removeDebugValue("Contacts");
+      debug.removeDebugValue("Phys Time");
+      debug.removeDebugValue("Bins");
+      debug.removeDebugValue("Active Bins");
+      debug.removeDebugValue("Bodies");
+      debug.removeDebugValue("Active Bodies");
+    }
+  }
+
+  public void update(float tpf) {
+    // log.info("update");
+
+    // We should be the last child of the GameSessionState... so everything
+    // should be up-to-date.
+    BinStatusState binState = getState(BinStatusState.class);
+    if (binState != null) {
+      Vector3f loc = getState(WorldViewState.class).getViewLocation();
+      binState.setViewOrigin(loc.x, 0, loc.z);
+      BodyDebugState bodyState = getState(BodyDebugState.class);
+      bodyState.setViewOrigin(loc.x, 0, loc.z);
+      ContactDebugState contactState = getState(ContactDebugState.class);
+      contactState.setViewOrigin(loc.x, 0, loc.z);
     }
 
-    @Override
-    protected void initialize(final Application app) {
-        final PhysicsSpace<?, ?> phys = host.getSystems().get(PhysicsSpace.class);
-        final MPhysSystem<?> mPhysSystem = host.getSystems().get(MPhysSystem.class);
-        stats = phys.getStats();
-        addChild(new BinStatusState<>(phys, 64));
-        addChild(new BodyDebugState<>(mPhysSystem));
-        addChild(new ContactDebugState(phys));
-
-        final DebugHudState debug = getState(DebugHudState.class);
-        if (debug != null) {
-            frameTime = debug.createDebugValue("Phys Time", DebugHudState.Location.Right);
-            contacts = debug.createDebugValue("Contacts", DebugHudState.Location.Right);
-            binCount = debug.createDebugValue("Bins", DebugHudState.Location.Right);
-            activeBinCount = debug.createDebugValue("Active Bins", DebugHudState.Location.Right);
-            bodyCount = debug.createDebugValue("Bodies", DebugHudState.Location.Right);
-            activeBodyCount = debug.createDebugValue("Active Bodies", DebugHudState.Location.Right);
-        }
-
+    if (contacts != null) {
+      frameTime.setObject(
+          String.format("%.2f ms", stats.getDouble(PhysicsStats.STAT_FRAME_TIME) / 1000000.0));
+      contacts.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_CONTACTS)));
+      binCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_BIN_COUNT)));
+      activeBinCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_ACTIVE_BIN_COUNT)));
+      bodyCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_BODY_COUNT)));
+      activeBodyCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_ACTIVE_BODY_COUNT)));
     }
+  }
 
-    @Override
-    protected void cleanup(final Application app) {
-        final DebugHudState debug = getState(DebugHudState.class);
-        if (debug != null) {
-            debug.removeDebugValue("Contacts");
-            debug.removeDebugValue("Phys Time");
-            debug.removeDebugValue("Bins");
-            debug.removeDebugValue("Active Bins");
-            debug.removeDebugValue("Bodies");
-            debug.removeDebugValue("Active Bodies");
-        }
-    }
+  @Override
+  protected void onEnable() {
+    InputMapper input = GuiGlobals.getInstance().getInputMapper();
+    input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
+    input.addDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled");
+    input.addDelegate(
+        DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
+  }
 
-    @Override
-    public void update(final float tpf) {
-        // log.info("update");
-
-        // We should be the last child of the GameSessionState... so everything
-        // should be up-to-date.
-        final BinStatusState<?> binState = getState(BinStatusState.class);
-        if (binState != null) {
-            final Vector3f loc = getState(WorldViewState.class).getViewLocation();
-            binState.setViewOrigin(loc.x, 0, loc.z);
-            final BodyDebugState<?> bodyState = getState(BodyDebugState.class);
-            bodyState.setViewOrigin(loc.x, 0, loc.z);
-            final ContactDebugState<?> contactState = getState(ContactDebugState.class);
-            contactState.setViewOrigin(loc.x, 0, loc.z);
-        }
-
-        if (contacts != null) {
-            frameTime.setObject(String.format("%.2f ms",
-                    Double.valueOf(stats.getDouble(PhysicsStats.STAT_FRAME_TIME) / 1000000.0)));
-            contacts.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_CONTACTS)));
-            binCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_BIN_COUNT)));
-            activeBinCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_ACTIVE_BIN_COUNT)));
-            bodyCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_BODY_COUNT)));
-            activeBodyCount.setObject(String.valueOf(stats.getLong(PhysicsStats.STAT_ACTIVE_BODY_COUNT)));
-        }
-    }
-
-    @Override
-    protected void onEnable() {
-        final InputMapper input = GuiGlobals.getInstance().getInputMapper();
-        input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
-        input.addDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled");
-        input.addDelegate(DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
-    }
-
-    @Override
-    protected void onDisable() {
-        final InputMapper input = GuiGlobals.getInstance().getInputMapper();
-        input.removeDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
-        input.removeDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled");
-        input.removeDelegate(DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
-    }
+  @Override
+  protected void onDisable() {
+    InputMapper input = GuiGlobals.getInstance().getInputMapper();
+    input.removeDelegate(
+        DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
+    input.removeDelegate(
+        DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled");
+    input.removeDelegate(
+        DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
+  }
 }

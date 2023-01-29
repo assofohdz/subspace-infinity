@@ -37,7 +37,12 @@ package infinity.client;
 
 import com.jme3.math.ColorRGBA;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.debug.BinStatusState;
+import com.simsilica.ext.mphys.debug.BodyDebugState;
+import com.simsilica.ext.mphys.debug.ContactDebugState;
 import com.simsilica.mathd.Grid;
+import com.simsilica.mphys.PhysicsSpace;
 import infinity.*;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
@@ -97,6 +102,7 @@ public class GameSessionState extends CompositeAppState {
         addChild(new ChatState(), true);
 
         addChild(new MapState(), true);
+
         // addChild(new ToolState(), true);
 
     }
@@ -117,12 +123,8 @@ public class GameSessionState extends CompositeAppState {
         // to its own debug manager state.
         final HostState host = getState(HostState.class);
         if (host != null) {
-            //addChild(new PhysicsDebugState(host), true);
+            addChild(new PhysicsDebugState(host), true);
             hostIsLocal = true;
-            // Then we can add some debug states
-            //addChild(new BinStatusState(host.getSystems().get(PhysicsSpace.class), 0));
-            //addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
-            //addChild(new ContactDebugState(host.getSystems().get(PhysicsSpace.class)));
         }
 
         this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
