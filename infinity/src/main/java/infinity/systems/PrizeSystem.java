@@ -428,13 +428,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     if (body2 instanceof StaticBody) {
       EntityId idOne = body1.id;
       EntityId idTwo = body2.id;
-      CollisionCategory filter1 = ed.getComponent(idOne, CollisionCategory.class);
-      CollisionCategory filter2 = ed.getComponent(idTwo, CollisionCategory.class);
-      if (filter1.getFilter().isAllowed(filter2.getFilter())) {
-        log.trace("Filter allows the contact");
-      } else {
-        log.trace("Filter DOES NOT allow the contact");
-      }
+
       // Only interact with collision if a ship collides with a prize or vice verca
       // We only need to test this way around for ships and prizes since the rigidbody (ship) will
       // always be body1
