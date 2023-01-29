@@ -26,13 +26,13 @@
 package infinity.sim;
 
 import com.jme3.math.ColorRGBA;
-import com.simsilica.bpos.LargeGridCell;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.Name;
 import com.simsilica.es.common.Decay;
 import com.simsilica.ext.mphys.*;
+import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
@@ -158,25 +158,6 @@ public class GameEntities {
     ed.setComponent(lastBullet, new Meta(createdTime));
 
     return lastBullet;
-  }
-
-  public static EntityId createArena(
-      final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final String arenaId,
-      @SuppressWarnings("unused") final Vec3d pos) {
-    final EntityId lastArena = ed.createEntity();
-
-    ed.setComponents(
-        lastArena,
-        ShapeInfo.create(ShapeNames.ARENA, 1, ed),
-        new SpawnPosition(phys.getGrid(), new Vec3d()),
-        new ArenaId(arenaId, owner));
-    ed.setComponent(lastArena, new Meta(createdTime));
-
-    return lastArena;
   }
 
   /*
