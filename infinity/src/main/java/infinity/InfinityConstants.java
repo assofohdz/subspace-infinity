@@ -50,8 +50,8 @@ import com.simsilica.mathd.bits.Vec3Bits;
  * @author Paul Speed
  */
 public class InfinityConstants {
-  public static final String NAME = "MWorld Network Demo";
-  public static final String TITLE = "MWorld Network Demo v1.0a";
+  public static final String NAME = "Subspace Infinity";
+  public static final String TITLE = "Subspace Infinity v. 0.1";
   public static final int PROTOCOL_VERSION = 42;
 
   public static final int DEFAULT_PORT = 6942;
