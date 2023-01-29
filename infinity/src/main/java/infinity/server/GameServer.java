@@ -57,6 +57,7 @@ import com.simsilica.es.server.EntityUpdater;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.ext.mblock.BlockShapeFactory;
 import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
 import com.simsilica.ext.mblock.SphereFactory;
 import com.simsilica.ext.mphys.EntityBodyFactory;
@@ -97,6 +98,7 @@ import infinity.es.TileType;
 import infinity.es.input.MovementInput;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.CorePhysicsConstants;
+import infinity.sim.CubeFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.ai.MobSystem;
 import infinity.systems.ArenaSystem;
@@ -300,7 +302,10 @@ public class GameServer {
         ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.BULLETSIZERADIUS, ed), sphereFac);
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed), sphereFac);
-    shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+    shapeFactory.registerFactory(
+        ShapeInfo.create(ShapeNames.ARENA, 1024, ed), new CubeFactory(ed));
+
+    shapeFactory.setDefaultFactory( new BlocksResourceShapeFactory(ed));
     systems.register(ShapeFactory.class, shapeFactory);
 
     // And give that to an EntityBodyFactory, for the moment without any
