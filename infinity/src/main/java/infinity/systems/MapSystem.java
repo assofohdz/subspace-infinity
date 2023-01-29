@@ -302,12 +302,28 @@ public class MapSystem extends AbstractGameSystem {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
         short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
 
-        // I'd like the maps to be "framed" by a boundary
-        if (xpos == 0 || zpos == 0 || xpos == tiles.length - 1 || zpos == tiles[xpos].length - 1) {
-          final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
-          coordinates.add(location);
-          world.setWorldCell(location, 10);
-        } else if (s != 0) {
+        // I'd like a small part of the corners of the map to be cleared so we can move in and out
+        // of arenas
+        if ((xpos == 0 || xpos == 1 || xpos == 2) && (zpos == 0 || zpos == 1 || zpos == 2)) {
+          s = 0;
+        } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
+            && (zpos == 0 || zpos == 1 || zpos == 2)) {
+          s = 0;
+        } else if ((xpos == 0 || xpos == 1 || xpos == 2)
+            && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
+          s = 0;
+        } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
+            && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
+          s = 0;
+        } else if (xpos == 0
+            || zpos == 0
+            || xpos == tiles.length - 1
+            || zpos == tiles[xpos].length - 1) {
+          // Set arena boundaries
+          s = 1;
+        }
+
+        if (s != 0) {
           // TODO: Check on the short and only create the map tiles, not the extras
           // (asteroids, wormholes etc.)
           /*
@@ -408,24 +424,24 @@ public class MapSystem extends AbstractGameSystem {
           // TODO: add more special cases here:
           // TODO: Fetch settings for the given coordinates and create the right gravity
           switch (s) {
-            // turf flag
+              // turf flag
             case 170:
               GameEntities.createCaptureTheFlag(ed, null, physicsSpace, time.getTime(), location);
               break;
-            // small asteroid
+              // small asteroid
             case 216:
               GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
               break;
-            // large asteroid
+              // large asteroid
             case 217:
               GameEntities.createAsteroidMedium(
                   ed, null, physicsSpace, time.getTime(), location, 0);
               break;
-            // small Asteroid 2
+              // small Asteroid 2
             case 218:
               GameEntities.createAsteroidLarge(ed, null, physicsSpace, time.getTime(), location);
               break;
-            // wormhole
+              // wormhole
             case 220:
               GameEntities.createWormhole(
                   ed,
