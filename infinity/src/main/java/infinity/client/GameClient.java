@@ -60,93 +60,98 @@ import infinity.InfinityConstants;
 import infinity.client.chat.ChatClientService;
 
 /**
- *
- *
  * @author Paul Speed
  */
 public class GameClient {
 
-    static Logger log = LoggerFactory.getLogger(GameClient.class);
+  static Logger log = LoggerFactory.getLogger(GameClient.class);
 
-    private final Client client;
-    private final EntityData ed;
+  private final Client client;
+  private final EntityData ed;
 
-    public GameClient(final String host, final int port) throws IOException {
-        log.info("Connecting to:" + host + " " + port);
-        client = Network.connectToServer(InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
+  public GameClient(final String host, final int port) throws IOException {
+    log.info("Connecting to:" + host + " " + port);
+    client =
+        Network.connectToServer(
+            InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
 
-        // client.addMessageListener(new MessageDebugger());
+    // client.addMessageListener(new MessageDebugger());
 
-        log.info("Adding services...");
-        client.getServices().addServices(new RpcClientService(), new RmiClientService(),
-                // new AccountClientService(),
-                new GameSessionClientService(), new EntityDataClientService(InfinityConstants.ES_CHANNEL),
-                new ChatClientService(InfinityConstants.CHAT_CHANNEL),
-                new WorldClientService(InfinityConstants.TERRAIN_CHANNEL),
-                new EtherealClient(InfinityConstants.OBJECT_PROTOCOL, InfinityConstants.ZONE_GRID,
-                        InfinityConstants.ZONE_RADIUS),
-                new SharedObjectUpdater());
+    log.info("Adding services...");
+    client
+        .getServices()
+        .addServices(
+            new RpcClientService(),
+            new RmiClientService(),
+            // new AccountClientService(),
+            new GameSessionClientService(),
+            new EntityDataClientService(InfinityConstants.ES_CHANNEL),
+            new ChatClientService(InfinityConstants.CHAT_CHANNEL),
+            new WorldClientService(InfinityConstants.TERRAIN_CHANNEL),
+            new EtherealClient(
+                InfinityConstants.OBJECT_PROTOCOL,
+                InfinityConstants.ZONE_GRID,
+                InfinityConstants.ZONE_RADIUS),
+            new SharedObjectUpdater());
 
-        // Can grab this even before started but you won't be able to retrieve
-        // entities until the connection has been fully setup.
-        ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
+    // Can grab this even before started but you won't be able to retrieve
+    // entities until the connection has been fully setup.
+    ed = client.getServices().getService(EntityDataClientService.class).getEntityData();
+  }
+
+  public TimeSource getTimeSource() {
+    return client.getServices().getService(EtherealClient.class).getTimeSource();
+  }
+
+  public Client getClient() {
+    return client;
+  }
+
+  public EntityData getEntityData() {
+    return ed;
+  }
+
+  public void start() {
+    log.info("start()");
+    client.start();
+  }
+
+  public void addService(final ClientService service) {
+    client.getServices().addService(service);
+  }
+
+  public void removeService(final ClientService service) {
+    client.getServices().removeService(service);
+  }
+
+  public <T extends ClientService> T getService(final Class<T> type) {
+    return client.getServices().getService(type);
+  }
+
+  public void close() {
+    log.info("close()");
+    if (client.isStarted()) {
+      client.close();
     }
+  }
 
-    public TimeSource getTimeSource() {
-        return client.getServices().getService(EtherealClient.class).getTimeSource();
-    }
+  @SuppressWarnings("unused")
+  private class MessageDebugger implements MessageListener<Client> {
+    Logger debugLog = LoggerFactory.getLogger("diagnostics.MessageDebugger");
+    private boolean objectStateStarted = false;
 
-    public Client getClient() {
-        return client;
-    }
+    public MessageDebugger() {}
 
-    public EntityData getEntityData() {
-        return ed;
-    }
-
-    public void start() {
-        log.info("start()");
-        client.start();
-    }
-
-    public void addService(final ClientService service) {
-        client.getServices().addService(service);
-    }
-
-    public void removeService(final ClientService service) {
-        client.getServices().removeService(service);
-    }
-
-    public <T extends ClientService> T getService(final Class<T> type) {
-        return client.getServices().getService(type);
-    }
-
-    public void close() {
-        log.info("close()");
-        if (client.isStarted()) {
-            client.close();
+    @Override
+    public void messageReceived(final Client source, final Message m) {
+      if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
+        if (!objectStateStarted) {
+          debugLog.info("Object state updates started.");
+          objectStateStarted = true;
         }
+      } else if (debugLog.isInfoEnabled()) {
+        debugLog.info("Received:" + m);
+      }
     }
-
-    @SuppressWarnings("unused")
-    private class MessageDebugger implements MessageListener<Client> {
-        Logger debugLog = LoggerFactory.getLogger("diagnostics.MessageDebugger");
-        private boolean objectStateStarted = false;
-
-        public MessageDebugger() {
-        }
-
-        @Override
-        public void messageReceived(final Client source, final Message m) {
-            if (m instanceof com.simsilica.ethereal.net.ObjectStateMessage) {
-                if (!objectStateStarted) {
-                    debugLog.info("Object state updates started.");
-                    objectStateStarted = true;
-                }
-            } else if (debugLog.isInfoEnabled()) {
-                debugLog.info("Received:" + m);
-            }
-        }
-    }
-
+  }
 }
