@@ -31,11 +31,16 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.GridCell;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
+import infinity.es.Ghost;
+import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
@@ -46,6 +51,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandConsumer;
 import infinity.sim.CoreGameConstants;
+import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -73,6 +79,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntitySet playerEntities;
   private ChatHostedPoster chat;
   private double timeSinceLastSettingsUpdateMs = 0;
+  private long time;
 
   @Override
   protected void initialize() {
@@ -130,6 +137,14 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         InfinityConstants.LARGE_OBJECT_GRID.getContainingCell(
             mapBoundsMax.subtract(mapBoundsMin).divide(2));
     arenaCells.put(arena, cell);
+
+    Vec3d arenaMid = mapBoundsMax.add(mapBoundsMin).divide(2);
+
+    // Add this arena as a shape we can use to detect players entering/leaving the arena
+    ed.setComponent(arena, new Ghost());
+    ed.setComponent(arena, new Mass(0));
+    ed.setComponent(arena, new SpawnPosition(InfinityConstants.PHYSICS_GRID, new Vec3d()));
+    ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
   }
 
   /**
@@ -154,9 +169,17 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   public void update(final SimTime tpf) {
+    this.time = tpf.getTime();
+    
     playerEntities.applyChanges();
     arenaEntities.applyChanges();
 
+    /*
+     * This is a bit of a hack, but it works. We want to update the settings every 5 seconds, but
+     * we don't want to do it every frame. So we keep track of the time since last update and if
+     * it's more than 5 seconds we update the settings.
+     */
+    /*
     if (timeSinceLastSettingsUpdateMs > CoreGameConstants.UPDATE_SETTINGS_INTERVAL_MS) {
       // Update the filter and search for ships we need to update
       for (Entity arena : arenaEntities) {
@@ -179,6 +202,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       // Add tpf in ms to our time since last update
       timeSinceLastSettingsUpdateMs += tpf.getTpf()*1000;
     }
+    */
   }
 
   @Override
