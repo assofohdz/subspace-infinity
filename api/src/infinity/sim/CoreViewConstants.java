@@ -23,47 +23,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.sim;
 
 import com.simsilica.mathd.Vec3d;
 
 /**
- * Time must be specified in milliseconds
+ * Time must be specified in milliseconds.
  *
  * @author Asser
  */
 public class CoreViewConstants {
 
-    // Sizes
-    public final static float BULLETSIZE = 0.25f;
-    public final static float BOMBSIZE = 1f;
-    public final static float THORSIZE = 1f;
-    public final static float PRIZESIZE = 1f;
-    public final static float SHIPSIZE = 2f;
-    public final static float MOBSIZE = 2f;
-    public final static float TOWERSIZE = 2f;
-    public final static float MAPTILESIZE = 1f;
-    public final static float FLAGSIZE = 1;
-    public final static float BASESIZE = 5f;
-    public final static float BURSTSIZE = 0.25f;
-
-    public final static float EXPLOSION2SIZE = 2f;
-    public final static float WORMHOLESIZE = 4f;
-    public final static float OVER1SIZE = 1f;
-    public final static float OVER2SIZE = 2f;
-    public final static float OVER5SIZE = 4f;
-    public final static float WARPSIZE = 3f;
-    public final static float REPELSIZE = 4f;
-
-    // Game
-    public final static int ARENASIZE = 1000;
-
-    // Decays must be in milliseconds
-    public final static long EXPLOSION2DECAY = 2000;
-    public final static long WARPDECAY = 800;
-    public final static long REPELDECAY = 400;
-
-    // LightSize radius
-    public final static float SHIPLIGHTRADIUS = 500;
-    public final static Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 5, 0);
+  // Sizes
+  public static final float BULLETSIZE = 0.25f;
+  public static final float BOMBSIZE = 1f;
+  public static final float THORSIZE = 1f;
+  public static final float PRIZESIZE = 1f;
+  public static final float SHIPSIZE = 2f;
+  public static final float MOBSIZE = 2f;
+  public static final float TOWERSIZE = 2f;
+  public static final float MAPTILESIZE = 1f;
+  public static final float FLAGSIZE = 1;
+  public static final float BASESIZE = 5f;
+  public static final float BURSTSIZE = 0.25f;
+  public static final float EXPLOSION2SIZE = 2f;
+  public static final float WORMHOLESIZE = 4f;
+  public static final float OVER1SIZE = 1f;
+  public static final float OVER2SIZE = 2f;
+  public static final float OVER5SIZE = 4f;
+  public static final float WARPSIZE = 3f;
+  public static final float REPELSIZE = 4f;
+  // Game
+  public static final int ARENASIZE = 1024;
+  // Decays must be in milliseconds
+  public static final long EXPLOSION2DECAY = 2000;
+  public static final long WARPDECAY = 800;
+  public static final long REPELDECAY = 400;
+  // LightSize radius
+  public static final float SHIPLIGHTRADIUS = 500;
+  public static final Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 5, 0);
+  private CoreViewConstants() {}
 }
