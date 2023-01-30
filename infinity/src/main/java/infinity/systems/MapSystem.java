@@ -98,6 +98,7 @@ public class MapSystem extends AbstractGameSystem {
   private AssetLoaderService assetLoader;
   private LinkedList<MapTileCallable> mapTileQueue;
   private World world;
+  private int y;
   private double accumulatedTime;
   // private final boolean logged = false;
   private Direction direction = Direction.S;
@@ -301,20 +302,21 @@ public class MapSystem extends AbstractGameSystem {
       // for (int zpos = 260; zpos >= 250; zpos--) {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
         short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
-
+        y = 1;
         // I'd like a small part of the corners of the map to be cleared so we can move in and out
         // of arenas
         if ((xpos == 0 || xpos == 1 || xpos == 2) && (zpos == 0 || zpos == 1 || zpos == 2)) {
-          s = 0;
+          //s = 0;
+          y = 5;
         } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
             && (zpos == 0 || zpos == 1 || zpos == 2)) {
-          s = 0;
+          y = 5;
         } else if ((xpos == 0 || xpos == 1 || xpos == 2)
             && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
-          s = 0;
+          y = 5;
         } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
             && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
-          s = 0;
+          y = 5;
         } else if (xpos == 0
             || zpos == 0
             || xpos == tiles.length - 1
@@ -419,7 +421,7 @@ public class MapSystem extends AbstractGameSystem {
            *
            */
 
-          final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
+          final Vec3d location = new Vec3d(xpos, y, zpos).add(arenaOffset);
           coordinates.add(location);
           // TODO: add more special cases here:
           // TODO: Fetch settings for the given coordinates and create the right gravity

@@ -53,117 +53,80 @@ import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.texture.plugins.AWTLoader;
-//import com.jme3.math.Vector3f;
+// import com.jme3.math.Vector3f;
 
-//import com.simsilica.lemur.GuiGlobals;
-//import com.simsilica.lemur.input.InputMapper;
+// import com.simsilica.lemur.GuiGlobals;
+// import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.builder.BuilderState;
 import com.simsilica.es.EntityId;
 import com.simsilica.state.CompositeAppState;
 
-//import com.simsilica.mphys.PhysicsSpace;
-//import com.simsilica.ext.mphys.MPhysSystem;
-//import com.simsilica.ext.mphys.debug.*;
+// import com.simsilica.mphys.PhysicsSpace;
+// import com.simsilica.ext.mphys.MPhysSystem;
+// import com.simsilica.ext.mphys.debug.*;
 /**
- *
- *
  * @author Paul Speed
  */
 public class GameSessionState extends CompositeAppState {
 
-    static Logger log = LoggerFactory.getLogger(GameSessionState.class);
-    private boolean hostIsLocal;
-    private TimeSource timeSource;
+  static Logger log = LoggerFactory.getLogger(GameSessionState.class);
+  private boolean hostIsLocal;
+  private TimeSource timeSource;
 
-    // private final boolean hostIsLocal = false;
+  // private final boolean hostIsLocal = false;
 
-    public GameSessionState() {
-        super(
-                //new CameraMovementState(),
-                new AvatarMovementState(),
-                //new CameraState(),
-                //new LightingState(),
-                new TimeState(), // Has to be before any visuals that might need it.
-                new SkyState(),
-                // new PostProcessingState(),
-                // new SkySettingsState(),
-                new BuilderState(4, 4),
-                new WorldViewState(),
-                new ModelViewState(),
-                new AudioState(new SIAudioFactory()),
-                //new GridState(new Grid(InfinityConstants.GRID_CELL_SIZE)),
-                new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2,  new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-                new LightState()//,
-                //new AmbientLightState()
+  public GameSessionState() {
+    super(
+        new AvatarMovementState(),
+        new TimeState(), // Has to be before any visuals that might need it.
+        new SkyState(),
+        new BuilderState(4, 4),
+        new WorldViewState(),
+        new ModelViewState(),
+        new AudioState(new SIAudioFactory()),
+        new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+        new LightState() // ,
         );
 
-        addChild(new HelpState(), true);
-        addChild(new SettingsState(), true);
-        addChild(new ChatState(), true);
+    addChild(new HelpState(), true);
+    addChild(new SettingsState(), true);
+    addChild(new ChatState(), true);
+    addChild(new MapState(), true);
+  }
 
-        addChild(new MapState(), true);
-
-        // addChild(new ToolState(), true);
-
+  @Override
+  protected void initialize(final Application app) {
+    final EntityId avatar =
+        getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
+    // See if this is local host mode. This stuff should maybe be moved
+    // to its own debug manager state.
+    final HostState host = getState(HostState.class);
+    if (host != null) {
+      addChild(new PhysicsDebugState(host), true);
+      hostIsLocal = true;
     }
 
-    @Override
-    protected void initialize(final Application app) {
-        // com.simsilica.mworld.World world =
-        // getState(ConnectionState.class).getService(com.simsilica.mworld.net.client.WorldClientService.class);
-        // log.info("World:" + world);
+    this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
 
-        // com.simsilica.mworld.LeafData data = world.getLeaf(0);
-        // log.info("Data for leafId 0:" + data);
-        // data = world.getLeaf(new Vec3i(0, 2, 0));
-        // log.info("Data for leaf 0, 2, 0:" + data);
-        // getState(CameraState.class).setFieldOfView(60);
-        final EntityId avatar = getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
-        // See if this is local host mode. This stuff should maybe be moved
-        // to its own debug manager state.
-        final HostState host = getState(HostState.class);
-        if (host != null) {
-            addChild(new PhysicsDebugState(host), true);
-            hostIsLocal = true;
-        }
+    getState(TimeState.class).setTimeSource(this.timeSource);
 
-        this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+    InfinityCameraState cameraState = new InfinityCameraState(avatar, timeSource);
+    addChild(cameraState);
 
-        getState(TimeState.class).setTimeSource(this.timeSource);
+    getState(AvatarMovementState.class).setAvatarEntityId(avatar);
 
-        InfinityCameraState cameraState = new InfinityCameraState(avatar, timeSource);
-        addChild(cameraState);
-        // Camera should be set to orthogonal
-        // getState(InfinityCameraState.class).setAvatar(avatar);
-        // getState(InfinityCameraState.class).setFieldOfView(60);
-        // Modelview state
+    getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
+  }
 
-        getState(AvatarMovementState.class).setAvatarEntityId(avatar);
+  @Override
+  protected void cleanup(final Application app) {
+  }
 
-        //getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
+  @Override
+  protected void onEnable() {}
 
-        getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
+  public void update(float tpf) {}
 
-        //addChild(new MouseAppState(getApplication()));
-
-        //addChild(new MiniMapState(((SimpleApplication) getApplication()).getRootNode(), 64, 200));
-    }
-
-    @Override
-    protected void cleanup(final Application app) {
-        return;
-    }
-
-    @Override
-    protected void onEnable() {
-
-    }
-
-    public void update( float tpf ) {
-
-    }
-    @Override
-    protected void onDisable() {
-
-    }
+  @Override
+  protected void onDisable() {}
 }

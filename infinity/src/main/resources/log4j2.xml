@@ -12,6 +12,9 @@
     <Logger name="infinity.sim" level="debug" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="infinity.client" level="debug" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="com.simsilica.ext.mblock.SphereFactory" level="FATAL"/>
     <Logger name="com.simsilica.ext.mphys.EntityBodyFactory" level="FATAL"/>
     <Logger name="com.simsilica.ext.mphys.BinEntityManager" level="FATAL"/>

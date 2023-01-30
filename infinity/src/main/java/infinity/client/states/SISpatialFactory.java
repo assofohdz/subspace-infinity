@@ -661,8 +661,10 @@ public class SISpatialFactory {
   private float[] getVertices(final float halfSize) {
     final float[] res =
         new float[] {
-          halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize, halfSize, 0,
-          halfSize
+          halfSize, 0, -halfSize,
+         -halfSize, 0, -halfSize,
+         -halfSize, 0,  halfSize,
+          halfSize, 0,  halfSize
         };
     return res;
   }

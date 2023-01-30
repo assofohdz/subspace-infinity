@@ -66,146 +66,134 @@ import com.simsilica.pager.debug.BBoxZone;
 import infinity.client.ConnectionState;
 
 /**
- *
- *
  * @author Paul Speed
  */
 public class WorldViewState extends BaseAppState {
 
-    static Logger log = LoggerFactory.getLogger(WorldViewState.class);
+  static Logger log = LoggerFactory.getLogger(WorldViewState.class);
+  private final CellObserver cellObserver = new CellObserver();
+  private final Vector3f viewLoc = new Vector3f(20, InfinityCameraState.DISTANCETOPLANE, 20);
+  private final Vector3f viewCell = new Vector3f();
+  private World world;
+  private PagedGrid pager;
+  private Node worldRoot;
+  private BlockGeometryIndex geomIndex;
 
-    private World world;
-    private final CellObserver cellObserver = new CellObserver();
+  public WorldViewState() {}
 
-    private PagedGrid pager;
-    private Node worldRoot;
+  public Vector3f getViewLocation() {
+    // log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
+    return viewLoc;
+  }
 
-    private final Vector3f viewLoc = new Vector3f(20, InfinityCameraState.DISTANCETOPLANE, 20);
-    private final Vector3f viewCell = new Vector3f();
+  public void setViewLocation(final Vector3f viewLoc) {
+    // viewLoc = viewLoc.setY(30);
+    this.viewLoc.set(viewLoc);
+    // log.info("setViewLocation:: viewLoc is now: "+viewLoc);
+    if (pager != null) {
+      pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
 
-    private BlockGeometryIndex geomIndex;
+      pager.getGrid().toCell(viewLoc, viewCell);
 
-    public WorldViewState() {
+      // The grid may be in 3D but the pager considers it a 2D grid for the
+      // sake of center placement.
+      viewCell.y = 0;
+      // log.info("setViewLocation:: viewCell is now: "+viewCell);
+    }
+  }
+
+  public Vector3f getViewCell() {
+    // log.info("getViewCell:: Getting viewCell: "+viewCell);
+    return viewCell;
+  }
+
+  public Vector3f cellToWorld(final Vec3i cell, final Vector3f target) {
+    if (pager == null) {
+      return target;
+    }
+    return pager.getGrid().toWorld(cell.x, cell.y, cell.z, target);
+  }
+
+  @Override
+  protected void initialize(final Application app) {
+
+    geomIndex = new BlockGeometryIndex(app.getAssetManager());
+
+    world = getState(ConnectionState.class).getService(WorldClientService.class);
+    // log.info("World:" + world);
+
+    // LeafData data = world.getLeaf(0);
+    // log.info("Data for leafId 0:" + data);
+
+    // data = world.getLeaf(new Vec3i(0, 2, 0));
+    // log.info("Data for leaf 0, 2, 0:" + data);
+
+    final Builder builder = getState(BuilderState.class).getBuilder();
+
+    final Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
+
+    final ZoneFactory rootFactory = new LeafDataZone.Factory(world, geomIndex);
+
+    pager = new PagedGrid(rootFactory, builder, rootGrid, 1, 5);
+
+    worldRoot = new Node("worldRoot");
+    worldRoot.attachChild(pager.getGridRoot());
+
+    final boolean showGrid = false;
+    if (showGrid) {
+      final Material boxMaterial =
+          GuiGlobals.getInstance()
+              .createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false)
+              .getMaterial();
+      boxMaterial.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+      boxMaterial.getAdditionalRenderState().setWireframe(true);
+      final ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
+
+      final PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 1, 5);
+      worldRoot.attachChild(gridPager.getGridRoot());
     }
 
-    public void setViewLocation(final Vector3f viewLoc) {
-        // viewLoc = viewLoc.setY(30);
-        this.viewLoc.set(viewLoc);
-        //log.info("setViewLocation:: viewLoc is now: "+viewLoc);
-        if (pager != null) {
-            pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
+    world.addCellChangeListener(cellObserver);
+  }
 
-            pager.getGrid().toCell(viewLoc, viewCell);
+  protected void cellChanged(final CellChangeEvent event) {
+    // log.info("cellChanged(" + event + ")");
+    final Vec3i loc = event.getLeafWorld();
+    pager.rebuildCell(loc.x, loc.y, loc.z);
+  }
 
-            // The grid may be in 3D but the pager considers it a 2D grid for the
-            // sake of center placement.
-            viewCell.y = 0;
-            //log.info("setViewLocation:: viewCell is now: "+viewCell);
-        }
-    }
+  @Override
+  protected void cleanup(final Application app) {
+    world.removeCellChangeListener(cellObserver);
+    pager.release();
+  }
 
-    public Vector3f getViewLocation() {
-        //log.info("getViewLocation:: Getting viewLoc: "+viewLoc);
-        return viewLoc;
-    }
+  @Override
+  public void update(float tpf) {
+  }
 
-    public Vector3f getViewCell() {
-        //log.info("getViewCell:: Getting viewCell: "+viewCell);
-        return viewCell;
-    }
+  @Override
+  protected void onEnable() {
+    ((SimpleApplication) getApplication()).getRootNode().attachChild(worldRoot);
 
-    public Vector3f cellToWorld(final Vec3i cell, final Vector3f target) {
-        if (pager == null) {
-            return target;
-        }
-        return pager.getGrid().toWorld(cell.x, cell.y, cell.z, target);
-    }
+    pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
+  }
+
+  @Override
+  protected void onDisable() {
+    worldRoot.removeFromParent();
+  }
+
+  public BlockGeometryIndex getGeomIndex() {
+    return geomIndex;
+  }
+
+  private class CellObserver implements CellChangeListener {
 
     @Override
-    protected void initialize(final Application app) {
-
-        geomIndex = new BlockGeometryIndex(app.getAssetManager());
-
-        world = getState(ConnectionState.class).getService(WorldClientService.class);
-        // log.info("World:" + world);
-
-        // LeafData data = world.getLeaf(0);
-        // log.info("Data for leafId 0:" + data);
-
-        // data = world.getLeaf(new Vec3i(0, 2, 0));
-        // log.info("Data for leaf 0, 2, 0:" + data);
-
-        final Builder builder = getState(BuilderState.class).getBuilder();
-
-        final Grid rootGrid = new Grid(new Vector3f(32, 32, 32), new Vector3f(0, 0, 0));
-
-
-        final ZoneFactory rootFactory = new LeafDataZone.Factory(world, geomIndex);
-
-        pager = new PagedGrid(rootFactory, builder, rootGrid, 1, 5);
-
-        worldRoot = new Node("worldRoot");
-        worldRoot.attachChild(pager.getGridRoot());
-
-        final boolean showGrid = false;
-        if (showGrid) {
-            final Material boxMaterial = GuiGlobals.getInstance()
-                    .createMaterial(new ColorRGBA(0.2f, 0.6f, 0.4f, 0.25f), false).getMaterial();
-            boxMaterial.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-            boxMaterial.getAdditionalRenderState().setWireframe(true);
-            final ZoneFactory gridFactory = new BBoxZone.Factory(boxMaterial);
-
-            final PagedGrid gridPager = new PagedGrid(pager, gridFactory, builder, rootGrid, 1, 5);
-            worldRoot.attachChild(gridPager.getGridRoot());
-        }
-
-        world.addCellChangeListener(cellObserver);
-
+    public void cellChanged(final CellChangeEvent event) {
+      WorldViewState.this.cellChanged(event);
+      // BlockGeometryIndex.debug = true;
     }
-
-    protected void cellChanged(final CellChangeEvent event) {
-        //log.info("cellChanged(" + event + ")");
-        final Vec3i loc = event.getLeafWorld();
-        pager.rebuildCell(loc.x, loc.y, loc.z);
-    }
-
-    @Override
-    protected void cleanup(final Application app) {
-        world.removeCellChangeListener(cellObserver);
-        pager.release();
-    }
-
-    /*
-     * public void update( float tpf ) { // For now just directly forward the camera
-     * location Vector3f loc = getApplication().getCamera().getLocation();
-     *
-     * pager.setCenterWorldLocation(loc.x, loc.z); }
-     */
-
-    @Override
-    protected void onEnable() {
-        ((SimpleApplication) getApplication()).getRootNode().attachChild(worldRoot);
-
-        pager.setCenterWorldLocation(viewLoc.x, viewLoc.z);
-        getApplication().getCamera().setLocation(new Vector3f(0, viewLoc.y, 0));
-        getApplication().getCamera().lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
-    }
-
-    @Override
-    protected void onDisable() {
-        worldRoot.removeFromParent();
-    }
-
-    private class CellObserver implements CellChangeListener {
-
-        @Override
-        public void cellChanged(final CellChangeEvent event) {
-            WorldViewState.this.cellChanged(event);
-//BlockGeometryIndex.debug = true;
-        }
-    }
-
-    public BlockGeometryIndex getGeomIndex() {
-        return geomIndex;
-    }
+  }
 }
