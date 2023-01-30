@@ -160,6 +160,11 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
+    public Vec3d getPlayerLocation() {
+        return getDelegate().getPlayerLocation();
+    }
+
+    @Override
     public void action(final byte actionInput) {
         getDelegate().action(actionInput);
     }

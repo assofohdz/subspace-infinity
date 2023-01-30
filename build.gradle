@@ -5,13 +5,12 @@ subprojects {
     //For now we want the latest version of everything except JMonkeyEngine
     //Could also specify major versions like 4.+
     ext.jmeVersion = '3.6.0-SNAPSHOT'
-    ext.guavaVersion = '+'
     ext.lemurVersion = '+'
     ext.lemurProtoVersion = '+'
     ext.lemurPropsVersion = '+'
-    ext.simEtherealVersion = '+'
     ext.simMathVersion = '+'
     ext.sio2Version = '+'
+    ext.simEtherealVersion = '+'
     ext.zayEsVersion = '+'
     ext.zayEsNetVersion = '+'
 
@@ -19,6 +18,7 @@ subprojects {
     ext.gsonVersion = '+'
     ext.log4jVersion = '+'
     ext.slf4jVersion = '+'
+    ext.guavaVersion = '+'
 
     ext.mossVersion = "+"
 

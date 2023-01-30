@@ -35,6 +35,7 @@
  */
 package infinity.server;
 
+import com.simsilica.bpos.BodyPosition;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -273,6 +274,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         @Override
         public EntityId getPlayer() {
             return playerEntityId;
+        }
+
+        @Override
+        public Vec3d getPlayerLocation() {
+            return ed.getComponent(avatarEntityId, BodyPosition.class).getLastLocation();
         }
 
         @Override

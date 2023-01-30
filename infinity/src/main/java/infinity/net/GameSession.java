@@ -57,6 +57,8 @@ public interface GameSession {
 
     EntityId getPlayer();
 
+    Vec3d getPlayerLocation();
+
     /**
      * For now we just direct-move the player avatar.
      */

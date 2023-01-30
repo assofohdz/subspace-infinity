@@ -138,7 +138,7 @@ public class GameSessionState extends CompositeAppState {
         // getState(InfinityCameraState.class).setFieldOfView(60);
         // Modelview state
 
-        getState(ModelViewState.class).setAvatarEntityId(avatar);
+        getState(AvatarMovementState.class).setAvatarEntityId(avatar);
 
         //getState(TimeState.class).setTimeSource(getState(ConnectionState.class).getRemoteTimeSource());
 
