@@ -71,6 +71,7 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.BlockTypeIndex;
 import com.simsilica.mblock.FluidTypeIndex;
+import com.simsilica.mblock.config.DefaultBlockSet;
 import com.simsilica.mblock.io.BlockTypeData;
 import com.simsilica.mblock.io.FluidTypeData;
 import com.simsilica.mblock.phys.Collider;
@@ -184,7 +185,7 @@ public class GameServer {
             new RpcHostedService(),
             new RmiHostedService(),
             // new GameSessionHostedService(systems),
-            // new AccountHostedService(description),
+            new AccountHostedService(description),
             // new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
             chp);
 
@@ -240,8 +241,9 @@ public class GameServer {
     // information.  Eventually we'll want to do this differently... probably.
     // DefaultBlockSet.initializeBlockTypes();
     if (!BlockTypeIndex.isInitialized()) {
-      BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
-      FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
+      DefaultBlockSet.initializeBlockTypes();
+      //BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
+      //FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
     }
 
     // Setup the physics space
@@ -314,6 +316,7 @@ public class GameServer {
         new EntityBodyFactory<>(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
 
     MPhysSystem<MBlockShape> mBlockShapeMPhysSystem = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+    systems.register(EntityBodyFactory.class, bodyFactory);
 
     Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
     mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
@@ -325,7 +328,6 @@ public class GameServer {
     systems.register(PhysicsSpace.class, mBlockShapeMPhysSystem.getPhysicsSpace());
     systems.register(
         InfinityPhysicsManager.class, new InfinityPhysicsManager(mBlockShapeMPhysSystem.getPhysicsSpace()));
-    systems.register(EntityBodyFactory.class, bodyFactory);
 
     // Subspace Infinity Specific Systems:-->
     // Set up contacts to be filtered first:
