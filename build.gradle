@@ -1,3 +1,15 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.mini2Dx', name: 'butler', version: '2.1.0'
+        classpath group: 'org.mini2Dx', name: 'parcl', version: '1.8.0'
+    }
+}
+
 subprojects {
 
     version='1.0.0-SNAPSHOT'
@@ -24,15 +36,4 @@ subprojects {
 
     ext.jetbrainsAnnotationsVersion = '+'
     ext.junitVersion = '+'
-}
-
-buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'org.mini2Dx', name: 'butler', version: '2.1.0'
-    }
 }

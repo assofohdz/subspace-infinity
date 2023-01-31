@@ -6,23 +6,25 @@ buildscript {
     }
     dependencies {
         classpath group: 'org.mini2Dx', name: 'butler', version: '2.1.0'
+        classpath group: 'org.mini2Dx', name: 'parcl', version: '1.8.0'
     }
 }
 
 plugins {
     id 'infinity.app-with-assets'
     id 'com.github.ben-manes.versions' version '0.44.0'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
-mainClassName="infinity.Main"
+mainClassName = "infinity.Main"
 
 version = "1.0.0"
 
-applicationDefaultJvmArgs = ["-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m","--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED"]
+applicationDefaultJvmArgs = ["-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m", "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED"]
 
 dependencies {
     implementation "org.jetbrains:annotations:16.0.2"
-	// logging
+    // logging
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
     implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
@@ -42,7 +44,7 @@ dependencies {
     //https://mvnrepository.com/artifact/org.ini4j/ini4j
     implementation "org.ini4j:ini4j:0.5.4"
 
-	// Apache Commons Stuff
+    // Apache Commons Stuff
     // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
     implementation "org.apache.commons:commons-collections4:4.4"
     implementation "org.apache.commons:commons-math:2.2"
@@ -53,14 +55,14 @@ dependencies {
     // For Lemur styles
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 
-	// jMonkeyEngines
-    implementation "org.jmonkeyengine:jme3-core:$jmeVersion" 
+    // jMonkeyEngines
+    implementation "org.jmonkeyengine:jme3-core:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-desktop:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-effects:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-lwjgl3:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-plugins:$jmeVersion"
 
-	// Simsilica
+    // Simsilica
     implementation "com.simsilica:lemur:$lemurVersion"
     implementation "com.simsilica:lemur-proto:$lemurProtoVersion"
     implementation "com.simsilica:lemur-props:$lemurPropsVersion"
@@ -68,11 +70,11 @@ dependencies {
     implementation "com.simsilica:sim-ethereal:$simEtherealVersion"
     implementation "com.simsilica:sim-fx:1.0.1-SNAPSHOT"
     implementation "com.simsilica:sim-math:$simMathVersion"
-    implementation "com.simsilica:sio2:$sio2Version" 
+    implementation "com.simsilica:sio2:$sio2Version"
     implementation "com.simsilica:zay-es:$zayEsVersion"
     implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
 
-	// Simsilica MOSS
+    // Simsilica MOSS
     //implementation "com.simsilica:mphys:$mossVersion"
     implementation "com.simsilica:mblock:$mossVersion"
     implementation "com.simsilica:mblock-physb:$mossVersion"
@@ -85,7 +87,7 @@ dependencies {
     //jWalkable for 2d polygonal pathfinding
     //https://github.com/implicit-invocation/jwalkable
     //implementation "com.github.implicit-invocation:jwalkable:master-SNAPSHOT"
-    
+
     //Noise4j dungeon generation
     //https://github.com/czyzby/noise4j
     implementation "com.github.czyzby:noise4j:0.1.0"
@@ -99,7 +101,7 @@ dependencies {
     //We"re using a java port of http://www.angusj.com/delphi/clipper.php to do polygon boolean operations
     implementation "de.lighti:Clipper:6.4.2"
 
-	// Local dependencies
+    // Local dependencies
     implementation project(":api")
     runtimeOnly project(":modules")
 }
@@ -112,61 +114,46 @@ dependencies {
 //    archiveBaseName = "subspace-infinity"
 //}
 
+
 distributions {
     main {
-        distributionBaseName = "subspace-infinity"
+        distributionBaseName = "infinity"
     }
 }
-//
-//project(":infinity:assets") {
-//    apply plugin:"java"
-//
-//    sourceSets {
-//        main {
-//            resources {
-//                srcDir "."
-//				excludes = [
-//					".settings/**",
-//					"bin/**",
-//					"build/**"
-//				]
-//                includes = [
-//                    "**/*.ogg",
-//                    "**/*.wav",
-//                    "**/*.png",
-//                    "**/*.jpg",
-//                    "**/*.j3md",
-//                    "**/*.frag",
-//                    "**/*.vert",
-//                    "**/*.glsllib",
-//                    "**/*.fnt",
-//                    "**/*.j3m",
-//                    "**/*.j3o",
-//                    "**/*.blocks",
-//                    "**/*.wa2",
-//                    "**/*.bmp",
-//                    "**/*.bm2",
-//                    "**/*.lvl",
-//                    "**/*.lvz"
-//                ]
-//            }
-//        }
-//    }
-//}
 
-project(":infinity") {
-    apply plugin: "org.mini2Dx.butler"
+apply plugin: "org.mini2Dx.parcl"
+apply plugin: "org.mini2Dx.butler"
 
-    butler {
-        user = "assofohdz"
-        game = "subspace-infinity"
-        updateButler = true
-        butlerInstallDirectory = "C:\\workspace\\Subspace\\Subspace-Infinity\\butler-windows"
+parcl {
+    app {
+        vmArgs = applicationDefaultJvmArgs
+        appName = "subspace-infinity"
+        icon = "relative/path/to/icon.icns"
+        applicationCategory = "opensource.space-sim"
+        displayName = "subspace-infinity"
+        identifier = "subspace-infinity"
+        copyright = 'Copyright 2023 Asser Fahrenholz'
     }
 
-    task butlerPush(type: org.mini2Dx.butler.task.PushTask) {
-        dependsOn build
-        binDirectory = getProject().getBuildDir()
-        channel = "windows"
+    exe {
+        exeName = "subspace-infinity"
+        print getProject().name
     }
+
+    linux {
+        binName = "subspace-infinity"
+    }
+}
+
+butler {
+    user = "assofohdz"
+    game = "subspace-infinity"
+    updateButler = true
+    butlerInstallDirectory = "C:\\workspace\\Subspace\\Subspace-Infinity\\butler-windows"
+}
+
+task butlerPush(type: org.mini2Dx.butler.task.PushTask) {
+    dependsOn build
+    binDirectory = file("$buildDir\\windows")
+    channel = "windows"
 }
