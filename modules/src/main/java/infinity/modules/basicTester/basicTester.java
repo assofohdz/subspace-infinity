@@ -19,7 +19,7 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -88,10 +88,10 @@ public class basicTester extends BaseGameModule {
         // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         getChp().registerPatternBiConsumer(basicCommand,
                 "The command to make this basic tester do stuff is ~basic <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
-    private CommandConsumer messageHandler(@SuppressWarnings("unused") final EntityId id,
+    private CommandBiConsumer messageHandler(@SuppressWarnings("unused") final EntityId id,
             @SuppressWarnings("unused") final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.

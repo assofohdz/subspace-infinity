@@ -46,7 +46,7 @@ import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,7 +94,7 @@ public class MapSystem extends AbstractGameSystem {
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private SimTime time;
-  private EntitySet tileTypes;
+  //private EntitySet tileTypes;
   private AssetLoaderService assetLoader;
   private LinkedList<MapTileCallable> mapTileQueue;
   private World world;
@@ -156,12 +156,12 @@ public class MapSystem extends AbstractGameSystem {
         loadMap,
         "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name "
             + "of the map you want to load",
-        new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadMap(id, map)));
+        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadMap(id, map)));
     chat.registerPatternBiConsumer(
         unloadMap,
         "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadMap(id, map)));
+        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadMap(id, map)));
   }
 
   /**
@@ -516,11 +516,7 @@ public class MapSystem extends AbstractGameSystem {
 
   @Override
   protected void terminate() {
-    // Release reader object
-    // reader = null;
-
-    tileTypes.release();
-    tileTypes = null;
+    // TODO Auto-generated method stub
   }
 
   @Override

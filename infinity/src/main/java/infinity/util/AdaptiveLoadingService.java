@@ -57,7 +57,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.BaseGameService;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -152,16 +152,16 @@ public class AdaptiveLoadingService extends AbstractHostedService
         // Register consuming methods for patterns
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern,
                 "The command to start a new module is ~startModule <module>, where <module> is the module you want to start",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id1, module1) -> startModule(id1, module1)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id1, module1) -> startModule(id1, module1)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern,
                 "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> stopModule(id, module)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> stopModule(id, module)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern,
                 "The command to start a new module is ~startService <service>, where <service> is the service you want to start",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> startService(id, service)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> startService(id, service)));
         this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern,
                 "The command to start a new module is ~stopService <service>, where <service> is the service you want to stop",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> stopService(id, service)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> stopService(id, service)));
     }
 
     /**

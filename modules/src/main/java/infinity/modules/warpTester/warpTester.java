@@ -47,7 +47,7 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -111,7 +111,7 @@ public class warpTester extends BaseGameModule {
         //
         getChp().registerPatternBiConsumer(warpTesterCommand,
                 "The command to make this warpTester do stuff is ~warpTester <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
 
         // startGame();
     }

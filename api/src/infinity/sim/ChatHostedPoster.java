@@ -67,11 +67,12 @@ public interface ChatHostedPoster {
      */
     void postTeamMessage(String from, int messageType, int targetFrequency, String message);
 
-    void registerPatternBiConsumer(Pattern pattern, String description, CommandConsumer c);
+    void registerPatternBiConsumer(Pattern pattern, String description, CommandBiConsumer c);
+    void registerPatternMonoConsumer(Pattern pattern, String description, CommandMonoConsumer c);
 
     void removePatternConsumer(Pattern pattern);
 
-    void registerCommandConsumer(String cmd, String helptext, CommandConsumer c);
+    void registerCommandConsumer(String cmd, String helptext, CommandBiConsumer c);
 
     void removeCommandConsumer(String cmd);
 

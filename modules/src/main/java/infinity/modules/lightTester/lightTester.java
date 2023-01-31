@@ -28,7 +28,6 @@ package infinity.modules.lightTester;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import infinity.modules.prizeTester.prizeTester;
@@ -46,7 +45,7 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -102,7 +101,7 @@ public class lightTester extends BaseGameModule {
         EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
         getChp().registerPatternBiConsumer(lightCommand,
                 "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
     }
 
     @Override
@@ -111,7 +110,7 @@ public class lightTester extends BaseGameModule {
     }
 
     @SuppressWarnings("unused")
-    private CommandConsumer messageHandler(final EntityId id, final String s) {
+    private CommandBiConsumer messageHandler(final EntityId id, final String s) {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }

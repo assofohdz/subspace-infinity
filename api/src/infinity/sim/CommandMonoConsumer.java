@@ -28,27 +28,32 @@ package infinity.sim;
 import java.util.function.BiConsumer;
 
 import com.simsilica.es.EntityId;
+import java.util.function.Consumer;
 
 /**
  *
  * @author Asser
  */
-public class CommandConsumer {
+public class CommandMonoConsumer implements BiConsumer<EntityId, String> {
 
-    private final AccessLevel accessLevelRequired;
-    private final BiConsumer<EntityId, String> consumer;
+  private final AccessLevel accessLevelRequired;
+  private final Consumer<EntityId> consumer;
 
-    public CommandConsumer(final AccessLevel accessLevelRequired, final BiConsumer<EntityId, String> consumer) {
-        this.accessLevelRequired = accessLevelRequired;
-        this.consumer = consumer;
-    }
+  public CommandMonoConsumer(final AccessLevel accessLevelRequired, final Consumer<EntityId> consumer) {
+    this.accessLevelRequired = accessLevelRequired;
+    this.consumer = consumer;
+  }
 
-    public AccessLevel getAccessLevelRequired() {
-        return accessLevelRequired;
-    }
+  public AccessLevel getAccessLevelRequired() {
+    return accessLevelRequired;
+  }
 
-    public BiConsumer<EntityId, String> getConsumer() {
-        return consumer;
-    }
+  public Consumer<EntityId> getConsumer() {
+    return consumer;
+  }
 
+  @Override
+  public void accept(EntityId entityId, String s) {
+    consumer.accept(entityId);
+  }
 }

@@ -27,7 +27,6 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -49,9 +48,8 @@ import infinity.server.chat.ChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.CoreGameConstants;
-import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -97,12 +95,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         loadArena,
         "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
             + "name of the map you want to load",
-        new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadArena(id, map)));
+        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadArena(id, map)));
     chat.registerPatternBiConsumer(
         unloadArena,
         "The command to unload a new map is ~unloadArena <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadArena(id, map)));
+        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadArena(id, map)));
 
     arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
   }

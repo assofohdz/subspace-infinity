@@ -46,7 +46,7 @@ import infinity.es.ShapeNames;
 import infinity.events.ShipEvent;
 import infinity.server.chat.ChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandConsumer;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.CorePhysicsConstants;
 
 /**
@@ -95,7 +95,7 @@ public class AvatarSystem extends AbstractGameSystem {
         // Register consuming methods for patterns
         chp.registerPatternBiConsumer(joinTeam,
                 "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
-                new CommandConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> joinTeam(id, frequency)));
+                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> joinTeam(id, frequency)));
 
     }
 
