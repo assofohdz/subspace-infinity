@@ -83,7 +83,7 @@ public class GameClient {
         .addServices(
             new RpcClientService(),
             new RmiClientService(),
-            // new AccountClientService(),
+            new AccountClientService(),
             new GameSessionClientService(),
             new EntityDataClientService(InfinityConstants.ES_CHANNEL),
             new ChatClientService(InfinityConstants.CHAT_CHANNEL),

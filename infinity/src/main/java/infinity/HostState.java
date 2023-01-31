@@ -1,62 +1,36 @@
 /*
  * $Id$
  *
- * Copyright (c) 2016, Simsilica, LLC
+ * Copyright (c) 2017, Simsilica, LLC
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package infinity;
 
-import java.io.IOException;
+import com.simsilica.sim.GameSystemManager;
+import infinity.client.ConnectionState;
+import infinity.server.GameServer;
+import java.io.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.slf4j.*;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.network.ConnectionListener;
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
+import com.jme3.scene.Node;
 
+import com.simsilica.lemur.*;
 import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.lemur.core.VersionedObject;
-import com.simsilica.sim.GameSystemManager;
-
-import infinity.server.GameServer;
+import com.simsilica.lemur.style.ElementId;
+import com.simsilica.state.DebugHudState;
+import com.simsilica.state.DebugHudState.Location;
 
 /**
- * Manages the game server when hosting a game.
+ *  Manages the game server when hosting a game.
  *
- * @author Paul Speed
+ *  @author    Paul Speed
  */
 public class HostState extends BaseAppState {
 
@@ -65,106 +39,119 @@ public class HostState extends BaseAppState {
     private GameServer gameServer;
     private int port;
 
-    // Used to enable/disable some UI elements until we move them
-    // to their own state
-    // private boolean singlePlayer;
+    private VersionedHolder<String> hostingState;
+    private VersionedHolder<String> connectionCount;
 
+    private ConnectionListener connectionListener = new ConnectionObserver();
+
+    private Container hostWindow;
     private GameSystemManager systems;
-    // private EntityData ed;
 
-    private final VersionedHolder<String> hostingState = new VersionedHolder<>("");
-    private final VersionedHolder<String> connectionCount = new VersionedHolder<>("");
-
-    private final ConnectionListener connectionListener = new ConnectionObserver();
-
-    public HostState(final int port, final String description) {
-        this(port, description, false);
-    }
-
-    public HostState(final int port, final String description, @SuppressWarnings("unused") final boolean singlePlayer) {
+    public HostState( int port, String description ) {
         try {
-            // this.singlePlayer = singlePlayer;
             this.port = port;
-            gameServer = new GameServer(port, description);
+            this.gameServer = new GameServer(port, description);
             systems = gameServer.getSystems();
-            // ed = systems.get(EntityData.class);
             gameServer.getServer().addConnectionListener(connectionListener);
-        } catch (final IOException e) {
+        } catch( IOException e ) {
             throw new RuntimeException("Error creating server", e);
         }
     }
-
-    public int getPort() {
-        return port;
+    
+    public GameServer getGameServer() {
+        return gameServer;
     }
 
     public GameSystemManager getSystems() {
         return systems;
     }
-
-    public GameServer getGameServer() {
-        return gameServer;
+    protected void joinGame() {
+        log.info("joinGame()");
+        getStateManager().attach(new ConnectionState(this, "127.0.0.1", port));
+        setEnabled(false); // hide our window
     }
 
-    public VersionedObject<String> getHostingState() {
-        return hostingState;
+    protected void stopHosting() {
+        log.info("stopHosting()");
+        if( gameServer.getServer().isRunning() && !gameServer.getServer().getConnections().isEmpty() ) {
+            String msg = "Really kick all " + gameServer.getServer().getConnections().size() + " connections?";
+            getState(OptionPanelState.class).show("Disconnect", msg,
+                new CallMethodAction("Yes", this, "detach"),
+                new EmptyAction("No"),
+                new EmptyAction("Cancel"));
+        } else {
+            // Just detach
+            detach();
+        }
     }
 
-    public VersionedObject<String> getConnectionCount() {
-        return connectionCount;
-    }
-
-    /**
-     * Starts the actual game session once the host has decided enough players have
-     * joined.
-     */
-    public void startGame() {
-        log.info("startGame()");
-
-        // Need to look up the game session service and let it know the game
-        // has started 'for real'
-        // Or we can let some system know and it can send a game event that
-        // the service is watching for?
+    protected void detach() {
+        getStateManager().detach(this);
     }
 
     @Override
-    protected void initialize(final Application app) {
-
-        // Just double checking we aren't double-hosting because of some
-        // bug
-        if (getState(HostState.class) != this) {
-            throw new RuntimeException("More than one HostState is not allowed.");
-        }
+    protected void initialize( Application app ) {
         // We'll manage the server itself as part of the app state
         // lifecycle so that we can use enabled state for GUI elements
-        // if we want. Plus, the server will not be reusable once closed
-        // and so neither will the state. That fits better with the detach()
+        // if we want.  Plus, the server will not be reusable once closed
+        // and so neither will the state.  That fits better with the detach()
         // lifecycle than it does with enabled/disabled.
         gameServer.start();
 
+        hostingState = getState(DebugHudState.class).createDebugValue("Hosting", Location.Right);
         hostingState.setObject("Online");
 
+        connectionCount = getState(DebugHudState.class).createDebugValue("Connections", Location.Right);
         resetConnectionCount();
 
-        // super.initialize(app);
+        hostWindow = new Container();
+
+        // For now just something simple
+        hostWindow.addChild(new Label("Hosting Control", new ElementId("title")));
+        hostWindow.addChild(new ActionButton(new CallMethodAction("Join Game", this, "joinGame")));
+        hostWindow.addChild(new ActionButton(new CallMethodAction("Stop Hosting", this, "stopHosting")));
     }
 
     @Override
-    protected void cleanup(final Application app) {
+    protected void cleanup( Application app ) {
         gameServer.close("Shutting down.");
         hostingState.setObject("Offline");
 
-        gameServer = null;
+        // And remove the debug messages anyway
+        getState(DebugHudState.class).removeDebugValue("Hosting");
+        getState(DebugHudState.class).removeDebugValue("Connections");
+
+        // And re-enable the main menu
+        getState(MainMenuState.class).setEnabled(true);
     }
 
     @Override
     protected void onEnable() {
-        return;
+        Node gui = ((Main)getApplication()).getGuiNode();
+
+        int height = getApplication().getCamera().getHeight();
+        hostWindow.setLocalTranslation(10, height - 10, 0);
+        gui.attachChild(hostWindow);
+        GuiGlobals.getInstance().requestFocus(hostWindow);
+
+        // And kill the cursor
+        GuiGlobals.getInstance().setCursorEventsEnabled(true);
+
+        // A 'bug' in Lemur causes it to miss turning the cursor off if
+        // we are enabled before the MouseAppState is initialized.
+        getApplication().getInputManager().setCursorVisible(true);
     }
 
     @Override
     protected void onDisable() {
-        return;
+        hostWindow.removeFromParent();
+
+        // And kill the cursor
+        GuiGlobals.getInstance().setCursorEventsEnabled(false);
+
+        // A 'bug' in Lemur causes it to miss turning the cursor off if
+        // we are enabled before the MouseAppState is initialized.
+        getApplication().getInputManager().setCursorVisible(false);
     }
 
     protected void resetConnectionCount() {
@@ -173,14 +160,13 @@ public class HostState extends BaseAppState {
 
     private class ConnectionObserver implements ConnectionListener {
 
-        @Override
-        public void connectionAdded(final Server server, final HostedConnection conn) {
+        public void connectionAdded( Server server, HostedConnection conn ) {
             resetConnectionCount();
         }
 
-        @Override
-        public void connectionRemoved(final Server server, final HostedConnection conn) {
+        public void connectionRemoved( Server server, HostedConnection conn ) {
             resetConnectionCount();
         }
     }
+
 }

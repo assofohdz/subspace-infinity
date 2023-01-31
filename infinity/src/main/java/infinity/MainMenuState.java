@@ -126,7 +126,7 @@ public class MainMenuState extends BaseAppState {
         try {
 
             // Create a hosting state that we will connect to directly
-            host = new HostState(8969, "private server", true);
+            host = new HostState(8969, "private server");
             getStateManager().attach(host);
 
             // Add our listener that we can use to clean up the host state when
@@ -135,9 +135,9 @@ public class MainMenuState extends BaseAppState {
             EventBus.addListener(this, ClientEvent.clientDisconnected);
 
             // Now connect
-            connection = new ConnectionState(this, "127.0.0.1", 8969, true);
+            //connection = new ConnectionState(this, "127.0.0.1", 8969);
 
-            getStateManager().attach(connection);
+            //getStateManager().attach(connection);
 
             // Disable ourselves
             setEnabled(false);

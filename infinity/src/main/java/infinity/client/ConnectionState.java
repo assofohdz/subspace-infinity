@@ -1,76 +1,35 @@
 /*
  * $Id$
  *
- * Copyright (c) 2016, Simsilica, LLC
+ * Copyright (c) 2017, Simsilica, LLC
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package infinity.client;
 
-import java.io.IOException;
-import java.util.concurrent.Callable;
-
-import org.slf4j.*;
-
 import com.google.common.base.Strings;
-
 import com.jme3.app.Application;
 import com.jme3.app.state.AppState;
-import com.jme3.app.state.BaseAppState;
 import com.jme3.network.Client;
 import com.jme3.network.ClientStateListener;
 import com.jme3.network.ClientStateListener.DisconnectInfo;
 import com.jme3.network.ErrorListener;
 import com.jme3.network.service.ClientService;
-
+import com.simsilica.es.EntityData;
+import com.simsilica.es.client.EntityDataClientService;
+import com.simsilica.ethereal.EtherealClient;
+import com.simsilica.ethereal.TimeSource;
 import com.simsilica.lemur.Action;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.OptionPanel;
 import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.state.CompositeAppState;
-
-import com.simsilica.ethereal.EtherealClient;
-import com.simsilica.ethereal.TimeSource;
-
-import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
-import com.simsilica.es.client.EntityDataClientService;
-import com.simsilica.event.EventBus;
-
-//import com.simsilica.demo.net.AccountSessionListener;
-//import com.simsilica.demo.client.AccountClientService;
-////import com.simsilica.demo.view.GameSessionState;
-//import com.simsilica.demo.view.LobbyState;
-
+import infinity.client.states.LoginState;
+import infinity.net.AccountSessionListener;
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  Manages the connection and game client when connected to a server.
@@ -85,7 +44,6 @@ public class ConnectionState extends CompositeAppState {
 
     private String host;
     private int port;
-    private boolean autoLogin;
 
     private GameClient client;
     private ConnectionObserver connectionObserver = new ConnectionObserver();
@@ -97,14 +55,9 @@ public class ConnectionState extends CompositeAppState {
     private volatile boolean closing;
 
     public ConnectionState( AppState parent, String host, int port ) {
-        this(parent, host, port, false);
-    }
-
-    public ConnectionState( AppState parent, String host, int port, boolean autoLogin ) {
         this.parent = parent;
         this.host = host;
         this.port = port;
-        this.autoLogin = autoLogin;
     }
 
     public int getClientId() {
@@ -120,9 +73,6 @@ public class ConnectionState extends CompositeAppState {
     }
 
     public <T extends ClientService> T getService( Class<T> type ) {
-        if( client == null ) {
-            return null;
-        }
         return client.getService(type);
     }
 
@@ -131,7 +81,6 @@ public class ConnectionState extends CompositeAppState {
         closing = true;
         log.info("Detaching ConnectionState");
         getStateManager().detach(this);
-        log.info("Detached ConnectionState");
     }
 
     public boolean join( String userName ) {
@@ -149,7 +98,7 @@ public class ConnectionState extends CompositeAppState {
         // So here we'd login and then when we get a response from the
         // server that we are logged in then we'd launch the game state and
         // so on... for now we'll just do it directly.
-        //client.getService(AccountClientService.class).login(userName);
+        client.getService(AccountClientService.class).login(userName);
 
         return true;
     }
@@ -159,18 +108,11 @@ public class ConnectionState extends CompositeAppState {
             // We'd want to present an error... but right now this will
             // never happen.
         }
-        //addChild(new GameSessionState(), true);
-        //addChild(new LobbyState(), true);
+        addChild(new GameSessionState(), true);
     }
 
     @Override
     protected void initialize( Application app ) {
-
-        // Just double checking we aren't double-connecting because of some
-        // bug
-        if( getState(ConnectionState.class) != this ) {
-            throw new RuntimeException("More than one ConnectionState is not yet allowed.");
-        }
 
         connectingPanel = new OptionPanel("Connecting...", new ExitAction("Cancel", true));
         getState(OptionPanelState.class).show(connectingPanel);
@@ -254,39 +196,31 @@ public class ConnectionState extends CompositeAppState {
 
     protected void onConnected() {
         log.info("onConnected()");
-
-        EventBus.publish(ClientEvent.clientConnected, new ClientEvent());
-
         closeConnectingPanel();
 
         // Add our client listeners
-        //client.getService(AccountClientService.class).addAccountSessionListener(new AccountObserver());
+        AccountObserver obs = new AccountObserver();
+        AccountClientService serv = client.getService(AccountClientService.class);
+        serv.addAccountSessionListener(obs);
 
-        //String serverInfo = client.getService(AccountClientService.class).getServerInfo();
+        String serverInfo = client.getService(AccountClientService.class).getServerInfo();
 
-        //log.debug("Server info:" + serverInfo);
+        log.debug("Server info:" + serverInfo);
 
-        if( autoLogin ) {
-            join(System.getProperty("user.name"));
-        } else {
-            //  getStateManager().attach(new LoginState(serverInfo));
-        }
+        getStateManager().attach(new LoginState(serverInfo));
     }
 
     protected void onDisconnected( DisconnectInfo info ) {
         log.info("onDisconnected(" + info + ")");
-        EventBus.publish(ClientEvent.clientDisconnected, new ClientEvent());
         closeConnectingPanel();
-        if( !closing ) {
-            if( info != null ) {
-                showError("Disconnect", info.reason, info.error, true);
-            } else {
-                showError("Disconnected", "Unknown error", null, true);
-            }
+        if( closing ) {
+            return;
         }
-        log.info("Detaching ConnectionState");
-        getStateManager().detach(this);
-        log.info("Detached ConnectionState");
+        if( info != null ) {
+            showError("Disconnect", info.reason, info.error, true);
+        } else {
+            showError("Disconnected", "Unknown error", null, true);
+        }
     }
 
     private class ExitAction extends Action {
@@ -335,17 +269,17 @@ public class ConnectionState extends CompositeAppState {
         }
     }
 
-    //private class AccountObserver implements AccountSessionListener {
-    //
-    //    public void notifyLoginStatus( final boolean loggedIn ) {
-    //        getApplication().enqueue(new Callable<Object>() {
-    //                public Object call() {
-    //                    onLoggedOn(loggedIn);
-    //                    return null;
-    //                }
-    //             });
-    //    }
-    //}
+    private class AccountObserver implements AccountSessionListener {
+
+        public void notifyLoginStatus( final boolean loggedIn ) {
+            getApplication().enqueue(new Callable<Object>() {
+                public Object call() {
+                    onLoggedOn(loggedIn);
+                    return null;
+                }
+            });
+        }
+    }
 
     private class Connector extends Thread {
 
