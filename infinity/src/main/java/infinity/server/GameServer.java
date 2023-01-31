@@ -57,7 +57,6 @@ import com.simsilica.es.server.EntityUpdater;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.ext.mblock.BlockShapeFactory;
 import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
 import com.simsilica.ext.mblock.SphereFactory;
 import com.simsilica.ext.mphys.EntityBodyFactory;
@@ -70,10 +69,7 @@ import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.BlockTypeIndex;
-import com.simsilica.mblock.FluidTypeIndex;
 import com.simsilica.mblock.config.DefaultBlockSet;
-import com.simsilica.mblock.io.BlockTypeData;
-import com.simsilica.mblock.io.FluidTypeData;
 import com.simsilica.mblock.phys.Collider;
 import com.simsilica.mblock.phys.MBlockCollisionSystem;
 import com.simsilica.mblock.phys.MBlockShape;
@@ -97,7 +93,7 @@ import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.input.MovementInput;
-import infinity.server.chat.ChatHostedService;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CubeFactory;
 import infinity.sim.InfinityPhysicsManager;
@@ -177,7 +173,7 @@ public class GameServer {
     // before the SerializerRegistrationMessage has had a chance to process.
     server.getServices().addService(new DelayService());
 
-    ChatHostedService chp = new ChatHostedService(InfinityConstants.CHAT_CHANNEL);
+    InfinityChatHostedService chp = new InfinityChatHostedService(InfinityConstants.CHAT_CHANNEL);
 
     server
         .getServices()
@@ -189,7 +185,7 @@ public class GameServer {
             // new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
             chp);
 
-    server.getServices().getService(ChatHostedService.class).setAutoHost(true);
+    server.getServices().getService(InfinityChatHostedService.class).setAutoHost(true);
 
     // Add the SimEtheral host that will serve object sync updates to
     // the clients.
@@ -322,7 +318,7 @@ public class GameServer {
     mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
     // mphys.addPhysicsListener(new PositionUpdater(ed));
 
-    systems.register(ChatHostedService.class, chp);
+    systems.register(InfinityChatHostedService.class, chp);
 
     systems.register(MPhysSystem.class, mBlockShapeMPhysSystem);
     systems.register(PhysicsSpace.class, mBlockShapeMPhysSystem.getPhysicsSpace());

@@ -44,7 +44,7 @@ import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
 import infinity.es.ship.Player;
-import infinity.server.chat.ChatHostedService;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
@@ -82,7 +82,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   @Override
   protected void initialize() {
 
-    this.chat = getSystem(ChatHostedService.class);
+    this.chat = getSystem(InfinityChatHostedService.class);
 
     ed = getSystem(EntityData.class);
     // This filters all entities that are in arenas

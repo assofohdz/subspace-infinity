@@ -31,7 +31,6 @@ import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
 import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
@@ -44,7 +43,7 @@ import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
-import infinity.server.chat.ChatHostedService;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandBiConsumer;
 import infinity.sim.GameEntities;
@@ -88,7 +87,7 @@ public class MapSystem extends AbstractGameSystem {
   // Map that holds the offset coordinates of each map:
   private final LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private final boolean mapCreated = false;
-  private ChatHostedService chat;
+  private InfinityChatHostedService chat;
   private Vec3d currentMapLoc = new Vec3d();
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
@@ -128,7 +127,7 @@ public class MapSystem extends AbstractGameSystem {
     if (world == null) {
       throw new RuntimeException(getClass().getName() + " system requires the World system.");
     }
-    this.chat = getSystem(ChatHostedService.class);
+    this.chat = getSystem(InfinityChatHostedService.class);
     this.assetLoader = getSystem(AssetLoaderService.class);
 
     physicsSpace = physics.getPhysicsSpace();
@@ -178,7 +177,7 @@ public class MapSystem extends AbstractGameSystem {
     final double centerOfArenaX = currentxCoord < 0 ? xArenaCoord - HALF : xArenaCoord + HALF;
     final double centerOfArenaZ = currentzCoord < 0 ? zArenaCoord - HALF : zArenaCoord + HALF;
 
-    return new Vec3d(centerOfArenaX, 0, centerOfArenaZ);
+    return new Vec3d(centerOfArenaX, 1, centerOfArenaZ);
   }
 
   private Vec3d calculateNextOffset() {

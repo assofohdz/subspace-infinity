@@ -44,7 +44,7 @@ import infinity.es.Captain;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
 import infinity.events.ShipEvent;
-import infinity.server.chat.ChatHostedService;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandBiConsumer;
 import infinity.sim.CorePhysicsConstants;
@@ -77,9 +77,9 @@ public class AvatarSystem extends AbstractGameSystem {
 
     // Matches =214 to capture frequency 214
     private final Pattern joinTeam = Pattern.compile("\\=(\\d+)");
-    private final ChatHostedService chp;
+    private final InfinityChatHostedService chp;
 
-    public AvatarSystem(final ChatHostedService chp) {
+    public AvatarSystem(final InfinityChatHostedService chp) {
         this.chp = chp;
     }
 

@@ -69,10 +69,10 @@ import infinity.sim.MessageTypes;
  *
  * @author Paul Speed
  */
-public class ChatHostedService extends AbstractHostedConnectionService implements ChatHostedPoster {
+public class InfinityChatHostedService extends AbstractHostedConnectionService implements ChatHostedPoster {
 
   private static final String ATTRIBUTE_SESSION = "chat.session";
-  static Logger log = LoggerFactory.getLogger(ChatHostedService.class);
+  static Logger log = LoggerFactory.getLogger(InfinityChatHostedService.class);
   private final int channel;
   private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
   private final HashMap<Pattern, CommandBiConsumer> patternBiConsumers;
@@ -83,16 +83,16 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
    * Creates a new chat service that will use the default reliable channel for reliable
    * communication.
    */
-  public ChatHostedService() {
+  public InfinityChatHostedService() {
     this(MessageConnection.CHANNEL_DEFAULT_RELIABLE);
   }
 
   /** Creates a new chat service that will use the specified channel for reliable communication. */
-  public ChatHostedService(final int channel) {
+  public InfinityChatHostedService(final int channel) {
     this.channel = channel;
     patternBiConsumers = new HashMap<>();
     patternMonoConsumer = new HashMap<>();
-    // setAutoHost(false);
+    setAutoHost(false);
   }
 
   protected ChatSessionImpl getChatSession(final HostedConnection conn) {
@@ -133,6 +133,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
       }
       chatter.playerJoined(conn.getId(), playerName);
     }
+    log.info("chat> " + playerName + " joined.");
   }
 
   /** Starts hosting the chat services on the specified connection using a generated player name. */
@@ -165,6 +166,7 @@ public class ChatHostedService extends AbstractHostedConnectionService implement
         chatter.playerLeft(player.conn.getId(), player.name);
       }
     }
+    log.info("chat> " + player.name + " left.");
   }
 
   protected void postMessage(final ChatSessionImpl from, final String message) {

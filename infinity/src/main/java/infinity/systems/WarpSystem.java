@@ -42,9 +42,8 @@ import infinity.es.Parent;
 import infinity.es.WarpTouch;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
-import infinity.server.chat.ChatHostedService;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandBiConsumer;
 import infinity.sim.CommandMonoConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.util.InfinityRunTimeException;
@@ -67,13 +66,13 @@ public class WarpSystem extends AbstractGameSystem{
     private EntitySet canWarp;
     static Logger log = LoggerFactory.getLogger(WarpSystem.class);
     private PhysicsSpace physicsSpace;
-    private ChatHostedService chat;
+    private InfinityChatHostedService chat;
     private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
-        this.chat = getSystem(ChatHostedService.class);
+        this.chat = getSystem(InfinityChatHostedService.class);
 
         if (getSystem(MPhysSystem.class).equals(null)){
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");

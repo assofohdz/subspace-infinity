@@ -49,7 +49,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.sim.GameSystemManager;
 
 import infinity.server.AccountHostedService;
-import infinity.server.chat.ChatHostedService;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.AdaptiveLoader;
@@ -150,16 +150,16 @@ public class AdaptiveLoadingService extends AbstractHostedService
         // this.classLoader = new AdaptiveClassLoader(directories);
 
         // Register consuming methods for patterns
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(startModulePattern,
+        this.getService(InfinityChatHostedService.class).registerPatternBiConsumer(startModulePattern,
                 "The command to start a new module is ~startModule <module>, where <module> is the module you want to start",
                 new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id1, module1) -> startModule(id1, module1)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopModulePattern,
+        this.getService(InfinityChatHostedService.class).registerPatternBiConsumer(stopModulePattern,
                 "The command to start a new module is ~stopModule <module>, where <module> is the module you want to stop",
                 new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, module) -> stopModule(id, module)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(startServicePattern,
+        this.getService(InfinityChatHostedService.class).registerPatternBiConsumer(startServicePattern,
                 "The command to start a new module is ~startService <service>, where <service> is the service you want to start",
                 new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> startService(id, service)));
-        this.getService(ChatHostedService.class).registerPatternBiConsumer(stopServicePattern,
+        this.getService(InfinityChatHostedService.class).registerPatternBiConsumer(stopServicePattern,
                 "The command to start a new module is ~stopService <service>, where <service> is the service you want to stop",
                 new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, service) -> stopService(id, service)));
     }
@@ -245,7 +245,8 @@ public class AdaptiveLoadingService extends AbstractHostedService
                 ArenaManager.class, TimeManager.class, PhysicsManager.class);
 
         if (BaseGameModule.class.isAssignableFrom(java)) {
-            final BaseGameModule javaObj = (BaseGameModule) c.newInstance(getService(ChatHostedService.class),
+            final BaseGameModule javaObj = (BaseGameModule) c.newInstance(getService(
+                    InfinityChatHostedService.class),
                     getService(AccountHostedService.class), this, gameSystems.get(ArenaSystem.class),
                     gameSystems.get(InfinityTimeSystem.class), gameSystems.get(InfinityPhysicsManager.class));
             modules.put(javaObj.getClass().getSimpleName(), javaObj);
@@ -253,7 +254,8 @@ public class AdaptiveLoadingService extends AbstractHostedService
 
         } else if (BaseGameService.class.isAssignableFrom(java)) {
 
-            final BaseGameService javaObj = (BaseGameService) c.newInstance(getService(ChatHostedService.class),
+            final BaseGameService javaObj = (BaseGameService) c.newInstance(getService(
+                    InfinityChatHostedService.class),
                     getService(AccountHostedService.class), this, gameSystems.get(ArenaSystem.class),
                     gameSystems.get(InfinityTimeSystem.class), gameSystems.get(InfinityPhysicsManager.class));
             services.put(javaObj.getClass().getSimpleName(), javaObj);
