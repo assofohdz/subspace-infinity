@@ -27,21 +27,24 @@ package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import infinity.es.WarpTouch;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
+import infinity.server.chat.ChatHostedService;
+import infinity.sim.AccessLevel;
+import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandMonoConsumer;
 import infinity.sim.GameEntities;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,10 +63,13 @@ public class WarpSystem extends AbstractGameSystem{
     private EntitySet canWarp;
     static Logger log = LoggerFactory.getLogger(WarpSystem.class);
     private PhysicsSpace physicsSpace;
+    private ChatHostedService chat;
+    private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
 
     @Override
     protected void initialize() {
         this.ed = getSystem(EntityData.class);
+        this.chat = getSystem(ChatHostedService.class);
 
         if (getSystem(MPhysSystem.class).equals(null)){
             throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
@@ -75,6 +81,11 @@ public class WarpSystem extends AbstractGameSystem{
 
         canWarp = ed.getEntities(BodyPosition.class, Energy.class);
 
+        // Register consuming methods for patterns
+        chat.registerPatternMonoConsumer(
+            requestWarpToCenter,
+            "The command to warp to the center of the arena is ~warpCenter",
+            new CommandMonoConsumer(AccessLevel.PLAYER_LEVEL, (id) -> requestWarpToCenter(id)));
     }
 
     @Override
