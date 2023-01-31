@@ -50,7 +50,7 @@ public class AvatarMovementState extends BaseAppState
   // private double mouse2;
   private final byte flags = (byte) 0;
   private final Vec3d lastPosition = new Vec3d();
-  private final double updatePositionFrequency = 1000000000L / 20; // 20 times a second, every 50 ms
+  private final double updatePositionFrequency = 1000000000L / 5; // 5 times a second, every 200 ms
   double speedAverage = 0;
   long lastSpeedTime = 0;
   // private MovementTarget target;
@@ -319,6 +319,7 @@ public class AvatarMovementState extends BaseAppState
   }
 
   protected void updateShipLocation(Vec3d loc) {
+    loc.x *= -1;
 
     String s = String.format("%.2f, %.2f, %.2f", loc.x, loc.y, loc.z);
     positionDisplay.setObject(s);
