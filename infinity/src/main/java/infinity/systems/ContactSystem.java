@@ -76,7 +76,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       log.debug("Collision between: " + bodyOne + " and " + bodyTwo);
 
     } else {
-      log.debug("Collided: {0}  with null", bodyTwo);
+      log.debug("Collided: {0}  with null", bodyOne);
       // Restitution should make sure the bounce conserves the energy completely
       contact.restitution = 1;
     }
