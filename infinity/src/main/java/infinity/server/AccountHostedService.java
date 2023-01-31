@@ -72,7 +72,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     private static final String ATTRIBUTE_SESSION = "account.session";
     private static final String ATTRIBUTE_PLAYER_NAME = "account.playerName";
-    private static final String ATTRIBUTE_PLAYER_ENTITY = "account.playerEntity";
+    private static final String ATTRIBUTE_PLAYER_ENTITYID = "account.playerEntity";
 
     private RmiHostedService rmiService;
 
@@ -91,7 +91,10 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     }
 
     public static EntityId getPlayerEntity(final HostedConnection conn) {
-        return conn.getAttribute(ATTRIBUTE_PLAYER_ENTITY);
+        Object o = conn.getAttribute(ATTRIBUTE_PLAYER_ENTITYID);
+        Long eId = (Long) o;
+        EntityId id = new EntityId(eId);
+        return id;
     }
 
     @Override
@@ -117,7 +120,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     public void startHostingOnConnection(final HostedConnection conn) {
 
         // Add default access
-        operators.put(conn.getAttribute(AccountHostedService.ATTRIBUTE_PLAYER_ENTITY), AccessLevel.PLAYER_LEVEL);
+        operators.put(conn.getAttribute(AccountHostedService.ATTRIBUTE_PLAYER_ENTITYID), AccessLevel.PLAYER_LEVEL);
 
         log.debug("startHostingOnConnection(" + conn + ")");
 
@@ -213,7 +216,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
             // Create the player entity
             player = ed.createEntity();
-            conn.setAttribute(ATTRIBUTE_PLAYER_ENTITY, player);
+            conn.setAttribute(ATTRIBUTE_PLAYER_ENTITYID, player.getId());
             ed.setComponents(player, new Name(playerName));
             log.info("Created player entity:" + player + " for:" + playerName);
 

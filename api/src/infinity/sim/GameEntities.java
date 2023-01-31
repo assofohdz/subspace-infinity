@@ -395,6 +395,7 @@ public class GameEntities {
 
     ed.setComponent(result, new Name("player"));
 
+    ed.setComponent(result, new Parent(owner));
 
     switch (ship) {
       case 0x1:

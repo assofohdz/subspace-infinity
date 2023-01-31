@@ -26,16 +26,19 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
+import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.es.Filters;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
+import infinity.es.Parent;
 import infinity.es.WarpTouch;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
@@ -44,6 +47,7 @@ import infinity.sim.AccessLevel;
 import infinity.sim.CommandBiConsumer;
 import infinity.sim.CommandMonoConsumer;
 import infinity.sim.GameEntities;
+import infinity.sim.util.InfinityRunTimeException;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,16 +217,21 @@ public class WarpSystem extends AbstractGameSystem{
      * @param eID requesting entity
      */
     public void requestWarpToCenter(EntityId eID) {
-        //FIXME: Check for full health
+        //TODO: Check for full health
+        ComponentFilter filter = Filters.fieldEquals(Parent.class, "parentEntity", eID);
+        EntitySet eSet = ed.getEntities(filter, BodyPosition.class);
 
-        Entity e = ed.getEntity(eID, BodyPosition.class);
-        Vec3d lastLoc = e.get(BodyPosition.class).getLastLocation();
+        if (eSet.size() != 1) {
+            throw new InfinityRunTimeException("Entity " + eID + " has " + eSet.size() + " children. Expected 1.");
+        } else {
+            Entity child = eSet.iterator().next();
+            BodyPosition childBodyPos = child.get(BodyPosition.class);
+            Vec3d lastLoc = childBodyPos.getLastLocation();
 
-        Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
-
-        Vec3d res = new Vec3d(centerOfArena.x, 1, centerOfArena.z);
-
-        ed.setComponent(eID, new WarpTo(res));
+            Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
+            WarpTo warpTo = new WarpTo(centerOfArena);
+            ed.setComponent(child.getId(), warpTo);
+        }
     }
 
     //Entities that upon touched will warp the other body away
