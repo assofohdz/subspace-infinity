@@ -11,6 +11,7 @@ plugins {
 // Projects should use Maven Central for external dependencies
 repositories {
     mavenLocal()
+    jcenter()
     mavenCentral()
 }
 

@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.mini2Dx', name: 'butler', version: '2.1.0'
+    }
+}
+
 plugins {
     id 'infinity.app-with-assets'
     id 'com.github.ben-manes.versions' version '0.44.0'
@@ -143,3 +154,19 @@ distributions {
 //    }
 //}
 
+project(":infinity") {
+    apply plugin: "org.mini2Dx.butler"
+
+    butler {
+        user = "assofohdz"
+        game = "subspace-infinity"
+        updateButler = true
+        butlerInstallDirectory = "C:\\workspace\\Subspace\\Subspace-Infinity\\butler-windows"
+    }
+
+    task butlerPush(type: org.mini2Dx.butler.task.PushTask) {
+        dependsOn build
+        binDirectory = getProject().getBuildDir()
+        channel = "windows"
+    }
+}

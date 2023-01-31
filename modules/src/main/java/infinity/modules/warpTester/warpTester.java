@@ -76,7 +76,7 @@ public class warpTester extends BaseGameModule {
 
         settings = new Ini();
         try {
-            InputStream is = prizeTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
+            InputStream is = warpTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
             settings = new Ini(is);
         } catch (final IOException ex) {
             java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
@@ -89,14 +89,12 @@ public class warpTester extends BaseGameModule {
                 new Vec3d(-7, 0, 7), 5, 5, 5000, GravityWell.PULL, new Vec3d(7, 0, 7));
         GameEntities.createAsteroidLarge(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
                 new Vec3d(7, 7, 0)
-                //, 5, 5000, GravityWell.PUSH
                 );
 
         GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
                 new Vec3d(7, 0, -7), 5, 5, 5000, GravityWell.PULL, new Vec3d(-7, 0, -7));
         GameEntities.createAsteroidLarge(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
                 new Vec3d(-7, -7, 0)
-                //, 5, 5000, GravityWell.PUSH
                 );
     }
 

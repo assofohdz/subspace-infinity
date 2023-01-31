@@ -25,3 +25,14 @@ subprojects {
     ext.jetbrainsAnnotationsVersion = '+'
     ext.junitVersion = '+'
 }
+
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'org.mini2Dx', name: 'butler', version: '2.1.0'
+    }
+}
