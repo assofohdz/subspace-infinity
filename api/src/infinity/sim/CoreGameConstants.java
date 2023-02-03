@@ -42,7 +42,7 @@ public class CoreGameConstants {
   public static final long BURSTPROJECTILECOUNT = 30;
 
   public static final int BOUNTYVALUE = 10;
-  public static final int PRIZEMAXCOUNT = 50;
+  public static final int PRIZEMAXCOUNT = 10;
 
   public static final long GRAVBOMBDELAY = 1000;
   public static final double GRAVBOMBWORMHOLEFORCE = 5000;

@@ -56,27 +56,26 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       final EntityId two = bodyTwo.id;
 
       if (!categoryFilterAllowsContact(one, two)) {
-        log.debug("Disabling contact because of category filters {0}", contact);
         contact.disable();
         return;
       }
 
       if (parentChildContact(one, two)) {
-        log.debug("Disabling contact because of parent-child {0}", contact);
+
         contact.disable();
         return;
       }
 
       if (ghostContact(one, two)) {
-        log.debug("Disabling contact because one or two is a ghost: {0}", contact);
+        log.debug("Disabling contact because one or two is a ghost: for contact" + contact);
         contact.disable();
         return;
       }
 
-      log.debug("Collision between: " + bodyOne + " and " + bodyTwo);
+      // log.debug("Collision between: " + bodyOne + " and " + bodyTwo);
 
     } else {
-      log.debug("Collided: {1}  with null", bodyOne);
+      // log.debug("Collided: {1}  with null", bodyOne);
       // Restitution should make sure the bounce conserves the energy completely
       contact.restitution = 1;
     }
@@ -94,7 +93,10 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
           categoryFilters.getEntity(one).get(CollisionCategory.class).getFilter();
       final CategoryFilter filterTwo =
           categoryFilters.getEntity(two).get(CollisionCategory.class).getFilter();
-
+      if (!filterTwo.isAllowed(filterOne)) {
+        //log.debug(
+        //    "Disabling contact because of category filters:" + filterOne + " and: " + filterTwo);
+      }
       return filterTwo.isAllowed(filterOne);
     }
     return false;
@@ -107,13 +109,22 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
   }
 
   private boolean parentChildContact(EntityId one, EntityId two) {
+    boolean res = false;
     final Parent parentOfOne = ed.getComponent(one, Parent.class);
     if (parentOfOne != null && parentOfOne.getParentEntityId().compareTo(two) == 0) {
-      return true;
+      res = true;
     }
 
     final Parent parentOfTwo = ed.getComponent(two, Parent.class);
-    return parentOfTwo != null && parentOfTwo.getParentEntityId().compareTo(one) == 0;
+    if (parentOfTwo != null && parentOfTwo.getParentEntityId().compareTo(one) == 0) {
+      res = true;
+    }
+
+    if (res) {
+      log.debug("Disabling contact because of parent child relationship: " + one + " and: " + two);
+    }
+
+    return res;
   }
 
   @Override

@@ -454,7 +454,8 @@ public class MapSystem extends AbstractGameSystem {
                   5,
                   5,
                   GravityWell.PULL,
-                  new Vec3d(0, 0, 0));
+                  new Vec3d(0, 0, 0),
+                  1);
               break;
             default:
               // TODO: Translate mapId from a level name (see InfinityBlockGeometryIndex)

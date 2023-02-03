@@ -209,7 +209,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
       SphereShape c = entitySpawner.get(SphereShape.class);
 
       if (!spawnerBounties.containsKey(spawnerId)) {
-        EntityId idBounty = spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
+        EntityId idBounty =
+            spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
 
         HashSet<EntityId> spawnerBountySet = new HashSet<>();
         spawnerBountySet.add(idBounty);
@@ -221,7 +222,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
           && spawnerBounties.get(spawnerId).size() < s.getMaxCount()
           && spawnerLastSpawned.get(spawnerId) > s.getSpawnInterval()) {
 
-        EntityId idBounty = spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
+        EntityId idBounty =
+            spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
 
         spawnerLastSpawned.put(entitySpawner.getId(), 0d);
 
@@ -236,7 +238,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     }
   }
 
-  private EntityId spawnBounty(Vec3d location, double radius, boolean spawnOnRing, boolean weighted) {
+  private EntityId spawnBounty(
+      Vec3d location, double radius, boolean spawnOnRing, boolean weighted) {
     if (weighted) {
       return spawnWeightedBounty(location, radius, spawnOnRing);
     } else {
@@ -268,7 +271,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     return new Vec3d(x, spawnCenter.y, z);
   }
 
-  private EntityId spawnWeightedBounty(Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
+  private EntityId spawnWeightedBounty(
+      Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
     Vec3d location =
         this.getRandomWeightedCircleSpawnLocation(
             spawnCenter, radius, onlyOnCistringWeightsumference);
@@ -295,94 +299,94 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     log.info("Ship {} picked up prize: {}", ship, pt.getTypeName(ed));
     switch (pt.getTypeName(ed)) {
       case PrizeTypes.ALLWEAPONS:
-        //TODO: Handle aquiring all weapons
+        // TODO: Handle aquiring all weapons
         break;
       case PrizeTypes.ANTIWARP:
-        //TODO: Handle acquiring antiwarp
+        // TODO: Handle acquiring antiwarp
         break;
       case PrizeTypes.BOMB:
-        //TODO: Handle acquiring bomb
+        // TODO: Handle acquiring bomb
         break;
       case PrizeTypes.BOUNCINGBULLETS:
-        //TODO: Handle acquiring bouncing bullets
+        // TODO: Handle acquiring bouncing bullets
         break;
       case PrizeTypes.BRICK:
-        //TODO: Handle acquiring brick
+        // TODO: Handle acquiring brick
         break;
       case PrizeTypes.BURST:
         handleAcquireBurst(ship);
         break;
       case PrizeTypes.CLOAK:
-        //TODO: Handle acquiring cloak
+        // TODO: Handle acquiring cloak
         break;
       case PrizeTypes.DECOY:
-        //TODO: Handle acquiring decoy
+        // TODO: Handle acquiring decoy
         break;
       case PrizeTypes.ENERGY:
-        //TODO: Handle acquiring energy
+        // TODO: Handle acquiring energy
         break;
       case PrizeTypes.GLUE:
-        //TODO: Handle acquiring glue
+        // TODO: Handle acquiring glue
         break;
       case PrizeTypes.GUN:
         handleAcquireGun(ship);
         break;
       case PrizeTypes.MULTIFIRE:
-        //TODO: Handle acquiring multifire
+        // TODO: Handle acquiring multifire
         break;
       case PrizeTypes.MULTIPRIZE:
-        //TODO: Handle acquiring multiprize
+        // TODO: Handle acquiring multiprize
         break;
       case PrizeTypes.PORTAL:
-        //TODO: Handle acquiring portal
+        // TODO: Handle acquiring portal
         break;
       case PrizeTypes.PROXIMITY:
-        //TODO: Handle acquiring proximity
+        // TODO: Handle acquiring proximity
         break;
       case PrizeTypes.QUICKCHARGE:
-        //TODO: Handle acquiring quickcharge
+        // TODO: Handle acquiring quickcharge
         break;
       case PrizeTypes.RECHARGE:
-        //TODO: Handle acquiring recharge
+        // TODO: Handle acquiring recharge
         break;
       case PrizeTypes.REPEL:
-        //TODO: Handle acquiring repel
+        // TODO: Handle acquiring repel
         break;
       case PrizeTypes.ROCKET:
-        //TODO: Handle acquiring rocket
+        // TODO: Handle acquiring rocket
         break;
       case PrizeTypes.ROTATION:
-        //TODO: Handle acquiring rotation
+        // TODO: Handle acquiring rotation
         break;
       case PrizeTypes.SHIELDS:
-        //TODO: Handle acquiring shields
+        // TODO: Handle acquiring shields
         break;
       case PrizeTypes.SHRAPNEL:
-        //TODO: Handle acquiring shrapnel
+        // TODO: Handle acquiring shrapnel
         break;
       case PrizeTypes.STEALTH:
-        //TODO: Handle acquiring stealth
+        // TODO: Handle acquiring stealth
         break;
       case PrizeTypes.THOR:
-        //TODO: Handle acquiring thor
+        // TODO: Handle acquiring thor
         break;
       case PrizeTypes.THRUSTER:
-        //TODO: Handle acquiring thruster
+        // TODO: Handle acquiring thruster
         break;
       case PrizeTypes.TOPSPEED:
-        //TODO: Handle acquiring topspeed
+        // TODO: Handle acquiring topspeed
         break;
       case PrizeTypes.WARP:
-        //TODO: Handle acquiring warp
+        // TODO: Handle acquiring warp
         break;
       case PrizeTypes.XRADAR:
-        //TODO: Handle acquiring xradar
+        // TODO: Handle acquiring xradar
         break;
       case PrizeTypes.SUPER:
-        //TODO: Handle acquiring super
+        // TODO: Handle acquiring super
         break;
       case PrizeTypes.DUD:
-        //TODO: Handle acquiring dud
+        // TODO: Handle acquiring dud
         break;
       default:
         throw new UnsupportedOperationException(
@@ -424,28 +428,33 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   public void newContact(Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
+    EntityId idOne = body1.id;
+    EntityId idTwo = body2.id;
 
-    if (body2 instanceof StaticBody) {
-      EntityId idOne = body1.id;
-      EntityId idTwo = body2.id;
+    if (body2 instanceof RigidBody) {
+      // If one of the bodies is a ship and the other is a prize
 
-      // Only interact with collision if a ship collides with a prize or vice verca
-      // We only need to test this way around for ships and prizes since the rigidbody (ship) will
-      // always be body1
+      EntityId prizeId = EntityId.NULL_ID;
+      EntityId shipId = EntityId.NULL_ID;
+
       if (prizes.containsId(idTwo) && ships.containsId(idOne)) {
-        log.trace("Entitysets contact resolution found it to be valid");
-
-        PrizeType pt = prizes.getEntity(idTwo).get(PrizeType.class);
-        GameSounds.createPrizeSound(ed, ourTime.getTime(), idOne, body1.position, phys);
-
-        this.handlePrizeAcquisition(pt, idOne);
-        // Remove prize
-        ed.removeEntity(idTwo);
-        // Disable contact for further resolution
-        contact.disable();
+        prizeId = idTwo;
+        shipId = idOne;
+      } else if (prizes.containsId(idOne) && ships.containsId(idTwo)) {
+        prizeId = idOne;
+        shipId = idTwo;
       } else {
-        log.trace("Entitysets contact resolution found it to NOT be valid");
+        return;
       }
+
+      PrizeType pt = prizes.getEntity(prizeId).get(PrizeType.class);
+      GameSounds.createPrizeSound(ed, ourTime.getTime(), shipId, body1.position, phys);
+
+      this.handlePrizeAcquisition(pt, shipId);
+      // Remove prize
+      ed.removeEntity(prizeId);
+      // Disable contact for further resolution
+      contact.disable();
     }
   }
 }

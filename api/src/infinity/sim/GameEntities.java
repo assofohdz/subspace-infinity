@@ -23,6 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.sim;
 
 import com.jme3.math.ColorRGBA;
@@ -31,21 +32,57 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.Name;
 import com.simsilica.es.common.Decay;
-import com.simsilica.ext.mphys.*;
-import com.simsilica.mathd.Grid;
+import com.simsilica.ext.mphys.Gravity;
+import com.simsilica.ext.mphys.Impulse;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import infinity.es.*;
-import infinity.es.arena.ArenaId;
+import infinity.es.AudioTypes;
+import infinity.es.Bounty;
+import infinity.es.Buff;
+import infinity.es.CollisionCategory;
+import infinity.es.Delay;
+import infinity.es.Flag;
+import infinity.es.Frequency;
+import infinity.es.Gold;
+import infinity.es.GravityWell;
+import infinity.es.HealthChange;
+import infinity.es.Meta;
+import infinity.es.Parent;
+import infinity.es.PointLightComponent;
+import infinity.es.PrizeType;
+import infinity.es.ShapeNames;
+import infinity.es.Spawner;
+import infinity.es.SphereShape;
+import infinity.es.TileType;
+import infinity.es.TileTypes;
+import infinity.es.WarpTouch;
+import infinity.es.WeaponTypes;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
-import infinity.es.ship.actions.*;
-import infinity.es.ship.weapons.*;
-
+import infinity.es.ship.actions.Burst;
+import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.Repel;
+import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.Thor;
+import infinity.es.ship.actions.ThorMax;
+import infinity.es.ship.weapons.Bomb;
+import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombLevelEnum;
+import infinity.es.ship.weapons.GravityBomb;
+import infinity.es.ship.weapons.GravityBombCost;
+import infinity.es.ship.weapons.GravityBombFireDelay;
+import infinity.es.ship.weapons.Mine;
+import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.MineFireDelay;
+import infinity.es.ship.weapons.MineMax;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
@@ -59,11 +96,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class GameEntities {
 
-  private GameEntities() {
-  }
+  private GameEntities() {}
 
   // TODO: All constants should come through the parameters - for now, they come from the constants
-  // TODO: All parameters should be dumb types and should be the basis of the complex types used in the backend
+  // TODO: All parameters should be dumb types and should be the basis of the complex types used in
+  // the backend
   public static EntityId createGravSphere(
       final EntityData ed,
       final EntityId owner,
@@ -206,17 +243,20 @@ public class GameEntities {
       @SuppressWarnings("unused") final double targetAreaRadius,
       final double force,
       final String gravityType,
-      final Vec3d warpTargetLocation) {
+      final Vec3d warpTargetLocation,
+      final double scale) {
     final EntityId lastWormhole = ed.createEntity();
 
     // Wormhome is also a ghost
     ed.setComponents(
         lastWormhole,
-        ShapeInfo.create(ShapeNames.WORMHOLE, 0, ed),
+        ShapeInfo.create(ShapeNames.WORMHOLE, scale, ed),
+        new Mass(0),
         new SpawnPosition(phys.getGrid(), pos),
         new GravityWell(gravityRadius, force, gravityType),
         new WarpTouch(warpTargetLocation));
     ed.setComponent(lastWormhole, new Meta(createdTime));
+    ed.setComponent(lastWormhole, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
 
     return lastWormhole;
   }
@@ -260,7 +300,7 @@ public class GameEntities {
   }
 
   /**
-   * Small asteroid with animation
+   * Small asteroid with animation.
    *
    * @param ed the entitydata set to create the entity in
    * @return the entityid of the created entity
@@ -285,7 +325,7 @@ public class GameEntities {
   }
 
   /**
-   * Medium asteroid with animation
+   * Medium asteroid with animation.
    *
    * @param ed the entitydata set to create the entity in
    * @return the entityid of the created entity
@@ -471,11 +511,11 @@ public class GameEntities {
     ed.setComponent(result, new BurstMax(5));
 
     // Add guns:
-    //FIXME: Try without guns, see if we can pick it up
-    //ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
-    //ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
-    //ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-    //ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
+    // FIXME: Try without guns, see if we can pick it up
+    // ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
+    // ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
+    // ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
+    // ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
 
     // Add gravity bombs
     ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
@@ -529,10 +569,9 @@ public class GameEntities {
                 + TimeUnit.NANOSECONDS.convert(
                     CoreGameConstants.PRIZEDECAY, TimeUnit.MILLISECONDS)));
 
-    ed.setComponent(
-        result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_STATIC_BODIES));
-
-    Mass m = new Mass(0);
+    //Filter and mass goes hand in hand
+    ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_PRIZES));
+    Mass m = new Mass(1);
     ed.setComponent(result, m);
 
     Gravity g = Gravity.ZERO;
@@ -557,7 +596,12 @@ public class GameEntities {
         result,
         // Possible to add model if we want the players to be able to see the spawner
         new SpawnPosition(phys.getGrid(), pos),
-        new Spawner(CoreGameConstants.PRIZEMAXCOUNT, spawnInterval, spawnOnRing, Spawner.SpawnType.Prizes, true),
+        new Spawner(
+            CoreGameConstants.PRIZEMAXCOUNT,
+            spawnInterval,
+            spawnOnRing,
+            Spawner.SpawnType.Prizes,
+            true),
         new SphereShape(radius));
     ed.setComponent(result, new Meta(createdTime));
     return result;

@@ -79,7 +79,7 @@ public class wangTester extends BaseGameModule {
         GameEntities.createWeightedPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
                 getTimeManager().getTime(), new Vec3d(), 5000, true, 20);
         GameEntities.createWormhole(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100));
+                new Vec3d(), 20, 5, 500, GravityWell.PULL, new Vec3d(100, 0, 100), 10);
 
     }
 
