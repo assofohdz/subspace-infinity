@@ -237,7 +237,7 @@ public class GameEntities {
    *
    * return lastForce; }
    */
-  public static EntityId createAsteroidLarge(
+  public static EntityId createWormhole2(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,

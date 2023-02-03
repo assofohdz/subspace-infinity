@@ -440,7 +440,7 @@ public class MapSystem extends AbstractGameSystem {
               break;
               // small Asteroid 2
             case 218:
-              GameEntities.createAsteroidLarge(ed, null, physicsSpace, time.getTime(), location);
+              GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
               break;
               // wormhole
             case 220:
