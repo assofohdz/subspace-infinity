@@ -113,7 +113,7 @@ public class warpTester extends BaseGameModule {
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
-        new Vec3d(-15, 0, 0),
+        new Vec3d(15, 0, 0),
         5,
         5,
         5000,
