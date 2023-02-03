@@ -39,6 +39,7 @@ import infinity.sim.CommandMonoConsumer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,14 +70,15 @@ import infinity.sim.MessageTypes;
  *
  * @author Paul Speed
  */
-public class InfinityChatHostedService extends AbstractHostedConnectionService implements ChatHostedPoster {
+public class InfinityChatHostedService extends AbstractHostedConnectionService
+    implements ChatHostedPoster {
 
   private static final String ATTRIBUTE_SESSION = "chat.session";
   static Logger log = LoggerFactory.getLogger(InfinityChatHostedService.class);
   private final int channel;
   private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
-  private final HashMap<Pattern, CommandBiConsumer> patternBiConsumers;
-  private final HashMap<Pattern, CommandMonoConsumer> patternMonoConsumer;
+  private final ConcurrentHashMap<Pattern, CommandBiConsumer> patternBiConsumers;
+  private final ConcurrentHashMap<Pattern, CommandMonoConsumer> patternMonoConsumer;
   private RmiHostedService rmiService;
 
   /**
@@ -90,8 +92,8 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService i
   /** Creates a new chat service that will use the specified channel for reliable communication. */
   public InfinityChatHostedService(final int channel) {
     this.channel = channel;
-    patternBiConsumers = new HashMap<>();
-    patternMonoConsumer = new HashMap<>();
+    patternBiConsumers = new ConcurrentHashMap<>();
+    patternMonoConsumer = new ConcurrentHashMap<>();
     setAutoHost(false);
   }
 
@@ -165,14 +167,14 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService i
         }
         chatter.playerLeft(player.conn.getId(), player.name);
       }
+      log.info("chat> " + player.name + " left.");
     }
-    log.info("chat> " + player.name + " left.");
   }
 
   protected void postMessage(final ChatSessionImpl from, final String message) {
     boolean matched = false;
 
-    //Go through pattersn with 1 argument
+    // Go through pattersn with 1 argument
     for (final Pattern pattern : patternBiConsumers.keySet()) {
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
@@ -235,7 +237,8 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService i
   }
 
   @Override
-  public void registerPatternMonoConsumer(Pattern pattern, String description, CommandMonoConsumer c) {
+  public void registerPatternMonoConsumer(
+      Pattern pattern, String description, CommandMonoConsumer c) {
     patternMonoConsumer.put(pattern, c);
 
     postPublicMessage("System", MessageTypes.MESSAGE, description);
