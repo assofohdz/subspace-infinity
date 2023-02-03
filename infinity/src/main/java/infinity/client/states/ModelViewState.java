@@ -73,20 +73,9 @@ public class ModelViewState extends BaseAppState {
 
   private static final long VIS_DELAY = 100000000L; // 100 ms
   static Logger log = LoggerFactory.getLogger(ModelViewState.class);
-  private EntityData ed;
-  private WorldViewState worldView;
-
-  private ShapeFactoryRegistry<MBlockShape> shapeFactory;
-  // private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
-  private SISpatialFactory SImodelFactory;
-
-  // The root node to which all managed objects will be added
-  private Node objectRoot;
-
   // Center cell
   private final Vec3i centerCell = new Vec3i();
   private final Vector3f centerCellWorld = new Vector3f();
-
   // If the block at 0, 0, 0 is the block whose own origin as
   // at 0,0,0 then it extends up to 1,1,1... So we want to make
   // sure out visualization is calibrated similarly.  Also, in
@@ -101,10 +90,6 @@ public class ModelViewState extends BaseAppState {
   private Spatial[] tests = new Spatial[testCoords.length];*/
   private final List<Vector4f> testCoords = new ArrayList<>();
   private final List<Spatial> tests = new ArrayList<>();
-  private TimeSource timeSource;
-  private BodyContainer bodies;
-  private ModelContainer models;
-  private LargeModelContainer largeModels;
   private final LinkedList<MarkVisible> markerQueue = new LinkedList<MarkVisible>();
   // Physics grid is 32x32 but SimEthereal's grid is 64x64... which
   // means the maximum we'll see updates for is 128< away.  So for
@@ -120,18 +105,30 @@ public class ModelViewState extends BaseAppState {
   private final Vec3i modelCenter = new Vec3i();
   private final Vec3i largeModelCenter = new Vec3i();
   private final int gridRadius = 1; // 3;
+  private final Map<EntityId, Model> modelIndex = new HashMap<>();
+  // private VersionedHolder<String> attachmentCount;
+  // <-----
+  private final Vector3f avatarLoc = new Vector3f();
+  private final Quaternion avatarRot = new Quaternion();
+  private EntityData ed;
+  private WorldViewState worldView;
+  private ShapeFactoryRegistry<MBlockShape> shapeFactory;
+  // private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
+  private SISpatialFactory SImodelFactory;
+  // The root node to which all managed objects will be added
+  private Node objectRoot;
+  private TimeSource timeSource;
+  private BodyContainer bodies;
+  private ModelContainer models;
+  private LargeModelContainer largeModels;
   private ComponentFilter[][] gridFilters;
   private ComponentFilter[][] largeGridFilters;
-  private final Map<EntityId, Model> modelIndex = new HashMap<>();
   private VersionedHolder<String> bodyCount;
   private VersionedHolder<String> modelCount;
   private VersionedHolder<String> largeModelCount;
   private VersionedHolder<String> spatialCount;
   private BlockGeometryIndex geomIndex;
-  // private VersionedHolder<String> attachmentCount;
-  // <-----
-  private final Vector3f avatarLoc = new Vector3f();
-  private final Quaternion avatarRot = new Quaternion();
+
   public ModelViewState() {}
 
   public Spatial getModel(EntityId entityId) {
@@ -517,6 +514,8 @@ public class ModelViewState extends BaseAppState {
 
     String shapeName = shapeInfo.getShapeName(ed);
 
+    // Note 03-02-2023: We're not using the shape size yet on the view-side - and that's okay for now - because it
+    // allows us to use the shape-size purely for the backend physics
     return SImodelFactory.createModel(shapeName);
 
     //
@@ -880,12 +879,12 @@ public class ModelViewState extends BaseAppState {
   }
 
   private class Body {
-    boolean visible;
-    boolean forceInvisible; // just in case
     private final Entity entity;
     // private ShapeInfo shapeInfo;
     // private Spatial model;
     private final Model model;
+    boolean visible;
+    boolean forceInvisible; // just in case
     // private Vector3f centerCellWorld = new Vector3f();
     private BodyPosition pos;
     private TransitionBuffer<ChildPositionTransition3d> buffer;
