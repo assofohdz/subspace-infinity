@@ -102,6 +102,7 @@ import infinity.systems.ArenaSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.EnergySystem;
+import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.MovementSystem;
@@ -238,8 +239,8 @@ public class GameServer {
     // DefaultBlockSet.initializeBlockTypes();
     if (!BlockTypeIndex.isInitialized()) {
       DefaultBlockSet.initializeBlockTypes();
-      //BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
-      //FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
+      // BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
+      // FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
     }
 
     // Setup the physics space
@@ -301,9 +302,10 @@ public class GameServer {
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed), sphereFac);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.ARENA, 1024, ed), new CubeFactory(ed));
+        ShapeInfo.create(ShapeNames.WORMHOLE, CorePhysicsConstants.WORMHOLESIZERADIUS, ed), sphereFac);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.ARENA, 1024, ed), new CubeFactory(ed));
 
-    shapeFactory.setDefaultFactory( new BlocksResourceShapeFactory(ed));
+    shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
     systems.register(ShapeFactory.class, shapeFactory);
 
     // And give that to an EntityBodyFactory, for the moment without any
@@ -311,11 +313,13 @@ public class GameServer {
     EntityBodyFactory<MBlockShape> bodyFactory =
         new EntityBodyFactory<>(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
 
-    MPhysSystem<MBlockShape> mBlockShapeMPhysSystem = new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
+    MPhysSystem<MBlockShape> mBlockShapeMPhysSystem =
+        new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
     systems.register(EntityBodyFactory.class, bodyFactory);
 
     Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
-    mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<EntityId>(world, colliders));
+    mBlockShapeMPhysSystem.setCollisionSystem(
+        new MBlockCollisionSystem<EntityId>(world, colliders));
     // mphys.addPhysicsListener(new PositionUpdater(ed));
 
     systems.register(InfinityChatHostedService.class, chp);
@@ -323,7 +327,8 @@ public class GameServer {
     systems.register(MPhysSystem.class, mBlockShapeMPhysSystem);
     systems.register(PhysicsSpace.class, mBlockShapeMPhysSystem.getPhysicsSpace());
     systems.register(
-        InfinityPhysicsManager.class, new InfinityPhysicsManager(mBlockShapeMPhysSystem.getPhysicsSpace()));
+        InfinityPhysicsManager.class,
+        new InfinityPhysicsManager(mBlockShapeMPhysSystem.getPhysicsSpace()));
 
     // Subspace Infinity Specific Systems:-->
     // Set up contacts to be filtered first:
@@ -340,6 +345,7 @@ public class GameServer {
     systems.register(WeaponsSystem.class, new WeaponsSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
     systems.register(PrizeSystem.class, new PrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
+    systems.register(GravitySystem.class, new GravitySystem());
 
     systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
@@ -610,10 +616,14 @@ public class GameServer {
     }
 
     @Override
-    protected void onInitialize(final HostedServiceManager serviceManager) {}
+    protected void onInitialize(final HostedServiceManager serviceManager) {
+      //Auto-generated method stub
+    }
 
     @Override
-    public void start() {}
+    public void start() {
+      //Auto-generated method stub
+    }
 
     @Override
     public void connectionAdded(final Server server, final HostedConnection hc) {
