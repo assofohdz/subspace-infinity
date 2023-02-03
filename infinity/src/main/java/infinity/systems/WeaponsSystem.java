@@ -638,7 +638,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
   @Override
   public void newContact(Contact contact) {
-    log.debug("WeaponsSystem contact detected: {}", contact);
+    //log.debug("WeaponsSystem contact detected: {}", contact);
     RigidBody body1 = contact.body1;
     AbstractBody body2 = contact.body2;
 
