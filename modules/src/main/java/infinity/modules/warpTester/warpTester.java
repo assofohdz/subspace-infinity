@@ -101,24 +101,24 @@ public class warpTester extends BaseGameModule {
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
-        new Vec3d(-15, 0, 0),
+        new Vec3d(-15, 1, 0),
         5,
         5,
         5000,
         GravityWell.PULL,
-        new Vec3d(),
+        new Vec3d(0,1,0),
         10);
     GameEntities.createWormhole(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
-        new Vec3d(15, 0, 0),
+        new Vec3d(15, 1, 0),
         5,
         5,
         5000,
         GravityWell.PULL,
-        new Vec3d(),
+        new Vec3d(0,1,0),
         10);
 
     GameEntities.createWormhole2(
@@ -126,13 +126,13 @@ public class warpTester extends BaseGameModule {
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
-        new Vec3d(0, 0, -10));
+        new Vec3d(0, 1, -10));
     GameEntities.createWormhole2(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
-        new Vec3d(0, 0, 10));
+        new Vec3d(0, 1, 10));
 
   }
 

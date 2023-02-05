@@ -94,8 +94,8 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       final CategoryFilter filterTwo =
           categoryFilters.getEntity(two).get(CollisionCategory.class).getFilter();
       if (!filterTwo.isAllowed(filterOne)) {
-        //log.debug(
-        //    "Disabling contact because of category filters:" + filterOne + " and: " + filterTwo);
+        log.debug(
+            "Disabling contact because of category filters:" + filterOne + " and: " + filterTwo);
       }
       return filterTwo.isAllowed(filterOne);
     }

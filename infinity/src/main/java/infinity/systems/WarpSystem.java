@@ -23,6 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
@@ -34,10 +35,13 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.es.Filters;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mphys.AbstractBody;
+import com.simsilica.mphys.Contact;
+import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-
 import infinity.es.Parent;
 import infinity.es.WarpTouch;
 import infinity.es.ship.Energy;
@@ -46,225 +50,148 @@ import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandMonoConsumer;
 import infinity.sim.GameEntities;
+import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * This system handles the warping of units. It is responsible for the
+ * implementation of the warp command, and the warp touch component.
  *
  * @author Asser
  */
-//FIXME: Implement collisionlistener interface and listen for collisions between warptouch entities and other warpable entities
-public class WarpSystem extends AbstractGameSystem{
+// FIXME: Implement collisionlistener interface and listen for collisions between warptouch entities
+// and other warpable entities
+public class WarpSystem extends AbstractGameSystem implements ContactListener {
 
-    private SimTime time;
+  static Logger log = LoggerFactory.getLogger(WarpSystem.class);
+  private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
+  private EntityData ed;
+  private EntitySet warpTouchEntities;
+  private EntitySet warpToEntities;
+  private EntitySet canWarp;
+  private PhysicsSpace physicsSpace;
+  private InfinityEntityBodyFactory bodyFactory;
 
-    private EntityData ed;
-    private EntitySet warpTouchEntities, warpToEntities;
-    //private Warpers warpers;
-    private EntitySet canWarp;
-    static Logger log = LoggerFactory.getLogger(WarpSystem.class);
-    private PhysicsSpace physicsSpace;
-    private InfinityChatHostedService chat;
-    private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
+  @Override
+  protected void initialize() {
+    this.ed = getSystem(EntityData.class);
 
-    @Override
-    protected void initialize() {
-        this.ed = getSystem(EntityData.class);
-        this.chat = getSystem(InfinityChatHostedService.class);
+    if (getSystem(MPhysSystem.class) == null) {
+      throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
+    }
+    physicsSpace = getSystem(MPhysSystem.class).getPhysicsSpace();
 
-        if (getSystem(MPhysSystem.class).equals(null)){
-            throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
-        }
-        physicsSpace = getSystem(MPhysSystem.class).getPhysicsSpace();
+    bodyFactory = getSystem(InfinityEntityBodyFactory.class);
 
-        warpTouchEntities = ed.getEntities(WarpTouch.class);
-        warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
+    warpTouchEntities = ed.getEntities(WarpTouch.class);
+    warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
 
-        canWarp = ed.getEntities(BodyPosition.class, Energy.class);
+    canWarp = ed.getEntities(BodyPosition.class, Energy.class);
 
-        // Register consuming methods for patterns
-        chat.registerPatternMonoConsumer(
+    // Register consuming methods for patterns
+    getSystem(InfinityChatHostedService.class)
+        .registerPatternMonoConsumer(
             requestWarpToCenter,
             "The command to warp to the center of the arena is ~warpCenter",
-            new CommandMonoConsumer(AccessLevel.PLAYER_LEVEL, (id) -> requestWarpToCenter(id)));
+            new CommandMonoConsumer(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
+
+    getSystem(ContactSystem.class).addListener(this);
+  }
+
+  @Override
+  protected void terminate() {
+    warpTouchEntities.release();
+    warpTouchEntities = null;
+  }
+
+  @Override
+  public void start() {
+    // Auto generated method stub
+  }
+
+  @Override
+  public void stop() {
+    // Auto generated method stub
+  }
+
+  @Override
+  public void update(SimTime tpf) {
+
+    canWarp.applyChanges();
+    warpTouchEntities.applyChanges();
+
+    if (warpToEntities.applyChanges()) {
+      for (Entity e : warpToEntities) {
+        BodyPosition bodyPos = e.get(BodyPosition.class);
+        Vec3d targetLocation = e.get(WarpTo.class).getTargetLocation();
+        Vec3d originalLocation = bodyPos.getLastLocation();
+
+        // This is the new method to teleport units
+        physicsSpace.teleport(e.getId(), targetLocation, bodyPos.getLastOrientation());
+
+        GameEntities.createWarpEffect(
+            ed, e.getId(), physicsSpace, tpf.getTime(), originalLocation, 1000);
+        GameEntities.createWarpEffect(
+            ed, e.getId(), physicsSpace, tpf.getTime(), targetLocation, 1000);
+
+//         Ensure that the unit is not moving after the warp
+        RigidBody body = bodyFactory.getBody(e.getId());
+        body.setLinearVelocity(Vec3d.ZERO);
+        body.setRotationalVelocity(Vec3d.ZERO);
+        body.setLinearAcceleration(Vec3d.ZERO);
+        body.setRotationalAcceleration(0,0,0);
+        body.clearAccumulators();
+
+        ed.removeComponent(e.getId(), WarpTo.class);
+      }
     }
+  }
+
+  /**
+   * Lets entities request a warp to the center of the arena.
+   *
+   * @param entityId requesting entity
+   */
+  public void requestWarpToCenter(EntityId entityId) {
+    // TODO: Check for full health
+    ComponentFilter filter = Filters.fieldEquals(Parent.class, "parentEntity", entityId);
+    EntitySet entitySet = ed.getEntities(filter, BodyPosition.class);
+
+    if (entitySet.size() != 1) {
+      throw new InfinityRunTimeException(
+          "Entity " + entityId + " has " + entitySet.size() + " children. Expected 1.");
+    } else {
+      Entity child = entitySet.iterator().next();
+      BodyPosition childBodyPos = child.get(BodyPosition.class);
+      Vec3d lastLoc = childBodyPos.getLastLocation();
+
+      Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
+      WarpTo warpTo = new WarpTo(centerOfArena);
+      ed.setComponent(child.getId(), warpTo);
+    }
+  }
 
     @Override
-    protected void terminate() {
-        warpTouchEntities.release();
-        warpTouchEntities = null;
-    }
+    public void newContact(Contact contact) {
+        RigidBody body1 = contact.body1;
+        AbstractBody body2 = contact.body2;
 
-    @Override
-    public void start() {
+        //If body2 is null, then the contact is with the world and we should not handle this
+        if (body2 == null){
+            return;
+        }
 
-        //simplePhysics.addCollisionListener(this);
+        EntityId body1Id = (EntityId) body1.id;
+        EntityId body2Id = (EntityId) body2.id;
 
-        //warpers = new Warpers(ed);
-        //warpers.start();
-    }
-
-    @Override
-    public void stop() {
-        //simplePhysics.removeCollisionListener(this);
-
-        //warpers.stop();
-        //warpers = null;
-    }
-
-    @Override
-    public void update(SimTime tpf) {
-        time = tpf;
-
-        //warpTouchEntities.applyChanges();
-        //warpers.update()
-
-        canWarp.applyChanges();
-
-        if (warpToEntities.applyChanges()) {
-            for (Entity e : warpToEntities) {
-                BodyPosition bodyPos = e.get(BodyPosition.class);
-                Vec3d targetLocation = e.get(WarpTo.class).getTargetLocation();
-                Vec3d originalLocation = bodyPos.getLastLocation();
-
-                //This is the new method to teleport units
-                physicsSpace.teleport(e.getId(),targetLocation,bodyPos.getLastOrientation());
-
-                GameEntities.createWarpEffect(ed, e.getId(), physicsSpace, tpf.getTime(),originalLocation,2000);
-                GameEntities.createWarpEffect(ed, e.getId(), physicsSpace, tpf.getTime(),targetLocation,2000);
-
-                ed.removeComponent(e.getId(), WarpTo.class);
-            }
+        //Warp body1 if body2 is a warp touch entity
+        if (warpTouchEntities.containsId(body2Id)){
+            WarpTouch warpTouch = warpTouchEntities.getEntity(body2Id).get(WarpTouch.class);
+            WarpTo warpTo = new WarpTo(warpTouch.getTargetLocation());
+            ed.setComponent(body1Id, warpTo);
         }
     }
-
-/*    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2) {
-        return true;
-    }
-
-    @Override
-    public boolean collision(Body body1, BodyFixture fixture1, Body body2, BodyFixture fixture2, Penetration penetration) {
-        return true;
-    }*/
-
-    //Contact manifold created by the manifold solver
-/*    @Override
-    public boolean collision(org.dyn4j.dynamics.Body body1, BodyFixture fixture1, org.dyn4j.dynamics.Body body2, BodyFixture fixture2, Manifold manifold) {
-        EntityId one = (EntityId) body1.getUserData();
-        EntityId two = (EntityId) body2.getUserData();
-
-        if ((warpers.getObject(one) != null && warpers.getObject(one).getWarpFixture() == fixture1) || (warpers.getObject(two) != null && warpers.getObject(two).getWarpFixture() == fixture2)) {
-            if (warpers.getObject(one) != null && warpers.getObject(one).getWarpFixture() == fixture1) {
-                Vector2 targetLocation = warpers.getObject(one).getTargetLocation();
-                WarpTo warpTo = new WarpTo(new Vec3d(targetLocation.x, targetLocation.y, 1));
-                ed.setComponent(two, warpTo);
-            }
-
-            if (warpers.getObject(two) != null && warpers.getObject(two).getWarpFixture() == fixture2) {
-                Vector2 targetLocation = warpers.getObject(two).getTargetLocation();
-                WarpTo warpTo = new WarpTo(new Vec3d(targetLocation.x, targetLocation.y, 1));
-                ed.setComponent(one, warpTo);
-            }
-            return false;
-        }
-
-        return true;
-    }*/
-
-    //Contact constraint created
-/*    @Override
-    public boolean collision(ContactConstraint contactConstraint) {
-        return true;
-    }*/
-
-    /**
-     * A WarpFixture is a physical body that has a target location to warp
-     * entities to
-     */
-    /*private class WarpFixture {
-
-        private Vector2 targetLocation;
-        private BodyFixture warpFixture;
-
-        public WarpFixture(Vector2 targetLocation, BodyFixture warpFixture) {
-            this.targetLocation = targetLocation;
-            this.warpFixture = warpFixture;
-        }
-
-        public Vector2 getTargetLocation() {
-            return targetLocation;
-        }
-
-        public void setTargetLocation(Vector2 targetLocation) {
-            this.targetLocation = targetLocation;
-        }
-
-        public BodyFixture getWarpFixture() {
-            return warpFixture;
-        }
-
-        public void setWarpFixture(BodyFixture warpFixture) {
-            this.warpFixture = warpFixture;
-        }
-    }*/
-
-    /**
-     * Lets entities request a warp to the center of the arena
-     * @param eID requesting entity
-     */
-    public void requestWarpToCenter(EntityId eID) {
-        //TODO: Check for full health
-        ComponentFilter filter = Filters.fieldEquals(Parent.class, "parentEntity", eID);
-        EntitySet eSet = ed.getEntities(filter, BodyPosition.class);
-
-        if (eSet.size() != 1) {
-            throw new InfinityRunTimeException("Entity " + eID + " has " + eSet.size() + " children. Expected 1.");
-        } else {
-            Entity child = eSet.iterator().next();
-            BodyPosition childBodyPos = child.get(BodyPosition.class);
-            Vec3d lastLoc = childBodyPos.getLastLocation();
-
-            Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
-            WarpTo warpTo = new WarpTo(centerOfArena);
-            ed.setComponent(child.getId(), warpTo);
-        }
-    }
-
-    //Entities that upon touched will warp the other body away
-/*    private class Warpers extends EntityContainer<WarpFixture> {
-
-        public Warpers(EntityData ed) {
-            super(ed, WarpTouch.class, Position.class, PhysicsMassType.class, PhysicsShape.class);
-        }
-
-        @Override
-        protected WarpFixture[] getArray() {
-            return super.getArray();
-        }
-
-        @Override
-        protected WarpFixture addObject(Entity e) {
-            WarpTouch wt = e.get(WarpTouch.class);
-
-            Body b = physicsSpace.getBody(e.getId());
-            BodyFixture bf = b.getFixture(0);
-
-            Vector2 targetLocation = new Vector2(wt.getTargetLocation().x, wt.getTargetLocation().y);
-
-            return new WarpFixture(targetLocation, bf);
-        }
-
-        @Override
-        protected void updateObject(WarpFixture object, Entity e) {
-            //Do not support live-updating warpers
-        }
-
-        @Override
-        protected void removeObject(WarpFixture object, Entity e) {
-
-        }
-    }*/
 }

@@ -96,6 +96,7 @@ import infinity.es.input.MovementInput;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CubeFactory;
+import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.ai.MobSystem;
 import infinity.systems.ArenaSystem;
@@ -303,19 +304,20 @@ public class GameServer {
         ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed), sphereFac);
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.WORMHOLE, CorePhysicsConstants.WORMHOLESIZERADIUS, ed), sphereFac);
+    shapeFactory.registerFactory(
+        ShapeInfo.create(ShapeNames.WARP, CorePhysicsConstants.WORMHOLESIZERADIUS, ed), sphereFac);
     shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.ARENA, 1024, ed), new CubeFactory(ed));
 
     shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
     systems.register(ShapeFactory.class, shapeFactory);
 
-    // And give that to an EntityBodyFactory, for the moment without any
-    // customization
-    EntityBodyFactory<MBlockShape> bodyFactory =
-        new EntityBodyFactory<>(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
+    // And give that to an EntityBodyFactory where we can manage how bodies are created
+    InfinityEntityBodyFactory<MBlockShape> bodyFactory =
+        new InfinityEntityBodyFactory<>(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
 
     MPhysSystem<MBlockShape> mBlockShapeMPhysSystem =
         new MPhysSystem<>(InfinityConstants.PHYSICS_GRID, bodyFactory);
-    systems.register(EntityBodyFactory.class, bodyFactory);
+    systems.register(InfinityEntityBodyFactory.class, bodyFactory);
 
     Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
     mBlockShapeMPhysSystem.setCollisionSystem(
