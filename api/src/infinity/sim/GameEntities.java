@@ -253,10 +253,19 @@ public class GameEntities {
         ShapeInfo.create(ShapeNames.WORMHOLE, scale, ed),
         new Mass(0),
         new SpawnPosition(phys.getGrid(), pos),
-        new GravityWell(gravityRadius, force, gravityType),
-        new WarpTouch(warpTargetLocation));
+        new GravityWell(gravityRadius, force, gravityType));
     ed.setComponent(lastWormhole, new Meta(createdTime));
     ed.setComponent(lastWormhole, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
+
+    //Create a touch sensor for the wormhole that will warp the entities that touch it
+    final EntityId warpTouch = ed.createEntity();
+    ed.setComponent(warpTouch, new WarpTouch(warpTargetLocation));
+    ed.setComponent(warpTouch, new Parent(lastWormhole));
+    ed.setComponent(warpTouch, new Meta(createdTime));
+    ed.setComponent(warpTouch, new Mass(0));
+    ed.setComponent(warpTouch, new SpawnPosition(phys.getGrid(), pos));
+    ed.setComponent(warpTouch, ShapeInfo.create(ShapeNames.WARP, 0.1, ed));
+    ed.setComponent(warpTouch, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
 
     return lastWormhole;
   }
