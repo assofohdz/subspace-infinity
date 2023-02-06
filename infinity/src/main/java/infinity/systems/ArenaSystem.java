@@ -47,7 +47,7 @@ import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.CoreGameConstants;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,16 +90,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
 
     // Register consuming methods for patterns
-    chat.registerPatternBiConsumer(
+    chat.registerPatternTriConsumer(
         loadArena,
         "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
             + "name of the map you want to load",
-        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadArena(id, map)));
-    chat.registerPatternBiConsumer(
+        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::loadArena));
+    chat.registerPatternTriConsumer(
         unloadArena,
         "The command to unload a new map is ~unloadArena <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadArena(id, map)));
+        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::unloadArena));
 
     arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
   }
@@ -108,23 +108,23 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * This method will load up a new Arena entity and attach the right components, then call
    * MapSystem and load the map, then call SettingsSystem and load the settings for this arena.
    *
-   * @param requester EntityId of the player that sent the command
+   * @param playerEntityId EntityId of the player that sent the command
    * @param map String of the map name
    */
-  private void loadArena(final EntityId requester, final String map) {
+  private void loadArena(final EntityId playerEntityId, EntityId avatarEntityId, final String map) {
     // First create the map entity
     EntityId arena = ed.createEntity();
-    ed.setComponent(arena, new ArenaId(map, requester));
+    ed.setComponent(arena, new ArenaId(map, playerEntityId));
 
     // Then load the map
-    getSystem(MapSystem.class).loadMap(requester, map);
+    getSystem(MapSystem.class).loadMap(playerEntityId, avatarEntityId, map);
     Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(map);
     Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(map);
     // Add mapbounds information to the arena entity
     ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
 
     // Then load the settings (remove file ending first)
-    getSystem(SettingsSystem.class).loadSettings(requester, map.substring(0, map.lastIndexOf('.')));
+    getSystem(SettingsSystem.class).loadSettings(playerEntityId, map.substring(0, map.lastIndexOf('.')));
     Ini ini = getSystem(SettingsSystem.class).getIni(map);
     // Add settings information to the arena entity
     ed.setComponents(arena, new ArenaSettings(map, ini));
@@ -150,7 +150,14 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * @param id EntityId of the player that sent the command
    * @param map String of the map name
    */
-  private void unloadArena(final EntityId id, final String map) {}
+  private void unloadArena(final EntityId id, EntityId avatarEntityId, final String map) {
+    // First unload the map
+    getSystem(MapSystem.class).unloadMap(id, avatarEntityId, map);
+    //TODO: unload settings
+
+    // Then remove the arena entity
+    ed.removeEntity(currentOpenArenas.get(map));
+  }
 
   public EntityId getEntityId(final Vec3d coord) {
     return index.get(coord);
@@ -202,10 +209,19 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   @Override
-  public void start() {}
+  public void start() {
+    // Grab the entity set we need
+    arenaEntities = ed.getEntities(ArenaId.class);
+    // This filters all entities that are players
+    playerEntities = ed.getEntities(Player.class, BodyPosition.class);
+  }
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // Release the entity set we grabbed previously
+    arenaEntities.release();
+    arenaEntities = null;
+  }
 
   @Override
   public String[] getActiveArenas() {

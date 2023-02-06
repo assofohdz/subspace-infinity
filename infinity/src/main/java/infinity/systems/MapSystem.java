@@ -45,7 +45,7 @@ import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -151,16 +151,16 @@ public class MapSystem extends AbstractGameSystem {
     mapTileQueue = new LinkedList<>();
 
     // Register consuming methods for patterns
-    chat.registerPatternBiConsumer(
+    chat.registerPatternTriConsumer(
         loadMap,
         "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name "
             + "of the map you want to load",
-        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> loadMap(id, map)));
-    chat.registerPatternBiConsumer(
+        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, (id, id2, map) -> loadMap(id, id2, map)));
+    chat.registerPatternTriConsumer(
         unloadMap,
         "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, map) -> unloadMap(id, map)));
+        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, (id, id2, map) -> unloadMap(id, id2,  map)));
   }
 
   /**
@@ -205,11 +205,12 @@ public class MapSystem extends AbstractGameSystem {
   /**
    * Loads a given lvz-map.
    *
-   * @param id the entity requesting the load
+   * @param playerEntityId the player requesting the load
+   * @param avatarEntityId the avatar of the player requesting the load
    * @param mapName the lvz-map to load
    * @return the lvz-map wrapped in a LevelFile
    */
-  public boolean loadMap(EntityId id, final String mapName) {
+  public boolean loadMap(EntityId playerEntityId, EntityId avatarEntityId, final String mapName) {
     log.info("Loading map: " + mapName);
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
@@ -255,11 +256,11 @@ public class MapSystem extends AbstractGameSystem {
   /**
    * Unloads a given lvz-map.
    *
-   * @param id the entity requesting the unload
+   * @param playerEntityId the entity requesting the unload
    * @param mapName the lvz-map to load
    * @return true if unloaded, false otherwise
    */
-  public boolean unloadMap(EntityId id, final String mapName) {
+  public boolean unloadMap(EntityId playerEntityId, EntityId avatarEntityId, final String mapName) {
     if (!activeMaps.containsKey(mapName)) {
       return false;
     }
@@ -450,9 +451,7 @@ public class MapSystem extends AbstractGameSystem {
                   physicsSpace,
                   time.getTime(),
                   location,
-                  5,
-                  5,
-                  5,
+                  5000,
                   GravityWell.PULL,
                   new Vec3d(0, 0, 0),
                   1);

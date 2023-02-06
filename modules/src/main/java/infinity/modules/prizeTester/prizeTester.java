@@ -23,94 +23,108 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.modules.prizeTester;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import org.ini4j.Ini;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
-
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
+import org.ini4j.Ini;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * A module for testing the prize spawner.
  *
  * @author Asser
  */
 public class prizeTester extends BaseGameModule {
 
-    static Logger log = LoggerFactory.getLogger(prizeTester.class);
-    private EntityData ed;
-    private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
-    private Ini settings;
+  static Logger log = LoggerFactory.getLogger(prizeTester.class);
+  private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
+  private EntityData ed;
+  private Ini settings;
 
-    public prizeTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
-            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
-        super(chp, am, loader, arenas, time, physics);
+  public prizeTester(
+      final ChatHostedPoster chp,
+      final AccountManager am,
+      final AdaptiveLoader loader,
+      final ArenaManager arenas,
+      final TimeManager time,
+      final PhysicsManager physics) {
+    super(chp, am, loader, arenas, time, physics);
+  }
 
+  @Override
+  protected void initialize() {
+    ed = getSystem(EntityData.class);
+    settings = new Ini();
+    try {
+      InputStream is =
+          prizeTester.class.getResourceAsStream(this.getClass().getSimpleName() + ".ini");
+      settings = new Ini(is);
+    } catch (final IOException ex) {
+      java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
     }
 
-    @Override
-    protected void initialize() {
-        ed = getSystem(EntityData.class);
-        settings = new Ini();
-        try {
-            InputStream is = prizeTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
-            settings = new Ini(is);
-        } catch (final IOException ex) {
-            java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    GameEntities.createWeightedPrizeSpawner(
+        ed,
+        EntityId.NULL_ID,
+        getPhysicsManager().getPhysics(),
+        getTimeManager().getTime(),
+        new Vec3d(0, 1, 0),
+        1000,
+        true,
+        10);
+  }
 
-        GameEntities.createWeightedPrizeSpawner(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(),
-                getTimeManager().getTime(), new Vec3d(0,1,0), 1000, true, 10);
-    }
+  @Override
+  protected void terminate() {
+    // TODO Auto-generated method stub
+  }
 
-    @Override
-    protected void terminate() {
-        return;
-    }
+  @Override
+  public void start() {
+    // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+    //
+    getChp()
+        .registerPatternTriConsumer(
+            prizeTesterCommand,
+            "The command to make this prizeTester do stuff is ~prizeTester <command>, "
+                + "where <command> is the command you want to execute",
+            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::messageHandler));
 
-    @Override
-    public void start() {
-        // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        //
-        getChp().registerPatternBiConsumer(prizeTesterCommand,
-                "The command to make this prizeTester do stuff is ~prizeTester <command>, where <command> is the command you want to execute",
-                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
+    // startGame();
+  }
 
-        // startGame();
-    }
+  @Override
+  public void stop() {
+    // EventBus.removeListener(this, ShipEvent.shipDestroyed,
+    // ShipEvent.shipSpawned);
+    // endGame();
+  }
 
-    @Override
-    public void stop() {
-        // EventBus.removeListener(this, ShipEvent.shipDestroyed,
-        // ShipEvent.shipSpawned);
-        // endGame();
-    }
-
-    /**
-     * Handle the message events
-     *
-     * @param id The entity id of the sender
-     * @param s  The message to handle
-     */
-    public void messageHandler(final EntityId id, final String s) {
-        log.info("Received command" + s);
-    }
+  /**
+   * Handle the message events.
+   *
+   * @param id The entity id of the sender
+   * @param s The message to handle
+   */
+  public void messageHandler(final EntityId id, EntityId id2, final String s) {
+    log.info("Received command" + s);
+  }
 }

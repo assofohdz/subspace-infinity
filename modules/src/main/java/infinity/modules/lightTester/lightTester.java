@@ -23,95 +23,119 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.modules.lightTester;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import infinity.modules.prizeTester.prizeTester;
-import org.ini4j.Ini;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
-
 import infinity.events.ShipEvent;
+import infinity.modules.prizeTester.prizeTester;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
+import org.ini4j.Ini;
 
 /**
+ * This is a test module for the light system. It creates 4 lights in the corners
  *
  * @author Asser
  */
 public class lightTester extends BaseGameModule {
 
-    private final Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
-    private EntityData ed;
+  private final Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
+  private EntityData ed;
 
-    @SuppressWarnings("unused")
-    private Ini settings;
+  @SuppressWarnings("unused")
+  private Ini settings;
 
-    public lightTester(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
-            final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
-        super(chp, am, loader, arenas, time, physics);
+  public lightTester(
+      final ChatHostedPoster chp,
+      final AccountManager am,
+      final AdaptiveLoader loader,
+      final ArenaManager arenas,
+      final TimeManager time,
+      final PhysicsManager physics) {
+    super(chp, am, loader, arenas, time, physics);
+  }
+
+  @Override
+  protected void initialize() {
+
+    ed = getSystem(EntityData.class);
+
+    settings = new Ini();
+    try {
+      InputStream is =
+          prizeTester.class.getResourceAsStream(this.getClass().getSimpleName() + ".ini");
+      settings = new Ini(is);
+    } catch (final IOException ex) {
+      java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
     }
 
-    @Override
-    protected void initialize() {
+    GameEntities.createLight(
+        ed,
+        EntityId.NULL_ID,
+        getPhysicsManager().getPhysics(),
+        getTimeManager().getTime(),
+        new Vec3d(10, 0, 10));
+    GameEntities.createLight(
+        ed,
+        EntityId.NULL_ID,
+        getPhysicsManager().getPhysics(),
+        getTimeManager().getTime(),
+        new Vec3d(10, 0, -10));
+    GameEntities.createLight(
+        ed,
+        EntityId.NULL_ID,
+        getPhysicsManager().getPhysics(),
+        getTimeManager().getTime(),
+        new Vec3d(-10, 0, 10));
+    GameEntities.createLight(
+        ed,
+        EntityId.NULL_ID,
+        getPhysicsManager().getPhysics(),
+        getTimeManager().getTime(),
+        new Vec3d(-10, 0, -10));
+  }
 
-        ed = getSystem(EntityData.class);
+  @Override
+  protected void terminate() {
+    throw new UnsupportedOperationException(
+        "Not supported yet."); // To change body of generated methods, choose Tools | Templates.
+  }
 
-        settings = new Ini();
-        try {
-            InputStream is = prizeTester.class.getResourceAsStream(this.getClass().getSimpleName()+".ini");
-            settings = new Ini(is);
-        } catch (final IOException ex) {
-            java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
-        }
+  @Override
+  public void start() {
+    EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+    getChp()
+        .registerPatternTriConsumer(
+            lightCommand,
+            "The command to make this arena1 do stuff is ~arena1 <command>, "
+                + "where <command> is the command you want to execute",
+            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+  }
 
-        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(10, 0, -10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(-10, 0, 10));
-        GameEntities.createLight(ed, EntityId.NULL_ID, getPhysicsManager().getPhysics(), getTimeManager().getTime(),
-                new Vec3d(-10, 0, -10));
-    }
+  @Override
+  public void stop() {
+    EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
+  }
 
-    @Override
-    protected void terminate() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
-    }
-
-    @Override
-    public void start() {
-        EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-        getChp().registerPatternBiConsumer(lightCommand,
-                "The command to make this arena1 do stuff is ~arena1 <command>, where <command> is the command you want to execute",
-                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
-    }
-
-    @Override
-    public void stop() {
-        EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
-    }
-
-    @SuppressWarnings("unused")
-    private CommandBiConsumer messageHandler(final EntityId id, final String s) {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
-    }
+  @SuppressWarnings("unused")
+  private CommandTriConsumer messageHandler(final EntityId id, EntityId id2, final String s) {
+    throw new UnsupportedOperationException(
+        "Not supported yet."); // To change body of generated methods, choose Tools | Templates.
+  }
 }

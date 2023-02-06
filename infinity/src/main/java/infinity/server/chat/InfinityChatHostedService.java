@@ -35,33 +35,31 @@
  */
 package infinity.server.chat;
 
-import infinity.sim.CommandMonoConsumer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.jme3.network.HostedConnection;
 import com.jme3.network.MessageConnection;
 import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
-
 import com.simsilica.es.EntityId;
-
 import infinity.net.chat.ChatSession;
 import infinity.net.chat.ChatSessionListener;
 import infinity.server.AccountHostedService;
+import infinity.server.GameSessionHostedService;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.MessageTypes;
+import infinity.sim.util.InfinityRunTimeException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * HostedService providing a chat server for connected players. Some time during player connection
@@ -73,12 +71,15 @@ import infinity.sim.MessageTypes;
 public class InfinityChatHostedService extends AbstractHostedConnectionService
     implements ChatHostedPoster {
 
+  private static final String prepend_chat = "chat> ";
+  private static final String system_message_sender = "System";
+  private static final String not_supported_yet = "Not supported yet.";
   private static final String ATTRIBUTE_SESSION = "chat.session";
   static Logger log = LoggerFactory.getLogger(InfinityChatHostedService.class);
   private final int channel;
   private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
-  private final ConcurrentHashMap<Pattern, CommandBiConsumer> patternBiConsumers;
-  private final ConcurrentHashMap<Pattern, CommandMonoConsumer> patternMonoConsumer;
+  private final ConcurrentHashMap<Pattern, CommandTriConsumer> patternTriConsumer;
+  private final ConcurrentHashMap<Pattern, CommandBiConsumer> patternBiConsumer;
   private RmiHostedService rmiService;
 
   /**
@@ -92,8 +93,8 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   /** Creates a new chat service that will use the specified channel for reliable communication. */
   public InfinityChatHostedService(final int channel) {
     this.channel = channel;
-    patternBiConsumers = new ConcurrentHashMap<>();
-    patternMonoConsumer = new ConcurrentHashMap<>();
+    patternTriConsumer = new ConcurrentHashMap<>();
+    patternBiConsumer = new ConcurrentHashMap<>();
     setAutoHost(false);
   }
 
@@ -107,7 +108,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
     // Grab the RMI service so we can easily use it later
     rmiService = getService(RmiHostedService.class);
     if (rmiService == null) {
-      throw new RuntimeException("ChatHostedService requires an RMI service.");
+      throw new InfinityRunTimeException("ChatHostedService requires an RMI service.");
     }
   }
 
@@ -135,7 +136,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       }
       chatter.playerJoined(conn.getId(), playerName);
     }
-    log.info("chat> " + playerName + " joined.");
+    log.info(prepend_chat + playerName + " joined.");
   }
 
   /** Starts hosting the chat services on the specified connection using a generated player name. */
@@ -175,28 +176,33 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
     boolean matched = false;
 
     // Go through pattersn with 1 argument
-    for (final Pattern pattern : patternBiConsumers.keySet()) {
+    for (Iterator<Pattern> iterator = patternTriConsumer.keySet().iterator();
+        iterator.hasNext(); ) {
+      Pattern pattern = iterator.next();
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
         final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
-        final CommandBiConsumer cc = patternBiConsumers.get(pattern);
+        final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
+        final CommandTriConsumer cc = patternTriConsumer.get(pattern);
         // TODO: Implement account service to manage security levels
         // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
         // cc.getAccessLevelRequired())) {
-        cc.getConsumer().accept(fromEntity, matcher.group(1));
+        cc.getConsumer().accept(fromEntity, fromAvatar, matcher.group(1));
         // }
       }
     }
     // Go through patterns with no arguments
-    for (final Pattern pattern : patternMonoConsumer.keySet()) {
+    for (Iterator<Pattern> iterator = patternBiConsumer.keySet().iterator(); iterator.hasNext(); ) {
+      Pattern pattern = iterator.next();
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
         final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
-        final CommandMonoConsumer cc = patternMonoConsumer.get(pattern);
+        final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
+        final CommandBiConsumer cc = patternBiConsumer.get(pattern);
 
-        cc.getConsumer().accept(fromEntity);
+        cc.getConsumer().accept(fromEntity, fromAvatar);
       }
     }
 
@@ -226,22 +232,20 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
    * @param c a consumer taking the message and the sender entity id
    */
   @Override
-  public void registerPatternBiConsumer(
-      final Pattern pattern, final String description, final CommandBiConsumer c) {
+  public void registerPatternTriConsumer(
+      final Pattern pattern, final String description, final CommandTriConsumer c) {
     // TODO: For now, only one consumer per pattern (we could potentially have
     // multiple)
-    patternBiConsumers.put(pattern, c);
+    patternTriConsumer.put(pattern, c);
 
     // TODO: Post message only to those who have the proper access level
-    postPublicMessage("System", MessageTypes.MESSAGE, description);
+    postPublicMessage(system_message_sender, MessageTypes.MESSAGE, description);
   }
 
-  @Override
-  public void registerPatternMonoConsumer(
-      Pattern pattern, String description, CommandMonoConsumer c) {
-    patternMonoConsumer.put(pattern, c);
+  public void registerPatternBiConsumer(Pattern pattern, String description, CommandBiConsumer c) {
+    patternBiConsumer.put(pattern, c);
 
-    postPublicMessage("System", MessageTypes.MESSAGE, description);
+    postPublicMessage(system_message_sender, MessageTypes.MESSAGE, description);
   }
 
   /**
@@ -251,7 +255,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
    */
   @Override
   public void removePatternConsumer(final Pattern pattern) {
-    patternBiConsumers.remove(pattern);
+    patternTriConsumer.remove(pattern);
   }
 
   @Override
@@ -261,32 +265,31 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       final EntityId targetEntityId,
       final String message) {
     throw new UnsupportedOperationException(
-        "Not supported yet."); // To change body of generated methods, choose
-    // Tools | Templates.
+        "Not supported yet."); // To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void postTeamMessage(
       final String from, final int messageType, final int targetFrequency, final String message) {
     throw new UnsupportedOperationException(
-        "Not supported yet."); // To change body of generated methods, choose
+        not_supported_yet); // To change body of generated methods, choose
     // Tools | Templates.
   }
 
   @Override
   public void registerCommandConsumer(
-      final String cmd, final String helptext, final CommandBiConsumer c) {
+      final String cmd, final String helptext, final CommandTriConsumer c) {
     // TODO: Put together the pattern that will match, depending on the sender and
     // the command
 
     // TODO: Post message only to those who have the proper access level
-    postPublicMessage("System", MessageTypes.MESSAGE, helptext);
+    postPublicMessage(system_message_sender, MessageTypes.MESSAGE, helptext);
   }
 
   @Override
   public void removeCommandConsumer(final String cmd) {
     throw new UnsupportedOperationException(
-        "Not supported yet."); // To change body of generated methods, choose
+        not_supported_yet); // To change body of generated methods, choose
     // Tools | Templates.
 
   }
@@ -319,7 +322,8 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
         final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
         callback = rmi.getRemoteObject(ChatSessionListener.class);
         if (callback == null) {
-          throw new RuntimeException("Unable to locate client callback for ChatSessionListener");
+          throw new InfinityRunTimeException(
+              "Unable to locate client callback for ChatSessionListener");
         }
       }
       return callback;

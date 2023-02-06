@@ -46,7 +46,7 @@ import infinity.es.ShapeNames;
 import infinity.events.ShipEvent;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.CorePhysicsConstants;
 
 /**
@@ -92,15 +92,15 @@ public class AvatarSystem extends AbstractGameSystem {
 
         teamRestrictions = new HashMap<>();
 
-        // Register consuming methods for patterns
-        chp.registerPatternBiConsumer(joinTeam,
-                "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
-                new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, frequency) -> joinTeam(id, frequency)));
-
+    // Register consuming methods for patterns
+    chp.registerPatternTriConsumer(
+        joinTeam,
+        "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
+        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::joinTeam));
     }
 
-    private void joinTeam(final EntityId from, final String frequency) {
-        ed.setComponent(from, new Frequency(Integer.valueOf(frequency).intValue()));
+    private void joinTeam(final EntityId playerEntityId, EntityId avatarEntityId, final String frequency) {
+        ed.setComponent(playerEntityId, new Frequency(Integer.parseInt(frequency)));
     }
 
     @Override
@@ -129,12 +129,12 @@ public class AvatarSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
-        return;
+        // Auto-generated method stub
     }
 
     @Override
     public void stop() {
-        return;
+        // Auto-generated method stub
     }
 
     public void requestShipChange(final EntityId shipEntity, final byte shipType) {
@@ -318,8 +318,8 @@ public class AvatarSystem extends AbstractGameSystem {
         int count = 0;
 
         // Sum up the entities with the right type
-        count = freq.stream().filter((e) -> (e.get(ShapeInfo.class).getShapeName(ed) == type.getShapeName(ed)))
-                .map((_item) -> Integer.valueOf(1)).reduce(Integer.valueOf(count), Integer::sum).intValue();
+        count = freq.stream().filter(e -> (e.get(ShapeInfo.class).getShapeName(ed).equals(type.getShapeName(ed))))
+                .map(_item -> Integer.valueOf(1)).reduce(Integer.valueOf(count), Integer::sum).intValue();
 
         return count;
     }

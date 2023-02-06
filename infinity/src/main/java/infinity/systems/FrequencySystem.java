@@ -1,13 +1,8 @@
 package infinity.systems;
 
-import com.simsilica.bpos.BodyPosition;
-import com.simsilica.es.ComponentFilter;
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.es.Filters;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
@@ -18,13 +13,10 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Flag;
 import infinity.es.Frequency;
-import infinity.es.Parent;
-import infinity.es.ship.actions.WarpTo;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.sim.CommandTriConsumer;
+import infinity.sim.GameSounds;
 import java.util.regex.Pattern;
 
 /**
@@ -40,6 +32,7 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
   private EntitySet freqencies;
   private EntitySet flags;
   private InfinityChatHostedService chat;
+  private SimTime time;
 
   @Override
   protected void initialize() {
@@ -51,15 +44,14 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
 
     this.chat = getSystem(InfinityChatHostedService.class);
     // Register consuming methods for patterns
-    chat.registerPatternBiConsumer(
+    chat.registerPatternTriConsumer(
         freuencyChange,
         "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
             + "name of the map you want to load",
-        new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, freq) -> changeFrequency(id, freq)));
+        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::changeFrequency));
 
     // Register this as a contact listener with the ContactSystem
     getSystem(ContactSystem.class, true).addListener(this);
-
   }
 
   /**
@@ -68,28 +60,22 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
    * @param entityId The id of the player
    * @param freq The new frequency
    */
-  private void changeFrequency(EntityId entityId, String freq) {
-    ComponentFilter filter = Filters.fieldEquals(Parent.class, "parentEntity", entityId);
-    EntitySet entitySet = ed.getEntities(filter, BodyPosition.class);
-
-    if (entitySet.size() != 1) {
-      throw new InfinityRunTimeException(
-          "Entity " + entityId + " has " + entitySet.size() + " children. Expected 1.");
-    } else {
-      Entity child = entitySet.iterator().next();
-      ed.setComponent(child.getId(), new Frequency(Integer.parseInt(freq)));
-    }
+  private void changeFrequency(EntityId entityId, EntityId avatarEntityId, String freq) {
+    ed.setComponent(avatarEntityId, new Frequency(Integer.parseInt(freq)));
   }
 
   @Override
-  protected void terminate() {}
+  protected void terminate() {
+    //Remove this as a contact listener with the ContactSystem
+    getSystem(ContactSystem.class, true).removeListener(this);
+  }
 
   @Override
   public void newContact(Contact contact) {
     RigidBody body1 = contact.body1;
     AbstractBody body2 = contact.body2;
 
-    //For now, all flags are static and cannot be picked up, but can change frequencies
+    // For now, all flags are static and cannot be picked up, but can change frequencies
     if (body2 instanceof StaticBody) {
       EntityId ship = (EntityId) body1.id;
       EntityId flag = (EntityId) body2.id;
@@ -106,11 +92,13 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
             ed.setComponent(
                 flag,
                 new Frequency(freqencies.getEntity(ship).get(Frequency.class).getFrequency()));
+            GameSounds.createFlagSound(ed, EntityId.NULL_ID, phys, time.getTime(), body2.position);
           }
         } else {
           // Set the flag to the frequency of the ship
           ed.setComponent(
               flag, new Frequency(freqencies.getEntity(ship).get(Frequency.class).getFrequency()));
+          GameSounds.createFlagSound(ed, EntityId.NULL_ID, phys, time.getTime(), body2.position);
         }
         contact.disable();
       }
@@ -119,9 +107,9 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
 
   @Override
   public void update(SimTime time) {
-    super.update(time);
-
     freqencies.applyChanges();
     flags.applyChanges();
+
+    this.time = time;
   }
 }

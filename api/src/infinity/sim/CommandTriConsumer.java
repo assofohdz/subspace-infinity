@@ -26,18 +26,18 @@
 package infinity.sim;
 
 import com.simsilica.es.EntityId;
-import java.util.function.BiConsumer;
+import org.apache.logging.log4j.util.TriConsumer;
 
 /**
  * @author Asser
  */
-public class CommandBiConsumer implements BiConsumer<EntityId, EntityId> {
+public class CommandTriConsumer implements TriConsumer<EntityId, EntityId, String> {
 
   private final AccessLevel accessLevelRequired;
-  private final BiConsumer<EntityId, EntityId> consumer;
+  private final TriConsumer<EntityId, EntityId, String> consumer;
 
-  public CommandBiConsumer(
-      final AccessLevel accessLevelRequired, final BiConsumer<EntityId, EntityId> consumer) {
+  public CommandTriConsumer(
+      final AccessLevel accessLevelRequired, final TriConsumer<EntityId, EntityId, String> consumer) {
     this.accessLevelRequired = accessLevelRequired;
     this.consumer = consumer;
   }
@@ -46,12 +46,12 @@ public class CommandBiConsumer implements BiConsumer<EntityId, EntityId> {
     return accessLevelRequired;
   }
 
-  public BiConsumer<EntityId, EntityId> getConsumer() {
+  public TriConsumer<EntityId, EntityId, String> getConsumer() {
     return consumer;
   }
 
   @Override
-  public void accept(EntityId entityId, EntityId s) {
-    consumer.accept(entityId, s);
+  public void accept(EntityId entityId, EntityId entityId2, String s) {
+    consumer.accept(entityId, entityId2, s);
   }
 }
