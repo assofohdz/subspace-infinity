@@ -54,6 +54,7 @@ public class AudioTypes {
     public static final String FIRE_MINE_L2 = "fire_mine_l2";
     public static final String FIRE_MINE_L3 = "fire_mine_l3";
     public static final String FIRE_MINE_L4 = "fire_mine_l4";
+    public static final String FLAG = "flag";
 
 
     public static AudioType repel(final EntityData ed) {

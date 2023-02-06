@@ -84,6 +84,8 @@ public class SIAudioFactory implements AudioFactory {
             return createFIRE_BURST();
         case AudioTypes.REPEL:
             return createREPEL();
+        case AudioTypes.FLAG:
+            return createPICKUP_FLAG();
         default:
             throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
         }
@@ -151,6 +153,13 @@ public class SIAudioFactory implements AudioFactory {
 
     private AudioNode createFIRE_THOR() {
         final AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
+        setDefaults(an);
+        return an;
+    }
+
+    //A method to play the flag.wa2 sound
+    private AudioNode createPICKUP_FLAG() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/flag.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }

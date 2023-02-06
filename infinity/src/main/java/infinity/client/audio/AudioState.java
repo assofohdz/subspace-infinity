@@ -187,6 +187,9 @@ public class AudioState extends BaseAppState {
       case AudioTypes.REPEL:
         result = createRepel(entity);
         break;
+      case AudioTypes.FLAG:
+        result = createFlag(entity);
+        break;
       default:
         throw new RuntimeException("Unknown spatial type:" + typeName);
     }
@@ -260,6 +263,20 @@ public class AudioState extends BaseAppState {
     // Node information:
     final Node result = new Node("fireGravBomb:" + entity.getId());
     result.setUserData("fireGravBombId", Long.valueOf(entity.getId().getId()));
+    // result.setUserData(LayerComparator.LAYER, 1);
+
+    // Spatial information:
+    final AudioNode an = factory.createAudio(entity);
+    result.attachChild(an);
+
+    return an;
+  }
+
+  //Method to create the flag sound
+  private AudioNode createFlag(final Entity entity) {
+    // Node information:
+    final Node result = new Node("flag:" + entity.getId());
+    result.setUserData("flagId", Long.valueOf(entity.getId().getId()));
     // result.setUserData(LayerComparator.LAYER, 1);
 
     // Spatial information:

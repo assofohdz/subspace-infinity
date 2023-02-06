@@ -26,6 +26,25 @@ import java.util.concurrent.TimeUnit;
  */
 public class GameSounds {
 
+  //Create a sound for the flag type
+  public static void createFlagSound(
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos) {
+    final EntityId result = ed.createEntity();
+
+    ed.setComponents(
+        result,
+        AudioType.create(AudioTypes.FLAG, ed),
+        new Decay(
+            createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)),
+        new SpawnPosition(phys.getGrid(), pos),
+        new Parent(owner));
+    ed.setComponent(result, new Meta(createdTime));
+  }
+
   public static void createBombSound(
       final EntityData ed,
       final EntityId owner,
