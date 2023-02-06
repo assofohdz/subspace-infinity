@@ -33,91 +33,77 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package infinity.server;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.ext.mphys.Gravity;
-import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.sim.GameEntities;
+import infinity.systems.InfinityTimeSystem;
+import infinity.systems.MapSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Provides some standard entity factories as well as setting up an initial test
- * environment.
+ * Provides some standard entity factories as well as setting up an initial test environment.
  *
  * @author Paul Speed
  */
 public class BasicEnvironment extends AbstractGameSystem {
 
-    static Logger log = LoggerFactory.getLogger(BasicEnvironment.class);
+  static Logger log = LoggerFactory.getLogger(BasicEnvironment.class);
 
-    private EntityData ed;
-    private PhysicsSpace<?, ?> phys;
-    // private World world;
+  private EntityData ed;
+  private PhysicsSpace<?, ?> phys;
+  private long time;
+  private World world;
 
-    // Some constantly emitted test objects... need to track the time
-    // private final double nextTime = 5;
-    // private final Random rand = new Random(0);
+  /** Creates a new BasicEnvironment. This should be loaded as the last game system. */
+  @Override
+  protected void initialize() {
+    ed = getSystem(EntityData.class, true);
+    phys = getSystem(PhysicsSpace.class, true);
+    world = super.getManager().get(World.class);
 
-    // private EntityId toggle1;
-    // private EntityId toggle2;
-    // private final double toggleTime = 5;
-    // private final boolean moved = false;
+    this.time = getSystem(InfinityTimeSystem.class).getTime();
 
-    // private final Vec3d putLoc = new Vec3d(0, 66, -10);
-    // private final double putTime = 5;
+    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, "trench.lvl");
+    Vec3d squarePos = new Vec3d(-10, 1, 10);
 
-    // private final Vec3d putLoc2 = new Vec3d(4, 64, -4);
+    // Create a square around the flag
+    world.setWorldCell(squarePos.add(1, 0, 1), 10);
+    world.setWorldCell(squarePos.add(0, 0, 1), 10);
+    world.setWorldCell(squarePos.add(-1, 0, 1), 10);
+    world.setWorldCell(squarePos.add(1, 0, 0), 10);
+    world.setWorldCell(squarePos.add(-1, 0, 0), 10);
+    world.setWorldCell(squarePos.add(1, 0, -1), 10);
+    world.setWorldCell(squarePos.add(0, 0, -1), 10);
+    world.setWorldCell(squarePos.add(-1, 0, -1), 10);
 
-    // private EntityId spawner;
-    // private final Vec3d spawnerOffset = new Vec3d(0, 10, 0);
+    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, squarePos);
 
-    @Override
-    protected void initialize() {
-        ed = getSystem(EntityData.class, true);
-        phys = getSystem(PhysicsSpace.class, true);
-        // world = getSystem(World.class, true);
-        /*
-         * // Setup some test entities EntityId test; test = ed.createEntity();
-         * ed.setComponents(test, new SpawnPosition(phys.getGrid(), 5, 65, -5), // For
-         * static objects, we set both position and spawn position. // The physics
-         * engine needs spawn position for static objects. // We need position for
-         * displayed objects. //new Position(5, 1, -5), ShapeInfo.create("sphere", 1,
-         * ed), new Mass(0) );
-         */
-        createTestSphere(new Vec3d(0, 0, 0), 1d, false);
+    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1, -10));
 
+    // Create a square of turf flags 100x100 around x = 20, z = -20
+    for (int x = 20; x <= 30; x++) {
+      for (int z = -30; z <= -20; z++) {
+        GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(x, 1, z));
+      }
     }
+  }
 
-    @Override
-    public void update(final SimTime time) {
-        // final double secs = time.getTimeInSeconds();
-    }
+  @Override
+  public void update(final SimTime time) {
+    // Nothing to do
+  }
 
-    public EntityId createTestSphere(final Vec3d loc, final double size, final boolean dynamic) {
-        final EntityId result = ed.createEntity();
-
-        if (dynamic) {
-            ed.setComponents(result, new SpawnPosition(phys.getGrid(), loc), ShapeInfo.create("sphere", size, ed),
-                    new Mass(10), Gravity.ZERO);
-        } else {
-            ed.setComponents(result, new SpawnPosition(phys.getGrid(), loc), ShapeInfo.create("sphere", size, ed),
-                    new Mass(0));
-        }
-
-        return result;
-    }
-
-    @Override
-    protected void terminate() {
-        return;
-    }
+  @Override
+  protected void terminate() {
+    // Nothing to do
+  }
 }
