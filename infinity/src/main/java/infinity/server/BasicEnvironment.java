@@ -43,6 +43,7 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.es.GravityWell;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
@@ -72,20 +73,7 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     this.time = getSystem(InfinityTimeSystem.class).getTime();
 
-    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, "trench.lvl");
-    Vec3d squarePos = new Vec3d(-10, 1, 10);
-
-    // Create a square around the flag
-    world.setWorldCell(squarePos.add(1, 0, 1), 10);
-    world.setWorldCell(squarePos.add(0, 0, 1), 10);
-    world.setWorldCell(squarePos.add(-1, 0, 1), 10);
-    world.setWorldCell(squarePos.add(1, 0, 0), 10);
-    world.setWorldCell(squarePos.add(-1, 0, 0), 10);
-    world.setWorldCell(squarePos.add(1, 0, -1), 10);
-    world.setWorldCell(squarePos.add(0, 0, -1), 10);
-    world.setWorldCell(squarePos.add(-1, 0, -1), 10);
-
-    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, squarePos);
+    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
 
     GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1, -10));
 
@@ -95,6 +83,29 @@ public class BasicEnvironment extends AbstractGameSystem {
         GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(x, 1, z));
       }
     }
+
+    GameEntities.createWormhole(
+        ed,
+        EntityId.NULL_ID,
+        phys,
+        time,
+        new Vec3d(-20, 1, -20),
+        1000,
+        GravityWell.PULL,
+        new Vec3d(-10,1,10),
+        10);
+
+
+    GameEntities.createWeightedPrizeSpawner(
+        ed,
+        EntityId.NULL_ID,
+        phys,
+        time,
+        new Vec3d(-20, 1, -20),
+        5000,
+        true,
+        20);
+
   }
 
   @Override

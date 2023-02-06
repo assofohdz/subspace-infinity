@@ -37,7 +37,7 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -103,10 +103,8 @@ public class warpTester extends BaseGameModule {
         getTimeManager().getTime(),
         new Vec3d(-15, 1, 0),
         5,
-        5,
-        5000,
         GravityWell.PULL,
-        new Vec3d(0,1,0),
+        new Vec3d(0, 1, 0),
         10);
     GameEntities.createWormhole(
         ed,
@@ -115,10 +113,8 @@ public class warpTester extends BaseGameModule {
         getTimeManager().getTime(),
         new Vec3d(15, 1, 0),
         5,
-        5,
-        5000,
         GravityWell.PULL,
-        new Vec3d(0,1,0),
+        new Vec3d(0, 1, 0),
         10);
 
     GameEntities.createWormhole2(
@@ -133,7 +129,6 @@ public class warpTester extends BaseGameModule {
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
         new Vec3d(0, 1, 10));
-
   }
 
   @Override
@@ -146,11 +141,12 @@ public class warpTester extends BaseGameModule {
     // EventBus.addListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
     //
     getChp()
-        .registerPatternBiConsumer(
+        .registerPatternTriConsumer(
             warpTesterCommand,
             "The command to make this warpTester do stuff is ~warpTester <command>, "
                 + "where <command> is the command you want to execute",
-            new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, (id, s) -> messageHandler(id, s)));
+            new CommandTriConsumer(
+                AccessLevel.PLAYER_LEVEL, (id, id2, s) -> messageHandler(id, id2, s)));
 
     // startGame();
   }
@@ -168,7 +164,7 @@ public class warpTester extends BaseGameModule {
    * @param id The entity id of the sender
    * @param s The message to handle
    */
-  public void messageHandler(final EntityId id, final String s) {
+  public void messageHandler(final EntityId id, EntityId id2, final String s) {
     log.info("Received command" + s);
   }
 }
