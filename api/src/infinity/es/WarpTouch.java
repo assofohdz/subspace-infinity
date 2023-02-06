@@ -40,10 +40,12 @@ public class WarpTouch implements EntityComponent {
     public WarpTouch(final double targetAreaRadius, final Vec3d targetLocation) {
         this.targetAreaRadius = targetAreaRadius;
         this.targetLocation = targetLocation;
+        this.targetLocation.y = 1;
     }
 
     public WarpTouch(final Vec3d targetLocation) {
         this.targetLocation = targetLocation;
+        this.targetLocation.y = 1;
         targetAreaRadius = 0.0d;
     }
 
