@@ -48,6 +48,7 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.CommandMonoConsumer;
 import infinity.sim.GameEntities;
 import infinity.sim.InfinityEntityBodyFactory;
@@ -93,10 +94,10 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
 
     // Register consuming methods for patterns
     getSystem(InfinityChatHostedService.class)
-        .registerPatternMonoConsumer(
+        .registerPatternBiConsumer(
             requestWarpToCenter,
             "The command to warp to the center of the arena is ~warpCenter",
-            new CommandMonoConsumer(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
+            new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -155,7 +156,7 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
    *
    * @param entityId requesting entity
    */
-  public void requestWarpToCenter(EntityId entityId) {
+  public void requestWarpToCenter(EntityId entityId, EntityId avatarId) {
     // TODO: Check for full health
     ComponentFilter filter = Filters.fieldEquals(Parent.class, "parentEntity", entityId);
     EntitySet entitySet = ed.getEntities(filter, BodyPosition.class);
