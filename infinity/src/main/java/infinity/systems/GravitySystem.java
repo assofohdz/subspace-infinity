@@ -11,6 +11,7 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.GravityWell;
@@ -68,51 +69,49 @@ public class GravitySystem extends AbstractGameSystem implements ContactListener
 
     // Check if body2 is null (if so we are colliding a body with the world and dont want to do
     // anything here)
-    if (body2 == null) {
-      return;
-    }
+    if (body2 instanceof StaticBody) {
+      EntityId one = (EntityId) body1.id;
+      EntityId two = (EntityId) body2.id;
 
-    EntityId one = (EntityId) body1.id;
-    EntityId two = (EntityId) body2.id;
+      // get GravityWell from body2
+      GravityWell gw = ed.getComponent(two, GravityWell.class);
 
-    // get GravityWell from body2
-    GravityWell gw = ed.getComponent(two, GravityWell.class);
+      // Check if GravityWell is null, if so, this isn't a contact for us to handle
+      if (gw == null) {
+        return;
+      }
 
-    // Check if GravityWell is null, if so, this isn't a contact for us to handle
-    if (gw == null) {
-      return;
-    }
+      //For the ship we want the latest positiom
+      Vec3d bodyLocation = ed.getComponent(one, BodyPosition.class).getLastLocation();
+      //For the wormhole we want the spawn position because it is a static object
+      Vec3d wormholeLocation = ed.getComponent(two, SpawnPosition.class).getLocation();
 
-    //For the ship we want the latest positiom
-    Vec3d bodyLocation = ed.getComponent(one, BodyPosition.class).getLastLocation();
-    //For the wormhole we want the spawn position because it is a static object
-    Vec3d wormholeLocation = ed.getComponent(two, SpawnPosition.class).getLocation();
+      Vec3d difference = wormholeLocation.subtract(bodyLocation);
+      Vec3d gravity = difference.normalize().multLocal(time.getTpf());
+      double distance = difference.length();
 
-    Vec3d difference = wormholeLocation.subtract(bodyLocation);
-    Vec3d gravity = difference.normalize().multLocal(time.getTpf());
-    double distance = difference.length();
+      double wormholeGravity = gw.getForce();
+      double gravityDistance = gw.getDistance();
 
-    double wormholeGravity = gw.getForce();
-    double gravityDistance = gw.getDistance();
-
-    switch (gw.getGravityType()) {
+      switch (gw.getGravityType()) {
         // Note 03-02-2023: I dont understand this math right now
-      case GravityWell.PULL:
-        gravity.multLocal(Math.abs(wormholeGravity));
-        break;
-      case GravityWell.PUSH:
-        gravity.multLocal(1 * Math.abs(wormholeGravity));
-        break;
-      default:
-        break;
+        case GravityWell.PULL:
+          gravity.multLocal(Math.abs(wormholeGravity));
+          break;
+        case GravityWell.PUSH:
+          gravity.multLocal(1 * Math.abs(wormholeGravity));
+          break;
+        default:
+          break;
+      }
+
+      gravity.multLocal(gravityDistance / distance);
+      //Zero out the y-force
+      gravity.y = 0;
+
+      // Apply the gravity to the body
+      body1.addForce(gravity);
+      contact.disable();
     }
-
-    gravity.multLocal(gravityDistance / distance);
-    //Zero out the y-force
-    gravity.y = 0;
-
-    // Apply the gravity to the body
-    body1.addForce(gravity);
-    contact.disable();
   }
 }
