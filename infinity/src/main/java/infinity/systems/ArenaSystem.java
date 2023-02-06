@@ -38,7 +38,6 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
-import infinity.es.Ghost;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
@@ -139,7 +138,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     Vec3d arenaMid = mapBoundsMax.add(mapBoundsMin).divide(2);
 
     // Add this arena as a shape we can use to detect players entering/leaving the arena
-    ed.setComponent(arena, new Ghost());
     ed.setComponent(arena, new Mass(0));
     ed.setComponent(arena, new SpawnPosition(InfinityConstants.PHYSICS_GRID, new Vec3d()));
     ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
