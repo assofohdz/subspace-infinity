@@ -239,8 +239,6 @@ public class GameEntities {
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final double gravityRadius,
-      @SuppressWarnings("unused") final double targetAreaRadius,
       final double force,
       final String gravityType,
       final Vec3d warpTargetLocation,
@@ -253,7 +251,7 @@ public class GameEntities {
         ShapeInfo.create(ShapeNames.WORMHOLE, scale, ed),
         new Mass(0),
         new SpawnPosition(phys.getGrid(), pos),
-        new GravityWell(gravityRadius, force, gravityType));
+        new GravityWell(scale, force, gravityType));
     ed.setComponent(lastWormhole, new Meta(createdTime));
     ed.setComponent(lastWormhole, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
 
