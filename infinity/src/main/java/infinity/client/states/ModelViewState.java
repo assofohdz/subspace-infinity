@@ -36,39 +36,64 @@
 
 package infinity.client.states;
 
-import infinity.client.GameSessionState;
-import infinity.es.Flag;
-import infinity.es.Frequency;
-import infinity.es.ship.Player;
-import java.util.*;
-
-import infinity.InfinityConstants;
-import infinity.client.ConnectionState;
-import infinity.client.view.BlockGeometryIndex;
-import infinity.client.view.PickedObject;
-import infinity.es.ShapeNames;
-import org.slf4j.*;
-
+import com.jme3.anim.AnimComposer;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.anim.*;
-import com.jme3.collision.*;
-import com.jme3.math.*;
-import com.jme3.scene.*;
-import com.jme3.scene.shape.*;
-
-import com.simsilica.es.*;
+import com.jme3.collision.CollisionResult;
+import com.jme3.collision.CollisionResults;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
+import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
+import com.simsilica.bpos.BodyPosition;
+import com.simsilica.bpos.ChildPositionTransition3d;
+import com.simsilica.bpos.LargeGridCell;
+import com.simsilica.bpos.LargeObject;
+import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.es.Filters;
+import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
+import com.simsilica.ext.mblock.SphereFactory;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeFactoryRegistry;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.mathd.*;
-import com.simsilica.mathd.trans.*;
-import com.simsilica.state.*;
-
-import com.simsilica.bpos.*;
-import com.simsilica.ext.mblock.*;
-import com.simsilica.ext.mphys.*;
-import com.simsilica.mblock.phys.*;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
+import com.simsilica.mathd.trans.TransitionBuffer;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.state.DebugHudState;
+import infinity.InfinityConstants;
+import infinity.client.ConnectionState;
+import infinity.client.GameSessionState;
+import infinity.client.view.BlockGeometryIndex;
+import infinity.client.view.PickedObject;
+import infinity.es.Flag;
+import infinity.es.Frequency;
+import infinity.es.ShapeNames;
+import infinity.es.ship.Player;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Paul Speed
@@ -155,6 +180,11 @@ public class ModelViewState extends BaseAppState {
     return null;
   }
 
+  /**
+   * Returns the picked object or null if nothing was picked.
+   * 
+   * @return the picked object or null if nothing was picked.
+   */
   public PickedObject pickObject() {
 
     // I think right now we only care about the view.y in view space
@@ -179,11 +209,8 @@ public class ModelViewState extends BaseAppState {
       Spatial picked = findPickedSpatial(cr.getGeometry());
       log.info("pickObject()  picked:" + picked);
       if (picked != null) {
-        Long oid = picked.getUserData("oid");
-        EntityId entityId = new EntityId(oid);
 
         Vector3f cp = cr.getContactPoint();
-
         log.info("pickObject() cp:" + cp);
 
         // We will certainly have to change this once we sort out
@@ -194,6 +221,8 @@ public class ModelViewState extends BaseAppState {
         // Just for testing the location
         addTestObject(loc, 0.01f);
 
+        Long oid = picked.getUserData("oid");
+        EntityId entityId = new EntityId(oid);
         return new PickedObject(entityId, new Vec3d(loc));
       }
     }
@@ -262,7 +291,7 @@ public class ModelViewState extends BaseAppState {
     resetModelFilter();
   }
 
-  private void initializeFactoryRegistry(){
+  private void initializeFactoryRegistry() {
     shapeFactory = new ShapeFactoryRegistry<>();
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
@@ -304,8 +333,6 @@ public class ModelViewState extends BaseAppState {
     }
   }
 
-
-
   @Override
   protected void onEnable() {
     getRoot().attachChild(objectRoot);
@@ -316,16 +343,20 @@ public class ModelViewState extends BaseAppState {
 
   @Override
   public void update(float tpf) {
-    if (!avatarInitialized){
-      if (getState(GameSessionState.class).getAvatarEntityId() != EntityId.NULL_ID || getState(GameSessionState.class).getAvatarEntityId() != null){
-        this.avatarEntity = ed.watchEntity(getState(GameSessionState.class).getAvatarEntityId(), Player.class, Frequency.class);
-        if (avatarEntity != null){
+    if (!avatarInitialized) {
+      if (getState(GameSessionState.class).getAvatarEntityId() != EntityId.NULL_ID
+          || getState(GameSessionState.class).getAvatarEntityId() != null) {
+        this.avatarEntity =
+            ed.watchEntity(
+                getState(GameSessionState.class).getAvatarEntityId(),
+                Player.class,
+                Frequency.class);
+        if (avatarEntity != null) {
           avatarInitialized = true;
           avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
         }
       }
     }
-
 
     // log.info("update");
     updateCenter(worldView.getViewLocation());
@@ -358,21 +389,30 @@ public class ModelViewState extends BaseAppState {
       spatialCount.setObject(String.valueOf(modelIndex.size()));
     }
 
-    if (avatarEntity.applyChanges()){
+    // If our ship changes frequency, update all the flag materials
+    if (avatarEntity.applyChanges()) {
       avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
       updateFlagMaterials(avatarFrequency);
     }
 
+    // If any flags change frequency, update their materials (we could be more efficient here by
+    // only updating the ones that changed)
     if (flags.applyChanges()) {
       updateFlagMaterials(avatarFrequency);
     }
   }
 
-  private void updateFlagMaterials(int frequency) {
+  private void updateFlagMaterials(int shipFrequency) {
     for (Entity flagEntity : flags) {
-      Frequency flagfrequency = flagEntity.get(Frequency.class);
-      SImodelFactory.setFlagMaterialVariables(getModelSpatial(flagEntity.getId(), true), flagfrequency.getFrequency() == frequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
+      updateSingleFlagMaterial(shipFrequency, flagEntity);
     }
+  }
+
+  private void updateSingleFlagMaterial(int shipFrequency, Entity flagEntity) {
+    Frequency flagfrequency = flags.getEntity(flagEntity.getId()).get(Frequency.class);
+    SImodelFactory.setFlagMaterialVariables(
+        getModelSpatial(flagEntity.getId(), true),
+        flagfrequency.getFrequency() == shipFrequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
   }
 
   @Override
@@ -744,11 +784,19 @@ public class ModelViewState extends BaseAppState {
     this.avatarRot.set(rot);
   }
 
-  public Spatial getModelSpatial(final EntityId eId, final boolean throwNotExists) {
-    if (throwNotExists && !modelIndex.containsKey(eId)) {
-      throw new NoSuchElementException("Entity " + eId + " does not have a spatial");
+  /**
+   * Returns the spatial for the specified entity. If the entity does not have a spatial and the
+   * throwNotExists flag is true, a NoSuchElementException will be thrown.
+   *
+   * @param entityId The entity to retrieve the spatial for.
+   * @param throwNotExists If true, a NoSuchElementException will be thrown if the entity does not
+   * @return The spatial for the specified entity.
+   */
+  public Spatial getModelSpatial(final EntityId entityId, final boolean throwNotExists) {
+    if (throwNotExists && !modelIndex.containsKey(entityId)) {
+      throw new NoSuchElementException("Entity " + entityId + " does not have a spatial");
     }
-    return modelIndex.get(eId).spatial;
+    return modelIndex.get(entityId).spatial;
   }
 
   public Vector3f getAvatarLoc() {
@@ -978,15 +1026,16 @@ public class ModelViewState extends BaseAppState {
 
         //log.info("Body[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
         //if( entity.getId().getId() == 7 || entity.getId().getId() == 6 ) {
-                                log.info("Body[" + entity.getId() + "] world position:" + model.spatial.getWorldTranslation()+", centerCellWorld = "+centerCellWorld);
+        log.info("Body[" + entity.getId() + "] world position:" +
+        model.spatial.getWorldTranslation()+", centerCellWorld = "+centerCellWorld);
         //    log.info("**** setVisible(" + trans.getVisibility(time) + ")");
         //}
 
-                                avatarEnabled = true;
-                                //We need the world location to make sure we move the view accordingly
-                                setAvatarLoc(model.spatial.getWorldTranslation());
-                            }
-                        }
+                avatarEnabled = true;
+                //We need the world location to make sure we move the view accordingly
+                setAvatarLoc(model.spatial.getWorldTranslation());
+            }
+        }
         */
         // See if it's connected to a parent
         EntityId parentId = trans.getParentId(time, true);
@@ -1110,6 +1159,11 @@ public class ModelViewState extends BaseAppState {
     protected void updateObject(Model object, Entity e) {
       object.setShape(e.get(ShapeInfo.class));
       object.setPosition(e.get(SpawnPosition.class));
+
+      // Check if the entity is a flag and if so, update the flagmaterials
+      if (flags.containsId(e.getId())) {
+        updateSingleFlagMaterial(avatarFrequency, e);
+      }
     }
 
     protected void removeObject(Model object, Entity e) {
