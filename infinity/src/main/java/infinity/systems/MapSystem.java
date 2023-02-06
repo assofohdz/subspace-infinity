@@ -427,7 +427,7 @@ public class MapSystem extends AbstractGameSystem {
           switch (s) {
               // turf flag
             case 170:
-              GameEntities.createCaptureTheFlag(ed, null, physicsSpace, time.getTime(), location);
+              GameEntities.createTurfStationaryFlag(ed, null, physicsSpace, time.getTime(), location.add(0.5, 0, 0.5));
               break;
               // small asteroid
             case 216:

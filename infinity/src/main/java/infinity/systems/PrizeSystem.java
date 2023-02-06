@@ -428,15 +428,16 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   public void newContact(Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
-    EntityId idOne = body1.id;
-    EntityId idTwo = body2.id;
+
 
     if (body2 instanceof RigidBody) {
-      // If one of the bodies is a ship and the other is a prize
+      EntityId idOne = body1.id;
+      EntityId idTwo = body2.id;
 
       EntityId prizeId = EntityId.NULL_ID;
       EntityId shipId = EntityId.NULL_ID;
 
+      // If one of the bodies is a ship and the other is a prize
       if (prizes.containsId(idTwo) && ships.containsId(idOne)) {
         prizeId = idTwo;
         shipId = idOne;

@@ -33,6 +33,9 @@ import com.simsilica.es.EntityComponent;
  */
 public class Flag implements EntityComponent {
 
+    public static final int FLAG_THEIRS = 1;
+    public static final int FLAG_OURS = 0;
+
     public Flag() {
     }
 

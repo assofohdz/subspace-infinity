@@ -37,12 +37,6 @@ package infinity.client;
 
 import com.jme3.math.ColorRGBA;
 import com.simsilica.ethereal.TimeSource;
-import com.simsilica.ext.mphys.MPhysSystem;
-import com.simsilica.ext.mphys.debug.BinStatusState;
-import com.simsilica.ext.mphys.debug.BodyDebugState;
-import com.simsilica.ext.mphys.debug.ContactDebugState;
-import com.simsilica.mathd.Grid;
-import com.simsilica.mphys.PhysicsSpace;
 import infinity.*;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
@@ -72,6 +66,7 @@ public class GameSessionState extends CompositeAppState {
   static Logger log = LoggerFactory.getLogger(GameSessionState.class);
   private boolean hostIsLocal;
   private TimeSource timeSource;
+  private EntityId avatarEntityId;
 
   // private final boolean hostIsLocal = false;
 
@@ -96,7 +91,7 @@ public class GameSessionState extends CompositeAppState {
 
   @Override
   protected void initialize(final Application app) {
-    final EntityId avatar =
+    avatarEntityId =
         getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
     // See if this is local host mode. This stuff should maybe be moved
     // to its own debug manager state.
@@ -110,10 +105,10 @@ public class GameSessionState extends CompositeAppState {
 
     getState(TimeState.class).setTimeSource(this.timeSource);
 
-    InfinityCameraState cameraState = new InfinityCameraState(avatar, timeSource);
+    InfinityCameraState cameraState = new InfinityCameraState(avatarEntityId, timeSource);
     addChild(cameraState);
 
-    getState(AvatarMovementState.class).setAvatarEntityId(avatar);
+    getState(AvatarMovementState.class).setAvatarEntityId(avatarEntityId);
 
     getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
   }
@@ -129,4 +124,9 @@ public class GameSessionState extends CompositeAppState {
 
   @Override
   protected void onDisable() {}
+
+  //A method to get the avatar entity id
+  public EntityId getAvatarEntityId() {
+    return avatarEntityId;
+  }
 }

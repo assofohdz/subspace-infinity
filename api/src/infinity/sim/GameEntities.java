@@ -360,7 +360,7 @@ public class GameEntities {
 
   public static EntityId createWarpEffect(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
+      final EntityId parent,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
@@ -377,12 +377,26 @@ public class GameEntities {
             createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)));
     ed.setComponent(lastWarpTo, new Meta(createdTime));
 
+    if (parent != null) {
+      ed.setComponent(lastWarpTo, new Parent(parent));
+    }
+
     return lastWarpTo;
   }
 
-  public static EntityId createCaptureTheFlag(
+  /**
+   * Creates a flag that is stationary and can be picked up by a player. This is
+   * used for the initial flag placement. To start off with, the flag does not have a frequency.
+   * @param ed the entitydata set to create the entity in
+   * @param parent the parent of the flag
+   * @param phys the physics space
+   * @param createdTime the time the flag was created
+   * @param pos the position of the flag
+   * @return the entityid of the created entity
+   */
+  public static EntityId createTurfStationaryFlag(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
+      final EntityId parent,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos) {
@@ -390,18 +404,23 @@ public class GameEntities {
 
     ed.setComponents(
         lastFlag,
-        ShapeInfo.create(ShapeNames.FLAG_OURS, CorePhysicsConstants.FLAGSIZERADIUS, ed),
-        new SpawnPosition(phys.getGrid(), pos),
-        new Flag(),
-        new Frequency(0));
+        ShapeInfo.create(ShapeNames.FLAG, CorePhysicsConstants.FLAGSIZERADIUS, ed),
+        new SpawnPosition(phys.getGrid(), pos.add(0.5,0,0.5)),
+        new Flag());
     ed.setComponent(lastFlag, new Meta(createdTime));
+    ed.setComponent(lastFlag, new Mass(0));
+    ed.setComponent(lastFlag, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_SENSOR_FLAGS));
+
+    if (parent != null) {
+      ed.setComponent(lastFlag, new Parent(parent));
+    }
 
     return lastFlag;
   }
 
   public static EntityId createHealthBuff(
       final EntityData ed,
-      final EntityId owner,
+      final EntityId parent,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final int healthChange,
@@ -414,6 +433,10 @@ public class GameEntities {
         new HealthChange(healthChange), // apply the damage
         new Buff(target, 0)); // apply right away
     ed.setComponent(lastHealthBuff, new Meta(createdTime));
+
+    if (parent != null) {
+      ed.setComponent(lastHealthBuff, new Parent(parent));
+    }
 
     return lastHealthBuff;
   }
@@ -580,12 +603,8 @@ public class GameEntities {
 
     //Filter and mass goes hand in hand
     ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_PRIZES));
-    Mass m = new Mass(1);
-    ed.setComponent(result, m);
-
-    Gravity g = Gravity.ZERO;
-    ed.setComponent(result, g);
-
+    ed.setComponent(result, new Mass(1));
+    ed.setComponent(result, new Gravity(0));
     ed.setComponent(result, new Meta(createdTime));
     return result;
   }

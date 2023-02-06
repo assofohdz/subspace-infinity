@@ -36,6 +36,10 @@
 
 package infinity.client.states;
 
+import infinity.client.GameSessionState;
+import infinity.es.Flag;
+import infinity.es.Frequency;
+import infinity.es.ship.Player;
 import java.util.*;
 
 import infinity.InfinityConstants;
@@ -128,6 +132,10 @@ public class ModelViewState extends BaseAppState {
   private VersionedHolder<String> largeModelCount;
   private VersionedHolder<String> spatialCount;
   private BlockGeometryIndex geomIndex;
+  private EntitySet flags;
+  private int avatarFrequency;
+  private WatchedEntity avatarEntity;
+  private boolean avatarInitialized = false;
 
   public ModelViewState() {}
 
@@ -243,8 +251,18 @@ public class ModelViewState extends BaseAppState {
       spatialCount = debug.createDebugValue("Spatials", DebugHudState.Location.Right);
     }
 
-    // this.shapeFactory =
-    // (ShapeFactory<MBlockShape>)getState(GameSystemsState.class).get(ShapeFactory.class);
+    initializeFactoryRegistry();
+
+    this.flags = ed.getEntities(Flag.class, Frequency.class);
+
+    this.bodies = new BodyContainer(ed);
+    this.models = new ModelContainer(ed);
+    this.largeModels = new LargeModelContainer(ed);
+
+    resetModelFilter();
+  }
+
+  private void initializeFactoryRegistry(){
     shapeFactory = new ShapeFactoryRegistry<>();
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
@@ -274,27 +292,6 @@ public class ModelViewState extends BaseAppState {
     shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), new SphereFactory());
     shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), new SphereFactory());
     shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
-    /*
-    // Some test objects
-    //for( int i = 0; i < tests.length; i++ ) {
-    for( Vector4f coord : testCoords ) {
-        //float[] coord = testCoords[i];
-        Box box = new Box(coord.w, coord.w, coord.w);
-        Geometry geom = new Geometry("test", box);
-        geom.setMaterial(com.simsilica.lemur.GuiGlobals.getInstance().createMaterial(ColorRGBA.Blue, true).getMaterial());
-        geom.setLocalTranslation(coord.x + coord.w, coord.y + coord.w, coord.z + coord.w);
-        objectRoot.attachChild(geom);
-
-        //tests[i] = geom;
-        tests.add(geom);
-    }
-    */
-
-    this.bodies = new BodyContainer(ed);
-    this.models = new ModelContainer(ed);
-    this.largeModels = new LargeModelContainer(ed);
-
-    resetModelFilter();
   }
 
   @Override
@@ -307,6 +304,8 @@ public class ModelViewState extends BaseAppState {
     }
   }
 
+
+
   @Override
   protected void onEnable() {
     getRoot().attachChild(objectRoot);
@@ -317,6 +316,17 @@ public class ModelViewState extends BaseAppState {
 
   @Override
   public void update(float tpf) {
+    if (!avatarInitialized){
+      if (getState(GameSessionState.class).getAvatarEntityId() != EntityId.NULL_ID || getState(GameSessionState.class).getAvatarEntityId() != null){
+        this.avatarEntity = ed.watchEntity(getState(GameSessionState.class).getAvatarEntityId(), Player.class, Frequency.class);
+        if (avatarEntity != null){
+          avatarInitialized = true;
+          avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
+        }
+      }
+    }
+
+
     // log.info("update");
     updateCenter(worldView.getViewLocation());
     bodies.update();
@@ -346,6 +356,22 @@ public class ModelViewState extends BaseAppState {
       modelCount.setObject(String.valueOf(models.size()));
       largeModelCount.setObject(String.valueOf(largeModels.size()));
       spatialCount.setObject(String.valueOf(modelIndex.size()));
+    }
+
+    if (avatarEntity.applyChanges()){
+      avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
+      updateFlagMaterials(avatarFrequency);
+    }
+
+    if (flags.applyChanges()) {
+      updateFlagMaterials(avatarFrequency);
+    }
+  }
+
+  private void updateFlagMaterials(int frequency) {
+    for (Entity flagEntity : flags) {
+      Frequency flagfrequency = flagEntity.get(Frequency.class);
+      SImodelFactory.setFlagMaterialVariables(getModelSpatial(flagEntity.getId(), true), flagfrequency.getFrequency() == frequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
     }
   }
 
@@ -514,7 +540,8 @@ public class ModelViewState extends BaseAppState {
 
     String shapeName = shapeInfo.getShapeName(ed);
 
-    // Note 03-02-2023: We're not using the shape size yet on the view-side - and that's okay for now - because it
+    // Note 03-02-2023: We're not using the shape size yet on the view-side - and that's okay for
+    // now - because it
     // allows us to use the shape-size purely for the backend physics
     return SImodelFactory.createModel(shapeName);
 

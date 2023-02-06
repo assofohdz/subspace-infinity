@@ -23,12 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.client.states;
 
-import infinity.client.view.EffectFactory;
-import infinity.client.view.ShipLightControl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package infinity.client.states;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
@@ -44,18 +40,23 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.Timer;
 import com.jme3.util.BufferUtils;
-
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mblock.phys.MBlockShape;
-
+import infinity.client.view.EffectFactory;
+import infinity.client.view.ShipLightControl;
+import infinity.es.Flag;
 import infinity.es.ShapeNames;
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.sim.CoreViewConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * This class is responsible for creating the spatial representation of the game.
+ *
  * @author Asser
  */
 public class SISpatialFactory {
@@ -68,8 +69,8 @@ public class SISpatialFactory {
   // private MapState mapState;
   // private ModelViewState state;
   private final Node rootNode;
-  private EffectFactory ef;
   private final Timer timer;
+  private EffectFactory ef;
 
   SISpatialFactory(
       final EntityData ed, final Node rootNode, final AssetManager assets, final Timer timer) {
@@ -92,11 +93,15 @@ public class SISpatialFactory {
       throw new NullPointerException("Model shapeInfo name cannot be null or empty");
     }
 
-    final Spatial s = this.createModel(shapeName);
-
-    return s;
+    return this.createModel(shapeName);
   }
 
+  /**
+   * Create a spatial for the given shape name.
+   *
+   * @param shapeName The name of the shape to create
+   * @return The spatial
+   */
   public Spatial createModel(final String shapeName) {
 
     switch (shapeName) {
@@ -163,10 +168,8 @@ public class SISpatialFactory {
         return createShip(7);
       case ShapeNames.SHIP_SHARK:
         return createShip(3);
-      case ShapeNames.FLAG_OURS:
-        return createFlag(0);
-      case ShapeNames.FLAG_THEIRS:
-        return createFlag(1);
+      case ShapeNames.FLAG:
+        return createFlag(Flag.FLAG_THEIRS);
         /*
          * case "mob": return createMob(); case "tower": return createTower(); case
          * "base": return createBase();
@@ -233,6 +236,12 @@ public class SISpatialFactory {
     return geom;
   }
 
+  /**
+   * Creates a flag.
+   *
+   * @param flag 0 for enemy flag, 1 for team flag
+   * @return the spatial that is created to visualize the flag
+   */
   private Spatial createFlag(final int flag) {
     final Quad quad = new Quad(CoreViewConstants.FLAGSIZE, CoreViewConstants.FLAGSIZE);
     final float halfSize = CoreViewConstants.FLAGSIZE * 0.5f;
@@ -253,6 +262,12 @@ public class SISpatialFactory {
     return geom;
   }
 
+  /**
+   * Sets the material variables for the flag.
+   *
+   * @param s the spatial
+   * @param flag the flag, 0 for enemy flag, 1 for team flag
+   */
   public void setFlagMaterialVariables(final Spatial s, final int flag) {
     Geometry geom;
     if (s instanceof Geometry) {
@@ -295,6 +310,12 @@ public class SISpatialFactory {
     return geom;
   }
 
+  /**
+   * Set the material variables for the ship.
+   *
+   * @param s the spatial to set the material variables on
+   * @param ship the ship number
+   */
   public void setShipMaterialVariables(final Spatial s, final int ship) {
     Geometry geom;
     if (s instanceof Geometry) {
@@ -309,15 +330,15 @@ public class SISpatialFactory {
   }
 
   @SuppressWarnings("unused")
-  private Spatial createParticleEmitter(final EntityId eId, final String shapeName) {
+  private Spatial createParticleEmitter(final EntityId entityId, final String shapeName) {
     final Spatial result;
 
-      // Create a thrust ParticleEmitter
-      if (shapeName.equals("thrust")) {
-          result = createThrustEmitter();
-      } else {
-          result = null;
-      }
+    // Create a thrust ParticleEmitter
+    if (shapeName.equals("thrust")) {
+      result = createThrustEmitter();
+    } else {
+      result = null;
+    }
     return result;
   }
 
@@ -419,15 +440,15 @@ public class SISpatialFactory {
   }
 
   private Spatial createArena() {
-    final Quad quad = new Quad(1,1);
+    final Quad quad = new Quad(1, 1);
     final float halfSize = 1 * 0.5f;
     quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
     quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
     quad.updateBound();
 
     final Geometry geom = new Geometry("Arena", quad);
-    //geom.setCullHint(Spatial.CullHint.Always);
-    //geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+    // geom.setCullHint(Spatial.CullHint.Always);
+    // geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     // TODO: use a material with a texture, maybe something that creates a force field kind
     //  of look
     if (unshaded) {
@@ -437,7 +458,7 @@ public class SISpatialFactory {
     }
 
     // mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-    //geom.getMaterial().setTransparent(true);
+    // geom.getMaterial().setTransparent(true);
 
     geom.setUserData("arena", Boolean.TRUE);
 
@@ -655,18 +676,14 @@ public class SISpatialFactory {
    * This array is used to define the quad bounds in the right order. Its important relative to
    * where the camera is and what facing the camera has
    *
-   * @param halfSize
+   * @param halfSize the half size of the quad
    * @return array
    */
   private float[] getVertices(final float halfSize) {
-    final float[] res =
-        new float[] {
-          halfSize, 0, -halfSize,
-         -halfSize, 0, -halfSize,
-         -halfSize, 0,  halfSize,
-          halfSize, 0,  halfSize
+    return new float[] {
+          halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize, halfSize, 0,
+          halfSize
         };
-    return res;
   }
 
   /**

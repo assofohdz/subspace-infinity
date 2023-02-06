@@ -27,6 +27,7 @@ package infinity.client.states;
 
 import infinity.client.view.EffectFactory;
 import infinity.client.view.ShipLightControl;
+import infinity.es.Flag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,10 +163,8 @@ public class SIRadarSpatialFactory {
             return createShip(7);
         case ShapeNames.SHIP_SHARK:
             return createShip(3);
-        case ShapeNames.FLAG_OURS:
-            return createFlag(0);
-        case ShapeNames.FLAG_THEIRS:
-            return createFlag(1);
+        case ShapeNames.FLAG:
+            return createFlag(Flag.FLAG_THEIRS);
         /*
          * case "mob": return createMob(); case "tower": return createTower(); case
          * "base": return createBase();

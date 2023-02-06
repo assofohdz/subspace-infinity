@@ -59,7 +59,6 @@ import com.simsilica.ethereal.NetworkStateListener;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
 import com.simsilica.ext.mblock.SphereFactory;
-import com.simsilica.ext.mphys.EntityBodyFactory;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeFactory;
@@ -93,6 +92,7 @@ import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.input.MovementInput;
+import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CubeFactory;
@@ -103,6 +103,7 @@ import infinity.systems.ArenaSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.EnergySystem;
+import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
@@ -306,6 +307,9 @@ public class GameServer {
         ShapeInfo.create(ShapeNames.WORMHOLE, CorePhysicsConstants.WORMHOLESIZERADIUS, ed), sphereFac);
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.WARP, CorePhysicsConstants.WORMHOLESIZERADIUS, ed), sphereFac);
+    shapeFactory.registerFactory(
+        ShapeInfo.create(ShapeNames.FLAG, CorePhysicsConstants.FLAGSIZERADIUS, ed), sphereFac);
+
     shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.ARENA, 1024, ed), new CubeFactory(ed));
 
     shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
@@ -360,10 +364,13 @@ public class GameServer {
     systems.register(AdaptiveLoadingService.class, adaptiveLoader);
 
     systems.register(SettingsSystem.class, new SettingsSystem());
-
     systems.register(MapSystem.class, new MapSystem());
-
     systems.register(WarpSystem.class, new WarpSystem());
+    systems.register(FrequencySystem.class, new FrequencySystem());
+
+
+
+    systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--
 
     // The physics system will need some way to load physics collision shapes
@@ -389,7 +396,6 @@ public class GameServer {
     // });
     // systems.register(BulletSystem.class, bullet);
     // systems.register(Names.class, new DefaultNames());
-    // systems.register(BasicEnvironment.class, new BasicEnvironment());
     // systems.register(GameEntities.class, new GameEntities());
     // systems.register(MovementSystem.class, new MovementSystem());
     // systems.register(BehaviorSystem.class, new BehaviorSystem());
@@ -517,6 +523,7 @@ public class GameServer {
     Serializer.registerClass(TileType.class, new FieldSerializer());
     Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
     Serializer.registerClass(Decay.class, new FieldSerializer());
+    Serializer.registerClass(Player.class, new FieldSerializer());
 
     // Serializer.registerClass(LeafId.class, new FieldSerializer());
 
