@@ -21,7 +21,6 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.CollisionCategory;
-import infinity.es.Ghost;
 import infinity.es.Parent;
 import infinity.sim.CategoryFilter;
 import infinity.sim.util.InfinityRunTimeException;
@@ -66,12 +65,6 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
         return;
       }
 
-      if (ghostContact(one, two)) {
-        log.debug("Disabling contact because one or two is a ghost: for contact" + contact);
-        contact.disable();
-        return;
-      }
-
       // log.debug("Collision between: " + bodyOne + " and " + bodyTwo);
 
     } else {
@@ -100,12 +93,6 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       return filterTwo.isAllowed(filterOne);
     }
     return false;
-  }
-
-  private boolean ghostContact(EntityId one, EntityId two) {
-    final Ghost ghostOne = ed.getComponent(one, Ghost.class);
-    final Ghost ghostTwo = ed.getComponent(two, Ghost.class);
-    return ghostOne != null || ghostTwo != null;
   }
 
   private boolean parentChildContact(EntityId one, EntityId two) {

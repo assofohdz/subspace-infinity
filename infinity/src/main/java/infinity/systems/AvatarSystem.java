@@ -140,7 +140,7 @@ public class AvatarSystem extends AbstractGameSystem {
     public void requestShipChange(final EntityId shipEntity, final byte shipType) {
         // TODO: Check for energy (full energy to switch ships)
 
-        final int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFreq();
+        final int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFrequency();
 
         final ShipRestrictor restrictor = getRestrictor(freq);
 
@@ -198,7 +198,7 @@ public class AvatarSystem extends AbstractGameSystem {
     public int getFrequency(final EntityId entityId) {
         final Frequency freq = ed.getComponent(entityId, Frequency.class);
 
-        return freq.getFreq();
+        return freq.getFrequency();
     }
 
     /**
