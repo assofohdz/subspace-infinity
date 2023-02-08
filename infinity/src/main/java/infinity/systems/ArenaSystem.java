@@ -165,9 +165,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   protected void terminate() {
-    // Release the entity set we grabbed previously
-    arenaEntities.release();
-    arenaEntities = null;
   }
 
   @Override
