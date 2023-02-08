@@ -4,10 +4,6 @@ These instructions assume you are using Windows 10. Java is cross-platform and S
 
 If you want to setup an IDE and be able to contribute to Subspace-Infinity, you should also follow the guide for [contributing](CONTRIBUTING.md).
 
-## Current Build Status
-
-[![Build Status](https://travis-ci.org/assofohdz/Subspace-Infinity.svg?branch=master)](https://travis-ci.org/assofohdz/Subspace-Infinity)
-
 ## Building
 1. Launch [PowerShell](https://docs.microsoft.com/en-us/PowerShell/scripting/windows-PowerShell/install/installing-windows-PowerShell?view=PowerShell-7) as Administrator, or use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701) run as Administrator.
 1. Install [Chocolatey](https://chocolatey.org/install)
