@@ -93,7 +93,7 @@ public class MapSystem extends AbstractGameSystem {
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private SimTime time;
-  //private EntitySet tileTypes;
+  // private EntitySet tileTypes;
   private AssetLoaderService assetLoader;
   private LinkedList<MapTileCallable> mapTileQueue;
   private World world;
@@ -109,6 +109,10 @@ public class MapSystem extends AbstractGameSystem {
     @SuppressWarnings("unchecked")
     final MPhysSystem<MBlockShape> result = (MPhysSystem<MBlockShape>) s;
     return result;
+  }
+
+  public void setCell(Vec3d pos, int type){
+    world.setWorldCell(pos, type);
   }
 
   // int[][] multD = new int[5][];
@@ -160,7 +164,8 @@ public class MapSystem extends AbstractGameSystem {
         unloadMap,
         "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, (id, id2, map) -> unloadMap(id, id2,  map)));
+        new CommandTriConsumer(
+            AccessLevel.PLAYER_LEVEL, (id, id2, map) -> unloadMap(id, id2, map)));
   }
 
   /**
@@ -306,7 +311,7 @@ public class MapSystem extends AbstractGameSystem {
         // I'd like a small part of the corners of the map to be cleared so we can move in and out
         // of arenas
         if ((xpos == 0 || xpos == 1 || xpos == 2) && (zpos == 0 || zpos == 1 || zpos == 2)) {
-          //s = 0;
+          // s = 0;
           y = 5;
         } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
             && (zpos == 0 || zpos == 1 || zpos == 2)) {
@@ -327,145 +332,186 @@ public class MapSystem extends AbstractGameSystem {
 
         if (s != 0) {
           // TODO: Check on the short and only create the map tiles, not the extras
-          // (asteroids, wormholes etc.)
           /*
-           * TILE STATUS Row 2, tile 1 - Border tile Row 9, tile 10 - Vertical warpgate
-           * (Mostly open) Row 9, tile 11 - Vertical warpgate (Frequently open) Row 9,
-           * tile 12 - Vertical warpgate (Frequently closed) Row 9, tile 13 - Vertical
-           * warpgate (Mostly closed) Row 9, tile 14 - Horizontal warpgate (Mostly open)
-           * Row 9, tile 15 - Horizontal warpgate (Frequently open) Row 9, tile 16 -
-           * Horizontal warpgate (Frequently closed) Row 9, tile 17 - Horizontal warpgate
-           * (Mostly closed) 170 DONE Row 9, tile 18 - Flag for turf Row 9, tile 19 -
-           * Safezone Row 10, tile 1 - Soccer goal (leave blank if you want) Row 10, tile
-           * 2 - Flyover tile Row 10, tile 3 - Flyover tile Row 10, tile 4 - Flyover tile
-           * Row 10, tile 5 - Flyunder (opaque) tile Row 10, tile 6 - Flyunder (opaque)
-           * tile Row 10, tile 7 - Flyunder (opaque) tile Row 10, tile 8 - Flyunder
-           * (opaque) tile Row 10, tile 9 - Flyunder (opaque) tile Row 10, tile 10 -
-           * Flunder (opaque) tile Row 10, tile 11 - Flyunder (opaque) tile Row 10, tile
-           * 12 - Flyunder (opaque) tile Row 10, tile 13 - Flyunder (black = transparent)
-           * tile Row 10, tile 14 - Flyunder (black = transparent) tile Row 10, tile 15 -
-           * Flyunder (black = transparent) tile Row 10, tile 16 - Flyunder (black =
-           * transparent) tile Row 10, tile 17 - Flyunder (black = transparent) tile Row
-           * 10, tile 18 - Flyunder (black = transparent) tile Row 10, tile 19 - Flyunder
-           * (black = transparent) tile
-           *
-           * /* VIE tile constants.
-           *
-           * public static final char vieNoTile = 0;
-           *
-           * public static final char vieNormalStart = 1; public static final char
-           * vieBorder = 20; // Borders are not included in the .lvl files public static
-           * final char vieNormalEnd = 161; // Tiles up to this point are part of sec.chk
-           *
-           * public static final char vieVDoorStart = 162; public static final char
-           * vieVDoorEnd = 165;
-           *
-           * public static final char vieHDoorStart = 166; public static final char
-           * vieHDoorEnd = 169;
-           *
-           * public static final char vieTurfFlag = 170;
-           *
-           * public static final char vieSafeZone = 171; // Also included in sec.chk
-           *
-           * public static final char vieGoalArea = 172;
-           *
-           * public static final char vieFlyOverStart = 173; public static final char
-           * vieFlyOverEnd = 175; public static final char vieFlyUnderStart = 176; public
-           * static final char vieFlyUnderEnd = 190;
-           *
-           * public static final char vieAsteroidStart = 216; public static final char
-           * vieAsteroidEnd = 218;
-           *
-           * public static final char vieStation = 219;
-           *
-           * public static final char vieWormhole = 220;
-           *
-           * public static final char ssbTeamBrick = 221; // These are internal public
-           * static final char ssbEnemyBrick = 222;
-           *
-           * public static final char ssbTeamGoal = 223; public static final char
-           * ssbEnemyGoal = 224;
-           *
-           * public static final char ssbTeamFlag = 225; public static final char
-           * ssbEnemyFlag = 226;
-           *
-           * public static final char ssbPrize = 227;
-           *
-           * public static final char ssbBorder = 228; // Use ssbBorder instead of
-           * vieBorder to fill border
-           *
-           * 20: Border 162: Door Horizontal 1 163: Door Horizontal 2 164: Door Horizontal
-           * 3 165: Door Horizontal 4 166: Door Vertical 1 167: Door Vertical 2 168: Door
-           * Vertical 3 169: Door Vertical 4 170: flag 171: safe 172: goal 173: fly over 1
-           * 174: fly over 2 175: fly over 3 176: fly Under 1 177: fly Under 2 178: fly
-           * Under 3 179: fly Under 4 180: fly Under 5 181: fly Under 6 182: fly Under 7
-           * 183: fly Under 8 184: fly Under 9 185: fly Under 10 186: fly Under 11 187:
-           * fly Under 12 188: fly Under 13 189: fly Under 14 190: fly Under 15 191:
-           * invisible, Ships go through, items bounce off, Thors go through if you fire
-           * an item while in it, it will float suspended in space. 192: invisible 193:
-           * invisible 194: invisible 195: invisible 196: invisible 197: invisible 198:
-           * invisible 199: invisible 200: invisible 201: invisible 202: invisible 203:
-           * invisible 204: invisible 205: invisible 206: invisible 207: invisible 216:
-           * small Asteroid 217: large Asteroid 218: small Asteroid 2 219: space Station
-           * 220: wormhole 240: invisible 241: absorbs weapons, invisible 242: warp on
-           * contact, not on radar, invisible 242: not on radar, invisible 243: not on
-           * radar, invisible 244: not on radar, invisible 245: not on radar, invisible
-           * 246: not on radar, invisible 247: not on radar, invisible 248: not on radar,
-           * invisible 249: not on radar, invisible 250: not on radar, invisible 251:
-           * invisible, not on radar, warps ship on contact, items bounce off, thors
-           * dissappear 252: animated enemy brick, visible, not on radar. Items go
-           * through, ship gets warped after 0-2 seconds 253: animated team brick.
-           * Visible, invisible on radar. Items and ship go through. 254: invisible, not
-           * on radar. Impossible to lay bricks while on/near it. 255: animated green.
-           * visible, not on radar. Items and ship go through.
-           *
-           */
+          TILE STATUS
+          Row 2, tile 1 - Border tile
+          Row 9, tile 10 - Vertical warpgate (Mostly open)
+          Row 9, tile 11 - Vertical warpgate (Frequently open)
+          Row 9, tile 12 - Vertical warpgate (Frequently closed)
+          Row 9, tile 13 - Vertical warpgate (Mostly closed)
+          Row 9, tile 14 - Horizontal warpgate (Mostly open)
+          Row 9, tile 15 - Horizontal warpgate (Frequently open)
+          Row 9, tile 16 - Horizontal warpgate (Frequently closed)
+          Row 9, tile 17 - Horizontal warpgate (Mostly closed)
+          Row 9, tile 18 - Flag for turf [DONE]
+          Row 9, tile 19 - Safezone
+          Row 10, tile 1 - Soccer goal (leave blank if you want)
+          Row 10, tile 2 - Flyover tile
+          Row 10, tile 3 - Flyover tile
+          Row 10, tile 4 - Flyover tile
+          Row 10, tile 5 - Flyunder (opaque) tile
+          Row 10, tile 6 - Flyunder (opaque) tile
+          Row 10, tile 7 - Flyunder (opaque) tile
+          Row 10, tile 8 - Flyunder (opaque) tile
+          Row 10, tile 9 - Flyunder (opaque) tile
+          Row 10, tile 10 - Flunder (opaque) tile
+          Row 10, tile 11 - Flyunder (opaque) tile
+          Row 10, tile 12 - Flyunder (opaque) tile
+          Row 10, tile 13 - Flyunder (black = transparent) tile
+          Row 10, tile 14 - Flyunder (black = transparent) tile
+          Row 10, tile 15 - Flyunder (black = transparent) tile
+          Row 10, tile 16 - Flyunder (black = transparent) tile
+          Row 10, tile 17 - Flyunder (black = transparent) tile
+          Row 10, tile 18 - Flyunder (black = transparent) tile
+          Row 10, tile 19 - Flyunder (black = transparent) tile
+                     *
+                     */
+          /* VIE tile constants.
+                     *
+          public static final char vieNoTile = 0;
+          public static final char vieNormalStart = 1;
+          public static final char vieBorder = 20; // Borders are not included in the .lvl files
+          public static final char vieNormalEnd = 161; // Tiles up to this point are part of sec.chk
+          public static final char vieVDoorStart = 162;
+          public static final char vieVDoorEnd = 165;
+          public static final char vieHDoorStart = 166;
+          public static final char vieHDoorEnd = 169;
+          public static final char vieTurfFlag = 170; [DONE]
+          public static final char vieSafeZone = 171; // Also included in sec.chk
+          public static final char vieGoalArea = 172;
+          public static final char vieFlyOverStart = 173;
+          public static final char vieFlyOverEnd = 175;
+          public static final char vieFlyUnderStart = 176;
+          public static final char vieFlyUnderEnd = 190;
+          public static final char vieAsteroidStart = 216;
+          public static final char vieAsteroidEnd = 218;
+          public static final char vieStation = 219;
+          public static final char vieWormhole = 220;
+          public static final char ssbTeamBrick = 221; // These are internal
+          public static final char ssbEnemyBrick = 222;
+          public static final char ssbTeamGoal = 223;
+          public static final char ssbEnemyGoal = 224;
+          public static final char ssbTeamFlag = 225;
+          public static final char ssbEnemyFlag = 226;
+          public static final char ssbPrize = 227;
+          public static final char ssbBorder = 228; // Use ssbBorder instead of vieBorder to fill border
+                     *
+          20: Border
+          162: Door Horizontal 1
+          163: Door Horizontal 2
+          164: Door Horizontal 3
+          165: Door Horizontal 4
+          166: Door Vertical 1
+          167: Door Vertical 2
+          168: Door Vertical 3
+          169: Door Vertical 4
+          170: flag [DONE]
+          171: safe
+          172: goal
+          173: fly over 1
+          174: fly over 2
+          175: fly over 3
+          176: fly Under 1
+          177: fly Under 2
+          178: fly Under 3
+          179: fly Under 4
+          180: fly Under 5
+          181: fly Under 6
+          182: fly Under 7
+          183: fly Under 8
+          184: fly Under 9
+          185: fly Under 10
+          186: fly Under 11
+          187: fly Under 12
+          188: fly Under 13
+          189: fly Under 14
+          190: fly Under 15
+          191: invisible, Ships go through, items bounce off, Thors go through if you fire an item while in it, it will float suspended in space.
+          192: invisible
+          193: invisible
+          194: invisible
+          195: invisible
+          196: invisible
+          197: invisible
+          198: invisible
+          199: invisible
+          200: invisible
+          201: invisible
+          202: invisible
+          203: invisible
+          204: invisible
+          205: invisible
+          206: invisible
+          207: invisible
+          216: small Asteroid
+          217: large Asteroid
+          218: small Asteroid 2
+          219: space Station
+          220: wormhole
+          240: invisible
+          241: absorbs weapons, invisible
+          242: warp on contact, not on radar, invisible
+          242: not on radar, invisible
+          243: not on radar, invisible
+          244: not on radar, invisible
+          245: not on radar, invisible
+          246: not on radar, invisible
+          247: not on radar, invisible
+          248: not on radar, invisible
+          249: not on radar, invisible
+          250: not on radar, invisible
+          251: invisible, not on radar, warps ship on contact, items bounce off, thors  dissappear
+          252: animated enemy brick, visible, not on radar. Items go through, ship gets warped after 0-2 seconds
+          253: animated team brick. Visible, invisible on radar. Items and ship go through.
+          254: invisible, not on radar. Impossible to lay bricks while on/near it.
+          255: animated green. visible, not on radar. Items and ship go through.
+                     *
+                     */
 
           final Vec3d location = new Vec3d(xpos, y, zpos).add(arenaOffset);
           coordinates.add(location);
           // TODO: add more special cases here:
           // TODO: Fetch settings for the given coordinates and create the right gravity
-          switch (s) {
-              // turf flag
-            case 170:
-              GameEntities.createTurfStationaryFlag(ed, null, physicsSpace, time.getTime(), location.add(0.5, 0, 0.5));
-              break;
-              // small asteroid
-            case 216:
-              GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
-              break;
-              // large asteroid
-            case 217:
-              GameEntities.createAsteroidMedium(
-                  ed, null, physicsSpace, time.getTime(), location, 0);
-              break;
-              // small Asteroid 2
-            case 218:
-              GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
-              break;
-              // wormhole
-            case 220:
-              GameEntities.createWormhole(
-                  ed,
-                  null,
-                  physicsSpace,
-                  time.getTime(),
-                  location,
-                  5000,
-                  GravityWell.PULL,
-                  new Vec3d(0, 0, 0),
-                  1);
-              break;
-            default:
-              // TODO: Translate mapId from a level name (see InfinityBlockGeometryIndex)
-              final int mapId = 20;
-              final int tileId = Short.toUnsignedInt(s);
-              tileSet.add(Integer.valueOf(tileId));
-
-              final int value = tileId | (mapId << 8);
-              world.setWorldCell(location, 10);
-              break;
+          if (s == MapTypes.vieBorder) {
+            world.setWorldCell(location, 10);
+          } else if (s == MapTypes.vieTurfFlag) {
+            GameEntities.createTurfStationaryFlag(
+                ed, null, physicsSpace, time.getTime(), location.add(0.5, 0, 0.5));
+            continue;
+          } else if (s == MapTypes.vieAsteroidSmall) {
+            GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
+            continue;
+          } else if (s == MapTypes.vieAsteroidMedium) {
+            GameEntities.createAsteroidMedium(ed, null, physicsSpace, time.getTime(), location, 0);
+            continue;
+          } else if (s == 218) {
+            GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
+            continue;
+          } else if (MapTypes.vieFlyOverStart <= s || s <= MapTypes.vieFlyOverEnd){
+            location.addLocal(0,-1,0);
+          } else if (MapTypes.vieFlyUnderStart <= s || s <= MapTypes.vieFlyUnderEnd){
+            location.addLocal(0,1,0);
+          } else if (s == MapTypes.vieWormhole) {
+            GameEntities.createWormhole(
+                ed,
+                null,
+                physicsSpace,
+                time.getTime(),
+                location,
+                5000,
+                GravityWell.PULL,
+                new Vec3d(0, 0, 0),
+                1);
+            continue;
           }
+
+          // TODO: Translate mapId from a level name (see InfinityBlockGeometryIndex)
+          final int mapId = 20;
+          final int tileId = Short.toUnsignedInt(s);
+          tileSet.add(Integer.valueOf(tileId));
+
+          final int value = tileId | (mapId << 8);
+          world.setWorldCell(location, 10);
 
           // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 

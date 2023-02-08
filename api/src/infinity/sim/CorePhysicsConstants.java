@@ -74,5 +74,7 @@ public class CorePhysicsConstants {
 
     // Map tiles
     public final static int MAPTILEWIDTH = 1, MAPTILEHEIGHT = 1;
+    public final static double DOORWIDTH = 1;
 
+    public static double ARENAWIDTH = 1024;
 }

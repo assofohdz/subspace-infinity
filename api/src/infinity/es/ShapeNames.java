@@ -56,4 +56,5 @@ public class ShapeNames {
   public static final String WARP = "warp";
   public static final String REPEL = "repel";
   public static final String FLAG = "flag";
+  public static final String DOOR = "door";
 }

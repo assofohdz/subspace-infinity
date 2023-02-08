@@ -60,7 +60,6 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       }
 
       if (parentChildContact(one, two)) {
-
         contact.disable();
         return;
       }
@@ -80,6 +79,15 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
     }
   }
 
+  /**
+   * This method checks if the two entities are allowed to collide based on their category filters.
+   * We only return false if the filters explicity disallow the collision. If the filters do not
+   * contain the entities, we return true.
+   *
+   * @param one The first entity
+   * @param two The second entity
+   * @return false if the filters disallow the collision, true otherwise
+   */
   private boolean categoryFilterAllowsContact(EntityId one, EntityId two) {
     if (categoryFilters.containsId(two) && categoryFilters.containsId(one)) {
       final CategoryFilter filterOne =
@@ -92,9 +100,17 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       }
       return filterTwo.isAllowed(filterOne);
     }
-    return false;
+    return true;
   }
 
+  /**
+   * This method checks if the two entities are parent and child of each other. If they are, we
+   * return true, otherwise false.
+   *
+   * @param one The first entity
+   * @param two The second entity
+   * @return true if the entities are parent and child of each other, false otherwise
+   */
   private boolean parentChildContact(EntityId one, EntityId two) {
     boolean res = false;
     final Parent parentOfOne = ed.getComponent(one, Parent.class);

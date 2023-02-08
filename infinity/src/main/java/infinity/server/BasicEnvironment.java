@@ -73,38 +73,54 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     this.time = getSystem(InfinityTimeSystem.class).getTime();
 
-    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
+    //    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
 
-    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1, -10));
+    //    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1,
+    // -10));
 
     // Create a square of turf flags 100x100 around x = 20, z = -20
-    for (int x = 20; x <= 30; x++) {
-      for (int z = -30; z <= -20; z++) {
-        GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(x, 1, z));
-      }
-    }
+    //    for (int x = 20; x <= 30; x++) {
+    //      for (int z = -30; z <= -20; z++) {
+    //        GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(x,
+    // 1, z));
+    //      }
+    //    }
 
-    GameEntities.createWormhole(
-        ed,
-        EntityId.NULL_ID,
-        phys,
-        time,
-        new Vec3d(-20, 1, -20),
-        1000,
-        GravityWell.PULL,
-        new Vec3d(-10,1,10),
-        10);
+    //    GameEntities.createWormhole(
+    //        ed,
+    //        EntityId.NULL_ID,
+    //        phys,
+    //        time,
+    //        new Vec3d(-20, 1, -20),
+    //        1000,
+    //        GravityWell.PULL,
+    //        new Vec3d(-10,1,10),
+    //        10);
 
+    //    GameEntities.createWeightedPrizeSpawner(
+    //        ed,
+    //        EntityId.NULL_ID,
+    //        phys,
+    //        time,
+    //        new Vec3d(-20, 1, -20),
+    //        5000,
+    //        true,
+    //        20);
 
-    GameEntities.createWeightedPrizeSpawner(
-        ed,
-        EntityId.NULL_ID,
-        phys,
-        time,
-        new Vec3d(-20, 1, -20),
-        5000,
-        true,
-        20);
+    long sysTime = System.currentTimeMillis();
+
+    //Note its important to create doors with the same starting time
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(1, 1, 0));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(2, 1, 0));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(3, 1, 0));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(4, 1, 0));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(5, 1, 0));
+
+    getSystem(MapSystem.class).setCell(new Vec3d(1,1,1), 10);
+    getSystem(MapSystem.class).setCell(new Vec3d(2,1,1), 10);
+    getSystem(MapSystem.class).setCell(new Vec3d(3,1,1), 10);
+    getSystem(MapSystem.class).setCell(new Vec3d(4,1,1), 10);
+    getSystem(MapSystem.class).setCell(new Vec3d(5,1,1), 10);
 
   }
 

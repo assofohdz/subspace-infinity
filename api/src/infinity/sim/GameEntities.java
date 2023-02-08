@@ -45,6 +45,7 @@ import infinity.es.Bounty;
 import infinity.es.Buff;
 import infinity.es.CollisionCategory;
 import infinity.es.Delay;
+import infinity.es.Door;
 import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.Gold;
@@ -253,9 +254,10 @@ public class GameEntities {
         new SpawnPosition(phys.getGrid(), pos),
         new GravityWell(scale, force, gravityType));
     ed.setComponent(lastWormhole, new Meta(createdTime));
-    ed.setComponent(lastWormhole, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
+    ed.setComponent(
+        lastWormhole, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
 
-    //Create a touch sensor for the wormhole that will warp the entities that touch it
+    // Create a touch sensor for the wormhole that will warp the entities that touch it
     final EntityId warpTouch = ed.createEntity();
     ed.setComponent(warpTouch, new WarpTouch(warpTargetLocation));
     ed.setComponent(warpTouch, new Parent(lastWormhole));
@@ -266,6 +268,27 @@ public class GameEntities {
     ed.setComponent(warpTouch, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_WORMHOLES));
 
     return lastWormhole;
+  }
+
+  public static EntityId createDoor(
+      final EntityData ed,
+      EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final long intervalTime,
+      final Vec3d pos) {
+    final EntityId lastDoor = ed.createEntity();
+    ed.setComponents(lastDoor, new SpawnPosition(phys.getGrid(), pos), new Mass(0), new Door());
+    ed.setComponent(lastDoor, new Meta(createdTime));
+    //If owner is not null, then this door is a child of the owner
+    if (owner != null) {
+      ed.setComponent(lastDoor, new Parent(owner));
+    }
+    ed.setComponent(lastDoor, ShapeInfo.create(ShapeNames.DOOR, CorePhysicsConstants.DOORWIDTH, ed));
+    ed.setComponent(lastDoor, new Door(createdTime, intervalTime, true));
+
+
+    return lastDoor;
   }
 
   /*
@@ -383,8 +406,9 @@ public class GameEntities {
   }
 
   /**
-   * Creates a flag that is stationary and can be picked up by a player. This is
-   * used for the initial flag placement. To start off with, the flag does not have a frequency.
+   * Creates a flag that is stationary and can be picked up by a player. This is used for the
+   * initial flag placement. To start off with, the flag does not have a frequency.
+   *
    * @param ed the entitydata set to create the entity in
    * @param parent the parent of the flag
    * @param phys the physics space
@@ -403,7 +427,7 @@ public class GameEntities {
     ed.setComponents(
         lastFlag,
         ShapeInfo.create(ShapeNames.FLAG, CorePhysicsConstants.FLAGSIZERADIUS, ed),
-        new SpawnPosition(phys.getGrid(), pos.add(0.5,0,0.5)),
+        new SpawnPosition(phys.getGrid(), pos.add(0.5, 0, 0.5)),
         new Flag());
     ed.setComponent(lastFlag, new Meta(createdTime));
     ed.setComponent(lastFlag, new Mass(0));
@@ -599,7 +623,7 @@ public class GameEntities {
                 + TimeUnit.NANOSECONDS.convert(
                     CoreGameConstants.PRIZEDECAY, TimeUnit.MILLISECONDS)));
 
-    //Filter and mass goes hand in hand
+    // Filter and mass goes hand in hand
     ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_PRIZES));
     ed.setComponent(result, new Mass(1));
     ed.setComponent(result, new Gravity(0));

@@ -63,5 +63,7 @@ public class CoreViewConstants {
   // LightSize radius
   public static final float SHIPLIGHTRADIUS = 500;
   public static final Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 5, 0);
+  public static float DOORSIZE = 1f;
+
   private CoreViewConstants() {}
 }

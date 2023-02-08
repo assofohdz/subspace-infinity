@@ -85,6 +85,7 @@ import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
 import infinity.es.ship.Player;
+import infinity.sim.CubeFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -182,7 +183,7 @@ public class ModelViewState extends BaseAppState {
 
   /**
    * Returns the picked object or null if nothing was picked.
-   * 
+   *
    * @return the picked object or null if nothing was picked.
    */
   public PickedObject pickObject() {
@@ -292,34 +293,39 @@ public class ModelViewState extends BaseAppState {
   }
 
   private void initializeFactoryRegistry() {
+    SphereFactory sphereFactory = new SphereFactory(ed);
+    CubeFactory cubeFactory = new CubeFactory(ed);
+    
     shapeFactory = new ShapeFactoryRegistry<>();
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed), sphereFactory);
     shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL1, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), new SphereFactory());
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), new SphereFactory());
+        ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL1, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.FLAG, 1, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.DOOR, 1, ed), cubeFactory);
     shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
   }
 

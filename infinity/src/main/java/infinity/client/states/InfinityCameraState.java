@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  */
 public class InfinityCameraState extends CameraState {
 
-  public static final float DISTANCETOPLANE = 100;
+  public static final float DISTANCETOPLANE = 75;
   static Logger log = LoggerFactory.getLogger(InfinityCameraState.class);
   private final TimeSource time;
   private GameSessionClientService session;
