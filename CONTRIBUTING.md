@@ -11,7 +11,7 @@ I am currently using IntelliJ IDEA to develop with the following plugins/extensi
 If you're looking to contribute and want to get a more thorough understand of the underlying frameworks, here's a small list to go through. Some parts can probably be skipped or skimmed pretty quickly if you're familiar with Java, with game development concept, with scene graphs etc.
 1. [JMonkeyEngine Docs](https://wiki.jmonkeyengine.org/docs/3.4/documentation.html) - Important! The scene graph engine used as client
 2. [SimEthereal](https://github.com/Simsilica/SimEthereal/wiki) - Provides the networking layer, can be skipped
-3. [SiO2](https://github.com/Simsilica/SiO2) - Provides some basic default game concept implementations, can be skipped
+3. [SiO2](https://github.com/Simsilica/SiO2) - Important! Provides the foundational GameLoop and GameSystemManager
 4. [Zay-ES](http://jmonkeyengine-contributions.github.io/zay-es/) - Important! The Entity System that Subspace Infinity builds on
 5. [Lemur](http://jmonkeyengine-contributions.github.io/Lemur/) - The GUI library
 
