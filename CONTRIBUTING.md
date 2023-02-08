@@ -15,6 +15,8 @@ If you're looking to contribute and want to get a more thorough understand of th
 4. [Zay-ES](http://jmonkeyengine-contributions.github.io/zay-es/)
 5. [Lemur](http://jmonkeyengine-contributions.github.io/Lemur/)
 
+Steps to set up development:
+
 1. Follow the steps in [BUILDING.md](BUILDING.md) to get Chocolatey, git, Open JDK, gradle, and clone and build the code.
 1. Launch [PowerShell](https://docs.microsoft.com/en-us/PowerShell/scripting/windows-PowerShell/install/installing-windows-PowerShell?view=PowerShell-7) as Administrator, or use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701) run as Administrator.
 1. Install Eclipse: `choco install eclipse-java-oxygen`
