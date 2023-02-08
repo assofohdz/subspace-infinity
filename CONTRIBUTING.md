@@ -2,7 +2,18 @@
 
 ## Setting up your Development Environment
 
-These instructions assume you are using Windows 10. Java is cross-platform and Subspace-Infinity should be able to build and work on any platform, but it has only been developed and tested on Windows 10. Please use the Eclipse IDE. Eclipse provides built-in code formatting and ensures code adheres to coding style guidelines. It also has built-in static code analysis (SCA) to help detect and prevent errors from being introduced into the product.
+These instructions assume you are using Windows 10. Java is cross-platform and Subspace-Infinity should be able to build and work on any platform, but it has only been developed and tested on Windows 10. 
+
+I am currently using IntelliJ IDEA to develop with the following plugins/extensions:
+1. Google Code Style
+2. SonarLint
+
+If you're looking to contribute and want to get a more thorough understand of the underlying frameworks, here's a small list to go through. Some parts can probably be skipped or skimmed pretty quickly if you're familiar with Java, with game development concept, with scene graphs etc.
+1. [JMonkeyEngine Docs](https://wiki.jmonkeyengine.org/docs/3.4/documentation.html)
+2. [SimEthereal](https://github.com/Simsilica/SimEthereal/wiki)
+3. [SiO2](https://github.com/Simsilica/SiO2)
+4. [Zay-ES](http://jmonkeyengine-contributions.github.io/zay-es/)
+5. [Lemur](http://jmonkeyengine-contributions.github.io/Lemur/)
 
 1. Follow the steps in [BUILDING.md](BUILDING.md) to get Chocolatey, git, Open JDK, gradle, and clone and build the code.
 1. Launch [PowerShell](https://docs.microsoft.com/en-us/PowerShell/scripting/windows-PowerShell/install/installing-windows-PowerShell?view=PowerShell-7) as Administrator, or use [Windows Terminal](https://www.microsoft.com/en-us/p/windows-terminal/9n0dx20hk701) run as Administrator.
