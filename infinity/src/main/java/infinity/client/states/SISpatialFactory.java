@@ -32,11 +32,14 @@ import com.jme3.effect.ParticleMesh;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.VertexBuffer.Type;
+import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.Timer;
 import com.jme3.util.BufferUtils;
@@ -44,6 +47,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.mblock.phys.MBlockShape;
 import infinity.client.view.EffectFactory;
 import infinity.client.view.ShipLightControl;
@@ -51,6 +55,8 @@ import infinity.es.Flag;
 import infinity.es.ShapeNames;
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.sim.CoreViewConstants;
+import java.nio.FloatBuffer;
+import jme3utilities.MyMesh;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,6 +176,8 @@ public class SISpatialFactory {
         return createShip(3);
       case ShapeNames.FLAG:
         return createFlag(Flag.FLAG_THEIRS);
+      case ShapeNames.DOOR:
+        return createDoor();
         /*
          * case "mob": return createMob(); case "tower": return createTower(); case
          * "base": return createBase();
@@ -179,12 +187,45 @@ public class SISpatialFactory {
     }
   }
 
+  /**
+   * Creates a cube spatial for the door entity.
+   * @return The spatial
+   */
+  private Spatial createDoor() {
+    Box box = new Box(CoreViewConstants.DOORSIZE, CoreViewConstants.DOORSIZE, CoreViewConstants.DOORSIZE); // create cube shape
+    //10-02-2023: Dont ask..I dont know enough about spatial translation and scaling to know why this works.
+    final float halfSize = CoreViewConstants.DOORSIZE * 0.5f;
+    final float quarterSize = CoreViewConstants.DOORSIZE * 0.25f;
+    MyMesh.translate(box, new Vector3f(halfSize,halfSize,halfSize));
+    MyMesh.scale(box, 0.5f);
+    MyMesh.translate(box, new Vector3f(quarterSize,quarterSize,quarterSize));
+    //MyMesh.centerBuffer(box, VertexBuffer.Type.Position);
+    //MyMesh.centerBuffer(box, Type.Normal);
+    //box.setBuffer(VertexBuffer.Type.Position, 3, getVerticesBox(halfSize));
+    //MyMesh.generateNormals(box);
+    //box.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    box.updateBound();
+    //MBox mb = new MBox(1,1,1,1,1,1);
+
+    Geometry geom = new Geometry("Door", box);  // create cube geometry from the shape
+    Material mat;
+    if (unshaded) {
+      mat = GuiGlobals.getInstance().createMaterial(ColorRGBA.Blue, false).getMaterial();
+    } else {
+      mat = GuiGlobals.getInstance().createMaterial(ColorRGBA.Blue, true).getMaterial();
+    }
+
+    geom.setMaterial(mat);                   // set the cube's material
+    //rootNode.attachChild(geom);
+    return geom;
+  }
+
   @SuppressWarnings("unused")
   private Spatial createBase() {
     final Quad quad = new Quad(CoreViewConstants.BASESIZE, CoreViewConstants.BASESIZE);
     final float halfSize = CoreViewConstants.BASESIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Base", quad);
 
@@ -202,8 +243,8 @@ public class SISpatialFactory {
   private Spatial createMob() {
     final Quad quad = new Quad(CoreViewConstants.MOBSIZE, CoreViewConstants.MOBSIZE);
     final float halfSize = CoreViewConstants.MOBSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Mob", quad);
 
@@ -221,8 +262,8 @@ public class SISpatialFactory {
   private Spatial createTower() {
     final Quad quad = new Quad(CoreViewConstants.TOWERSIZE, CoreViewConstants.TOWERSIZE);
     final float halfSize = CoreViewConstants.TOWERSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Tower", quad);
 
@@ -245,8 +286,8 @@ public class SISpatialFactory {
   private Spatial createFlag(final int flag) {
     final Quad quad = new Quad(CoreViewConstants.FLAGSIZE, CoreViewConstants.FLAGSIZE);
     final float halfSize = CoreViewConstants.FLAGSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Flag", quad);
 
@@ -285,8 +326,8 @@ public class SISpatialFactory {
     final Quad quad = new Quad(CoreViewConstants.SHIPSIZE, CoreViewConstants.SHIPSIZE);
     final float halfSize = CoreViewConstants.SHIPSIZE * 0.5f;
     quad.setBuffer(
-        VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(getVertices(halfSize)));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+        VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(getVerticesQuad(halfSize)));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Ship", quad);
 
@@ -363,8 +404,8 @@ public class SISpatialFactory {
   private Spatial createBomb(final BombLevelEnum level) {
     final Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
     final float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bomb", quad);
 
@@ -382,8 +423,8 @@ public class SISpatialFactory {
   private Spatial createBullet(final int offSet) {
     final Quad quad = new Quad(CoreViewConstants.BULLETSIZE, CoreViewConstants.BULLETSIZE);
     final float halfSize = CoreViewConstants.BULLETSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bullet", quad);
 
@@ -423,8 +464,8 @@ public class SISpatialFactory {
   private Spatial createBounty() {
     final Quad quad = new Quad(CoreViewConstants.PRIZESIZE, CoreViewConstants.PRIZESIZE);
     final float halfSize = CoreViewConstants.PRIZESIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bounty", quad);
 
@@ -442,8 +483,8 @@ public class SISpatialFactory {
   private Spatial createArena() {
     final Quad quad = new Quad(1, 1);
     final float halfSize = 1 * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
 
     final Geometry geom = new Geometry("Arena", quad);
@@ -469,9 +510,9 @@ public class SISpatialFactory {
    * private Spatial createMapTile(EntityId eId) { Quad quad = new
    * Quad(CoreViewConstants.MAPTILESIZE, CoreViewConstants.MAPTILESIZE); float
    * halfSize = CoreViewConstants.MAPTILESIZE * 0.5f;
-   * quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVertices(halfSize));
+   * quad.setBuffer(VertexBuffer.Type.Position, 3, this.getVerticesQuad(halfSize));
    * quad.setBuffer(VertexBuffer.Type.Normal, 3,
-   * BufferUtils.createFloatBuffer(getNormals())); quad.updateBound();
+   * BufferUtils.createFloatBuffer(getNormalsQuad())); quad.updateBound();
    *
    * Geometry geom = new Geometry("MapTile", quad);
    *
@@ -503,8 +544,8 @@ public class SISpatialFactory {
   private Spatial createExplosion2() {
     final Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
     final float halfSize = CoreViewConstants.EXPLOSION2SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bomb", quad);
 
@@ -523,8 +564,8 @@ public class SISpatialFactory {
   private Spatial createOver5() {
     final Quad quadOver5 = new Quad(CoreViewConstants.OVER5SIZE, CoreViewConstants.OVER5SIZE);
     final float halfSizeOver5 = CoreViewConstants.OVER5SIZE * 0.5f;
-    quadOver5.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSizeOver5));
-    quadOver5.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quadOver5.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSizeOver5));
+    quadOver5.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quadOver5.updateBound();
     final Geometry geomOver5 = new Geometry("Wormhole", quadOver5);
 
@@ -543,8 +584,8 @@ public class SISpatialFactory {
     final Quad quad = new Quad(CoreViewConstants.WORMHOLESIZE, CoreViewConstants.WORMHOLESIZE);
     // <-- Move into the material?
     final float halfSize = CoreViewConstants.WORMHOLESIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     // -->
     quad.updateBound();
     final Geometry geom = new Geometry("Wormhole", quad);
@@ -563,8 +604,8 @@ public class SISpatialFactory {
   private Spatial createOver1() {
     final Quad quad = new Quad(CoreViewConstants.OVER1SIZE, CoreViewConstants.OVER1SIZE);
     final float halfSize = CoreViewConstants.OVER1SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Over1", quad);
 
@@ -582,8 +623,8 @@ public class SISpatialFactory {
   private Spatial createOver2() {
     final Quad quad = new Quad(CoreViewConstants.OVER2SIZE, CoreViewConstants.OVER2SIZE);
     final float halfSize = CoreViewConstants.OVER2SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Over2", quad);
 
@@ -601,8 +642,8 @@ public class SISpatialFactory {
   private Spatial createWarp() {
     final Quad quad = new Quad(CoreViewConstants.WARPSIZE, CoreViewConstants.WARPSIZE);
     final float halfSize = CoreViewConstants.WARPSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Warp", quad);
 
@@ -620,8 +661,8 @@ public class SISpatialFactory {
   private Spatial createRepel() {
     final Quad quad = new Quad(CoreViewConstants.REPELSIZE, CoreViewConstants.REPELSIZE);
     final float halfSize = CoreViewConstants.REPELSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Repel", quad);
 
@@ -657,8 +698,8 @@ public class SISpatialFactory {
   private Spatial createBurst() {
     final Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
     final float halfSize = CoreViewConstants.BURSTSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormals()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Burst", quad);
 
@@ -679,11 +720,37 @@ public class SISpatialFactory {
    * @param halfSize the half size of the quad
    * @return array
    */
-  private float[] getVertices(final float halfSize) {
+  private float[] getVerticesQuad(final float halfSize) {
     return new float[] {
-          halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize, halfSize, 0,
-          halfSize
+          halfSize, 0,
+        -halfSize, -halfSize,
+        0, -halfSize,
+        -halfSize, 0,
+        halfSize, halfSize,
+        0, halfSize
         };
+  }
+
+  private FloatBuffer getVerticesBox(final float halfSize){
+    Vector3f[] vertices = new Vector3f[8];
+    vertices[0] = new Vector3f(0, 0, 0);
+    vertices[1] = new Vector3f(halfSize, 0, 0);
+    vertices[2] = new Vector3f(0, halfSize, 0);
+    vertices[3] = new Vector3f(halfSize, halfSize, 0);
+    vertices[4] = new Vector3f(0, 0, halfSize);
+    vertices[5] = new Vector3f(halfSize, 0, halfSize);
+    vertices[6] = new Vector3f(0, halfSize, halfSize);
+    vertices[7] = new Vector3f(halfSize, halfSize, halfSize);
+
+    return BufferUtils.createFloatBuffer(vertices);
+//      return new float[] {
+//           halfSize, 0,
+//          -halfSize, -halfSize,
+//           0,        -halfSize,
+//          -halfSize,  0,
+//           halfSize,  halfSize,
+//           0,         halfSize
+//        };
   }
 
   /**
@@ -692,7 +759,7 @@ public class SISpatialFactory {
    *
    * @return float array containing the right normals
    */
-  private float[] getNormals() {
+  private float[] getNormalsQuad() {
     float[] normals;
     normals = new float[] {0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
     return normals;

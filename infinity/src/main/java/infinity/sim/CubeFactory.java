@@ -10,6 +10,7 @@ import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.BodyMass;
+import infinity.es.ShapeNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +33,11 @@ public class CubeFactory implements ShapeFactory<MBlockShape> {
 
   @Override
   public MBlockShape createShape(ShapeInfo info, Mass mass) {
-    if (info.getShapeName(ed).equals("arena")) {
-      return this.createStaticGhostCube(info);
-    }
-    return this.createStaticPhysicalCube(info);
+    return MBlockShape.createCube(2);
+//    if (info.getShapeName(ed).equals(ShapeNames.DOOR)) {
+//      return this.createStaticGhostCube(info);
+//    }
+//    return this.createStaticPhysicalCube(info);
   }
 
   private MBlockShape createStaticGhostCube(ShapeInfo info) {

@@ -73,7 +73,10 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     this.time = getSystem(InfinityTimeSystem.class).getTime();
 
-    //    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
+    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
+    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench2.lvl");
+    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench3.lvl");
+    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench4.lvl");
 
     //    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1,
     // -10));
@@ -110,17 +113,32 @@ public class BasicEnvironment extends AbstractGameSystem {
     long sysTime = System.currentTimeMillis();
 
     //Note its important to create doors with the same starting time
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(0, 1, 0));
     GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(1, 1, 0));
     GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(2, 1, 0));
     GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(3, 1, 0));
     GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(4, 1, 0));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(5, 1, 0));
-
-    getSystem(MapSystem.class).setCell(new Vec3d(1,1,1), 10);
-    getSystem(MapSystem.class).setCell(new Vec3d(2,1,1), 10);
-    getSystem(MapSystem.class).setCell(new Vec3d(3,1,1), 10);
-    getSystem(MapSystem.class).setCell(new Vec3d(4,1,1), 10);
-    getSystem(MapSystem.class).setCell(new Vec3d(5,1,1), 10);
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(0, 1, 3));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(1, 1, 3));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(2, 1, 3));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(3, 1, 3));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(4, 1, 3));
+    getSystem(World.class).setWorldCell(new Vec3d(0, 1, -1), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(1, 1, -1), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(2, 1, -1), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(3, 1, -1), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(4, 1, -1), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(0, 1, 4), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(1, 1, 4), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(2, 1, 4), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(3, 1, 4), 10);
+    getSystem(World.class).setWorldCell(new Vec3d(4, 1, 4), 10);
+//
+//    getSystem(MapSystem.class).setCell(new Vec3d(1,1,1), 10);
+//    getSystem(MapSystem.class).setCell(new Vec3d(2,1,1), 10);
+//    getSystem(MapSystem.class).setCell(new Vec3d(3,1,1), 10);
+//    getSystem(MapSystem.class).setCell(new Vec3d(4,1,1), 10);
+//    getSystem(MapSystem.class).setCell(new Vec3d(5,1,1), 10);
 
   }
 

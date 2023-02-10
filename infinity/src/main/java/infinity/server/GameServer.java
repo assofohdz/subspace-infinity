@@ -45,7 +45,6 @@ import com.jme3.network.service.AbstractHostedService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rpc.RpcHostedService;
-import com.jme3.scene.shape.Sphere;
 import com.simsilica.bpos.mphys.BodyPositionPublisher;
 import com.simsilica.bpos.mphys.LargeGridIndexSystem;
 import com.simsilica.es.EntityData;
@@ -77,6 +76,9 @@ import com.simsilica.mblock.phys.collision.ColliderFactories;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.base.DefaultLeafWorld;
+import com.simsilica.mworld.base.DefaultWorld;
+import com.simsilica.mworld.db.ColumnDb;
+import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.db.LeafDbCache;
 import com.simsilica.mworld.net.server.WorldHostedService;
@@ -116,6 +118,7 @@ import infinity.systems.WarpSystem;
 import infinity.systems.WeaponsSystem;
 import infinity.util.AdaptiveLoadingService;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -140,6 +143,7 @@ public class GameServer {
   private final Server server;
   private final GameSystemManager systems;
   private final GameLoop loop;
+  private final DefaultColumnDb colDb;
 
   // private String description;
 
@@ -215,9 +219,10 @@ public class GameServer {
     systems.register(EntityData.class, ed);
     server.getServices().addService(new EntityDataHostedService(InfinityConstants.ES_CHANNEL, ed));
 
-    // Just create a test world for now
-    // LeafDb leafDb2 = new LeafDbCache(new TestLeafDb());
-    // Just create a test world for now
+    colDb = new DefaultColumnDb(new File("world.db"));
+    colDb.initialize();
+    //LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
+
     LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
     World world = new DefaultLeafWorld(leafDb, 10);
 
@@ -306,7 +311,7 @@ public class GameServer {
     systems.register(WarpSystem.class, new WarpSystem());
     systems.register(FrequencySystem.class, new FrequencySystem());
 
-    systems.register(DoorSystem.class, new DoorSystem());
+    //systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--
@@ -576,6 +581,8 @@ public class GameServer {
       systems.stop();
       systems.terminate();
     }
+    colDb.terminate();
+
     log.info("Game server stopped.");
   }
 

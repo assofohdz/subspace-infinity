@@ -88,7 +88,7 @@ public class MapSystem extends AbstractGameSystem {
   private final LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private final boolean mapCreated = false;
   private InfinityChatHostedService chat;
-  private Vec3d currentMapLoc = new Vec3d();
+  private Vec3d currentMapLoc = new Vec3d(-1,0,-1);
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -186,24 +186,24 @@ public class MapSystem extends AbstractGameSystem {
   }
 
   private Vec3d calculateNextOffset() {
-    log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
     Direction testDirection = direction.next();
-    log.debug("Direction: " + direction + ", testDirection:" + testDirection);
     Vec3d testMapLoc = testDirection.advance(currentMapLoc);
-    log.debug("testMapLoc: " + testMapLoc);
-
     // First time we will land here:
     if (!mapCoordinates.containsValue(currentMapLoc)) {
+      log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
       return currentMapLoc;
     } else if (!mapCoordinates.containsValue(testMapLoc)) {
+
       // Test if we should go new direction
       currentMapLoc = testMapLoc;
       direction = testDirection;
+      log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
       return currentMapLoc;
     }
 
     // If we have to continue straight ahead in our direction:
     currentMapLoc = direction.advance(currentMapLoc);
+    log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
     return currentMapLoc;
   }
 
@@ -487,10 +487,13 @@ public class MapSystem extends AbstractGameSystem {
           } else if (s == 218) {
             GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
             continue;
-          } else if (MapTypes.vieFlyOverStart <= s || s <= MapTypes.vieFlyOverEnd){
+          } else if (MapTypes.vieFlyOverStart <= s && s <= MapTypes.vieFlyOverEnd){
             location.addLocal(0,-1,0);
-          } else if (MapTypes.vieFlyUnderStart <= s || s <= MapTypes.vieFlyUnderEnd){
+          } else if (MapTypes.vieFlyUnderStart <= s && s <= MapTypes.vieFlyUnderEnd){
             location.addLocal(0,1,0);
+          } else if (MapTypes.vieVDoorStart <= s && s <= MapTypes.vieHDoorEnd){
+            GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
+            continue;
           } else if (s == MapTypes.vieWormhole) {
             GameEntities.createWormhole(
                 ed,
@@ -511,7 +514,10 @@ public class MapSystem extends AbstractGameSystem {
           tileSet.add(Integer.valueOf(tileId));
 
           final int value = tileId | (mapId << 8);
-          world.setWorldCell(location, 10);
+
+          if (s != 0){
+            world.setWorldCell(location, 10);
+          }
 
           // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
 
