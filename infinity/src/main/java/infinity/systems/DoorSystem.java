@@ -5,6 +5,8 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
+import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Door;
@@ -15,6 +17,7 @@ public class DoorSystem extends AbstractGameSystem {
   EntitySet doors;
   EntityData ed;
   HashMap<EntityId, ShapeInfo> doorShapes = new HashMap<EntityId, ShapeInfo>();
+  private World world;
 
   /**
    * The door system is responsible for opening and closing doors. We can simply remove the shape of
@@ -27,7 +30,9 @@ public class DoorSystem extends AbstractGameSystem {
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
-    doors = ed.getEntities(Door.class);
+    doors = ed.getEntities(Door.class, SpawnPosition.class);
+
+    world = getSystem(World.class);
   }
 
   @Override
@@ -52,10 +57,14 @@ public class DoorSystem extends AbstractGameSystem {
 
     for (Entity e : doors) {
       Door door = e.get(Door.class);
-      if (door.getEndTime() < System.currentTimeMillis() && door.isOpen()) {
-        closeDoor(e, door);
-      } else if(door.getEndTime() < System.currentTimeMillis() && !door.isOpen()) {
-        openDoor(e, door);
+      SpawnPosition pos = e.get(SpawnPosition.class);
+//      if (door.getEndTime() < System.currentTimeMillis() && door.isOpen()) {
+//        closeDoorWorld(e, door, pos);
+//      } else if(door.getEndTime() < System.currentTimeMillis() && !door.isOpen()) {
+//        openDoorWorld(e, door, pos);
+//      }
+      if (door.getEndTime() < System.currentTimeMillis()) {
+        openOrCloseDoor(e.getId(), door, pos, door.isOpen());
       }
     }
   }
@@ -65,23 +74,15 @@ public class DoorSystem extends AbstractGameSystem {
     // TODO Auto-generated method stub
   }
 
-  //Create a method that will open the door by adding a ShapeInfo component taken from a cache
-  public void openDoor(Entity doorEntity, Door door) {
-    EntityId doorId = doorEntity.getId();
-    if (doorShapes.containsKey(doorId)) {
-      ed.setComponent(doorId, doorShapes.get(doorId));
-      ed.setComponent(doorId, new Door(System.currentTimeMillis(),door.getInterval(), true));
-    }
-  }
-
-  //Create a method that will close the door by removing the ShapeInfo component and caching it
-  public void closeDoor(Entity doorEntity, Door door) {
-    EntityId doorId = doorEntity.getId();
-    ShapeInfo shape = ed.getComponent(doorId, ShapeInfo.class);
-    if (shape != null) {
-      doorShapes.put(doorId, shape);
-      ed.removeComponent(doorId, ShapeInfo.class);
-      ed.setComponent(doorId, new Door(System.currentTimeMillis(),door.getInterval(), false));
-    }
+  private void openOrCloseDoor(EntityId entityId, Door door, SpawnPosition pos, boolean open) {
+    ed.setComponent(entityId, new Door(System.currentTimeMillis(),door.getInterval(), !door.isOpen()));
+    world.setWorldCell(pos.getLocation(), door.isOpen() ? 10 : 0);
+//    if (door.isOpen()){;
+//      ShapeInfo shape = ed.getComponent(entityId, ShapeInfo.class);
+//      doorShapes.put(entityId, shape);
+//      ed.removeComponent(entityId, ShapeInfo.class);
+//    } else {
+//      ed.setComponent(entityId, doorShapes.get(entityId));
+//    }
   }
 }

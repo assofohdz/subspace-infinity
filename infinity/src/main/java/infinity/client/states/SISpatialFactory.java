@@ -32,23 +32,30 @@ import com.jme3.effect.ParticleMesh;
 import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
-import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
+import com.jme3.scene.shape.Sphere;
 import com.jme3.system.Timer;
+import com.jme3.texture.Texture;
 import com.jme3.util.BufferUtils;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.mblock.phys.CellArrayPart;
+import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mblock.phys.Part;
+import com.simsilica.mphys.BodyMass;
+import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
 import infinity.client.view.ShipLightControl;
 import infinity.es.Flag;
@@ -67,6 +74,9 @@ import org.slf4j.LoggerFactory;
  */
 public class SISpatialFactory {
 
+  private boolean debugCoG = false;
+  private BlockGeometryIndex geomIndex;
+
   static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
   private final AssetManager assets;
   // Use to flip between using the lights and using unshaded textures
@@ -79,27 +89,14 @@ public class SISpatialFactory {
   private EffectFactory ef;
 
   SISpatialFactory(
-      final EntityData ed, final Node rootNode, final AssetManager assets, final Timer timer) {
+      final EntityData ed, final Node rootNode, final AssetManager assets, final Timer timer, BlockGeometryIndex geomIndex) {
     this.ed = ed;
     // this.mapState = app.getStateManager().getState(MapState.class);
     // this.state = app.getStateManager().getState(ModelViewState.class);
     this.rootNode = rootNode;
     this.assets = assets;
     this.timer = timer;
-  }
-
-  Spatial createModel(
-      @SuppressWarnings("unused") final EntityId id,
-      @SuppressWarnings("unused") final MBlockShape shape,
-      final ShapeInfo shapeInfo,
-      @SuppressWarnings("unused") final Mass mass) {
-    final String shapeName = shapeInfo.getShapeName(ed);
-
-    if (shapeName == null || shapeName == "") {
-      throw new NullPointerException("Model shapeInfo name cannot be null or empty");
-    }
-
-    return this.createModel(shapeName);
+    this.geomIndex = geomIndex;
   }
 
   /**
@@ -108,7 +105,7 @@ public class SISpatialFactory {
    * @param shapeName The name of the shape to create
    * @return The spatial
    */
-  public Spatial createModel(final String shapeName) {
+  public Spatial createModel( EntityId id, String shapeName, MBlockShape shape, Mass mass ) {
 
     switch (shapeName) {
         // case "thrust":
@@ -183,8 +180,134 @@ public class SISpatialFactory {
          * "base": return createBase();
          */
       default:
-        return null;
+        Part part = shape.getPart();
+
+        Spatial result;
+        if( part instanceof CellArrayPart ) {
+          result = createPartSpatial(id, (CellArrayPart)part, true, mass);
+        } else if( part instanceof Group ) {
+          result = createPartSpatial(id, (Group)part, mass);
+        } else {
+          throw new IllegalArgumentException("Unhandled part type:" + shape.getPart());
+        }
+        return result;
     }
+  }
+
+  protected Geometry createBox( float size, ColorRGBA color ) {
+    Box box = new Box(size, size, size);
+    Geometry geom = new Geometry("box", box);
+    geom.setMaterial(GuiGlobals.getInstance().createMaterial(color, false).getMaterial());
+    geom.getMaterial().getAdditionalRenderState().setWireframe(true);
+
+    return geom;
+  }
+  /**
+   *  Creates a root-level spatial for the specified root group.
+   */
+  protected Spatial createPartSpatial( EntityId id, Group group, Mass mass ) {
+    Node node = new Node("Object:" + id);
+    if( debugCoG ) {
+      node.attachChild(createBox(0.1f, ColorRGBA.Orange));
+    }
+
+    // The root level will need to be positioned relative to the rigid body
+    // which is positioned at CoG relative to model space.  So we need to offset
+    // negative CoG.
+    Node cogOffset = new Node("CoG:" + id);
+    node.attachChild(cogOffset);
+    //Vec3d cog = group.getMass().getCog();
+    //cogOffset.move((float)-cog.x, (float)-cog.y, (float)-cog.z);
+    createPartSpatial(cogOffset, id, group, mass);
+
+    // Maybe someday when we have all the time in the world and are sitting
+    // on a beach somewhere worrying about ways to micro-optimize, we can
+    // see about flattening this extra hierarchy.  Though, do note that
+    // the group hierarchy is already flat... because that's how I roll.
+
+    return node;
+  }
+
+  /**
+   *  Creates a child spatial for the specified child group.
+   */
+  protected Spatial createPartSpatial( Node parent, EntityId id, Group group, Mass mass ) {
+    for( Part child : group.getChildren() ) {
+      if( child instanceof CellArrayPart ) {
+        Spatial ps = createPartSpatial(id, (CellArrayPart)child, false, mass);
+        ps.setLocalTranslation(child.getShapeRelativePosition().toVector3f());
+        ps.setLocalRotation(child.getShapeRelativeOrientation().toQuaternion());
+        parent.attachChild(ps);
+      } else if( child instanceof Group ) {
+        createPartSpatial(parent, id, (Group)child, mass);
+      } else {
+        throw new IllegalArgumentException("Unhandled part type:" + child);
+      }
+    }
+    return parent;
+  }
+
+  public Spatial createSphere( EntityId id, float radius, Mass mass ) {
+    Sphere mesh = new Sphere(24, 24, radius);
+    mesh.setTextureMode(Sphere.TextureMode.Projected);
+    mesh.scaleTextureCoordinates(new Vector2f(4, 2));
+    Geometry geom = new Geometry("Object:" + id, mesh);
+
+    if( mass != null && mass.getMass() != 0 ) {
+      geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0, 0.6f, 0.6f, 1), true).getMaterial());
+
+      Texture texture = GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png", true, true);
+      geom.getMaterial().setTexture("DiffuseMap", texture);
+    } else {
+      // Just a flat green
+      geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f, 0.6f, 0.2f, 1), true).getMaterial());
+    }
+
+    geom.setShadowMode(ShadowMode.CastAndReceive);
+
+    geom.setUserData("oid", id.getId());
+    return geom;
+  }
+
+  /**
+   *  Creates a root-level spatial for the specified root part.
+   */
+  protected Spatial createPartSpatial( EntityId id, CellArrayPart part, boolean isRoot, Mass mass ) {
+    if( part.getCells() == null ) {
+      return createSphere(id, (float)part.getMass().getRadius(), mass);
+    }
+
+    Node node = new Node("Object:" + id);
+    Node parts = new Node("Parts:" + id);
+    node.attachChild(parts);
+
+    geomIndex.generateBlocks(parts, part.getCells());
+
+    // If we are the root level then we'll need a cog shift
+    // to match with the rigid body
+    if( isRoot ) {
+      BodyMass bm = part.getMass();
+
+      // The position of the object is its CoG... which means
+      // we need to offset our model's origin by it.  It should
+      // already be scaled and everything... just need to negate it.
+      //Vector3f cogOffset = bm.getCog().toVector3f().negate();
+
+      // We need to sort out what the center should be.  Directly out of generateBlocks()
+      // the geometry is all relative to the corner.   See cog-offset.txt
+      //parts.move(cogOffset);
+
+      if( debugCoG ) {
+        node.attachChild(createBox(0.1f, ColorRGBA.Red));
+      }
+    }
+
+    parts.setLocalScale((float)part.getScale());
+    parts.setShadowMode(ShadowMode.CastAndReceive);
+
+    node.setUserData("oid", id.getId());
+
+    return node;
   }
 
   /**

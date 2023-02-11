@@ -270,7 +270,7 @@ public class ModelViewState extends BaseAppState {
 
     this.SImodelFactory =
         new SISpatialFactory(
-            ed, objectRoot, app.getAssetManager(), this.getApplication().getTimer());
+            ed, objectRoot, app.getAssetManager(), this.getApplication().getTimer(), worldView.getGeomIndex());
 
     DebugHudState debug = getState(DebugHudState.class);
     if (debug != null) {
@@ -589,167 +589,9 @@ public class ModelViewState extends BaseAppState {
     // Note 03-02-2023: We're not using the shape size yet on the view-side - and that's okay for
     // now - because it
     // allows us to use the shape-size purely for the backend physics
-    return SImodelFactory.createModel(shapeName);
+    MBlockShape mBlockShape = shapeFactory.createShape(shapeInfo, mass);
 
-    //
-    //        if( shapeName.endsWith(".rig") ) {
-    //            Spatial spatial = getApplication().getAssetManager().loadModel("Models/" +
-    // shapeName + ".j3o");
-    //            spatial.setShadowMode(ShadowMode.CastAndReceive);
-    //
-    //            //spatial.scale(0.3f/0.2f);
-    //            //spatial.center();
-    //            log.info(shapeName + " bounds:" + spatial.getWorldBound());
-    //
-    //            //spatial.rotate(0, FastMath.PI, 0);
-    //            Node result = new Node(shapeName);
-    //
-    //            Spatial probe = modelFactory.createSphere(id, 0.3f, new Mass(1));
-    //            probe.setLocalTranslation(0, 0.1f, 0.4f);
-    //            // Note these locations I think are not accurate because they
-    //            // are not CoG based.
-    //            //result.attachChild(probe);
-    //
-    //            result.attachChild(spatial);
-    //            return result;
-    //        }
-    //        if( "chicken".equals(shapeName) ) {
-    //            log.info("Chicken scale:" + shapeInfo.getScale());
-    //            //Spatial spatial =
-    // getApplication().getAssetManager().loadModel("Models/chicken/scene.gltf.j3o");
-    //            Spatial spatial =
-    // getApplication().getAssetManager().loadModel("Models/Snota/penkin.gltf.j3o");
-    //            //Spatial spatial =
-    // getApplication().getAssetManager().loadModel("Models/chicken2/chicken.gltf.j3o");
-    //            spatial.setShadowMode(ShadowMode.CastAndReceive);
-    //            log.info("chicken bounds:" + spatial.getWorldBound());
-    //
-    /// *            Spatial animRoot = findAnimRoot(spatial);
-    // log.info("anim root:" + animRoot);
-    //            if( animRoot != null ) {
-    //                AnimComposer anim = animRoot.getControl(AnimComposer.class);
-    // log.info("Anim clip names:" + anim.getAnimClipsNames());
-    //                //anim.setCurrentAction("chicken-rig|idle");
-    //                anim.setCurrentAction("chicken-rig|chicken-rig|idle|chicken-rig|idle");
-    //            }*/
-    //
-    //            /*spatial.breadthFirstTraversal(new SceneGraphVisitorAdapter() {
-    //                    public void visit( Geometry geom ) {
-    // log.info("Found:" + geom);
-    //                        geom.getMesh().updateBound();
-    //                        geom.updateModelBound();
-    //                    }
-    //                });*/
-    //
-    ////            Spatial animRoot = findOldAnimRoot(spatial);
-    //// log.info("old anim root:" + animRoot);
-    ////            if( animRoot != null ) {
-    ////                AnimControl anim = animRoot.getControl(AnimControl.class);
-    //// log.info("Anim names:" + anim.getAnimationNames());
-    ////                AnimChannel channel = anim.createChannel();
-    ////                channel.setAnim("chicken-rig|idle");
-    ////            }
-    //
-    //            //spatial.setLocalScale(0.001f);
-    //
-    //            //return spatial;
-    //            // The chicken is actually backwards so we'll flip it and wrap it
-    //            spatial.rotate(0, FastMath.PI, 0);
-    //            Node result = new Node("chicken");
-    //
-    //            Spatial probe = modelFactory.createSphere(id, 0.3f, new Mass(1));
-    //            probe.setLocalTranslation(0, 0.1f, 0.3f); //0.56f);
-    //            // Note these locations I think are not accurate because they
-    //            // are not CoG based.
-    //            //result.attachChild(probe);
-    //
-    //            result.attachChild(spatial);
-    //            return result;
-    //        }
-    //        if( "dog".equals(shapeInfo.getShapeName(ed)) ) {
-    //            log.info("Dog scale:" + shapeInfo.getScale());
-    //            Spatial spatial =
-    // getApplication().getAssetManager().loadModel("Models/dog1/scene.gltf.j3o");
-    //            spatial.setShadowMode(ShadowMode.CastAndReceive);
-    //
-    //            // Scaling the dog from shiba-inu size to yellow-lab size
-    //            spatial.scale(0.3f/0.2f);
-    //            spatial.center();
-    //            log.info("dog bounds:" + spatial.getWorldBound());
-    //
-    //            // The chicken is actually backwards so we'll flip it and wrap it
-    //            //spatial.rotate(0, FastMath.PI, 0);
-    //            Node result = new Node("dog");
-    //
-    //            Spatial probe = modelFactory.createSphere(id, 0.3f, new Mass(1));
-    //            probe.setLocalTranslation(0, 0.1f, 0.3f); //0.56f);
-    //            // Note these locations I think are not accurate because they
-    //            // are not CoG based.
-    //            //result.attachChild(probe);
-    //
-    //            result.attachChild(spatial);
-    //            return result;
-    //        }
-    //        MBlockShape shape = shapeFactory.createShape(shapeInfo, mass);
-    //        return modelFactory.createModel(id, shape, mass);
-    /// *
-    //        Spatial spatial;
-    //        CellArray cells = shape.getCells();
-    //        if( cells != null ) {
-    //            Node node = new Node("Object:" + id);
-    //            Node parts = new Node("Parts:" + id);
-    //            node.attachChild(parts);
-    //            spatial =  node;
-    //
-    //            geomIndex.generateBlocks(parts, cells);
-    //
-    //            // For the time being, we'll just consider the CoG to be the center
-    //            // of the model.
-    //            //Vector3f cogOffset = cells.getSize().toVector3f();
-    //            //cogOffset.multLocal((float)(-0.5 * shape.getScale()));
-    //
-    //            BodyMass bm = shape.getMass();
-    //
-    //            // The position of the object is its CoG... which means
-    //            // we need to offset our model's origin by it.  It should
-    //            // already be scaled and everything... just need to negate it.
-    //            Vector3f cogOffset = bm.getCog().toVector3f().negate();
-    //
-    //            // We need to sort out what the center should be.  Directly out of
-    // generateBlocks()
-    //            // the geometry is all relative to the corner.   See cog-offset.txt
-    //            parts.move(cogOffset);
-    //            parts.setLocalScale((float)shape.getScale());
-    //            parts.setShadowMode(ShadowMode.CastAndReceive);
-    //
-    //        } else {
-    //            float radius = (float)shape.getMass().getRadius();
-    //            Sphere mesh = new Sphere(24, 24, radius);
-    //            mesh.setTextureMode(Sphere.TextureMode.Projected);
-    //            mesh.scaleTextureCoordinates(new Vector2f(4, 2));
-    //            Geometry geom = new Geometry("Object:" + id, mesh);
-    //            spatial = geom;
-    //
-    //            if( mass != null && mass.getMass() != 0 ) {
-    //                geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0,
-    // 0.6f, 0.6f, 1), true).getMaterial());
-    //
-    //                Texture texture =
-    // GuiGlobals.getInstance().loadTexture("Interface/grid-shaded-labeled.png", true, true);
-    //                geom.getMaterial().setTexture("DiffuseMap", texture);
-    //            } else {
-    //                // Just a flat green
-    //                geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0.2f,
-    // 0.6f, 0.2f, 1), true).getMaterial());
-    //            }
-    //
-    //            spatial.setShadowMode(ShadowMode.CastAndReceive);
-    //        }
-    //
-    //        spatial.setUserData("oid", id.getId());
-    //
-    //        return spatial;
-    //        */
+    return SImodelFactory.createModel(id, shapeName, mBlockShape, mass);
   }
 
   protected Model getModel(EntityId entityId, boolean create) {

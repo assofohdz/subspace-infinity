@@ -37,6 +37,10 @@ package infinity.client;
 
 import com.jme3.math.ColorRGBA;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.mworld.view.ProgressState;
+import com.simsilica.state.DebugHudState;
+import com.simsilica.state.MemoryDebugState;
+import com.simsilica.thread.JobState;
 import infinity.*;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
@@ -80,7 +84,8 @@ public class GameSessionState extends CompositeAppState {
         new ModelViewState(),
         new AudioState(new SIAudioFactory()),
         new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
-        new LightState() // ,
+        new LightState(),
+        new ProgressState()
         );
 
     addChild(new HelpState(), true);

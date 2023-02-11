@@ -76,8 +76,6 @@ import com.simsilica.mblock.phys.collision.ColliderFactories;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.base.DefaultLeafWorld;
-import com.simsilica.mworld.base.DefaultWorld;
-import com.simsilica.mworld.db.ColumnDb;
 import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.db.LeafDbCache;
@@ -99,6 +97,7 @@ import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CubeFactory;
+import infinity.sim.InfinityDefaultLeafWorld;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.ai.MobSystem;
@@ -221,9 +220,9 @@ public class GameServer {
 
     colDb = new DefaultColumnDb(new File("world.db"));
     colDb.initialize();
-    //LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
+    LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
 
-    LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+    //LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
     World world = new DefaultLeafWorld(leafDb, 10);
 
     systems.register(World.class, world);
@@ -311,7 +310,7 @@ public class GameServer {
     systems.register(WarpSystem.class, new WarpSystem());
     systems.register(FrequencySystem.class, new FrequencySystem());
 
-    //systems.register(DoorSystem.class, new DoorSystem());
+    systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--

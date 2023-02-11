@@ -36,6 +36,7 @@
 
 package infinity;
 
+import com.simsilica.thread.JobState;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.List;
@@ -75,107 +76,114 @@ import infinity.client.view.ToolFunctions;
  */
 public class Main extends SimpleApplication {
 
-    static Logger log = LoggerFactory.getLogger(Main.class);
+  static Logger log = LoggerFactory.getLogger(Main.class);
 
-    // private static Grid grid = new Grid(32, 0, 32);
+  // private static Grid grid = new Grid(32, 0, 32);
 
-    public static void main(final String... args) throws Exception {
+  public Main() {
+    super(
+        new JobState("regularWorkers", 4, 1),
+        new JobState("priorityWorkers", 4, 1),
+        new StatsAppState(),
+        new DebugKeysAppState(),
+        new BasicProfilerState(false),
+        // new FlyCamAppState(),
+        // new CameraMovementState(),
+        new OptionPanelState(), // from Lemur
+        // new HelpState(),
+        new DebugHudState(),
+        new MemoryDebugState(),
+        new MainMenuState(),
+        new MessageState(),
+        new CommandConsoleState(),
+        // new LightingState(),
+        // new SkyState(),
+        // new SkySettingsState(),
+        // new PostProcessingState(),
+        // new GridState(grid),
+        new SettingsState(),
+        new ScreenshotAppState("", System.currentTimeMillis()));
+  }
 
-        // final Application app;
+  public static void main(final String... args) throws Exception {
 
-        final Main main = new Main();
-        final AppSettings settings = new AppSettings(true);
+    // final Application app;
 
-        // Set some defaults that will get overwritten if
-        // there were previously saved settings from the last time the user
-        // ran.
-        settings.setWidth(1280);
-        settings.setHeight(720);
-        settings.setVSync(true);
+    final Main main = new Main();
+    final AppSettings settings = new AppSettings(true);
 
-        settings.load("MOSS-Network Demo");
-        settings.setTitle("MOSS-Network Demo");
+    // Set some defaults that will get overwritten if
+    // there were previously saved settings from the last time the user
+    // ran.
+    settings.setWidth(1280);
+    settings.setHeight(720);
+    settings.setVSync(true);
 
-        main.setSettings(settings);
+    settings.load("Subspace Infinity");
+    settings.setTitle("Subspace Infinity");
 
-        main.start();
+    main.setSettings(settings);
+
+    main.start();
+  }
+
+  @Override
+  public void simpleInitApp() {
+
+    setPauseOnLostFocus(false);
+    setDisplayFps(false);
+    setDisplayStatView(false);
+
+    GuiGlobals.initialize(this);
+
+    GuiGlobals.getInstance().setCursorEventsEnabled(false);
+
+    final GuiGlobals globals = GuiGlobals.getInstance();
+
+    MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
+    // CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
+    SettingsState.initializeDefaultMappings(globals.getInputMapper());
+    DebugFunctions.initializeDefaultMappings(globals.getInputMapper());
+    ToolFunctions.initializeDefaultMappings(globals.getInputMapper());
+    HelpState.initializeDefaultMappings(globals.getInputMapper());
+    AvatarMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
+
+    BaseStyles.loadGlassStyle();
+    globals.getStyles().setDefaultStyle("glass");
+
+    // Some manual styling for the debug HUD
+    final Styles styles = globals.getStyles();
+
+    Attributes attrs = styles.getSelector(DebugHudState.CONTAINER_ID, "glass");
+    attrs.set("background", null);
+
+    attrs = styles.getSelector(DebugHudState.NAME_ID, "glass");
+    attrs.set("color", ColorRGBA.White);
+    attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
+    attrs.set("textHAlignment", HAlignment.Right);
+    attrs.set("insets", new Insets3f(0, 0, 0, 0));
+
+    attrs = styles.getSelector(DebugHudState.VALUE_ID, "glass");
+    attrs.set("color", ColorRGBA.White);
+    attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
+    attrs.set("insets", new Insets3f(0, 0, 0, 0));
+
+    // SkyState sky = stateManager.getState(SkyState.class);
+    // sky.getGroundColor().set(0.3f, 0.5f, 0.1f, 1);
+    // sky.setShowGroundDisc(true);
+
+    // get a RuntimeMXBean reference
+    final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+
+    // get the jvm's input arguments as a list of strings
+    final List<String> listOfArguments = runtimeMxBean.getInputArguments();
+    listOfArguments.forEach(s -> System.out.println("ARG:" + s));
+  }
+
+  @Override
+  public void simpleUpdate(final float tpf) {
+    if( tpf > 0.1 ) {
+      log.warn("Long tpf:" + tpf);
     }
-
-    public Main() {
-        super(new StatsAppState(), new DebugKeysAppState(), new BasicProfilerState(false),
-                // new FlyCamAppState(),
-                // new CameraMovementState(),
-                new OptionPanelState(), // from Lemur
-                // new HelpState(),
-                new DebugHudState(), 
-                new MemoryDebugState(), 
-                new MainMenuState(), 
-                new MessageState(),
-                new CommandConsoleState(),
-                // new LightingState(),
-                // new SkyState(),
-                // new SkySettingsState(),
-                // new PostProcessingState(),
-                // new GridState(grid),
-                new SettingsState(),
-                new ScreenshotAppState("", System.currentTimeMillis()));
-    }
-
-    @Override
-    public void simpleInitApp() {
-
-        setPauseOnLostFocus(false);
-        setDisplayFps(false);
-        setDisplayStatView(false);
-
-        GuiGlobals.initialize(this);
-
-        GuiGlobals.getInstance().setCursorEventsEnabled(false);
-
-        final GuiGlobals globals = GuiGlobals.getInstance();
-
-        MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
-        //CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
-        SettingsState.initializeDefaultMappings(globals.getInputMapper());
-        DebugFunctions.initializeDefaultMappings(globals.getInputMapper());
-        ToolFunctions.initializeDefaultMappings(globals.getInputMapper());
-        HelpState.initializeDefaultMappings(globals.getInputMapper());
-        AvatarMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
-
-        BaseStyles.loadGlassStyle();
-        globals.getStyles().setDefaultStyle("glass");
-
-        // Some manual styling for the debug HUD
-        final Styles styles = globals.getStyles();
-
-        Attributes attrs = styles.getSelector(DebugHudState.CONTAINER_ID, "glass");
-        attrs.set("background", null);
-
-        attrs = styles.getSelector(DebugHudState.NAME_ID, "glass");
-        attrs.set("color", ColorRGBA.White);
-        attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
-        attrs.set("textHAlignment", HAlignment.Right);
-        attrs.set("insets", new Insets3f(0, 0, 0, 0));
-
-        attrs = styles.getSelector(DebugHudState.VALUE_ID, "glass");
-        attrs.set("color", ColorRGBA.White);
-        attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
-        attrs.set("insets", new Insets3f(0, 0, 0, 0));
-
-        // SkyState sky = stateManager.getState(SkyState.class);
-        // sky.getGroundColor().set(0.3f, 0.5f, 0.1f, 1);
-        // sky.setShowGroundDisc(true);
-
-        // get a RuntimeMXBean reference
-        final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-
-        // get the jvm's input arguments as a list of strings
-        final List<String> listOfArguments = runtimeMxBean.getInputArguments();
-        listOfArguments.forEach(s -> System.out.println("ARG:" + s));
-    }
-
-    @Override
-    public void simpleUpdate(final float tpf) {
-        // log.info("simpleUpdate()");
-    }
+  }
 }

@@ -15,6 +15,9 @@
     <Logger name="infinity.client" level="debug" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
+    <Logger name="infinity.client.view.LeafDataZone" level="trace" additivity="false">
+      <AppenderRef ref="Console"/>
+    </Logger>
     <Logger name="infinity.client.states.ModelViewState" level="FATAL"/>
     <Logger name="com.simsilica.mblock.geom.ColliderlessMesh" level="FATAL"/>
     <Logger name="com.simsilica.mblock.phys.collision.ColliderFactories" level="FATAL"/>
