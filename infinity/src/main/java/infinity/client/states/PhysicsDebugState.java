@@ -37,7 +37,6 @@
 package infinity.client.states;
 
 import com.jme3.app.Application;
-import com.jme3.math.Vector3f;
 import com.simsilica.ext.mblock.PartDebugShapeFactory;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.debug.BinStatusState;
@@ -45,12 +44,15 @@ import com.simsilica.ext.mphys.debug.BodyDebugState;
 import com.simsilica.ext.mphys.debug.ContactDebugState;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.input.InputMapper;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.PhysicsStats;
 import com.simsilica.state.CompositeAppState;
 import com.simsilica.state.DebugHudState;
 import infinity.HostState;
+import infinity.client.AvatarMovementState;
 import infinity.client.view.DebugFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +76,7 @@ public class PhysicsDebugState extends CompositeAppState {
   private VersionedHolder<String> activeBinCount;
   private VersionedHolder<String> bodyCount;
   private VersionedHolder<String> activeBodyCount;
+  private VersionedReference<Vec3d> posRef;
 
   public PhysicsDebugState(HostState host) {
     this.host = host;
@@ -83,7 +86,8 @@ public class PhysicsDebugState extends CompositeAppState {
   protected void initialize(Application app) {
     PhysicsSpace phys = host.getSystems().get(PhysicsSpace.class);
     this.stats = phys.getStats();
-    addChild(new BinStatusState(phys, 64));
+
+    addChild(new BinStatusState(phys));
     addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
     addChild(new ContactDebugState(phys));
 
@@ -98,6 +102,8 @@ public class PhysicsDebugState extends CompositeAppState {
       bodyCount = debug.createDebugValue("Bodies", DebugHudState.Location.Right);
       activeBodyCount = debug.createDebugValue("Active Bodies", DebugHudState.Location.Right);
     }
+
+    posRef = getState(AvatarMovementState.class).createPositionReference();
   }
 
   @Override
@@ -113,6 +119,12 @@ public class PhysicsDebugState extends CompositeAppState {
     }
   }
 
+  /**
+   * Called by the state manager to update this state. This is where the actual
+   * physics simulation is performed.
+   *
+   * @param tpf Time since the last call to update(), in seconds.
+   */
   public void update(float tpf) {
     // log.info("update");
 
@@ -120,12 +132,14 @@ public class PhysicsDebugState extends CompositeAppState {
     // should be up-to-date.
     BinStatusState binState = getState(BinStatusState.class);
     if (binState != null) {
-      Vector3f loc = getState(WorldViewState.class).getViewLocation();
-      binState.setViewOrigin(loc.x, 0, loc.z);
-      BodyDebugState bodyState = getState(BodyDebugState.class);
-      bodyState.setViewOrigin(loc.x, 0, loc.z);
-      ContactDebugState contactState = getState(ContactDebugState.class);
-      contactState.setViewOrigin(loc.x, 0, loc.z);
+      if (posRef.update()) {
+        Vec3d loc = posRef.get();
+        binState.setViewOrigin(loc.x, 0, loc.z);
+        BodyDebugState bodyState = getState(BodyDebugState.class);
+        bodyState.setViewOrigin(loc.x, 0, loc.z);
+        ContactDebugState contactState = getState(ContactDebugState.class);
+        contactState.setViewOrigin(loc.x, 0, loc.z);
+      }
     }
 
     if (contacts != null) {

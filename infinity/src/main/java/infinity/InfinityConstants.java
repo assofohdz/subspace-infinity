@@ -50,6 +50,10 @@ import com.simsilica.mathd.bits.Vec3Bits;
  * @author Paul Speed
  */
 public class InfinityConstants {
+
+  private InfinityConstants() {
+  }
+
   public static final String NAME = "Subspace Infinity";
   public static final String TITLE = "Subspace Infinity v. 0.1";
   public static final int PROTOCOL_VERSION = 42;
@@ -75,12 +79,6 @@ public class InfinityConstants {
    * is at least a multiple/factor of the gridSize.
    */
   public static final int GRID_CELL_SIZE = 32;
-
-  /** The grid that divides physical space into bins for management of the rigid bodies. */
-  public static final Grid PHYSICS_GRID = new Grid(GRID_CELL_SIZE, 0, GRID_CELL_SIZE);
-
-  /** The grid for large objects. */
-  public static final Grid LARGE_OBJECT_GRID = new Grid(1024, 0, 1024);
 
   /**
    * Default gravity used for the physics simulation. - Changed from 0,-10,0 to 0,0,0 for ZERO

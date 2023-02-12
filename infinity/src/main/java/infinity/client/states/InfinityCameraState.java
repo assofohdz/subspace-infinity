@@ -55,7 +55,6 @@ public class InfinityCameraState extends CameraState {
   private GameSessionClientService session;
   private final EntityId avatarId;
   private WatchedEntity self;
-  private EntityData ed;
 
   public InfinityCameraState(EntityId avatar, TimeSource timeSource) {
     super();
@@ -66,23 +65,18 @@ public class InfinityCameraState extends CameraState {
   @Override
   protected void initialize(final Application app) {
 
-    this.ed = getState(ConnectionState.class).getEntityData();
+    EntityData ed = getState(ConnectionState.class).getEntityData();
 
     session = getState(ConnectionState.class).getService(GameSessionClientService.class);
 
     self = ed.watchEntity(avatarId, BodyPosition.class);
-    log.info("self:" + self);
+    log.info(String.format("self:%s", self));
     BodyPosition bodyPos = self.get(BodyPosition.class);
-    log.info("self pos:" + bodyPos);
+    log.info(String.format("self pos:%s", bodyPos));
     if (bodyPos != null) {
       // Need to initialize the shared transition buffer
       bodyPos.initialize(avatarId, 12);
     }
-
-    //Flip camera to loo
-    //getApplication().getCamera().setRotation(new Quaternion().fromAngleAxis(FastMath.PI, new Vector3f(0,0,1));
-    //getApplication().getCamera().lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
-    // Vector3f(0,1,0)));
   }
 
   @Override
@@ -95,7 +89,7 @@ public class InfinityCameraState extends CameraState {
     if (self.applyChanges()) {
       log.info("self changes");
       BodyPosition bodyPos = self.get(BodyPosition.class);
-      log.info("self pos update:" + bodyPos);
+      log.info(String.format("self pos update:%s", bodyPos));
       if (bodyPos != null) {
         // Need to initialize the shared transition buffer
         bodyPos.initialize(avatarId, 12);
@@ -113,7 +107,7 @@ public class InfinityCameraState extends CameraState {
     ChildPositionTransition3d frame = bodyPos.getFrame(t);
     if (frame == null) {
       if (t != 0) {
-        log.warn("no transition frame for time: {0}", t);
+        log.warn(String.format("no transition frame for time:%d", t));
       }
       return;
     }
@@ -122,8 +116,6 @@ public class InfinityCameraState extends CameraState {
     Vec3d v = frame.getPosition(t, true);
 
     v.addLocal(0, InfinityCameraState.DISTANCETOPLANE, 0);
-
-    getState(WorldViewState.class).setViewLocation(v.toVector3f());
 
     session.setView(new Quatd(getApplication().getCamera().getRotation()), v);
   }
