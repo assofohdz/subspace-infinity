@@ -3,20 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package infinity.client;
 
-import com.simsilica.es.EntityId;
-import com.simsilica.lemur.core.VersionedHolder;
-import com.simsilica.state.DebugHudState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package infinity.client;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.input.InputManager;
-
-import com.simsilica.input.MovementTarget;
+import com.jme3.math.Vector3f;
 import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.core.VersionedHolder;
+import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.input.AnalogFunctionListener;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
@@ -24,56 +20,54 @@ import com.simsilica.lemur.input.InputState;
 import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-
+import com.simsilica.state.BlackboardState;
+import com.simsilica.state.DebugHudState;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.systems.ActionSystem;
-import infinity.systems.WeaponsSystem;
 import infinity.systems.AvatarSystem;
+import infinity.systems.WeaponsSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * This state manages the movement of the local avatar. It is responsible for updating the avatar's
+ * position and rotation based on the input state.
+ *
  * @author AFahrenholz
  */
 public class AvatarMovementState extends BaseAppState
     implements AnalogFunctionListener, StateFunctionListener {
 
-  // private float timeSinceLastSend = 0;
-  // private final float sendFrequency = 1f / 20f; // 20 times a second, every 50
-  // ms
-
   static Logger log = LoggerFactory.getLogger(AvatarMovementState.class);
-  private final double rotateSpeed = 1.5;
+  private static final double ROTATESPEED = 1.5;
   private final Vec3d thrust = new Vec3d(); // not a direction, just 3 values
   private final Quatd facing = new Quatd();
-  // private double mouse1;
-  // private double mouse3;
-  // private double mouse2;
-  private final byte flags = (byte) 0;
+  private static final byte FLAGS = (byte) 0;
   private final Vec3d lastPosition = new Vec3d();
-  private final double updatePositionFrequency = 1000000000L / 5; // 5 times a second, every 200 ms
+  private static final double UPDATE_POSITION_FREQUENCY = 1000000000L / (double) 5; // 5 times a second, every 200 ms
+  private final Vec3d position = new Vec3d();
+  private final VersionedHolder<Vec3d> posHolder = new VersionedHolder<>(position);
   double speedAverage = 0;
   long lastSpeedTime = 0;
-  // private MovementTarget target;
   private InputMapper inputMapper;
   // Picking up the input from the client
   private double forward;
   private double rotate;
   // The information that will be sent to the server
   private double speed = 1;
-  private MovementInput movementInput;
   private double localValue = 0;
   private InputManager inputManager;
-  // private Camera cam;
   private GameSession session;
   private long lastPositionUpdate;
   private VersionedHolder<String> positionDisplay;
   private VersionedHolder<String> speedDisplay;
-  private EntityId avatar;
 
   @Override
   protected void initialize(final Application app) {
 
-    // cam = getApplication().getCamera();
+    BlackboardState blackboard = getState(BlackboardState.class, true);
+    blackboard.set("position", posHolder);
 
     log.debug("initialize()");
 
@@ -180,17 +174,12 @@ public class AvatarMovementState extends BaseAppState
 
   @Override
   public void update(final float tpf) {
-    // timeSinceLastSend += tpf;
 
-    // if (timeSinceLastSend > sendFrequency) {
-
-    thrust.x = (float) (rotate * rotateSpeed);
+    thrust.x = (float) (rotate * ROTATESPEED);
     // thrust.y is left out because y is the upwards axis
     thrust.z = (float) (forward * speed); // Z is forward
 
-    movementInput = new MovementInput(thrust, facing, flags);
-
-    // if (thrust.x != 0.0 || thrust.y != 0.0) {
+    MovementInput movementInput = new MovementInput(thrust, facing, FLAGS);
 
     // Send input only if we are pressing a key, or if we have just released the key
     if (localValue == 1 || localValue == 0 || localValue == -1) {
@@ -201,30 +190,15 @@ public class AvatarMovementState extends BaseAppState
         localValue = -2;
       }
     }
+    Vec3d newPos = session.getPlayerLocation();
+    // Update display of position
     long time = System.nanoTime();
-    if (time - lastPositionUpdate > updatePositionFrequency) {
-      updateShipLocation(session.getPlayerLocation());
+    if (time - lastPositionUpdate > UPDATE_POSITION_FREQUENCY) {
+      updateShipLocation(newPos);
       lastPositionUpdate = time;
     }
-    // }
 
-    // timeSinceLastSend = 0;
-    /*
-    /*
-     * if (this.entity.getId().getId() == watchedAvatar.getId().getId()) {
-     *
-     * Quatd cameraRotation = new
-     * Quatd(getApplication().getCamera().getRotation().clone()); Vec3d
-     * avatarWorldTranslation = new
-     * Vec3d(model.spatial.getWorldTranslation().clone());
-     *
-     * gameSession.setView(cameraRotation, avatarWorldTranslation);
-     *
-     * Vector3f cameraWorldTranslation = new Vec3d(avatarWorldTranslation).add(0,
-     * 40, 0).toVector3f();
-     * getState(WorldViewState.class).setViewLocation(cameraWorldTranslation); }
-     */
-    // }
+    setLocation(newPos.toVector3f());
   }
 
   @Override
@@ -298,51 +272,42 @@ public class AvatarMovementState extends BaseAppState
       } else if (func == AvatarMovementFunctions.F_SHARK) {
         session.avatar(AvatarSystem.SHARK);
       }
-      // <..
-      /*
-       * for (FunctionId funcId : functionStates.keySet()) {
-       * functionStates.put(funcId, Boolean.FALSE); }
-       */
     }
   }
 
-  /**
-   * Sets the current movement target. The default implementation sets up a CameraMovementTarget
-   * during initialization if no other target has been provided.
-   */
-  public void setMovementTarget(@SuppressWarnings("unused") final MovementTarget target) {
-    // this.target = target;
-  }
+  protected Vec3d updateShipLocation(Vec3d loc) {
+    Vec3d newLoc = loc.clone();
+    newLoc.x *= -1;
 
-  void setSession(final GameSession session) {
-    this.session = session;
-  }
-
-  protected void updateShipLocation(Vec3d loc) {
-    loc.x *= -1;
-
-    String s = String.format("%.2f, %.2f, %.2f", loc.x, loc.y, loc.z);
+    String s = String.format("%.2f, %.2f, %.2f", newLoc.x, newLoc.y, newLoc.z);
     positionDisplay.setObject(s);
 
     long time = System.nanoTime();
     if (lastSpeedTime != 0) {
       // Let's go ahead and calculate speed
-      double speed = loc.subtract(lastPosition).length();
+      double localSpeed = newLoc.subtract(lastPosition).length();
 
       // And de-integrate it based on the time delta
-      speed = speed * 1000000000.0 / (time - lastSpeedTime);
+      localSpeed = localSpeed * 1000000000.0 / (time - lastSpeedTime);
 
       // A slight smoothing of the value
-      speedAverage = (speedAverage * 2 + speed) / 3;
+      speedAverage = (speedAverage * 2 + localSpeed) / 3;
 
       s = String.format("%.2f", speedAverage);
       speedDisplay.setObject(s);
     }
-    lastPosition.set(loc);
+    lastPosition.set(newLoc);
     lastSpeedTime = time;
+
+    return lastPosition;
   }
 
-  public void setAvatarEntityId(EntityId avatar) {
-    this.avatar = avatar;
+  public VersionedReference<Vec3d> createPositionReference() {
+    return posHolder.createReference();
+  }
+
+  private void setLocation(Vector3f loc) {
+    position.set(loc);
+    posHolder.incrementVersion();
   }
 }

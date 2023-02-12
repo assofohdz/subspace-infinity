@@ -33,59 +33,67 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.client;
 
+import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
+import com.jme3.texture.plugins.AWTLoader;
+import com.simsilica.builder.BuilderState;
+import com.simsilica.es.EntityId;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.mworld.view.ProgressState;
+import com.simsilica.state.BlackboardState;
+import com.simsilica.state.CompositeAppState;
 import com.simsilica.state.DebugHudState;
-import com.simsilica.state.MemoryDebugState;
-import com.simsilica.thread.JobState;
-import infinity.*;
+import infinity.HelpState;
+import infinity.HostState;
+import infinity.InfinityConstants;
+import infinity.SettingsState;
+import infinity.TimeState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
-import infinity.client.states.*;
-import infinity.client.view.*;
+import infinity.client.states.InfinityCameraState;
+import infinity.client.states.LightState;
+import infinity.client.states.LocalViewState;
+import infinity.client.states.MapState;
+import infinity.client.states.ModelViewState;
+import infinity.client.states.PhysicsDebugState;
+import infinity.client.states.SpaceGridState;
+import infinity.client.view.SkyState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jme3.app.Application;
-import com.jme3.texture.plugins.AWTLoader;
-// import com.jme3.math.Vector3f;
-
-// import com.simsilica.lemur.GuiGlobals;
-// import com.simsilica.lemur.input.InputMapper;
-import com.simsilica.builder.BuilderState;
-import com.simsilica.es.EntityId;
-import com.simsilica.state.CompositeAppState;
-
-// import com.simsilica.mphys.PhysicsSpace;
-// import com.simsilica.ext.mphys.MPhysSystem;
-// import com.simsilica.ext.mphys.debug.*;
 /**
- * @author Paul Speed
+ * The main game session state.  This is the state that is active
+ * when the player is in a game session.  It is responsible for
+ * managing the various sub-states that are active during a game
+ * session.
+ *
+ * @author Asser Fahrenholz
  */
 public class GameSessionState extends CompositeAppState {
 
   static Logger log = LoggerFactory.getLogger(GameSessionState.class);
-  private boolean hostIsLocal;
-  private TimeSource timeSource;
   private EntityId avatarEntityId;
 
-  // private final boolean hostIsLocal = false;
-
+  /**
+   * Creates a new GameSessionState.
+   */
   public GameSessionState() {
     super(
         new AvatarMovementState(),
         new TimeState(), // Has to be before any visuals that might need it.
         new SkyState(),
         new BuilderState(4, 4),
-        new WorldViewState(),
+        new LocalViewState(),
         new ModelViewState(),
         new AudioState(new SIAudioFactory()),
         new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
         new LightState(),
-        new ProgressState()
+        new ProgressState(),
+        new BlackboardState(),
+        new DebugHudState()
         );
 
     addChild(new HelpState(), true);
@@ -103,32 +111,38 @@ public class GameSessionState extends CompositeAppState {
     final HostState host = getState(HostState.class);
     if (host != null) {
       addChild(new PhysicsDebugState(host), true);
-      hostIsLocal = true;
     }
 
-    this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
+    TimeSource timeSource = getState(ConnectionState.class).getRemoteTimeSource();
 
-    getState(TimeState.class).setTimeSource(this.timeSource);
+    getState(TimeState.class).setTimeSource(timeSource);
 
     InfinityCameraState cameraState = new InfinityCameraState(avatarEntityId, timeSource);
     addChild(cameraState);
 
-    getState(AvatarMovementState.class).setAvatarEntityId(avatarEntityId);
 
     getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
   }
 
   @Override
   protected void cleanup(final Application app) {
+    // Auto-generated method stub
   }
 
   @Override
-  protected void onEnable() {}
-
-  public void update(float tpf) {}
+  protected void onEnable() {
+    // Auto-generated method stub
+  }
 
   @Override
-  protected void onDisable() {}
+  public void update(float tpf) {
+    // Auto-generated method stub
+  }
+
+  @Override
+  protected void onDisable() {
+    // Auto-generated method stub
+  }
 
   //A method to get the avatar entity id
   public EntityId getAvatarEntityId() {

@@ -51,7 +51,6 @@ import com.simsilica.mworld.CellChangeEvent;
 import com.simsilica.mworld.CellChangeListener;
 import com.simsilica.mworld.LeafChangeEvent;
 import com.simsilica.mworld.LeafChangeListener;
-import com.simsilica.mworld.LeafData;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.net.client.WorldClientService;
 import com.simsilica.mworld.transaction.CellEdit;
@@ -224,6 +223,10 @@ public class WorldViewState extends BaseAppState implements LeafChangeListener {
 //    }
   }
 
+  public World getWorld() {
+    return world;
+  }
+
   private class CellObserver implements CellChangeListener {
 
     @Override
@@ -231,5 +234,13 @@ public class WorldViewState extends BaseAppState implements LeafChangeListener {
       WorldViewState.this.cellChanged(event);
       //BlockGeometryIndexdebug = true;
     }
+  }
+
+  public void addLeafChangeListener( LeafChangeListener l ) {
+    world.addLeafChangeListener(l);
+  }
+
+  public void removeLeafChangeListener( LeafChangeListener l ) {
+    world.removeLeafChangeListener(l);
   }
 }

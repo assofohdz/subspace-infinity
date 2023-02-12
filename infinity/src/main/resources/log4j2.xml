@@ -22,6 +22,7 @@
     <Logger name="com.simsilica.mblock.geom.ColliderlessMesh" level="FATAL"/>
     <Logger name="com.simsilica.mblock.phys.collision.ColliderFactories" level="FATAL"/>
     <Logger name="com.simsilica.ext.mblock.SphereFactory" level="FATAL"/>
+    <Logger name="com.simsilica.ext.mphys.debug.BinStatusState" level="INFO"/>
     <Logger name="com.simsilica.mphys.BinIndex" level="FATAL"/>
     <Logger name="com.simsilica.mphys.Bin" level="FATAL"/>
     <Logger name="com.simsilica.mphys.BinIndex" level="FATAL"/>

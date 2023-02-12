@@ -35,9 +35,9 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.GridCell;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.InfinityConstants;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
@@ -74,14 +74,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntityData ed;
   private EntitySet arenaEntities;
   private EntitySet playerEntities;
-  private ChatHostedPoster chat;
-  private double timeSinceLastSettingsUpdateMs = 0;
-  private long time;
 
   @Override
   protected void initialize() {
 
-    this.chat = getSystem(InfinityChatHostedService.class);
+    ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
 
     ed = getSystem(EntityData.class);
     // This filters all entities that are in arenas
@@ -124,22 +121,21 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
 
     // Then load the settings (remove file ending first)
-    getSystem(SettingsSystem.class).loadSettings(playerEntityId, map.substring(0, map.lastIndexOf('.')));
+    getSystem(SettingsSystem.class)
+        .loadSettings(playerEntityId, map.substring(0, map.lastIndexOf('.')));
     Ini ini = getSystem(SettingsSystem.class).getIni(map);
     // Add settings information to the arena entity
     ed.setComponents(arena, new ArenaSettings(map, ini));
 
     // Get the containing cell for this arena add it to our arenaindex
     GridCell cell =
-        InfinityConstants.LARGE_OBJECT_GRID.getContainingCell(
+        WorldGrids.TILE_GRID.getContainingCell(
             mapBoundsMax.subtract(mapBoundsMin).divide(2));
     arenaCells.put(arena, cell);
 
-    Vec3d arenaMid = mapBoundsMax.add(mapBoundsMin).divide(2);
-
     // Add this arena as a shape we can use to detect players entering/leaving the arena
     ed.setComponent(arena, new Mass(0));
-    ed.setComponent(arena, new SpawnPosition(InfinityConstants.PHYSICS_GRID, new Vec3d()));
+    ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
     ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
   }
 
@@ -153,7 +149,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private void unloadArena(final EntityId id, EntityId avatarEntityId, final String map) {
     // First unload the map
     getSystem(MapSystem.class).unloadMap(id, avatarEntityId, map);
-    //TODO: unload settings
+    // TODO: unload settings
 
     // Then remove the arena entity
     ed.removeEntity(currentOpenArenas.get(map));
@@ -165,44 +161,13 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   protected void terminate() {
+    // TODO Auto-generated method stub
   }
 
   @Override
   public void update(final SimTime tpf) {
-    this.time = tpf.getTime();
-    
     playerEntities.applyChanges();
     arenaEntities.applyChanges();
-
-    /*
-     * This is a bit of a hack, but it works. We want to update the settings every 5 seconds, but
-     * we don't want to do it every frame. So we keep track of the time since last update and if
-     * it's more than 5 seconds we update the settings.
-     */
-    /*
-    if (timeSinceLastSettingsUpdateMs > CoreGameConstants.UPDATE_SETTINGS_INTERVAL_MS) {
-      // Update the filter and search for ships we need to update
-      for (Entity arena : arenaEntities) {
-        GridCell cell = arenaCells.get(arena.getId());
-        log.info("Checking players in: " + arena.get(ArenaId.class).getArenaBaseName());
-
-        for (Entity player : playerEntities) {
-          if (cell.contains(player.get(BodyPosition.class).getLastLocation())) {
-            // Update the settings for this player
-            // getSystem(SettingsSystem.class).updateSettings(player.getId(),
-            // arena.get(ArenaId.class).getArenaBaseName());
-          }
-        }
-
-        // arenaFilters.add(filter);
-      }
-      // reset our timer
-      timeSinceLastSettingsUpdateMs = 0;
-    } else {
-      // Add tpf in ms to our time since last update
-      timeSinceLastSettingsUpdateMs += tpf.getTpf()*1000;
-    }
-    */
   }
 
   @Override
@@ -222,7 +187,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   public String[] getActiveArenas() {
-    return (String[]) currentOpenArenas.keySet().toArray();
+    return currentOpenArenas.keySet().toArray(new String[0]);
   }
 
   private void closeArena(final String arenaId) {
