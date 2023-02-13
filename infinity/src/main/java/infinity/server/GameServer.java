@@ -302,7 +302,7 @@ public class GameServer {
     systems.register(FrequencySystem.class, new FrequencySystem());
 
     systems.register(WorldSystem.class, new WorldSystem());
-    //systems.register(DoorSystem.class, new DoorSystem());
+    systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--

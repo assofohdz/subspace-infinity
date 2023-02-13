@@ -91,23 +91,13 @@ import org.slf4j.LoggerFactory;
 public class LocalViewState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LocalViewState.class);
-
-  private Node viewRoot;
-
-  private JobState workers;
-  private JobState priorityWorkers;
-  private World world;
-  private VersionedReference<Vec3d> posRef;
   private final Grid leafGrid = WorldGrids.LEAF_GRID; // new Grid(32, 32, 32);
   // private Vec3i viewRadius = new Vec3i(2, 3, 2);
   private final Vec3i viewRadius = new Vec3i(2, 0, 2);
-  private final Vec3i centerCell = new Vec3i(0, 100, 0); // set it to something that will never match
-  private Vec3i centerWorld = new Vec3i();
+  private final Vec3i centerCell =
+      new Vec3i(0, 100, 0); // set it to something that will never match
   private final Vec3i maxViewRadius = new Vec3i(7, 9, 7);
   private final ViewMask viewMask = new ViewMask(WorldGrids.LEAF_GRID, maxViewRadius);
-  // private Spatial maskDebugOld;
-  private Spatial maskDebug;
-
   // Keep track of the min/max elevation for our center.  There is no reason
   // to grab leaf data from below elevation 0 or above elevation maxElevation (which
   // may be higher than the actual fractal's max because of extra build height).
@@ -115,26 +105,28 @@ public class LocalViewState extends BaseAppState {
   // could already see on the other end.  So we'll clamp the 'view center' such
   // that we will never query above/below 'the world'.
   private final int maxBuildHeight = 10;
-  private float yMin = 0;
-  private float yMax = 100;
-
-  // Rather than run through a 3D loop all the time, we'll precalculate our
-  // array as one flat array of view entries that already have that stuff calcualted.
-  private ViewEntry[] viewArray;
-
-  // Temporary box template
-  private Geometry debugCellTemplate;
   private final ColorRGBA loadingColor = new ColorRGBA(0.5f, 0.5f, 0.5f, 0.5f);
   private final ColorRGBA emptyColor = new ColorRGBA(0.2f, 0.4f, 0.6f, 0.1f);
   private final ColorRGBA filledColor = new ColorRGBA(1, 1, 0, 0.5f);
-
   private final Map<LeafId, LeafView> viewCache = new HashMap<>();
-
   private final LeafObserver leafObserver = new LeafObserver();
-  private BlockGeometryIndex geomIndex;
-
   private final ConcurrentLinkedQueue<LeafId> updatedLeafIds = new ConcurrentLinkedQueue<>();
-
+  private Node viewRoot;
+  private JobState workers;
+  private JobState priorityWorkers;
+  private World world;
+  private VersionedReference<Vec3d> posRef;
+  private Vec3i centerWorld = new Vec3i();
+  // private Spatial maskDebugOld;
+  private Spatial maskDebug;
+  private float yMin = 0;
+  private float yMax = 100;
+  // Rather than run through a 3D loop all the time, we'll precalculate our
+  // array as one flat array of view entries that already have that stuff calcualted.
+  private ViewEntry[] viewArray;
+  // Temporary box template
+  private Geometry debugCellTemplate;
+  private BlockGeometryIndex geomIndex;
   private FogSettings fogSettings;
   private VersionedReference<FogSettings> fogSettingsRef;
 
@@ -148,6 +140,14 @@ public class LocalViewState extends BaseAppState {
     return smoothLighting;
   }
 
+  /**
+   * Sets whether or not smooth lighting should be used. If smooth lighting is
+   * enabled, then the lighting values for each vertex will be interpolated
+   * between the neighboring cells. If smooth lighting is disabled, then the
+   * lighting values will be taken from the center cell.
+   *
+   * @param b true to enable smooth lighting, false to disable.
+   */
   public void setSmoothLighting(boolean b) {
     if (this.smoothLighting == b) {
       return;
@@ -164,6 +164,13 @@ public class LocalViewState extends BaseAppState {
     return viewRadius.x * 32 + 32;
   }
 
+  /**
+   * Sets the view radius in world units. The view radius is the distance from
+   * the center of the view that will be loaded. The view radius is clamped to
+   * the range of 3 to 7 cells.
+   *
+   * @param radius the view radius
+   */
   public void setViewRadius(int radius) {
     radius = radius - 32;
     radius = radius / 32;
@@ -201,7 +208,7 @@ public class LocalViewState extends BaseAppState {
     // this.viewMask = new ViewMask(WorldGrids.LEAF_GRID, maxViewRadius);
     getState(BlackboardState.class).set(ViewMask.class, viewMask);
 
-    //fogSettingsRef = fogSettings.createReference();
+    // fogSettingsRef = fogSettings.createReference();
 
     this.viewRoot = new Node("ViewRoot");
 
@@ -316,7 +323,6 @@ public class LocalViewState extends BaseAppState {
     if (posRef.update()) {
       Vec3d pos = posRef.get();
       updateView(pos, false);
-
 
       // viewRoot.setLocalTranslation(-(float)(pos.x - centerWorld.x), -64, -(float)(pos.z -
       // centerWorld.z));
@@ -454,11 +460,11 @@ public class LocalViewState extends BaseAppState {
   }
 
   protected void leafChanged(LeafId leafId) {
-    log.info("leafChanged(" + leafId + ")");
+    // log.info("leafChanged(" + leafId + ")");
     // Convert it to our grid... because they're different
     Vec3i w = leafId.getWorld(null);
     LeafView view = viewCache.get(leafId);
-    log.info("view:" + view);
+    // log.info("view:" + view);
     if (view != null) {
       // At highest priority
       priorityWorkers.execute(view, -1);
@@ -548,16 +554,17 @@ public class LocalViewState extends BaseAppState {
       queued = false;
 
       this.leafData = world.getLeaf(leafId);
-      log.info(String.format("Leaf change: empty cells in changed leaf: %d", leafData.getEmptyCellCount()));
+      // log.info(String.format("Leaf change: empty cells in changed leaf: %d",
+      // leafData.getEmptyCellCount()));
 
-      if (leafData == null){
-        log.warn("No leaf data for:" + leafId);
+      if (leafData == null) {
+        // log.warn("No leaf data for:" + leafId);
         return;
       }
 
       // log.info("loaded(" + leafId + "):" + leafData);
       if (leafData.isEmpty()) {
-        log.info("Empty, nothing to do for:" + leafId);
+        // log.info("Empty, nothing to do for:" + leafId);
         if (parts != null) {
           parts.removeFromParent();
           parts = null;
@@ -584,7 +591,7 @@ public class LocalViewState extends BaseAppState {
       // Create a new guaranteed unconnected node for our parts
       Node temp = new Node("Parts:" + leafId);
       geomIndex.generateBlocks(temp, leafData.getRawCells());
-      //geomIndex.generateBlocks(temp, leafData.getRawCells(), lightData, smoothLighting);
+      // geomIndex.generateBlocks(temp, leafData.getRawCells(), lightData, smoothLighting);
       synchronized (this) {
         generatedParts = temp;
       }
@@ -628,7 +635,7 @@ public class LocalViewState extends BaseAppState {
   private class LeafObserver implements LeafChangeListener {
     @Override
     public void leafChanged(LeafChangeEvent event) {
-      log.info("leafChanged(" + event + ")");
+      // log.info("leafChanged(" + event + ")");
       // long leafId = event.getLeafId();
       updatedLeafIds.add(event.getLeafId());
     }

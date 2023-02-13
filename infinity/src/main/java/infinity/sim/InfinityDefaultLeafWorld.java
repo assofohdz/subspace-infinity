@@ -36,21 +36,31 @@
 
 package infinity.sim;
 
-import com.simsilica.mblock.CellArray;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.MaskUtils;
+import com.simsilica.mworld.CellChangeEvent;
+import com.simsilica.mworld.CellChangeListener;
+import com.simsilica.mworld.Coordinates;
+import com.simsilica.mworld.FluidData;
+import com.simsilica.mworld.LeafChangeListener;
+import com.simsilica.mworld.LeafData;
+import com.simsilica.mworld.LeafId;
+import com.simsilica.mworld.LightData;
+import com.simsilica.mworld.TileId;
+import com.simsilica.mworld.World;
 import com.simsilica.mworld.base.LeafChangeListenerSupport;
 import com.simsilica.mworld.base.WorldCellData;
-import java.util.*;
-
-import org.slf4j.*;
-
-import com.simsilica.mathd.*;
-
-import com.simsilica.mblock.MaskUtils;
-import com.simsilica.mworld.*;
-import com.simsilica.mworld.db.*;
-import com.simsilica.mworld.tile.*;
+import com.simsilica.mworld.db.LeafDb;
+import com.simsilica.mworld.tile.Resolution;
+import com.simsilica.mworld.tile.TerrainImage;
+import com.simsilica.mworld.tile.TerrainImageType;
+import com.simsilica.mworld.tile.TileListener;
 import com.simsilica.mworld.tile.pc.PointCloudLayer;
 import com.simsilica.mworld.tile.tree.TreeLayer;
+import java.util.ArrayList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provided for interrum backwards partial compatibility for older apps/demos that haven't been
@@ -128,6 +138,11 @@ public class InfinityDefaultLeafWorld implements World {
 
   @Override
   public int setWorldCell(Vec3d world, int type) {
+    //TODO: Implement some kind of batching here so that we don't
+    // have to do a full recalculation for every cell change. Maybe
+    // a 'setWorldCells' that takes a list of cells to change and
+    // then does a single recalculation.
+
     // log.info("setWorldCell(" + world + ", " + type + ")");
     LeafId id = LeafId.fromWorld(world);
     LeafData leaf = getLeaf(id);
