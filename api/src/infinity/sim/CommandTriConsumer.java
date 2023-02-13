@@ -31,13 +31,13 @@ import org.apache.logging.log4j.util.TriConsumer;
 /**
  * @author Asser
  */
-public class CommandTriConsumer implements TriConsumer<EntityId, EntityId, String> {
+public class CommandTriConsumer<EntityId, Matcher> implements TriConsumer<EntityId, EntityId, Matcher> {
 
   private final AccessLevel accessLevelRequired;
-  private final TriConsumer<EntityId, EntityId, String> consumer;
+  private final TriConsumer<EntityId, EntityId, Matcher> consumer;
 
   public CommandTriConsumer(
-      final AccessLevel accessLevelRequired, final TriConsumer<EntityId, EntityId, String> consumer) {
+      final AccessLevel accessLevelRequired, final TriConsumer<EntityId, EntityId, Matcher> consumer) {
     this.accessLevelRequired = accessLevelRequired;
     this.consumer = consumer;
   }
@@ -46,12 +46,12 @@ public class CommandTriConsumer implements TriConsumer<EntityId, EntityId, Strin
     return accessLevelRequired;
   }
 
-  public TriConsumer<EntityId, EntityId, String> getConsumer() {
+  public TriConsumer<EntityId, EntityId, Matcher> getConsumer() {
     return consumer;
   }
 
   @Override
-  public void accept(EntityId entityId, EntityId entityId2, String s) {
-    consumer.accept(entityId, entityId2, s);
+  public void accept(EntityId e, EntityId f, Matcher s) {
+    consumer.accept(e, f, s);
   }
 }

@@ -41,6 +41,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.BaseGameService;
 import infinity.sim.ChatHostedPoster;
+import infinity.sim.CommandBiConsumer;
 import infinity.sim.CommandTriConsumer;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.PhysicsManager;
@@ -152,29 +153,29 @@ public class AdaptiveLoadingService extends AbstractHostedService
 
     // Register consuming methods for patterns
     this.getService(InfinityChatHostedService.class)
-        .registerPatternTriConsumer(
+        .registerPatternBiConsumer(
             startModulePattern,
             "The command to start a new module is ~startModule <module>, "
                 + "where <module> is the module you want to start",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::startModule));
+            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::startModule));
     this.getService(InfinityChatHostedService.class)
-        .registerPatternTriConsumer(
+        .registerPatternBiConsumer(
             stopModulePattern,
             "The command to start a new module is ~stopModule <module>, "
                 + "where <module> is the module you want to stop",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::stopModule));
+            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::stopModule));
     this.getService(InfinityChatHostedService.class)
-        .registerPatternTriConsumer(
+        .registerPatternBiConsumer(
             startServicePattern,
             "The command to start a new module is ~startService <service>, "
                 + "where <service> is the service you want to start",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::startService));
+            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::startService));
     this.getService(InfinityChatHostedService.class)
-        .registerPatternTriConsumer(
+        .registerPatternBiConsumer(
             stopServicePattern,
             "The command to start a new module is ~stopService <service>, "
                 + "where <service> is the service you want to stop",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::stopService));
+            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::stopService));
   }
 
   /**
@@ -303,11 +304,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
    * Starts a module.
    *
    * @param playerEntityId player calling the command
-   * @param avatarEntityId avatar of the player calling the command
    * @param module the module to start
    */
   private void startModule(
-      final EntityId playerEntityId, EntityId avatarEntityId, final String module) {
+      final EntityId playerEntityId, final String module) {
     BaseGameModule bgm;
     if (!modules.containsKey(module)) {
       try {
@@ -346,10 +346,9 @@ public class AdaptiveLoadingService extends AbstractHostedService
    *
    * @param module the module to stop
    * @param playerEntityId player calling the command
-   * @param avatarEntityId avatar of the player calling the command
    */
   private void stopModule(
-      final EntityId playerEntityId, EntityId avatarEntityId, final String module) {
+      final EntityId playerEntityId, final String module) {
     gameSystems.removeSystem(modules.get(module));
   }
 
@@ -358,10 +357,9 @@ public class AdaptiveLoadingService extends AbstractHostedService
    *
    * @param service the service to start
    * @param playerEntityId player calling the command
-   * @param avatarEntityId avatar of the player calling the command
    */
   private void startService(
-      final EntityId playerEntityId, EntityId avatarEntityId, final String service) {
+      final EntityId playerEntityId, final String service) {
     getServiceManager().addService(services.get(service));
   }
 
@@ -370,10 +368,9 @@ public class AdaptiveLoadingService extends AbstractHostedService
    *
    * @param service the service to stop
    * @param playerEntityId player calling the command
-   * @param avatarEntityId avatar of the player calling the command
    */
   private void stopService(
-      final EntityId playerEntityId, EntityId avatarEntityId, final String service) {
+      final EntityId playerEntityId, final String service) {
     getServiceManager().removeService(services.get(service));
   }
 

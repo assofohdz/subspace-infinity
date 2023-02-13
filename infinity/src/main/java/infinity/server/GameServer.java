@@ -114,6 +114,7 @@ import infinity.systems.PrizeSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.WarpSystem;
 import infinity.systems.WeaponsSystem;
+import infinity.systems.WorldSystem;
 import infinity.util.AdaptiveLoadingService;
 import java.io.BufferedReader;
 import java.io.File;
@@ -300,7 +301,8 @@ public class GameServer {
     systems.register(WarpSystem.class, new WarpSystem());
     systems.register(FrequencySystem.class, new FrequencySystem());
 
-    systems.register(DoorSystem.class, new DoorSystem());
+    systems.register(WorldSystem.class, new WorldSystem());
+    //systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--

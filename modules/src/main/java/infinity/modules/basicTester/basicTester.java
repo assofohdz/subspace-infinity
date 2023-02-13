@@ -21,6 +21,7 @@ import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.util.HashSet;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -138,13 +139,13 @@ public class basicTester extends BaseGameModule {
         .registerPatternTriConsumer(
             basicCommand,
             "The command to make this basic tester do stuff is ~basic <command>, where <command> is the command you want to execute",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+            new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
   }
 
   private CommandTriConsumer messageHandler(
-      @SuppressWarnings("unused") final EntityId id,
+      EntityId id,
       EntityId id2,
-      @SuppressWarnings("unused") final String s) {
+      Matcher matcher) {
     throw new UnsupportedOperationException(
         "Not supported yet."); // To change body of generated methods, choose
     // Tools | Templates.

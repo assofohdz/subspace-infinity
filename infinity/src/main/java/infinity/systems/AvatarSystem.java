@@ -76,7 +76,6 @@ public class AvatarSystem extends AbstractGameSystem {
     private EntitySet captains;
 
     // Matches =214 to capture frequency 214
-    private final Pattern joinTeam = Pattern.compile("\\=(\\d+)");
     private final InfinityChatHostedService chp;
 
     public AvatarSystem(final InfinityChatHostedService chp) {
@@ -91,16 +90,6 @@ public class AvatarSystem extends AbstractGameSystem {
         captains = ed.getEntities(ShapeInfo.class, Captain.class);
 
         teamRestrictions = new HashMap<>();
-
-    // Register consuming methods for patterns
-    chp.registerPatternTriConsumer(
-        joinTeam,
-        "The command to join a team is =<frequyency> where <frequency> is the freq you wish to join",
-        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::joinTeam));
-    }
-
-    private void joinTeam(final EntityId playerEntityId, EntityId avatarEntityId, final String frequency) {
-        ed.setComponent(playerEntityId, new Frequency(Integer.parseInt(frequency)));
     }
 
     @Override

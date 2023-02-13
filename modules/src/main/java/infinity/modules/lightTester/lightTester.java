@@ -45,6 +45,7 @@ import infinity.sim.TimeManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 
@@ -125,7 +126,7 @@ public class lightTester extends BaseGameModule {
             lightCommand,
             "The command to make this arena1 do stuff is ~arena1 <command>, "
                 + "where <command> is the command you want to execute",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+            new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
   }
 
   @Override
@@ -133,9 +134,12 @@ public class lightTester extends BaseGameModule {
     EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
   }
 
-  @SuppressWarnings("unused")
-  private CommandTriConsumer messageHandler(final EntityId id, EntityId id2, final String s) {
+  private CommandTriConsumer messageHandler(
+      EntityId id,
+      EntityId id2,
+      Matcher matcher) {
     throw new UnsupportedOperationException(
-        "Not supported yet."); // To change body of generated methods, choose Tools | Templates.
+        "Not supported yet."); // To change body of generated methods, choose
+    // Tools | Templates.
   }
 }

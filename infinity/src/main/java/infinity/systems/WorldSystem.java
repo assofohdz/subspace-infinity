@@ -1,45 +1,70 @@
 package infinity.systems;
 
+import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.db.ColumnDb;
-import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
-import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.server.DefaultColumnDb;
-import infinity.sim.InfinityDefaultLeafWorld;
-import java.io.File;
+import infinity.server.chat.InfinityChatHostedService;
+import infinity.sim.AccessLevel;
+import infinity.sim.ChatHostedPoster;
+import infinity.sim.CommandBiConsumer;
+import infinity.sim.CommandTriConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WorldSystem extends AbstractGameSystem {
 
+  private final Pattern editCell = Pattern.compile("\\~editCell\\s(\\d+)\\s(\\d+)");
   private DefaultColumnDb colDb;
   private World world;
 
-  public WorldSystem(){
-    colDb = new DefaultColumnDb(new File("world.db"));
-    colDb.initialize();
-    LeafDb leafDb2 = new ColumnDbLeafDbAdapter(colDb);
-    // LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
-    world = new InfinityDefaultLeafWorld(leafDb2, 10);
-  }
+  public WorldSystem() {}
 
   public ColumnDb getColumnDb() {
     return colDb;
   }
 
   @Override
-  public void start() {}
+  public void start() {
+    // Auto-generated method stub
+  }
 
   @Override
   public void update(SimTime time) {}
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // Auto-generated method stub
+  }
 
   @Override
   protected void initialize() {
+    world = getSystem(World.class);
 
+    InfinityChatHostedService chat = getSystem(InfinityChatHostedService.class);
+
+    chat.registerPatternTriConsumer(
+        editCell,
+        "The command to flip a worldcell is ~editCell <x> <y> <z>, where x,y and z are the world coords",
+        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::flipWorldCell));
+  }
+
+  private void flipWorldCell(EntityId player, EntityId avatarId, Matcher matcher) {
+    String x = matcher.group(1);
+    String z = matcher.group(2);
+
+    Vec3d pos = new Vec3d(Double.parseDouble(x), 1, Double.parseDouble(z));
+
+    int cellType = world.getWorldCell(pos);
+    if (cellType == 0) {
+      cellType = 10;
+    } else {
+      cellType = 0;
+    }
+    world.setWorldCell(pos, cellType);
   }
 
   public int setWorldCell(Vec3d pos, int cellType) {

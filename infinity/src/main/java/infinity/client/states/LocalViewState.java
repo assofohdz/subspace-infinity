@@ -548,6 +548,7 @@ public class LocalViewState extends BaseAppState {
       queued = false;
 
       this.leafData = world.getLeaf(leafId);
+      log.info(String.format("Leaf change: empty cells in changed leaf: %d", leafData.getEmptyCellCount()));
 
       if (leafData == null){
         log.warn("No leaf data for:" + leafId);
@@ -556,7 +557,7 @@ public class LocalViewState extends BaseAppState {
 
       // log.info("loaded(" + leafId + "):" + leafData);
       if (leafData.isEmpty()) {
-        // log.info("Empty, nothing to do for:" + leafId);
+        log.info("Empty, nothing to do for:" + leafId);
         parts = null; // just in case we're rerun
         return;
       }

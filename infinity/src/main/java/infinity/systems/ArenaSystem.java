@@ -51,6 +51,7 @@ import infinity.sim.CommandTriConsumer;
 import infinity.sim.CoreGameConstants;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -91,12 +92,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         loadArena,
         "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
             + "name of the map you want to load",
-        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::loadArena));
+        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::loadArena));
     chat.registerPatternTriConsumer(
         unloadArena,
         "The command to unload a new map is ~unloadArena <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::unloadArena));
+        new CommandTriConsumer<EntityId, Matcher>(AccessLevel.PLAYER_LEVEL, this::unloadArena));
 
     arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
   }
@@ -106,9 +107,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * MapSystem and load the map, then call SettingsSystem and load the settings for this arena.
    *
    * @param playerEntityId EntityId of the player that sent the command
-   * @param map String of the map name
+   * @param matcher Matcher that contains the map name
    */
-  private void loadArena(final EntityId playerEntityId, EntityId avatarEntityId, final String map) {
+  private void loadArena(final EntityId playerEntityId, EntityId avatarEntityId, final Matcher matcher) {
+    String map = matcher.group(1);
     // First create the map entity
     EntityId arena = ed.createEntity();
     ed.setComponent(arena, new ArenaId(map, playerEntityId));
@@ -144,11 +146,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * MapSystem.java to unload the map and the SettingsSystem.java to unload the settings
    *
    * @param id EntityId of the player that sent the command
-   * @param map String of the map name
+   * @param matcher Matcher that contains the map name
    */
-  private void unloadArena(final EntityId id, EntityId avatarEntityId, final String map) {
+  private void unloadArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
+    String map = matcher.group(1);
     // First unload the map
-    getSystem(MapSystem.class).unloadMap(id, avatarEntityId, map);
+    getSystem(MapSystem.class).unloadMap(id, avatarEntityId, matcher);
     // TODO: unload settings
 
     // Then remove the arena entity

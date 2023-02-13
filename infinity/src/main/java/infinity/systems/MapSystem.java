@@ -55,6 +55,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,13 +160,12 @@ public class MapSystem extends AbstractGameSystem {
         loadMap,
         "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name "
             + "of the map you want to load",
-        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, (id, id2, map) -> loadMap(id, id2, map)));
+        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::loadMap));
     chat.registerPatternTriConsumer(
         unloadMap,
         "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandTriConsumer(
-            AccessLevel.PLAYER_LEVEL, (id, id2, map) -> unloadMap(id, id2, map)));
+        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::unloadMap));
   }
 
   /**
@@ -262,10 +262,13 @@ public class MapSystem extends AbstractGameSystem {
    * Unloads a given lvz-map.
    *
    * @param playerEntityId the entity requesting the unload
-   * @param mapName the lvz-map to load
+   * @param avatarEntityId the avatar of the entity requesting the unload
+   * @param matcher the matcher containing the map name
    * @return true if unloaded, false otherwise
    */
-  public boolean unloadMap(EntityId playerEntityId, EntityId avatarEntityId, final String mapName) {
+  public boolean unloadMap(EntityId playerEntityId, EntityId avatarEntityId, Matcher matcher) {
+    String mapName = matcher.group(1);
+
     if (!activeMaps.containsKey(mapName)) {
       return false;
     }

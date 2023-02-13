@@ -106,7 +106,7 @@ public class prizeTester extends BaseGameModule {
             prizeTesterCommand,
             "The command to make this prizeTester do stuff is ~prizeTester <command>, "
                 + "where <command> is the command you want to execute",
-            new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+            new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
 
     // startGame();
   }

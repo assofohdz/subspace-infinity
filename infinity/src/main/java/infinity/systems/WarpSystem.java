@@ -97,7 +97,7 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
         .registerPatternBiConsumer(
             requestWarpToCenter,
             "The command to warp to the center of the arena is ~warpCenter",
-            new CommandBiConsumer(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
+            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -154,7 +154,7 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
   /**
    * Lets entities request a warp to the center of the arena.
    *
-   * @param entityId requesting entity
+   * @param avatarId requesting entity
    */
   public void requestWarpToCenter(EntityId entityId, EntityId avatarId) {
     // TODO: Check for full health

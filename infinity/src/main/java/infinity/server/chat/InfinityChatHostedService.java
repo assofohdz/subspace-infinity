@@ -188,7 +188,8 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
         // TODO: Implement account service to manage security levels
         // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
         // cc.getAccessLevelRequired())) {
-        cc.getConsumer().accept(fromEntity, fromAvatar, matcher.group(1));
+
+        cc.getConsumer().accept(fromEntity, fromAvatar, matcher);
         // }
       }
     }
@@ -199,10 +200,10 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       if (matcher.matches()) {
         matched = true;
         final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
-        final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
+        //final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
         final CommandBiConsumer cc = patternBiConsumer.get(pattern);
 
-        cc.getConsumer().accept(fromEntity, fromAvatar);
+        cc.getConsumer().accept(fromEntity, matcher);
       }
     }
 

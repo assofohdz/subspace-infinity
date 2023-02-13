@@ -145,8 +145,8 @@ public class warpTester extends BaseGameModule {
             warpTesterCommand,
             "The command to make this warpTester do stuff is ~warpTester <command>, "
                 + "where <command> is the command you want to execute",
-            new CommandTriConsumer(
-                AccessLevel.PLAYER_LEVEL, (id, id2, s) -> messageHandler(id, id2, s)));
+            new CommandTriConsumer<>(
+                AccessLevel.PLAYER_LEVEL, this::messageHandler));
 
     // startGame();
   }

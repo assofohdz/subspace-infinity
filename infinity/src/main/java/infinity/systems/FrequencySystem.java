@@ -48,7 +48,7 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
         freuencyChange,
         "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
             + "name of the map you want to load",
-        new CommandTriConsumer(AccessLevel.PLAYER_LEVEL, this::changeFrequency));
+        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::changeFrequency));
 
     // Register this as a contact listener with the ContactSystem
     getSystem(ContactSystem.class, true).addListener(this);
