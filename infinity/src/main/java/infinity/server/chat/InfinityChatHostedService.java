@@ -184,7 +184,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
         matched = true;
         final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
         final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
-        final CommandTriConsumer cc = patternTriConsumer.get(pattern);
+        final CommandTriConsumer<EntityId, Matcher> cc = patternTriConsumer.get(pattern);
         // TODO: Implement account service to manage security levels
         // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
         // cc.getAccessLevelRequired())) {
@@ -201,7 +201,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
         matched = true;
         final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
         //final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
-        final CommandBiConsumer cc = patternBiConsumer.get(pattern);
+        final CommandBiConsumer<EntityId, Matcher> cc = patternBiConsumer.get(pattern);
 
         cc.getConsumer().accept(fromEntity, matcher);
       }

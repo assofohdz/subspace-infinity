@@ -35,6 +35,7 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.es.Filters;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
@@ -73,7 +74,7 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
   private EntitySet warpTouchEntities;
   private EntitySet warpToEntities;
   private EntitySet canWarp;
-  private PhysicsSpace physicsSpace;
+  private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private InfinityEntityBodyFactory bodyFactory;
 
   @Override

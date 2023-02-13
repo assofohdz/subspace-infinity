@@ -77,6 +77,5 @@ public class WorldSystem extends AbstractGameSystem {
 
   @Override
   protected void terminate() {
-    colDb.terminate();
-  }
+    }
 }

@@ -558,7 +558,14 @@ public class LocalViewState extends BaseAppState {
       // log.info("loaded(" + leafId + "):" + leafData);
       if (leafData.isEmpty()) {
         log.info("Empty, nothing to do for:" + leafId);
-        parts = null; // just in case we're rerun
+        if (parts != null) {
+          parts.removeFromParent();
+          parts = null;
+        }
+        if (generatedParts != null) {
+          generatedParts.removeFromParent();
+          generatedParts = null;
+        }
         return;
       }
 
