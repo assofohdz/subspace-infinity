@@ -302,6 +302,7 @@ public class ModelViewState extends BaseAppState {
 
       viewRoot.setLocalTranslation(
           -(float) (pos.x - centerWorld.x), 0, -(float) (pos.z - centerWorld.z));
+      resetRelativeCoordinates();
     }
 
     if (!avatarInitialized) {
@@ -544,9 +545,8 @@ public class ModelViewState extends BaseAppState {
     // Note 03-02-2023: We're not using the shape size yet on the view-side - and that's okay for
     // now - because it
     // allows us to use the shape-size purely for the backend physics
-    MBlockShape mBlockShape = shapeFactory.createShape(shapeInfo, mass);
 
-    return SImodelFactory.createModel(id, shapeName, mBlockShape, mass);
+    return SImodelFactory.createModel(id, shapeName, mass);
   }
 
   protected Model getModel(EntityId entityId, boolean create) {

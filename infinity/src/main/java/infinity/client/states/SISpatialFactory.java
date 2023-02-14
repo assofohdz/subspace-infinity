@@ -51,7 +51,6 @@ import com.simsilica.ext.mphys.Mass;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.Group;
-import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mblock.phys.Part;
 import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
@@ -60,6 +59,7 @@ import infinity.es.Flag;
 import infinity.es.ShapeNames;
 import infinity.es.ship.weapons.BombLevelEnum;
 import infinity.sim.CoreViewConstants;
+import infinity.sim.util.InfinityRunTimeException;
 import jme3utilities.MyMesh;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,15 +73,15 @@ public class SISpatialFactory {
 
   // Use to flip between using the lights and using unshaded textures
   private static final boolean UNSHADED = false;
+  private static final boolean DEBUG_COG = false;
+  private static final String NUMTILESOFFSETY = "numTilesOffsetY";
+  private static final String STARTTIME = "StartTime";
   static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
   private final AssetManager assets;
   private final Node rootNode;
   private final Timer timer;
-  private static final boolean DEBUG_COG = false;
   private final BlockGeometryIndex geomIndex;
   private EffectFactory ef;
-  private static final String NUMTILESOFFSETY = "numTilesOffsetY";
-  private static final String STARTTIME = "StartTime";
 
   SISpatialFactory(
       final Node rootNode,
@@ -100,7 +100,7 @@ public class SISpatialFactory {
    * @param shapeName The name of the shape to create
    * @return The spatial
    */
-  public Spatial createModel(EntityId id, String shapeName, MBlockShape shape, Mass mass) {
+  public Spatial createModel(EntityId id, String shapeName, Mass mass) {
 
     switch (shapeName) {
       case ShapeNames.BULLETL1:
@@ -166,17 +166,7 @@ public class SISpatialFactory {
       case ShapeNames.DOOR:
         return createDoor();
       default:
-        Part part = shape.getPart();
-
-        Spatial result;
-        if (part instanceof CellArrayPart) {
-          result = createPartSpatial(id, (CellArrayPart) part, true, mass);
-        } else if (part instanceof Group) {
-          result = createPartSpatial(id, (Group) part, mass);
-        } else {
-          throw new IllegalArgumentException("Unhandled part type:" + shape.getPart());
-        }
-        return result;
+        throw new InfinityRunTimeException("Unknown shape name: " + shapeName);
     }
   }
 
