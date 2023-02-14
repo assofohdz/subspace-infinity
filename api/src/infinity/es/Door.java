@@ -6,7 +6,6 @@ public class Door implements EntityComponent {
 
   private long interval;
   private long endTime;
-  boolean open;
 
   public long getEndTime() {
     return endTime;
@@ -20,13 +19,9 @@ public class Door implements EntityComponent {
     return interval;
   }
 
-  public boolean isOpen() {
-    return open;
-  }
 
-  public Door ( long createdTime, long interval, boolean open) {
+  public Door ( long createdTime, long interval) {
     this.endTime = createdTime + interval;
     this.interval = interval;
-    this.open = open;
   }
 }

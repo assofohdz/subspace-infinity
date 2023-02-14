@@ -285,7 +285,7 @@ public class GameEntities {
       ed.setComponent(lastDoor, new Parent(owner));
     }
     //ed.setComponent(lastDoor, ShapeInfo.create(ShapeNames.DOOR, CorePhysicsConstants.DOORWIDTH, ed));
-    ed.setComponent(lastDoor, new Door(createdTime, intervalTime, true));
+    ed.setComponent(lastDoor, new Door(createdTime, intervalTime));
 
 
     return lastDoor;

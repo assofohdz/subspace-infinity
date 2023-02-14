@@ -65,8 +65,10 @@ public class DoorSystem extends AbstractGameSystem {
   }
 
   private void openOrCloseDoor(EntityId entityId, Door door, SpawnPosition pos) {
+    boolean open = world.getWorldCell(pos.getLocation()) == 0;
     ed.setComponent(
-        entityId, new Door(System.currentTimeMillis(), door.getInterval(), !door.isOpen()));
-    world.setWorldCell(pos.getLocation(), door.isOpen() ? 10 : 0);
+        entityId, new Door(System.currentTimeMillis(), door.getInterval()));
+
+    world.setWorldCell(pos.getLocation(), open ? 10 : 0);
   }
 }
