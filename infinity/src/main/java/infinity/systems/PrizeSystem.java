@@ -22,7 +22,6 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.CollisionCategory;
@@ -58,7 +57,7 @@ import org.slf4j.LoggerFactory;
 public class PrizeSystem extends AbstractGameSystem implements ContactListener {
 
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
-  private final PhysicsSpace phys;
+  private final PhysicsSpace<EntityId, MBlockShape> phys;
   private final HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<>();
   private final HashMap<String, Integer> prizeWeights = new HashMap<>();
   private final HashMap<EntityId, Double> spawnerLastSpawned = new HashMap<>();
@@ -191,8 +190,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     ships.applyChanges();
 
     // Updated count if prizes are removed
-    for (Entity eBountyRemoved : prizes.getRemovedEntities()) {
-      EntityId idBounty = eBountyRemoved.getId();
+    for (Entity bountyRemoved : prizes.getRemovedEntities()) {
+      EntityId idBounty = bountyRemoved.getId();
       for (Entity entitySpawner : prizeSpawners) {
         HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
         spawnerBountySet.remove(idBounty);
@@ -239,60 +238,39 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   }
 
   private EntityId spawnBounty(
-      Vec3d location, double radius, boolean spawnOnRing, boolean weighted) {
-    if (weighted) {
-      return spawnWeightedBounty(location, radius, spawnOnRing);
-    } else {
-      return spawnRandomBounty(location, radius, spawnOnRing);
-    }
+      Vec3d spawnerLocation, double radius, boolean spawnOnRing, boolean weighted) {
+    String prizeType = getPrizeType(weighted);
+    Vec3d prizeSpawnLocation =
+        this.getSpawnLocation(
+            spawnerLocation, radius, spawnOnRing);
+
+    return GameEntities.createPrize(ed, phys, ourTime.getTime(), prizeSpawnLocation, prizeType);
   }
 
   @Override
   public void start() {
-    // TODO Auto-generated method stub
-    // Nothing to do yet when starting game, handled in initialize
+    // Auto-generated method stub
   }
 
   @Override
   public void stop() {
-    // TODO Auto-generated method stub
-    // Nothing to do yet when stopping game, handled in terminate
+    // Auto-generated method stub
   }
 
-  private Vec3d getRandomWeightedCircleSpawnLocation(
-      Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
+  private Vec3d getSpawnLocation(
+      Vec3d spawnCenter, double radius, boolean onlyOnCircumference) {
     double angle = Math.random() * Math.PI * 2;
 
-    double lengthFromCenter = onlyOnCistringWeightsumference ? radius : radius * Math.random();
+    double lengthFromCenter = onlyOnCircumference ? radius : radius * Math.random();
 
     double x = Math.cos(angle) * lengthFromCenter + spawnCenter.x;
     double z = Math.sin(angle) * lengthFromCenter + spawnCenter.z;
 
-    return new Vec3d(x, spawnCenter.y, z);
+    return new Vec3d(x, 1, z);
   }
 
-  private EntityId spawnWeightedBounty(
-      Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
-    Vec3d location =
-        this.getRandomWeightedCircleSpawnLocation(
-            spawnCenter, radius, onlyOnCistringWeightsumference);
-
-    String prizeType = rc.next(random);
-
-    return GameEntities.createPrize(ed, phys, ourTime.getTime(), location, prizeType);
-  }
-
-  private EntityId spawnRandomBounty(
-      Vec3d spawnCenter, double radius, boolean onlyOnCistringWeightsumference) {
-    Vec3d location =
-        this.getRandomWeightedCircleSpawnLocation(
-            spawnCenter, radius, onlyOnCistringWeightsumference);
-
-    int randInt = ThreadLocalRandom.current().nextInt(1, 28 + 1);
-
-    String prizeType = prizeMap.get(randInt);
-
-    return GameEntities.createPrize(ed, phys, ourTime.getTime(), location, prizeType);
+  private String getPrizeType(boolean weighted){
+    return weighted ? rc.next(random) : prizeMap.get(ThreadLocalRandom.current().nextInt(1, 28 + 1));
   }
 
   private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {
@@ -448,9 +426,9 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         return;
       }
 
-      PrizeType pt = prizes.getEntity(prizeId).get(PrizeType.class);
       GameSounds.createPrizeSound(ed, ourTime.getTime(), shipId, body1.position, phys);
 
+      PrizeType pt = prizes.getEntity(prizeId).get(PrizeType.class);
       this.handlePrizeAcquisition(pt, shipId);
       // Remove prize
       ed.removeEntity(prizeId);
