@@ -79,7 +79,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,10 +143,9 @@ public class LocalViewState extends BaseAppState {
   }
 
   /**
-   * Sets whether or not smooth lighting should be used. If smooth lighting is
-   * enabled, then the lighting values for each vertex will be interpolated
-   * between the neighboring cells. If smooth lighting is disabled, then the
-   * lighting values will be taken from the center cell.
+   * Sets whether or not smooth lighting should be used. If smooth lighting is enabled, then the
+   * lighting values for each vertex will be interpolated between the neighboring cells. If smooth
+   * lighting is disabled, then the lighting values will be taken from the center cell.
    *
    * @param b true to enable smooth lighting, false to disable.
    */
@@ -165,9 +166,8 @@ public class LocalViewState extends BaseAppState {
   }
 
   /**
-   * Sets the view radius in world units. The view radius is the distance from
-   * the center of the view that will be loaded. The view radius is clamped to
-   * the range of 3 to 7 cells.
+   * Sets the view radius in world units. The view radius is the distance from the center of the
+   * view that will be loaded. The view radius is clamped to the range of 3 to 7 cells.
    *
    * @param radius the view radius
    */
@@ -563,18 +563,11 @@ public class LocalViewState extends BaseAppState {
       }
 
       // log.info("loaded(" + leafId + "):" + leafData);
-      if (leafData.isEmpty()) {
-        // log.info("Empty, nothing to do for:" + leafId);
-        if (parts != null) {
-          parts.removeFromParent();
-          parts = null;
-        }
-        if (generatedParts != null) {
-          generatedParts.removeFromParent();
-          generatedParts = null;
-        }
-        return;
-      }
+//      if( leafData.isEmpty() ) {
+//        //log.info("Empty, nothing to do for:" + leafId);
+//        //parts = new Node(); // just in case we're rerun
+//        return;
+//      }
 
       // Vec3i world = leafId.getWorld(null); //getWorldOrigin();
       // ColumnId colId = ColumnId.fromWorld(world);
