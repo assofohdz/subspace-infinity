@@ -46,7 +46,6 @@ import com.simsilica.sim.SimTime;
 import infinity.es.GravityWell;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
-import infinity.systems.MapSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,40 +88,41 @@ public class BasicEnvironment extends AbstractGameSystem {
     //      }
     //    }
 
-    //    GameEntities.createWormhole(
-    //        ed,
-    //        EntityId.NULL_ID,
-    //        phys,
-    //        time,
-    //        new Vec3d(-20, 1, -20),
-    //        1000,
-    //        GravityWell.PULL,
-    //        new Vec3d(-10,1,10),
-    //        10);
+        GameEntities.createWormhole(
+            ed,
+            EntityId.NULL_ID,
+            phys,
+            time,
+            new Vec3d(8, 1, 16),
+            750,
+            GravityWell.PULL,
+            new Vec3d(40, 1, 16),
+            20);
 
-    //    GameEntities.createWeightedPrizeSpawner(
-    //        ed,
-    //        EntityId.NULL_ID,
-    //        phys,
-    //        time,
-    //        new Vec3d(-20, 1, -20),
-    //        5000,
-    //        true,
-    //        20);
+        GameEntities.createWeightedPrizeSpawner(
+            ed,
+            EntityId.NULL_ID,
+            phys,
+            time,
+            new Vec3d(24, 1, 16),
+            10000,
+            false,
+            1);
 
     long sysTime = System.currentTimeMillis();
 
-    //Note its important to create doors with the same starting time
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(0, 1, 0));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(1, 1, 0));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(2, 1, 0));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(3, 1, 0));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(4, 1, 0));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(0, 1, 3));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(1, 1, 3));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(2, 1, 3));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(3, 1, 3));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 5000, new Vec3d(4, 1, 3));
+
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 17));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 16));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 15));
+    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 14));
+
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, 10, 0), 0);
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(5, 5, 5), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(-5, -10, 0), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, -5, 5), 0);;
+
 //    getSystem(World.class).setWorldCell(new Vec3d(0, 1, -1), 10);
 //    getSystem(World.class).setWorldCell(new Vec3d(1, 1, -1), 10);
 //    getSystem(World.class).setWorldCell(new Vec3d(2, 1, -1), 10);
