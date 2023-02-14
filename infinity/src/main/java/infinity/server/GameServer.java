@@ -78,6 +78,7 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.mworld.base.DefaultLeafWorld;
 import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
+import com.simsilica.mworld.db.LeafDbCache;
 import com.simsilica.mworld.net.server.WorldHostedService;
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
@@ -212,9 +213,9 @@ public class GameServer {
 
     colDb = new DefaultColumnDb(new File("world.db"));
     colDb.initialize();
-    LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
+    //LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
 
-    // LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+    LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
     World world = new DefaultLeafWorld(leafDb, 10);
 
     systems.register(World.class, world);
