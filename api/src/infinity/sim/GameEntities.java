@@ -84,7 +84,6 @@ import infinity.es.ship.weapons.Mine;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineMax;
-import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
@@ -280,13 +279,13 @@ public class GameEntities {
     final EntityId lastDoor = ed.createEntity();
     ed.setComponents(lastDoor, new SpawnPosition(phys.getGrid(), pos), new Mass(0), new Door());
     ed.setComponent(lastDoor, new Meta(createdTime));
-    //If owner is not null, then this door is a child of the owner
+    // If owner is not null, then this door is a child of the owner
     if (owner != null) {
       ed.setComponent(lastDoor, new Parent(owner));
     }
-    //ed.setComponent(lastDoor, ShapeInfo.create(ShapeNames.DOOR, CorePhysicsConstants.DOORWIDTH, ed));
+    // ed.setComponent(lastDoor, ShapeInfo.create(ShapeNames.DOOR, CorePhysicsConstants.DOORWIDTH,
+    // ed));
     ed.setComponent(lastDoor, new Door(createdTime, intervalTime));
-
 
     return lastDoor;
   }
@@ -491,50 +490,7 @@ public class GameEntities {
 
     ed.setComponent(result, new Parent(owner));
 
-    switch (ship) {
-      case 0x1:
-        ShapeInfo wb =
-            ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, wb);
-        break;
-      case 0x2:
-        ShapeInfo jav =
-            ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, jav);
-        break;
-      case 0x3:
-        ShapeInfo spider =
-            ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, spider);
-        break;
-      case 0x4:
-        ShapeInfo levi =
-            ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, levi);
-        break;
-      case 0x5:
-        ShapeInfo terr =
-            ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, terr);
-        break;
-      case 0x6:
-        ShapeInfo lanc =
-            ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, lanc);
-        break;
-      case 0x7:
-        ShapeInfo weas =
-            ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, weas);
-        break;
-      case 0x8:
-        ShapeInfo shark =
-            ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed);
-        ed.setComponents(result, shark);
-        break;
-      default:
-        throw new InfinityRunTimeException("Unknown ship type: " + ship);
-    }
+    ed.setComponent(result, ShapeNames.createShip(ship, ed));
 
     SpawnPosition sp = new SpawnPosition(phys.getGrid(), spawnLoc);
     ed.setComponent(result, sp);

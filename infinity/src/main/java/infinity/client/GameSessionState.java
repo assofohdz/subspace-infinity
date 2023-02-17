@@ -46,11 +46,13 @@ import com.simsilica.mworld.view.ProgressState;
 import com.simsilica.state.BlackboardState;
 import com.simsilica.state.CompositeAppState;
 import com.simsilica.state.DebugHudState;
+import com.simsilica.state.GameSystemsState;
 import infinity.HelpState;
 import infinity.HostState;
 import infinity.InfinityConstants;
 import infinity.SettingsState;
 import infinity.TimeState;
+import infinity.ai.MobDebugState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
 import infinity.client.states.InfinityCameraState;
@@ -82,6 +84,7 @@ public class GameSessionState extends CompositeAppState {
    */
   public GameSessionState() {
     super(
+        new GameSystemsState(),
         new AvatarMovementState(),
         new TimeState(), // Has to be before any visuals that might need it.
         new SkyState(),
@@ -111,6 +114,9 @@ public class GameSessionState extends CompositeAppState {
     final HostState host = getState(HostState.class);
     if (host != null) {
       addChild(new PhysicsDebugState(host), true);
+    }
+    if (host != null) {
+      addChild(new MobDebugState(host), true);
     }
 
     TimeSource timeSource = getState(ConnectionState.class).getRemoteTimeSource();

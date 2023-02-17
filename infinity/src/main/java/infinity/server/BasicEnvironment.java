@@ -38,11 +38,14 @@ package infinity.server;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.AIEntities;
+import infinity.Ships;
 import infinity.es.GravityWell;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
@@ -88,40 +91,51 @@ public class BasicEnvironment extends AbstractGameSystem {
     //      }
     //    }
 
-        GameEntities.createWormhole(
-            ed,
-            EntityId.NULL_ID,
-            phys,
-            time,
-            new Vec3d(8, 1, 16),
-            750,
-            GravityWell.PULL,
-            new Vec3d(40, 1, 16),
-            20);
-
-        GameEntities.createWeightedPrizeSpawner(
-            ed,
-            EntityId.NULL_ID,
-            phys,
-            time,
-            new Vec3d(24, 1, 16),
-            10000,
-            false,
-            1);
+//        GameEntities.createWormhole(
+//            ed,
+//            EntityId.NULL_ID,
+//            phys,
+//            time,
+//            new Vec3d(8, 1, 16),
+//            750,
+//            GravityWell.PULL,
+//            new Vec3d(40, 1, 16),
+//            20);
+//
+//        GameEntities.createWeightedPrizeSpawner(
+//            ed,
+//            EntityId.NULL_ID,
+//            phys,
+//            time,
+//            new Vec3d(24, 1, 16),
+//            10000,
+//            false,
+//            1);
 
     long sysTime = System.currentTimeMillis();
 
+    byte shipType = 0x2;
 
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 17));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 16));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 15));
-    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 14));
+    AIEntities.createMob(
+        new Vec3d(), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
 
+//
+//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
+//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 17));
+//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 16));
+//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 15));
+//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 14));
+
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(40, -10, 20), 0);
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(30, -5, 5), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(20, 15, -10), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(10, 0, 30), 0);;
 //    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, 10, 0), 0);
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(5, 5, 5), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(-5, -10, 0), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, -5, 5), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(40, -10, 10), 0);
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(30, -5, 15), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(20, 15, 5), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(10, 0, -10), 0);;
+//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, 10, 5), 0);
 
 //    getSystem(World.class).setWorldCell(new Vec3d(0, 1, -1), 10);
 //    getSystem(World.class).setWorldCell(new Vec3d(1, 1, -1), 10);

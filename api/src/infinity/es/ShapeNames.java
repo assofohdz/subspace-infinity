@@ -3,12 +3,25 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package infinity.es;
 
+import com.simsilica.es.EntityData;
+import com.simsilica.ext.mphys.ShapeInfo;
+import infinity.sim.CorePhysicsConstants;
+import infinity.sim.util.InfinityRunTimeException;
+
 /**
- * @author AFahrenholz
+ * These are the names of the shapes that are used by the game. They are used to look up the shape
+ * information from the physics system.
+ *
+ * @author Asser Fahrenholz
  */
 public class ShapeNames {
+
+  private ShapeNames(){
+    throw new InfinityRunTimeException("This class should not be instantiated");
+  }
 
   public static final String SHIP_SHARK = "ship_shark";
   public static final String SHIP_WARBIRD = "ship_warbird";
@@ -57,4 +70,33 @@ public class ShapeNames {
   public static final String REPEL = "repel";
   public static final String FLAG = "flag";
   public static final String DOOR = "door";
+
+  /**
+   * Creates a ship shape based on the ship type.
+   * @param ship the ship type
+   * @param ed the entity data
+   * @return the shape info
+   */
+  public static ShapeInfo createShip(byte ship, EntityData ed) {
+    switch (ship) {
+      case 0x1:
+        return ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x2:
+        return ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x3:
+        return ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x4:
+        return ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x5:
+        return ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x6:
+        return ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x7:
+        return ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      case 0x8:
+        return ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+      default:
+        throw new InfinityRunTimeException("Unknown ship type: " + ship);
+    }
+  }
 }
