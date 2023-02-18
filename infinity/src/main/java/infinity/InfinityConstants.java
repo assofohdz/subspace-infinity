@@ -38,11 +38,11 @@ package infinity;
 
 import com.simsilica.ethereal.net.ObjectStateProtocol;
 import com.simsilica.ethereal.zone.ZoneGrid;
-import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mathd.bits.QuatBits;
 import com.simsilica.mathd.bits.Vec3Bits;
+import com.simsilica.mworld.WorldGrids;
 
 /**
  * Game setup constants for things like game name, version, etc.
@@ -55,7 +55,6 @@ public class InfinityConstants {
   }
 
   public static final String NAME = "Subspace Infinity";
-  public static final String TITLE = "Subspace Infinity v. 0.1";
   public static final int PROTOCOL_VERSION = 42;
 
   public static final int DEFAULT_PORT = 6942;
@@ -78,7 +77,7 @@ public class InfinityConstants {
    * The size of the rendered grid cells. This is just a visualization setting, but it's best if it
    * is at least a multiple/factor of the gridSize.
    */
-  public static final int GRID_CELL_SIZE = 32;
+  public static final int GRID_CELL_SIZE = WorldGrids.LEAF_SIZE;
 
   /**
    * Default gravity used for the physics simulation. - Changed from 0,-10,0 to 0,0,0 for ZERO
@@ -86,7 +85,6 @@ public class InfinityConstants {
    */
   public static final Vec3d NO_GRAVITY = new Vec3d(0, 0, 0);
   public static final float MAX_OBJECT_RADIUS = 32; // with big ships, it needs to be bumped.
-  // public static final int POSITION_BITS = 16;
   public static final int POSITION_BIT_COUNT = 18; // with bigger radius, we need more bits.
   /**
    * Defines how many network message bits to encode the elements of rotation fields. Given that
@@ -101,7 +99,7 @@ public class InfinityConstants {
    * the player can see one zone to either side of their current zone. A total zone radius of (1, 1,
    * 1) means the player can see a total of 27 zones including the zone they are in.
    */
-  public static final Vec3i ZONE_RADIUS = new Vec3i(1, 0, 1);
+  public static final Vec3i ZONE_RADIUS = new Vec3i(2, 0, 2);
   // To allow players to see farther in space, we'll use a larger grid
   // size for the zone manager. We could have also used a wider zone radius
   // and we might use both. The gridSize used in a real game is mostly a
@@ -111,9 +109,8 @@ public class InfinityConstants {
   // zones in a player's view, there is considerably more management involved
   // with each new zone, more network messages, etc.. Finding the sweet spot
   // will depend largely on the game.
-  private static final int gridSize = 32; // 64;
   /** The 3D zone grid definition that defines how space is broken up into network zones. */
-  public static final ZoneGrid ZONE_GRID = new ZoneGrid(gridSize, 0, gridSize);
+  public static final ZoneGrid ZONE_GRID = new ZoneGrid(WorldGrids.LEAF_SIZE, 0, WorldGrids.LEAF_SIZE);
   /**
    * Defines how many network message bits to encode the elements of position fields. This will be a
    * function of the grid size and resolution desired. Keep in mind that objects can be in a zone
@@ -122,7 +119,7 @@ public class InfinityConstants {
    * the borders as objects cross zone boundaries.
    */
   public static final Vec3Bits POSITION_BITS =
-      new Vec3Bits(-MAX_OBJECT_RADIUS, gridSize + MAX_OBJECT_RADIUS, POSITION_BIT_COUNT);
+      new Vec3Bits(-MAX_OBJECT_RADIUS, WorldGrids.LEAF_SIZE + MAX_OBJECT_RADIUS, POSITION_BIT_COUNT);
   /**
    * Defines the overall object protocol parameters for how many bits ar used to encode the various
    * parts of an object update message.
