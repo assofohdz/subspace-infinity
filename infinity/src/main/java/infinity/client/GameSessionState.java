@@ -55,6 +55,7 @@ import infinity.TimeState;
 import infinity.ai.MobDebugState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
+import infinity.client.states.HudLabelState;
 import infinity.client.states.InfinityCameraState;
 import infinity.client.states.LightState;
 import infinity.client.states.LocalViewState;
@@ -63,8 +64,6 @@ import infinity.client.states.ModelViewState;
 import infinity.client.states.PhysicsDebugState;
 import infinity.client.states.SpaceGridState;
 import infinity.client.view.SkyState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The main game session state.  This is the state that is active
@@ -76,7 +75,6 @@ import org.slf4j.LoggerFactory;
  */
 public class GameSessionState extends CompositeAppState {
 
-  static Logger log = LoggerFactory.getLogger(GameSessionState.class);
   private EntityId avatarEntityId;
 
   /**
@@ -103,6 +101,7 @@ public class GameSessionState extends CompositeAppState {
     addChild(new SettingsState(), true);
     addChild(new ChatState(), true);
     addChild(new MapState(), true);
+    addChild(new HudLabelState(), true);
   }
 
   @Override
