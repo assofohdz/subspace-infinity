@@ -3,6 +3,7 @@ package infinity.systems;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
@@ -17,6 +18,7 @@ import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandTriConsumer;
 import infinity.sim.GameSounds;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -24,14 +26,14 @@ import java.util.regex.Pattern;
  *
  * @author AFahrenholz
  */
-public class FrequencySystem extends AbstractGameSystem implements ContactListener {
+public class FrequencySystem extends AbstractGameSystem
+    implements ContactListener<EntityId, MBlockShape> {
 
-  private final Pattern freuencyChange = Pattern.compile("\\=(\\d+)");
+  private final Pattern freuencyChange = Pattern.compile("=(\\d+)");
   private EntityData ed;
-  private PhysicsSpace phys;
+  private PhysicsSpace<EntityId, MBlockShape> phys;
   private EntitySet freqencies;
   private EntitySet flags;
-  private InfinityChatHostedService chat;
   private SimTime time;
 
   @Override
@@ -42,7 +44,7 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
     freqencies = ed.getEntities(Frequency.class);
     flags = ed.getEntities(Flag.class);
 
-    this.chat = getSystem(InfinityChatHostedService.class);
+    InfinityChatHostedService chat = getSystem(InfinityChatHostedService.class);
     // Register consuming methods for patterns
     chat.registerPatternTriConsumer(
         freuencyChange,
@@ -55,13 +57,13 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
   }
 
   /**
-   * Changes the frequency of the player's avatar
+   * Changes the frequency of the player's avatar.
    *
    * @param entityId The id of the player
-   * @param freq The new frequency
+   * @param m The matcher that contains the frequency as group 1
    */
-  private void changeFrequency(EntityId entityId, EntityId avatarEntityId, String freq) {
-    ed.setComponent(avatarEntityId, new Frequency(Integer.parseInt(freq)));
+  private void changeFrequency(EntityId entityId, EntityId avatarEntityId, Matcher m) {
+    ed.setComponent(avatarEntityId, new Frequency(Integer.parseInt(m.group(1))));
   }
 
   @Override
@@ -72,13 +74,13 @@ public class FrequencySystem extends AbstractGameSystem implements ContactListen
 
   @Override
   public void newContact(Contact contact) {
-    RigidBody body1 = contact.body1;
-    AbstractBody body2 = contact.body2;
+    RigidBody<EntityId, MBlockShape> body1 = contact.body1;
+    AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
     // For now, all flags are static and cannot be picked up, but can change frequencies
     if (body2 instanceof StaticBody) {
-      EntityId ship = (EntityId) body1.id;
-      EntityId flag = (EntityId) body2.id;
+      EntityId ship = body1.id;
+      EntityId flag = body2.id;
 
       // Check if entity one is a ship and has a frequency and if entity two is flag with a
       // different frequency
