@@ -78,7 +78,6 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.state.BlackboardState;
 import com.simsilica.state.DebugHudState;
 import com.simsilica.state.DebugHudState.Location;
-import infinity.InfinityConstants;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.es.Flag;
@@ -116,7 +115,7 @@ public class ModelViewState extends BaseAppState {
   // from 64 to 65 and be sitting on the ground.
   private final List<Vector4f> testCoords = new ArrayList<>();
   private final List<Spatial> tests = new ArrayList<>();
-  private final LinkedList<MarkVisible> markerQueue = new LinkedList<MarkVisible>();
+  private final LinkedList<MarkVisible> markerQueue = new LinkedList<>();
   // Physics grid is 32x32 but SimEthereal's grid is 64x64... which
   // means the maximum we'll see updates for is 128< away.  So for
   // a 32 grid we'd need a radius of 3... but then sometimes we'd
@@ -128,20 +127,14 @@ public class ModelViewState extends BaseAppState {
   // resolution.  The paged grid is necessary because it tells us how
   // to position the objects relative to the terrain.  The physics grid
   // is necessary for building the array of model filters.
-  private final Vec3i modelCenter = new Vec3i();
   private final Vec3i largeModelCenter = new Vec3i();
-  private final int gridRadius = 1; // 3;
+  private static final int gridRadius = 2;
   private final Map<EntityId, Model> modelIndex = new HashMap<>();
-  // private VersionedHolder<String> attachmentCount;
-  // <-----
   private final Vector3f avatarLoc = new Vector3f();
   private final Quaternion avatarRot = new Quaternion();
   // Center cell
   private Vec3i centerWorld = new Vec3i();
   private EntityData ed;
-  // private WorldViewState worldView;
-  private ShapeFactoryRegistry<MBlockShape> shapeFactory;
-  // private BlockGeometryIndex geomIndex = new BlockGeometryIndex();
   private SISpatialFactory SImodelFactory;
   // The root node to which all managed objects will be added
   private Node viewRoot;
@@ -162,7 +155,9 @@ public class ModelViewState extends BaseAppState {
   private LocalViewState localView;
   private VersionedReference<Vec3d> posRef;
 
-  public ModelViewState() {}
+  public ModelViewState() {
+    // Nothing to do here
+  }
 
   public Spatial getModel(EntityId entityId) {
     Model model = modelIndex.get(entityId);
@@ -213,19 +208,21 @@ public class ModelViewState extends BaseAppState {
     this.ed = getState(ConnectionState.class).getEntityData();
 
     this.timeSource = getState(ConnectionState.class).getRemoteTimeSource();
-    // this.worldView = getState(WorldViewState.class);
     this.localView = getState(LocalViewState.class);
     this.viewRoot = new Node("objectRoot");
 
     this.SImodelFactory =
-        new SISpatialFactory(viewRoot, app.getAssetManager(), this.getApplication().getTimer(), localView.getGeomIndex());
+        new SISpatialFactory(
+            viewRoot,
+            app.getAssetManager(),
+            this.getApplication().getTimer(),
+            localView.getGeomIndex());
 
     DebugHudState debug = getState(DebugHudState.class);
     if (debug != null) {
       bodyCount = debug.createDebugValue("Bodies", Location.Right);
       modelCount = debug.createDebugValue("Statics", Location.Right);
       largeModelCount = debug.createDebugValue("Lobs", Location.Right);
-      // attachmentCount = debug.createDebugValue("Attachments", DebugHudState.Location.Right);
       spatialCount = debug.createDebugValue("Spatials", Location.Right);
     }
 
@@ -244,8 +241,7 @@ public class ModelViewState extends BaseAppState {
   }
 
   private void initializeFactoryRegistry() {
-    shapeFactory = new ShapeFactoryRegistry<>();
-
+    ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
 
     SphereFactory sphereFactory = new SphereFactory(ed);
     shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), sphereFactory);
@@ -303,24 +299,22 @@ public class ModelViewState extends BaseAppState {
       viewRoot.setLocalTranslation(
           -(float) (pos.x - centerWorld.x), 0, -(float) (pos.z - centerWorld.z));
       resetRelativeCoordinates();
+      resetModelFilter();
+      resetLargeModelFilter();
     }
 
-    if (!avatarInitialized) {
-      if (getState(GameSessionState.class).getAvatarEntityId() != EntityId.NULL_ID
-          || getState(GameSessionState.class).getAvatarEntityId() != null) {
-        this.avatarEntity =
-            ed.watchEntity(
-                getState(GameSessionState.class).getAvatarEntityId(),
-                Player.class,
-                Frequency.class);
-        if (avatarEntity != null) {
-          avatarInitialized = true;
-          avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
-        }
+    if (!avatarInitialized
+            && (getState(GameSessionState.class).getAvatarEntityId() != EntityId.NULL_ID
+        || getState(GameSessionState.class).getAvatarEntityId() != null)) {
+      this.avatarEntity =
+          ed.watchEntity(
+              getState(GameSessionState.class).getAvatarEntityId(), Player.class, Frequency.class);
+      if (avatarEntity != null) {
+        avatarInitialized = true;
+        avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
       }
     }
 
-    // log.info("update");
     // updateCenter(worldView.getViewLocation());
     bodies.update();
     models.update();
@@ -329,21 +323,17 @@ public class ModelViewState extends BaseAppState {
     for (Body body : bodies.getArray()) {
       body.update(time);
     }
-    // log.info("checking marker queue");
     while (!markerQueue.isEmpty()) {
       // Update static model visibility
       MarkVisible marker = markerQueue.peek();
-      // log.info("marker visibleTime:" + marker.visibleTime + "  time:" + time);
       if (marker.visibleTime > time) {
         // The earliest item in the queue is not ready yet
         break;
       }
       marker = markerQueue.poll();
-      // log.info("time:" + time + "  marker time:" + marker.visibleTime);
       marker.update();
     }
 
-    // log.info("Body count:" + bodies.size() + "   model count:" + models.size());
     if (bodyCount != null) {
       bodyCount.setObject(String.valueOf(bodies.size()));
       modelCount.setObject(String.valueOf(models.size()));
@@ -352,7 +342,7 @@ public class ModelViewState extends BaseAppState {
     }
 
     // If our ship changes frequency, update all the flag materials
-    if (avatarEntity.applyChanges()) {
+    if (avatarEntity != null && avatarEntity.applyChanges()) {
       avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
       updateFlagMaterials(avatarFrequency);
     }
@@ -386,56 +376,7 @@ public class ModelViewState extends BaseAppState {
     viewRoot.removeFromParent();
   }
 
-  //  protected void updateCenter(Vector3f center) {
-  //    // log.info("updateCenter(" + center + ")");
-  //
-  //    Vector3f cell = worldView.getViewCell();
-  //
-  //    // log.info("cell:" + cell + "   lastCell:" + centerCell);
-  //
-  //    // If the cell position has moved then we need to recalculate
-  //    // relative positions of static objects
-  //    if ((int) cell.x != centerCell.x
-  //        || (int) cell.y != centerCell.y
-  //        || (int) cell.z != centerCell.z) {
-  //      centerCell.x = (int) cell.x;
-  //      centerCell.y = (int) cell.y;
-  //      centerCell.z = (int) cell.z;
-  //      worldView.cellToWorld(centerCell, centerCellWorld);
-  //      // centerCellWorld.y = 0;
-  //      resetRelativeCoordinates();
-  //
-  //      if (modelCenter.x != centerCell.x || modelCenter.z != centerCell.z) {
-  //        modelCenter.x = centerCell.x;
-  //        modelCenter.z = centerCell.z;
-  //        // Also need to reset the filter for the static objects
-  //        resetModelFilter();
-  //      }
-  //
-  //      // Calculate the large model center cell
-  //      Vec3i largeCenter =
-  //          InfinityConstants.LARGE_OBJECT_GRID.worldToCell(new Vec3d(centerCellWorld));
-  //      if (largeModelCenter.x != largeCenter.x || largeModelCenter.z != largeCenter.z) {
-  //        largeModelCenter.x = largeCenter.x;
-  //        largeModelCenter.z = largeCenter.z;
-  //        resetLargeModelFilter();
-  //      }
-  //    }
-  //
-  //    // log.info("  world:" + centerCellWorld);
-  //    objectRoot.setLocalTranslation(
-  //        -(center.x - centerCellWorld.x),
-  //        // The camera y always == center y
-  //        0, // -(center.y - centerCellWorld.y),
-  //        -(center.z - centerCellWorld.z));
-  //
-  //    // log.info("  local:" + objectRoot.getLocalTranslation());
-  //
-  //    // log.info("  test:" + test.getLocalTranslation());
-  //  }
-
   protected void resetRelativeCoordinates() {
-    // log.info("********************** resetRelativeCoordinates()");
     for (int i = 0; i < tests.size(); i++) {
       Vector4f coord = testCoords.get(i);
       tests
@@ -457,25 +398,18 @@ public class ModelViewState extends BaseAppState {
   protected void resetModelFilter() {
     int size = gridRadius * 2 + 1;
     gridFilters = new ComponentFilter[size][size];
-    // List<ComponentFilter> filters = new ArrayList<>();
     ComponentFilter[] filters = new ComponentFilter[size * size];
 
-    // System.out.println("************************************************");
-    // System.out.println("New grid center:" + modelCenter);
-    int xOffset = modelCenter.x - gridRadius;
-    int zOffset = modelCenter.z - gridRadius;
+    int xOffset = centerWorld.x - gridRadius;
+    int zOffset = centerWorld.z - gridRadius;
     int index = 0;
     for (int x = 0; x < size; x++) {
       for (int z = 0; z < size; z++) {
         long id = WorldGrids.LEAF_GRID.cellToId(xOffset + x, 0, zOffset + z);
-        // System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id)
-        // + "]");
         ComponentFilter filter = Filters.fieldEquals(SpawnPosition.class, "binId", id);
         gridFilters[x][z] = filter;
-        // filters.add(filter);
         filters[index++] = filter;
       }
-      // System.out.println();
     }
 
     models.setFilter(Filters.or(SpawnPosition.class, filters));
@@ -488,22 +422,16 @@ public class ModelViewState extends BaseAppState {
     largeGridFilters = new ComponentFilter[size][size];
     ComponentFilter[] filters = new ComponentFilter[size * size];
 
-    // System.out.println("************************************************");
-    // System.out.println("New grid center:" + modelCenter);
     int xOffset = largeModelCenter.x - gridRadius;
     int zOffset = largeModelCenter.z - gridRadius;
     int index = 0;
     for (int x = 0; x < size; x++) {
       for (int z = 0; z < size; z++) {
         long id = WorldGrids.TILE_GRID.cellToId(xOffset + x, 0, zOffset + z);
-        // System.out.print("[" + (x + xOffset) + ", " + (z + xOffset) + "=" + Long.toHexString(id)
-        // + "]");
         ComponentFilter filter = Filters.fieldEquals(LargeGridCell.class, "cellId", id);
         largeGridFilters[x][z] = filter;
-        // filters.add(filter);
         filters[index++] = filter;
       }
-      // System.out.println();
     }
     largeModels.setFilter(Filters.or(LargeGridCell.class, filters));
   }
@@ -522,21 +450,6 @@ public class ModelViewState extends BaseAppState {
     }
     return null;
   }
-
-  // protected Spatial findOldAnimRoot( Spatial s ) {
-  //    if( s.getControl(AnimControl.class) != null ) {
-  //        return s;
-  //    }
-  //    if( s instanceof Node ) {
-  //        for( Spatial child : ((Node)s).getChildren() ) {
-  //            Spatial result = findOldAnimRoot(child);
-  //            if( result != null ) {
-  //                return result;
-  //            }
-  //        }
-  //    }
-  //    return null;
-  // }
 
   protected Spatial createModel(EntityId id, ShapeInfo shapeInfo, Mass mass) {
 
@@ -564,27 +477,7 @@ public class ModelViewState extends BaseAppState {
     if (result.release()) {
       modelIndex.remove(entityId);
     }
-    /*
-    log.info("released:" + entityId + "  remaining:" + modelIndex.keySet());
-    StringBuilder sb = new StringBuilder();
-    for( EntityId key : modelIndex.keySet() ) {
-        if( sb.length() > 0 ) {
-            sb.append(", ");
-        }
-        sb.append(key);
-        sb.append(":");
-        if( modelIndex.get(key).dynamic ) {
-            sb.append("dynamic");
-        } else {
-            sb.append("static");
-        }
-    }
-    log.info("states:" + sb);*/
     return result;
-  }
-
-  private void setAvatarRot(Quaternion rot) {
-    this.avatarRot.set(rot);
   }
 
   /**
@@ -604,10 +497,6 @@ public class ModelViewState extends BaseAppState {
 
   public Vector3f getAvatarLoc() {
     return avatarLoc;
-  }
-
-  private void setAvatarLoc(Vector3f newViewLoc) {
-    avatarLoc.set(newViewLoc);
   }
 
   /**
@@ -706,7 +595,6 @@ public class ModelViewState extends BaseAppState {
     }
 
     public void updateRelativePosition() {
-      // log.info("updateRelativePosition entityId:" + entityId + "  dynamic:" + dynamic);
       if (!dynamic) {
         if (pos == null) {
           // We are not a static model and we are probably being removed
@@ -758,12 +646,9 @@ public class ModelViewState extends BaseAppState {
 
   private class Body {
     private final Entity entity;
-    // private ShapeInfo shapeInfo;
-    // private Spatial model;
     private final Model model;
     boolean visible;
     boolean forceInvisible; // just in case
-    // private Vector3f centerCellWorld = new Vector3f();
     private BodyPosition pos;
     private TransitionBuffer<ChildPositionTransition3d> buffer;
     private EntityId lastParent;
@@ -774,15 +659,8 @@ public class ModelViewState extends BaseAppState {
       model.setDynamic(true);
     }
 
-    // public void setCenterCellWorld( Vector3f centerCellWorld ) {
-    //    this.centerCellWorld.set(centerCellWorld);
-    // }
-
     public void setShape(ShapeInfo shapeInfo) {
       model.setShape(shapeInfo);
-      /*if( model.spatial != null ) {
-          resetVisibility();
-      }*/
     }
 
     public void setPosition(BodyPosition pos) {
@@ -806,7 +684,7 @@ public class ModelViewState extends BaseAppState {
       // represents a starting and an ending pos+rot over a span of time.
       ChildPositionTransition3d trans = buffer.getTransition(time);
       if (trans != null) {
-        Vector3f pos = trans.getPosition(time, true).toVector3f();
+        Vector3f transPos = trans.getPosition(time, true).toVector3f();
         // if( entity.getId().getId() == 7 || entity.getId().getId() == 6 ) {
         //    log.info("object root:" + getObjectRoot() + " parent:" + model.spatial.getParent());
         // }
@@ -814,11 +692,11 @@ public class ModelViewState extends BaseAppState {
 
         if (model.spatial.getParent() == getViewRoot()) {
           // Make the position relative to our "conveyor"
-          pos.subtractLocal(centerWorld.toVector3f());
+          transPos.subtractLocal(centerWorld.toVector3f());
         }
         // log.info("pos: "+pos.toString());
         // log.info("body.update(" + entity.getId() + "):" + pos);
-        model.spatial.setLocalTranslation(pos);
+        model.spatial.setLocalTranslation(transPos);
         model.spatial.setLocalRotation(rot);
 
         setVisible(trans.getVisibility(time));
@@ -875,7 +753,6 @@ public class ModelViewState extends BaseAppState {
       // For now, ignore setting false
       // if( !f ) return;
       this.visible = f;
-      // resetVisibility();
       if (visible) {
         model.markVisible();
       } else {
@@ -883,26 +760,9 @@ public class ModelViewState extends BaseAppState {
       }
     }
 
-    /*        protected void resetVisibility() {
-                //if( model.useCount > 1 || (visible && !forceInvisible) ) {
-                if( (visible && !forceInvisible) ) {
-    log.info("Setting visible:" + entity.getId());
-                    //model.spatial.setCullHint(Spatial.CullHint.Inherit);
-                    model.markVisible();
-                } else {
-    log.info("Setting NOT visible:" + entity.getId());
-                    //model.spatial.setCullHint(Spatial.CullHint.Always);
-                    model.markInvisible();
-                }
-            }*/
-
     public void release() {
       releaseModel(entity.getId());
       model.setDynamic(false);
-      // model.release();
-      /*if( model != null ) {
-          model.removeFromParent();
-      }*/
     }
   }
 
@@ -912,6 +772,7 @@ public class ModelViewState extends BaseAppState {
       super(ed, BodyPosition.class, ShapeInfo.class);
     }
 
+    @Override
     public Body[] getArray() {
       return super.getArray();
     }
@@ -944,6 +805,7 @@ public class ModelViewState extends BaseAppState {
       super.setFilter(filter);
     }
 
+    @Override
     public Model[] getArray() {
       return super.getArray();
     }
