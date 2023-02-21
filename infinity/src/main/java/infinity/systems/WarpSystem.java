@@ -46,10 +46,11 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandBiFunction;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.util.InfinityRunTimeException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,10 +92,10 @@ public class WarpSystem extends AbstractGameSystem
 
     // Register consuming methods for patterns
     getSystem(InfinityChatHostedService.class)
-        .registerPatternBiConsumer(
+        .registerPatternTriConsumer(
             requestWarpToCenter,
             "The command to warp to the center of the arena is ~warpCenter",
-            new CommandBiFunction<>(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandRequestWarpToCenter));
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -148,12 +149,23 @@ public class WarpSystem extends AbstractGameSystem
     }
   }
 
-  /**
-   * Lets entities request a warp to the center of the arena.
-   *
-   * @param avatarId requesting entity
-   */
-  public String requestWarpToCenter(EntityId entityId, EntityId avatarId) {
+  public String warpToCenter(EntityId entityId, EntityId avatarId){
+    Entity child = ed.getEntity(avatarId, BodyPosition.class);
+    BodyPosition childBodyPos = child.get(BodyPosition.class);
+    Vec3d lastLoc = childBodyPos.getLastLocation();
+
+    Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
+    WarpTo warpTo = new WarpTo(centerOfArena);
+    ed.setComponent(child.getId(), warpTo);
+    return "Warped to center of arena:"+centerOfArena;
+  }
+
+      /**
+       * Lets entities request a warp to the center of the arena.
+       *
+       * @param avatarId requesting entity
+       */
+  public String commandRequestWarpToCenter(EntityId entityId, EntityId avatarId, Matcher matcher) {
 
     Entity child = ed.getEntity(avatarId, BodyPosition.class);
     BodyPosition childBodyPos = child.get(BodyPosition.class);
@@ -162,7 +174,7 @@ public class WarpSystem extends AbstractGameSystem
     Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
     WarpTo warpTo = new WarpTo(centerOfArena);
     ed.setComponent(child.getId(), warpTo);
-    return "";
+    return "Warped to center of arena:"+centerOfArena;
   }
 
   @Override

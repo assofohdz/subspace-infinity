@@ -58,6 +58,7 @@ import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
 import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
 import com.simsilica.ext.mblock.SphereFactory;
+import com.simsilica.ext.mphys.EntityBodyFactory;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeFactory;
@@ -76,11 +77,13 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.WorldGrids;
 import com.simsilica.mworld.base.DefaultLeafWorld;
+import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.db.LeafDbCache;
 import com.simsilica.mworld.net.server.WorldHostedService;
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
+import com.simsilica.sim.SimTime;
 import com.simsilica.sim.common.DecaySystem;
 import infinity.InfinityConstants;
 import infinity.ai.MobSystem;
@@ -212,9 +215,9 @@ public class GameServer {
 
     colDb = new DefaultColumnDb(new File("world.db"));
     colDb.initialize();
-    //LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
+    LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
 
-    LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+    //LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
     World world = new DefaultLeafWorld(leafDb, 10);
 
     systems.register(World.class, world);
@@ -226,6 +229,7 @@ public class GameServer {
     server.getServices().addService(new GameSessionHostedService(systems));
 
     systems.addSystem(new LargeGridIndexSystem(WorldGrids.TILE_GRID));
+
 
     // Add it to the game systems so that we send updates properly
     systems.addSystem(
@@ -259,6 +263,7 @@ public class GameServer {
     MPhysSystem<MBlockShape> mBlockShapeMPhysSystem =
         new MPhysSystem<>(WorldGrids.LEAF_GRID, bodyFactory);
     systems.register(InfinityEntityBodyFactory.class, bodyFactory);
+    systems.register(EntityBodyFactory.class, bodyFactory);
 
     Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
     mBlockShapeMPhysSystem.setCollisionSystem(
@@ -302,7 +307,7 @@ public class GameServer {
     systems.register(FrequencySystem.class, new FrequencySystem());
 
     systems.register(WorldSystem.class, new WorldSystem());
-    systems.register(DoorSystem.class, new DoorSystem());
+    //systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--

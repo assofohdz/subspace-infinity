@@ -79,9 +79,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -562,12 +560,13 @@ public class LocalViewState extends BaseAppState {
         return;
       }
 
-      // log.info("loaded(" + leafId + "):" + leafData);
-//      if( leafData.isEmpty() ) {
-//        //log.info("Empty, nothing to do for:" + leafId);
-//        //parts = new Node(); // just in case we're rerun
-//        return;
-//      }
+      //log.info("loaded(" + leafId + "):" + leafData);
+      //TODO: Needs a fix for clering the last cell of a leaf
+      if( leafData.isEmpty() ) {
+        //log.info("Empty, nothing to do for:" + leafId);
+        parts = null; // just in case we're rerun
+        return;
+      }
 
       // Vec3i world = leafId.getWorld(null); //getWorldOrigin();
       // ColumnId colId = ColumnId.fromWorld(world);

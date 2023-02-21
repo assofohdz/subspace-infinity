@@ -187,7 +187,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     private final HostedConnection conn;
     private final EntityId avatarEntityId;
-    private final Vec3d spawnLoc = new Vec3d(50, 1, 0);
+    private final Vec3d spawnLoc = new Vec3d(-512, 1, -512);
     // private final EntityId test = null;
     private final Vec3d lastViewLoc = new Vec3d();
     private final Quatd lastViewOrient = new Quatd();
@@ -222,7 +222,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
 
       avatarEntityId =
-          GameEntities.createShip(spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD);
+          GameEntities.createPlayerShip(spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD);
 
       ed.setComponent(avatarEntityId, new Player());
 
@@ -342,7 +342,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     @Override
     public void action(final byte actionInput) {
       if (actionInput == ActionSystem.WARP) {
-        warpSys.requestWarpToCenter(playerEntityId, avatarEntityId);
+        warpSys.warpToCenter(playerEntityId, avatarEntityId);
       }
     }
 

@@ -33,6 +33,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.server.chat;
 
 import com.jme3.network.HostedConnection;
@@ -81,10 +82,12 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   static Logger log = LoggerFactory.getLogger(InfinityChatHostedService.class);
   private final int channel;
   private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
-  //TriConsumers need the player entityId and the avatar entityId
-  private final ConcurrentHashMap<Pattern, CommandTriFunction<EntityId, EntityId, Matcher, String>> patternTriConsumer;
-  //BiConsumers only need the player entityId
-  private final ConcurrentHashMap<Pattern, CommandBiFunction<EntityId, Matcher, String>> patternBiConsumer;
+  // TriConsumers need the player entityId and the avatar entityId
+  private final ConcurrentHashMap<Pattern, CommandTriFunction<EntityId, EntityId, Matcher, String>>
+      patternTriConsumer;
+  // BiConsumers only need the player entityId
+  private final ConcurrentHashMap<Pattern, CommandBiFunction<EntityId, Matcher, String>>
+      patternBiConsumer;
   private RmiHostedService rmiService;
 
   /**
@@ -188,7 +191,8 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
-        final CommandTriFunction<EntityId, EntityId, Matcher, String> cc = patternTriConsumer.get(pattern);
+        final CommandTriFunction<EntityId, EntityId, Matcher, String> cc =
+            patternTriConsumer.get(pattern);
         // TODO: Implement account service to manage security levels
         // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
         // cc.getAccessLevelRequired())) {
@@ -208,8 +212,9 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
-        //final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
-        BiFunction<EntityId, Matcher, String> function = patternBiConsumer.get(pattern).getConsumer();
+        // final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
+        BiFunction<EntityId, Matcher, String> function =
+            patternBiConsumer.get(pattern).getConsumer();
 
         String response = function.apply(fromEntity, matcher);
         from.newMessage(from.conn.getId(), from.name, response);
@@ -252,6 +257,14 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
     postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, description);
   }
 
+  /**
+   * Registers a pattern to be consumed by a function that takes two arguments. The first argument
+   * is the entity id of the sender, and the second argument is the matcher for the pattern.
+   *
+   * @param pattern the pattern to match
+   * @param description the help description of the pattern
+   * @param c the function that will be run when the pattern is matched
+   */
   public void registerPatternBiConsumer(Pattern pattern, String description, CommandBiFunction c) {
     patternBiConsumer.put(pattern, c);
 
@@ -259,7 +272,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   }
 
   /**
-   * Removes a pattern to be consumed
+   * Removes a pattern to be consumed.
    *
    * @param pattern the pattern to remove comsumption of
    */
@@ -282,8 +295,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   public void postTeamMessage(
       final String from, final int messageType, final int targetFrequency, final String message) {
     throw new UnsupportedOperationException(
-        NOT_SUPPORTED_YET); // To change body of generated methods, choose
-    // Tools | Templates.
+        NOT_SUPPORTED_YET);
   }
 
   @Override
@@ -299,9 +311,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   @Override
   public void removeCommandConsumer(final String cmd) {
     throw new UnsupportedOperationException(
-        NOT_SUPPORTED_YET); // To change body of generated methods, choose
-    // Tools | Templates.
-
+        NOT_SUPPORTED_YET);
   }
 
   /**

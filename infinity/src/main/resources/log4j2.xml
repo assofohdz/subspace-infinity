@@ -12,10 +12,10 @@
     <Logger name="infinity.sim" level="debug" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="infinity.client" level="debug" additivity="false">
+    <Logger name="infinity.client.states.LocalViewState" level="ALL" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
-    <Logger name="infinity.client.view.LeafDataZone" level="trace" additivity="false">
+    <Logger name="infinity.client" level="debug" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="infinity.systems.ContactSystem" level="WARN" additivity="false">

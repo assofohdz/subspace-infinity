@@ -486,8 +486,6 @@ public class GameEntities {
       byte ship) {
     final EntityId result = ed.createEntity();
 
-    ed.setComponent(result, new Name("player"));
-
     ed.setComponent(result, new Parent(owner));
 
     ed.setComponent(result, ShapeNames.createShip(ship, ed));
@@ -501,10 +499,6 @@ public class GameEntities {
     Gravity g = Gravity.ZERO;
     ed.setComponent(result, g);
 
-    byte flags = 0x0;
-    ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(), flags));
-
-    ed.setComponent(result, new Frequency(1));
     ed.setComponent(result, new Gold(0));
 
     ed.setComponent(result, new Energy(CoreGameConstants.SHIPHEALTH));
@@ -528,9 +522,9 @@ public class GameEntities {
     // ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
 
     // Add gravity bombs
-    ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
-    ed.setComponent(result, new GravityBombCost(10));
-    ed.setComponent(result, new GravityBombFireDelay(1000));
+//    ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
+//    ed.setComponent(result, new GravityBombCost(10));
+//    ed.setComponent(result, new GravityBombFireDelay(1000));
 
     // Add mines
     ed.setComponent(result, new Mine(BombLevelEnum.BOMB_1));
@@ -546,8 +540,6 @@ public class GameEntities {
     ed.setComponent(result, new Repel(10));
     ed.setComponent(result, new RepelMax(20));
 
-    ed.setComponent(result, new Player());
-
     ed.setComponent(
         result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
@@ -557,6 +549,28 @@ public class GameEntities {
             ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CoreViewConstants.SHIPLIGHTOFFSET));
     ed.setComponent(result, new Meta(createdTime));
     return result;
+  }
+
+  public static EntityId createPlayerShip(
+      final Vec3d spawnLoc,
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      byte ship) {
+
+    EntityId result = createShip(spawnLoc, ed, owner, phys, createdTime, ship);
+
+    ed.setComponent(result, new Player());
+    ed.setComponent(result, new Name("player"));
+
+    ed.setComponent(result, new Frequency(1));
+
+    byte flags = 0x0;
+    ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(), flags));
+
+    return result;
+
   }
 
   public static EntityId createPrize(

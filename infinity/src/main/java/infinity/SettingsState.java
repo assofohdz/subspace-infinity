@@ -73,7 +73,7 @@ public class SettingsState extends BaseAppState {
     }
 
     public static void initializeDefaultMappings(final InputMapper inputMapper) {
-        inputMapper.map(F_SETTINGS, KeyInput.KEY_TAB);
+        inputMapper.map(F_SETTINGS, KeyInput.KEY_F12);
     }
 
     public void toggleEnabled() {

@@ -33,13 +33,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.systems;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Function;
-
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
@@ -48,158 +45,203 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.UprightDriver;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-
+import infinity.es.input.CharacterInput;
 import infinity.es.input.MovementInput;
 import infinity.sim.PlayerDriver;
+import infinity.sim.util.InfinityRunTimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Manages the control drivers of entities with MovementInput components and
- * makes sure that have the latest movement input data.
+ * Manages the control drivers of entities with MovementInput components and makes sure that have
+ * the latest movement input data.
  *
  * @author Paul Speed
  */
 public class MovementSystem extends AbstractGameSystem {
 
-    static Logger log = LoggerFactory.getLogger(MovementSystem.class);
+  static Logger log = LoggerFactory.getLogger(MovementSystem.class);
 
-    private EntityData ed;
-    private MPhysSystem<MBlockShape> physics;
-    private PlayerContainer players;
-    private final MovementBodyInitializer initializer = new MovementBodyInitializer();
-    private PhysicsSpace<EntityId, MBlockShape> space;
-    // private EntitySet thors, mines, gravityBombs, bursts, bombs, guns;
-    // private EnergySystem health;
+  private EntityData ed;
+  private PlayerContainer players;
+  private MobContainer mobs;
+  private final MovementBodyInitializer initializer = new MovementBodyInitializer();
+  private PhysicsSpace<EntityId, MBlockShape> space;
 
-    public MovementSystem() {
-        super();
+  public MovementSystem() {
+    // At the moment, we don't need to do anything here.
+  }
+
+  // Temporary for testing
+  public PlayerDriver getDriver(EntityId id) {
+    return players.getObject(id);
+  }
+
+  @Override
+  protected void initialize() {
+    this.ed = getSystem(EntityData.class);
+    if (ed == null) {
+      throw new InfinityRunTimeException(getClass().getName() + " system requires an EntityData object.");
+    }
+    MPhysSystem physics = getSystem(MPhysSystem.class);
+    if (physics == null) {
+      throw new InfinityRunTimeException(getClass().getName() + " system requires the MPhysSystem system.");
+    }
+
+    this.space = physics.getPhysicsSpace();
+    physics.getBodyFactory().addDynamicInitializer(initializer);
+
+    // There are two ways that a PlayerDriver can be set on a
+    // RigidBody.
+    // 1) when the body is created on demand, if the entity is already
+    //    being managed by the 'players' EntityContainer then the above
+    //    initialize will just set the existing driver.
+    // 2) if the rigid body already exists when the entity as added
+    //    to the 'players' EntityContainer then the created driver is set
+    //    on the body then.
+    //
+    // This covers all use-cases... bin becoming active before the player
+    // container saw the entity, entity having its MovementInput removed/added
+    // on the fly, body's bin going to sleep and getting activated again, etc..
+    // All possible life cycle paths are handled by this two-prong approach.
+    // ...and probably a few I haven't thought of.  (One case we don't handle
+    // but would be easily handled is the case where we get a new MovementInput
+    // but the body is not active... we don't specifically activate it.  We
+    // assume in our simple demo that the 'just added' body hasn't had a chance
+    // to fall asleep yet.
+    //
+    // This control driver handling is trickier than in some of the simpler ES
+    // demos or the SiO2 bullet-char demo because the rigid bodies can be dynamically
+    // loaded and unloaded in mphys.
+  }
+
+  @Override
+  protected void terminate() {
+    // At the moment, we don't need to do anything here.
+  }
+
+  @Override
+  public void start() {
+    players = new PlayerContainer(ed);
+    players.start();
+    mobs = new MobContainer(ed);
+    mobs.start();
+  }
+
+  @Override
+  public void update(SimTime time) {
+    players.update();
+    mobs.update();
+  }
+
+  @Override
+  public void stop() {
+    players.stop();
+    players = null;
+    mobs.stop();
+    mobs = null;
+  }
+
+  private class PlayerContainer extends EntityContainer<PlayerDriver> {
+
+    public PlayerContainer(EntityData ed) {
+      super(ed, MovementInput.class);
     }
 
     @Override
-    protected <T> T getSystem(final Class<T> type) {
-        return super.getSystem(type);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected void initialize() {
-        ed = getSystem(EntityData.class);
-        if (ed == null) {
-            throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
-        }
-        physics = getSystem(MPhysSystem.class);
-        if (physics == null) {
-            throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
-        }
-
-        space = physics.getPhysicsSpace();
-        physics.getBodyFactory().addDynamicInitializer(initializer);
-
-        // There are two ways that a PlayerDriver can be set on a
-        // RigidBody.
-        // 1) when the body is created on demand, if the entity is already
-        // being managed by the 'players' EntityContainer then the above
-        // initialize will just set the existing driver.
-        // 2) if the rigid body already exists when the entity as added
-        // to the 'players' EntityContainer then the created driver is set
-        // on the body then.
-        //
-        // This covers all use-cases... bin becoming active before the player
-        // container saw the entity, entity having its MovementInput removed/added
-        // on the fly, body's bin going to sleep and getting activated again, etc..
-        // All possible life cycle paths are handled by this two-prong approach.
-        // ...and probably a few I haven't thought of. (One case we don't handle
-        // but would be easily handled is the case where we get a new MovementInput
-        // but the body is not active... we don't specifically activate it. We
-        // assume in our simple demo that the 'just added' body hasn't had a chance
-        // to fall asleep yet.
-        //
-        // This control driver handling is trickier than in some of the simpler ES
-        // demos or the SiO2 bullet-char demo because the rigid bodies can be
-        // dynamically
-        // loaded and unloaded in mphys.
+    public PlayerDriver[] getArray() {
+      return super.getArray();
     }
 
     @Override
-    protected void terminate() {
-        return;
+    protected PlayerDriver addObject(Entity e) {
+      log.info("addObject(" + e + ")");
+
+      PlayerDriver result = new PlayerDriver(e.getId(), ed, null);
+
+      // See if the physics engine already has a body for this entity
+      RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
+      log.info("existing body:" + body);
+      if (body != null) {
+        body.setControlDriver(result);
+      }
+
+      return result;
     }
 
     @Override
-    public void start() {
-        players = new PlayerContainer(ed);
-        players.start();
+    protected void updateObject(PlayerDriver driver, Entity e) {
+      if (log.isTraceEnabled()) {
+        log.trace("updateObject(" + e + ")");
+      }
+      MovementInput ms = e.get(MovementInput.class);
+      driver.applyMovementInput(ms);
     }
 
     @Override
-    public void update(final SimTime time) {
-        players.update();
+    protected void removeObject(PlayerDriver driver, Entity e) {
+      log.info("removeObject(" + e + ")");
+    }
+  }
+
+  private class MobContainer extends EntityContainer<UprightDriver<EntityId, MBlockShape>> {
+
+    public MobContainer(EntityData ed) {
+      super(ed, CharacterInput.class);
     }
 
     @Override
-    public void stop() {
-        players.stop();
-        players = null;
+    public UprightDriver[] getArray() {
+      return super.getArray();
     }
 
-    /**
-     * All moving ships will be mapped to a driver. We use this to lookup the
-     * drivers when we need to fire a weapon on that ship
-     */
-    private class PlayerContainer extends EntityContainer<PlayerDriver> {
+    @Override
+    protected UprightDriver addObject(Entity e) {
 
-        @SuppressWarnings("unchecked")
-        public PlayerContainer(final EntityData ed) {
-            super(ed, MovementInput.class);
-        }
+      UprightDriver<EntityId, MBlockShape> result = new UprightDriver<>();
 
-        @Override
-        public PlayerDriver[] getArray() {
-            return super.getArray();
-        }
+      // See if the physics engine already has a body for this entity
+      RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
+      log.info("existing body:" + body);
+      if (body != null) {
+        body.setControlDriver(result);
+      }
 
-        @Override
-        protected PlayerDriver addObject(final Entity e) {
-            log.info("addObject(" + e + ")");
-            final PlayerDriver result = new PlayerDriver(e.getId(), ed, getSystem(SettingsSystem.class));
-
-            // See if the physics engine already has a body for this entity
-            final RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
-            log.info("existing body:" + body);
-            if (body != null) {
-                body.setControlDriver(result);
-            }
-
-            return result;
-        }
-
-        @Override
-        protected void updateObject(final PlayerDriver driver, final Entity e) {
-            if (log.isTraceEnabled()) {
-                log.trace("updateObject(" + e + ")");
-            }
-            final MovementInput ms = e.get(MovementInput.class);
-            driver.applyMovementInput(ms);
-        }
-
-        @Override
-        protected void removeObject(final PlayerDriver driver, final Entity e) {
-            log.info("removeObject(" + e + ")");
-            // physics.setControlDriver(e.getId(), null);
-        }
+      return result;
     }
 
-    private class MovementBodyInitializer implements Function<RigidBody<EntityId, MBlockShape>, Void> {
-
-        public Void apply(final RigidBody<EntityId, MBlockShape> body) {
-            // See if this is one of the ones we need to add a player driver to
-            final PlayerDriver driver = players.getObject(body.id);
-            //log.info("MovementBodyInitializer.apply(" + body + ")  driver:" + driver);
-            if (driver != null) {
-                body.setControlDriver(driver);
-            }
-            return null;
-        }
+    @Override
+    protected void updateObject(UprightDriver driver, Entity e) {
+      if (log.isTraceEnabled()) {
+        log.trace("updateObject(" + e + ")");
+      }
     }
+
+    @Override
+    protected void removeObject(UprightDriver driver, Entity e) {
+      log.info("removeObject(" + e + ")");
+    }
+  }
+
+  // I guess this could have been done with an ObjectStatusListener instead
+  private class MovementBodyInitializer
+      implements Function<RigidBody<EntityId, MBlockShape>, Void> {
+    public Void apply(RigidBody<EntityId, MBlockShape> body) {
+      // See if this is one of the ones we need to add a player driver to
+      PlayerDriver driver = players.getObject(body.id);
+
+      if (driver != null) {
+        body.setControlDriver(driver);
+      }
+
+      // or a character driver
+      UprightDriver<EntityId, MBlockShape> charDriver = mobs.getObject(body.id);
+      if (charDriver != null) body.setControlDriver(charDriver);
+
+      return null;
+    }
+  }
 }

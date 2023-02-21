@@ -38,7 +38,6 @@ package infinity.server;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
@@ -46,7 +45,6 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.AIEntities;
 import infinity.Ships;
-import infinity.es.GravityWell;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
@@ -66,6 +64,7 @@ public class BasicEnvironment extends AbstractGameSystem {
   private PhysicsSpace<?, ?> phys;
   private long time;
   private World world;
+  private boolean worldCreated = false;
 
   /** Creates a new BasicEnvironment. This should be loaded as the last game system. */
   @Override
@@ -75,6 +74,25 @@ public class BasicEnvironment extends AbstractGameSystem {
     world = super.getManager().get(World.class);
 
     this.time = getSystem(InfinityTimeSystem.class).getTime();
+  }
+
+  @Override
+  public void update(final SimTime time) {
+    if(!worldCreated){
+      initializeWorld();
+    }
+  }
+
+  @Override
+  protected void terminate() {
+    // Nothing to do
+  }
+
+  private void initializeWorld(){
+    long sysTime = System.currentTimeMillis();
+
+    AIEntities.createMobShip(
+        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
 
     getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
     //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench2.lvl");
@@ -103,28 +121,27 @@ public class BasicEnvironment extends AbstractGameSystem {
 //            new Vec3d(40, 1, 16),
 //            20);
 //
-//        GameEntities.createWeightedPrizeSpawner(
-//            ed,
-//            EntityId.NULL_ID,
-//            phys,
-//            time,
-//            new Vec3d(24, 1, 16),
-//            10000,
-//            false,
-//            1);
+        GameEntities.createWeightedPrizeSpawner(
+            ed,
+            EntityId.NULL_ID,
+            phys,
+            time,
+            new Vec3d(-512, 1, -512),
+            10000,
+            false,
+            200);
 
-    long sysTime = System.currentTimeMillis();
 
     //GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, sysTime, new Vec3d(0, 1, 0));
 
-//    AIEntities.createMob(
-//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
-//    AIEntities.createMob(
-//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.SPIDER.getId());
-//    AIEntities.createMob(
-//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.SHARK.getId());
-//    AIEntities.createMob(
-//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.LANCASTER.getId());
+    AIEntities.createMobShip(
+        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
+    AIEntities.createMobShip(
+        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SPIDER.getId());
+    AIEntities.createMobShip(
+        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SHARK.getId());
+    AIEntities.createMobShip(
+        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.LANCASTER.getId());
 
 //
 //    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
@@ -160,16 +177,6 @@ public class BasicEnvironment extends AbstractGameSystem {
 //    getSystem(MapSystem.class).setCell(new Vec3d(3,1,1), 10);
 //    getSystem(MapSystem.class).setCell(new Vec3d(4,1,1), 10);
 //    getSystem(MapSystem.class).setCell(new Vec3d(5,1,1), 10);
-
-  }
-
-  @Override
-  public void update(final SimTime time) {
-    // Nothing to do
-  }
-
-  @Override
-  protected void terminate() {
-    // Nothing to do
+    this.worldCreated = true;
   }
 }
