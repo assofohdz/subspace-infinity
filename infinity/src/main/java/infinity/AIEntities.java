@@ -27,7 +27,7 @@ public class AIEntities {
     EntityId mob = GameEntities.createShip(spawnLoc, ed, owner, phys, createdTime, ship);
     ed.setComponent(mob, new ProbeInfo(new Vec3d(), 1));
     ed.setComponent(mob, MobType.create("Mob", ed));
-    ed.setComponent(mob, new Name("Mob"));
+    ed.setComponent(mob, new Name("Mob-"+String.valueOf(mob.getId())));
     ed.setComponent(mob, new ProbeInfo(new Vec3d(0, 0.1, 0.4), 0.3));
 
     // Right now we create the entity with the player component, but we don't want the mob to be a

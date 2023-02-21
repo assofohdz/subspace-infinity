@@ -49,6 +49,7 @@ import infinity.Ships;
 import infinity.es.GravityWell;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
+import infinity.systems.MapSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +76,7 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     this.time = getSystem(InfinityTimeSystem.class).getTime();
 
-    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
+    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
     //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench2.lvl");
     //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench3.lvl");
     //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench4.lvl");
@@ -114,10 +115,16 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     long sysTime = System.currentTimeMillis();
 
-    byte shipType = 0x2;
+    //GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, sysTime, new Vec3d(0, 1, 0));
 
-    AIEntities.createMob(
-        new Vec3d(), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
+//    AIEntities.createMob(
+//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
+//    AIEntities.createMob(
+//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.SPIDER.getId());
+//    AIEntities.createMob(
+//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.SHARK.getId());
+//    AIEntities.createMob(
+//        new Vec3d(0,1,0), ed, EntityId.NULL_ID, phys, sysTime, Ships.LANCASTER.getId());
 
 //
 //    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
