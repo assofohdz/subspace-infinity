@@ -27,12 +27,10 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
-import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.es.Filters;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
@@ -43,14 +41,12 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.es.Parent;
 import infinity.es.WarpTouch;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandBiConsumer;
-import infinity.sim.CommandMonoConsumer;
+import infinity.sim.CommandBiFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.util.InfinityRunTimeException;
@@ -59,14 +55,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This system handles the warping of units. It is responsible for the
- * implementation of the warp command, and the warp touch component.
+ * This system handles the warping of units. It is responsible for the implementation of the warp
+ * command, and the warp touch component.
  *
  * @author Asser
  */
-// FIXME: Implement collisionlistener interface and listen for collisions between warptouch entities
-// and other warpable entities
-public class WarpSystem extends AbstractGameSystem implements ContactListener {
+public class WarpSystem extends AbstractGameSystem
+    implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(WarpSystem.class);
   private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
@@ -75,14 +70,15 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
   private EntitySet warpToEntities;
   private EntitySet canWarp;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
-  private InfinityEntityBodyFactory bodyFactory;
+  private InfinityEntityBodyFactory<MBlockShape> bodyFactory;
 
   @Override
   protected void initialize() {
     this.ed = getSystem(EntityData.class);
 
     if (getSystem(MPhysSystem.class) == null) {
-      throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires the MPhysSystem system.");
     }
     physicsSpace = getSystem(MPhysSystem.class).getPhysicsSpace();
 
@@ -98,7 +94,7 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
         .registerPatternBiConsumer(
             requestWarpToCenter,
             "The command to warp to the center of the arena is ~warpCenter",
-            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
+            new CommandBiFunction<>(AccessLevel.PLAYER_LEVEL, this::requestWarpToCenter));
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -139,12 +135,12 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
         GameEntities.createWarpEffect(
             ed, e.getId(), physicsSpace, tpf.getTime(), targetLocation, 1000);
 
-//         Ensure that the unit is not moving after the warp
-        RigidBody body = bodyFactory.getBody(e.getId());
+        //         Ensure that the unit is not moving after the warp
+        RigidBody<EntityId, MBlockShape> body = bodyFactory.getBody(e.getId());
         body.setLinearVelocity(Vec3d.ZERO);
         body.setRotationalVelocity(Vec3d.ZERO);
         body.setLinearAcceleration(Vec3d.ZERO);
-        body.setRotationalAcceleration(0,0,0);
+        body.setRotationalAcceleration(0, 0, 0);
         body.clearAccumulators();
 
         ed.removeComponent(e.getId(), WarpTo.class);
@@ -157,43 +153,36 @@ public class WarpSystem extends AbstractGameSystem implements ContactListener {
    *
    * @param avatarId requesting entity
    */
-  public void requestWarpToCenter(EntityId entityId, EntityId avatarId) {
-    // TODO: Check for full health
-    ComponentFilter filter = Filters.fieldEquals(Parent.class, "parentEntity", entityId);
-    EntitySet entitySet = ed.getEntities(filter, BodyPosition.class);
+  public String requestWarpToCenter(EntityId entityId, EntityId avatarId) {
 
-    if (entitySet.size() != 1) {
-      throw new InfinityRunTimeException(
-          "Entity " + entityId + " has " + entitySet.size() + " children. Expected 1.");
-    } else {
-      Entity child = entitySet.iterator().next();
-      BodyPosition childBodyPos = child.get(BodyPosition.class);
-      Vec3d lastLoc = childBodyPos.getLastLocation();
+    Entity child = ed.getEntity(avatarId, BodyPosition.class);
+    BodyPosition childBodyPos = child.get(BodyPosition.class);
+    Vec3d lastLoc = childBodyPos.getLastLocation();
 
-      Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
-      WarpTo warpTo = new WarpTo(centerOfArena);
-      ed.setComponent(child.getId(), warpTo);
-    }
+    Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
+    WarpTo warpTo = new WarpTo(centerOfArena);
+    ed.setComponent(child.getId(), warpTo);
+    return "";
   }
 
-    @Override
-    public void newContact(Contact contact) {
-        RigidBody body1 = contact.body1;
-        AbstractBody body2 = contact.body2;
+  @Override
+  public void newContact(Contact contact) {
+    RigidBody<EntityId, MBlockShape> body1 = contact.body1;
+    AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
-        //If body2 is null, then the contact is with the world and we should not handle this
-        if (body2 == null){
-            return;
-        }
-
-        EntityId body1Id = (EntityId) body1.id;
-        EntityId body2Id = (EntityId) body2.id;
-
-        //Warp body1 if body2 is a warp touch entity
-        if (warpTouchEntities.containsId(body2Id)){
-            WarpTouch warpTouch = warpTouchEntities.getEntity(body2Id).get(WarpTouch.class);
-            WarpTo warpTo = new WarpTo(warpTouch.getTargetLocation());
-            ed.setComponent(body1Id, warpTo);
-        }
+    // If body2 is null, then the contact is with the world and we should not handle this
+    if (body2 == null) {
+      return;
     }
+
+    EntityId body1Id = body1.id;
+    EntityId body2Id = body2.id;
+
+    // Warp body1 if body2 is a warp touch entity
+    if (warpTouchEntities.containsId(body2Id)) {
+      WarpTouch warpTouch = warpTouchEntities.getEntity(body2Id).get(WarpTouch.class);
+      WarpTo warpTo = new WarpTo(warpTouch.getTargetLocation());
+      ed.setComponent(body1Id, warpTo);
+    }
+  }
 }

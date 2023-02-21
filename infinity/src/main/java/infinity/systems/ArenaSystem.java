@@ -47,7 +47,7 @@ import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.CoreGameConstants;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,12 +69,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   static Logger log = LoggerFactory.getLogger(ArenaSystem.class);
   private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
   private final HashMap<String, EntityId> currentOpenArenas = new HashMap<>();
-  private final Pattern loadArena = Pattern.compile("\\~loadArena\\s(\\w+.(?:lvl|lvz))");
-  private final Pattern unloadArena = Pattern.compile("\\~unloadArena\\s(\\w+.(?:lvl|lvz))");
   private final HashMap<EntityId, GridCell> arenaCells = new HashMap<>();
   private EntityData ed;
   private EntitySet arenaEntities;
   private EntitySet playerEntities;
+  private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
+  private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
 
   @Override
   protected void initialize() {
@@ -87,19 +87,19 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     // This filters all entities that are players
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
 
+    arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
+
     // Register consuming methods for patterns
     chat.registerPatternTriConsumer(
-        loadArena,
-        "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
-            + "name of the map you want to load",
-        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::loadArena));
+        loadMap,
+        "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name "
+            + "of the map you want to load",
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::loadArena));
     chat.registerPatternTriConsumer(
-        unloadArena,
-        "The command to unload a new map is ~unloadArena <mapName>, where <mapName> is the "
+        unloadMap,
+        "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
-        new CommandTriConsumer<EntityId, Matcher>(AccessLevel.PLAYER_LEVEL, this::unloadArena));
-
-    arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::unloadArena));
   }
 
   /**
@@ -109,7 +109,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * @param playerEntityId EntityId of the player that sent the command
    * @param matcher Matcher that contains the map name
    */
-  private void loadArena(final EntityId playerEntityId, EntityId avatarEntityId, final Matcher matcher) {
+  private String loadArena(final EntityId playerEntityId, EntityId avatarEntityId, final Matcher matcher) {
     String map = matcher.group(1);
     // First create the map entity
     EntityId arena = ed.createEntity();
@@ -139,6 +139,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     ed.setComponent(arena, new Mass(0));
     ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
     ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
+
+    return "Map " + map + " loaded";
   }
 
   /**
@@ -148,7 +150,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * @param id EntityId of the player that sent the command
    * @param matcher Matcher that contains the map name
    */
-  private void unloadArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
+  private String unloadArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
     String map = matcher.group(1);
     // First unload the map
     getSystem(MapSystem.class).unloadMap(id, avatarEntityId, matcher);
@@ -156,6 +158,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     // Then remove the arena entity
     ed.removeEntity(currentOpenArenas.get(map));
+
+    return "Map " + map + " unloaded";
   }
 
   public EntityId getEntityId(final Vec3d coord) {
@@ -191,11 +195,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   @Override
   public String[] getActiveArenas() {
     return currentOpenArenas.keySet().toArray(new String[0]);
-  }
-
-  private void closeArena(final String arenaId) {
-    ed.removeEntity(currentOpenArenas.get(arenaId));
-    currentOpenArenas.remove(arenaId);
   }
 
   @Override

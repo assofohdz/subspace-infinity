@@ -16,7 +16,7 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -139,10 +139,10 @@ public class basicTester extends BaseGameModule {
         .registerPatternTriConsumer(
             basicCommand,
             "The command to make this basic tester do stuff is ~basic <command>, where <command> is the command you want to execute",
-            new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
   }
 
-  private CommandTriConsumer messageHandler(
+  private String messageHandler(
       EntityId id,
       EntityId id2,
       Matcher matcher) {

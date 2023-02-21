@@ -47,15 +47,18 @@ import infinity.net.chat.ChatSessionListener;
 import infinity.server.AccountHostedService;
 import infinity.server.GameSessionHostedService;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandBiFunction;
+import infinity.sim.CommandFunction;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.MessageTypes;
+import infinity.sim.TriFunction;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -71,15 +74,17 @@ import org.slf4j.LoggerFactory;
 public class InfinityChatHostedService extends AbstractHostedConnectionService
     implements ChatHostedPoster {
 
-  private static final String prepend_chat = "chat> ";
-  private static final String system_message_sender = "System";
-  private static final String not_supported_yet = "Not supported yet.";
+  private static final String PREPEND_CHAT = "chat> ";
+  private static final String SYSTEM_MESSAGE_SENDER = "System";
+  private static final String NOT_SUPPORTED_YET = "Not supported yet.";
   private static final String ATTRIBUTE_SESSION = "chat.session";
   static Logger log = LoggerFactory.getLogger(InfinityChatHostedService.class);
   private final int channel;
   private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
-  private final ConcurrentHashMap<Pattern, CommandTriConsumer> patternTriConsumer;
-  private final ConcurrentHashMap<Pattern, CommandBiConsumer> patternBiConsumer;
+  //TriConsumers need the player entityId and the avatar entityId
+  private final ConcurrentHashMap<Pattern, CommandTriFunction<EntityId, EntityId, Matcher, String>> patternTriConsumer;
+  //BiConsumers only need the player entityId
+  private final ConcurrentHashMap<Pattern, CommandBiFunction<EntityId, Matcher, String>> patternBiConsumer;
   private RmiHostedService rmiService;
 
   /**
@@ -136,7 +141,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       }
       chatter.playerJoined(conn.getId(), playerName);
     }
-    log.info(prepend_chat + playerName + " joined.");
+    log.info(PREPEND_CHAT + playerName + " joined.");
   }
 
   /** Starts hosting the chat services on the specified connection using a generated player name. */
@@ -168,42 +173,46 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
         }
         chatter.playerLeft(player.conn.getId(), player.name);
       }
-      log.info("chat> " + player.name + " left.");
+      log.info(PREPEND_CHAT + player.name + " left.");
     }
   }
 
   protected void postMessage(final ChatSessionImpl from, final String message) {
+    final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
+    final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
     boolean matched = false;
 
-    // Go through pattersn with 1 argument
     for (Iterator<Pattern> iterator = patternTriConsumer.keySet().iterator();
         iterator.hasNext(); ) {
       Pattern pattern = iterator.next();
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
-        final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
-        final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
-        final CommandTriConsumer<EntityId, Matcher> cc = patternTriConsumer.get(pattern);
+        final CommandTriFunction<EntityId, EntityId, Matcher, String> cc = patternTriConsumer.get(pattern);
         // TODO: Implement account service to manage security levels
         // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
         // cc.getAccessLevelRequired())) {
-
-        cc.getConsumer().accept(fromEntity, fromAvatar, matcher);
+        TriFunction<EntityId, EntityId, Matcher, String> function = cc.getFunction();
+        String response = function.apply(fromEntity, fromAvatar, matcher);
+        from.newMessage(from.conn.getId(), from.name, response);
         // }
       }
     }
+    if (matched) {
+      return;
+    }
+
     // Go through patterns with no arguments
     for (Iterator<Pattern> iterator = patternBiConsumer.keySet().iterator(); iterator.hasNext(); ) {
       Pattern pattern = iterator.next();
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
-        final EntityId fromEntity = AccountHostedService.getPlayerEntity(from.getConn());
         //final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
-        final CommandBiConsumer<EntityId, Matcher> cc = patternBiConsumer.get(pattern);
+        BiFunction<EntityId, Matcher, String> function = patternBiConsumer.get(pattern).getConsumer();
 
-        cc.getConsumer().accept(fromEntity, matcher);
+        String response = function.apply(fromEntity, matcher);
+        from.newMessage(from.conn.getId(), from.name, response);
       }
     }
 
@@ -211,7 +220,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       return;
     }
 
-    log.info("chat> " + from.name + " said:" + message);
+    log.info(PREPEND_CHAT + from.name + " said:" + message);
     for (final ChatSessionImpl chatter : players) {
       chatter.newMessage(from.conn.getId(), from.name, message);
     }
@@ -221,7 +230,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
 
   @Override
   public void postPublicMessage(final String from, final int messageType, final String message) {
-    log.info("chat> " + from + " said:" + message);
+    log.info(PREPEND_CHAT + from + " said:" + message);
     for (final ChatSessionImpl chatter : players) {
       chatter.newMessage(0, from, message);
     }
@@ -234,19 +243,19 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
    */
   @Override
   public void registerPatternTriConsumer(
-      final Pattern pattern, final String description, final CommandTriConsumer c) {
+      final Pattern pattern, final String description, final CommandTriFunction c) {
     // TODO: For now, only one consumer per pattern (we could potentially have
     // multiple)
     patternTriConsumer.put(pattern, c);
 
     // TODO: Post message only to those who have the proper access level
-    postPublicMessage(system_message_sender, MessageTypes.MESSAGE, description);
+    postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, description);
   }
 
-  public void registerPatternBiConsumer(Pattern pattern, String description, CommandBiConsumer c) {
+  public void registerPatternBiConsumer(Pattern pattern, String description, CommandBiFunction c) {
     patternBiConsumer.put(pattern, c);
 
-    postPublicMessage(system_message_sender, MessageTypes.MESSAGE, description);
+    postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, description);
   }
 
   /**
@@ -266,31 +275,31 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       final EntityId targetEntityId,
       final String message) {
     throw new UnsupportedOperationException(
-        "Not supported yet."); // To change body of generated methods, choose Tools | Templates.
+        NOT_SUPPORTED_YET); // To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
   public void postTeamMessage(
       final String from, final int messageType, final int targetFrequency, final String message) {
     throw new UnsupportedOperationException(
-        not_supported_yet); // To change body of generated methods, choose
+        NOT_SUPPORTED_YET); // To change body of generated methods, choose
     // Tools | Templates.
   }
 
   @Override
   public void registerCommandConsumer(
-      final String cmd, final String helptext, final CommandTriConsumer c) {
+      final String cmd, final String helptext, final CommandFunction c) {
     // TODO: Put together the pattern that will match, depending on the sender and
     // the command
 
     // TODO: Post message only to those who have the proper access level
-    postPublicMessage(system_message_sender, MessageTypes.MESSAGE, helptext);
+    postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, helptext);
   }
 
   @Override
   public void removeCommandConsumer(final String cmd) {
     throw new UnsupportedOperationException(
-        not_supported_yet); // To change body of generated methods, choose
+        NOT_SUPPORTED_YET); // To change body of generated methods, choose
     // Tools | Templates.
 
   }

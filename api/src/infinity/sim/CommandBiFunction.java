@@ -23,21 +23,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.sim;
 
-import com.simsilica.es.EntityId;
-import org.apache.logging.log4j.util.TriConsumer;
+import java.util.function.BiFunction;
 
 /**
  * @author Asser
  */
-public class CommandTriConsumer<EntityId, Matcher> implements TriConsumer<EntityId, EntityId, Matcher> {
+public class CommandBiFunction<T, U, R>{
 
   private final AccessLevel accessLevelRequired;
-  private final TriConsumer<EntityId, EntityId, Matcher> consumer;
+  private final BiFunction<T, U, R> consumer;
 
-  public CommandTriConsumer(
-      final AccessLevel accessLevelRequired, final TriConsumer<EntityId, EntityId, Matcher> consumer) {
+  public CommandBiFunction(
+      final AccessLevel accessLevelRequired, final BiFunction<T, U, R> consumer) {
     this.accessLevelRequired = accessLevelRequired;
     this.consumer = consumer;
   }
@@ -46,12 +46,7 @@ public class CommandTriConsumer<EntityId, Matcher> implements TriConsumer<Entity
     return accessLevelRequired;
   }
 
-  public TriConsumer<EntityId, EntityId, Matcher> getConsumer() {
+  public BiFunction<T, U, R> getConsumer() {
     return consumer;
-  }
-
-  @Override
-  public void accept(EntityId e, EntityId f, Matcher s) {
-    consumer.accept(e, f, s);
   }
 }

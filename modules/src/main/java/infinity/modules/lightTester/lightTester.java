@@ -38,7 +38,7 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -126,7 +126,7 @@ public class lightTester extends BaseGameModule {
             lightCommand,
             "The command to make this arena1 do stuff is ~arena1 <command>, "
                 + "where <command> is the command you want to execute",
-            new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
   }
 
   @Override
@@ -134,7 +134,7 @@ public class lightTester extends BaseGameModule {
     EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
   }
 
-  private CommandTriConsumer messageHandler(
+  private String messageHandler(
       EntityId id,
       EntityId id2,
       Matcher matcher) {

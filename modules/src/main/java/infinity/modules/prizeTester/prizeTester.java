@@ -35,13 +35,14 @@ import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.ini4j.Ini;
 import org.slf4j.Logger;
@@ -106,7 +107,7 @@ public class prizeTester extends BaseGameModule {
             prizeTesterCommand,
             "The command to make this prizeTester do stuff is ~prizeTester <command>, "
                 + "where <command> is the command you want to execute",
-            new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
 
     // startGame();
   }
@@ -122,9 +123,10 @@ public class prizeTester extends BaseGameModule {
    * Handle the message events.
    *
    * @param id The entity id of the sender
-   * @param s The message to handle
+   * @param m  The message to handle
    */
-  public void messageHandler(final EntityId id, EntityId id2, final String s) {
-    log.info("Received command" + s);
+  public String messageHandler(final EntityId id, EntityId id2, final Matcher m) {
+    log.info("Received command" + m);
+    return "Received command" + m;
   }
 }

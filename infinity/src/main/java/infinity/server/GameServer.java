@@ -279,7 +279,7 @@ public class GameServer {
     mBlockShapeMPhysSystem.getPhysicsSpace().setContactDispatcher(contactSystem);
     // Then add gamesystems:
     systems.register(EnergySystem.class, new EnergySystem());
-    systems.register(AvatarSystem.class, new AvatarSystem(chp));
+    systems.register(AvatarSystem.class, new AvatarSystem());
     systems.register(MovementSystem.class, new MovementSystem());
     systems.register(MobSystem.class, new MobSystem());
     systems.register(WeaponsSystem.class, new WeaponsSystem());

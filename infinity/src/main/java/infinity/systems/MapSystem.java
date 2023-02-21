@@ -44,8 +44,6 @@ import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.server.chat.InfinityChatHostedService;
-import infinity.sim.AccessLevel;
-import infinity.sim.CommandTriConsumer;
 import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,7 +54,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +76,6 @@ public class MapSystem extends AbstractGameSystem {
   private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "maps";
-  private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
-  private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
   private final LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
   private final LinkedHashSet<Vec3d> sessionTileCreations = new LinkedHashSet<>();
   // Map that holds all block coordinates for a given map:
@@ -89,7 +84,7 @@ public class MapSystem extends AbstractGameSystem {
   private final LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private final boolean mapCreated = false;
   private InfinityChatHostedService chat;
-  private Vec3d currentMapLoc = new Vec3d(-1,0,-1);
+  private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -112,7 +107,7 @@ public class MapSystem extends AbstractGameSystem {
     return result;
   }
 
-  public void setCell(Vec3d pos, int type){
+  public void setCell(Vec3d pos, int type) {
     world.setWorldCell(pos, type);
   }
 
@@ -154,18 +149,6 @@ public class MapSystem extends AbstractGameSystem {
      * -50f, -50f);
      */
     mapTileQueue = new LinkedList<>();
-
-    // Register consuming methods for patterns
-    chat.registerPatternTriConsumer(
-        loadMap,
-        "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name "
-            + "of the map you want to load",
-        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::loadMap));
-    chat.registerPatternTriConsumer(
-        unloadMap,
-        "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
-            + "name of the map you want to unload",
-        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::unloadMap));
   }
 
   /**
@@ -247,12 +230,24 @@ public class MapSystem extends AbstractGameSystem {
     return true;
   }
 
+  /**
+   * Returns the maximum bounds of a given map.
+   *
+   * @param arenaId the map to get the bounds for
+   * @return the maximum bounds of the map
+   */
   public Vec3d getMapBoundsMax(String arenaId) {
     Vec3d mapOffset = mapCoordinates.get(arenaId);
     Vec3d mapBoundsMax = mapOffset.add(MAP_SIZE, 0, MAP_SIZE);
     return mapBoundsMax;
   }
 
+  /**
+   * Returns the minimum bounds of a given map.
+   *
+   * @param map the map to get the bounds for
+   * @return the minimum bounds of the map
+   */
   public Vec3d getMapBoundsMin(String map) {
     Vec3d mapOffset = mapCoordinates.get(map);
     return mapOffset;
@@ -311,8 +306,6 @@ public class MapSystem extends AbstractGameSystem {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
         short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
         y = 1;
-        // I'd like a small part of the corners of the map to be cleared so we can move in and out
-        // of arenas
         if ((xpos == 0 || xpos == 1 || xpos == 2) && (zpos == 0 || zpos == 1 || zpos == 2)) {
           // s = 0;
           y = 5;
@@ -325,12 +318,6 @@ public class MapSystem extends AbstractGameSystem {
         } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
             && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
           y = 5;
-        } else if (xpos == 0
-            || zpos == 0
-            || xpos == tiles.length - 1
-            || zpos == tiles[xpos].length - 1) {
-          // Set arena boundaries
-          s = 1;
         }
 
         if (s != 0) {
@@ -478,8 +465,7 @@ public class MapSystem extends AbstractGameSystem {
           if (s == MapTypes.vieBorder) {
             world.setWorldCell(location, 10);
           } else if (s == MapTypes.vieTurfFlag) {
-            GameEntities.createTurfStationaryFlag(
-                ed, null, physicsSpace, time.getTime(), location.add(0.5, 0, 0.5));
+            GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, physicsSpace, time.getTime(), location);
             continue;
           } else if (s == MapTypes.vieAsteroidSmall) {
             GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
@@ -490,11 +476,11 @@ public class MapSystem extends AbstractGameSystem {
           } else if (s == 218) {
             GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
             continue;
-          } else if (MapTypes.vieFlyOverStart <= s && s <= MapTypes.vieFlyOverEnd){
-            location.addLocal(0,-1,0);
-          } else if (MapTypes.vieFlyUnderStart <= s && s <= MapTypes.vieFlyUnderEnd){
-            location.addLocal(0,1,0);
-          } else if (MapTypes.vieVDoorStart <= s && s <= MapTypes.vieHDoorEnd){
+          } else if (MapTypes.vieFlyOverStart <= s && s <= MapTypes.vieFlyOverEnd) {
+            location.addLocal(0, -1, 0);
+          } else if (MapTypes.vieFlyUnderStart <= s && s <= MapTypes.vieFlyUnderEnd) {
+            location.addLocal(0, 1, 0);
+          } else if (MapTypes.vieVDoorStart <= s && s <= MapTypes.vieHDoorEnd) {
             GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
             continue;
           } else if (s == MapTypes.vieWormhole) {
@@ -518,7 +504,7 @@ public class MapSystem extends AbstractGameSystem {
 
           final int value = tileId | (mapId << 8);
 
-          if (s != 0){
+          if (s != 0) {
             world.setWorldCell(location, 10);
           }
 

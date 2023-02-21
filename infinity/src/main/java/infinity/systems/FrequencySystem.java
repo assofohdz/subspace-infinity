@@ -16,7 +16,7 @@ import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.GameSounds;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,7 +50,7 @@ public class FrequencySystem extends AbstractGameSystem
         freuencyChange,
         "The command to load a new map is ~loadArena <mapName>, where <mapName> is the "
             + "name of the map you want to load",
-        new CommandTriConsumer<>(AccessLevel.PLAYER_LEVEL, this::changeFrequency));
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::changeFrequency));
 
     // Register this as a contact listener with the ContactSystem
     getSystem(ContactSystem.class, true).addListener(this);
@@ -62,8 +62,9 @@ public class FrequencySystem extends AbstractGameSystem
    * @param entityId The id of the player
    * @param m The matcher that contains the frequency as group 1
    */
-  private void changeFrequency(EntityId entityId, EntityId avatarEntityId, Matcher m) {
+  private String changeFrequency(EntityId entityId, EntityId avatarEntityId, Matcher m) {
     ed.setComponent(avatarEntityId, new Frequency(Integer.parseInt(m.group(1))));
+    return "Frequency changed to " + m.group(1);
   }
 
   @Override

@@ -25,35 +25,25 @@
  */
 package infinity.sim;
 
-import java.util.function.BiConsumer;
-
-import com.simsilica.es.EntityId;
-import java.util.function.Consumer;
-
 /**
- *
  * @author Asser
  */
-public class CommandMonoConsumer implements BiConsumer<EntityId, String> {
+public class CommandTriFunction<T, U, V, R> {
 
   private final AccessLevel accessLevelRequired;
-  private final Consumer<EntityId> consumer;
+  private final TriFunction<T, U, V, R> function;
 
-  public CommandMonoConsumer(final AccessLevel accessLevelRequired, final Consumer<EntityId> consumer) {
+  public CommandTriFunction(
+      final AccessLevel accessLevelRequired, final TriFunction<T, U, V, R> function) {
     this.accessLevelRequired = accessLevelRequired;
-    this.consumer = consumer;
+    this.function = function;
   }
 
   public AccessLevel getAccessLevelRequired() {
     return accessLevelRequired;
   }
 
-  public Consumer<EntityId> getConsumer() {
-    return consumer;
-  }
-
-  @Override
-  public void accept(EntityId entityId, String s) {
-    consumer.accept(entityId);
+  public TriFunction<T, U, V, R> getFunction() {
+    return function;
   }
 }

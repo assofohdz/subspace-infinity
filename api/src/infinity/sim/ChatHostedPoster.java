@@ -25,6 +25,7 @@
  */
 package infinity.sim;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.simsilica.es.EntityId;
@@ -67,12 +68,12 @@ public interface ChatHostedPoster {
      */
     void postTeamMessage(String from, int messageType, int targetFrequency, String message);
 
-    void registerPatternTriConsumer(Pattern pattern, String description, CommandTriConsumer c);
-    void registerPatternBiConsumer(Pattern pattern, String description, CommandBiConsumer c);
+    void registerPatternTriConsumer(Pattern pattern, String description, CommandTriFunction<EntityId, EntityId, Matcher, String> c);
+    void registerPatternBiConsumer(Pattern pattern, String description, CommandBiFunction<EntityId, Matcher, String> c);
 
     void removePatternConsumer(Pattern pattern);
 
-    void registerCommandConsumer(String cmd, String helptext, CommandTriConsumer c);
+    void registerCommandConsumer(String cmd, String helptext, CommandFunction<Matcher, String> c);
 
     void removeCommandConsumer(String cmd);
 

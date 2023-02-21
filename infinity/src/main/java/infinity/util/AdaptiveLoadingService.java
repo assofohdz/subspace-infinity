@@ -41,8 +41,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.BaseGameService;
 import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandBiConsumer;
-import infinity.sim.CommandTriConsumer;
+import infinity.sim.CommandBiFunction;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
@@ -70,11 +69,9 @@ import org.slf4j.LoggerFactory;
  * @author Asser
  */
 public class AdaptiveLoadingService extends AbstractHostedService
-    implements AdaptiveLoader /* implements CommandListener */ {
+    implements AdaptiveLoader{
   static org.slf4j.Logger log = LoggerFactory.getLogger(AdaptiveLoadingService.class);
 
-  // final GroovyClassLoader classLoader = new GroovyClassLoader();
-  // private String[] directories;
   private final Vector<File> repository;
   private final HashMap<String, BaseGameModule> modules;
   private final HashMap<String, BaseGameService> services;
@@ -83,8 +80,6 @@ public class AdaptiveLoadingService extends AbstractHostedService
   private final Pattern stopModulePattern = Pattern.compile("\\~stopModule\\s(\\w+)");
   private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");
   private final GameSystemManager gameSystems;
-  // private Matcher m;
-  // Create GroovyClassLoader.
   AdaptiveClassLoader classLoader;
   List<String> repositoryList =
       Arrays.asList(
@@ -104,13 +99,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
    */
   public AdaptiveLoadingService(final GameSystemManager gameSystems) {
     repository = new Vector<>();
-    // classSettings = new HashMap<>();
 
     modules = new HashMap<>();
     services = new HashMap<>();
 
-    // this.getManager();
-    // TODO: Register with ChatHostedService as Pattern Listener
     this.gameSystems = gameSystems;
   }
 
@@ -122,10 +114,6 @@ public class AdaptiveLoadingService extends AbstractHostedService
   @Override
   protected void onInitialize(final HostedServiceManager serviceManager) {
 
-    /*
-     * File file = new File("modules"); directories = file.list((File current,
-     * String name) -> new File(current, name).exists());
-     */
     final Consumer<String> consumerDirectories =
         folder -> {
           final File fileFolder = new File(folder);
@@ -145,11 +133,9 @@ public class AdaptiveLoadingService extends AbstractHostedService
           }
         };
 
-    // Arrays.asList(directories).forEach(consumerDirectories);
     repositoryList.forEach(consumerDirectories);
 
     classLoader = new AdaptiveClassLoader(repository);
-    // this.classLoader = new AdaptiveClassLoader(directories);
 
     // Register consuming methods for patterns
     this.getService(InfinityChatHostedService.class)
@@ -157,25 +143,25 @@ public class AdaptiveLoadingService extends AbstractHostedService
             startModulePattern,
             "The command to start a new module is ~startModule <module>, "
                 + "where <module> is the module you want to start",
-            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::startModule));
+            new CommandBiFunction<>(AccessLevel.PLAYER_LEVEL, this::startModule));
     this.getService(InfinityChatHostedService.class)
         .registerPatternBiConsumer(
             stopModulePattern,
             "The command to start a new module is ~stopModule <module>, "
                 + "where <module> is the module you want to stop",
-            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::stopModule));
+            new CommandBiFunction<>(AccessLevel.PLAYER_LEVEL, this::stopModule));
     this.getService(InfinityChatHostedService.class)
         .registerPatternBiConsumer(
             startServicePattern,
             "The command to start a new module is ~startService <service>, "
                 + "where <service> is the service you want to start",
-            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::startService));
+            new CommandBiFunction<>(AccessLevel.PLAYER_LEVEL, this::startService));
     this.getService(InfinityChatHostedService.class)
         .registerPatternBiConsumer(
             stopServicePattern,
             "The command to start a new module is ~stopService <service>, "
                 + "where <service> is the service you want to stop",
-            new CommandBiConsumer<>(AccessLevel.PLAYER_LEVEL, this::stopService));
+            new CommandBiFunction<>(AccessLevel.PLAYER_LEVEL, this::stopService));
   }
 
   /**
@@ -191,7 +177,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
    * @throws InvocationTargetException if the class does not have a nullary constructor
    */
   private void loadModule(final String moduleName)
-      throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException,
+      throws IllegalAccessException, InstantiationException, ClassNotFoundException,
           NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
     // Class prepended with their package name
 
@@ -207,7 +193,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
 
     Class<?> java = getClass(packageName);
     if (java != null) {
-      loadClass(javaGuava);
+      loadClass(java);
     }
   }
 
@@ -253,9 +239,8 @@ public class AdaptiveLoadingService extends AbstractHostedService
    */
   // Loads the class
   private void loadClass(Class<?> java)
-      throws IllegalAccessException, InstantiationException, IOException, ClassNotFoundException,
+      throws IllegalAccessException, InstantiationException,
           NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-    // final Class<?> java = classLoader.loadClass(file);
     final Constructor<?> c =
         java.getConstructor(
             ChatHostedPoster.class,
@@ -276,7 +261,6 @@ public class AdaptiveLoadingService extends AbstractHostedService
                   gameSystems.get(InfinityTimeSystem.class),
                   gameSystems.get(InfinityPhysicsManager.class));
       modules.put(javaObj.getClass().getSimpleName(), javaObj);
-      // classSettings.put(javaObj, settingsFile);
 
     } else if (BaseGameService.class.isAssignableFrom(java)) {
 
@@ -290,15 +274,18 @@ public class AdaptiveLoadingService extends AbstractHostedService
                   gameSystems.get(InfinityTimeSystem.class),
                   gameSystems.get(InfinityPhysicsManager.class));
       services.put(javaObj.getClass().getSimpleName(), javaObj);
-      // classSettings.put(javaObj, settingsFile);
     }
   }
 
   @Override
-  public void start() {}
+  public void start() {
+    // Auto generated method stub
+  }
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // Auto generated method stub
+  }
 
   /**
    * Starts a module.
@@ -306,7 +293,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
    * @param playerEntityId player calling the command
    * @param module the module to start
    */
-  private void startModule(
+  private String startModule(
       final EntityId playerEntityId, final String module) {
     BaseGameModule bgm;
     if (!modules.containsKey(module)) {
@@ -314,14 +301,13 @@ public class AdaptiveLoadingService extends AbstractHostedService
         // Try to load it
         loadModule(module);
       } catch (final IllegalAccessException
-          | IOException
           | ClassNotFoundException
           | NoSuchMethodException
           | IllegalArgumentException
           | InvocationTargetException
           | InstantiationException ex) {
         Logger.getLogger(AdaptiveLoadingService.class.getName()).log(Level.SEVERE, null, ex);
-        return;
+        return "Could not load module";
       }
 
       bgm = modules.get(module);
@@ -331,14 +317,7 @@ public class AdaptiveLoadingService extends AbstractHostedService
     }
 
     gameSystems.addSystem(bgm);
-
-    /*
-     * if (bgm instanceof CommandListener) { CommandListener cl = (CommandListener)
-     * bgm; HashMap<Pattern, CommandConsumer> map = cl.getPatternBiConsumers(); for
-     * (Pattern p : map.keySet()) {
-     * this.getService(ChatHostedService.class).registerPatternTriConsumer(p,
-     * map.get(p)); } }
-     */
+    return "Module started: "+module;
   }
 
   /**
@@ -347,9 +326,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
    * @param module the module to stop
    * @param playerEntityId player calling the command
    */
-  private void stopModule(
+  private String stopModule(
       final EntityId playerEntityId, final String module) {
     gameSystems.removeSystem(modules.get(module));
+    return "Module stopped: "+module;
   }
 
   /**
@@ -358,9 +338,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
    * @param service the service to start
    * @param playerEntityId player calling the command
    */
-  private void startService(
+  private String startService(
       final EntityId playerEntityId, final String service) {
     getServiceManager().addService(services.get(service));
+    return "Service started: "+service;
   }
 
   /**
@@ -369,9 +350,10 @@ public class AdaptiveLoadingService extends AbstractHostedService
    * @param service the service to stop
    * @param playerEntityId player calling the command
    */
-  private void stopService(
+  private String stopService(
       final EntityId playerEntityId, final String service) {
     getServiceManager().removeService(services.get(service));
+    return "Service stopped: "+service;
   }
 
   /**
