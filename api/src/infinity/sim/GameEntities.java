@@ -77,9 +77,11 @@ import infinity.es.ship.weapons.Bomb;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombLevelEnum;
-import infinity.es.ship.weapons.GravityBomb;
-import infinity.es.ship.weapons.GravityBombCost;
-import infinity.es.ship.weapons.GravityBombFireDelay;
+import infinity.es.ship.weapons.Gun;
+import infinity.es.ship.weapons.GunCost;
+import infinity.es.ship.weapons.GunFireDelay;
+import infinity.es.ship.weapons.GunLevelEnum;
+import infinity.es.ship.weapons.GunMax;
 import infinity.es.ship.weapons.Mine;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineFireDelay;
@@ -515,11 +517,10 @@ public class GameEntities {
     ed.setComponent(result, new BurstMax(5));
 
     // Add guns:
-    // FIXME: Try without guns, see if we can pick it up
-    // ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
-    // ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
-    // ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-    // ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
+     ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
+     ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
+     ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
+     ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
 
     // Add gravity bombs
 //    ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
@@ -543,10 +544,7 @@ public class GameEntities {
     ed.setComponent(
         result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
-    ed.setComponent(
-        result,
-        new PointLightComponent(
-            ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CoreViewConstants.SHIPLIGHTOFFSET));
+
     ed.setComponent(result, new Meta(createdTime));
     return result;
   }
@@ -565,6 +563,11 @@ public class GameEntities {
     ed.setComponent(result, new Name("player"));
 
     ed.setComponent(result, new Frequency(1));
+
+    ed.setComponent(
+        result,
+        new PointLightComponent(
+            ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CoreViewConstants.SHIPLIGHTOFFSET));
 
     byte flags = 0x0;
     ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(), flags));
