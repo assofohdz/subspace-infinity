@@ -35,7 +35,7 @@ import infinity.es.ship.actions.BurstMax;
 import infinity.es.ship.weapons.Gun;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.GunLevelEnum;
+import infinity.Guns;
 import infinity.es.ship.weapons.GunMax;
 import infinity.sim.CollisionFilters;
 import infinity.sim.CoreGameConstants;
@@ -395,10 +395,10 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
       ed.setComponent(ship, new Gun(gun.getLevel().getNextLevel()));
     } else if (gun == null) {
       log.info("Ship {} just acquired guns and now has level {} guns", ship, 1);
-      ed.setComponent(ship, new Gun(GunLevelEnum.LEVEL_1));
+      ed.setComponent(ship, new Gun(Guns.LEVEL_1));
       ed.setComponent(ship, new GunCost(CoreGameConstants.GUNCOST));
       ed.setComponent(ship, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-      ed.setComponent(ship, new GunMax(GunLevelEnum.LEVEL_4));
+      ed.setComponent(ship, new GunMax(Guns.LEVEL_4));
     }
   }
 

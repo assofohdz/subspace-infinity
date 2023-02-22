@@ -53,7 +53,7 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mblock.phys.MBlockShape;
 
 import infinity.es.ShapeNames;
-import infinity.es.ship.weapons.BombLevelEnum;
+import infinity.Bombs;
 import infinity.sim.CoreViewConstants;
 
 /**
@@ -106,19 +106,19 @@ public class SIRadarSpatialFactory {
             return createBullet(1);
         case ShapeNames.BOMBL1:
             // Create bomb
-            return createBomb(BombLevelEnum.BOMB_1);
+            return createBomb(Bombs.BOMB_1);
         case ShapeNames.BOMBL2:
             // Create bomb
-            return createBomb(BombLevelEnum.BOMB_2);
+            return createBomb(Bombs.BOMB_2);
         case ShapeNames.BOMBL3:
             // Create bomb
-            return createBomb(BombLevelEnum.BOMB_3);
+            return createBomb(Bombs.BOMB_3);
         case ShapeNames.BOMBL4:
             // Create bomb
-            return createBomb(BombLevelEnum.BOMB_4);
+            return createBomb(Bombs.BOMB_4);
         case ShapeNames.THOR:
             // Create bomb
-            return createBomb(BombLevelEnum.THOR);
+            return createBomb(Bombs.THOR);
         case ShapeNames.BURST:
             // Create bomb
             return createBurst();
@@ -340,7 +340,7 @@ public class SIRadarSpatialFactory {
         return result;
     }
 
-    private Spatial createBomb(final BombLevelEnum level) {
+    private Spatial createBomb(final Bombs level) {
         final Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
         final float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
         quad.setBuffer(VertexBuffer.Type.Position, 3, getVertices(halfSize));

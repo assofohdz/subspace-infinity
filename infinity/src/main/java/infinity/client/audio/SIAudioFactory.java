@@ -23,21 +23,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.client.audio;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioData;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.plugins.WAVLoader;
-
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-
+import infinity.Bombs;
+import infinity.Guns;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
-import infinity.es.ship.weapons.BombLevelEnum;
-import infinity.es.ship.weapons.GunLevelEnum;
 
 /**
  *
@@ -67,15 +66,21 @@ public class SIAudioFactory implements AudioFactory {
         case AudioTypes.PICKUP_PRIZE:
             return createPICKUP_PRIZE();
         case AudioTypes.FIRE_BOMBS_L1:
+            return createFIRE_BOMB(1);
         case AudioTypes.FIRE_BOMBS_L2:
+            return createFIRE_BOMB(2);
         case AudioTypes.FIRE_BOMBS_L3:
+            return createFIRE_BOMB(3);
         case AudioTypes.FIRE_BOMBS_L4:
-            return createFIRE_BOMB(BombLevelEnum.BOMB_1);
+            return createFIRE_BOMB(4);
         case AudioTypes.FIRE_GUNS_L1:
+            return createFIRE_BULLET(1);
         case AudioTypes.FIRE_GUNS_L2:
+            return createFIRE_BULLET(2);
         case AudioTypes.FIRE_GUNS_L3:
+            return createFIRE_BULLET(3);
         case AudioTypes.FIRE_GUNS_L4:
-            return createFIRE_BULLET(GunLevelEnum.LEVEL_1);
+            return createFIRE_BULLET(4);
         case AudioTypes.FIRE_GRAVBOMB:
             return createFIRE_GRAVBOMB();
         case AudioTypes.EXPLOSION2:
@@ -105,9 +110,9 @@ public class SIAudioFactory implements AudioFactory {
         an.setVolume(1);
     }
 
-    private AudioNode createFIRE_BOMB(final BombLevelEnum bombLevel) {
+    private AudioNode createFIRE_BOMB(int bombLevel) {
         String sound = "";
-        switch (bombLevel.level) {
+        switch (bombLevel) {
         case 1:
             sound = "Sounds/Subspace/bomb1.wa2";
             break;
@@ -121,16 +126,16 @@ public class SIAudioFactory implements AudioFactory {
             sound = "Sounds/Subspace/bomb4.wa2";
             break;
         default:
-            throw new UnsupportedOperationException("Unknown bomb level: " + bombLevel.level);
+            throw new UnsupportedOperationException("Unknown bomb level: " + bombLevel);
         }
         final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_BULLET(final GunLevelEnum gunLevel) {
+    private AudioNode createFIRE_BULLET(int gunLevel) {
         String sound = "";
-        switch (gunLevel.level) {
+        switch (gunLevel) {
         case 1:
             sound = "Sounds/Subspace/gun1.wa2";
             break;
@@ -144,7 +149,7 @@ public class SIAudioFactory implements AudioFactory {
             sound = "Sounds/Subspace/gun4.wa2";
             break;
         default:
-            throw new UnsupportedOperationException("Unknown gun level: " + gunLevel.level);
+            throw new UnsupportedOperationException("Unknown gun level: " + gunLevel);
         }
         final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
         setDefaults(an);

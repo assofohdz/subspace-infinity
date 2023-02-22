@@ -26,6 +26,7 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
+import infinity.Guns;
 
 /**
  * Initial level a ship's guns fire 0=no guns
@@ -34,13 +35,13 @@ import com.simsilica.es.EntityComponent;
  */
 public class GunMax implements EntityComponent {
 
-    GunLevelEnum level;
+    Guns level;
 
-    public GunMax(final GunLevelEnum level) {
+    public GunMax(final Guns level) {
         this.level = level;
     }
 
-    public GunLevelEnum getLevel() {
+    public Guns getLevel() {
         return level;
     }
 }

@@ -52,12 +52,14 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.Part;
+import infinity.Ships;
 import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
 import infinity.client.view.ShipLightControl;
 import infinity.es.Flag;
 import infinity.es.ShapeNames;
-import infinity.es.ship.weapons.BombLevelEnum;
+import infinity.Bombs;
+import infinity.Guns;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import jme3utilities.MyMesh;
@@ -82,6 +84,7 @@ public class SISpatialFactory {
   private final Timer timer;
   private final BlockGeometryIndex geomIndex;
   private EffectFactory ef;
+  private String objectString = "Object:";
 
   SISpatialFactory(
       final Node rootNode,
@@ -103,31 +106,29 @@ public class SISpatialFactory {
   public Spatial createModel(EntityId id, String shapeName, Mass mass) {
 
     switch (shapeName) {
+      case ShapeNames.BULLETL4:
+        return createBullet(Guns.LEVEL_4.viewOffset);
+      case ShapeNames.BULLETL3:
+        return createBullet(Guns.LEVEL_3.viewOffset);
+      case ShapeNames.BULLETL2:
+        return createBullet(Guns.LEVEL_2.viewOffset);
       case ShapeNames.BULLETL1:
-        return createBullet(1);
+        return createBullet(Guns.LEVEL_1.viewOffset);
       case ShapeNames.BOMBL1:
-        // Create bomb
-        return createBomb(BombLevelEnum.BOMB_1);
+        return createBomb(Bombs.BOMB_1.viewOffset);
       case ShapeNames.BOMBL2:
-        // Create bomb
-        return createBomb(BombLevelEnum.BOMB_2);
+        return createBomb(Bombs.BOMB_2.viewOffset);
       case ShapeNames.BOMBL3:
-        // Create bomb
-        return createBomb(BombLevelEnum.BOMB_3);
+        return createBomb(Bombs.BOMB_3.viewOffset);
       case ShapeNames.BOMBL4:
-        // Create bomb
-        return createBomb(BombLevelEnum.BOMB_4);
+        return createBomb(Bombs.BOMB_4.viewOffset);
       case ShapeNames.THOR:
-        // Create bomb
-        return createBomb(BombLevelEnum.THOR);
+        return createBomb(Bombs.THOR.viewOffset);
       case ShapeNames.BURST:
-        // Create bomb
         return createBurst();
       case ShapeNames.EXPLOSION:
-        // Create explosion
         return createExplosion();
       case ShapeNames.PRIZE:
-        // Create bounty
         return createBounty();
       case ShapeNames.ARENA:
         return createArena();
@@ -146,21 +147,21 @@ public class SISpatialFactory {
       case ShapeNames.OVER2:
         return createOver2();
       case ShapeNames.SHIP_WARBIRD:
-        return createShip(31);
+        return createShip(Ships.WARBIRD.getVisualOffset());
       case ShapeNames.SHIP_JAVELIN:
-        return createShip(27);
+        return createShip(Ships.JAVELIN.getVisualOffset());
       case ShapeNames.SHIP_SPIDER:
-        return createShip(23);
+        return createShip(Ships.SPIDER.getVisualOffset());
       case ShapeNames.SHIP_LEVI:
-        return createShip(19);
+        return createShip(Ships.LEVIATHAN.getVisualOffset());
       case ShapeNames.SHIP_TERRIER:
-        return createShip(15);
+        return createShip(Ships.TERRIER.getVisualOffset());
       case ShapeNames.SHIP_WEASEL:
-        return createShip(11);
+        return createShip(Ships.WEASEL.getVisualOffset());
       case ShapeNames.SHIP_LANCASTER:
-        return createShip(7);
+        return createShip(Ships.LANCASTER.getVisualOffset());
       case ShapeNames.SHIP_SHARK:
-        return createShip(3);
+        return createShip(Ships.SHARK.getVisualOffset());
       case ShapeNames.FLAG:
         return createFlag(Flag.FLAG_THEIRS);
       case ShapeNames.DOOR:
@@ -180,7 +181,7 @@ public class SISpatialFactory {
   }
   /** Creates a root-level spatial for the specified root group. */
   protected Spatial createPartSpatial(EntityId id, Group group, Mass mass) {
-    Node node = new Node("Object:" + id);
+    Node node = new Node(objectString + id);
     if (DEBUG_COG) {
       node.attachChild(createBox(0.1f, ColorRGBA.Orange));
     }
@@ -217,11 +218,19 @@ public class SISpatialFactory {
     return parent;
   }
 
+  /**
+   * Creates a sphere for the given entity with the given radius and mass.
+   *
+   * @param id The entity id
+   * @param radius The radius of the sphere
+   * @param mass The mass of the sphere
+   * @return The sphere spatial
+   */
   public Spatial createSphere(EntityId id, float radius, Mass mass) {
     Sphere mesh = new Sphere(24, 24, radius);
     mesh.setTextureMode(Sphere.TextureMode.Projected);
     mesh.scaleTextureCoordinates(new Vector2f(4, 2));
-    Geometry geom = new Geometry("Object:" + id, mesh);
+    Geometry geom = new Geometry(objectString + id, mesh);
 
     if (mass != null && mass.getMass() != 0) {
       geom.setMaterial(
@@ -252,7 +261,7 @@ public class SISpatialFactory {
       return createSphere(id, (float) part.getMass().getRadius(), mass);
     }
 
-    Node node = new Node("Object:" + id);
+    Node node = new Node(objectString + id);
     Node parts = new Node("Parts:" + id);
     node.attachChild(parts);
 
@@ -297,13 +306,7 @@ public class SISpatialFactory {
     MyMesh.translate(box, new Vector3f(halfSize, halfSize, halfSize));
     MyMesh.scale(box, 0.5f);
     MyMesh.translate(box, new Vector3f(quarterSize, quarterSize, quarterSize));
-    // MyMesh.centerBuffer(box, VertexBuffer.Type.Position);
-    // MyMesh.centerBuffer(box, Type.Normal);
-    // box.setBuffer(VertexBuffer.Type.Position, 3, getVerticesBox(halfSize));
-    // MyMesh.generateNormals(box);
-    // box.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
     box.updateBound();
-    // MBox mb = new MBox(1,1,1,1,1,1);
 
     Geometry geom = new Geometry("Door", box); // create cube geometry from the shape
     Material mat;
@@ -497,7 +500,7 @@ public class SISpatialFactory {
     return result;
   }
 
-  private Spatial createBomb(final BombLevelEnum level) {
+  private Spatial createBomb(int viewOffset) {
     final Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
     final float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
     quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
@@ -510,7 +513,7 @@ public class SISpatialFactory {
     } else {
       geom.setMaterial(assets.loadMaterial("Materials/BombMaterialLight.j3m"));
     }
-    geom.getMaterial().setInt(NUMTILESOFFSETY, level.viewOffset);
+    geom.getMaterial().setInt(NUMTILESOFFSETY, viewOffset);
 
     geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     return geom;
@@ -692,7 +695,7 @@ public class SISpatialFactory {
       geom.setMaterial(assets.loadMaterial("Materials/WarpMaterialLight.j3m"));
     }
 
-    geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
+    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
     geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     return geom;
   }
@@ -711,7 +714,7 @@ public class SISpatialFactory {
       geom.setMaterial(assets.loadMaterial("Materials/RepelMaterialLight.j3m"));
     }
 
-    geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
+    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
     geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     return geom;
   }
@@ -729,7 +732,7 @@ public class SISpatialFactory {
     } else {
       geom.setMaterial(assets.loadMaterial("Materials/BurstMaterialLight.j3m"));
     }
-    geom.getMaterial().setFloat("StartTime", timer.getTimeInSeconds());
+    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
     geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     return geom;
   }

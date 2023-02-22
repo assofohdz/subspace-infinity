@@ -77,6 +77,8 @@ public class AvatarMovementState extends BaseAppState
       inputManager = app.getInputManager();
     }
 
+    //Delegates can be used when we want to recieve the input continuously but only
+    // want to act on it when it changes.  This is useful for things like movement
     inputMapper.addDelegate(AvatarMovementFunctions.F_TURN, this, "rotatePressed", true);
     inputMapper.addDelegate(AvatarMovementFunctions.F_THRUST, this, "thrustPressed", true);
 
@@ -93,7 +95,7 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_MINE,
         AvatarMovementFunctions.F_REPEL);
 
-    // We use statelisteners when we only want to know when a function
+    // We use state listeners when we only want to know when a function
     // is pressed or released.  We don't care about the analog value.
     inputMapper.addStateListener(
         this,

@@ -15,8 +15,8 @@ import infinity.es.AudioType;
 import infinity.es.AudioTypes;
 import infinity.es.Meta;
 import infinity.es.Parent;
-import infinity.es.ship.weapons.BombLevelEnum;
-import infinity.es.ship.weapons.GunLevelEnum;
+import infinity.Bombs;
+import infinity.Guns;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -51,7 +51,7 @@ public class GameSounds {
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final BombLevelEnum level) {
+      final Bombs level) {
     final EntityId result = ed.createEntity();
 
     ed.setComponents(
@@ -109,7 +109,7 @@ public class GameSounds {
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final GunLevelEnum level) {
+      final Guns level) {
     final EntityId result = ed.createEntity();
 
     ed.setComponents(
@@ -179,7 +179,7 @@ public class GameSounds {
       @NotNull PhysicsSpace phys,
       long time,
       Vec3d location,
-      BombLevelEnum level) {
+      Bombs level) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,

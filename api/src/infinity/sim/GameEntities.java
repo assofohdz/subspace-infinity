@@ -76,11 +76,11 @@ import infinity.es.ship.actions.ThorMax;
 import infinity.es.ship.weapons.Bomb;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BombLevelEnum;
+import infinity.Bombs;
 import infinity.es.ship.weapons.Gun;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.GunLevelEnum;
+import infinity.Guns;
 import infinity.es.ship.weapons.GunMax;
 import infinity.es.ship.weapons.Mine;
 import infinity.es.ship.weapons.MineCost;
@@ -508,7 +508,7 @@ public class GameEntities {
     ed.setComponent(result, new Recharge(100));
 
     // Add bombs:
-    ed.setComponent(result, new Bomb(BombLevelEnum.BOMB_1));
+    ed.setComponent(result, new Bomb(Bombs.BOMB_1));
     ed.setComponent(result, new BombCost(2));
     ed.setComponent(result, new BombFireDelay(500));
 
@@ -517,10 +517,10 @@ public class GameEntities {
     ed.setComponent(result, new BurstMax(5));
 
     // Add guns:
-     ed.setComponent(result, new Gun(GunLevelEnum.LEVEL_1));
+     ed.setComponent(result, new Gun(Guns.LEVEL_1));
      ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
      ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-     ed.setComponent(result, new GunMax(GunLevelEnum.LEVEL_4));
+     ed.setComponent(result, new GunMax(Guns.LEVEL_4));
 
     // Add gravity bombs
 //    ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
@@ -528,7 +528,7 @@ public class GameEntities {
 //    ed.setComponent(result, new GravityBombFireDelay(1000));
 
     // Add mines
-    ed.setComponent(result, new Mine(BombLevelEnum.BOMB_1));
+    ed.setComponent(result, new Mine(Bombs.BOMB_1));
     ed.setComponent(result, new MineCost(50));
     ed.setComponent(result, new MineFireDelay(500));
     ed.setComponent(result, new MineMax(4));

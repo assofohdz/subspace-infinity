@@ -26,6 +26,7 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
+import infinity.Bombs;
 
 /**
  *
@@ -33,13 +34,13 @@ import com.simsilica.es.EntityComponent;
  */
 public class GravityBomb implements EntityComponent {
 
-    BombLevelEnum level;
+    Bombs level;
 
-    public GravityBomb(final BombLevelEnum level) {
+    public GravityBomb(final Bombs level) {
         this.level = level;
     }
 
-    public BombLevelEnum getLevel() {
+    public Bombs getLevel() {
         return level;
     }
 }

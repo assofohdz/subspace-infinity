@@ -23,41 +23,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.es.ship.weapons;
-
-import com.jme3.math.ColorRGBA;
+package infinity;
 
 /**
- *
  * @author Asser
  */
-public enum BombLevelEnum {
-    BOMB_1(1, 12, ColorRGBA.Red, 25), BOMB_2(2, 11, ColorRGBA.Yellow, 30), BOMB_3(3, 10, ColorRGBA.Blue, 35),
-    BOMB_4(4, 9, ColorRGBA.White, 40), EMP_1(1, 8, ColorRGBA.Red, 15), EMP_2(2, 7, ColorRGBA.Yellow, 20),
-    EMP_3(3, 6, ColorRGBA.Blue, 25), EMP_4(4, 5, ColorRGBA.White, 30), SUPER_1(1, 4, ColorRGBA.Red, 35),
-    SUPER_2(2, 3, ColorRGBA.Yellow, 40), SUPER_3(3, 2, ColorRGBA.Blue, 45), SUPER_4(4, 1, ColorRGBA.White, 50),
-    THOR(1, 0, ColorRGBA.Black, 10);
+public enum Guns {
+  LEVEL_1(1, 9),
+  LEVEL_2(2, 8),
+  LEVEL_3(3, 7),
+  LEVEL_4(4, 6);
 
-    /**
-     * Level value
-     */
-    public final int level;
+  /** Level value */
+  public final int level;
 
-    /**
-     * Offset in the bm2 file
-     */
-    public final int viewOffset;
+  /** Offset in the bm2 file */
+  public final int viewOffset;
 
-    /**
-     * Light color
-     */
-    public final ColorRGBA lightColor;
-    public final float lightRadius;
+  Guns(final int level, final int viewOffset) {
+    this.level = level;
+    this.viewOffset = viewOffset;
+  }
 
-    private BombLevelEnum(final int level, final int viewOffset, final ColorRGBA lightColor, final float lightRadius) {
-        this.level = level;
-        this.viewOffset = viewOffset;
-        this.lightColor = lightColor;
-        this.lightRadius = lightRadius;
-    }
+  public Guns getNextLevel() {
+    return values()[ordinal() + 1];
+  }
 }
