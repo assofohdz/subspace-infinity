@@ -24,6 +24,7 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.Bombs;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
@@ -32,6 +33,10 @@ import infinity.es.SphereShape;
 import infinity.es.ship.Player;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.weapons.Bomb;
+import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombMax;
 import infinity.es.ship.weapons.Gun;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
@@ -283,7 +288,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         // TODO: Handle acquiring antiwarp
         break;
       case PrizeTypes.BOMB:
-        // TODO: Handle acquiring bomb
+        handleAcquireBomb(ship);
         break;
       case PrizeTypes.BOUNCINGBULLETS:
         // TODO: Handle acquiring bouncing bullets
@@ -375,6 +380,21 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     }
   }
 
+  private void handleAcquireBomb(EntityId ship) {
+    Bomb bomb = ed.getComponent(ship, Bomb.class);
+    BombMax bombMax = ed.getComponent(ship, BombMax.class);
+    if (bomb != null && bomb.getLevel().level < bombMax.getLevel().level) {
+      log.info("Ship {} picked up bomb prize and now has {} bombs", ship, (bomb.getLevel().next()));
+      ed.setComponent(ship, new Bomb(bomb.getLevel().next()));
+    } else if (bomb == null && bombMax != null) {
+      log.info("Ship {} picked up bomb prize", ship);
+      ed.setComponent(ship, new Bomb(Bombs.BOMB_1));
+      ed.setComponent(ship, new BombCost(CoreGameConstants.BOMBCOST));
+      ed.setComponent(ship, new BombFireDelay(CoreGameConstants.BOMBCOOLDOWN));
+      ed.setComponent(ship, new BombMax(Bombs.BOMB_4));
+    }
+  }
+
   private void handleAcquireBurst(EntityId ship) {
     Burst burst = ed.getComponent(ship, Burst.class);
     BurstMax burstMax = ed.getComponent(ship, BurstMax.class);
@@ -391,8 +411,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     Gun gun = ed.getComponent(ship, Gun.class);
     GunMax max = ed.getComponent(ship, GunMax.class);
     if (gun != null && gun.getLevel().level < max.getLevel().level) {
-      log.info("Gun level increased to {}", (gun.getLevel().level + 1));
-      ed.setComponent(ship, new Gun(gun.getLevel().getNextLevel()));
+      log.info("Gun level increased to {}", (gun.getLevel().next()));
+      ed.setComponent(ship, new Gun(gun.getLevel().next()));
     } else if (gun == null) {
       log.info("Ship {} just acquired guns and now has level {} guns", ship, 1);
       ed.setComponent(ship, new Gun(Guns.LEVEL_1));
