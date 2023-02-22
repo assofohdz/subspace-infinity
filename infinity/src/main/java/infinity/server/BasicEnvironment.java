@@ -127,21 +127,21 @@ public class BasicEnvironment extends AbstractGameSystem {
             phys,
             time,
             new Vec3d(-512, 1, -512),
-            10000,
+            500,
             false,
-            200);
+            50);
 
 
     //GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, sysTime, new Vec3d(0, 1, 0));
-
-    AIEntities.createMobShip(
-        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
-    AIEntities.createMobShip(
-        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SPIDER.getId());
-    AIEntities.createMobShip(
-        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SHARK.getId());
-    AIEntities.createMobShip(
-        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.LANCASTER.getId());
+//
+//    AIEntities.createMobShip(
+//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
+//    AIEntities.createMobShip(
+//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SPIDER.getId());
+//    AIEntities.createMobShip(
+//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SHARK.getId());
+//    AIEntities.createMobShip(
+//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.LANCASTER.getId());
 
 //
 //    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
