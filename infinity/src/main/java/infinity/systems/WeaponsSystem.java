@@ -49,7 +49,8 @@ import infinity.sim.GameSounds;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +69,7 @@ public class WeaponsSystem extends AbstractGameSystem
   public static final byte BURST = 0x4;
   public static final byte THOR = 0x5;
   static Logger log = LoggerFactory.getLogger(WeaponsSystem.class);
-  private final LinkedHashSet<Attack> sessionAttackCreations = new LinkedHashSet<>();
+  private final KeySetView<Attack, Boolean> sessionAttackCreations = ConcurrentHashMap.newKeySet();
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
