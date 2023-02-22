@@ -77,6 +77,7 @@ import infinity.es.ship.weapons.Bomb;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.Bombs;
+import infinity.es.ship.weapons.BombMax;
 import infinity.es.ship.weapons.Gun;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
@@ -509,8 +510,9 @@ public class GameEntities {
 
     // Add bombs:
     ed.setComponent(result, new Bomb(Bombs.BOMB_1));
-    ed.setComponent(result, new BombCost(2));
-    ed.setComponent(result, new BombFireDelay(500));
+    ed.setComponent(result, new BombCost(CoreGameConstants.BOMBCOST));
+    ed.setComponent(result, new BombFireDelay(CoreGameConstants.BOMBCOOLDOWN));
+    ed.setComponent(result, new BombMax(Bombs.BOMB_4));
 
     // Add burst:
     ed.setComponent(result, new Burst(5));

@@ -35,9 +35,11 @@ public class CoreGameConstants {
   public static final long THORCOOLDOWN = 500;
   public static final long BURSTCOOLDOWN = 250;
   public static final long GUNCOOLDOWN = 25;
+  public static final long BOMBCOOLDOWN = 25;
 
   // Cost of firing
   public static final int GUNCOST = 10;
+  public static final int BOMBCOST = 10;
 
   public static final long BURSTPROJECTILECOUNT = 30;
 
