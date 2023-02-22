@@ -67,9 +67,9 @@ import org.slf4j.LoggerFactory;
  */
 public class PhysicsDebugState extends CompositeAppState {
 
+  private static final String TOGGLE_ENABLED = "toggleEnabled";
   static Logger log = LoggerFactory.getLogger(PhysicsDebugState.class);
   private final HostState host;
-  private static final String TOGGLE_ENABLED = "toggleEnabled";
   private PhysicsStats stats;
 
   private VersionedHolder<String> contacts;
@@ -164,7 +164,8 @@ public class PhysicsDebugState extends CompositeAppState {
   @Override
   protected void onDisable() {
     InputMapper input = GuiGlobals.getInstance().getInputMapper();
-    input.removeDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), TOGGLE_ENABLED);
+    input.removeDelegate(
+        DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), TOGGLE_ENABLED);
     input.removeDelegate(
         DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), TOGGLE_ENABLED);
     input.removeDelegate(
