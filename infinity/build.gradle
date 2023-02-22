@@ -154,7 +154,11 @@ butler {
 }
 
 task butlerPush(type: org.mini2Dx.butler.task.PushTask) {
+    dependsOn clean
     dependsOn build
+    dependsOn bundleNative
+    tasks.findByName('build').mustRunAfter 'clean'
+    tasks.findByName('bundleNative').mustRunAfter 'build'
     binDirectory = file("$buildDir\\windows")
     channel = "windows"
 }
