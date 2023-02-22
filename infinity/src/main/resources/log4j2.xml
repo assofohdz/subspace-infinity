@@ -41,7 +41,7 @@
     <Logger name="com.simsilica.lemur.style" level="DEBUG"/>
     <!--<Logger name="com.simsilica.lemur.input" level="TRACE"/>-->
     <Logger name="com.simsilica.es" level="INFO"/>
-    <Logger name="com.simsilica.ethereal" level="INFO"/>
+    <Logger name="com.simsilica.ethereal" level="FATAL"/>
     <Logger name="com.simsilica.sim.common.DecaySystem" level="FATAL"/>
     <Logger name="com.simsilica.mblock" level="DEBUG"/>
     <Logger name="com.simsilica.mworld" level="DEBUG"/>
