@@ -37,31 +37,29 @@ import org.slf4j.LoggerFactory;
  * @author AFahrenholz
  */
 public class AvatarMovementState extends BaseAppState
-    implements AnalogFunctionListener, StateFunctionListener {
+    implements StateFunctionListener, AnalogFunctionListener {
 
-  static Logger log = LoggerFactory.getLogger(AvatarMovementState.class);
   private static final double ROTATESPEED = 1.5;
+  private static final byte FLAGS = (byte) 0;
+  private static final double UPDATE_POSITION_FREQUENCY =
+      1000000000L / (double) 5; // 5 times a second, every 200 ms
+  static Logger log = LoggerFactory.getLogger(AvatarMovementState.class);
   private final Vec3d thrust = new Vec3d(); // not a direction, just 3 values
   private final Quatd facing = new Quatd();
-  private static final byte FLAGS = (byte) 0;
   private final Vec3d lastPosition = new Vec3d();
-  private static final double UPDATE_POSITION_FREQUENCY = 1000000000L / (double) 5; // 5 times a second, every 200 ms
   private final Vec3d position = new Vec3d();
   private final VersionedHolder<Vec3d> posHolder = new VersionedHolder<>(position);
   double speedAverage = 0;
   long lastSpeedTime = 0;
   private InputMapper inputMapper;
   // Picking up the input from the client
-  private double forward;
-  private double rotate;
-  // The information that will be sent to the server
   private double speed = 1;
-  private double localValue = 0;
   private InputManager inputManager;
   private GameSession session;
   private long lastPositionUpdate;
   private VersionedHolder<String> positionDisplay;
   private VersionedHolder<String> speedDisplay;
+  private boolean move;
 
   @Override
   protected void initialize(final Application app) {
@@ -79,30 +77,27 @@ public class AvatarMovementState extends BaseAppState
       inputManager = app.getInputManager();
     }
 
-    // Most of the movement functions are treated as analog.
+    inputMapper.addDelegate(AvatarMovementFunctions.F_TURN, this, "rotatePressed", true);
+    inputMapper.addDelegate(AvatarMovementFunctions.F_THRUST, this, "thrustPressed", true);
+
+    // We use analog listeners when we want to continuously receive the
+    // analog value of a function.  This is useful for things like
+    // attacks.
     inputMapper.addAnalogListener(
         this,
-        // Movement:-->
-        AvatarMovementFunctions.F_THRUST,
-        AvatarMovementFunctions.F_TURN
-        // <--
-        );
-
-    inputMapper.addStateListener(
-        this,
-        // Movement
-        AvatarMovementFunctions.F_RUN,
-        // Weapons
         AvatarMovementFunctions.F_BOMB,
         AvatarMovementFunctions.F_BURST,
         AvatarMovementFunctions.F_THOR,
         AvatarMovementFunctions.F_SHOOT,
         AvatarMovementFunctions.F_GRAVBOMB,
         AvatarMovementFunctions.F_MINE,
-        // Actions
-        AvatarMovementFunctions.F_REPEL,
-        AvatarMovementFunctions.F_WARP,
-        // Ships
+        AvatarMovementFunctions.F_REPEL);
+
+    // We use statelisteners when we only want to know when a function
+    // is pressed or released.  We don't care about the analog value.
+    inputMapper.addStateListener(
+        this,
+        AvatarMovementFunctions.F_RUN,
         AvatarMovementFunctions.F_WARBIRD,
         AvatarMovementFunctions.F_JAVELIN,
         AvatarMovementFunctions.F_SPIDER,
@@ -110,7 +105,8 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_TERRIER,
         AvatarMovementFunctions.F_WEASEL,
         AvatarMovementFunctions.F_LANC,
-        AvatarMovementFunctions.F_SHARK);
+        AvatarMovementFunctions.F_SHARK,
+        AvatarMovementFunctions.F_WARP);
 
     if (getState(DebugHudState.class) != null) {
       DebugHudState debug = getState(DebugHudState.class);
@@ -122,8 +118,6 @@ public class AvatarMovementState extends BaseAppState
   @Override
   protected void cleanup(final Application app) {
 
-    inputMapper.removeAnalogListener(
-        this, AvatarMovementFunctions.F_THRUST, AvatarMovementFunctions.F_TURN);
     inputMapper.removeStateListener(
         this,
         // Weapons
@@ -175,21 +169,13 @@ public class AvatarMovementState extends BaseAppState
   @Override
   public void update(final float tpf) {
 
-    thrust.x = (float) (rotate * ROTATESPEED);
-    // thrust.y is left out because y is the upwards axis
-    thrust.z = (float) (forward * speed); // Z is forward
-
-    MovementInput movementInput = new MovementInput(thrust, facing, FLAGS);
-
-    // Send input only if we are pressing a key, or if we have just released the key
-    if (localValue == 1 || localValue == 0 || localValue == -1) {
+    if (move) {
+      MovementInput movementInput = new MovementInput(thrust, facing, FLAGS);
       session.move(movementInput);
-
-      // If value is 0 then we released the key, mark value so we dont send more input
-      if (localValue == 0) {
-        localValue = -2;
-      }
+      move = false;
     }
+
+    // Get position from server
     Vec3d newPos = session.getPlayerLocation();
     // Update display of position
     long time = System.nanoTime();
@@ -201,23 +187,25 @@ public class AvatarMovementState extends BaseAppState
     setLocation(newPos.toVector3f());
   }
 
-  @Override
-  public void valueActive(final FunctionId func, final double value, final double tpf) {
-    // Set value, so we know if we have to send input. 1 and -1 is received repeatedly. 0 is
-    // received once.
-    localValue = value;
-    if (func == AvatarMovementFunctions.F_THRUST) {
-      forward = value;
+  /**
+   * Called when player is pressing the turn button (left or right by default).
+   *
+   * @param value the value of the rotate button
+   */
+  public void rotatePressed(InputState value) {
+    move = true;
+    thrust.x = (float) (value.asNumber() * ROTATESPEED);
+  }
 
-    } else if (func == AvatarMovementFunctions.F_TURN) {
-      rotate = value;
-    } else if (func == AvatarMovementFunctions.F_MOUSE1) {
-      // mouse1 = value;
-    } else if (func == AvatarMovementFunctions.F_MOUSE2) {
-      // mouse2 = value;
-    } else if (func == AvatarMovementFunctions.F_MOUSE3) {
-      // mouse3 = value;
-    }
+  /**
+   * Called when player is pressing the thrust button (up or down by default). This delegate way can
+   * be used when we need to know the value of the button.
+   *
+   * @param value the value of the thrust button
+   */
+  public void thrustPressed(InputState value) {
+    move = true;
+    thrust.z = (float) (value.asNumber() * speed); // Z is forward
   }
 
   @Override
@@ -234,28 +222,7 @@ public class AvatarMovementState extends BaseAppState
 
     if (value == InputState.Off) {
       // Attack functions first:
-      if (func == AvatarMovementFunctions.F_SHOOT) {
-        session.attack(WeaponsSystem.GUN);
-      } else if (func == AvatarMovementFunctions.F_BOMB) {
-        session.attack(WeaponsSystem.BOMB);
-      } else if (func == AvatarMovementFunctions.F_GRAVBOMB) {
-        session.attack(WeaponsSystem.GRAVBOMB);
-      } else if (func == AvatarMovementFunctions.F_MINE) {
-        session.attack(WeaponsSystem.MINE);
-        // <..
-        // Actions-->
-      } else if (func == AvatarMovementFunctions.F_THOR) {
-        session.action(ActionSystem.FIRETHOR);
-      } else if (func == AvatarMovementFunctions.F_REPEL) {
-        session.action(ActionSystem.REPEL);
-      } else if (func == AvatarMovementFunctions.F_BURST) {
-        session.action(ActionSystem.FIREBURST);
-      } else if (func == AvatarMovementFunctions.F_WARP) {
-        session.action(ActionSystem.WARP);
-      }
-      // <..
-      // Avatar functions:-->
-      else if (func == AvatarMovementFunctions.F_WARBIRD) {
+      if (func == AvatarMovementFunctions.F_WARBIRD) {
         session.avatar(AvatarSystem.WARBIRD);
       } else if (func == AvatarMovementFunctions.F_JAVELIN) {
         session.avatar(AvatarSystem.JAVELIN);
@@ -271,6 +238,8 @@ public class AvatarMovementState extends BaseAppState
         session.avatar(AvatarSystem.LANCASTER);
       } else if (func == AvatarMovementFunctions.F_SHARK) {
         session.avatar(AvatarSystem.SHARK);
+      } else if (func == AvatarMovementFunctions.F_WARP) {
+        session.action(ActionSystem.WARP);
       }
     }
   }
@@ -309,5 +278,24 @@ public class AvatarMovementState extends BaseAppState
   private void setLocation(Vector3f loc) {
     position.set(loc);
     posHolder.incrementVersion();
+  }
+
+  @Override
+  public void valueActive(FunctionId func, double value, double tpf) {
+    if (func == AvatarMovementFunctions.F_BOMB) {
+      session.attack(WeaponsSystem.BOMB);
+    } else if (func == AvatarMovementFunctions.F_SHOOT) {
+      session.attack(WeaponsSystem.GUN);
+    } else if (func == AvatarMovementFunctions.F_GRAVBOMB) {
+      session.attack(WeaponsSystem.GRAVBOMB);
+    } else if (func == AvatarMovementFunctions.F_MINE) {
+      session.attack(WeaponsSystem.MINE);
+    } else if (func == AvatarMovementFunctions.F_THOR) {
+      session.action(ActionSystem.FIRETHOR);
+    } else if (func == AvatarMovementFunctions.F_REPEL) {
+      session.action(ActionSystem.REPEL);
+    } else if (func == AvatarMovementFunctions.F_BURST) {
+      session.action(ActionSystem.FIREBURST);
+    }
   }
 }
