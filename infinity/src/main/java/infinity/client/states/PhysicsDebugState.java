@@ -37,6 +37,7 @@
 package infinity.client.states;
 
 import com.jme3.app.Application;
+import com.simsilica.es.EntityId;
 import com.simsilica.ext.mblock.PartDebugShapeFactory;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.debug.BinStatusState;
@@ -47,6 +48,7 @@ import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.PhysicsStats;
 import com.simsilica.state.CompositeAppState;
@@ -66,8 +68,8 @@ import org.slf4j.LoggerFactory;
 public class PhysicsDebugState extends CompositeAppState {
 
   static Logger log = LoggerFactory.getLogger(PhysicsDebugState.class);
-
   private final HostState host;
+  private static final String TOGGLE_ENABLED = "toggleEnabled";
   private PhysicsStats stats;
 
   private VersionedHolder<String> contacts;
@@ -84,12 +86,12 @@ public class PhysicsDebugState extends CompositeAppState {
 
   @Override
   protected void initialize(Application app) {
-    PhysicsSpace phys = host.getSystems().get(PhysicsSpace.class);
+    PhysicsSpace<EntityId, MBlockShape> phys = host.getSystems().get(PhysicsSpace.class);
     this.stats = phys.getStats();
 
-    addChild(new BinStatusState(phys));
-    addChild(new BodyDebugState(host.getSystems().get(MPhysSystem.class)));
-    addChild(new ContactDebugState(phys));
+    addChild(new BinStatusState<MBlockShape>(phys));
+    addChild(new BodyDebugState<MBlockShape>(host.getSystems().get(MPhysSystem.class)));
+    addChild(new ContactDebugState<>(phys));
 
     getChild(BodyDebugState.class).addDebugShapeFactory(new PartDebugShapeFactory());
 
@@ -120,26 +122,23 @@ public class PhysicsDebugState extends CompositeAppState {
   }
 
   /**
-   * Called by the state manager to update this state. This is where the actual
-   * physics simulation is performed.
+   * Called by the state manager to update this state. This is where the actual physics simulation
+   * is performed.
    *
    * @param tpf Time since the last call to update(), in seconds.
    */
+  @Override
   public void update(float tpf) {
-    // log.info("update");
-
     // We should be the last child of the GameSessionState... so everything
     // should be up-to-date.
-    BinStatusState binState = getState(BinStatusState.class);
-    if (binState != null) {
-      if (posRef.update()) {
-        Vec3d loc = posRef.get();
-        binState.setViewOrigin(loc.x, 0, loc.z);
-        BodyDebugState bodyState = getState(BodyDebugState.class);
-        bodyState.setViewOrigin(loc.x, 0, loc.z);
-        ContactDebugState contactState = getState(ContactDebugState.class);
-        contactState.setViewOrigin(loc.x, 0, loc.z);
-      }
+    BinStatusState<MBlockShape> binState = getState(BinStatusState.class);
+    if (binState != null && posRef.update()) {
+      Vec3d loc = posRef.get();
+      binState.setViewOrigin(loc.x, 0, loc.z);
+      BodyDebugState<MBlockShape> bodyState = getState(BodyDebugState.class);
+      bodyState.setViewOrigin(loc.x, 0, loc.z);
+      ContactDebugState<MBlockShape> contactState = getState(ContactDebugState.class);
+      contactState.setViewOrigin(loc.x, 0, loc.z);
     }
 
     if (contacts != null) {
@@ -156,20 +155,19 @@ public class PhysicsDebugState extends CompositeAppState {
   @Override
   protected void onEnable() {
     InputMapper input = GuiGlobals.getInstance().getInputMapper();
-    input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
-    input.addDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled");
+    input.addDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), TOGGLE_ENABLED);
+    input.addDelegate(DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), TOGGLE_ENABLED);
     input.addDelegate(
-        DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
+        DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), TOGGLE_ENABLED);
   }
 
   @Override
   protected void onDisable() {
     InputMapper input = GuiGlobals.getInstance().getInputMapper();
+    input.removeDelegate(DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), TOGGLE_ENABLED);
     input.removeDelegate(
-        DebugFunctions.F_BIN_DEBUG, getState(BinStatusState.class), "toggleEnabled");
+        DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), TOGGLE_ENABLED);
     input.removeDelegate(
-        DebugFunctions.F_BODY_DEBUG, getState(BodyDebugState.class), "toggleEnabled");
-    input.removeDelegate(
-        DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), "toggleEnabled");
+        DebugFunctions.F_CONTACT_DEBUG, getState(ContactDebugState.class), TOGGLE_ENABLED);
   }
 }
