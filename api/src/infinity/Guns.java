@@ -28,7 +28,7 @@ package infinity;
 /**
  * @author Asser
  */
-public enum Guns {
+public enum Guns implements IEnum<Guns>{
   LEVEL_1(1, 9),
   LEVEL_2(2, 8),
   LEVEL_3(3, 7),
@@ -43,9 +43,5 @@ public enum Guns {
   Guns(final int level, final int viewOffset) {
     this.level = level;
     this.viewOffset = viewOffset;
-  }
-
-  public Guns getNextLevel() {
-    return values()[ordinal() + 1];
   }
 }

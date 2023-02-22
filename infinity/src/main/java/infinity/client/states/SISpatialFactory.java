@@ -52,6 +52,7 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.Part;
+import infinity.BombRegistry;
 import infinity.Ships;
 import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
@@ -123,7 +124,7 @@ public class SISpatialFactory {
       case ShapeNames.BOMBL4:
         return createBomb(Bombs.BOMB_4.viewOffset);
       case ShapeNames.THOR:
-        return createBomb(Bombs.THOR.viewOffset);
+        return createBomb(BombRegistry.THOR.viewOffset);
       case ShapeNames.BURST:
         return createBurst();
       case ShapeNames.EXPLOSION:
