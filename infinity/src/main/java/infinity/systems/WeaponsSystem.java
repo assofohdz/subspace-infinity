@@ -3,35 +3,59 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package infinity.systems;
 
 import com.jme3.math.FastMath;
-import com.simsilica.es.*;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
+import com.simsilica.es.common.Decay;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.*;
+import com.simsilica.mphys.AbstractBody;
+import com.simsilica.mphys.Contact;
+import com.simsilica.mphys.ContactListener;
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
+import infinity.es.Frequency;
 import infinity.es.GravityWell;
+import infinity.es.ship.Energy;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.Thor;
-import infinity.es.ship.weapons.*;
+import infinity.es.ship.weapons.Bomb;
+import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.GravityBomb;
+import infinity.es.ship.weapons.GravityBombCost;
+import infinity.es.ship.weapons.GravityBombFireDelay;
+import infinity.es.ship.weapons.Gun;
+import infinity.es.ship.weapons.GunCost;
+import infinity.es.ship.weapons.GunFireDelay;
+import infinity.es.ship.weapons.Mine;
+import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.MineFireDelay;
 import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.sim.util.InfinityRunTimeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
+ * This system handles the creation of projectiles and the application of damage to entities.
+ *
  * @author AFahrenholz
  */
 public class WeaponsSystem extends AbstractGameSystem
@@ -47,30 +71,35 @@ public class WeaponsSystem extends AbstractGameSystem
   private final LinkedHashSet<Attack> sessionAttackCreations = new LinkedHashSet<>();
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
-  private PhysicsSpace<EntityId, MBlockShape> space;
+  private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private EntitySet thors;
   private EntitySet mines;
   private EntitySet gravityBombs;
   private EntitySet bursts;
   private EntitySet bombs;
   private EntitySet guns;
+  private EntitySet frequencies;
 
   private SimTime time;
-  private EnergySystem health;
+  private EnergySystem energySystem;
+  private EntitySet damageEntities;
+  private EntitySet energyEntities;
 
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
     if (ed == null) {
-      throw new InfinityRunTimeException(getClass().getName() + " system requires an EntityData object.");
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires an EntityData object.");
     }
     physics = getSystem(MPhysSystem.class);
     if (physics == null) {
-      throw new InfinityRunTimeException(getClass().getName() + " system requires the MPhysSystem system.");
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires the MPhysSystem system.");
     }
 
-    space = physics.getPhysicsSpace();
-    health = getSystem(EnergySystem.class);
+    physicsSpace = physics.getPhysicsSpace();
+    energySystem = getSystem(EnergySystem.class);
     guns = ed.getEntities(Gun.class, GunFireDelay.class, GunCost.class);
     bombs = ed.getEntities(Bomb.class, BombFireDelay.class, BombCost.class);
     bursts = ed.getEntities(Burst.class);
@@ -78,6 +107,11 @@ public class WeaponsSystem extends AbstractGameSystem
         ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
     mines = ed.getEntities(Mine.class, MineFireDelay.class, MineCost.class);
     thors = ed.getEntities(Thor.class);
+
+    damageEntities = ed.getEntities(Damage.class);
+    energyEntities = ed.getEntities(Energy.class);
+
+    frequencies = ed.getEntities(Frequency.class);
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -102,6 +136,15 @@ public class WeaponsSystem extends AbstractGameSystem
     thors.release();
     thors = null;
 
+    frequencies.release();
+    frequencies = null;
+
+    damageEntities.release();
+    damageEntities = null;
+
+    energyEntities.release();
+    energyEntities = null;
+
     getSystem(ContactSystem.class).removeListener(this);
   }
 
@@ -117,11 +160,15 @@ public class WeaponsSystem extends AbstractGameSystem
     bursts.applyChanges();
     thors.applyChanges();
 
+    energyEntities.applyChanges();
+    damageEntities.applyChanges();
+
     /*
      * Default pattern to let multiple sessions call methods and then process them
      * one by one
      *
-     * Not sure if this is needed or there is a queue system already in place by the session framework
+     * Not sure if this is needed or there is a queue system already in place by the session
+     * framework
      */
     final Iterator<Attack> iterator = sessionAttackCreations.iterator();
     while (iterator.hasNext()) {
@@ -143,7 +190,7 @@ public class WeaponsSystem extends AbstractGameSystem
         return false;
       }
       final GunCost gc = ed.getComponent(requesterId, GunCost.class);
-      return gc.getCost() <= health.getHealth(requesterId);
+      return gc.getCost() <= energySystem.getHealth(requesterId);
     }
     return false;
   }
@@ -156,7 +203,7 @@ public class WeaponsSystem extends AbstractGameSystem
         return false;
       }
       final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-      return bc.getCost() <= health.getHealth(requesterId);
+      return bc.getCost() <= energySystem.getHealth(requesterId);
     }
     return false;
   }
@@ -169,7 +216,7 @@ public class WeaponsSystem extends AbstractGameSystem
         return false;
       }
       final GravityBombCost bc = ed.getComponent(requesterId, GravityBombCost.class);
-      return bc.getCost() <= health.getHealth(requesterId);
+      return bc.getCost() <= energySystem.getHealth(requesterId);
     }
     return false;
   }
@@ -182,7 +229,7 @@ public class WeaponsSystem extends AbstractGameSystem
         return false;
       }
       final MineCost bc = ed.getComponent(requesterId, MineCost.class);
-      return bc.getCost() <= health.getHealth(requesterId);
+      return bc.getCost() <= energySystem.getHealth(requesterId);
     }
     return false;
   }
@@ -284,10 +331,10 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requesterId = requester.getId();
     if (guns.contains(requester)) {
       final GunCost gc = ed.getComponent(requesterId, GunCost.class);
-      if (gc.getCost() > health.getHealth(requesterId)) {
+      if (gc.getCost() > energySystem.getHealth(requesterId)) {
         return false;
       }
-      health.damage(requesterId, gc.getCost());
+      energySystem.damage(requesterId, gc.getCost());
       return true;
     }
     return false;
@@ -297,10 +344,10 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requesterId = requester.getId();
     if (bombs.contains(requester)) {
       final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-      if (bc.getCost() > health.getHealth(requesterId)) {
+      if (bc.getCost() > energySystem.getHealth(requesterId)) {
         return false;
       }
-      health.damage(requesterId, bc.getCost());
+      energySystem.damage(requesterId, bc.getCost());
       return true;
     }
     return false;
@@ -310,10 +357,10 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requesterId = requester.getId();
     if (gravityBombs.contains(requester)) {
       final GravityBombCost bc = ed.getComponent(requesterId, GravityBombCost.class);
-      if (bc.getCost() > health.getHealth(requesterId)) {
+      if (bc.getCost() > energySystem.getHealth(requesterId)) {
         return false;
       }
-      health.damage(requesterId, bc.getCost());
+      energySystem.damage(requesterId, bc.getCost());
       return true;
     }
     return false;
@@ -323,10 +370,10 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requesterId = requester.getId();
     if (mines.contains(requester)) {
       final MineCost bc = ed.getComponent(requesterId, MineCost.class);
-      if (bc.getCost() > health.getHealth(requesterId)) {
+      if (bc.getCost() > energySystem.getHealth(requesterId)) {
         return false;
       }
-      health.damage(requesterId, bc.getCost());
+      energySystem.damage(requesterId, bc.getCost());
       return true;
     }
     return false;
@@ -346,18 +393,17 @@ public class WeaponsSystem extends AbstractGameSystem
       return deductCostOfAttackMine(requester);
     } else if (flag == BURST) {
       // No cost on this for now
-      //TODO: Add cost to burst
+      // TODO: Add cost to burst
       return bursts.contains(requester);
     } else if (flag == THOR) {
       // No cost on this for now
-      //TODO: Add cost to thor
+      // TODO: Add cost to thor
       return thors.contains(requester);
     }
     return false;
   }
 
-  private void createProjectileGun(
-      Entity requesterEntity, final long time, AttackPosition info) {
+  private void createProjectileGun(Entity requesterEntity, final long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
 
     Gun entityGun = this.guns.getEntity(requester).get(Gun.class);
@@ -369,7 +415,7 @@ public class WeaponsSystem extends AbstractGameSystem
         GameEntities.createBullet(
             ed,
             requester,
-            space,
+            physicsSpace,
             time,
             info.location,
             info.attackVelocity,
@@ -379,8 +425,7 @@ public class WeaponsSystem extends AbstractGameSystem
     ed.setComponent(gunProjectile, new Damage(gc.getCost()));
   }
 
-  private void createProjectileBomb(
-      Entity requesterEntity, long time, AttackPosition info) {
+  private void createProjectileBomb(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
     Bomb entityBomb = this.bombs.getEntity(requester).get(Bomb.class);
     BombCost bc = this.bombs.getEntity(requester).get(BombCost.class);
@@ -391,7 +436,7 @@ public class WeaponsSystem extends AbstractGameSystem
         GameEntities.createBomb(
             ed,
             requester,
-            space,
+            physicsSpace,
             time,
             info.getLocation(),
             info.getAttackVelocity(),
@@ -400,8 +445,7 @@ public class WeaponsSystem extends AbstractGameSystem
     ed.setComponent(bombProjectile, new Damage(bc.getCost()));
   }
 
-  private void createProjectileGravBomb(
-      Entity requesterEntity, long time, AttackPosition info) {
+  private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
     GravityBomb gravityBomb = this.gravityBombs.getEntity(requester).get(GravityBomb.class);
     final GravityBombCost shipGravBombCost = ed.getComponent(requester, GravityBombCost.class);
@@ -416,7 +460,7 @@ public class WeaponsSystem extends AbstractGameSystem
         GameEntities.createDelayedBomb(
             ed,
             requester,
-            space,
+            physicsSpace,
             time,
             info.getLocation(),
             info.getAttackVelocity(),
@@ -428,8 +472,7 @@ public class WeaponsSystem extends AbstractGameSystem
     ed.setComponent(projectile, new Damage(shipGravBombCost.getCost()));
   }
 
-  private void createProjectileThor(
-      Entity requesterEntity, long time, AttackPosition info) {
+  private void createProjectileThor(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
 
     EntityId thorProjectile;
@@ -437,7 +480,7 @@ public class WeaponsSystem extends AbstractGameSystem
         GameEntities.createThor(
             ed,
             requester,
-            space,
+            physicsSpace,
             time,
             info.getLocation(),
             info.getAttackVelocity(),
@@ -445,8 +488,7 @@ public class WeaponsSystem extends AbstractGameSystem
     ed.setComponent(thorProjectile, new Damage(20));
   }
 
-  private void createProjectileBurst(
-      Entity requesterEntity, long time) {
+  private void createProjectileBurst(Entity requesterEntity, long time) {
     Quatd orientation = new Quatd();
 
     final double angle = (360d / CoreGameConstants.BURSTPROJECTILECOUNT) * FastMath.DEG_TO_RAD;
@@ -468,7 +510,7 @@ public class WeaponsSystem extends AbstractGameSystem
           GameEntities.createBurst(
               ed,
               requesterEntity.getId(),
-              space,
+              physicsSpace,
               time,
               info.getLocation(),
               info.getAttackVelocity(),
@@ -509,26 +551,27 @@ public class WeaponsSystem extends AbstractGameSystem
       case GUN:
         Gun entityGun = this.guns.getEntity(requester).get(Gun.class);
         GameSounds.createBulletSound(
-            ed, requester, space, time, info.location, entityGun.getLevel());
+            ed, requester, physicsSpace, time, info.location, entityGun.getLevel());
         return true;
       case BOMB:
         Bomb entityBomb = this.bombs.getEntity(requester).get(Bomb.class);
         GameSounds.createBombSound(
-            ed, requester, space, time, info.location, entityBomb.getLevel());
+            ed, requester, physicsSpace, time, info.location, entityBomb.getLevel());
         return true;
       case GRAVBOMB:
         GravityBomb entityGravBomb = this.gravityBombs.getEntity(requester).get(GravityBomb.class);
         GameSounds.createBombSound(
-            ed, requester, space, time, info.location, entityGravBomb.getLevel());
+            ed, requester, physicsSpace, time, info.location, entityGravBomb.getLevel());
         return true;
       case MINE:
         Mine mine = this.mines.getEntity(requester).get(Mine.class);
-        GameSounds.createMineSound(ed, requester, space, time, info.location, mine.getLevel());
+        GameSounds.createMineSound(
+            ed, requester, physicsSpace, time, info.location, mine.getLevel());
         break;
       case BURST:
         break;
       case THOR:
-        GameSounds.createThorSound(ed, time, requester, info.location, space);
+        GameSounds.createThorSound(ed, time, requester, info.location, physicsSpace);
         return true;
       default:
         throw new IllegalArgumentException("Unknown flag: " + flag);
@@ -537,7 +580,7 @@ public class WeaponsSystem extends AbstractGameSystem
   }
 
   /**
-   * A request to attack with a weapon
+   * A request to attack with a weapon.
    *
    * @param requester the requesting entity
    * @param flag the weapon type to attack with
@@ -559,10 +602,10 @@ public class WeaponsSystem extends AbstractGameSystem
   }
 
   /**
-   * Find the velocity and the position of the projectile
+   * Find the velocity and the position of the projectile.
    *
    * @param attackerEntity requesting entity
-   * @param weaponFlag
+   * @param weaponFlag the weapon type
    */
   private AttackPosition getAttackInfo(final Entity attackerEntity, final byte weaponFlag) {
     EntityId attacker = attackerEntity.getId();
@@ -627,7 +670,7 @@ public class WeaponsSystem extends AbstractGameSystem
   }
 
   /**
-   * This method is called from the gamesession and acts as a queue entry
+   * This method is called from the gamesession and acts as a queue entry.
    *
    * @param attacker the attacking entity
    * @param flag the weapon of choice
@@ -638,38 +681,49 @@ public class WeaponsSystem extends AbstractGameSystem
 
   @Override
   public void newContact(Contact contact) {
-    //log.debug("WeaponsSystem contact detected: {}", contact);
-    RigidBody body1 = contact.body1;
-    AbstractBody body2 = contact.body2;
+    log.debug("WeaponsSystem contact detected: {}", contact);
+    RigidBody<EntityId, MBlockShape> body1 = contact.body1;
+    AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
-    // body2 = null means that body1 is hitting the world
-    // we first want to test that we are not hitting ourselves, so both are rigidbodies
+    EntityId idOne = body1.id;
+
+    // The case of our bomb hitting ourselves is handled in the ContactSystem.
+    // Here we want to handle the case where an entity that has a Damage component hits an entity
+    // that has a Health component. We also want the handle the case where a projectile hits the
+    // world.
     if (body2 instanceof RigidBody) {
-      EntityId idOne = (EntityId) body1.id;
-      EntityId idTwo = (EntityId) body2.id;
+      EntityId idTwo = body2.id;
 
-      // Only interact with collision if a ship collides with a prize or vice verca
-      // We only need to test this way around for ships and prizes since the rigidbody (ship) will
-      // always be body1
-      /*
-      if (prizes.containsId(idTwo) && .containsId(idOne)) {
-        log.trace("Entitysets contact resolution found it to be valid");
-
-        PrizeType pt = prizes.getEntity(idTwo).get(PrizeType.class);
-        GameSounds.createPrizeSound(ed, ourTime.getTime(), idOne, body1.position, phys);
-
-        this.handlePrizeAcquisition(pt, idOne);
-        // Remove prize
-        ed.removeEntity(idTwo);
-        // Disable contact for further resolution
-        contact.disable();
+      EntityId damageId;
+      EntityId energyId;
+      if (damageEntities.containsId(idOne) && energyEntities.containsId(idTwo)) {
+        damageId = idOne;
+        energyId = idTwo;
+      } else if (damageEntities.containsId(idTwo) && energyEntities.containsId(idOne)) {
+        damageId = idTwo;
+        energyId = idOne;
       } else {
-        log.trace("Entitysets contact resolution found it to NOT be valid");
-      }*/
+        return;
+      }
+
+      Entity damageEntity = damageEntities.getEntity(damageId);
+      Entity energyEntity = energyEntities.getEntity(energyId);
+
+      energySystem.damage(energyEntity.getId(), damageEntity.get(Damage.class).getIntendedDamage());
+
+      // TODO Find the right decay time based on animation
+      GameEntities.createExplosion2(
+          ed, EntityId.NULL_ID, physicsSpace, time.getTime(), contact.contactPoint, 2000);
+      ed.setComponent(damageId, Decay.duration(time.getTime(), 0));
+      contact.disable();
+    } else if (body2 == null) {
+      // body2 = null means that body1 is hitting the world
+      // TODO: Check if projectile should bouncy or not
+      contact.restitution = 1;
     }
   }
 
-  /** AttackInfo is where attacks originate (location and velocity) */
+  /** A class that holds the position information needed to create an attack. */
   private static class AttackPosition {
 
     private final Vec3d location;
@@ -700,6 +754,10 @@ public class WeaponsSystem extends AbstractGameSystem
     }
   }
 
+  /**
+   * A class that holds the information needed to create an attack. This is called from the
+   * game session.
+   */
   public class Attack {
 
     final EntityId owner;

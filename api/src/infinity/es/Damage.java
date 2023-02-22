@@ -28,18 +28,20 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * This component is carried by the bomb and holds the intended damage (of the producer). The
+ * actual damage is calculated by the bomb's explosion (when knowing the consumer).
  *
  * @author Asser
  */
 public class Damage implements EntityComponent {
 
-    private final int damage;
+    private final int intendedDamage;
 
-    public Damage(final int damage) {
-        this.damage = damage;
+    public Damage(final int intendedDamage) {
+        this.intendedDamage = intendedDamage;
     }
 
-    public int getDamage() {
-        return damage;
+    public int getIntendedDamage() {
+        return intendedDamage;
     }
 }

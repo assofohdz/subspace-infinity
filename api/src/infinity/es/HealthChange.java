@@ -28,7 +28,9 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
- * A buff for health.
+ * A buff for health. This is the component to set when we want to deduct or add health from an
+ * entity.  The actual health change is calculated by the HealthSystem. This component is
+ * used to communicate the desired change to the system.
  *
  * @author Paul Speed
  */
