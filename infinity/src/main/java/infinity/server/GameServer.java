@@ -79,11 +79,9 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.mworld.base.DefaultLeafWorld;
 import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
-import com.simsilica.mworld.db.LeafDbCache;
 import com.simsilica.mworld.net.server.WorldHostedService;
 import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
-import com.simsilica.sim.SimTime;
 import com.simsilica.sim.common.DecaySystem;
 import infinity.InfinityConstants;
 import infinity.ai.MobSystem;
@@ -106,7 +104,6 @@ import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ArenaSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
-import infinity.systems.DoorSystem;
 import infinity.systems.EnergySystem;
 import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
@@ -203,8 +200,7 @@ public class GameServer {
             InfinityConstants.ZONE_GRID,
             InfinityConstants.ZONE_RADIUS);
     ethereal.getZones().setSupportLargeObjects(true);
-    ethereal.setTimeSource(
-        () -> systems.getStepTime().getUnlockedTime(System.nanoTime()));
+    ethereal.setTimeSource(() -> systems.getStepTime().getUnlockedTime(System.nanoTime()));
     server.getServices().addService(ethereal);
 
     // Setup our entity data and the hosting service
@@ -217,7 +213,7 @@ public class GameServer {
     colDb.initialize();
     LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
 
-    //LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
+    // LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
     World world = new DefaultLeafWorld(leafDb, 10);
 
     systems.register(World.class, world);
@@ -230,7 +226,6 @@ public class GameServer {
 
     systems.addSystem(new LargeGridIndexSystem(WorldGrids.TILE_GRID));
 
-
     // Add it to the game systems so that we send updates properly
     systems.addSystem(
         new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));
@@ -240,16 +235,12 @@ public class GameServer {
 
     // We'll need the block set in order to have physics collision
     // information.  Eventually we'll want to do this differently... probably.
-    // DefaultBlockSet.initializeBlockTypes();
     if (!BlockTypeIndex.isInitialized()) {
       DefaultBlockSet.initializeBlockTypes();
-      // BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
-      // FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
+      DefaultBlockSet.initializeFluidTypes();
     }
 
     // Setup the physics space
-    // --------------------------
-
     ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
 
     registerShapeFactories(shapeFactory, ed);
@@ -257,8 +248,8 @@ public class GameServer {
     systems.register(ShapeFactory.class, shapeFactory);
 
     // And give that to an EntityBodyFactory where we can manage how bodies are created
-    InfinityEntityBodyFactory<MBlockShape> bodyFactory =
-        new InfinityEntityBodyFactory<>(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
+    InfinityEntityBodyFactory bodyFactory =
+        new InfinityEntityBodyFactory(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
 
     MPhysSystem<MBlockShape> mBlockShapeMPhysSystem =
         new MPhysSystem<>(WorldGrids.LEAF_GRID, bodyFactory);
@@ -266,8 +257,7 @@ public class GameServer {
     systems.register(EntityBodyFactory.class, bodyFactory);
 
     Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
-    mBlockShapeMPhysSystem.setCollisionSystem(
-        new MBlockCollisionSystem<>(world, colliders));
+    mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<>(world, colliders));
 
     systems.register(InfinityChatHostedService.class, chp);
 
@@ -307,39 +297,21 @@ public class GameServer {
     systems.register(FrequencySystem.class, new FrequencySystem());
 
     systems.register(WorldSystem.class, new WorldSystem());
-    //systems.register(DoorSystem.class, new DoorSystem());
+    // systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
     // <--
 
     // Add a system that will forward physics changes to the Ethereal
     // zone manager
-    systems.register(ZoneNetworkSystem.class, new ZoneNetworkSystem<MBlockShape>(ethereal.getZones()));
+    systems.register(
+        ZoneNetworkSystem.class, new ZoneNetworkSystem<MBlockShape>(ethereal.getZones()));
 
     // And the system that will publish the BodyPosition components
     systems.addSystem(new BodyPositionPublisher<>());
 
     // Register some custom serializers
     registerSerializers();
-
-    // NavGraph navGraph = new NavGraph();
-    // systems.register(NavGraph.class, navGraph);
-    //
-    //// Add a system for creating the basic "world" entities
-    //// systems.addSystem(new BasicEnvironment());
-    // GameLevelSystem levels = systems.register(GameLevelSystem.class, new
-    // GameLevelSystem());
-    // File levelDefFile = new File("samples/base.leveldef");
-    // File levelFile = new File("samples/test1.level");
-    // if( !levelDefFile.exists() ) {
-    // levelDefFile = new File("../samples/base.leveldef");
-    // levelFile = new File("../samples/test1.level");
-    // }
-    // levels.setLevelDef(levelDefFile);
-    // levels.setLevelFile(levelFile);
-    // log.info("Initializing game systems...");
-    // Initialize the game system manager to prepare to start later
-    // systems.initialize();
   }
 
   /**

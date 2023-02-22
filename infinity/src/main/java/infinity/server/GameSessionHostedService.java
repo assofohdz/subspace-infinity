@@ -342,7 +342,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     @Override
     public void action(final byte actionInput) {
       if (actionInput == ActionSystem.WARP) {
-        warpSys.warpToCenter(playerEntityId, avatarEntityId);
+        warpSys.warpToCenter(avatarEntityId);
       }
     }
 

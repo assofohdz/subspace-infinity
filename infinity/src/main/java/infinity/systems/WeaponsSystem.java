@@ -681,7 +681,6 @@ public class WeaponsSystem extends AbstractGameSystem
 
   @Override
   public void newContact(Contact contact) {
-    log.debug("WeaponsSystem contact detected: {}", contact);
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
@@ -692,6 +691,9 @@ public class WeaponsSystem extends AbstractGameSystem
     // that has a Health component. We also want the handle the case where a projectile hits the
     // world.
     if (body2 instanceof RigidBody) {
+
+      log.debug("WeaponsSystem contact detected between: {} and {}", body1.id, body2.id);
+
       EntityId idTwo = body2.id;
 
       EntityId damageId;
@@ -716,10 +718,14 @@ public class WeaponsSystem extends AbstractGameSystem
           ed, EntityId.NULL_ID, physicsSpace, time.getTime(), contact.contactPoint, 2000);
       ed.setComponent(damageId, Decay.duration(time.getTime(), 0));
       contact.disable();
-    } else if (body2 == null) {
+    } else if (body2 == null && damageEntities.containsId(idOne)) {
       // body2 = null means that body1 is hitting the world
       // TODO: Check if projectile should bouncy or not
+      //
+      // Retain all energy in the contact
       contact.restitution = 1;
+      // Remove all friction so ingoing angle and outgoing angle are the same
+      contact.friction = 0;
     }
   }
 
@@ -755,8 +761,8 @@ public class WeaponsSystem extends AbstractGameSystem
   }
 
   /**
-   * A class that holds the information needed to create an attack. This is called from the
-   * game session.
+   * A class that holds the information needed to create an attack. This is called from the game
+   * session.
    */
   public class Attack {
 

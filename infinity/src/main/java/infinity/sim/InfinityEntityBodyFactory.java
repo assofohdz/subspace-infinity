@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package infinity.sim;
 
 import com.simsilica.es.EntityData;
@@ -15,22 +16,23 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.mphys.StaticBody;
-
 import infinity.es.ShapeNames;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
+ * This class is a factory for creating entity bodies. It is used by the MPhysSystem to create the
+ * bodies for entities that have the SpawnPosition and ShapeInfo components. It is also used by the
+ * MPhysDebugState to create the debug shapes for entities that have the ShapeInfo component.
+ *
  * @author AFahrenholz
  */
-public class InfinityEntityBodyFactory<S extends MBlockShape> extends EntityBodyFactory<MBlockShape> {
+public class InfinityEntityBodyFactory
+    extends EntityBodyFactory<MBlockShape> {
 
   EntityData ed;
 
-  HashMap<EntityId, RigidBody> bodies = new HashMap<>();
+  HashMap<EntityId, RigidBody<EntityId, MBlockShape>> bodies = new HashMap<>();
 
   public InfinityEntityBodyFactory(
       final EntityData ed,
@@ -41,17 +43,8 @@ public class InfinityEntityBodyFactory<S extends MBlockShape> extends EntityBody
   }
 
   // A method to allow other systems to get the body of an entity
-  public RigidBody getBody(EntityId id) {
+  public RigidBody<EntityId, MBlockShape> getBody(EntityId id) {
     return bodies.get(id);
-  }
-
-  @Override
-  protected StaticBody<EntityId, MBlockShape> createStaticBody(
-      final EntityId id, final SpawnPosition pos, final ShapeInfo info, final Mass mass) {
-    final StaticBody<EntityId, MBlockShape> result = super.createStaticBody(id, pos, info, mass);
-    // Do whatever to the static body
-
-    return result; // To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
@@ -66,7 +59,7 @@ public class InfinityEntityBodyFactory<S extends MBlockShape> extends EntityBody
 
     // Do whatever we want to the body depending on the ShapeInfo
     switch (info.getShapeName(ed)) {
-        // Remove dampening from projectiles
+      // Remove dampening from projectiles
       case ShapeNames.BULLETL1:
       case ShapeNames.BULLETL2:
       case ShapeNames.BULLETL3:
@@ -78,6 +71,8 @@ public class InfinityEntityBodyFactory<S extends MBlockShape> extends EntityBody
       case ShapeNames.THOR:
       case ShapeNames.BURST:
         result.setLinearDamping(1);
+        // Make sure our projectiles does not rotate
+        result.setRotationalVelocity(new Vec3d(0, 0, 0));
         break;
       case ShapeNames.SHIP_WARBIRD:
       case ShapeNames.SHIP_JAVELIN:

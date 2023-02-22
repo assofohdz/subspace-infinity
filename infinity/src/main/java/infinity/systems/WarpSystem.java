@@ -71,7 +71,7 @@ public class WarpSystem extends AbstractGameSystem
   private EntitySet warpToEntities;
   private EntitySet canWarp;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
-  private InfinityEntityBodyFactory<MBlockShape> bodyFactory;
+  private InfinityEntityBodyFactory bodyFactory;
 
   @Override
   protected void initialize() {
@@ -149,7 +149,14 @@ public class WarpSystem extends AbstractGameSystem
     }
   }
 
-  public String warpToCenter(EntityId entityId, EntityId avatarId){
+  /**
+   * This method is called when a warp is requested by the player. It will warp the player to the
+   * center of the arena.
+   *
+   * @param avatarId The entity id of the player avatar
+   * @return A string that can be sent to the player's chat console
+   */
+  public String warpToCenter(EntityId avatarId) {
     Entity child = ed.getEntity(avatarId, BodyPosition.class);
     BodyPosition childBodyPos = child.get(BodyPosition.class);
     Vec3d lastLoc = childBodyPos.getLastLocation();
@@ -157,24 +164,17 @@ public class WarpSystem extends AbstractGameSystem
     Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
     WarpTo warpTo = new WarpTo(centerOfArena);
     ed.setComponent(child.getId(), warpTo);
-    return "Warped to center of arena:"+centerOfArena;
+    return "Warped to center of arena:" + centerOfArena;
   }
 
-      /**
-       * Lets entities request a warp to the center of the arena.
-       *
-       * @param avatarId requesting entity
-       */
+  /**
+   * Lets entities request a warp to the center of the arena.
+   *
+   * @param avatarId requesting entity
+   */
   public String commandRequestWarpToCenter(EntityId entityId, EntityId avatarId, Matcher matcher) {
 
-    Entity child = ed.getEntity(avatarId, BodyPosition.class);
-    BodyPosition childBodyPos = child.get(BodyPosition.class);
-    Vec3d lastLoc = childBodyPos.getLastLocation();
-
-    Vec3d centerOfArena = getSystem(MapSystem.class).getCenterOfArena(lastLoc.x, lastLoc.z);
-    WarpTo warpTo = new WarpTo(centerOfArena);
-    ed.setComponent(child.getId(), warpTo);
-    return "Warped to center of arena:"+centerOfArena;
+    return warpToCenter(avatarId);
   }
 
   @Override
