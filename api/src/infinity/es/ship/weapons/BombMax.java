@@ -29,7 +29,7 @@ import com.simsilica.es.EntityComponent;
 import infinity.Bombs;
 
 /**
- * Initial level a ship's bombs fire 0=no bombs
+ * Max level bombs an entity can acquire
  *
  * @author Asser
  */

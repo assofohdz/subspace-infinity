@@ -26,21 +26,22 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
+import infinity.Bombs;
 
 /**
- * Maximum number of Thor's Hammers allowed in ships
+ * Max level mines an entity can acquire
  *
  * @author Asser
  */
 public class MineMax implements EntityComponent {
 
-    int max;
+    Bombs level;
 
-    public int getCount() {
-        return max;
+    public Bombs getLevel() {
+        return level;
     }
 
-    public MineMax(final int count) {
-        max = count;
+    public MineMax(final Bombs count) {
+        level = count;
     }
 }

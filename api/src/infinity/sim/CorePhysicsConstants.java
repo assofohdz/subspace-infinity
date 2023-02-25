@@ -23,58 +23,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.sim;
 
 /**
+ * This class contains all the constants used in the physics engine. It is
+ * separated from the rest of the code to make it easier to change the values
+ * without having to search through the code.
  *
  * @author Asser
  */
 public class CorePhysicsConstants {
 
-    public static double PHYSICS_SCALE = 1;
-
-    // Radius
-    public final static double BULLETSIZERADIUS = 0.125f;
-    public final static double BOMBSIZERADIUS = 0.5f;
-    public final static double THORSIZERADIUS = 0.5f;
-    public final static double PRIZESIZERADIUS = 0.5f;
-    public final static double SHIPSIZERADIUS = 1f;
-    public final static double MOBSIZERADIUS = 1f;
-    public final static double TOWERSIZERADIUS = 1f;
-    public final static double BASESIZERADIUS = 2.5f;
-    public final static double WORMHOLESIZERADIUS = 0.1;
-    public final static double OVER5SIZERADIUS = 0.1;
-    public final static double OVER1SIZERADIUS = 0.5;
-    public final static double OVER2SIZERADIUS = 1;
-    public final static double FLAGSIZERADIUS = 0.5;
-    public final static double BURSTSIZERADIUS = 0.125f;
-
-    public final static double SAFETYOFFSET = 0.05f;
-
-    public final static double REPELRADIUS = 0.125f;
-
-    // Weights
-    public final static double SHIPMASS = 50;
-    public final static double BOMBMASS = 25;
-    public final static double BULLETMASS = 5;
-    public final static double MAPTILEMASS = 0; // Infinite mass
-    public final static double WORMHOLEMASS = 0;
-    public final static double OVER1MASS = 10;
-    public final static double OVER2MASS = 40;
-    public final static double OVER5MASS = 0;
-
-    // View
-    public final static double PROJECTILEOFFSET = 3;
-
-    // Forces
-    public final static float SHIPTHRUST = 10;
-
-    // Pathfinding and polygons
-    public final static int VERTEXCOUNTCIRCLE = 20;
-
-    // Map tiles
-    public final static int MAPTILEWIDTH = 1, MAPTILEHEIGHT = 1;
-    public final static double DOORWIDTH = 1;
-
-    public static double ARENAWIDTH = 1024;
+  // Radius
+  public static final double BULLETSIZERADIUS = 0.125f;
+  public static final double BOMBSIZERADIUS = 0.5f;
+  public static final double THORSIZERADIUS = 0.5f;
+  public static final double PRIZESIZERADIUS = 0.5f;
+  public static final double SHIPSIZERADIUS = 1f;
+  public static final double MOBSIZERADIUS = 1f;
+  public static final double TOWERSIZERADIUS = 1f;
+  public static final double BASESIZERADIUS = 2.5f;
+  public static final double WORMHOLESIZERADIUS = 0.1;
+  public static final double OVER5SIZERADIUS = 0.1;
+  public static final double OVER1SIZERADIUS = 0.5;
+  public static final double OVER2SIZERADIUS = 1;
+  public static final double FLAGSIZERADIUS = 0.5;
+  public static final double BURSTSIZERADIUS = 0.125f;
+  public static final double SAFETYOFFSET = 0.05f;
+  public static final double REPELRADIUS = 0.125f;
+  // Weights
+  public static final double SHIPMASS = 50;
+  public static final double BOMBMASS = 25;
+  public static final double BULLETMASS = 5;
+  public static final double MAPTILEMASS = 0; // Infinite mass
+  public static final double WORMHOLEMASS = 0;
+  public static final double OVER1MASS = 10;
+  public static final double OVER2MASS = 40;
+  public static final double OVER5MASS = 0;
+  // View
+  public static final double PROJECTILEOFFSET = 3;
+  // Forces
+  public static final float SHIPTHRUST = 10;
+  // Pathfinding and polygons
+  public static final int VERTEXCOUNTCIRCLE = 20;
+  // Map tiles
+  public static final int MAPTILEWIDTH = 1;
+  public static final int MAPTILEHEIGHT = 1;
+  public static final double DOORWIDTH = 1;
+  public static final double ARENAWIDTH = 1024;
+  public static final double MINESIZERADIUS = 0.5f;
+  public static final double PHYSICS_SCALE = 1;
+  private CorePhysicsConstants() {
+    // Private constructor to prevent instantiation
+  }
 }

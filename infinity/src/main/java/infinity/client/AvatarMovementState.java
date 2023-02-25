@@ -60,6 +60,7 @@ public class AvatarMovementState extends BaseAppState
   private VersionedHolder<String> positionDisplay;
   private VersionedHolder<String> speedDisplay;
   private boolean move;
+  private boolean shiftPressed = false;
 
   @Override
   protected void initialize(final Application app) {
@@ -108,7 +109,8 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_WEASEL,
         AvatarMovementFunctions.F_LANC,
         AvatarMovementFunctions.F_SHARK,
-        AvatarMovementFunctions.F_WARP);
+        AvatarMovementFunctions.F_WARP,
+        AvatarMovementFunctions.F_SHIFT);
 
     if (getState(DebugHudState.class) != null) {
       DebugHudState debug = getState(DebugHudState.class);
@@ -153,6 +155,7 @@ public class AvatarMovementState extends BaseAppState
     inputMapper.activateGroup(AvatarMovementFunctions.G_TOGGLE);
     inputMapper.activateGroup(AvatarMovementFunctions.G_TOWER);
     inputMapper.activateGroup(AvatarMovementFunctions.G_ACTION);
+    inputMapper.activateGroup(AvatarMovementFunctions.G_ALTERNATIVE);
 
     session = getState(ConnectionState.class).getService(GameSessionClientService.class);
   }
@@ -166,6 +169,7 @@ public class AvatarMovementState extends BaseAppState
     inputMapper.deactivateGroup(AvatarMovementFunctions.G_TOGGLE);
     inputMapper.deactivateGroup(AvatarMovementFunctions.G_TOWER);
     inputMapper.deactivateGroup(AvatarMovementFunctions.G_ACTION);
+    inputMapper.deactivateGroup(AvatarMovementFunctions.G_ALTERNATIVE);
   }
 
   @Override
@@ -242,6 +246,12 @@ public class AvatarMovementState extends BaseAppState
         session.avatar(AvatarSystem.SHARK);
       } else if (func == AvatarMovementFunctions.F_WARP) {
         session.action(ActionSystem.WARP);
+      } else if (func == AvatarMovementFunctions.F_SHIFT){
+        this.shiftPressed = false;
+      }
+    } else if (value == InputState.Positive) {
+      if (func == AvatarMovementFunctions.F_SHIFT){
+        this.shiftPressed = true;
       }
     }
   }
@@ -284,13 +294,9 @@ public class AvatarMovementState extends BaseAppState
 
   @Override
   public void valueActive(FunctionId func, double value, double tpf) {
-    if (func == AvatarMovementFunctions.F_BOMB) {
-      session.attack(WeaponsSystem.BOMB);
-    } else if (func == AvatarMovementFunctions.F_SHOOT) {
-      session.attack(WeaponsSystem.GUN);
-    } else if (func == AvatarMovementFunctions.F_GRAVBOMB) {
+    if (func == AvatarMovementFunctions.F_GRAVBOMB) {
       session.attack(WeaponsSystem.GRAVBOMB);
-    } else if (func == AvatarMovementFunctions.F_MINE) {
+    } else if (func == AvatarMovementFunctions.F_MINE && shiftPressed) {
       session.attack(WeaponsSystem.MINE);
     } else if (func == AvatarMovementFunctions.F_THOR) {
       session.action(ActionSystem.FIRETHOR);
@@ -298,6 +304,10 @@ public class AvatarMovementState extends BaseAppState
       session.action(ActionSystem.REPEL);
     } else if (func == AvatarMovementFunctions.F_BURST) {
       session.action(ActionSystem.FIREBURST);
+    } else if (func == AvatarMovementFunctions.F_BOMB && !shiftPressed) {
+      session.attack(WeaponsSystem.BOMB);
+    } else if (func == AvatarMovementFunctions.F_SHOOT && !shiftPressed) {
+      session.attack(WeaponsSystem.GUN);
     }
   }
 }

@@ -12,6 +12,10 @@ package infinity.sim;
  */
 public class CoreGameConstants {
 
+  private CoreGameConstants() {
+    // Private constructor to prevent instantiation
+  }
+
   // Projectile speeds
   public static final double BASEPROJECTILESPEED = 1;
   public static final double BOMBPROJECTILESPEED = 25;
@@ -25,6 +29,7 @@ public class CoreGameConstants {
   public static final long PRIZEDECAY = 20000;
   public static final long THORDECAY = 1500;
   public static final long GRAVBOMBDECAY = 4000;
+  public static final long MINEDECAY = 10000;
 
   // Health
   public static final int SHIPHEALTH = 100;
@@ -36,10 +41,12 @@ public class CoreGameConstants {
   public static final long BURSTCOOLDOWN = 250;
   public static final long GUNCOOLDOWN = 25;
   public static final long BOMBCOOLDOWN = 25;
+  public static final long MINECOOLDOWN = 25;
 
   // Cost of firing
   public static final int GUNCOST = 10;
   public static final int BOMBCOST = 10;
+  public static final int MINECOST = 10;
 
   public static final long BURSTPROJECTILECOUNT = 30;
 
@@ -61,6 +68,8 @@ public class CoreGameConstants {
 
   public static final String DEFAULTARENAID = "default";
   public static final String BOMBLEVELPREPENDTEXT = "bomb_l";
+  public static final String BULLETLEVELPREPENDTEXT = "bullet_l";
 
   public static final double UPDATE_SETTINGS_INTERVAL_MS = 1000;
+  public static final String MINELEVELPREPENDTEXT = "mine_l";
 }

@@ -25,6 +25,7 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.Bombs;
+import infinity.Guns;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
@@ -40,8 +41,11 @@ import infinity.es.ship.weapons.BombMax;
 import infinity.es.ship.weapons.Gun;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
-import infinity.Guns;
 import infinity.es.ship.weapons.GunMax;
+import infinity.es.ship.weapons.Mine;
+import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.MineFireDelay;
+import infinity.es.ship.weapons.MineMax;
 import infinity.sim.CollisionFilters;
 import infinity.sim.CoreGameConstants;
 import infinity.sim.GameEntities;
@@ -245,9 +249,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   private EntityId spawnBounty(
       Vec3d spawnerLocation, double radius, boolean spawnOnRing, boolean weighted) {
     String prizeType = getPrizeType(weighted);
-    Vec3d prizeSpawnLocation =
-        this.getSpawnLocation(
-            spawnerLocation, radius, spawnOnRing);
+    Vec3d prizeSpawnLocation = this.getSpawnLocation(spawnerLocation, radius, spawnOnRing);
 
     return GameEntities.createPrize(ed, phys, ourTime.getTime(), prizeSpawnLocation, prizeType);
   }
@@ -262,8 +264,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     // Auto-generated method stub
   }
 
-  private Vec3d getSpawnLocation(
-      Vec3d spawnCenter, double radius, boolean onlyOnCircumference) {
+  private Vec3d getSpawnLocation(Vec3d spawnCenter, double radius, boolean onlyOnCircumference) {
     double angle = Math.random() * Math.PI * 2;
 
     double lengthFromCenter = onlyOnCircumference ? radius : radius * Math.random();
@@ -274,8 +275,10 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     return new Vec3d(x, 1, z);
   }
 
-  private String getPrizeType(boolean weighted){
-    return weighted ? rc.next(random) : prizeMap.get(ThreadLocalRandom.current().nextInt(1, 28 + 1));
+  private String getPrizeType(boolean weighted) {
+    return weighted
+        ? rc.next(random)
+        : prizeMap.get(ThreadLocalRandom.current().nextInt(1, 28 + 1));
   }
 
   private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {
@@ -289,6 +292,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         break;
       case PrizeTypes.BOMB:
         handleAcquireBomb(ship);
+        handleAcquireMine(ship);
         break;
       case PrizeTypes.BOUNCINGBULLETS:
         // TODO: Handle acquiring bouncing bullets
@@ -380,6 +384,30 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     }
   }
 
+  /**
+   * This method handles upgrading or acquiring mines. This happens when a ship picks up a bomb
+   * prize. The ship will either acquire a mine if it does not have one, or upgrade its mine if it
+   * already has one. If the ship already has the maximum mine, nothing happens.
+   *
+   * <p>Note: A bomb prize also acts a mine prize.
+   *
+   * @param ship The ship that picked up the bomb prize.
+   */
+  private void handleAcquireMine(EntityId ship) {
+    Mine mine = ed.getComponent(ship, Mine.class);
+    MineMax mineMax = ed.getComponent(ship, MineMax.class);
+    if (mine != null && mine.getLevel().level < mineMax.getLevel().level) {
+      log.info("Ship {} picked up mine prize and now has {} mines", ship, (mine.getLevel().next()));
+      ed.setComponent(ship, new Mine(mine.getLevel().next()));
+    } else if (mine == null && mineMax != null) {
+      log.info("Ship {} picked up mine prize", ship);
+      ed.setComponent(ship, new Mine(Bombs.BOMB_1));
+      ed.setComponent(ship, new MineCost(CoreGameConstants.MINECOST));
+      ed.setComponent(ship, new MineFireDelay(CoreGameConstants.MINECOOLDOWN));
+      ed.setComponent(ship, new MineMax(Bombs.BOMB_4));
+    }
+  }
+
   private void handleAcquireBomb(EntityId ship) {
     Bomb bomb = ed.getComponent(ship, Bomb.class);
     BombMax bombMax = ed.getComponent(ship, BombMax.class);
@@ -426,7 +454,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   public void newContact(Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
-
 
     if (body2 instanceof RigidBody) {
       EntityId idOne = body1.id;

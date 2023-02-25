@@ -533,7 +533,7 @@ public class GameEntities {
     ed.setComponent(result, new Mine(Bombs.BOMB_1));
     ed.setComponent(result, new MineCost(50));
     ed.setComponent(result, new MineFireDelay(500));
-    ed.setComponent(result, new MineMax(4));
+    ed.setComponent(result, new MineMax(Bombs.BOMB_4));
 
     // Add thors
     ed.setComponent(result, new Thor(2));
@@ -763,5 +763,17 @@ public class GameEntities {
     ed.setComponent(lastBomb, new Meta(createdTime));
 
     return lastBomb;
+  }
+
+  public static EntityId createMine(EntityData ed, EntityId requester, PhysicsSpace physicsSpace, long time, Vec3d location, long minedecay, String mineShape) {
+    EntityId lastMine = ed.createEntity();
+    ed.setComponents(lastMine,
+        ShapeInfo.create(mineShape, CorePhysicsConstants.MINESIZERADIUS, ed),
+        new SpawnPosition(physicsSpace.getGrid(), location),
+        Decay.duration(time, TimeUnit.NANOSECONDS.convert(minedecay, TimeUnit.MILLISECONDS)),
+        WeaponTypes.mine(ed),
+        new Parent(requester));
+    ed.setComponent(lastMine, new Meta(time));
+    return lastMine;
   }
 }

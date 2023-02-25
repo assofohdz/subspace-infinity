@@ -409,7 +409,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
     Gun entityGun = this.guns.getEntity(requester).get(Gun.class);
     GunCost gc = this.guns.getEntity(requester).get(GunCost.class);
-    final String bulletShape = "bullet_l" + entityGun.getLevel().level;
+    final String bulletShape = CoreGameConstants.BULLETLEVELPREPENDTEXT + entityGun.getLevel().level;
 
     EntityId gunProjectile;
     gunProjectile =
@@ -533,7 +533,7 @@ public class WeaponsSystem extends AbstractGameSystem
         createProjectileGravBomb(requesterEntity, time, info);
         break;
       case MINE:
-        log.info("TODO: MINE PROJECTILE");
+        createProjectileMine(requesterEntity, time, info);
         break;
       case BURST:
         createProjectileBurst(requesterEntity, time);
@@ -544,6 +544,26 @@ public class WeaponsSystem extends AbstractGameSystem
       default:
         throw new IllegalArgumentException("Unknown flag: " + flag);
     }
+  }
+
+  private boolean createProjectileMine(Entity requesterEntity, long time, AttackPosition info) {
+    EntityId requester = requesterEntity.getId();
+    Mine entityMine = this.mines.getEntity(requester).get(Mine.class);
+    MineCost mc = this.mines.getEntity(requester).get(MineCost.class);
+
+    final String mineShape = CoreGameConstants.MINELEVELPREPENDTEXT + entityMine.getLevel().level;
+
+    final EntityId mineProjectile =
+        GameEntities.createMine(
+            ed,
+            requester,
+            physicsSpace,
+            time,
+            info.getLocation(),
+            CoreGameConstants.MINEDECAY,
+            mineShape);
+    ed.setComponent(mineProjectile, new Damage(mc.getCost()));
+    return true;
   }
 
   private boolean createSound(Entity requesterEntity, byte flag, long time, AttackPosition info) {

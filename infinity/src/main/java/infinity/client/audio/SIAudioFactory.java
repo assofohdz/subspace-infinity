@@ -32,8 +32,6 @@ import com.jme3.audio.AudioNode;
 import com.jme3.audio.plugins.WAVLoader;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-import infinity.Bombs;
-import infinity.Guns;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
@@ -44,13 +42,11 @@ import infinity.es.AudioTypes;
  */
 public class SIAudioFactory implements AudioFactory {
 
-    // private AudioState audioState;
     private EntityData ed;
     private AssetManager assets;
 
     @Override
     public void setState(final AudioState state) {
-        // audioState = state;
         assets = state.getApplication().getAssetManager();
         ed = state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
         assets.registerLoader(WAVLoader.class, "wa2");
@@ -62,39 +58,70 @@ public class SIAudioFactory implements AudioFactory {
 
         switch (type.getTypeName(ed)) {
         case AudioTypes.FIRE_THOR:
-            return createFIRE_THOR();
+            return fireThor();
         case AudioTypes.PICKUP_PRIZE:
-            return createPICKUP_PRIZE();
+            return pickupPrize();
         case AudioTypes.FIRE_BOMBS_L1:
-            return createFIRE_BOMB(1);
+            return fireBomb(1);
         case AudioTypes.FIRE_BOMBS_L2:
-            return createFIRE_BOMB(2);
+            return fireBomb(2);
         case AudioTypes.FIRE_BOMBS_L3:
-            return createFIRE_BOMB(3);
+            return fireBomb(3);
         case AudioTypes.FIRE_BOMBS_L4:
-            return createFIRE_BOMB(4);
+            return fireBomb(4);
         case AudioTypes.FIRE_GUNS_L1:
-            return createFIRE_BULLET(1);
+            return fireBullet(1);
         case AudioTypes.FIRE_GUNS_L2:
-            return createFIRE_BULLET(2);
+            return fireBullet(2);
         case AudioTypes.FIRE_GUNS_L3:
-            return createFIRE_BULLET(3);
+            return fireBullet(3);
         case AudioTypes.FIRE_GUNS_L4:
-            return createFIRE_BULLET(4);
+            return fireBullet(4);
         case AudioTypes.FIRE_GRAVBOMB:
-            return createFIRE_GRAVBOMB();
+            return fireGravBomb();
         case AudioTypes.EXPLOSION2:
-            return createEXPLOSION2();
+            return explode();
         case AudioTypes.BURST:
-            return createFIRE_BURST();
+            return fireBurst();
         case AudioTypes.REPEL:
             return createREPEL();
         case AudioTypes.FLAG:
-            return createPICKUP_FLAG();
+            return pickupFlag();
+        case AudioTypes.FIRE_MINE_L1:
+            return placeMine(1);
+        case AudioTypes.FIRE_MINE_L2:
+            return placeMine(2);
+        case AudioTypes.FIRE_MINE_L3:
+            return placeMine(3);
+        case AudioTypes.FIRE_MINE_L4:
+            return placeMine(4);
         default:
             throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
         }
 
+    }
+
+    private AudioNode placeMine(int i) {
+        String sound = "";
+        switch (i) {
+        case 1:
+            sound = "Sounds/Subspace/mine1.wa2";
+            break;
+        case 2:
+            sound = "Sounds/Subspace/mine2.wa2";
+            break;
+        case 3:
+            sound = "Sounds/Subspace/mine3.wa2";
+            break;
+        case 4:
+            sound = "Sounds/Subspace/mine4.wa2";
+            break;
+        default:
+            throw new UnsupportedOperationException("Unknown mine level: " + i);
+        }
+        final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
+        setDefaults(an);
+        return an;
     }
 
     private void setDefaults(final AudioNode an) {
@@ -110,7 +137,7 @@ public class SIAudioFactory implements AudioFactory {
         an.setVolume(1);
     }
 
-    private AudioNode createFIRE_BOMB(int bombLevel) {
+    private AudioNode fireBomb(int bombLevel) {
         String sound = "";
         switch (bombLevel) {
         case 1:
@@ -133,7 +160,7 @@ public class SIAudioFactory implements AudioFactory {
         return an;
     }
 
-    private AudioNode createFIRE_BULLET(int gunLevel) {
+    private AudioNode fireBullet(int gunLevel) {
         String sound = "";
         switch (gunLevel) {
         case 1:
@@ -156,38 +183,38 @@ public class SIAudioFactory implements AudioFactory {
         return an;
     }
 
-    private AudioNode createFIRE_THOR() {
+    private AudioNode fireThor() {
         final AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }
 
     //A method to play the flag.wa2 sound
-    private AudioNode createPICKUP_FLAG() {
+    private AudioNode pickupFlag() {
         final AudioNode an = new AudioNode(assets, "Sounds/Subspace/flag.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }
 
-    private AudioNode createPICKUP_PRIZE() {
+    private AudioNode pickupPrize() {
         final AudioNode an = new AudioNode(assets, "Sounds/Subspace/prize.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_GRAVBOMB() {
-        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/thor.wa2", AudioData.DataType.Buffer);
+    private AudioNode fireGravBomb() {
+        final AudioNode an = new AudioNode(assets, "Sounds/Subspace/bomb.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }
 
-    private AudioNode createEXPLOSION2() {
+    private AudioNode explode() {
         final AudioNode an = new AudioNode(assets, "Sounds/Subspace/explode2.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;
     }
 
-    private AudioNode createFIRE_BURST() {
+    private AudioNode fireBurst() {
         final AudioNode an = new AudioNode(assets, "Sounds/Subspace/burst.wa2", AudioData.DataType.Buffer);
         setDefaults(an);
         return an;

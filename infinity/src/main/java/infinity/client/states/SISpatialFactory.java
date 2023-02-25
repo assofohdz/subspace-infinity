@@ -115,12 +115,16 @@ public class SISpatialFactory {
         return createBullet(Guns.LEVEL_2.viewOffset);
       case ShapeNames.BULLETL1:
         return createBullet(Guns.LEVEL_1.viewOffset);
+      case ShapeNames.MINEL1:
       case ShapeNames.BOMBL1:
         return createBomb(Bombs.BOMB_1.viewOffset);
+      case ShapeNames.MINEL2:
       case ShapeNames.BOMBL2:
         return createBomb(Bombs.BOMB_2.viewOffset);
+      case ShapeNames.MINEL3:
       case ShapeNames.BOMBL3:
         return createBomb(Bombs.BOMB_3.viewOffset);
+      case ShapeNames.MINEL4:
       case ShapeNames.BOMBL4:
         return createBomb(Bombs.BOMB_4.viewOffset);
       case ShapeNames.THOR:
