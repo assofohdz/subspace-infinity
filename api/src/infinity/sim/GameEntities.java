@@ -72,7 +72,9 @@ import infinity.es.ship.actions.BurstMax;
 import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelMax;
 import infinity.es.ship.actions.Thor;
-import infinity.es.ship.actions.ThorMax;
+import infinity.es.ship.actions.ThorCurrentCount;
+import infinity.es.ship.actions.ThorFireDelay;
+import infinity.es.ship.actions.ThorMaxCount;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
@@ -154,7 +156,7 @@ public class GameEntities {
 
     ed.setComponents(
         lastBomb,
-        ShapeInfo.create(shapeName, 0.5, ed),
+        ShapeInfo.create(shapeName, CorePhysicsConstants.BOMBSIZERADIUS, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(5),
         new Decay(
@@ -165,8 +167,6 @@ public class GameEntities {
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
         new Parent(owner));
 
-    // new PointLightComponent(level.lightColor, level.lightRadius,
-    // CorePhysicsConstants.SHIPLIGHTOFFSET));
     ed.setComponent(lastBomb, new Meta(createdTime));
     return lastBomb;
   }
@@ -536,8 +536,9 @@ public class GameEntities {
     ed.setComponent(result, new MineMaxLevel(Bombs.BOMB_4));
 
     // Add thors
-    ed.setComponent(result, new Thor(2));
-    ed.setComponent(result, new ThorMax(2));
+    ed.setComponent(result, new ThorCurrentCount(2));
+    ed.setComponent(result, new ThorMaxCount(2));
+    ed.setComponent(result, new ThorFireDelay(1000));
 
     // Add repels
     ed.setComponent(result, new Repel(10));
@@ -755,11 +756,16 @@ public class GameEntities {
         lastBomb,
         ShapeInfo.create(ShapeNames.THOR, CorePhysicsConstants.THORSIZERADIUS, ed),
         new SpawnPosition(phys.getGrid(), pos),
+        new Mass(5),
         new Decay(
             createdTime,
             createdTime + TimeUnit.NANOSECONDS.convert(thorDecay, TimeUnit.MILLISECONDS)),
         WeaponTypes.thor(ed),
-        new Parent(owner));
+        new Impulse(attackVelocity),
+        new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
+        new Parent(owner),
+        new Thor());
+
     ed.setComponent(lastBomb, new Meta(createdTime));
 
     return lastBomb;

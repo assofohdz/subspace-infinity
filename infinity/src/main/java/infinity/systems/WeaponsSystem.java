@@ -29,7 +29,7 @@ import infinity.es.Frequency;
 import infinity.es.GravityWell;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.Thor;
+import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
@@ -67,13 +67,11 @@ public class WeaponsSystem extends AbstractGameSystem
   public static final byte GRAVBOMB = 0x2;
   public static final byte MINE = 0x3;
   public static final byte BURST = 0x4;
-  public static final byte THOR = 0x5;
   static Logger log = LoggerFactory.getLogger(WeaponsSystem.class);
   private final KeySetView<Attack, Boolean> sessionAttackCreations = ConcurrentHashMap.newKeySet();
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
-  private EntitySet thors;
   private EntitySet mines;
   private EntitySet gravityBombs;
   private EntitySet bursts;
@@ -107,7 +105,6 @@ public class WeaponsSystem extends AbstractGameSystem
     gravityBombs =
         ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
     mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineCost.class);
-    thors = ed.getEntities(Thor.class);
 
     damageEntities = ed.getEntities(Damage.class);
     energyEntities = ed.getEntities(Energy.class);
@@ -134,9 +131,6 @@ public class WeaponsSystem extends AbstractGameSystem
     bursts.release();
     bursts = null;
 
-    thors.release();
-    thors = null;
-
     frequencies.release();
     frequencies = null;
 
@@ -159,7 +153,6 @@ public class WeaponsSystem extends AbstractGameSystem
     gravityBombs.applyChanges();
     mines.applyChanges();
     bursts.applyChanges();
-    thors.applyChanges();
 
     energyEntities.applyChanges();
     damageEntities.applyChanges();
@@ -169,7 +162,8 @@ public class WeaponsSystem extends AbstractGameSystem
      * one by one
      *
      * Not sure if this is needed or there is a queue system already in place by the session
-     * framework
+     * framework. 25-02-2023: Maybe the right way is to create "attack entities" that are then handled through
+     * an entityset.
      */
     final Iterator<Attack> iterator = sessionAttackCreations.iterator();
     while (iterator.hasNext()) {
@@ -239,10 +233,6 @@ public class WeaponsSystem extends AbstractGameSystem
     return bursts.contains(requester);
   }
 
-  private boolean canAttackThor(Entity requester) {
-    return thors.contains(requester);
-  }
-
   private boolean canAttack(Entity requester, byte weaponType) {
     if (requester == null) {
       return false;
@@ -258,8 +248,6 @@ public class WeaponsSystem extends AbstractGameSystem
         return canAttackMine(requester);
       case BURST:
         return canAttackBurst(requester);
-      case THOR:
-        return canAttackThor(requester);
       default:
         return false;
     }
@@ -321,9 +309,6 @@ public class WeaponsSystem extends AbstractGameSystem
     } else if (flag == BURST) {
       // No delay on this for now
       return bursts.contains(requester);
-    } else if (flag == THOR) {
-      // No delay on this for now
-      return thors.contains(requester);
     }
     return false;
   }
@@ -396,10 +381,6 @@ public class WeaponsSystem extends AbstractGameSystem
       // No cost on this for now
       // TODO: Add cost to burst
       return bursts.contains(requester);
-    } else if (flag == THOR) {
-      // No cost on this for now
-      // TODO: Add cost to thor
-      return thors.contains(requester);
     }
     return false;
   }
@@ -423,7 +404,7 @@ public class WeaponsSystem extends AbstractGameSystem
             CoreGameConstants.BULLETDECAY,
             bulletShape);
 
-    ed.setComponent(gunProjectile, new Damage(gc.getCost()));
+    ed.setComponent(gunProjectile, new Damage(CoreGameConstants.BULLETDAMAGE));
   }
 
   private void createProjectileBomb(Entity requesterEntity, long time, AttackPosition info) {
@@ -443,7 +424,7 @@ public class WeaponsSystem extends AbstractGameSystem
             info.getAttackVelocity(),
             CoreGameConstants.BULLETDECAY,
             bombShape);
-    ed.setComponent(bombProjectile, new Damage(bc.getCost()));
+    ed.setComponent(bombProjectile, new Damage(CoreGameConstants.BOMBDAMAGE));
   }
 
   private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
@@ -470,23 +451,7 @@ public class WeaponsSystem extends AbstractGameSystem
             delayedComponents,
             CoreGameConstants.BOMBLEVELPREPENDTEXT + gravityBomb.getLevel());
 
-    ed.setComponent(projectile, new Damage(shipGravBombCost.getCost()));
-  }
-
-  private void createProjectileThor(Entity requesterEntity, long time, AttackPosition info) {
-    EntityId requester = requesterEntity.getId();
-
-    EntityId thorProjectile;
-    thorProjectile =
-        GameEntities.createThor(
-            ed,
-            requester,
-            physicsSpace,
-            time,
-            info.getLocation(),
-            info.getAttackVelocity(),
-            CoreGameConstants.THORDECAY);
-    ed.setComponent(thorProjectile, new Damage(20));
+    ed.setComponent(projectile, new Damage(CoreGameConstants.GRAVBOMBDAMAGE));
   }
 
   private void createProjectileBurst(Entity requesterEntity, long time) {
@@ -538,9 +503,6 @@ public class WeaponsSystem extends AbstractGameSystem
       case BURST:
         createProjectileBurst(requesterEntity, time);
         break;
-      case THOR:
-        createProjectileThor(requesterEntity, time, info);
-        break;
       default:
         throw new IllegalArgumentException("Unknown flag: " + flag);
     }
@@ -591,9 +553,6 @@ public class WeaponsSystem extends AbstractGameSystem
         break;
       case BURST:
         break;
-      case THOR:
-        GameSounds.createThorSound(ed, time, requester, info.location, physicsSpace);
-        return true;
       default:
         throw new IllegalArgumentException("Unknown flag: " + flag);
     }

@@ -101,6 +101,7 @@ import infinity.sim.CubeFactory;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.util.InfinityRunTimeException;
+import infinity.systems.ActionSystem;
 import infinity.systems.ArenaSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
@@ -153,13 +154,13 @@ public class GameServer {
     systems = new GameSystemManager();
     loop = new GameLoop(systems);
 
-    // Create the SpiderMonkey server and setup our standard
+    // Create the SpiderMonkey server and set up our standard
     // initial hosted services
     server =
         Network.createServer(
             InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, port, port);
 
-    // Create a separate channel to do chat stuff so it doesn't interfere
+    // Create a separate channel to do chat stuff, so it doesn't interfere
     // with any real game stuff.
     server.addChannel(port + 1);
 
@@ -171,7 +172,7 @@ public class GameServer {
 
     // Adding a delay for the connectionAdded right after the serializer
     // registration
-    // service gets to run let's the client get a small break in the buffer that
+    // service gets to run lets the client get a small break in the buffer that
     // should
     // generally prevent the RpcCall messages from coming too quickly and getting
     // processed
@@ -203,7 +204,7 @@ public class GameServer {
     ethereal.setTimeSource(() -> systems.getStepTime().getUnlockedTime(System.nanoTime()));
     server.getServices().addService(ethereal);
 
-    // Setup our entity data and the hosting service
+    // Set up our entity data and the hosting service
     // Make the EntityData available to other systems
     final DefaultEntityData ed = new DefaultEntityData();
     systems.register(EntityData.class, ed);
@@ -240,7 +241,7 @@ public class GameServer {
       DefaultBlockSet.initializeFluidTypes();
     }
 
-    // Setup the physics space
+    // Set up the physics space
     ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
 
     registerShapeFactories(shapeFactory, ed);
@@ -278,6 +279,7 @@ public class GameServer {
     systems.register(MovementSystem.class, new MovementSystem());
     systems.register(MobSystem.class, new MobSystem());
     systems.register(WeaponsSystem.class, new WeaponsSystem());
+    systems.register(ActionSystem.class, new ActionSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
     systems.register(PrizeSystem.class, new PrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
     systems.register(GravitySystem.class, new GravitySystem());
@@ -316,7 +318,7 @@ public class GameServer {
 
   /**
    * Allow running a basic dedicated server from the command line using the default port. If we want
-   * something more advanced then we should break it into a separate class with a proper shell and
+   * something more advanced, then we should break it into a separate class with a proper shell and
    * so on.
    */
   public static void main(final String... args) throws Exception {
@@ -441,6 +443,8 @@ public class GameServer {
         sphereFactory);
     shapeFactory.registerFactory(
         ShapeInfo.create(ShapeNames.FLAG, CorePhysicsConstants.FLAGSIZERADIUS, ed), sphereFactory);
+    shapeFactory.registerFactory(
+        ShapeInfo.create(ShapeNames.THOR, CorePhysicsConstants.THORSIZERADIUS, ed), sphereFactory);
 
     // Register the cube factories
     shapeFactory.registerFactory(

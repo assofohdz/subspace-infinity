@@ -34,6 +34,9 @@ import infinity.es.SphereShape;
 import infinity.es.ship.Player;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.ThorCurrentCount;
+import infinity.es.ship.actions.ThorFireDelay;
+import infinity.es.ship.actions.ThorMaxCount;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
@@ -355,7 +358,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
         // TODO: Handle acquiring stealth
         break;
       case PrizeTypes.THOR:
-        // TODO: Handle acquiring thor
+        handleAcquireThor(ship);
         break;
       case PrizeTypes.THRUSTER:
         // TODO: Handle acquiring thruster
@@ -381,6 +384,20 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
                 + pt.getTypeName(ed)
                 + " is not supported by "
                 + pt.getClass().toString());
+    }
+  }
+
+  private void handleAcquireThor(EntityId ship) {
+    ThorCurrentCount thorCurrentCount = ed.getComponent(ship, ThorCurrentCount.class);
+    ThorMaxCount thorMaxCount = ed.getComponent(ship, ThorMaxCount.class);
+    if (thorCurrentCount != null && thorCurrentCount.getCount() < thorMaxCount.getCount()) {
+      ThorCurrentCount thorNextCount = thorCurrentCount.add(1);
+      log.info("Ship {} picked up thor prize and now has {} thor", ship, (thorNextCount.getCount()));
+      ed.setComponent(ship, thorNextCount);
+    } else if (thorMaxCount != null) {
+      log.info("Ship {} picked up thor prize", ship);
+      ed.setComponent(ship, new ThorCurrentCount(1));
+      ed.setComponent(ship, new ThorFireDelay(1000));
     }
   }
 

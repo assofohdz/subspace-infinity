@@ -101,7 +101,7 @@ public class Main extends SimpleApplication {
         // new SkySettingsState(),
         // new PostProcessingState(),
         // new GridState(grid),
-        new SettingsState(),
+        //new SettingsState(),
         new ScreenshotAppState("", System.currentTimeMillis()));
   }
 
@@ -142,7 +142,7 @@ public class Main extends SimpleApplication {
 
     MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
     // CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
-    SettingsState.initializeDefaultMappings(globals.getInputMapper());
+    //SettingsState.initializeDefaultMappings(globals.getInputMapper());
     DebugFunctions.initializeDefaultMappings(globals.getInputMapper());
     ToolFunctions.initializeDefaultMappings(globals.getInputMapper());
     HelpState.initializeDefaultMappings(globals.getInputMapper());

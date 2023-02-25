@@ -62,6 +62,7 @@ import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ActionSystem;
+import infinity.systems.ActionSystem.Action;
 import infinity.systems.AvatarSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.WarpSystem;
@@ -201,6 +202,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     private final WeaponsSystem weaponsSystem;
     private final boolean selfSet = false;
     private WarpSystem warpSys;
+    private ActionSystem actionSys;
     private GameSessionListener callback;
     // private final MPhysSystem mphys;
     private boolean spawned;
@@ -264,6 +266,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       log.info("GameSessionImpl.initialized()");
 
       warpSys = gameSystems.get(WarpSystem.class);
+      actionSys = gameSystems.get(ActionSystem.class);
     }
 
     public void close() {
@@ -341,8 +344,13 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     @Override
     public void action(final byte actionInput) {
-      if (actionInput == ActionSystem.WARP) {
-        warpSys.warpToCenter(avatarEntityId);
+      switch(actionInput){
+        case ActionSystem.WARP:
+          warpSys.warpToCenter(avatarEntityId);
+          return;
+        case ActionSystem.FIRETHOR:
+          actionSys.sessionAct(avatarEntityId, ActionSystem.FIRETHOR);
+            return;
       }
     }
 

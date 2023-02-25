@@ -32,7 +32,7 @@ import com.simsilica.es.EntityComponent;
  *
  * @author Asser
  */
-public class ThorMax implements EntityComponent {
+public class ThorMaxCount implements EntityComponent {
 
     int max;
 
@@ -40,7 +40,7 @@ public class ThorMax implements EntityComponent {
         return max;
     }
 
-    public ThorMax(final int count) {
+    public ThorMaxCount(final int count) {
         max = count;
     }
 }

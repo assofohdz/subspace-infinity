@@ -12,6 +12,11 @@ package infinity.sim;
  */
 public class CoreGameConstants {
 
+  public static int GRAVBOMBDAMAGE = 10;
+  public static int BOMBDAMAGE = 10;
+  public static int BULLETDAMAGE = 10;
+  public static int THORDAMAGE = 10;
+
   private CoreGameConstants() {
     // Private constructor to prevent instantiation
   }

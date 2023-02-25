@@ -98,7 +98,7 @@ public class GameSessionState extends CompositeAppState {
         );
 
     addChild(new HelpState(), true);
-    addChild(new SettingsState(), true);
+    //addChild(new SettingsState(), true);
     addChild(new ChatState(), true);
     addChild(new MapState(), true);
     addChild(new HudLabelState(), true);
