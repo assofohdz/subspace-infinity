@@ -33,11 +33,11 @@ import infinity.Guns;
  *
  * @author Asser
  */
-public class GunMax implements EntityComponent {
+public class GunCurrentLevel implements EntityComponent {
 
     Guns level;
 
-    public GunMax(final Guns level) {
+    public GunCurrentLevel(final Guns level) {
         this.level = level;
     }
 

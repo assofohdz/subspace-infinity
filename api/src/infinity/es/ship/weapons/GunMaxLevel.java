@@ -26,22 +26,22 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
-import infinity.Bombs;
+import infinity.Guns;
 
 /**
- * Max level mines an entity can acquire
+ * Initial level a ship's guns fire 0=no guns
  *
  * @author Asser
  */
-public class MineMax implements EntityComponent {
+public class GunMaxLevel implements EntityComponent {
 
-    Bombs level;
+    Guns level;
 
-    public Bombs getLevel() {
-        return level;
+    public GunMaxLevel(final Guns level) {
+        this.level = level;
     }
 
-    public MineMax(final Bombs count) {
-        level = count;
+    public Guns getLevel() {
+        return level;
     }
 }

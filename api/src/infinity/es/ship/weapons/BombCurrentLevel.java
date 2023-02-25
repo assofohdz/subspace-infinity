@@ -33,11 +33,11 @@ import infinity.Bombs;
  *
  * @author Asser
  */
-public class Bomb implements EntityComponent {
+public class BombCurrentLevel implements EntityComponent {
 
     Bombs level;
 
-    public Bomb(final Bombs level) {
+    public BombCurrentLevel(final Bombs level) {
         this.level = level;
     }
 

@@ -30,16 +30,16 @@ import infinity.es.GravityWell;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.Thor;
-import infinity.es.ship.weapons.Bomb;
+import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
-import infinity.es.ship.weapons.Gun;
+import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.Mine;
+import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.sim.CoreGameConstants;
@@ -101,12 +101,12 @@ public class WeaponsSystem extends AbstractGameSystem
 
     physicsSpace = physics.getPhysicsSpace();
     energySystem = getSystem(EnergySystem.class);
-    guns = ed.getEntities(Gun.class, GunFireDelay.class, GunCost.class);
-    bombs = ed.getEntities(Bomb.class, BombFireDelay.class, BombCost.class);
+    guns = ed.getEntities(GunCurrentLevel.class, GunFireDelay.class, GunCost.class);
+    bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
     bursts = ed.getEntities(Burst.class);
     gravityBombs =
         ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
-    mines = ed.getEntities(Mine.class, MineFireDelay.class, MineCost.class);
+    mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineCost.class);
     thors = ed.getEntities(Thor.class);
 
     damageEntities = ed.getEntities(Damage.class);
@@ -407,9 +407,9 @@ public class WeaponsSystem extends AbstractGameSystem
   private void createProjectileGun(Entity requesterEntity, final long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
 
-    Gun entityGun = this.guns.getEntity(requester).get(Gun.class);
+    GunCurrentLevel gunCurrentLevel = this.guns.getEntity(requester).get(GunCurrentLevel.class);
     GunCost gc = this.guns.getEntity(requester).get(GunCost.class);
-    final String bulletShape = CoreGameConstants.BULLETLEVELPREPENDTEXT + entityGun.getLevel().level;
+    final String bulletShape = CoreGameConstants.BULLETLEVELPREPENDTEXT + gunCurrentLevel.getLevel().level;
 
     EntityId gunProjectile;
     gunProjectile =
@@ -428,10 +428,10 @@ public class WeaponsSystem extends AbstractGameSystem
 
   private void createProjectileBomb(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
-    Bomb entityBomb = this.bombs.getEntity(requester).get(Bomb.class);
+    BombCurrentLevel bombCurrentLevel = this.bombs.getEntity(requester).get(BombCurrentLevel.class);
     BombCost bc = this.bombs.getEntity(requester).get(BombCost.class);
 
-    final String bombShape = CoreGameConstants.BOMBLEVELPREPENDTEXT + entityBomb.getLevel().level;
+    final String bombShape = CoreGameConstants.BOMBLEVELPREPENDTEXT + bombCurrentLevel.getLevel().level;
 
     final EntityId bombProjectile =
         GameEntities.createBomb(
@@ -548,10 +548,10 @@ public class WeaponsSystem extends AbstractGameSystem
 
   private boolean createProjectileMine(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
-    Mine entityMine = this.mines.getEntity(requester).get(Mine.class);
+    MineCurrentLevel mineCurrentLevel = this.mines.getEntity(requester).get(MineCurrentLevel.class);
     MineCost mc = this.mines.getEntity(requester).get(MineCost.class);
 
-    final String mineShape = CoreGameConstants.MINELEVELPREPENDTEXT + entityMine.getLevel().level;
+    final String mineShape = CoreGameConstants.MINELEVELPREPENDTEXT + mineCurrentLevel.getLevel().level;
 
     final EntityId mineProjectile =
         GameEntities.createMine(
@@ -570,14 +570,14 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requester = requesterEntity.getId();
     switch (flag) {
       case GUN:
-        Gun entityGun = this.guns.getEntity(requester).get(Gun.class);
+        GunCurrentLevel gunCurrentLevel = this.guns.getEntity(requester).get(GunCurrentLevel.class);
         GameSounds.createBulletSound(
-            ed, requester, physicsSpace, time, info.location, entityGun.getLevel());
+            ed, requester, physicsSpace, time, info.location, gunCurrentLevel.getLevel());
         return true;
       case BOMB:
-        Bomb entityBomb = this.bombs.getEntity(requester).get(Bomb.class);
+        BombCurrentLevel bombCurrentLevel = this.bombs.getEntity(requester).get(BombCurrentLevel.class);
         GameSounds.createBombSound(
-            ed, requester, physicsSpace, time, info.location, entityBomb.getLevel());
+            ed, requester, physicsSpace, time, info.location, bombCurrentLevel.getLevel());
         return true;
       case GRAVBOMB:
         GravityBomb entityGravBomb = this.gravityBombs.getEntity(requester).get(GravityBomb.class);
@@ -585,9 +585,9 @@ public class WeaponsSystem extends AbstractGameSystem
             ed, requester, physicsSpace, time, info.location, entityGravBomb.getLevel());
         return true;
       case MINE:
-        Mine mine = this.mines.getEntity(requester).get(Mine.class);
+        MineCurrentLevel mineCurrentLevel = this.mines.getEntity(requester).get(MineCurrentLevel.class);
         GameSounds.createMineSound(
-            ed, requester, physicsSpace, time, info.location, mine.getLevel());
+            ed, requester, physicsSpace, time, info.location, mineCurrentLevel.getLevel());
         break;
       case BURST:
         break;

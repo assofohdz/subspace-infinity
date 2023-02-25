@@ -34,18 +34,18 @@ import infinity.es.SphereShape;
 import infinity.es.ship.Player;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
-import infinity.es.ship.weapons.Bomb;
+import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BombMax;
-import infinity.es.ship.weapons.Gun;
+import infinity.es.ship.weapons.BombMaxLevel;
+import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.GunMax;
-import infinity.es.ship.weapons.Mine;
+import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineFireDelay;
-import infinity.es.ship.weapons.MineMax;
+import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.sim.CollisionFilters;
 import infinity.sim.CoreGameConstants;
 import infinity.sim.GameEntities;
@@ -394,32 +394,32 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
    * @param ship The ship that picked up the bomb prize.
    */
   private void handleAcquireMine(EntityId ship) {
-    Mine mine = ed.getComponent(ship, Mine.class);
-    MineMax mineMax = ed.getComponent(ship, MineMax.class);
-    if (mine != null && mine.getLevel().level < mineMax.getLevel().level) {
-      log.info("Ship {} picked up mine prize and now has {} mines", ship, (mine.getLevel().next()));
-      ed.setComponent(ship, new Mine(mine.getLevel().next()));
-    } else if (mine == null && mineMax != null) {
+    MineCurrentLevel mineCurrentLevel = ed.getComponent(ship, MineCurrentLevel.class);
+    MineMaxLevel mineMaxLevel = ed.getComponent(ship, MineMaxLevel.class);
+    if (mineCurrentLevel != null && mineCurrentLevel.getLevel().level < mineMaxLevel.getLevel().level) {
+      log.info("Ship {} picked up mine prize and now has {} mines", ship, (mineCurrentLevel.getLevel().next()));
+      ed.setComponent(ship, new MineCurrentLevel(mineCurrentLevel.getLevel().next()));
+    } else if (mineCurrentLevel == null && mineMaxLevel != null) {
       log.info("Ship {} picked up mine prize", ship);
-      ed.setComponent(ship, new Mine(Bombs.BOMB_1));
+      ed.setComponent(ship, new MineCurrentLevel(Bombs.BOMB_1));
       ed.setComponent(ship, new MineCost(CoreGameConstants.MINECOST));
       ed.setComponent(ship, new MineFireDelay(CoreGameConstants.MINECOOLDOWN));
-      ed.setComponent(ship, new MineMax(Bombs.BOMB_4));
+      ed.setComponent(ship, new MineMaxLevel(Bombs.BOMB_4));
     }
   }
 
   private void handleAcquireBomb(EntityId ship) {
-    Bomb bomb = ed.getComponent(ship, Bomb.class);
-    BombMax bombMax = ed.getComponent(ship, BombMax.class);
-    if (bomb != null && bomb.getLevel().level < bombMax.getLevel().level) {
-      log.info("Ship {} picked up bomb prize and now has {} bombs", ship, (bomb.getLevel().next()));
-      ed.setComponent(ship, new Bomb(bomb.getLevel().next()));
-    } else if (bomb == null && bombMax != null) {
+    BombCurrentLevel bombCurrentLevel = ed.getComponent(ship, BombCurrentLevel.class);
+    BombMaxLevel bombMaxLevel = ed.getComponent(ship, BombMaxLevel.class);
+    if (bombCurrentLevel != null && bombCurrentLevel.getLevel().level < bombMaxLevel.getLevel().level) {
+      log.info("Ship {} picked up bomb prize and now has {} bombs", ship, (bombCurrentLevel.getLevel().next()));
+      ed.setComponent(ship, new BombCurrentLevel(bombCurrentLevel.getLevel().next()));
+    } else if (bombCurrentLevel == null && bombMaxLevel != null) {
       log.info("Ship {} picked up bomb prize", ship);
-      ed.setComponent(ship, new Bomb(Bombs.BOMB_1));
+      ed.setComponent(ship, new BombCurrentLevel(Bombs.BOMB_1));
       ed.setComponent(ship, new BombCost(CoreGameConstants.BOMBCOST));
       ed.setComponent(ship, new BombFireDelay(CoreGameConstants.BOMBCOOLDOWN));
-      ed.setComponent(ship, new BombMax(Bombs.BOMB_4));
+      ed.setComponent(ship, new BombMaxLevel(Bombs.BOMB_4));
     }
   }
 
@@ -436,17 +436,17 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   }
 
   private void handleAcquireGun(EntityId ship) {
-    Gun gun = ed.getComponent(ship, Gun.class);
-    GunMax max = ed.getComponent(ship, GunMax.class);
-    if (gun != null && gun.getLevel().level < max.getLevel().level) {
-      log.info("Gun level increased to {}", (gun.getLevel().next()));
-      ed.setComponent(ship, new Gun(gun.getLevel().next()));
-    } else if (gun == null) {
+    GunCurrentLevel gunCurrentLevel = ed.getComponent(ship, GunCurrentLevel.class);
+    GunMaxLevel max = ed.getComponent(ship, GunMaxLevel.class);
+    if (gunCurrentLevel != null && gunCurrentLevel.getLevel().level < max.getLevel().level) {
+      log.info("Gun level increased to {}", (gunCurrentLevel.getLevel().next()));
+      ed.setComponent(ship, new GunCurrentLevel(gunCurrentLevel.getLevel().next()));
+    } else if (gunCurrentLevel == null) {
       log.info("Ship {} just acquired guns and now has level {} guns", ship, 1);
-      ed.setComponent(ship, new Gun(Guns.LEVEL_1));
+      ed.setComponent(ship, new GunCurrentLevel(Guns.LEVEL_1));
       ed.setComponent(ship, new GunCost(CoreGameConstants.GUNCOST));
       ed.setComponent(ship, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-      ed.setComponent(ship, new GunMax(Guns.LEVEL_4));
+      ed.setComponent(ship, new GunMaxLevel(Guns.LEVEL_4));
     }
   }
 

@@ -29,19 +29,19 @@ import com.simsilica.es.EntityComponent;
 import infinity.Bombs;
 
 /**
- * Max level bombs an entity can acquire
+ * Max level mines an entity can acquire
  *
  * @author Asser
  */
-public class BombMax implements EntityComponent {
+public class MineMaxLevel implements EntityComponent {
 
     Bombs level;
 
-    public BombMax(final Bombs level) {
-        this.level = level;
-    }
-
     public Bombs getLevel() {
         return level;
+    }
+
+    public MineMaxLevel(final Bombs count) {
+        level = count;
     }
 }
