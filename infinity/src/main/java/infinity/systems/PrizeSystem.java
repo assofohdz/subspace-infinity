@@ -37,16 +37,16 @@ import infinity.es.ship.actions.BurstMax;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunCost;
+import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunFireDelay;
 import infinity.es.ship.weapons.GunMaxLevel;
-import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.sim.CollisionFilters;
@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class PrizeSystem extends AbstractGameSystem implements ContactListener {
+public class PrizeSystem extends AbstractGameSystem implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
   private final PhysicsSpace<EntityId, MBlockShape> phys;
@@ -92,7 +92,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
 
     ed = getSystem(EntityData.class);
 
-    ComponentFilter prizeSpawnerFilter =
+    ComponentFilter<?> prizeSpawnerFilter =
         FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
 
     prizeSpawners =
@@ -105,10 +105,10 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
 
     rc = RandomSelector.weighted(prizeWeights.keySet(), prizeWeights::get);
 
-    ComponentFilter shipColliderFilter =
+    ComponentFilter<?> shipColliderFilter =
         FieldFilter.create(
             CollisionCategory.class, "filter", CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS);
-    ComponentFilter prizeColliderFilter =
+    ComponentFilter<?> prizeColliderFilter =
         FieldFilter.create(
             CollisionCategory.class, "filter", CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS);
     // Can be updated later to include bots
@@ -288,7 +288,10 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     log.info("Ship {} picked up prize: {}", ship, pt.getTypeName(ed));
     switch (pt.getTypeName(ed)) {
       case PrizeTypes.ALLWEAPONS:
-        // TODO: Handle aquiring all weapons
+        handleAcquireBomb(ship);
+        handleAcquireBurst(ship);
+        handleAcquireGun(ship);
+        handleAcquireMine(ship);
         break;
       case PrizeTypes.ANTIWARP:
         // TODO: Handle acquiring antiwarp
@@ -392,7 +395,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
     ThorMaxCount thorMaxCount = ed.getComponent(ship, ThorMaxCount.class);
     if (thorCurrentCount != null && thorCurrentCount.getCount() < thorMaxCount.getCount()) {
       ThorCurrentCount thorNextCount = thorCurrentCount.add(1);
-      log.info("Ship {} picked up thor prize and now has {} thor", ship, (thorNextCount.getCount()));
+      log.info(
+          "Ship {} picked up thor prize and now has {} thor", ship, (thorNextCount.getCount()));
       ed.setComponent(ship, thorNextCount);
     } else if (thorMaxCount != null) {
       log.info("Ship {} picked up thor prize", ship);
@@ -413,8 +417,12 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   private void handleAcquireMine(EntityId ship) {
     MineCurrentLevel mineCurrentLevel = ed.getComponent(ship, MineCurrentLevel.class);
     MineMaxLevel mineMaxLevel = ed.getComponent(ship, MineMaxLevel.class);
-    if (mineCurrentLevel != null && mineCurrentLevel.getLevel().level < mineMaxLevel.getLevel().level) {
-      log.info("Ship {} picked up mine prize and now has {} mines", ship, (mineCurrentLevel.getLevel().next()));
+    if (mineCurrentLevel != null
+        && mineCurrentLevel.getLevel().level < mineMaxLevel.getLevel().level) {
+      log.info(
+          "Ship {} picked up mine prize and now has {} mines",
+          ship,
+          (mineCurrentLevel.getLevel().next()));
       ed.setComponent(ship, new MineCurrentLevel(mineCurrentLevel.getLevel().next()));
     } else if (mineCurrentLevel == null && mineMaxLevel != null) {
       log.info("Ship {} picked up mine prize", ship);
@@ -428,8 +436,12 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener {
   private void handleAcquireBomb(EntityId ship) {
     BombCurrentLevel bombCurrentLevel = ed.getComponent(ship, BombCurrentLevel.class);
     BombMaxLevel bombMaxLevel = ed.getComponent(ship, BombMaxLevel.class);
-    if (bombCurrentLevel != null && bombCurrentLevel.getLevel().level < bombMaxLevel.getLevel().level) {
-      log.info("Ship {} picked up bomb prize and now has {} bombs", ship, (bombCurrentLevel.getLevel().next()));
+    if (bombCurrentLevel != null
+        && bombCurrentLevel.getLevel().level < bombMaxLevel.getLevel().level) {
+      log.info(
+          "Ship {} picked up bomb prize and now has {} bombs",
+          ship,
+          (bombCurrentLevel.getLevel().next()));
       ed.setComponent(ship, new BombCurrentLevel(bombCurrentLevel.getLevel().next()));
     } else if (bombCurrentLevel == null && bombMaxLevel != null) {
       log.info("Ship {} picked up bomb prize", ship);
