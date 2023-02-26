@@ -180,14 +180,6 @@ public class AvatarMovementFunctions {
       inputMapper.map(F_GRAVBOMB, KeyInput.KEY_BACKSLASH);
     }
 
-    if (!inputMapper.hasMappings(F_GRAVBOMB)) {
-      inputMapper.map(F_GRAVBOMB, KeyInput.KEY_BACKSLASH);
-    }
-
-    if (!inputMapper.hasMappings(F_MINE)) {
-      inputMapper.map(F_MINE, KeyInput.KEY_TAB);
-    }
-
     if (!inputMapper.hasMappings(F_SHOOT)) {
       inputMapper.map(F_SHOOT, KeyInput.KEY_LCONTROL);
     }

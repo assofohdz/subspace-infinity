@@ -296,7 +296,9 @@ public class AvatarMovementState extends BaseAppState
   public void valueActive(FunctionId func, double value, double tpf) {
     if (func == AvatarMovementFunctions.F_GRAVBOMB) {
       session.attack(WeaponsSystem.GRAVBOMB);
-    } else if (func == AvatarMovementFunctions.F_MINE && shiftPressed) {
+    } else if (func == AvatarMovementFunctions.F_BOMB && !shiftPressed) {
+      session.attack(WeaponsSystem.BOMB);
+    } else if (func == AvatarMovementFunctions.F_BOMB && shiftPressed) {
       session.attack(WeaponsSystem.MINE);
     } else if (func == AvatarMovementFunctions.F_THOR) {
       session.action(ActionSystem.FIRETHOR);
@@ -304,9 +306,7 @@ public class AvatarMovementState extends BaseAppState
       session.action(ActionSystem.REPEL);
     } else if (func == AvatarMovementFunctions.F_BURST) {
       session.action(ActionSystem.FIREBURST);
-    } else if (func == AvatarMovementFunctions.F_BOMB && !shiftPressed) {
-      session.attack(WeaponsSystem.BOMB);
-    } else if (func == AvatarMovementFunctions.F_SHOOT && !shiftPressed) {
+    }  else if (func == AvatarMovementFunctions.F_SHOOT && !shiftPressed) {
       session.attack(WeaponsSystem.GUN);
     }
   }

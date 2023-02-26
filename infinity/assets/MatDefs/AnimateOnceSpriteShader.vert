@@ -21,7 +21,7 @@ void main(){
     int selectedTileX = int(mod(float(tileDistance), m_numTilesX));
     int selectedTileY = int(mod(float(tileDistance), m_numTilesY));
 
-    completed = (tileDistance / m_numTilesX ;
+    completed = (tileDistance / m_numTilesX);
 
     texCoordAni.x = (float(float(inTexCoord.x/m_numTilesX) + float(selectedTileX)/float(m_numTilesX)));
     texCoordAni.y = (float(float(inTexCoord.y/m_numTilesY) + float(selectedTileY)/float(m_numTilesY)));
