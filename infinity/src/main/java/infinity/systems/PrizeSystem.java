@@ -31,6 +31,7 @@ import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
+import infinity.es.ship.Energy;
 import infinity.es.ship.Player;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
@@ -337,7 +338,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         // TODO: Handle acquiring proximity
         break;
       case PrizeTypes.QUICKCHARGE:
-        // TODO: Handle acquiring quickcharge
+        getSystem(EnergySystem.class).setHealthToMax(ship);
         break;
       case PrizeTypes.RECHARGE:
         // TODO: Handle acquiring recharge

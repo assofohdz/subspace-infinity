@@ -23,13 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package infinity.systems;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -37,191 +32,213 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-
 import infinity.es.Buff;
 import infinity.es.Dead;
 import infinity.es.HealthChange;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Recharge;
+import java.util.HashMap;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Watches entities with hitpoints and entities with health changes and applies
- * them to the hitpoints of an entity, possibly causing death.
+ * Watches entities with hitpoints and entities with health changes and applies them to the
+ * hitpoints of an entity, possibly causing death.
  *
  * @author Paul Speed
  */
 public class EnergySystem extends AbstractGameSystem {
 
-    static Logger log = LoggerFactory.getLogger(EnergySystem.class);
+  static Logger log = LoggerFactory.getLogger(EnergySystem.class);
+  private final Map<EntityId, Integer> health = new HashMap<>();
+  private EntityData ed;
+  private EntitySet living;
+  private EntitySet changes;
+  private EntitySet recharges;
+  private EntitySet maxLiving;
 
-    private EntityData ed;
-    private EntitySet living;
-    private EntitySet changes;
-    private final Map<EntityId, Integer> health = new HashMap<>();
-    private EntitySet recharges;
-    private EntitySet maxLiving;
+  public EnergySystem() {
+    // Nothing to do
+  }
 
-    public EnergySystem() {
+  @Override
+  protected void initialize() {
+
+    ed = getSystem(EntityData.class);
+    living = ed.getEntities(Energy.class);
+    changes = ed.getEntities(Buff.class, HealthChange.class);
+
+    recharges = ed.getEntities(Energy.class, Recharge.class);
+
+    maxLiving = ed.getEntities(Energy.class, EnergyMax.class);
+  }
+
+  @Override
+  protected void terminate() {
+    // Release the entity set we grabbed previously
+    living.release();
+    living = null;
+
+    changes.release();
+    changes = null;
+
+    recharges.release();
+    recharges = null;
+
+    maxLiving.release();
+    maxLiving = null;
+  }
+
+  @Override
+  public void update(final SimTime time) {
+
+    // We accumulate all health adjustments together that are
+    // in effect at this time... and then apply them all at once.
+    // Make sure our entity views are up-to-date as of
+    // now.
+    living.applyChanges();
+    maxLiving.applyChanges();
+    changes.applyChanges();
+
+    // Collect all of the relevant health updates
+    for (final Entity e : changes) {
+      final Buff b = e.get(Buff.class);
+
+      // Does the buff apply yet
+      if (b.getStartTime() > time.getTime()) {
+        continue;
+      }
+
+      final HealthChange change = e.get(HealthChange.class);
+      Integer hp = health.get(b.getTarget());
+      if (hp == null) {
+        hp = Integer.valueOf(change.getDelta());
+      } else {
+        hp = Integer.valueOf(hp.intValue() + change.getDelta());
+      }
+      health.put(b.getTarget(), hp);
+
+      // Delete the buff entity
+      ed.removeEntity(e.getId());
     }
 
-    @Override
-    protected void initialize() {
+    // Perform recharges
+    recharges.applyChanges();
+    for (final Entity e : recharges) {
 
-        ed = getSystem(EntityData.class);
-        living = ed.getEntities(Energy.class);
-        changes = ed.getEntities(Buff.class, HealthChange.class);
-
-        recharges = ed.getEntities(Energy.class, Recharge.class);
-
-        maxLiving = ed.getEntities(Energy.class, EnergyMax.class);
-    }
-
-    @Override
-    protected void terminate() {
-        // Release the entity set we grabbed previously
-        living.release();
-        living = null;
-
-        changes.release();
-        changes = null;
-
-        recharges.release();
-        recharges = null;
-
-        maxLiving.release();
-        maxLiving = null;
-    }
-
-    @Override
-    public void update(final SimTime time) {
-
-        // We accumulate all health adjustments together that are
-        // in effect at this time... and then apply them all at once.
-        // Make sure our entity views are up-to-date as of
-        // now.
-        living.applyChanges();
-        maxLiving.applyChanges();
-        changes.applyChanges();
-
-        // Collect all of the relevant health updates
-        for (final Entity e : changes) {
-            final Buff b = e.get(Buff.class);
-
-            // Does the buff apply yet
-            if (b.getStartTime() > time.getTime()) {
-                continue;
-            }
-
-            final HealthChange change = e.get(HealthChange.class);
-            Integer hp = health.get(b.getTarget());
-            if (hp == null) {
-                hp = Integer.valueOf(change.getDelta());
-            } else {
-                hp = Integer.valueOf(hp.intValue() + change.getDelta());
-            }
-            health.put(b.getTarget(), hp);
-
-            // Delete the buff entity
-            ed.removeEntity(e.getId());
+      if (maxLiving.containsId(e.getId())) {
+        if (getHealth(e.getId()) < getMaxHealth(e.getId())) {
+          final double tpf = time.getTpf();
+          final Recharge recharge = e.get(Recharge.class);
+          final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
+          damage(e.getId(), charge);
         }
+      } else {
+        final double tpf = time.getTpf();
+        final Recharge recharge = e.get(Recharge.class);
+        final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
+        damage(e.getId(), charge);
+      }
+    }
 
-        // Perform recharges
-        recharges.applyChanges();
-        for (final Entity e : recharges) {
+    // Now apply all accumulated adjustments
+    for (final Map.Entry<EntityId, Integer> entry : health.entrySet()) {
+      final Entity target = living.getEntity(entry.getKey());
 
-            if (maxLiving.containsId(e.getId())) {
-                if (getHealth(e.getId()) < getMaxHealth(e.getId())) {
-                    final double tpf = time.getTpf();
-                    final Recharge recharge = e.get(Recharge.class);
-                    final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-                    damage(e.getId(), charge);
-                }
-            } else {
-                final double tpf = time.getTpf();
-                final Recharge recharge = e.get(Recharge.class);
-                final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-                damage(e.getId(), charge);
-            }
+      if (target == null) {
+        log.warn("No target for id: {}", entry.getKey());
+        continue;
+      }
+
+      Energy hp = target.get(Energy.class);
+
+      // If we dont have a max hitpoint, just set new hp
+      if (!maxLiving.containsId(target.getId())) {
+        hp = hp.newAdjusted(entry.getValue().intValue());
+      } else {
+        // If we do have a maximum
+        final EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
+        // Check if we go above max hp
+        if (entry.getValue().intValue() <= maxHp.getMaxHealth()) {
+          hp = hp.newAdjusted(entry.getValue().intValue());
+        } else {
+          // Otherwise, set new hp
+          hp = hp.newAdjusted(maxHp.getMaxHealth());
         }
+      }
 
-        // Now apply all accumulated adjustments
-        for (final Map.Entry<EntityId, Integer> entry : health.entrySet()) {
-            final Entity target = living.getEntity(entry.getKey());
+      target.set(hp);
 
-            if (target == null) {
-                log.warn("No target for id:" + entry.getKey());
-                continue;
-            }
-
-            Energy hp = target.get(Energy.class);
-
-            // if (log.isInfoEnabled()) {
-            // log.info("Applying " + entry.getValue() + " to:" + target + " result:" + hp);
-            // }
-
-            // If we dont have a max hitpoint, just set new hp
-            if (!maxLiving.containsId(target.getId())) {
-                hp = hp.newAdjusted(entry.getValue().intValue());
-            } // If we do have a maximum
-            else {
-                final EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
-                // Check if we go above max hp
-                if (entry.getValue().intValue() <= maxHp.getMaxHealth()) {
-                    hp = hp.newAdjusted(entry.getValue().intValue());
-                } // Otherwise, set new hp
-                else {
-                    hp = hp.newAdjusted(maxHp.getMaxHealth());
-                }
-            }
-
-            target.set(hp);
-
-            if (hp.getHealth() <= 0) {
-                System.out.println(target + " is dead");
-                // don't set death if it is already dead.
-                if (ed.getComponent(target.getId(), Dead.class) == null) {
-                    target.set(new Dead(time.getTime()));
-                }
-            }
+      if (hp.getHealth() <= 0) {
+        log.info("Entity " + target.getId() + " died");
+        // don't set death if it is already dead.
+        if (ed.getComponent(target.getId(), Dead.class) == null) {
+          target.set(new Dead(time.getTime()));
         }
-
-        // Clear our health book-keeping map.
-        health.clear();
-
+      }
     }
 
-    /**
-     * @param eId the entityid to check
-     * @return true if the entity has health, false if not
-     */
-    public boolean hasEnergy(final EntityId eId) {
-        return living.containsId(eId);
-    }
+    // Clear our health book-keeping map.
+    health.clear();
+  }
 
-    /**
-     * @param eId the entityid to check
-     * @return the health of the entity
-     */
-    public int getHealth(final EntityId eId) {
-        return living.getEntity(eId).get(Energy.class).getHealth();
-    }
+  /**
+   * Returns true if the entity has health.
+   *
+   * @param entityId the entityid to check
+   * @return true if the entity has health, false if not
+   */
+  public boolean hasEnergy(final EntityId entityId) {
+    return living.containsId(entityId);
+  }
 
-    /**
-     * @param eId the entity to check
-     * @return the maximum health of the entity
-     */
-    public int getMaxHealth(final EntityId eId) {
-        return maxLiving.getEntity(eId).get(EnergyMax.class).getMaxHealth();
-    }
+  /**
+   * Returns the current health of the entity.
+   *
+   * @param entityId the entityid to check
+   * @return the health of the entity
+   */
+  public int getHealth(final EntityId entityId) {
+    return living.getEntity(entityId).get(Energy.class).getHealth();
+  }
 
-    /**
-     * @param eId            the entity to create a health change for
-     * @param deltaHitPoints the change in hitpoints (can be both positive an
-     *                       negative)
-     */
-    public void damage(final EntityId eId, final int deltaHitPoints) {
-        final EntityId healthChange = ed.createEntity();
-        ed.setComponents(healthChange, new Buff(eId, 0), new HealthChange(deltaHitPoints));
-    }
+  /**
+   * Returns the maximum health of the entity.
+   *
+   * @param entityId the entity to check
+   * @return the maximum health of the entity
+   */
+  public int getMaxHealth(final EntityId entityId) {
+    return maxLiving.getEntity(entityId).get(EnergyMax.class).getMaxHealth();
+  }
+
+  /**
+   * Creates a health change for the specified entity. The health change will be applied at the next
+   * update.
+   *
+   * @param entityId the entity to create a health change for
+   * @param deltaHitPoints the change in hitpoints (can be both positive an negative)
+   */
+  public void damage(final EntityId entityId, final int deltaHitPoints) {
+    final EntityId healthChange = ed.createEntity();
+    ed.setComponents(healthChange, new Buff(entityId, 0), new HealthChange(deltaHitPoints));
+  }
+
+  /**
+   * Sets the health of the entity to full health.
+   *
+   * @param entityId the entity to set to full health (must have a Health component) (must have a
+   *     HealthMax component)
+   * @return the new health of the entity
+   */
+  public int setHealthToMax(final EntityId entityId) {
+    final Entity e = ed.getEntity(entityId);
+    final Energy hp = e.get(Energy.class);
+    final EnergyMax maxHp = e.get(EnergyMax.class);
+    final Energy newHp = hp.newAdjusted(maxHp.getMaxHealth());
+    e.set(newHp);
+    return newHp.getHealth();
+  }
 }
