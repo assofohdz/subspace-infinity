@@ -47,7 +47,9 @@ public class CoreViewConstants {
   public static final float FLAGSIZE = 1;
   public static final float BASESIZE = 5f;
   public static final float BURSTSIZE = 0.25f;
-  public static final float EXPLOSION2SIZE = 2f;
+  public static final float EXPLOSION2SIZE = 3f;
+  public static final float EXPLOSION1SIZE = 2f;
+  public static final float EXPLOSION0SIZE = 0.5f;
   public static final float WORMHOLESIZE = 4f;
   public static final float OVER1SIZE = 1f;
   public static final float OVER2SIZE = 2f;
@@ -58,6 +60,8 @@ public class CoreViewConstants {
   public static final int ARENASIZE = 1024;
   // Decays must be in milliseconds
   public static final long EXPLOSION2DECAY = 2000;
+  public static final long EXPLOSION1DECAY = 1500;
+  public static final long EXPLOSION0DECAY = 500;
   public static final long WARPDECAY = 800;
   public static final long REPELDECAY = 400;
   // LightSize radius

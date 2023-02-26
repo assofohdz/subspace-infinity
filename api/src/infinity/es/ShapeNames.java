@@ -19,10 +19,6 @@ import infinity.sim.util.InfinityRunTimeException;
  */
 public class ShapeNames {
 
-  private ShapeNames(){
-    throw new InfinityRunTimeException("This class should not be instantiated");
-  }
-
   public static final String SHIP_SHARK = "ship_shark";
   public static final String SHIP_WARBIRD = "ship_warbird";
   public static final String SHIP_JAVELIN = "ship_javelin";
@@ -33,35 +29,31 @@ public class ShapeNames {
   public static final String SHIP_LANCASTER = "ship_lancaster";
   public static final String GRAV_SPHERE = "gravSphere";
   public static final String THRUST = "thrust";
-  public static final String EXPLOSION = "explosion";
-
   public static final String BULLETL1 = "bullet_l1";
   public static final String BULLETL2 = "bullet_l2";
   public static final String BULLETL3 = "bullet_l3";
   public static final String BULLETL4 = "bullet_l4";
-
   public static final String BOMBL1 = "bomb_l1";
   public static final String BOMBL2 = "bomb_l2";
   public static final String BOMBL3 = "bomb_l3";
   public static final String BOMBL4 = "bomb_l4";
-
   public static final String MINEL1 = "mine_l1";
   public static final String MINEL2 = "mine_l2";
   public static final String MINEL3 = "mine_l3";
   public static final String MINEL4 = "mine_l4";
-
   public static final String EMPL1 = "emp_l1";
   public static final String EMPL2 = "emp_l2";
   public static final String EMPL3 = "emp_l3";
   public static final String EMPL4 = "emp_l4";
-
   public static final String THOR = "thor";
   public static final String BURST = "burst";
-
   public static final String PRIZE = "bounty";
   public static final String ARENA = "arena";
   public static final String MAPTILE = "maptile";
-  public static final String EXPLOSION2 = "explosion2";
+  public static final String EXPLOSION = "explosionEffect";
+  public static final String EXPLODE_0 = "explode0";
+  public static final String EXPLODE_1 = "explode1";
+  public static final String EXPLODE_2 = "explode2";
   public static final String OVER1 = "over1";
   public static final String OVER2 = "over2";
   public static final String OVER5 = "over5";
@@ -71,8 +63,13 @@ public class ShapeNames {
   public static final String FLAG = "flag";
   public static final String DOOR = "door";
 
+  private ShapeNames() {
+    throw new InfinityRunTimeException("This class should not be instantiated");
+  }
+
   /**
    * Creates a ship shape based on the ship type.
+   *
    * @param ship the ship type
    * @param ed the entity data
    * @return the shape info

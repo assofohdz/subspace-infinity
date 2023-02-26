@@ -14,6 +14,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
 import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
@@ -27,23 +28,26 @@ import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
+import infinity.es.ShapeNames;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.ThorCurrentCount;
-import infinity.es.ship.weapons.BombCurrentLevel;
+import infinity.es.ship.actions.Thor;
 import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.Bounce;
 import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
-import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunCost;
+import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
+import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.sim.util.InfinityRunTimeException;
@@ -162,8 +166,8 @@ public class WeaponsSystem extends AbstractGameSystem
      * one by one
      *
      * Not sure if this is needed or there is a queue system already in place by the session
-     * framework. 25-02-2023: Maybe the right way is to create "attack entities" that are then handled through
-     * an entityset.
+     * framework. 25-02-2023: Maybe the right way is to create "attack entities" that are
+     * then handled through an entityset.
      */
     final Iterator<Attack> iterator = sessionAttackCreations.iterator();
     while (iterator.hasNext()) {
@@ -389,8 +393,8 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requester = requesterEntity.getId();
 
     GunCurrentLevel gunCurrentLevel = this.guns.getEntity(requester).get(GunCurrentLevel.class);
-    GunCost gc = this.guns.getEntity(requester).get(GunCost.class);
-    final String bulletShape = CoreGameConstants.BULLETLEVELPREPENDTEXT + gunCurrentLevel.getLevel().level;
+    final String bulletShape =
+        CoreGameConstants.BULLETLEVELPREPENDTEXT + gunCurrentLevel.getLevel().level;
 
     EntityId gunProjectile;
     gunProjectile =
@@ -404,15 +408,20 @@ public class WeaponsSystem extends AbstractGameSystem
             CoreGameConstants.BULLETDECAY,
             bulletShape);
 
-    ed.setComponent(gunProjectile, new Damage(CoreGameConstants.BULLETDAMAGE));
+    ed.setComponent(
+        gunProjectile,
+        new Damage(
+            CoreViewConstants.EXPLOSION0DECAY,
+            CoreGameConstants.BULLETDAMAGE,
+            ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
   }
 
   private void createProjectileBomb(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
     BombCurrentLevel bombCurrentLevel = this.bombs.getEntity(requester).get(BombCurrentLevel.class);
-    BombCost bc = this.bombs.getEntity(requester).get(BombCost.class);
 
-    final String bombShape = CoreGameConstants.BOMBLEVELPREPENDTEXT + bombCurrentLevel.getLevel().level;
+    final String bombShape =
+        CoreGameConstants.BOMBLEVELPREPENDTEXT + bombCurrentLevel.getLevel().level;
 
     final EntityId bombProjectile =
         GameEntities.createBomb(
@@ -424,7 +433,12 @@ public class WeaponsSystem extends AbstractGameSystem
             info.getAttackVelocity(),
             CoreGameConstants.BULLETDECAY,
             bombShape);
-    ed.setComponent(bombProjectile, new Damage(CoreGameConstants.BOMBDAMAGE));
+    ed.setComponent(
+        bombProjectile,
+        new Damage(
+            CoreViewConstants.EXPLOSION1DECAY,
+            CoreGameConstants.BOMBDAMAGE,
+            ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
   private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
@@ -451,7 +465,12 @@ public class WeaponsSystem extends AbstractGameSystem
             delayedComponents,
             CoreGameConstants.BOMBLEVELPREPENDTEXT + gravityBomb.getLevel());
 
-    ed.setComponent(projectile, new Damage(CoreGameConstants.GRAVBOMBDAMAGE));
+    ed.setComponent(
+        projectile,
+        new Damage(
+            CoreViewConstants.EXPLOSION1DECAY,
+            CoreGameConstants.GRAVBOMBDAMAGE,
+            ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
   private void createProjectileBurst(Entity requesterEntity, long time) {
@@ -481,7 +500,12 @@ public class WeaponsSystem extends AbstractGameSystem
               info.getLocation(),
               info.getAttackVelocity(),
               CoreGameConstants.BULLETDECAY);
-      ed.setComponent(projectile, new Damage(20));
+      ed.setComponent(
+          projectile,
+          new Damage(
+              CoreViewConstants.EXPLOSION0DECAY,
+              20,
+              ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
     }
   }
 
@@ -513,7 +537,8 @@ public class WeaponsSystem extends AbstractGameSystem
     MineCurrentLevel mineCurrentLevel = this.mines.getEntity(requester).get(MineCurrentLevel.class);
     MineCost mc = this.mines.getEntity(requester).get(MineCost.class);
 
-    final String mineShape = CoreGameConstants.MINELEVELPREPENDTEXT + mineCurrentLevel.getLevel().level;
+    final String mineShape =
+        CoreGameConstants.MINELEVELPREPENDTEXT + mineCurrentLevel.getLevel().level;
 
     final EntityId mineProjectile =
         GameEntities.createMine(
@@ -524,7 +549,12 @@ public class WeaponsSystem extends AbstractGameSystem
             info.getLocation(),
             CoreGameConstants.MINEDECAY,
             mineShape);
-    ed.setComponent(mineProjectile, new Damage(mc.getCost()));
+    ed.setComponent(
+        mineProjectile,
+        new Damage(
+            CoreViewConstants.EXPLOSION1DECAY,
+            mc.getCost(),
+            ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
     return true;
   }
 
@@ -537,7 +567,8 @@ public class WeaponsSystem extends AbstractGameSystem
             ed, requester, physicsSpace, time, info.location, gunCurrentLevel.getLevel());
         return true;
       case BOMB:
-        BombCurrentLevel bombCurrentLevel = this.bombs.getEntity(requester).get(BombCurrentLevel.class);
+        BombCurrentLevel bombCurrentLevel =
+            this.bombs.getEntity(requester).get(BombCurrentLevel.class);
         GameSounds.createBombSound(
             ed, requester, physicsSpace, time, info.location, bombCurrentLevel.getLevel());
         return true;
@@ -547,7 +578,8 @@ public class WeaponsSystem extends AbstractGameSystem
             ed, requester, physicsSpace, time, info.location, entityGravBomb.getLevel());
         return true;
       case MINE:
-        MineCurrentLevel mineCurrentLevel = this.mines.getEntity(requester).get(MineCurrentLevel.class);
+        MineCurrentLevel mineCurrentLevel =
+            this.mines.getEntity(requester).get(MineCurrentLevel.class);
         GameSounds.createMineSound(
             ed, requester, physicsSpace, time, info.location, mineCurrentLevel.getLevel());
         break;
@@ -659,53 +691,85 @@ public class WeaponsSystem extends AbstractGameSystem
     sessionAttackCreations.add(new Attack(attacker, flag));
   }
 
+  /**
+   * The case of our bomb hitting ourselves is handled in the ContactSystem. Here we want to handle
+   * the case where an entity that has a Damage component hits an entity that has a Health
+   * component. We also want the handle the case where a projectile hits the world.
+   *
+   * <p>We cannot be sure that the entitysets are updated, so we have to inquire about the entities
+   * here and now.
+   *
+   * @param contact the contact
+   */
   @Override
   public void newContact(Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
     EntityId idOne = body1.id;
+    Entity entity1 = ed.getEntity(idOne, Damage.class, Bounce.class, Thor.class, Energy.class);
 
-    // The case of our bomb hitting ourselves is handled in the ContactSystem.
-    // Here we want to handle the case where an entity that has a Damage component hits an entity
-    // that has a Health component. We also want the handle the case where a projectile hits the
-    // world.
     if (body2 instanceof RigidBody) {
+      EntityId idTwo = body2.id;
+      Entity entity2 = ed.getEntity(idTwo, Damage.class, Energy.class);
 
       log.debug("WeaponsSystem contact detected between: {} and {}", body1.id, body2.id);
 
-      EntityId idTwo = body2.id;
-
-      EntityId damageId;
-      EntityId energyId;
-      if (damageEntities.containsId(idOne) && energyEntities.containsId(idTwo)) {
-        damageId = idOne;
-        energyId = idTwo;
-      } else if (damageEntities.containsId(idTwo) && energyEntities.containsId(idOne)) {
-        damageId = idTwo;
-        energyId = idOne;
+      Entity damageEntity;
+      Entity energyEntity;
+      if (entity1.get(Damage.class) != null && entity2.get(Energy.class) != null) {
+        damageEntity = entity1;
+        energyEntity = entity2;
+      } else if (entity2.get(Damage.class) != null && entity1.get(Energy.class) != null) {
+        damageEntity = entity2;
+        energyEntity = entity1;
       } else {
         return;
       }
 
-      Entity damageEntity = damageEntities.getEntity(damageId);
-      Entity energyEntity = energyEntities.getEntity(energyId);
+      Damage damage = damageEntity.get(Damage.class);
 
-      energySystem.damage(energyEntity.getId(), damageEntity.get(Damage.class).getIntendedDamage());
-
-      // TODO Find the right decay time based on animation
-      GameEntities.createExplosion2(
-          ed, EntityId.NULL_ID, physicsSpace, time.getTime(), contact.contactPoint, 2000);
-      ed.setComponent(damageId, Decay.duration(time.getTime(), 0));
+      energySystem.damage(energyEntity.getId(), damage.getIntendedDamage());
+      GameEntities.createExplosion(
+          ed,
+          EntityId.NULL_ID,
+          physicsSpace,
+          time.getTime(),
+          contact.contactPoint,
+          damage.getExplosionDecay(),
+          damage.getExplosionShape());
+      ed.setComponent(damageEntity.getId(), Decay.duration(time.getTime(), 0));
       contact.disable();
-    } else if (body2 == null && damageEntities.containsId(idOne)) {
+    } else if (body2 == null
+        && entity1.get(Damage.class) != null
+        && entity1.get(Thor.class) == null) {
       // body2 = null means that body1 is hitting the world
-      // TODO: Check if projectile should bouncy or not
-      //
-      // Retain all energy in the contact
-      contact.restitution = 1;
-      // Remove all friction so ingoing angle and outgoing angle are the same
-      contact.friction = 0;
+      // thors are handled in the action system
+      Damage damage = entity1.get(Damage.class);
+
+      Bounce bounce = ed.getComponent(idOne, Bounce.class);
+      if (bounce != null) {
+        // Retain all energy in the contact
+        contact.restitution = 1;
+        // Remove all friction so ingoing angle and outgoing angle are the same
+        contact.friction = 0;
+        if (bounce.getBounces() == 1) {
+          ed.removeComponent(idOne, Bounce.class);
+        } else {
+          ed.setComponent(idOne, bounce.decreaseBounces());
+        }
+      } else {
+        GameEntities.createExplosion(
+            ed,
+            EntityId.NULL_ID,
+            physicsSpace,
+            time.getTime(),
+            contact.contactPoint,
+            damage.getExplosionDecay(),
+            damage.getExplosionShape());
+        ed.setComponent(idOne, Decay.duration(time.getTime(), 0));
+        contact.disable();
+      }
     }
   }
 

@@ -137,7 +137,11 @@ public class SISpatialFactory {
         return createBounty();
       case ShapeNames.ARENA:
         return createArena();
-      case ShapeNames.EXPLOSION2:
+      case ShapeNames.EXPLODE_0:
+        return createExplosion0();
+      case ShapeNames.EXPLODE_1:
+        return createExplosion1();
+      case ShapeNames.EXPLODE_2:
         return createExplosion2();
       case ShapeNames.OVER5:
         return createOver5();
@@ -584,6 +588,46 @@ public class SISpatialFactory {
 
     geom.setUserData("arena", Boolean.TRUE);
 
+    return geom;
+  }
+  private Spatial createExplosion1() {
+    final Quad quad = new Quad(CoreViewConstants.EXPLOSION1SIZE, CoreViewConstants.EXPLOSION1SIZE);
+    final float halfSize = CoreViewConstants.EXPLOSION1SIZE * 0.5f;
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    quad.updateBound();
+    final Geometry geom = new Geometry("Bomb", quad);
+
+    if (UNSHADED) {
+      geom.setMaterial(assets.loadMaterial("Materials/Explode1MaterialUnshaded.j3m"));
+    } else {
+      geom.setMaterial(assets.loadMaterial("Materials/Explode1MaterialLight.j3m"));
+    }
+
+    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
+
+    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
+    return geom;
+  }
+
+
+  private Spatial createExplosion0() {
+    final Quad quad = new Quad(CoreViewConstants.EXPLOSION0SIZE, CoreViewConstants.EXPLOSION0SIZE);
+    final float halfSize = CoreViewConstants.EXPLOSION0SIZE * 0.5f;
+    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    quad.updateBound();
+    final Geometry geom = new Geometry("Bomb", quad);
+
+    if (UNSHADED) {
+      geom.setMaterial(assets.loadMaterial("Materials/Explode0MaterialUnshaded.j3m"));
+    } else {
+      geom.setMaterial(assets.loadMaterial("Materials/Explode0MaterialLight.j3m"));
+    }
+
+    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
+
+    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     return geom;
   }
 

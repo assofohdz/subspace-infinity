@@ -11,6 +11,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
@@ -22,11 +23,13 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
+import infinity.es.ShapeNames;
 import infinity.es.ship.actions.Thor;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
+import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.sim.util.InfinityRunTimeException;
@@ -165,7 +168,8 @@ public class ActionSystem extends AbstractGameSystem
             info.attackVelocity,
             CoreGameConstants.BULLETDECAY);
 
-    ed.setComponent(gunProjectile, new Damage(CoreGameConstants.THORDAMAGE));
+    ed.setComponent(gunProjectile, new Damage(CoreViewConstants.EXPLOSION1DECAY, CoreGameConstants.THORDAMAGE, ShapeInfo.create(
+        ShapeNames.EXPLODE_1, 1, ed)));
   }
 
   private boolean createSound(Entity requesterEntity, byte flag, long time, ActionPosition info) {
@@ -298,6 +302,10 @@ public class ActionSystem extends AbstractGameSystem
     if (thorProjectiles.containsId(body1.id) && body2 == null) {
       contact.disable();
     }
+  }
+
+  public boolean isThor(EntityId idOne) {
+    return thorProjectiles.containsId(idOne);
   }
 
   /** A class that holds the position information needed to create an attack. */

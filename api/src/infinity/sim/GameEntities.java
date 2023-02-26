@@ -214,19 +214,19 @@ public class GameEntities {
    * return lastTileInfo; }
    */
   // Explosion is for now only visual, so only object type and position
-  public static EntityId createExplosion2(
+  public static EntityId createExplosion(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final long decayMillis) {
+      final long decayMillis,
+      final ShapeInfo shapeInfo){
     final EntityId lastExplosion = ed.createEntity();
 
     // Explosion is a ghost
     ed.setComponents(
-        lastExplosion,
-        ShapeInfo.create(ShapeNames.EXPLOSION2, 0, ed),
+        lastExplosion,shapeInfo,
         new SpawnPosition(phys.getGrid(), pos),
         new Decay(
             createdTime,

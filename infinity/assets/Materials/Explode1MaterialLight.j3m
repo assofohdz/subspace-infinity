@@ -1,0 +1,20 @@
+Material Explode2MaterialLight : MatDefs/Multiline/AnimateMultilineSpriteLightShader.j3md {
+    MaterialParameters {
+        numTilesX : 7
+        numTilesY : 1
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+
+        DiffuseMap : Flip Textures/Subspace/explode1.bm2
+        UseMaterialColors : true
+        Specular : 1.0 1.0 1.0 1.0
+        Diffuse : 1.0 1.0 1.0 1.0
+        Shininess : 1.0
+
+     }
+    AdditionalRenderState {
+      Blend Alpha
+      Wireframe Off
+    }
+}

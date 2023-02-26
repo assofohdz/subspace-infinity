@@ -26,6 +26,7 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
+import com.simsilica.ext.mphys.ShapeInfo;
 
 /**
  * This component is carried by the bomb and holds the intended damage (of the producer). The
@@ -35,10 +36,22 @@ import com.simsilica.es.EntityComponent;
  */
 public class Damage implements EntityComponent {
 
+    private final long explosionDecay;
     private final int intendedDamage;
+    private final ShapeInfo explosionShape;
 
-    public Damage(final int intendedDamage) {
+    public ShapeInfo getExplosionShape() {
+        return explosionShape;
+    }
+
+    public long getExplosionDecay() {
+        return explosionDecay;
+    }
+
+    public Damage(long explosionDecay, final int intendedDamage, ShapeInfo explosionShape) {
+        this.explosionDecay = explosionDecay;
         this.intendedDamage = intendedDamage;
+        this.explosionShape = explosionShape;
     }
 
     public int getIntendedDamage() {
