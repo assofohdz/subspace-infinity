@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "org.springframework.boot:spring-boot-starter"
+        versions: ["2.3.0.RELEASE"]
+    target-branch: "integration" #Optional, default main/master
