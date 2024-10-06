@@ -1,11 +1,9 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+
 version: 2
 updates:
-  - package-ecosystem: "gradle"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    ignore:
-      - dependency-name: "org.springframework.boot:spring-boot-starter"
-        versions: ["2.3.0.RELEASE"]
-    target-branch: "integration" #Optional, default main/master
+- package-ecosystem: "gradle" # See documentation for possible values
+  directory: "/" # Location of package manifests
+  schedule:
+    interval: "weekly"
