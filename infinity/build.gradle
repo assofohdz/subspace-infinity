@@ -22,7 +22,7 @@ version = "1.0.0"
 applicationDefaultJvmArgs = ["-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m", "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED"]
 
 dependencies {
-    implementation "org.jetbrains:annotations:16.0.2"
+    implementation "org.jetbrains:annotations:25.0.0"
     // logging
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
