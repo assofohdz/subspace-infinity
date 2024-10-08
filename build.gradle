@@ -16,7 +16,7 @@ subprojects {
 
     //For now we want the latest version of everything except JMonkeyEngine
     //Could also specify major versions like 4.+
-    ext.jmeVersion = '3.6.0-SNAPSHOT'
+    ext.jmeVersion = '3.7.0-beta1.2.2'
     ext.lemurVersion = '+'
     ext.lemurProtoVersion = '+'
     ext.lemurPropsVersion = '+'
