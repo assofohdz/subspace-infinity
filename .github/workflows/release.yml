@@ -153,7 +153,8 @@ jobs:
           itch_user: assofohdz
           itch_game: subspace-infinity
           version: ${{ steps.version.outputs.VERSION }}
-          files: windows
+          files: |
+            windows windows
 
       - name: Push Linux to itch.io
         uses: Ayowel/butler-to-itch@v1
@@ -162,7 +163,8 @@ jobs:
           itch_user: assofohdz
           itch_game: subspace-infinity
           version: ${{ steps.version.outputs.VERSION }}
-          files: linux
+          files: |
+            linux linux
 
       - name: Push Mac to itch.io
         uses: Ayowel/butler-to-itch@v1
@@ -171,4 +173,5 @@ jobs:
           itch_user: assofohdz
           itch_game: subspace-infinity
           version: ${{ steps.version.outputs.VERSION }}
-          files: mac
+          files: |
+            mac mac
