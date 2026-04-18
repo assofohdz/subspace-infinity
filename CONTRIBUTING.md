@@ -1,59 +1,69 @@
 # Contributing
 
-## Setting up your Development Environment
+Thank you for your interest in contributing to Subspace Infinity!
 
-These instructions assume you are using Windows 10. Java is cross-platform and Subspace-Infinity should be able to build and work on any platform, but it has only been developed and tested on Windows 10. 
+## Getting Started
 
-I am currently using IntelliJ IDEA to develop with the following plugins/extensions:
-1. Google Code Style
-2. SonarLint
+### Development Environment
 
-If you're looking to contribute and want to get a more thorough understand of the underlying frameworks, here's a small list to go through. Some parts can probably be skipped or skimmed pretty quickly if you're familiar with Java, with game development concept, with scene graphs etc.
-1. [JMonkeyEngine Docs](https://wiki.jmonkeyengine.org/docs/3.4/documentation.html) - Important! The scene graph engine used as client
-2. [SimEthereal](https://github.com/Simsilica/SimEthereal/wiki) - Provides the networking layer, can be skipped
-3. [SiO2](https://github.com/Simsilica/SiO2) - Important! Provides the foundational GameLoop and GameSystemManager
-4. [Zay-ES](http://jmonkeyengine-contributions.github.io/zay-es/) - Important! The Entity System that Subspace Infinity builds on
-5. [Lemur](http://jmonkeyengine-contributions.github.io/Lemur/) - The GUI library
+1. **Setup**: Follow the [Setup Guide](docs/setup-guide.md) to install all dependencies
+2. **IDE**: Any Java IDE works. Recommended:
+   - IntelliJ IDEA
+   - VS Code with Java extensions
+3. **Plugins**: 
+   - Google Java Format (code style)
+   - SonarLint (code quality)
 
-## Guildelines for Submitting PRs
+### Understanding the Codebase
+
+Before diving in, familiarize yourself with the core frameworks:
+
+| Priority | Framework | Documentation |
+|----------|-----------|---------------|
+| ⭐⭐⭐ | [Zay-ES](http://jmonkeyengine-contributions.github.io/zay-es/) | Entity Component System |
+| ⭐⭐⭐ | [SiO2](https://github.com/Simsilica/SiO2) | Game loop and system management |
+| ⭐⭐ | [JMonkeyEngine](https://wiki.jmonkeyengine.org/docs/3.4/documentation.html) | Scene graph and rendering |
+| ⭐⭐ | [Lemur](http://jmonkeyengine-contributions.github.io/Lemur/) | GUI library |
+| ⭐ | [SimEthereal](https://github.com/Simsilica/SimEthereal/wiki) | Networking (can skim)
+
+## Guidelines
 
 ### Issues
 
-The [issues page](https://github.com/assofohdz/Subspace-Infinity/issues) on GitHub is for tracking bugs and feature requests. When posting a new issue, please:
+The [issues page](https://github.com/assofohdz/Subspace-Infinity/issues) is for bugs and feature requests.
 
-* Check to make sure it's not a duplicate of an existing issue.
-* Create a separate "issue" for each bug you are reporting and each feature you are requesting.
-* Do not use the issues page for things other than bug reports and feature requests.
+**Before posting:**
+- Check for duplicates
+- One issue per bug/feature
+- Stay on topic (bugs and features only)
 
-If requesting a new feature, first ask yourself: will this make the game more fun or interesting? Remember that this is a game, not a simulator. Changes will not be made purely for the sake of realism, especially if they introduce needless complexity or aggravation.
+**For feature requests:** Consider whether it makes the game more fun. This is a game, not a simulator—changes for pure realism that add complexity won't be accepted.
 
 ### Pull Requests
 
-If you are posting a pull request, please:
+**Before submitting:**
+- Don't combine unrelated changes
+- Review your diff for unintended changes
+- Follow code style guidelines
+- For major changes, open an issue first to discuss approach
 
-* Do not combine multiple unrelated changes into a single pull.
-* Check the diff and make sure the pull request does not contain unintended changes.
-* If changing the Java code, use Eclipse to ensure the code follows the style guidelines.
-
-If proposing a major pull request, start by posting an issue and discussing the best way to implement it. Often the first strategy that occurs to you will not be the cleanest or most effective way to implement a new feature. I will not merge pull requests that are too large for me to read through the diff and check that the change will not introduce bugs.
-
-### Closing Issues
-
-If you believe your issue has been resolved, you can close the issue yourself. I won't close an issue unless it has been idle for a few weeks, to avoid having me mark something as fixed when the original poster does not think their request has been fully addressed.
-
-If an issue is a bug and it has been fixed in the code, it may be helpful to leave it "open" until an official release that fixes the bug has been made, so that other people encountering the same bug will see that it has already been reported.
+**Note:** PRs that are too large to review will not be merged. Keep changes focused and readable.
 
 ### Issue Labels
 
-The labels that are assigned to issues are:
+| Label | Meaning |
+|-------|---------|
+| `bug` | Game not behaving as intended |
+| `enhancement` | New engine functionality |
+| `content` | New content (no code changes) |
+| `balance` | Gameplay balance issues |
+| `mechanics` | Game mechanics changes |
+| `documentation` | Docs improvements |
+| `question` | How something works |
+| `unconfirmed` | Needs more info |
+| `unlikely` | Low priority or too complex |
+| `wontfix` | Won't be implemented |
 
-* bug: Anything where the game is not behaving as intended.
-* documentation: Something missing or incorrect in the game documentation.
-* balance: A ship or weapon that seems too powerful or useless, or a mission that seems too easy or hard.
-* mechanics: A question of whether the game mechanics should be altered.
-* enhancement: A request for new functionality in the game engine itself.
-* content: A suggestion for new content that could be created without changing the game code.
-* question: A question of how something works, or a support question.
-* unlikely: An enhancement or other change that is lowest priority or too large or difficult.
-* unconfirmed: More information is needed to be sure this bug is really a bug.
-* wontfix: A change that definitely will not be made.
+## Questions?
+
+Join us on [Discord](https://discord.gg/tfyWxbK)!
