@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.simsilica</groupId>
+  <artifactId>zay-es</artifactId>
+  <versioning>
+    <latest>1.7.0-SNAPSHOT</latest>
+    <versions>
+      <version>1.7.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20260418172538</lastUpdated>
+  </versioning>
+</metadata>

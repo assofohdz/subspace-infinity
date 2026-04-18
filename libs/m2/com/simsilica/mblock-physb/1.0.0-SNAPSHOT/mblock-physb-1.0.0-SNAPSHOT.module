@@ -1,0 +1,174 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mblock-physb",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mworld",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mblock-physb-1.0.0-SNAPSHOT.jar",
+          "url": "mblock-physb-1.0.0-SNAPSHOT.jar",
+          "size": 79723,
+          "sha512": "4f5ae9b2fb63a2541e44bab648c59a88534f719ae502c3c976a83d0e411576b124cfcb3f21068c0a10e258eea34e8aa54128c389fc85943b32e3f772fc4a76cb",
+          "sha256": "a0846cafd38c500475c1945bbeadbf68220bd612cc3c6ad89cac3f17ce4e9610",
+          "sha1": "899d6e857b73425c77300f212cc47e9e0b85c72e",
+          "md5": "c668c946d6f845fbbf40cf366b71493d"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mworld",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mblock-physb-1.0.0-SNAPSHOT.jar",
+          "url": "mblock-physb-1.0.0-SNAPSHOT.jar",
+          "size": 79723,
+          "sha512": "4f5ae9b2fb63a2541e44bab648c59a88534f719ae502c3c976a83d0e411576b124cfcb3f21068c0a10e258eea34e8aa54128c389fc85943b32e3f772fc4a76cb",
+          "sha256": "a0846cafd38c500475c1945bbeadbf68220bd612cc3c6ad89cac3f17ce4e9610",
+          "sha1": "899d6e857b73425c77300f212cc47e9e0b85c72e",
+          "md5": "c668c946d6f845fbbf40cf366b71493d"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mblock-physb-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mblock-physb-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 187794,
+          "sha512": "20879ce6bb57c83d8fb0e173d049c277b01ffe2dec7785aee7debb9b4b4fb17be73cdd9ed814ff46f9ee60e89812ebf2a02d683b0d5c541961087ad09420cf64",
+          "sha256": "6aa983d7d154943eb9d6d0f9ff5ef50b3cbe939a1d60e2366bc9081b03417f5e",
+          "sha1": "d943b61478985014d8a8b3502e465020701ad1b2",
+          "md5": "a5f15a0da85bd35da098c11bca6d3ccf"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mblock-physb-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mblock-physb-1.0.0-SNAPSHOT-sources.jar",
+          "size": 81912,
+          "sha512": "39887baa1a32f05cc3b1a0baabb03f2863b0628e54341a46b2bca8bb3e99b1b539eec844c63e24bcc8625135e234a27ba316074d1fe120dd2f78cb1d15f72f9d",
+          "sha256": "5b684c0e226028525877dfade8e54b3775f1d8d66376427bd9c28ad8aa55057e",
+          "sha1": "c128f4f1af01b1ad8062d645fb3095b9ed8bebf5",
+          "md5": "ac67abd7603aca1ebea9b405a22d0d87"
+        }
+      ]
+    }
+  ]
+}

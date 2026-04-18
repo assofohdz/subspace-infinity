@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.simsilica</groupId>
+  <artifactId>sim-ethereal</artifactId>
+  <versioning>
+    <latest>1.8.1-SNAPSHOT</latest>
+    <versions>
+      <version>1.8.1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20260418172715</lastUpdated>
+  </versioning>
+</metadata>

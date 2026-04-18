@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "lemur-proto",
+    "version": "1.14.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.5.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lemur-proto-1.14.0-SNAPSHOT.jar",
+          "url": "lemur-proto-1.14.0-SNAPSHOT.jar",
+          "size": 115087,
+          "sha512": "ecf93b81a77b08c2f830beb38c730cb38ce57c52e0e93b68863971756fcd0b2b43f3a656cc658cd5402c827868668dfb8fb8b5d90936f9ba508a338aeffaf421",
+          "sha256": "7d2b91c21bbd1179cb6cc0af3b004e266bd07b69956ea25c28e7c01eece8d659",
+          "sha1": "976fdfc7e975a62f12734b6d73dbc16f15708d7b",
+          "md5": "3f98731ec5f4f3e66068a52dcee89b79"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.5.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lemur-proto-1.14.0-SNAPSHOT.jar",
+          "url": "lemur-proto-1.14.0-SNAPSHOT.jar",
+          "size": 115087,
+          "sha512": "ecf93b81a77b08c2f830beb38c730cb38ce57c52e0e93b68863971756fcd0b2b43f3a656cc658cd5402c827868668dfb8fb8b5d90936f9ba508a338aeffaf421",
+          "sha256": "7d2b91c21bbd1179cb6cc0af3b004e266bd07b69956ea25c28e7c01eece8d659",
+          "sha1": "976fdfc7e975a62f12734b6d73dbc16f15708d7b",
+          "md5": "3f98731ec5f4f3e66068a52dcee89b79"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lemur-proto-1.14.0-SNAPSHOT-javadoc.jar",
+          "url": "lemur-proto-1.14.0-SNAPSHOT-javadoc.jar",
+          "size": 326926,
+          "sha512": "6ad93d7d298a84d693dc04038761b29ad5fb742921e102c6940ade06607b3de5cde4735a4cc1311b54646809807d64122d4f5df5bf68fbd1d9d4429363959bd6",
+          "sha256": "b619e2bf7ecc0954d5ef08bbecfe84d3c5a00743df5607cd70b67c2bd864443e",
+          "sha1": "bbdad6f31e3746ad63bdd8e01dfbdbd7ce8acab7",
+          "md5": "eccbfb538afd56de3d804b3615be26ee"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lemur-proto-1.14.0-SNAPSHOT-sources.jar",
+          "url": "lemur-proto-1.14.0-SNAPSHOT-sources.jar",
+          "size": 93125,
+          "sha512": "9c9616305b5548bdc84142fb058ef2d13ee0afa3ed813fd17ec0690e938c38e82f1f2dac5b488181e56eeb24e526382be79e3527d597ac423c20f4199e414bc5",
+          "sha256": "ba3366fc9dcad3001fde86762ea25a06234f736ea7e3f5ce326fcb911471e89c",
+          "sha1": "81a45cccbcead411d11f47c66454b5f5e9dd9b63",
+          "md5": "5c56a201385b35a9d86a0f4b6cfdee4c"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "zay-es-net",
+    "version": "1.7.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.1.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "zay-es-net-1.7.0-SNAPSHOT.jar",
+          "url": "zay-es-net-1.7.0-SNAPSHOT.jar",
+          "size": 76531,
+          "sha512": "758d94900cd8c17b2c66c8873bbcaf021ec3719d23e6dd13cace7dd437e3fd2d5a94c51e5cf6772f7792b5adfbd0b9fbede58058d72b367dcab24aefe53c38a2",
+          "sha256": "eaca74507fcebc5a305c6bbb52188e8dcc9c0e2a868f667d6fa1b0974eb24ac4",
+          "sha1": "84de6d6a3e95637dcba45d776616f18692585516",
+          "md5": "86497fcc0af30938592f49248b85919d"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.1.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "zay-es-net-1.7.0-SNAPSHOT.jar",
+          "url": "zay-es-net-1.7.0-SNAPSHOT.jar",
+          "size": 76531,
+          "sha512": "758d94900cd8c17b2c66c8873bbcaf021ec3719d23e6dd13cace7dd437e3fd2d5a94c51e5cf6772f7792b5adfbd0b9fbede58058d72b367dcab24aefe53c38a2",
+          "sha256": "eaca74507fcebc5a305c6bbb52188e8dcc9c0e2a868f667d6fa1b0974eb24ac4",
+          "sha1": "84de6d6a3e95637dcba45d776616f18692585516",
+          "md5": "86497fcc0af30938592f49248b85919d"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "zay-es-net-1.7.0-SNAPSHOT-javadoc.jar",
+          "url": "zay-es-net-1.7.0-SNAPSHOT-javadoc.jar",
+          "size": 235255,
+          "sha512": "e271c249efe1ae89141d772bd4cc8b73469a75ae25096488da93befab8457498a2bcfbf1a957631a1a15393d7bc5b0c00dd4a14c705f76d34dce8c461ba5fab4",
+          "sha256": "e3d2ba420a6277dd94e7e212f4b173c45b23a7a92f1e3e37941869ed9257924c",
+          "sha1": "67498a259f8f937db170365b20876ed962580ba5",
+          "md5": "e3b124cea275ee2645b27525ad900103"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "zay-es-net-1.7.0-SNAPSHOT-sources.jar",
+          "url": "zay-es-net-1.7.0-SNAPSHOT-sources.jar",
+          "size": 73232,
+          "sha512": "8056c5a90586f162fb97564226cb6a6a779df02775f4e84526cb2c1ad4e871903ea99d5c69752ac2a342379f27b0697239f3c12ec526a925d02ff097b8db4a26",
+          "sha256": "3f5f721db76a2bcbed546dc1ac5bc6c07d5229de7d6db196cd7dfbd2d5c88137",
+          "sha1": "233d6f23741802b497501f728b97fd2410280d20",
+          "md5": "0f96816cb8014e782ea5c562af1dd662"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.simsilica</groupId>
+  <artifactId>mapper</artifactId>
+  <versioning>
+    <latest>1.0.0-SNAPSHOT</latest>
+    <versions>
+      <version>1.0.0-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20260418173257</lastUpdated>
+  </versioning>
+</metadata>

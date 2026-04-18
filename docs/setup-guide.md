@@ -1,54 +1,129 @@
 # Subspace-Infinity Development Setup Guide
 
-## Current Environment (April 2026)
+This guide walks you through setting up your development environment to build and run Subspace-Infinity.
 
-### Java
-- **Installed**: OpenJDK 21.0.10 (Ubuntu 24.04)
-- **Moss**: Targets Java 8 bytecode (`sourceCompatibility = 1.8`)
-- **Gradle 8.5**: Requires JDK 17+ to run
+## Prerequisites
 
-#### Moss Build Info
-- Location: `~/github/assofohdz/moss`
-- Gradle wrapper: 8.5
-- Compiles to: Java 8 bytecode
-- Should build with JDK 17 or 21
+### Java Development Kit (JDK)
 
-#### If Moss fails to build with Java 21
-Try JDK 17:
+You need **JDK 17 or later** to build the project.
+
+**Ubuntu/Debian:**
 ```bash
 sudo apt install openjdk-17-jdk
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-cd ~/github/assofohdz/moss && ./gradlew publishToMavenLocal
+# or
+sudo apt install openjdk-21-jdk
 ```
 
-### Gradle
-- **Wrapper Version**: 8.5 (defined in `gradle/wrapper/gradle-wrapper.properties`)
-- **Global Install**: Not required - use `./gradlew` wrapper
-- **Note**: Some plugins (parcl) incompatible with Gradle 8.x
+**Fedora:**
+```bash
+sudo dnf install java-17-openjdk-devel
+```
+
+**macOS (Homebrew):**
+```bash
+brew install openjdk@17
+```
+
+**Windows:**
+Download from [Adoptium](https://adoptium.net/) or use a package manager like [Chocolatey](https://chocolatey.org/):
+```powershell
+choco install temurin17
+```
+
+Verify your installation:
+```bash
+java -version
+```
+
+### Git
+
+You'll need Git to clone repositories:
+```bash
+# Ubuntu/Debian
+sudo apt install git
+
+# Fedora
+sudo dnf install git
+
+# macOS
+brew install git
+```
 
 ---
 
-## Quick Start (Linux)
+## Step 1: Clone Required Dependencies
+
+Subspace-Infinity depends on several libraries that must be built from source and installed to your local Maven repository. Create a working directory:
 
 ```bash
-cd /home/assofohdz/github/assofohdz/subspace-infinity
-./gradlew :infinity:run
+mkdir -p ~/dev && cd ~/dev
 ```
 
----
+### 1.1 Clipper (Polygon Operations)
 
-## Moss Physics Library Setup
+Clipper is a polygon clipping library (by jchamlin):
 
-Moss is a modular physics/world library by Simsilica (pspeed42). Must be built from source and installed to local Maven repo.
+```bash
+git clone https://github.com/jchamlin/clipper-java.git
+cd clipper-java
+./gradlew publishToMavenLocal
+cd ..
+```
 
-### Moss Repository
+### 1.2 Simsilica Core Libraries
+
+Create a directory for Simsilica libraries:
+
+```bash
+mkdir -p simsilica && cd simsilica
+```
+```bash
+# SimMath - Math utilities
+git clone https://github.com/Simsilica/SimMath.git
+cd SimMath && ./gradlew publishToMavenLocal && cd ..
+
+# SiO2 - Core framework
+git clone https://github.com/Simsilica/SiO2.git
+cd SiO2 && ./gradlew publishToMavenLocal && cd ..
+
+# SimEthereal - Networking
+git clone https://github.com/Simsilica/SimEthereal.git
+cd SimEthereal && ./gradlew publishToMavenLocal && cd ..
+
+# Pager - Paging/streaming
+git clone https://github.com/Simsilica/Pager.git
+cd Pager && ./gradlew publishToMavenLocal && cd ..
+
+# SimFX - Effects
+git clone https://github.com/Simsilica/SimFX.git
+cd SimFX && ./gradlew publishToMavenLocal && cd ..
+```
+
+### 1.3 jMonkeyEngine Contributions
+```bash
+# Lemur - UI framework
+git clone https://github.com/jMonkeyEngine-Contributions/Lemur.git
+cd Lemur && ./gradlew publishToMavenLocal && cd ..
+
+# Zay-ES - Entity Component System
+git clone https://github.com/jMonkeyEngine-Contributions/zay-es.git
+cd zay-es && ./gradlew publishToMavenLocal && cd ..
+```
+
+### 1.4 Moss (Physics Library)
+
+Moss is a modular physics/world library. This is a critical dependency:
+
 ```bash
 git clone https://github.com/assofohdz/moss.git
 cd moss
 ./gradlew publishToMavenLocal
+cd ..
 ```
 
-### Moss Modules Used by Subspace-Infinity
+**Moss modules used by Subspace-Infinity:**
+
 | Module | Purpose |
 |--------|---------|
 | `mblock` | Block-based world representation |
@@ -59,73 +134,39 @@ cd moss
 | `bpos` | Block position utilities |
 | `crig` | Character rigging |
 
-### Verify Moss Installation
+---
+
+## Step 2: Clone and Build Subspace-Infinity
+
+```bash
+cd ~/dev
+git clone https://github.com/assofohdz/subspace-infinity.git
+cd subspace-infinity
+./gradlew build
+```
+
+---
+
+## Step 3: Run the Game
+
+```bash
+./gradlew :infinity:run
+```
+
+---
+
+## Verifying Your Setup
+
+### Check Moss Installation
 ```bash
 ls ~/.m2/repository/com/simsilica/ | grep -E "mblock|mworld|mphys|sio2|bpos|crig"
 ```
 
----
+You should see directories for each Moss module.
 
-## All Dependencies (Build from Source)
-
-These must be cloned and `publishToMavenLocal` (or `install`):
-
-### 1. Clipper (polygon operations)
+### Check All Dependencies
 ```bash
-git clone https://github.com/jchamlin/clipper-java
-cd clipper-java
-./gradlew publishToMavenLocal
-```
-
-### 2. Simsilica Libraries
-```bash
-# SimMath
-git clone https://github.com/Simsilica/SimMath.git
-cd SimMath && ./gradlew publishToMavenLocal && cd ..
-
-# SiO2
-git clone https://github.com/Simsilica/SiO2
-cd SiO2 && ./gradlew publishToMavenLocal && cd ..
-
-# SimEthereal (networking)
-git clone https://github.com/Simsilica/SimEthereal.git
-cd SimEthereal && ./gradlew publishToMavenLocal && cd ..
-
-# Pager
-git clone https://github.com/Simsilica/Pager.git
-cd Pager && ./gradlew publishToMavenLocal && cd ..
-
-# SimFX
-git clone https://github.com/Simsilica/SimFX.git
-cd SimFX && ./gradlew publishToMavenLocal && cd ..
-```
-
-### 3. jMonkeyEngine Contributions
-```bash
-# Lemur (UI)
-git clone https://github.com/jMonkeyEngine-Contributions/Lemur.git
-cd Lemur && ./gradlew publishToMavenLocal && cd ..
-
-# Zay-ES (Entity System)
-git clone https://github.com/jMonkeyEngine-Contributions/zay-es.git
-cd zay-es && ./gradlew publishToMavenLocal && cd ..
-```
-
-### 4. Moss
-```bash
-git clone https://github.com/assofohdz/moss.git
-cd moss && ./gradlew publishToMavenLocal && cd ..
-```
-
----
-
-## Key Version Variables (build.gradle)
-
-```groovy
-ext.jmeVersion = '3.7.0-beta1.2.2'
-ext.mossVersion = "+"
-ext.log4jVersion = '2.24.3'
-ext.slf4jVersion = '2.0.16'
+./gradlew :infinity:dependencies --configuration runtimeClasspath
 ```
 
 ---
@@ -134,24 +175,296 @@ ext.slf4jVersion = '2.0.16'
 
 | Task | Command |
 |------|---------|
-| Build | `./gradlew build` |
-| Run | `./gradlew :infinity:run` |
-| Clean | `./gradlew clean` |
-| Check dependencies | `./gradlew :infinity:dependencies` |
-| Update dependency versions | `./gradlew dependencyUpdates` |
+| Build all modules | `./gradlew build` |
+| Run the game | `./gradlew :infinity:run` |
+| Clean build artifacts | `./gradlew clean` |
+| List dependencies | `./gradlew :infinity:dependencies` |
+| Check for updates | `./gradlew dependencyUpdates` |
 
 ---
 
 ## Troubleshooting
 
 ### "Could not resolve com.simsilica:mblock:+"
-→ Moss not installed. Clone and `publishToMavenLocal`
-
-### Java module access errors
-→ JVM args in `infinity/build.gradle`:
-```groovy
-applicationDefaultJvmArgs = ["--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED"]
+Moss is not installed in your local Maven repository. Go back to Step 1.4 and run:
+```bash
+cd ~/dev/simsilica/moss
+./gradlew publishToMavenLocal
 ```
 
-### Gradle version issues
-→ Always use wrapper: `./gradlew` not `gradle`
+### Java module access errors at runtime
+These are handled by JVM arguments in the build configuration. If you encounter them, ensure you're running via Gradle (`./gradlew :infinity:run`) rather than directly.
+
+### Build fails with Gradle version errors
+Always use the included Gradle wrapper (`./gradlew`) rather than a system-installed `gradle` command. The wrapper ensures the correct Gradle version (8.5) is used.
+
+### Build fails with JDK version errors
+Ensure you have JDK 17 or later:
+```bash
+java -version
+```
+
+If you have multiple JDKs installed, set `JAVA_HOME`:
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64  # Linux
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)     # macOS
+```
+
+---
+
+## IDE Setup
+
+### IntelliJ IDEA
+1. Open IntelliJ and select **File > Open**
+2. Navigate to the `subspace-infinity` directory and open it
+3. IntelliJ will detect the Gradle project and import it
+4. Wait for indexing and dependency resolution to complete
+5. To run, use the Gradle tool window or create a Run Configuration for `infinity:run`
+
+### VS Code
+1. Install the **Extension Pack for Java** extension
+2. Open the `subspace-infinity` folder
+3. The Java extension will detect the Gradle project
+4. Use the terminal to run: `./gradlew :infinity:run`
+
+---
+
+## Full Setup Script
+
+Copy and run this script to set up everything automatically:
+
+```bash
+#!/bin/bash
+set -e
+
+# Configuration
+DEV_DIR="${HOME}/dev"
+
+echo "=== Subspace-Infinity Full Setup ==="
+echo "Installing to: ${DEV_DIR}"
+echo ""
+
+# Create directories
+mkdir -p "${DEV_DIR}"
+cd "${DEV_DIR}"
+
+# 1. Clipper (polygon operations)
+echo "[1/10] Building clipper-java..."
+if [ ! -d "clipper-java" ]; then
+    git clone https://github.com/jchamlin/clipper-java.git
+fi
+cd clipper-java && ./gradlew publishToMavenLocal && cd ..
+
+# 2. Simsilica libraries
+mkdir -p simsilica && cd simsilica
+
+echo "[2/10] Building SimMath..."
+if [ ! -d "SimMath" ]; then
+    git clone https://github.com/Simsilica/SimMath.git
+fi
+cd SimMath && ./gradlew publishToMavenLocal && cd ..
+
+echo "[3/10] Building SiO2..."
+if [ ! -d "SiO2" ]; then
+    git clone https://github.com/Simsilica/SiO2.git
+fi
+cd SiO2 && ./gradlew publishToMavenLocal && cd ..
+
+echo "[4/10] Building SimEthereal..."
+if [ ! -d "SimEthereal" ]; then
+    git clone https://github.com/Simsilica/SimEthereal.git
+fi
+cd SimEthereal && ./gradlew publishToMavenLocal && cd ..
+
+echo "[5/10] Building Pager..."
+if [ ! -d "Pager" ]; then
+    git clone https://github.com/Simsilica/Pager.git
+fi
+cd Pager && ./gradlew publishToMavenLocal && cd ..
+
+echo "[6/10] Building SimFX..."
+if [ ! -d "SimFX" ]; then
+    git clone https://github.com/Simsilica/SimFX.git
+fi
+cd SimFX && ./gradlew publishToMavenLocal && cd ..
+
+# 3. jMonkeyEngine contributions
+echo "[7/10] Building Lemur..."
+if [ ! -d "Lemur" ]; then
+    git clone https://github.com/jMonkeyEngine-Contributions/Lemur.git
+fi
+cd Lemur && ./gradlew publishToMavenLocal && cd ..
+
+echo "[8/10] Building Zay-ES..."
+if [ ! -d "zay-es" ]; then
+    git clone https://github.com/jMonkeyEngine-Contributions/zay-es.git
+fi
+cd zay-es && ./gradlew publishToMavenLocal && cd ..
+
+# 4. Moss
+echo "[9/10] Building Moss..."
+if [ ! -d "moss" ]; then
+    git clone https://github.com/assofohdz/moss.git
+fi
+cd moss && ./gradlew publishToMavenLocal && cd ..
+
+# Back to dev directory
+cd "${DEV_DIR}"
+
+# 5. Subspace-Infinity
+echo "[10/10] Building Subspace-Infinity..."
+if [ ! -d "subspace-infinity" ]; then
+    git clone https://github.com/assofohdz/subspace-infinity.git
+fi
+cd subspace-infinity && ./gradlew build
+
+echo ""
+echo "=== Setup Complete ==="
+echo "To run the game:"
+echo "  cd ${DEV_DIR}/subspace-infinity"
+echo "  ./gradlew :infinity:run"
+```
+
+Save this as `setup-subspace.sh`, make it executable, and run:
+
+```bash
+chmod +x setup-subspace.sh
+./setup-subspace.sh
+```
+
+---
+
+## Updating Bundled Dependencies (Maintainers)
+
+The repository includes pre-built dependencies in `libs/m2/` for CI/CD builds. These are Simsilica libraries not available on Maven Central.
+
+### When to Update
+
+Update bundled dependencies when:
+- A dependency has a bug fix you need
+- You need new features from upstream
+- Security updates are available
+
+### Update Workflow
+
+1. **Pull and build the upstream library:**
+   ```bash
+   cd ~/dev/simsilica
+   
+   # Example: update Lemur
+   cd Lemur
+   git pull origin master
+   ./gradlew publishToMavenLocal
+   cd ..
+   
+   # Example: update Moss
+   cd moss
+   git pull origin master
+   ./gradlew publishToMavenLocal
+   cd ..
+   ```
+
+2. **Copy updated libraries to the repo:**
+   ```bash
+   cd ~/dev/subspace-infinity
+   
+   # Copy all Simsilica libraries
+   cp -r ~/.m2/repository/com/simsilica libs/m2/com/
+   ```
+
+3. **Test locally:**
+   ```bash
+   ./gradlew clean build
+   ./gradlew :infinity:run
+   ```
+
+4. **Commit and push:**
+   ```bash
+   git add libs/
+   git commit -m "Update bundled dependencies"
+   git push
+   ```
+
+### Bundled Libraries
+
+The following libraries are bundled in `libs/m2/`:
+
+| Library | Repository | Purpose |
+|---------|------------|---------|
+| Moss | github.com/assofohdz/moss | Physics, block world |
+| Lemur | github.com/jMonkeyEngine-Contributions/Lemur | UI framework |
+| Zay-ES | github.com/jMonkeyEngine-Contributions/zay-es | Entity system |
+| SimMath | github.com/Simsilica/SimMath | Math utilities |
+| SiO2 | github.com/Simsilica/SiO2 | Core framework |
+| SimEthereal | github.com/Simsilica/SimEthereal | Networking |
+| Pager | github.com/Simsilica/Pager | Paging/streaming |
+| SimFX | github.com/Simsilica/SimFX | Effects |
+
+### Full Update Script
+
+```bash
+#!/bin/bash
+set -e
+
+SIMSILICA_DIR="${HOME}/dev/simsilica"
+SUBSPACE_DIR="${HOME}/dev/subspace-infinity"
+
+echo "=== Updating all dependencies ==="
+
+cd "${SIMSILICA_DIR}"
+
+# Update and rebuild each library
+for lib in SimMath SiO2 SimEthereal Pager SimFX Lemur zay-es moss; do
+    echo "Updating ${lib}..."
+    cd "${lib}"
+    git pull origin master || git pull origin main
+    ./gradlew publishToMavenLocal
+    cd ..
+done
+
+# Copy to subspace-infinity
+echo "Copying to subspace-infinity..."
+cp -r ~/.m2/repository/com/simsilica "${SUBSPACE_DIR}/libs/m2/com/"
+
+echo "Done! Don't forget to test and commit."
+```
+
+---
+
+## Releasing (Maintainers)
+
+### Creating a Release
+
+1. **Update version in `infinity/build.gradle`:**
+   ```groovy
+   version = "1.0.0"
+   ```
+
+2. **Commit and tag:**
+   ```bash
+   git add -A
+   git commit -m "Release v1.0.0"
+   git tag v1.0.0
+   git push origin main --tags
+   ```
+
+3. **GitHub Actions will automatically:**
+   - Build native installers for Windows (.exe), Linux (.deb), Mac (.dmg)
+   - Create a GitHub Release with all installers
+   - Push to itch.io (if `BUTLER_API_KEY` secret is set)
+
+### Required Secrets
+
+Set these in GitHub repo Settings → Secrets → Actions:
+
+| Secret | Description |
+|--------|-------------|
+| `BUTLER_API_KEY` | itch.io API key for publishing (get from https://itch.io/user/settings/api-keys) |
+
+### Manual Release
+
+To trigger a release manually without a tag:
+1. Go to Actions → Release workflow
+2. Click "Run workflow"
+3. Enter version number
+4. Click "Run workflow"

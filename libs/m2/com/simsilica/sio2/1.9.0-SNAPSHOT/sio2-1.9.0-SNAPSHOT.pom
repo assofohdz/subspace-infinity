@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.simsilica</groupId>
+  <artifactId>sio2</artifactId>
+  <version>1.9.0-SNAPSHOT</version>
+  <name>com.simsilica:sio2</name>
+  <description>A set of useful classes for game development.</description>
+  <url>https://github.com/Simsilica/SiO2</url>
+  <inceptionYear>2011</inceptionYear>
+  <licenses>
+    <license>
+      <name>New BSD (3-clause) License</name>
+      <url>https://github.com/Simsilica/SiO2/blob/master/license.md</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Paul Speed</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/Simsilica/SiO2.git</connection>
+    <developerConnection>scm:git:ssh://github.com:Simsilica/SiO2.git</developerConnection>
+    <url>https://github.com/Simsilica/SiO2/tree/master</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>21.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmonkeyengine</groupId>
+      <artifactId>jme3-core</artifactId>
+      <version>3.3.0-stable</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmonkeyengine</groupId>
+      <artifactId>jme3-networking</artifactId>
+      <version>3.3.0-stable</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.simsilica</groupId>
+      <artifactId>lemur</artifactId>
+      <version>1.16.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.simsilica</groupId>
+      <artifactId>sim-math</artifactId>
+      <version>1.5.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.simsilica</groupId>
+      <artifactId>zay-es</artifactId>
+      <version>1.7.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.simsilica</groupId>
+      <artifactId>zay-es-net</artifactId>
+      <version>1.7.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <version>2.4.11</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.32</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.15.0</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.15.0</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

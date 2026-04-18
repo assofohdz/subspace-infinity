@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "lemur",
+    "version": "1.17.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.5.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lemur-1.17.0-SNAPSHOT.jar",
+          "url": "lemur-1.17.0-SNAPSHOT.jar",
+          "size": 379356,
+          "sha512": "45eb166bbc268e61544fdfdfd27ccd5e741806521995f8db34327d38b9e3b2920a001acd5496bf623319b2ebfeb96f90a0bb0b46f9a3c3f27596b620c99385b3",
+          "sha256": "892817079e6d76eb4e872e17ae876884c433f45feb48b708833da7f4de5c3bd3",
+          "sha1": "953358690b3f1d9ce488f50bdb470deb0ab8bb55",
+          "md5": "2771806507576770c0e261ee30285386"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.5.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lemur-1.17.0-SNAPSHOT.jar",
+          "url": "lemur-1.17.0-SNAPSHOT.jar",
+          "size": 379356,
+          "sha512": "45eb166bbc268e61544fdfdfd27ccd5e741806521995f8db34327d38b9e3b2920a001acd5496bf623319b2ebfeb96f90a0bb0b46f9a3c3f27596b620c99385b3",
+          "sha256": "892817079e6d76eb4e872e17ae876884c433f45feb48b708833da7f4de5c3bd3",
+          "sha1": "953358690b3f1d9ce488f50bdb470deb0ab8bb55",
+          "md5": "2771806507576770c0e261ee30285386"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lemur-1.17.0-SNAPSHOT-javadoc.jar",
+          "url": "lemur-1.17.0-SNAPSHOT-javadoc.jar",
+          "size": 796230,
+          "sha512": "e7975fa4e062bb9f5f8e94461d261be5a1b7e33e4a6b3488ff18bf11dab1f3f55d438102b8d8394c5d8668c2aedfd6720a6cf2ad042485afe598c858332263a5",
+          "sha256": "ce7ac9cce04175ba15aa5ef2b7a1407237de93088741f86298d34dfcc77070c7",
+          "sha1": "d4bdab52d97c1a8cab35b4a8e353f3836f69a719",
+          "md5": "fcc87e56dc2cdc2bd7700a709f6fec08"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lemur-1.17.0-SNAPSHOT-sources.jar",
+          "url": "lemur-1.17.0-SNAPSHOT-sources.jar",
+          "size": 425888,
+          "sha512": "4a878eedce745fbfff35d61c4d157226475b2cb028f162f878c640709ccefe52b79852697ef1c4f1c1fb60fe1de2e4de3f789981b9ed8c2370ca4f8933b657e1",
+          "sha256": "8189b0caa1375b0e7ba885b30a929e3c471ab9103985da6894ef3da742a03aa5",
+          "sha1": "9847dd9463a8b9d27747ac722632e8018e4a35c4",
+          "md5": "5ef993cb6d30ce807315a91010d1d939"
+        }
+      ]
+    }
+  ]
+}

@@ -1,15 +1,3 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'org.mini2Dx', name: 'butler', version: '2.1.0'
-        classpath group: 'org.mini2Dx', name: 'parcl', version: '1.8.0'
-    }
-}
-
 plugins {
     id 'infinity.app-with-assets'
     id 'com.github.ben-manes.versions' version '0.51.0'
@@ -121,46 +109,106 @@ distributions {
     }
 }
 
-// TODO: parcl plugin is incompatible with Gradle 8.x - commenting out until updated
-// apply plugin: "org.mini2Dx.parcl"
-// apply plugin: "org.mini2Dx.butler"
+// =============================================================================
+// jpackage - Native application bundling (replacement for parcl)
+// =============================================================================
+// Requires JDK 14+ to run jpackage. Creates native installers with bundled JRE.
+//
+// Usage:
+//   ./gradlew jpackage          - Creates native package for current OS
+//   ./gradlew jpackageImage     - Creates app image (no installer)
+//
+// The tasks detect your OS and create the appropriate format:
+//   - Windows: .exe installer (or .msi with WiX toolset)
+//   - macOS: .dmg or .pkg
+//   - Linux: .deb or .rpm
+// =============================================================================
 
-/*
-parcl {
-    app {
-        vmArgs = applicationDefaultJvmArgs
-        appName = "subspace-infinity"
-        icon = "relative/path/to/icon.icns"
-        applicationCategory = "opensource.space-sim"
-        displayName = "subspace-infinity"
-        identifier = "subspace-infinity"
-        copyright = 'Copyright 2023 Asser Fahrenholz'
+def jpackageOutputDir = layout.buildDirectory.dir("jpackage")
+def jpackageImageDir = layout.buildDirectory.dir("jpackage-image")
+
+tasks.register('jpackageImage', Exec) {
+    group = 'distribution'
+    description = 'Creates a native application image using jpackage (no installer)'
+    dependsOn installDist
+    
+    def installDir = tasks.installDist.destinationDir
+    def os = org.gradle.internal.os.OperatingSystem.current()
+    
+    doFirst {
+        jpackageImageDir.get().asFile.mkdirs()
     }
-
-    exe {
-        exeName = "subspace-infinity"
-        print getProject().name
-    }
-
-    linux {
-        binName = "subspace-infinity"
+    
+    executable = 'jpackage'
+    args = [
+        '--type', 'app-image',
+        '--name', 'Subspace-Infinity',
+        '--app-version', version,
+        '--vendor', 'Asser Fahrenholz',
+        '--copyright', 'Copyright 2024 Asser Fahrenholz',
+        '--description', 'A Subspace/Continuum-inspired space shooter',
+        '--input', "${installDir}/lib",
+        '--main-jar', "infinity-${version}.jar",
+        '--main-class', mainClassName,
+        '--dest', jpackageImageDir.get().asFile.absolutePath,
+        '--java-options', '-Xmx1024m',
+        '--java-options', '-Xms512m',
+        '--java-options', '-XX:MaxDirectMemorySize=1024m',
+        '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED'
+    ]
+    
+    // Add icon if it exists
+    def iconFile = os.isWindows() ? file('src/main/resources/icon.ico') :
+                   os.isMacOsX() ? file('src/main/resources/icon.icns') :
+                   file('src/main/resources/icon.png')
+    if (iconFile.exists()) {
+        args += ['--icon', iconFile.absolutePath]
     }
 }
 
-butler {
-    user = "assofohdz"
-    game = "subspace-infinity"
-    updateButler = true
-    butlerInstallDirectory = "C:\\workspace\\Subspace\\Subspace-Infinity\\butler-windows"
+tasks.register('jpackage', Exec) {
+    group = 'distribution'
+    description = 'Creates a native installer using jpackage'
+    dependsOn installDist
+    
+    def installDir = tasks.installDist.destinationDir
+    def os = org.gradle.internal.os.OperatingSystem.current()
+    
+    doFirst {
+        jpackageOutputDir.get().asFile.mkdirs()
+    }
+    
+    executable = 'jpackage'
+    args = [
+        '--name', 'Subspace-Infinity',
+        '--app-version', version,
+        '--vendor', 'Asser Fahrenholz',
+        '--copyright', 'Copyright 2024 Asser Fahrenholz',
+        '--description', 'A Subspace/Continuum-inspired space shooter',
+        '--input', "${installDir}/lib",
+        '--main-jar', "infinity-${version}.jar",
+        '--main-class', mainClassName,
+        '--dest', jpackageOutputDir.get().asFile.absolutePath,
+        '--java-options', '-Xmx1024m',
+        '--java-options', '-Xms512m',
+        '--java-options', '-XX:MaxDirectMemorySize=1024m',
+        '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED'
+    ]
+    
+    // OS-specific installer type
+    if (os.isWindows()) {
+        args += ['--type', 'exe', '--win-shortcut', '--win-menu', '--win-dir-chooser']
+    } else if (os.isMacOsX()) {
+        args += ['--type', 'dmg']
+    } else {
+        args += ['--type', 'deb']  // or 'rpm' for Red Hat-based
+    }
+    
+    // Add icon if it exists
+    def iconFile = os.isWindows() ? file('src/main/resources/icon.ico') :
+                   os.isMacOsX() ? file('src/main/resources/icon.icns') :
+                   file('src/main/resources/icon.png')
+    if (iconFile.exists()) {
+        args += ['--icon', iconFile.absolutePath]
+    }
 }
-
-task butlerPush(type: org.mini2Dx.butler.task.PushTask) {
-    dependsOn clean
-    dependsOn build
-    dependsOn bundleNative
-    tasks.findByName('build').mustRunAfter 'clean'
-    tasks.findByName('bundleNative').mustRunAfter 'build'
-    binDirectory = file("$buildDir\\windows")
-    channel = "windows"
-}
-*/

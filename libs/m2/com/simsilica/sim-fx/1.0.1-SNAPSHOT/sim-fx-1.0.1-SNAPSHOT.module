@@ -1,0 +1,153 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "sim-fx",
+    "version": "1.0.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.3.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur-props",
+          "version": {
+            "requires": "1.2.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sim-fx-1.0.1-SNAPSHOT.jar",
+          "url": "sim-fx-1.0.1-SNAPSHOT.jar",
+          "size": 42161,
+          "sha512": "f7f5c9b68fabeb59dfb96c3be5105ae6261471b680dccbaca29a57b48f58f2e6ff59290587b0d5c04bdb1d2101da1b61197be6c4e002e6f57160972ef274b235",
+          "sha256": "ce949d471ab4960ac7c6a0a8896214fdc89a677bb38d53c7b95a791ba2f28b8e",
+          "sha1": "a90844d5eb62719d1348ab0facbfc2de87ad56ab",
+          "md5": "97a6722e40155bed212edc0e8faa5556"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.3.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur-props",
+          "version": {
+            "requires": "1.2.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sim-fx-1.0.1-SNAPSHOT.jar",
+          "url": "sim-fx-1.0.1-SNAPSHOT.jar",
+          "size": 42161,
+          "sha512": "f7f5c9b68fabeb59dfb96c3be5105ae6261471b680dccbaca29a57b48f58f2e6ff59290587b0d5c04bdb1d2101da1b61197be6c4e002e6f57160972ef274b235",
+          "sha256": "ce949d471ab4960ac7c6a0a8896214fdc89a677bb38d53c7b95a791ba2f28b8e",
+          "sha1": "a90844d5eb62719d1348ab0facbfc2de87ad56ab",
+          "md5": "97a6722e40155bed212edc0e8faa5556"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sim-fx-1.0.1-SNAPSHOT-javadoc.jar",
+          "url": "sim-fx-1.0.1-SNAPSHOT-javadoc.jar",
+          "size": 116664,
+          "sha512": "2b25b7d88c50cfaa9ca22a498ae76ff8c1c16c41014c20da75853cf52b35a0d8111a676050d7f1464d6cd96a87517a1c8c02ec4e858ddb78c9a1304a8b65a918",
+          "sha256": "a5e2c7d457da91f495d5a9501ea80ee0422b0d69b068ec83e3180daf37980997",
+          "sha1": "d19902dc4cacc1c1fd3dd89e203413ad03a93cf2",
+          "md5": "86b307d1a68df112ab1debb8423682da"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sim-fx-1.0.1-SNAPSHOT-sources.jar",
+          "url": "sim-fx-1.0.1-SNAPSHOT-sources.jar",
+          "size": 40171,
+          "sha512": "c1eef10f99994d15fd16ee5e314a4d5c38f76200be5339b8c53ae8c337c2a68ef6ca95162c188876d8d7b86505ee2b3d37e03f95a90e72c9a78b6fe0642035df",
+          "sha256": "30aadb7235eefb6016d695dc251b17789fd26ec3dfdeafdb8af7109f928bdd9f",
+          "sha1": "03c776b0017012af12e8fb0cf043d2ed2955885c",
+          "md5": "a3e1c5c954380552e882def0aad33a25"
+        }
+      ]
+    }
+  ]
+}

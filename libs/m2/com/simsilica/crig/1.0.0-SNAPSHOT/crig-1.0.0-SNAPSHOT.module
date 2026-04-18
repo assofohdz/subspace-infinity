@@ -1,0 +1,230 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "crig",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "bpos",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock-physb",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2-mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "crig-1.0.0-SNAPSHOT.jar",
+          "url": "crig-1.0.0-SNAPSHOT.jar",
+          "size": 49424,
+          "sha512": "a914d420c2527b6d77dd62b8268222847a690ab06be63e692ff9d4fa8c9a70bd56e02d7f9392b553c05f2f6e32f4a4f58b04c56fb0d254ad4549ffb34d65401f",
+          "sha256": "7611c05e017d1887f5eb33170fd97de703be5a2415d18d65a17b790e6fef247c",
+          "sha1": "53d22d9869f2219f87b3e135075c40e64e709dec",
+          "md5": "c83a2d31682511eab535df7b156aa39a"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "bpos",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock-physb",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2-mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "crig-1.0.0-SNAPSHOT.jar",
+          "url": "crig-1.0.0-SNAPSHOT.jar",
+          "size": 49424,
+          "sha512": "a914d420c2527b6d77dd62b8268222847a690ab06be63e692ff9d4fa8c9a70bd56e02d7f9392b553c05f2f6e32f4a4f58b04c56fb0d254ad4549ffb34d65401f",
+          "sha256": "7611c05e017d1887f5eb33170fd97de703be5a2415d18d65a17b790e6fef247c",
+          "sha1": "53d22d9869f2219f87b3e135075c40e64e709dec",
+          "md5": "c83a2d31682511eab535df7b156aa39a"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "crig-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "crig-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 174716,
+          "sha512": "c9436af1fffd549204eb44ef382219fda8462371efd8e1350e4e9c8e184654d79c79c6b50fc92192b55128ee483abd078e413130f27a1f94881a19aec91dee50",
+          "sha256": "016eac4dc7ac1011963a3fac56b0a958967a89538a7d6eab2464d17c0453762b",
+          "sha1": "9d852a7e68440c81bb16f388fd153bd91d96e671",
+          "md5": "30426b1778b882bae5a06f8300adabb0"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "crig-1.0.0-SNAPSHOT-sources.jar",
+          "url": "crig-1.0.0-SNAPSHOT-sources.jar",
+          "size": 46120,
+          "sha512": "6a7fc38fecec7bed3ffa7d8ffed054c476c137bd7bcbdf34b076643a6c7fd980e6cf2e34082200f962048ff35930fbae326a5bb78f1b745ee8ae61e85fcfb47d",
+          "sha256": "566899955639e3d536303961ec3a3bbe1129c590e93b83220cf2eb5624357d73",
+          "sha1": "798c08d318c5e7e4b8c87e611b9d9c9e5f135f5b",
+          "md5": "4e0c57ebabc8317d227895a0ffff232e"
+        }
+      ]
+    }
+  ]
+}

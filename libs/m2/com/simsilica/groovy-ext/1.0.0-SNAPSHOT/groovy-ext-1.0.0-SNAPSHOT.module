@@ -1,0 +1,151 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "groovy-ext",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "groovy-ext-1.0.0-SNAPSHOT.jar",
+          "url": "groovy-ext-1.0.0-SNAPSHOT.jar",
+          "size": 8952,
+          "sha512": "e1f982dd54634dc71cc2f3d3b4fc72fbabaea8a21827305d9693e5dc8f11bde16a2ad1473bfd567603a9268dacf3329b519b41341852c3357b0d411a56fd34ea",
+          "sha256": "6720c75ff286ef558d68ed51b807595eb112c0742a70cf5aa7c32343b7b01eb0",
+          "sha1": "b33607b5688547ba0030505dc0ca219a7f25d8aa",
+          "md5": "382b7974619a74b4de5b09c9c1bb8342"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.codehaus.groovy",
+          "module": "groovy-all",
+          "version": {
+            "requires": "2.4.5"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "groovy-ext-1.0.0-SNAPSHOT.jar",
+          "url": "groovy-ext-1.0.0-SNAPSHOT.jar",
+          "size": 8952,
+          "sha512": "e1f982dd54634dc71cc2f3d3b4fc72fbabaea8a21827305d9693e5dc8f11bde16a2ad1473bfd567603a9268dacf3329b519b41341852c3357b0d411a56fd34ea",
+          "sha256": "6720c75ff286ef558d68ed51b807595eb112c0742a70cf5aa7c32343b7b01eb0",
+          "sha1": "b33607b5688547ba0030505dc0ca219a7f25d8aa",
+          "md5": "382b7974619a74b4de5b09c9c1bb8342"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "groovy-ext-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "groovy-ext-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 97031,
+          "sha512": "0415464b24096ec33aa0e11af55fb89e953bd297ca893ba4cc07fc63afd92c9bd3c5390911827f1a9aa693736ddadba52730acdac678442de1e73f01eaa8ce35",
+          "sha256": "eace016d50f352901a700dd366e5c378c97b036333263f45b46ecee92f5d9aa7",
+          "sha1": "731592ec11a59ea8f8975507751c341822112fdc",
+          "md5": "d160d5c9b0b8b6c4619d84aa0cc886e9"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "groovy-ext-1.0.0-SNAPSHOT-sources.jar",
+          "url": "groovy-ext-1.0.0-SNAPSHOT-sources.jar",
+          "size": 8936,
+          "sha512": "4cca4023b0e4557cf02096881b2d8e57539e41c290ea95a2e82a4262e5bab6543805b57f300f0c300b562113d3a633c104d1960b75bed592059f022558b6ad37",
+          "sha256": "51627e6d5935c29c0ffd0dce66f7acf36e7a44eb152b1ee346a3fb32d1fab767",
+          "sha1": "8cc11dff1820a86351f6434c87e18c27fd08446d",
+          "md5": "c29632505be0b229fdf9b718e50fffee"
+        }
+      ]
+    }
+  ]
+}

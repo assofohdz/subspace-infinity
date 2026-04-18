@@ -1,0 +1,230 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "sio2",
+    "version": "1.9.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "21.0"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.3.0-stable"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.3.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.16.0"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.5.0"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es-net",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sio2-1.9.0-SNAPSHOT.jar",
+          "url": "sio2-1.9.0-SNAPSHOT.jar",
+          "size": 125141,
+          "sha512": "f31295cce451003753f537f0f127ecdbc06143b6c743d972234cc138a24af12869e69f738a941fd1678968e63cd3ff5d3e99b07538ecdfce75fe2a9498ed3e88",
+          "sha256": "6fb348dd473e9f4bef0b805c94fbc0e1ae84571163897bd32329f2f01867dd81",
+          "sha1": "32a35d53081b783434c8436f5b8f99f04cd4a1e3",
+          "md5": "7ca1536248f2753f8934598ec641beef"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.codehaus.groovy",
+          "module": "groovy-all",
+          "version": {
+            "requires": "2.4.11"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.15.0"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.15.0"
+          }
+        },
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "21.0"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.3.0-stable"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.3.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.16.0"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.5.0"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es-net",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sio2-1.9.0-SNAPSHOT.jar",
+          "url": "sio2-1.9.0-SNAPSHOT.jar",
+          "size": 125141,
+          "sha512": "f31295cce451003753f537f0f127ecdbc06143b6c743d972234cc138a24af12869e69f738a941fd1678968e63cd3ff5d3e99b07538ecdfce75fe2a9498ed3e88",
+          "sha256": "6fb348dd473e9f4bef0b805c94fbc0e1ae84571163897bd32329f2f01867dd81",
+          "sha1": "32a35d53081b783434c8436f5b8f99f04cd4a1e3",
+          "md5": "7ca1536248f2753f8934598ec641beef"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sio2-1.9.0-SNAPSHOT-javadoc.jar",
+          "url": "sio2-1.9.0-SNAPSHOT-javadoc.jar",
+          "size": 384816,
+          "sha512": "d13621d7dc304583b0b1d5bc4bce0f5fe70b810bd32358a4c6c691d88b4ed43dd23faf6e7af98d3b221c4b618bc1888ad0182cd32241f41baa49370f7ddf023b",
+          "sha256": "1ac35da2ed6e29d5a687e1aa666e7a91ca70d56eb327f9761352eda883a4e7a4",
+          "sha1": "69e155d891ce39d0e0da7874a19cc35cb1d4461b",
+          "md5": "0b3402ba5fdfb661db767507c89bec23"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sio2-1.9.0-SNAPSHOT-sources.jar",
+          "url": "sio2-1.9.0-SNAPSHOT-sources.jar",
+          "size": 126104,
+          "sha512": "979dc0c0d1b06ad2a6abb4e60009cfb7f1c6bcf467dbd4b69141c2bf940408cf640def41dbfc4289e2042206e60e1baebcdca5f97a80e1acb61550fba73a33f6",
+          "sha256": "e7b26a836543333ef4f3df1b9f2d840a3a49264b45dc75f248f69f6cf457c1a0",
+          "sha1": "b9cfb144c936c8fe636b4c608104b5fae841b793",
+          "md5": "36db288c6e202e3731e4896641c45476"
+        }
+      ]
+    }
+  ]
+}

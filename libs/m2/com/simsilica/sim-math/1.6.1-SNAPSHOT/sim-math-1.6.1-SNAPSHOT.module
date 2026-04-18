@@ -1,0 +1,125 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "sim-math",
+    "version": "1.6.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 7,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.1.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sim-math-1.6.1-SNAPSHOT.jar",
+          "url": "sim-math-1.6.1-SNAPSHOT.jar",
+          "size": 63516,
+          "sha512": "b7a41c04c08cd982fde963b40e4b6d2d0c5f6b150f92b26a155341cbc83f70228a3333ef40a37c14bac324d8515e4bca98fc98547d91f8d633670bde73a31797",
+          "sha256": "2b44ac512e35dc753b99b7034cc594154e1121e884ca76d96fe887519b9d966e",
+          "sha1": "c2290156f14c4d966431b7559dd21f5a22c72716",
+          "md5": "dee6020b370292879264eadac110fd32"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 7,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.1.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sim-math-1.6.1-SNAPSHOT.jar",
+          "url": "sim-math-1.6.1-SNAPSHOT.jar",
+          "size": 63516,
+          "sha512": "b7a41c04c08cd982fde963b40e4b6d2d0c5f6b150f92b26a155341cbc83f70228a3333ef40a37c14bac324d8515e4bca98fc98547d91f8d633670bde73a31797",
+          "sha256": "2b44ac512e35dc753b99b7034cc594154e1121e884ca76d96fe887519b9d966e",
+          "sha1": "c2290156f14c4d966431b7559dd21f5a22c72716",
+          "md5": "dee6020b370292879264eadac110fd32"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sim-math-1.6.1-SNAPSHOT-javadoc.jar",
+          "url": "sim-math-1.6.1-SNAPSHOT-javadoc.jar",
+          "size": 135404,
+          "sha512": "4a6d7779465369e72e11df409fa249a6617103c2d7d75625a1359018404206cb6942a262bd489727ebb81d973bbd118769ff0ac16e4d0fd93648c0fb1fbc7bd0",
+          "sha256": "9b6412514f0f106528696f0881855770cc29bb638d5a14a0fdf1b3f6e8cf4718",
+          "sha1": "9ca944c02b19f96593aef1583a4e7710dd432a50",
+          "md5": "b7e9cf63e376042da8c665e6b4b3d631"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sim-math-1.6.1-SNAPSHOT-sources.jar",
+          "url": "sim-math-1.6.1-SNAPSHOT-sources.jar",
+          "size": 67528,
+          "sha512": "c254ba3b97617cfc8357251d27ad271c9c9d94c33ab8949013e8cb7276a330cdebc728d2261dd0671ae2feff385d32657a5cb9197297b0199042c777cb7e5ca7",
+          "sha256": "ff34c4fc2ccddc4878a1df2871ec716b2f4d76fdb2e5c4ae1cb34cc21ddfcc9a",
+          "sha1": "9f1a4aad024150b7ee9b1dc422c7045db2475d40",
+          "md5": "aaf1661ab862e1bacb4501ad11a70d3e"
+        }
+      ]
+    }
+  ]
+}

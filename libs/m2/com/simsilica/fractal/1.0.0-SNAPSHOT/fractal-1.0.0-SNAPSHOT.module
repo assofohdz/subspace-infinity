@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "fractal",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "fractal-1.0.0-SNAPSHOT.jar",
+          "url": "fractal-1.0.0-SNAPSHOT.jar",
+          "size": 113247,
+          "sha512": "ffe6c550a7d9d3c85e071fafc4f21d6c402db9b706065b53640460d1029dbbcafe158a7092577700bfb8895a7401393a2f648ddd567ae5ab0765c95cdddbcf87",
+          "sha256": "82186cf8899cb84bf45db3c2fb4ae4ab76fb29c529402e227c9cd75f232f7b71",
+          "sha1": "802ccb93eb7aa8ba617090985123664e675ee117",
+          "md5": "9bb745d8fc8859051d37be3e0878677c"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "fractal-1.0.0-SNAPSHOT.jar",
+          "url": "fractal-1.0.0-SNAPSHOT.jar",
+          "size": 113247,
+          "sha512": "ffe6c550a7d9d3c85e071fafc4f21d6c402db9b706065b53640460d1029dbbcafe158a7092577700bfb8895a7401393a2f648ddd567ae5ab0765c95cdddbcf87",
+          "sha256": "82186cf8899cb84bf45db3c2fb4ae4ab76fb29c529402e227c9cd75f232f7b71",
+          "sha1": "802ccb93eb7aa8ba617090985123664e675ee117",
+          "md5": "9bb745d8fc8859051d37be3e0878677c"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "fractal-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "fractal-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 212186,
+          "sha512": "c2a48465ab454f8a6d98ca08bc550ae2e9bc32b5294f61ca912a0582bf28b7513b0fa9dbcdf2475f0b6c9eabaddece6cf17b3a549ef8ad5c878dcd3b1d4268af",
+          "sha256": "ddfe9b5e83cfdabb95ff52b3fbe27e228425671e4a648477c169ebbeb9867c19",
+          "sha1": "468e0097907cbb508e48aa016f25509200e2968f",
+          "md5": "de5f32fec87f0b66182b760c134368d3"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "fractal-1.0.0-SNAPSHOT-sources.jar",
+          "url": "fractal-1.0.0-SNAPSHOT-sources.jar",
+          "size": 87189,
+          "sha512": "0d6687478b4a40cff7423c360cedaf9ae573324bd7fc14a25df05033aa4e9def7075a56fc5c4faca9bbba96d52d28f65e3d07e6ff641c52cf9ea6347a36b83d7",
+          "sha256": "806fbc15847cca71f0d12b90981b8803e730ac0b34ae14d5ecaf3adad394c8a0",
+          "sha1": "544c7843b75e3ea85c005d4c3f6544bb37d9b475",
+          "md5": "59bae0ba39d8752b331f42601f37f0ed"
+        }
+      ]
+    }
+  ]
+}

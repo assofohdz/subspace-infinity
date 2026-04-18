@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.simsilica</groupId>
+  <artifactId>zay-es-net</artifactId>
+  <version>1.7.0-SNAPSHOT</version>
+  <name>com.simsilica:zay-es-net</name>
+  <description>Network support for the Zay-ES entity component system library.</description>
+  <url>https://github.com/jMonkeyEngine-Contributions/zay-es</url>
+  <inceptionYear>2011</inceptionYear>
+  <licenses>
+    <license>
+      <name>New BSD (3-clause) License</name>
+      <url>https://github.com/jMonkeyEngine-Contributions/zay-es/blob/master/license.md</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Paul Speed</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:git://github.com/jMonkeyEngine-Contributions/zay-es.git</connection>
+    <developerConnection>scm:git:ssh://github.com:jMonkeyEngine-Contributions/zay-es.git</developerConnection>
+    <url>https://github.com/jMonkeyEngine-Contributions/zay-es/tree/master</url>
+  </scm>
+  <dependencies>
+    <dependency>
+      <groupId>com.simsilica</groupId>
+      <artifactId>zay-es</artifactId>
+      <version>1.7.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmonkeyengine</groupId>
+      <artifactId>jme3-networking</artifactId>
+      <version>3.1.0-stable</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.32</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+</project>

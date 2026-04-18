@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mgen",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mgen-1.0.0-SNAPSHOT.jar",
+          "url": "mgen-1.0.0-SNAPSHOT.jar",
+          "size": 23185,
+          "sha512": "ef5488bf237f66ff41d98cb23539d94e70567577ea9f7f57f37dbcc8c4f09b1855c4c867348b9bf0480e42bf7b3ed2756881b40b2fab6339a9008136e424bbbc",
+          "sha256": "ac2ea9956e82ed6a4e4a7d3612389c7d89e2130b69d9bb9318223775a65645e5",
+          "sha1": "995d53193bdab1a2b871c29a943c34bbf9f298b7",
+          "md5": "f865113600489da25b9aed1de2a95d4b"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mgen-1.0.0-SNAPSHOT.jar",
+          "url": "mgen-1.0.0-SNAPSHOT.jar",
+          "size": 23185,
+          "sha512": "ef5488bf237f66ff41d98cb23539d94e70567577ea9f7f57f37dbcc8c4f09b1855c4c867348b9bf0480e42bf7b3ed2756881b40b2fab6339a9008136e424bbbc",
+          "sha256": "ac2ea9956e82ed6a4e4a7d3612389c7d89e2130b69d9bb9318223775a65645e5",
+          "sha1": "995d53193bdab1a2b871c29a943c34bbf9f298b7",
+          "md5": "f865113600489da25b9aed1de2a95d4b"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mgen-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mgen-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 102602,
+          "sha512": "119dd312d698ebb62fb9ae89c90f4269afaa5adc221ebbf3a0c332c9934406273007a6eef5c610e0d3cc2889121fade6fe6395bdd5bb78c5ae71d43f576f499a",
+          "sha256": "8d9a6287f90da4e617a029ef07a09bbc10af37929f82a59e808b0a9cab76b0a0",
+          "sha1": "d979cf271b757b74eb93783c4f7ac41d31d5640a",
+          "md5": "a640fec93747930d5fd2649d22c62ecd"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mgen-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mgen-1.0.0-SNAPSHOT-sources.jar",
+          "size": 18824,
+          "sha512": "44ff6a99a5d4d1f243f1e815750e0b385bfbb33ef9386d904dcf5154cb0a8d817414669aae4f0f5513bda0cbf4d0b233b1e9be2689774350c98a591da9d539d6",
+          "sha256": "1e7aea199019b27e4f776f02358376718d1bacdbc025bcd0a3f0d560bf0ca124",
+          "sha1": "9fab38be90a35fad2cbfa23514c4ce1bd1d81f49",
+          "md5": "5e1a37f9e7659e062103bc3f910e4b95"
+        }
+      ]
+    }
+  ]
+}

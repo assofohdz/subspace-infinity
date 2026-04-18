@@ -1,0 +1,139 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "sim-ethereal",
+    "version": "1.8.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.1.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sim-ethereal-1.8.1-SNAPSHOT.jar",
+          "url": "sim-ethereal-1.8.1-SNAPSHOT.jar",
+          "size": 92351,
+          "sha512": "e82984772ce1492ef52ed58e5b4272db28731725dc82107a459f04324396ff8fbc99fef605e475a3621e935a8b464bd3b576ff0ec394c347e1cfa02463507d44",
+          "sha256": "a3dc72820965b18690b89484479bda3ccef5ccbe1bcfe6e707c879ff3c17c889",
+          "sha1": "3b50e064590a133cb91737c82d295b507696a3b1",
+          "md5": "fdb36a1c1dc1f8b0f793457a478ada31"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.1.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sim-ethereal-1.8.1-SNAPSHOT.jar",
+          "url": "sim-ethereal-1.8.1-SNAPSHOT.jar",
+          "size": 92351,
+          "sha512": "e82984772ce1492ef52ed58e5b4272db28731725dc82107a459f04324396ff8fbc99fef605e475a3621e935a8b464bd3b576ff0ec394c347e1cfa02463507d44",
+          "sha256": "a3dc72820965b18690b89484479bda3ccef5ccbe1bcfe6e707c879ff3c17c889",
+          "sha1": "3b50e064590a133cb91737c82d295b507696a3b1",
+          "md5": "fdb36a1c1dc1f8b0f793457a478ada31"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sim-ethereal-1.8.1-SNAPSHOT-javadoc.jar",
+          "url": "sim-ethereal-1.8.1-SNAPSHOT-javadoc.jar",
+          "size": 258291,
+          "sha512": "fb71175549ac95f346636accbae75ad701c38c3f0401efeffc993cc64c150b864f226ff642b81732d56e21bf967f7e814e0faa25ece083e7b34cd621eefabe36",
+          "sha256": "134be736242dcd027557e7bfaa2cd757c1065fa638da2bcc5c66bbb9108f69c7",
+          "sha1": "fa2c2ffb16376a4ad47874f58f79c60533199690",
+          "md5": "260ecece64c705a99b78e5bbfbdf704e"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sim-ethereal-1.8.1-SNAPSHOT-sources.jar",
+          "url": "sim-ethereal-1.8.1-SNAPSHOT-sources.jar",
+          "size": 97724,
+          "sha512": "3ca0596a43aeeb1ffc81643d8beab74a9ffc7731ac785dd54d1bf0f1b6ceaf3b29d1161fc7358933167cedf76b8250f807f91caf4e4799601cad5795d2aa41c7",
+          "sha256": "36b18732cdb608d9df1c6812bd2c76ec75a4e752494fe8f7c757a105744101f2",
+          "sha1": "3d7cc82a8fac940b179164e78fcfcaa5794e584f",
+          "md5": "94dcff788caf8dd8f32983ad1cfd684d"
+        }
+      ]
+    }
+  ]
+}

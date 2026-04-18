@@ -1,0 +1,162 @@
+# Build native installers and publish to GitHub Releases and itch.io
+# Triggered on version tags (v1.0.0, v1.2.3, etc.) or manual dispatch
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  # Build native packages for each OS
+  build-native:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+            ext: exe
+          - os: ubuntu-latest
+            platform: linux
+            ext: deb
+          - os: macos-latest
+            platform: mac
+            ext: dmg
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Copy libs to Maven Local
+        shell: bash
+        run: |
+          mkdir -p ~/.m2/repository
+          cp -r libs/m2/* ~/.m2/repository/
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update version in build.gradle
+        shell: bash
+        run: |
+          sed -i.bak 's/version = ".*"/version = "${{ steps.version.outputs.VERSION }}"/' infinity/build.gradle
+
+      - name: Build with Gradle
+        run: ./gradlew :infinity:build
+
+      - name: Create native package
+        run: ./gradlew :infinity:jpackage
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: installer-${{ matrix.platform }}
+          path: infinity/build/jpackage/*
+          retention-days: 7
+
+  # Create GitHub Release
+  create-release:
+    needs: build-native
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Get version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: installers
+          pattern: installer-*
+          merge-multiple: true
+
+      - name: List installers
+        run: ls -la installers/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Subspace-Infinity v${{ steps.version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: installers/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Push to itch.io
+  publish-itchio:
+    needs: build-native
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-windows
+          path: windows
+
+      - name: Download Linux installer
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-linux
+          path: linux
+
+      - name: Download Mac installer
+        uses: actions/download-artifact@v4
+        with:
+          name: installer-mac
+          path: mac
+
+      - name: Install butler
+        run: |
+          curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip butler.zip
+          chmod +x butler
+          ./butler -V
+
+      - name: Push to itch.io
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          ./butler push windows assofohdz/subspace-infinity:windows --userversion ${{ steps.version.outputs.VERSION }}
+          ./butler push linux assofohdz/subspace-infinity:linux --userversion ${{ steps.version.outputs.VERSION }}
+          ./butler push mac assofohdz/subspace-infinity:mac --userversion ${{ steps.version.outputs.VERSION }}

@@ -1,0 +1,167 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "sio2-mphys",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sio2-mphys-1.0.0-SNAPSHOT.jar",
+          "url": "sio2-mphys-1.0.0-SNAPSHOT.jar",
+          "size": 71872,
+          "sha512": "d3c948e5004e28114de21f4e3ec29bf321e5d623da52a6d612eea575117394d3d7b8b36f727c423f8984d1544fe55977c229954913bb337e2a33929a5793167a",
+          "sha256": "b89e5d455f8755ea8238fa99495952841c68d4397e43fa0baf8f1f4b169ef92b",
+          "sha1": "149a7c15b3a5190c401ce01f57c02309e9a7e590",
+          "md5": "9b00301d75606b69d14fd917f1e5b77e"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "sio2-mphys-1.0.0-SNAPSHOT.jar",
+          "url": "sio2-mphys-1.0.0-SNAPSHOT.jar",
+          "size": 71872,
+          "sha512": "d3c948e5004e28114de21f4e3ec29bf321e5d623da52a6d612eea575117394d3d7b8b36f727c423f8984d1544fe55977c229954913bb337e2a33929a5793167a",
+          "sha256": "b89e5d455f8755ea8238fa99495952841c68d4397e43fa0baf8f1f4b169ef92b",
+          "sha1": "149a7c15b3a5190c401ce01f57c02309e9a7e590",
+          "md5": "9b00301d75606b69d14fd917f1e5b77e"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sio2-mphys-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "sio2-mphys-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 175486,
+          "sha512": "b98901c07d89e1334d9508deed852850978f1d54cfe3c7d161be8082a6d46169a72bbf44ca1a29ea93308bba8586587f94a91e915784f05283d3108dec5d1748",
+          "sha256": "7dfb549a05cc43399c5ca6642e7a94e7665e299c82a70d837c36a5d13fc3b085",
+          "sha1": "dbe26ca8e17e1d54d5802cbe6b3310634c96561c",
+          "md5": "06b82b53d17214c1e16aadd7de822270"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "sio2-mphys-1.0.0-SNAPSHOT-sources.jar",
+          "url": "sio2-mphys-1.0.0-SNAPSHOT-sources.jar",
+          "size": 54027,
+          "sha512": "4ea6bef1ce41af5fdaece5ee15f2e03ac6e7c554a7a9411cd7dcaff9da479fde03852dad76244b989295f250e6a0c61cab214ade3a88f383c3a111c77bc0d1d8",
+          "sha256": "b7b9a4870789f8abaa18347d2e38c219c19f8bb32bc6e981dd5884566e1929b9",
+          "sha1": "0d9f3a9cbda4dae20ab10fc60661573ab10feb1d",
+          "md5": "2951b3c8013d233e2523b3a64ff23c5c"
+        }
+      ]
+    }
+  ]
+}

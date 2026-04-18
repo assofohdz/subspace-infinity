@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mprogress",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mprogress-1.0.0-SNAPSHOT.jar",
+          "url": "mprogress-1.0.0-SNAPSHOT.jar",
+          "size": 16418,
+          "sha512": "060cece8b69c85ac46bab1ea9233d54e7e22a1142dbe474e9a8dc5a35517d5fe93b614f2c8b40aff405b0460033ceaa51bedae8bfb5c03f03a7fe3ec22647f7d",
+          "sha256": "f716f0994bfa7938dd44302a0069fc834ce84ce0100d23b608f2305ce606903f",
+          "sha1": "d8d4dd5bebd93006a0145d19b0e6c8876306a74a",
+          "md5": "dca3a7d08d6a7bd2b2ec631625938c48"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mprogress-1.0.0-SNAPSHOT.jar",
+          "url": "mprogress-1.0.0-SNAPSHOT.jar",
+          "size": 16418,
+          "sha512": "060cece8b69c85ac46bab1ea9233d54e7e22a1142dbe474e9a8dc5a35517d5fe93b614f2c8b40aff405b0460033ceaa51bedae8bfb5c03f03a7fe3ec22647f7d",
+          "sha256": "f716f0994bfa7938dd44302a0069fc834ce84ce0100d23b608f2305ce606903f",
+          "sha1": "d8d4dd5bebd93006a0145d19b0e6c8876306a74a",
+          "md5": "dca3a7d08d6a7bd2b2ec631625938c48"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mprogress-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mprogress-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 102723,
+          "sha512": "437be2673dcdd98eb1f3e54f189af3695ab79c1ad3646873e3ac9090f611b9a6fc3245ac72a4174a3df554abe9ed87842b6f2dbaf78b348189d5ba02d7e3ad66",
+          "sha256": "680cf7aa19e9d849f2e3c6cf96c750c847b5cfb54561e19418d170a6d6959ce3",
+          "sha1": "c76c6b175f49e2a5a3a9eab28eaeb809b1cc4c06",
+          "md5": "775aa68626241faea7d86690a9869c6b"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mprogress-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mprogress-1.0.0-SNAPSHOT-sources.jar",
+          "size": 9319,
+          "sha512": "a83e4e84b19aaa6ec255c1d897bab837289ee717b9986a2afd9145d02b1d4205b4723eaa8d6c55d2636ba3fc82caba8e2f83fa9a2fef4e11fbdba8a3af14587d",
+          "sha256": "bddcc6a54697aac4a439586ce809f97e9409f032867683793074ba5fec2f5dff",
+          "sha1": "d2b6c59df43972e348514c5417d7498b1b9d0e65",
+          "md5": "6f1dc1158b8d758a5ea2a0feee9b59db"
+        }
+      ]
+    }
+  ]
+}

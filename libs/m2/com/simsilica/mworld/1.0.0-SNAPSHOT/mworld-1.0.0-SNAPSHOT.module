@@ -1,0 +1,209 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mworld",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mworld-1.0.0-SNAPSHOT.jar",
+          "url": "mworld-1.0.0-SNAPSHOT.jar",
+          "size": 439981,
+          "sha512": "b842264f59c5e33527d49ba3690283e28001db0172a019cf2b675cb3ab7959a78d7d6f6f16f1033338893775ecd8a53af70cc247aa1d449e6f6b9e5c2ed56b74",
+          "sha256": "0d3889b8a70606fd035e18564288902ceac4accf8ae682a4149d7ff1e343038b",
+          "sha1": "512e36b06b6083a44ca4123bc12734cf9fe152a3",
+          "md5": "5cea76a9be35f54942f04da5b117d934"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mprogress",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-networking",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mworld-1.0.0-SNAPSHOT.jar",
+          "url": "mworld-1.0.0-SNAPSHOT.jar",
+          "size": 439981,
+          "sha512": "b842264f59c5e33527d49ba3690283e28001db0172a019cf2b675cb3ab7959a78d7d6f6f16f1033338893775ecd8a53af70cc247aa1d449e6f6b9e5c2ed56b74",
+          "sha256": "0d3889b8a70606fd035e18564288902ceac4accf8ae682a4149d7ff1e343038b",
+          "sha1": "512e36b06b6083a44ca4123bc12734cf9fe152a3",
+          "md5": "5cea76a9be35f54942f04da5b117d934"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mworld-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mworld-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 717044,
+          "sha512": "8b2970a840895a1c6b83d0d10c84161b9c2329aab12c6cd40283135e4b2dcf0fa30510a82e54b62d0165fa81f0eee11ac28b103d35f46ea6a30c323acec78cd4",
+          "sha256": "c740e707d1fe0eb7529a00a06e58c60fe2dc224c3c0743051c25695c30c03c03",
+          "sha1": "4b7335caad191ae19d6cd10ae4c68abfdc72c763",
+          "md5": "031e83e4063892ef251a441cd61ec26c"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mworld-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mworld-1.0.0-SNAPSHOT-sources.jar",
+          "size": 387848,
+          "sha512": "1518261ef323bfafd2c3b7e9ddaab80c18577aff8393a590d2768469e130dd3b4fe2a54caa8842c7e0973576ba20ecce147122cd4b2b20809b921912c23e1d63",
+          "sha256": "f1b6d8884fe755eda9eec596898470a68563c1f06e32c8f10e45c8d748feb090",
+          "sha1": "d4ca20914a4c8f576a6007c1d72e5eb34a03174f",
+          "md5": "3f0ac397410380cf28a938f0ef6e1076"
+        }
+      ]
+    }
+  ]
+}

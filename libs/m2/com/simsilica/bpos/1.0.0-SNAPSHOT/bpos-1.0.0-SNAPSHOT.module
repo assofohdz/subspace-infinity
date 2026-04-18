@@ -1,0 +1,223 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "bpos",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es-net",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2-mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "bpos-1.0.0-SNAPSHOT.jar",
+          "url": "bpos-1.0.0-SNAPSHOT.jar",
+          "size": 25838,
+          "sha512": "56267c7a13a249c903e9f567f4936aee5ecbee8df4a042a68487be1dba44620864353384e0d45714e77cbededc3330e17734cfca2c93053ea5471997ce569b13",
+          "sha256": "97b620a59327bd67f2c0898e764213874ba4e8e827292ee391e348149f74ed41",
+          "sha1": "45ff3229486eff482f30b79a762fab0f86b66cf1",
+          "md5": "88a42d223a08f4afb36d8b894e0354c3"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.2"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es-net",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2-mphys",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "bpos-1.0.0-SNAPSHOT.jar",
+          "url": "bpos-1.0.0-SNAPSHOT.jar",
+          "size": 25838,
+          "sha512": "56267c7a13a249c903e9f567f4936aee5ecbee8df4a042a68487be1dba44620864353384e0d45714e77cbededc3330e17734cfca2c93053ea5471997ce569b13",
+          "sha256": "97b620a59327bd67f2c0898e764213874ba4e8e827292ee391e348149f74ed41",
+          "sha1": "45ff3229486eff482f30b79a762fab0f86b66cf1",
+          "md5": "88a42d223a08f4afb36d8b894e0354c3"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "bpos-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "bpos-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 122768,
+          "sha512": "e5c5a9f0ef47adf91a30ac9bec7de174d6e0245c87721b5fab965544bae0293e8d4a29ffb08014f9078badc712b482887ed130d12538daca51565c45e96c2b60",
+          "sha256": "9ae78dab952133b6b131437b892e4977639723704ee473bee7623c8fda67a4c3",
+          "sha1": "bcce46c83e21510eb4b6463f0f90d2bc20d85ea5",
+          "md5": "dbb0a50fa5b8a0b0e549718b2142191e"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "bpos-1.0.0-SNAPSHOT-sources.jar",
+          "url": "bpos-1.0.0-SNAPSHOT-sources.jar",
+          "size": 23446,
+          "sha512": "fde9092312c8280f35daa78f6d7a498956be1d4c292189532081227d128d0cd97949c18d896cc73139c6713103aebf0e4e42fc3d85b93e45d1afd1e4411ba4cf",
+          "sha256": "1cc82fe5d6ce945e64a282d820e0ae59c472f306d9ecf405c87b881d45dde7e8",
+          "sha1": "97ca1ff29f524acbbd6a1ae4da126056a3d2494a",
+          "md5": "87c10063b12afbf776100dfd9cb77152"
+        }
+      ]
+    }
+  ]
+}

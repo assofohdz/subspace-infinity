@@ -1,0 +1,139 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mphys",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mphys-1.0.0-SNAPSHOT.jar",
+          "url": "mphys-1.0.0-SNAPSHOT.jar",
+          "size": 100245,
+          "sha512": "c32b4520d0bd51b547171454e66d93aadc527a02212f1df3353114e3b38b09ba4767aebbf79538e87af94b9165b79fe592f1628cbc8edd889fc417c415968d3e",
+          "sha256": "50799eafadc1d82a71bfd7e6cd46d953a9f418ded3be59d323456fabae499a41",
+          "sha1": "15e657e4b1e26be95ed13154df1bbcec187c02af",
+          "md5": "ea7c5d39bbe5ff20f98dd4d4edc1bf3e"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mphys-1.0.0-SNAPSHOT.jar",
+          "url": "mphys-1.0.0-SNAPSHOT.jar",
+          "size": 100245,
+          "sha512": "c32b4520d0bd51b547171454e66d93aadc527a02212f1df3353114e3b38b09ba4767aebbf79538e87af94b9165b79fe592f1628cbc8edd889fc417c415968d3e",
+          "sha256": "50799eafadc1d82a71bfd7e6cd46d953a9f418ded3be59d323456fabae499a41",
+          "sha1": "15e657e4b1e26be95ed13154df1bbcec187c02af",
+          "md5": "ea7c5d39bbe5ff20f98dd4d4edc1bf3e"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mphys-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mphys-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 267019,
+          "sha512": "4229a219b461cc5407818a7e09e176eceaf7c10b185f6c7d00bbae1d41a12de2b1539afb280bb7342a12c735825f2ff0f3cc1016b8f49c706e3a990e79d920d4",
+          "sha256": "ff98decd52711f341694833b582059096e342507f460ca0cfd98a128d7993ebc",
+          "sha1": "d16347be2fab60769d34432a2ca7bf32f066e00a",
+          "md5": "8e57cc14234db7ae276d54dc76f24cd5"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mphys-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mphys-1.0.0-SNAPSHOT-sources.jar",
+          "size": 106699,
+          "sha512": "f52d6febb4cfac28d1e0a29641c6d73c08c74eb3b598090390b833732283a761def4ee85cea89e392671fb0493cc964689cb572d1feeb85a2921de47814a9f19",
+          "sha256": "ac8ab1656d2b9940b4cd37a2b1f7ab29dba1649bf8b4f0f1114a003cee7e0435",
+          "sha1": "a6b79f67c928a67478fa4e49c7827d3716e1d2c5",
+          "md5": "5e6a2be55b61150c03d3281bd5b3d1c2"
+        }
+      ]
+    }
+  ]
+}

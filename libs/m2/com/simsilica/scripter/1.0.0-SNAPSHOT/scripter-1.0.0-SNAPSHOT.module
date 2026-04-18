@@ -1,0 +1,277 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "scripter",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "scripter-1.0.0-SNAPSHOT.jar",
+          "url": "scripter-1.0.0-SNAPSHOT.jar",
+          "size": 382632,
+          "sha512": "29558c1d704d91c4919c6a2b28c091731454f61271ca7c8bbb53e6f89dffda1470a967f8b47c53a77df34226dee80048d17671a2ed02dc52f481ac44a025e9ee",
+          "sha256": "95010389baf757e7a78c71aed4d43121a8d73bb04051e53e95f83e0eb63a5ea9",
+          "sha1": "432e82ee753c21f8b6e84d19ec78984728cd6ea1",
+          "md5": "a993eda67465a195ea8cfa0703cc1e78"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-desktop",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-effects",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-plugins",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-lwjgl",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "org.codehaus.groovy",
+          "module": "groovy-all",
+          "version": {
+            "requires": "2.5.23"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur-proto",
+          "version": {
+            "requires": "1.14.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur-props",
+          "version": {
+            "requires": "1.1.1"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sio2",
+          "version": {
+            "requires": "1.9.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-ethereal",
+          "version": {
+            "requires": "1.8.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "zay-es-net",
+          "version": {
+            "requires": "1.7.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-fx",
+          "version": {
+            "requires": "1.0.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "pager",
+          "version": {
+            "requires": "1.0.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.6"
+          }
+        },
+        {
+          "group": "com.github.insubstantial",
+          "module": "substance",
+          "version": {
+            "requires": "7.3"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "fractal",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "tools-common",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-api",
+          "version": {
+            "requires": "2.15.0"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-core",
+          "version": {
+            "requires": "2.15.0"
+          }
+        },
+        {
+          "group": "org.apache.logging.log4j",
+          "module": "log4j-slf4j-impl",
+          "version": {
+            "requires": "2.15.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "scripter-1.0.0-SNAPSHOT.jar",
+          "url": "scripter-1.0.0-SNAPSHOT.jar",
+          "size": 382632,
+          "sha512": "29558c1d704d91c4919c6a2b28c091731454f61271ca7c8bbb53e6f89dffda1470a967f8b47c53a77df34226dee80048d17671a2ed02dc52f481ac44a025e9ee",
+          "sha256": "95010389baf757e7a78c71aed4d43121a8d73bb04051e53e95f83e0eb63a5ea9",
+          "sha1": "432e82ee753c21f8b6e84d19ec78984728cd6ea1",
+          "md5": "a993eda67465a195ea8cfa0703cc1e78"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "scripter-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "scripter-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 108599,
+          "sha512": "c6df879796150154b8e8a04197ec26b2ab86589d5e4c89537df891f3eaa27965d6cb272cc272c38aa3a7d24d8a52bdc3b5f783fb0ca97df951d33b30d1d2e279",
+          "sha256": "d0dc2a7c415bcf0334e0576e72fad55f91392fdf1d953cc6b98d5c734c424159",
+          "sha1": "0ccc24bd25491f5a4b8ff2ec4cc808e771495fb9",
+          "md5": "14f93d5d5854df6b41bdd22a52ce4910"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "scripter-1.0.0-SNAPSHOT-sources.jar",
+          "url": "scripter-1.0.0-SNAPSHOT-sources.jar",
+          "size": 377694,
+          "sha512": "e6f4d715fc0633ce0a0e4ec73176625722cee45a7c2cc2991f659df10008526559c9061b00224b219be390853547f98997159ce3a6d940a784184bae91054c73",
+          "sha256": "a700a34468559cef534fd3c1d8ba2484bfbe6844cd43ca81d8e51eada1987258",
+          "sha1": "655aa99193b8b0c4df2d84364c2fa8bb9a2a6cea",
+          "md5": "f32c18d4e8cb5d0b58e6381a9592f0b6"
+        }
+      ]
+    }
+  ]
+}

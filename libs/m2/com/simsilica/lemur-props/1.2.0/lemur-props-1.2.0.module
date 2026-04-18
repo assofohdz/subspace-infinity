@@ -1,0 +1,132 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "lemur-props",
+    "version": "1.2.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.5.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lemur-props-1.2.0.jar",
+          "url": "lemur-props-1.2.0.jar",
+          "size": 22623,
+          "sha512": "1642b58bb66f0da7923bfa69043f1b2d5e46a41116fbf66667aa3215848c6c70f901f9e823f49dc7cefe9d3f25728671da27b3ab8fa477851db924bb6b5ee720",
+          "sha256": "bca6cbcd1f0fa7b0e96e94866eebfbc1a913485df438646fafbe85bc0c161bc9",
+          "sha1": "a9b05eff1e85be82f21e739a75636545dfd9e24c",
+          "md5": "ca9437b96d0513d2320f01915810a4aa"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.5.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "lemur-props-1.2.0.jar",
+          "url": "lemur-props-1.2.0.jar",
+          "size": 22623,
+          "sha512": "1642b58bb66f0da7923bfa69043f1b2d5e46a41116fbf66667aa3215848c6c70f901f9e823f49dc7cefe9d3f25728671da27b3ab8fa477851db924bb6b5ee720",
+          "sha256": "bca6cbcd1f0fa7b0e96e94866eebfbc1a913485df438646fafbe85bc0c161bc9",
+          "sha1": "a9b05eff1e85be82f21e739a75636545dfd9e24c",
+          "md5": "ca9437b96d0513d2320f01915810a4aa"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lemur-props-1.2.0-javadoc.jar",
+          "url": "lemur-props-1.2.0-javadoc.jar",
+          "size": 121625,
+          "sha512": "aa230049eb366888ef6417b1acea2cde20df8778e499a63cc07d8f9b75cc409b683735c315b24569404ecb9b5b931e47d2b8dd72baded94f9ffc12043fc7668d",
+          "sha256": "ea785faad9bcbaa031dfd4da0ee7c0bea542a4dc81ef43995a931dcd12bdcdf1",
+          "sha1": "b09eade84aa2a5d609076d7442289f2f0c67e214",
+          "md5": "86251709100552bc2e4f045ced2f6a2e"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "lemur-props-1.2.0-sources.jar",
+          "url": "lemur-props-1.2.0-sources.jar",
+          "size": 7013,
+          "sha512": "c3d61d902cfacc1a5250241dd1f818ecddcc4cc7ad113215b23dc254f919db19f413058b0338c4e222238e22c46c124bb03ee8b799d095b6d766ddf1ff909224",
+          "sha256": "fca2456c61ec38c483d49d408942ca15859a1a670edae2d401a066decb4495ad",
+          "sha1": "50b61a5511999f312f1b8a4d9363edbbff790044",
+          "md5": "b200ea7f5f211b51a55531652677401a"
+        }
+      ]
+    }
+  ]
+}

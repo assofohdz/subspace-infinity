@@ -1,0 +1,216 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "tools-common",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur-proto",
+          "version": {
+            "requires": "1.14.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-fx",
+          "version": {
+            "requires": "1.0.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.6"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mmod",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "tools-common-1.0.0-SNAPSHOT.jar",
+          "url": "tools-common-1.0.0-SNAPSHOT.jar",
+          "size": 29380151,
+          "sha512": "1b3895edbe9ac8c9a10373b0603438d737619be9bdac0489325450cae65c9f7a565441b00fb12b61f6536011dc9ac4a5513151b791d93cfbe348ac39bf4062f6",
+          "sha256": "6eed7dd133cd99cb5a9f5ad4543dd2f34a0116bc69bb1b24d5b2818386a3e5e4",
+          "sha1": "345fa3efc3536340dcaf46b4cacf4f3e03157e1a",
+          "md5": "a2024e12b3a3427ac18a5d1fe93fd817"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur",
+          "version": {
+            "requires": "1.17.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "lemur-proto",
+          "version": {
+            "requires": "1.14.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-fx",
+          "version": {
+            "requires": "1.0.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.8.6"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mblock",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mmod",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "tools-common-1.0.0-SNAPSHOT.jar",
+          "url": "tools-common-1.0.0-SNAPSHOT.jar",
+          "size": 29380151,
+          "sha512": "1b3895edbe9ac8c9a10373b0603438d737619be9bdac0489325450cae65c9f7a565441b00fb12b61f6536011dc9ac4a5513151b791d93cfbe348ac39bf4062f6",
+          "sha256": "6eed7dd133cd99cb5a9f5ad4543dd2f34a0116bc69bb1b24d5b2818386a3e5e4",
+          "sha1": "345fa3efc3536340dcaf46b4cacf4f3e03157e1a",
+          "md5": "a2024e12b3a3427ac18a5d1fe93fd817"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "tools-common-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "tools-common-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 159568,
+          "sha512": "13f6fd7b72bfd700fd79094b3f54145ee5c4d2cd195f6cd674d59dd19caae6db649ddf366eea4228f690e85cdf0a0ac75cbd524bf07488813f556d793af9a9a3",
+          "sha256": "89cb08f5e374578389c33a6584e0ce6bb8b7442e14c179ac5183a36fdee0022a",
+          "sha1": "06e162f37f2099b073f840699cd4523cce0b04eb",
+          "md5": "a091474207ac85298123ff9366cbd94f"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "tools-common-1.0.0-SNAPSHOT-sources.jar",
+          "url": "tools-common-1.0.0-SNAPSHOT-sources.jar",
+          "size": 29353801,
+          "sha512": "0503eea63c5ec5631957f59f12a12f3a15d101daf3e595609368556a6e38693a1cc803685cda086169a43709a0908b274e00445d6acc700bfeff24ebf97ff02d",
+          "sha256": "ee009a2eed1e5d8f75ad9a8c4af22b15235801d3e008c844fada50e57d538c73",
+          "sha1": "5cdf253fbd6f545e58f9e966989dca732c730002",
+          "md5": "163ca4d058d788e0a64689032796e78b"
+        }
+      ]
+    }
+  ]
+}

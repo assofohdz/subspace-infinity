@@ -1,0 +1,144 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mmod",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "mmod-1.0.0-SNAPSHOT.jar",
+          "url": "mmod-1.0.0-SNAPSHOT.jar",
+          "size": 15573,
+          "sha512": "98a80d60bb1e6a2a490374daa4e902a759d20f1cd7ab381b591261a87ff746c6ebb2cdb9a24a40308fcc30e73f31773bbf78e0579b2b6feb4c2ed595b1553ce5",
+          "sha256": "fcec0ed5462f751f2524c81b26d034e45f21ddb1005ba1df9f607347abbef3ee",
+          "sha1": "899d847d0dab0c8a35531c9102b31000fbaa20bf",
+          "md5": "22791635e31807eef68eb7705e968246"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.google.code.gson",
+          "module": "gson",
+          "version": {
+            "requires": "2.9.0"
+          }
+        },
+        {
+          "group": "org.codehaus.groovy",
+          "module": "groovy-all",
+          "version": {
+            "requires": "2.4.5"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "mprogress",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "groovy-ext",
+          "version": {
+            "requires": "1.0.0-SNAPSHOT"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mmod-1.0.0-SNAPSHOT.jar",
+          "url": "mmod-1.0.0-SNAPSHOT.jar",
+          "size": 15573,
+          "sha512": "98a80d60bb1e6a2a490374daa4e902a759d20f1cd7ab381b591261a87ff746c6ebb2cdb9a24a40308fcc30e73f31773bbf78e0579b2b6feb4c2ed595b1553ce5",
+          "sha256": "fcec0ed5462f751f2524c81b26d034e45f21ddb1005ba1df9f607347abbef3ee",
+          "sha1": "899d847d0dab0c8a35531c9102b31000fbaa20bf",
+          "md5": "22791635e31807eef68eb7705e968246"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mmod-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mmod-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 98838,
+          "sha512": "e77c0737c8e166d3a8182c8fecb00e68058403ab590630668a9a84a14559b7dd518b7051a651a117a692b67f628e0347ac314e706c905c1ff70e39d5e1345715",
+          "sha256": "c0afb72510b7831e20c209304411ce4425192e815d81aea68df894fc93c8cf3e",
+          "sha1": "c3284f496276d52395129caf52878de63c7a1b95",
+          "md5": "b189d5cbd13a2776a48e1a2fb7bf3fe0"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mmod-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mmod-1.0.0-SNAPSHOT-sources.jar",
+          "size": 12527,
+          "sha512": "685206c97b0fd4158c94a1554dffd3b90b3e8a29bbea625a6731560b28253036f3221ba006dbd1256738f7b0b1cfbe98f2ffc94a90eed25cedf1309ebd3c0b87",
+          "sha256": "ec8b249c341c6790d57f64816eb723785c239e8390f5fdb9128a910c7c995246",
+          "sha1": "4306a5148239d14205b84a82eff7b9c7f389f5bf",
+          "md5": "08174a2e42115ef7732d1d1c648802b5"
+        }
+      ]
+    }
+  ]
+}

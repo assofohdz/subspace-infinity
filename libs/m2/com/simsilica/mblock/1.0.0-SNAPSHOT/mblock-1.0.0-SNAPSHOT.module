@@ -1,0 +1,146 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.simsilica",
+    "module": "mblock",
+    "version": "1.0.0-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "dependencies": [
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mblock-1.0.0-SNAPSHOT.jar",
+          "url": "mblock-1.0.0-SNAPSHOT.jar",
+          "size": 199984,
+          "sha512": "e147c398cbee10fd1e81272db6096851457df084ea1d7aed5b9a40f56638adac3fbd0eb92012f8ae8a463523ff677e5650b45c24d5c14b3f7e2f09e4e327b06d",
+          "sha256": "567b20e11b3da17de1d4d64722e9eb8a61d5ed2462b1e512b75e517855a8024f",
+          "sha1": "5b471885a8da570edb1ed6b430e694fc6f25da91",
+          "md5": "c98d86345e73a44e22d875275a559500"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 8,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.guava",
+          "module": "guava",
+          "version": {
+            "requires": "19.0"
+          }
+        },
+        {
+          "group": "org.slf4j",
+          "module": "slf4j-api",
+          "version": {
+            "requires": "1.7.32"
+          }
+        },
+        {
+          "group": "com.simsilica",
+          "module": "sim-math",
+          "version": {
+            "requires": "1.6.1-SNAPSHOT"
+          }
+        },
+        {
+          "group": "org.jmonkeyengine",
+          "module": "jme3-core",
+          "version": {
+            "requires": "3.9.0-stable"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "mblock-1.0.0-SNAPSHOT.jar",
+          "url": "mblock-1.0.0-SNAPSHOT.jar",
+          "size": 199984,
+          "sha512": "e147c398cbee10fd1e81272db6096851457df084ea1d7aed5b9a40f56638adac3fbd0eb92012f8ae8a463523ff677e5650b45c24d5c14b3f7e2f09e4e327b06d",
+          "sha256": "567b20e11b3da17de1d4d64722e9eb8a61d5ed2462b1e512b75e517855a8024f",
+          "sha1": "5b471885a8da570edb1ed6b430e694fc6f25da91",
+          "md5": "c98d86345e73a44e22d875275a559500"
+        }
+      ]
+    },
+    {
+      "name": "javadocElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "javadoc",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mblock-1.0.0-SNAPSHOT-javadoc.jar",
+          "url": "mblock-1.0.0-SNAPSHOT-javadoc.jar",
+          "size": 354896,
+          "sha512": "60c998a303000bd5be67d69932ad539ed98f7688926d4baafd54303faee31fc08e1928fb81ea0751c086909c62a288af3580ac2e962d1287af374e2b49b07642",
+          "sha256": "0ddeb9912d9563cbcb8ee262515bf871445a82a8fc7d8b682cd60f2c52211391",
+          "sha1": "a34e9565d7cafadcabd38beac2a8931fda8a00fa",
+          "md5": "14547b4c7d0f08309018f652a561aac8"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "mblock-1.0.0-SNAPSHOT-sources.jar",
+          "url": "mblock-1.0.0-SNAPSHOT-sources.jar",
+          "size": 184518,
+          "sha512": "4b0320877e2c9d012013cdcd426695055d76e77c9d7bc44c162bf5a29adc5dc92dce3b0240101afc1aa1e61421b0686b31c5331ab6a1e0cd699b6482d5ce6e63",
+          "sha256": "53528dcb9fb992264a43e1b7c042ca00c66a532cd58caa1a1311a59247265cf6",
+          "sha1": "2e752febfdf268ebb33f4f13571bc3bb7ce990ba",
+          "md5": "392f86c9c5946adc61df360862f7ab0e"
+        }
+      ]
+    }
+  ]
+}
