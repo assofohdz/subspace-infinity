@@ -147,31 +147,28 @@ jobs:
           path: mac
 
       - name: Push Windows to itch.io
-        uses: robpc/butler-to-itch@v1
+        uses: Ayowel/butler-to-itch@v1
         with:
           butler_key: ${{ secrets.BUTLER_API_KEY }}
           itch_user: assofohdz
           itch_game: subspace-infinity
           version: ${{ steps.version.outputs.VERSION }}
           files: windows
-          channel: windows
 
       - name: Push Linux to itch.io
-        uses: robpc/butler-to-itch@v1
+        uses: Ayowel/butler-to-itch@v1
         with:
           butler_key: ${{ secrets.BUTLER_API_KEY }}
           itch_user: assofohdz
           itch_game: subspace-infinity
           version: ${{ steps.version.outputs.VERSION }}
           files: linux
-          channel: linux
 
       - name: Push Mac to itch.io
-        uses: robpc/butler-to-itch@v1
+        uses: Ayowel/butler-to-itch@v1
         with:
           butler_key: ${{ secrets.BUTLER_API_KEY }}
           itch_user: assofohdz
           itch_game: subspace-infinity
           version: ${{ steps.version.outputs.VERSION }}
           files: mac
-          channel: mac
