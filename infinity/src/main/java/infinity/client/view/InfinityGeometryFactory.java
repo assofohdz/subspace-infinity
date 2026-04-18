@@ -307,7 +307,7 @@ public class InfinityGeometryFactory {
                 int k = entry.k;
                 GeomPart part = entry.part;
 
-                byte dir = (byte)part.getDirection();
+                byte dir = (byte)part.getDirectionIndex();
                 if( dirB != null && dir < 0 ) {
                     throw new RuntimeException("Entry for material:" + mt + " has invalid dir:" + dir);
                 }
@@ -370,7 +370,7 @@ public class InfinityGeometryFactory {
             }
 
             // Use a mesh with no collision
-            Mesh mesh = new ColliderlessMesh(allowCollisions);
+            Mesh mesh = new ColliderlessMesh("block", allowCollisions);
             pos.applyToMesh(mesh, VertexBuffer.Type.Position, 3);
             texes.applyToMesh(mesh, VertexBuffer.Type.TexCoord, 2);
 

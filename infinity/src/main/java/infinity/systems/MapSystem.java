@@ -75,7 +75,7 @@ public class MapSystem extends AbstractGameSystem {
   public static final float NOISE4J_WALL = 1f;
   private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
-  private final String mapDirectory = "maps";
+  private final String mapDirectory = "Maps";
   private final LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
   private final LinkedHashSet<Vec3d> sessionTileCreations = new LinkedHashSet<>();
   // Map that holds all block coordinates for a given map:

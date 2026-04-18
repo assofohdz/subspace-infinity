@@ -1,16 +1,13 @@
 package infinity.sim;
 
-import com.simsilica.es.EntityData;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeFactory;
-import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.CellArray;
 import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.BodyMass;
-import infinity.es.ShapeNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,18 +18,11 @@ import org.slf4j.LoggerFactory;
 public class CubeFactory implements ShapeFactory<MBlockShape> {
   static Logger log = LoggerFactory.getLogger(CubeFactory.class);
 
-  EntityData ed;
-
-  public CubeFactory(EntityData ed) {
-    this.ed = ed;
-  }
-
   public CubeFactory() {
-    this(null);
   }
 
   @Override
-  public MBlockShape createShape(ShapeInfo info, Mass mass) {
+  public MBlockShape createShape(String name, double scale, Mass mass) {
     return MBlockShape.createCube(2);
 //    if (info.getShapeName(ed).equals(ShapeNames.DOOR)) {
 //      return this.createStaticGhostCube(info);
@@ -40,7 +30,7 @@ public class CubeFactory implements ShapeFactory<MBlockShape> {
 //    return this.createStaticPhysicalCube(info);
   }
 
-  private MBlockShape createStaticGhostCube(ShapeInfo info) {
+  private MBlockShape createStaticGhostCube(double scale) {
     CellArray cells = new CellArray(1, 1, 1);
     cells.setCell(0, 0, 0, 1);
     MaskUtils.calculateSideMasks(cells);
@@ -50,15 +40,15 @@ public class CubeFactory implements ShapeFactory<MBlockShape> {
             CellArrayPart.Type.Blocks,
             cells,
             1.0,
-            info.getScale(),
-            BodyMass.createSimple(0.0, null, info.getScale()));
+            scale,
+            BodyMass.createSimple(0.0, null, scale));
     return new MBlockShape(ghostBlock);
   }
 
-  private MBlockShape createStaticPhysicalCube(ShapeInfo info) {
+  private MBlockShape createStaticPhysicalCube(double scale) {
     CellArray cells = new CellArray(1, 1, 1);
     cells.setCell(0, 0, 0, 1);
     MaskUtils.calculateSideMasks(cells);
-    return MBlockShape.createShape(cells, info.getScale() / 2.0, 0.0);
+    return MBlockShape.createShape(cells, scale / 2.0, 0.0);
   }
 }

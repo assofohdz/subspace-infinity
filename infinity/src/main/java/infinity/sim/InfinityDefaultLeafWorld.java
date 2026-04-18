@@ -40,6 +40,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.MaskUtils;
 import com.simsilica.mworld.CellChangeEvent;
 import com.simsilica.mworld.CellChangeListener;
+import com.simsilica.mworld.ColumnChangeListener;
 import com.simsilica.mworld.Coordinates;
 import com.simsilica.mworld.FluidData;
 import com.simsilica.mworld.LeafChangeListener;
@@ -81,6 +82,8 @@ public class InfinityDefaultLeafWorld implements World {
 
   private final LeafChangeListenerSupport leafListeners = new LeafChangeListenerSupport();
 
+  private final List<ColumnChangeListener> columnListeners = new ArrayList<>();
+
   public InfinityDefaultLeafWorld(LeafDb leafDb, int yMax) {
     this.leafDb = leafDb;
     this.yMax = yMax;
@@ -106,6 +109,16 @@ public class InfinityDefaultLeafWorld implements World {
   @Override
   public void removeLeafChangeListener(LeafChangeListener l) {
     leafListeners.remove(l);
+  }
+
+  @Override
+  public void addColumnChangeListener(ColumnChangeListener l) {
+    columnListeners.add(l);
+  }
+
+  @Override
+  public void removeColumnChangeListener(ColumnChangeListener l) {
+    columnListeners.remove(l);
   }
 
   @Override
@@ -171,7 +184,7 @@ public class InfinityDefaultLeafWorld implements World {
 
     // Notify the listeners
     for (LeafData mod : data.getModified()) {
-      leafListeners.fireLeafChanged(mod.getInfo().leafId, mod.getInfo().version.getVersion());
+      leafListeners.fireLeafChanged(mod.getInfo().leafId, mod.getInfo().version.getVersion(), false);
     }
 
     for (CellChangeEvent event : data.getChanges()) {

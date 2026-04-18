@@ -28,8 +28,8 @@ subprojects {
 
     ext.groovyVersion = '+'
     ext.gsonVersion = '+'
-    ext.log4jVersion = '+'
-    ext.slf4jVersion = '+'
+    ext.log4jVersion = '2.24.3'  // pinned to stable release
+    ext.slf4jVersion = '2.0.16'  // pinned to stable release
     ext.guavaVersion = '+'
 
     ext.mossVersion = "+"

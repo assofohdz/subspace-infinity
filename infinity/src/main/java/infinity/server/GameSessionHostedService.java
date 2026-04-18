@@ -221,7 +221,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       // binIndex = phys.getBinIndex();
 
       playerEntityId = ed.createEntity();
-      ed.setComponent(playerEntityId, new Name(conn.getAttribute("player")));
+      // Player name may not be set yet if login hasn't happened
+      String playerName = conn.getAttribute("player");
+      if (playerName == null) {
+        playerName = "Player-" + conn.getId();
+      }
+      ed.setComponent(playerEntityId, new Name(playerName));
 
       avatarEntityId =
           GameEntities.createPlayerShip(spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD);

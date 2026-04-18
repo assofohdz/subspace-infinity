@@ -228,8 +228,9 @@ public class GameServer {
     systems.addSystem(new LargeGridIndexSystem(WorldGrids.TILE_GRID));
 
     // Add it to the game systems so that we send updates properly
+    // Use backgroundThread=true to enable the background processing thread
     systems.addSystem(
-        new EntityUpdater(server.getServices().getService(EntityDataHostedService.class)));
+        new EntityUpdater(server.getServices().getService(EntityDataHostedService.class), true));
 
     // Add some standard systems
     systems.addSystem(new DecaySystem());
@@ -372,87 +373,39 @@ public class GameServer {
       ShapeFactoryRegistry<MBlockShape> shapeFactory, EntityData ed) {
     // Need a shape factory to turn ShapeInfo components into
 
-    SphereFactory sphereFactory = new SphereFactory(ed);
-    CubeFactory cubeFactory = new CubeFactory(ed);
+    SphereFactory sphereFactory = new SphereFactory();
+    CubeFactory cubeFactory = new CubeFactory();
     // MBlockShapes.
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BOMBL1, CorePhysicsConstants.BOMBSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BOMBL2, CorePhysicsConstants.BOMBSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BOMBL3, CorePhysicsConstants.BOMBSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BOMBL4, CorePhysicsConstants.BOMBSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BULLETL1, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BULLETL2, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BULLETL3, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.BULLETL4, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.OVER2, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.BULLETSIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.WORMHOLE, CorePhysicsConstants.WORMHOLESIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.WARP, CorePhysicsConstants.WORMHOLESIZERADIUS, ed),
-        sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.FLAG, CorePhysicsConstants.FLAGSIZERADIUS, ed), sphereFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.THOR, CorePhysicsConstants.THORSIZERADIUS, ed), sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_WARBIRD, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_JAVELIN, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_SHARK, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_LANCASTER, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_LEVI, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_SPIDER, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_TERRIER, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_WEASEL, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL1, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL2, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL3, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL4, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL1, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL2, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL3, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL4, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.OVER1, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.OVER2, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.OVER5, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.PRIZE, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.WORMHOLE, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.WARP, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.FLAG, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.THOR, sphereFactory);
 
     // Register the cube factories
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.ARENA, CorePhysicsConstants.ARENAWIDTH, ed), cubeFactory);
-    shapeFactory.registerFactory(
-        ShapeInfo.create(ShapeNames.DOOR, CorePhysicsConstants.DOORWIDTH, ed), cubeFactory);
+    shapeFactory.registerFactory(ShapeNames.ARENA, cubeFactory);
+    shapeFactory.registerFactory(ShapeNames.DOOR, cubeFactory);
 
-    shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+    shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory());
   }
 
   protected void registerSerializers() {

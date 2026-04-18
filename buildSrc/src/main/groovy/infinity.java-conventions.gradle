@@ -11,8 +11,9 @@ plugins {
 // Projects should use Maven Central for external dependencies
 repositories {
     mavenLocal()
-    jcenter()
     mavenCentral()
+    jcenter()  // deprecated but some old deps still there
+    maven { url 'https://maven.scijava.org/content/repositories/public/' }  // for de.lighti:Clipper
 }
 
 // Standard dependencies that we expect all of the java projects

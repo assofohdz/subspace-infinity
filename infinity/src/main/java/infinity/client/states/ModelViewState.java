@@ -243,32 +243,32 @@ public class ModelViewState extends BaseAppState {
   private void initializeFactoryRegistry() {
     ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
 
-    SphereFactory sphereFactory = new SphereFactory(ed);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WARBIRD, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_JAVELIN, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SHARK, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LANCASTER, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_LEVI, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_SPIDER, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_TERRIER, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.SHIP_WEASEL, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL1, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL2, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL3, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BOMBL4, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL1, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL2, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL3, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.BULLETL4, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER1, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER2, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.OVER5, 1, ed), sphereFactory);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.FLAG, 1, ed), sphereFactory);
+    SphereFactory sphereFactory = new SphereFactory();
+    shapeFactory.registerFactory(ShapeNames.SHIP_WARBIRD, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_JAVELIN, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_SHARK, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_LANCASTER, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_LEVI, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_SPIDER, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_TERRIER, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.SHIP_WEASEL, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL1, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL2, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL3, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BOMBL4, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL1, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL2, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL3, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.BULLETL4, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.OVER1, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.OVER2, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.OVER5, sphereFactory);
+    shapeFactory.registerFactory(ShapeNames.FLAG, sphereFactory);
 
-    CubeFactory cubeFactory = new CubeFactory(ed);
-    shapeFactory.registerFactory(ShapeInfo.create(ShapeNames.DOOR, 1, ed), cubeFactory);
+    CubeFactory cubeFactory = new CubeFactory();
+    shapeFactory.registerFactory(ShapeNames.DOOR, cubeFactory);
 
-    shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory(ed));
+    shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory());
   }
 
   @Override

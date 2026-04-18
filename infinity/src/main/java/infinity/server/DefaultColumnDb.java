@@ -37,7 +37,7 @@
 package infinity.server;
 
 import com.simsilica.mworld.db.AbstractColumnDb;
-import com.simsilica.mworld.db.IdFileFunction;
+import com.simsilica.mworld.db.ParentIdFileFunction;
 import com.simsilica.mworld.db.SpoolingObjectDb;
 import java.io.*;
 import java.util.function.*;
@@ -65,9 +65,8 @@ public class DefaultColumnDb extends AbstractColumnDb {
   private SpoolingObjectDb<ColumnId, ColumnData> storage;
 
   public DefaultColumnDb( File root) {
-    // Shifting grid cell coordinates 5 bits means that all of the columns
-    // for a particular tile will be in the same directory.
-    this(new IdFileFunction<ColumnId>(root, 5, "col"));
+    // Use ParentIdFileFunction which handles the directory structure properly
+    this(new ParentIdFileFunction<ColumnId>(root, "col"));
   }
 
   public DefaultColumnDb(Function<ColumnId, File> fileFunc ) {

@@ -121,9 +121,11 @@ distributions {
     }
 }
 
-apply plugin: "org.mini2Dx.parcl"
-apply plugin: "org.mini2Dx.butler"
+// TODO: parcl plugin is incompatible with Gradle 8.x - commenting out until updated
+// apply plugin: "org.mini2Dx.parcl"
+// apply plugin: "org.mini2Dx.butler"
 
+/*
 parcl {
     app {
         vmArgs = applicationDefaultJvmArgs
@@ -161,3 +163,4 @@ task butlerPush(type: org.mini2Dx.butler.task.PushTask) {
     binDirectory = file("$buildDir\\windows")
     channel = "windows"
 }
+*/

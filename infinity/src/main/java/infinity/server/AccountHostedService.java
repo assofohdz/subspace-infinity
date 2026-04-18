@@ -233,8 +233,10 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
         public void dispose() {
             // The player is the ship is the entity... so we need to delete
             // the ship
-            playerConnectionMap.remove(player);
-            ed.removeEntity(player);
+            if (player != null) {
+                playerConnectionMap.remove(player);
+                ed.removeEntity(player);
+            }
         }
     }
 
