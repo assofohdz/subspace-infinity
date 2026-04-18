@@ -69,10 +69,20 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew :infinity:build
 
-      - name: Create native package
+      - name: Create app image (for itch.io)
+        run: ./gradlew :infinity:jpackageImage
+
+      - name: Create native installer (for GitHub releases)
         run: ./gradlew :infinity:jpackage
 
-      - name: Upload installer artifact
+      - name: Upload app image for itch.io
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.platform }}
+          path: infinity/build/jpackage-image/*
+          retention-days: 7
+
+      - name: Upload installer for GitHub releases
         uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.platform }}
@@ -128,22 +138,22 @@ jobs:
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Download Windows installer
+      - name: Download Windows app
         uses: actions/download-artifact@v4
         with:
-          name: installer-windows
+          name: app-windows
           path: windows
 
-      - name: Download Linux installer
+      - name: Download Linux app
         uses: actions/download-artifact@v4
         with:
-          name: installer-linux
+          name: app-linux
           path: linux
 
-      - name: Download Mac installer
+      - name: Download Mac app
         uses: actions/download-artifact@v4
         with:
-          name: installer-mac
+          name: app-mac
           path: mac
 
       - name: Push Windows to itch.io
