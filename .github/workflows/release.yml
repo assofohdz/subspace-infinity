@@ -146,17 +146,32 @@ jobs:
           name: installer-mac
           path: mac
 
-      - name: Install butler
-        run: |
-          curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
-          unzip butler.zip
-          chmod +x butler
-          ./butler -V
+      - name: Push Windows to itch.io
+        uses: robpc/butler-to-itch@v1
+        with:
+          butler_key: ${{ secrets.BUTLER_API_KEY }}
+          itch_user: assofohdz
+          itch_game: subspace-infinity
+          version: ${{ steps.version.outputs.VERSION }}
+          files: windows
+          channel: windows
 
-      - name: Push to itch.io
-        env:
-          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
-        run: |
-          ./butler push windows assofohdz/subspace-infinity:windows --userversion ${{ steps.version.outputs.VERSION }}
-          ./butler push linux assofohdz/subspace-infinity:linux --userversion ${{ steps.version.outputs.VERSION }}
-          ./butler push mac assofohdz/subspace-infinity:mac --userversion ${{ steps.version.outputs.VERSION }}
+      - name: Push Linux to itch.io
+        uses: robpc/butler-to-itch@v1
+        with:
+          butler_key: ${{ secrets.BUTLER_API_KEY }}
+          itch_user: assofohdz
+          itch_game: subspace-infinity
+          version: ${{ steps.version.outputs.VERSION }}
+          files: linux
+          channel: linux
+
+      - name: Push Mac to itch.io
+        uses: robpc/butler-to-itch@v1
+        with:
+          butler_key: ${{ secrets.BUTLER_API_KEY }}
+          itch_user: assofohdz
+          itch_game: subspace-infinity
+          version: ${{ steps.version.outputs.VERSION }}
+          files: mac
+          channel: mac
