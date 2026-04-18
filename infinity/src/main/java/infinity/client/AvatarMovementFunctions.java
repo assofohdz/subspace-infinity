@@ -185,7 +185,7 @@ public class AvatarMovementFunctions {
     }
 
     if (!inputMapper.hasMappings(F_BOMB)) {
-      inputMapper.map(F_BOMB, KeyInput.KEY_TAB);
+      inputMapper.map(F_BOMB, KeyInput.KEY_SPACE);
     }
 
     if (!inputMapper.hasMappings(F_BURST)) {
