@@ -13,7 +13,7 @@ Client-side states manage UI, rendering, and input using jME3's state system.
 ## Requirements
 1. Extend `com.jme3.app.state.BaseAppState`
 2. Implement lifecycle methods properly
-3. Clean up all resources in `cleanup()`
+3. Clean up all resources in `cleanup()` - **CRITICAL: release EntitySets**
 4. Include BSD 2-clause license header
 
 ## Template
@@ -39,7 +39,7 @@ public class MyState extends BaseAppState {
     @Override
     protected void cleanup(final Application app) {
         // Called once when state is detached
-        // Release all resources
+        // Release all resources and EntitySets!
     }
 
     @Override
@@ -57,6 +57,74 @@ public class MyState extends BaseAppState {
     @Override
     public void update(final float tpf) {
         // Per-frame updates (optional override)
+    }
+}
+```
+
+## The Visualization Pattern (from Zay-ES Wiki)
+This is the first design pattern in ECS - syncing entities to visual spatials:
+```java
+public class VisualAppState extends BaseAppState {
+    private EntityData ed;
+    private EntitySet entities;
+    private final Map<EntityId, Spatial> models = new HashMap<>();
+    private SimpleApplication app;
+
+    @Override
+    protected void initialize(Application app) {
+        this.app = (SimpleApplication) app;
+        ed = getEntityData();  // Get from ConnectionState or similar
+        entities = ed.getEntities(Position.class, Model.class);
+    }
+
+    @Override
+    protected void cleanup(Application app) {
+        // CRITICAL: Release EntitySet to prevent memory leak
+        entities.release();
+        entities = null;
+    }
+
+    @Override
+    public void update(float tpf) {
+        // Check for changes and handle them
+        if (entities.applyChanges()) {
+            removeModels(entities.getRemovedEntities());
+            addModels(entities.getAddedEntities());
+            updateModels(entities.getChangedEntities());
+        }
+    }
+
+    private void removeModels(Set<Entity> removed) {
+        for (Entity e : removed) {
+            Spatial s = models.remove(e.getId());
+            s.removeFromParent();
+        }
+    }
+
+    private void addModels(Set<Entity> added) {
+        for (Entity e : added) {
+            Spatial s = createVisual(e);
+            models.put(e.getId(), s);
+            updateModelSpatial(e, s);
+            app.getRootNode().attachChild(s);
+        }
+    }
+
+    private void updateModels(Set<Entity> changed) {
+        for (Entity e : changed) {
+            Spatial s = models.get(e.getId());
+            updateModelSpatial(e, s);
+        }
+    }
+
+    private void updateModelSpatial(Entity e, Spatial s) {
+        Position p = e.get(Position.class);
+        s.setLocalTranslation(p.getLocation());
+    }
+
+    private Spatial createVisual(Entity e) {
+        Model model = e.get(Model.class);
+        return assetManager.loadModel("Models/" + model.getName() + ".j3o");
     }
 }
 ```

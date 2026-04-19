@@ -10,6 +10,12 @@ Server-side systems process entities each frame using the SiO2 framework.
 ## Location
 `infinity/src/main/java/infinity/systems/`
 
+## Official Zay-ES Rules of Thumb
+From the wiki:
+1. **Components are data only** - systems contain the logic
+2. **Two systems should not produce the same component type for the same entities**
+3. You're not forced into a particular 'system' model - query entities when you want them
+
 ## Requirements
 1. Extend `com.simsilica.sim.AbstractGameSystem`
 2. Get `EntityData` via `getSystem(EntityData.class)` in `initialize()`
@@ -104,6 +110,85 @@ public class MySystem extends AbstractGameSystem {
 }
 ```
 
+## Common System Patterns (from Wiki)
+
+### Decay System Pattern
+Time-based entity removal:
+```java
+public class DecaySystem extends AbstractGameSystem {
+    private EntityData ed;
+    private EntitySet decays;
+
+    @Override
+    protected void initialize() {
+        ed = getSystem(EntityData.class);
+        decays = ed.getEntities(Decay.class);
+    }
+
+    @Override
+    protected void terminate() {
+        decays.release();
+        decays = null;
+    }
+
+    @Override
+    public void update(SimTime time) {
+        decays.applyChanges();
+        for (Entity e : decays) {
+            Decay decay = e.get(Decay.class);
+            if (decay.getPercent() >= 1.0) {
+                ed.removeEntity(e.getId());
+            }
+        }
+    }
+}
+```
+
+### Movement System Pattern
+```java
+@Override
+public void update(SimTime time) {
+    bullets.applyChanges();
+    for (Entity e : bullets) {
+        Position position = e.get(Position.class);
+        Speed speed = e.get(Speed.class);
+        // Components are immutable - create new one
+        e.set(new Position(
+            position.getLocation().add(0, time.getTpf() * speed.getSpeed(), 0)
+        ));
+    }
+}
+```
+
+### Collision System Pattern
+```java
+public class CollisionSystem extends AbstractGameSystem {
+    private EntitySet attackers;
+    private EntitySet defenders;
+
+    @Override
+    protected void initialize() {
+        ed = getSystem(EntityData.class);
+        attackers = ed.getEntities(Attack.class, CollisionShape.class, Position.class);
+        defenders = ed.getEntities(Defense.class, CollisionShape.class, Position.class);
+    }
+
+    @Override
+    public void update(SimTime time) {
+        attackers.applyChanges();
+        defenders.applyChanges();
+        
+        for (Entity attacker : attackers) {
+            for (Entity defender : defenders) {
+                if (hasCollision(attacker, defender)) {
+                    handleCollision(attacker, defender);
+                }
+            }
+        }
+    }
+}
+```
+
 ## Getting Other Systems
 ```java
 OtherSystem other = getSystem(OtherSystem.class);
@@ -113,6 +198,18 @@ OtherSystem other = getSystem(OtherSystem.class);
 ```java
 import com.simsilica.event.EventBus;
 EventBus.publish(EventType.MY_EVENT, new MyEvent(data));
+```
+
+## Using Filters
+```java
+import com.simsilica.es.Filters;
+
+// Filter entities by component field value
+EntitySet ships = ed.getEntities(
+    Filters.fieldEquals(Model.class, "name", Model.SHIP),
+    Model.class,
+    Position.class
+);
 ```
 
 ## Existing Systems Reference
