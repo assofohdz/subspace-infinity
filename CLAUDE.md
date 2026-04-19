@@ -23,7 +23,15 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 ```bash
 ./gradlew build           # Build all
 ./gradlew :infinity:run   # Run game
+./gradlew :infinity:runX11  # Run with X11 (Wayland fix)
 ```
+
+## Release Process
+
+Requires **both** version bumps and git tag:
+1. Bump `build.gradle` → `version='X.Y.Z-SNAPSHOT'`
+2. Bump `infinity/build.gradle` → `version = "X.Y.Z"`
+3. Commit, tag (`git tag -a vX.Y.Z -m "msg"`), push both
 
 ## Skills Reference
 

@@ -39,8 +39,26 @@ modules/src/main/java/     # Extension modules
 ```bash
 ./gradlew build              # Build all
 ./gradlew :infinity:run      # Run game
+./gradlew :infinity:runX11   # Run with X11 backend (Wayland fix)
 ./gradlew clean              # Clean
+./gradlew :infinity:jpackageImage  # Build native app with bundled JRE
 ```
+
+## Release Process
+Creating a release requires **both** version bumps and a git tag:
+
+1. **Bump version in two files:**
+   - `build.gradle` → `version='X.Y.Z-SNAPSHOT'`
+   - `infinity/build.gradle` → `version = "X.Y.Z"`
+
+2. **Commit and create git tag:**
+   ```bash
+   git add -A && git commit -m "Bump version to X.Y.Z"
+   git tag -a vX.Y.Z -m "Release vX.Y.Z - description"
+   git push && git push origin vX.Y.Z
+   ```
+
+3. **GitHub Actions** will trigger on the tag push to build releases.
 
 ## Dependencies
 Moss physics library must be built from source:
