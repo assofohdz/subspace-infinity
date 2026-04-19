@@ -107,6 +107,21 @@ public class Main extends SimpleApplication {
 
   public static void main(final String... args) throws Exception {
 
+    // Create logs directory if it doesn't exist
+    new java.io.File("logs").mkdirs();
+
+    // Set up global uncaught exception handler to log crashes
+    Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+      log.error("Uncaught exception in thread " + thread.getName(), throwable);
+      // Give log4j time to flush
+      try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+    });
+
+    log.info("=== Subspace Infinity Starting ===");
+    log.info("Java version: " + System.getProperty("java.version"));
+    log.info("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+    log.info("Working directory: " + System.getProperty("user.dir"));
+
     // final Application app;
 
     final Main main = new Main();
@@ -124,7 +139,12 @@ public class Main extends SimpleApplication {
 
     main.setSettings(settings);
 
-    main.start();
+    try {
+      main.start();
+    } catch (Exception e) {
+      log.error("Fatal error during application startup", e);
+      throw e;
+    }
   }
 
   @Override

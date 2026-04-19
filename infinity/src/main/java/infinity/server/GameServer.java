@@ -76,7 +76,7 @@ import com.simsilica.mblock.phys.collision.ColliderFactories;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.WorldGrids;
-import com.simsilica.mworld.base.DefaultLeafWorld;
+import infinity.sim.InfinityDefaultLeafWorld;
 import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.net.server.WorldHostedService;
@@ -215,7 +215,7 @@ public class GameServer {
     LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
 
     // LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
-    World world = new DefaultLeafWorld(leafDb, 10);
+    World world = new InfinityDefaultLeafWorld(leafDb, 10);
 
     systems.register(World.class, world);
     server

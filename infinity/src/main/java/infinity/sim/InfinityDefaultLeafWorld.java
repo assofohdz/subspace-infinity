@@ -245,13 +245,13 @@ public class InfinityDefaultLeafWorld implements World {
 
   @Override
   public void addTileListener(TileListener l) {
-    log.error("addTileListener() unsupported");
+    log.debug("addTileListener() not implemented - tile changes not tracked");
     // throw new UnsupportedOperationException();
   }
 
   @Override
   public void removeTileListener(TileListener l) {
-    log.error("removeTileListener() unsupported");
+    log.debug("removeTileListener() not implemented - tile changes not tracked");
     // throw new UnsupportedOperationException();
   }
 }

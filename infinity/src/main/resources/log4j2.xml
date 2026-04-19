@@ -4,19 +4,45 @@
     <Console name="Console" target="SYSTEM_OUT">
       <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
     </Console>
+    <!-- File appender for persistent logging - useful for crash diagnosis -->
+    <RollingFile name="File" fileName="logs/infinity.log" filePattern="logs/infinity-%d{yyyy-MM-dd}-%i.log.gz">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="10 MB"/>
+        <TimeBasedTriggeringPolicy interval="1"/>
+      </Policies>
+      <DefaultRolloverStrategy max="5"/>
+    </RollingFile>
+    <!-- Error-only file for quick crash diagnosis -->
+    <RollingFile name="ErrorFile" fileName="logs/infinity-errors.log" filePattern="logs/infinity-errors-%d{yyyy-MM-dd}-%i.log.gz">
+      <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable"/>
+      <Policies>
+        <SizeBasedTriggeringPolicy size="5 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="3"/>
+      <ThresholdFilter level="ERROR"/>
+    </RollingFile>
   </Appenders>
   <Loggers>
     <Logger name="infinity.systems" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
     </Logger>
     <Logger name="infinity.sim" level="debug" additivity="false">
       <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
     </Logger>
     <Logger name="infinity.client.states.LocalViewState" level="ALL" additivity="false">
       <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
     </Logger>
     <Logger name="infinity.client" level="debug" additivity="false">
       <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
+    <Logger name="infinity.server" level="debug" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
     </Logger>
     <Logger name="infinity.systems.ContactSystem" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
@@ -49,6 +75,8 @@
     <Logger name="com.simsilica.pager" level="INFO"/>
     <Root level="error">
       <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+      <AppenderRef ref="ErrorFile"/>
     </Root>
   </Loggers>
 </Configuration>
