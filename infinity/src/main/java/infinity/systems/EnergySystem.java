@@ -234,7 +234,7 @@ public class EnergySystem extends AbstractGameSystem {
    * @return the new health of the entity
    */
   public int setHealthToMax(final EntityId entityId) {
-    final Entity e = ed.getEntity(entityId);
+    final Entity e = ed.getEntity(entityId, Energy.class, EnergyMax.class);
     final Energy hp = e.get(Energy.class);
     final EnergyMax maxHp = e.get(EnergyMax.class);
     final Energy newHp = hp.newAdjusted(maxHp.getMaxHealth());
