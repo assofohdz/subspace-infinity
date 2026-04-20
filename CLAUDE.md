@@ -45,3 +45,5 @@ See `.claude/skills/` for detailed patterns:
 - `physics-moss.md` - Physics integration
 - `networking-ethereal.md` - Multiplayer networking
 - `lemur-ui.md` - UI framework
+- `dependency-sources/` - Where to find Moss/Simsilica library source code (read directly, no jar extraction)
+- `lvl-format.md` - Subspace .lvl binary format: BMP tileset, eLVL metadata, tile encoding, JME3 texture extraction

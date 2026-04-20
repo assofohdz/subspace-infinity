@@ -73,6 +73,22 @@ public class MapSystem extends AbstractGameSystem {
   public static final float NOISE4J_CORRIDOR = 0f;
   public static final float NOISE4J_FLOOR = 0.5f;
   public static final float NOISE4J_WALL = 1f;
+
+  /**
+   * Base block type index for flat 2D tiles. Tile N uses type (TILE_TYPE_BASE + N - 1). This must
+   * match the value in BlockGeometryIndex.
+   */
+  public static final int TILE_TYPE_BASE = 100;
+
+  /** Maximum tile ID for visible tiles (1-190 in Subspace). */
+  public static final int MAX_VISIBLE_TILE = 190;
+
+  /**
+   * Block type index for invisible physics blocks. These blocks have collision but no visible
+   * geometry. Must match BlockGeometryIndex.INVISIBLE_BLOCK_TYPE_INDEX.
+   */
+  public static final int INVISIBLE_BLOCK_TYPE = 11;
+
   private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "Maps";
@@ -463,7 +479,8 @@ public class MapSystem extends AbstractGameSystem {
           // TODO: add more special cases here:
           // TODO: Fetch settings for the given coordinates and create the right gravity
           if (s == MapTypes.vieBorder) {
-            world.setWorldCell(location, 10);
+            // Border blocks use invisible physics type (no visible geometry)
+            world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
           } else if (s == MapTypes.vieTurfFlag) {
             GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, physicsSpace, time.getTime(), location);
             continue;
@@ -477,9 +494,9 @@ public class MapSystem extends AbstractGameSystem {
             GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
             continue;
           } else if (MapTypes.vieFlyOverStart <= s && s <= MapTypes.vieFlyOverEnd) {
-            location.addLocal(0, -1, 0);
+            // FlyOver: no Y offset — all tiles on the same plane; layer handles Z-order
           } else if (MapTypes.vieFlyUnderStart <= s && s <= MapTypes.vieFlyUnderEnd) {
-            location.addLocal(0, 1, 0);
+            // FlyUnder: no Y offset — all tiles on the same plane; layer handles Z-order
           } else if (MapTypes.vieVDoorStart <= s && s <= MapTypes.vieHDoorEnd) {
             GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
             continue;
@@ -504,8 +521,25 @@ public class MapSystem extends AbstractGameSystem {
 
           final int value = tileId | (mapId << 8);
 
-          if (s != 0) {
-            world.setWorldCell(location, 10);
+          // Set blocks for visible tiles:
+          // - Invisible physics block at Y=1 (INVISIBLE_BLOCK_TYPE) for collision
+          // - Visual tile at Y=2 (tile type 100+) for rendering
+          if (s != 0 && tileId >= 1 && tileId <= MAX_VISIBLE_TILE) {
+            boolean isPassThrough = (tileId >= MapTypes.vieFlyOverStart && tileId <= MapTypes.vieFlyOverEnd)
+                || (tileId >= MapTypes.vieFlyUnderStart && tileId <= MapTypes.vieFlyUnderEnd);
+
+            if (!isPassThrough) {
+              world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
+            } else {
+              world.setWorldCell(location, 0); // clear any stale physics block
+            }
+
+            Vec3d tileLocation = new Vec3d(location.x, location.y + 1, location.z);
+            int tileBlockType = TILE_TYPE_BASE + tileId - 1;
+            world.setWorldCell(tileLocation, tileBlockType);
+          } else if (s != 0) {
+            // For special/invisible tiles, use invisible block for physics only
+            world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
           }
 
           // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);

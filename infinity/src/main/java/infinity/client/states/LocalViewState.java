@@ -210,7 +210,7 @@ public class LocalViewState extends BaseAppState {
 
     this.viewRoot = new Node("ViewRoot");
 
-    geomIndex = new BlockGeometryIndex(app.getAssetManager());
+    geomIndex = new BlockGeometryIndex(app.getAssetManager(), "Maps/trench.lvl");
 
     // world = getState(WorldViewState.class, true).getWorld();
     workers = getState("regularWorkers", JobState.class);

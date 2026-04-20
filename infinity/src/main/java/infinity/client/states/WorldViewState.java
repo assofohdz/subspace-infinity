@@ -122,7 +122,7 @@ public class WorldViewState extends BaseAppState implements LeafChangeListener {
     workers = getState("regularWorkers", JobState.class);
     priorityWorkers = getState("priorityWorkers", JobState.class);
 
-    geomIndex = new BlockGeometryIndex(app.getAssetManager());
+    geomIndex = new BlockGeometryIndex(app.getAssetManager(), "Maps/trench.lvl");
 
     world = getState(ConnectionState.class).getService(WorldClientService.class);
 

@@ -1,0 +1,23 @@
+MaterialDef TileUnshaded {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
+    }
+
+    Technique {
+        VertexShader GLSL100 GLSL150:   MatDefs/Unshaded.vert
+        FragmentShader GLSL100 GLSL150: MatDefs/TileUnshaded.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        Defines {
+            HAS_COLORMAP : ColorMap
+            DISCARD_ALPHA : AlphaDiscardThreshold
+        }
+    }
+}

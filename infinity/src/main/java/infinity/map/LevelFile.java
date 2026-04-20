@@ -481,6 +481,18 @@ public class LevelFile extends JPanel {
         return m_bitmap.getImage();
     }
 
+    public int[] getTileSetPixels() {
+        return m_bitmap.getImageData();
+    }
+
+    public int getTileSetImageWidth() {
+        return m_bitmap.getWidth();
+    }
+
+    public int getTileSetImageHeight() {
+        return m_bitmap.getHeight();
+    }
+
     public Image[] getTiles() {
 
         final int[] m_image = m_bitmap.getImageData();
