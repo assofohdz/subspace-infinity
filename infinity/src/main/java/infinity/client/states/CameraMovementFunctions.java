@@ -65,7 +65,9 @@ public class CameraMovementFunctions {
     public static final FunctionId F_STRAFE = new FunctionId(GROUP_MOVEMENT, "Strafe");
 
     public static final FunctionId F_ELEVATE = new FunctionId(GROUP_MOVEMENT, "Elevate");
-    
+
+    public static final FunctionId F_ZOOM = new FunctionId(GROUP_MOVEMENT, "Zoom");
+
     public static final FunctionId F_RUN = new FunctionId(GROUP_MOVEMENT, "Run");
     
     /**
@@ -134,5 +136,8 @@ public class CameraMovementFunctions {
         // be treated as analog.  That means our joystick needs a run button also.       
         inputMapper.map( F_RUN, KeyInput.KEY_LSHIFT );
         inputMapper.map( F_RUN, Button.JOYSTICK_RIGHT1 );
+
+        // Mouse wheel: scroll up = positive value → zoom in (closer)
+        inputMapper.map( F_ZOOM, Axis.MOUSE_WHEEL );
     }
 }

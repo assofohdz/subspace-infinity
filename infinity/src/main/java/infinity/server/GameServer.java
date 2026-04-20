@@ -36,6 +36,11 @@
 
 package infinity.server;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Network;
 import com.jme3.network.Server;
@@ -67,8 +72,11 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.BlockName;
+import com.simsilica.mblock.BlockType;
 import com.simsilica.mblock.BlockTypeIndex;
 import com.simsilica.mblock.config.DefaultBlockSet;
+import com.simsilica.mblock.geom.MaterialType;
 import com.simsilica.mblock.phys.Collider;
 import com.simsilica.mblock.phys.MBlockCollisionSystem;
 import com.simsilica.mblock.phys.MBlockShape;
@@ -242,6 +250,9 @@ public class GameServer {
       DefaultBlockSet.initializeFluidTypes();
     }
 
+    // Expand BlockTypeIndex to accommodate tile types (100-289)
+    expandBlockTypeIndexForTiles();
+
     // Set up the physics space
     ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
 
@@ -258,7 +269,9 @@ public class GameServer {
     systems.register(InfinityEntityBodyFactory.class, bodyFactory);
     systems.register(EntityBodyFactory.class, bodyFactory);
 
-    Collider[] colliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
+    // Create colliders, expanding for tile types (which have null/passthrough colliders)
+    Collider[] baseColliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
+    Collider[] colliders = expandCollidersForTiles(baseColliders);
     mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<>(world, colliders));
 
     systems.register(InfinityChatHostedService.class, chp);
@@ -504,6 +517,74 @@ public class GameServer {
               "[%d] Average msg size: %d bytes",
               conn.getId(), listener.getConnectionStats().getAverageMessageSize()));
     }
+  }
+
+  /** Base block type index for flat 2D tiles. Must match BlockGeometryIndex.TILE_TYPE_BASE. */
+  private static final int TILE_TYPE_BASE = 100;
+
+  /** Total number of tiles in the Subspace tileset. */
+  private static final int TILE_COUNT = 190;
+
+  /** Required size for BlockTypeIndex array to hold all tiles. */
+  private static final int REQUIRED_ARRAY_SIZE = TILE_TYPE_BASE + TILE_COUNT;
+
+  /**
+   * Expands the BlockTypeIndex array to accommodate tile types (100-289). Tile types are flat
+   * visual blocks that don't need collision, so they get a simple passthrough BlockType.
+   */
+  private void expandBlockTypeIndexForTiles() {
+    try {
+      BlockType[] currentTypes = BlockTypeIndex.getTypes();
+      if (currentTypes.length >= REQUIRED_ARRAY_SIZE) {
+        log.info("BlockTypeIndex already has sufficient size: {}", currentTypes.length);
+        return;
+      }
+
+      // Create expanded array and copy existing types
+      BlockType[] expandedTypes = Arrays.copyOf(currentTypes, REQUIRED_ARRAY_SIZE);
+
+      // Create a dummy BlockType for tiles (visual only, no physics collision)
+      MaterialType tileMaterial = new MaterialType("tile");
+      // Use null factory - these blocks won't generate collision geometry on the server
+      BlockName tileName = new BlockName("tile", "flat");
+      
+      // Fill in tile type slots with null (no collision needed for visual tiles)
+      // The client-side BlockGeometryIndex will register proper visual BlockTypes
+      for (int i = TILE_TYPE_BASE; i < REQUIRED_ARRAY_SIZE; i++) {
+        expandedTypes[i] = null; // No collision for tile blocks
+      }
+
+      // Use reflection to set the expanded array
+      Field typesField = BlockTypeIndex.class.getDeclaredField("types");
+      typesField.setAccessible(true);
+      typesField.set(null, expandedTypes);
+
+      Field typeCountField = BlockTypeIndex.class.getDeclaredField("typeCount");
+      typeCountField.setAccessible(true);
+      typeCountField.set(null, REQUIRED_ARRAY_SIZE);
+
+      log.info("Expanded BlockTypeIndex from {} to {} types for tile support",
+          currentTypes.length, REQUIRED_ARRAY_SIZE);
+    } catch (Exception e) {
+      throw new InfinityRunTimeException("Failed to expand BlockTypeIndex for tiles", e);
+    }
+  }
+
+  /**
+   * Expands the colliders array to accommodate tile types (100-289). Tile colliders are null since
+   * tiles at Y=2 don't need physics collision (physics blocks at Y=1 handle collision).
+   */
+  private Collider[] expandCollidersForTiles(final Collider[] baseColliders) {
+    if (baseColliders.length >= REQUIRED_ARRAY_SIZE) {
+      return baseColliders;
+    }
+
+    // Expand array with null colliders for tiles
+    Collider[] expanded = Arrays.copyOf(baseColliders, REQUIRED_ARRAY_SIZE);
+    // Indices 100-289 remain null (passthrough for visual tiles)
+    log.info("Expanded colliders array from {} to {} for tile support",
+        baseColliders.length, REQUIRED_ARRAY_SIZE);
+    return expanded;
   }
 
   /**

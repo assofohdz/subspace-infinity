@@ -34,6 +34,11 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.input.AnalogFunctionListener;
+import com.simsilica.lemur.input.Axis;
+import com.simsilica.lemur.input.FunctionId;
+import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.CameraState;
@@ -44,19 +49,31 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A state to manage in-game camera. It simply follows the avatar of the player.
+ * Mouse wheel scrolling zooms the camera in and out.
  *
  * @author Asser
  */
-public class InfinityCameraState extends CameraState {
+public class InfinityCameraState extends CameraState implements AnalogFunctionListener {
 
-  public static final float DISTANCETOPLANE = 75;
+  public static final float DEFAULT_DISTANCE = 75;
+  public static final float MIN_DISTANCE = 10;
+  public static final float MAX_DISTANCE = 300;
+  public static final float ZOOM_SPEED = 10;
+
+  /** @deprecated use DEFAULT_DISTANCE */
+  @Deprecated
+  public static final float DISTANCETOPLANE = DEFAULT_DISTANCE;
+
   static Logger log = LoggerFactory.getLogger(InfinityCameraState.class);
+
   private final TimeSource time;
   private GameSessionClientService session;
   private final EntityId avatarId;
   private WatchedEntity self;
 
-  public InfinityCameraState(EntityId avatar, TimeSource timeSource) {
+  private float distance = DEFAULT_DISTANCE;
+
+  public InfinityCameraState(final EntityId avatar, final TimeSource timeSource) {
     super();
     this.avatarId = avatar;
     this.time = timeSource;
@@ -64,24 +81,19 @@ public class InfinityCameraState extends CameraState {
 
   @Override
   protected void initialize(final Application app) {
-
     EntityData ed = getState(ConnectionState.class).getEntityData();
-
     session = getState(ConnectionState.class).getService(GameSessionClientService.class);
-
     self = ed.watchEntity(avatarId, BodyPosition.class);
     log.info(String.format("self:%s", self));
     BodyPosition bodyPos = self.get(BodyPosition.class);
     log.info(String.format("self pos:%s", bodyPos));
     if (bodyPos != null) {
-      // Need to initialize the shared transition buffer
       bodyPos.initialize(avatarId, 12);
     }
   }
 
   @Override
   protected void cleanup(final Application app) {
-    // Nothing tp do here for now
   }
 
   @Override
@@ -91,7 +103,6 @@ public class InfinityCameraState extends CameraState {
       BodyPosition bodyPos = self.get(BodyPosition.class);
       log.info(String.format("self pos update:%s", bodyPos));
       if (bodyPos != null) {
-        // Need to initialize the shared transition buffer
         bodyPos.initialize(avatarId, 12);
       }
     } else {
@@ -100,9 +111,7 @@ public class InfinityCameraState extends CameraState {
     }
   }
 
-  private void updateAvatarPosition(BodyPosition bodyPos) {
-    // Note to future self: We use the frame positions and not bodyPos.getLastLocation() because
-    // bodyPos.getLastLocation() is a server side method
+  private void updateAvatarPosition(final BodyPosition bodyPos) {
     long t = time.getTime();
     ChildPositionTransition3d frame = bodyPos.getFrame(t);
     if (frame == null) {
@@ -112,11 +121,8 @@ public class InfinityCameraState extends CameraState {
       return;
     }
 
-    // Only care about position at the moment
     Vec3d v = frame.getPosition(t, true);
-
-    v.addLocal(0, InfinityCameraState.DISTANCETOPLANE, 0);
-
+    v.addLocal(0, distance, 0);
     session.setView(new Quatd(getApplication().getCamera().getRotation()), v);
   }
 
@@ -127,12 +133,25 @@ public class InfinityCameraState extends CameraState {
 
   @Override
   protected void onEnable() {
-    getApplication().getCamera().setLocation(new Vector3f(0, InfinityCameraState.DISTANCETOPLANE, 0));
+    getApplication().getCamera().setLocation(new Vector3f(0, distance, 0));
     getApplication().getCamera().lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
+
+    InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
+    inputMapper.map(CameraMovementFunctions.F_ZOOM, Axis.MOUSE_WHEEL);
+    inputMapper.addAnalogListener(this, CameraMovementFunctions.F_ZOOM);
   }
 
   @Override
   protected void onDisable() {
-    // Nothing tp do here for now
+    InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
+    inputMapper.removeAnalogListener(this, CameraMovementFunctions.F_ZOOM);
+  }
+
+  @Override
+  public void valueActive(final FunctionId func, final double value, final double tpf) {
+    if (func == CameraMovementFunctions.F_ZOOM) {
+      // positive value = scroll up = zoom in (decrease distance)
+      distance = (float) Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, distance - value * ZOOM_SPEED));
+    }
   }
 }

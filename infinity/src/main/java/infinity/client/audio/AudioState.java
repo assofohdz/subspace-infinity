@@ -68,6 +68,12 @@ public class AudioState extends BaseAppState {
 
   @Override
   protected void initialize(final Application app) {
+    if (app.getAudioRenderer() == null) {
+      log.info("No audio renderer available - AudioState disabled");
+      setEnabled(false);
+      return;
+    }
+
     factory.setState(this);
     ed = getState(ConnectionState.class).getEntityData();
 
@@ -87,21 +93,22 @@ public class AudioState extends BaseAppState {
 
   @Override
   protected void onEnable() {
+    if (ed == null) return;
     sounds = new AudioContainer(ed);
     sounds.start();
-
     ((SimpleApplication) getApplication()).getRootNode().attachChild(soundRoot);
   }
 
   @Override
   protected void onDisable() {
+    if (sounds == null) return;
     sounds.stop();
     sounds = null;
   }
 
   @Override
   public void update(final float tpf) {
-
+    if (sounds == null) return;
     sounds.update();
   }
 

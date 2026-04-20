@@ -136,6 +136,7 @@ public class Main extends SimpleApplication {
 
     settings.load("Subspace Infinity");
     settings.setTitle("Subspace Infinity");
+    settings.setAudioRenderer(null); // disable audio - no OpenAL device in WSL2
 
     main.setSettings(settings);
 
