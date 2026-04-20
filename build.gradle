@@ -1,6 +1,6 @@
 subprojects {
 
-    version='1.0.2-SNAPSHOT'
+    version='1.0.3-SNAPSHOT'
 
     //For now we want the latest version of everything except JMonkeyEngine
     //Could also specify major versions like 4.+
@@ -15,7 +15,7 @@ subprojects {
     ext.zayEsNetVersion = '+'
 
     ext.groovyVersion = '+'
-    ext.gsonVersion = '+'
+    ext.gsonVersion = '2.11.0'  // pinned to stable release
     ext.log4jVersion = '2.24.3'  // pinned to stable release
     ext.slf4jVersion = '2.0.16'  // pinned to stable release
     ext.guavaVersion = '+'
