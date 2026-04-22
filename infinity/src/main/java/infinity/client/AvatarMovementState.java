@@ -9,6 +9,12 @@ package infinity.client;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector3f;
+import com.simsilica.bpos.BodyPosition;
+import com.simsilica.bpos.ChildPositionTransition3d;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.WatchedEntity;
+import com.simsilica.ethereal.TimeSource;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.core.VersionedReference;
@@ -58,6 +64,13 @@ public class AvatarMovementState extends BaseAppState
   private VersionedHolder<String> positionDisplay;
   private VersionedHolder<String> speedDisplay;
   private boolean shiftPressed = false;
+
+  // Interpolated position source (SimEthereal TransitionBuffer via BodyPosition)
+  private EntityData ed;
+  private TimeSource timeSource;
+  private WatchedEntity avatarWatch;
+  private EntityId avatarId;
+  private BodyPosition avatarBodyPos;
   
   // Current movement values (set by valueActive, sent in update)
   private double currentRotation = 0;
@@ -68,6 +81,9 @@ public class AvatarMovementState extends BaseAppState
 
     BlackboardState blackboard = getState(BlackboardState.class, true);
     blackboard.set("position", posHolder);
+
+    ed = getState(ConnectionState.class).getEntityData();
+    timeSource = getState(ConnectionState.class).getRemoteTimeSource();
 
     log.debug("initialize()");
 
@@ -140,6 +156,11 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_SHARK,
         AvatarMovementFunctions.F_WARP,
         AvatarMovementFunctions.F_SHIFT);
+
+    if (avatarWatch != null) {
+      avatarWatch.release();
+      avatarWatch = null;
+    }
   }
 
   @Override
@@ -183,8 +204,14 @@ public class AvatarMovementState extends BaseAppState
     currentRotation = 0;
     currentThrust = 0;
 
-    // Get position from server
-    Vec3d newPos = session.getPlayerLocation();
+    // Prefer the SimEthereal-interpolated BodyPosition so the viewRoot translation
+    // (driven by posHolder) uses the same smoothed time source that places the
+    // avatar ship spatial. Falls back to the RMI location until the buffer fills.
+    Vec3d newPos = getInterpolatedAvatarPosition();
+    if (newPos == null) {
+      newPos = session.getPlayerLocation();
+    }
+
     // Update display of position
     long time = System.nanoTime();
     if (time - lastPositionUpdate > UPDATE_POSITION_FREQUENCY) {
@@ -193,6 +220,40 @@ public class AvatarMovementState extends BaseAppState
     }
 
     setLocation(newPos.toVector3f());
+  }
+
+  private Vec3d getInterpolatedAvatarPosition() {
+    if (timeSource == null || ed == null) {
+      return null;
+    }
+    if (avatarWatch == null) {
+      EntityId id = getState(GameSessionState.class).getAvatarEntityId();
+      if (id == null || EntityId.NULL_ID.equals(id)) {
+        return null;
+      }
+      avatarId = id;
+      avatarWatch = ed.watchEntity(id, BodyPosition.class);
+      BodyPosition bp = avatarWatch.get(BodyPosition.class);
+      if (bp != null) {
+        bp.initialize(id, 12);
+        avatarBodyPos = bp;
+      }
+    } else if (avatarWatch.applyChanges()) {
+      BodyPosition bp = avatarWatch.get(BodyPosition.class);
+      if (bp != null) {
+        bp.initialize(avatarId, 12);
+        avatarBodyPos = bp;
+      }
+    }
+    if (avatarBodyPos == null) {
+      return null;
+    }
+    long t = timeSource.getTime();
+    ChildPositionTransition3d frame = avatarBodyPos.getFrame(t);
+    if (frame == null) {
+      return null;
+    }
+    return frame.getPosition(t, true);
   }
 
   @Override

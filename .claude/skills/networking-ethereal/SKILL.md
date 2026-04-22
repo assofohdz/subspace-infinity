@@ -208,3 +208,31 @@ if (inputs.applyChanges()) {
 6. EtherealHost packages and sends to relevant clients
 7. EtherealClient receives and applies updates
 8. Client-side systems visualize synchronized state
+
+## Avatar Position: Single Source of Truth
+
+The client has a fixed camera at `(0, distance, 0)` — the "world moves around the player" illusion is achieved by translating `viewRoot` nodes in `ModelViewState` and `LocalViewState` by `-(avatarPos - centerWorld)`. The avatar ship spatial is rendered as a child of that same `viewRoot` at `(interpolatedPos - centerWorld)`, so its on-screen position reduces to `interpolatedPos - avatarPos`. **When those two positions diverge by even a fraction each frame, the avatar visibly wobbles (microstutter).**
+
+### Two position sources exist — don't mix them
+| Source | Where it comes from | Timing | Smoothness |
+|--------|--------------------|--------|------------|
+| **A. RMI** | `session.getPlayerLocation()` (synchronous RMI) | Server authoritative, polled each frame | Network-jittered, uninterpolated |
+| **B. SimEthereal `BodyPosition`** | `bodyPos.getFrame(timeSource.getTime()).getPosition(t, true)` | ~100 ms look-back, buffered over 12 frames | Smoothly interpolated |
+
+Source B must drive **both** the `viewRoot` translation and the avatar ship spatial — otherwise they desynchronize.
+
+### Current implementation (fixed 2026-04-22)
+`AvatarMovementState` feeds `posHolder` from Source B via `getInterpolatedAvatarPosition()`, falling back to Source A only until the SimEthereal buffer is populated. Downstream consumers (`ModelViewState`, `LocalViewState`, anything else reading `posRef`) automatically see the interpolated position without modification.
+
+Key code: `AvatarMovementState.getInterpolatedAvatarPosition()` — watches the avatar entity for `BodyPosition`, initializes the shared 12-frame buffer, and reads `getFrame(timeSource.getTime()).getPosition(t, true)` each tick.
+
+### Regression signal
+If avatar microstutter returns, first check whether anything re-introduced Source A into the viewRoot translation path:
+- `posHolder` being set from `session.getPlayerLocation()` without going through interpolation
+- A second `VersionedHolder<Vec3d>` driving `viewRoot` from a different source
+- `timeSource` or `ed` becoming null in `AvatarMovementState.initialize()` (would silently fall through to the RMI fallback)
+
+The ship spatial itself (in `ModelViewState.Body.update`) already uses Source B — the regression is almost always on the viewRoot side.
+
+### Why not use Source A everywhere?
+RMI-polled positions are uninterpolated and subject to network jitter. Other ships (non-local) only exist as SimEthereal-synced `BodyPosition` components — they can't use RMI. Unifying on Source B means the local avatar follows the same smoothing pipeline as everyone else.
