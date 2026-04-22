@@ -489,6 +489,103 @@ public class SettingsSystem extends AbstractGameSystem {
     return arenaSettingsMap.get(map);
   }
 
+  /**
+   * Raw string accessor. Returns {@code defaultValue} if the arena has no settings loaded, or the
+   * section or key is absent.
+   */
+  public String getString(
+      final String arenaBaseName,
+      final String section,
+      final String key,
+      final String defaultValue) {
+    final String raw = rawValue(arenaBaseName, section, key);
+    return raw != null ? raw : defaultValue;
+  }
+
+  /**
+   * Integer accessor with bool-alias fallback. Accepts numeric strings and, failing that, the
+   * Subspace bool aliases ({@code Y/Yes/True/On/1} → 1, {@code N/No/False/Off/0} → 0). Returns
+   * {@code defaultValue} if the key is missing or unparseable.
+   */
+  public int getInt(
+      final String arenaBaseName, final String section, final String key, final int defaultValue) {
+    final String raw = rawValue(arenaBaseName, section, key);
+    if (raw == null) {
+      return defaultValue;
+    }
+    try {
+      return Integer.parseInt(raw.trim());
+    } catch (final NumberFormatException ignored) {
+      final Boolean aliased = parseBoolAlias(raw);
+      return aliased != null ? (aliased ? 1 : 0) : defaultValue;
+    }
+  }
+
+  /**
+   * Boolean accessor accepting the Subspace bool aliases ({@code Y/Yes/True/On/1} and {@code
+   * N/No/False/Off/0}), case-insensitive. Returns {@code defaultValue} if missing or unparseable.
+   */
+  public boolean getBool(
+      final String arenaBaseName,
+      final String section,
+      final String key,
+      final boolean defaultValue) {
+    final String raw = rawValue(arenaBaseName, section, key);
+    if (raw == null) {
+      return defaultValue;
+    }
+    final Boolean aliased = parseBoolAlias(raw);
+    return aliased != null ? aliased : defaultValue;
+  }
+
+  /**
+   * Enum accessor. Case-insensitive match against the enum constants; falls back to {@code
+   * defaultValue} if the key is missing or does not match. {@code defaultValue} must be non-null
+   * (it also carries the enum type).
+   */
+  public <T extends Enum<T>> T getEnum(
+      final String arenaBaseName, final String section, final String key, final T defaultValue) {
+    final String raw = rawValue(arenaBaseName, section, key);
+    if (raw == null) {
+      return defaultValue;
+    }
+    final String trimmed = raw.trim();
+    for (final T constant : defaultValue.getDeclaringClass().getEnumConstants()) {
+      if (constant.name().equalsIgnoreCase(trimmed)) {
+        return constant;
+      }
+    }
+    return defaultValue;
+  }
+
+  private String rawValue(final String arenaBaseName, final String section, final String key) {
+    final Ini ini = arenaSettingsMap.get(arenaBaseName);
+    if (ini == null) {
+      return null;
+    }
+    final Section sec = ini.get(section);
+    return sec != null ? sec.get(key) : null;
+  }
+
+  private static Boolean parseBoolAlias(final String raw) {
+    final String v = raw.trim();
+    if (v.equalsIgnoreCase("y")
+        || v.equalsIgnoreCase("yes")
+        || v.equalsIgnoreCase("true")
+        || v.equalsIgnoreCase("on")
+        || v.equals("1")) {
+      return Boolean.TRUE;
+    }
+    if (v.equalsIgnoreCase("n")
+        || v.equalsIgnoreCase("no")
+        || v.equalsIgnoreCase("false")
+        || v.equalsIgnoreCase("off")
+        || v.equals("0")) {
+      return Boolean.FALSE;
+    }
+    return null;
+  }
+
   /*
    * Notes:SettingName:::Name of the Game the settings "create"
    * Notes:Maker:::Creator of the settings Notes:CoMaker:::Original and/or helper
