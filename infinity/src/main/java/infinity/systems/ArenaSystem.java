@@ -127,10 +127,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     // Add mapbounds information to the arena entity
     ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
 
-    // Then load the settings (remove file ending first)
-    getSystem(SettingsSystem.class)
-        .loadSettings(playerEntityId, map.substring(0, map.lastIndexOf('.')));
-    Ini ini = getSystem(SettingsSystem.class).getIni(map);
+    // Then load the settings (SettingsSystem keys by map base name, not filename)
+    String mapBaseName = map.substring(0, map.lastIndexOf('.'));
+    getSystem(SettingsSystem.class).loadSettings(playerEntityId, mapBaseName);
+    Ini ini = getSystem(SettingsSystem.class).getIni(mapBaseName);
     // Add settings information to the arena entity
     ed.setComponents(arena, new ArenaSettings(map, ini));
 
@@ -203,9 +203,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(newMap);
     ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
 
-    getSystem(SettingsSystem.class)
-        .loadSettings(id, newMap.substring(0, newMap.lastIndexOf('.')));
-    Ini ini = getSystem(SettingsSystem.class).getIni(newMap);
+    String newMapBaseName = newMap.substring(0, newMap.lastIndexOf('.'));
+    getSystem(SettingsSystem.class).loadSettings(id, newMapBaseName);
+    Ini ini = getSystem(SettingsSystem.class).getIni(newMapBaseName);
     ed.setComponents(arena, new ArenaSettings(newMap, ini));
 
     GridCell cell =

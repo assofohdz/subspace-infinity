@@ -39,6 +39,9 @@ import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.util.InfinityRunTimeException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -398,19 +401,66 @@ public class SettingsSystem extends AbstractGameSystem {
 
     if (settings == null) {
       log.warn("Settings file not found for map {}, loading default map instead", map);
-      if (arenaSettingsMap.get(DEFAULT_ARENA_FOLDER) != null) {
-        arenaSettingsMap.put(map, arenaSettingsMap.get(DEFAULT_ARENA_FOLDER));
-      } else {
-        Ini defaultSettings =
+      Ini defaultSettings = arenaSettingsMap.get(DEFAULT_ARENA_FOLDER);
+      if (defaultSettings == null) {
+        defaultSettings =
             (Ini)
                 assetLoader.loadAsset(
                     "/" + ARENA_FOLDER + "/" + DEFAULT_ARENA_FOLDER + "/" + ARENA_CONFIG_FILE);
-
-        arenaSettingsMap.put(map, defaultSettings);
+        arenaSettingsMap.put(DEFAULT_ARENA_FOLDER, deepCopy(defaultSettings));
       }
+      arenaSettingsMap.put(map, deepCopy(defaultSettings));
     } else {
-      arenaSettingsMap.put(map, settings);
+      arenaSettingsMap.put(map, deepCopy(settings));
     }
+  }
+
+  /**
+   * Deep-copy an {@link Ini} so each arena's settings are independent. The asset loader may cache
+   * parsed configs, and the default-arena fallback path also aliases a single instance across
+   * multiple keys. Without copying, a mutation on one arena would leak into every arena sharing the
+   * same underlying {@code Ini}.
+   */
+  private Ini deepCopy(final Ini source) {
+    if (source == null) {
+      return null;
+    }
+    final StringWriter sw = new StringWriter();
+    try {
+      source.store(sw);
+      final Ini copy = new Ini();
+      copy.load(new StringReader(sw.toString()));
+      return copy;
+    } catch (final IOException e) {
+      throw new InfinityRunTimeException("Failed to clone Ini", e);
+    }
+  }
+
+  /**
+   * Update a single setting for the given arena and notify listeners. The caller must pass the
+   * arena's {@link ArenaId} component so listeners can filter on arena identity.
+   *
+   * @param arenaId the arena whose settings to mutate
+   * @param section INI section name (e.g. {@code "Bomb"})
+   * @param setting key within the section (e.g. {@code "BombDamageLevel"})
+   * @param value new value; written as a string, consumers coerce as needed
+   * @return the previous value under that key, or {@code null} if none
+   */
+  public String setSetting(
+      final ArenaId arenaId, final String section, final String setting, final String value) {
+    final String baseName = arenaId.getArenaBaseName();
+    final Ini ini = arenaSettingsMap.get(baseName);
+    if (ini == null) {
+      throw new InfinityRunTimeException("No settings loaded for arena " + baseName);
+    }
+    Section sec = ini.get(section);
+    if (sec == null) {
+      sec = ini.add(section);
+    }
+    final String previous = sec.get(setting);
+    sec.put(setting, value);
+    settingChanged(arenaId, section, setting);
+    return previous;
   }
 
   /**
