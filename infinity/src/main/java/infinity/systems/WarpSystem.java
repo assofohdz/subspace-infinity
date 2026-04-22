@@ -112,6 +112,12 @@ public class WarpSystem extends AbstractGameSystem
   protected void terminate() {
     warpTouchEntities.release();
     warpTouchEntities = null;
+
+    warpToEntities.release();
+    warpToEntities = null;
+
+    canWarp.release();
+    canWarp = null;
   }
 
   @Override

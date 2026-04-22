@@ -88,6 +88,9 @@ public class AvatarSystem extends AbstractGameSystem {
 
     frequencies.release();
     frequencies = null;
+
+    captains.release();
+    captains = null;
   }
 
   @SuppressWarnings("unused")

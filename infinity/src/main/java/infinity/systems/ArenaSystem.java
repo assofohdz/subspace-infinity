@@ -89,8 +89,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     // This filters all entities that are players
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
 
-    arenaEntities = ed.getEntities(ArenaId.class); // This filters all arena entities
-
     // Register consuming methods for patterns
     chat.registerPatternTriConsumer(
         loadMap,
@@ -230,7 +228,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   protected void terminate() {
-    // TODO Auto-generated method stub
+    arenaEntities.release();
+    arenaEntities = null;
+
+    playerEntities.release();
+    playerEntities = null;
   }
 
   @Override
@@ -241,17 +243,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   public void start() {
-    // Grab the entity set we need
-    arenaEntities = ed.getEntities(ArenaId.class);
-    // This filters all entities that are players
-    playerEntities = ed.getEntities(Player.class, BodyPosition.class);
+    // Auto-generated method stub
   }
 
   @Override
   public void stop() {
-    // Release the entity set we grabbed previously
-    arenaEntities.release();
-    arenaEntities = null;
+    // Auto-generated method stub
   }
 
   @Override

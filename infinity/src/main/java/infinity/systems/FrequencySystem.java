@@ -71,6 +71,12 @@ public class FrequencySystem extends AbstractGameSystem
   protected void terminate() {
     //Remove this as a contact listener with the ContactSystem
     getSystem(ContactSystem.class, true).removeListener(this);
+
+    freqencies.release();
+    freqencies = null;
+
+    flags.release();
+    flags = null;
   }
 
   @Override

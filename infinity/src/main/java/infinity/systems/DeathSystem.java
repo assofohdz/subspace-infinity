@@ -57,7 +57,8 @@ public class DeathSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-        return;
+        dead.release();
+        dead = null;
     }
 
     @Override
