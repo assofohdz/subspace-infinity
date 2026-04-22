@@ -45,20 +45,20 @@ modules/src/main/java/     # Extension modules
 ```
 
 ## Release Process
-Creating a release requires **both** version bumps and a git tag:
+Single source of truth — the version lives only in the root `build.gradle` `subprojects` block (no `-SNAPSHOT` suffix). The git tag is the source of truth for what's released.
 
-1. **Bump version in two files:**
-   - `build.gradle` → `version='X.Y.Z-SNAPSHOT'`
-   - `infinity/build.gradle` → `version = "X.Y.Z"`
+1. **Bump version in `build.gradle`:** `version='X.Y.Z'`
 
 2. **Commit and create git tag:**
    ```bash
-   git add -A && git commit -m "Bump version to X.Y.Z"
+   git add build.gradle && git commit -m "Bump version to X.Y.Z"
    git tag -a vX.Y.Z -m "Release vX.Y.Z - description"
    git push && git push origin vX.Y.Z
    ```
 
-3. **GitHub Actions** will trigger on the tag push to build releases.
+3. **Bump version in `build.gradle`** to `X.Y.(Z+1)` for ongoing dev and commit.
+
+4. **GitHub Actions** will trigger on the tag push to build releases.
 
 ## Dependencies
 Moss physics library must be built from source:

@@ -81,16 +81,21 @@ public class AdaptiveLoadingService extends AbstractHostedService
   private final Pattern stopServicePattern = Pattern.compile("\\~stopService\\s(\\w+)");
   private final GameSystemManager gameSystems;
   AdaptiveClassLoader classLoader;
-  List<String> repositoryList =
+  // Candidate directories to scan for the modules jar. The jar file name
+  // includes the current project version (driven by the root build.gradle),
+  // so we discover it at runtime rather than hard-coding the version here.
+  private static final List<String> MODULE_JAR_SEARCH_DIRS =
       Arrays.asList(
-          // Loading extensions:
           // Used in distribution
-          "..\\modules\\modules-1.0.0-SNAPSHOT.jar",
-          "..\\modules\\build\\libs\\modules-1.0.0-SNAPSHOT.jar",
+          "..\\modules",
           // Used from SDK
-          "..\\build\\modules\\libs\\modules-1.0.0-SNAPSHOT.jar",
-          // Extras
-          "..\\modules");
+          "..\\modules\\build\\libs",
+          // Alternate SDK layout
+          "..\\build\\modules\\libs");
+  private static final String MODULE_JAR_PREFIX = "modules-";
+  private static final String MODULE_JAR_SUFFIX = ".jar";
+  // Extra repository directories (for loose class files, etc.)
+  private static final List<String> EXTRA_REPOSITORY_DIRS = Arrays.asList("..\\modules");
 
   /**
    * Constructor.
@@ -114,26 +119,42 @@ public class AdaptiveLoadingService extends AbstractHostedService
   @Override
   protected void onInitialize(final HostedServiceManager serviceManager) {
 
-    final Consumer<String> consumerDirectories =
-        folder -> {
-          final File fileFolder = new File(folder);
-
-          if (fileFolder.exists()) {
-
-            String canonPath = null;
-            try {
-              canonPath = fileFolder.getCanonicalPath();
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-
-            File canonPahFile = new File(canonPath);
-
-            repository.add(canonPahFile);
+    final Consumer<File> addCanonical =
+        file -> {
+          try {
+            repository.add(file.getCanonicalFile());
+          } catch (IOException e) {
+            log.warn("Failed to resolve canonical path for {}", file, e);
           }
         };
 
-    repositoryList.forEach(consumerDirectories);
+    // Find the modules-<version>.jar in each candidate directory.
+    for (final String dirPath : MODULE_JAR_SEARCH_DIRS) {
+      final File dir = new File(dirPath);
+      if (!dir.isDirectory()) {
+        continue;
+      }
+      final File[] jars =
+          dir.listFiles(
+              (d, name) ->
+                  name.startsWith(MODULE_JAR_PREFIX)
+                      && name.endsWith(MODULE_JAR_SUFFIX)
+                      && !name.endsWith("-sources.jar")
+                      && !name.endsWith("-javadoc.jar"));
+      if (jars != null) {
+        for (final File jar : jars) {
+          addCanonical.accept(jar);
+        }
+      }
+    }
+
+    // Add extra repository directories (loose class files, etc.).
+    for (final String dirPath : EXTRA_REPOSITORY_DIRS) {
+      final File dir = new File(dirPath);
+      if (dir.exists()) {
+        addCanonical.accept(dir);
+      }
+    }
 
     classLoader = new AdaptiveClassLoader(repository);
 

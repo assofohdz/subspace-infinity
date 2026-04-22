@@ -435,17 +435,19 @@ echo "Done! Don't forget to test and commit."
 
 ### Creating a Release
 
-1. **Update version in `infinity/build.gradle`:**
+1. **Update version in the root `build.gradle`** (single source of truth — inherited by all subprojects, no `-SNAPSHOT` suffix):
    ```groovy
-   version = "1.0.0"
+   subprojects {
+       version = 'X.Y.Z'
+   }
    ```
 
 2. **Commit and tag:**
    ```bash
-   git add -A
-   git commit -m "Release v1.0.0"
-   git tag v1.0.0
-   git push origin main --tags
+   git add build.gradle
+   git commit -m "Bump version to X.Y.Z"
+   git tag -a vX.Y.Z -m "Release vX.Y.Z"
+   git push && git push origin vX.Y.Z
    ```
 
 3. **GitHub Actions will automatically:**
