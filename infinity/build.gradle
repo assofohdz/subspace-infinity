@@ -5,7 +5,7 @@ plugins {
 
 mainClassName = "infinity.Main"
 
-version = "1.0.3"
+// version is inherited from the root build.gradle subprojects block
 
 applicationDefaultJvmArgs = ["-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m", "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED"]
 
@@ -30,7 +30,7 @@ tasks.register('analyzeMaps', JavaExec) {
 }
 
 dependencies {
-    implementation "org.jetbrains:annotations:25.0.0"
+    implementation "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
     // logging
     implementation "org.slf4j:slf4j-api:$slf4jVersion"
     implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
@@ -74,9 +74,9 @@ dependencies {
     implementation "com.simsilica:lemur:$lemurVersion"
     implementation "com.simsilica:lemur-proto:$lemurProtoVersion"
     implementation "com.simsilica:lemur-props:$lemurPropsVersion"
-    implementation "com.simsilica:pager:1.0.1-SNAPSHOT"
+    implementation "com.simsilica:pager:$pagerVersion"
     implementation "com.simsilica:sim-ethereal:$simEtherealVersion"
-    implementation "com.simsilica:sim-fx:1.0.1-SNAPSHOT"
+    implementation "com.simsilica:sim-fx:$simFxVersion"
     implementation "com.simsilica:sim-math:$simMathVersion"
     implementation "com.simsilica:sio2:$sio2Version"
     implementation "com.simsilica:zay-es:$zayEsVersion"

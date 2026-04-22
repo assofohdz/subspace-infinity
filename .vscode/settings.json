@@ -1,6 +1,6 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "java.jdt.ls.java.home": "/usr/lib/jvm/java-21-openjdk-amd64",
     "java.configuration.runtimes": [
         {

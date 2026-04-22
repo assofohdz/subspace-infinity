@@ -1,6 +1,6 @@
 subprojects {
 
-    version='1.0.3-SNAPSHOT'
+    version='1.0.4-SNAPSHOT'
 
     //For now we want the latest version of everything except JMonkeyEngine
     //Could also specify major versions like 4.+
@@ -21,6 +21,9 @@ subprojects {
     ext.guavaVersion = '+'
 
     ext.mossVersion = "+"
+
+    ext.pagerVersion = '1.0.1-SNAPSHOT'
+    ext.simFxVersion = '1.0.1-SNAPSHOT'
 
     ext.jetbrainsAnnotationsVersion = '+'
     ext.junitVersion = '+'

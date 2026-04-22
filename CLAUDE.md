@@ -28,10 +28,10 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 
 ## Release Process
 
-Requires **both** version bumps and git tag:
-1. Bump `build.gradle` → `version='X.Y.Z-SNAPSHOT'`
-2. Bump `infinity/build.gradle` → `version = "X.Y.Z"`
-3. Commit, tag (`git tag -a vX.Y.Z -m "msg"`), push both
+Single source of truth — version lives only in the root `build.gradle` `subprojects` block.
+1. Bump `build.gradle` → `version='X.Y.Z'` (drop `-SNAPSHOT` for the release commit)
+2. Commit, tag (`git tag -a vX.Y.Z -m "msg"`), push both
+3. Bump `build.gradle` → `version='X.Y.(Z+1)-SNAPSHOT'` for ongoing dev
 
 ## Skills Reference
 
