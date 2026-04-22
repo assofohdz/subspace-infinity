@@ -48,23 +48,17 @@ compileJava { // compile-time options:
     options.encoding = 'UTF-8'
     options.compilerArgs << '-Xlint:unchecked'
     options.deprecation = true
-    if( JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_10) ) {
-        options.release = 8
-    }
 }
 
 java {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 21
+    targetCompatibility = 21
     withJavadocJar()
     withSourcesJar()
 }
 
 javadoc {
-    // Disable doclint for JDK8+.
-    if( JavaVersion.current().isJava8Compatible() ) {
-        options.addStringOption('Xdoclint:none', '-quiet')
-    }
+    options.addStringOption('Xdoclint:none', '-quiet')
 }
 
 test {

@@ -94,10 +94,7 @@ public class BasicEnvironment extends AbstractGameSystem {
     AIEntities.createMobShip(
         new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
 
-    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench.lvl");
-    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench2.lvl");
-    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench3.lvl");
-    //getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID,"trench4.lvl");
+    getSystem(MapSystem.class).loadMap(EntityId.NULL_ID, EntityId.NULL_ID, "trench.lvl");
 
     //    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1,
     // -10));

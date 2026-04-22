@@ -66,6 +66,8 @@ public class WarpSystem extends AbstractGameSystem
 
   static Logger log = LoggerFactory.getLogger(WarpSystem.class);
   private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
+  private final Pattern requestTeleport =
+      Pattern.compile("\\~teleport\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)");
   private EntityData ed;
   private EntitySet warpTouchEntities;
   private EntitySet warpToEntities;
@@ -96,6 +98,12 @@ public class WarpSystem extends AbstractGameSystem
             requestWarpToCenter,
             "The command to warp to the center of the arena is ~warpCenter",
             new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandRequestWarpToCenter));
+
+    getSystem(InfinityChatHostedService.class)
+        .registerPatternTriConsumer(
+            requestTeleport,
+            "Teleport to world coordinates: ~teleport <x> <z>",
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandTeleport));
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -175,6 +183,18 @@ public class WarpSystem extends AbstractGameSystem
   public String commandRequestWarpToCenter(EntityId entityId, EntityId avatarId, Matcher matcher) {
 
     return warpToCenter(avatarId);
+  }
+
+  /**
+   * Teleports the avatar to explicit world coordinates. Useful for verifying multi-map grids
+   * where the target sits outside the current arena.
+   */
+  public String commandTeleport(EntityId entityId, EntityId avatarId, Matcher matcher) {
+    double x = Double.parseDouble(matcher.group(1));
+    double z = Double.parseDouble(matcher.group(2));
+    Vec3d target = new Vec3d(x, 1, z);
+    ed.setComponent(avatarId, new WarpTo(target));
+    return "Teleporting to " + target;
   }
 
   @Override

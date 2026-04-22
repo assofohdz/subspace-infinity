@@ -33,8 +33,10 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mworld.TileId;
 import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
@@ -207,42 +209,63 @@ public class MapSystem extends AbstractGameSystem {
   }
 
   /**
-   * Loads a given lvz-map.
+   * Loads a map, auto-positioning it via the spiral placement algorithm.
+   * Used by the ~loadMap chat command where no explicit placement is given.
    *
    * @param playerEntityId the player requesting the load
    * @param avatarEntityId the avatar of the player requesting the load
    * @param mapName the lvz-map to load
-   * @return the lvz-map wrapped in a LevelFile
+   * @return true if loaded
    */
   public boolean loadMap(EntityId playerEntityId, EntityId avatarEntityId, final String mapName) {
-    log.info("Loading map: " + mapName);
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
+    Vec3d offset = calculateNextOffset();
+    TileId tile = TileId.fromCell((int) offset.x, 0, (int) offset.z);
+    return loadMap(playerEntityId, avatarEntityId, mapName, tile);
+  }
+
+  /**
+   * Loads a map at an explicit grid location. Each TileId is a 1024x1024 slot
+   * on Moss's TILE_GRID; adjacent tiles share a 2-cell gutter formed by each
+   * map's own border ring.
+   *
+   * @param playerEntityId the player requesting the load
+   * @param avatarEntityId the avatar of the player requesting the load
+   * @param mapName the lvz-map to load
+   * @param tile the Moss TileId specifying where to place the map
+   * @return true if loaded, false if the filename is invalid or the tile is occupied
+   */
+  public boolean loadMap(
+      EntityId playerEntityId,
+      EntityId avatarEntityId,
+      final String mapName,
+      final TileId tile) {
+    log.info("Loading map: " + mapName + " at " + tile);
+    if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
+      return false;
+    }
+    Vec3i cell = tile.getCell(null);
+    Vec3d offset = new Vec3d(cell.x, cell.y, cell.z);
+    if (mapCoordinates.containsValue(offset)) {
+      log.warn("Tile " + tile + " already occupied; skipping " + mapName);
+      return false;
+    }
+    Vec3i corner = tile.getWorld(null);
+    Vec3d worldOffset = new Vec3d(corner.x, corner.y, corner.z);
+
     String fileName = mapDirectory + "/" + mapName;
     LevelFile res = (LevelFile) assetLoader.loadAsset(fileName);
-    // The offset we get will be local based map location (0,0), (0,1), (1,0) etc. so we multiply by
-    // mapsize
-    Vec3d offset = calculateNextOffset();
-    Vec3d worldOffset = offset.mult(MAP_SIZE);
-    // FIXME add the space between maps of 1 cell size
-    log.info("Loading map at local coords: " + currentMapLoc + " in world:" + offset);
 
-    // HashSet<Vec3d> coordinates = this.createBlocksFromLegacyMap(res,offset);
-
-    // Try to do this asynchronosly (loading a map takes about 3 seconds depending on density of
-    // map)
+    // Loading a map takes ~3 seconds depending on density — do it asynchronously.
     CompletableFuture<HashSet<Vec3d>> completableFuture =
         CompletableFuture.supplyAsync(() -> this.createBlocksFromLegacyMap(res, worldOffset));
-    // CompletableFuture<Void> future =
     completableFuture.thenAccept(s -> activeMaps.put(mapName, s));
-    //
 
     res.setMapName(mapName);
-    log.info("Done loading map: " + mapName);
-    // activeMaps.put(mapName, coordinates);
     mapCoordinates.put(mapName, offset);
-
+    log.info("Queued map: " + mapName + " at grid " + offset + " (world " + worldOffset + ")");
     return true;
   }
 

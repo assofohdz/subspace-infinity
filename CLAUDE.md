@@ -43,6 +43,7 @@ See `.claude/skills/` for detailed patterns:
 - `create-module.md` - Game modules
 - `debug-ecs.md` - ECS debugging
 - `physics-moss.md` - Physics integration
+- `moss-world-grid/` - Moss world/cell/leaf/column/tile grid system; use `TileId` for map placement (not `* 1024`)
 - `networking-ethereal.md` - Multiplayer networking
 - `lemur-ui.md` - UI framework
 - `dependency-sources/` - Where to find Moss/Simsilica library source code (read directly, no jar extraction)
