@@ -45,10 +45,6 @@ public class ArenaId implements EntityComponent {
     this.owner = owner;
   }
 
-  public String getArenaBaseName() {
-    return arena.substring(0, arena.lastIndexOf('.')); // Strip off the .lvl
-  }
-
   public String getArena() {
     return arena;
   }

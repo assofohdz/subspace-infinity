@@ -31,20 +31,20 @@ import org.ini4j.Ini;
 
 public class ArenaSettings implements EntityComponent {
 
-  private String arenaId;
+  private String arenaName;
   private Ini settings;
 
   public ArenaSettings() {
     //For serialization
   }
 
-  public ArenaSettings(final String arenaId, final Ini settings) {
-    this.arenaId = arenaId;
+  public ArenaSettings(final String arenaName, final Ini settings) {
+    this.arenaName = arenaName;
     this.settings = settings;
   }
 
-  public String getArenaId() {
-    return arenaId;
+  public String getArenaName() {
+    return arenaName;
   }
 
   public Ini getSettings() {

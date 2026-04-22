@@ -1,0 +1,45 @@
+; All ships start full:
+; with their respective maximum: energy, recharge, thruster, speed, rotation, gun level, bomb level
+; and with their respective utilities: stealth, x-radar, anti-warp, cloak
+; and with their respective items
+;
+; However, they lack: bouncing bullets, multifire, proximity bombs/mines, and shrapnel
+; because there are no such ship settings to start initially with these.
+; We want all ships to start with them.
+; These weights pretty much ensure that all ships receive them, given sufficiently high enough starting bounties.
+; Note: ShrapnelRate is also set such that ships will get to ShrapnelMax with just a single Shrapnel prize.
+;
+; Other notes:
+; 1. There are no greens (prizes) on the map. So this is not being used for that purpose.
+; 2. Purposely no items (repel, burst, decoy, thor, portal, brick, rocket) from regular prizes. So, starting ships will not randomly get items.
+;    This allows us to know exactly how many items a newly spawned ship has and adjust accordingly for sub-ins.
+
+[PrizeWeight]
+QuickCharge=0
+Energy=0
+Rotation=0
+Stealth=0
+Cloak=0
+AntiWarp=0
+XRadar=0
+Warp=0
+Gun=0
+Bomb=0
+BouncingBullets=25
+Thruster=0
+TopSpeed=0
+Recharge=0
+MultiFire=25
+Proximity=25
+Glue=0
+AllWeapons=0
+Shields=0
+Shrapnel=25
+Repel=0
+Burst=0
+Decoy=0
+Thor=0
+Portal=0
+Brick=0
+Rocket=0
+MultiPrize=0

@@ -76,7 +76,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern swapMap =
-      Pattern.compile("\\~swapMap\\s(\\w+.(?:lvl|lvz))\\s+(\\w+.(?:lvl|lvz))");
+      Pattern.compile("\\~swapMap\\s([\\w()\\-]+)\\s+(\\w+\\.(?:lvl|lvz))");
+  private final Pattern loadArenaByName = Pattern.compile("\\~loadArena\\s([\\w()\\-]+)");
 
   @Override
   protected void initialize() {
@@ -102,124 +103,148 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::unloadArena));
     chat.registerPatternTriConsumer(
         swapMap,
-        "The command to swap a loaded map for another at the same slot is "
-            + "~swapMap <oldMap> <newMap>",
+        "Swap the map of a loaded arena: ~swapMap <arenaName> <newMap>. The arena's identity and "
+            + "settings stay the same; only the underlying map is replaced.",
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::swapArena));
+    chat.registerPatternTriConsumer(
+        loadArenaByName,
+        "The command to load an arena by name is ~loadArena <arenaName>. Reads "
+            + "arenas/<arenaName>/arena.conf, loads the map declared by its [General] Map= key "
+            + "(falling back to <arenaName>.lvl), and attaches the settings.",
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::loadArenaByNameCommand));
   }
 
   /**
-   * This method will load up a new Arena entity and attach the right components, then call
-   * MapSystem and load the map, then call SettingsSystem and load the settings for this arena.
-   *
-   * @param playerEntityId EntityId of the player that sent the command
-   * @param matcher Matcher that contains the map name
+   * Handles {@code ~loadMap <mapFile>}. Treats the map's base name as the arena name, which is the
+   * convention today. Settings are loaded from {@code arenas/<arenaName>/arena.conf}.
    */
-  private String loadArena(final EntityId playerEntityId, EntityId avatarEntityId, final Matcher matcher) {
-    String map = matcher.group(1);
-    // First create the map entity
-    EntityId arena = ed.createEntity();
-    ed.setComponent(arena, new ArenaId(map, playerEntityId));
+  private String loadArena(
+      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
+    final String mapFile = matcher.group(1);
+    final String arenaName = mapFile.substring(0, mapFile.lastIndexOf('.'));
+    getSystem(SettingsSystem.class).loadSettings(playerEntityId, arenaName);
+    return doLoadArena(playerEntityId, arenaName, mapFile);
+  }
 
-    // Then load the map
-    getSystem(MapSystem.class).loadMap(map);
-    Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(map);
-    Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(map);
-    // Add mapbounds information to the arena entity
+  /**
+   * Programmatic entry point for loading an arena by name (no player requester). Used by
+   * server-initiated loads like {@code BasicEnvironment}'s startup bootstrap.
+   */
+  public String loadArena(final String arenaName) {
+    return loadArenaInternal(EntityId.NULL_ID, arenaName);
+  }
+
+  /**
+   * Handles {@code ~loadArena <arenaName>}. Reads {@code arenas/<arenaName>/arena.conf}, pulls the
+   * map to load from the {@code [General] Map=} key (falling back to {@code <arenaName>.lvl}), and
+   * builds the arena entity.
+   */
+  private String loadArenaByNameCommand(
+      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
+    return loadArenaInternal(playerEntityId, matcher.group(1));
+  }
+
+  private String loadArenaInternal(final EntityId requester, final String arenaName) {
+    final SettingsSystem settings = getSystem(SettingsSystem.class);
+    settings.loadSettings(requester, arenaName);
+    final String mapFile = settings.getString(arenaName, "General", "Map", arenaName + ".lvl");
+    return doLoadArena(requester, arenaName, mapFile);
+  }
+
+  /**
+   * Builds the arena entity from pre-loaded settings plus the given map file. The caller must have
+   * already invoked {@link SettingsSystem#loadSettings(EntityId, String)} for {@code arenaName}.
+   */
+  private String doLoadArena(
+      final EntityId playerEntityId, final String arenaName, final String mapFile) {
+    final EntityId arena = ed.createEntity();
+    ed.setComponent(arena, new ArenaId(arenaName, playerEntityId));
+
+    getSystem(MapSystem.class).loadMap(mapFile);
+    final Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(mapFile);
+    final Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(mapFile);
     ed.setComponent(arena, new ArenaMap(mapBoundsMin, mapBoundsMax));
 
-    // Then load the settings (SettingsSystem keys by map base name, not filename)
-    String mapBaseName = map.substring(0, map.lastIndexOf('.'));
-    getSystem(SettingsSystem.class).loadSettings(playerEntityId, mapBaseName);
-    Ini ini = getSystem(SettingsSystem.class).getIni(mapBaseName);
-    // Add settings information to the arena entity
-    ed.setComponents(arena, new ArenaSettings(map, ini));
+    final Ini ini = getSystem(SettingsSystem.class).getIni(arenaName);
+    ed.setComponents(arena, new ArenaSettings(arenaName, ini));
 
-    // Get the containing cell for this arena add it to our arenaindex
-    GridCell cell =
-        WorldGrids.TILE_GRID.getContainingCell(
-            mapBoundsMax.add(mapBoundsMin).divide(2));
+    final GridCell cell =
+        WorldGrids.TILE_GRID.getContainingCell(mapBoundsMax.add(mapBoundsMin).divide(2));
     arenaCells.put(arena, cell);
 
-    // Add this arena as a shape we can use to detect players entering/leaving the arena
     ed.setComponent(arena, new Mass(0));
     ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
     ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
 
-    currentOpenArenas.put(map, arena);
+    currentOpenArenas.put(arenaName, arena);
 
-    return "Map " + map + " loaded";
+    return "Arena " + arenaName + " loaded with map " + mapFile;
   }
 
   /**
-   * This method will unload an arena and remove the related arena entity. It will then call the
-   * MapSystem.java to unload the map and the SettingsSystem.java to unload the settings
-   *
-   * @param id EntityId of the player that sent the command
-   * @param matcher Matcher that contains the map name
+   * Handles {@code ~unloadMap <mapFile>}. Resolves the map to its owning arena (the one whose
+   * {@code [General] Map=} currently matches) and unloads both the map and the arena entity.
    */
-  private String unloadArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
-    final String map = matcher.group(1);
-    if (!getSystem(MapSystem.class).unloadMap(map)) {
-      return "Map " + map + " is not loaded";
+  private String unloadArena(
+      final EntityId id, final EntityId avatarEntityId, final Matcher matcher) {
+    final String mapFile = matcher.group(1);
+    final String arenaName = findArenaByMap(mapFile);
+    if (arenaName == null) {
+      return "No arena currently loaded with map " + mapFile;
     }
-    // TODO: unload settings
-
-    EntityId arena = currentOpenArenas.remove(map);
+    if (!getSystem(MapSystem.class).unloadMap(mapFile)) {
+      return "Map " + mapFile + " is not loaded";
+    }
+    final EntityId arena = currentOpenArenas.remove(arenaName);
     if (arena != null) {
       arenaCells.remove(arena);
       ed.removeEntity(arena);
     }
-
-    return "Map " + map + " unloaded";
+    return "Arena " + arenaName + " (map " + mapFile + ") unloaded";
   }
 
   /**
-   * Swaps a loaded arena's map for a different one at the same grid slot. Tears
-   * down the old arena entity, queues the map swap on MapSystem, and rebuilds
-   * the arena entity with fresh settings for the new map.
+   * Handles {@code ~swapMap <arenaName> <newMap>}. Replaces the map of an already-loaded arena at
+   * the same tile slot. The arena entity, name, and settings are preserved; only the underlying
+   * map cells change. The arena's {@code [General] Map=} key is updated in-memory so later reads
+   * reflect the swap (not persisted to disk).
    */
-  private String swapArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
-    final String oldMap = matcher.group(1);
+  private String swapArena(
+      final EntityId id, final EntityId avatarEntityId, final Matcher matcher) {
+    final String arenaName = matcher.group(1);
     final String newMap = matcher.group(2);
 
+    final EntityId arena = currentOpenArenas.get(arenaName);
+    if (arena == null) {
+      return "Arena " + arenaName + " is not loaded";
+    }
+
+    final SettingsSystem settings = getSystem(SettingsSystem.class);
+    final String oldMap = settings.getString(arenaName, "General", "Map", arenaName + ".lvl");
+    if (oldMap.equals(newMap)) {
+      return "Arena " + arenaName + " already uses map " + newMap;
+    }
+
     if (!getSystem(MapSystem.class).swapMap(oldMap, newMap)) {
-      return "Cannot swap: "
-          + oldMap
-          + " is not loaded or "
-          + newMap
-          + " has an invalid extension";
+      return "Cannot swap: " + newMap + " has an invalid extension or swap failed";
     }
 
-    EntityId oldArena = currentOpenArenas.remove(oldMap);
-    if (oldArena != null) {
-      arenaCells.remove(oldArena);
-      ed.removeEntity(oldArena);
+    settings.setSetting(
+        ed.getComponent(arena, ArenaId.class), "General", "Map", newMap);
+
+    return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
+  }
+
+  /** Scan open arenas for one whose current {@code [General] Map=} equals {@code mapFile}. */
+  private String findArenaByMap(final String mapFile) {
+    final SettingsSystem settings = getSystem(SettingsSystem.class);
+    for (final String arenaName : currentOpenArenas.keySet()) {
+      final String current = settings.getString(arenaName, "General", "Map", arenaName + ".lvl");
+      if (mapFile.equals(current)) {
+        return arenaName;
+      }
     }
-
-    EntityId arena = ed.createEntity();
-    ed.setComponent(arena, new ArenaId(newMap, id));
-
-    Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(newMap);
-    Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(newMap);
-    ed.setComponent(arena, new ArenaMap(mapBoundsMin, mapBoundsMax));
-
-    String newMapBaseName = newMap.substring(0, newMap.lastIndexOf('.'));
-    getSystem(SettingsSystem.class).loadSettings(id, newMapBaseName);
-    Ini ini = getSystem(SettingsSystem.class).getIni(newMapBaseName);
-    ed.setComponents(arena, new ArenaSettings(newMap, ini));
-
-    GridCell cell =
-        WorldGrids.TILE_GRID.getContainingCell(
-            mapBoundsMax.add(mapBoundsMin).divide(2));
-    arenaCells.put(arena, cell);
-
-    ed.setComponent(arena, new Mass(0));
-    ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
-    ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
-
-    currentOpenArenas.put(newMap, arena);
-
-    return "Map " + oldMap + " swapped with " + newMap;
+    return null;
   }
 
   public EntityId getEntityId(final Vec3d coord) {

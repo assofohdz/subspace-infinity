@@ -1,0 +1,20 @@
+﻿; This file contains baseline values for [Ship] item settings.
+; dueling variant
+
+; maximum
+BurstMax=0
+RepelMax=255
+DecoyMax=0
+ThorMax=0
+BrickMax=0
+RocketMax=0
+PortalMax=0
+
+; initial
+InitialBurst=0
+InitialRepel=255
+InitialDecoy=0
+InitialThor=0
+InitialBrick=0
+InitialRocket=0
+InitialPortal=0

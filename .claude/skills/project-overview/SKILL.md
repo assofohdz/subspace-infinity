@@ -16,16 +16,28 @@ description: Overview of Subspace Infinity project structure, tech stack, and co
 
 ## Project Structure
 ```
-api/src/infinity/          # Shared components, interfaces
-  es/                      # ECS components
-  sim/                     # Base classes (BaseGameModule)
+api/src/infinity/            # Shared components, interfaces
+  es/                        # ECS components (ArenaId, ArenaMap, ArenaSettings, ...)
+  sim/                       # Base classes (BaseGameModule)
 infinity/src/main/java/infinity/
-  systems/                 # Server-side game systems
-  server/                  # Server networking
-  ai/                      # AI/mob systems
-  *.java                   # Client app states
-modules/src/main/java/     # Extension modules
+  systems/                   # Server-side game systems (ArenaSystem, SettingsSystem, ...)
+  server/                    # Server networking (GameServer, BasicEnvironment)
+  ai/                        # AI/mob systems
+  settings/                  # IniLoader (#include preprocessor), SettingListener
+  *.java                     # Client app states
+infinity/assets/             # JME asset root: Maps/*.lvl, textures, sounds
+infinity/zone/               # Second asset root for runtime config
+  arenas/<name>/arena.conf   # per-arena config (thin: Map= + #include + overrides)
+  conf/base/                 # project baseline tuning (current default, 7 ships)
+  conf/svs/                  # canonical Standard VIE Settings (verbatim from SubspaceServer, 8 ships)
+  conf/svs-league/           # SVS league + duel variants
+  conf/svs-pb/               # PowerBall approximation
+  conf/svs-tce/              # Turf Classic East
+  conf/svs-turf/             # post-VIE Turf Zone
+modules/src/main/java/       # Extension modules
 ```
+
+Arena identity is by **folder name** under `arenas/`, not by map filename. An arena's `.lvl` is declared by `[General] Map=` inside its `arena.conf`. See [arena-settings](../arena-settings/SKILL.md) for the full model.
 
 ## Key Conventions
 - BSD 2-clause license header on all files (Copyright Asser Fahrenholz)

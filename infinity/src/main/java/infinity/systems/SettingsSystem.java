@@ -26,7 +26,6 @@
 
 package infinity.systems;
 
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.ShapeInfo;
@@ -385,22 +384,22 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
-   * This method is called to load a specific arena. It will load the config-file corresponding to
-   * that arena (for now its just one file containing all the config).
+   * Load the {@code arena.conf} for a named arena and cache it under {@code arenaName}. If no
+   * {@code arenas/<arenaName>/arena.conf} exists, fall back to {@code arenas/(default)/arena.conf}
+   * — a deep copy of that fallback is cached under {@code arenaName} so later mutations cannot
+   * leak back into the default.
    *
-   * @param requester The entity that requested the settings
-   * @param map The id of the map to load settings for
+   * @param requester the entity that requested the settings (reserved for future audit wiring)
+   * @param arenaName arena identity (folder name under {@code arenas/}), e.g. {@code "trench"}
    */
-  public void loadSettings(EntityId requester, String map) {
-
-    // Load the settings from file
-    // Example: /arenas/trench/trench.conf
-    // (we already load the folder "zone" as resource folder, so not including it in the call here
-    Ini settings =
-        (Ini) assetLoader.loadAsset("/" + ARENA_FOLDER + "/" + map + "/" + ARENA_CONFIG_FILE);
+  public void loadSettings(final EntityId requester, final String arenaName) {
+    final Ini settings =
+        (Ini)
+            assetLoader.loadAsset(
+                "/" + ARENA_FOLDER + "/" + arenaName + "/" + ARENA_CONFIG_FILE);
 
     if (settings == null) {
-      log.warn("Settings file not found for map {}, loading default map instead", map);
+      log.warn("Settings file not found for arena {}, falling back to (default)", arenaName);
       Ini defaultSettings = arenaSettingsMap.get(DEFAULT_ARENA_FOLDER);
       if (defaultSettings == null) {
         defaultSettings =
@@ -409,9 +408,9 @@ public class SettingsSystem extends AbstractGameSystem {
                     "/" + ARENA_FOLDER + "/" + DEFAULT_ARENA_FOLDER + "/" + ARENA_CONFIG_FILE);
         arenaSettingsMap.put(DEFAULT_ARENA_FOLDER, deepCopy(defaultSettings));
       }
-      arenaSettingsMap.put(map, deepCopy(defaultSettings));
+      arenaSettingsMap.put(arenaName, deepCopy(defaultSettings));
     } else {
-      arenaSettingsMap.put(map, deepCopy(settings));
+      arenaSettingsMap.put(arenaName, deepCopy(settings));
     }
   }
 
@@ -448,10 +447,10 @@ public class SettingsSystem extends AbstractGameSystem {
    */
   public String setSetting(
       final ArenaId arenaId, final String section, final String setting, final String value) {
-    final String baseName = arenaId.getArenaBaseName();
-    final Ini ini = arenaSettingsMap.get(baseName);
+    final String arenaName = arenaId.getArena();
+    final Ini ini = arenaSettingsMap.get(arenaName);
     if (ini == null) {
-      throw new InfinityRunTimeException("No settings loaded for arena " + baseName);
+      throw new InfinityRunTimeException("No settings loaded for arena " + arenaName);
     }
     Section sec = ini.get(section);
     if (sec == null) {
@@ -463,30 +462,8 @@ public class SettingsSystem extends AbstractGameSystem {
     return previous;
   }
 
-  /**
-   * Method to load settings if we only know the arena entity id and not the specific map name.
-   *
-   * @param requester The entity that requested the settings
-   * @param arenaEntityId The arena entity id that holds informatio on the map
-   */
-  public void loadSettings(EntityId requester, EntityId arenaEntityId) {
-    Entity arena = ed.getEntity(arenaEntityId);
-    if (arena == null) {
-      throw new InfinityRunTimeException("Arena entity " + arenaEntityId + " does not exist");
-    }
-
-    ArenaId arenaId = arena.get(ArenaId.class);
-    if (arenaId == null) {
-      throw new InfinityRunTimeException(
-          "Arena entity " + arenaEntityId + " has no ArenaId component");
-    }
-
-    // Load the settings from file
-    loadSettings(requester, arenaId.getArena());
-  }
-
-  public Ini getIni(String map) {
-    return arenaSettingsMap.get(map);
+  public Ini getIni(final String arenaName) {
+    return arenaSettingsMap.get(arenaName);
   }
 
   /**

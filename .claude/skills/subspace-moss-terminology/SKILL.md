@@ -72,6 +72,27 @@ Subspace is 2D (X, Y). Infinity is 3D (X, Y, Z) with **Y = up**, so:
 
 When porting Subspace math, **swap Y↔Z**. `RegionSystem.getRegionLabel` reads `pos.x` and `pos.z` for exactly this reason — `pos.y` is height, not a Subspace axis.
 
+## Zone vocabulary (Subspace community)
+
+Terminology from the Subspace/Continuum community that flavors our folder and config names — largely historical, but still meaningful:
+
+| Term | Meaning |
+|---|---|
+| **SVS** | **Standard VIE Settings.** VIE = Virgin Interactive Entertainment, the original publisher (pre-1998). SVS = the original out-of-the-box ship/physics/weapon tuning. Zones advertised as "SVS" deliberately don't deviate. **Not a gameplay style** — a baseline. |
+| **Non-SVS zones** | Zones with drifted settings: Trench Wars, Extreme Games, etc. Faster-paced, modified ship behavior, modified greens/prizes. |
+| **Classic SVS zones** | Chaos Zone, Pro League — surviving live zones that preserve VIE settings. |
+| **SVS Premier League** | Oldest competitive league (founded 1996). 4v4 using original VIE settings. |
+| **ASSS** | *A Small Subspace Server* — the reference open-source server; SubspaceServer.NET is its derivative. |
+| **Zone** | A running server instance. One zone hosts many arenas. |
+
+**How this shapes our folder layout:**
+
+- `conf/svs/` = baseline original-flavor VIE tuning (our canonical default).
+- `conf/svs-*/` = variants on that baseline (e.g. `svs-league` for competitive rules).
+- `conf/{name}/` (no `svs-` prefix) = intentional departures from the SVS spirit — own name, own tuning family. Used for things like Trench-Wars-style modes if the project ever grows them.
+
+Names matter because zone operators inherit community expectations: `svs-anything` should feel like original-flavor Subspace. Anything else should signal its difference by name.
+
 ## Grid / cell sizes — who decides
 
 **`InfinityConstants` is the project's source of truth.** MOSS provides defaults; the project is free to override them.

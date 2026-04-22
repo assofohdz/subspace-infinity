@@ -1,0 +1,20 @@
+﻿; This file contains baseline values for [Ship] item settings.
+; league/prac variant
+
+; maximum
+BurstMax=0
+RepelMax=2
+DecoyMax=2
+ThorMax=1
+BrickMax=1
+RocketMax=3
+PortalMax=2
+
+; initial
+InitialBurst=0
+InitialRepel=2
+InitialDecoy=2
+InitialThor=1
+InitialBrick=0
+InitialRocket=3
+InitialPortal=2

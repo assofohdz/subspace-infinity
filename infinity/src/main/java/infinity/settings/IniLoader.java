@@ -96,7 +96,9 @@ public class IniLoader implements AssetLoader {
             throw new IOException(path + ":" + lineNo + " — #include missing path");
           }
           final String resolved = resolvePath(path, target);
-          final AssetInfo included = am.locateAsset(new AssetKey<>(resolved));
+          // JME asset keys are conventionally leading-slash-less; strip before locating.
+          final String key = resolved.startsWith("/") ? resolved.substring(1) : resolved;
+          final AssetInfo included = am.locateAsset(new AssetKey<>(key));
           if (included == null) {
             throw new IOException(
                 path + ":" + lineNo + " — #include target not found: " + resolved);
