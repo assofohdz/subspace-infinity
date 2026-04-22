@@ -26,18 +26,14 @@
 
 package infinity.client.view;
 
-import java.util.Arrays;
 
 import com.simsilica.mblock.geom.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
 
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mblock.Axis;
 import com.simsilica.mblock.BlockType;
-import com.simsilica.mblock.CellData;
 import com.simsilica.mblock.Direction;
 
 /**

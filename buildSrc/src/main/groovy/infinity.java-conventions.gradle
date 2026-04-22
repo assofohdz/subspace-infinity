@@ -45,13 +45,18 @@ dependencies {
 }
 
 // =============================================================================
-// Spotless — formatting + BSD 2-clause license header enforcement.
+// Spotless — whitespace hygiene + unused imports.
 // Run `./gradlew spotlessApply` to auto-fix violations.
+//
+// NOTE: license header enforcement is intentionally NOT configured.
+// Spotless's licenseHeaderFile REPLACES any existing block comment above
+// `package`, which would silently relicense upstream Simsilica/third-party
+// code that carries its own BSD-3-clause header. Header correctness is a
+// per-file judgement call — keep it manual.
 // =============================================================================
 spotless {
     java {
         target 'src/**/*.java'
-        licenseHeaderFile rootProject.file('config/license-header.txt')
         removeUnusedImports()
         trimTrailingWhitespace()
         endWithNewline()

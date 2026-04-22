@@ -35,13 +35,11 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
-import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.GravityWell;
-import java.util.HashSet;
 
 /**
  * A system to handle gravity wells.

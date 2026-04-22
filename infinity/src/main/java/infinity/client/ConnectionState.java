@@ -313,4 +313,3 @@ public class ConnectionState extends CompositeAppState {
         }
     }
 }
-

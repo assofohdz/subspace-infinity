@@ -41,10 +41,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
-import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -52,7 +49,6 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.scene.debug.WireBox;
-import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 
 import com.simsilica.lemur.GuiGlobals;

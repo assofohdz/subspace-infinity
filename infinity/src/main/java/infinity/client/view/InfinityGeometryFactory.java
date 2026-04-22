@@ -51,10 +51,8 @@ import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.mblock.geom.*;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
-import infinity.systems.MapSystem;
 import org.slf4j.*;
 
-import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -783,7 +781,3 @@ public class InfinityGeometryFactory {
     }
 
 }
-
-
-
-

@@ -26,7 +26,6 @@
 
 package infinity.systems;
 
-import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -39,13 +38,11 @@ import infinity.server.AssetLoaderService;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
-import infinity.sim.CoreGameConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;

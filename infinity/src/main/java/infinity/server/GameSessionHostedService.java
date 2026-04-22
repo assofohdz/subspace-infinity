@@ -62,7 +62,6 @@ import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ActionSystem;
-import infinity.systems.ActionSystem.Action;
 import infinity.systems.AvatarSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.WarpSystem;

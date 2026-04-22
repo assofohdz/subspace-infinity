@@ -50,7 +50,6 @@ import com.simsilica.state.GameSystemsState;
 import infinity.HelpState;
 import infinity.HostState;
 import infinity.InfinityConstants;
-import infinity.SettingsState;
 import infinity.TimeState;
 import infinity.ai.MobDebugState;
 import infinity.client.audio.AudioState;

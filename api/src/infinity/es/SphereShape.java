@@ -27,7 +27,6 @@
 package infinity.es;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityData;
 
 public class SphereShape implements EntityComponent {
 

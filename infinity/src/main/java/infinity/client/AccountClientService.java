@@ -109,5 +109,3 @@ public class AccountClientService extends AbstractClientService
 
   }
 }
-
-

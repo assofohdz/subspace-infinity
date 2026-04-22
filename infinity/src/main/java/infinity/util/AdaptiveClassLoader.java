@@ -25,8 +25,6 @@
  */
 package infinity.util;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.ClassPath;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

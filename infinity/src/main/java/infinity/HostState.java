@@ -57,7 +57,7 @@ public class HostState extends BaseAppState {
             throw new RuntimeException("Error creating server", e);
         }
     }
-    
+
     public GameServer getGameServer() {
         return gameServer;
     }

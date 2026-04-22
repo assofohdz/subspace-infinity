@@ -91,7 +91,7 @@ public class AvatarMovementState extends BaseAppState
   private WatchedEntity avatarWatch;
   private EntityId avatarId;
   private BodyPosition avatarBodyPos;
-  
+
   // Current movement values (set by valueActive, sent in update)
   private double currentRotation = 0;
   private double currentThrust = 0;
@@ -110,7 +110,7 @@ public class AvatarMovementState extends BaseAppState
     if (inputMapper == null) {
       inputMapper = GuiGlobals.getInstance().getInputMapper();
     }
-    
+
     // Movement and weapons use analog listeners - valueActive() called every frame while held
     inputMapper.addAnalogListener(
         this,
@@ -161,7 +161,7 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_GRAVBOMB,
         AvatarMovementFunctions.F_MINE,
         AvatarMovementFunctions.F_REPEL);
-    
+
     // Remove state listeners
     inputMapper.removeStateListener(
         this,
@@ -219,7 +219,7 @@ public class AvatarMovementState extends BaseAppState
     thrust.z = currentThrust * speed;
     MovementInput movementInput = new MovementInput(thrust.clone(), facing.clone(), FLAGS);
     session.move(movementInput);
-    
+
     // Reset for next frame - valueActive will set them again if keys are still held
     currentRotation = 0;
     currentThrust = 0;

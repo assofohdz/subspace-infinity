@@ -103,7 +103,6 @@ import infinity.es.TileType;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
-import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CubeFactory;
 import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;

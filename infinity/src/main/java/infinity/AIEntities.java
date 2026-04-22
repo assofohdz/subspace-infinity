@@ -36,7 +36,6 @@ import infinity.es.Frequency;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import infinity.es.input.CharacterInput;
-import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
 import infinity.sim.GameEntities;
 
