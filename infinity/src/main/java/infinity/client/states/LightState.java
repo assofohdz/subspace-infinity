@@ -87,6 +87,8 @@ public class LightState extends BaseAppState {
   protected void cleanup(final Application app) {
     movingPointLights.release();
     movingPointLights = null;
+    decayingPointLights.release();
+    decayingPointLights = null;
   }
 
   @Override

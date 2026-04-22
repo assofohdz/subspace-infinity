@@ -279,6 +279,8 @@ public class ModelViewState extends BaseAppState {
       debug.removeDebugValue("Statics");
       debug.removeDebugValue("Spatials");
     }
+    flags.release();
+    flags = null;
   }
 
   @Override
