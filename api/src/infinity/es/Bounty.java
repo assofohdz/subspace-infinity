@@ -45,8 +45,4 @@ public class Bounty implements EntityComponent {
     public int getBounty() {
         return bounty;
     }
-
-    public void setBounty(final int bounty) {
-        this.bounty = bounty;
-    }
 }

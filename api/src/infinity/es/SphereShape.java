@@ -17,8 +17,4 @@ public class SphereShape implements EntityComponent {
     public double getRadius() {
         return radius;
     }
-
-    public void setRadius(double radius) {
-        this.radius = radius;
-    }
 }

@@ -77,16 +77,8 @@ public class Spawner implements EntityComponent {
     return maxCount;
   }
 
-  public void setMaxCount(final int maxCount) {
-    this.maxCount = maxCount;
-  }
-
   public SpawnType getType() {
     return type;
-  }
-
-  public void setType(final SpawnType type) {
-    this.type = type;
   }
 
   public enum SpawnType {
