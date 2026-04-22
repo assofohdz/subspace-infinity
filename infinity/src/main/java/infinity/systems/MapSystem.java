@@ -40,6 +40,7 @@ import com.simsilica.mworld.TileId;
 import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.InfinityConstants;
 import infinity.es.GravityWell;
 import infinity.es.TileTypes;
 import infinity.map.LevelFile;
@@ -69,7 +70,7 @@ public class MapSystem extends AbstractGameSystem {
   public static final byte READ = 0x1;
   public static final byte UPDATE = 0x2;
   public static final byte DELETE = 0x3;
-  public static final int MAP_SIZE = 1024;
+  public static final int MAP_SIZE = InfinityConstants.TILE_SIZE;
   public static final float NOISE4J_CORRIDOR = 0f;
   public static final float NOISE4J_FLOOR = 0.5f;
   public static final float NOISE4J_WALL = 1f;

@@ -125,7 +125,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(map);
     Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(map);
     // Add mapbounds information to the arena entity
-    ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
+    ed.setComponent(arena, new ArenaMap(mapBoundsMin, mapBoundsMax));
 
     // Then load the settings (SettingsSystem keys by map base name, not filename)
     String mapBaseName = map.substring(0, map.lastIndexOf('.'));
@@ -137,7 +137,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     // Get the containing cell for this arena add it to our arenaindex
     GridCell cell =
         WorldGrids.TILE_GRID.getContainingCell(
-            mapBoundsMax.subtract(mapBoundsMin).divide(2));
+            mapBoundsMax.add(mapBoundsMin).divide(2));
     arenaCells.put(arena, cell);
 
     // Add this arena as a shape we can use to detect players entering/leaving the arena
@@ -201,7 +201,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(newMap);
     Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(newMap);
-    ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
+    ed.setComponent(arena, new ArenaMap(mapBoundsMin, mapBoundsMax));
 
     String newMapBaseName = newMap.substring(0, newMap.lastIndexOf('.'));
     getSystem(SettingsSystem.class).loadSettings(id, newMapBaseName);
@@ -210,7 +210,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     GridCell cell =
         WorldGrids.TILE_GRID.getContainingCell(
-            mapBoundsMax.subtract(mapBoundsMin).divide(2));
+            mapBoundsMax.add(mapBoundsMin).divide(2));
     arenaCells.put(arena, cell);
 
     ed.setComponent(arena, new Mass(0));

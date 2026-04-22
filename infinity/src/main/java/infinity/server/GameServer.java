@@ -109,6 +109,7 @@ import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ActionSystem;
 import infinity.systems.ArenaSystem;
+import infinity.systems.RegionSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.EnergySystem;
@@ -294,6 +295,7 @@ public class GameServer {
     systems.register(WeaponsSystem.class, new WeaponsSystem());
     systems.register(ActionSystem.class, new ActionSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
+    systems.register(RegionSystem.class, new RegionSystem());
     systems.register(PrizeSystem.class, new PrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
     systems.register(GravitySystem.class, new GravitySystem());
     systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());

@@ -61,3 +61,4 @@ See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
 
 **Meta:**
 - `dependency-sources/` - Where to find Moss/Simsilica library source code
+- `subspace-moss-terminology/` - Disambiguate overloaded terms (cell, tile, region, arena) across Subspace, MOSS, and Infinity

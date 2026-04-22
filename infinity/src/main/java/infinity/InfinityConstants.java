@@ -74,10 +74,20 @@ public class InfinityConstants {
   public static final int TERRAIN_CHANNEL = 2;
 
   /**
-   * The size of the rendered grid cells. This is just a visualization setting, but it's best if it
-   * is at least a multiple/factor of the gridSize.
+   * Size of a world/leaf grid cell for this project. This is the project's source of truth;
+   * {@link WorldGrids#LEAF_SIZE} is only the MOSS default and may be overridden here without
+   * touching MOSS. In-project code should reference this constant rather than {@code
+   * WorldGrids.LEAF_SIZE} so the override stays honest.
    */
   public static final int GRID_CELL_SIZE = WorldGrids.LEAF_SIZE;
+
+  /**
+   * Size (in world units) of one arena tile — i.e. one {@code TileId} footprint on MOSS's
+   * {@code TILE_GRID}. Source of truth for the project; defaults to {@link WorldGrids#TILE_SIZE}
+   * but can be overridden here. Same rationale as {@link #GRID_CELL_SIZE} — in-project code should
+   * not reach into {@code WorldGrids} for size constants.
+   */
+  public static final int TILE_SIZE = WorldGrids.TILE_SIZE;
 
   /**
    * Default gravity used for the physics simulation. - Changed from 0,-10,0 to 0,0,0 for ZERO
