@@ -52,10 +52,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +109,6 @@ public class MapSystem extends AbstractGameSystem {
   private AssetLoaderService assetLoader;
   private LinkedList<MapTileCallable> mapTileQueue;
   private World world;
-  private int y;
   private double accumulatedTime;
   // private final boolean logged = false;
   private Direction direction = Direction.S;
@@ -210,20 +207,17 @@ public class MapSystem extends AbstractGameSystem {
 
   /**
    * Loads a map, auto-positioning it via the spiral placement algorithm.
-   * Used by the ~loadMap chat command where no explicit placement is given.
    *
-   * @param playerEntityId the player requesting the load
-   * @param avatarEntityId the avatar of the player requesting the load
    * @param mapName the lvz-map to load
    * @return true if loaded
    */
-  public boolean loadMap(EntityId playerEntityId, EntityId avatarEntityId, final String mapName) {
+  public boolean loadMap(final String mapName) {
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
     Vec3d offset = calculateNextOffset();
     TileId tile = TileId.fromCell((int) offset.x, 0, (int) offset.z);
-    return loadMap(playerEntityId, avatarEntityId, mapName, tile);
+    return loadMap(mapName, tile);
   }
 
   /**
@@ -231,17 +225,11 @@ public class MapSystem extends AbstractGameSystem {
    * on Moss's TILE_GRID; adjacent tiles share a 2-cell gutter formed by each
    * map's own border ring.
    *
-   * @param playerEntityId the player requesting the load
-   * @param avatarEntityId the avatar of the player requesting the load
    * @param mapName the lvz-map to load
    * @param tile the Moss TileId specifying where to place the map
    * @return true if loaded, false if the filename is invalid or the tile is occupied
    */
-  public boolean loadMap(
-      EntityId playerEntityId,
-      EntityId avatarEntityId,
-      final String mapName,
-      final TileId tile) {
+  public boolean loadMap(final String mapName, final TileId tile) {
     log.info("Loading map: " + mapName + " at " + tile);
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
@@ -293,323 +281,169 @@ public class MapSystem extends AbstractGameSystem {
   }
 
   /**
-   * Unloads a given lvz-map.
+   * Unloads a given lvz-map. Block clearing runs asynchronously; the tracking
+   * entries are removed after the clear completes so a subsequent loadMap for
+   * the same slot will see it as occupied until the clear is done.
    *
-   * @param playerEntityId the entity requesting the unload
-   * @param avatarEntityId the avatar of the entity requesting the unload
-   * @param matcher the matcher containing the map name
-   * @return true if unloaded, false otherwise
+   * @param mapName the name of the map to unload
+   * @return true if the unload was queued, false if no such map is loaded
    */
-  public boolean unloadMap(EntityId playerEntityId, EntityId avatarEntityId, Matcher matcher) {
-    String mapName = matcher.group(1);
-
+  public boolean unloadMap(final String mapName) {
     if (!activeMaps.containsKey(mapName)) {
       return false;
     }
     HashSet<Vec3d> coordinates = activeMaps.get(mapName);
-    // Try to do this asynchronosly (loading a map takes about 3 seconds depending on density of
-    // map)
     CompletableFuture<Boolean> completableFuture =
         CompletableFuture.supplyAsync(() -> this.removeBlocksFromLegacyMap(coordinates));
-    // CompletableFuture<Void> future =
     completableFuture.thenAccept(s -> activeMaps.remove(mapName));
     completableFuture.thenAccept(s -> mapCoordinates.remove(mapName));
-
     return true;
+  }
+
+  /**
+   * Replaces a loaded map with a new one at the same grid slot. The new map's
+   * coordinate entry is registered synchronously (so bounds are immediately
+   * queryable), while the old blocks are cleared and the new blocks are built
+   * asynchronously.
+   *
+   * @param oldMapName the currently-loaded map to replace
+   * @param newMapName the map to load in its place
+   * @return true if the swap was queued, false if the old map isn't loaded or
+   *         the new name has an invalid extension
+   */
+  public boolean swapMap(final String oldMapName, final String newMapName) {
+    if (!activeMaps.containsKey(oldMapName)) {
+      return false;
+    }
+    if (!(newMapName.endsWith(".lvl") || newMapName.endsWith(".lvz"))) {
+      return false;
+    }
+    Vec3d offset = mapCoordinates.get(oldMapName);
+    TileId tile = TileId.fromCell((int) offset.x, 0, (int) offset.z);
+    Vec3i corner = tile.getWorld(null);
+    Vec3d worldOffset = new Vec3d(corner.x, corner.y, corner.z);
+
+    HashSet<Vec3d> oldCoordinates = activeMaps.remove(oldMapName);
+    mapCoordinates.remove(oldMapName);
+    mapCoordinates.put(newMapName, offset);
+
+    LevelFile res = (LevelFile) assetLoader.loadAsset(mapDirectory + "/" + newMapName);
+    res.setMapName(newMapName);
+    log.info("Swapping " + oldMapName + " -> " + newMapName + " at " + tile);
+
+    CompletableFuture
+        .supplyAsync(() -> removeBlocksFromLegacyMap(oldCoordinates))
+        .thenApplyAsync(s -> createBlocksFromLegacyMap(res, worldOffset))
+        .thenAccept(blocks -> activeMaps.put(newMapName, blocks));
+    return true;
+  }
+
+  /** Returns true if the given map is currently tracked as loaded. */
+  public boolean isLoaded(final String mapName) {
+    return activeMaps.containsKey(mapName);
   }
 
   private boolean removeBlocksFromLegacyMap(HashSet<Vec3d> coordinates) {
     for (Vec3d location : coordinates) {
       world.setWorldCell(location, 0);
     }
+    verifyCleared(coordinates);
     return true;
   }
 
   /**
-   * Creates map tiles for a legacy map.
+   * Post-clear audit: after iterating the tracked coordinates and writing 0, read
+   * each cell back and report any whose type bits are still non-zero. A non-zero
+   * readback means either our tracked set didn't cover a cell we wrote, or
+   * another system re-filled the cell between clear and read.
+   */
+  private void verifyCleared(HashSet<Vec3d> coordinates) {
+    int lingering = 0;
+    int shown = 0;
+    for (Vec3d location : coordinates) {
+      int raw = world.getWorldCell(location);
+      int type = raw & 0x000fffff;
+      if (type != 0) {
+        if (shown < 10) {
+          log.warn(
+              "Post-clear: cell still non-zero at " + location
+                  + " type=" + type + " raw=0x" + Integer.toHexString(raw));
+          shown++;
+        }
+        lingering++;
+      }
+    }
+    if (lingering > 0) {
+      log.warn("Post-clear verify: " + lingering + " / " + coordinates.size()
+          + " cells still non-zero");
+    } else {
+      log.info("Post-clear verify: all " + coordinates.size() + " cells are zero");
+    }
+  }
+
+  /**
+   * Writes a legacy .lvl map into the world at the given offset. Cell-backed tiles
+   * become a single world cell at Y=1; entity-backed tiles (flags, asteroids,
+   * doors, wormholes) spawn their entity and leave the cell empty. Every
+   * touched location (including entity positions) is returned so unload can
+   * zero the slot cleanly.
    *
-   * @param map the lvz-based-map to create create entities from
-   * @param arenaOffset where to position the map
+   * See {@code .claude/skills/lvl-format.md} for the tile-ID → semantic mapping
+   * and {@link MapTypes} for the numeric constants.
    */
   public HashSet<Vec3d> createBlocksFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
-    final Set<Integer> tileSet = new HashSet<>();
-
     HashSet<Vec3d> coordinates = new HashSet<>();
+    short[][] tiles = map.getMap();
 
-    final short[][] tiles = map.getMap();
-    // int count = 0;
-
-    // for (int xpos = 510; xpos < 516; xpos++) {
     for (int xpos = 0; xpos < tiles.length; xpos++) {
-      // for (int zpos = 260; zpos >= 250; zpos--) {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
-        short s = tiles[1024 - xpos - 1][1024 - zpos - 1];
-        y = 1;
-        if ((xpos == 0 || xpos == 1 || xpos == 2) && (zpos == 0 || zpos == 1 || zpos == 2)) {
-          // s = 0;
-          y = 5;
-        } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
-            && (zpos == 0 || zpos == 1 || zpos == 2)) {
-          y = 5;
-        } else if ((xpos == 0 || xpos == 1 || xpos == 2)
-            && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
-          y = 5;
-        } else if ((xpos == 1021 || xpos == 1022 || xpos == 1023)
-            && (zpos == 1021 || zpos == 1022 || zpos == 1023)) {
-          y = 5;
+        short s = tiles[MAP_SIZE - xpos - 1][MAP_SIZE - zpos - 1];
+        if (s == 0) {
+          continue;
         }
 
-        if (s != 0) {
-          // TODO: Check on the short and only create the map tiles, not the extras
-          /*
-          TILE STATUS
-          Row 2, tile 1 - Border tile
-          Row 9, tile 10 - Vertical warpgate (Mostly open)
-          Row 9, tile 11 - Vertical warpgate (Frequently open)
-          Row 9, tile 12 - Vertical warpgate (Frequently closed)
-          Row 9, tile 13 - Vertical warpgate (Mostly closed)
-          Row 9, tile 14 - Horizontal warpgate (Mostly open)
-          Row 9, tile 15 - Horizontal warpgate (Frequently open)
-          Row 9, tile 16 - Horizontal warpgate (Frequently closed)
-          Row 9, tile 17 - Horizontal warpgate (Mostly closed)
-          Row 9, tile 18 - Flag for turf [DONE]
-          Row 9, tile 19 - Safezone
-          Row 10, tile 1 - Soccer goal (leave blank if you want)
-          Row 10, tile 2 - Flyover tile
-          Row 10, tile 3 - Flyover tile
-          Row 10, tile 4 - Flyover tile
-          Row 10, tile 5 - Flyunder (opaque) tile
-          Row 10, tile 6 - Flyunder (opaque) tile
-          Row 10, tile 7 - Flyunder (opaque) tile
-          Row 10, tile 8 - Flyunder (opaque) tile
-          Row 10, tile 9 - Flyunder (opaque) tile
-          Row 10, tile 10 - Flunder (opaque) tile
-          Row 10, tile 11 - Flyunder (opaque) tile
-          Row 10, tile 12 - Flyunder (opaque) tile
-          Row 10, tile 13 - Flyunder (black = transparent) tile
-          Row 10, tile 14 - Flyunder (black = transparent) tile
-          Row 10, tile 15 - Flyunder (black = transparent) tile
-          Row 10, tile 16 - Flyunder (black = transparent) tile
-          Row 10, tile 17 - Flyunder (black = transparent) tile
-          Row 10, tile 18 - Flyunder (black = transparent) tile
-          Row 10, tile 19 - Flyunder (black = transparent) tile
-                     *
-                     */
-          /* VIE tile constants.
-                     *
-          public static final char vieNoTile = 0;
-          public static final char vieNormalStart = 1;
-          public static final char vieBorder = 20; // Borders are not included in the .lvl files
-          public static final char vieNormalEnd = 161; // Tiles up to this point are part of sec.chk
-          public static final char vieVDoorStart = 162;
-          public static final char vieVDoorEnd = 165;
-          public static final char vieHDoorStart = 166;
-          public static final char vieHDoorEnd = 169;
-          public static final char vieTurfFlag = 170; [DONE]
-          public static final char vieSafeZone = 171; // Also included in sec.chk
-          public static final char vieGoalArea = 172;
-          public static final char vieFlyOverStart = 173;
-          public static final char vieFlyOverEnd = 175;
-          public static final char vieFlyUnderStart = 176;
-          public static final char vieFlyUnderEnd = 190;
-          public static final char vieAsteroidStart = 216;
-          public static final char vieAsteroidEnd = 218;
-          public static final char vieStation = 219;
-          public static final char vieWormhole = 220;
-          public static final char ssbTeamBrick = 221; // These are internal
-          public static final char ssbEnemyBrick = 222;
-          public static final char ssbTeamGoal = 223;
-          public static final char ssbEnemyGoal = 224;
-          public static final char ssbTeamFlag = 225;
-          public static final char ssbEnemyFlag = 226;
-          public static final char ssbPrize = 227;
-          public static final char ssbBorder = 228; // Use ssbBorder instead of vieBorder to fill border
-                     *
-          20: Border
-          162: Door Horizontal 1
-          163: Door Horizontal 2
-          164: Door Horizontal 3
-          165: Door Horizontal 4
-          166: Door Vertical 1
-          167: Door Vertical 2
-          168: Door Vertical 3
-          169: Door Vertical 4
-          170: flag [DONE]
-          171: safe
-          172: goal
-          173: fly over 1
-          174: fly over 2
-          175: fly over 3
-          176: fly Under 1
-          177: fly Under 2
-          178: fly Under 3
-          179: fly Under 4
-          180: fly Under 5
-          181: fly Under 6
-          182: fly Under 7
-          183: fly Under 8
-          184: fly Under 9
-          185: fly Under 10
-          186: fly Under 11
-          187: fly Under 12
-          188: fly Under 13
-          189: fly Under 14
-          190: fly Under 15
-          191: invisible, Ships go through, items bounce off, Thors go through if you fire an item while in it, it will float suspended in space.
-          192: invisible
-          193: invisible
-          194: invisible
-          195: invisible
-          196: invisible
-          197: invisible
-          198: invisible
-          199: invisible
-          200: invisible
-          201: invisible
-          202: invisible
-          203: invisible
-          204: invisible
-          205: invisible
-          206: invisible
-          207: invisible
-          216: small Asteroid
-          217: large Asteroid
-          218: small Asteroid 2
-          219: space Station
-          220: wormhole
-          240: invisible
-          241: absorbs weapons, invisible
-          242: warp on contact, not on radar, invisible
-          242: not on radar, invisible
-          243: not on radar, invisible
-          244: not on radar, invisible
-          245: not on radar, invisible
-          246: not on radar, invisible
-          247: not on radar, invisible
-          248: not on radar, invisible
-          249: not on radar, invisible
-          250: not on radar, invisible
-          251: invisible, not on radar, warps ship on contact, items bounce off, thors  dissappear
-          252: animated enemy brick, visible, not on radar. Items go through, ship gets warped after 0-2 seconds
-          253: animated team brick. Visible, invisible on radar. Items and ship go through.
-          254: invisible, not on radar. Impossible to lay bricks while on/near it.
-          255: animated green. visible, not on radar. Items and ship go through.
-                     *
-                     */
+        Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
+        coordinates.add(location);
 
-          final Vec3d location = new Vec3d(xpos, y, zpos).add(arenaOffset);
-          coordinates.add(location);
-          // TODO: add more special cases here:
-          // TODO: Fetch settings for the given coordinates and create the right gravity
-          if (s == MapTypes.vieBorder) {
-            // Border blocks use invisible physics type (no visible geometry)
-            world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
-          } else if (s == MapTypes.vieTurfFlag) {
-            GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, physicsSpace, time.getTime(), location);
-            continue;
-          } else if (s == MapTypes.vieAsteroidSmall) {
-            GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
-            continue;
-          } else if (s == MapTypes.vieAsteroidMedium) {
-            GameEntities.createAsteroidMedium(ed, null, physicsSpace, time.getTime(), location, 0);
-            continue;
-          } else if (s == 218) {
-            GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
-            continue;
-          } else if (MapTypes.vieFlyOverStart <= s && s <= MapTypes.vieFlyOverEnd) {
-            // FlyOver: no Y offset — all tiles on the same plane; layer handles Z-order
-          } else if (MapTypes.vieFlyUnderStart <= s && s <= MapTypes.vieFlyUnderEnd) {
-            // FlyUnder: no Y offset — all tiles on the same plane; layer handles Z-order
-          } else if (MapTypes.vieVDoorStart <= s && s <= MapTypes.vieHDoorEnd) {
-            GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
-            continue;
-          } else if (s == MapTypes.vieWormhole) {
-            GameEntities.createWormhole(
-                ed,
-                null,
-                physicsSpace,
-                time.getTime(),
-                location,
-                5000,
-                GravityWell.PULL,
-                new Vec3d(0, 0, 0),
-                1);
-            continue;
-          }
-
-          // TODO: Translate mapId from a level name (see InfinityBlockGeometryIndex)
-          final int mapId = 20;
-          final int tileId = Short.toUnsignedInt(s);
-          tileSet.add(Integer.valueOf(tileId));
-
-          final int value = tileId | (mapId << 8);
-
-          // Set blocks for visible tiles:
-          // - Invisible physics block at Y=1 (INVISIBLE_BLOCK_TYPE) for collision
-          // - Visual tile at Y=2 (tile type 100+) for rendering
-          if (s != 0 && tileId >= 1 && tileId <= MAX_VISIBLE_TILE) {
-            boolean isPassThrough = (tileId >= MapTypes.vieFlyOverStart && tileId <= MapTypes.vieFlyOverEnd)
-                || (tileId >= MapTypes.vieFlyUnderStart && tileId <= MapTypes.vieFlyUnderEnd);
-
-            if (!isPassThrough) {
-              world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
-            } else {
-              world.setWorldCell(location, 0); // clear any stale physics block
-            }
-
-            Vec3d tileLocation = new Vec3d(location.x, location.y + 1, location.z);
-            int tileBlockType = TILE_TYPE_BASE + tileId - 1;
-            world.setWorldCell(tileLocation, tileBlockType);
-          } else if (s != 0) {
-            // For special/invisible tiles, use invisible block for physics only
-            world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
-          }
-
-          // Vec3d topPlane = new Vec3d(xpos, 1, -zpos).add(arenaOffset);
-
-          // final Vec3i i = new Vec3i(bottomPlane.toVector3f());
-
-          //
-          //                    //TODO: Translate mapId from a level name (see
-          // InfinityBlockGeometryIndex)
-          //                    final int mapId = 20;
-          //                    final int tileId = Short.toUnsignedInt(s);
-          //                    tileSet.add(Integer.valueOf(tileId));
-          //
-          //                    final int value = tileId | (mapId << 8);
-          //                    // log.info("createEntitiesFromLegacyMap:: value = " + value + " <=
-          // (Tile,Map)
-          //                    // =(" + tileId + ","
-          //                    // + mapId + ") - Coords: " + i);
-          //                    // value = InfinityMaskUtils.setSideMask(value,
-          // DirectionMasks.UP_MASK);
-          //                    // world.setWorldCell(bottomPlane, value);
-          //                    //log.info("Creating block at: " + location);
-          //                    world.setWorldCell(location, 10);
-          //
-          //                    // world.setWorldCell(topPlane, 0);
-          //
-          //                    // count++;
+        if (s == MapTypes.vieTurfFlag) {
+          GameEntities.createTurfStationaryFlag(
+              ed, EntityId.NULL_ID, physicsSpace, time.getTime(), location);
+          continue;
         }
+        if (s == MapTypes.vieAsteroidSmall) {
+          GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
+          continue;
+        }
+        if (s == MapTypes.vieAsteroidMedium) {
+          GameEntities.createAsteroidMedium(ed, null, physicsSpace, time.getTime(), location, 0);
+          continue;
+        }
+        if (s == MapTypes.vieAsteroidEnd) {
+          GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
+          continue;
+        }
+        if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
+          GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
+          continue;
+        }
+        if (s == MapTypes.vieWormhole) {
+          GameEntities.createWormhole(
+              ed, null, physicsSpace, time.getTime(), location,
+              5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
+          continue;
+        }
+
+        int tileId = Short.toUnsignedInt(s);
+        int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
+            ? TILE_TYPE_BASE + tileId - 1
+            : INVISIBLE_BLOCK_TYPE;
+        world.setWorldCell(location, blockType);
       }
     }
 
-    // Test:
-    /*
-     * for (int i = 0; i < 380; i++) { short s = (short) (i % 190); Vec3d
-     * bottomPlane = new Vec3d(i % 19, 0, (Math.floor(i / 19))); Vec3d topPlane =
-     * new Vec3d(i % 19, 1, (Math.floor(i / 19))); int mapId = 20; int tileId =
-     * Short.toUnsignedInt(s); tileSet.add(tileId);
-     *
-     * int value = tileId | (mapId << 8);
-     * log.info("createEntitiesFromLegacyMap:: value = " + value +
-     * " <= (Tile,Map) = (" + tileId + "," + mapId + ") - Coords: " + bottomPlane);
-     * world.setWorldCell(bottomPlane, value); world.setWorldCell(topPlane, 0);
-     * count++; }
-     */
-
     return coordinates;
   }
+
 
   @Override
   protected void terminate() {

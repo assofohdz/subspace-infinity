@@ -560,11 +560,13 @@ public class LocalViewState extends BaseAppState {
         return;
       }
 
-      //log.info("loaded(" + leafId + "):" + leafData);
-      //TODO: Needs a fix for clering the last cell of a leaf
-      if( leafData.isEmpty() ) {
-        //log.info("Empty, nothing to do for:" + leafId);
-        parts = null; // just in case we're rerun
+      // Empty leaf: drop any previously-generated mesh so runOnUpdate detaches
+      // the stale geometry from leafNode. Without this, clearing a map leaves
+      // its visuals in the scene even after the server zeros the cells.
+      if (leafData.isEmpty()) {
+        synchronized (this) {
+          generatedParts = null;
+        }
         return;
       }
 

@@ -72,12 +72,11 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mblock.BlockName;
 import com.simsilica.mblock.BlockType;
 import com.simsilica.mblock.BlockTypeIndex;
 import com.simsilica.mblock.config.DefaultBlockSet;
-import com.simsilica.mblock.geom.MaterialType;
 import com.simsilica.mblock.phys.Collider;
+import com.simsilica.mblock.phys.collision.CubeCollider;
 import com.simsilica.mblock.phys.MBlockCollisionSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mblock.phys.collision.ColliderFactories;
@@ -118,6 +117,7 @@ import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
+import infinity.systems.MapTypes;
 import infinity.systems.MovementSystem;
 import infinity.systems.PrizeSystem;
 import infinity.systems.SettingsSystem;
@@ -529,8 +529,12 @@ public class GameServer {
   private static final int REQUIRED_ARRAY_SIZE = TILE_TYPE_BASE + TILE_COUNT;
 
   /**
-   * Expands the BlockTypeIndex array to accommodate tile types (100-289). Tile types are flat
-   * visual blocks that don't need collision, so they get a simple passthrough BlockType.
+   * Expands the BlockTypeIndex array to accommodate tile types (100-289). Tile slots reuse the
+   * INVISIBLE_BLOCK_TYPE's BlockType so {@link com.simsilica.mblock.MaskUtils#recalculateSideMasks}
+   * treats them as solid cubes and computes non-zero side masks — without that, collider lookups
+   * succeed but {@link com.simsilica.mblock.phys.collision.CubeCollider#getSphereContact} early-
+   * returns because dirMask == 0. Rendering is unaffected: the client's BlockGeometryIndex
+   * registers its own per-tile visual BlockTypes.
    */
   private void expandBlockTypeIndexForTiles() {
     try {
@@ -540,21 +544,17 @@ public class GameServer {
         return;
       }
 
-      // Create expanded array and copy existing types
       BlockType[] expandedTypes = Arrays.copyOf(currentTypes, REQUIRED_ARRAY_SIZE);
-
-      // Create a dummy BlockType for tiles (visual only, no physics collision)
-      MaterialType tileMaterial = new MaterialType("tile");
-      // Use null factory - these blocks won't generate collision geometry on the server
-      BlockName tileName = new BlockName("tile", "flat");
-      
-      // Fill in tile type slots with null (no collision needed for visual tiles)
-      // The client-side BlockGeometryIndex will register proper visual BlockTypes
+      BlockType solidStandin = BlockTypeIndex.get(MapSystem.INVISIBLE_BLOCK_TYPE);
+      if (solidStandin == null) {
+        throw new InfinityRunTimeException(
+            "INVISIBLE_BLOCK_TYPE (" + MapSystem.INVISIBLE_BLOCK_TYPE
+                + ") has no registered BlockType; cannot set up tile masks");
+      }
       for (int i = TILE_TYPE_BASE; i < REQUIRED_ARRAY_SIZE; i++) {
-        expandedTypes[i] = null; // No collision for tile blocks
+        expandedTypes[i] = solidStandin;
       }
 
-      // Use reflection to set the expanded array
       Field typesField = BlockTypeIndex.class.getDeclaredField("types");
       typesField.setAccessible(true);
       typesField.set(null, expandedTypes);
@@ -571,19 +571,29 @@ public class GameServer {
   }
 
   /**
-   * Expands the colliders array to accommodate tile types (100-289). Tile colliders are null since
-   * tiles at Y=2 don't need physics collision (physics blocks at Y=1 handle collision).
+   * Installs colliders for tile block types. Visible tiles get a unit-cube collider; flyover
+   * (173-175) and flyunder (176-190) stay null so ships pass through. The incoming array is
+   * already sized to {@link #REQUIRED_ARRAY_SIZE} because
+   * {@link #expandBlockTypeIndexForTiles()} ran first, so we only need to fill in the tile slots.
    */
   private Collider[] expandCollidersForTiles(final Collider[] baseColliders) {
-    if (baseColliders.length >= REQUIRED_ARRAY_SIZE) {
-      return baseColliders;
-    }
+    Collider[] expanded = baseColliders.length >= REQUIRED_ARRAY_SIZE
+        ? baseColliders
+        : Arrays.copyOf(baseColliders, REQUIRED_ARRAY_SIZE);
 
-    // Expand array with null colliders for tiles
-    Collider[] expanded = Arrays.copyOf(baseColliders, REQUIRED_ARRAY_SIZE);
-    // Indices 100-289 remain null (passthrough for visual tiles)
-    log.info("Expanded colliders array from {} to {} for tile support",
-        baseColliders.length, REQUIRED_ARRAY_SIZE);
+    Collider solid = new CubeCollider();
+    int installed = 0;
+    for (int tileId = 1; tileId <= TILE_COUNT; tileId++) {
+      boolean passThrough =
+          (tileId >= MapTypes.vieFlyOverStart && tileId <= MapTypes.vieFlyOverEnd)
+              || (tileId >= MapTypes.vieFlyUnderStart && tileId <= MapTypes.vieFlyUnderEnd);
+      if (!passThrough) {
+        expanded[TILE_TYPE_BASE + tileId - 1] = solid;
+        installed++;
+      }
+    }
+    log.info("Installed {} solid tile colliders ({}-{} minus flyover/flyunder); array size {}",
+        installed, TILE_TYPE_BASE, TILE_TYPE_BASE + TILE_COUNT - 1, expanded.length);
     return expanded;
   }
 

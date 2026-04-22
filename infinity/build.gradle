@@ -19,6 +19,16 @@ tasks.register('runX11', JavaExec) {
     environment 'WAYLAND_DISPLAY', ''
 }
 
+// Map inspection tool: ./gradlew :infinity:analyzeMaps --args "trench.lvl trench2.lvl"
+tasks.register('analyzeMaps', JavaExec) {
+    group = 'diagnostics'
+    description = 'Analyze one or two .lvl maps (counts, categories, position diff)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'infinity.tools.MapAnalyzer'
+    standardOutput = System.out
+    errorOutput = System.err
+}
+
 dependencies {
     implementation "org.jetbrains:annotations:25.0.0"
     // logging

@@ -132,8 +132,34 @@ See `BlockGeometryIndex.registerTileMaterialFromLevel()` for the live implementa
 
 - Map origin: the `.lvl` stores coordinates as `(x, y)` both 0–1023
 - In-world: loaded at a `worldOffset` (multiple of 1024) by `MapSystem`
-- Tile `(x, y)` in the lvl → world cell `(worldOffset.x + x, 1, worldOffset.z + y)`
-- Y=1 for visible tiles; Y=0 for invisible physics blocks
+- Tile `(x, y)` in the lvl → single world cell at `(worldOffset.x + x, 1, worldOffset.z + y)`
+- Single Y layer: the block type carries both rendering and collision. Flyover/flyunder tile types get null colliders in `GameServer.expandCollidersForTiles` so ships pass through them.
+
+## Tile ID Categories
+
+Constants live in [`infinity.systems.MapTypes`](../../infinity/src/main/java/infinity/systems/MapTypes.java). Each category is handled in `MapSystem.createBlocksFromLegacyMap`.
+
+| IDs | Category | How it's placed |
+|-----|----------|-----------------|
+| 0 | empty | skipped |
+| 1–161 (except 20) | normal visible tile | cell: `TILE_TYPE_BASE + id - 1`, solid |
+| 20 | border | same cell treatment as normal tiles (rarely present in .lvl data) |
+| 162–165 | vertical door | entity: `GameEntities.createDoor` |
+| 166–169 | horizontal door | entity: `GameEntities.createDoor` |
+| 170 | turf flag | entity: `GameEntities.createTurfStationaryFlag` |
+| 171 | safe zone | cell, visible, solid |
+| 172 | goal area | cell, visible, solid |
+| 173–175 | flyover | cell, visible, passthrough (null collider) |
+| 176–190 | flyunder | cell, visible, passthrough (null collider) |
+| 216 | small asteroid | entity: `GameEntities.createAsteroidSmall` |
+| 217 | medium asteroid | entity: `GameEntities.createAsteroidMedium` |
+| 218 | asteroid end / wormhole2 | entity: `GameEntities.createWormhole2` |
+| 219 | space station | cell, visible, solid |
+| 220 | wormhole | entity: `GameEntities.createWormhole` |
+| 221–228 | team/enemy bricks, goals, flags, prizes | SSB runtime-only — not in .lvl data |
+| 240–255 | invisible / special behavior tiles | cell: `INVISIBLE_BLOCK_TYPE`, collidable but no visuals |
+
+**Entity-backed tiles** don't write a world cell — the entity owns its shape, rendering, and behavior. Their placement `Vec3d` is still tracked in the returned `coordinates` set so `removeBlocksFromLegacyMap` can zero the slot regardless of what happens to be there.
 
 ## Maps Location
 

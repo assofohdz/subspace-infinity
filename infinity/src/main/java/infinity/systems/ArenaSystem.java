@@ -75,6 +75,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntitySet playerEntities;
   private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
+  private final Pattern swapMap =
+      Pattern.compile("\\~swapMap\\s(\\w+.(?:lvl|lvz))\\s+(\\w+.(?:lvl|lvz))");
 
   @Override
   protected void initialize() {
@@ -100,6 +102,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
             + "name of the map you want to unload",
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::unloadArena));
+    chat.registerPatternTriConsumer(
+        swapMap,
+        "The command to swap a loaded map for another at the same slot is "
+            + "~swapMap <oldMap> <newMap>",
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::swapArena));
   }
 
   /**
@@ -116,7 +123,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     ed.setComponent(arena, new ArenaId(map, playerEntityId));
 
     // Then load the map
-    getSystem(MapSystem.class).loadMap(playerEntityId, avatarEntityId, map);
+    getSystem(MapSystem.class).loadMap(map);
     Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(map);
     Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(map);
     // Add mapbounds information to the arena entity
@@ -140,6 +147,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
     ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
 
+    currentOpenArenas.put(map, arena);
+
     return "Map " + map + " loaded";
   }
 
@@ -151,15 +160,68 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * @param matcher Matcher that contains the map name
    */
   private String unloadArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
-    String map = matcher.group(1);
-    // First unload the map
-    getSystem(MapSystem.class).unloadMap(id, avatarEntityId, matcher);
+    final String map = matcher.group(1);
+    if (!getSystem(MapSystem.class).unloadMap(map)) {
+      return "Map " + map + " is not loaded";
+    }
     // TODO: unload settings
 
-    // Then remove the arena entity
-    ed.removeEntity(currentOpenArenas.get(map));
+    EntityId arena = currentOpenArenas.remove(map);
+    if (arena != null) {
+      arenaCells.remove(arena);
+      ed.removeEntity(arena);
+    }
 
     return "Map " + map + " unloaded";
+  }
+
+  /**
+   * Swaps a loaded arena's map for a different one at the same grid slot. Tears
+   * down the old arena entity, queues the map swap on MapSystem, and rebuilds
+   * the arena entity with fresh settings for the new map.
+   */
+  private String swapArena(final EntityId id, EntityId avatarEntityId, Matcher matcher) {
+    final String oldMap = matcher.group(1);
+    final String newMap = matcher.group(2);
+
+    if (!getSystem(MapSystem.class).swapMap(oldMap, newMap)) {
+      return "Cannot swap: "
+          + oldMap
+          + " is not loaded or "
+          + newMap
+          + " has an invalid extension";
+    }
+
+    EntityId oldArena = currentOpenArenas.remove(oldMap);
+    if (oldArena != null) {
+      arenaCells.remove(oldArena);
+      ed.removeEntity(oldArena);
+    }
+
+    EntityId arena = ed.createEntity();
+    ed.setComponent(arena, new ArenaId(newMap, id));
+
+    Vec3d mapBoundsMax = getSystem(MapSystem.class).getMapBoundsMax(newMap);
+    Vec3d mapBoundsMin = getSystem(MapSystem.class).getMapBoundsMin(newMap);
+    ed.setComponent(arena, new ArenaMap(mapBoundsMax, mapBoundsMin));
+
+    getSystem(SettingsSystem.class)
+        .loadSettings(id, newMap.substring(0, newMap.lastIndexOf('.')));
+    Ini ini = getSystem(SettingsSystem.class).getIni(newMap);
+    ed.setComponents(arena, new ArenaSettings(newMap, ini));
+
+    GridCell cell =
+        WorldGrids.TILE_GRID.getContainingCell(
+            mapBoundsMax.subtract(mapBoundsMin).divide(2));
+    arenaCells.put(arena, cell);
+
+    ed.setComponent(arena, new Mass(0));
+    ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
+    ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
+
+    currentOpenArenas.put(newMap, arena);
+
+    return "Map " + oldMap + " swapped with " + newMap;
   }
 
   public EntityId getEntityId(final Vec3d coord) {
