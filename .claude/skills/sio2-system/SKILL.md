@@ -1,5 +1,5 @@
 ---
-name: create-system
+name: sio2-system
 description: Create server-side game systems using SiO2 AbstractGameSystem. Use when building systems that process entities, handle game logic, or manage server-side state.
 ---
 

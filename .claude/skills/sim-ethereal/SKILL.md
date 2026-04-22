@@ -1,5 +1,5 @@
 ---
-name: networking-ethereal
+name: sim-ethereal
 description: Implement multiplayer networking using SimEthereal for state synchronization. Use when working with client-server communication, entity sync, or network messages.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: debug-ecs
+name: zay-es-debug
 description: Debug Entity-Component-System issues including EntitySet problems, memory leaks, and component queries. Use when troubleshooting ECS bugs or entity processing issues.
 ---
 

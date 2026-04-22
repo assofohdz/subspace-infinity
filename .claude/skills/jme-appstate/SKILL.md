@@ -1,5 +1,5 @@
 ---
-name: create-appstate
+name: jme-appstate
 description: Create client-side application states using jME3 BaseAppState. Use when building UI screens, client rendering, input handling, or visual effects.
 ---
 

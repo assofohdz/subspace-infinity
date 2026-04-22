@@ -1,5 +1,5 @@
 ---
-name: physics-moss
+name: moss-physics
 description: Integrate Moss physics library for collision detection and physics simulation. Use when working with physics bodies, shapes, collisions, or forces.
 ---
 

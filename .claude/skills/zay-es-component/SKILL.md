@@ -1,5 +1,5 @@
 ---
-name: create-component
+name: zay-es-component
 description: Create Zay-ES EntityComponent classes for the ECS architecture. Use when creating new components, data holders, or entity attributes.
 ---
 

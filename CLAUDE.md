@@ -35,16 +35,29 @@ Requires **both** version bumps and git tag:
 
 ## Skills Reference
 
-See `.claude/skills/` for detailed patterns:
-- `project-overview.md` - Project structure
-- `create-component.md` - ECS components
-- `create-system.md` - Server-side systems
-- `create-appstate.md` - Client states
-- `create-module.md` - Game modules
-- `debug-ecs.md` - ECS debugging
-- `physics-moss.md` - Physics integration
-- `moss-world-grid/` - Moss world/cell/leaf/column/tile grid system; use `TileId` for map placement (not `* 1024`)
-- `networking-ethereal.md` - Multiplayer networking
-- `lemur-ui.md` - UI framework
-- `dependency-sources/` - Where to find Moss/Simsilica library source code (read directly, no jar extraction)
-- `lvl-format.md` - Subspace .lvl binary format: BMP tileset, eLVL metadata, tile encoding, JME3 texture extraction
+See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
+
+**jMonkeyEngine 3:**
+- `jme-appstate/` - Client-side `BaseAppState` (UI, rendering, input)
+- `jme-materials/` - Materials, `.j3m`, `.j3md` material definitions
+- `jme-shaders/` - Shaders, GLSL, shader node system
+
+**Moss (physics / world):**
+- `moss-physics/` - Collision detection, physics bodies, shapes
+- `moss-world-grid/` - Cell/leaf/column/tile grid; use `TileId` for map placement (not `* 1024`)
+
+**Simsilica (Lemur / SimEthereal / SiO2 / Zay-ES):**
+- `lemur-ui/` - Lemur UI framework: menus, HUD, buttons, labels
+- `sim-ethereal/` - SimEthereal networking & state sync
+- `sio2-system/` - Server-side game systems (`AbstractGameSystem`)
+- `zay-es-component/` - Zay-ES `EntityComponent` classes
+- `zay-es-debug/` - ECS debugging (`EntitySet` leaks, component queries)
+
+**Subspace Infinity (project-specific):**
+- `project-overview/` - Project structure, tech stack, conventions
+- `create-module/` - `BaseGameModule` server extensions
+- `arena-settings/` - Per-arena `arena.conf` INI settings, `SettingsSystem`
+- `lvl-format/` - Subspace .lvl binary format: BMP tileset, eLVL metadata
+
+**Meta:**
+- `dependency-sources/` - Where to find Moss/Simsilica library source code
