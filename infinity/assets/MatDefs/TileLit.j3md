@@ -3,6 +3,12 @@ MaterialDef TileLit {
     MaterialParameters {
         Texture2D ColorMap
         Float AlphaDiscardThreshold (AlphaTestFallOff)
+        Float PoolGain
+        Float SunScale
+        Float Exposure
+        Float TextureGamma
+        Boolean DebugShipLight
+        Boolean DebugLeafGrid
     }
 
     Technique {
@@ -15,10 +21,13 @@ MaterialDef TileLit {
             WorldViewProjectionMatrix
             WorldViewMatrix
             NormalMatrix
+            AmbientLightColor
         }
 
         Defines {
             DISCARD_ALPHA : AlphaDiscardThreshold
+            DEBUG_SHIP_LIGHT : DebugShipLight
+            DEBUG_LEAF_GRID : DebugLeafGrid
         }
     }
 }

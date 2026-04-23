@@ -66,6 +66,7 @@ import com.simsilica.state.MemoryDebugState;
 import com.simsilica.state.MessageState;
 
 import infinity.client.AvatarMovementFunctions;
+import infinity.client.states.LightingTunerState;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 
@@ -167,6 +168,7 @@ public class Main extends SimpleApplication {
     DebugFunctions.initializeDefaultMappings(globals.getInputMapper());
     ToolFunctions.initializeDefaultMappings(globals.getInputMapper());
     HelpState.initializeDefaultMappings(globals.getInputMapper());
+    LightingTunerState.initializeDefaultMappings(globals.getInputMapper());
     AvatarMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
 
     BaseStyles.loadGlassStyle();

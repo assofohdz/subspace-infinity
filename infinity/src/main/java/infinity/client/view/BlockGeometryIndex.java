@@ -96,6 +96,25 @@ public class BlockGeometryIndex {
 
   protected final GeometryFactory geomFactory;
 
+  /** The single shared tile material. Exposed so the lighting tuner can mutate shader params live. */
+  private Material tileMaterial;
+
+  public static final float DEFAULT_POOL_GAIN = 7.0f;
+  public static final float DEFAULT_SUN_SCALE = 0.8f;
+  public static final float DEFAULT_EXPOSURE = 1.8f;
+  public static final float DEFAULT_TEXTURE_GAMMA = 0.6f;
+
+  public Material getTileMaterial() {
+    return tileMaterial;
+  }
+
+  private void applyTileShaderDefaults(final Material mat) {
+    mat.setFloat("PoolGain", DEFAULT_POOL_GAIN);
+    mat.setFloat("SunScale", DEFAULT_SUN_SCALE);
+    mat.setFloat("Exposure", DEFAULT_EXPOSURE);
+    mat.setFloat("TextureGamma", DEFAULT_TEXTURE_GAMMA);
+  }
+
   /**
    * Creates a new BlockGeometryIndex, extracting the tileset from the embedded BMP in the given
    * level file. This is the preferred constructor — it ensures the visual tileset matches the map.
@@ -257,11 +276,15 @@ public class BlockGeometryIndex {
     Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
     tileMat.setTexture("ColorMap", assets.loadTexture("Textures/Subspace/tiles.png"));
     tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
+    tileMat.setBoolean("DebugShipLight", false);
+    tileMat.setBoolean("DebugLeafGrid", false);
+    applyTileShaderDefaults(tileMat);
 
     for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
       String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
       materials.put(key, tileMat);
     }
+    tileMaterial = tileMat;
     log.info("Registered tileset PNG under 3 layer keys");
   }
 
@@ -306,11 +329,15 @@ public class BlockGeometryIndex {
     Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
     tileMat.setTexture("ColorMap", tileTexture);
     tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
+    tileMat.setBoolean("DebugShipLight", false);
+    tileMat.setBoolean("DebugLeafGrid", false);
+    applyTileShaderDefaults(tileMat);
 
     for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
       String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
       materials.put(key, tileMat);
     }
+    tileMaterial = tileMat;
     log.info("Registered tileset from '{}' under 3 layer keys ({}x{})", levelPath, width, height);
   }
 
