@@ -65,7 +65,7 @@ public class CoreViewConstants {
   public static final long WARPDECAY = 800;
   public static final long REPELDECAY = 400;
   // LightSize radius
-  public static final float SHIPLIGHTRADIUS = 25;
+  public static final float SHIPLIGHTRADIUS = 32;
   public static final Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 2, 0);
 
   // Wall-run lights: placed above long (>=WALL_LIGHT_MIN_RUN tile) straight wall runs.

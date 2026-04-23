@@ -29,7 +29,6 @@ package infinity.client.states;
 import com.jme3.asset.AssetManager;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
-import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
@@ -56,7 +55,6 @@ import infinity.BombRegistry;
 import infinity.Ships;
 import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
-import infinity.client.view.ShipLightControl;
 import infinity.es.Flag;
 import infinity.es.ShapeNames;
 import infinity.Bombs;
@@ -448,17 +446,6 @@ public class SISpatialFactory {
     setShipMaterialVariables(geom, ship);
 
     geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-
-    final PointLight myLight = new PointLight();
-    myLight.setColor(ColorRGBA.White);
-    // Large filter radius keeps the light in many leaves' light lists at
-    // once, so jME's DefaultLightFilter doesn't pop whole leaves on/off as
-    // the ship crosses leaf boundaries. The actual visual pool size is
-    // controlled by TileLit.frag's SHIP_VISUAL_RADIUS, not by this value.
-    myLight.setRadius(160);
-    rootNode.addLight(myLight);
-    final ShipLightControl lightControl = new ShipLightControl(myLight);
-    geom.addControl(lightControl);
 
     return geom;
   }

@@ -578,7 +578,9 @@ public class GameEntities {
     ed.setComponent(
         result,
         new PointLightComponent(
-            ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS, CoreViewConstants.SHIPLIGHTOFFSET));
+            new ColorRGBA(3.5f, 3.5f, 3.5f, 1.0f),
+            CoreViewConstants.SHIPLIGHTRADIUS,
+            CoreViewConstants.SHIPLIGHTOFFSET));
 
     byte flags = 0x0;
     ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(), flags));

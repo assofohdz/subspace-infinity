@@ -13,6 +13,7 @@ varying vec4 vertColor;
 // position in the same space (see SPLighting.frag / .vert).
 varying vec3 vViewPos;
 varying vec3 vViewNormal;
+varying vec3 vWorldPos;
 
 void main(){
     texCoord1 = inTexCoord;
@@ -21,6 +22,7 @@ void main(){
     vec4 modelSpacePos = vec4(inPosition, 1.0);
     vViewPos = TransformWorldView(modelSpacePos).xyz;
     vViewNormal = normalize(TransformNormal(inNormal));
+    vWorldPos = TransformWorld(modelSpacePos).xyz;
 
     gl_Position = TransformWorldViewProjection(modelSpacePos);
 }
