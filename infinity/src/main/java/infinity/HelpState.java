@@ -83,6 +83,7 @@ public class HelpState extends BaseAppState {
             //new KeyHelp(CameraMovementFunctions.F_ELEVATE, "Flies up or down."),
             //new KeyHelp(CameraMovementFunctions.F_RUN, "Increases speed."),
             new KeyHelp(MainGameFunctions.F_IN_GAME_MENU, "In Game Menu"),
+            new KeyHelp(MainGameFunctions.F_PLAYER_LIST, "Player List"),
             new KeyHelp(MainGameFunctions.F_CHAT_CONSOLE, "Chat Console"),
             new KeyHelp(ToolFunctions.F_MAIN_TOOL, "Main Tool"), new KeyHelp(ToolFunctions.F_ALT_TOOL, "Alt. Tool"),
             new KeyHelp(SettingsState.F_SETTINGS, "Opens the in-game settings panel."),
