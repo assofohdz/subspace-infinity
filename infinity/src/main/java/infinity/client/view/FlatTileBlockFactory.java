@@ -138,6 +138,11 @@ public class FlatTileBlockFactory implements BlockFactory {
           0, 0, 0 // vertex 3
         });
 
+    // Normals are auto-generated from the direction (Up → (0,1,0)) by
+    // GeomPart.setupAlternates() when the MaterialType declares GeomReq.Normals.
+    // Calling setNormals() explicitly here conflicts with that path ("Setting
+    // normals on a part with indexed normals.") so we let MOSS do it.
+
     // Custom UV coordinates for the atlas tile (rotated 180°: flip both U and V)
     part.setTexCoords(
         new float[] {

@@ -60,6 +60,7 @@ import com.simsilica.mblock.CellArray;
 import com.simsilica.mblock.CellData;
 import com.simsilica.mblock.Direction;
 import com.simsilica.mblock.LightUtils;
+import infinity.client.view.NeighborhoodCellData;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mworld.LeafChangeEvent;
 import com.simsilica.mworld.LeafChangeListener;
@@ -588,39 +589,59 @@ public class LocalViewState extends BaseAppState {
 
       // Create a new guaranteed unconnected node for our parts
       Node temp = new Node("Parts:" + leafId);
-      // Build MOSS voxel lightData for this leaf: a parallel CellArray in which
-      // recalculateLighting flood-fills from any emissive cells (BlockType.getLight() > 0)
-      // and from sunlight at the top of the volume. The tile shader reads the resulting
-      // per-cell light via vertex colors. Note: light from neighboring leaves doesn't
-      // propagate across the boundary in this simple one-leaf pass; for maps with sparse,
-      // distant light sources this is fine because pools stay well inside a leaf.
-      final CellArray cells = leafData.getRawCells();
-      final int sx = cells.getSizeX();
-      final int sy = cells.getSizeY();
-      final int sz = cells.getSizeZ();
-      final CellArray lightData = new CellArray(sx, sy, sz);
-      LightUtils.recalculateLighting(cells, lightData, 0, 0, 0, sx, sy, sz);
 
-      // SmoothLightGradient samples one cell outside the leaf boundary, which
-      // throws AIOOBE on a raw CellArray. Wrap lightData so out-of-bounds reads
-      // return DIRECT_SUN (treat neighbors as "open sky"). ConstantCellData was
-      // safe because every coord returned the constant; the raw CellArray is not.
-      final CellData safeLightData = new CellData() {
+      // MOSS voxel lighting across leaf boundaries. We allocate a super-size
+      // lightData spanning the center leaf plus its 8 horizontal neighbors
+      // (3×3 cluster), run recalculateLighting over the whole cluster reading
+      // cells from all neighbors via NeighborhoodCellData, then hand the
+      // center leaf's slice to generateBlocks.
+      //
+      // Subspace is effectively 2D — emitters and walls all sit on one Y
+      // layer — so only horizontal neighbors matter. Vertical dimension stays
+      // single-leaf sized.
+      final CellArray cells = leafData.getRawCells();
+      final int sy = cells.getSizeY();
+      final int leafSize = com.simsilica.mworld.LeafInfo.SIZE;
+
+      final CellArray superLightData = new CellArray(3 * leafSize, sy, 3 * leafSize);
+      final NeighborhoodCellData neighborhoodCells = new NeighborhoodCellData(world, leafId);
+
+      // CellData view over superLightData in the extended neighborhood frame:
+      //   extended (x, y, z) with x,z in [-SIZE..2*SIZE) maps to super
+      //   (x + SIZE, y, z + SIZE). Out-of-bounds returns DIRECT_SUN so the
+      //   smooth-lighting gradient at the outer boundary doesn't see zeros.
+      final CellData extendedLightData = new CellData() {
         @Override public int getCell(final int x, final int y, final int z) {
-          return lightData.getCell(x, y, z, LightUtils.DIRECT_SUN);
+          return getCell(x, y, z, LightUtils.DIRECT_SUN);
         }
         @Override public int getCell(final int x, final int y, final int z, final int def) {
-          return lightData.getCell(x, y, z, def);
+          return superLightData.getCell(x + leafSize, y, z + leafSize, def);
         }
         @Override public int getCell(final int x, final int y, final int z,
             final Direction dir, final int def) {
-          return lightData.getCell(x, y, z, dir, def);
+          final com.simsilica.mathd.Vec3i v = dir.getVec3i();
+          return getCell(x + v.x, y + v.y, z + v.z, def);
         }
-        @Override public void setCell(final int x, final int y, final int z, final int type) {
-          lightData.setCell(x, y, z, type);
+        @Override public void setCell(final int x, final int y, final int z, final int value) {
+          final int sxx = x + leafSize;
+          final int syy = y;
+          final int szz = z + leafSize;
+          if (sxx >= 0 && sxx < 3 * leafSize
+              && syy >= 0 && syy < sy
+              && szz >= 0 && szz < 3 * leafSize) {
+            superLightData.setCell(sxx, syy, szz, value);
+          }
         }
       };
-      geomIndex.generateBlocks(temp, cells, safeLightData, true);
+
+      LightUtils.recalculateLighting(neighborhoodCells, extendedLightData,
+          -leafSize, 0, -leafSize, 2 * leafSize, sy, 2 * leafSize);
+
+      // generateBlocks iterates the center leaf's cells (0..SIZE) and samples
+      // lightData at those same coords. extendedLightData at (x, y, z) reads
+      // super at (x+SIZE, y, z+SIZE) — which is the center leaf's slice.
+      // Corner sampling at (-1..SIZE) is handled by the out-of-bounds default.
+      geomIndex.generateBlocks(temp, cells, extendedLightData, true);
       synchronized (this) {
         generatedParts = temp;
       }

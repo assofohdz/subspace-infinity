@@ -451,7 +451,11 @@ public class SISpatialFactory {
 
     final PointLight myLight = new PointLight();
     myLight.setColor(ColorRGBA.White);
-    myLight.setRadius(20);
+    // Large filter radius keeps the light in many leaves' light lists at
+    // once, so jME's DefaultLightFilter doesn't pop whole leaves on/off as
+    // the ship crosses leaf boundaries. The actual visual pool size is
+    // controlled by TileLit.frag's SHIP_VISUAL_RADIUS, not by this value.
+    myLight.setRadius(160);
     rootNode.addLight(myLight);
     final ShipLightControl lightControl = new ShipLightControl(myLight);
     geom.addControl(lightControl);

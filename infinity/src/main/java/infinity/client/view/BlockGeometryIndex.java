@@ -26,6 +26,7 @@ import com.simsilica.mblock.FluidTypeIndex;
 import com.simsilica.mblock.LightUtils;
 import com.simsilica.mblock.config.MaterialRegistry;
 import com.simsilica.mblock.geom.DefaultBlockFactory;
+import com.simsilica.mblock.geom.GeomReq;
 import com.simsilica.mblock.geom.GeometryFactory;
 import com.simsilica.mblock.geom.MaterialType;
 import com.simsilica.mblock.io.BlockTypeData;
@@ -258,7 +259,7 @@ public class BlockGeometryIndex {
     tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
 
     for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
-      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList()).getId();
+      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
       materials.put(key, tileMat);
     }
     log.info("Registered tileset PNG under 3 layer keys");
@@ -307,7 +308,7 @@ public class BlockGeometryIndex {
     tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
 
     for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
-      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList()).getId();
+      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
       materials.put(key, tileMat);
     }
     log.info("Registered tileset from '{}' under 3 layer keys ({}x{})", levelPath, width, height);
@@ -331,7 +332,7 @@ public class BlockGeometryIndex {
         layer = REGULAR_LAYER;
       }
 
-      MaterialType tileMaterialType = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList());
+      MaterialType tileMaterialType = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals));
       FlatTileBlockFactory factory = FlatTileBlockFactory.createForTile(tileMaterialType, tileId);
       BlockName name = new BlockName("tile", String.valueOf(tileId));
       BlockTypeIndex.override(typeIndex, new BlockType(name, factory));

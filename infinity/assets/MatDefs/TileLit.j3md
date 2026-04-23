@@ -6,11 +6,15 @@ MaterialDef TileLit {
     }
 
     Technique {
+        LightMode SinglePass
+
         VertexShader GLSL100 GLSL150:   MatDefs/TileLit.vert
         FragmentShader GLSL100 GLSL150: MatDefs/TileLit.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
+            WorldViewMatrix
+            NormalMatrix
         }
 
         Defines {

@@ -36,6 +36,8 @@
 
 package infinity.client.states;
 
+import infinity.Main;
+
 import com.jme3.anim.AnimComposer;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -211,9 +213,14 @@ public class ModelViewState extends BaseAppState {
     this.localView = getState(LocalViewState.class);
     this.viewRoot = new Node("objectRoot");
 
+    // Pass the top-level Main rootNode (not viewRoot) so lights added by
+    // SISpatialFactory — e.g. the ship's follower PointLight — are attached
+    // to the common ancestor of *both* ModelViewState's objectRoot AND
+    // LocalViewState's ViewRoot. jME lights are inherited downward only, so
+    // a light on viewRoot wouldn't reach the world tiles at all.
     this.SImodelFactory =
         new SISpatialFactory(
-            viewRoot,
+            ((Main) app).getRootNode(),
             app.getAssetManager(),
             this.getApplication().getTimer(),
             localView.getGeomIndex());
