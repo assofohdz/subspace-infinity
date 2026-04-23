@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **JDK 17+** (21 recommended)
+- **JDK** — see [Toolchain Versions](docs/setup-guide.md#toolchain-versions) for the supported range
 - **Dependencies** installed to local Maven repo
 
 ## Quick Start

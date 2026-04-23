@@ -13,9 +13,8 @@
 - **jME contrib**: Lemur, Zay-ES
 
 ## Environment
-- Java 21 installed (Ubuntu 24.04)
-- Gradle 8.5 (wrapper) - requires JDK 17+
-- Moss targets Java 8 bytecode, builds with JDK 17+
+- JDK + Gradle versions: see [Toolchain Versions](setup-guide.md#toolchain-versions)
+- Moss targets Java 8 bytecode
 - Moss location: `~/github/assofohdz/moss`
 
 ## Notes

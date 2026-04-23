@@ -2,33 +2,43 @@
 
 This guide walks you through setting up your development environment to build and run Subspace-Infinity.
 
+## Toolchain Versions
+
+*Last updated: 2026-04-23*
+
+| Tool    | Minimum  | Recommended / CI | Pinned by                        |
+|---------|----------|------------------|----------------------------------|
+| JDK     | 17       | 21 (Temurin)     | `.github/workflows/main.yml` (`JAVA_VERSION: '21'`) |
+| Gradle  | —        | 8.5              | `gradle/wrapper/gradle-wrapper.properties` (use `./gradlew`) |
+| Git     | any recent | —              | —                                |
+
+Update this table whenever the CI workflow or Gradle wrapper is bumped; other docs reference it as the single source of truth.
+
 ## Prerequisites
 
 ### Java Development Kit (JDK)
 
-You need **JDK 17 or later** to build the project.
+See the [Toolchain Versions](#toolchain-versions) table above for the supported JDK range.
 
 **Ubuntu/Debian:**
 ```bash
-sudo apt install openjdk-17-jdk
-# or
 sudo apt install openjdk-21-jdk
 ```
 
 **Fedora:**
 ```bash
-sudo dnf install java-17-openjdk-devel
+sudo dnf install java-21-openjdk-devel
 ```
 
 **macOS (Homebrew):**
 ```bash
-brew install openjdk@17
+brew install openjdk@21
 ```
 
 **Windows:**
 Download from [Adoptium](https://adoptium.net/) or use a package manager like [Chocolatey](https://chocolatey.org/):
 ```powershell
-choco install temurin17
+choco install temurin21
 ```
 
 Verify your installation:
@@ -196,18 +206,18 @@ cd ~/dev/simsilica/moss
 These are handled by JVM arguments in the build configuration. If you encounter them, ensure you're running via Gradle (`./gradlew :infinity:run`) rather than directly.
 
 ### Build fails with Gradle version errors
-Always use the included Gradle wrapper (`./gradlew`) rather than a system-installed `gradle` command. The wrapper ensures the correct Gradle version (8.5) is used.
+Always use the included Gradle wrapper (`./gradlew`) rather than a system-installed `gradle` command. The wrapper pins the project's Gradle version — see [Toolchain Versions](#toolchain-versions).
 
 ### Build fails with JDK version errors
-Ensure you have JDK 17 or later:
+Ensure your JDK meets the minimum listed in [Toolchain Versions](#toolchain-versions):
 ```bash
 java -version
 ```
 
-If you have multiple JDKs installed, set `JAVA_HOME`:
+If you have multiple JDKs installed, set `JAVA_HOME` to match (substitute the major version from the table):
 ```bash
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64  # Linux
-export JAVA_HOME=$(/usr/libexec/java_home -v 17)     # macOS
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64  # Linux
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)     # macOS
 ```
 
 ---
