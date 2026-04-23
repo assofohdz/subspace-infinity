@@ -187,7 +187,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     private final HostedConnection conn;
     private final EntityId avatarEntityId;
-    private final Vec3d spawnLoc = new Vec3d(-512, 1, -512);
+    private final Vec3d spawnLoc = new Vec3d(-513, 1, -380);
     // private final EntityId test = null;
     private final Vec3d lastViewLoc = new Vec3d();
     private final Quatd lastViewOrient = new Quatd();
