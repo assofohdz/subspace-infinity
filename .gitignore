@@ -51,3 +51,10 @@ logs/
 infinity/world.db/
 /.idea/checkstyleidea-libs/readme.txt
 /.idea/checkstyle-idea.xml
+
+# Per-user MCP servers (personal tool configs, not team dependencies)
+.mcp.json
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json
