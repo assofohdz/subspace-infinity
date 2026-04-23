@@ -39,6 +39,7 @@ See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
 
 **jMonkeyEngine 3:**
 - `jme-appstate/` - Client-side `BaseAppState` (UI, rendering, input)
+- `jme-effects/` - Particle emitters, post-processing filters, bloom/glow
 - `jme-materials/` - Materials, `.j3m`, `.j3md` material definitions
 - `jme-shaders/` - Shaders, GLSL, shader node system
 

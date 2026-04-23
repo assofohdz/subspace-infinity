@@ -29,18 +29,14 @@ package infinity.client.states;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.light.PointLight;
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.bpos.BodyPosition;
-import com.simsilica.bpos.ChildPositionTransition3d;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
-import com.simsilica.mathd.trans.TransitionBuffer;
 import infinity.Main;
 import infinity.TimeState;
 import infinity.client.ConnectionState;
@@ -50,7 +46,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manages the lights in the scene.
+ * Manages dynamic jME point lights attached to moving entities (ships, decaying effects).
+ *
+ * <p>Static world lighting (walls, sun) is baked as vertex colors via MOSS's voxel lighting
+ * system — see {@code LanternBlockFactory}, {@code TileLit.frag}, and the
+ * {@code LightUtils.recalculateLighting} call in {@code LocalViewState}. The tile shader
+ * reads those vertex colors directly and ignores jME lights, so any point light added by
+ * this state only affects non-tile scene geometry (if any exists in the future).
  *
  * @author Asser Fahrenholz
  */
@@ -58,8 +60,6 @@ public class LightState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LightState.class);
   private final HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
-  private final HashMap<EntityId, TransitionBuffer<ChildPositionTransition3d>> bufferMap =
-      new HashMap<>();
   private EntityData ed;
   private EntitySet movingPointLights;
   private EntitySet decayingPointLights;
@@ -72,14 +72,9 @@ public class LightState extends BaseAppState {
 
   @Override
   protected void initialize(final Application app) {
-
     ed = getState(ConnectionState.class).getEntityData();
-
-    movingPointLights =
-        ed.getEntities(PointLightComponent.class, BodyPosition.class); // Moving point lights
-    decayingPointLights =
-        ed.getEntities(PointLightComponent.class, Decay.class); // Lights that decay
-
+    movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class);
+    decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class);
     timeState = getState(TimeState.class);
   }
 
@@ -94,10 +89,6 @@ public class LightState extends BaseAppState {
   @Override
   protected void onEnable() {
     rootNode = ((Main) getApplication()).getRootNode();
-
-    // Add a central light to the scene
-    PointLight pl = new PointLight(new Vector3f(0, 2, 0), ColorRGBA.White, 1000);
-    rootNode.addLight(pl);
   }
 
   @Override
@@ -105,89 +96,63 @@ public class LightState extends BaseAppState {
 
   @Override
   public void update(final float tpf) {
-    // Grab a consistent time for this frame
     final long time = timeState.getTime();
 
     if (movingPointLights.applyChanges()) {
       for (final Entity e : movingPointLights.getAddedEntities()) {
-        createPointLight(e);
+        createLight(e);
       }
-
       for (final Entity e : movingPointLights.getRemovedEntities()) {
-        removePointLight(e);
+        removeLight(e.getId());
       }
     }
-    /*
-     * for (Entity e : movingPointLights) { this.updatePointLight(e, time); }
-     */
+
+    // Track the light to its entity's spatial each frame (conveyor-adjusted).
+    for (final Entity e : movingPointLights) {
+      final PointLight pl = pointLightMap.get(e.getId());
+      if (pl == null) {
+        continue;
+      }
+      final Spatial s = getState(ModelViewState.class).getModel(e.getId());
+      if (s == null) {
+        continue;
+      }
+      final PointLightComponent plc = e.get(PointLightComponent.class);
+      pl.setPosition(s.getWorldTranslation().add(plc.getOffset().toVector3f()));
+    }
+
     decayingPointLights.applyChanges();
-
     for (final Entity e : decayingPointLights) {
-
-      if (pointLightMap.containsKey(e.getId())) {
-        final PointLightComponent plc = e.get(PointLightComponent.class);
-        final Decay d = e.get(Decay.class);
-
-        final PointLight pl = pointLightMap.get(e.getId());
-
-        // double percentage = 1-d.getPercentRemaining(time);
-        // float factor = Math.max((float) (1 - (FastMath.pow((float)percentage,
-        // 5f))),0f);
-        final float percentageRemFloat = (float) d.getPercentRemaining(time);
-
-        pl.setColor(plc.getColor().mult(percentageRemFloat));
+      final PointLight pl = pointLightMap.get(e.getId());
+      if (pl == null) {
+        continue;
       }
+      final PointLightComponent plc = e.get(PointLightComponent.class);
+      final Decay d = e.get(Decay.class);
+      final float percentageRemFloat = (float) d.getPercentRemaining(time);
+      pl.setColor(plc.getColor().mult(percentageRemFloat));
     }
   }
 
-  private void removePointLight(final Entity e) {
-    // final PointLightComponent lt = e.get(PointLightComponent.class);
-    final PointLight pl = pointLightMap.remove(e.getId());
-    rootNode.removeLight(pl);
-  }
-
-  /*
-   * //Not working yet
-   *
-   * @Deprecated private void updatePointLight(Entity e, long time) { PointLight
-   * pl = pointLightMap.get(e.getId()); TransitionBuffer<PositionTransition3d>
-   * buffer = bufferMap.get(e.getId());
-   *
-   * // Vec3d location = p.getLocation(); // Look back in the brief history that
-   * we've kept and // pull an interpolated value. To do this, we grab the // span
-   * of time that contains the time we want. PositionTransition // represents a
-   * starting and an ending pos+rot over a span of time. PositionTransition3d
-   * trans = buffer.getTransition(time);
-   *
-   * if (trans != null) { Vector3f res = trans.getPosition(time,
-   * true).add(pointLightOffset).toVector3f(); System.out.println("Light pos: " +
-   * res); pl.setPosition(res); }
-   *
-   * }
-   */
-
-  private void createPointLight(final Entity e) {
-    final Spatial s = getState(ModelViewState.class).getModelSpatial(e.getId(), true);
-
+  private void createLight(final Entity e) {
     final PointLightComponent plc = e.get(PointLightComponent.class);
-    final BodyPosition bp = e.get(BodyPosition.class);
-
     final PointLight pl = new PointLight();
     pl.setColor(plc.getColor());
     pl.setRadius(plc.getRadius());
-    // Set the pointlights starting position and offset it
-    pl.setPosition(s.getWorldTranslation().add(plc.getOffset().toVector3f()));
+
+    final Spatial s = getState(ModelViewState.class).getModel(e.getId());
+    if (s != null) {
+      pl.setPosition(s.getWorldTranslation().add(plc.getOffset().toVector3f()));
+    }
 
     pointLightMap.put(e.getId(), pl);
-
-    // Create pointer to the threadsafe same position buffer array as
-    // modelviewstate.
-    // Ensure it is the same by initialising it everywhere it's used
-    bp.initialize(e.getId(), 12);
-    bufferMap.put(e.getId(), bp.getBuffer());
-
     rootNode.addLight(pl);
-    // final LightNode ln = new LightNode(e.getId().toString(), pl);
-    // s.getp.attachChild(ln);
+  }
+
+  private void removeLight(final EntityId id) {
+    final PointLight pl = pointLightMap.remove(id);
+    if (pl != null) {
+      rootNode.removeLight(pl);
+    }
   }
 }

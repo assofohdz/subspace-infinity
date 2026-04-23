@@ -465,18 +465,26 @@ public class GameEntities {
     return lastHealthBuff;
   }
 
+  /**
+   * @deprecated World lighting is now baked via MOSS cell lightData / the
+   *     {@code LIGHT_EMITTER_BLOCK_TYPE} block type. This method still creates a
+   *     point-light ECS entity with {@link PointLightComponent} + {@link SpawnPosition}
+   *     for callers that want dynamic jME-side lights (e.g. dev tooling), but the
+   *     world tile shader no longer reads jME lights.
+   */
+  @Deprecated
   public static EntityId createLight(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos) {
-
     final EntityId lastLight = ed.createEntity();
-
-    ed.setComponents(lastLight, new SpawnPosition(phys.getGrid(), pos));
-    ed.setComponent(lastLight, new Meta(createdTime));
-
+    ed.setComponents(lastLight,
+        new SpawnPosition(phys.getGrid(), pos),
+        new PointLightComponent(ColorRGBA.White, CoreViewConstants.SHIPLIGHTRADIUS,
+            Vec3d.ZERO),
+        new Meta(createdTime));
     return lastLight;
   }
 

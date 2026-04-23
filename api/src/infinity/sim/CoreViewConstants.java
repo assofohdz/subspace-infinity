@@ -65,8 +65,20 @@ public class CoreViewConstants {
   public static final long WARPDECAY = 800;
   public static final long REPELDECAY = 400;
   // LightSize radius
-  public static final float SHIPLIGHTRADIUS = 500;
-  public static final Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 5, 0);
+  public static final float SHIPLIGHTRADIUS = 25;
+  public static final Vec3d SHIPLIGHTOFFSET = new Vec3d(0, 2, 0);
+
+  // Wall-run lights: placed above long (>=WALL_LIGHT_MIN_RUN tile) straight wall runs.
+  // ColorRGBA isn't clamped; intensity > 1.0 pushes more tiles to peak brightness,
+  // visually widening the lit pool even with a short linear-falloff radius.
+  // Long runs receive one light per WALL_LIGHT_SPACING tiles so that long isolated
+  // walls don't go dark at the ends relative to dense clustered walls.
+  public static final float WALL_LIGHT_RADIUS = 15f;
+  public static final float WALL_LIGHT_INTENSITY = 4.0f;
+  public static final double WALL_LIGHT_PLANE_Y = 2.0;
+  public static final int WALL_LIGHT_MIN_RUN = 13;
+  public static final int WALL_LIGHT_SPACING = 25;
+
   public static float DOORSIZE = 1f;
 
   private CoreViewConstants() {}

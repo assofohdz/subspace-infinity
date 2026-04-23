@@ -1,0 +1,20 @@
+MaterialDef TileLit {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
+    }
+
+    Technique {
+        VertexShader GLSL100 GLSL150:   MatDefs/TileLit.vert
+        FragmentShader GLSL100 GLSL150: MatDefs/TileLit.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+
+        Defines {
+            DISCARD_ALPHA : AlphaDiscardThreshold
+        }
+    }
+}

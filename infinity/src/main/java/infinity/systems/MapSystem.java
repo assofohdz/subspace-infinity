@@ -47,6 +47,7 @@ import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.server.chat.InfinityChatHostedService;
+import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,6 +90,13 @@ public class MapSystem extends AbstractGameSystem {
    * geometry. Must match BlockGeometryIndex.INVISIBLE_BLOCK_TYPE_INDEX.
    */
   public static final int INVISIBLE_BLOCK_TYPE = 11;
+
+  /**
+   * Block type index for light-emitter cells. Must match
+   * BlockGeometryIndex.LIGHT_EMITTER_BLOCK_TYPE_INDEX. Non-solid, transparent, invisible;
+   * its BlockType emission is picked up by LightUtils.recalculateLighting flood fill.
+   */
+  public static final int LIGHT_EMITTER_BLOCK_TYPE = 12;
 
   private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
@@ -442,7 +450,107 @@ public class MapSystem extends AbstractGameSystem {
       }
     }
 
+    spawnWallRunLights(tiles, arenaOffset, coordinates);
+
     return coordinates;
+  }
+
+  /**
+   * Scans the map for straight wall runs of at least {@link CoreViewConstants#WALL_LIGHT_MIN_RUN}
+   * tiles (horizontal or vertical) and writes light-emitter cells above them. The emitter cells
+   * ({@link #LIGHT_EMITTER_BLOCK_TYPE}) have a packed light value on their BlockType that
+   * {@code LightUtils.recalculateLighting} flood-fills into neighbor cells' lightData, which the
+   * tile shader reads via vertex colors.
+   *
+   * <p>A "wall" is any tile id in the standard solid range
+   * ({@code vieNormalStart..vieNormalEnd}); branches off the run are tolerated — only the straight
+   * axis is measured.
+   */
+  private void spawnWallRunLights(final short[][] tiles, final Vec3d arenaOffset,
+      final HashSet<Vec3d> coordinates) {
+    final int sx = tiles.length;
+    final int sz = tiles[0].length;
+    final boolean[][] wall = new boolean[sx][sz];
+    int wallTiles = 0;
+    for (int x = 0; x < sx; x++) {
+      for (int z = 0; z < sz; z++) {
+        final short s = tiles[MAP_SIZE - x - 1][MAP_SIZE - z - 1];
+        wall[x][z] = s >= MapTypes.vieNormalStart && s <= MapTypes.vieNormalEnd;
+        if (wall[x][z]) {
+          wallTiles++;
+        }
+      }
+    }
+
+    final int minRun = CoreViewConstants.WALL_LIGHT_MIN_RUN;
+    final int spacing = Math.max(1, CoreViewConstants.WALL_LIGHT_SPACING);
+    final int lightY = (int) Math.round(CoreViewConstants.WALL_LIGHT_PLANE_Y);
+
+    int horizontalLights = 0;
+    int verticalLights = 0;
+    int longestHorizontal = 0;
+    int longestVertical = 0;
+
+    for (int z = 0; z < sz; z++) {
+      int x = 0;
+      while (x < sx) {
+        if (wall[x][z] && (x == 0 || !wall[x - 1][z])) {
+          int len = 0;
+          while (x + len < sx && wall[x + len][z]) {
+            len++;
+          }
+          if (len > longestHorizontal) {
+            longestHorizontal = len;
+          }
+          if (len >= minRun) {
+            final int count = Math.max(1, (int) Math.round((double) len / spacing));
+            for (int i = 0; i < count; i++) {
+              final int lightX = x + (int) Math.floor((i + 0.5) * len / count);
+              final Vec3d pos = new Vec3d(lightX, lightY, z).add(arenaOffset);
+              world.setWorldCell(pos, LIGHT_EMITTER_BLOCK_TYPE);
+              coordinates.add(pos);
+              horizontalLights++;
+            }
+          }
+          x += Math.max(len, 1);
+        } else {
+          x++;
+        }
+      }
+    }
+
+    for (int x = 0; x < sx; x++) {
+      int z = 0;
+      while (z < sz) {
+        if (wall[x][z] && (z == 0 || !wall[x][z - 1])) {
+          int len = 0;
+          while (z + len < sz && wall[x][z + len]) {
+            len++;
+          }
+          if (len > longestVertical) {
+            longestVertical = len;
+          }
+          if (len >= minRun) {
+            final int count = Math.max(1, (int) Math.round((double) len / spacing));
+            for (int i = 0; i < count; i++) {
+              final int lightZ = z + (int) Math.floor((i + 0.5) * len / count);
+              final Vec3d pos = new Vec3d(x, lightY, lightZ).add(arenaOffset);
+              world.setWorldCell(pos, LIGHT_EMITTER_BLOCK_TYPE);
+              coordinates.add(pos);
+              verticalLights++;
+            }
+          }
+          z += Math.max(len, 1);
+        } else {
+          z++;
+        }
+      }
+    }
+
+    log.info("Wall-run light emitters: wallTiles={} horiz={} vert={} (min run {}); "
+            + "longest horiz={} longest vert={} at offset={}",
+        wallTiles, horizontalLights, verticalLights, minRun,
+        longestHorizontal, longestVertical, arenaOffset);
   }
 
 

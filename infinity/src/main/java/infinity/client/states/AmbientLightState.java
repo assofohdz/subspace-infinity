@@ -41,7 +41,7 @@ import com.jme3.scene.Node;
 public class AmbientLightState extends com.jme3.app.state.BaseAppState {
 
     // public static final ColorRGBA DEFAULT_DIFFUSE = ColorRGBA.White.mult(2);
-    public static final ColorRGBA DEFAULT_AMBIENT = ColorRGBA.White.mult(2);
+    public static final ColorRGBA DEFAULT_AMBIENT = ColorRGBA.White.mult(0.4f);
 
     // private VersionedHolder<Vector3f> lightDir = new VersionedHolder<Vector3f>();
 

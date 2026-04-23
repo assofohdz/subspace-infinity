@@ -9,7 +9,7 @@ package infinity.client.view;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
@@ -25,6 +25,7 @@ import com.simsilica.mblock.ConstantCellData;
 import com.simsilica.mblock.FluidTypeIndex;
 import com.simsilica.mblock.LightUtils;
 import com.simsilica.mblock.config.MaterialRegistry;
+import com.simsilica.mblock.geom.DefaultBlockFactory;
 import com.simsilica.mblock.geom.GeometryFactory;
 import com.simsilica.mblock.geom.MaterialType;
 import com.simsilica.mblock.io.BlockTypeData;
@@ -35,7 +36,6 @@ import infinity.sim.util.InfinityRunTimeException;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +65,9 @@ public class BlockGeometryIndex {
   /** The material name used for tiles in the material registry. */
   public static final String TILE_MATERIAL_NAME = "tile";
 
+  /** Material name used for the lantern (visible cube on each light-emitter cell). */
+  public static final String LANTERN_MATERIAL_NAME = "lantern";
+
   /** Tile ID ranges for Z-ordering layers (matching Subspace tile category semantics). */
   public static final int FLYOVER_TILE_START = 173;
   public static final int FLYOVER_TILE_END = 175;
@@ -81,6 +84,14 @@ public class BlockGeometryIndex {
    * geometry. Used for collision at Y=1 while visual tiles are rendered at Y=2.
    */
   public static final int INVISIBLE_BLOCK_TYPE_INDEX = 11;
+
+  /**
+   * Block type index for invisible light-emitter cells. Non-solid, transparent, no geometry.
+   * Placed at wall-run midpoints on a plane above the tile floor; their emission is flood-filled
+   * by {@link com.simsilica.mblock.LightUtils#recalculateLighting} into neighboring cells' lightData,
+   * which the tile shader reads via vertex colors.
+   */
+  public static final int LIGHT_EMITTER_BLOCK_TYPE_INDEX = 12;
 
   protected final GeometryFactory geomFactory;
 
@@ -101,6 +112,8 @@ public class BlockGeometryIndex {
       Map<String, Material> materials =
           MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
       registerInvisibleBlockType();
+      registerLanternMaterial(assets, materials);
+      registerLightEmitterBlockType();
       registerTileMaterialFromLevel(assets, materials, levelPath);
       registerTileBlockTypes();
       geomFactory = new GeometryFactory(materials);
@@ -130,6 +143,8 @@ public class BlockGeometryIndex {
 
       // Register invisible block type for physics-only blocks
       registerInvisibleBlockType();
+      registerLanternMaterial(assets, materials);
+      registerLightEmitterBlockType();
 
       // Register tile material and block types
       registerTileMaterial(assets, materials);
@@ -186,6 +201,46 @@ public class BlockGeometryIndex {
   }
 
   /**
+   * Registers a bright-yellow unlit material under {@link #LANTERN_MATERIAL_NAME} so the
+   * light-emitter cube can render as a visible "lantern". Unshaded so it ignores the voxel
+   * lighting pipeline — the cube stays full-bright-yellow regardless of the dim ambient
+   * (matches the reference torch-cube look).
+   */
+  private void registerLanternMaterial(
+      final AssetManager assets, final Map<String, Material> materials) {
+    Material lanternMat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
+    lanternMat.setColor("Color", new ColorRGBA(1.0f, 0.85f, 0.4f, 1.0f));
+    String key = new MaterialType(LANTERN_MATERIAL_NAME, Arrays.asList()).getId();
+    materials.put(key, lanternMat);
+  }
+
+  /**
+   * Registers a light-emitter block type that also renders as a visible lantern cube.
+   * BlockType's 4-bit r/g/b/sun emission value is seeded into lightData by
+   * {@link com.simsilica.mblock.LightUtils#recalculateLighting}; the cube itself is drawn
+   * by {@link DefaultBlockFactory#createCube} with the lantern material.
+   */
+  private void registerLightEmitterBlockType() {
+    BlockName name = new BlockName("lantern", "light_emitter");
+    // sun=0, r=15, g=13, b=8 → warm amber torch-glow at near-max strength.
+    // Flood fill attenuates each channel by 1 per cell, so pools reach ~14
+    // cells for the red channel (full-saturation core), ~12 for green, ~7
+    // for blue — producing warm amber at the center fading to deeper red at
+    // the edges.
+    short emission = (short) 0x0FD8;
+    MaterialType lanternMaterial = new MaterialType(LANTERN_MATERIAL_NAME, Arrays.asList());
+    // LanternBlockFactory emits a half-size cube that hangs below its cell
+    // origin (Y = -1 .. -0.5), so placed at cell Y=2 above a wall at Y=1 the
+    // cube's bottom face touches the wall surface. Fully transparent for
+    // light propagation so the emission escapes to neighboring cells.
+    BlockType blockType = new BlockType(
+        name, 0, emission,
+        new LanternBlockFactory(lanternMaterial));
+    BlockTypeIndex.override(LIGHT_EMITTER_BLOCK_TYPE_INDEX, blockType);
+    log.info("Registered light-emitter block type at index {}", LIGHT_EMITTER_BLOCK_TYPE_INDEX);
+  }
+
+  /**
    * Registers the tileset material for rendering flat tiles.
    *
    * @param assets the asset manager
@@ -193,14 +248,17 @@ public class BlockGeometryIndex {
    */
   private void registerTileMaterial(
       final AssetManager assets, final Map<String, Material> materials) {
-    // Create the tileset material using Unshaded for simplicity
-    // The tileset is at Textures/Subspace/tiles.png (304x160 = 19 cols x 10 rows at 16px each)
-    Material tileMat = new Material(assets, "MatDefs/TileUnshaded.j3md");
+    // Custom MOSS voxel-lit material: sun channel in vertex-color alpha,
+    // colored light in vertex-color rgb, combined per-channel with max().
+    // Ship and wall lighting is produced entirely by the baked cell lightData
+    // written into the mesh vertex colors by GeometryFactory — no jME lights
+    // need to be present.
+    Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
     tileMat.setTexture("ColorMap", assets.loadTexture("Textures/Subspace/tiles.png"));
-    tileMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+    tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
 
     for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
-      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Collections.emptyList()).getId();
+      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList()).getId();
       materials.put(key, tileMat);
     }
     log.info("Registered tileset PNG under 3 layer keys");
@@ -244,12 +302,12 @@ public class BlockGeometryIndex {
     tileTexture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
     tileTexture.setMagFilter(Texture.MagFilter.Nearest);
 
-    Material tileMat = new Material(assets, "MatDefs/TileUnshaded.j3md");
+    Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
     tileMat.setTexture("ColorMap", tileTexture);
-    tileMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+    tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
 
     for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
-      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Collections.emptyList()).getId();
+      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList()).getId();
       materials.put(key, tileMat);
     }
     log.info("Registered tileset from '{}' under 3 layer keys ({}x{})", levelPath, width, height);
@@ -273,7 +331,7 @@ public class BlockGeometryIndex {
         layer = REGULAR_LAYER;
       }
 
-      MaterialType tileMaterialType = new MaterialType(TILE_MATERIAL_NAME, layer, Collections.emptyList());
+      MaterialType tileMaterialType = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList());
       FlatTileBlockFactory factory = FlatTileBlockFactory.createForTile(tileMaterialType, tileId);
       BlockName name = new BlockName("tile", String.valueOf(tileId));
       BlockTypeIndex.override(typeIndex, new BlockType(name, factory));

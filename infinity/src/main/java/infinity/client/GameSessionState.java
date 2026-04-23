@@ -54,6 +54,7 @@ import infinity.TimeState;
 import infinity.ai.MobDebugState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
+import infinity.client.states.AmbientLightState;
 import infinity.client.states.HudLabelState;
 import infinity.client.states.InfinityCameraState;
 import infinity.client.states.LightState;
@@ -90,6 +91,7 @@ public class GameSessionState extends CompositeAppState {
         new ModelViewState(),
         new AudioState(new SIAudioFactory()),
         new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
+        new AmbientLightState(),
         new LightState(),
         new ProgressState(),
         new BlackboardState(),

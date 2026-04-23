@@ -322,7 +322,6 @@ public class AvatarMovementState extends BaseAppState
 
   protected Vec3d updateShipLocation(Vec3d loc) {
     Vec3d newLoc = loc.clone();
-    newLoc.x *= -1;
 
     String s = String.format("%.2f, %.2f, %.2f", newLoc.x, newLoc.y, newLoc.z);
     positionDisplay.setObject(s);

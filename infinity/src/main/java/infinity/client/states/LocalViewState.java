@@ -56,6 +56,10 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.CellArray;
+import com.simsilica.mblock.CellData;
+import com.simsilica.mblock.Direction;
+import com.simsilica.mblock.LightUtils;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mworld.LeafChangeEvent;
 import com.simsilica.mworld.LeafChangeListener;
@@ -584,8 +588,39 @@ public class LocalViewState extends BaseAppState {
 
       // Create a new guaranteed unconnected node for our parts
       Node temp = new Node("Parts:" + leafId);
-      geomIndex.generateBlocks(temp, leafData.getRawCells());
-      // geomIndex.generateBlocks(temp, leafData.getRawCells(), lightData, smoothLighting);
+      // Build MOSS voxel lightData for this leaf: a parallel CellArray in which
+      // recalculateLighting flood-fills from any emissive cells (BlockType.getLight() > 0)
+      // and from sunlight at the top of the volume. The tile shader reads the resulting
+      // per-cell light via vertex colors. Note: light from neighboring leaves doesn't
+      // propagate across the boundary in this simple one-leaf pass; for maps with sparse,
+      // distant light sources this is fine because pools stay well inside a leaf.
+      final CellArray cells = leafData.getRawCells();
+      final int sx = cells.getSizeX();
+      final int sy = cells.getSizeY();
+      final int sz = cells.getSizeZ();
+      final CellArray lightData = new CellArray(sx, sy, sz);
+      LightUtils.recalculateLighting(cells, lightData, 0, 0, 0, sx, sy, sz);
+
+      // SmoothLightGradient samples one cell outside the leaf boundary, which
+      // throws AIOOBE on a raw CellArray. Wrap lightData so out-of-bounds reads
+      // return DIRECT_SUN (treat neighbors as "open sky"). ConstantCellData was
+      // safe because every coord returned the constant; the raw CellArray is not.
+      final CellData safeLightData = new CellData() {
+        @Override public int getCell(final int x, final int y, final int z) {
+          return lightData.getCell(x, y, z, LightUtils.DIRECT_SUN);
+        }
+        @Override public int getCell(final int x, final int y, final int z, final int def) {
+          return lightData.getCell(x, y, z, def);
+        }
+        @Override public int getCell(final int x, final int y, final int z,
+            final Direction dir, final int def) {
+          return lightData.getCell(x, y, z, dir, def);
+        }
+        @Override public void setCell(final int x, final int y, final int z, final int type) {
+          lightData.setCell(x, y, z, type);
+        }
+      };
+      geomIndex.generateBlocks(temp, cells, safeLightData, true);
       synchronized (this) {
         generatedParts = temp;
       }
