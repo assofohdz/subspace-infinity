@@ -7,7 +7,15 @@ mainClassName = "infinity.Main"
 
 // version is inherited from the root build.gradle subprojects block
 
-applicationDefaultJvmArgs = ["-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m", "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED"]
+// Redirect JVM fatal-error logs (hs_err_pid*.log) to build/crash-logs/ so they
+// don't clutter the repo root. Swept by `./gradlew clean`.
+def crashLogDir = layout.buildDirectory.dir("crash-logs").get().asFile
+crashLogDir.mkdirs()
+applicationDefaultJvmArgs = [
+    "-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m",
+    "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
+    "-XX:ErrorFile=${crashLogDir}/hs_err_pid%p.log"
+]
 
 // Force X11 mode for LWJGL3 on Wayland systems (fixes EGL window creation issues)
 tasks.register('runX11', JavaExec) {

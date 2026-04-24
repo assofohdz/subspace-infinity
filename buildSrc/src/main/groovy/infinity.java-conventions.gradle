@@ -113,6 +113,11 @@ javadoc {
 }
 
 test {
+    // Redirect JVM fatal-error logs (hs_err_pid*.log) to build/crash-logs/ per module.
+    def crashLogDir = layout.buildDirectory.dir("crash-logs").get().asFile
+    crashLogDir.mkdirs()
+    jvmArgs "-XX:ErrorFile=${crashLogDir}/hs_err_pid%p.log"
+
     testLogging {
         // I want to see the tests that are run and pass, etc.
         events "passed", "skipped", "failed", "standardOut", "standardError"

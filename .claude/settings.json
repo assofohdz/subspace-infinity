@@ -6,8 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(git commit*)",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"A git commit was just made. Consider delegating to the doc-maintainer agent to check if documentation needs updating.\"}}'"
+            "command": "grep -q '\"command\":\"git commit' && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"A git commit was just made. Consider delegating to the doc-maintainer agent to check if documentation needs updating.\"}}' || true"
           }
         ]
       }
