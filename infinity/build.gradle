@@ -37,6 +37,25 @@ tasks.register('analyzeMaps', JavaExec) {
     errorOutput = System.err
 }
 
+// Batch tile-ID survey: ./gradlew :infinity:surveyMaps            (scans assets/Maps/)
+//                       ./gradlew :infinity:surveyMaps --args "some.lvl another.lvl"
+tasks.register('surveyMaps', JavaExec) {
+    group = 'diagnostics'
+    description = 'Batch tile-ID survey across .lvl files (histogram + gap analysis)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'infinity.tools.MapTileSurvey'
+    standardOutput = System.out
+    errorOutput = System.err
+}
+
+// GameServer writes a persistent block-world cache to infinity/world.db/ (relative
+// to the JVM working dir). It lives outside build/ because it's runtime state, not
+// a build artifact — so `clean` doesn't sweep it by default. Wipe it here so
+// `./gradlew clean` gives a fully fresh world on the next run.
+clean {
+    delete 'world.db'
+}
+
 dependencies {
     implementation "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
     // logging

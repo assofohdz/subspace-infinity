@@ -100,6 +100,8 @@ import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
+import infinity.es.arena.ArenaId;
+import infinity.es.arena.ArenaMap;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
@@ -443,6 +445,8 @@ public class GameServer {
     Serializer.registerClass(Decay.class, new FieldSerializer());
     Serializer.registerClass(Player.class, new FieldSerializer());
     Serializer.registerClass(MovementInput.class, new FieldSerializer());
+    Serializer.registerClass(ArenaId.class, new FieldSerializer());
+    Serializer.registerClass(ArenaMap.class, new FieldSerializer());
   }
 
   public Server getServer() {

@@ -401,53 +401,126 @@ public class MapSystem extends AbstractGameSystem {
    * and {@link MapTypes} for the numeric constants.
    */
   public HashSet<Vec3d> createBlocksFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
-    HashSet<Vec3d> coordinates = new HashSet<>();
-    short[][] tiles = map.getMap();
+    final HashSet<Vec3d> coordinates = new HashSet<>();
+    final short[][] tiles = map.getMap();
+
+    // --- Diagnostics: disposition counters ---
+    int totalNonZero = 0;
+    int turfFlags = 0;
+    int asteroidsSmall = 0;
+    int asteroidsMedium = 0;
+    int wormhole2 = 0;
+    int doors = 0;
+    int wormholes = 0;
+    int cellsVisible = 0;
+    int cellsInvisible = 0;
+    int cellsFailedLeaf = 0;
+    final java.util.TreeMap<Integer, Integer> idHistogram = new java.util.TreeMap<>();
+    Vec3d firstWritten = null;
+    Vec3d lastWritten = null;
 
     for (int xpos = 0; xpos < tiles.length; xpos++) {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
-        short s = tiles[MAP_SIZE - xpos - 1][MAP_SIZE - zpos - 1];
+        final short s = tiles[MAP_SIZE - xpos - 1][MAP_SIZE - zpos - 1];
         if (s == 0) {
           continue;
         }
+        totalNonZero++;
+        idHistogram.merge(Short.toUnsignedInt(s), 1, Integer::sum);
 
-        Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
+        final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
         coordinates.add(location);
 
         if (s == MapTypes.vieTurfFlag) {
           GameEntities.createTurfStationaryFlag(
               ed, EntityId.NULL_ID, physicsSpace, time.getTime(), location);
+          turfFlags++;
           continue;
         }
         if (s == MapTypes.vieAsteroidSmall) {
           GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
+          asteroidsSmall++;
           continue;
         }
         if (s == MapTypes.vieAsteroidMedium) {
           GameEntities.createAsteroidMedium(ed, null, physicsSpace, time.getTime(), location, 0);
+          asteroidsMedium++;
           continue;
         }
         if (s == MapTypes.vieAsteroidEnd) {
           GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
+          wormhole2++;
           continue;
         }
         if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
           GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
+          doors++;
           continue;
         }
         if (s == MapTypes.vieWormhole) {
           GameEntities.createWormhole(
               ed, null, physicsSpace, time.getTime(), location,
               5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
+          wormholes++;
           continue;
         }
 
-        int tileId = Short.toUnsignedInt(s);
-        int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
+        final int tileId = Short.toUnsignedInt(s);
+        final int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
             ? TILE_TYPE_BASE + tileId - 1
             : INVISIBLE_BLOCK_TYPE;
-        world.setWorldCell(location, blockType);
+        final int result = world.setWorldCell(location, blockType);
+        if (result == -1) {
+          cellsFailedLeaf++;
+        } else if (blockType == INVISIBLE_BLOCK_TYPE) {
+          cellsInvisible++;
+        } else {
+          cellsVisible++;
+        }
+        if (firstWritten == null) {
+          firstWritten = location;
+        }
+        lastWritten = location;
       }
+    }
+
+    log.info(
+        "createBlocksFromLegacyMap: map={} offset={} nonZero={} (visibleCells={} invisibleCells={} leafFailures={})",
+        map.getMapName(),
+        arenaOffset,
+        totalNonZero,
+        cellsVisible,
+        cellsInvisible,
+        cellsFailedLeaf);
+    log.info(
+        "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} wormhole2={} doors={} wormholes={}",
+        turfFlags,
+        asteroidsSmall,
+        asteroidsMedium,
+        wormhole2,
+        doors,
+        wormholes);
+    if (firstWritten != null) {
+      log.info("  first-written cell: {}    last-written cell: {}", firstWritten, lastWritten);
+    }
+    if (cellsFailedLeaf > 0) {
+      log.warn(
+          "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
+              + "Usually means the arena offset targets a world region whose leaves are not paged in.",
+          cellsFailedLeaf,
+          cellsVisible + cellsInvisible + cellsFailedLeaf);
+    }
+    if (log.isInfoEnabled()) {
+      final StringBuilder sb = new StringBuilder("  tile-id histogram:");
+      int shown = 0;
+      for (final java.util.Map.Entry<Integer, Integer> e : idHistogram.entrySet()) {
+        sb.append(" ").append(e.getKey()).append("=").append(e.getValue());
+        if (++shown >= 40) {
+          sb.append(" ...(").append(idHistogram.size() - shown).append(" more)");
+          break;
+        }
+      }
+      log.info(sb.toString());
     }
 
     spawnWallRunLights(tiles, arenaOffset, coordinates);

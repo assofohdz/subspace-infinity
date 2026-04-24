@@ -55,6 +55,7 @@ import infinity.client.states.MobDebugState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
 import infinity.client.states.AmbientLightState;
+import infinity.client.states.ArenaRegistryState;
 import infinity.client.states.LightingTunerState;
 import infinity.client.states.BloomPostState;
 import infinity.client.states.HudLabelState;
@@ -90,6 +91,7 @@ public class GameSessionState extends CompositeAppState {
         new TimeState(), // Has to be before any visuals that might need it.
         new SkyState(),
         new BuilderState(4, 4),
+        new ArenaRegistryState(), // Must precede LocalViewState — provides the tileset source path.
         new LocalViewState(),
         new ModelViewState(),
         new AudioState(new SIAudioFactory()),

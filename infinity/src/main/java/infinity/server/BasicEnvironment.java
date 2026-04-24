@@ -46,7 +46,6 @@ import com.simsilica.sim.SimTime;
 import infinity.AIEntities;
 import infinity.Ships;
 import infinity.sim.GameEntities;
-import infinity.systems.ArenaSystem;
 import infinity.systems.InfinityTimeSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +93,7 @@ public class BasicEnvironment extends AbstractGameSystem {
     AIEntities.createMobShip(
         new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
 
-    getSystem(ArenaSystem.class).loadArena("(default)");
+    // Arena loads are driven by ArenaSystem from zone.conf [Startup] AutoLoad.
 
     //    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1,
     // -10));

@@ -88,12 +88,16 @@ public class BitMap extends JPanel {
         m_size = array.readLittleEndianInt(2);
         // m_offset = array.readLittleEndianInt(10);
 
-        if (m_size != 49718) { // possible elvl header... check reserved bits to confirm
-            final int offset = array.readLittleEndianShort(6);
-            if (offset == 49720) { // currently this is the only place for the eLvl Header
-                ELvlOffset = 49720;
-                hasELVL = true;
-            }
+        // The Subspace convention stores the eLVL section's offset in the BMP's 4-byte `reserved`
+        // field (fileHeader[6..9]). Reference: SubspaceServer/src/Core/Map/BitmapHeader.cs — `Reserved`
+        // is a uint. The old code read only 2 bytes and checked against the hardcoded 49720, which
+        // works for classic 8-bit trench maps (fileSize=49718, eLVL at 49720 fits in 16 bits) but
+        // truncates for larger 24-bit BMPs where the offset exceeds 65,535 (e.g. pub2025.lvl stores
+        // 145,976 here).
+        final int reservedOffset = array.readLittleEndianInt(6);
+        if (reservedOffset != 0) {
+            ELvlOffset = reservedOffset;
+            hasELVL = true;
         }
 
         // Read 40 bytes for info header
@@ -130,6 +134,8 @@ public class BitMap extends JPanel {
             readInRGB();
         } else if (m_compressionType == BI_RLE8 && m_bitCount == 8) {
             readInRLE8();
+        } else if (m_compressionType == BI_RGB && m_bitCount == 24) {
+            readInRGB24(trans);
         }
     }
 
@@ -216,13 +222,36 @@ public class BitMap extends JPanel {
         }
     }
 
-    public byte[] readIn(final int n) {
+    /**
+     * Reads 24-bit uncompressed BMP pixel data. Layout: 3 bytes per pixel in BGR order (Windows
+     * convention), rows stored bottom-up, each row padded to a 4-byte boundary. Output matches the
+     * 8-bit paths: {@code m_image} is top-to-bottom ARGB where index 0 is the top-left pixel.
+     *
+     * @param trans if true, map pure-black pixels to alpha=0 (Subspace transparency convention)
+     */
+    public void readInRGB24(final boolean trans) {
+        final int rowBytes = m_width * 3;
+        final int pad = (4 - (rowBytes % 4)) % 4;
+        for (int y = m_height - 1; y >= 0; y--) {
+            for (int x = 0; x < m_width; x++) {
+                final int b = readByte();
+                final int g = readByte();
+                final int r = readByte();
+                final int alpha = (trans && r == 0 && g == 0 && b == 0) ? 0 : 0xff;
+                m_image[y * m_width + x] = (alpha << 24) | (r << 16) | (g << 8) | b;
+            }
+            for (int j = 0; j < pad; j++) {
+                readByte();
+            }
+        }
+    }
 
-        final byte[] b = new byte[n];
+    public byte[] readIn(final int n) {
         try {
-            m_stream.read(b);
-            // fileData.addByteArray( b );
-            return b;
+            // readNBytes loops until n bytes are read or EOF (Java 9+). The bare read() method
+            // returns as soon as *any* bytes are available and can silently short-read on large
+            // requests, which misaligns every subsequent header/chunk read in the file.
+            return m_stream.readNBytes(n);
         } catch (@SuppressWarnings("unused") final IOException e) {
             return new byte[0];
         }

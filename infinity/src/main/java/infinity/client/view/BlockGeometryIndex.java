@@ -289,56 +289,85 @@ public class BlockGeometryIndex {
   }
 
   /**
-   * Extracts the embedded tileset from a .lvl file and registers it as the tile material.
-   * Black pixels (Subspace transparency color) are converted to alpha=0.
-   * The pixel data is flipped vertically to match JME3's bottom-left UV origin.
+   * Extracts the embedded tileset from a .lvl file and registers it as the tile material. Black
+   * pixels (Subspace transparency color) are converted to alpha=0. The pixel data is flipped
+   * vertically to match JME3's bottom-left UV origin.
    */
   private void registerTileMaterialFromLevel(
       final AssetManager assets,
       final Map<String, Material> materials,
       final String levelPath) {
 
-    assets.registerLoader(LevelLoader.class, "lvl");
-    LevelFile levelFile = (LevelFile) assets.loadAsset(levelPath);
+    final Texture2D tileTexture = loadTilesetTexture(assets, levelPath);
 
-    int[] pixels = levelFile.getTileSetPixels();
-    int width = levelFile.getTileSetImageWidth();
-    int height = levelFile.getTileSetImageHeight();
-
-    // BitMap stores rows top-to-bottom (pixels[0] = top row).
-    // JME3 texture V=0 is at the bottom, so we iterate rows in reverse.
-    // Also treat pure black as transparent (Subspace convention).
-    ByteBuffer buf = BufferUtils.createByteBuffer(width * height * 4);
-    for (int row = height - 1; row >= 0; row--) {
-      for (int col = 0; col < width; col++) {
-        int argb = pixels[row * width + col];
-        int r = (argb >> 16) & 0xFF;
-        int g = (argb >> 8) & 0xFF;
-        int b = argb & 0xFF;
-        int a = (r == 0 && g == 0 && b == 0) ? 0 : ((argb >> 24) & 0xFF);
-        buf.put((byte) r).put((byte) g).put((byte) b).put((byte) a);
-      }
-    }
-    buf.flip();
-
-    Image jmeImage = new Image(Image.Format.RGBA8, width, height, buf, ColorSpace.sRGB);
-    Texture2D tileTexture = new Texture2D(jmeImage);
-    tileTexture.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
-    tileTexture.setMagFilter(Texture.MagFilter.Nearest);
-
-    Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
+    final Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
     tileMat.setTexture("ColorMap", tileTexture);
     tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
     tileMat.setBoolean("DebugShipLight", false);
     tileMat.setBoolean("DebugLeafGrid", false);
     applyTileShaderDefaults(tileMat);
 
-    for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
+    for (int layer : new int[] {FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
       String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
       materials.put(key, tileMat);
     }
     tileMaterial = tileMat;
-    log.info("Registered tileset from '{}' under 3 layer keys ({}x{})", levelPath, width, height);
+    log.info("Registered tileset from '{}' under 3 layer keys", levelPath);
+  }
+
+  /**
+   * Swap the tile material's {@code ColorMap} to the embedded tileset of the given {@code .lvl}.
+   * Because {@link #tileMaterial} is the shared {@link Material} backing every already-generated
+   * block mesh in the scene, the swap is visible immediately without regenerating geometry. Safe
+   * to call on the jME render thread at runtime as arenas become active.
+   *
+   * @param assets    asset manager (client-side)
+   * @param levelPath asset path to the {@code .lvl} whose embedded BMP should become the tileset
+   */
+  public void refreshTileset(final AssetManager assets, final String levelPath) {
+    if (tileMaterial == null) {
+      log.warn("refreshTileset called before tileMaterial initialized; ignored");
+      return;
+    }
+    final Texture2D tex = loadTilesetTexture(assets, levelPath);
+    tileMaterial.setTexture("ColorMap", tex);
+    log.info("Swapped tileset texture to '{}' on shared tile material", levelPath);
+  }
+
+  /**
+   * Loads the embedded tileset BMP out of a {@code .lvl} file and wraps it as a {@link Texture2D}
+   * ready for use as {@code ColorMap}. Pure-black pixels are mapped to alpha=0 (Subspace
+   * transparency convention). The image is flipped vertically so UV (0,0) matches JME3's
+   * bottom-left origin.
+   */
+  private Texture2D loadTilesetTexture(final AssetManager assets, final String levelPath) {
+    assets.registerLoader(LevelLoader.class, "lvl");
+    final LevelFile levelFile = (LevelFile) assets.loadAsset(levelPath);
+
+    final int[] pixels = levelFile.getTileSetPixels();
+    final int width = levelFile.getTileSetImageWidth();
+    final int height = levelFile.getTileSetImageHeight();
+
+    // BitMap stores rows top-to-bottom (pixels[0] = top row).
+    // JME3 texture V=0 is at the bottom, so we iterate rows in reverse.
+    final ByteBuffer buf = BufferUtils.createByteBuffer(width * height * 4);
+    for (int row = height - 1; row >= 0; row--) {
+      for (int col = 0; col < width; col++) {
+        final int argb = pixels[row * width + col];
+        final int r = (argb >> 16) & 0xFF;
+        final int g = (argb >> 8) & 0xFF;
+        final int b = argb & 0xFF;
+        final int a = (r == 0 && g == 0 && b == 0) ? 0 : ((argb >> 24) & 0xFF);
+        buf.put((byte) r).put((byte) g).put((byte) b).put((byte) a);
+      }
+    }
+    buf.flip();
+
+    final Image jmeImage = new Image(Image.Format.RGBA8, width, height, buf, ColorSpace.sRGB);
+    final Texture2D tex = new Texture2D(jmeImage);
+    tex.setMinFilter(Texture.MinFilter.NearestNoMipMaps);
+    tex.setMagFilter(Texture.MagFilter.Nearest);
+    return tex;
   }
 
   /**

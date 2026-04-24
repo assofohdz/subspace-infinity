@@ -215,6 +215,7 @@ public class LevelFile extends JPanel {
                         {
                             // System.out.println("unknown chunk: " + type);
                             curData = new ByteArray(readIn(chunkLength));
+                            current += chunkLength;
 
                             // encode header
                             unknownELVLData.add(Byte.valueOf((byte) type.charAt(0)));
@@ -458,10 +459,12 @@ public class LevelFile extends JPanel {
     }
 
     public byte[] readIn(final int n) {
-        final byte[] b = new byte[n];
         try {
-            m_stream.read(b);
-            return b;
+            // readNBytes loops until n bytes are read or EOF is reached. The bare read() method
+            // returns as soon as *any* bytes are available and can short-read on large requests
+            // (e.g. skipping past a 24-bit BMP + eLVL, which can be ~146KB), silently leaving the
+            // stream mid-chunk and causing NegativeArraySize downstream.
+            return m_stream.readNBytes(n);
         } catch (final IOException e) {
             System.out.println(e);
             return new byte[0];

@@ -96,6 +96,8 @@ import org.slf4j.LoggerFactory;
 public class LocalViewState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LocalViewState.class);
+  private Application app;
+  private boolean tilesetAppliedFromRegistry;
   private final Grid leafGrid = WorldGrids.LEAF_GRID; // new Grid(32, 32, 32);
   // private Vec3i viewRadius = new Vec3i(2, 3, 2);
   private final Vec3i viewRadius = new Vec3i(2, 0, 2);
@@ -215,9 +217,13 @@ public class LocalViewState extends BaseAppState {
 
     this.viewRoot = new Node("ViewRoot");
 
+    this.app = app;
+    // Bootstrap tileset: any Subspace .lvl works here since its embedded BMP defines the UV grid.
+    // ArenaRegistryState publishes the server-authoritative map file; update() calls
+    // BlockGeometryIndex.refreshTileset once the first arena entity arrives, swapping the texture
+    // on the shared tile material in-place (no geometry rebuild needed).
     geomIndex = new BlockGeometryIndex(app.getAssetManager(), "Maps/trench.lvl");
 
-    // world = getState(WorldViewState.class, true).getWorld();
     workers = getState("regularWorkers", JobState.class);
     priorityWorkers = getState("priorityWorkers", JobState.class);
     posRef = getState(AvatarMovementState.class).createPositionReference();
@@ -323,6 +329,16 @@ public class LocalViewState extends BaseAppState {
 
   @Override
   public void update(float tpf) {
+    if (!tilesetAppliedFromRegistry) {
+      final ArenaRegistryState registry = getState(ArenaRegistryState.class);
+      if (registry != null) {
+        final ArenaRegistryState.ArenaSnapshot first = registry.getFirstArena();
+        if (first != null && first.mapFile != null && !first.mapFile.isEmpty()) {
+          geomIndex.refreshTileset(app.getAssetManager(), "Maps/" + first.mapFile);
+          tilesetAppliedFromRegistry = true;
+        }
+      }
+    }
     if (posRef.update()) {
       Vec3d pos = posRef.get();
       updateView(pos, false);
