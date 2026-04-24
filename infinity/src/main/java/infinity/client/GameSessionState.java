@@ -51,7 +51,7 @@ import infinity.HelpState;
 import infinity.HostState;
 import infinity.InfinityConstants;
 import infinity.TimeState;
-import infinity.ai.MobDebugState;
+import infinity.client.states.MobDebugState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
 import infinity.client.states.AmbientLightState;

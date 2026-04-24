@@ -21,6 +21,10 @@ Path-scoped rules live in `.claude/rules/` and load automatically when relevant 
 - [`entity-sets.md`](.claude/rules/entity-sets.md) — release in `terminate()` (`infinity/` + `modules/` Java)
 - [`systems.md`](.claude/rules/systems.md) — logic-in-systems, no duplicate component producers (`systems/**` + `modules/`)
 - [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity/` + `modules/` Java)
+- [`api-contracts.md`](.claude/rules/api-contracts.md) — api/ is data + interfaces only; no deps on server/client/modules (`api/src/**`)
+- [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`client/**` + loose `*AppState`)
+
+Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
 
 ## Build & Run
 
@@ -60,6 +64,7 @@ See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
 
 **Subspace Infinity (project-specific):**
 - `project-overview/` - Project structure, tech stack, conventions
+- `infinity-architecture/` - api ↔ server ↔ client layering, data flow, "where does X go?"
 - `create-module/` - `BaseGameModule` server extensions
 - `arena-settings/` - Per-arena `arena.conf` INI settings, `SettingsSystem`
 - `lvl-format/` - Subspace .lvl binary format: BMP tileset, eLVL metadata

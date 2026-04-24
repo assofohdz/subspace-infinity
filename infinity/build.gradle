@@ -112,6 +112,11 @@ dependencies {
     // Local dependencies
     implementation project(":api")
     runtimeOnly project(":modules")
+
+    // Test-only — architecture boundary enforcement
+    testImplementation "com.tngtech.archunit:archunit-junit4:1.3.0"
+    // Put modules on the test compile classpath so ArchUnit can analyse them
+    testImplementation project(":modules")
 }
 
 //checkstyle {

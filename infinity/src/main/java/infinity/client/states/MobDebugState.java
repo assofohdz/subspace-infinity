@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.ai;
+package infinity.client.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -58,6 +58,8 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.GameSystemManager;
 import com.simsilica.state.DebugHudState;
 import infinity.HostState;
+import infinity.ai.MobStats;
+import infinity.ai.MobSystem;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import org.slf4j.Logger;
