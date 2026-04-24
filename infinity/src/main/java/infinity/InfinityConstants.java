@@ -98,6 +98,14 @@ public class InfinityConstants {
   public static final int MAX_ARENAS = 16;
 
   /**
+   * World-space Y coordinate on which all gameplay entities (ships, mobs, tiles, projectiles)
+   * live. The game is logically 2D on the X/Z plane; this constant is the single source of truth
+   * for the gameplay plane. {@link PlayerDriver} and similar drivers clamp body positions here
+   * each tick to prevent collision resolution from drifting entities off the plane.
+   */
+  public static final double GAMEPLAY_Y = 1.0;
+
+  /**
    * Default gravity used for the physics simulation. - Changed from 0,-10,0 to 0,0,0 for ZERO
    * gravity (space sim)
    */

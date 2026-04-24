@@ -36,6 +36,7 @@ import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractControlDriver;
 import com.simsilica.mphys.RigidBody;
 
+import infinity.InfinityConstants;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Energy;
 import infinity.es.ship.Rotation;
@@ -130,6 +131,18 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
             body.addForce(newLinearVelocity.mult(20));
             // log.info("Player (body) velocity (length of linvel):
             // "+body.getLinearVelocity().length());
+
+            // Gameplay is 2D on the X/Z plane — prevent collision resolution (e.g. teleporting
+            // onto a wall, or grazing a block at an oblique angle) from drifting the ship off the
+            // gameplay plane. Snap Y back each tick and zero any Y-component that accumulated in
+            // linear velocity.
+            if (body.position.y != InfinityConstants.GAMEPLAY_Y) {
+                body.position.y = InfinityConstants.GAMEPLAY_Y;
+            }
+            final Vec3d lv = body.getLinearVelocity();
+            if (lv.y != 0) {
+                body.setLinearVelocity(new Vec3d(lv.x, 0, lv.z));
+            }
         }
     }
 

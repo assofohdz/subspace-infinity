@@ -44,6 +44,8 @@ import com.simsilica.sim.SimTime;
 import infinity.es.WarpTouch;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
+import com.simsilica.mworld.World;
+import infinity.InfinityConstants;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandTriFunction;
@@ -193,14 +195,51 @@ public class WarpSystem extends AbstractGameSystem
 
   /**
    * Teleports the avatar to explicit world coordinates. Useful for verifying multi-map grids
-   * where the target sits outside the current arena.
+   * where the target sits outside the current arena. Refuses destinations whose 3x3 cell
+   * neighborhood (target + 8 X/Z neighbors on the gameplay plane) contains any non-empty cell —
+   * a ship's collider is larger than one cell, and physics resolution of a near-wall teleport has
+   * been observed to drift the ship off the gameplay plane.
    */
   public String commandTeleport(EntityId entityId, EntityId avatarId, Matcher matcher) {
-    double x = Double.parseDouble(matcher.group(1));
-    double z = Double.parseDouble(matcher.group(2));
-    Vec3d target = new Vec3d(x, 1, z);
+    final double x = Double.parseDouble(matcher.group(1));
+    final double z = Double.parseDouble(matcher.group(2));
+    final Vec3d target = new Vec3d(x, InfinityConstants.GAMEPLAY_Y, z);
+
+    final Vec3d blocker = firstOccupiedNeighbor(target);
+    if (blocker != null) {
+      return "Cannot teleport: destination neighborhood is blocked at " + blocker;
+    }
+
     ed.setComponent(avatarId, new WarpTo(target));
     return "Teleporting to " + target;
+  }
+
+  /**
+   * Scan the 3x3 X/Z neighborhood around {@code target} on the gameplay plane and return the
+   * first cell with a non-zero block type, or {@code null} if the whole 3x3 is clear. The target
+   * itself is checked first so the most common "inside a wall" case reports the obvious cell.
+   */
+  private Vec3d firstOccupiedNeighbor(final Vec3d target) {
+    final WorldSystem worldSystem = getSystem(WorldSystem.class);
+    if (worldSystem == null) {
+      return null;
+    }
+    final World world = worldSystem.getWorld();
+    if (world == null) {
+      return null;
+    }
+    // Check center first, then neighbors, so the error message points at the target cell when
+    // the target itself is a wall (the common case).
+    final int[][] offsets =
+        new int[][] {{0, 0}, {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
+    for (final int[] off : offsets) {
+      final Vec3d probe = new Vec3d(target.x + off[0], target.y, target.z + off[1]);
+      // Type bits live in the low 20 bits of the cell int (MaskUtils.TYPE_MASK).
+      if ((world.getWorldCell(probe) & 0x000fffff) != 0) {
+        return probe;
+      }
+    }
+    return null;
   }
 
   @Override
