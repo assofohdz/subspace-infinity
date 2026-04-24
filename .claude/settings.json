@@ -1,4 +1,25 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew --no-daemon :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava spotlessCheck)",
+      "Bash(./gradlew --no-daemon -q :api:compileJava :infinity:compileJava :api:compileTestJava :infinity:compileTestJava spotlessCheck)",
+      "Bash(./gradlew --no-daemon :api:compileJava :infinity:compileJava :api:compileTestJava :infinity:compileTestJava spotlessCheck)",
+      "Bash(./gradlew --no-daemon -q :infinity:test --tests \"infinity.architecture.LayerDependencyTest\")",
+      "Bash(./gradlew --no-daemon -q :infinity:compileJava :infinity:compileTestJava spotlessCheck :infinity:test --tests infinity.architecture.LayerDependencyTest)",
+      "Bash(./gradlew --no-daemon -q :api:compileJava :infinity:compileJava :api:spotlessCheck :infinity:spotlessCheck)",
+      "Bash(./gradlew --no-daemon :api:compileJava :infinity:compileJava :api:spotlessCheck :infinity:spotlessCheck)",
+      "Bash(./gradlew --no-daemon -q :api:compileJava :infinity:compileJava :modules:compileJava :api:compileTestJava :infinity:compileTestJava :modules:compileTestJava spotlessCheck)",
+      "Bash(./gradlew spotlessCheck)",
+      "Bash(./gradlew spotlessApply)",
+      "Bash(./gradlew :infinity:compileJava spotlessCheck)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(grep -r \"tick\\\\|60\\\\|20\\\\|10.*ms\\\\|0\\\\.01\\\\|1/60\\\\|1/20\" /home/assofohdz/github/assofohdz/subspace-infinity -name \"InfinityConstants.java\" -o -name \"*Constant*\")",
+      "Bash(grep -v \"\\\\\".*MaximumSpeed\\\\|#\\\\|/conf\\\\|ClientSettings\\\\|ShipNames\\\\|ShipShort\\\\|\\\\.MaximumSpeed$\")",
+      "Bash(./gradlew :api:compileJava :infinity:compileJava spotlessCheck)",
+      "Bash(./gradlew :infinity:spotlessApply)"
+    ]
+  },
   "hooks": {
     "PostToolUse": [
       {

@@ -23,17 +23,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Initial speed of ship (0 = can't move)
+ * The ship's <b>current effective velocity cap</b>. PlayerDriver reads this
+ * each tick to clamp how fast the ship can fly — it is NOT the ship's live
+ * velocity (that lives on the {@code RigidBody} and is read via
+ * {@code body.getLinearVelocity()}).
+ *
+ * <p>Maps to Subspace {@code [Ship] InitialSpeed + n*UpgradeSpeed}, clamped
+ * at {@link SpeedMax}. Mutated by upgrade-prize pickups.
  *
  * @author Asser Fahrenholz
  */
-public class Speed {
+public class Speed implements EntityComponent {
 
-    int speed;
+    private final int speed;
+
+    public Speed() {
+        this(0);
+    }
 
     public Speed(final int speed) {
         this.speed = speed;
@@ -43,4 +54,12 @@ public class Speed {
         return speed;
     }
 
+    public Speed newAdjusted(final int delta) {
+        return new Speed(speed + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "Speed[" + speed + "]";
+    }
 }

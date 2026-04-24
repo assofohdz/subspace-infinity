@@ -44,7 +44,7 @@ import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.AIEntities;
-import infinity.Ships;
+import infinity.Ship;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
 import org.slf4j.Logger;
@@ -91,7 +91,7 @@ public class BasicEnvironment extends AbstractGameSystem {
     long sysTime = System.currentTimeMillis();
 
     AIEntities.createMobShip(
-        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
+        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ship.JAVELIN.getId());
 
     // Arena loads are driven by ArenaSystem from zone.conf [Startup] AutoLoad.
 

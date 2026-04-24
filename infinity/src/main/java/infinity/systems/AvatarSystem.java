@@ -36,11 +36,18 @@ import com.simsilica.event.EventBus;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import com.simsilica.mathd.Vec3d;
+import infinity.InfinityConstants;
+import infinity.Ship;
 import infinity.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
+import infinity.es.arena.ArenaId;
+import infinity.es.ship.ShipType;
+import infinity.es.ship.actions.WarpTo;
 import infinity.events.ShipEvent;
+import infinity.settings.GroovyShipLoader;
 import infinity.sim.CorePhysicsConstants;
 import java.util.HashMap;
 
@@ -64,6 +71,8 @@ public class AvatarSystem extends AbstractGameSystem {
   public static final byte SHARK = 0x8;
   private EntityData ed;
   private EntitySet frequencies;
+  private EntitySet arenaEntities;
+  private GroovyShipLoader shipLoader;
   /** The number of allowed players in each ship on this team. */
   private HashMap<Integer, ShipRestrictor> teamRestrictions;
 
@@ -79,6 +88,8 @@ public class AvatarSystem extends AbstractGameSystem {
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
+    arenaEntities = ed.getEntities(ArenaId.class);
+    shipLoader = getSystem(GroovyShipLoader.class);
 
     teamRestrictions = new HashMap<>();
   }
@@ -88,6 +99,9 @@ public class AvatarSystem extends AbstractGameSystem {
 
     frequencies.release();
     frequencies = null;
+
+    arenaEntities.release();
+    arenaEntities = null;
 
     captains.release();
     captains = null;
@@ -129,12 +143,27 @@ public class AvatarSystem extends AbstractGameSystem {
   public void requestShipChange(final EntityId shipEntity, final byte shipType) {
     // TODO: Check for energy (full energy to switch ships)
 
-    final int freq = frequencies.getEntity(shipEntity).get(Frequency.class).getFrequency();
+    // Hot-reload the arena's ships.groovy so dev edits take effect on the next ship change.
+    // Fast: filesystem read + Groovy parse, microseconds. Resolved ambiently (Option R2).
+    arenaEntities.applyChanges();
+    final java.util.Iterator<com.simsilica.es.Entity> arenaIter = arenaEntities.iterator();
+    final ArenaId currentArena = arenaIter.hasNext() ? arenaIter.next().get(ArenaId.class) : null;
+    if (currentArena != null) {
+      final SettingsSystem settings = getSystem(SettingsSystem.class);
+      final String scriptPath =
+          settings.getString(currentArena.getArena(), "Scripts", "Ships", null);
+      shipLoader.apply(currentArena, scriptPath);
+    }
 
-    final ShipRestrictor restrictor = getRestrictor(freq);
+    // Frequency-based ship restrictions are optional — human player ships don't carry
+    // a Frequency component today (only freq-aware spawn paths add it). Read directly
+    // via EntityData and treat missing as "no frequency known" → skip the restrictor
+    // check so basic ship change works end-to-end.
+    final Frequency freqComponent = ed.getComponent(shipEntity, Frequency.class);
+    final int freq = (freqComponent != null) ? freqComponent.getFrequency() : 0;
+    final ShipRestrictor restrictor = (freqComponent != null) ? getRestrictor(freq) : null;
 
-    // Allow ship change if no restrictions on frequency, or if restrictions allow
-    // it
+    // Allow ship change if no restrictions on frequency, or if restrictions allow it.
     if (restrictor == null || restrictor.canSwitch(shipEntity, shipType, freq)) {
 
       switch (shipType) {
@@ -180,6 +209,27 @@ public class AvatarSystem extends AbstractGameSystem {
           break;
         default:
           break;
+      }
+
+      // Re-project ship stats from the arena's ShipConfig (Pattern 4). Remove+set forces
+      // an add event on the ShipType EntitySet so ShipSpawnSystem re-runs even if the
+      // ship type is unchanged — useful for the dev loop where the same key is pressed
+      // after editing ships.groovy to re-apply tuning without a full restart.
+      ed.removeComponent(shipEntity, ShipType.class);
+      ed.setComponent(shipEntity, new ShipType(Ship.getShip(shipType)));
+
+      // Teleport to the arena's configured spawn point. Reads [Spawn] X / Z from the
+      // arena's settings; falls back to (0, 0) if either is absent. Ambient arena
+      // resolution (Option R2 — TODO in GameEntities.createShip): first loaded arena wins.
+      // WarpSystem picks up the WarpTo component and handles the actual body teleport.
+      arenaEntities.applyChanges();
+      if (!arenaEntities.isEmpty()) {
+        final ArenaId arena = arenaEntities.iterator().next().get(ArenaId.class);
+        final SettingsSystem settings = getSystem(SettingsSystem.class);
+        final int spawnX = settings.getInt(arena.getArena(), "Spawn", "X", 0);
+        final int spawnZ = settings.getInt(arena.getArena(), "Spawn", "Z", 0);
+        final Vec3d target = new Vec3d(spawnX, InfinityConstants.GAMEPLAY_Y, spawnZ);
+        ed.setComponent(shipEntity, new WarpTo(target));
       }
 
       EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));

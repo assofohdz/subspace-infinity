@@ -23,23 +23,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Amount added per 'Thruster' Prize
+ * Per-pickup increment added to {@link Thrust} when a 'Thruster' prize is
+ * collected, clamped at {@link ThrustMax}.
+ *
+ * <p>Maps to Subspace {@code [Ship] UpgradeThrust}.
  *
  * @author Asser Fahrenholz
  */
-public class ThrustUpgrade {
+public class ThrustUpgrade implements EntityComponent {
 
-    int energyUpgrade;
+    private final int thrustUpgrade;
 
-    public int getEnergyUpgrade() {
-        return energyUpgrade;
+    public ThrustUpgrade() {
+        this(0);
     }
 
-    public ThrustUpgrade(final int energyUpgrade) {
-        this.energyUpgrade = energyUpgrade;
+    public ThrustUpgrade(final int thrustUpgrade) {
+        this.thrustUpgrade = thrustUpgrade;
+    }
+
+    public int getThrustUpgrade() {
+        return thrustUpgrade;
+    }
+
+    public ThrustUpgrade newAdjusted(final int delta) {
+        return new ThrustUpgrade(thrustUpgrade + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "ThrustUpgrade[" + thrustUpgrade + "]";
     }
 }

@@ -23,23 +23,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Amount added per 'Rotation' Prize
+ * Per-pickup increment (rad/sec) added to {@link Rotation} when a 'Rotation'
+ * prize is collected, clamped at {@link RotationMax}.
+ *
+ * <p>Maps to Subspace {@code [Ship] UpgradeRotation}, converted to rad/sec.
  *
  * @author Asser Fahrenholz
  */
-public class RotationUpgrade {
+public class RotationUpgrade implements EntityComponent {
 
-    int energyUpgrade;
+    private final double radSecUpgrade;
 
-    public int getEnergyUpgrade() {
-        return energyUpgrade;
+    public RotationUpgrade() {
+        this(0.0);
     }
 
-    public RotationUpgrade(final int energyUpgrade) {
-        this.energyUpgrade = energyUpgrade;
+    public RotationUpgrade(final double radSecUpgrade) {
+        this.radSecUpgrade = radSecUpgrade;
+    }
+
+    public double getRadSecUpgrade() {
+        return radSecUpgrade;
+    }
+
+    public RotationUpgrade newAdjusted(final double delta) {
+        return new RotationUpgrade(radSecUpgrade + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "RotationUpgrade[" + radSecUpgrade + "]";
     }
 }

@@ -23,44 +23,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.es.ship;
 
-import com.simsilica.es.EntityComponent;
+package infinity.config;
 
 /**
- * The ship's <b>current effective recharge rate</b> (energy units per second).
- * EnergySystem reads this each tick to top up {@link Energy} until it hits
- * {@link EnergyMax}.
+ * Upgradeable per-ship stat triple: the value a fresh ship spawns with, the
+ * cap it can never exceed, and the per-upgrade increment.
  *
- * <p>Maps to Subspace {@code [Ship] InitialRecharge + n*UpgradeRecharge},
- * clamped at {@link RechargeMax}. Mutated by upgrade-prize pickups. The
- * Subspace integer ({@code "amount per 10 seconds"}) is converted to per-sec
- * at projection time by ShipSpawnSystem.
+ * <p>Mirrors the Subspace tuning model where each relevant stat (thrust,
+ * speed, rotation, recharge, energy, …) has an {@code InitialX} / {@code
+ * MaximumX} / {@code UpgradeX} triple. The runtime per-entity components
+ * ({@code Thrust} / {@code ThrustMax} / {@code ThrustUpgrade}) are derived
+ * from this triple at spawn time.
  *
- * @author Asser
+ * @param initial the value a freshly spawned ship starts with (also the value
+ *     before any upgrades are applied)
+ * @param max the hard cap; even after all upgrades, the effective value never
+ *     exceeds this
+ * @param upgrade the increment applied per upgrade pickup
  */
-public class Recharge implements EntityComponent {
-
-    private final double rechargePerSecond;
-
-    public Recharge() {
-        this(0.0);
-    }
-
-    public Recharge(final double rechargePerSecond) {
-        this.rechargePerSecond = rechargePerSecond;
-    }
-
-    public double getRechargePerSecond() {
-        return rechargePerSecond;
-    }
-
-    public Recharge newAdjusted(final double delta) {
-        return new Recharge(rechargePerSecond + delta);
-    }
-
-    @Override
-    public String toString() {
-        return "Recharge[" + rechargePerSecond + "]";
-    }
-}
+public record ShipStat(int initial, int max, int upgrade) {}

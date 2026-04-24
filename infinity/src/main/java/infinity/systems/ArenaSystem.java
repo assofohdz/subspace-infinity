@@ -40,6 +40,7 @@ import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.settings.GroovyShipLoader;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
 import infinity.es.ship.Player;
@@ -138,6 +139,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntityData ed;
   private EntitySet arenaEntities;
   private EntitySet playerEntities;
+  private GroovyShipLoader shipLoader;
   private boolean bootstrapped;
 
   private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
@@ -152,6 +154,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     ed = getSystem(EntityData.class);
     arenaEntities = ed.getEntities(ArenaId.class);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
+    shipLoader = getSystem(GroovyShipLoader.class);
 
     chat.registerPatternTriConsumer(
         loadMap,
@@ -351,7 +354,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final String mapFile = settings.getString(rec.name, "General", "Map", rec.name + ".lvl");
 
       arena = ed.createEntity();
-      ed.setComponent(arena, new ArenaId(rec.name, EntityId.NULL_ID));
+      final ArenaId arenaId = new ArenaId(rec.name, EntityId.NULL_ID);
+      ed.setComponent(arena, arenaId);
+      final String shipsScript = settings.getString(rec.name, "Scripts", "Ships", null);
+      shipLoader.apply(arenaId, shipsScript);
 
       if (!maps.loadMap(mapFile, rec.arenaIndex)) {
         fail(rec, arena, "loadMap returned false for " + mapFile);

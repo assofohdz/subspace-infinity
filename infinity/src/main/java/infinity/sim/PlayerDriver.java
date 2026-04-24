@@ -25,136 +25,167 @@
  */
 package infinity.sim;
 
-import com.simsilica.mphys.Contact;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.WatchedEntity;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractControlDriver;
+import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.RigidBody;
-
 import infinity.InfinityConstants;
 import infinity.es.input.MovementInput;
-import infinity.es.ship.Energy;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
-import infinity.systems.SettingsSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Uses rotation and a 3-axis thrust vector to supply specific velocity to a
- * body. We ignore the normal physics acceleration for now and just set the
- * velocity directly based on our accelerated thrust values.
+ * Per-ship control driver invoked by MOSS each physics tick. Reads the ship's
+ * current {@link Thrust}, {@link Speed}, and {@link Rotation} ECS components
+ * (seeded from the arena's {@code ShipConfig} at spawn time) and projects
+ * them onto the MOSS {@link RigidBody}: thrust becomes the acceleration
+ * rate, speed is the velocity cap, rotation is the rad/sec scalar for the
+ * client's rotation intent.
  *
- * @author Paul Speed
+ * <p>If any of those components are missing on the entity, the ship is left
+ * idle — that's the "not yet configured" case (spawn system hasn't projected
+ * stats, e.g. because no arena config loaded and no fallback installed).
+ *
+ * @author Paul Speed (original)
  */
 public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
 
-    static Logger log = LoggerFactory.getLogger(PlayerDriver.class);
-    private final double pickup = 3;
+    private static final Logger log = LoggerFactory.getLogger(PlayerDriver.class);
 
-    // Local reference to the body that we want to update
-    private final Vec3d velocity = new Vec3d();
-    // private final EntityData ed;
-    // private final SettingsSystem settings;
+    /**
+     * Fraction of {@code Thrust} applied as drag force when no thrust intent is
+     * given. {@code 0} = pure coast (no drag), {@code 1} = decelerate as fast as
+     * thrust accelerates. {@code 0.25} gives a gentle slowdown. Tune per feel.
+     */
+    // TODO(physics-tune): promote DRAG_FACTOR to a ShipStat / Groovy field once the
+    // canonical value for each ship is known.
+    private static final double DRAG_FACTOR = 0.05;
+
+    /**
+     * How fast the ship's angular velocity approaches the target rotation rate.
+     * Higher = snappier turn response, lower = more sluggish/heavy ship feel.
+     * Frame-rate independent (used as the rate constant in an exponential approach).
+     * {@code 8.0} reaches ~95% of target rotation in ~0.4 seconds.
+     */
+    // TODO(physics-tune): promote TURN_RESPONSIVENESS to a ShipStat / Groovy field
+    // once different per-ship feels are needed.
+    private static final double TURN_RESPONSIVENESS = 8.0;
+
     private Vec3d movementForces = new Vec3d();
 
-    @SuppressWarnings({ "unchecked" })
-    public PlayerDriver(final EntityId shipEntityId, final EntityData ed,
-            @SuppressWarnings("unused") final SettingsSystem settings) {
-        // Watch all the relevant movement components of the ship
-        @SuppressWarnings("rawtypes")
-        final Class[] types = { Energy.class, Rotation.class, Speed.class, Thrust.class };
-        //shipEntity = new DefaultWatchedEntity(ed, shipEntityId, types);
-        // this.settings = settings;
-        // this.ed = ed;
+    private final WatchedEntity shipStats;
+
+    public PlayerDriver(final EntityId shipEntityId, final EntityData ed) {
+        this.shipStats = ed.watchEntity(shipEntityId,
+                Thrust.class, Speed.class, Rotation.class);
     }
 
-    public void applyMovementInput( MovementInput input ) {
+    public void applyMovementInput(final MovementInput input) {
         movementForces = input.getMove();
-        if( log.isTraceEnabled() ) {
-            log.trace("applyInput(" + input + ")");
+        if (log.isTraceEnabled()) {
+            log.trace("applyMovementInput({})", input);
         }
     }
 
-    private double applyThrust(final double vel, final double thrust, final double tpf) {
-        double v = vel;
-        if (thrust > 0) {
-            // Accelerate
-            v = Math.min(thrust, v + pickup * tpf);
-        } else if (thrust < 0) {
-            // Decelerate
-            v = Math.max(thrust, v - pickup * tpf);
-        } else {
-            if (v > 0) {
-                // Fall to zero
-                v = Math.max(0, v - pickup * tpf);
-            } else {
-                // Rist to zero
-                v = Math.min(0, v + pickup * tpf);
-            }
-        }
-        return v;
+    /** Releases the {@link WatchedEntity}. Call when the driver is retired. */
+    public void release() {
+        shipStats.release();
     }
 
     @Override
     public void update(final long frameTime, final double step) {
-        RigidBody<EntityId, MBlockShape> body = getBody();
-        if (body != null){
-            // Drivable bodies should not fall asleep, keep them awake at all times
-            body.wakeUp(true);
+        final RigidBody<EntityId, MBlockShape> body = getBody();
+        if (body == null) {
+            return;
+        }
+        // Drivable bodies should not fall asleep.
+        body.wakeUp(true);
 
-            // x-axis is side-to-side
-            // Grab local versions of the player settings in case another
-            // thread sets them while we are calculating.
-            // Quaternion quat = orientation;
-            final Vec3d vec = movementForces.clone();
+        if (shipStats.applyChanges()) {
+            log.info(
+                    "Stats refreshed for entity {}: thrust={} speed={} rotation={}",
+                    shipStats.getId(),
+                    shipStats.get(Thrust.class),
+                    shipStats.get(Speed.class),
+                    shipStats.get(Rotation.class));
+        }
+        final Thrust thrust = shipStats.get(Thrust.class);
+        final Speed speed = shipStats.get(Speed.class);
+        final Rotation rotation = shipStats.get(Rotation.class);
 
-            // x is rotate - we dont need to clamp that
-            // velocity.x = applyThrust(velocity.x, vec.x, step);
-            // z is forward
-            velocity.z = applyThrust(velocity.z, vec.z, step);
+        if (thrust == null || speed == null || rotation == null) {
+            // Not yet configured — ShipSpawnSystem hasn't projected stats onto this entity
+            // (e.g. no arena config loaded, no fallback installed). Leave ship idle.
+            return;
+        }
 
-            // Rotate the ship according to left and right (should stop rotating right away
-            // when not pressing the keys
-            // Rotate around the y-axis (y is upwards)
-            body.setRotationalVelocity(0, vec.x, 0);
+        final double accelRate = thrust.getThrust();
+        final double maxSpeed = speed.getSpeed();
+        final double rotSpeed = rotation.getRadSec();
 
-            // Set a clamped velocity on the forward axis rotated by the bodies current
-            // rotation
-            final Vec3d newLinearVelocity = body.orientation.mult(velocity);
-            // body.setLinearVelocity(newLinearVelocity);
+        final Vec3d intent = movementForces.clone();
 
-            body.addForce(newLinearVelocity.mult(20));
-            // log.info("Player (body) velocity (length of linvel):
-            // "+body.getLinearVelocity().length());
+        // Safety cap — if an external impulse (explosion, bounce) left velocity above
+        // maxSpeed, scale back. Only affects magnitude, so a wall-bounce direction survives.
+        // In normal thrusting the car-curve below will have already gated the force to zero
+        // before we reach maxSpeed, so this branch rarely fires.
+        final Vec3d currentVel = body.getLinearVelocity();
+        final double currentSpeed = currentVel.length();
+        if (currentSpeed > maxSpeed) {
+            body.setLinearVelocity(currentVel.mult(maxSpeed / currentSpeed));
+        }
 
-            // Gameplay is 2D on the X/Z plane — prevent collision resolution (e.g. teleporting
-            // onto a wall, or grazing a block at an oblique angle) from drifting the ship off the
-            // gameplay plane. Snap Y back each tick and zero any Y-component that accumulated in
-            // linear velocity.
-            if (body.position.y != InfinityConstants.GAMEPLAY_Y) {
-                body.position.y = InfinityConstants.GAMEPLAY_Y;
-            }
-            final Vec3d lv = body.getLinearVelocity();
-            if (lv.y != 0) {
-                body.setLinearVelocity(new Vec3d(lv.x, 0, lv.z));
-            }
+        // Thrust / drag as forces — MOSS integrates and handles collision response.
+        if (intent.z != 0) {
+            // Car-style diminishing acceleration: full force at rest, zero force when
+            // velocity-along-thrust reaches maxSpeed, linear in between. When velocity is
+            // against the thrust direction (e.g. after a bounce, or braking from full
+            // speed), factor stays at 1 so we get full acceleration in the new direction.
+            final Vec3d bodyForward = body.orientation.mult(new Vec3d(0, 0, 1));
+            final double velAlongForward = currentVel.dot(bodyForward);
+            final double progressTowardLimit =
+                Math.max(0.0, velAlongForward * Math.signum(intent.z)) / maxSpeed;
+            final double factor = Math.max(0.0, 1.0 - progressTowardLimit);
+            body.addForce(bodyForward.mult(accelRate * intent.z * factor));
+        } else if (currentSpeed > 0.001) {
+            // Drag: force opposite to current motion, magnitude = accelRate × DRAG_FACTOR.
+            final Vec3d dragDir = currentVel.mult(-1.0 / currentSpeed);
+            body.addForce(dragDir.mult(accelRate * DRAG_FACTOR));
+        }
+
+        // Rotation: ease current angular velocity toward target rather than snapping to
+        // it. Gives the ship a sense of mass — small lag entering and exiting turns.
+        // Exponential approach is frame-rate independent: t ∈ [0, 1] is the fraction of
+        // the gap to close this tick.
+        final double currentAng = body.getRotationalVelocity().y;
+        final double targetAng = intent.x * rotSpeed;
+        final double t = 1.0 - Math.exp(-TURN_RESPONSIVENESS * step);
+        final double newAng = currentAng + (targetAng - currentAng) * t;
+        body.setRotationalVelocity(0, newAng, 0);
+
+        // Gameplay is 2D on the X/Z plane — prevent collision resolution (e.g. teleporting
+        // onto a wall, or grazing a block at an oblique angle) from drifting the ship off the
+        // gameplay plane. Snap Y back each tick and zero any Y-component that accumulated in
+        // linear velocity.
+        if (body.position.y != InfinityConstants.GAMEPLAY_Y) {
+            body.position.y = InfinityConstants.GAMEPLAY_Y;
+        }
+        final Vec3d lv = body.getLinearVelocity();
+        if (lv.y != 0) {
+            body.setLinearVelocity(new Vec3d(lv.x, 0, lv.z));
         }
     }
 
-    /**
-     *  Default implementation does nothing.
-     * @param contact
-     */
+    /** Default implementation does nothing. */
     @Override
-    public void newContact(Contact<EntityId, MBlockShape> contact ) {
-        //log.info("PLayerDriver collision detected: "+contact.toString());
-
-
-
+    public void newContact(final Contact<EntityId, MBlockShape> contact) {
+        // no-op
     }
 }

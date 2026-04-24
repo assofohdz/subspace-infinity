@@ -23,44 +23,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.es.ship;
 
-import com.simsilica.es.EntityComponent;
+// Per-arena ship config.
+//
+// GroovyShipLoader evaluates this file at arena load and installs the result
+// as a ConfigRegistry snapshot via ConfigRegistrySystem.replace(). Stats use
+// integer Subspace units (matches ship-<name> INI fragments); the ShipSpawn
+// system converts to ECS-component units (e.g. rad/sec for Rotation) at spawn.
+//
+// DSL:
+//   ship(Ship.WARBIRD) {
+//       rotation initial: <I>, max: <M>, upgrade: <U>
+//       thrust   initial: <I>, max: <M>, upgrade: <U>
+//       speed    initial: <I>, max: <M>, upgrade: <U>
+//       recharge initial: <I>, max: <M>, upgrade: <U>
+//       energy   initial: <I>, max: <M>, upgrade: <U>
+//   }
+//
+// Omit a stat to leave it at ShipStat(0, 0, 0). MVP scope: Warbird only.
 
-/**
- * The ship's <b>current effective recharge rate</b> (energy units per second).
- * EnergySystem reads this each tick to top up {@link Energy} until it hits
- * {@link EnergyMax}.
- *
- * <p>Maps to Subspace {@code [Ship] InitialRecharge + n*UpgradeRecharge},
- * clamped at {@link RechargeMax}. Mutated by upgrade-prize pickups. The
- * Subspace integer ({@code "amount per 10 seconds"}) is converted to per-sec
- * at projection time by ShipSpawnSystem.
- *
- * @author Asser
- */
-public class Recharge implements EntityComponent {
-
-    private final double rechargePerSecond;
-
-    public Recharge() {
-        this(0.0);
-    }
-
-    public Recharge(final double rechargePerSecond) {
-        this.rechargePerSecond = rechargePerSecond;
-    }
-
-    public double getRechargePerSecond() {
-        return rechargePerSecond;
-    }
-
-    public Recharge newAdjusted(final double delta) {
-        return new Recharge(rechargePerSecond + delta);
-    }
-
-    @Override
-    public String toString() {
-        return "Recharge[" + rechargePerSecond + "]";
-    }
+ship(Ship.WARBIRD) {
+    rotation initial: 200,  max: 200,  upgrade: 0
+    thrust   initial: 16,   max: 24,   upgrade: 0
+    speed    initial: 2000, max: 6000, upgrade: 0
+    recharge initial: 4000, max: 4000, upgrade: 0
+    energy   initial: 1500, max: 1500, upgrade: 0
 }

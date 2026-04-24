@@ -23,44 +23,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.es.ship;
 
-import com.simsilica.es.EntityComponent;
+package infinity.config;
+
+import infinity.Ship;
 
 /**
- * The ship's <b>current effective recharge rate</b> (energy units per second).
- * EnergySystem reads this each tick to top up {@link Energy} until it hits
- * {@link EnergyMax}.
+ * Immutable template describing one ship type's baseline tuning for a given
+ * arena. Produced by the config layer (Groovy script / legacy INI) and looked
+ * up by consumers via a per-arena registry keyed on {@link Ship}.
  *
- * <p>Maps to Subspace {@code [Ship] InitialRecharge + n*UpgradeRecharge},
- * clamped at {@link RechargeMax}. Mutated by upgrade-prize pickups. The
- * Subspace integer ({@code "amount per 10 seconds"}) is converted to per-sec
- * at projection time by ShipSpawnSystem.
+ * <p>At ship-spawn time, these template values are projected into per-entity
+ * ECS components ({@code Thrust}/{@code ThrustMax}/{@code ThrustUpgrade},
+ * etc.) so consumers like the movement driver never touch the template
+ * directly — they watch the components, which can diverge from the template
+ * via upgrades, damage, or status effects.
  *
- * @author Asser
+ * <p>MVP scope: movement + energy only. Expand with weapons / ammo / special
+ * fields as consumers are wired.
+ *
+ * @param type the ship this template applies to
+ * @param rotation rotation-rate triple (initial / max / per-upgrade)
+ * @param thrust thrust triple
+ * @param speed speed triple
+ * @param recharge recharge-rate triple
+ * @param energy energy-pool triple
  */
-public class Recharge implements EntityComponent {
-
-    private final double rechargePerSecond;
-
-    public Recharge() {
-        this(0.0);
-    }
-
-    public Recharge(final double rechargePerSecond) {
-        this.rechargePerSecond = rechargePerSecond;
-    }
-
-    public double getRechargePerSecond() {
-        return rechargePerSecond;
-    }
-
-    public Recharge newAdjusted(final double delta) {
-        return new Recharge(rechargePerSecond + delta);
-    }
-
-    @Override
-    public String toString() {
-        return "Recharge[" + rechargePerSecond + "]";
-    }
-}
+public record ShipConfig(
+    Ship type,
+    ShipStat rotation,
+    ShipStat thrust,
+    ShipStat speed,
+    ShipStat recharge,
+    ShipStat energy) {}

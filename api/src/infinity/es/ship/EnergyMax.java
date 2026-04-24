@@ -28,27 +28,36 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * A destructable entity's maximum health.
+ * The ship's <b>current maximum-energy cap</b> — the value live {@link Energy}
+ * cannot exceed. Note this is the <i>current</i> max, not an absolute ceiling:
+ * the upgrade pickup system raises EnergyMax when an energy prize is collected
+ * ({@code EnergyMax = min(EnergyMax + EnergyUpgrade, ShipConfig.energy().max())}).
+ *
+ * <p>Maps to Subspace {@code [Ship] InitialEnergy + n*UpgradeEnergy}. Differs
+ * from the Speed/Thrust/Rotation pattern: there's no separate "live current"
+ * vs "current cap" split — Energy is live state, EnergyMax is its cap, and
+ * the absolute ceiling lives in the {@code ShipConfig} template.
  *
  * @author Paul Speed
  */
 public class EnergyMax implements EntityComponent {
 
-    private int health;
+    private final int health;
 
     public EnergyMax() {
+        this(0);
     }
 
     public EnergyMax(final int health) {
         this.health = health;
     }
 
-    public EnergyMax newAdjusted(final int delta) {
-        return new EnergyMax(health + delta);
-    }
-
     public int getMaxHealth() {
         return health;
+    }
+
+    public EnergyMax newAdjusted(final int delta) {
+        return new EnergyMax(health + delta);
     }
 
     @Override

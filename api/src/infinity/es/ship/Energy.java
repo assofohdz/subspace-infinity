@@ -28,28 +28,32 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * A destructable entity's health. Initial amount of energy that the ship can
- * have.
+ * The ship's <b>live energy / hit points</b>. Unlike Speed/Thrust/Rotation
+ * which describe a capability, Energy is genuine live state — mutated every
+ * tick by EnergySystem (recharge), by weapon damage, by ability costs, etc.
+ *
+ * <p>Capped at {@link EnergyMax}. Maps to Subspace's running energy value.
  *
  * @author Paul Speed
  */
 public class Energy implements EntityComponent {
 
-    private int health;
+    private final int health;
 
     public Energy() {
+        this(0);
     }
 
     public Energy(final int health) {
         this.health = health;
     }
 
-    public Energy newAdjusted(final int delta) {
-        return new Energy(health + delta);
-    }
-
     public int getHealth() {
         return health;
+    }
+
+    public Energy newAdjusted(final int delta) {
+        return new Energy(health + delta);
     }
 
     @Override

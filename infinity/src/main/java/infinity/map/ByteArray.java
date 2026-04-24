@@ -34,12 +34,16 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 
+import org.slf4j.*;
+
 /**
  * Internal storage class for holding an array of bytes, and performing various
  * operations on it. Does not account for data that exceeds the intended size of
  * an array.
  */
 public class ByteArray {
+
+    static Logger log = LoggerFactory.getLogger(ByteArray.class);
 
     byte[] m_array; // Byte data of the array
     int m_pointer = 0; // Index of the current insertion point
@@ -539,9 +543,7 @@ public class ByteArray {
             targetSet = Charset.forName("ISO-8859-1");
         } catch (@SuppressWarnings("unused") final UnsupportedCharsetException uce) {
             targetSet = Charset.defaultCharset();
-            // TODO: Log this instead
-            // Tools.printLog("Unsupported charset used when decoding string (index=" +
-            // index + ",length=" + length + ") from bytearray: " + uce.getMessage());
+            log.warn("Unsupported charset used when decoding string (index=" + index + ",length=" + length + ") from bytearray: " + uce.getMessage());
         }
 
         result = targetSet.decode(ByteBuffer.wrap(m_array, index, length)).toString().trim();

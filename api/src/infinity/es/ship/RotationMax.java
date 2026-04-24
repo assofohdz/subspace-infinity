@@ -28,17 +28,20 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Maximum rotation rate of the ship (0 = can't rotate, 400 = full rotation in 1
- * second)
+ * Ceiling on {@link Rotation} (rad/sec) — the upgrade pickup system clamps
+ * at this value: {@code Rotation = min(Rotation + RotationUpgrade, RotationMax)}.
  *
- * @author ss
+ * <p>Maps to Subspace {@code [Ship] MaximumRotation}, converted to rad/sec.
+ * Per-entity so power-ups can raise the ceiling for a single ship.
+ *
+ * @author Asser Fahrenholz
  */
 public class RotationMax implements EntityComponent {
 
-    double radSecMax;
+    private final double radSecMax;
 
     public RotationMax() {
-
+        this(0.0);
     }
 
     public RotationMax(final double radSecMax) {
@@ -47,5 +50,14 @@ public class RotationMax implements EntityComponent {
 
     public double getRadSecMax() {
         return radSecMax;
+    }
+
+    public RotationMax newAdjusted(final double delta) {
+        return new RotationMax(radSecMax + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "RotationMax[" + radSecMax + "]";
     }
 }

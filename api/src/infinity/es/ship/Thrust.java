@@ -23,23 +23,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Initial thrust of ship (0 = none)
+ * The ship's <b>current effective thrust rate</b> (acceleration units/sec).
+ * This is the value PlayerDriver reads each tick to compute force.
+ *
+ * <p>Maps to Subspace {@code [Ship] InitialThrust + n*UpgradeThrust}, clamped
+ * at {@link ThrustMax}. Mutated by upgrade-prize pickups, NOT by physics —
+ * the live force the body feels is on the {@code RigidBody}, not here.
  *
  * @author Asser Fahrenholz
  */
-public class Thrust {
+public class Thrust implements EntityComponent {
 
-    int thrust;
+    private final int thrust;
+
+    public Thrust() {
+        this(0);
+    }
+
+    public Thrust(final int thrust) {
+        this.thrust = thrust;
+    }
 
     public int getThrust() {
         return thrust;
     }
 
-    public Thrust(final int thrust) {
-        this.thrust = thrust;
+    public Thrust newAdjusted(final int delta) {
+        return new Thrust(thrust + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "Thrust[" + thrust + "]";
     }
 }

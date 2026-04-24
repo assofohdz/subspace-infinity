@@ -52,7 +52,7 @@ import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.Part;
 import infinity.BombRegistry;
-import infinity.Ships;
+import infinity.Ship;
 import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
 import infinity.es.Flag;
@@ -154,21 +154,21 @@ public class SISpatialFactory {
       case ShapeNames.OVER2:
         return createOver2();
       case ShapeNames.SHIP_WARBIRD:
-        return createShip(Ships.WARBIRD.getVisualOffset());
+        return createShip(Ship.WARBIRD.getVisualOffset());
       case ShapeNames.SHIP_JAVELIN:
-        return createShip(Ships.JAVELIN.getVisualOffset());
+        return createShip(Ship.JAVELIN.getVisualOffset());
       case ShapeNames.SHIP_SPIDER:
-        return createShip(Ships.SPIDER.getVisualOffset());
+        return createShip(Ship.SPIDER.getVisualOffset());
       case ShapeNames.SHIP_LEVI:
-        return createShip(Ships.LEVIATHAN.getVisualOffset());
+        return createShip(Ship.LEVIATHAN.getVisualOffset());
       case ShapeNames.SHIP_TERRIER:
-        return createShip(Ships.TERRIER.getVisualOffset());
+        return createShip(Ship.TERRIER.getVisualOffset());
       case ShapeNames.SHIP_WEASEL:
-        return createShip(Ships.WEASEL.getVisualOffset());
+        return createShip(Ship.WEASEL.getVisualOffset());
       case ShapeNames.SHIP_LANCASTER:
-        return createShip(Ships.LANCASTER.getVisualOffset());
+        return createShip(Ship.LANCASTER.getVisualOffset());
       case ShapeNames.SHIP_SHARK:
-        return createShip(Ships.SHARK.getVisualOffset());
+        return createShip(Ship.SHARK.getVisualOffset());
       case ShapeNames.FLAG:
         return createFlag(Flag.FLAG_THEIRS);
       case ShapeNames.DOOR:

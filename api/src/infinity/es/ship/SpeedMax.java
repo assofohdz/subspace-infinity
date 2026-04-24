@@ -23,14 +23,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Maximum speed of ship (0 = can't move)
+ * Ceiling on {@link Speed} — the upgrade pickup system clamps at this value:
+ * {@code Speed = min(Speed + SpeedUpgrade, SpeedMax)}.
+ *
+ * <p>Maps to Subspace {@code [Ship] MaximumSpeed}. Per-entity so power-ups
+ * can raise the ceiling for a single ship; typically left at the template
+ * value otherwise.
  *
  * @author Asser Fahrenholz
  */
-public class SpeedMax {
-    // TODO implement me
+public class SpeedMax implements EntityComponent {
+
+    private final int speedMax;
+
+    public SpeedMax() {
+        this(0);
+    }
+
+    public SpeedMax(final int speedMax) {
+        this.speedMax = speedMax;
+    }
+
+    public int getSpeedMax() {
+        return speedMax;
+    }
+
+    public SpeedMax newAdjusted(final int delta) {
+        return new SpeedMax(speedMax + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "SpeedMax[" + speedMax + "]";
+    }
 }

@@ -23,23 +23,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Amount added per 'Speed' Prize
+ * Per-pickup increment added to {@link Speed} when a 'Speed' prize is
+ * collected, clamped at {@link SpeedMax}.
+ *
+ * <p>Maps to Subspace {@code [Ship] UpgradeSpeed}.
  *
  * @author Asser Fahrenholz
  */
-public class SpeedUpgrade {
+public class SpeedUpgrade implements EntityComponent {
 
-    int energyUpgrade;
+    private final int speedUpgrade;
 
-    public int getEnergyUpgrade() {
-        return energyUpgrade;
+    public SpeedUpgrade() {
+        this(0);
     }
 
-    public SpeedUpgrade(final int energyUpgrade) {
-        this.energyUpgrade = energyUpgrade;
+    public SpeedUpgrade(final int speedUpgrade) {
+        this.speedUpgrade = speedUpgrade;
+    }
+
+    public int getSpeedUpgrade() {
+        return speedUpgrade;
+    }
+
+    public SpeedUpgrade newAdjusted(final int delta) {
+        return new SpeedUpgrade(speedUpgrade + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "SpeedUpgrade[" + speedUpgrade + "]";
     }
 }

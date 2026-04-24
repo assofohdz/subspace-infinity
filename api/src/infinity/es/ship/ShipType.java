@@ -26,41 +26,34 @@
 package infinity.es.ship;
 
 import com.simsilica.es.EntityComponent;
+import infinity.Ship;
 
 /**
- * The ship's <b>current effective recharge rate</b> (energy units per second).
- * EnergySystem reads this each tick to top up {@link Energy} until it hits
- * {@link EnergyMax}.
+ * Marks a ship entity's type (Warbird, Javelin, …). Used by the spawn system
+ * to look up the matching {@code ShipConfig} template in the per-arena
+ * {@code ConfigRegistry} and project its values onto the entity's stat
+ * components.
  *
- * <p>Maps to Subspace {@code [Ship] InitialRecharge + n*UpgradeRecharge},
- * clamped at {@link RechargeMax}. Mutated by upgrade-prize pickups. The
- * Subspace integer ({@code "amount per 10 seconds"}) is converted to per-sec
- * at projection time by ShipSpawnSystem.
- *
- * @author Asser
+ * @author Asser Fahrenholz
  */
-public class Recharge implements EntityComponent {
+public class ShipType implements EntityComponent {
 
-    private final double rechargePerSecond;
+    private final Ship type;
 
-    public Recharge() {
-        this(0.0);
+    public ShipType() {
+        this(null);
     }
 
-    public Recharge(final double rechargePerSecond) {
-        this.rechargePerSecond = rechargePerSecond;
+    public ShipType(final Ship type) {
+        this.type = type;
     }
 
-    public double getRechargePerSecond() {
-        return rechargePerSecond;
-    }
-
-    public Recharge newAdjusted(final double delta) {
-        return new Recharge(rechargePerSecond + delta);
+    public Ship getType() {
+        return type;
     }
 
     @Override
     public String toString() {
-        return "Recharge[" + rechargePerSecond + "]";
+        return "ShipType[" + type + "]";
     }
 }

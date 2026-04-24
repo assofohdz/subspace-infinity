@@ -23,23 +23,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Amount added per 'Recharge Rate' Prize
+ * Per-pickup increment (energy/sec) added to {@link Recharge} when a
+ * 'Recharge Rate' prize is collected, clamped at {@link RechargeMax}.
+ *
+ * <p>Maps to Subspace {@code [Ship] UpgradeRecharge}, converted to per-sec.
  *
  * @author Asser Fahrenholz
  */
-public class RechargeUpgrade {
+public class RechargeUpgrade implements EntityComponent {
 
-    int energyUpgrade;
+    private final double rechargePerSecondUpgrade;
 
-    public int getEnergyUpgrade() {
-        return energyUpgrade;
+    public RechargeUpgrade() {
+        this(0.0);
     }
 
-    public RechargeUpgrade(final int energyUpgrade) {
-        this.energyUpgrade = energyUpgrade;
+    public RechargeUpgrade(final double rechargePerSecondUpgrade) {
+        this.rechargePerSecondUpgrade = rechargePerSecondUpgrade;
+    }
+
+    public double getRechargePerSecondUpgrade() {
+        return rechargePerSecondUpgrade;
+    }
+
+    public RechargeUpgrade newAdjusted(final double delta) {
+        return new RechargeUpgrade(rechargePerSecondUpgrade + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "RechargeUpgrade[" + rechargePerSecondUpgrade + "]";
     }
 }

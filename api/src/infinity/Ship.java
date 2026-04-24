@@ -34,7 +34,7 @@ import infinity.sim.util.InfinityRunTimeException;
  *
  * @author asser
  */
-public enum Ships {
+public enum Ship {
   WARBIRD(1, "ship_warbird", 31),
     JAVELIN(2, "ship_javelin", 27),
     SPIDER(3, "ship_spider", 23),
@@ -48,7 +48,7 @@ public enum Ships {
     private final String name;
     private final int visualOffset;
 
-    Ships(final int id, final String name, int visualOffset) {
+    Ship(final int id, final String name, int visualOffset) {
         this.id = (byte) id;
         this.name = name;
         this.visualOffset = visualOffset;
@@ -62,8 +62,8 @@ public enum Ships {
         return name;
     }
 
-    public static Ships getShip(final byte id) {
-        for (final Ships ship : values()) {
+    public static Ship getShip(final byte id) {
+        for (final Ship ship : values()) {
             if (ship.getId() == id) {
                 return ship;
             }
@@ -71,8 +71,8 @@ public enum Ships {
         throw new InfinityRunTimeException("No ship with id " + id);
     }
 
-    public static Ships getShip(final String name) {
-        for (final Ships ship : values()) {
+    public static Ship getShip(final String name) {
+        for (final Ship ship : values()) {
             if (ship.getName().equals(name)) {
                 return ship;
             }

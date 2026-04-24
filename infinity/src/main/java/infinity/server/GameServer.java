@@ -120,8 +120,11 @@ import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.MapTypes;
-import infinity.systems.MovementSystem;
+import infinity.systems.MovementInputSystem;
 import infinity.systems.PrizeSystem;
+import infinity.settings.ConfigRegistrySystem;
+import infinity.settings.GroovyShipLoader;
+import infinity.settings.ShipSpawnSystem;
 import infinity.systems.SettingsSystem;
 import infinity.systems.WarpSystem;
 import infinity.systems.WeaponsSystem;
@@ -292,7 +295,7 @@ public class GameServer {
     // Then add gamesystems:
     systems.register(EnergySystem.class, new EnergySystem());
     systems.register(AvatarSystem.class, new AvatarSystem());
-    systems.register(MovementSystem.class, new MovementSystem());
+    systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());
     systems.register(WeaponsSystem.class, new WeaponsSystem());
     systems.register(ActionSystem.class, new ActionSystem());
@@ -311,6 +314,10 @@ public class GameServer {
     systems.register(AdaptiveLoadingService.class, adaptiveLoader);
 
     systems.register(SettingsSystem.class, new SettingsSystem());
+    final ConfigRegistrySystem configRegistry = new ConfigRegistrySystem();
+    systems.register(ConfigRegistrySystem.class, configRegistry);
+    systems.register(GroovyShipLoader.class, new GroovyShipLoader(configRegistry));
+    systems.register(ShipSpawnSystem.class, new ShipSpawnSystem());
     systems.register(MapSystem.class, new MapSystem());
     systems.register(WarpSystem.class, new WarpSystem());
     systems.register(FrequencySystem.class, new FrequencySystem());

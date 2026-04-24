@@ -15,6 +15,8 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 
 1. **Use `final` for method parameters**
 2. **BSD 2-clause license header on all files** (Copyright Asser Fahrenholz)
+3. **Log hardcoded values.** When you encounter a literal number/string in Java code that looks like config or a magic constant, append it to [`.claude/hardcoded-values.md`](.claude/hardcoded-values.md) (file:line, symbol/context, value, note). Running ledger, not a blocker — batch-address later.
+4. **Log config consumers.** When you wire a config field into a consumer (or add a new config field), append it to [`.claude/config-consumers.md`](.claude/config-consumers.md) — which field, which class reads it, and via what path (typed registry / component / setting string). Lets us see at a glance what config drives what gameplay, and catch orphan config (declared but never read) or orphan consumers (reading fields no script populates).
 
 Path-scoped rules live in `.claude/rules/` and load automatically when relevant files are read:
 - [`components.md`](.claude/rules/components.md) — immutability + no-arg constructor (`api/src/infinity/es/**`)
@@ -23,6 +25,7 @@ Path-scoped rules live in `.claude/rules/` and load automatically when relevant 
 - [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity/` + `modules/` Java)
 - [`api-contracts.md`](.claude/rules/api-contracts.md) — api/ is data + interfaces only; no deps on server/client/modules (`api/src/**`)
 - [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`client/**` + loose `*AppState`)
+- [`config-pattern.md`](.claude/rules/config-pattern.md) — template (`*Config` records) vs instance (components); spawn systems project template → component; hot-path consumers read components only (`api/src/infinity/config/**` + `api/src/infinity/es/ship/**`)
 
 Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
 

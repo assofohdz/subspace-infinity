@@ -202,6 +202,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     private final boolean selfSet = false;
     private WarpSystem warpSys;
     private ActionSystem actionSys;
+    private AvatarSystem avatarSys;
     private GameSessionListener callback;
     // private final MPhysSystem mphys;
     private boolean spawned;
@@ -271,6 +272,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
       warpSys = gameSystems.get(WarpSystem.class);
       actionSys = gameSystems.get(ActionSystem.class);
+      avatarSys = gameSystems.get(AvatarSystem.class);
     }
 
     public void close() {
@@ -365,7 +367,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     @Override
     public void avatar(final byte avatarInput) {
-      // TODO Auto-generated method stub
+      avatarSys.requestShipChange(avatarEntityId, avatarInput);
     }
 
     @Override

@@ -40,6 +40,7 @@ import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.Ship;
 import infinity.es.AudioTypes;
 import infinity.es.Bounty;
 import infinity.es.Buff;
@@ -67,6 +68,7 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
+import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
 import infinity.es.ship.actions.Repel;
@@ -498,6 +500,12 @@ public class GameEntities {
     final EntityId result = ed.createEntity();
 
     ed.setComponent(result, new Parent(owner));
+
+    // TODO(pattern4-arena): ships should carry their own ArenaId component so the spawn
+    // system can look up per-arena config without relying on ambient state. Deferred until
+    // the player/arena association is modeled — for now the spawn path resolves arena from
+    // the currently-loaded arena ("Option R"). Multi-arena correctness depends on fixing this.
+    ed.setComponent(result, new ShipType(Ship.getShip(ship)));
 
     ed.setComponent(result, ShapeNames.createShip(ship, ed));
 

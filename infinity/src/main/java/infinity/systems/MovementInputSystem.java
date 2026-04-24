@@ -61,9 +61,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class MovementSystem extends AbstractGameSystem {
+public class MovementInputSystem extends AbstractGameSystem {
 
-  static Logger log = LoggerFactory.getLogger(MovementSystem.class);
+  static Logger log = LoggerFactory.getLogger(MovementInputSystem.class);
 
   private EntityData ed;
   private PlayerContainer players;
@@ -71,7 +71,7 @@ public class MovementSystem extends AbstractGameSystem {
   private final MovementBodyInitializer initializer = new MovementBodyInitializer();
   private PhysicsSpace<EntityId, MBlockShape> space;
 
-  public MovementSystem() {
+  public MovementInputSystem() {
     // At the moment, we don't need to do anything here.
   }
 
@@ -160,7 +160,7 @@ public class MovementSystem extends AbstractGameSystem {
     protected PlayerDriver addObject(Entity e) {
       log.info("addObject(" + e + ")");
 
-      PlayerDriver result = new PlayerDriver(e.getId(), ed, null);
+      PlayerDriver result = new PlayerDriver(e.getId(), ed);
 
       // See if the physics engine already has a body for this entity
       RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
@@ -184,6 +184,7 @@ public class MovementSystem extends AbstractGameSystem {
     @Override
     protected void removeObject(PlayerDriver driver, Entity e) {
       log.info("removeObject(" + e + ")");
+      driver.release();
     }
   }
 

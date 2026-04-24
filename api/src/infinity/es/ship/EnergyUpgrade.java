@@ -23,23 +23,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package infinity.es.ship;
 
+import com.simsilica.es.EntityComponent;
+
 /**
- * Amount added per 'Energy Upgrade' Prize
+ * Per-pickup increment added to {@link EnergyMax} (NOT live {@link Energy})
+ * when an energy upgrade prize is collected. Raises the ship's max HP cap;
+ * the live HP gauge is unaffected until the next recharge tick.
+ *
+ * <p>Maps to Subspace {@code [Ship] UpgradeEnergy}.
  *
  * @author Asser Fahrenholz
  */
-public class EnergyUpgrade {
+public class EnergyUpgrade implements EntityComponent {
 
-    int energyUpgrade;
+    private final int energyUpgrade;
+
+    public EnergyUpgrade() {
+        this(0);
+    }
+
+    public EnergyUpgrade(final int energyUpgrade) {
+        this.energyUpgrade = energyUpgrade;
+    }
 
     public int getEnergyUpgrade() {
         return energyUpgrade;
     }
 
-    public EnergyUpgrade(final int energyUpgrade) {
-        this.energyUpgrade = energyUpgrade;
+    public EnergyUpgrade newAdjusted(final int delta) {
+        return new EnergyUpgrade(energyUpgrade + delta);
+    }
+
+    @Override
+    public String toString() {
+        return "EnergyUpgrade[" + energyUpgrade + "]";
     }
 }
