@@ -64,17 +64,25 @@ public class ArenaRegistryState extends BaseAppState {
     public final String mapFile;
     public final Vec3d min;
     public final Vec3d max;
+    public final int arenaIndex;
 
-    ArenaSnapshot(final String arenaName, final String mapFile, final Vec3d min, final Vec3d max) {
+    ArenaSnapshot(
+        final String arenaName,
+        final String mapFile,
+        final Vec3d min,
+        final Vec3d max,
+        final int arenaIndex) {
       this.arenaName = arenaName;
       this.mapFile = mapFile;
       this.min = min;
       this.max = max;
+      this.arenaIndex = arenaIndex;
     }
 
     @Override
     public String toString() {
-      return "Arena{name=" + arenaName + ", map=" + mapFile + ", min=" + min + ", max=" + max + "}";
+      return "Arena{name=" + arenaName + ", slot=" + arenaIndex + ", map=" + mapFile
+          + ", min=" + min + ", max=" + max + "}";
     }
   }
 
@@ -133,9 +141,16 @@ public class ArenaRegistryState extends BaseAppState {
       return;
     }
     final ArenaSnapshot prev = arenas.put(
-        e.getId(), new ArenaSnapshot(id.getArena(), map.getMapFile(), map.getMin(), map.getMax()));
+        e.getId(),
+        new ArenaSnapshot(
+            id.getArena(), map.getMapFile(), map.getMin(), map.getMax(), map.getArenaIndex()));
     if (prev == null) {
-      log.info("Arena entity {} registered: name={} map={}", e.getId(), id.getArena(), map.getMapFile());
+      log.info(
+          "Arena entity {} registered: name={} slot={} map={}",
+          e.getId(),
+          id.getArena(),
+          map.getArenaIndex(),
+          map.getMapFile());
     }
   }
 

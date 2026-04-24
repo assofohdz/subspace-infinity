@@ -86,6 +86,18 @@ public class MapSystem extends AbstractGameSystem {
   public static final int MAX_VISIBLE_TILE = 190;
 
   /**
+   * Number of tile-type slots reserved per arena in the global {@code BlockTypeIndex}. Each arena
+   * writes its visible tiles into a contiguous range of {@code TILE_COUNT} slots starting at
+   * {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}. Must match {@code BlockGeometryIndex.TILE_COUNT}.
+   */
+  public static final int TILE_COUNT = 190;
+
+  /** Compute the block-type base index for a given arena slot. */
+  public static int arenaTileBase(final int arenaIndex) {
+    return TILE_TYPE_BASE + arenaIndex * TILE_COUNT;
+  }
+
+  /**
    * Block type index for invisible physics blocks. These blocks have collision but no visible
    * geometry. Must match BlockGeometryIndex.INVISIBLE_BLOCK_TYPE_INDEX.
    */
@@ -217,29 +229,32 @@ public class MapSystem extends AbstractGameSystem {
   /**
    * Loads a map, auto-positioning it via the spiral placement algorithm.
    *
-   * @param mapName the lvz-map to load
+   * @param mapName    the lvl-map to load
+   * @param arenaIndex zero-based arena slot — determines the block-type range the map's tiles
+   *                   occupy ({@code arenaTileBase(arenaIndex)..+189}), and therefore which
+   *                   tileset the client will render them with.
    * @return true if loaded
    */
-  public boolean loadMap(final String mapName) {
+  public boolean loadMap(final String mapName, final int arenaIndex) {
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
     Vec3d offset = calculateNextOffset();
     TileId tile = TileId.fromCell((int) offset.x, 0, (int) offset.z);
-    return loadMap(mapName, tile);
+    return loadMap(mapName, tile, arenaIndex);
   }
 
   /**
-   * Loads a map at an explicit grid location. Each TileId is a 1024x1024 slot
-   * on Moss's TILE_GRID; adjacent tiles share a 2-cell gutter formed by each
-   * map's own border ring.
+   * Loads a map at an explicit grid location. Each TileId is a 1024x1024 slot on Moss's TILE_GRID;
+   * adjacent tiles share a 2-cell gutter formed by each map's own border ring.
    *
-   * @param mapName the lvz-map to load
-   * @param tile the Moss TileId specifying where to place the map
+   * @param mapName    the lvl-map to load
+   * @param tile       the Moss TileId specifying where to place the map
+   * @param arenaIndex zero-based arena slot (see {@link #loadMap(String, int)})
    * @return true if loaded, false if the filename is invalid or the tile is occupied
    */
-  public boolean loadMap(final String mapName, final TileId tile) {
-    log.info("Loading map: " + mapName + " at " + tile);
+  public boolean loadMap(final String mapName, final TileId tile, final int arenaIndex) {
+    log.info("Loading map: " + mapName + " at " + tile + " (arenaIndex=" + arenaIndex + ")");
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
@@ -255,9 +270,11 @@ public class MapSystem extends AbstractGameSystem {
     String fileName = mapDirectory + "/" + mapName;
     LevelFile res = (LevelFile) assetLoader.loadAsset(fileName);
 
+    final int tileBase = arenaTileBase(arenaIndex);
+
     // Loading a map takes ~3 seconds depending on density — do it asynchronously.
     CompletableFuture<HashSet<Vec3d>> completableFuture =
-        CompletableFuture.supplyAsync(() -> this.createBlocksFromLegacyMap(res, worldOffset));
+        CompletableFuture.supplyAsync(() -> this.createBlocksFromLegacyMap(res, worldOffset, tileBase));
     completableFuture.thenAccept(s -> activeMaps.put(mapName, s));
 
     res.setMapName(mapName);
@@ -320,7 +337,7 @@ public class MapSystem extends AbstractGameSystem {
    * @return true if the swap was queued, false if the old map isn't loaded or
    *         the new name has an invalid extension
    */
-  public boolean swapMap(final String oldMapName, final String newMapName) {
+  public boolean swapMap(final String oldMapName, final String newMapName, final int arenaIndex) {
     if (!activeMaps.containsKey(oldMapName)) {
       return false;
     }
@@ -340,9 +357,10 @@ public class MapSystem extends AbstractGameSystem {
     res.setMapName(newMapName);
     log.info("Swapping " + oldMapName + " -> " + newMapName + " at " + tile);
 
+    final int tileBase = arenaTileBase(arenaIndex);
     CompletableFuture
         .supplyAsync(() -> removeBlocksFromLegacyMap(oldCoordinates))
-        .thenApplyAsync(s -> createBlocksFromLegacyMap(res, worldOffset))
+        .thenApplyAsync(s -> createBlocksFromLegacyMap(res, worldOffset, tileBase))
         .thenAccept(blocks -> activeMaps.put(newMapName, blocks));
     return true;
   }
@@ -400,7 +418,8 @@ public class MapSystem extends AbstractGameSystem {
    * See {@code .claude/skills/lvl-format.md} for the tile-ID → semantic mapping
    * and {@link MapTypes} for the numeric constants.
    */
-  public HashSet<Vec3d> createBlocksFromLegacyMap(final LevelFile map, final Vec3d arenaOffset) {
+  public HashSet<Vec3d> createBlocksFromLegacyMap(
+      final LevelFile map, final Vec3d arenaOffset, final int arenaTileBase) {
     final HashSet<Vec3d> coordinates = new HashSet<>();
     final short[][] tiles = map.getMap();
 
@@ -467,7 +486,7 @@ public class MapSystem extends AbstractGameSystem {
 
         final int tileId = Short.toUnsignedInt(s);
         final int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
-            ? TILE_TYPE_BASE + tileId - 1
+            ? arenaTileBase + tileId - 1
             : INVISIBLE_BLOCK_TYPE;
         final int result = world.setWorldCell(location, blockType);
         if (result == -1) {

@@ -31,6 +31,7 @@ import com.simsilica.mblock.geom.GeometryFactory;
 import com.simsilica.mblock.geom.MaterialType;
 import com.simsilica.mblock.io.BlockTypeData;
 import com.simsilica.mblock.io.FluidTypeData;
+import infinity.InfinityConstants;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.sim.util.InfinityRunTimeException;
@@ -57,11 +58,17 @@ public class BlockGeometryIndex {
    */
   public static final int TILE_TYPE_BASE = 100;
 
-  /** Total number of tiles in the Subspace tileset (190 tiles). */
+  /** Total number of tiles in the Subspace tileset (190 tiles). Must match {@code MapSystem.TILE_COUNT}. */
   public static final int TILE_COUNT = 190;
 
-  /** Required size for BlockTypeIndex array to hold all tiles. */
-  public static final int REQUIRED_ARRAY_SIZE = TILE_TYPE_BASE + TILE_COUNT;
+  /**
+   * Required size for the BlockTypeIndex array. Each arena gets its own {@link #TILE_COUNT}-slot
+   * range starting at {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}, so we reserve
+   * {@code MAX_ARENAS * TILE_COUNT} contiguous entries above the base indices used for non-tile
+   * block types.
+   */
+  public static final int REQUIRED_ARRAY_SIZE =
+      TILE_TYPE_BASE + InfinityConstants.MAX_ARENAS * TILE_COUNT;
 
   /** The material name used for tiles in the material registry. */
   public static final String TILE_MATERIAL_NAME = "tile";
@@ -96,16 +103,32 @@ public class BlockGeometryIndex {
 
   protected final GeometryFactory geomFactory;
 
-  /** The single shared tile material. Exposed so the lighting tuner can mutate shader params live. */
-  private Material tileMaterial;
+  /**
+   * The mutable material registry handed to {@link GeometryFactory}. Held as a field so per-arena
+   * tileset registration can add/replace entries at runtime — {@code GeometryFactory} looks up each
+   * block's material on every render by {@link MaterialType#getId()}, so mutations propagate.
+   */
+  private Map<String, Material> materials;
+
+  /**
+   * Per-arena-slot tile materials. Index N holds the material rendering tiles for arena slot N.
+   * Populated by {@link #registerArenaTileset(AssetManager, int, String)} and shared for all slots
+   * at bootstrap (so every slot has a renderable fallback before the real tileset arrives).
+   */
+  private final Material[] arenaMaterials = new Material[InfinityConstants.MAX_ARENAS];
 
   public static final float DEFAULT_POOL_GAIN = 7.0f;
   public static final float DEFAULT_SUN_SCALE = 0.8f;
   public static final float DEFAULT_EXPOSURE = 1.8f;
   public static final float DEFAULT_TEXTURE_GAMMA = 0.6f;
 
+  /**
+   * Returns slot 0's tile material. Retained for back-compat with callers that tune shader
+   * parameters (e.g. {@code LightingTunerState}) — in multi-arena use those tweaks only affect
+   * slot 0. The first-loaded arena always occupies slot 0 given the allocator's first-free policy.
+   */
   public Material getTileMaterial() {
-    return tileMaterial;
+    return arenaMaterials[0];
   }
 
   private void applyTileShaderDefaults(final Material mat) {
@@ -129,13 +152,12 @@ public class BlockGeometryIndex {
         FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
       }
       expandBlockTypeIndex(REQUIRED_ARRAY_SIZE);
-      Map<String, Material> materials =
-          MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
+      this.materials = MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
       registerInvisibleBlockType();
       registerLanternMaterial(assets, materials);
       registerLightEmitterBlockType();
-      registerTileMaterialFromLevel(assets, materials, levelPath);
       registerTileBlockTypes();
+      bootstrapAllArenaTilesets(buildTileMaterialFromLevel(assets, levelPath));
       geomFactory = new GeometryFactory(materials);
     } catch (Exception e) {
       throw new InfinityRunTimeException("Error initializing block set configuration", e);
@@ -158,8 +180,7 @@ public class BlockGeometryIndex {
       // Expand the BlockTypeIndex array to accommodate tile types
       expandBlockTypeIndex(REQUIRED_ARRAY_SIZE);
 
-      Map<String, Material> materials =
-          MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
+      this.materials = MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
 
       // Register invisible block type for physics-only blocks
       registerInvisibleBlockType();
@@ -167,8 +188,8 @@ public class BlockGeometryIndex {
       registerLightEmitterBlockType();
 
       // Register tile material and block types
-      registerTileMaterial(assets, materials);
       registerTileBlockTypes();
+      bootstrapAllArenaTilesets(buildTileMaterialFromPng(assets));
 
       geomFactory = new GeometryFactory(materials);
     } catch (Exception e) {
@@ -260,78 +281,81 @@ public class BlockGeometryIndex {
     log.info("Registered light-emitter block type at index {}", LIGHT_EMITTER_BLOCK_TYPE_INDEX);
   }
 
-  /**
-   * Registers the tileset material for rendering flat tiles.
-   *
-   * @param assets the asset manager
-   * @param materials the material registry map to add the tile material to
-   */
-  private void registerTileMaterial(
-      final AssetManager assets, final Map<String, Material> materials) {
-    // Custom MOSS voxel-lit material: sun channel in vertex-color alpha,
-    // colored light in vertex-color rgb, combined per-channel with max().
-    // Ship and wall lighting is produced entirely by the baked cell lightData
-    // written into the mesh vertex colors by GeometryFactory — no jME lights
-    // need to be present.
-    Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
-    tileMat.setTexture("ColorMap", assets.loadTexture("Textures/Subspace/tiles.png"));
-    tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
-    tileMat.setBoolean("DebugShipLight", false);
-    tileMat.setBoolean("DebugLeafGrid", false);
-    applyTileShaderDefaults(tileMat);
+  /** Builds a tile {@link Material} from a fallback PNG on the asset path. */
+  private Material buildTileMaterialFromPng(final AssetManager assets) {
+    final Material mat = new Material(assets, "MatDefs/TileLit.j3md");
+    mat.setTexture("ColorMap", assets.loadTexture("Textures/Subspace/tiles.png"));
+    configureTileMaterial(mat);
+    return mat;
+  }
 
-    for (int layer : new int[]{FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
-      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
-      materials.put(key, tileMat);
-    }
-    tileMaterial = tileMat;
-    log.info("Registered tileset PNG under 3 layer keys");
+  /** Builds a tile {@link Material} from the embedded BMP inside the given {@code .lvl}. */
+  private Material buildTileMaterialFromLevel(final AssetManager assets, final String levelPath) {
+    final Material mat = new Material(assets, "MatDefs/TileLit.j3md");
+    mat.setTexture("ColorMap", loadTilesetTexture(assets, levelPath));
+    configureTileMaterial(mat);
+    return mat;
+  }
+
+  private void configureTileMaterial(final Material mat) {
+    mat.setFloat("AlphaDiscardThreshold", 0.5f);
+    mat.setBoolean("DebugShipLight", false);
+    mat.setBoolean("DebugLeafGrid", false);
+    applyTileShaderDefaults(mat);
   }
 
   /**
-   * Extracts the embedded tileset from a .lvl file and registers it as the tile material. Black
-   * pixels (Subspace transparency color) are converted to alpha=0. The pixel data is flipped
-   * vertically to match JME3's bottom-left UV origin.
+   * Install the same bootstrap material under every arena slot's MaterialType keys. This
+   * guarantees that if the server writes tile cells for any slot before the client has received
+   * that arena's {@code ArenaMap} entity, geometry generation still finds a material — it just
+   * paints with the bootstrap tileset until {@link #registerArenaTileset} is called with the real
+   * level.
    */
-  private void registerTileMaterialFromLevel(
-      final AssetManager assets,
-      final Map<String, Material> materials,
-      final String levelPath) {
-
-    final Texture2D tileTexture = loadTilesetTexture(assets, levelPath);
-
-    final Material tileMat = new Material(assets, "MatDefs/TileLit.j3md");
-    tileMat.setTexture("ColorMap", tileTexture);
-    tileMat.setFloat("AlphaDiscardThreshold", 0.5f);
-    tileMat.setBoolean("DebugShipLight", false);
-    tileMat.setBoolean("DebugLeafGrid", false);
-    applyTileShaderDefaults(tileMat);
-
-    for (int layer : new int[] {FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
-      String key = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals)).getId();
-      materials.put(key, tileMat);
+  private void bootstrapAllArenaTilesets(final Material bootstrap) {
+    for (int arenaIndex = 0; arenaIndex < InfinityConstants.MAX_ARENAS; arenaIndex++) {
+      arenaMaterials[arenaIndex] = bootstrap;
+      putTileMaterialKeys(arenaIndex, bootstrap);
     }
-    tileMaterial = tileMat;
-    log.info("Registered tileset from '{}' under 3 layer keys", levelPath);
+    log.info("Bootstrapped {} arena tileset slots with shared fallback material",
+        InfinityConstants.MAX_ARENAS);
   }
 
   /**
-   * Swap the tile material's {@code ColorMap} to the embedded tileset of the given {@code .lvl}.
-   * Because {@link #tileMaterial} is the shared {@link Material} backing every already-generated
-   * block mesh in the scene, the swap is visible immediately without regenerating geometry. Safe
-   * to call on the jME render thread at runtime as arenas become active.
+   * Register the tileset embedded in {@code levelPath} as the material for arena slot
+   * {@code arenaIndex}. Block-type registrations for this slot already reference a per-slot
+   * {@link MaterialType} key (set up once by {@link #registerTileBlockTypes}); this method just
+   * swaps the material under those keys, so any geometry already built for this slot picks up
+   * the new tileset on the next render.
    *
-   * @param assets    asset manager (client-side)
-   * @param levelPath asset path to the {@code .lvl} whose embedded BMP should become the tileset
+   * @param assets     client asset manager
+   * @param arenaIndex zero-based arena slot, {@code 0..MAX_ARENAS-1}
+   * @param levelPath  asset path to the {@code .lvl} providing the tileset BMP
    */
-  public void refreshTileset(final AssetManager assets, final String levelPath) {
-    if (tileMaterial == null) {
-      log.warn("refreshTileset called before tileMaterial initialized; ignored");
+  public void registerArenaTileset(
+      final AssetManager assets, final int arenaIndex, final String levelPath) {
+    if (arenaIndex < 0 || arenaIndex >= InfinityConstants.MAX_ARENAS) {
+      log.warn("registerArenaTileset: arenaIndex {} out of range [0,{})",
+          arenaIndex, InfinityConstants.MAX_ARENAS);
       return;
     }
-    final Texture2D tex = loadTilesetTexture(assets, levelPath);
-    tileMaterial.setTexture("ColorMap", tex);
-    log.info("Swapped tileset texture to '{}' on shared tile material", levelPath);
+    final Material mat = buildTileMaterialFromLevel(assets, levelPath);
+    arenaMaterials[arenaIndex] = mat;
+    putTileMaterialKeys(arenaIndex, mat);
+    log.info("Registered tileset '{}' for arena slot {}", levelPath, arenaIndex);
+  }
+
+  /** Store the given material under all three layer MaterialType keys for the arena slot. */
+  private void putTileMaterialKeys(final int arenaIndex, final Material mat) {
+    final String name = tileMaterialName(arenaIndex);
+    for (final int layer : new int[] {FLYOVER_LAYER, REGULAR_LAYER, FLYUNDER_LAYER}) {
+      final String key = new MaterialType(name, layer, Arrays.asList(GeomReq.Normals)).getId();
+      materials.put(key, mat);
+    }
+  }
+
+  /** Per-slot MaterialType name — keeps each arena's tileset lookups independent. */
+  private static String tileMaterialName(final int arenaIndex) {
+    return TILE_MATERIAL_NAME + "_" + arenaIndex;
   }
 
   /**
@@ -371,30 +395,40 @@ public class BlockGeometryIndex {
   }
 
   /**
-   * Registers BlockTypes for all 190 Subspace tiles using FlatTileBlockFactory. Tiles are
-   * registered at indices TILE_TYPE_BASE to TILE_TYPE_BASE + 189. Each tile gets its own
-   * FlatTileBlockFactory with pre-computed UV coordinates.
+   * Registers {@link BlockType}s for every tile in every arena slot. Each arena's 190 tile types
+   * live in a contiguous block-type range starting at {@code TILE_TYPE_BASE + arenaIndex *
+   * TILE_COUNT}, and each tile's {@link MaterialType} names a per-slot key ({@code "tile_<N>"})
+   * so the material lookup in {@link GeometryFactory} resolves to that arena's tileset. The
+   * FlatTileBlockFactory's UV math is slot-independent (normalized 0..1 over a 19×10 grid), so
+   * the same tile id renders correctly regardless of which arena it's in.
    */
   private void registerTileBlockTypes() {
-    for (int tileId = 1; tileId <= TILE_COUNT; tileId++) {
-      int typeIndex = TILE_TYPE_BASE + tileId - 1;
-
-      int layer;
-      if (tileId >= FLYOVER_TILE_START && tileId <= FLYOVER_TILE_END) {
-        layer = FLYOVER_LAYER;
-      } else if (tileId >= FLYUNDER_TILE_START && tileId <= FLYUNDER_TILE_END) {
-        layer = FLYUNDER_LAYER;
-      } else {
-        layer = REGULAR_LAYER;
+    for (int arenaIndex = 0; arenaIndex < InfinityConstants.MAX_ARENAS; arenaIndex++) {
+      final int base = TILE_TYPE_BASE + arenaIndex * TILE_COUNT;
+      final String matName = tileMaterialName(arenaIndex);
+      for (int tileId = 1; tileId <= TILE_COUNT; tileId++) {
+        final int typeIndex = base + tileId - 1;
+        final int layer;
+        if (tileId >= FLYOVER_TILE_START && tileId <= FLYOVER_TILE_END) {
+          layer = FLYOVER_LAYER;
+        } else if (tileId >= FLYUNDER_TILE_START && tileId <= FLYUNDER_TILE_END) {
+          layer = FLYUNDER_LAYER;
+        } else {
+          layer = REGULAR_LAYER;
+        }
+        final MaterialType mt = new MaterialType(matName, layer, Arrays.asList(GeomReq.Normals));
+        final FlatTileBlockFactory factory = FlatTileBlockFactory.createForTile(mt, tileId);
+        final BlockName name = new BlockName("tile", arenaIndex + ":" + tileId);
+        BlockTypeIndex.override(typeIndex, new BlockType(name, factory));
       }
-
-      MaterialType tileMaterialType = new MaterialType(TILE_MATERIAL_NAME, layer, Arrays.asList(GeomReq.Normals));
-      FlatTileBlockFactory factory = FlatTileBlockFactory.createForTile(tileMaterialType, tileId);
-      BlockName name = new BlockName("tile", String.valueOf(tileId));
-      BlockTypeIndex.override(typeIndex, new BlockType(name, factory));
     }
-    log.info("Registered {} tile block types (indices {}-{}) with Z-order layers",
-        TILE_COUNT, TILE_TYPE_BASE, TILE_TYPE_BASE + TILE_COUNT - 1);
+    log.info(
+        "Registered {} tile block types ({} arenas × {} tiles) indices {}..{}",
+        InfinityConstants.MAX_ARENAS * TILE_COUNT,
+        InfinityConstants.MAX_ARENAS,
+        TILE_COUNT,
+        TILE_TYPE_BASE,
+        TILE_TYPE_BASE + InfinityConstants.MAX_ARENAS * TILE_COUNT - 1);
   }
 
   public Node generateBlocks(final Node target, final CellArray cells) {

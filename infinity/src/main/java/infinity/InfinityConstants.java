@@ -90,6 +90,14 @@ public class InfinityConstants {
   public static final int TILE_SIZE = WorldGrids.TILE_SIZE;
 
   /**
+   * Maximum number of concurrently-loaded arenas. Fixes the size of the per-arena block-type slot
+   * table in {@code BlockGeometryIndex} and bounds the slot allocator in {@code ArenaSystem}.
+   * Tiles use (190 * MAX_ARENAS) block-type indices above {@code TILE_TYPE_BASE}; staying well
+   * inside the 20-bit cell-type field ({@code MaskUtils.TYPE_MASK = 0x000fffff}, ~1M slots).
+   */
+  public static final int MAX_ARENAS = 16;
+
+  /**
    * Default gravity used for the physics simulation. - Changed from 0,-10,0 to 0,0,0 for ZERO
    * gravity (space sim)
    */

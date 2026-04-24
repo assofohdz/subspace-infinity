@@ -37,6 +37,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.InfinityConstants;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
@@ -112,6 +113,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     boolean desired;
     ArenaState state = ArenaState.NOT_LOADED;
     EntityId entityId;
+    int arenaIndex = -1; // assigned by the slot allocator at load-time; -1 when not loaded
     String lastError;
 
     ArenaRecord(final String name) {
@@ -124,6 +126,14 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private static final String ARENA_CONF = "arena.conf";
 
   private final Map<String, ArenaRecord> registry = new ConcurrentHashMap<>();
+
+  /**
+   * Slot allocator for arena indices. Each {@code true} entry means the slot is in use by a
+   * currently-loaded arena. Indices map 1:1 to the per-arena block-type ranges on the client
+   * (tiles 1..190 of arena N live at block types {@code TILE_TYPE_BASE + N * 190}..+189).
+   * Released on unload so the next load can reuse the slot.
+   */
+  private final boolean[] arenaSlots = new boolean[InfinityConstants.MAX_ARENAS];
 
   private EntityData ed;
   private EntitySet arenaEntities;
@@ -328,20 +338,28 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     final SettingsSystem settings = getSystem(SettingsSystem.class);
     final MapSystem maps = getSystem(MapSystem.class);
     EntityId arena = null;
+    int allocatedSlot = -1;
     try {
+      allocatedSlot = allocateSlot();
+      if (allocatedSlot < 0) {
+        fail(rec, null, "No free arena slot (MAX_ARENAS=" + InfinityConstants.MAX_ARENAS + ")");
+        return;
+      }
+      rec.arenaIndex = allocatedSlot;
+
       settings.loadSettings(EntityId.NULL_ID, rec.name);
       final String mapFile = settings.getString(rec.name, "General", "Map", rec.name + ".lvl");
 
       arena = ed.createEntity();
       ed.setComponent(arena, new ArenaId(rec.name, EntityId.NULL_ID));
 
-      if (!maps.loadMap(mapFile)) {
+      if (!maps.loadMap(mapFile, rec.arenaIndex)) {
         fail(rec, arena, "loadMap returned false for " + mapFile);
         return;
       }
       final Vec3d maxB = maps.getMapBoundsMax(mapFile);
       final Vec3d minB = maps.getMapBoundsMin(mapFile);
-      ed.setComponent(arena, new ArenaMap(minB, maxB, mapFile));
+      ed.setComponent(arena, new ArenaMap(minB, maxB, mapFile, rec.arenaIndex));
 
       final Ini ini = settings.getIni(rec.name);
       ed.setComponent(arena, new ArenaSettings(rec.name, ini));
@@ -354,7 +372,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
       rec.state = ArenaState.LOADED;
       rec.lastError = null;
-      log.info("Arena {} loaded with map {}", rec.name, mapFile);
+      log.info("Arena {} loaded with map {} at slot {}", rec.name, mapFile, rec.arenaIndex);
     } catch (final Exception e) {
       fail(rec, arena, e.toString());
       log.error("Arena " + rec.name + " load failed", e);
@@ -365,6 +383,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     if (arena != null) {
       ed.removeEntity(arena);
     }
+    releaseSlot(rec);
     rec.state = ArenaState.FAILED;
     rec.lastError = reason;
   }
@@ -379,6 +398,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         ed.removeEntity(rec.entityId);
         rec.entityId = null;
       }
+      releaseSlot(rec);
       rec.state = ArenaState.NOT_LOADED;
       rec.lastError = null;
       log.info("Arena {} unloaded", rec.name);
@@ -387,6 +407,25 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       rec.lastError = e.toString();
       log.error("Arena " + rec.name + " unload failed", e);
     }
+  }
+
+  /** Find and reserve a free arena slot. Returns the index or {@code -1} if the table is full. */
+  private int allocateSlot() {
+    for (int i = 0; i < arenaSlots.length; i++) {
+      if (!arenaSlots[i]) {
+        arenaSlots[i] = true;
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /** Release the slot this record held (idempotent — no-op if it wasn't holding one). */
+  private void releaseSlot(final ArenaRecord rec) {
+    if (rec.arenaIndex >= 0 && rec.arenaIndex < arenaSlots.length) {
+      arenaSlots[rec.arenaIndex] = false;
+    }
+    rec.arenaIndex = -1;
   }
 
   private String describe(final String arenaName) {
@@ -462,7 +501,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     if (oldMap.equals(newMap)) {
       return "Arena " + arenaName + " already uses map " + newMap;
     }
-    if (!getSystem(MapSystem.class).swapMap(oldMap, newMap)) {
+    if (!getSystem(MapSystem.class).swapMap(oldMap, newMap, rec.arenaIndex)) {
       return "Cannot swap: " + newMap + " has an invalid extension or swap failed";
     }
     settings.setSetting(
