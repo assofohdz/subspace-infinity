@@ -1,0 +1,324 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1031\deflangfe1031{\fonttbl{\f0\fnil\fcharset0 Impact;}{\f1\fnil\fcharset0 Segoe Script;}{\f2\fnil\fcharset0 Calibri;}{\f3\fswiss\fprq2\fcharset0 Calibri;}{\f4\fnil\fcharset2 Symbol;}}
+{\colortbl ;\red162\green23\blue27;\red129\green18\blue21;\red109\green16\blue18;\red68\green11\blue11;\red0\green0\blue0;\red51\green51\blue51;\red255\green0\blue0;\red0\green0\blue255;\red0\green77\blue187;\red53\green9\blue9;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\cf1\lang1033\b\i\f0\fs52\tab\tab\tab\tab S\cf2 S\cf3 C\cf4 U\i0  \cf5\i TRENCH WARS\cf6\lang9\b0\f1\fs20\par
+\cf0\b\i0\f2\fs18\tab\tab\tab\tab\tab     \tab\tab\tab\tab  \lang1033\fs28 NEWS\lang9\f3\fs32\par
+\ul\fs28\par
+\par
+TSL Season 4, TWD 2.0, and STEAM VISIBILITY MONTH #1!!\par
+\ulnone\b0\fs18 03/16/2018\fs22\par
+\fs24\par
+\i There's just  ... \b TOO \b0 - \b MUCH \b0 - \ul\b GOOD\ulnone  \b0 - \ul\b STUFF\ulnone\b0 !\par
+\i0\par
+We'll begin \b TSL Season 4 \cf7 this Sunday\cf0\b0  at \cf7\b 3PM EST\cf0\b0 . If you're out of the loop, TSL is TW's breakout new automated matchmaking league. Just show up and play! It's a great way for vets and new players alike to share in a competitive match. Every game you play only helps you: your best 20 scores at the end of the season determine your final value. \b Schedule and more info\b0 : {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/showthread.php?48592"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/showthread.php?48592}}}\f3\fs24\par
+\par
+\i TSL S4 changes\i0 : \b Ratings will now auto-adjust\b0 , improving team balance. \b Value earned\b0  for each kill now depends on the rating of the player killed. And \b matches will be tiered\b0  when there are 2+ arenas being played. \par
+\par
+\b TWD 2.0 \b0 also begins \cf7\b Sunday\cf0\b0 . Every match you play will now earn your squad points, making activity essential. Get active, and get recruiting! \b TWD Happy Hour \b0 will start at 5PM on Sun, Tues, Wed, and Thurs. During this time, staff will help you with matchmaking, borrows, recruitment, and tryouts. And now, enjoy \b in-game squad management \b0 to easily add new squadmates, without having to walk them through the TWD site! \b More info\b0 : {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/showthread.php?48591"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/showthread.php?48591}}}\f3\fs24\par
+\par
+We have a month of \b Steam Visibility\b0  starting \cf7\b Friday, March 16th\cf0\b0 !\cf7\b  \cf0\b0 Expect to see new and old faces returning to experience the magic of Subspace. This isn't nearly as big as a relaunch, but we should see a modest population increase that we'll all appreciate.\par
+\par
+Finally, developers have been busy improving the game! See the many, many changes here: {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/showthread.php?46453"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/showthread.php?46453}}}\f3\fs24\par
+\par
+Tell your friends: this is \i the\i0  time to come back to Trench Wars.\par
+\par
+\par
+\ul\b\fs28 The return of TSL and TWDT\par
+\ulnone\b0\fs18 09/05/2017\fs22\par
+\fs24\par
+\b TSL Season 2 \b0 starts\b  \cf7 this Sunday\b0 , \b 9/10\cf0\b0 , at \cf7\b 3PM EDT\cf0\b0 . Join us for competitive games that anyone can play, balanced via bot matchmaking . Earn positive value for every game; a bad day never counts against you. Your best 20 games at the end of the season determine your final score.\par
+\par
+And starting this season, you'll be able to see the value earned for every match right as it finishes, with current running value and match details instantly available on the infowebs.\par
+\par
+\cf9\b TSL Schedule:\cf0\b0  {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/showthread.php?46783"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/showthread.php?46783}}}\f3\fs24\par
+\par
+\par
+\b TWDT \b0 is also making its return for the \b Winter 2017 season\b0 . Think you have what it takes? Signups already open here: {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/showthread.php?46781"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/showthread.php?46781}}}\f3\fs24\par
+\par
+See you in the trenches.\par
+\ul\b\fs28\par
+\par
+TWDT begins; Nightwasp returns to pub\par
+\ulnone\b0\fs18 10/07/2016\fs22\par
+\fs24\par
+TWDT starts this Sunday at 3PM EST, after being postponed last week due to billing server issues.\par
+\par
+Some call it the most anticipated day of the TW calendar. Join us for this legendary tournament that strives to create a fiercely-competitive and evenly-matched competition via draft.\par
+\par
+The Nightwasp returns to pub for 3 days this weekend, replacing the Weasel in ship 6. Some of you may remember it from long ago. It's designed as a glider with low-power EMP bombs and double L1 guns. Because the reduction in damage requires temporarily taking away EMP from the Shark, that ship will gain an extra repel for the duration of the weekend.\par
+\par
+Finally, please join us for some weekend event zombies post-TWDT!\par
+\ul\b\fs28\par
+\par
+Scheduled maintenance\par
+\ulnone\b0\fs18 7/21/2016\fs22\par
+\fs24\par
+The bots and Trench Wars website will be down for scheduled maintenance, starting approximately 10:00AM GMT (6:00AM EST).\par
+\par
+Maintenance is expected to take around 2 hours. Thanks for your patience as we upgrade our server.\par
+\ul\b\fs28\par
+\par
+Obscene filter updated\par
+\ulnone\b0\fs18 6/17/2016\fs22\par
+\fs24\par
+The obscene filter's been updated (in-game command \b ?obscene\b0  -- the menu option does not work, and it defaults to \i ON\i0  every time you enter the zone. Add ?obscene to your profile's auto-command list to turn it off permanently).\par
+\par
+\b Profanity is no longer filtered by ?obscene.\b0  Please don't harass other people. Let's use this new-found power like the responsible adults that we all pretend to be in real life. Even if we're actually 14.\par
+\ul\b\fs28\par
+\par
+TWEL Qualifications continue; are you the best WB? Jav? Spider? Lanc?\par
+\ulnone\b0\fs18 6/17/2016\fs22\par
+\fs24\par
+It's not too late to qualify for the playoffs of Trench Wars' premier 1 on 1 dueling championship league. \b ?go duel\b0  and challenge another player to a duel in any of the 4 primary dueling ships of TW.\par
+\par
+Playoff qualification cutoffs:\par
+\par
+- Top 32 in WB who have played >15 duels\par
+- Top 32 in Jav who have played >15 duels\par
+- Top 16 in Spider who have played >7 duels\par
+- Top 16 in Lancaster who have played >3 duels\par
+\par
+See {\field{\*\fldinst{HYPERLINK "http://trenchwars.org/twel/"}}{\fldrslt{\ul\cf8 http://trenchwars.org/twel/}}}\f3\fs24  for more details.\par
+\ul\b\fs28\par
+\par
+Pub tweaks\par
+\ulnone\b0\fs18 6/07/2016\fs22\par
+\fs24\par
+We've thrown in a few recent tweaks to pub:\par
+\pard\nowidctlpar\li720\par
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent0{\pntxtb\'B7}}\nowidctlpar\fi-360\li1080\b Time required to win\b0  a round now \b scales\b0  with number of players in-game. Minimum is 1:30 with 10 or less, and the standard 3:00 with 21 or more. After 10, every 2 players adds 15 seconds needed to win.\par
+\b{\pntext\f4\'B7\tab}Buy zones\b0  have been \b expanded \b0 to include all of mid-base, plus the cram area (the central entrance to the flagroom). This allows attackers to more easily mount an offense. It also allows defending Terrs to buy a critical burst or portal, at the risk of dying by exposing themselves in cram.\par
+\b{\pntext\f4\'B7\tab}Full charge\b0  can once again be purchased. (Time to set your macros!)\par
+\b{\pntext\f4\'B7\tab}PurePub\b0  and \b SortaPurePub\b0  buys re-enabled, though for extremely high prices. \par
+{\pntext\f4\'B7\tab}Moderately sexy \b Victory/Defeat graphics\b0  added.\par
+\pard\nowidctlpar\par
+Please send feedback to qan in a ?message or via the in-game !comment feature (PM'd to TW-PubSystem).\par
+\par
+\ul\b\fs28\par
+TWL 21 Pre-Season Begins\par
+\ulnone\b0\fs18 6/05/2016\fs22\par
+\fs24\par
+TWL Season 21 has begun! See the best in the zone compete for Trench Wars' most prestigious title.\par
+\par
+Follow the games and results at: {\field{\*\fldinst{HYPERLINK "http://twl.trenchwars.org"}}{\fldrslt{\ul\cf8 http://twl.trenchwars.org}}}\f3\fs24\par
+\par
+For coverage, discussion, critique, rules and more information: {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/forumdisplay.php?10-Trench-Wars-League"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/forumdisplay.php?10-Trench-Wars-League}}}\f3\fs24\par
+\par
+\ul\b\fs28\par
+TWDD resolution limits removed\ulnone\b0\fs24\par
+\fs18 5/11/2016\fs22\par
+\fs24\par
+An in-game poll for TWD-registered players has decided the fate of TWDD resolution limits. They have been removed.\par
+\par
+The poll (via TW-Vote) accepted votes from May 2nd to May 10th.\par
+\par
+The results of the poll, after registration verification, were:\par
+\par
+49 votes to remove resolution restrictions\par
+21 votes to remain with the current limits\par
+\par
+Read more at: {\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org/showthread.php?45951"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org/showthread.php?45951}}}\ul\b\f3\fs28\par
+\par
+\par
+New pub map, wbduel map\ulnone\b0\fs24\par
+\fs18 2/20/2016\fs22\par
+\fs24\par
+We've been keeping busy, updating maps to keep the zone fresh.\par
+\par
+The new pub tileset should be pretty immediately obvious. Hope it provides a nice alternative take on the traditional map (as it took way too much time to finish, heh). Other new tilesets are likely to come in the future.\par
+\par
+There's also a new map up in ?go wbduel, courtesy of 2pacZ. Send him a thank you if you like it.\par
+\par
+If you are interested in doing map development work, you don't need to have prior experience. A map editor and a collection of ripped tilesets can be found at {\field{\*\fldinst{HYPERLINK "http://trenchwars.org/index.php?v=downloads"}}{\fldrslt{\ul\cf8 http://trenchwars.org/index.php?v=downloads}}}\f3\fs24 . Want to update an old map? Make a new one? Please contact qan for more information.\par
+\ul\b\fs28\par
+\par
+New elim map up\ulnone\b0\fs24\par
+\fs18 2/2/2016\fs22\par
+\fs24\par
+A reworked elim map courtesy of Up in ya !! is now available. The old tileset has been updated, and doors have been added to the BaseElim spawn area to prevent hiding on the sides.\par
+\par
+The most notable addition is the new practice areas. These are not yet functional, but the code is in the works.\par
+\par
+This is part of a more general effort to renovate many older maps. If you're interested in reworking one, especially in terms of tileset or LVZ graphics, more information will be available soon about how you can get your map placed in-game.\par
+\ul\b\par
+\par
+\fs28 Return of the Small Weasel\ulnone\b0\fs24\par
+\fs18 2/1/2016\fs22\par
+\fs24\par
+That cheeky little bastard is back.\par
+\par
+Small weasel is in pub again. It has some slight tweaks to the prior small weasel, in an attempt to prevent it from exploiting some specific parts of the game. It's a highly situational ship, so the hope is that it can still be useful in many places while not being overpowered in the right/wrong hands. Let's get to specifics:\par
+\par
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent0{\pntxtb\'B7}}\nowidctlpar\fi-360\li720\fs22 It's tiny. God, it's so freakin' cute I could just die.\par
+{\pntext\f4\'B7\tab}Cloak energy needed has increased. You can perma-cloak, but recharge stops completely when cloaked.\par
+\fs24{\pntext\f4\'B7\tab}Afterburners cost more to use per second, and only reach about half the same top speed as before. Expect sneaky flag grabs and thrust-shots to be more challenging to pull off.\par
+{\pntext\f4\'B7\tab}Shorter rocket duration.\par
+{\pntext\f4\'B7\tab}Increased thrust for greater maneuverability in confined spaces.\par
+{\pntext\f4\'B7\tab}Slightly slower bullets.\par
+{\pntext\f4\'B7\tab}Can !buy a high-drain Stealth in buy zones.\par
+\pard\nowidctlpar\par
+Please try it out and give your opinion to staff via !comment, ?help, or ?message qan.\par
+\par
+\par
+\ul\b\fs28 (A taste of) the old Levi\ulnone\b0\fs24\par
+\fs18 1/12/2016\fs22\par
+\fs24\par
+We're trying out some new settings for the Levi in Pub. (Yes. Again. Unroll your eyes for just a second.)\par
+\par
+Level 3 bombs have returned to the much-loved and much-hated ship. This returns its infamous splash damage to its former glory. In exchange, it has adopted the moniker of Glass Cannon: it can dish it out but can't take it. Energy has been slashed to the point where level 2 bullets can all but kill it in one hit, a meager 1050. Spiders and Lancs become an increasingly deadly threat, and in particular, a Spider fitted with AntiWarp.\par
+\par
+Even worse, it's lost X-Radar except via !buy (which can only be accessed via the new !buy zones inside base). This makes a solo Levi a sitting duck to a crafty Weasel.\par
+\par
+It has a few little bonuses, such as being able to green or !buy an extra portal, mostly helpful for surviving spawn. Bombs now cost 1040 rather than 1100 to fire. When you have full energy in Levi, you've also reached the energy point where you can fire, a simple visual indicator.\par
+\par
+Please watch your teamkills! They'll occur much more easily now, especially with multiple-Levi LTs.\par
+\par
+Please !comment on TW-PubSystem if you have suggestions regarding the changes. We should have the technology ironed out to put to a community vote whether we should keep it or trash it pretty soon, after most people have had a chance to see how it plays.\par
+\par
+\fs32\par
+\ul\b\fs28 Elim Season 6 with new laddering system\ulnone\b0\fs24\par
+\fs18 1/12/2016\fs22\par
+\fs24\par
+Elim rankings have been reset, ushering in Season 6.\par
+\par
+There's been a big change to the way the ladder is calculated. "\b Confidence\b0 " has been incorporated into the rating system, which means that the more games you play, the more confident the bot becomes of your rating. Players now have a Base Rating (roughly equivalent to the old rating, with some minor tweaks, including incorporating number of games won vs games lost), and a Ladder Rating. Ladder Rating is just Base Rating multiplied by Confidence. You'll need to play a full 400 games before Confidence reaches 100%.\par
+\par
+This means that \b being a top ladder contender will require you to play a large number of games and do consistently well\b0 , better reflecting actual skill, rather than a lucky (and short) run. As in prior seasons, after you have a combined 300 kills/deaths, you will be laddered. Now, however, the bot will PM you after every round to notify you of your ladder rating change, as well as base rating change, total games played and ratio.\par
+\par
+We hope this will provide a long-overdue balancing to Elim's ladder, and with a bit of luck, reignite some of the past competition. In the future, look for a new elim map with practice areas that you can play in while waiting for the next match, as well as a possible late entry into running elims.\par
+\par
+NOTE: there are bound to be bugs. Please ?message qan if you notice any problems.\par
+ \par
+Elim discussion on forums: {\field{\*\fldinst{HYPERLINK "http://goo.gl/Q5QYhV"}}{\fldrslt{\ul\cf8 http://goo.gl/Q5QYhV}}}\f3\fs26\par
+\par
+\par
+\ul\b\fs28 Public update\par
+\ulnone\b0\fs18 1/11/2016\fs24\par
+\par
+Resizable pub map is back AND\par
+You can finally \b !buy\b0  again!!\par
+\par
+!buy will only work in pre-defined buy zones located in middle- and lower-base ears. These spots are marked with text "buy zone". Note that you can no longer buy in safe.\par
+\par
+PM TW-PubSystem with \b !buy\b0  to see what can be bought at what cost.\par
+Items are much more expensive than they were previously.\par
+\par
+We have also removed X-Radar from greens.\par
+You can now use the !buy system to get this item.\par
+\par
+With these few changes we hope to give you a refreshing new way of challenging your opponents.\par
+\par
+Enjoy Trench Wars!\par
+\par
+\fs30\par
+\ul\b\fs28 Happy new year 2016! Changes to come...\ulnone\par
+\b0\fs24\par
+Trench Wars has seen a lot in the past year.\par
+\par
+Continuum has made it into the Steam store as a free to play game, zones started interacting and collaborating more with each-other to provide better enjoyment for players.\par
+Not all of it has been smooth sailing, but some progress has been made, and more is still to come.\par
+\par
+\fs28\par
+\ul\b Public changes in sight\ulnone\b0\fs24\par
+\par
+- !buy \strike will return\strike0  has returned\par
+- Resizable public map \strike will return\strike0  has returned\par
+- We are looking into bringing back real L3 bombs for Levis, with a tradeoff of reduced maximum energy.\par
+\par
+With these changes we hope to give you something to use your pubbux for, a map to adapt to current player population in the game, and some danger and fun for LeviTerrs.\par
+You can see our planned Leviathan in ?go #Bounty\par
+\par
+\fs28\par
+\ul\b TWD changes in sight\ulnone\b0\fs24\par
+\par
+- Individual TWD player ratings\par
+- Possible restricted double squadding\par
+- Roster caps\par
+- Resolution limits removed\par
+- Alternative TWD match arenas for TWDD, TWJD and TWBD\par
+\par
+With TWD changes the idea is to make the division more competitive and for players to have something to fight for on a personal level.\par
+We are still ironing out the details and hope to have a ready TWD Operator team to help you with your TWD needs for any and all changes.\par
+\par
+\fs28\par
+\fs32\par
+----------------------------------------------------------\par
+\fs24\par
+\par
+\cf9\i\f2\fs44 Continuum on Steam\par
+\cf10\f3\fs32\par
+\cf0\i0\fs24 SubSpace Continuum is available on Steam!\par
+\par
+Use the Steam version to automatically update files without having to enter. The Steam version also includes some exclusives and updates not found in the standalone installer.\par
+\cf9\fs40\par
+\pard\i Discord\par
+\cf0\i0\fs24\par
+Join us on Discord to coordinate your game or chat with old friends.\par
+\b\par
+Server:\b0  {\field{\*\fldinst{HYPERLINK "http://discord.io/subspace"}}{\fldrslt{\ul\cf8 http://discord.io/subspace}}}\f3\fs20\par
+\fs24\par
+\par
+\cf9\b\i\fs40 New to Trench Wars?\cf0\b0\i0\fs24\par
+We would love for you to join us on the Trench Wars Chat! You will be able to communicate with staffers and players who will be there to help you play this game. \par
+\par
+All you have to do is type: ?chat=help once you have logged in. Then simply type " ; " and a message, for example: ;Hi I am new here, I would like some help. \par
+\par
+For more new player assistance, press F1 during the game or type ?help message to send a message to online zone staff.\par
+\par
+\b -\b0  The main goal of the public arena is to capture the flag at the top of the base and hold it until your team is declared the winner.\par
+\par
+\b - \b0 When you are ready to progress beyond the public arena, Trench Wars offers automated events in the arenas Elim, WbDuel, JavDuel, SpidDuel and Base.\par
+\par
+\b -\b0  Zone staff will frequently announce and host events throughout the day.\par
+\par
+\b -\b0  When you are ready to get competitive with a team, join a squad and participate in Trench Wars Division.\par
+\par
+\par
+\cf9\b\i\fs40 Zone Staff\par
+\cf0\b0\i0\fs24\par
+\b System Operators: \b0\i\fs20 (sysops)\i0\fs24\par
+M_M God\tab\i Head Sysop\i0\par
+Beasty\tab\tab\i Head Sysop\i0\par
+qan\tab\tab\i Head Sysop\i0\par
+\par
+\b Super Moderators: \b0\i\fs20 (smods)\i0\fs24\par
+Henry Saari\tab\tab\i Dean of Staff\i0\par
+RAIZIN\tab\tab\tab\i BanG Operator\i0\par
+Board\tab\tab\tab\i BanG Operator\i0\par
+Wirah\tab\tab\tab\i Head of Marketing\i0\par
+Destruct\tab\tab\i Event Coordination Team\i0\par
+4 20\tab\tab\tab\i Head of New Player Retention & Staff Training\i0\par
+Johnno\tab\tab\tab\i TWD Head Operator\i0\par
+\par
+\b Retired:\b0\par
+PriitK\tab\tab\i Continuum Creator/Developer, SSC Billing Operator\i0\par
+DoCk>\tab\tab\i TWCore Developer, TWSites.com Administrator\i0\par
+\par
+\fs20 For further information regarding zone staff please visit:\par
+{\field{\*\fldinst{HYPERLINK "http://www.trenchwars.org/index.php?v=staff"}}{\fldrslt{\ul\cf8 http://www.trenchwars.org/index.php?v=staff}}}\f3\fs24\par
+\par
+\par
+\cf9\b\i\fs36 Contact\cf0\b0\i0\fs24\par
+\par
+Staff abuse and complaints: twcomplaints@gmail.com\par
+New maps or updates: trenchwarsmaps@gmail.com\par
+\par
+\par
+\cf9\b\i\fs32 Links\cf0\b0\i0\fs24\par
+Ban Disputes:\tab\tab{\field{\*\fldinst{HYPERLINK "http://trenchwars.org/support"}}{\fldrslt{\ul\cf8 http://trenchwars.org/support}}}\f3\fs24\par
+Homepage:\tab\tab{\field{\*\fldinst{HYPERLINK "http://trenchwars.org/"}}{\fldrslt{\ul\cf8 http://trenchwars.org/}}}\f3\fs24\par
+Forums:\tab\tab{\field{\*\fldinst{HYPERLINK "http://forums.trenchwars.org"}}{\fldrslt{\ul\cf8 http://forums.trenchwars.org}}}\f3\fs24\par
+TWDivisions:\tab\tab{\field{\*\fldinst{HYPERLINK "http://twd.trenchwars.org/"}}{\fldrslt{\ul\cf8 http://twd.trenchwars.org/}}}\f3\fs24\par
+Facebook Group:\tab{\field{\*\fldinst{HYPERLINK "http://www.facebook.com/groups/trenchwars/"}}{\fldrslt{\ul\cf8 http://www.facebook.com/groups/trenchwars/}}}\f3\fs24\par
+SubSpace Council:\tab{\field{\*\fldinst{HYPERLINK "http://subspaceforum.com/"}}{\fldrslt{\cf8\ul http://subspaceforum.com}}}\cf0\ulnone\f3\fs24\par
+Android App:\tab\tab{\field{\*\fldinst{HYPERLINK "https://play.google.com/store/apps/details?id=com.subspace.trenchwarschat"}}{\fldrslt{\ul\cf8 https://play.google.com/store/apps/details?id=com.subspace.trenchwarschat}}}\f3\fs24\par
+\par
+\par
+\cf9\b\i\fs32 Credits\cf0\b0\i0\fs24\par
+Dgus\tab\tab\i The original settings creator of Trench Wars\par
+\i0 SilentDragon\tab\i For the original map\i0\par
+AkIlLa~\tab\tab\i For redoing the settings\i0\par
+MikeTheNose\tab\i For creating the very first elims\i0\par
+\par
+\b\i\'a9 2017 trenchwars.org\b0\i0\fs22\par
+}
+ 
