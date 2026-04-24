@@ -11,12 +11,16 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 | App State | `infinity/src/main/java/infinity/` | `BaseAppState` |
 | Module | `modules/src/main/java/infinity/modules/` | `BaseGameModule` |
 
-## Critical Rules
+## Always-on Rules
 
-1. **Always release EntitySets in `terminate()`** - memory leaks otherwise
-2. **Use `final` for method parameters**
-3. **BSD 2-clause license header on all files** (Copyright Asser Fahrenholz)
-4. **Components must be immutable** with no-arg constructor
+1. **Use `final` for method parameters**
+2. **BSD 2-clause license header on all files** (Copyright Asser Fahrenholz)
+
+Path-scoped rules live in `.claude/rules/` and load automatically when relevant files are read:
+- [`components.md`](.claude/rules/components.md) — immutability + no-arg constructor (`api/src/infinity/es/**`)
+- [`entity-sets.md`](.claude/rules/entity-sets.md) — release in `terminate()` (`infinity/` + `modules/` Java)
+- [`systems.md`](.claude/rules/systems.md) — logic-in-systems, no duplicate component producers (`systems/**` + `modules/`)
+- [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity/` + `modules/` Java)
 
 ## Build & Run
 
