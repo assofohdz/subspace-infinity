@@ -20,7 +20,8 @@
       "Bash(./gradlew :infinity:spotlessApply)",
       "Bash(./gradlew --no-daemon -q :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava :modules:compileJava :modules:compileTestJava spotlessCheck)",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity status --porcelain -- '*.java')",
-      "Bash(echo \"EXIT_CODE:$?\")"
+      "Bash(echo \"EXIT_CODE:$?\")",
+      "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Local trackers in .claude/**)"
     ]
   },
   "hooks": {

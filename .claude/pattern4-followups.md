@@ -7,6 +7,8 @@ Companion to:
 
 This file is for **architectural debt**, **deferred features**, and **open questions** that don't fit either of those.
 
+Open items have a corresponding GitHub issue tagged in the section header — local notes here capture context / approach sketches; the GH issue is the canonical home for status and discussion. Resolved items stay here as a struck-through trail.
+
 ---
 
 ## 1. ~~Components written but never read~~ — **Resolved**
@@ -101,7 +103,7 @@ Both spammy lines demoted to `log.debug` and gated behind `isDebugEnabled()` so 
 
 Re-enable per-package via `LOG_LEVEL` / logback when debugging the dev loop.
 
-## 10. Bug: wall bounce imparts angular velocity
+## 10. Bug: wall bounce imparts angular velocity — tracked as [GH #100](https://github.com/assofohdz/subspace-infinity/issues/100)
 
 When a ship clips a wall, MOSS's contact resolution applies an angular impulse from the off-center contact point — the ship spins after a glancing hit. We want **velocity-only bounce, no rotational bounce**: the player owns the ship's heading via input, walls should only flip the linear velocity component.
 
@@ -114,7 +116,7 @@ When a ship clips a wall, MOSS's contact resolution applies an angular impulse f
 
 Worth a per-ship `angularBounce` knob (`0` = no rotational response, `1` = full physical) if we ever want heavier ships to feel different on impact — but for MVP, just kill it.
 
-## 11. Migrate `zone.conf` and `arena.conf` to Groovy
+## 11. Migrate `zone.conf` and `arena.conf` to Groovy — tracked as [GH #101](https://github.com/assofohdz/subspace-infinity/issues/101)
 
 [`infinity/zone/zone.conf`](../infinity/zone/zone.conf) and [`infinity/zone/arenas/<name>/arena.conf`](../infinity/zone/arenas/) are still INI-style with `#include` directives and string-keyed `SettingsSystem` lookups. Migrate both to Groovy to match [`ships.groovy`](../infinity/zone/conf/trench-04-2026/ships.groovy):
 
@@ -132,7 +134,7 @@ Worth a per-ship `angularBounce` knob (`0` = no rotational response, `1` = full 
 
 Out of scope for this item: the per-preset `conf/<preset>/*.conf` fragments under [`infinity/zone/conf/`](../infinity/zone/conf/). Larger surface, separate migration; track as a future item if needed.
 
-## 12. Deprecate the Java `AdaptiveLoader` hot-module system in favour of Groovy
+## 12. Deprecate the Java `AdaptiveLoader` hot-module system in favour of Groovy — tracked as [GH #63](https://github.com/assofohdz/subspace-infinity/issues/63)
 
 The current dynamic-module surface is a custom Java classloader + service stack:
 
