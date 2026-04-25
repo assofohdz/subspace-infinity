@@ -36,7 +36,7 @@ import infinity.es.Buff;
 import infinity.es.Dead;
 import infinity.es.HealthChange;
 import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
+import infinity.es.ship.Health;
 import infinity.es.ship.Recharge;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,8 +44,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Watches entities with hitpoints and entities with health changes and applies them to the
- * hitpoints of an entity, possibly causing death.
+ * Watches entities with a live {@link Health} pool and applies pending health
+ * changes (damage, ability cost, recharge) each tick. The pool tops out at the
+ * ship's current effective energy cap {@link Energy} and reaching zero triggers
+ * a {@link Dead} component.
+ *
+ * <p>This system never reads {@code EnergyMax} — that hard-cap component is
+ * consumed only by {@code PrizeSystem} when an ENERGY prize bumps {@link Energy}.
  *
  * @author Paul Speed
  */
@@ -57,7 +62,7 @@ public class EnergySystem extends AbstractGameSystem {
   private EntitySet living;
   private EntitySet changes;
   private EntitySet recharges;
-  private EntitySet maxLiving;
+  private EntitySet capped;
 
   public EnergySystem() {
     // Nothing to do
@@ -67,12 +72,12 @@ public class EnergySystem extends AbstractGameSystem {
   protected void initialize() {
 
     ed = getSystem(EntityData.class);
-    living = ed.getEntities(Energy.class);
+    living = ed.getEntities(Health.class);
     changes = ed.getEntities(Buff.class, HealthChange.class);
 
-    recharges = ed.getEntities(Energy.class, Recharge.class);
+    recharges = ed.getEntities(Health.class, Recharge.class);
 
-    maxLiving = ed.getEntities(Energy.class, EnergyMax.class);
+    capped = ed.getEntities(Health.class, Energy.class);
   }
 
   @Override
@@ -87,8 +92,8 @@ public class EnergySystem extends AbstractGameSystem {
     recharges.release();
     recharges = null;
 
-    maxLiving.release();
-    maxLiving = null;
+    capped.release();
+    capped = null;
   }
 
   @Override
@@ -99,7 +104,7 @@ public class EnergySystem extends AbstractGameSystem {
     // Make sure our entity views are up-to-date as of
     // now.
     living.applyChanges();
-    maxLiving.applyChanges();
+    capped.applyChanges();
     changes.applyChanges();
 
     // Collect all of the relevant health updates
@@ -128,8 +133,8 @@ public class EnergySystem extends AbstractGameSystem {
     recharges.applyChanges();
     for (final Entity e : recharges) {
 
-      if (maxLiving.containsId(e.getId())) {
-        if (getHealth(e.getId()) < getMaxHealth(e.getId())) {
+      if (capped.containsId(e.getId())) {
+        if (getHealth(e.getId()) < getCap(e.getId())) {
           final double tpf = time.getTpf();
           final Recharge recharge = e.get(Recharge.class);
           final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
@@ -152,21 +157,16 @@ public class EnergySystem extends AbstractGameSystem {
         continue;
       }
 
-      Energy hp = target.get(Energy.class);
+      Health hp = target.get(Health.class);
 
-      // If we dont have a max hitpoint, just set new hp
-      if (!maxLiving.containsId(target.getId())) {
+      // If we don't have a cap, just apply the delta as-is.
+      if (!capped.containsId(target.getId())) {
         hp = hp.newAdjusted(entry.getValue().intValue());
       } else {
-        // If we do have a maximum
-        final EnergyMax maxHp = maxLiving.getEntity(target.getId()).get(EnergyMax.class);
-        // Check if we go above max hp
-        if (entry.getValue().intValue() <= maxHp.getMaxHealth()) {
-          hp = hp.newAdjusted(entry.getValue().intValue());
-        } else {
-          // Otherwise, set new hp
-          hp = hp.newAdjusted(maxHp.getMaxHealth());
-        }
+        // Cap exists — clamp the post-delta pool at the current cap.
+        final Energy cap = capped.getEntity(target.getId()).get(Energy.class);
+        final int next = hp.getHealth() + entry.getValue().intValue();
+        hp = new Health(Math.min(next, cap.getEnergy()));
       }
 
       target.set(hp);
@@ -185,7 +185,7 @@ public class EnergySystem extends AbstractGameSystem {
   }
 
   /**
-   * Returns true if the entity has health.
+   * Returns true if the entity has a live {@link Health} pool.
    *
    * @param entityId the entityid to check
    * @return true if the entity has health, false if not
@@ -195,23 +195,26 @@ public class EnergySystem extends AbstractGameSystem {
   }
 
   /**
-   * Returns the current health of the entity.
+   * Returns the entity's current live {@link Health} value (the depleting
+   * pool).
    *
    * @param entityId the entityid to check
-   * @return the health of the entity
+   * @return the live health of the entity
    */
   public int getHealth(final EntityId entityId) {
-    return living.getEntity(entityId).get(Energy.class).getHealth();
+    return living.getEntity(entityId).get(Health.class).getHealth();
   }
 
   /**
-   * Returns the maximum health of the entity.
+   * Returns the entity's current effective energy cap (the upgradeable
+   * {@link Energy} the live pool tops out at; <i>not</i> the absolute
+   * hard cap {@code EnergyMax}).
    *
    * @param entityId the entity to check
-   * @return the maximum health of the entity
+   * @return the current effective cap
    */
-  public int getMaxHealth(final EntityId entityId) {
-    return maxLiving.getEntity(entityId).get(EnergyMax.class).getMaxHealth();
+  public int getCap(final EntityId entityId) {
+    return capped.getEntity(entityId).get(Energy.class).getEnergy();
   }
 
   /**
@@ -227,18 +230,17 @@ public class EnergySystem extends AbstractGameSystem {
   }
 
   /**
-   * Sets the health of the entity to full health.
+   * Refills the entity's live {@link Health} pool to its current effective cap
+   * {@link Energy}. Used by the QUICKCHARGE prize.
    *
-   * @param entityId the entity to set to full health (must have a Health component) (must have a
-   *     HealthMax component)
-   * @return the new health of the entity
+   * @param entityId the entity to refill (must have both Health and Energy)
+   * @return the new live health value
    */
-  public int setHealthToMax(final EntityId entityId) {
-    final Entity e = ed.getEntity(entityId, Energy.class, EnergyMax.class);
-    final Energy hp = e.get(Energy.class);
-    final EnergyMax maxHp = e.get(EnergyMax.class);
-    final Energy newHp = hp.newAdjusted(maxHp.getMaxHealth());
-    e.set(newHp);
-    return newHp.getHealth();
+  public int refillHealth(final EntityId entityId) {
+    final Entity e = ed.getEntity(entityId, Health.class, Energy.class);
+    final Energy cap = e.get(Energy.class);
+    final Health refilled = new Health(cap.getEnergy());
+    e.set(refilled);
+    return refilled.getHealth();
   }
 }

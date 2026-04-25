@@ -49,7 +49,7 @@ import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
 import infinity.es.ShapeNames;
-import infinity.es.ship.Energy;
+import infinity.es.ship.Health;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.Thor;
 import infinity.es.ship.weapons.BombCost;
@@ -131,7 +131,7 @@ public class WeaponsSystem extends AbstractGameSystem
     mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineCost.class);
 
     damageEntities = ed.getEntities(Damage.class);
-    energyEntities = ed.getEntities(Energy.class);
+    energyEntities = ed.getEntities(Health.class);
 
     frequencies = ed.getEntities(Frequency.class);
 
@@ -727,20 +727,20 @@ public class WeaponsSystem extends AbstractGameSystem
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
     EntityId idOne = body1.id;
-    Entity entity1 = ed.getEntity(idOne, Damage.class, Bounce.class, Thor.class, Energy.class);
+    Entity entity1 = ed.getEntity(idOne, Damage.class, Bounce.class, Thor.class, Health.class);
 
     if (body2 instanceof RigidBody) {
       EntityId idTwo = body2.id;
-      Entity entity2 = ed.getEntity(idTwo, Damage.class, Energy.class);
+      Entity entity2 = ed.getEntity(idTwo, Damage.class, Health.class);
 
       log.debug("WeaponsSystem contact detected between: {} and {}", body1.id, body2.id);
 
       Entity damageEntity;
       Entity energyEntity;
-      if (entity1.get(Damage.class) != null && entity2.get(Energy.class) != null) {
+      if (entity1.get(Damage.class) != null && entity2.get(Health.class) != null) {
         damageEntity = entity1;
         energyEntity = entity2;
-      } else if (entity2.get(Damage.class) != null && entity1.get(Energy.class) != null) {
+      } else if (entity2.get(Damage.class) != null && entity1.get(Health.class) != null) {
         damageEntity = entity2;
         energyEntity = entity1;
       } else {

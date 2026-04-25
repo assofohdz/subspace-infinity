@@ -42,7 +42,7 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.WarpTouch;
-import infinity.es.ship.Energy;
+import infinity.es.ship.Health;
 import infinity.es.ship.actions.WarpTo;
 import com.simsilica.mworld.World;
 import infinity.InfinityConstants;
@@ -92,7 +92,7 @@ public class WarpSystem extends AbstractGameSystem
     warpTouchEntities = ed.getEntities(WarpTouch.class);
     warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
 
-    canWarp = ed.getEntities(BodyPosition.class, Energy.class);
+    canWarp = ed.getEntities(BodyPosition.class, Health.class);
 
     // Register consuming methods for patterns
     getSystem(InfinityChatHostedService.class)

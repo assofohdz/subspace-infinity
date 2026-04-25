@@ -17,7 +17,8 @@
       "Bash(grep -r \"tick\\\\|60\\\\|20\\\\|10.*ms\\\\|0\\\\.01\\\\|1/60\\\\|1/20\" /home/assofohdz/github/assofohdz/subspace-infinity -name \"InfinityConstants.java\" -o -name \"*Constant*\")",
       "Bash(grep -v \"\\\\\".*MaximumSpeed\\\\|#\\\\|/conf\\\\|ClientSettings\\\\|ShipNames\\\\|ShipShort\\\\|\\\\.MaximumSpeed$\")",
       "Bash(./gradlew :api:compileJava :infinity:compileJava spotlessCheck)",
-      "Bash(./gradlew :infinity:spotlessApply)"
+      "Bash(./gradlew :infinity:spotlessApply)",
+      "Bash(./gradlew --no-daemon -q :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava :modules:compileJava :modules:compileTestJava spotlessCheck)"
     ]
   },
   "hooks": {

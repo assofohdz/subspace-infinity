@@ -9,18 +9,17 @@ This file is for **architectural debt**, **deferred features**, and **open quest
 
 ---
 
-## 1. ~~Components written but never read~~ — **Mostly resolved**
+## 1. ~~Components written but never read~~ — **Resolved**
 
-[`PrizeSystem`](../infinity/src/main/java/infinity/systems/PrizeSystem.java) now consumes the four symmetric upgrade triples. Each prize bumps the current-cap component by the upgrade increment, clamped at the hard-cap component:
+[`PrizeSystem`](../infinity/src/main/java/infinity/systems/PrizeSystem.java) now consumes all five upgrade triples. Each prize bumps the current-cap component by the upgrade increment, clamped at the hard-cap component:
 
 - `ThrustMax` + `ThrustUpgrade` → THRUSTER prize → `handleAcquireThruster`
 - `SpeedMax` + `SpeedUpgrade` → TOPSPEED prize → `handleAcquireTopSpeed`
 - `RotationMax` + `RotationUpgrade` → ROTATION prize → `handleAcquireRotation`
 - `RechargeMax` + `RechargeUpgrade` → RECHARGE prize → `handleAcquireRecharge`
+- `EnergyMax` + `EnergyUpgrade` → ENERGY prize → `handleAcquireEnergy` (resolved alongside #3)
 
 Upgrades are silent no-ops when `*Upgrade=0` (trench preset's "no upgrades" design) or when `current = max` already.
-
-**Still pending:** `EnergyUpgrade`. Subspace canon for the ENERGY prize is to bump `EnergyMax` (the cap of the pool grows). Currently blocked on follow-up #3 — `ShipSpawnSystem.projectEnergy` sets `EnergyMax = stat.max()` at spawn, leaving no headroom. The case branch in `PrizeSystem.handlePrizeAcquisition` carries a TODO referencing #3; wire the handler when #3 lands (project `EnergyMax = stat.initial()`, grow toward `stat.max()` via this prize).
 
 ## 2. Architectural deferrals (TODOs already in code)
 
@@ -28,16 +27,24 @@ Upgrades are silent no-ops when `*Upgrade=0` (trench preset's "no upgrades" desi
 |---|---|---|
 | [GameEntities.createShip:504](../api/src/infinity/sim/GameEntities.java#L504) | Ships don't carry their own `ArenaId` ("Option R2" — ambient arena lookup) | Player↔arena association isn't modelled yet. Single-arena works; multi-arena is silently broken. |
 | [ShipSpawnSystem.java](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) class Javadoc | Ambient arena resolution refuses (with `log.warn`) if >1 arena is loaded | Same root cause as above. |
-| [GameEntities.createShip:520-522](../api/src/infinity/sim/GameEntities.java#L520) | Hardcoded `Energy(SHIPHEALTH)`, `EnergyMax(SHIPHEALTH × 2)`, `Recharge(100)` set inline at spawn | Now functionally dead — `ShipSpawnSystem` overwrites them on the next tick. Trivial cleanup. |
+| ~~GameEntities.createShip:520-522~~ | ~~Hardcoded `Energy/EnergyMax/Recharge` inline~~ | **Resolved** — removed alongside #3 cleanup. `ShipSpawnSystem` is now the sole projector. |
 | [ShipSpawnSystem.java:212-216](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java#L212) `projectRecharge` | TODO comment about recharge unit conversion (still present despite the `/10` constant) | Cosmetic — comment outdated, conversion is now verified. |
 
-## 3. Possibly buggy: Energy projection
+## 3. ~~Possibly buggy: Energy projection~~ — **Resolved**
 
-[ShipSpawnSystem.projectEnergy](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) sets `EnergyMax = stat.max()`. Per Subspace semantics, a fresh ship's `EnergyMax` should be `stat.initial()` (since Subspace `InitialEnergy = current max HP at spawn`, growing toward `MaximumEnergy` via upgrades).
+Energy now follows the same Pattern 4 split as the other stats:
 
-Doesn't manifest in `trench-04-2026` because `energy initial: 1500, max: 1500` — they're equal. Would manifest if SVS canonical values (1000/1700) are used.
+- `Health` (new component) — live energy pool. Depletes from damage and weapon costs, regens via `Recharge` up to `Energy`.
+- `Energy` (repurposed) — current effective cap; the value `Health` tops out at. Grown by the ENERGY prize.
+- `EnergyMax` (semantic shift) — absolute hard cap on `Energy`. Read only by `PrizeSystem.handleAcquireEnergy`.
+- `EnergyUpgrade` — increment for ENERGY prize.
 
-**Decision needed:** before adding ships beyond Warbird, decide if EnergyMax-at-spawn should use `initial` or `max`.
+`ShipSpawnSystem.projectEnergy` projects `Health = Energy = stat.initial()` and `EnergyMax = stat.max()` so the ENERGY prize has headroom (`Energy` grows from `initial` toward `max`). `EnergySystem` was repointed at `Health` for the live pool; `WeaponsSystem` and `WarpSystem` damage-target / has-pool filters were repointed too.
+
+Cleaned up alongside this:
+
+- Removed dead inline `new Energy / new EnergyMax / new Recharge` setters in `GameEntities.createShip` (sub-bullet of #2) — `ShipSpawnSystem` is now the sole projector for these stats.
+- Renamed `EnergySystem.setHealthToMax` → `refillHealth` (semantic + bug fix: old impl added max to current via `newAdjusted`, would overshoot).
 
 ## 4. ~~Tuning constants that probably belong in `ShipStat` / Groovy~~ — **Resolved**
 

@@ -28,38 +28,40 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
- * The ship's <b>absolute hard cap on {@link Energy}</b> — the value the
- * upgradeable {@link Energy} cap can never exceed regardless of how many
- * ENERGY prizes are picked up. Same role as {@link ThrustMax}/{@link SpeedMax}/etc.
+ * The ship's <b>live energy pool</b>: the value that depletes when the ship
+ * fires weapons or takes projectile damage, and refills via {@link Recharge}
+ * up to the current effective cap {@link Energy}. Reaches zero ⇒ ship dies.
  *
- * <p>Maps to Subspace {@code [Ship] MaximumEnergy}. Read by
- * {@code PrizeSystem.handleAcquireEnergy} to clamp the post-upgrade
- * {@link Energy} value; never mutated at runtime.
+ * <p>Distinct from {@link Energy} (the upgradeable cap that this pool tops
+ * out at) and {@link EnergyMax} (the absolute hard cap on the cap itself).
+ * The pool is seeded at spawn from {@code ShipConfig.energy().initial()} by
+ * {@code ShipSpawnSystem}, mutated each tick by {@code EnergySystem}, and
+ * refilled to the current cap by the QUICKCHARGE prize.
  *
  * @author Asser Fahrenholz
  */
-public class EnergyMax implements EntityComponent {
+public class Health implements EntityComponent {
 
-    private final int max;
+    private final int health;
 
-    public EnergyMax() {
+    public Health() {
         this(0);
     }
 
-    public EnergyMax(final int max) {
-        this.max = max;
+    public Health(final int health) {
+        this.health = health;
     }
 
-    public int getMaxEnergy() {
-        return max;
+    public int getHealth() {
+        return health;
     }
 
-    public EnergyMax newAdjusted(final int delta) {
-        return new EnergyMax(max + delta);
+    public Health newAdjusted(final int delta) {
+        return new Health(health + delta);
     }
 
     @Override
     public String toString() {
-        return "EnergyMax[" + max + "]";
+        return "Health[" + health + "]";
     }
 }

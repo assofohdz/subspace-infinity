@@ -64,10 +64,7 @@ import infinity.es.TileTypes;
 import infinity.es.WarpTouch;
 import infinity.es.WeaponTypes;
 import infinity.es.input.MovementInput;
-import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Player;
-import infinity.es.ship.Recharge;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
@@ -520,9 +517,9 @@ public class GameEntities {
 
     ed.setComponent(result, new Gold(0));
 
-    ed.setComponent(result, new Energy(CoreGameConstants.SHIPHEALTH));
-    ed.setComponent(result, new EnergyMax(CoreGameConstants.SHIPHEALTH * 2));
-    ed.setComponent(result, new Recharge(100));
+    // Energy/EnergyMax/Health/Recharge are projected by ShipSpawnSystem from
+    // the per-arena ShipConfig (Pattern 4). No inline defaults here — see
+    // pattern4-followups #2 / #3 for the rationale.
 
     // Add bombs:
     ed.setComponent(result, new BombCurrentLevel(Bombs.BOMB_1));

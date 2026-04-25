@@ -41,6 +41,7 @@ import infinity.es.ship.DragFactor;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
+import infinity.es.ship.Health;
 import infinity.es.ship.Recharge;
 import infinity.es.ship.RechargeMax;
 import infinity.es.ship.RechargeUpgrade;
@@ -239,6 +240,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectEnergy(final EntityId shipId, final ShipStat stat) {
+    // Pattern 4 split: Health is the live pool (depletes from damage / weapon
+    // costs, regens via Recharge up to Energy); Energy is the upgradeable cap;
+    // EnergyMax is the absolute hard cap on Energy.
+    ed.setComponent(shipId, new Health(stat.initial()));
     ed.setComponent(shipId, new Energy(stat.initial()));
     ed.setComponent(shipId, new EnergyMax(stat.max()));
     ed.setComponent(shipId, new EnergyUpgrade(stat.upgrade()));

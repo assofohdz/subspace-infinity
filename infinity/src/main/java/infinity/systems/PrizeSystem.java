@@ -51,6 +51,9 @@ import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
+import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyMax;
+import infinity.es.ship.EnergyUpgrade;
 import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
 import infinity.es.ship.RechargeMax;
@@ -348,11 +351,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         // TODO: Handle acquiring decoy
         break;
       case PrizeTypes.ENERGY:
-        // Subspace canon: ENERGY prize bumps MaximumEnergy by UpgradeEnergy.
-        // Blocked on Pattern 4 follow-up #3 — ShipSpawnSystem currently sets
-        // EnergyMax = stat.max() at spawn, leaving no headroom. Wire this
-        // alongside the #3 fix (project EnergyMax = stat.initial(), grow
-        // toward stat.max() via this prize).
+        handleAcquireEnergy(ship);
         break;
       case PrizeTypes.GLUE:
         // TODO: Handle acquiring glue
@@ -373,7 +372,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         // TODO: Handle acquiring proximity
         break;
       case PrizeTypes.QUICKCHARGE:
-        getSystem(EnergySystem.class).setHealthToMax(ship);
+        getSystem(EnergySystem.class).refillHealth(ship);
         break;
       case PrizeTypes.RECHARGE:
         handleAcquireRecharge(ship);
@@ -570,6 +569,25 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     if (next > current.getRadSec()) {
       log.info("Ship {} rotation upgrade: rad/sec {} -> {}", ship, current.getRadSec(), next);
       ed.setComponent(ship, new Rotation(next));
+    }
+  }
+
+  /**
+   * ENERGY prize: bumps the ship's current effective energy cap {@link Energy}
+   * by {@link EnergyUpgrade}, clamped at {@link EnergyMax}. Does <i>not</i>
+   * touch the live pool — that's QUICKCHARGE's job (refills Health to Energy).
+   */
+  private void handleAcquireEnergy(EntityId ship) {
+    Energy current = ed.getComponent(ship, Energy.class);
+    EnergyMax max = ed.getComponent(ship, EnergyMax.class);
+    EnergyUpgrade up = ed.getComponent(ship, EnergyUpgrade.class);
+    if (current == null || max == null || up == null) {
+      return;
+    }
+    int next = Math.min(current.getEnergy() + up.getEnergyUpgrade(), max.getMaxEnergy());
+    if (next > current.getEnergy()) {
+      log.info("Ship {} energy upgrade: cap {} -> {}", ship, current.getEnergy(), next);
+      ed.setComponent(ship, new Energy(next));
     }
   }
 
