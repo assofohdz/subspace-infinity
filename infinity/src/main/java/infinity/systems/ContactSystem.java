@@ -42,6 +42,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.CollisionCategory;
 import infinity.es.Parent;
+import infinity.es.ship.BounceRestitution;
 import infinity.sim.CategoryFilter;
 import infinity.sim.util.InfinityRunTimeException;
 import org.slf4j.Logger;
@@ -87,9 +88,12 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       // log.debug("Collision between: " + bodyOne + " and " + bodyTwo);
 
     } else {
-      // log.debug("Collided: {1}  with null", bodyOne);
-      // Restitution should make sure the bounce conserves the energy completely
-      contact.restitution = 1;
+      // Bounce off a static map block. Read the body's own per-ship restitution
+      // (projected from ShipConfig at spawn); fall back to a perfectly-elastic
+      // bounce when the body has no BounceRestitution component (non-ship
+      // dynamics: projectiles, debris, anything not driven by ShipSpawnSystem).
+      final BounceRestitution bounce = ed.getComponent(bodyOne.id, BounceRestitution.class);
+      contact.restitution = bounce != null ? bounce.getRestitution() : 1.0;
     }
 
     // Now that we have filtered the basics, lets send it to the various systems listening for

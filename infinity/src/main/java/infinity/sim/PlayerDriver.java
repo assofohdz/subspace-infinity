@@ -35,9 +35,11 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.RigidBody;
 import infinity.InfinityConstants;
 import infinity.es.input.MovementInput;
+import infinity.es.ship.DragFactor;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
+import infinity.es.ship.TurnResponsiveness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,32 +61,14 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerDriver.class);
 
-    /**
-     * Fraction of {@code Thrust} applied as drag force when no thrust intent is
-     * given. {@code 0} = pure coast (no drag), {@code 1} = decelerate as fast as
-     * thrust accelerates. {@code 0.25} gives a gentle slowdown. Tune per feel.
-     */
-    // TODO(physics-tune): promote DRAG_FACTOR to a ShipStat / Groovy field once the
-    // canonical value for each ship is known.
-    private static final double DRAG_FACTOR = 0.05;
-
-    /**
-     * How fast the ship's angular velocity approaches the target rotation rate.
-     * Higher = snappier turn response, lower = more sluggish/heavy ship feel.
-     * Frame-rate independent (used as the rate constant in an exponential approach).
-     * {@code 8.0} reaches ~95% of target rotation in ~0.4 seconds.
-     */
-    // TODO(physics-tune): promote TURN_RESPONSIVENESS to a ShipStat / Groovy field
-    // once different per-ship feels are needed.
-    private static final double TURN_RESPONSIVENESS = 8.0;
-
     private Vec3d movementForces = new Vec3d();
 
     private final WatchedEntity shipStats;
 
     public PlayerDriver(final EntityId shipEntityId, final EntityData ed) {
         this.shipStats = ed.watchEntity(shipEntityId,
-                Thrust.class, Speed.class, Rotation.class);
+                Thrust.class, Speed.class, Rotation.class,
+                DragFactor.class, TurnResponsiveness.class);
     }
 
     public void applyMovementInput(final MovementInput input) {
@@ -110,17 +94,22 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
 
         if (shipStats.applyChanges()) {
             log.info(
-                    "Stats refreshed for entity {}: thrust={} speed={} rotation={}",
+                    "Stats refreshed for entity {}: thrust={} speed={} rotation={} drag={} turn={}",
                     shipStats.getId(),
                     shipStats.get(Thrust.class),
                     shipStats.get(Speed.class),
-                    shipStats.get(Rotation.class));
+                    shipStats.get(Rotation.class),
+                    shipStats.get(DragFactor.class),
+                    shipStats.get(TurnResponsiveness.class));
         }
         final Thrust thrust = shipStats.get(Thrust.class);
         final Speed speed = shipStats.get(Speed.class);
         final Rotation rotation = shipStats.get(Rotation.class);
+        final DragFactor drag = shipStats.get(DragFactor.class);
+        final TurnResponsiveness turn = shipStats.get(TurnResponsiveness.class);
 
-        if (thrust == null || speed == null || rotation == null) {
+        if (thrust == null || speed == null || rotation == null
+                || drag == null || turn == null) {
             // Not yet configured — ShipSpawnSystem hasn't projected stats onto this entity
             // (e.g. no arena config loaded, no fallback installed). Leave ship idle.
             return;
@@ -129,6 +118,8 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
         final double accelRate = thrust.getThrust();
         final double maxSpeed = speed.getSpeed();
         final double rotSpeed = rotation.getRadSec();
+        final double dragFactor = drag.getFactor();
+        final double turnResponsiveness = turn.getRate();
 
         final Vec3d intent = movementForces.clone();
 
@@ -155,9 +146,9 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
             final double factor = Math.max(0.0, 1.0 - progressTowardLimit);
             body.addForce(bodyForward.mult(accelRate * intent.z * factor));
         } else if (currentSpeed > 0.001) {
-            // Drag: force opposite to current motion, magnitude = accelRate × DRAG_FACTOR.
+            // Drag: force opposite to current motion, magnitude = accelRate × dragFactor.
             final Vec3d dragDir = currentVel.mult(-1.0 / currentSpeed);
-            body.addForce(dragDir.mult(accelRate * DRAG_FACTOR));
+            body.addForce(dragDir.mult(accelRate * dragFactor));
         }
 
         // Rotation: ease current angular velocity toward target rather than snapping to
@@ -166,7 +157,7 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
         // the gap to close this tick.
         final double currentAng = body.getRotationalVelocity().y;
         final double targetAng = intent.x * rotSpeed;
-        final double t = 1.0 - Math.exp(-TURN_RESPONSIVENESS * step);
+        final double t = 1.0 - Math.exp(-turnResponsiveness * step);
         final double newAng = currentAng + (targetAng - currentAng) * t;
         body.setRotationalVelocity(0, newAng, 0);
 

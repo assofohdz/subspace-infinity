@@ -20,6 +20,9 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 | `ShipConfig.rotation` | `PlayerDriver.update()` | `component:Rotation` | Used as rad/sec scalar for rotation input. Projected at spawn by `ShipSpawnSystem` (int → rad/sec via 2π/400). |
 | `ShipConfig.recharge` | `EnergySystem.update()` | `component:Recharge` | Used as energy/sec regen rate. Projected at spawn by `ShipSpawnSystem`. |
 | `ShipConfig.energy` | `EnergySystem.update()` | `component:Energy` / `component:EnergyMax` | Current pool + cap for damage/regen math. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.dragFactor` | `PlayerDriver.update()` | `component:DragFactor` | Coast-drag fraction of `Thrust` when no thrust intent (`0` = pure coast, `1` = decelerate as fast as full thrust). Default `0.05` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.turnResponsiveness` | `PlayerDriver.update()` | `component:TurnResponsiveness` | Rate constant (1/sec) for angular-velocity ease-toward-target; `8.0` ≈ 95% of target in ~0.4 sec. Default `8.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.bounceRestitution` | `ContactSystem.newContact()` | `component:BounceRestitution` | Wall-bounce energy retention (`1.0` = perfectly elastic, `0` = stick). Read per ship-vs-static contact; non-ship dynamic bodies fall back to `1.0` when the component is absent. Default `1.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
 
 **Column meaning:**
 

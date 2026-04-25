@@ -36,6 +36,8 @@ import infinity.Ship;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.BounceRestitution;
+import infinity.es.ship.DragFactor;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
@@ -52,6 +54,7 @@ import infinity.es.ship.SpeedUpgrade;
 import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
+import infinity.es.ship.TurnResponsiveness;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,7 +162,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
 
     project(shipEntity.getId(), cfg);
     log.info(
-        "Projected ShipConfig for {} onto entity {} in arena {}: thrust={} speed={} rotation={} recharge={} energy={}",
+        "Projected ShipConfig for {} onto entity {} in arena {}: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
         shipType.getType(),
         shipEntity.getId(),
         arena.getArena(),
@@ -167,7 +170,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
         cfg.speed(),
         cfg.rotation(),
         cfg.recharge(),
-        cfg.energy());
+        cfg.energy(),
+        cfg.dragFactor(),
+        cfg.turnResponsiveness(),
+        cfg.bounceRestitution());
   }
 
   /**
@@ -203,6 +209,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectRotation(shipId, cfg.rotation());
     projectRecharge(shipId, cfg.recharge());
     projectEnergy(shipId, cfg.energy());
+    projectFeel(shipId, cfg);
   }
 
   private void projectThrust(final EntityId shipId, final ShipStat stat) {
@@ -233,5 +240,11 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, new Energy(stat.initial()));
     ed.setComponent(shipId, new EnergyMax(stat.max()));
     ed.setComponent(shipId, new EnergyUpgrade(stat.upgrade()));
+  }
+
+  private void projectFeel(final EntityId shipId, final ShipConfig cfg) {
+    ed.setComponent(shipId, new DragFactor(cfg.dragFactor()));
+    ed.setComponent(shipId, new TurnResponsiveness(cfg.turnResponsiveness()));
+    ed.setComponent(shipId, new BounceRestitution(cfg.bounceRestitution()));
   }
 }

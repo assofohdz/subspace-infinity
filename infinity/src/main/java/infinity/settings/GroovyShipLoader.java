@@ -66,13 +66,19 @@ import org.slf4j.LoggerFactory;
  *     speed    initial: 2010, max: 3250, upgrade: 250
  *     recharge initial: 400,  max: 1150, upgrade: 166
  *     energy   initial: 1000, max: 1700, upgrade: 100
+ *     dragFactor          0.05
+ *     turnResponsiveness  8.0
+ *     bounceRestitution   1.0
  * }
  * }</pre>
  *
  * <p>The {@code Ship} enum is made available as a default import. Stats
  * omitted in a ship block default to {@code ShipStat(0, 0, 0)}; partial stat
  * blocks (missing {@code initial}/{@code max}/{@code upgrade}) fail with a
- * clear error message.
+ * clear error message. Physics-feel knobs ({@code dragFactor},
+ * {@code turnResponsiveness}, {@code bounceRestitution}) default to the
+ * historical global values (0.05 / 8.0 / 1.0) when omitted, so an existing
+ * ship script keeps the prior feel without edits.
  */
 public final class GroovyShipLoader {
 
@@ -84,6 +90,27 @@ public final class GroovyShipLoader {
    * (matches the {@code conf/base/ship-warbird} INI fragment). Extend with
    * other ships once gameplay exercises them.
    */
+  /**
+   * Default coast-drag fraction used when a ship script omits
+   * {@code dragFactor}. Matches the historical {@code PlayerDriver.DRAG_FACTOR}
+   * global so existing scripts keep the prior feel.
+   */
+  static final double DEFAULT_DRAG_FACTOR = 0.05;
+
+  /**
+   * Default angular-velocity ease rate (1/sec) used when a ship script omits
+   * {@code turnResponsiveness}. Matches the historical
+   * {@code PlayerDriver.TURN_RESPONSIVENESS} global.
+   */
+  static final double DEFAULT_TURN_RESPONSIVENESS = 8.0;
+
+  /**
+   * Default wall-bounce restitution used when a ship script omits
+   * {@code bounceRestitution}. Matches the historical perfectly-elastic
+   * default in {@code ContactSystem.newContact}.
+   */
+  static final double DEFAULT_BOUNCE_RESTITUTION = 1.0;
+
   public static final ConfigRegistry FALLBACK =
       ConfigRegistry.builder()
           .ship(
@@ -94,7 +121,10 @@ public final class GroovyShipLoader {
                   /* thrust */ new ShipStat(16, 19, 2),
                   /* speed */ new ShipStat(2010, 3250, 250),
                   /* recharge */ new ShipStat(400, 1150, 166),
-                  /* energy */ new ShipStat(1000, 1700, 100)))
+                  /* energy */ new ShipStat(1000, 1700, 100),
+                  DEFAULT_DRAG_FACTOR,
+                  DEFAULT_TURN_RESPONSIVENESS,
+                  DEFAULT_BOUNCE_RESTITUTION))
           .build();
 
   private final ConfigRegistrySystem configRegistry;
@@ -233,6 +263,9 @@ public final class GroovyShipLoader {
     private ShipStat speed = new ShipStat(0, 0, 0);
     private ShipStat recharge = new ShipStat(0, 0, 0);
     private ShipStat energy = new ShipStat(0, 0, 0);
+    private double dragFactor = DEFAULT_DRAG_FACTOR;
+    private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
+    private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
 
     private ShipConfigBuilder(final Ship type) {
       this.type = type;
@@ -258,6 +291,18 @@ public final class GroovyShipLoader {
       this.energy = toStat("energy", args);
     }
 
+    public void dragFactor(final Number value) {
+      this.dragFactor = doubleArg("dragFactor", value);
+    }
+
+    public void turnResponsiveness(final Number value) {
+      this.turnResponsiveness = doubleArg("turnResponsiveness", value);
+    }
+
+    public void bounceRestitution(final Number value) {
+      this.bounceRestitution = doubleArg("bounceRestitution", value);
+    }
+
     private static ShipStat toStat(final String statName, final Map<String, ?> args) {
       return new ShipStat(
           intArg(statName, args, "initial"),
@@ -275,8 +320,25 @@ public final class GroovyShipLoader {
           "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
     }
 
+    private static double doubleArg(final String fieldName, final Number value) {
+      if (value == null) {
+        throw new IllegalArgumentException(
+            "Ship feel '" + fieldName + "' requires a numeric value (got null)");
+      }
+      return value.doubleValue();
+    }
+
     ShipConfig build() {
-      return new ShipConfig(type, rotation, thrust, speed, recharge, energy);
+      return new ShipConfig(
+          type,
+          rotation,
+          thrust,
+          speed,
+          recharge,
+          energy,
+          dragFactor,
+          turnResponsiveness,
+          bounceRestitution);
     }
   }
 }

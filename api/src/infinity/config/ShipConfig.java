@@ -39,8 +39,8 @@ import infinity.Ship;
  * directly — they watch the components, which can diverge from the template
  * via upgrades, damage, or status effects.
  *
- * <p>MVP scope: movement + energy only. Expand with weapons / ammo / special
- * fields as consumers are wired.
+ * <p>MVP scope: movement + energy + physics-feel knobs. Expand with weapons /
+ * ammo / special fields as consumers are wired.
  *
  * @param type the ship this template applies to
  * @param rotation rotation-rate triple (initial / max / per-upgrade)
@@ -48,6 +48,12 @@ import infinity.Ship;
  * @param speed speed triple
  * @param recharge recharge-rate triple
  * @param energy energy-pool triple
+ * @param dragFactor coast-drag fraction of {@code Thrust} when no thrust intent
+ *     ({@code 0} = pure coast, {@code 1} = decelerate as fast as full thrust)
+ * @param turnResponsiveness rate constant (1/sec) for the angular-velocity
+ *     ease-toward-target ({@code 8.0} ≈ 95% of target in ~0.4 sec)
+ * @param bounceRestitution wall-bounce restitution ({@code 1} = perfectly
+ *     elastic, {@code 0} = stick)
  */
 public record ShipConfig(
     Ship type,
@@ -55,4 +61,7 @@ public record ShipConfig(
     ShipStat thrust,
     ShipStat speed,
     ShipStat recharge,
-    ShipStat energy) {}
+    ShipStat energy,
+    double dragFactor,
+    double turnResponsiveness,
+    double bounceRestitution) {}

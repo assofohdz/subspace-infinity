@@ -38,9 +38,13 @@
 //       speed    initial: <I>, max: <M>, upgrade: <U>
 //       recharge initial: <I>, max: <M>, upgrade: <U>
 //       energy   initial: <I>, max: <M>, upgrade: <U>
+//       dragFactor          <D>     // 0..1 — fraction of Thrust applied as drag while coasting
+//       turnResponsiveness  <R>     // 1/sec — angular ease rate; 8.0 ≈ ~95% of target in ~0.4 sec
+//       bounceRestitution   <B>     // 0..1 — wall-bounce energy retention; 1.0 = perfectly elastic
 //   }
 //
-// Omit a stat to leave it at ShipStat(0, 0, 0). MVP scope: Warbird only.
+// Omit a stat to leave it at ShipStat(0, 0, 0). The three feel knobs default to
+// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted. MVP scope: Warbird only.
 
 ship(Ship.WARBIRD) {
     rotation initial: 200,  max: 200,  upgrade: 0
@@ -48,4 +52,7 @@ ship(Ship.WARBIRD) {
     speed    initial: 2000, max: 6000, upgrade: 0
     recharge initial: 4000, max: 4000, upgrade: 0
     energy   initial: 1500, max: 1500, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
 }
