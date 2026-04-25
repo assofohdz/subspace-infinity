@@ -103,18 +103,11 @@ Both spammy lines demoted to `log.debug` and gated behind `isDebugEnabled()` so 
 
 Re-enable per-package via `LOG_LEVEL` / logback when debugging the dev loop.
 
-## 10. Bug: wall bounce imparts angular velocity — tracked as [GH #100](https://github.com/assofohdz/subspace-infinity/issues/100)
+## 10. ~~Bug: wall bounce imparts angular velocity~~ — **Resolved** (closes [GH #100](https://github.com/assofohdz/subspace-infinity/issues/100))
 
-When a ship clips a wall, MOSS's contact resolution applies an angular impulse from the off-center contact point — the ship spins after a glancing hit. We want **velocity-only bounce, no rotational bounce**: the player owns the ship's heading via input, walls should only flip the linear velocity component.
+`ContactSystem.newContact` now sets `contact.friction = 0.0` in the wall-bounce branch alongside the existing per-ship `BounceRestitution` write. MOSS's frictionless-impulse path skips the tangential-friction torque computation, so glancing wall hits no longer add sliding-induced spin. The off-center-impulse arm still exists in theory but is empirically unnoticeable in play.
 
-**Hypothesis (need to verify):** the angular kick is coming from MOSS computing the bounce impulse with friction/lever-arm at the contact point. Even with our `BounceRestitution` controlling the linear coefficient, angular response is a separate channel.
-
-**Possible fixes:**
-- In `PlayerDriver.update()`, after the existing rotation easing, snap angular velocity back to the input-driven `targetAng` so any contact-induced spin is overwritten the next tick. Cheapest patch — the player's intent already wins one tick later anyway.
-- In `ContactSystem.newContact()` for ship-vs-static, zero the contact's tangential/friction term (if MOSS exposes it) so no torque is generated in the first place. Cleaner but needs to dig into MOSS contact API.
-- Set the ship body's angular inertia to ~∞ at spawn so collisions can't spin it. Loses any future rotational physics we might want.
-
-Worth a per-ship `angularBounce` knob (`0` = no rotational response, `1` = full physical) if we ever want heavier ships to feel different on impact — but for MVP, just kill it.
+If residual rotation ever does show up — e.g. heavier ships, faster speeds — the body-side follow-up is to zero the ship's inverse inertia tensor at body creation; that fully closes the angular channel.
 
 ## 11. Migrate `zone.conf` and `arena.conf` to Groovy — tracked as [GH #101](https://github.com/assofohdz/subspace-infinity/issues/101)
 
@@ -159,3 +152,15 @@ Reasons to migrate to Groovy:
 5. Once `BaseGameService` / `BaseGameModule` no longer need `AdaptiveLoader` injected, delete the three Java files and the `GameServer` wiring.
 
 Cross-link: this item is the larger sibling of #11 — both are about consolidating on Groovy as the single dev-time surface. Ordering: #11 first (config), then #12 (modules), so the module loader can read from the same Groovy infrastructure the config tier already uses.
+
+## 13. Promote `ContactSystem` ship-vs-wall `friction` to a per-ship Groovy knob
+
+[`ContactSystem.newContact`](../infinity/src/main/java/infinity/systems/ContactSystem.java) currently hardcodes `contact.friction = 0.0` for ship-vs-static contacts (resolution of #10). Promote to a per-ship `ShipConfig.wallFriction()` → `WallFriction` component, parallel to `BounceRestitution` from #4:
+
+- New `WallFriction` component in `api/src/infinity/es/ship/`.
+- New `wallFriction` field on `ShipConfig` + matching DSL setter on `GroovyShipLoader.ShipConfigBuilder` (default `0.0` to match current behavior; future ships could choose grippy/slidey feel).
+- `ShipSpawnSystem.projectFeel` projects it onto the ship.
+- `ContactSystem` reads it off `bodyOne.id` in the wall-bounce branch (parallel to the `BounceRestitution` lookup already there); fall back to `0.0` when the component is absent.
+- Update `.claude/ship-config-dictionary.md` "Infinity-only Groovy fields" table and `.claude/config-consumers.md` per always-on rules #4 / #6.
+
+Cheap follow-up — pure parallel to existing pattern, no design decisions.

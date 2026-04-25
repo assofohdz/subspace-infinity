@@ -94,6 +94,9 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       // dynamics: projectiles, debris, anything not driven by ShipSpawnSystem).
       final BounceRestitution bounce = ed.getComponent(bodyOne.id, BounceRestitution.class);
       contact.restitution = bounce != null ? bounce.getRestitution() : 1.0;
+      // Zero tangential friction so a glancing wall hit doesn't add sliding-induced
+      // spin. Player input owns ship heading; walls only affect linear velocity.
+      contact.friction = 0.0;
     }
 
     // Now that we have filtered the basics, lets send it to the various systems listening for

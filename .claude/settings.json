@@ -21,7 +21,10 @@
       "Bash(./gradlew --no-daemon -q :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava :modules:compileJava :modules:compileTestJava spotlessCheck)",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity status --porcelain -- '*.java')",
       "Bash(echo \"EXIT_CODE:$?\")",
-      "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Local trackers in .claude/**)"
+      "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Local trackers in .claude/**)",
+      "Bash(xargs -I{} unzip -l {})",
+      "Bash(grep -E \"mphys.*Contact\\\\.class$|Contact\\\\.class.*mphys\")",
+      "Bash(./gradlew --no-daemon :infinity:compileJava :infinity:compileTestJava :infinity:spotlessCheck)"
     ]
   },
   "hooks": {
