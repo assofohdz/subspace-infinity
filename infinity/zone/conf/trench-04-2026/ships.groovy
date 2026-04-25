@@ -44,7 +44,11 @@
 //   }
 //
 // Omit a stat to leave it at ShipStat(0, 0, 0). The three feel knobs default to
-// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted. MVP scope: Warbird only.
+// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted.
+//
+// All 8 ships are configured. Numeric stats mirror the per-ship `ship-<name>`
+// INI fragments in this directory (the canonical trench tuning). Feel knobs
+// are uniform across ships for now — tune per-ship empirically.
 
 ship(Ship.WARBIRD) {
     rotation initial: 200,  max: 200,  upgrade: 0
@@ -52,6 +56,83 @@ ship(Ship.WARBIRD) {
     speed    initial: 2000, max: 6000, upgrade: 0
     recharge initial: 4000, max: 4000, upgrade: 0
     energy   initial: 1500, max: 1500, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.JAVELIN) {
+    rotation initial: 200,  max: 200,  upgrade: 0
+    thrust   initial: 13,   max: 24,   upgrade: 0
+    speed    initial: 1900, max: 6000, upgrade: 0
+    recharge initial: 1500, max: 1500, upgrade: 0
+    energy   initial: 1500, max: 1500, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.SPIDER) {
+    rotation initial: 180,  max: 180,  upgrade: 0
+    thrust   initial: 18,   max: 24,   upgrade: 0
+    speed    initial: 1700, max: 6000, upgrade: 0
+    recharge initial: 2500, max: 2500, upgrade: 0
+    energy   initial: 1400, max: 1400, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.LEVIATHAN) {
+    rotation initial: 45,   max: 800,   upgrade: 0
+    thrust   initial: 5,    max: 24,    upgrade: 0
+    speed    initial: 500,  max: 6000,  upgrade: 0
+    recharge initial: 1100, max: 32000, upgrade: 0
+    energy   initial: 1500, max: 1500,  upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.TERRIER) {
+    rotation initial: 300,  max: 300,  upgrade: 0
+    thrust   initial: 24,   max: 28,   upgrade: 0
+    speed    initial: 4000, max: 6000, upgrade: 0
+    recharge initial: 1800, max: 1800, upgrade: 0
+    energy   initial: 1500, max: 1500, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.WEASEL) {
+    rotation initial: 130,  max: 130,  upgrade: 0
+    thrust   initial: 18,   max: 24,   upgrade: 0
+    speed    initial: 1100, max: 6000, upgrade: 0
+    recharge initial: 1250, max: 1250, upgrade: 0
+    energy   initial: 1020, max: 1020, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.LANCASTER) {
+    rotation initial: 200,  max: 200,  upgrade: 0
+    thrust   initial: 16,   max: 24,   upgrade: 0
+    speed    initial: 1800, max: 6000, upgrade: 0
+    recharge initial: 2750, max: 2750, upgrade: 0
+    energy   initial: 1500, max: 1500, upgrade: 0
+    dragFactor          0.05
+    turnResponsiveness  2.0
+    bounceRestitution   0.3
+}
+
+ship(Ship.SHARK) {
+    rotation initial: 210,  max: 210,  upgrade: 0
+    thrust   initial: 13,   max: 24,   upgrade: 0
+    speed    initial: 1875, max: 6000, upgrade: 0
+    recharge initial: 1500, max: 1500, upgrade: 0
+    energy   initial: 1200, max: 1200, upgrade: 0
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3

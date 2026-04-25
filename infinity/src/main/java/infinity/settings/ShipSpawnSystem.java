@@ -161,19 +161,21 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     }
 
     project(shipEntity.getId(), cfg);
-    log.info(
-        "Projected ShipConfig for {} onto entity {} in arena {}: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
-        shipType.getType(),
-        shipEntity.getId(),
-        arena.getArena(),
-        cfg.thrust(),
-        cfg.speed(),
-        cfg.rotation(),
-        cfg.recharge(),
-        cfg.energy(),
-        cfg.dragFactor(),
-        cfg.turnResponsiveness(),
-        cfg.bounceRestitution());
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "Projected ShipConfig for {} onto entity {} in arena {}: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
+          shipType.getType(),
+          shipEntity.getId(),
+          arena.getArena(),
+          cfg.thrust(),
+          cfg.speed(),
+          cfg.rotation(),
+          cfg.recharge(),
+          cfg.energy(),
+          cfg.dragFactor(),
+          cfg.turnResponsiveness(),
+          cfg.bounceRestitution());
+    }
   }
 
   /**

@@ -85,12 +85,6 @@ public final class GroovyShipLoader {
   private static final Logger log = LoggerFactory.getLogger(GroovyShipLoader.class);
 
   /**
-   * Built-in fallback snapshot installed when an arena's {@code ships.groovy}
-   * is missing or fails to evaluate. Warbird-only, SVS-canonical tuning
-   * (matches the {@code conf/base/ship-warbird} INI fragment). Extend with
-   * other ships once gameplay exercises them.
-   */
-  /**
    * Default coast-drag fraction used when a ship script omits
    * {@code dragFactor}. Matches the historical {@code PlayerDriver.DRAG_FACTOR}
    * global so existing scripts keep the prior feel.
@@ -111,21 +105,92 @@ public final class GroovyShipLoader {
    */
   static final double DEFAULT_BOUNCE_RESTITUTION = 1.0;
 
+  /**
+   * Built-in fallback snapshot installed when an arena's {@code ships.groovy}
+   * is missing or fails to evaluate. Covers all 8 ships with SVS-canonical
+   * tuning (matches the {@code conf/svs/ship-*} INI fragments) so picking any
+   * ship in an unconfigured arena spawns a working ship rather than an inert
+   * zero-stat one. Feel knobs (drag / turn / bounce) use the {@code DEFAULT_*}
+   * constants above, which match the historical Java globals.
+   */
   public static final ConfigRegistry FALLBACK =
       ConfigRegistry.builder()
-          .ship(
+          .ship(Ship.WARBIRD, fallbackShip(
               Ship.WARBIRD,
-              new ShipConfig(
-                  Ship.WARBIRD,
-                  /* rotation */ new ShipStat(210, 300, 40),
-                  /* thrust */ new ShipStat(16, 19, 2),
-                  /* speed */ new ShipStat(2010, 3250, 250),
-                  /* recharge */ new ShipStat(400, 1150, 166),
-                  /* energy */ new ShipStat(1000, 1700, 100),
-                  DEFAULT_DRAG_FACTOR,
-                  DEFAULT_TURN_RESPONSIVENESS,
-                  DEFAULT_BOUNCE_RESTITUTION))
+              /* rotation */ new ShipStat(210, 300, 40),
+              /* thrust */   new ShipStat(16,  19,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.JAVELIN, fallbackShip(
+              Ship.JAVELIN,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2200, 3750, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.SPIDER, fallbackShip(
+              Ship.SPIDER,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(500, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.LEVIATHAN, fallbackShip(
+              Ship.LEVIATHAN,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.TERRIER, fallbackShip(
+              Ship.TERRIER,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.WEASEL, fallbackShip(
+              Ship.WEASEL,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.LANCASTER, fallbackShip(
+              Ship.LANCASTER,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1700, 100)))
+          .ship(Ship.SHARK, fallbackShip(
+              Ship.SHARK,
+              /* rotation */ new ShipStat(200, 230, 40),
+              /* thrust */   new ShipStat(15,  17,  2),
+              /* speed */    new ShipStat(2010, 3250, 250),
+              /* recharge */ new ShipStat(400, 1150, 166),
+              /* energy */   new ShipStat(1000, 1750, 100)))
           .build();
+
+  private static ShipConfig fallbackShip(
+      final Ship type,
+      final ShipStat rotation,
+      final ShipStat thrust,
+      final ShipStat speed,
+      final ShipStat recharge,
+      final ShipStat energy) {
+    return new ShipConfig(
+        type,
+        rotation,
+        thrust,
+        speed,
+        recharge,
+        energy,
+        DEFAULT_DRAG_FACTOR,
+        DEFAULT_TURN_RESPONSIVENESS,
+        DEFAULT_BOUNCE_RESTITUTION);
+  }
 
   private final ConfigRegistrySystem configRegistry;
 

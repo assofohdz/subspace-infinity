@@ -48,11 +48,13 @@ Promoted from Java globals to per-ship Groovy fields, projected through Pattern 
 
 Defaults when omitted from a Groovy script: `0.05 / 8.0 / 1.0` — matches the prior global values, so existing scripts keep the prior feel.
 
-## 5. Coverage gaps in `ships.groovy`
+## 5. ~~Coverage gaps in `ships.groovy`~~ — **Resolved**
 
-[`conf/trench-04-2026/ships.groovy`](../infinity/zone/conf/trench-04-2026/ships.groovy) has only Warbird configured. Ships 2–8 (Javelin, Spider, Leviathan, Terrier, Weasel, Lancaster, Shark) fall through to `GroovyShipLoader.FALLBACK` which is also Warbird-only — so picking those ships in-game will spawn an unconfigured ship that can't move (zero stats).
+All 8 ships now spawn working in trench-04-2026:
 
-**Action:** add `ship(Ship.JAVELIN) { ... }` etc. for the other 7 ship types.
+- [`conf/trench-04-2026/ships.groovy`](../infinity/zone/conf/trench-04-2026/ships.groovy) declares all 8 ship blocks. Numeric stats mirror the per-ship `ship-<name>` INI fragments in the same directory.
+- `GroovyShipLoader.FALLBACK` now covers all 8 ships with SVS-canonical stats so any unconfigured arena still spawns working ships.
+- Feel knobs (`dragFactor`, `turnResponsiveness`, `bounceRestitution`) are uniform across ships in trench. Per-ship feel differentiation is left as future tuning work.
 
 ## 6. Server-authoritative vs Subspace client-authoritative
 
@@ -70,11 +72,14 @@ Right now pressing 1–8 reloads `ships.groovy` and reprojects to **the caller's
 
 Not started. Would consume `*Upgrade` and `*Max` components (item 1 above) to mutate the corresponding "current cap" components when a player picks up a thrust/speed/rotation/recharge/energy prize.
 
-## 9. Cosmetic: `ShipSpawnSystem.applyConfigTo` logs at INFO
+## 9. ~~Cosmetic: `ShipSpawnSystem.applyConfigTo` logs at INFO~~ — **Resolved**
 
-[ShipSpawnSystem.java:142-153](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java#L142) — every ship change emits `log.info("Projected ShipConfig for ...")`. Useful while debugging the dev loop, noisy in production. Demote to `log.debug` once the loop is stable.
+Both spammy lines demoted to `log.debug` and gated behind `isDebugEnabled()` so the formatter doesn't run when logging at INFO:
 
-Same for `PlayerDriver.update()` — the `log.info("Stats refreshed for entity ...")` block at every `applyChanges()` will be very chatty.
+- `ShipSpawnSystem.applyConfigTo` — "Projected ShipConfig for ..."
+- `PlayerDriver.update` — "Stats refreshed for entity ..."
+
+Re-enable per-package via `LOG_LEVEL` / logback when debugging the dev loop.
 
 ## 10. Bug: wall bounce imparts angular velocity
 

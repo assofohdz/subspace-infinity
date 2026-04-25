@@ -92,8 +92,8 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
         // Drivable bodies should not fall asleep.
         body.wakeUp(true);
 
-        if (shipStats.applyChanges()) {
-            log.info(
+        if (shipStats.applyChanges() && log.isDebugEnabled()) {
+            log.debug(
                     "Stats refreshed for entity {}: thrust={} speed={} rotation={} drag={} turn={}",
                     shipStats.getId(),
                     shipStats.get(Thrust.class),
