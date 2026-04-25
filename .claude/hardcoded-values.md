@@ -15,6 +15,7 @@ One row per occurrence. If the same value appears in multiple files, log each.
 | ~~PlayerDriver.java:70~~ | ~~`DRAG_FACTOR`~~ | ~~`0.05`~~ | **Resolved** — promoted to per-ship `ShipConfig.dragFactor()` → `DragFactor` component (Pattern 4 #4). PlayerDriver now reads from the watched entity. |
 | ~~PlayerDriver.java:80~~ | ~~`TURN_RESPONSIVENESS`~~ | ~~`8.0`~~ | **Resolved** — promoted to per-ship `ShipConfig.turnResponsiveness()` → `TurnResponsiveness` component (Pattern 4 #4). |
 | ~~ContactSystem.java:92~~ | ~~`contact.restitution = 1`~~ | ~~`1`~~ | **Resolved** — promoted to per-ship `ShipConfig.bounceRestitution()` → `BounceRestitution` component (Pattern 4 #4). Non-ship dynamic bodies still default to perfectly-elastic (`1.0`) when the component is absent. |
+| [ArenaSystem.java](../infinity/src/main/java/infinity/systems/ArenaSystem.java) `SCRIPT_POLL_INTERVAL_NANOS` | Throttle for the per-arena `ships.groovy` file watcher | `5_000_000_000L` (5 s) | Dev-tool polling interval, not gameplay-scoped — no natural Groovy home today. Promote to `zone.conf`/Groovy when follow-up #11 lands the zone-tier migration. |
 
 ## Guidance on what counts
 

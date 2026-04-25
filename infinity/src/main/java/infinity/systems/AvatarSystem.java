@@ -47,7 +47,6 @@ import infinity.es.arena.ArenaId;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.WarpTo;
 import infinity.events.ShipEvent;
-import infinity.settings.GroovyShipLoader;
 import infinity.sim.CorePhysicsConstants;
 import java.util.HashMap;
 
@@ -72,7 +71,6 @@ public class AvatarSystem extends AbstractGameSystem {
   private EntityData ed;
   private EntitySet frequencies;
   private EntitySet arenaEntities;
-  private GroovyShipLoader shipLoader;
   /** The number of allowed players in each ship on this team. */
   private HashMap<Integer, ShipRestrictor> teamRestrictions;
 
@@ -89,7 +87,6 @@ public class AvatarSystem extends AbstractGameSystem {
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
     arenaEntities = ed.getEntities(ArenaId.class);
-    shipLoader = getSystem(GroovyShipLoader.class);
 
     teamRestrictions = new HashMap<>();
   }
@@ -143,17 +140,8 @@ public class AvatarSystem extends AbstractGameSystem {
   public void requestShipChange(final EntityId shipEntity, final byte shipType) {
     // TODO: Check for energy (full energy to switch ships)
 
-    // Hot-reload the arena's ships.groovy so dev edits take effect on the next ship change.
-    // Fast: filesystem read + Groovy parse, microseconds. Resolved ambiently (Option R2).
-    arenaEntities.applyChanges();
-    final java.util.Iterator<com.simsilica.es.Entity> arenaIter = arenaEntities.iterator();
-    final ArenaId currentArena = arenaIter.hasNext() ? arenaIter.next().get(ArenaId.class) : null;
-    if (currentArena != null) {
-      final SettingsSystem settings = getSystem(SettingsSystem.class);
-      final String scriptPath =
-          settings.getString(currentArena.getArena(), "Scripts", "Ships", null);
-      shipLoader.apply(currentArena, scriptPath);
-    }
+    // ships.groovy live-reload is handled by ArenaSystem's per-arena file watcher
+    // (fires on save, not on key press). Nothing to do here on ship change.
 
     // Frequency-based ship restrictions are optional — human player ships don't carry
     // a Frequency component today (only freq-aware spawn paths add it). Read directly

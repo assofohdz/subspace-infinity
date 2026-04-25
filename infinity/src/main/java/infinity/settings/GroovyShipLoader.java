@@ -263,6 +263,29 @@ public final class GroovyShipLoader {
     return registryBuilder.build();
   }
 
+  /**
+   * Resolve a classpath script path (e.g. {@code "/conf/trench-04-2026/ships.groovy"}) to
+   * the on-disk source path if dev-mode candidates exist, or {@code null} when only the
+   * classpath copy is reachable (production / packaged jar). Public so callers wiring a
+   * file watcher (e.g. {@code ArenaSystem}) can stat / poll the same file the loader
+   * actually reads from.
+   */
+  @Nullable
+  public Path resolveOnDisk(final String classpathPath) {
+    if (classpathPath == null || classpathPath.isBlank()) {
+      return null;
+    }
+    final String relative =
+        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
+    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
+    for (final Path p : candidates) {
+      if (Files.isReadable(p)) {
+        return p;
+      }
+    }
+    return null;
+  }
+
   @Nullable
   private String readSource(final String classpathPath) throws IOException {
     // Dev mode: try the filesystem source first so edits show up without a rebuild.
@@ -270,14 +293,10 @@ public final class GroovyShipLoader {
     // and zone/ is the resource root — so /conf/x.groovy on the classpath is zone/conf/x.groovy
     // on disk. The "infinity/zone" candidate covers the case where the JVM is launched
     // from the project root instead.
-    final String relative =
-        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
-    for (final Path p : candidates) {
-      if (Files.isReadable(p)) {
-        log.debug("Reading {} from filesystem source: {}", classpathPath, p);
-        return Files.readString(p, StandardCharsets.UTF_8);
-      }
+    final Path onDisk = resolveOnDisk(classpathPath);
+    if (onDisk != null) {
+      log.debug("Reading {} from filesystem source: {}", classpathPath, onDisk);
+      return Files.readString(onDisk, StandardCharsets.UTF_8);
     }
     // Production / packaged jar: fall back to classpath.
     try (InputStream is = getClass().getResourceAsStream(classpathPath)) {

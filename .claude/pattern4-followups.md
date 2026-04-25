@@ -25,10 +25,9 @@ Upgrades are silent no-ops when `*Upgrade=0` (trench preset's "no upgrades" desi
 
 | Where | What | Why deferred |
 |---|---|---|
-| [GameEntities.createShip:504](../api/src/infinity/sim/GameEntities.java#L504) | Ships don't carry their own `ArenaId` ("Option R2" — ambient arena lookup) | Player↔arena association isn't modelled yet. Single-arena works; multi-arena is silently broken. |
-| [ShipSpawnSystem.java](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) class Javadoc | Ambient arena resolution refuses (with `log.warn`) if >1 arena is loaded | Same root cause as above. |
+| **Pattern 4 — arena resolution (`Option R2`):** [GameEntities.createShip:501](../api/src/infinity/sim/GameEntities.java#L501) (`TODO(pattern4-arena)`) · [ShipSpawnSystem class Javadoc + resolveAmbientArena](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java#L75) · [AvatarSystem:147,223](../infinity/src/main/java/infinity/systems/AvatarSystem.java#L147) | Ships don't carry their own `ArenaId` component. Three sites resolve the arena ambiently: `ShipSpawnSystem` refuses (with `log.warn`) when >1 arena is loaded; `AvatarSystem` live-config-reload picks "first loaded arena wins". | Player↔arena association isn't modelled yet. Single-arena works; multi-arena is silently wrong (AvatarSystem) or skipped entirely (ShipSpawnSystem). Fix: add an `ArenaId` component on ship creation and read it directly. |
 | ~~GameEntities.createShip:520-522~~ | ~~Hardcoded `Energy/EnergyMax/Recharge` inline~~ | **Resolved** — removed alongside #3 cleanup. `ShipSpawnSystem` is now the sole projector. |
-| [ShipSpawnSystem.java:212-216](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java#L212) `projectRecharge` | TODO comment about recharge unit conversion (still present despite the `/10` constant) | Cosmetic — comment outdated, conversion is now verified. |
+| ~~ShipSpawnSystem.projectRecharge~~ | ~~TODO comment about recharge unit conversion~~ | **Resolved** — comment is gone; the `RECHARGE_UNITS_TO_PER_SEC = 1.0/10.0` constant ([ShipSpawnSystem.java:101](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java#L101)) carries the conversion rationale in its Javadoc. |
 
 ## 3. ~~Possibly buggy: Energy projection~~ — **Resolved**
 
@@ -76,9 +75,16 @@ SubspaceServer is **client-authoritative** for ship physics (server just relays 
 
 If a concrete physics-tuning task ever needs to be tracked, file it as a new numbered item — this section is just orientation.
 
-## 7. Future feature: live ship-config reload across all ships
+## 7. ~~Future feature: live ship-config reload across all ships~~ — **Resolved**
 
-Right now pressing 1–8 reloads `ships.groovy` and reprojects to **the caller's ship only**. Other ships in the arena keep their stale stats until they too pick a key. A hot-reload that walks all ship entities in the arena and re-projects each one would be cleaner — but needs care around thread safety (chat thread vs sim update thread).
+Live reload is now triggered by a per-arena file watcher in [`ArenaSystem`](../infinity/src/main/java/infinity/systems/ArenaSystem.java) — no ship-change action required.
+
+- On arena load, `ArenaSystem.registerScriptWatch` resolves the arena's `ships.groovy` to its on-disk path (via the new `GroovyShipLoader.resolveOnDisk` helper) and snapshots the file's mtime. No-op when only the classpath copy is reachable (production / packaged jar).
+- Each tick, `ArenaSystem.pollScriptWatches` stats every watched file. If the mtime changed, it re-evaluates the Groovy via `shipLoader.apply(...)` and calls [`ShipSpawnSystem.reprojectAll()`](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) which writes the latest `ShipConfig`-derived components directly via `ed.setComponent` for every ship in scope. Cost: one stat() syscall per loaded arena per tick — cheap enough to skip throttling.
+- On arena unload, `unregisterScriptWatch` drops the entry.
+- The previous workaround in `AvatarSystem.requestShipChange` (reload + reproject on key 1–8) was removed; the file watcher subsumes it. `AvatarSystem` no longer depends on `GroovyShipLoader`.
+
+Live updates are pure ECS component writes, thread-safe in Zay-ES, so the sim-thread poll can push new tuning out without any extra synchronisation.
 
 ## 8. ~~Future feature: upgrade pickup system~~ — **Resolved (closed by #1)**
 
@@ -125,3 +131,29 @@ Worth a per-ship `angularBounce` knob (`0` = no rotational response, `1` = full 
 4. Update the [`arena-settings`](../.claude/skills/arena-settings/) skill to point at the new authoring surface.
 
 Out of scope for this item: the per-preset `conf/<preset>/*.conf` fragments under [`infinity/zone/conf/`](../infinity/zone/conf/). Larger surface, separate migration; track as a future item if needed.
+
+## 12. Deprecate the Java `AdaptiveLoader` hot-module system in favour of Groovy
+
+The current dynamic-module surface is a custom Java classloader + service stack:
+
+- [`api/src/infinity/sim/AdaptiveLoader.java`](../api/src/infinity/sim/AdaptiveLoader.java) — interface threaded through `BaseGameService` / `BaseGameModule` constructors and into every `modules/.../*Tester.java` (basicTester, lightTester, prizeTester, doorTester, wangTester, warpTester, ...).
+- [`infinity/src/main/java/infinity/util/AdaptiveLoadingService.java`](../infinity/src/main/java/infinity/util/AdaptiveLoadingService.java) — `AbstractHostedService` that loads/instantiates/enables/disables modules at runtime and binds chat commands to do it.
+- [`infinity/src/main/java/infinity/util/AdaptiveClassLoader.java`](../infinity/src/main/java/infinity/util/AdaptiveClassLoader.java) — the custom `ClassLoader`.
+- Wired in [`GameServer.java:312-314`](../infinity/src/main/java/infinity/server/GameServer.java#L312).
+
+Reasons to migrate to Groovy:
+
+- One reload mechanism, not two. We already have `GroovyShipLoader` + the per-arena file watcher (#7); a Groovy-defined module would slot into the same pattern (filesystem-first read, mtime poll, re-evaluate, re-apply).
+- No bespoke `ClassLoader` to maintain — Groovy's `GroovyShell` / `GroovyClassLoader` handles isolation and reload semantics.
+- Authoring surface matches always-on rule #5 (Groovy is the configuration / scripting tier).
+- Smaller attack surface — modules become scripts read from disk, not arbitrary `.class` files dropped in.
+
+**Approach (sketch — large item, do incrementally):**
+
+1. Pick one of the simpler `*Tester` modules as the migration prototype (e.g. `doorTester` or `warpTester`) and re-express it as a Groovy script under `infinity/zone/conf/<preset>/modules/` (or a dedicated `modules/` tier — TBD alongside #11).
+2. Add a `GroovyModuleLoader` parallel to `GroovyShipLoader`: typed DSL for declaring a module's lifecycle hooks (`onLoad`, `onTick`, `onChat`, ...), backed by a `ModuleConfig` record / registry.
+3. Wire a per-arena file watcher (extension of `ArenaSystem.pollScriptWatches` or a sibling poll) so a saved Groovy module reloads with the same semantics as `ships.groovy`.
+4. Port the remaining `*Tester` modules one at a time. Each port deletes its Java source and the matching `AdaptiveLoader` constructor parameter from the call site.
+5. Once `BaseGameService` / `BaseGameModule` no longer need `AdaptiveLoader` injected, delete the three Java files and the `GameServer` wiring.
+
+Cross-link: this item is the larger sibling of #11 — both are about consolidating on Groovy as the single dev-time surface. Ordering: #11 first (config), then #12 (modules), so the module loader can read from the same Groovy infrastructure the config tier already uses.

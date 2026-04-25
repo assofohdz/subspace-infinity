@@ -139,6 +139,35 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     }
   }
 
+  /**
+   * Re-projects {@link ShipConfig} stats onto every ship currently in scope by
+   * directly writing the latest component values. Use after a hot-reload of
+   * the per-arena Groovy config so all ships pick up the new tuning, not just
+   * whoever triggered the reload.
+   *
+   * <p>Thread-safe to call from any thread (RMI, chat, sim) — this only
+   * mutates ECS components via {@link EntityData#setComponent}, which is
+   * already thread-safe in Zay-ES. The temporary {@code EntitySet} is
+   * thread-local and released before return.
+   *
+   * @return number of ships re-projected
+   */
+  public int reprojectAll() {
+    int n = 0;
+    final EntitySet allShips = ed.getEntities(ShipType.class);
+    try {
+      allShips.applyChanges();
+      for (final Entity ship : allShips) {
+        applyConfigTo(ship);
+        n++;
+      }
+    } finally {
+      allShips.release();
+    }
+    log.debug("reprojectAll: re-projected {} ship(s)", n);
+    return n;
+  }
+
   private void applyConfigTo(final Entity shipEntity) {
     final ShipType shipType = shipEntity.get(ShipType.class);
     if (shipType == null || shipType.getType() == null) {
