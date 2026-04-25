@@ -64,21 +64,27 @@ All 8 ships now spawn working in trench-04-2026:
 - `GroovyShipLoader.FALLBACK` now covers all 8 ships with SVS-canonical stats so any unconfigured arena still spawns working ships.
 - Feel knobs (`dragFactor`, `turnResponsiveness`, `bounceRestitution`) are uniform across ships in trench. Per-ship feel differentiation is left as future tuning work.
 
-## 6. Server-authoritative vs Subspace client-authoritative
+## 6. ~~Server-authoritative vs Subspace client-authoritative~~ — **Documentation, no action**
+
+Background note rather than a follow-up. Captured here because it explains why the per-ship tuning numbers are what they are; not actionable on its own.
 
 SubspaceServer is **client-authoritative** for ship physics (server just relays position packets). Infinity is **server-authoritative** (MOSS does the physics). Implications:
 
 - Subspace's `MaximumThrust` / `MaximumSpeed` numeric values are sized for Continuum's pixel-based physics — they don't translate 1:1 to MOSS world units.
-- Empirical tuning is the only path. The DRAG_FACTOR / TURN_RESPONSIVENESS / car-curve thrust model are good architectural choices regardless of unit scaling.
-- A single global "scaling constant" idea was floated as a way to bridge Subspace integers to MOSS units. Not yet built — currently the values flow through unchanged.
+- Empirical per-ship tuning is the only path. The `dragFactor` / `turnResponsiveness` / car-curve thrust model are good architectural choices regardless of unit scaling — and per #4 they're now per-ship Groovy fields, so empirical tuning has a home.
+- The "single global scaling constant" idea (bridge Subspace integers → MOSS units) was floated but not built. Per-ship tuning supersedes it: a single multiplier can't capture the fact that different ships need different feel curves under MOSS's force-based physics, which is exactly what #4's Pattern-4 promotion already enables.
+
+If a concrete physics-tuning task ever needs to be tracked, file it as a new numbered item — this section is just orientation.
 
 ## 7. Future feature: live ship-config reload across all ships
 
 Right now pressing 1–8 reloads `ships.groovy` and reprojects to **the caller's ship only**. Other ships in the arena keep their stale stats until they too pick a key. A hot-reload that walks all ship entities in the arena and re-projects each one would be cleaner — but needs care around thread safety (chat thread vs sim update thread).
 
-## 8. Future feature: upgrade pickup system
+## 8. ~~Future feature: upgrade pickup system~~ — **Resolved (closed by #1)**
 
-Not started. Would consume `*Upgrade` and `*Max` components (item 1 above) to mutate the corresponding "current cap" components when a player picks up a thrust/speed/rotation/recharge/energy prize.
+`PrizeSystem` now handles all 5 stat-upgrade prizes (Thruster / TopSpeed / Rotation / Recharge / Energy). Each handler reads the `*Upgrade` and `*Max` components projected by `ShipSpawnSystem` and bumps the matching current-cap component, clamped at `*Max`.
+
+**By design, prizes never mutate the `*Max` components.** Hard caps are read-only at runtime — the only way to change them is to edit the per-ship Groovy block and live-reload (which re-projects the whole ShipConfig at spawn). This was the explicit intent: Groovy is the live-tuning surface for the absolute ceilings; in-game prizes only push the current cap toward those ceilings.
 
 ## 9. ~~Cosmetic: `ShipSpawnSystem.applyConfigTo` logs at INFO~~ — **Resolved**
 
@@ -101,3 +107,21 @@ When a ship clips a wall, MOSS's contact resolution applies an angular impulse f
 - Set the ship body's angular inertia to ~∞ at spawn so collisions can't spin it. Loses any future rotational physics we might want.
 
 Worth a per-ship `angularBounce` knob (`0` = no rotational response, `1` = full physical) if we ever want heavier ships to feel different on impact — but for MVP, just kill it.
+
+## 11. Migrate `zone.conf` and `arena.conf` to Groovy
+
+[`infinity/zone/zone.conf`](../infinity/zone/zone.conf) and [`infinity/zone/arenas/<name>/arena.conf`](../infinity/zone/arenas/) are still INI-style with `#include` directives and string-keyed `SettingsSystem` lookups. Migrate both to Groovy to match [`ships.groovy`](../infinity/zone/conf/trench-04-2026/ships.groovy):
+
+- Same per-arena live-reload story (filesystem-first read in dev mode, classpath fallback for packaged jars).
+- Type-checked DSL via a typed builder (cf. `GroovyShipLoader.ShipConfigBuilder`) instead of opaque string keys with default values scattered across consumers.
+- IDE autocomplete + Groovy compile-error feedback when editing.
+- Closes the loop on always-on rule #5: it makes Groovy genuinely the only place tuning knobs live, instead of "Groovy for ships, INI for everything else".
+
+**Approach (sketch):**
+
+1. Decide on the typed binding for each tier — likely a `ZoneConfig` record + `ZoneConfigLoader` for zone scope, and an `ArenaConfig` record + `ArenaConfigLoader` for arena scope (parallel structure to `ShipConfig` / `GroovyShipLoader`).
+2. Wire the loaders into the existing arena-load and zone-startup paths so Groovy and INI can coexist while the migration ramps.
+3. Port settings one fragment at a time. Keep the existing `SettingsSystem` typed accessors as the consumer-facing API initially — back them with the Groovy-derived registry instead of the INI parser. Once all callers use typed accessors, the INI parser can be deleted.
+4. Update the [`arena-settings`](../.claude/skills/arena-settings/) skill to point at the new authoring surface.
+
+Out of scope for this item: the per-preset `conf/<preset>/*.conf` fragments under [`infinity/zone/conf/`](../infinity/zone/conf/). Larger surface, separate migration; track as a future item if needed.
