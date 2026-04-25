@@ -9,17 +9,18 @@ This file is for **architectural debt**, **deferred features**, and **open quest
 
 ---
 
-## 1. Components written but never read
+## 1. ~~Components written but never read~~ — **Mostly resolved**
 
-`ShipSpawnSystem.project*` writes these, but no system reads them yet. They're wired for the upgrade system that doesn't exist yet:
+[`PrizeSystem`](../infinity/src/main/java/infinity/systems/PrizeSystem.java) now consumes the four symmetric upgrade triples. Each prize bumps the current-cap component by the upgrade increment, clamped at the hard-cap component:
 
-- `ThrustMax`, `ThrustUpgrade`
-- `SpeedMax`, `SpeedUpgrade`
-- `RotationMax`, `RotationUpgrade`
-- `RechargeMax`, `RechargeUpgrade`
-- `EnergyUpgrade`
+- `ThrustMax` + `ThrustUpgrade` → THRUSTER prize → `handleAcquireThruster`
+- `SpeedMax` + `SpeedUpgrade` → TOPSPEED prize → `handleAcquireTopSpeed`
+- `RotationMax` + `RotationUpgrade` → ROTATION prize → `handleAcquireRotation`
+- `RechargeMax` + `RechargeUpgrade` → RECHARGE prize → `handleAcquireRecharge`
 
-When an upgrade pickup system lands, it'll read these to clamp the corresponding "current cap" component (`Thrust`, `Speed`, etc.). Until then they're inert ghost wires.
+Upgrades are silent no-ops when `*Upgrade=0` (trench preset's "no upgrades" design) or when `current = max` already.
+
+**Still pending:** `EnergyUpgrade`. Subspace canon for the ENERGY prize is to bump `EnergyMax` (the cap of the pool grows). Currently blocked on follow-up #3 — `ShipSpawnSystem.projectEnergy` sets `EnergyMax = stat.max()` at spawn, leaving no headroom. The case branch in `PrizeSystem.handlePrizeAcquisition` carries a TODO referencing #3; wire the handler when #3 lands (project `EnergyMax = stat.initial()`, grow toward `stat.max()` via this prize).
 
 ## 2. Architectural deferrals (TODOs already in code)
 

@@ -16,9 +16,13 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 | Config field | Consumer | Path | Notes |
 |---|---|---|---|
 | `ShipConfig.thrust` | `PlayerDriver.update()` | `component:Thrust` | Used as acceleration rate per tick. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.thrust` | `PrizeSystem.handleAcquireThruster()` | `component:Thrust` / `component:ThrustMax` / `component:ThrustUpgrade` | THRUSTER prize bumps `Thrust` by `ThrustUpgrade`, clamped at `ThrustMax`. No-op when upgrade=0 (trench preset). |
 | `ShipConfig.speed` | `PlayerDriver.update()` | `component:Speed` | Used as forward-velocity cap. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.speed` | `PrizeSystem.handleAcquireTopSpeed()` | `component:Speed` / `component:SpeedMax` / `component:SpeedUpgrade` | TOPSPEED prize bumps `Speed` by `SpeedUpgrade`, clamped at `SpeedMax`. |
 | `ShipConfig.rotation` | `PlayerDriver.update()` | `component:Rotation` | Used as rad/sec scalar for rotation input. Projected at spawn by `ShipSpawnSystem` (int → rad/sec via 2π/400). |
+| `ShipConfig.rotation` | `PrizeSystem.handleAcquireRotation()` | `component:Rotation` / `component:RotationMax` / `component:RotationUpgrade` | ROTATION prize bumps `Rotation` by `RotationUpgrade`, clamped at `RotationMax`. All values rad/sec (converted at spawn). |
 | `ShipConfig.recharge` | `EnergySystem.update()` | `component:Recharge` | Used as energy/sec regen rate. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.recharge` | `PrizeSystem.handleAcquireRecharge()` | `component:Recharge` / `component:RechargeMax` / `component:RechargeUpgrade` | RECHARGE prize bumps `Recharge` by `RechargeUpgrade`, clamped at `RechargeMax`. All values energy/sec (converted at spawn). |
 | `ShipConfig.energy` | `EnergySystem.update()` | `component:Energy` / `component:EnergyMax` | Current pool + cap for damage/regen math. Projected at spawn by `ShipSpawnSystem`. |
 | `ShipConfig.dragFactor` | `PlayerDriver.update()` | `component:DragFactor` | Coast-drag fraction of `Thrust` when no thrust intent (`0` = pure coast, `1` = decelerate as fast as full thrust). Default `0.05` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
 | `ShipConfig.turnResponsiveness` | `PlayerDriver.update()` | `component:TurnResponsiveness` | Rate constant (1/sec) for angular-velocity ease-toward-target; `8.0` ≈ 95% of target in ~0.4 sec. Default `8.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |

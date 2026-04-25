@@ -52,6 +52,18 @@ import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.ship.Player;
+import infinity.es.ship.Recharge;
+import infinity.es.ship.RechargeMax;
+import infinity.es.ship.RechargeUpgrade;
+import infinity.es.ship.Rotation;
+import infinity.es.ship.RotationMax;
+import infinity.es.ship.RotationUpgrade;
+import infinity.es.ship.Speed;
+import infinity.es.ship.SpeedMax;
+import infinity.es.ship.SpeedUpgrade;
+import infinity.es.ship.Thrust;
+import infinity.es.ship.ThrustMax;
+import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
 import infinity.es.ship.actions.ThorCurrentCount;
@@ -336,7 +348,11 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         // TODO: Handle acquiring decoy
         break;
       case PrizeTypes.ENERGY:
-        // TODO: Handle acquiring energy
+        // Subspace canon: ENERGY prize bumps MaximumEnergy by UpgradeEnergy.
+        // Blocked on Pattern 4 follow-up #3 — ShipSpawnSystem currently sets
+        // EnergyMax = stat.max() at spawn, leaving no headroom. Wire this
+        // alongside the #3 fix (project EnergyMax = stat.initial(), grow
+        // toward stat.max() via this prize).
         break;
       case PrizeTypes.GLUE:
         // TODO: Handle acquiring glue
@@ -360,7 +376,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         getSystem(EnergySystem.class).setHealthToMax(ship);
         break;
       case PrizeTypes.RECHARGE:
-        // TODO: Handle acquiring recharge
+        handleAcquireRecharge(ship);
         break;
       case PrizeTypes.REPEL:
         // TODO: Handle acquiring repel
@@ -369,7 +385,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         // TODO: Handle acquiring rocket
         break;
       case PrizeTypes.ROTATION:
-        // TODO: Handle acquiring rotation
+        handleAcquireRotation(ship);
         break;
       case PrizeTypes.SHIELDS:
         // TODO: Handle acquiring shields
@@ -384,10 +400,10 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         handleAcquireThor(ship);
         break;
       case PrizeTypes.THRUSTER:
-        // TODO: Handle acquiring thruster
+        handleAcquireThruster(ship);
         break;
       case PrizeTypes.TOPSPEED:
-        // TODO: Handle acquiring topspeed
+        handleAcquireTopSpeed(ship);
         break;
       case PrizeTypes.WARP:
         // TODO: Handle acquiring warp
@@ -496,6 +512,88 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       ed.setComponent(ship, new GunCost(CoreGameConstants.GUNCOST));
       ed.setComponent(ship, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
       ed.setComponent(ship, new GunMaxLevel(Guns.LEVEL_4));
+    }
+  }
+
+  /**
+   * THRUSTER prize: bumps the ship's current effective {@link Thrust} by
+   * {@link ThrustUpgrade}, clamped at {@link ThrustMax}. No-op if the ship is
+   * already at the cap, the upgrade increment is zero (e.g. trench preset's
+   * "no upgrades" design), or the spawn projection hasn't run yet.
+   */
+  private void handleAcquireThruster(EntityId ship) {
+    Thrust current = ed.getComponent(ship, Thrust.class);
+    ThrustMax max = ed.getComponent(ship, ThrustMax.class);
+    ThrustUpgrade up = ed.getComponent(ship, ThrustUpgrade.class);
+    if (current == null || max == null || up == null) {
+      return;
+    }
+    int next = Math.min(current.getThrust() + up.getThrustUpgrade(), max.getThrustMax());
+    if (next > current.getThrust()) {
+      log.info("Ship {} thruster upgrade: thrust {} -> {}", ship, current.getThrust(), next);
+      ed.setComponent(ship, new Thrust(next));
+    }
+  }
+
+  /**
+   * TOPSPEED prize: bumps the ship's current effective {@link Speed} by
+   * {@link SpeedUpgrade}, clamped at {@link SpeedMax}.
+   */
+  private void handleAcquireTopSpeed(EntityId ship) {
+    Speed current = ed.getComponent(ship, Speed.class);
+    SpeedMax max = ed.getComponent(ship, SpeedMax.class);
+    SpeedUpgrade up = ed.getComponent(ship, SpeedUpgrade.class);
+    if (current == null || max == null || up == null) {
+      return;
+    }
+    int next = Math.min(current.getSpeed() + up.getSpeedUpgrade(), max.getSpeedMax());
+    if (next > current.getSpeed()) {
+      log.info("Ship {} topspeed upgrade: speed {} -> {}", ship, current.getSpeed(), next);
+      ed.setComponent(ship, new Speed(next));
+    }
+  }
+
+  /**
+   * ROTATION prize: bumps the ship's current effective {@link Rotation} by
+   * {@link RotationUpgrade}, clamped at {@link RotationMax}. All values are
+   * in rad/sec (the Subspace integer rotation units are converted by
+   * ShipSpawnSystem at spawn).
+   */
+  private void handleAcquireRotation(EntityId ship) {
+    Rotation current = ed.getComponent(ship, Rotation.class);
+    RotationMax max = ed.getComponent(ship, RotationMax.class);
+    RotationUpgrade up = ed.getComponent(ship, RotationUpgrade.class);
+    if (current == null || max == null || up == null) {
+      return;
+    }
+    double next = Math.min(current.getRadSec() + up.getRadSecUpgrade(), max.getRadSecMax());
+    if (next > current.getRadSec()) {
+      log.info("Ship {} rotation upgrade: rad/sec {} -> {}", ship, current.getRadSec(), next);
+      ed.setComponent(ship, new Rotation(next));
+    }
+  }
+
+  /**
+   * RECHARGE prize: bumps the ship's current effective {@link Recharge} rate
+   * by {@link RechargeUpgrade}, clamped at {@link RechargeMax}. Values are in
+   * energy-per-second (raw Subspace recharge units are converted by
+   * ShipSpawnSystem at spawn).
+   */
+  private void handleAcquireRecharge(EntityId ship) {
+    Recharge current = ed.getComponent(ship, Recharge.class);
+    RechargeMax max = ed.getComponent(ship, RechargeMax.class);
+    RechargeUpgrade up = ed.getComponent(ship, RechargeUpgrade.class);
+    if (current == null || max == null || up == null) {
+      return;
+    }
+    double next = Math.min(
+        current.getRechargePerSecond() + up.getRechargePerSecondUpgrade(),
+        max.getMaxRechargePerSecond());
+    if (next > current.getRechargePerSecond()) {
+      log.info(
+          "Ship {} recharge upgrade: energy/sec {} -> {}",
+          ship, current.getRechargePerSecond(), next);
+      ed.setComponent(ship, new Recharge(next));
     }
   }
 
