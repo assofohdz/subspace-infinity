@@ -274,6 +274,7 @@ public class ModelViewState extends BaseAppState {
 
     CubeFactory cubeFactory = new CubeFactory();
     shapeFactory.registerFactory(ShapeNames.DOOR, cubeFactory);
+    shapeFactory.registerFactory(ShapeNames.ARENA, cubeFactory);
 
     shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory());
   }

@@ -166,4 +166,17 @@ public class ArenaRegistryState extends BaseAppState {
     }
     return null;
   }
+
+  /** Returns the snapshot for the named arena, or {@code null} if unknown locally. */
+  public ArenaSnapshot byName(final String arenaName) {
+    if (arenaName == null) {
+      return null;
+    }
+    for (final ArenaSnapshot snap : arenas.values()) {
+      if (arenaName.equals(snap.arenaName)) {
+        return snap;
+      }
+    }
+    return null;
+  }
 }

@@ -98,6 +98,22 @@ public class InfinityConstants {
   public static final int MAX_ARENAS = 16;
 
   /**
+   * Bin neighbor radius for the fine physics index ({@code LEAF_GRID}, 32-unit cells). A radius of
+   * (1, 1, 1) means contact-gen scans the body's own bin plus the 3×3×3 of cells around it. This
+   * is the historical default; passing {@code null} to {@code MPhysSystem} resolves to the same.
+   */
+  public static final Vec3i PHYSICS_BIN_RADIUS = new Vec3i(1, 1, 1);
+
+  /**
+   * Bin neighbor radius for the coarse static-only physics index ({@code TILE_GRID}, 1024-unit
+   * cells). Zero radius assumes every {@code LargeObject}-tagged entity fits within one coarse
+   * cell; raise to (1, 0, 1) only if a large structure is authored such that its extent crosses a
+   * coarse cell boundary (mphys bins by body center, so a body straddling two coarse cells is
+   * indexed in only one without the radius bump).
+   */
+  public static final Vec3i LARGE_BIN_RADIUS = new Vec3i(0, 0, 0);
+
+  /**
    * World-space Y coordinate on which all gameplay entities (ships, mobs, tiles, projectiles)
    * live. The game is logically 2D on the X/Z plane; this constant is the single source of truth
    * for the gameplay plane. {@link PlayerDriver} and similar drivers clamp body positions here

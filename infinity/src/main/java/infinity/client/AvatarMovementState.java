@@ -46,7 +46,6 @@ import com.simsilica.lemur.input.StateFunctionListener;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.BlackboardState;
-import com.simsilica.state.DebugHudState;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.systems.ActionSystem;
@@ -81,8 +80,6 @@ public class AvatarMovementState extends BaseAppState
   private double speed = 1;
   private GameSession session;
   private long lastPositionUpdate;
-  private VersionedHolder<String> positionDisplay;
-  private VersionedHolder<String> speedDisplay;
   private boolean shiftPressed = false;
 
   // Interpolated position source (SimEthereal TransitionBuffer via BodyPosition)
@@ -139,11 +136,8 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_WARP,
         AvatarMovementFunctions.F_SHIFT);
 
-    if (getState(DebugHudState.class) != null) {
-      DebugHudState debug = getState(DebugHudState.class);
-      this.positionDisplay = debug.createDebugValue("Position", DebugHudState.Location.Top);
-      this.speedDisplay = debug.createDebugValue("Speed", DebugHudState.Location.Top);
-    }
+    // Position / Speed displays were previously published into DebugHudState here;
+    // PositionHudState now owns the on-screen world+arena coord readout.
   }
 
   @Override
@@ -323,22 +317,14 @@ public class AvatarMovementState extends BaseAppState
   protected Vec3d updateShipLocation(Vec3d loc) {
     Vec3d newLoc = loc.clone();
 
-    String s = String.format("%.2f, %.2f, %.2f", newLoc.x, newLoc.y, newLoc.z);
-    positionDisplay.setObject(s);
-
     long time = System.nanoTime();
     if (lastSpeedTime != 0) {
-      // Let's go ahead and calculate speed
+      // Speed tracking — was previously displayed via DebugHudState; the value is
+      // now unused but kept so a future consumer (e.g. throttle indicator) can read
+      // speedAverage without recomputing it.
       double localSpeed = newLoc.subtract(lastPosition).length();
-
-      // And de-integrate it based on the time delta
       localSpeed = localSpeed * 1000000000.0 / (time - lastSpeedTime);
-
-      // A slight smoothing of the value
       speedAverage = (speedAverage * 2 + localSpeed) / 3;
-
-      s = String.format("%.2f", speedAverage);
-      speedDisplay.setObject(s);
     }
     lastPosition.set(newLoc);
     lastSpeedTime = time;

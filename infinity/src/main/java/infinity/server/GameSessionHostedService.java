@@ -55,11 +55,14 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.GameSystemManager;
+import infinity.InfinityConstants;
+import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
+import infinity.systems.ArenaSystem;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ActionSystem;
 import infinity.systems.AvatarSystem;
@@ -68,6 +71,7 @@ import infinity.systems.WarpSystem;
 import infinity.systems.WeaponsSystem;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,7 +191,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
     private final HostedConnection conn;
     private final EntityId avatarEntityId;
-    private final Vec3d spawnLoc = new Vec3d(-513, 1, -380);
+    // Resolved at session-create time from zone.conf [ZoneEnterSpawn] X/Z.
+    // arena.conf [Spawn] is reserved for in-arena respawn (ship change, death) and
+    // is read off the ship's *current* ArenaId — which doesn't exist at connect time.
+    private final Vec3d spawnLoc;
     // private final EntityId test = null;
     private final Vec3d lastViewLoc = new Vec3d();
     private final Quatd lastViewOrient = new Quatd();
@@ -220,6 +227,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
       // binIndex = phys.getBinIndex();
 
+      this.spawnLoc = resolveInitialSpawn();
+
       playerEntityId = ed.createEntity();
       // Player name may not be set yet if login hasn't happened
       String playerName = conn.getAttribute("player");
@@ -231,6 +240,14 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       avatarEntityId =
           GameEntities.createPlayerShip(spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD);
 
+      // Resolve initial arena from the spawn coord. Null is tolerated — ship spawns
+      // in no-arena void (no ShipConfig projection until it crosses into an arena).
+      final ArenaId initialArena =
+          gameSystems.get(ArenaSystem.class, true).findArenaAt(spawnLoc);
+      if (initialArena != null) {
+        ed.setComponent(avatarEntityId, initialArena);
+      }
+
       ed.setComponent(avatarEntityId, new Player());
 
       conn.setAttribute(ATTRIBUTE_AVATAR, avatarEntityId.getId());
@@ -238,6 +255,56 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       log.info("avatarId(" + avatarEntityId.getId() + ")");
 
       log.info("createdAvatar:" + avatarEntityId);
+    }
+
+    /**
+     * Pick the player's initial spawn by reading {@code zone.conf [ZoneEnterSpawn]
+     * Arena}, then translating that arena's arena-local {@code [Spawn] X/Z} to a
+     * world coord via {@link ArenaSystem#getArenaSpawn(String)}.
+     *
+     * <p>Unifies the per-arena {@code [Spawn]} as the single source of truth for
+     * spawn coords across both flows: connect-time (this method, picking which
+     * arena via the zone pointer) and in-arena respawn ({@code
+     * AvatarSystem.requestShipChange}, picking which arena from the ship's own
+     * {@link ArenaId}).
+     *
+     * <p>Falls back to world origin if {@code zone.conf} is missing, the
+     * {@code [ZoneEnterSpawn] Arena} key is absent, or the named arena isn't
+     * loaded yet at session-connect time. {@code ArenaMembershipSystem} will
+     * reconcile {@link ArenaId} on the next tick once the ship contacts a sensor.
+     */
+    private Vec3d resolveInitialSpawn() {
+      final AssetLoaderService assets = gameSystems.get(AssetLoaderService.class, true);
+      Ini zone = null;
+      try {
+        zone = (Ini) assets.loadAsset(ArenaSystem.ZONE_CONFIG_PATH);
+      } catch (final Exception e) {
+        log.warn(
+            "{} could not be loaded ({}); spawning at world origin",
+            ArenaSystem.ZONE_CONFIG_PATH, e.getMessage());
+        return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
+      }
+      if (zone == null) {
+        log.warn(
+            "{} returned null; spawning at world origin", ArenaSystem.ZONE_CONFIG_PATH);
+        return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
+      }
+      final String arenaName = zone.fetch("ZoneEnterSpawn", "Arena");
+      if (arenaName == null || arenaName.isBlank()) {
+        log.warn(
+            "{} has no [ZoneEnterSpawn] Arena; spawning at world origin",
+            ArenaSystem.ZONE_CONFIG_PATH);
+        return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
+      }
+      final Vec3d spawn =
+          gameSystems.get(ArenaSystem.class, true).getArenaSpawn(arenaName.trim());
+      if (spawn == null) {
+        log.warn(
+            "[ZoneEnterSpawn] Arena='{}' not loaded; spawning at world origin",
+            arenaName);
+        return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
+      }
+      return spawn;
     }
 
     public void initialize() {

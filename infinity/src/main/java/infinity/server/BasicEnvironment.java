@@ -43,8 +43,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.AIEntities;
-import infinity.Ship;
 import infinity.sim.GameEntities;
 import infinity.systems.InfinityTimeSystem;
 import org.slf4j.Logger;
@@ -88,10 +86,18 @@ public class BasicEnvironment extends AbstractGameSystem {
   }
 
   private void initializeWorld(){
-    long sysTime = System.currentTimeMillis();
-
-    AIEntities.createMobShip(
-        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ship.JAVELIN.getId());
+    // Bot spawn disabled while iterating on multi-arena membership — the bot's
+    // contacts add noise to the contact-debug logs. Re-enable when needed
+    // (also re-add imports for AIEntities, Ship, ArenaId, ArenaSystem and a
+    // `long sysTime = System.currentTimeMillis();` local).
+    // final Vec3d mobSpawn = new Vec3d(-512, 1, -512);
+    // final EntityId mob =
+    //     AIEntities.createMobShip(
+    //         mobSpawn, ed, EntityId.NULL_ID, phys, sysTime, Ship.JAVELIN.getId());
+    // final ArenaId initialArena = getSystem(ArenaSystem.class, true).findArenaAt(mobSpawn);
+    // if (initialArena != null) {
+    //   ed.setComponent(mob, initialArena);
+    // }
 
     // Arena loads are driven by ArenaSystem from zone.conf [Startup] AutoLoad.
 

@@ -518,8 +518,7 @@ public class GameEntities {
     ed.setComponent(result, new Gold(0));
 
     // Energy/EnergyMax/Health/Recharge are projected by ShipSpawnSystem from
-    // the per-arena ShipConfig (Pattern 4). No inline defaults here — see
-    // pattern4-followups #2 / #3 for the rationale.
+    // the per-arena ShipConfig — no inline defaults here.
 
     // Add bombs:
     ed.setComponent(result, new BombCurrentLevel(Bombs.BOMB_1));

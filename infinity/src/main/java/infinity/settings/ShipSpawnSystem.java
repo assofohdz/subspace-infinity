@@ -32,7 +32,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.Ship;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
@@ -56,7 +55,6 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,19 +64,34 @@ import org.slf4j.LoggerFactory;
  * (current / max / upgrade triples for thrust, speed, rotation, recharge,
  * energy).
  *
- * <p>The spawn trigger is the appearance of a {@link ShipType} component on
- * an entity. Each newly-observed ship is looked up in the per-arena config
- * snapshot; if a template is found, its values are projected to per-entity
- * components. Missing template or missing arena — components stay at
- * whatever defaults earlier code (if any) supplied.
+ * <p>The trigger is membership in the watched {@code (ShipType, ArenaId)}
+ * set. Three flows feed it:
+ * <ul>
+ *   <li><b>Spawn into an arena</b> — {@code GameSessionHostedService} /
+ *       {@code BasicEnvironment} attach {@code ArenaId} alongside
+ *       {@code ShipType} when the spawn coord lands inside a loaded arena;
+ *       the entity appears in the set ({@code getAddedEntities}) and its
+ *       config is projected.
+ *   <li><b>Arena cross</b> — {@link infinity.systems.ArenaMembershipSystem}
+ *       rewrites {@code ArenaId} when a ship enters a different arena
+ *       sensor; the entity surfaces as a change ({@code getChangedEntities})
+ *       or a remove + add, and the new arena's config replaces the old.
+ *   <li><b>Ship swap</b> — the player presses 1-8; {@code AvatarSystem}
+ *       remove + sets {@code ShipType}, surfacing as an add event so the
+ *       new ship type's config is projected.
+ * </ul>
  *
- * <p><b>Arena resolution (Option R2, temporary):</b> ships do not yet carry
- * their own {@link ArenaId} component (see TODO in
- * {@code GameEntities.createShip}). This system resolves the arena
- * ambiently: if exactly one arena is loaded, use its config; if zero or more
- * than one, log a warning and skip stat projection for the spawn. Multi-arena
- * correctness depends on giving each ship its own {@code ArenaId} and
- * reading from the ship's arena directly.
+ * <p>Ships in no-arena void (no {@code ArenaId}) are not in the set and
+ * receive no projection — they retain whatever stats they last had until
+ * they cross into an arena.
+ *
+ * <p><b>Caveat (Phase 3.3 follow-up):</b> reprojection rewrites the live
+ * {@code Health} component to {@code stat.initial()} via
+ * {@link #projectEnergy}, which means a damaged ship crossing into a new
+ * arena gets full health back. Acceptable for ship-swap; surprising for
+ * arena-cross. Tighten by splitting "tuning reprojection" (caps + feel) from
+ * "respawn reprojection" (caps + feel + Health/Energy reset) when the
+ * gameplay implication actually matters.
  */
 public class ShipSpawnSystem extends AbstractGameSystem {
 
@@ -103,7 +116,6 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   private EntityData ed;
   private ConfigRegistrySystem configRegistry;
 
-  private EntitySet arenas;
   private EntitySet ships;
 
   @Override
@@ -111,29 +123,31 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed = getSystem(EntityData.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
 
-    arenas = ed.getEntities(ArenaId.class);
-    ships = ed.getEntities(ShipType.class);
+    // Watch ships that are currently in some arena. Ships without ArenaId
+    // (no-arena void) are intentionally not in the set; they get reprojected
+    // as soon as ArenaMembershipSystem assigns an ArenaId on entry.
+    ships = ed.getEntities(ShipType.class, ArenaId.class);
   }
 
   @Override
   protected void terminate() {
-    arenas.release();
-    arenas = null;
     ships.release();
     ships = null;
   }
 
   @Override
   public void update(final SimTime time) {
-    arenas.applyChanges();
     ships.applyChanges();
 
+    // Added: ship just gained both ShipType and ArenaId — spawn-into-arena,
+    // re-entry from no-arena void, or ship-swap (AvatarSystem remove+set on
+    // ShipType surfaces here).
     for (final Entity spawned : ships.getAddedEntities()) {
       applyConfigTo(spawned);
     }
-    // Also re-project on ShipType change (e.g. player swaps ships via key 1-8). The
-    // AvatarSystem remove+set pattern on ShipType actually surfaces here as an add
-    // event, but treating changes the same keeps us robust to future mutation patterns.
+    // Changed: a watched component on the entity changed in place — most
+    // commonly an ArenaId rewrite from ArenaMembershipSystem when a ship
+    // crosses from arena A into arena B without going through void first.
     for (final Entity changed : ships.getChangedEntities()) {
       applyConfigTo(changed);
     }
@@ -154,7 +168,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
    */
   public int reprojectAll() {
     int n = 0;
-    final EntitySet allShips = ed.getEntities(ShipType.class);
+    // (ShipType, ArenaId) — only ships actually in an arena have a config to project.
+    // Ships in no-arena void are skipped by the filter; they pick up the new tuning
+    // the next time they cross into an arena (handled by update()).
+    final EntitySet allShips = ed.getEntities(ShipType.class, ArenaId.class);
     try {
       allShips.applyChanges();
       for (final Entity ship : allShips) {
@@ -175,7 +192,9 @@ public class ShipSpawnSystem extends AbstractGameSystem {
       return;
     }
 
-    final ArenaId arena = resolveAmbientArena(shipType.getType(), shipEntity.getId());
+    // Read the ship's own ArenaId — the EntitySet filter guarantees presence
+    // for entities surfaced via update(), and reprojectAll filters on it too.
+    final ArenaId arena = shipEntity.get(ArenaId.class);
     if (arena == null) {
       return;
     }
@@ -183,7 +202,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     final ConfigRegistry snapshot = configRegistry.forArena(arena);
     final ShipConfig cfg = snapshot.getShip(shipType.getType());
     if (cfg == null) {
-      log.debug(
+      log.warn(
           "No ShipConfig for {} in arena {}; leaving defaults",
           shipType.getType(),
           arena.getArena());
@@ -191,12 +210,12 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     }
 
     project(shipEntity.getId(), cfg);
+    log.info(
+        "Projected ShipConfig {} from arena {} onto ship {}",
+        shipType.getType(), arena.getArena(), shipEntity.getId());
     if (log.isDebugEnabled()) {
       log.debug(
-          "Projected ShipConfig for {} onto entity {} in arena {}: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
-          shipType.getType(),
-          shipEntity.getId(),
-          arena.getArena(),
+          "  stats: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
           cfg.thrust(),
           cfg.speed(),
           cfg.rotation(),
@@ -206,33 +225,6 @@ public class ShipSpawnSystem extends AbstractGameSystem {
           cfg.turnResponsiveness(),
           cfg.bounceRestitution());
     }
-  }
-
-  /**
-   * Return the single loaded arena's ID, or {@code null} if zero or multiple
-   * arenas are loaded (Option R2 — loud refusal rather than silent guess).
-   */
-  @Nullable
-  private ArenaId resolveAmbientArena(final Ship shipType, final EntityId shipId) {
-    final int arenaCount = arenas.size();
-    if (arenaCount == 0) {
-      log.warn(
-          "ShipSpawnSystem: no arenas loaded when spawning ship {} (type {}); skipping config",
-          shipId,
-          shipType);
-      return null;
-    }
-    if (arenaCount > 1) {
-      log.warn(
-          "ShipSpawnSystem: {} arenas loaded; ambient arena lookup refuses (R2). Spawn {} "
-              + "(type {}) left without config. Fix by giving ships their own ArenaId "
-              + "component (see TODO in GameEntities.createShip).",
-          arenaCount,
-          shipId,
-          shipType);
-      return null;
-    }
-    return arenas.iterator().next().get(ArenaId.class);
   }
 
   private void project(final EntityId shipId, final ShipConfig cfg) {

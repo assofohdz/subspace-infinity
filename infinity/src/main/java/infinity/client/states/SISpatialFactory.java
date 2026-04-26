@@ -562,21 +562,23 @@ public class SISpatialFactory {
   }
 
   private Spatial createArena() {
-    final Quad quad = new Quad(1, 1);
-    final float halfSize = 1 * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
+    // Wireframe cube matching the server's ghost-cube edge (TILE_SIZE = 1024,
+    // see ArenaSystem.doLoad). Wireframe so ships inside the arena are visible.
+    // Anchored at min-corner via mesh translation, mirroring the server's
+    // SpawnPosition = min-corner anchor convention. Edge stays hardcoded here
+    // because ShapeInfo.scale isn't plumbed to createModel — re-sync this
+    // constant if the server cube edge changes (or plumb the scale through).
+    final float edge = 1024f;
+    final float halfEdge = edge * 0.5f;
+    final Box box = new Box(halfEdge, halfEdge, halfEdge);
+    MyMesh.translate(box, new Vector3f(halfEdge, halfEdge, halfEdge));
+    box.updateBound();
 
-    final Geometry geom = new Geometry("Arena", quad);
-    // TODO: use a material with a texture, maybe something that creates a force field kind
-    //  of look
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/BaseMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/BaseMaterialLight.j3m"));
-    }
-
+    final Geometry geom = new Geometry("Arena", box);
+    final Material mat =
+        GuiGlobals.getInstance().createMaterial(ColorRGBA.Yellow, false).getMaterial();
+    mat.getAdditionalRenderState().setWireframe(true);
+    geom.setMaterial(mat);
     geom.setUserData("arena", Boolean.TRUE);
 
     return geom;

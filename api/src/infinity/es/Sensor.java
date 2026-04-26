@@ -23,37 +23,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package infinity.es;
 
-package infinity.sim;
-
-import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeFactory;
-import com.simsilica.mblock.phys.MBlockShape;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.simsilica.es.EntityComponent;
 
 /**
- * This is a factory that can create cubes. We need ato implement our own since MOSS is not there
- * yet with a real ghost cube.
+ * Marker component identifying an entity as a <b>sensor body</b>: a static physics
+ * shape that should generate {@code newContact} events for downstream listeners
+ * (e.g. arena membership, safe-zones, gravity wells) but must <i>never</i> participate
+ * in collision response. {@code ContactSystem} recognises sensor entities and calls
+ * {@code Contact.disable()} before the resolver sees them, so the impulse channel
+ * is short-circuited and the dynamic body's motion is unaffected.
+ *
+ * <p>MOSS has no first-class sensor API; this is the canonical Moss-style ghost
+ * pattern (per Paul Speed's 2023 guidance and the prior art in
+ * {@code infinity.sim.CubeFactory.createStaticGhostCube}). Pair the component with
+ * a static body and a {@code ShapeInfo} that resolves to a non-rendered shape.
+ *
+ * <p>Listeners discriminate sensor kinds by the entity's other components — e.g.
+ * an arena sensor also carries {@code ArenaId} + {@code ArenaMap}. There is no
+ * "kind" field on the marker; add one only if a routing case can't be expressed
+ * via the entity's existing components.
+ *
+ * @author Asser Fahrenholz
  */
-public class CubeFactory implements ShapeFactory<MBlockShape> {
-  static Logger log = LoggerFactory.getLogger(CubeFactory.class);
+public class Sensor implements EntityComponent {
 
-  public CubeFactory() {
-  }
+    public Sensor() {
+        // marker; no state.
+    }
 
-  @Override
-  public MBlockShape createShape(String name, double scale, Mass mass) {
-    // Static cube via MBlockShape.createCube — Type.Blocks. Cell-scale is
-    // `extents/2` so the produced cube edge length = scale / 2; pass 2 × edge
-    // to get an edge-length cube (e.g. 2 × TILE_SIZE for a TILE_SIZE-edge cube).
-    //
-    // Contact routing note: sphere-vs-Blocks contacts DO fan out through the
-    // standard ContactListener chain, so ContactSystem's Sensor filter sees them
-    // and can `contact.disable()` to make the cube behave as a sensor. (Only
-    // Blocks-vs-Blocks contacts skip ContactSystem and go through
-    // MBlockCollisionSystem directly — irrelevant here, dynamic bodies are
-    // spheres.) See ArenaMembershipSystem for the membership flow.
-    return MBlockShape.createCube(scale);
-  }
+    @Override
+    public String toString() {
+        return "Sensor";
+    }
 }

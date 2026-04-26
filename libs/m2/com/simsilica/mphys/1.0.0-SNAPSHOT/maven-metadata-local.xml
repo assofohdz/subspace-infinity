@@ -3,37 +3,37 @@
   <groupId>com.simsilica</groupId>
   <artifactId>mphys</artifactId>
   <versioning>
-    <lastUpdated>20260418173256</lastUpdated>
+    <lastUpdated>20260426111324</lastUpdated>
     <snapshot>
       <localCopy>true</localCopy>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
-        <extension>jar</extension>
-        <value>1.0.0-SNAPSHOT</value>
-        <updated>20260418173256</updated>
-      </snapshotVersion>
-      <snapshotVersion>
         <classifier>sources</classifier>
         <extension>jar</extension>
         <value>1.0.0-SNAPSHOT</value>
-        <updated>20260418173256</updated>
+        <updated>20260426111324</updated>
       </snapshotVersion>
       <snapshotVersion>
-        <extension>pom</extension>
+        <extension>jar</extension>
         <value>1.0.0-SNAPSHOT</value>
-        <updated>20260418173256</updated>
-      </snapshotVersion>
-      <snapshotVersion>
-        <extension>module</extension>
-        <value>1.0.0-SNAPSHOT</value>
-        <updated>20260418173256</updated>
+        <updated>20260426111324</updated>
       </snapshotVersion>
       <snapshotVersion>
         <classifier>javadoc</classifier>
         <extension>jar</extension>
         <value>1.0.0-SNAPSHOT</value>
-        <updated>20260418173256</updated>
+        <updated>20260426111324</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>pom</extension>
+        <value>1.0.0-SNAPSHOT</value>
+        <updated>20260426111324</updated>
+      </snapshotVersion>
+      <snapshotVersion>
+        <extension>module</extension>
+        <value>1.0.0-SNAPSHOT</value>
+        <updated>20260426111324</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>

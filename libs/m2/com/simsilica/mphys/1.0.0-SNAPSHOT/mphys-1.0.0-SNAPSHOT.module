@@ -36,11 +36,11 @@
         {
           "name": "mphys-1.0.0-SNAPSHOT.jar",
           "url": "mphys-1.0.0-SNAPSHOT.jar",
-          "size": 100245,
-          "sha512": "c32b4520d0bd51b547171454e66d93aadc527a02212f1df3353114e3b38b09ba4767aebbf79538e87af94b9165b79fe592f1628cbc8edd889fc417c415968d3e",
-          "sha256": "50799eafadc1d82a71bfd7e6cd46d953a9f418ded3be59d323456fabae499a41",
-          "sha1": "15e657e4b1e26be95ed13154df1bbcec187c02af",
-          "md5": "ea7c5d39bbe5ff20f98dd4d4edc1bf3e"
+          "size": 103470,
+          "sha512": "a18462d5046c7ec50c2a558187d26c54e0553e596277724a1e467372cacca566f856dfb19886cda29de38ed63fc5f40d54d328b65270f7fafbdda5bcfb293207",
+          "sha256": "03d57193a64881ade113f2da96b843d48cb41f6c34433261bf8a92f7cb6fdabe",
+          "sha1": "1796221a0f6b18aa81013a1c797e16f31b64c745",
+          "md5": "a8b1147db2045b12abbf8a2412d28708"
         }
       ]
     },
@@ -87,11 +87,11 @@
         {
           "name": "mphys-1.0.0-SNAPSHOT.jar",
           "url": "mphys-1.0.0-SNAPSHOT.jar",
-          "size": 100245,
-          "sha512": "c32b4520d0bd51b547171454e66d93aadc527a02212f1df3353114e3b38b09ba4767aebbf79538e87af94b9165b79fe592f1628cbc8edd889fc417c415968d3e",
-          "sha256": "50799eafadc1d82a71bfd7e6cd46d953a9f418ded3be59d323456fabae499a41",
-          "sha1": "15e657e4b1e26be95ed13154df1bbcec187c02af",
-          "md5": "ea7c5d39bbe5ff20f98dd4d4edc1bf3e"
+          "size": 103470,
+          "sha512": "a18462d5046c7ec50c2a558187d26c54e0553e596277724a1e467372cacca566f856dfb19886cda29de38ed63fc5f40d54d328b65270f7fafbdda5bcfb293207",
+          "sha256": "03d57193a64881ade113f2da96b843d48cb41f6c34433261bf8a92f7cb6fdabe",
+          "sha1": "1796221a0f6b18aa81013a1c797e16f31b64c745",
+          "md5": "a8b1147db2045b12abbf8a2412d28708"
         }
       ]
     },
@@ -107,11 +107,11 @@
         {
           "name": "mphys-1.0.0-SNAPSHOT-javadoc.jar",
           "url": "mphys-1.0.0-SNAPSHOT-javadoc.jar",
-          "size": 267019,
-          "sha512": "4229a219b461cc5407818a7e09e176eceaf7c10b185f6c7d00bbae1d41a12de2b1539afb280bb7342a12c735825f2ff0f3cc1016b8f49c706e3a990e79d920d4",
-          "sha256": "ff98decd52711f341694833b582059096e342507f460ca0cfd98a128d7993ebc",
-          "sha1": "d16347be2fab60769d34432a2ca7bf32f066e00a",
-          "md5": "8e57cc14234db7ae276d54dc76f24cd5"
+          "size": 271790,
+          "sha512": "1d4b6537e4dcb650f9e496748f300872b14d79ffae532350566aa59b550dc4a1bf7d8a2e07d57811f162ea1bc22cc41f77cb5e4ca30370811b956fabcb5aa0ce",
+          "sha256": "310f63a760e229ec715577497b134f318bc032bd0a33c3ab9af654405fbecfe2",
+          "sha1": "b79bcb2a38f05fb58cda33df4a7d0ca9f0417965",
+          "md5": "f199e2c191f32bf5537bbd640d792893"
         }
       ]
     },
@@ -127,11 +127,11 @@
         {
           "name": "mphys-1.0.0-SNAPSHOT-sources.jar",
           "url": "mphys-1.0.0-SNAPSHOT-sources.jar",
-          "size": 106699,
-          "sha512": "f52d6febb4cfac28d1e0a29641c6d73c08c74eb3b598090390b833732283a761def4ee85cea89e392671fb0493cc964689cb572d1feeb85a2921de47814a9f19",
-          "sha256": "ac8ab1656d2b9940b4cd37a2b1f7ab29dba1649bf8b4f0f1114a003cee7e0435",
-          "sha1": "a6b79f67c928a67478fa4e49c7827d3716e1d2c5",
-          "md5": "5e6a2be55b61150c03d3281bd5b3d1c2"
+          "size": 109895,
+          "sha512": "b0211704f3e730f357ec5945d95b34fa50d8d849aa33dcbe58e8fcf72c04b82f2e32a2f047d24ca158a9d22ba28c7b6e25c2cfb195ad7a6145d4e67e93071e2c",
+          "sha256": "beff2c00db363cc6a86cbb750a159e48196e5fd4b0e3347088e51d230691a3e5",
+          "sha1": "ed05f031fc27c1e2cd588f9eb880e32ce613ee85",
+          "md5": "2740f222bc6413b50a2ec67824e55d8b"
         }
       ]
     }

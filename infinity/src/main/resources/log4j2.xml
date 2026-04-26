@@ -32,6 +32,10 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
+    <Logger name="infinity.settings" level="INFO" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
     <Logger name="infinity.client.states.LocalViewState" level="ALL" additivity="false">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
@@ -44,8 +48,12 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
-    <Logger name="infinity.systems.ContactSystem" level="WARN" additivity="false">
+    <Logger name="infinity.systems.ContactSystem" level="DEBUG" additivity="false">
       <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="infinity.server.DefaultColumnDb" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
     </Logger>
     <Logger name="infinity.client.states.ModelViewState" level="FATAL"/>
     <Logger name="com.simsilica.mblock.geom.ColliderlessMesh" level="FATAL"/>
@@ -64,6 +72,7 @@
     <Logger name="com.simsilica.mworld.net.client.WorldClientService" level="FATAL"/>
     <Logger name="com.simsilica.mworld.net.client.RemoteWorldData" level="FATAL"/>
     <Logger name="com.simsilica.mworld.db.ColumnDbLeafDbAdapter" level="FATAL"/>
+    <Logger name="com.simsilica.mworld.db.AbstractObjectDb" level="WARN"/>
     <Logger name="com.simsilica.lemur.style" level="DEBUG"/>
     <!--<Logger name="com.simsilica.lemur.input" level="TRACE"/>-->
     <Logger name="com.simsilica.es" level="INFO"/>

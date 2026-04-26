@@ -24,7 +24,30 @@
       "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Local trackers in .claude/**)",
       "Bash(xargs -I{} unzip -l {})",
       "Bash(grep -E \"mphys.*Contact\\\\.class$|Contact\\\\.class.*mphys\")",
-      "Bash(./gradlew --no-daemon :infinity:compileJava :infinity:compileTestJava :infinity:spotlessCheck)"
+      "Bash(./gradlew --no-daemon :infinity:compileJava :infinity:compileTestJava :infinity:spotlessCheck)",
+      "Bash(./gradlew --no-daemon :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava :api:spotlessCheck :infinity:spotlessCheck)",
+      "Read(//home/assofohdz/github/assofohdz/subspace-infinity/**)",
+      "Bash(xargs sed *)",
+      "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Spawn /**)",
+      "Bash(git stash *)",
+      "Bash(grep -v \"\\\\.class$\")",
+      "Bash(grep -rn \"Mass\\(0\\)\\\\|mass\\\\.isStatic\\\\|StaticBody\" /home/assofohdz/github/assofohdz -path \"*/moss/*\" --include=\"*.java\")",
+      "Bash(./gradlew --no-daemon -q :infinity:compileJava :infinity:compileTestJava :api:compileJava :api:compileTestJava spotlessCheck)",
+      "Bash(unzip -l /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT.jar)",
+      "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/* /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/mphys/1.0.0-SNAPSHOT/)",
+      "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/mphys/maven-metadata-local.xml /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/mphys/)",
+      "Bash(unzip -l /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT.jar)",
+      "Bash(mkdir -p /tmp/sio2-check)",
+      "Bash(javap -p com/simsilica/ext/mphys/MPhysSystem.class)",
+      "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/sio2-mphys/1.0.0-SNAPSHOT/* /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/sio2-mphys/1.0.0-SNAPSHOT/)",
+      "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/sio2-mphys/maven-metadata-local.xml /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/sio2-mphys/)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(./gradlew --no-daemon :api:cleanCompileJava :infinity:cleanCompileJava)"
+    ],
+    "additionalDirectories": [
+      "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",
+      "/tmp/sio2-check"
     ]
   },
   "hooks": {

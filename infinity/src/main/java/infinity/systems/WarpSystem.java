@@ -42,6 +42,8 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.WarpTouch;
+import infinity.es.arena.ArenaId;
+import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Health;
 import infinity.es.ship.actions.WarpTo;
 import com.simsilica.mworld.World;
@@ -68,8 +70,10 @@ public class WarpSystem extends AbstractGameSystem
 
   static Logger log = LoggerFactory.getLogger(WarpSystem.class);
   private final Pattern requestWarpToCenter = Pattern.compile("\\~warpCenter");
-  private final Pattern requestTeleport =
-      Pattern.compile("\\~teleport\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)");
+  private final Pattern requestTeleportWorld =
+      Pattern.compile("\\~tpworld\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)");
+  private final Pattern requestTeleportArena =
+      Pattern.compile("\\~tparena\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)");
   private EntityData ed;
   private EntitySet warpTouchEntities;
   private EntitySet warpToEntities;
@@ -103,9 +107,16 @@ public class WarpSystem extends AbstractGameSystem
 
     getSystem(InfinityChatHostedService.class)
         .registerPatternTriConsumer(
-            requestTeleport,
-            "Teleport to world coordinates: ~teleport <x> <z>",
-            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandTeleport));
+            requestTeleportWorld,
+            "Teleport to world coordinates: ~tpworld <x> <z>",
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandTeleportWorld));
+
+    getSystem(InfinityChatHostedService.class)
+        .registerPatternTriConsumer(
+            requestTeleportArena,
+            "Teleport to arena-local coordinates within the ship's current arena:"
+                + " ~tparena <x> <z>",
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandTeleportArena));
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -160,6 +171,18 @@ public class WarpSystem extends AbstractGameSystem
         body.setRotationalAcceleration(0, 0, 0);
         body.clearAccumulators();
 
+        // Reconcile the ship's ArenaId to whichever loaded arena (if any) contains the
+        // teleport destination. Null target → ship is in no-arena void; remove any
+        // stale ArenaId so downstream systems don't project a now-wrong ShipConfig.
+        final ArenaId resolved = getSystem(ArenaSystem.class).findArenaAt(targetLocation);
+        final ArenaId previous = ed.getComponent(e.getId(), ArenaId.class);
+        if (resolved == null && previous != null) {
+          ed.removeComponent(e.getId(), ArenaId.class);
+        } else if (resolved != null
+            && (previous == null || !resolved.getArena().equals(previous.getArena()))) {
+          ed.setComponent(e.getId(), resolved);
+        }
+
         ed.removeComponent(e.getId(), WarpTo.class);
       }
     }
@@ -200,7 +223,7 @@ public class WarpSystem extends AbstractGameSystem
    * a ship's collider is larger than one cell, and physics resolution of a near-wall teleport has
    * been observed to drift the ship off the gameplay plane.
    */
-  public String commandTeleport(EntityId entityId, EntityId avatarId, Matcher matcher) {
+  public String commandTeleportWorld(EntityId entityId, EntityId avatarId, Matcher matcher) {
     final double x = Double.parseDouble(matcher.group(1));
     final double z = Double.parseDouble(matcher.group(2));
     final Vec3d target = new Vec3d(x, InfinityConstants.GAMEPLAY_Y, z);
@@ -211,7 +234,44 @@ public class WarpSystem extends AbstractGameSystem
     }
 
     ed.setComponent(avatarId, new WarpTo(target));
-    return "Teleporting to " + target;
+    return "Teleporting to world " + target;
+  }
+
+  /**
+   * Teleports the avatar to arena-local coordinates within its <i>current</i> arena. Refuses
+   * if the avatar has no {@code ArenaId} (no-arena void), if the named arena isn't loaded, or
+   * if the resolved world coord fails the same neighbor-block check used by {@link
+   * #commandTeleportWorld}. Arena-local convention: {@code (0, 0) = NW corner}, {@code
+   * (1024, 1024) = SE corner} (see {@code ArenaSystem.arenaToWorld}).
+   */
+  public String commandTeleportArena(EntityId entityId, EntityId avatarId, Matcher matcher) {
+    final ArenaId arena = ed.getComponent(avatarId, ArenaId.class);
+    if (arena == null) {
+      return "Cannot teleport: ship is in no-arena void (no ArenaId)";
+    }
+    final ArenaSystem arenaSystem = getSystem(ArenaSystem.class);
+    if (arenaSystem == null) {
+      return "Cannot teleport: ArenaSystem unavailable";
+    }
+    final double localX = Double.parseDouble(matcher.group(1));
+    final double localZ = Double.parseDouble(matcher.group(2));
+
+    // Resolve via the same translation used by spawn / ship-change paths so all
+    // three flows agree on what arena-local coords mean.
+    final ArenaMap map = arenaSystem.getArenaMap(arena.getArena());
+    if (map == null) {
+      return "Cannot teleport: arena '" + arena.getArena() + "' has no ArenaMap (not loaded?)";
+    }
+    final Vec3d target = ArenaSystem.arenaToWorld(map, localX, localZ);
+
+    final Vec3d blocker = firstOccupiedNeighbor(target);
+    if (blocker != null) {
+      return "Cannot teleport: destination neighborhood is blocked at " + blocker;
+    }
+
+    ed.setComponent(avatarId, new WarpTo(target));
+    return "Teleporting to arena " + arena.getArena() + " local (" + localX + ", " + localZ
+        + ") = world " + target;
   }
 
   /**

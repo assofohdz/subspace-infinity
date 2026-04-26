@@ -23,37 +23,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package infinity.es;
 
-package infinity.sim;
-
-import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeFactory;
-import com.simsilica.mblock.phys.MBlockShape;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.simsilica.es.EntityComponent;
 
 /**
- * This is a factory that can create cubes. We need ato implement our own since MOSS is not there
- * yet with a real ghost cube.
+ * Marker component routing an entity to the coarse {@code largeStaticBinIndex}
+ * instead of the fine bin index. Picked up by the {@code largeEntitySelector}
+ * predicate wired into {@code MPhysSystem}, which partitions the population
+ * between the two {@code BinEntityManager}s at init.
+ *
+ * <p>Pair with a {@code SpawnPosition} keyed to the coarse grid
+ * ({@code WorldGrids.TILE_GRID}); the per-bin populator query filters on
+ * {@code SpawnPosition.binId} using the bin's own grid, so a fine-grid
+ * {@code SpawnPosition} would not match any coarse bin.
+ *
+ * <p>Designed for static structures whose extent spans multiple fine
+ * (32-tile) bins but fits inside a single coarse (1024-tile) bin --
+ * arena ghost-cubes, large solid bases, multi-tile sensors. Membership
+ * across the fine and coarse indexes is disjoint, so contact pairs are
+ * unique.
+ *
+ * @author Asser Fahrenholz
  */
-public class CubeFactory implements ShapeFactory<MBlockShape> {
-  static Logger log = LoggerFactory.getLogger(CubeFactory.class);
+public class LargeObject implements EntityComponent {
 
-  public CubeFactory() {
-  }
+    public LargeObject() {
+        // marker; no state.
+    }
 
-  @Override
-  public MBlockShape createShape(String name, double scale, Mass mass) {
-    // Static cube via MBlockShape.createCube — Type.Blocks. Cell-scale is
-    // `extents/2` so the produced cube edge length = scale / 2; pass 2 × edge
-    // to get an edge-length cube (e.g. 2 × TILE_SIZE for a TILE_SIZE-edge cube).
-    //
-    // Contact routing note: sphere-vs-Blocks contacts DO fan out through the
-    // standard ContactListener chain, so ContactSystem's Sensor filter sees them
-    // and can `contact.disable()` to make the cube behave as a sensor. (Only
-    // Blocks-vs-Blocks contacts skip ContactSystem and go through
-    // MBlockCollisionSystem directly — irrelevant here, dynamic bodies are
-    // spheres.) See ArenaMembershipSystem for the membership flow.
-    return MBlockShape.createCube(scale);
-  }
+    @Override
+    public String toString() {
+        return "LargeObject";
+    }
 }

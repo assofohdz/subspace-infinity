@@ -42,6 +42,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.CollisionCategory;
 import infinity.es.Parent;
+import infinity.es.Sensor;
 import infinity.es.ship.BounceRestitution;
 import infinity.sim.CategoryFilter;
 import infinity.sim.util.InfinityRunTimeException;
@@ -68,6 +69,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
     final RigidBody<EntityId, MBlockShape> bodyOne = contact.body1;
     final AbstractBody<EntityId, MBlockShape> bodyTwo = contact.body2;
 
+    log.debug("Contact between: {} and {}", bodyOne.id, bodyTwo != null ? bodyTwo.id : "null");
     // Body1 is always a rigidbody
     // If body two is not null, we are dealing with a collision between a rigidbody (body1) and a
     // rigidbody or a staticbody (body2)
@@ -75,18 +77,36 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       final EntityId one = bodyOne.id;
       final EntityId two = bodyTwo.id;
 
-      if (!categoryFilterAllowsContact(one, two)) {
+      // Sensor bodies (arena ghost spheres, future safe-zones, gravity wells, ...) generate
+      // contact events but must never participate in collision response. Disable the
+      // contact before the resolver sees it; downstream listeners (ArenaMembershipSystem
+      // etc.) still receive newContact via the listener fan-out below.
+      final boolean oneSensor = ed.getComponent(one, Sensor.class) != null;
+      final boolean twoSensor = ed.getComponent(two, Sensor.class) != null;
+      if (oneSensor || twoSensor) {
         contact.disable();
-        return;
-      }
-
-      if (parentChildContact(one, two)) {
+        log.debug(
+            "Sensor contact: {} (sensor={}) vs {} (sensor={}) at {}, disabled={}",
+            one, oneSensor, two, twoSensor, contact.contactPoint, !contact.isEnabled());
+        // Fall through to the listener fan-out so ArenaMembershipSystem etc. can observe.
+      } else if (!categoryFilterAllowsContact(one, two)) {
         contact.disable();
+        log.debug(
+            "Category filter contact: {} vs {} at {}, disabled={}",
+            one, two, contact.contactPoint, !contact.isEnabled());
         return;
+      } else if (parentChildContact(one, two)) {
+        contact.disable();
+        log.debug(
+            "Parent child contact: {} (sensor={}) vs {} (sensor={}) at {}, disabled={}",
+            one, oneSensor, two, twoSensor, contact.contactPoint, !contact.isEnabled());
+        return;
+      } else {
+        // Body-vs-body contact with no rejection — proceeds to resolver normally
+        // (ship-vs-ship, ship-vs-projectile, etc.). Common case, not an error.
+        log.debug(
+            "Body-vs-body contact: {} vs {} at {}", one, two, contact.contactPoint);
       }
-
-      // log.debug("Collision between: " + bodyOne + " and " + bodyTwo);
-
     } else {
       // Bounce off a static map block. Read the body's own per-ship restitution
       // (projected from ShipConfig at spawn); fall back to a perfectly-elastic
@@ -97,6 +117,9 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       // Zero tangential friction so a glancing wall hit doesn't add sliding-induced
       // spin. Player input owns ship heading; walls only affect linear velocity.
       contact.friction = 0.0;
+      log.debug(
+          "Body vs static-map contact: {} at {}, restitution={}, friction={}",
+          bodyOne.id, contact.contactPoint, contact.restitution, contact.friction);
     }
 
     // Now that we have filtered the basics, lets send it to the various systems listening for

@@ -37,7 +37,6 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import com.simsilica.mathd.Vec3d;
-import infinity.InfinityConstants;
 import infinity.Ship;
 import infinity.ShipRestrictor;
 import infinity.es.Captain;
@@ -70,7 +69,6 @@ public class AvatarSystem extends AbstractGameSystem {
   public static final byte SHARK = 0x8;
   private EntityData ed;
   private EntitySet frequencies;
-  private EntitySet arenaEntities;
   /** The number of allowed players in each ship on this team. */
   private HashMap<Integer, ShipRestrictor> teamRestrictions;
 
@@ -86,7 +84,6 @@ public class AvatarSystem extends AbstractGameSystem {
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
-    arenaEntities = ed.getEntities(ArenaId.class);
 
     teamRestrictions = new HashMap<>();
   }
@@ -96,9 +93,6 @@ public class AvatarSystem extends AbstractGameSystem {
 
     frequencies.release();
     frequencies = null;
-
-    arenaEntities.release();
-    arenaEntities = null;
 
     captains.release();
     captains = null;
@@ -206,18 +200,20 @@ public class AvatarSystem extends AbstractGameSystem {
       ed.removeComponent(shipEntity, ShipType.class);
       ed.setComponent(shipEntity, new ShipType(Ship.getShip(shipType)));
 
-      // Teleport to the arena's configured spawn point. Reads [Spawn] X / Z from the
-      // arena's settings; falls back to (0, 0) if either is absent. Ambient arena
-      // resolution (Option R2 — TODO in GameEntities.createShip): first loaded arena wins.
-      // WarpSystem picks up the WarpTo component and handles the actual body teleport.
-      arenaEntities.applyChanges();
-      if (!arenaEntities.isEmpty()) {
-        final ArenaId arena = arenaEntities.iterator().next().get(ArenaId.class);
-        final SettingsSystem settings = getSystem(SettingsSystem.class);
-        final int spawnX = settings.getInt(arena.getArena(), "Spawn", "X", 0);
-        final int spawnZ = settings.getInt(arena.getArena(), "Spawn", "Z", 0);
-        final Vec3d target = new Vec3d(spawnX, InfinityConstants.GAMEPLAY_Y, spawnZ);
-        ed.setComponent(shipEntity, new WarpTo(target));
+      // Teleport to the ship's *current* arena's configured spawn point. ArenaId is
+      // maintained by ArenaMembershipSystem (sensor contacts) + WarpSystem (post-
+      // teleport reconcile) + spawn-time seeding in GameSessionHostedService /
+      // BasicEnvironment. A null ArenaId (or unloaded arena) means there's no
+      // spawn coord to teleport to — skip the warp and let the ship-change happen
+      // in place. ArenaSystem.getArenaSpawn translates the arena-local [Spawn]
+      // X/Z to a world coord by adding ArenaMap.min — same translation used by
+      // GameSessionHostedService for connect-time spawn.
+      final ArenaId arena = ed.getComponent(shipEntity, ArenaId.class);
+      if (arena != null) {
+        final Vec3d target = getSystem(ArenaSystem.class).getArenaSpawn(arena.getArena());
+        if (target != null) {
+          ed.setComponent(shipEntity, new WarpTo(target));
+        }
       }
 
       EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));

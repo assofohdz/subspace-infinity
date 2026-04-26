@@ -96,6 +96,7 @@ import infinity.es.AudioType;
 import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.Gold;
+import infinity.es.LargeObject;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
@@ -110,6 +111,7 @@ import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ActionSystem;
+import infinity.systems.ArenaMembershipSystem;
 import infinity.systems.ArenaSystem;
 import infinity.systems.RegionSystem;
 import infinity.systems.AvatarSystem;
@@ -270,7 +272,14 @@ public class GameServer {
         new InfinityEntityBodyFactory(ed, InfinityConstants.NO_GRAVITY, shapeFactory);
 
     MPhysSystem<MBlockShape> mBlockShapeMPhysSystem =
-        new MPhysSystem<>(WorldGrids.LEAF_GRID, bodyFactory);
+        new MPhysSystem<>(
+            WorldGrids.LEAF_GRID, InfinityConstants.PHYSICS_BIN_RADIUS,
+            WorldGrids.TILE_GRID, InfinityConstants.LARGE_BIN_RADIUS,
+            bodyFactory);
+    // Route LargeObject-tagged entities (e.g. arena ghost-cubes that span many fine bins)
+    // to the coarse static-only index. Must be set before MPhysSystem.initialize() runs.
+    mBlockShapeMPhysSystem.setLargeEntitySelector(
+        id -> ed.getComponent(id, LargeObject.class) != null);
     systems.register(InfinityEntityBodyFactory.class, bodyFactory);
     systems.register(EntityBodyFactory.class, bodyFactory);
 
@@ -300,6 +309,7 @@ public class GameServer {
     systems.register(WeaponsSystem.class, new WeaponsSystem());
     systems.register(ActionSystem.class, new ActionSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
+    systems.register(ArenaMembershipSystem.class, new ArenaMembershipSystem());
     systems.register(RegionSystem.class, new RegionSystem());
     systems.register(PrizeSystem.class, new PrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
     systems.register(GravitySystem.class, new GravitySystem());

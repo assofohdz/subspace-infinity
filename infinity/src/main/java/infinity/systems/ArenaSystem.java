@@ -27,6 +27,7 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -38,6 +39,8 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
+import infinity.es.LargeObject;
+import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.settings.GroovyShipLoader;
@@ -65,6 +68,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.ini4j.Ini;
@@ -124,7 +128,13 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
   }
 
-  private static final String ZONE_CONFIG_PATH = "zone.conf";
+  /**
+   * Classpath path to the zone-wide INI loaded once at startup. Public so other systems
+   * can read zone-level sections (e.g. {@code GameSessionHostedService} reads
+   * {@code [ZoneEnterSpawn]}) without duplicating the literal.
+   */
+  public static final String ZONE_CONFIG_PATH = "zone.conf";
+
   private static final String ARENA_ROOT = "arenas";
   private static final String ARENA_CONF = "arena.conf";
 
@@ -190,7 +200,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   protected void initialize() {
     final ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
     ed = getSystem(EntityData.class);
-    arenaEntities = ed.getEntities(ArenaId.class);
+    arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
     shipLoader = getSystem(GroovyShipLoader.class);
 
@@ -315,6 +325,119 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   @Override
   public void stop() {
     // No-op.
+  }
+
+  /**
+   * Resolve a world-space position to the {@link ArenaId} of the loaded arena whose
+   * {@link ArenaMap} bounds contain the point on the gameplay plane (X/Z; Y is ignored
+   * since gameplay is flat per {@code InfinityConstants.GAMEPLAY_Y}). Returns
+   * {@code null} when the point sits outside every loaded arena — by design ships
+   * are allowed to roam in no-arena void space.
+   *
+   * <p>Reads the EntitySet without re-applying changes (relies on {@link #update}
+   * having done so this tick); arenas don't move within a tick so a one-tick stale
+   * read is harmless. First match wins — adjacent arenas share only a 2-cell gutter,
+   * so any overlap is intentional and either pick is correct.
+   */
+  @Nullable
+  public ArenaId findArenaAt(final Vec3d position) {
+    for (final Entity arena : arenaEntities) {
+      final ArenaMap map = arena.get(ArenaMap.class);
+      final Vec3d min = map.getMin();
+      final Vec3d max = map.getMax();
+      if (position.x >= min.x && position.x <= max.x
+          && position.z >= min.z && position.z <= max.z) {
+        return arena.get(ArenaId.class);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Resolve the world-space spawn coordinate for the named arena. Reads the arena's
+   * arena-local {@code [Spawn] X/Z} via {@link SettingsSystem} and translates to world
+   * by anchoring at the arena's NW corner ({@link ArenaMap#getMax() ArenaMap.max} —
+   * see {@link #arenaToWorld} for the orientation rationale).
+   *
+   * <p>Single source of truth for both the connect-time spawn (called from {@code
+   * GameSessionHostedService} via the {@code zone.conf [ZoneEnterSpawn] Arena}
+   * lookup) and in-arena respawns (called from {@code AvatarSystem.requestShipChange}
+   * with the ship's own {@code ArenaId}).
+   *
+   * @param arenaName arena registry key (folder name under {@code zone/arenas/})
+   * @return world-space {@link Vec3d} on the gameplay plane, or {@code null} if the
+   *     arena isn't loaded (no entity / no {@code ArenaMap}). Callers fall back as
+   *     they see fit (typically world origin).
+   */
+  @Nullable
+  public Vec3d getArenaSpawn(final String arenaName) {
+    final ArenaRecord rec = registry.get(arenaName);
+    if (rec == null || rec.entityId == null) {
+      log.warn("getArenaSpawn: arena '{}' not loaded", arenaName);
+      return null;
+    }
+    final ArenaMap map = ed.getComponent(rec.entityId, ArenaMap.class);
+    if (map == null) {
+      log.warn("getArenaSpawn: arena '{}' has no ArenaMap component", arenaName);
+      return null;
+    }
+    final SettingsSystem settings = getSystem(SettingsSystem.class);
+    final int localX = settings.getInt(arenaName, "Spawn", "X", 0);
+    final int localZ = settings.getInt(arenaName, "Spawn", "Z", 0);
+    return arenaToWorld(map, localX, localZ);
+  }
+
+  /**
+   * Convert arena-local {@code (x, z)} to a world-space {@link Vec3d} on the gameplay
+   * plane. Arena-local convention: {@code (0, 0) = NW corner}, {@code (TILE_SIZE,
+   * TILE_SIZE) = SE corner}. The render flips world {@code (max-X, max-Z)} onto the
+   * NW screen corner (camera looks down {@code -Y} with both axes inverted vs jME's
+   * default), so we anchor arena coords at {@link ArenaMap#getMax() ArenaMap.max}
+   * and decrement.
+   */
+  public static Vec3d arenaToWorld(final ArenaMap map, final double localX, final double localZ) {
+    return new Vec3d(
+        map.getMax().x - localX,
+        InfinityConstants.GAMEPLAY_Y,
+        map.getMax().z - localZ);
+  }
+
+  /**
+   * Look up the {@link ArenaMap} component for the named arena, or {@code null} if the arena
+   * isn't loaded. Convenience accessor for callers that need the arena's world bounds without
+   * walking {@code arenaEntities} themselves.
+   */
+  @Nullable
+  public ArenaMap getArenaMap(final String arenaName) {
+    final ArenaRecord rec = registry.get(arenaName);
+    if (rec == null || rec.entityId == null) {
+      return null;
+    }
+    return ed.getComponent(rec.entityId, ArenaMap.class);
+  }
+
+  /**
+   * Inverse of {@link #arenaToWorld}: project a world-space coordinate to its
+   * arena-local equivalent within the named arena. Returns {@code null} if the arena
+   * isn't loaded or the world coord is outside the arena's bounds. Used by the client
+   * HUD to show "you are at arena (X, Z)" alongside the world coord.
+   */
+  @Nullable
+  public Vec3d worldToArena(final String arenaName, final Vec3d world) {
+    final ArenaRecord rec = registry.get(arenaName);
+    if (rec == null || rec.entityId == null) {
+      return null;
+    }
+    final ArenaMap map = ed.getComponent(rec.entityId, ArenaMap.class);
+    if (map == null) {
+      return null;
+    }
+    final Vec3d max = map.getMax();
+    final Vec3d min = map.getMin();
+    if (world.x < min.x || world.x > max.x || world.z < min.z || world.z > max.z) {
+      return null;
+    }
+    return new Vec3d(max.x - world.x, world.y, max.z - world.z);
   }
 
   /* ---------------------------------------------------------------- */
@@ -479,9 +602,32 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
       rec.entityId = arena;
 
+      // Arena ghost-cube: covers the full map bounds (1 TILE_SIZE per arena slot).
+      // Anchored at the map's min-corner (`minB`); scale `2 × TILE_SIZE` because
+      // MBlockShape.createCube uses cell-scale = extents/2, so passing 2×edge
+      // produces an edge-sized cube. Each arena slot is one TILE_GRID cell, so
+      // every loaded arena gets its own 1024×1024×1024 cube positioned by
+      // `MapSystem.calculateNextOffset`'s spiral layout.
+      //
+      // Sphere-vs-cube contacts route through ContactSystem (verified 2026-04-26 —
+      // the earlier "Type.Blocks bypasses ContactSystem" finding only applied to
+      // Blocks-vs-Blocks). The Sensor marker makes ContactSystem disable the
+      // contact so the cube doesn't block ships, while still fanning out to
+      // ArenaMembershipSystem for enter/leave events.
       ed.setComponent(arena, new Mass(0));
-      ed.setComponent(arena, new SpawnPosition(WorldGrids.LEAF_GRID, new Vec3d()));
-      ed.setComponent(arena, ShapeInfo.create(ShapeNames.ARENA, 1, ed));
+      // SpawnPosition keyed to TILE_GRID so the coarse populator's per-bin query
+      // (Filters.fieldEquals(SpawnPosition, "binId", coarseBin.cellId)) matches.
+      ed.setComponent(arena, new SpawnPosition(WorldGrids.TILE_GRID, minB));
+      ed.setComponent(
+          arena, ShapeInfo.create(ShapeNames.ARENA, InfinityConstants.TILE_SIZE * 2.0, ed));
+      ed.setComponent(arena, new Sensor());
+      // Routes the entity to the coarse static-only bin index (1024-tile cells)
+      // so contact-gen sees it from any fine bin within its bounds, not just
+      // the corner LEAF_GRID cell containing the body's center.
+      ed.setComponent(arena, new LargeObject());
+      log.info(
+          "Arena {} ghost-cube placed: anchor={} edge={} bounds=[{}..{}] (sensor)",
+          rec.name, minB, InfinityConstants.TILE_SIZE, minB, maxB);
 
       rec.state = ArenaState.LOADED;
       rec.lastError = null;

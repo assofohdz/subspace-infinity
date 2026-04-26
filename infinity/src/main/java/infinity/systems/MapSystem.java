@@ -284,26 +284,28 @@ public class MapSystem extends AbstractGameSystem {
   }
 
   /**
-   * Returns the maximum bounds of a given map.
+   * Returns the maximum world-space bounds of the loaded map. {@code mapCoordinates}
+   * stores grid-cell offsets (each step is one tile = {@code MAP_SIZE} world units),
+   * so the world max is {@code (gridOffset * MAP_SIZE) + (MAP_SIZE, 0, MAP_SIZE)}.
    *
    * @param arenaId the map to get the bounds for
-   * @return the maximum bounds of the map
+   * @return the maximum world-space bounds of the map
    */
   public Vec3d getMapBoundsMax(String arenaId) {
-    Vec3d mapOffset = mapCoordinates.get(arenaId);
-    Vec3d mapBoundsMax = mapOffset.add(MAP_SIZE, 0, MAP_SIZE);
-    return mapBoundsMax;
+    final Vec3d min = getMapBoundsMin(arenaId);
+    return new Vec3d(min.x + MAP_SIZE, min.y, min.z + MAP_SIZE);
   }
 
   /**
-   * Returns the minimum bounds of a given map.
+   * Returns the minimum world-space bounds of the loaded map (the bounds-min corner).
+   * Converts the stored grid-cell offset to world units by multiplying by {@code MAP_SIZE}.
    *
    * @param map the map to get the bounds for
-   * @return the minimum bounds of the map
+   * @return the minimum world-space bounds of the map
    */
   public Vec3d getMapBoundsMin(String map) {
-    Vec3d mapOffset = mapCoordinates.get(map);
-    return mapOffset;
+    final Vec3d gridOffset = mapCoordinates.get(map);
+    return new Vec3d(gridOffset.x * MAP_SIZE, gridOffset.y, gridOffset.z * MAP_SIZE);
   }
 
   /**
