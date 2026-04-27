@@ -100,9 +100,13 @@ public class SISpatialFactory {
    * Create a spatial for the given shape name.
    *
    * @param shapeName The name of the shape to create
+   * @param scale {@code ShapeInfo.scale} from the server (CubeFactory convention:
+   *     edge-length = {@code scale / 2}). Most shapes ignore this and use their own
+   *     view constants; the arena ghost-cube reads it so the wireframe tracks the
+   *     server cube without a hardcoded edge.
    * @return The spatial
    */
-  public Spatial createModel(EntityId id, String shapeName, Mass mass) {
+  public Spatial createModel(EntityId id, String shapeName, Mass mass, double scale) {
 
     switch (shapeName) {
       case ShapeNames.BULLETL4:
@@ -134,7 +138,7 @@ public class SISpatialFactory {
       case ShapeNames.PRIZE:
         return createBounty();
       case ShapeNames.ARENA:
-        return createArena();
+        return createArena(scale);
       case ShapeNames.EXPLODE_0:
         return createExplosion0();
       case ShapeNames.EXPLODE_1:
@@ -561,14 +565,14 @@ public class SISpatialFactory {
     return geom;
   }
 
-  private Spatial createArena() {
-    // Wireframe cube matching the server's ghost-cube edge (TILE_SIZE = 1024,
-    // see ArenaSystem.doLoad). Wireframe so ships inside the arena are visible.
-    // Anchored at min-corner via mesh translation, mirroring the server's
-    // SpawnPosition = min-corner anchor convention. Edge stays hardcoded here
-    // because ShapeInfo.scale isn't plumbed to createModel — re-sync this
-    // constant if the server cube edge changes (or plumb the scale through).
-    final float edge = 1024f;
+  private Spatial createArena(final double scale) {
+    // Wireframe cube whose edge matches the server's ghost-cube. CubeFactory
+    // produces a cube of edge-length = scale / 2 (see CubeFactory.createShape
+    // doc), so divide the ShapeInfo.scale by 2 to recover the edge here.
+    // Wireframe so ships inside the arena are visible. Anchored at min-corner
+    // via mesh translation, mirroring the server's SpawnPosition = min-corner
+    // anchor convention.
+    final float edge = (float) (scale * 0.5);
     final float halfEdge = edge * 0.5f;
     final Box box = new Box(halfEdge, halfEdge, halfEdge);
     MyMesh.translate(box, new Vector3f(halfEdge, halfEdge, halfEdge));

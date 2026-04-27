@@ -85,13 +85,21 @@ import org.slf4j.LoggerFactory;
  * receive no projection — they retain whatever stats they last had until
  * they cross into an arena.
  *
- * <p><b>Caveat (Phase 3.3 follow-up):</b> reprojection rewrites the live
- * {@code Health} component to {@code stat.initial()} via
- * {@link #projectEnergy}, which means a damaged ship crossing into a new
- * arena gets full health back. Acceptable for ship-swap; surprising for
- * arena-cross. Tighten by splitting "tuning reprojection" (caps + feel) from
- * "respawn reprojection" (caps + feel + Health/Energy reset) when the
- * gameplay implication actually matters.
+ * <p><b>Two projection modes</b> — distinguished by whether the live pools
+ * (Health/Energy and the current Thrust/Speed/Rotation/Recharge values) are
+ * reset to {@code stat.initial()}:
+ * <ul>
+ *   <li><b>Respawn projection</b> (caps + feel + reset) — fires on
+ *       {@code getAddedEntities}: spawn-into-arena, re-entry from void, and
+ *       ship-swap (AvatarSystem remove+set on ShipType surfaces here). The
+ *       ship is conceptually "fresh", so a full reset is correct.
+ *   <li><b>Tuning projection</b> (caps + feel only) — fires on
+ *       {@code getChangedEntities} (arena cross while alive) and on
+ *       {@link #reprojectAll} (Groovy hot-reload). Caps and feel knobs pick
+ *       up the new config, but the live pools are preserved so a damaged
+ *       ship doesn't get full health back from crossing arenas, and a
+ *       hot-reload doesn't refill everyone mid-fight.
+ * </ul>
  */
 public class ShipSpawnSystem extends AbstractGameSystem {
 
@@ -141,15 +149,17 @@ public class ShipSpawnSystem extends AbstractGameSystem {
 
     // Added: ship just gained both ShipType and ArenaId — spawn-into-arena,
     // re-entry from no-arena void, or ship-swap (AvatarSystem remove+set on
-    // ShipType surfaces here).
+    // ShipType surfaces here). The ship is conceptually fresh, so reset live
+    // pools (Health/Energy + current Thrust/Speed/Rotation/Recharge).
     for (final Entity spawned : ships.getAddedEntities()) {
-      applyConfigTo(spawned);
+      applyConfigTo(spawned, true);
     }
     // Changed: a watched component on the entity changed in place — most
     // commonly an ArenaId rewrite from ArenaMembershipSystem when a ship
     // crosses from arena A into arena B without going through void first.
+    // Preserve live pools so a damaged ship doesn't get full health back.
     for (final Entity changed : ships.getChangedEntities()) {
-      applyConfigTo(changed);
+      applyConfigTo(changed, false);
     }
   }
 
@@ -158,6 +168,9 @@ public class ShipSpawnSystem extends AbstractGameSystem {
    * directly writing the latest component values. Use after a hot-reload of
    * the per-arena Groovy config so all ships pick up the new tuning, not just
    * whoever triggered the reload.
+   *
+   * <p>Live pools are preserved — this is a tuning reload, not a respawn, so a
+   * mid-fight reload doesn't refill everyone's Health/Energy.
    *
    * <p>Thread-safe to call from any thread (RMI, chat, sim) — this only
    * mutates ECS components via {@link EntityData#setComponent}, which is
@@ -175,7 +188,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     try {
       allShips.applyChanges();
       for (final Entity ship : allShips) {
-        applyConfigTo(ship);
+        applyConfigTo(ship, false);
         n++;
       }
     } finally {
@@ -185,7 +198,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     return n;
   }
 
-  private void applyConfigTo(final Entity shipEntity) {
+  private void applyConfigTo(final Entity shipEntity, final boolean resetLivePool) {
     final ShipType shipType = shipEntity.get(ShipType.class);
     if (shipType == null || shipType.getType() == null) {
       log.warn("Ship {} has null ShipType; skipping config projection", shipEntity.getId());
@@ -209,10 +222,13 @@ public class ShipSpawnSystem extends AbstractGameSystem {
       return;
     }
 
-    project(shipEntity.getId(), cfg);
+    project(shipEntity.getId(), cfg, resetLivePool);
     log.info(
-        "Projected ShipConfig {} from arena {} onto ship {}",
-        shipType.getType(), arena.getArena(), shipEntity.getId());
+        "Projected ShipConfig {} ({}) from arena {} onto ship {}",
+        shipType.getType(),
+        resetLivePool ? "respawn" : "tuning",
+        arena.getArena(),
+        shipEntity.getId());
     if (log.isDebugEnabled()) {
       log.debug(
           "  stats: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
@@ -227,45 +243,60 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     }
   }
 
-  private void project(final EntityId shipId, final ShipConfig cfg) {
-    projectThrust(shipId, cfg.thrust());
-    projectSpeed(shipId, cfg.speed());
-    projectRotation(shipId, cfg.rotation());
-    projectRecharge(shipId, cfg.recharge());
-    projectEnergy(shipId, cfg.energy());
+  private void project(final EntityId shipId, final ShipConfig cfg, final boolean resetLivePool) {
+    projectThrust(shipId, cfg.thrust(), resetLivePool);
+    projectSpeed(shipId, cfg.speed(), resetLivePool);
+    projectRotation(shipId, cfg.rotation(), resetLivePool);
+    projectRecharge(shipId, cfg.recharge(), resetLivePool);
+    projectEnergy(shipId, cfg.energy(), resetLivePool);
     projectFeel(shipId, cfg);
   }
 
-  private void projectThrust(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Thrust(stat.initial()));
+  private void projectThrust(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Thrust(stat.initial()));
+    }
     ed.setComponent(shipId, new ThrustMax(stat.max()));
     ed.setComponent(shipId, new ThrustUpgrade(stat.upgrade()));
   }
 
-  private void projectSpeed(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Speed(stat.initial()));
+  private void projectSpeed(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Speed(stat.initial()));
+    }
     ed.setComponent(shipId, new SpeedMax(stat.max()));
     ed.setComponent(shipId, new SpeedUpgrade(stat.upgrade()));
   }
 
-  private void projectRotation(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Rotation(stat.initial() * ROTATION_UNITS_TO_RAD_SEC));
+  private void projectRotation(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Rotation(stat.initial() * ROTATION_UNITS_TO_RAD_SEC));
+    }
     ed.setComponent(shipId, new RotationMax(stat.max() * ROTATION_UNITS_TO_RAD_SEC));
     ed.setComponent(shipId, new RotationUpgrade(stat.upgrade() * ROTATION_UNITS_TO_RAD_SEC));
   }
 
-  private void projectRecharge(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Recharge(stat.initial() * RECHARGE_UNITS_TO_PER_SEC));
+  private void projectRecharge(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Recharge(stat.initial() * RECHARGE_UNITS_TO_PER_SEC));
+    }
     ed.setComponent(shipId, new RechargeMax(stat.max() * RECHARGE_UNITS_TO_PER_SEC));
     ed.setComponent(shipId, new RechargeUpgrade(stat.upgrade() * RECHARGE_UNITS_TO_PER_SEC));
   }
 
-  private void projectEnergy(final EntityId shipId, final ShipStat stat) {
+  private void projectEnergy(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
     // Pattern 4 split: Health is the live pool (depletes from damage / weapon
     // costs, regens via Recharge up to Energy); Energy is the upgradeable cap;
     // EnergyMax is the absolute hard cap on Energy.
-    ed.setComponent(shipId, new Health(stat.initial()));
-    ed.setComponent(shipId, new Energy(stat.initial()));
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Health(stat.initial()));
+      ed.setComponent(shipId, new Energy(stat.initial()));
+    }
     ed.setComponent(shipId, new EnergyMax(stat.max()));
     ed.setComponent(shipId, new EnergyUpgrade(stat.upgrade()));
   }

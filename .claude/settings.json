@@ -43,7 +43,14 @@
       "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/sio2-mphys/maven-metadata-local.xml /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/sio2-mphys/)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(echo \"EXIT_CODE=$?\")",
-      "Bash(./gradlew --no-daemon :api:cleanCompileJava :infinity:cleanCompileJava)"
+      "Bash(./gradlew --no-daemon :api:cleanCompileJava :infinity:cleanCompileJava)",
+      "Bash(./gradlew --no-daemon -q :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava)",
+      "Bash(./gradlew --no-daemon :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava)",
+      "Bash(./gradlew :api:spotlessApply -q)",
+      "Bash(./gradlew :api:spotlessJavaCheck :infinity:spotlessJavaCheck :infinity:compileJava :api:compileJava -q)",
+      "Bash(./gradlew :infinity:test --tests \"infinity.architecture.LayerDependencyTest\" -q)",
+      "Bash(./gradlew :infinity:test --tests \"infinity.architecture.LayerDependencyTest\")",
+      "Bash(./gradlew spotlessJavaCheck -q)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

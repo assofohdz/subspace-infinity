@@ -341,13 +341,31 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    */
   @Nullable
   public ArenaId findArenaAt(final Vec3d position) {
+    final Entity arena = findArenaEntity(position);
+    return arena == null ? null : arena.get(ArenaId.class);
+  }
+
+  /**
+   * Sibling of {@link #findArenaAt} that returns the arena entity's id rather than its
+   * {@link ArenaId} component. Used by warp-driven membership reconciliation
+   * ({@code ArenaMembershipSystem.markEntered}) which needs the entity reference to
+   * mirror what a contact-driven enter would have produced.
+   */
+  @Nullable
+  public EntityId findArenaEntityAt(final Vec3d position) {
+    final Entity arena = findArenaEntity(position);
+    return arena == null ? null : arena.getId();
+  }
+
+  @Nullable
+  private Entity findArenaEntity(final Vec3d position) {
     for (final Entity arena : arenaEntities) {
       final ArenaMap map = arena.get(ArenaMap.class);
       final Vec3d min = map.getMin();
       final Vec3d max = map.getMax();
       if (position.x >= min.x && position.x <= max.x
           && position.z >= min.z && position.z <= max.z) {
-        return arena.get(ArenaId.class);
+        return arena;
       }
     }
     return null;

@@ -462,14 +462,8 @@ public class ModelViewState extends BaseAppState {
   }
 
   protected Spatial createModel(EntityId id, ShapeInfo shapeInfo, Mass mass) {
-
-    String shapeName = shapeInfo.getShapeName(ed);
-
-    // Note 03-02-2023: We're not using the shape size yet on the view-side - and that's okay for
-    // now - because it
-    // allows us to use the shape-size purely for the backend physics
-
-    return SImodelFactory.createModel(id, shapeName, mass);
+    final String shapeName = shapeInfo.getShapeName(ed);
+    return SImodelFactory.createModel(id, shapeName, mass, shapeInfo.getScale());
   }
 
   protected Model getModel(EntityId entityId, boolean create) {

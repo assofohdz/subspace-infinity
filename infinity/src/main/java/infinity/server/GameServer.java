@@ -104,6 +104,7 @@ import infinity.es.TileType;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.input.MovementInput;
+import infinity.es.ship.CollidesWithLargeStatics;
 import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CubeFactory;
@@ -289,6 +290,12 @@ public class GameServer {
     mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<>(world, colliders));
 
     systems.register(InfinityChatHostedService.class, chp);
+
+    // Opt-in body filter for the coarse large-static contact pass. Only bodies
+    // tagged with CollidesWithLargeStatics (ships at spawn) generate pairs with
+    // arena ghost-cubes; everything else skips the pass before narrow phase.
+    mBlockShapeMPhysSystem.getPhysicsSpace().setLargeStaticCollisionFilter(
+        body -> ed.getComponent(body.id, CollidesWithLargeStatics.class) != null);
 
     systems.register(MPhysSystem.class, mBlockShapeMPhysSystem);
     systems.register(PhysicsSpace.class, mBlockShapeMPhysSystem.getPhysicsSpace());

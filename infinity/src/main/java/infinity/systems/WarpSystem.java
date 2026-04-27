@@ -171,16 +171,21 @@ public class WarpSystem extends AbstractGameSystem
         body.setRotationalAcceleration(0, 0, 0);
         body.clearAccumulators();
 
-        // Reconcile the ship's ArenaId to whichever loaded arena (if any) contains the
-        // teleport destination. Null target → ship is in no-arena void; remove any
-        // stale ArenaId so downstream systems don't project a now-wrong ShipConfig.
-        final ArenaId resolved = getSystem(ArenaSystem.class).findArenaAt(targetLocation);
-        final ArenaId previous = ed.getComponent(e.getId(), ArenaId.class);
-        if (resolved == null && previous != null) {
-          ed.removeComponent(e.getId(), ArenaId.class);
-        } else if (resolved != null
-            && (previous == null || !resolved.getArena().equals(previous.getArena()))) {
-          ed.setComponent(e.getId(), resolved);
+        // Reconcile arena membership through ArenaMembershipSystem (the sole writer
+        // of ship-side ArenaId). The warp zeroed velocity above, so the body will
+        // sleep and stop generating contacts immediately — without this the per-tick
+        // exit-grace sweep fires a redundant "left arena" log a second after every
+        // spawn-warp (see todo.md "Bug 2"). Null destination → ship landed in
+        // no-arena void; flush any current memberships so downstream consumers (esp.
+        // ShipSpawnSystem's (ShipType, ArenaId) watcher) don't project a now-wrong
+        // ShipConfig.
+        final EntityId resolvedArenaEntityId =
+            getSystem(ArenaSystem.class).findArenaEntityAt(targetLocation);
+        final ArenaMembershipSystem membership = getSystem(ArenaMembershipSystem.class);
+        if (resolvedArenaEntityId != null) {
+          membership.markEntered(e.getId(), resolvedArenaEntityId);
+        } else {
+          membership.markLeft(e.getId());
         }
 
         ed.removeComponent(e.getId(), WarpTo.class);

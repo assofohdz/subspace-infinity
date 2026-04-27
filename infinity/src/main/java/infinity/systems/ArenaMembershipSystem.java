@@ -171,6 +171,45 @@ public class ArenaMembershipSystem extends AbstractGameSystem
       return;
     }
 
+    applyMembership(shipId, arenaEntityId);
+  }
+
+  /**
+   * Warp-driven membership update: mirrors what {@link #newContact} would do if a
+   * contact had fired between {@code shipId} and the arena sensor at
+   * {@code arenaEntityId}. Used by {@link WarpSystem} so a teleport that drops a ship
+   * into an arena keeps {@link #currentArena} / {@link #lastSeenFrame} aligned without
+   * waiting for the body to wake up — the warp zeros velocity, the body sleeps, and
+   * contact-gen stops firing for it until movement resumes. Without this, the per-tick
+   * exit-grace sweep fires a redundant "left arena" log a second after every spawn-warp
+   * (see todo.md "Bug 2").
+   */
+  public void markEntered(final EntityId shipId, final EntityId arenaEntityId) {
+    applyMembership(shipId, arenaEntityId);
+  }
+
+  /**
+   * Warp-driven counterpart to {@link #markEntered} — the ship was teleported into
+   * no-arena void, so any current memberships should fire a leave immediately rather
+   * than waiting out the exit-grace window. Does nothing if the ship has no tracked
+   * memberships.
+   */
+  public void markLeft(final EntityId shipId) {
+    final EntityId previousArena = currentArena.remove(shipId);
+    final Map<EntityId, Long> arenaToFrame = lastSeenFrame.remove(shipId);
+    if (previousArena != null) {
+      fireLeftArena(shipId, previousArena);
+    }
+    if (arenaToFrame != null) {
+      for (final EntityId staleArena : arenaToFrame.keySet()) {
+        if (!staleArena.equals(previousArena)) {
+          fireLeftArena(shipId, staleArena);
+        }
+      }
+    }
+  }
+
+  private void applyMembership(final EntityId shipId, final EntityId arenaEntityId) {
     // Touch the last-seen tick so the exit sweep keeps this membership alive.
     lastSeenFrame
         .computeIfAbsent(shipId, k -> new HashMap<>())

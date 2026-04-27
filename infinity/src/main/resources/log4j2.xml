@@ -48,7 +48,7 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
-    <Logger name="infinity.systems.ContactSystem" level="DEBUG" additivity="false">
+    <Logger name="infinity.systems.ContactSystem" level="WARN" additivity="false">
       <AppenderRef ref="Console"/>
     </Logger>
     <Logger name="infinity.server.DefaultColumnDb" level="WARN" additivity="false">

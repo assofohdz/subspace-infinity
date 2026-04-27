@@ -64,6 +64,7 @@ import infinity.es.TileTypes;
 import infinity.es.WarpTouch;
 import infinity.es.WeaponTypes;
 import infinity.es.input.MovementInput;
+import infinity.es.ship.CollidesWithLargeStatics;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.Burst;
@@ -559,6 +560,10 @@ public class GameEntities {
     ed.setComponent(
         result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
+    // Opt in to the coarse large-static contact pass — ships are the only dynamic
+    // bodies whose pairs ArenaMembershipSystem actually cares about. Other
+    // dynamics (projectiles, sensor probes) deliberately stay opted out.
+    ed.setComponent(result, new CollidesWithLargeStatics());
 
     ed.setComponent(result, new Meta(createdTime));
     return result;
