@@ -92,10 +92,31 @@ public class InfinityConstants {
   /**
    * Maximum number of concurrently-loaded arenas. Fixes the size of the per-arena block-type slot
    * table in {@code BlockGeometryIndex} and bounds the slot allocator in {@code ArenaSystem}.
-   * Tiles use (190 * MAX_ARENAS) block-type indices above {@code TILE_TYPE_BASE}; staying well
-   * inside the 20-bit cell-type field ({@code MaskUtils.TYPE_MASK = 0x000fffff}, ~1M slots).
+   * Tiles use ({@link #TILE_COUNT} * MAX_ARENAS) block-type indices above {@link #TILE_TYPE_BASE};
+   * staying well inside the 20-bit cell-type field ({@code MaskUtils.TYPE_MASK = 0x000fffff},
+   * ~1M slots).
    */
   public static final int MAX_ARENAS = 16;
+
+  /**
+   * Base block-type index for flat 2D Subspace tiles. Tile slots start here and run for
+   * {@link #MAX_ARENAS} × {@link #TILE_COUNT} contiguous entries — each arena getting its own
+   * {@code [TILE_TYPE_BASE + arenaIndex * TILE_COUNT, ... + TILE_COUNT - 1]} range. Block types
+   * 0..{@code TILE_TYPE_BASE - 1} stay reserved for non-tile blocks.
+   */
+  public static final int TILE_TYPE_BASE = 100;
+
+  /** Total number of tiles in the Subspace tileset (190 visible IDs, 1..190). */
+  public static final int TILE_COUNT = 190;
+
+  /**
+   * Required size for the BlockTypeIndex array — covers non-tile block types up to
+   * {@link #TILE_TYPE_BASE} plus per-arena tile ranges. Matches the encoding in
+   * {@code ArenaSystem}'s arena-slot allocator and is the single source of truth for both the
+   * server-side collider array ({@code GameServer.expandCollidersForTiles}) and the client-side
+   * {@code BlockGeometryIndex}.
+   */
+  public static final int BLOCK_TYPE_INDEX_SIZE = TILE_TYPE_BASE + MAX_ARENAS * TILE_COUNT;
 
   /**
    * Bin neighbor radius for the fine physics index ({@code LEAF_GRID}, 32-unit cells). A radius of

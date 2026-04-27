@@ -76,25 +76,16 @@ public class MapSystem extends AbstractGameSystem {
   public static final float NOISE4J_FLOOR = 0.5f;
   public static final float NOISE4J_WALL = 1f;
 
-  /**
-   * Base block type index for flat 2D tiles. Tile N uses type (TILE_TYPE_BASE + N - 1). This must
-   * match the value in BlockGeometryIndex.
-   */
-  public static final int TILE_TYPE_BASE = 100;
-
   /** Maximum tile ID for visible tiles (1-190 in Subspace). */
   public static final int MAX_VISIBLE_TILE = 190;
 
   /**
-   * Number of tile-type slots reserved per arena in the global {@code BlockTypeIndex}. Each arena
-   * writes its visible tiles into a contiguous range of {@code TILE_COUNT} slots starting at
-   * {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}. Must match {@code BlockGeometryIndex.TILE_COUNT}.
+   * Compute the block-type base index for a given arena slot — see
+   * {@link InfinityConstants#TILE_TYPE_BASE} / {@link InfinityConstants#TILE_COUNT} for the
+   * canonical layout shared with the server collider array and the client BlockGeometryIndex.
    */
-  public static final int TILE_COUNT = 190;
-
-  /** Compute the block-type base index for a given arena slot. */
   public static int arenaTileBase(final int arenaIndex) {
-    return TILE_TYPE_BASE + arenaIndex * TILE_COUNT;
+    return InfinityConstants.TILE_TYPE_BASE + arenaIndex * InfinityConstants.TILE_COUNT;
   }
 
   /**
@@ -272,10 +263,26 @@ public class MapSystem extends AbstractGameSystem {
 
     final int tileBase = arenaTileBase(arenaIndex);
 
+    // Snapshot the sim timestamp synchronously on the caller thread. The async block
+    // population must NOT read this.time from a worker thread — at startup the first
+    // arena auto-loads before MapSystem.update has ever run, so this.time is null and
+    // any entity-create branch (door / wormhole / asteroid / turfflag) NPEs out.
+    // Trench's map happens to have no entity-trigger tiles so it dodges the NPE; deva
+    // has wormholes / doors and falls in.
+    final long createdTime = time != null ? time.getTime() : 0L;
     // Loading a map takes ~3 seconds depending on density — do it asynchronously.
+    // Attach an exceptionally handler so any throw inside createBlocksFromLegacyMap
+    // is logged instead of silently swallowed by the future (which would otherwise
+    // leave the arena visible-cube up but no blocks rendered, with zero log evidence).
     CompletableFuture<HashSet<Vec3d>> completableFuture =
-        CompletableFuture.supplyAsync(() -> this.createBlocksFromLegacyMap(res, worldOffset, tileBase));
-    completableFuture.thenAccept(s -> activeMaps.put(mapName, s));
+        CompletableFuture.supplyAsync(
+            () -> this.createBlocksFromLegacyMap(res, worldOffset, tileBase, createdTime));
+    completableFuture
+        .thenAccept(s -> activeMaps.put(mapName, s))
+        .exceptionally(ex -> {
+          log.error("Async block population failed for map " + mapName, ex);
+          return null;
+        });
 
     res.setMapName(mapName);
     mapCoordinates.put(mapName, offset);
@@ -360,9 +367,10 @@ public class MapSystem extends AbstractGameSystem {
     log.info("Swapping " + oldMapName + " -> " + newMapName + " at " + tile);
 
     final int tileBase = arenaTileBase(arenaIndex);
+    final long createdTime = time != null ? time.getTime() : 0L;
     CompletableFuture
         .supplyAsync(() -> removeBlocksFromLegacyMap(oldCoordinates))
-        .thenApplyAsync(s -> createBlocksFromLegacyMap(res, worldOffset, tileBase))
+        .thenApplyAsync(s -> createBlocksFromLegacyMap(res, worldOffset, tileBase, createdTime))
         .thenAccept(blocks -> activeMaps.put(newMapName, blocks));
     return true;
   }
@@ -421,7 +429,10 @@ public class MapSystem extends AbstractGameSystem {
    * and {@link MapTypes} for the numeric constants.
    */
   public HashSet<Vec3d> createBlocksFromLegacyMap(
-      final LevelFile map, final Vec3d arenaOffset, final int arenaTileBase) {
+      final LevelFile map,
+      final Vec3d arenaOffset,
+      final int arenaTileBase,
+      final long createdTime) {
     final HashSet<Vec3d> coordinates = new HashSet<>();
     final short[][] tiles = map.getMap();
 
@@ -454,33 +465,33 @@ public class MapSystem extends AbstractGameSystem {
 
         if (s == MapTypes.vieTurfFlag) {
           GameEntities.createTurfStationaryFlag(
-              ed, EntityId.NULL_ID, physicsSpace, time.getTime(), location);
+              ed, EntityId.NULL_ID, physicsSpace, createdTime, location);
           turfFlags++;
           continue;
         }
         if (s == MapTypes.vieAsteroidSmall) {
-          GameEntities.createAsteroidSmall(ed, null, physicsSpace, time.getTime(), location, 0);
+          GameEntities.createAsteroidSmall(ed, null, physicsSpace, createdTime, location, 0);
           asteroidsSmall++;
           continue;
         }
         if (s == MapTypes.vieAsteroidMedium) {
-          GameEntities.createAsteroidMedium(ed, null, physicsSpace, time.getTime(), location, 0);
+          GameEntities.createAsteroidMedium(ed, null, physicsSpace, createdTime, location, 0);
           asteroidsMedium++;
           continue;
         }
         if (s == MapTypes.vieAsteroidEnd) {
-          GameEntities.createWormhole2(ed, null, physicsSpace, time.getTime(), location);
+          GameEntities.createWormhole2(ed, null, physicsSpace, createdTime, location);
           wormhole2++;
           continue;
         }
         if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
-          GameEntities.createDoor(ed, null, physicsSpace, time.getTime(), 5000, location);
+          GameEntities.createDoor(ed, null, physicsSpace, createdTime, 5000, location);
           doors++;
           continue;
         }
         if (s == MapTypes.vieWormhole) {
           GameEntities.createWormhole(
-              ed, null, physicsSpace, time.getTime(), location,
+              ed, null, physicsSpace, createdTime, location,
               5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
           wormholes++;
           continue;

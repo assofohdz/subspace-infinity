@@ -50,7 +50,13 @@
       "Bash(./gradlew :api:spotlessJavaCheck :infinity:spotlessJavaCheck :infinity:compileJava :api:compileJava -q)",
       "Bash(./gradlew :infinity:test --tests \"infinity.architecture.LayerDependencyTest\" -q)",
       "Bash(./gradlew :infinity:test --tests \"infinity.architecture.LayerDependencyTest\")",
-      "Bash(./gradlew spotlessJavaCheck -q)"
+      "Bash(./gradlew spotlessJavaCheck -q)",
+      "Bash(./gradlew :infinity:compileJava :infinity:spotlessJavaCheck)",
+      "Bash(./gradlew :infinity:compileJava :api:compileJava :infinity:spotlessJavaCheck :api:spotlessJavaCheck)",
+      "Bash(grep -v \"settings.json\\\\|^$\")",
+      "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity log --oneline -5)",
+      "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity diff --stat infinity/src/main/java/infinity/)",
+      "Bash(zcat /home/assofohdz/github/assofohdz/subspace-infinity/infinity/logs/infinity-2026-04-26-1.log.gz)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

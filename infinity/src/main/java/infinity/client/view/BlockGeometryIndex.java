@@ -52,23 +52,8 @@ public class BlockGeometryIndex {
 
   static Logger log = LoggerFactory.getLogger(BlockGeometryIndex.class);
 
-  /**
-   * Block type index for flat tiles. Tiles use indices TILE_TYPE_BASE to TILE_TYPE_BASE + 189.
-   * The tileId (1-190) maps to type index (TILE_TYPE_BASE + tileId - 1).
-   */
-  public static final int TILE_TYPE_BASE = 100;
-
-  /** Total number of tiles in the Subspace tileset (190 tiles). Must match {@code MapSystem.TILE_COUNT}. */
-  public static final int TILE_COUNT = 190;
-
-  /**
-   * Required size for the BlockTypeIndex array. Each arena gets its own {@link #TILE_COUNT}-slot
-   * range starting at {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}, so we reserve
-   * {@code MAX_ARENAS * TILE_COUNT} contiguous entries above the base indices used for non-tile
-   * block types.
-   */
-  public static final int REQUIRED_ARRAY_SIZE =
-      TILE_TYPE_BASE + InfinityConstants.MAX_ARENAS * TILE_COUNT;
+  // Tile-type layout — see InfinityConstants.{TILE_TYPE_BASE, TILE_COUNT,
+  // BLOCK_TYPE_INDEX_SIZE} for the canonical definition shared with the server.
 
   /** The material name used for tiles in the material registry. */
   public static final String TILE_MATERIAL_NAME = "tile";
@@ -151,7 +136,7 @@ public class BlockGeometryIndex {
         BlockTypeIndex.initialize(BlockTypeData.load("/blocks.bset"));
         FluidTypeIndex.initialize(FluidTypeData.load("/fluids.fset"));
       }
-      expandBlockTypeIndex(REQUIRED_ARRAY_SIZE);
+      expandBlockTypeIndex(InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
       this.materials = MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
       registerInvisibleBlockType();
       registerLanternMaterial(assets, materials);
@@ -178,7 +163,7 @@ public class BlockGeometryIndex {
       }
 
       // Expand the BlockTypeIndex array to accommodate tile types
-      expandBlockTypeIndex(REQUIRED_ARRAY_SIZE);
+      expandBlockTypeIndex(InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
 
       this.materials = MaterialRegistry.loadCompiledMaterials(assets, "/materials.mset");
 
@@ -404,9 +389,10 @@ public class BlockGeometryIndex {
    */
   private void registerTileBlockTypes() {
     for (int arenaIndex = 0; arenaIndex < InfinityConstants.MAX_ARENAS; arenaIndex++) {
-      final int base = TILE_TYPE_BASE + arenaIndex * TILE_COUNT;
+      final int base =
+          InfinityConstants.TILE_TYPE_BASE + arenaIndex * InfinityConstants.TILE_COUNT;
       final String matName = tileMaterialName(arenaIndex);
-      for (int tileId = 1; tileId <= TILE_COUNT; tileId++) {
+      for (int tileId = 1; tileId <= InfinityConstants.TILE_COUNT; tileId++) {
         final int typeIndex = base + tileId - 1;
         final int layer;
         if (tileId >= FLYOVER_TILE_START && tileId <= FLYOVER_TILE_END) {
@@ -424,11 +410,11 @@ public class BlockGeometryIndex {
     }
     log.info(
         "Registered {} tile block types ({} arenas × {} tiles) indices {}..{}",
-        InfinityConstants.MAX_ARENAS * TILE_COUNT,
+        InfinityConstants.MAX_ARENAS * InfinityConstants.TILE_COUNT,
         InfinityConstants.MAX_ARENAS,
-        TILE_COUNT,
-        TILE_TYPE_BASE,
-        TILE_TYPE_BASE + InfinityConstants.MAX_ARENAS * TILE_COUNT - 1);
+        InfinityConstants.TILE_COUNT,
+        InfinityConstants.TILE_TYPE_BASE,
+        InfinityConstants.BLOCK_TYPE_INDEX_SIZE - 1);
   }
 
   public Node generateBlocks(final Node target, final CellArray cells) {
