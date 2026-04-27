@@ -56,7 +56,18 @@
       "Bash(grep -v \"settings.json\\\\|^$\")",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity log --oneline -5)",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity diff --stat infinity/src/main/java/infinity/)",
-      "Bash(zcat /home/assofohdz/github/assofohdz/subspace-infinity/infinity/logs/infinity-2026-04-26-1.log.gz)"
+      "Bash(zcat /home/assofohdz/github/assofohdz/subspace-infinity/infinity/logs/infinity-2026-04-26-1.log.gz)",
+      "Bash(jar -xf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/renderer/opengl/GLRenderer.class)",
+      "Bash(javap -p com/jme3/renderer/opengl/GLRenderer.class)",
+      "Bash(jar -xf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/renderer/opengl/TextureUtil.class)",
+      "Bash(javap -p com/jme3/renderer/opengl/TextureUtil.class)",
+      "Bash(jar -tf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar)",
+      "Bash(grep -iE \"TextureUtil|GLRenderer\\\\\\\\.class$\")",
+      "Bash(javap -c -p com/jme3/renderer/opengl/TextureUtil.class)",
+      "Bash(javap -c -p com/jme3/renderer/opengl/GLRenderer.class)",
+      "Bash(javap -p com/jme3/texture/Texture.class)",
+      "Bash(jar -xf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/texture/Texture.class)",
+      "Bash(javap -p /tmp/jme-img/com/jme3/texture/Texture.class)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

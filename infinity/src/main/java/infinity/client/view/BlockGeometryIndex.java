@@ -461,7 +461,7 @@ public class BlockGeometryIndex {
     final Texture2D tex = new Texture2D(jmeImage);
     tex.setMinFilter(Texture.MinFilter.Trilinear);
     tex.setMagFilter(Texture.MagFilter.Bilinear);
-    tex.setAnisotropicFilter(8);
+    tex.setAnisotropicFilter(16);
     log.info(
         "Built padded tileset {}x{} -> {}x{} (tile {}x{}, gutter {})",
         srcW, srcH, dstW, dstH, tileW, tileH, gutter);

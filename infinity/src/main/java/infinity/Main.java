@@ -133,8 +133,8 @@ public class Main extends SimpleApplication {
     // ran.
     settings.setWidth(1280);
     settings.setHeight(720);
-    settings.setVSync(true);
-    settings.setSamples(4);
+    settings.setVSync(false);
+    settings.setSamples(8);
 
     settings.load("Subspace Infinity");
     settings.setTitle("Subspace Infinity");

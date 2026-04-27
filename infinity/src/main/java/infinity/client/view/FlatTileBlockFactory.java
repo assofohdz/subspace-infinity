@@ -70,7 +70,7 @@ public class FlatTileBlockFactory implements BlockFactory {
    * trilinear / anisotropic filtering sample inside a tile without the GPU's 4-texel kernel
    * reaching into the neighboring tile in the atlas. UVs below address only the inner region.
    */
-  public static final int GUTTER_PIXELS = 1;
+  public static final int GUTTER_PIXELS = 2;
 
   /** Padded cell size: inner tile + gutter on both sides. */
   private static final int CELL_PIXELS = TILE_PIXELS + 2 * GUTTER_PIXELS;
