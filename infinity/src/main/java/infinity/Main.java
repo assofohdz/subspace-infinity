@@ -134,6 +134,7 @@ public class Main extends SimpleApplication {
     settings.setWidth(1280);
     settings.setHeight(720);
     settings.setVSync(true);
+    settings.setSamples(4);
 
     settings.load("Subspace Infinity");
     settings.setTitle("Subspace Infinity");

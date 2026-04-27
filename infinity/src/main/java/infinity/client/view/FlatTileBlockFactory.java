@@ -60,6 +60,24 @@ public class FlatTileBlockFactory implements BlockFactory {
   /** Number of rows in the Subspace tileset atlas (10 rows). */
   public static final int TILESET_ROWS = 10;
 
+  /** Inner tile size in pixels (Subspace standard 16x16). */
+  public static final int TILE_PIXELS = 16;
+
+  /**
+   * Replicate-padding around each tile in the loaded atlas. The texture loaded into video memory
+   * is a padded version of the source where each {@code TILE_PIXELS}x{@code TILE_PIXELS} tile is
+   * surrounded by a {@code GUTTER_PIXELS}-wide border of edge-replicated pixels. This lets
+   * trilinear / anisotropic filtering sample inside a tile without the GPU's 4-texel kernel
+   * reaching into the neighboring tile in the atlas. UVs below address only the inner region.
+   */
+  public static final int GUTTER_PIXELS = 1;
+
+  /** Padded cell size: inner tile + gutter on both sides. */
+  private static final int CELL_PIXELS = TILE_PIXELS + 2 * GUTTER_PIXELS;
+
+  /** Gutter width as a fraction of one cell (the unit on which {@code col}/{@code row} step). */
+  private static final float GUTTER_RATIO = (float) GUTTER_PIXELS / CELL_PIXELS;
+
   private final PartFactory upFace;
   private final Vec3d min;
   private final Vec3d max;
@@ -82,13 +100,16 @@ public class FlatTileBlockFactory implements BlockFactory {
     int col = tileIndex % TILESET_COLUMNS;
     int row = tileIndex / TILESET_COLUMNS;
 
-    float tileWidth = 1.0f / TILESET_COLUMNS;
-    float tileHeight = 1.0f / TILESET_ROWS;
-
-    float u0 = col * tileWidth;
-    float v0 = row * tileHeight;
-    float u1 = u0 + tileWidth;
-    float v1 = v0 + tileHeight;
+    // Address the inner TILE_PIXELS x TILE_PIXELS region of each padded cell, skipping the
+    // GUTTER_PIXELS-wide replicate border on every side. The atlas is laid out as
+    // (TILESET_COLUMNS x CELL_PIXELS) wide by (TILESET_ROWS x CELL_PIXELS) tall, so each
+    // cell still occupies (1.0 / TILESET_COLUMNS) of U and (1.0 / TILESET_ROWS) of V.
+    float cellU = 1.0f / TILESET_COLUMNS;
+    float cellV = 1.0f / TILESET_ROWS;
+    float u0 = (col + GUTTER_RATIO) * cellU;
+    float u1 = (col + 1 - GUTTER_RATIO) * cellU;
+    float v0 = (row + GUTTER_RATIO) * cellV;
+    float v1 = (row + 1 - GUTTER_RATIO) * cellV;
 
     return new FlatTileBlockFactory(materialType, u0, v0, u1, v1);
   }
