@@ -27,6 +27,8 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
+import com.simsilica.bpos.LargeGridCell;
+import com.simsilica.bpos.LargeObject;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -39,7 +41,6 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
-import infinity.es.LargeObject;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
@@ -643,6 +644,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       // so contact-gen sees it from any fine bin within its bounds, not just
       // the corner LEAF_GRID cell containing the body's center.
       ed.setComponent(arena, new LargeObject());
+      // Set LargeGridCell explicitly. moss's LargeGridIndexSystem is supposed
+      // to produce this from the SpawnPosition + LargeObject change events,
+      // but its `return` (instead of `continue`) when a duplicate id is polled
+      // means the second arena loaded in the same frame can be skipped.
+      // Setting it directly here is idempotent and avoids the race.
+      ed.setComponent(arena, LargeGridCell.create(WorldGrids.TILE_GRID, minB));
       log.info(
           "Arena {} ghost-cube placed: anchor={} edge={} bounds=[{}..{}] (sensor)",
           rec.name, minB, InfinityConstants.TILE_SIZE, minB, maxB);

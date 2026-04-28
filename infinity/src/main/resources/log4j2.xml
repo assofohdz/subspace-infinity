@@ -40,7 +40,7 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
-    <Logger name="infinity.client" level="debug" additivity="false">
+    <Logger name="infinity.client" level="info" additivity="false">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>

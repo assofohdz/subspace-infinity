@@ -242,6 +242,7 @@ public class ModelViewState extends BaseAppState {
     this.largeModels = new LargeModelContainer(ed);
 
     resetModelFilter();
+    resetLargeModelFilter();
 
     BlackboardState blackboard = getState(BlackboardState.class, true);
     posRef = ((VersionedObject<Vec3d>) blackboard.get("position")).createReference();
@@ -310,7 +311,16 @@ public class ModelViewState extends BaseAppState {
           -(float) (pos.x - centerWorld.x), 0, -(float) (pos.z - centerWorld.z));
       resetRelativeCoordinates();
       resetModelFilter();
-      resetLargeModelFilter();
+
+      // largeModels is indexed by TILE_GRID cell (1024 units) — distinct from
+      // centerWorld which tracks LEAF_GRID cells. Only rebuild the filter when
+      // the player crosses a tile boundary.
+      Vec3i tileCell = WorldGrids.TILE_GRID.worldToCell(pos);
+      if (largeModelCenter.x != tileCell.x || largeModelCenter.z != tileCell.z) {
+        largeModelCenter.x = tileCell.x;
+        largeModelCenter.z = tileCell.z;
+        resetLargeModelFilter();
+      }
     }
 
     if (!avatarInitialized
@@ -639,8 +649,13 @@ public class ModelViewState extends BaseAppState {
     protected void resetVisibility() {
       log.info("resetVisibility():" + visibleCount);
       if (visibleCount > 0) {
+        // Spatials marked "arena" opt out of frustum culling — the wireframe
+        // cube extends y=0..1024 but the camera sits ~75 above the avatar,
+        // so most of the bounding box is behind the camera and JME's frustum
+        // test would otherwise drop the spatial when alongside.
+        boolean noCull = spatial.getUserData("arena") != null;
         log.info("visible:" + entityId);
-        spatial.setCullHint(Spatial.CullHint.Inherit);
+        spatial.setCullHint(noCull ? Spatial.CullHint.Never : Spatial.CullHint.Inherit);
       } else {
         log.info("invisible:" + entityId);
         spatial.setCullHint(Spatial.CullHint.Always);
@@ -750,12 +765,9 @@ public class ModelViewState extends BaseAppState {
     }
 
     protected void setVisible(boolean f) {
-      // log.info("setVisible(" + entity.getId() + ", " + f + ")");
       if (this.visible == f) {
         return;
       }
-      // For now, ignore setting false
-      // if( !f ) return;
       this.visible = f;
       if (visible) {
         model.markVisible();

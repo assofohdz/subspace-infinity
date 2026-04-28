@@ -96,7 +96,7 @@ import infinity.es.AudioType;
 import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.Gold;
-import infinity.es.LargeObject;
+import com.simsilica.bpos.LargeObject;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;

@@ -583,6 +583,10 @@ public class SISpatialFactory {
         GuiGlobals.getInstance().createMaterial(ColorRGBA.Yellow, false).getMaterial();
     mat.getAdditionalRenderState().setWireframe(true);
     geom.setMaterial(mat);
+    // The "arena" marker tells Model.resetVisibility() to keep CullHint.Never
+    // when the spatial is shown — the wireframe extends y=0..1024 but the
+    // camera sits ~75 above the avatar, putting most of the bounding box
+    // behind the camera and tripping JME's frustum test when alongside.
     geom.setUserData("arena", Boolean.TRUE);
 
     return geom;
