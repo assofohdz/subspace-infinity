@@ -72,7 +72,11 @@
       "Bash(git commit *)",
       "Bash(git merge *)",
       "Bash(./gradlew compileJava spotlessCheck --no-daemon --quiet)",
-      "Bash(./gradlew compileJava spotlessCheck --no-daemon)"
+      "Bash(./gradlew compileJava spotlessCheck --no-daemon)",
+      "Bash(grep -E \"\\\\.java$\")",
+      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && head -60 {}')",
+      "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && head -50 {}')",
+      "Bash(./gradlew --no-daemon -q :infinity:test --tests \"infinity.settings.GroovyShipLoaderRadarTest\")"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

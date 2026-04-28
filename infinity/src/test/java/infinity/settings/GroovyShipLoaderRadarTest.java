@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2018-2026, Asser Fahrenholz
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package infinity.settings;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import infinity.Ship;
+import infinity.config.ShipConfig;
+import infinity.settings.GroovyShipLoader.ShipConfigBuilder;
+import org.junit.Test;
+
+/**
+ * Verifies that {@code radarRange} flows through the Groovy ship-config builder
+ * onto {@link ShipConfig#radarRange()}, and that omitting it falls back to the
+ * documented default. Uses {@link ShipConfigBuilder} directly (package-private
+ * constructor) instead of standing up a full {@code GroovyShell} pipeline.
+ */
+public class GroovyShipLoaderRadarTest {
+
+  private static final double EPSILON = 1e-9;
+
+  @Test
+  public void radarRange_setExplicitly_propagatesToShipConfig() {
+    final ShipConfigBuilder builder = new ShipConfigBuilder(Ship.WARBIRD);
+    builder.radarRange(Integer.valueOf(400));
+
+    final ShipConfig cfg = builder.build();
+
+    assertEquals(400.0, cfg.radarRange(), EPSILON);
+    assertEquals(Ship.WARBIRD, cfg.type());
+  }
+
+  @Test
+  public void radarRange_omitted_defaultsToDocumentedValue() {
+    final ShipConfigBuilder builder = new ShipConfigBuilder(Ship.JAVELIN);
+
+    final ShipConfig cfg = builder.build();
+
+    assertEquals(GroovyShipLoader.DEFAULT_RADAR_RANGE, cfg.radarRange(), EPSILON);
+  }
+
+  @Test
+  public void fallbackRegistry_carriesDefaultRadarRange() {
+    // The static FALLBACK snapshot is what every arena gets if its ships.groovy
+    // is missing or fails to evaluate. radarRange must round-trip through
+    // fallbackShip() with the documented default so unconfigured arenas still
+    // ship a working radar config.
+    final ShipConfig fallback = GroovyShipLoader.FALLBACK.getShip(Ship.WARBIRD);
+
+    assertNotNull("FALLBACK must contain WARBIRD", fallback);
+    assertEquals(GroovyShipLoader.DEFAULT_RADAR_RANGE, fallback.radarRange(), EPSILON);
+  }
+}

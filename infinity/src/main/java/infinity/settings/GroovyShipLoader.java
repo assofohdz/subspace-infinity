@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
  *     dragFactor          0.05
  *     turnResponsiveness  8.0
  *     bounceRestitution   1.0
+ *     radarRange          250
  * }
  * }</pre>
  *
@@ -76,9 +77,9 @@ import org.slf4j.LoggerFactory;
  * omitted in a ship block default to {@code ShipStat(0, 0, 0)}; partial stat
  * blocks (missing {@code initial}/{@code max}/{@code upgrade}) fail with a
  * clear error message. Physics-feel knobs ({@code dragFactor},
- * {@code turnResponsiveness}, {@code bounceRestitution}) default to the
- * historical global values (0.05 / 8.0 / 1.0) when omitted, so an existing
- * ship script keeps the prior feel without edits.
+ * {@code turnResponsiveness}, {@code bounceRestitution}) and {@code radarRange}
+ * default to the historical / conservative values (0.05 / 8.0 / 1.0 / 250)
+ * when omitted, so an existing ship script keeps the prior feel without edits.
  */
 public final class GroovyShipLoader {
 
@@ -104,6 +105,14 @@ public final class GroovyShipLoader {
    * default in {@code ContactSystem.newContact}.
    */
   static final double DEFAULT_BOUNCE_RESTITUTION = 1.0;
+
+  /**
+   * Default radar radius (world units) used when a ship script omits
+   * {@code radarRange}. Sized larger than {@code LocalViewState.viewRadius}
+   * (5 leaves × 32 cells = 160 world units) so the radar reveals more than
+   * the rendered world view.
+   */
+  static final double DEFAULT_RADAR_RANGE = 250.0;
 
   /**
    * Built-in fallback snapshot installed when an arena's {@code ships.groovy}
@@ -189,7 +198,8 @@ public final class GroovyShipLoader {
         energy,
         DEFAULT_DRAG_FACTOR,
         DEFAULT_TURN_RESPONSIVENESS,
-        DEFAULT_BOUNCE_RESTITUTION);
+        DEFAULT_BOUNCE_RESTITUTION,
+        DEFAULT_RADAR_RANGE);
   }
 
   private final ConfigRegistrySystem configRegistry;
@@ -350,8 +360,11 @@ public final class GroovyShipLoader {
     private double dragFactor = DEFAULT_DRAG_FACTOR;
     private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
     private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
+    private double radarRange = DEFAULT_RADAR_RANGE;
 
-    private ShipConfigBuilder(final Ship type) {
+    // Package-private so unit tests in this package can build configs without
+    // standing up the full GroovyShell pipeline.
+    ShipConfigBuilder(final Ship type) {
       this.type = type;
     }
 
@@ -385,6 +398,10 @@ public final class GroovyShipLoader {
 
     public void bounceRestitution(final Number value) {
       this.bounceRestitution = doubleArg("bounceRestitution", value);
+    }
+
+    public void radarRange(final Number value) {
+      this.radarRange = doubleArg("radarRange", value);
     }
 
     private static ShipStat toStat(final String statName, final Map<String, ?> args) {
@@ -422,7 +439,8 @@ public final class GroovyShipLoader {
           energy,
           dragFactor,
           turnResponsiveness,
-          bounceRestitution);
+          bounceRestitution,
+          radarRange);
     }
   }
 }

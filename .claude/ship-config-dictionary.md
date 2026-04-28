@@ -48,6 +48,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `dragFactor` | `dragFactor()` | `DragFactor` | `PlayerDriver.update()` | `0.05` | Coast-drag fraction of `Thrust` when no thrust intent. Continuum has no equivalent (client-authoritative). |
 | `turnResponsiveness` | `turnResponsiveness()` | `TurnResponsiveness` | `PlayerDriver.update()` | `8.0` | Angular-velocity ease rate (1/sec). Continuum has no equivalent. |
 | `bounceRestitution` | `bounceRestitution()` | `BounceRestitution` | `ContactSystem.newContact()` | `1.0` | Wall-bounce energy retention. Continuum walls are perfectly elastic by construction. |
+| `radarRange` | `radarRange()` | `RadarRange` | `RadarState` (TBD, issue radar-viewport/02) | `250.0` | World-unit radius the client radar viewport displays around the ship. Spawn also projects `RadarShapeInfo` (server-side, not from a `ShipConfig` field) — the blip name is derived from `cfg.type().getName() + "_blip"`. |
 
 ---
 

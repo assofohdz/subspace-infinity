@@ -34,6 +34,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
+import infinity.es.RadarShapeInfo;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.DragFactor;
@@ -41,6 +42,7 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
 import infinity.es.ship.Health;
+import infinity.es.ship.RadarRange;
 import infinity.es.ship.Recharge;
 import infinity.es.ship.RechargeMax;
 import infinity.es.ship.RechargeUpgrade;
@@ -250,6 +252,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectRecharge(shipId, cfg.recharge(), resetLivePool);
     projectEnergy(shipId, cfg.energy(), resetLivePool);
     projectFeel(shipId, cfg);
+    projectRadar(shipId, cfg);
   }
 
   private void projectThrust(
@@ -305,5 +308,12 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, new DragFactor(cfg.dragFactor()));
     ed.setComponent(shipId, new TurnResponsiveness(cfg.turnResponsiveness()));
     ed.setComponent(shipId, new BounceRestitution(cfg.bounceRestitution()));
+  }
+
+  private void projectRadar(final EntityId shipId, final ShipConfig cfg) {
+    ed.setComponent(shipId, new RadarRange(cfg.radarRange()));
+    // Blip name derived from the ship enum's canonical name (e.g. "ship_warbird")
+    // so client-side blip-spatial registries can mirror SISpatialFactory's naming.
+    ed.setComponent(shipId, RadarShapeInfo.create(cfg.type().getName() + "_blip", ed));
   }
 }

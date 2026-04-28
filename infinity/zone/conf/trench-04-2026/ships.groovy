@@ -41,10 +41,12 @@
 //       dragFactor          <D>     // 0..1 — fraction of Thrust applied as drag while coasting
 //       turnResponsiveness  <R>     // 1/sec — angular ease rate; 8.0 ≈ ~95% of target in ~0.4 sec
 //       bounceRestitution   <B>     // 0..1 — wall-bounce energy retention; 1.0 = perfectly elastic
+//       radarRange          <RR>    // world units — radar viewport visible radius around the ship
 //   }
 //
 // Omit a stat to leave it at ShipStat(0, 0, 0). The three feel knobs default to
-// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted.
+// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted; radarRange
+// defaults to 250 world units.
 //
 // All 8 ships are configured. Numeric stats mirror the per-ship `ship-<name>`
 // INI fragments in this directory (the canonical trench tuning). Feel knobs
@@ -59,6 +61,7 @@ ship(Ship.WARBIRD) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          250
 }
 
 ship(Ship.JAVELIN) {
@@ -70,6 +73,7 @@ ship(Ship.JAVELIN) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          250
 }
 
 ship(Ship.SPIDER) {
@@ -81,6 +85,7 @@ ship(Ship.SPIDER) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          280
 }
 
 ship(Ship.LEVIATHAN) {
@@ -92,6 +97,7 @@ ship(Ship.LEVIATHAN) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          350
 }
 
 ship(Ship.TERRIER) {
@@ -103,6 +109,7 @@ ship(Ship.TERRIER) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          400
 }
 
 ship(Ship.WEASEL) {
@@ -114,6 +121,7 @@ ship(Ship.WEASEL) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          200
 }
 
 ship(Ship.LANCASTER) {
@@ -125,6 +133,7 @@ ship(Ship.LANCASTER) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          300
 }
 
 ship(Ship.SHARK) {
@@ -136,4 +145,5 @@ ship(Ship.SHARK) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
+    radarRange          260
 }

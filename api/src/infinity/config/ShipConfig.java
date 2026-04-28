@@ -54,6 +54,8 @@ import infinity.Ship;
  *     ease-toward-target ({@code 8.0} ≈ 95% of target in ~0.4 sec)
  * @param bounceRestitution wall-bounce restitution ({@code 1} = perfectly
  *     elastic, {@code 0} = stick)
+ * @param radarRange radius (world units) around the ship that the client
+ *     radar viewport displays
  */
 public record ShipConfig(
     Ship type,
@@ -64,4 +66,5 @@ public record ShipConfig(
     ShipStat energy,
     double dragFactor,
     double turnResponsiveness,
-    double bounceRestitution) {}
+    double bounceRestitution,
+    double radarRange) {}
