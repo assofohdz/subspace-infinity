@@ -175,7 +175,7 @@ public class WarpSystem extends AbstractGameSystem
         // of ship-side ArenaId). The warp zeroed velocity above, so the body will
         // sleep and stop generating contacts immediately — without this the per-tick
         // exit-grace sweep fires a redundant "left arena" log a second after every
-        // spawn-warp (see todo.md "Bug 2"). Null destination → ship landed in
+        // spawn-warp. Null destination → ship landed in
         // no-arena void; flush any current memberships so downstream consumers (esp.
         // ShipSpawnSystem's (ShipType, ArenaId) watcher) don't project a now-wrong
         // ShipConfig.

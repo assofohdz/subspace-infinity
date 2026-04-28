@@ -19,7 +19,7 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 4. **Log config consumers.** When you wire a config field into a consumer (or add a new config field), append it to [`.claude/config-consumers.md`](.claude/config-consumers.md) — which field, which class reads it, and via what path (typed registry / component / setting string). Lets us see at a glance what config drives what gameplay, and catch orphan config (declared but never read) or orphan consumers (reading fields no script populates).
 5. **Tuning knobs go in Groovy, not Java.** Whenever you encounter a literal numeric/string constant that smells like a tuning knob (gameplay balance, physics feel, timing budget, threshold) **or** when adding a new tuning knob, put it in a `.groovy` file under one of the existing config tiers and read it via the existing config layer (typed `*Config` records → ECS components per [`config-pattern.md`](.claude/rules/config-pattern.md), or `SettingsSystem`):
    - **Preset scope** — [`infinity/zone/conf/<preset>/`](infinity/zone/conf/) (e.g. `trench-04-2026/ships.groovy`). Use for stat templates, balance numbers, anything keyed on a preset / arena style. This is the canonical first stop today.
-   - **Arena scope** — [`infinity/zone/arenas/<name>/`](infinity/zone/arenas/) (currently `arena.conf`; see #1 in [todo.md](.claude/todo.md) for the planned Groovy migration). Use for per-arena overrides.
+   - **Arena scope** — [`infinity/zone/arenas/<name>/`](infinity/zone/arenas/) (currently `arena.conf`; see [`.scratch/zone-arena-to-groovy/PRD.md`](.scratch/zone-arena-to-groovy/PRD.md) for the planned Groovy migration). Use for per-arena overrides.
    - **Zone scope** — [`infinity/zone/zone.conf`](infinity/zone/zone.conf) (same migration item). Use for zone-wide defaults / ops knobs.
 
    True magic numbers (loop bounds, math identities like `2π`, well-known protocol constants) stay in Java. When unsure, lean toward Groovy — it's easier to demote a knob back to a constant than to flush a magic number out of compiled code.
@@ -82,3 +82,17 @@ See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
 **Meta:**
 - `dependency-sources/` - Where to find Moss/Simsilica library source code
 - `subspace-moss-terminology/` - Disambiguate overloaded terms (cell, tile, region, arena) across Subspace, MOSS, and Infinity
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as markdown files under `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles, default strings (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` and `docs/adr/` at the repo root (created lazily by skills). See `docs/agents/domain.md`.

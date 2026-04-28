@@ -181,8 +181,7 @@ public class ArenaMembershipSystem extends AbstractGameSystem
    * into an arena keeps {@link #currentArena} / {@link #lastSeenFrame} aligned without
    * waiting for the body to wake up — the warp zeros velocity, the body sleeps, and
    * contact-gen stops firing for it until movement resumes. Without this, the per-tick
-   * exit-grace sweep fires a redundant "left arena" log a second after every spawn-warp
-   * (see todo.md "Bug 2").
+   * exit-grace sweep fires a redundant "left arena" log a second after every spawn-warp.
    */
   public void markEntered(final EntityId shipId, final EntityId arenaEntityId) {
     applyMembership(shipId, arenaEntityId);

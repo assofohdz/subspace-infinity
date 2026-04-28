@@ -116,6 +116,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       contact.restitution = bounce != null ? bounce.getRestitution() : 1.0;
       // Zero tangential friction so a glancing wall hit doesn't add sliding-induced
       // spin. Player input owns ship heading; walls only affect linear velocity.
+      // If promoted to a tuning knob, it belongs at arena scope (map feel), not per-ship.
       contact.friction = 0.0;
       log.debug(
           "Body vs static-map contact: {} at {}, restitution={}, friction={}",

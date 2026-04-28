@@ -294,6 +294,10 @@ public class GameServer {
     // Opt-in body filter for the coarse large-static contact pass. Only bodies
     // tagged with CollidesWithLargeStatics (ships at spawn) generate pairs with
     // arena ghost-cubes; everything else skips the pass before narrow phase.
+    // Per-frame contact-gen still scales with (ships in arena × loaded arenas);
+    // if STAT_CONTACTS shows pressure, the next throttle is a penetration
+    // discriminator (drop pairs with contact.penetration < shipRadius) for
+    // interactive large statics that want to skip resolving inside-the-cube.
     mBlockShapeMPhysSystem.getPhysicsSpace().setLargeStaticCollisionFilter(
         body -> ed.getComponent(body.id, CollidesWithLargeStatics.class) != null);
 
