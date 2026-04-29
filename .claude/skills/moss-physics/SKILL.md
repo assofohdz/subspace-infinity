@@ -91,6 +91,12 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
         
         // Set restitution for bouncing
         contact.restitution = 1.0f;
+
+        // CAUTION — body-vs-static friction: do NOT set contact.friction on body-vs-static
+        // contacts when the body is a sphere (ship). The resolver computes r × impulse torque
+        // at the contact point, which wrongly rotates the ship heading. Instead, keep
+        // contact.friction = 0.0 and damp body1.linearVelocity's tangential component
+        // manually after the step. See ContactSystem for the reference implementation.
     }
 }
 ```

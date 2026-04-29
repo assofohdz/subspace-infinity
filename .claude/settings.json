@@ -108,7 +108,8 @@
       "Bash(./gradlew --no-daemon -q :api:compileJava :infinity:compileJava :infinity:compileTestJava :api:spotlessCheck :infinity:spotlessCheck)",
       "Bash(unzip -o /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT-sources.jar -d /tmp/mphys-src)",
       "Bash(mkdir -p /tmp/mphys-src)",
-      "Bash(jar -xf /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT-sources.jar)"
+      "Bash(jar -xf /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT-sources.jar)",
+      "Edit(/.claude/skills/moss-physics/**)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

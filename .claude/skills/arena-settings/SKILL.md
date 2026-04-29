@@ -102,6 +102,7 @@ arena {
 | `map '...'` | String | `ArenaConfig.mapFile()` | `ArenaSystem` (load / unload / swap / `findArenaByMap`) |
 | `shipsScript '...'` | String | `ArenaConfig.shipsScript()` | `GroovyShipLoader.apply()` at arena-load |
 | `spawn x, z` | int, int | `ArenaConfig.spawnX()`/`spawnZ()` | `ArenaSystem.getArenaSpawn()` |
+| `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
 
 ### Section categories (in fragments)
@@ -151,13 +152,13 @@ Chat:
 
 ## Reading settings — typed accessors
 
-For the **arena-scope core** (map / shipsScript / spawn), prefer the typed `ArenaConfig` access via `ArenaSystem` rather than reaching into `SettingsSystem`:
+For the **arena-scope core** (map / shipsScript / spawn / wallFriction), prefer the typed `ArenaConfig` access via `ArenaSystem` rather than reaching into `SettingsSystem`:
 
 ```java
 ArenaSystem arenas = getSystem(ArenaSystem.class);
 Vec3d spawn = arenas.getArenaSpawn(arenaName);
-// Direct ArenaConfig access if you need other fields — currently package-private
-// to ArenaSystem; expose getters as needed.
+ArenaConfig cfg = arenas.getArenaConfig(arenaName); // returns ArenaConfig.EMPTY when not loaded
+double friction = cfg.wallFriction();
 ```
 
 For **fragment data** (the rule sections in the included `conf/<preset>/*.conf` files), use `SettingsSystem`'s typed accessors:
@@ -204,7 +205,7 @@ getSystem(SettingsSystem.class).removeListener(myModule); // in terminate()
 
 Listeners are expected to **cache** their own copy — don't reach back into `SettingsSystem` on every gameplay read.
 
-The arena-scope core (map / shipsScript / spawn) is not editable through `setSetting` — it lives on the typed `ArenaConfig` and is set at load-time only. `~swapMap` is the chat command for changing the map of an already-open arena; it updates `ArenaConfig` directly, no `SettingListener` fires.
+The arena-scope core (map / shipsScript / spawn / wallFriction) is not editable through `setSetting` — it lives on the typed `ArenaConfig` and is set at load-time only. `~swapMap` is the chat command for changing the map of an already-open arena; it updates `ArenaConfig` directly, no `SettingListener` fires.
 
 ## Common patterns
 
