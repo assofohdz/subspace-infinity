@@ -1,6 +1,6 @@
 # Migrate trench / deva / default to arena.groovy; retire INI-arena fallback
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:server, area:docs
 
@@ -22,13 +22,13 @@ After this slice, the only INI files remaining in the in-scope migration surface
 
 ## Acceptance criteria
 
-- [ ] `infinity/zone/arenas/trench/arena.groovy` exists; `arena.conf` deleted
-- [ ] `infinity/zone/arenas/deva/arena.groovy` exists; `arena.conf` deleted
-- [ ] `infinity/zone/arenas/default/arena.groovy` exists; `arena.conf` deleted
-- [ ] Each arena loads identically to before (same map, same spawn, same ships script, same preset fragment merged in)
-- [ ] INI-arena fallback path removed from `GroovyArenaLoader`
-- [ ] `arena-settings` skill updated to point at `arena.groovy` authoring; fragment-INI guidance preserved
-- [ ] Manual verification: server starts, both `trench` and `deva` are reachable, ships spawn correctly with the same stats as before
+- [x] `infinity/zone/arenas/trench/arena.groovy` exists; `arena.conf` deleted
+- [x] `infinity/zone/arenas/deva/arena.groovy` exists; `arena.conf` deleted
+- [x] `infinity/zone/arenas/(default)/arena.groovy` exists; `arena.conf` deleted
+- [x] Each arena loads identically to before (same map, same spawn, same ships script, same preset fragment merged in) — verified in-game
+- [x] INI-arena fallback path removed from `ArenaSystem.loadArenaConfig`; `SettingsSystem.loadSettings` and the `deepCopy` / arena-folder-constant support deleted as dead code; missing `arena.groovy` now fails the load with a clear "No arena.groovy found" error
+- [x] `arena-settings` skill rewritten to point at `arena.groovy` authoring; fragment-INI guidance preserved (the still-INI `conf/<preset>/*.conf` library is out-of-scope per the PRD)
+- [x] Manual verification: server starts, both `trench` and `deva` are reachable, ships spawn correctly with the same stats as before (confirmed in-game)
 
 ## Blocked by
 

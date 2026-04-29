@@ -1,6 +1,6 @@
 # Migrate `zone.conf` and `arena.conf` to Groovy
 
-Status: ready-for-human
+Status: done
 Cross-ref: [GH #101](https://github.com/assofohdz/subspace-infinity/issues/101)
 
 [`infinity/zone/zone.conf`](../../infinity/zone/zone.conf) and [`infinity/zone/arenas/<name>/arena.conf`](../../infinity/zone/arenas/) are still INI-style with `#include` directives and string-keyed `SettingsSystem` lookups. Migrate both to Groovy to match [`ships.groovy`](../../infinity/zone/conf/trench-04-2026/ships.groovy):

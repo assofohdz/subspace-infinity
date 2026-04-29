@@ -545,40 +545,24 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
-   * Resolve the arena's typed config. Tries {@code arenas/<arenaName>/arena.groovy}
-   * first; if absent, falls back to the legacy {@code arena.conf} via
-   * {@link SettingsSystem#loadSettings} and synthesises an {@link ArenaConfig}
-   * from the INI keys. Either way, the returned record carries the in-scope
-   * arena fields (map / shipsScript / spawn / fragmentIncludes) so callers
-   * read uniformly without caring which format the arena is authored in.
+   * Resolve the arena's typed config from {@code arenas/<arenaName>/arena.groovy}.
+   * Side effect: populates {@code SettingsSystem}'s per-arena INI store with the
+   * fragment data named in {@code includeFragment} so downstream
+   * {@link SettingsSystem#getString} / {@link SettingsSystem#getInt} lookups
+   * against fragment keys (e.g. {@code Bomb.BombDamageLevel}) keep working.
    *
-   * <p>Side effect: populates {@code SettingsSystem}'s per-arena INI store so
-   * downstream {@link SettingsSystem#getString} / {@link SettingsSystem#getInt}
-   * lookups against fragment keys (e.g. {@code Bomb.BombDamageLevel}) keep
-   * working. For Groovy arenas this comes from
-   * {@link SettingsSystem#loadFragments}; for INI arenas, from
-   * {@link SettingsSystem#loadSettings} which still parses the whole arena.conf
-   * (the per-arena {@code #include}s included).
+   * @return the parsed config, or {@code null} if the Groovy file is missing
+   *     entirely; callers fail-fast in that case (no INI fallback —
+   *     {@code arena.conf} support was retired in zone-arena-to-groovy #3)
    */
+  @Nullable
   private ArenaConfig loadArenaConfig(final SettingsSystem settings, final String arenaName) {
     final ArenaConfig groovyConfig = arenaLoader.load(arenaName);
-    if (groovyConfig != null) {
-      // Groovy path: the typed core lives in groovyConfig; populate SettingsSystem
-      // with just the fragment INI content so getString/getInt callers querying
-      // fragment keys still find them.
-      settings.loadFragments(arenaName, groovyConfig.fragmentIncludes());
-      return groovyConfig;
+    if (groovyConfig == null) {
+      return null;
     }
-    // Legacy INI path: keep the existing loader behaviour and read the in-scope
-    // arena fields out of the resulting Ini so the caller still gets an
-    // ArenaConfig.
-    settings.loadSettings(EntityId.NULL_ID, arenaName);
-    return new ArenaConfig(
-        settings.getString(arenaName, "General", "Map", arenaName + ".lvl"),
-        settings.getString(arenaName, "Scripts", "Ships", ""),
-        settings.getInt(arenaName, "Spawn", "X", 0),
-        settings.getInt(arenaName, "Spawn", "Z", 0),
-        java.util.List.of()); // INI fragment list isn't enumerated — irrelevant for unmigrated arenas
+    settings.loadFragments(arenaName, groovyConfig.fragmentIncludes());
+    return groovyConfig;
   }
 
   /**
@@ -642,10 +626,15 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       }
       rec.arenaIndex = allocatedSlot;
 
-      // Try arena.groovy first; fall back to arena.conf for arenas not yet migrated.
-      // Either way we end up with a populated ArenaConfig in rec.config (Groovy direct,
-      // INI synthesised) so downstream reads are uniform.
-      rec.config = loadArenaConfig(settings, rec.name);
+      // arena.groovy is the only authoring surface for arena-scope config —
+      // INI arena.conf was retired in zone-arena-to-groovy #3. A missing
+      // arena.groovy is a configuration error rather than a fallback case.
+      final ArenaConfig groovyConfig = loadArenaConfig(settings, rec.name);
+      if (groovyConfig == null) {
+        fail(rec, null, "No arena.groovy found for arena '" + rec.name + "'");
+        return;
+      }
+      rec.config = groovyConfig;
       final String mapFile = rec.config.mapFile();
 
       arena = ed.createEntity();

@@ -38,9 +38,6 @@ import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.util.InfinityRunTimeException;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,10 +82,6 @@ public class SettingsSystem extends AbstractGameSystem {
   private static final String UNUSED_GROUP = "Unused";
   private static final String MESSAGE_GROUP = "Message";
   private static final String CHAT_GROUP = "Chat";
-  private static final String ZONE_FOLDER = "zone";
-  private static final String ARENA_FOLDER = "arenas";
-  private static final String DEFAULT_ARENA_FOLDER = "(default)";
-  private static final String ARENA_CONFIG_FILE = "arena.conf";
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
   private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
   private final List<SimpleEntry<String, String>> intSettings =
@@ -384,48 +377,14 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
-   * Load the {@code arena.conf} for a named arena and cache it under {@code arenaName}. If no
-   * {@code arenas/<arenaName>/arena.conf} exists, fall back to {@code arenas/(default)/arena.conf}
-   * — a deep copy of that fallback is cached under {@code arenaName} so later mutations cannot
-   * leak back into the default.
-   *
-   * @param requester the entity that requested the settings (reserved for future audit wiring)
-   * @param arenaName arena identity (folder name under {@code arenas/}), e.g. {@code "trench"}
-   */
-  public void loadSettings(final EntityId requester, final String arenaName) {
-    final Ini settings =
-        (Ini)
-            assetLoader.loadAsset(
-                "/" + ARENA_FOLDER + "/" + arenaName + "/" + ARENA_CONFIG_FILE);
-
-    if (settings == null) {
-      log.warn("Settings file not found for arena {}, falling back to (default)", arenaName);
-      Ini defaultSettings = arenaSettingsMap.get(DEFAULT_ARENA_FOLDER);
-      if (defaultSettings == null) {
-        defaultSettings =
-            (Ini)
-                assetLoader.loadAsset(
-                    "/" + ARENA_FOLDER + "/" + DEFAULT_ARENA_FOLDER + "/" + ARENA_CONFIG_FILE);
-        arenaSettingsMap.put(DEFAULT_ARENA_FOLDER, deepCopy(defaultSettings));
-      }
-      arenaSettingsMap.put(arenaName, deepCopy(defaultSettings));
-    } else {
-      arenaSettingsMap.put(arenaName, deepCopy(settings));
-    }
-  }
-
-  /**
    * Load each {@code classpathPath} as an INI fragment (with the existing
    * {@link IniLoader} {@code #include} support) and merge them into a single
    * {@link Ini} stored under {@code arenaName}. Used by the Groovy arena-load
    * path: {@code arena.groovy}'s typed core fields (map / shipsScript / spawn)
-   * are read directly off {@link infinity.config.ArenaConfig}, so the
-   * {@code Ini} cached here only needs to carry the included-fragment data
-   * (the still-INI {@code conf/<preset>/*.conf} preset content).
-   *
-   * <p>Mirrors {@link #loadSettings} in storage shape — same per-arena map, same
-   * cloning so the asset cache can't leak mutations across arenas — but with
-   * an explicit fragment list instead of a single arena.conf root.
+   * live in {@link infinity.config.ArenaConfig}, so the {@code Ini} cached
+   * here only carries the included-fragment data (the still-INI
+   * {@code conf/<preset>/*.conf} preset content) for downstream
+   * {@link #getString} / {@link #getInt} lookups.
    *
    * @param arenaName arena identity (folder name under {@code arenas/})
    * @param classpathPaths fragment paths in declaration order; later fragments
@@ -477,27 +436,6 @@ public class SettingsSystem extends AbstractGameSystem {
         // documented merge contract.
         dst.put(k, src.get(k));
       }
-    }
-  }
-
-  /**
-   * Deep-copy an {@link Ini} so each arena's settings are independent. The asset loader may cache
-   * parsed configs, and the default-arena fallback path also aliases a single instance across
-   * multiple keys. Without copying, a mutation on one arena would leak into every arena sharing the
-   * same underlying {@code Ini}.
-   */
-  private Ini deepCopy(final Ini source) {
-    if (source == null) {
-      return null;
-    }
-    final StringWriter sw = new StringWriter();
-    try {
-      source.store(sw);
-      final Ini copy = new Ini();
-      copy.load(new StringReader(sw.toString()));
-      return copy;
-    } catch (final IOException e) {
-      throw new InfinityRunTimeException("Failed to clone Ini", e);
     }
   }
 
