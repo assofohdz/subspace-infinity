@@ -41,10 +41,12 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
+import infinity.config.ArenaConfig;
 import infinity.config.ZoneConfig;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovyShipLoader;
 import infinity.settings.GroovyZoneLoader;
 import infinity.settings.ShipSpawnSystem;
@@ -124,6 +126,15 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     EntityId entityId;
     int arenaIndex = -1; // assigned by the slot allocator at load-time; -1 when not loaded
     String lastError;
+    /**
+     * Typed arena-scope config — the in-scope subset of what used to live in
+     * {@code arena.conf} (map / shipsScript / spawn / fragment list). Populated
+     * at load-time from {@code arena.groovy} when present, otherwise
+     * synthesised from the legacy INI so callers can read uniformly without
+     * caring which authoring format produced the values. Stays
+     * {@link ArenaConfig#EMPTY} until {@code doLoad} runs.
+     */
+    ArenaConfig config = ArenaConfig.EMPTY;
 
     ArenaRecord(final String name) {
       this.name = name;
@@ -153,6 +164,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntitySet arenaEntities;
   private EntitySet playerEntities;
   private GroovyShipLoader shipLoader;
+  private final GroovyArenaLoader arenaLoader = new GroovyArenaLoader();
   private boolean bootstrapped;
 
   /**
@@ -400,10 +412,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       log.warn("getArenaSpawn: arena '{}' has no ArenaMap component", arenaName);
       return null;
     }
-    final SettingsSystem settings = getSystem(SettingsSystem.class);
-    final int localX = settings.getInt(arenaName, "Spawn", "X", 0);
-    final int localZ = settings.getInt(arenaName, "Spawn", "Z", 0);
-    return arenaToWorld(map, localX, localZ);
+    return arenaToWorld(map, rec.config.spawnX(), rec.config.spawnZ());
   }
 
   /**
@@ -536,6 +545,43 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
+   * Resolve the arena's typed config. Tries {@code arenas/<arenaName>/arena.groovy}
+   * first; if absent, falls back to the legacy {@code arena.conf} via
+   * {@link SettingsSystem#loadSettings} and synthesises an {@link ArenaConfig}
+   * from the INI keys. Either way, the returned record carries the in-scope
+   * arena fields (map / shipsScript / spawn / fragmentIncludes) so callers
+   * read uniformly without caring which format the arena is authored in.
+   *
+   * <p>Side effect: populates {@code SettingsSystem}'s per-arena INI store so
+   * downstream {@link SettingsSystem#getString} / {@link SettingsSystem#getInt}
+   * lookups against fragment keys (e.g. {@code Bomb.BombDamageLevel}) keep
+   * working. For Groovy arenas this comes from
+   * {@link SettingsSystem#loadFragments}; for INI arenas, from
+   * {@link SettingsSystem#loadSettings} which still parses the whole arena.conf
+   * (the per-arena {@code #include}s included).
+   */
+  private ArenaConfig loadArenaConfig(final SettingsSystem settings, final String arenaName) {
+    final ArenaConfig groovyConfig = arenaLoader.load(arenaName);
+    if (groovyConfig != null) {
+      // Groovy path: the typed core lives in groovyConfig; populate SettingsSystem
+      // with just the fragment INI content so getString/getInt callers querying
+      // fragment keys still find them.
+      settings.loadFragments(arenaName, groovyConfig.fragmentIncludes());
+      return groovyConfig;
+    }
+    // Legacy INI path: keep the existing loader behaviour and read the in-scope
+    // arena fields out of the resulting Ini so the caller still gets an
+    // ArenaConfig.
+    settings.loadSettings(EntityId.NULL_ID, arenaName);
+    return new ArenaConfig(
+        settings.getString(arenaName, "General", "Map", arenaName + ".lvl"),
+        settings.getString(arenaName, "Scripts", "Ships", ""),
+        settings.getInt(arenaName, "Spawn", "X", 0),
+        settings.getInt(arenaName, "Spawn", "Z", 0),
+        java.util.List.of()); // INI fragment list isn't enumerated — irrelevant for unmigrated arenas
+  }
+
+  /**
    * Load {@code zone.groovy} into {@link #zoneConfig} and set desired=true for each
    * arena in {@code autoLoad}. Idempotent — safe to call once at startup.
    */
@@ -596,13 +642,17 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       }
       rec.arenaIndex = allocatedSlot;
 
-      settings.loadSettings(EntityId.NULL_ID, rec.name);
-      final String mapFile = settings.getString(rec.name, "General", "Map", rec.name + ".lvl");
+      // Try arena.groovy first; fall back to arena.conf for arenas not yet migrated.
+      // Either way we end up with a populated ArenaConfig in rec.config (Groovy direct,
+      // INI synthesised) so downstream reads are uniform.
+      rec.config = loadArenaConfig(settings, rec.name);
+      final String mapFile = rec.config.mapFile();
 
       arena = ed.createEntity();
       final ArenaId arenaId = new ArenaId(rec.name, EntityId.NULL_ID);
       ed.setComponent(arena, arenaId);
-      final String shipsScript = settings.getString(rec.name, "Scripts", "Ships", null);
+      final String shipsScript =
+          rec.config.shipsScript().isBlank() ? null : rec.config.shipsScript();
       shipLoader.apply(arenaId, shipsScript);
       registerScriptWatch(arenaId, shipsScript);
 
@@ -674,9 +724,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     rec.state = ArenaState.UNLOADING;
     unregisterScriptWatch(rec.name);
     try {
-      final SettingsSystem settings = getSystem(SettingsSystem.class);
-      final String mapFile = settings.getString(rec.name, "General", "Map", rec.name + ".lvl");
-      getSystem(MapSystem.class).unloadMap(mapFile);
+      getSystem(MapSystem.class).unloadMap(rec.config.mapFile());
       if (rec.entityId != null) {
         ed.removeEntity(rec.entityId);
         rec.entityId = null;
@@ -779,28 +827,30 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       return "Arena " + arenaName + " is not loaded";
     }
 
-    final SettingsSystem settings = getSystem(SettingsSystem.class);
-    final String oldMap = settings.getString(arenaName, "General", "Map", arenaName + ".lvl");
+    final String oldMap = rec.config.mapFile();
     if (oldMap.equals(newMap)) {
       return "Arena " + arenaName + " already uses map " + newMap;
     }
     if (!getSystem(MapSystem.class).swapMap(oldMap, newMap, rec.arenaIndex)) {
       return "Cannot swap: " + newMap + " has an invalid extension or swap failed";
     }
-    settings.setSetting(
-        ed.getComponent(rec.entityId, ArenaId.class), "General", "Map", newMap);
+    // Update the typed config — single source of truth for in-memory arena state.
+    rec.config = new ArenaConfig(
+        newMap,
+        rec.config.shipsScript(),
+        rec.config.spawnX(),
+        rec.config.spawnZ(),
+        rec.config.fragmentIncludes());
     return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
   }
 
-  /** Scan open arenas for one whose current {@code [General] Map=} equals {@code mapFile}. */
+  /** Scan open arenas for one whose current map file equals {@code mapFile}. */
   private String findArenaByMap(final String mapFile) {
-    final SettingsSystem settings = getSystem(SettingsSystem.class);
     for (final ArenaRecord rec : registry.values()) {
       if (rec.state != ArenaState.LOADED) {
         continue;
       }
-      final String current = settings.getString(rec.name, "General", "Map", rec.name + ".lvl");
-      if (mapFile.equals(current)) {
+      if (mapFile.equals(rec.config.mapFile())) {
         return rec.name;
       }
     }

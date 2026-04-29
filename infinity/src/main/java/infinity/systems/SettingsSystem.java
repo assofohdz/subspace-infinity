@@ -415,6 +415,72 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
+   * Load each {@code classpathPath} as an INI fragment (with the existing
+   * {@link IniLoader} {@code #include} support) and merge them into a single
+   * {@link Ini} stored under {@code arenaName}. Used by the Groovy arena-load
+   * path: {@code arena.groovy}'s typed core fields (map / shipsScript / spawn)
+   * are read directly off {@link infinity.config.ArenaConfig}, so the
+   * {@code Ini} cached here only needs to carry the included-fragment data
+   * (the still-INI {@code conf/<preset>/*.conf} preset content).
+   *
+   * <p>Mirrors {@link #loadSettings} in storage shape — same per-arena map, same
+   * cloning so the asset cache can't leak mutations across arenas — but with
+   * an explicit fragment list instead of a single arena.conf root.
+   *
+   * @param arenaName arena identity (folder name under {@code arenas/})
+   * @param classpathPaths fragment paths in declaration order; later fragments
+   *     overwrite earlier ones on key conflict (last-wins, matching
+   *     {@code #include}'s semantics)
+   */
+  public void loadFragments(final String arenaName, final List<String> classpathPaths) {
+    final Ini merged = new Ini();
+    if (classpathPaths != null) {
+      for (final String path : classpathPaths) {
+        final Ini fragment = loadFragmentIni(path);
+        if (fragment == null) {
+          log.warn("Fragment {} not loadable for arena {}", path, arenaName);
+          continue;
+        }
+        mergeInto(merged, fragment);
+      }
+    }
+    arenaSettingsMap.put(arenaName, merged);
+  }
+
+  private Ini loadFragmentIni(final String classpathPath) {
+    // The asset loader's keys are leading-slashless; arena.groovy paths are
+    // typically classpath-absolute with a leading slash, so strip it.
+    final String key =
+        classpathPath != null && classpathPath.startsWith("/")
+            ? classpathPath.substring(1)
+            : classpathPath;
+    if (key == null || key.isBlank()) {
+      return null;
+    }
+    try {
+      return (Ini) assetLoader.loadAsset(key);
+    } catch (final Exception e) {
+      log.warn("Fragment {} failed to load: {}", classpathPath, e.getMessage());
+      return null;
+    }
+  }
+
+  private static void mergeInto(final Ini target, final Ini source) {
+    for (final String sectionName : source.keySet()) {
+      final Section src = source.get(sectionName);
+      Section dst = target.get(sectionName);
+      if (dst == null) {
+        dst = target.add(sectionName);
+      }
+      for (final String k : src.keySet()) {
+        // ini4j Section.put returns the previous value; ignore — last-wins is the
+        // documented merge contract.
+        dst.put(k, src.get(k));
+      }
+    }
+  }
+
+  /**
    * Deep-copy an {@link Ini} so each arena's settings are independent. The asset loader may cache
    * parsed configs, and the default-arena fallback path also aliases a single instance across
    * multiple keys. Without copying, a mutation on one arena would leak into every arena sharing the

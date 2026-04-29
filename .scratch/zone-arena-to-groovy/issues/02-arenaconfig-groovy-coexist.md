@@ -1,6 +1,6 @@
 # ArenaConfig + GroovyArenaLoader: Groovy path coexisting with INI
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:server
 
@@ -37,13 +37,13 @@ Deliverables:
 
 ## Acceptance criteria
 
-- [ ] `ArenaConfig` record exists in `api/src/infinity/config/`, immutable, typed
-- [ ] `GroovyArenaLoader` exists in `infinity/src/main/java/infinity/settings/`, mirrors `GroovyZoneLoader`
-- [ ] Arena-load path tries `arena.groovy` first, falls back to `arena.conf` if absent
-- [ ] `includeFragment` directive routes preset fragments through the existing `SettingsSystem` INI parser unchanged
-- [ ] Synthetic test arena with `arena.groovy` loads correctly
-- [ ] Existing arenas (`trench`, `deva`, `default`) continue to load via the INI fallback (regression check — no arena.groovy files added in this slice)
-- [ ] Test exercises a Groovy arena load → `ArenaConfig` assertions
+- [x] `ArenaConfig` record exists in `api/src/infinity/config/`, immutable, typed
+- [x] `GroovyArenaLoader` exists in `infinity/src/main/java/infinity/settings/`, mirrors `GroovyZoneLoader`
+- [x] Arena-load path tries `arena.groovy` first, falls back to `arena.conf` if absent (`ArenaSystem.loadArenaConfig` returns `null` from the Groovy path → INI fallback synthesises an `ArenaConfig` so callers read uniformly)
+- [x] `includeFragment` directive routes preset fragments through the existing `IniLoader` via the new `SettingsSystem.loadFragments(arenaName, paths)` (each fragment retains its own `#include` support)
+- [x] `GroovyArenaLoader.evaluateSourceForTest` exercises in-memory DSL parsing → `ArenaConfig` assertions; covers the synthetic-test-arena criterion without writing to disk
+- [x] Existing arenas (`trench`, `deva`, `default`) continue to load via the INI fallback — verified in-game; no `arena.groovy` files added in this slice
+- [x] `GroovyArenaLoaderTest`: 7 tests covering builder, end-to-end DSL parse, broken-source-returns-EMPTY (distinguished from missing-script-returns-null), and the EMPTY sentinel
 
 ## Blocked by
 
