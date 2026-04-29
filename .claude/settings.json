@@ -76,7 +76,18 @@
       "Bash(grep -E \"\\\\.java$\")",
       "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && head -60 {}')",
       "Bash(xargs -I {} sh -c 'echo \"=== {} ===\" && head -50 {}')",
-      "Bash(./gradlew --no-daemon -q :infinity:test --tests \"infinity.settings.GroovyShipLoaderRadarTest\")"
+      "Bash(./gradlew --no-daemon -q :infinity:test --tests \"infinity.settings.GroovyShipLoaderRadarTest\")",
+      "Bash(unzip -p /home/assofohdz/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/texture/FrameBuffer.class)",
+      "Bash(javap -p)",
+      "Bash(javap -p 'com/jme3/texture/FrameBuffer$FrameBufferTextureTarget.class' 'com/jme3/texture/FrameBuffer$FrameBufferBufferTarget.class')",
+      "Bash(javap -p com/jme3/texture/FrameBuffer.class)",
+      "Bash(mkdir -p /tmp/fb3)",
+      "Bash(javap -p 'com/jme3/texture/FrameBuffer$FrameBufferTextureTarget.class')",
+      "Bash(./gradlew :infinity:compileJava --no-daemon -q)",
+      "Bash(./gradlew :infinity:compileJava --no-daemon)",
+      "Bash(./gradlew :infinity:compileJava --rerun-tasks --no-daemon)",
+      "Bash(awk -F':' '{print $1}')",
+      "Bash(./gradlew :infinity:spotlessCheck --no-daemon)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

@@ -67,6 +67,7 @@ import infinity.client.states.ModelViewState;
 import infinity.client.states.PhysicsDebugState;
 import infinity.client.states.PlayerListState;
 import infinity.client.states.PositionHudState;
+import infinity.client.states.RadarState;
 import infinity.client.states.SpaceGridState;
 import infinity.client.view.SkyState;
 
@@ -95,6 +96,7 @@ public class GameSessionState extends CompositeAppState {
         new ArenaRegistryState(), // Must precede LocalViewState — provides the tileset source path.
         new LocalViewState(),
         new ModelViewState(),
+        new RadarState(),
         new AudioState(new SIAudioFactory()),
         new SpaceGridState(InfinityConstants.GRID_CELL_SIZE, 2, new ColorRGBA(0.8f, 1f, 1f, 0.5f)),
         new AmbientLightState(),

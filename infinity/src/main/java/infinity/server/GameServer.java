@@ -99,6 +99,7 @@ import infinity.es.Gold;
 import com.simsilica.bpos.LargeObject;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
+import infinity.es.RadarShapeInfo;
 import infinity.es.ShapeNames;
 import infinity.es.TileType;
 import infinity.es.arena.ArenaId;
@@ -106,6 +107,7 @@ import infinity.es.arena.ArenaMap;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.CollidesWithLargeStatics;
 import infinity.es.ship.Player;
+import infinity.es.ship.RadarRange;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CubeFactory;
 import infinity.sim.InfinityEntityBodyFactory;
@@ -475,6 +477,8 @@ public class GameServer {
     Serializer.registerClass(MovementInput.class, new FieldSerializer());
     Serializer.registerClass(ArenaId.class, new FieldSerializer());
     Serializer.registerClass(ArenaMap.class, new FieldSerializer());
+    Serializer.registerClass(RadarRange.class, new FieldSerializer());
+    Serializer.registerClass(RadarShapeInfo.class, new FieldSerializer());
   }
 
   public Server getServer() {
