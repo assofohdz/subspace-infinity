@@ -81,6 +81,34 @@ public class GroovyZoneLoaderTest {
 
     assertTrue("autoLoad should default to empty", cfg.autoLoadArenas().isEmpty());
     assertEquals("enterSpawn should default to empty", "", cfg.enterSpawnArena());
+    // Documented default = 5s; matches the historical SCRIPT_POLL_INTERVAL_NANOS
+    // Java constant so omitting the directive preserves the prior throttle.
+    assertEquals(5.0, cfg.scriptPollIntervalSeconds(), 1e-9);
+    assertEquals(5_000_000_000L, cfg.scriptPollIntervalNanos());
+  }
+
+  @Test
+  public void builder_scriptPollInterval_acceptsSecondsAsNumber() {
+    final ZoneConfigBuilder builder = new ZoneConfigBuilder();
+    builder.scriptPollInterval(2.5);
+
+    final ZoneConfig cfg = build(builder);
+
+    assertEquals(2.5, cfg.scriptPollIntervalSeconds(), 1e-9);
+    assertEquals(2_500_000_000L, cfg.scriptPollIntervalNanos());
+  }
+
+  @Test
+  public void builder_scriptPollInterval_rejectsNonPositive() {
+    // Zero would disable the watcher and negative would tight-loop stat() —
+    // both are rejected; the documented 5s default stands.
+    final ZoneConfigBuilder builder = new ZoneConfigBuilder();
+    builder.scriptPollInterval(0);
+    builder.scriptPollInterval(-1.0);
+
+    final ZoneConfig cfg = build(builder);
+
+    assertEquals(5.0, cfg.scriptPollIntervalSeconds(), 1e-9);
   }
 
   @Test
@@ -98,6 +126,7 @@ public class GroovyZoneLoaderTest {
     assertNotNull(empty);
     assertTrue(empty.autoLoadArenas().isEmpty());
     assertEquals("", empty.enterSpawnArena());
+    assertEquals(5.0, empty.scriptPollIntervalSeconds(), 1e-9);
   }
 
   /**

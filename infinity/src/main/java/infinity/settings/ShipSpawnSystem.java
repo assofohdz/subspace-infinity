@@ -87,20 +87,23 @@ import org.slf4j.LoggerFactory;
  * receive no projection — they retain whatever stats they last had until
  * they cross into an arena.
  *
- * <p><b>Two projection modes</b> — distinguished by whether the live pools
- * (Health/Energy and the current Thrust/Speed/Rotation/Recharge values) are
- * reset to {@code stat.initial()}:
+ * <p><b>Two projection modes</b> — distinguished by whether the depleting
+ * resource pools ({@link Health} and {@link Energy}) are reset to
+ * {@code stat.initial()}:
  * <ul>
- *   <li><b>Respawn projection</b> (caps + feel + reset) — fires on
+ *   <li><b>Respawn projection</b> (everything resets) — fires on
  *       {@code getAddedEntities}: spawn-into-arena, re-entry from void, and
  *       ship-swap (AvatarSystem remove+set on ShipType surfaces here). The
  *       ship is conceptually "fresh", so a full reset is correct.
- *   <li><b>Tuning projection</b> (caps + feel only) — fires on
- *       {@code getChangedEntities} (arena cross while alive) and on
- *       {@link #reprojectAll} (Groovy hot-reload). Caps and feel knobs pick
- *       up the new config, but the live pools are preserved so a damaged
- *       ship doesn't get full health back from crossing arenas, and a
- *       hot-reload doesn't refill everyone mid-fight.
+ *   <li><b>Tuning projection</b> (everything except Health/Energy resets) —
+ *       fires on {@code getChangedEntities} (arena cross while alive) and on
+ *       {@link #reprojectAll} (Groovy hot-reload). Capability stats (Thrust,
+ *       Speed, Rotation, Recharge), their {@code *Max} / {@code *Upgrade}
+ *       caps, and the feel knobs all pick up the new config — those stats
+ *       don't deplete from gameplay so the user expects a Groovy edit to
+ *       take effect immediately. Health and Energy are deliberately
+ *       preserved so a damaged ship doesn't free-heal on arena cross or
+ *       Groovy hot-reload.
  * </ul>
  */
 public class ShipSpawnSystem extends AbstractGameSystem {
@@ -246,47 +249,40 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void project(final EntityId shipId, final ShipConfig cfg, final boolean resetLivePool) {
-    projectThrust(shipId, cfg.thrust(), resetLivePool);
-    projectSpeed(shipId, cfg.speed(), resetLivePool);
-    projectRotation(shipId, cfg.rotation(), resetLivePool);
-    projectRecharge(shipId, cfg.recharge(), resetLivePool);
+    projectThrust(shipId, cfg.thrust());
+    projectSpeed(shipId, cfg.speed());
+    projectRotation(shipId, cfg.rotation());
+    projectRecharge(shipId, cfg.recharge());
     projectEnergy(shipId, cfg.energy(), resetLivePool);
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
   }
 
-  private void projectThrust(
-      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Thrust(stat.initial()));
-    }
+  // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from
+  // the current config. They don't deplete from gameplay (PrizeSystem can lift
+  // them via upgrades, but there's no "drain" path), so a Groovy edit is the
+  // user's expected channel for changing them and should always take effect.
+
+  private void projectThrust(final EntityId shipId, final ShipStat stat) {
+    ed.setComponent(shipId, new Thrust(stat.initial()));
     ed.setComponent(shipId, new ThrustMax(stat.max()));
     ed.setComponent(shipId, new ThrustUpgrade(stat.upgrade()));
   }
 
-  private void projectSpeed(
-      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Speed(stat.initial()));
-    }
+  private void projectSpeed(final EntityId shipId, final ShipStat stat) {
+    ed.setComponent(shipId, new Speed(stat.initial()));
     ed.setComponent(shipId, new SpeedMax(stat.max()));
     ed.setComponent(shipId, new SpeedUpgrade(stat.upgrade()));
   }
 
-  private void projectRotation(
-      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Rotation(stat.initial() * ROTATION_UNITS_TO_RAD_SEC));
-    }
+  private void projectRotation(final EntityId shipId, final ShipStat stat) {
+    ed.setComponent(shipId, new Rotation(stat.initial() * ROTATION_UNITS_TO_RAD_SEC));
     ed.setComponent(shipId, new RotationMax(stat.max() * ROTATION_UNITS_TO_RAD_SEC));
     ed.setComponent(shipId, new RotationUpgrade(stat.upgrade() * ROTATION_UNITS_TO_RAD_SEC));
   }
 
-  private void projectRecharge(
-      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Recharge(stat.initial() * RECHARGE_UNITS_TO_PER_SEC));
-    }
+  private void projectRecharge(final EntityId shipId, final ShipStat stat) {
+    ed.setComponent(shipId, new Recharge(stat.initial() * RECHARGE_UNITS_TO_PER_SEC));
     ed.setComponent(shipId, new RechargeMax(stat.max() * RECHARGE_UNITS_TO_PER_SEC));
     ed.setComponent(shipId, new RechargeUpgrade(stat.upgrade() * RECHARGE_UNITS_TO_PER_SEC));
   }

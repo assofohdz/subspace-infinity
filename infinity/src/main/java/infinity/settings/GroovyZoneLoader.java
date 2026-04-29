@@ -60,11 +60,13 @@ import org.slf4j.LoggerFactory;
  * zone {
  *     autoLoad 'trench', 'deva'
  *     enterSpawn 'trench'
+ *     scriptPollInterval 5.0   // seconds; dev-mode ships.groovy watcher throttle
  * }
  * }</pre>
  *
- * <p>Both directives are optional; an entirely empty script is equivalent to
- * {@link ZoneConfig#EMPTY}.
+ * <p>All directives are optional; an entirely empty script is equivalent to
+ * {@link ZoneConfig#EMPTY} (which carries the documented defaults — no
+ * auto-load, blank enter-spawn, 5-second script poll).
  */
 public final class GroovyZoneLoader {
 
@@ -196,6 +198,9 @@ public final class GroovyZoneLoader {
 
     private final List<String> autoLoadArenas = new ArrayList<>();
     private String enterSpawnArena = "";
+    // Defaults to ZoneConfig.EMPTY's value so an omitted directive matches the
+    // documented fallback (5-second poll, the historical SCRIPT_POLL_INTERVAL_NANOS).
+    private double scriptPollIntervalSeconds = ZoneConfig.EMPTY.scriptPollIntervalSeconds();
 
     // Package-private so unit tests can build configs without standing up the
     // full GroovyShell pipeline (mirrors GroovyShipLoader.ShipConfigBuilder).
@@ -216,8 +221,23 @@ public final class GroovyZoneLoader {
       this.enterSpawnArena = arenaName == null ? "" : arenaName.trim();
     }
 
+    public void scriptPollInterval(final Number seconds) {
+      if (seconds == null) {
+        return;
+      }
+      final double v = seconds.doubleValue();
+      if (v <= 0) {
+        // Non-positive intervals would either disable the watcher (zero) or
+        // throw the sim into a tight stat() loop (negative). Reject both;
+        // the documented default of 5 seconds applies.
+        return;
+      }
+      this.scriptPollIntervalSeconds = v;
+    }
+
     ZoneConfig build() {
-      return new ZoneConfig(List.copyOf(autoLoadArenas), enterSpawnArena);
+      return new ZoneConfig(
+          List.copyOf(autoLoadArenas), enterSpawnArena, scriptPollIntervalSeconds);
     }
   }
 }

@@ -176,13 +176,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private final Map<String, WatchedScript> watchedScripts = new ConcurrentHashMap<>();
 
   /**
-   * Throttle for {@link #pollScriptWatches()} — stat() once per arena per this many
-   * nanoseconds, instead of every sim tick. 5 seconds is responsive enough for a
-   * dev save-and-tab-back loop and avoids 60 Hz syscall churn in production runs
-   * that happen to have on-disk script paths reachable.
+   * Throttle deadline for {@link #pollScriptWatches()} — stat() once per arena
+   * per {@code zoneConfig.scriptPollIntervalNanos()} sim-time-nanos. The
+   * interval is read from {@code zone.groovy} (default 5 s) and is fixed at
+   * server startup; not hot-reloadable.
    */
-  private static final long SCRIPT_POLL_INTERVAL_NANOS = 5_000_000_000L;
-
   private long nextScriptPollNanos;
 
   private static final class WatchedScript {
@@ -261,7 +259,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     arenaEntities.applyChanges();
     reconcileAll();
     if (tpf.getTime() >= nextScriptPollNanos) {
-      nextScriptPollNanos = tpf.getTime() + SCRIPT_POLL_INTERVAL_NANOS;
+      nextScriptPollNanos = tpf.getTime() + zoneConfig.scriptPollIntervalNanos();
       pollScriptWatches();
     }
   }
