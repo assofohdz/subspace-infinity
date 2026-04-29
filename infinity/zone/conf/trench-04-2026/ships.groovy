@@ -54,8 +54,8 @@
 
 ship(Ship.WARBIRD) {
     rotation initial: 200,  max: 200,  upgrade: 0
-    thrust   initial: 12,   max: 24,   upgrade: 0
-    speed    initial: 5000, max: 6000, upgrade: 0
+    thrust   initial: 16,   max: 24,   upgrade: 0
+    speed    initial: 2000, max: 6000, upgrade: 0
     recharge initial: 4000, max: 4000, upgrade: 0
     energy   initial: 1500, max: 1500, upgrade: 0
     dragFactor          0.05

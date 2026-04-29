@@ -65,6 +65,7 @@ import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.client.view.RadarBlipFactory;
 import infinity.client.view.RadarLeafSilhouetteIndex;
+import infinity.client.view.RadarTheme;
 import infinity.es.Frequency;
 import infinity.es.RadarShapeInfo;
 import infinity.es.ship.RadarRange;
@@ -104,10 +105,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * recomputed when either the blip's {@link Frequency} or the local avatar's
  * {@link Frequency} changes:
  * <ul>
- *   <li>self → {@link #SELF_COLOR}</li>
- *   <li>same team as avatar → {@link #FRIENDLY_COLOR}</li>
- *   <li>different team → {@link #ENEMY_COLOR}</li>
- *   <li>no {@link Frequency} component (prizes, neutral statics) → {@link #NEUTRAL_COLOR}</li>
+ *   <li>self → {@link RadarTheme#selfColor()}</li>
+ *   <li>same team as avatar → {@link RadarTheme#friendlyColor()}</li>
+ *   <li>different team → {@link RadarTheme#enemyColor()}</li>
+ *   <li>no {@link Frequency} component (prizes, neutral statics) → {@link RadarTheme#neutralColor()}</li>
  * </ul>
  * Color is deliberately NOT carried on {@code RadarShapeInfo} — keeping it
  * client-side means re-skinning (color-blind palettes, themes) is purely a
@@ -151,12 +152,13 @@ public class RadarState extends BaseAppState {
      */
     private static final double RADAR_CANONICAL_RANGE = 256.0;
 
-    private static final ColorRGBA SELF_COLOR = ColorRGBA.White;
-    private static final ColorRGBA FRIENDLY_COLOR = ColorRGBA.Green;
-    private static final ColorRGBA ENEMY_COLOR = ColorRGBA.Red;
-    private static final ColorRGBA NEUTRAL_COLOR = ColorRGBA.Gray;
-    /** Ambient background inside the radar circle — muddy dark green à la Continuum. */
-    private static final ColorRGBA RADAR_BACKGROUND_COLOR = new ColorRGBA(0.12f, 0.20f, 0.10f, 1f);
+    /**
+     * Palette used by the radar — colours read here flow into the off-screen
+     * viewport background, the silhouette material, and per-blip tinting.
+     * {@link RadarTheme#DEFAULT} is the shipping look; a future HUD-theming
+     * system can swap this out (constructor inject / setter / blackboard).
+     */
+    private final RadarTheme theme = RadarTheme.DEFAULT;
 
     private Node radarRoot;
     private Node radarEntityRoot;
@@ -216,7 +218,7 @@ public class RadarState extends BaseAppState {
         timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         guiNode = ((SimpleApplication) app).getGuiNode();
         blipFactory = new RadarBlipFactory(app.getAssetManager());
-        silhouetteIndex = new RadarLeafSilhouetteIndex(app.getAssetManager());
+        silhouetteIndex = new RadarLeafSilhouetteIndex(app.getAssetManager(), theme);
 
         // World + worker pools — same lookups LocalViewState uses; the radar
         // shares the existing job-state services (and their thread budgets)
@@ -249,7 +251,7 @@ public class RadarState extends BaseAppState {
 
         radarViewport = app.getRenderManager().createPreView("RadarOffscreen", radarCam);
         radarViewport.setClearFlags(true, true, true);
-        radarViewport.setBackgroundColor(RADAR_BACKGROUND_COLOR);
+        radarViewport.setBackgroundColor(theme.backgroundColor());
         radarViewport.attachScene(radarRoot);
 
         radarTex = new Texture2D(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE, Image.Format.RGBA8);
@@ -359,8 +361,8 @@ public class RadarState extends BaseAppState {
             avatarEntityId = id;
             // Once the avatar id resolves, the local-player-vs-everyone-else colour
             // partition shifts: the blip already attached for our own ship was painted
-            // as ENEMY/NEUTRAL using its own frequency. Repaint everything now so the
-            // self blip flips to SELF_COLOR.
+            // with its own-frequency colour. Repaint everything now so the self blip
+            // flips to theme.selfColor().
             recolorAllBlips();
         }
         if (avatarWatch == null) {
@@ -581,15 +583,15 @@ public class RadarState extends BaseAppState {
 
     private ColorRGBA colorFor(final EntityId id, final Integer entityFreq) {
         if (id.equals(avatarEntityId)) {
-            return SELF_COLOR;
+            return theme.selfColor();
         }
         if (entityFreq == null) {
-            return NEUTRAL_COLOR;
+            return theme.neutralColor();
         }
         if (currentAvatarFreq != null && entityFreq.intValue() == currentAvatarFreq.intValue()) {
-            return FRIENDLY_COLOR;
+            return theme.friendlyColor();
         }
-        return ENEMY_COLOR;
+        return theme.enemyColor();
     }
 
     private void applyColor(final Blip blip) {
@@ -614,7 +616,7 @@ public class RadarState extends BaseAppState {
         Blip blip = blipsById.get(e.getId());
         if (blip == null) {
             final RadarShapeInfo info = e.get(RadarShapeInfo.class);
-            final Geometry geom = blipFactory.create(info.getShapeName(ed), NEUTRAL_COLOR);
+            final Geometry geom = blipFactory.create(info.getShapeName(ed), theme.neutralColor());
             geom.setLocalScale(blipScale);
             blip = new Blip(e.getId(), geom);
             // Seed colour from the freq set if it already knows about this entity —

@@ -28,7 +28,6 @@ package infinity.client.view;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.FaceCullMode;
-import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
@@ -50,26 +49,23 @@ import java.nio.ShortBuffer;
  * placed at their leaf-local coordinates — the calling state positions the
  * containing node at the leaf's world origin.
  *
- * <p>The resulting geometry uses an unshaded grey material (see
- * {@link #BLOCK_COLOR}) with face culling disabled (the radar camera looks
- * straight down so a -Y normal would back-face-cull, same caveat as
- * {@code RadarBlipFactory}).
+ * <p>The resulting geometry uses an unshaded material coloured from
+ * {@link RadarTheme#blockColor()}, with face culling disabled (the radar
+ * camera looks straight down so a -Y normal would back-face-cull, same
+ * caveat as {@code RadarBlipFactory}).
  *
  * @author Asser Fahrenholz
  */
 public final class RadarLeafSilhouetteIndex {
 
-    /** Medium grey for solid map blocks — sits cleanly above the muddy-green radar BG. */
-    private static final ColorRGBA BLOCK_COLOR = new ColorRGBA(0.55f, 0.55f, 0.55f, 1f);
-
     private final Material material;
 
-    public RadarLeafSilhouetteIndex(final AssetManager assetManager) {
+    public RadarLeafSilhouetteIndex(final AssetManager assetManager, final RadarTheme theme) {
         // Single shared material — no per-leaf tinting, one colour by design.
         // Created on the construction thread so we don't ask the asset manager
         // from a worker thread later.
         this.material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        this.material.setColor("Color", BLOCK_COLOR);
+        this.material.setColor("Color", theme.blockColor());
         this.material.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
     }
 
