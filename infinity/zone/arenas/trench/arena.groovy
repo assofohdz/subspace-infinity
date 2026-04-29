@@ -10,4 +10,5 @@ arena {
     shipsScript '/conf/trench-04-2026/ships.groovy'
     spawn 1000, 20
     includeFragment '/conf/trench-04-2026/trench.conf'
+    wallFriction 0.1
 }

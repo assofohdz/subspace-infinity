@@ -29,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import infinity.config.ArenaConfig;
@@ -119,6 +120,7 @@ public class GroovyArenaLoaderTest {
             + "  map '04-2026-trench/pub2025.lvl'\n"
             + "  shipsScript '/conf/trench-04-2026/ships.groovy'\n"
             + "  spawn 1000, 20\n"
+            + "  wallFriction 0.5\n"
             + "  includeFragment '/conf/trench-04-2026/trench.conf'\n"
             + "}\n";
 
@@ -128,7 +130,25 @@ public class GroovyArenaLoaderTest {
     assertEquals("/conf/trench-04-2026/ships.groovy", cfg.shipsScript());
     assertEquals(1000, cfg.spawnX());
     assertEquals(20, cfg.spawnZ());
+    assertEquals(0.5, cfg.wallFriction(), 0.0);
     assertEquals(List.of("/conf/trench-04-2026/trench.conf"), cfg.fragmentIncludes());
+  }
+
+  @Test
+  public void wallFriction_omitted_defaultsToEmptyValue() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    final ArenaConfig cfg = build(builder);
+    assertEquals(ArenaConfig.EMPTY.wallFriction(), cfg.wallFriction(), 0.0);
+  }
+
+  @Test
+  public void wallFriction_outsideRange_rejected() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    assertThrows(IllegalArgumentException.class, () -> builder.wallFriction(-0.01));
+    assertThrows(IllegalArgumentException.class, () -> builder.wallFriction(1.01));
+    assertThrows(IllegalArgumentException.class, () -> builder.wallFriction(Double.NaN));
+    assertThrows(
+        IllegalArgumentException.class, () -> builder.wallFriction(Double.POSITIVE_INFINITY));
   }
 
   @Test
@@ -141,6 +161,7 @@ public class GroovyArenaLoaderTest {
     assertEquals(0, empty.spawnX());
     assertEquals(0, empty.spawnZ());
     assertTrue(empty.fragmentIncludes().isEmpty());
+    assertEquals(0.0, empty.wallFriction(), 0.0);
   }
 
   /** Reflective bridge to package-private build() — same trick as GroovyZoneLoaderTest. */

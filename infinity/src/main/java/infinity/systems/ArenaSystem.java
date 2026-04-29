@@ -429,6 +429,24 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
+   * Return the typed arena-scope config for the named arena. Returns
+   * {@link ArenaConfig#EMPTY} when the arena is unknown or hasn't reached the
+   * {@code LOADED} state yet, so hot-path callers can skip null-checks and
+   * just read {@code .wallFriction()} / {@code .mapFile()} / etc. uniformly.
+   *
+   * <p>Read-only view of {@code rec.config}; the config is replaced atomically
+   * (whole-record swap) when an arena reloads, so a concurrent reader on the
+   * physics thread never sees a torn record.
+   */
+  public ArenaConfig getArenaConfig(final String arenaName) {
+    final ArenaRecord rec = registry.get(arenaName);
+    if (rec == null) {
+      return ArenaConfig.EMPTY;
+    }
+    return rec.config;
+  }
+
+  /**
    * Look up the {@link ArenaMap} component for the named arena, or {@code null} if the arena
    * isn't loaded. Convenience accessor for callers that need the arena's world bounds without
    * walking {@code arenaEntities} themselves.
@@ -827,7 +845,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         rec.config.shipsScript(),
         rec.config.spawnX(),
         rec.config.spawnZ(),
-        rec.config.fragmentIncludes());
+        rec.config.fragmentIncludes(),
+        rec.config.wallFriction());
     return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
   }
 

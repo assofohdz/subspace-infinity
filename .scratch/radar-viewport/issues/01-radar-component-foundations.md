@@ -13,7 +13,7 @@ Server-authored data model that drives the client radar. Two new components in `
 
 Adds a `radarRange` field to the `ShipConfig` Groovy template so each ship class declares its own radar reach. `ShipSpawnSystem` projects both `RadarShapeInfo` (chosen per ship class) and `RadarRange` (from the template) onto the ship entity at spawn (Pattern 4 template→component projection).
 
-Per the always-on rules: log the new tuning knob in `.claude/hardcoded-values.md` if any literals slip in, log the consumer in `.claude/config-consumers.md` (`radarRange` field → `ShipSpawnSystem`), and update `.claude/ship-config-dictionary.md` for the new typed field.
+Per the always-on rules: log the new tuning knob in `.scratch/hardcoded-values.md` if any literals slip in, log the consumer in `.scratch/config-consumers.md` (`radarRange` field → `ShipSpawnSystem`), and update `.scratch/ship-config-dictionary.md` for the new typed field.
 
 ## Acceptance criteria
 
@@ -22,8 +22,8 @@ Per the always-on rules: log the new tuning knob in `.claude/hardcoded-values.md
 - [x] `ShipConfig` Groovy template gains a `radarRange` field with sensible per-ship defaults
 - [x] `ShipSpawnSystem` projects both components onto ship entities at spawn
 - [x] `GroovyShipLoaderRadarTest` verifies the spawn projection and that `RadarRange` reflects the ship's `ShipConfig` value
-- [x] `.claude/config-consumers.md` updated with `radarRange` → `ShipSpawnSystem`
-- [x] `.claude/ship-config-dictionary.md` updated for the new field
+- [x] `.scratch/config-consumers.md` updated with `radarRange` → `ShipSpawnSystem`
+- [x] `.scratch/ship-config-dictionary.md` updated for the new field
 - [x] No client-side writes — components are server-authored only (also registered with the network `Serializer` in `GameServer.registerSerializers()` so the client can watch them — added the `components.md` rule for that)
 
 ## Blocked by

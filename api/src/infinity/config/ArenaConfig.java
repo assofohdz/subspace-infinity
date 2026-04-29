@@ -52,18 +52,33 @@ import java.util.List;
  *     {@code #include} directives at the bottom of {@code arena.conf}); each
  *     path is loaded individually through the existing INI loader, with its
  *     own {@code #include} support
+ * @param wallFriction per-contact fraction of the body's <i>tangential</i>
+ *     velocity removed when sliding along a static map block. Applied directly
+ *     to the body's linear velocity (NOT via the rigid-body resolver's
+ *     friction model — that produces a torque at off-center contact points,
+ *     which would rotate ship heading toward the wall and is wrong for
+ *     arcade-style ship physics). {@code 0.0} (default) keeps walls
+ *     frictionless: glancing hits slide along the wall with no energy loss.
+ *     Higher values progressively drain tangential velocity per contact tick,
+ *     so {@code 0.05}–{@code 0.10} feels like noticeable slowdown over a
+ *     short slide; {@code 0.5} drops most tangential velocity within a few
+ *     frames. Values must be in {@code [0, 1]} (validated at parse time).
+ *     Normal-direction velocity (the bounce) is untouched here — that stays
+ *     under {@code BounceRestitution}'s control.
  */
 public record ArenaConfig(
     String mapFile,
     String shipsScript,
     int spawnX,
     int spawnZ,
-    List<String> fragmentIncludes) {
+    List<String> fragmentIncludes,
+    double wallFriction) {
 
   /**
-   * Empty fallback — a clean ArenaConfig with no map / ships / spawn / fragments.
-   * Used by callers that need a non-null default before the real config is
-   * assembled, mirroring {@link ZoneConfig#EMPTY}.
+   * Empty fallback — a clean ArenaConfig with no map / ships / spawn / fragments
+   * and the historical {@code wallFriction = 0.0} (frictionless walls). Used by
+   * callers that need a non-null default before the real config is assembled,
+   * mirroring {@link ZoneConfig#EMPTY}.
    */
-  public static final ArenaConfig EMPTY = new ArenaConfig("", "", 0, 0, List.of());
+  public static final ArenaConfig EMPTY = new ArenaConfig("", "", 0, 0, List.of(), 0.0);
 }

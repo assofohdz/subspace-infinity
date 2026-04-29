@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
  *     map '04-2026-trench/pub2025.lvl'
  *     shipsScript '/conf/trench-04-2026/ships.groovy'
  *     spawn 1000, 20
+ *     wallFriction 0.0   // tangential friction on ship-vs-wall hits (0 = slidey)
  *     includeFragment '/conf/trench-04-2026/trench.conf'
  *     // includeFragment '/conf/another.conf' — repeat as needed
  * }
@@ -115,9 +116,11 @@ public final class GroovyArenaLoader {
     try {
       final ArenaConfig cfg = evaluate(source, classpathPath);
       log.info(
-          "Applied {} for arena {}: map='{}', ships='{}', spawn=({},{}), fragments={}",
+          "Applied {} for arena {}: map='{}', ships='{}', spawn=({},{}), wallFriction={},"
+              + " fragments={}",
           classpathPath, arenaName,
           cfg.mapFile(), cfg.shipsScript(), cfg.spawnX(), cfg.spawnZ(),
+          cfg.wallFriction(),
           cfg.fragmentIncludes());
       return cfg;
     } catch (final Exception e) {
@@ -226,6 +229,7 @@ public final class GroovyArenaLoader {
     private int spawnX = 0;
     private int spawnZ = 0;
     private final List<String> fragmentIncludes = new ArrayList<>();
+    private double wallFriction = ArenaConfig.EMPTY.wallFriction();
 
     // Package-private so tests can build configs without the full GroovyShell.
     ArenaConfigBuilder() {}
@@ -249,9 +253,30 @@ public final class GroovyArenaLoader {
       }
     }
 
+    /**
+     * Per-contact fraction of <i>tangential</i> velocity drained on
+     * ship-vs-wall hits (sliding-deceleration). Not the resolver's standard
+     * Coulomb friction — that would torque the body's heading at off-center
+     * contact points, which is wrong for arcade ship physics. See
+     * {@link ArenaConfig#wallFriction()} for the full semantic and tuning
+     * guidance. {@code 0.0} (default) keeps walls frictionless. Values
+     * outside {@code [0, 1]} are rejected.
+     */
+    public void wallFriction(final Number value) {
+      if (value == null) {
+        throw new IllegalArgumentException("wallFriction requires a number");
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v < 0.0 || v > 1.0) {
+        throw new IllegalArgumentException(
+            "wallFriction must be a finite value in [0, 1]; got " + value);
+      }
+      this.wallFriction = v;
+    }
+
     ArenaConfig build() {
       return new ArenaConfig(
-          mapFile, shipsScript, spawnX, spawnZ, List.copyOf(fragmentIncludes));
+          mapFile, shipsScript, spawnX, spawnZ, List.copyOf(fragmentIncludes), wallFriction);
     }
   }
 }

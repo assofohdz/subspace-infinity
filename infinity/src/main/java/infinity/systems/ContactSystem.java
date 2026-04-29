@@ -31,6 +31,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.AbstractShape;
@@ -40,9 +41,11 @@ import com.simsilica.mphys.DynArray;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.config.ArenaConfig;
 import infinity.es.CollisionCategory;
 import infinity.es.Parent;
 import infinity.es.Sensor;
+import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
 import infinity.sim.CategoryFilter;
 import infinity.sim.util.InfinityRunTimeException;
@@ -63,6 +66,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
   EntitySet categoryFilters;
   private EntityData ed;
   private MPhysSystem<?> physics;
+  private ArenaSystem arenaSystem;
 
   @Override
   public void newContact(Contact contact) {
@@ -114,13 +118,36 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       // dynamics: projectiles, debris, anything not driven by ShipSpawnSystem).
       final BounceRestitution bounce = ed.getComponent(bodyOne.id, BounceRestitution.class);
       contact.restitution = bounce != null ? bounce.getRestitution() : 1.0;
-      // Zero tangential friction so a glancing wall hit doesn't add sliding-induced
-      // spin. Player input owns ship heading; walls only affect linear velocity.
-      // If promoted to a tuning knob, it belongs at arena scope (map feel), not per-ship.
+
+      // Apply tangential damping ourselves rather than via the resolver's
+      // friction model. Reason: the resolver computes a friction impulse
+      // tangent to the contact normal at the contact point, then applies
+      // r × impulse as a torque (Contact.calculateVelocityChange). For a
+      // sphere body that torque rotates the body's heading toward the wall
+      // — a real rigid-body effect, but wrong for arcade ship physics where
+      // the player owns heading. By keeping contact.friction = 0 we get a
+      // pure normal impulse (r ∥ n on a sphere → zero torque), and we
+      // separately scale the body's tangential velocity component here.
+      // Contact callbacks fire after integration but before resolver, so
+      // the resolver sees the damped velocity and bounces from there.
+      final double wallFriction = wallFrictionFor(bodyOne.id);
+      if (wallFriction > 0.0) {
+        final Vec3d v = bodyOne.getLinearVelocity();
+        final Vec3d n = contact.contactNormal;
+        final double vDotN = v.dot(n);
+        // new_v = v_normal + (1 - wallFriction) * v_tangent
+        //       = (1 - wallFriction) * v + wallFriction * (v·n) * n
+        final double k = 1.0 - wallFriction;
+        bodyOne.setLinearVelocity(
+            new Vec3d(
+                k * v.x + wallFriction * vDotN * n.x,
+                k * v.y + wallFriction * vDotN * n.y,
+                k * v.z + wallFriction * vDotN * n.z));
+      }
       contact.friction = 0.0;
       log.debug(
-          "Body vs static-map contact: {} at {}, restitution={}, friction={}",
-          bodyOne.id, contact.contactPoint, contact.restitution, contact.friction);
+          "Body vs static-map contact: {} at {}, restitution={}, wallFriction={}",
+          bodyOne.id, contact.contactPoint, contact.restitution, wallFriction);
     }
 
     // Now that we have filtered the basics, lets send it to the various systems listening for
@@ -128,6 +155,20 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
     for (ContactListener l : listeners) {
       l.newContact(contact);
     }
+  }
+
+  /**
+   * Resolve the arena-scope wall-friction for the body involved in a body-vs-static
+   * contact. Bodies without an {@link ArenaId} (projectiles, debris, anything not
+   * placed inside a loaded arena) get {@link ArenaConfig#EMPTY}'s default of
+   * {@code 0.0}, preserving the historical frictionless behaviour.
+   */
+  private double wallFrictionFor(final EntityId bodyId) {
+    final ArenaId arenaId = ed.getComponent(bodyId, ArenaId.class);
+    if (arenaId == null) {
+      return ArenaConfig.EMPTY.wallFriction();
+    }
+    return arenaSystem.getArenaConfig(arenaId.getArena()).wallFriction();
   }
 
   /**
@@ -199,6 +240,11 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
     if (physics == null) {
       throw new InfinityRunTimeException(
           getClass().getName() + " system requires the MPhysSystem system.");
+    }
+    arenaSystem = getSystem(ArenaSystem.class);
+    if (arenaSystem == null) {
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires the ArenaSystem system.");
     }
 
     categoryFilters = ed.getEntities(CollisionCategory.class);
