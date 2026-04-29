@@ -61,7 +61,7 @@ ship(Ship.WARBIRD) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          250
+    radarRange          50
 }
 
 ship(Ship.JAVELIN) {
@@ -73,7 +73,7 @@ ship(Ship.JAVELIN) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          250
+    radarRange          50
 }
 
 ship(Ship.SPIDER) {
@@ -85,7 +85,7 @@ ship(Ship.SPIDER) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          280
+    radarRange          50
 }
 
 ship(Ship.LEVIATHAN) {
@@ -97,7 +97,7 @@ ship(Ship.LEVIATHAN) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          350
+    radarRange          50
 }
 
 ship(Ship.TERRIER) {
@@ -109,7 +109,7 @@ ship(Ship.TERRIER) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          400
+    radarRange          50
 }
 
 ship(Ship.WEASEL) {
@@ -121,7 +121,7 @@ ship(Ship.WEASEL) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          200
+    radarRange          50
 }
 
 ship(Ship.LANCASTER) {
@@ -133,7 +133,7 @@ ship(Ship.LANCASTER) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          300
+    radarRange          50
 }
 
 ship(Ship.SHARK) {
@@ -145,5 +145,5 @@ ship(Ship.SHARK) {
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3
-    radarRange          260
+    radarRange          50
 }

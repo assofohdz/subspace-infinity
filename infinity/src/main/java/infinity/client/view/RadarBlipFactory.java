@@ -48,17 +48,19 @@ import java.util.function.Function;
  * {@link Material}, so callers can mutate per-blip color (e.g. frequency-
  * based team colour) without disturbing other blips.
  *
- * <p>Unknown shape names fall back to the default triangle, matching the
+ * <p>Unknown shape names fall back to the default ship dot, matching the
  * spirit of {@code SISpatialFactory.setDefaultFactory} — adding a new ship
  * class doesn't require a registry entry; only specialised non-ship blips
- * (flag, prize, etc.) need their own factory.
+ * (flag, prize, etc.) need their own factory. Ships use a dot rather than a
+ * directional shape because the radar stays north-up; a triangle would
+ * mislead the eye as the player rotates.
  *
  * @author Asser Fahrenholz
  */
 public final class RadarBlipFactory {
 
-    private static final float SHIP_BLIP_HALF_WIDTH = 12f;
-    private static final float SHIP_BLIP_HALF_LENGTH = 14f;
+    private static final float SHIP_DOT_RADIUS = 5f;
+    private static final int DOT_SEGMENTS = 16;
     private static final float STATIC_BLIP_HALF_SIZE = 10f;
 
     private final AssetManager assetManager;
@@ -67,7 +69,7 @@ public final class RadarBlipFactory {
 
     public RadarBlipFactory(final AssetManager assetManager) {
         this.assetManager = assetManager;
-        this.defaultMeshFactory = am -> shipTriangle();
+        this.defaultMeshFactory = am -> dot(SHIP_DOT_RADIUS);
         meshFactories.put("flag-blip", am -> square(STATIC_BLIP_HALF_SIZE));
         meshFactories.put("prize-blip", am -> diamond(STATIC_BLIP_HALF_SIZE));
     }
@@ -94,15 +96,30 @@ public final class RadarBlipFactory {
         return geom;
     }
 
-    private static Mesh shipTriangle() {
-        // Forward-pointing triangle in the XZ plane (Y=0). Apex toward +Z.
+    private static Mesh dot(final float radius) {
+        // Filled disc in the XZ plane (Y=0), built as a triangle fan around a
+        // centre vertex. Used for ship blips because the radar doesn't rotate
+        // with the player heading — a directional shape (like a triangle) would
+        // mislead the eye whenever the ship turns.
+        final int segments = DOT_SEGMENTS;
+        final int vertCount = segments + 1; // + 1 for the centre vertex
+        final float[] positions = new float[vertCount * 3];
+        // Centre at (0, 0, 0)
+        for (int i = 0; i < segments; i++) {
+            final double angle = i * 2.0 * Math.PI / segments;
+            positions[(i + 1) * 3]     = (float) (Math.cos(angle) * radius);
+            positions[(i + 1) * 3 + 1] = 0f;
+            positions[(i + 1) * 3 + 2] = (float) (Math.sin(angle) * radius);
+        }
+        final short[] indices = new short[segments * 3];
+        for (int i = 0; i < segments; i++) {
+            indices[i * 3]     = (short) 0;
+            indices[i * 3 + 1] = (short) (i + 1);
+            indices[i * 3 + 2] = (short) (((i + 1) % segments) + 1);
+        }
         final Mesh mesh = new Mesh();
-        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(
-                -SHIP_BLIP_HALF_WIDTH, 0f, -SHIP_BLIP_HALF_LENGTH,
-                +SHIP_BLIP_HALF_WIDTH, 0f, -SHIP_BLIP_HALF_LENGTH,
-                0f,                    0f, +SHIP_BLIP_HALF_LENGTH));
-        mesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(
-                (short) 0, (short) 1, (short) 2));
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(positions));
+        mesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
         mesh.updateBound();
         return mesh;
     }

@@ -1,6 +1,6 @@
 # Radar block silhouettes via RadarLeafSilhouetteIndex
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:client
 
@@ -16,12 +16,12 @@ When `RadarRange` changes (ship swap), the radar paging radius adjusts and silho
 
 ## Acceptance criteria
 
-- [ ] `infinity.client.view.RadarLeafSilhouetteIndex` exists, sibling of `BlockGeometryIndex`
-- [ ] Silhouette mesh per leaf uses `Unshaded.j3md` with white color, no lighting
-- [ ] `RadarLeafView` pages silhouette nodes in / out under `radarBlockRoot` driven by player position
-- [ ] Paging radius derived from local avatar's `RadarRange` via `TileId` / `WorldGrids` (no `* 1024` literals)
-- [ ] Paging radius updates when `RadarRange` changes
-- [ ] Manual verification: walls / solid tiles visible as white silhouette inside the radar circle; extent grows / shrinks correctly on ship swap
+- [x] `infinity.client.view.RadarLeafSilhouetteIndex` exists, sibling of `BlockGeometryIndex`
+- [x] Silhouette mesh per leaf uses `Unshaded.j3md` (later tuned to grey, not white, on top of a muddy-green radar background)
+- [x] `RadarLeafView` pages silhouette nodes in / out under `radarBlockRoot` driven by player position
+- [x] Paging radius derived from local avatar's `RadarRange` via `WorldGrids.LEAF_GRID` spacing (no `* 1024` literals)
+- [x] Paging radius updates when `RadarRange` changes
+- [x] Manual verification: walls / solid tiles visible as a grey silhouette inside the radar circle; extent grows / shrinks correctly on ship swap (confirmed in-game)
 
 ## Blocked by
 

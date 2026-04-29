@@ -51,15 +51,29 @@ import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
+import com.simsilica.mworld.LeafChangeEvent;
+import com.simsilica.mworld.LeafChangeListener;
+import com.simsilica.mworld.LeafData;
+import com.simsilica.mworld.LeafId;
+import com.simsilica.mworld.World;
+import com.simsilica.mworld.WorldGrids;
+import com.simsilica.mworld.net.client.WorldClientService;
+import com.simsilica.thread.Job;
+import com.simsilica.thread.JobState;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.client.view.RadarBlipFactory;
+import infinity.client.view.RadarLeafSilhouetteIndex;
 import infinity.es.Frequency;
 import infinity.es.RadarShapeInfo;
 import infinity.es.ship.RadarRange;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Top-down radar HUD. Renders an offscreen orthographic view of {@link #radarRoot}
@@ -127,11 +141,22 @@ public class RadarState extends BaseAppState {
     private static final float RADAR_CAM_NEAR = 1f;
     private static final float RADAR_CAM_FAR = 5000f;
     private static final double DEFAULT_RANGE_WORLD_UNITS = 256.0;
+    /**
+     * The radar range (world units) at which {@link RadarBlipFactory} mesh sizes
+     * are 1:1 with the rendered pixel size. Blips are scaled by
+     * {@code currentRange / RADAR_CANONICAL_RANGE} so a blip stays the same on-
+     * screen size regardless of how far the radar is zoomed out — the blip only
+     * needs to respect the radar circle, not the world distances inside it.
+     * Map silhouettes are NOT scaled — they're real map geometry.
+     */
+    private static final double RADAR_CANONICAL_RANGE = 256.0;
 
-    private static final ColorRGBA SELF_COLOR = ColorRGBA.Yellow;
+    private static final ColorRGBA SELF_COLOR = ColorRGBA.White;
     private static final ColorRGBA FRIENDLY_COLOR = ColorRGBA.Green;
     private static final ColorRGBA ENEMY_COLOR = ColorRGBA.Red;
-    private static final ColorRGBA NEUTRAL_COLOR = ColorRGBA.White;
+    private static final ColorRGBA NEUTRAL_COLOR = ColorRGBA.Gray;
+    /** Ambient background inside the radar circle — muddy dark green à la Continuum. */
+    private static final ColorRGBA RADAR_BACKGROUND_COLOR = new ColorRGBA(0.12f, 0.20f, 0.10f, 1f);
 
     private Node radarRoot;
     private Node radarEntityRoot;
@@ -158,6 +183,18 @@ public class RadarState extends BaseAppState {
     private StaticContainer statics;
     private EntitySet frequencies;
     private final Map<EntityId, Blip> blipsById = new HashMap<>();
+    private float blipScale = 1f;
+
+    private World world;
+    private JobState workers;
+    private JobState priorityWorkers;
+    private RadarLeafSilhouetteIndex silhouetteIndex;
+    private final Map<LeafId, RadarLeafView> radarLeafCache = new HashMap<>();
+    private final ConcurrentLinkedQueue<LeafId> radarUpdatedLeafIds = new ConcurrentLinkedQueue<>();
+    private RadarLeafObserver radarLeafObserver;
+    private RadarViewEntry[] radarViewArray;
+    private final Vec3i radarCenterCell = new Vec3i(0, 100, 0); // sentinel — no cell will match
+    private int radarLeafRadius = -1;
 
     private final Vector3f camLocation = new Vector3f();
 
@@ -179,6 +216,16 @@ public class RadarState extends BaseAppState {
         timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         guiNode = ((SimpleApplication) app).getGuiNode();
         blipFactory = new RadarBlipFactory(app.getAssetManager());
+        silhouetteIndex = new RadarLeafSilhouetteIndex(app.getAssetManager());
+
+        // World + worker pools — same lookups LocalViewState uses; the radar
+        // shares the existing job-state services (and their thread budgets)
+        // rather than spinning up its own pool.
+        world = getState(ConnectionState.class).getService(WorldClientService.class);
+        workers = getState("regularWorkers", JobState.class);
+        priorityWorkers = getState("priorityWorkers", JobState.class);
+        radarLeafObserver = new RadarLeafObserver();
+        world.addLeafChangeListener(radarLeafObserver);
 
         radarRoot = new Node("RadarRoot");
         radarEntityRoot = new Node("RadarEntityRoot");
@@ -202,7 +249,7 @@ public class RadarState extends BaseAppState {
 
         radarViewport = app.getRenderManager().createPreView("RadarOffscreen", radarCam);
         radarViewport.setClearFlags(true, true, true);
-        radarViewport.setBackgroundColor(new ColorRGBA(0f, 0f, 0f, 0f));
+        radarViewport.setBackgroundColor(RADAR_BACKGROUND_COLOR);
         radarViewport.attachScene(radarRoot);
 
         radarTex = new Texture2D(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE, Image.Format.RGBA8);
@@ -242,6 +289,15 @@ public class RadarState extends BaseAppState {
             frequencies.release();
             frequencies = null;
         }
+        if (world != null && radarLeafObserver != null) {
+            world.removeLeafChangeListener(radarLeafObserver);
+            radarLeafObserver = null;
+        }
+        for (final RadarLeafView view : radarLeafCache.values()) {
+            view.release();
+            workers.cancel(view);
+        }
+        radarLeafCache.clear();
         avatarBodyPos = null;
     }
 
@@ -270,11 +326,28 @@ public class RadarState extends BaseAppState {
         applyFrequencyChanges();
         updateBodyBlipPositions();
 
+        drainLeafUpdates();
+
         // radarRoot is not part of rootNode/guiNode, so the engine doesn't update its
-        // world transforms for us. Drive it directly so children added by #04 (and any
-        // per-frame mutations they do) render with up-to-date matrices.
+        // world transforms for us. Drive it directly so children added by the leaf-
+        // silhouette and entity-blip pipelines render with up-to-date matrices.
         radarRoot.updateLogicalState(tpf);
         radarRoot.updateGeometricState();
+    }
+
+    /**
+     * Apply any leaf-change events the observer queued since last frame. If we are
+     * currently paging the changed leaf, requeue its job at top priority so the
+     * silhouette refreshes promptly (e.g. a wall got built or destroyed server-side).
+     */
+    private void drainLeafUpdates() {
+        LeafId leafId;
+        while ((leafId = radarUpdatedLeafIds.poll()) != null) {
+            final RadarLeafView view = radarLeafCache.get(leafId);
+            if (view != null) {
+                priorityWorkers.execute(view, -1);
+            }
+        }
     }
 
     private void resolveAvatar() {
@@ -336,6 +409,8 @@ public class RadarState extends BaseAppState {
                 : DEFAULT_RANGE_WORLD_UNITS;
         if (r != currentRange) {
             applyRange(r);
+            // Range change → paging radius derived from RadarRange must be re-evaluated.
+            // updateLeafPaging() picks up the new currentRange below.
         }
         if (avatarBodyPos == null || timeSource == null) {
             return;
@@ -351,6 +426,91 @@ public class RadarState extends BaseAppState {
         }
         camLocation.set((float) pos.x, RADAR_CAM_HEIGHT, (float) pos.z);
         radarCam.setLocation(camLocation);
+        updateLeafPaging(pos);
+    }
+
+    /**
+     * Page leaf silhouettes in / out around the avatar. Mirrors
+     * {@code LocalViewState.updateView}, simplified for radar:
+     *
+     * <ul>
+     *   <li>Paging radius (in leaves) is derived from the avatar's
+     *       {@code RadarRange} via {@link WorldGrids#LEAF_GRID} spacing — no
+     *       hand-rolled {@code * 1024} arithmetic, per
+     *       {@code .claude/rules/world-coordinates.md}.</li>
+     *   <li>Subspace is effectively 2D (one Y layer), so the view spans only one
+     *       leaf in Y — the one containing the avatar.</li>
+     *   <li>Blocks are not entities — leaves come from {@link World#getLeaf} and
+     *       are paged on world-grid boundaries, independent of the entity blip
+     *       containers.</li>
+     * </ul>
+     */
+    private void updateLeafPaging(final Vec3d avatarPos) {
+        if (world == null || workers == null) {
+            return;
+        }
+        final Vec3i leafSpacing = WorldGrids.LEAF_GRID.getSpacing();
+        // Leaf radius rounds up so the visible disc never extends past the
+        // outermost loaded leaf. With RadarRange = N world units and a leaf X-size
+        // of S, ceil(N/S) leaves on each side covers the full radius.
+        final int newRadius = (int) Math.ceil(currentRange / leafSpacing.x);
+        final boolean radiusChanged = newRadius != radarLeafRadius;
+        if (radiusChanged) {
+            radarLeafRadius = newRadius;
+            rebuildRadarViewArray(newRadius);
+            // Force re-paging at the new radius.
+            radarCenterCell.set(0, 100, 0);
+        }
+
+        final Vec3i newCenter = WorldGrids.LEAF_GRID.worldToCell(avatarPos);
+        if (!radiusChanged && newCenter.equals(radarCenterCell)) {
+            return;
+        }
+        radarCenterCell.set(newCenter);
+        final Vec3i centerWorld = WorldGrids.LEAF_GRID.cellToWorld(newCenter);
+
+        final Set<LeafId> toRemove = new HashSet<>(radarLeafCache.keySet());
+
+        final Vec3d entryWorld = new Vec3d();
+        for (final RadarViewEntry e : radarViewArray) {
+            entryWorld.set(
+                    centerWorld.x + e.offset.x * (double) leafSpacing.x,
+                    centerWorld.y,
+                    centerWorld.z + e.offset.z * (double) leafSpacing.z);
+            final LeafId leafId = LeafId.fromWorld(entryWorld);
+            toRemove.remove(leafId);
+
+            RadarLeafView view = radarLeafCache.get(leafId);
+            if (view == null) {
+                view = new RadarLeafView(leafId);
+                radarLeafCache.put(leafId, view);
+                view.queued = true;
+                workers.execute(view, e.priority);
+            }
+        }
+
+        for (final LeafId remove : toRemove) {
+            final RadarLeafView view = radarLeafCache.remove(remove);
+            if (view == null) {
+                continue;
+            }
+            view.release();
+            if (view.queued && workers.cancel(view)) {
+                view.queued = false;
+            }
+        }
+    }
+
+    private void rebuildRadarViewArray(final int radius) {
+        // Only X/Z are paged — Subspace is single-leaf in Y.
+        final int xzSize = 2 * radius + 1;
+        radarViewArray = new RadarViewEntry[xzSize * xzSize];
+        int idx = 0;
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                radarViewArray[idx++] = new RadarViewEntry(x, z);
+            }
+        }
     }
 
     private void applyFrequencyChanges() {
@@ -405,6 +565,18 @@ public class RadarState extends BaseAppState {
         final float half = (float) rangeWorldUnits;
         radarCam.setFrustum(RADAR_CAM_NEAR, RADAR_CAM_FAR, -half, half, half, -half);
         currentRange = rangeWorldUnits;
+
+        // Keep blip on-screen pixel size constant as the radar zoom changes:
+        // scaling each blip's world size proportional to the range cancels the
+        // change in camera frustum, so the blip stays the same fraction of the
+        // radar circle no matter how far we're zoomed out.
+        final float newScale = (float) (rangeWorldUnits / RADAR_CANONICAL_RANGE);
+        if (newScale != blipScale) {
+            blipScale = newScale;
+            for (final Blip blip : blipsById.values()) {
+                blip.geom.setLocalScale(blipScale);
+            }
+        }
     }
 
     private ColorRGBA colorFor(final EntityId id, final Integer entityFreq) {
@@ -443,6 +615,7 @@ public class RadarState extends BaseAppState {
         if (blip == null) {
             final RadarShapeInfo info = e.get(RadarShapeInfo.class);
             final Geometry geom = blipFactory.create(info.getShapeName(ed), NEUTRAL_COLOR);
+            geom.setLocalScale(blipScale);
             blip = new Blip(e.getId(), geom);
             // Seed colour from the freq set if it already knows about this entity —
             // otherwise the entity has no Frequency yet (or applyChanges hasn't run
@@ -549,6 +722,97 @@ public class RadarState extends BaseAppState {
         private void setStaticPosition(final Blip blip, final SpawnPosition pos) {
             final Vec3d loc = pos.getLocation();
             blip.geom.setLocalTranslation((float) loc.x, 0f, (float) loc.z);
+        }
+    }
+
+    /** Pre-computed paging entry: leaf-cell offset from the avatar's leaf. */
+    private static final class RadarViewEntry {
+        final Vec3i offset;
+        final int priority;
+
+        RadarViewEntry(final int x, final int z) {
+            // Subspace is single-leaf in Y, so y-offset is always 0.
+            this.offset = new Vec3i(x, 0, z);
+            // Higher priority = greater distance — workers serve closer leaves first.
+            this.priority = x * x + z * z;
+        }
+    }
+
+    /**
+     * Async {@link Job} that loads one leaf's silhouette: fetches cell data from
+     * {@link World#getLeaf} on a worker thread, builds the silhouette mesh, and
+     * (back on the JME update thread) attaches the resulting node under
+     * {@code radarBlockRoot}. Mirrors {@code LocalViewState.LeafView}.
+     *
+     * <p>The leaf node is positioned at the leaf's absolute world origin in
+     * {@code initialize}-time setup, so cells render at absolute world coords —
+     * the radar camera (which sits at the avatar's absolute world position) will
+     * frame them correctly without any conveyor offset.
+     */
+    private final class RadarLeafView implements Job {
+
+        private final LeafId leafId;
+        private final Node leafNode;
+        private Node attachedSilhouette;
+        private Node generatedSilhouette;
+        volatile boolean queued;
+
+        RadarLeafView(final LeafId leafId) {
+            this.leafId = leafId;
+            this.leafNode = new Node("RadarLeaf:" + leafId);
+            final Vec3i origin = leafId.getWorld(null);
+            // Place the leaf at its absolute world origin; cells inside the silhouette
+            // are emitted at leaf-local coordinates [0..LEAF_SIZE).
+            leafNode.setLocalTranslation(origin.x, 0f, origin.z);
+            radarBlockRoot.attachChild(leafNode);
+        }
+
+        @Override
+        public void runOnWorker() {
+            // Once a job actually starts running there's no point trying to cancel it.
+            queued = false;
+
+            final LeafData data = world.getLeaf(leafId);
+            if (data == null || data.isEmpty()) {
+                synchronized (this) {
+                    generatedSilhouette = null;
+                }
+                return;
+            }
+            final Node temp = new Node("Silhouette:" + leafId);
+            silhouetteIndex.generate(temp, data.getRawCells());
+            synchronized (this) {
+                generatedSilhouette = temp;
+            }
+        }
+
+        @Override
+        public double runOnUpdate() {
+            final Node next;
+            synchronized (this) {
+                next = generatedSilhouette;
+            }
+            if (attachedSilhouette != null) {
+                attachedSilhouette.removeFromParent();
+                attachedSilhouette = null;
+            }
+            if (next != null && leafNode.getParent() != null) {
+                leafNode.attachChild(next);
+                attachedSilhouette = next;
+                return 1;
+            }
+            return 0;
+        }
+
+        void release() {
+            leafNode.removeFromParent();
+        }
+    }
+
+    private final class RadarLeafObserver implements LeafChangeListener {
+        @Override
+        public void leafChanged(final LeafChangeEvent event) {
+            radarUpdatedLeafIds.add(event.getLeafId());
         }
     }
 }
