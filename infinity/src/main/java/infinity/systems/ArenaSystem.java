@@ -41,15 +41,16 @@ import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
+import infinity.config.ZoneConfig;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.settings.GroovyShipLoader;
+import infinity.settings.GroovyZoneLoader;
 import infinity.settings.ShipSpawnSystem;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
 import infinity.es.ship.Player;
-import infinity.server.AssetLoaderService;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
@@ -129,17 +130,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
   }
 
-  /**
-   * Classpath path to the zone-wide INI loaded once at startup. Public so other systems
-   * can read zone-level sections (e.g. {@code GameSessionHostedService} reads
-   * {@code [ZoneEnterSpawn]}) without duplicating the literal.
-   */
-  public static final String ZONE_CONFIG_PATH = "zone.conf";
-
   private static final String ARENA_ROOT = "arenas";
   private static final String ARENA_CONF = "arena.conf";
 
   private final Map<String, ArenaRecord> registry = new ConcurrentHashMap<>();
+  /**
+   * Cached zone config, loaded once at startup. Other systems reach this via
+   * {@link #getZoneConfig()} so consumers stay decoupled from the Groovy
+   * loader and from the zone.groovy path.
+   */
+  private ZoneConfig zoneConfig = ZoneConfig.EMPTY;
 
   /**
    * Slot allocator for arena indices. Each {@code true} entry means the slot is in use by a
@@ -239,7 +239,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   public void update(final SimTime tpf) {
-    // SettingsSystem/AssetLoaderService are registered after ArenaSystem, so their loaders aren't
+    // SettingsSystem is registered after ArenaSystem, so its arena.conf loader isn't
     // ready at initialize() time. Defer discovery + startup config to the first tick.
     if (!bootstrapped) {
       bootstrap();
@@ -535,30 +535,28 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     return s.endsWith("/") ? s.substring(0, s.length() - 1) : s;
   }
 
-  /** Read {@code zone.conf} and set desired=true for each arena in {@code [Startup] AutoLoad=}. */
+  /**
+   * Load {@code zone.groovy} into {@link #zoneConfig} and set desired=true for each
+   * arena in {@code autoLoad}. Idempotent — safe to call once at startup.
+   */
   private void applyZoneStartupConfig() {
-    final AssetLoaderService assets = getSystem(AssetLoaderService.class);
-    Ini zone = null;
-    try {
-      zone = (Ini) assets.loadAsset(ZONE_CONFIG_PATH);
-    } catch (final Exception e) {
-      log.info("{} not present; no auto-load list ({})", ZONE_CONFIG_PATH, e.getMessage());
+    zoneConfig = new GroovyZoneLoader().load();
+    if (zoneConfig.autoLoadArenas().isEmpty()) {
       return;
     }
-    if (zone == null) {
-      return;
+    for (final String name : zoneConfig.autoLoadArenas()) {
+      setDesired(name, true);
     }
-    final String autoLoad = zone.fetch("Startup", "AutoLoad");
-    if (autoLoad == null || autoLoad.isBlank()) {
-      return;
-    }
-    for (final String raw : autoLoad.split("[,\\s]+")) {
-      final String name = raw.trim();
-      if (!name.isEmpty()) {
-        setDesired(name, true);
-      }
-    }
-    log.info("zone.conf AutoLoad: {}", autoLoad);
+    log.info("zone.groovy AutoLoad: {}", zoneConfig.autoLoadArenas());
+  }
+
+  /**
+   * The zone-scope config loaded at startup. Returns {@link ZoneConfig#EMPTY}
+   * before {@link #applyZoneStartupConfig()} runs (idempotent fallback so
+   * callers don't need null guards).
+   */
+  public ZoneConfig getZoneConfig() {
+    return zoneConfig;
   }
 
   /* ---------------------------------------------------------------- */

@@ -71,7 +71,6 @@ import infinity.systems.WarpSystem;
 import infinity.systems.WeaponsSystem;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -258,9 +257,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     }
 
     /**
-     * Pick the player's initial spawn by reading {@code zone.conf [ZoneEnterSpawn]
-     * Arena}, then translating that arena's arena-local {@code [Spawn] X/Z} to a
-     * world coord via {@link ArenaSystem#getArenaSpawn(String)}.
+     * Pick the player's initial spawn by reading the zone-scope
+     * {@code enterSpawn} pointer, then translating that arena's arena-local
+     * {@code [Spawn] X/Z} to a world coord via {@link ArenaSystem#getArenaSpawn(String)}.
      *
      * <p>Unifies the per-arena {@code [Spawn]} as the single source of truth for
      * spawn coords across both flows: connect-time (this method, picking which
@@ -268,40 +267,21 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
      * AvatarSystem.requestShipChange}, picking which arena from the ship's own
      * {@link ArenaId}).
      *
-     * <p>Falls back to world origin if {@code zone.conf} is missing, the
-     * {@code [ZoneEnterSpawn] Arena} key is absent, or the named arena isn't
-     * loaded yet at session-connect time. {@code ArenaMembershipSystem} will
-     * reconcile {@link ArenaId} on the next tick once the ship contacts a sensor.
+     * <p>Falls back to world origin if {@code zone.groovy} is missing, the
+     * {@code enterSpawn} directive is absent, or the named arena isn't loaded
+     * yet at session-connect time. {@code ArenaMembershipSystem} will reconcile
+     * {@link ArenaId} on the next tick once the ship contacts a sensor.
      */
     private Vec3d resolveInitialSpawn() {
-      final AssetLoaderService assets = gameSystems.get(AssetLoaderService.class, true);
-      Ini zone = null;
-      try {
-        zone = (Ini) assets.loadAsset(ArenaSystem.ZONE_CONFIG_PATH);
-      } catch (final Exception e) {
-        log.warn(
-            "{} could not be loaded ({}); spawning at world origin",
-            ArenaSystem.ZONE_CONFIG_PATH, e.getMessage());
-        return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
-      }
-      if (zone == null) {
-        log.warn(
-            "{} returned null; spawning at world origin", ArenaSystem.ZONE_CONFIG_PATH);
-        return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
-      }
-      final String arenaName = zone.fetch("ZoneEnterSpawn", "Arena");
+      final ArenaSystem arenas = gameSystems.get(ArenaSystem.class, true);
+      final String arenaName = arenas.getZoneConfig().enterSpawnArena();
       if (arenaName == null || arenaName.isBlank()) {
-        log.warn(
-            "{} has no [ZoneEnterSpawn] Arena; spawning at world origin",
-            ArenaSystem.ZONE_CONFIG_PATH);
+        log.warn("zone.groovy has no enterSpawn arena; spawning at world origin");
         return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
       }
-      final Vec3d spawn =
-          gameSystems.get(ArenaSystem.class, true).getArenaSpawn(arenaName.trim());
+      final Vec3d spawn = arenas.getArenaSpawn(arenaName);
       if (spawn == null) {
-        log.warn(
-            "[ZoneEnterSpawn] Arena='{}' not loaded; spawning at world origin",
-            arenaName);
+        log.warn("zone.groovy enterSpawn='{}' not loaded; spawning at world origin", arenaName);
         return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
       }
       return spawn;

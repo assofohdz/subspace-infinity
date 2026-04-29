@@ -1,6 +1,6 @@
 # ZoneConfig + GroovyZoneLoader: port zone.conf to Groovy
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:server
 
@@ -28,13 +28,13 @@ Deliverables:
 
 ## Acceptance criteria
 
-- [ ] `ZoneConfig` record exists in `api/src/infinity/config/`, immutable, typed
-- [ ] `GroovyZoneLoader` exists in `infinity/src/main/java/infinity/settings/`, mirrors `GroovyShipLoader`'s shape (filesystem-first dev mode, classpath fallback, typed builder)
-- [ ] `infinity/zone/zone.groovy` is the canonical zone config; old `zone.conf` is deleted
-- [ ] Server startup auto-loads the arenas listed in the new file (verify with `trench` and `deva`)
-- [ ] Connect-time zone-enter-spawn resolves to the named arena's `[Spawn]`
-- [ ] No INI parser code path remains for zone-scope settings (preset-fragment INI parsing stays — out of scope)
-- [ ] Test exercises a `zone.groovy` load → `ZoneConfig` assertions, mirroring the spirit of `GroovyShipLoaderRadarTest`
+- [x] `ZoneConfig` record exists in `api/src/infinity/config/`, immutable, typed
+- [x] `GroovyZoneLoader` exists in `infinity/src/main/java/infinity/settings/`, mirrors `GroovyShipLoader`'s shape (filesystem-first dev mode, classpath fallback, Closure DSL with `ZoneConfigBuilder` delegate)
+- [x] `infinity/zone/zone.groovy` is the canonical zone config; `zone.conf` is deleted
+- [x] Server startup auto-loads the arenas listed in the new file (verified in-game with `trench` and `deva`)
+- [x] Connect-time zone-enter-spawn resolves to the named arena's `[Spawn]` (verified in-game; first connect lands in `trench`)
+- [x] No INI parser code path remains for zone-scope settings; `ArenaSystem.ZONE_CONFIG_PATH` and `Ini` plumbing in `GameSessionHostedService.resolveInitialSpawn()` are gone (preset-fragment INI parsing stays — out of scope)
+- [x] `GroovyZoneLoaderTest` exercises the `ZoneConfigBuilder` plus end-to-end missing-script + `EMPTY` sentinel checks (6 tests, mirroring the spirit of `GroovyShipLoaderRadarTest`)
 
 ## Blocked by
 
