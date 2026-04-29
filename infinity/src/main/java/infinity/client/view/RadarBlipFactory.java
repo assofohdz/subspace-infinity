@@ -59,19 +59,21 @@ import java.util.function.Function;
  */
 public final class RadarBlipFactory {
 
-    private static final float SHIP_DOT_RADIUS = 5f;
-    private static final int DOT_SEGMENTS = 16;
-    private static final float STATIC_BLIP_HALF_SIZE = 10f;
-
     private final AssetManager assetManager;
     private final Map<String, Function<AssetManager, Mesh>> meshFactories = new HashMap<>();
     private final Function<AssetManager, Mesh> defaultMeshFactory;
 
-    public RadarBlipFactory(final AssetManager assetManager) {
+    public RadarBlipFactory(final AssetManager assetManager, final RadarTheme theme) {
         this.assetManager = assetManager;
-        this.defaultMeshFactory = am -> dot(SHIP_DOT_RADIUS);
-        meshFactories.put("flag-blip", am -> square(STATIC_BLIP_HALF_SIZE));
-        meshFactories.put("prize-blip", am -> diamond(STATIC_BLIP_HALF_SIZE));
+        // Capture theme dimensions in the lambdas — meshes are baked at theme sizes
+        // and a swap of the theme requires re-creating the factory anyway (existing
+        // blip Geometries hold pre-baked Meshes).
+        final float shipDotRadius = theme.shipDotRadius();
+        final int dotSegments = theme.dotSegments();
+        final float staticHalfSize = theme.staticBlipHalfSize();
+        this.defaultMeshFactory = am -> dot(shipDotRadius, dotSegments);
+        meshFactories.put("flag-blip", am -> square(staticHalfSize));
+        meshFactories.put("prize-blip", am -> diamond(staticHalfSize));
     }
 
     /**
@@ -96,12 +98,11 @@ public final class RadarBlipFactory {
         return geom;
     }
 
-    private static Mesh dot(final float radius) {
+    private static Mesh dot(final float radius, final int segments) {
         // Filled disc in the XZ plane (Y=0), built as a triangle fan around a
         // centre vertex. Used for ship blips because the radar doesn't rotate
         // with the player heading — a directional shape (like a triangle) would
         // mislead the eye whenever the ship turns.
-        final int segments = DOT_SEGMENTS;
         final int vertCount = segments + 1; // + 1 for the centre vertex
         final float[] positions = new float[vertCount * 3];
         // Centre at (0, 0, 0)

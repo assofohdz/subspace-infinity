@@ -137,20 +137,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class RadarState extends BaseAppState {
 
-    private static final int RADAR_PIXEL_SIZE = 218;
     private static final float RADAR_CAM_HEIGHT = 1000f;
     private static final float RADAR_CAM_NEAR = 1f;
     private static final float RADAR_CAM_FAR = 5000f;
     private static final double DEFAULT_RANGE_WORLD_UNITS = 256.0;
-    /**
-     * The radar range (world units) at which {@link RadarBlipFactory} mesh sizes
-     * are 1:1 with the rendered pixel size. Blips are scaled by
-     * {@code currentRange / RADAR_CANONICAL_RANGE} so a blip stays the same on-
-     * screen size regardless of how far the radar is zoomed out — the blip only
-     * needs to respect the radar circle, not the world distances inside it.
-     * Map silhouettes are NOT scaled — they're real map geometry.
-     */
-    private static final double RADAR_CANONICAL_RANGE = 256.0;
 
     /**
      * Palette used by the radar — colours read here flow into the off-screen
@@ -217,7 +207,7 @@ public class RadarState extends BaseAppState {
         ed = getState(ConnectionState.class).getEntityData();
         timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         guiNode = ((SimpleApplication) app).getGuiNode();
-        blipFactory = new RadarBlipFactory(app.getAssetManager());
+        blipFactory = new RadarBlipFactory(app.getAssetManager(), theme);
         silhouetteIndex = new RadarLeafSilhouetteIndex(app.getAssetManager(), theme);
 
         // World + worker pools — same lookups LocalViewState uses; the radar
@@ -239,7 +229,7 @@ public class RadarState extends BaseAppState {
         statics = new StaticContainer(ed);
         frequencies = ed.getEntities(RadarShapeInfo.class, Frequency.class);
 
-        radarCam = new Camera(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE);
+        radarCam = new Camera(theme.pixelSize(), theme.pixelSize());
         radarCam.setParallelProjection(true);
         // Frustum is sized from RadarRange in update(); seed with the default so the
         // first off-screen pass before the watch resolves still has a sane projection.
@@ -254,16 +244,16 @@ public class RadarState extends BaseAppState {
         radarViewport.setBackgroundColor(theme.backgroundColor());
         radarViewport.attachScene(radarRoot);
 
-        radarTex = new Texture2D(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE, Image.Format.RGBA8);
+        radarTex = new Texture2D(theme.pixelSize(), theme.pixelSize(), Image.Format.RGBA8);
         radarTex.setMinFilter(Texture.MinFilter.Trilinear);
         radarTex.setMagFilter(Texture.MagFilter.Bilinear);
 
-        radarFrameBuffer = new FrameBuffer(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE, 1);
+        radarFrameBuffer = new FrameBuffer(theme.pixelSize(), theme.pixelSize(), 1);
         radarFrameBuffer.setDepthTarget(FrameBuffer.FrameBufferTarget.newTarget(Image.Format.Depth));
         radarFrameBuffer.addColorTarget(FrameBuffer.FrameBufferTarget.newTarget(radarTex));
         radarViewport.setOutputFrameBuffer(radarFrameBuffer);
 
-        radarQuad = new Geometry("Radar", new Quad(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE));
+        radarQuad = new Geometry("Radar", new Quad(theme.pixelSize(), theme.pixelSize()));
         final Material mat = new Material(app.getAssetManager(), "MatDefs/MiniMap/MiniMap.j3md");
         mat.setTexture("ColorMap", radarTex);
         mat.setTexture("Mask", app.getAssetManager().loadTexture("Textures/MiniMap/circle-mask.png"));
@@ -272,7 +262,7 @@ public class RadarState extends BaseAppState {
         radarQuad.setMaterial(mat);
         // Bottom-right, flush against right + bottom screen edges.
         radarQuad.setLocalTranslation(
-                app.getCamera().getWidth() - RADAR_PIXEL_SIZE,
+                app.getCamera().getWidth() - theme.pixelSize(),
                 0f,
                 1f);
     }
@@ -572,7 +562,7 @@ public class RadarState extends BaseAppState {
         // scaling each blip's world size proportional to the range cancels the
         // change in camera frustum, so the blip stays the same fraction of the
         // radar circle no matter how far we're zoomed out.
-        final float newScale = (float) (rangeWorldUnits / RADAR_CANONICAL_RANGE);
+        final float newScale = (float) (rangeWorldUnits / theme.canonicalRangeWorldUnits());
         if (newScale != blipScale) {
             blipScale = newScale;
             for (final Blip blip : blipsById.values()) {
