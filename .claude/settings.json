@@ -87,7 +87,8 @@
       "Bash(./gradlew :infinity:compileJava --no-daemon)",
       "Bash(./gradlew :infinity:compileJava --rerun-tasks --no-daemon)",
       "Bash(awk -F':' '{print $1}')",
-      "Bash(./gradlew :infinity:spotlessCheck --no-daemon)"
+      "Bash(./gradlew :infinity:spotlessCheck --no-daemon)",
+      "Bash(./gradlew :infinity:compileJava :infinity:spotlessCheck --no-daemon)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",

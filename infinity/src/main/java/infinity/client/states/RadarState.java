@@ -42,14 +42,24 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.simsilica.bpos.BodyPosition;
 import com.simsilica.bpos.ChildPositionTransition3d;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.es.WatchedEntity;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
+import infinity.client.view.RadarBlipFactory;
+import infinity.es.Frequency;
+import infinity.es.RadarShapeInfo;
 import infinity.es.ship.RadarRange;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Top-down radar HUD. Renders an offscreen orthographic view of {@link #radarRoot}
@@ -58,11 +68,36 @@ import infinity.es.ship.RadarRange;
  * material — same circle-mask + overlay treatment the legacy minimap used.
  *
  * <p>{@code radarRoot} is intentionally <b>detached</b> from the main scene graph and
- * carries two empty children — {@code radarEntityRoot} (entity blips, populated by
- * issue #03) and {@code radarBlockRoot} (tile silhouettes, populated by issue #04).
- * In this scaffold both stay empty, so the off-screen render produces a transparent
- * frame and only the circle outline is visible on the HUD; the visible scene appears
- * once #03 / #04 attach content.
+ * carries two children — {@code radarEntityRoot} (entity blips, populated by the
+ * body / static entity containers below) and {@code radarBlockRoot} (tile
+ * silhouettes, populated by issue #04).
+ *
+ * <p>Entity blips:
+ * <ul>
+ *   <li>{@code BodyContainer} tracks {@code BodyPosition + RadarShapeInfo} —
+ *       moving entities (ships, mobs). Position is driven per-frame from the
+ *       {@link BodyPosition} interpolation buffer, the same SimEthereal source
+ *       {@code ModelViewState.BodyContainer} uses for the world view.</li>
+ *   <li>{@code StaticContainer} tracks {@code SpawnPosition + RadarShapeInfo} —
+ *       fixed-position objects. Position is set once at attach time.</li>
+ * </ul>
+ * Spatials come from {@link RadarBlipFactory}, keyed by {@code RadarShapeInfo}'s
+ * shape name (mirrors {@code SISpatialFactory}'s shape-name registry). Shape
+ * names not registered fall through to a default ship triangle, so adding a new
+ * ship class doesn't require a registry change.
+ *
+ * <p>Frequency-based coloring is resolved client-side at attach time and
+ * recomputed when either the blip's {@link Frequency} or the local avatar's
+ * {@link Frequency} changes:
+ * <ul>
+ *   <li>self → {@link #SELF_COLOR}</li>
+ *   <li>same team as avatar → {@link #FRIENDLY_COLOR}</li>
+ *   <li>different team → {@link #ENEMY_COLOR}</li>
+ *   <li>no {@link Frequency} component (prizes, neutral statics) → {@link #NEUTRAL_COLOR}</li>
+ * </ul>
+ * Color is deliberately NOT carried on {@code RadarShapeInfo} — keeping it
+ * client-side means re-skinning (color-blind palettes, themes) is purely a
+ * client concern with no server change.
  *
  * <p>Camera follows the local avatar:
  * <ul>
@@ -87,12 +122,16 @@ import infinity.es.ship.RadarRange;
  */
 public class RadarState extends BaseAppState {
 
-    private static final int RADAR_PIXEL_SIZE = 256;
-    private static final int RADAR_GUI_MARGIN_PX = 20;
+    private static final int RADAR_PIXEL_SIZE = 218;
     private static final float RADAR_CAM_HEIGHT = 1000f;
     private static final float RADAR_CAM_NEAR = 1f;
     private static final float RADAR_CAM_FAR = 5000f;
     private static final double DEFAULT_RANGE_WORLD_UNITS = 256.0;
+
+    private static final ColorRGBA SELF_COLOR = ColorRGBA.Yellow;
+    private static final ColorRGBA FRIENDLY_COLOR = ColorRGBA.Green;
+    private static final ColorRGBA ENEMY_COLOR = ColorRGBA.Red;
+    private static final ColorRGBA NEUTRAL_COLOR = ColorRGBA.White;
 
     private Node radarRoot;
     private Node radarEntityRoot;
@@ -111,7 +150,14 @@ public class RadarState extends BaseAppState {
     private EntityId avatarEntityId;
     private WatchedEntity avatarWatch;
     private BodyPosition avatarBodyPos;
+    private Integer currentAvatarFreq;
     private double currentRange = -1.0;
+
+    private RadarBlipFactory blipFactory;
+    private BodyContainer bodies;
+    private StaticContainer statics;
+    private EntitySet frequencies;
+    private final Map<EntityId, Blip> blipsById = new HashMap<>();
 
     private final Vector3f camLocation = new Vector3f();
 
@@ -132,12 +178,17 @@ public class RadarState extends BaseAppState {
         ed = getState(ConnectionState.class).getEntityData();
         timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         guiNode = ((SimpleApplication) app).getGuiNode();
+        blipFactory = new RadarBlipFactory(app.getAssetManager());
 
         radarRoot = new Node("RadarRoot");
         radarEntityRoot = new Node("RadarEntityRoot");
         radarBlockRoot = new Node("RadarBlockRoot");
         radarRoot.attachChild(radarEntityRoot);
         radarRoot.attachChild(radarBlockRoot);
+
+        bodies = new BodyContainer(ed);
+        statics = new StaticContainer(ed);
+        frequencies = ed.getEntities(RadarShapeInfo.class, Frequency.class);
 
         radarCam = new Camera(RADAR_PIXEL_SIZE, RADAR_PIXEL_SIZE);
         radarCam.setParallelProjection(true);
@@ -170,9 +221,10 @@ public class RadarState extends BaseAppState {
         mat.setTexture("Overlay",
                 app.getAssetManager().loadTexture("Textures/MiniMap/circle-overlay.png"));
         radarQuad.setMaterial(mat);
+        // Bottom-right, flush against right + bottom screen edges.
         radarQuad.setLocalTranslation(
-                app.getCamera().getWidth() - RADAR_PIXEL_SIZE - RADAR_GUI_MARGIN_PX,
-                app.getCamera().getHeight() - RADAR_PIXEL_SIZE - RADAR_GUI_MARGIN_PX,
+                app.getCamera().getWidth() - RADAR_PIXEL_SIZE,
+                0f,
                 1f);
     }
 
@@ -186,27 +238,41 @@ public class RadarState extends BaseAppState {
             avatarWatch.release();
             avatarWatch = null;
         }
+        if (frequencies != null) {
+            frequencies.release();
+            frequencies = null;
+        }
         avatarBodyPos = null;
     }
 
     @Override
     protected void onEnable() {
         guiNode.attachChild(radarQuad);
+        bodies.start();
+        statics.start();
     }
 
     @Override
     protected void onDisable() {
         radarQuad.removeFromParent();
+        bodies.stop();
+        statics.stop();
     }
 
     @Override
     public void update(final float tpf) {
         resolveAvatar();
+        applyAvatarFreqChanges();
         updateRangeAndPosition();
 
+        bodies.update();
+        statics.update();
+        applyFrequencyChanges();
+        updateBodyBlipPositions();
+
         // radarRoot is not part of rootNode/guiNode, so the engine doesn't update its
-        // world transforms for us. Drive it directly so children added by #03/#04 (and
-        // any per-frame mutations they do) render with up-to-date matrices.
+        // world transforms for us. Drive it directly so children added by #04 (and any
+        // per-frame mutations they do) render with up-to-date matrices.
         radarRoot.updateLogicalState(tpf);
         radarRoot.updateGeometricState();
     }
@@ -218,20 +284,45 @@ public class RadarState extends BaseAppState {
                 return;
             }
             avatarEntityId = id;
+            // Once the avatar id resolves, the local-player-vs-everyone-else colour
+            // partition shifts: the blip already attached for our own ship was painted
+            // as ENEMY/NEUTRAL using its own frequency. Repaint everything now so the
+            // self blip flips to SELF_COLOR.
+            recolorAllBlips();
         }
         if (avatarWatch == null) {
-            avatarWatch = ed.watchEntity(avatarEntityId, BodyPosition.class, RadarRange.class);
+            avatarWatch = ed.watchEntity(
+                    avatarEntityId, BodyPosition.class, RadarRange.class, Frequency.class);
             final BodyPosition bp = avatarWatch.get(BodyPosition.class);
             if (bp != null) {
                 bp.initialize(avatarEntityId, 12);
                 avatarBodyPos = bp;
             }
-        } else if (avatarWatch.applyChanges()) {
-            final BodyPosition bp = avatarWatch.get(BodyPosition.class);
-            if (bp != null && bp != avatarBodyPos) {
-                bp.initialize(avatarEntityId, 12);
-                avatarBodyPos = bp;
+            final Frequency f = avatarWatch.get(Frequency.class);
+            if (f != null) {
+                currentAvatarFreq = f.getFrequency();
+                recolorAllBlips();
             }
+        }
+    }
+
+    private void applyAvatarFreqChanges() {
+        if (avatarWatch == null) {
+            return;
+        }
+        if (!avatarWatch.applyChanges()) {
+            return;
+        }
+        final BodyPosition bp = avatarWatch.get(BodyPosition.class);
+        if (bp != null && bp != avatarBodyPos) {
+            bp.initialize(avatarEntityId, 12);
+            avatarBodyPos = bp;
+        }
+        final Frequency f = avatarWatch.get(Frequency.class);
+        final Integer newFreq = f != null ? f.getFrequency() : null;
+        if (!Objects.equals(newFreq, currentAvatarFreq)) {
+            currentAvatarFreq = newFreq;
+            recolorAllBlips();
         }
     }
 
@@ -262,9 +353,202 @@ public class RadarState extends BaseAppState {
         radarCam.setLocation(camLocation);
     }
 
+    private void applyFrequencyChanges() {
+        if (!frequencies.applyChanges()) {
+            return;
+        }
+        for (final Entity e : frequencies.getAddedEntities()) {
+            final Blip blip = blipsById.get(e.getId());
+            if (blip != null) {
+                blip.freq = e.get(Frequency.class).getFrequency();
+                applyColor(blip);
+            }
+        }
+        for (final Entity e : frequencies.getChangedEntities()) {
+            final Blip blip = blipsById.get(e.getId());
+            if (blip != null) {
+                blip.freq = e.get(Frequency.class).getFrequency();
+                applyColor(blip);
+            }
+        }
+        for (final Entity e : frequencies.getRemovedEntities()) {
+            final Blip blip = blipsById.get(e.getId());
+            if (blip != null) {
+                blip.freq = null;
+                applyColor(blip);
+            }
+        }
+    }
+
+    private void updateBodyBlipPositions() {
+        if (timeSource == null) {
+            return;
+        }
+        final long t = timeSource.getTime();
+        for (final Blip blip : bodies.getArray()) {
+            if (blip.bodyPos == null) {
+                continue;
+            }
+            final ChildPositionTransition3d trans = blip.bodyPos.getFrame(t);
+            if (trans == null) {
+                continue;
+            }
+            final Vec3d pos = trans.getPosition(t, true);
+            if (pos == null) {
+                continue;
+            }
+            blip.geom.setLocalTranslation((float) pos.x, 0f, (float) pos.z);
+        }
+    }
+
     private void applyRange(final double rangeWorldUnits) {
         final float half = (float) rangeWorldUnits;
         radarCam.setFrustum(RADAR_CAM_NEAR, RADAR_CAM_FAR, -half, half, half, -half);
         currentRange = rangeWorldUnits;
+    }
+
+    private ColorRGBA colorFor(final EntityId id, final Integer entityFreq) {
+        if (id.equals(avatarEntityId)) {
+            return SELF_COLOR;
+        }
+        if (entityFreq == null) {
+            return NEUTRAL_COLOR;
+        }
+        if (currentAvatarFreq != null && entityFreq.intValue() == currentAvatarFreq.intValue()) {
+            return FRIENDLY_COLOR;
+        }
+        return ENEMY_COLOR;
+    }
+
+    private void applyColor(final Blip blip) {
+        blip.geom.getMaterial().setColor("Color", colorFor(blip.id, blip.freq));
+    }
+
+    private void recolorAllBlips() {
+        for (final Blip blip : blipsById.values()) {
+            applyColor(blip);
+        }
+    }
+
+    /**
+     * Get-or-create the single Blip for an entity. Both {@link BodyContainer} and
+     * {@link StaticContainer} can match the same entity (e.g. the local ship has
+     * both {@link BodyPosition} and {@link SpawnPosition}); reference counting
+     * keeps the blip alive until both containers drop it. {@code bodyPos != null}
+     * marks the blip as body-driven, in which case {@code SpawnPosition} updates
+     * are ignored — body position always wins.
+     */
+    private Blip acquireBlip(final Entity e) {
+        Blip blip = blipsById.get(e.getId());
+        if (blip == null) {
+            final RadarShapeInfo info = e.get(RadarShapeInfo.class);
+            final Geometry geom = blipFactory.create(info.getShapeName(ed), NEUTRAL_COLOR);
+            blip = new Blip(e.getId(), geom);
+            // Seed colour from the freq set if it already knows about this entity —
+            // otherwise the entity has no Frequency yet (or applyChanges hasn't run
+            // for it), and applyFrequencyChanges() will repaint it on a later tick.
+            final Entity freqEntity = frequencies.getEntity(e.getId());
+            if (freqEntity != null) {
+                blip.freq = freqEntity.get(Frequency.class).getFrequency();
+            }
+            applyColor(blip);
+            radarEntityRoot.attachChild(geom);
+            blipsById.put(e.getId(), blip);
+        }
+        blip.useCount++;
+        return blip;
+    }
+
+    private void releaseBlip(final EntityId id) {
+        final Blip blip = blipsById.get(id);
+        if (blip == null) {
+            return;
+        }
+        blip.useCount--;
+        if (blip.useCount <= 0) {
+            blipsById.remove(id);
+            blip.geom.removeFromParent();
+        }
+    }
+
+    private static final class Blip {
+        final EntityId id;
+        final Geometry geom;
+        BodyPosition bodyPos;
+        Integer freq;
+        int useCount;
+
+        Blip(final EntityId id, final Geometry geom) {
+            this.id = id;
+            this.geom = geom;
+        }
+    }
+
+    private final class BodyContainer extends EntityContainer<Blip> {
+        BodyContainer(final EntityData ed) {
+            super(ed, BodyPosition.class, RadarShapeInfo.class);
+        }
+
+        @Override
+        public Blip[] getArray() {
+            return super.getArray();
+        }
+
+        @Override
+        protected Blip addObject(final Entity e) {
+            final Blip blip = acquireBlip(e);
+            final BodyPosition bp = e.get(BodyPosition.class);
+            // Same idempotent initialize convention as ModelViewState — required so
+            // the ring buffer is allocated against this entity id.
+            bp.initialize(e.getId(), 12);
+            blip.bodyPos = bp;
+            return blip;
+        }
+
+        @Override
+        protected void updateObject(final Blip blip, final Entity e) {
+            // Position ticks are pushed each frame from updateBodyBlipPositions().
+            // Shape doesn't change after spawn, so nothing to do here.
+        }
+
+        @Override
+        protected void removeObject(final Blip blip, final Entity e) {
+            blip.bodyPos = null;
+            releaseBlip(e.getId());
+        }
+    }
+
+    private final class StaticContainer extends EntityContainer<Blip> {
+        StaticContainer(final EntityData ed) {
+            super(ed, SpawnPosition.class, RadarShapeInfo.class);
+        }
+
+        @Override
+        protected Blip addObject(final Entity e) {
+            final Blip blip = acquireBlip(e);
+            // Only place a static-driven blip if a body isn't already driving it —
+            // otherwise we'd snap the avatar back to its spawn point each frame.
+            if (blip.bodyPos == null) {
+                setStaticPosition(blip, e.get(SpawnPosition.class));
+            }
+            return blip;
+        }
+
+        @Override
+        protected void updateObject(final Blip blip, final Entity e) {
+            if (blip.bodyPos == null) {
+                setStaticPosition(blip, e.get(SpawnPosition.class));
+            }
+        }
+
+        @Override
+        protected void removeObject(final Blip blip, final Entity e) {
+            releaseBlip(e.getId());
+        }
+
+        private void setStaticPosition(final Blip blip, final SpawnPosition pos) {
+            final Vec3d loc = pos.getLocation();
+            blip.geom.setLocalTranslation((float) loc.x, 0f, (float) loc.z);
+        }
     }
 }
