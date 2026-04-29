@@ -1,6 +1,6 @@
 # RadarState scaffold + circle HUD
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:client
 
@@ -20,15 +20,15 @@ EntitySets / watches created in `initialize()`, released in `terminate()` (per `
 
 ## Acceptance criteria
 
-- [ ] `RadarState extends BaseAppState` exists; `radarRoot`, `radarEntityRoot`, `radarBlockRoot` created in `initialize()`
-- [ ] Offscreen viewport renders `radarRoot` to a `FrameBuffer`-backed texture
-- [ ] GUI quad with the circle mask material visible on the HUD; positioned similarly to current `MiniMapState`
-- [ ] Camera follows local avatar position
-- [ ] Camera frustum recomputes from local avatar's `RadarRange` (`ed.watchEntity` per `feedback_client_ecs_reads`)
-- [ ] `RadarState` registered in `GameSessionState` init order
-- [ ] `MiniMapState` deleted and unregistered (no dangling references)
-- [ ] All EntitySets / watches released in `terminate()`
-- [ ] Manual verification: empty circle appears on HUD, follows the player, no warnings/errors at startup
+- [x] `RadarState extends BaseAppState` exists; `radarRoot`, `radarEntityRoot`, `radarBlockRoot` created in `initialize()`
+- [x] Offscreen viewport renders `radarRoot` to a `FrameBuffer`-backed texture
+- [x] GUI quad with the circle mask material visible on the HUD; later moved to bottom-right flush against the screen edges
+- [x] Camera follows local avatar position via the SimEthereal `BodyPosition` interpolation buffer
+- [x] Camera frustum recomputes from local avatar's `RadarRange` (`ed.watchEntity` per `feedback_client_ecs_reads`)
+- [x] `RadarState` registered in `GameSessionState` constructor after `ModelViewState`
+- [x] `MiniMapState` deleted and unregistered (no dangling references)
+- [x] All EntitySets / watches released in `cleanup()`
+- [x] Manual verification: empty circle appears on HUD, follows the player, no warnings/errors at startup (confirmed in-game)
 
 ## Blocked by
 

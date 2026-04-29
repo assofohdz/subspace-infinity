@@ -1,6 +1,6 @@
 # Radar component foundations: RadarShapeInfo, RadarRange, ShipConfig.radarRange
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:server, area:api, area:client
 
@@ -17,14 +17,14 @@ Per the always-on rules: log the new tuning knob in `.claude/hardcoded-values.md
 
 ## Acceptance criteria
 
-- [ ] `RadarShapeInfo` exists in `api/src/infinity/es/`, immutable, with a no-arg constructor (per `components.md`)
-- [ ] `RadarRange` exists in `api/src/infinity/es/`, immutable, with a no-arg constructor
-- [ ] `ShipConfig` Groovy template gains a `radarRange` field with sensible per-ship defaults
-- [ ] `ShipSpawnSystem` projects both components onto ship entities at spawn
-- [ ] Test (or arch test) verifies a spawned ship has both components and `RadarRange` reflects the ship's `ShipConfig` value
-- [ ] `.claude/config-consumers.md` updated with `radarRange` → `ShipSpawnSystem`
-- [ ] `.claude/ship-config-dictionary.md` updated for the new field
-- [ ] No client-side writes — components are server-authored only
+- [x] `RadarShapeInfo` exists in `api/src/infinity/es/`, immutable-by-convention, with a no-arg constructor (per `components.md`)
+- [x] `RadarRange` exists in `api/src/infinity/es/ship/`, immutable, with a no-arg constructor
+- [x] `ShipConfig` Groovy template gains a `radarRange` field with sensible per-ship defaults
+- [x] `ShipSpawnSystem` projects both components onto ship entities at spawn
+- [x] `GroovyShipLoaderRadarTest` verifies the spawn projection and that `RadarRange` reflects the ship's `ShipConfig` value
+- [x] `.claude/config-consumers.md` updated with `radarRange` → `ShipSpawnSystem`
+- [x] `.claude/ship-config-dictionary.md` updated for the new field
+- [x] No client-side writes — components are server-authored only (also registered with the network `Serializer` in `GameServer.registerSerializers()` so the client can watch them — added the `components.md` rule for that)
 
 ## Blocked by
 

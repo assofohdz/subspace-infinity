@@ -1,6 +1,6 @@
 # Radar entity blips with frequency coloring
 
-Status: needs-triage
+Status: done
 Parent: [../PRD.md](../PRD.md)
 Labels: area:client
 
@@ -19,13 +19,13 @@ EntitySets released in `terminate()`.
 
 ## Acceptance criteria
 
-- [ ] `BodyContainer` querying `BodyPosition + RadarShapeInfo` adds / updates / removes entities under `radarEntityRoot`
-- [ ] `StaticContainer` querying `SpawnPosition + RadarShapeInfo` adds / updates / removes entities under `radarEntityRoot`
-- [ ] Blip spatial registry keyed by `RadarShapeInfo.shapeName` returns unlit 2D geometries (mirrors `SISpatialFactory`)
-- [ ] Frequency-aware coloring: self, same-team, enemy, neutral all visually distinguishable
-- [ ] Color recomputes when local player's `Frequency` changes (e.g. team swap)
-- [ ] All EntitySets released in `terminate()`
-- [ ] Manual verification: own ship + other ships visible as correctly-coloured blips inside the radar circle; flags / prizes (if they have `RadarShapeInfo`) also appear
+- [x] `BodyContainer` querying `BodyPosition + RadarShapeInfo` adds / updates / removes entities under `radarEntityRoot`
+- [x] `StaticContainer` querying `SpawnPosition + RadarShapeInfo` adds / updates / removes entities under `radarEntityRoot`; reference-counted with `BodyContainer` so an entity matching both queries gets one blip with `BodyPosition` winning over `SpawnPosition`
+- [x] `RadarBlipFactory` keyed by `RadarShapeInfo.shapeName` returns unlit 2D geometries (mirrors `SISpatialFactory`); ships use a non-directional dot rather than a triangle to avoid implying a heading
+- [x] Frequency-aware coloring: self / same-team / enemy / neutral palette (`White` / `Green` / `Red` / `Gray`)
+- [x] Color recomputes when local player's `Frequency` changes (e.g. team swap)
+- [x] All EntitySets released in `cleanup()`
+- [x] Manual verification: own ship + other ships visible as correctly-coloured blips inside the radar circle; `flag-blip` and `prize-blip` factory entries are wired but no server system projects `RadarShapeInfo` onto flags/prizes yet — those will light up when the `prizes` feature lands
 
 ## Blocked by
 
