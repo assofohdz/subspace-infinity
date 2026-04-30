@@ -28,15 +28,10 @@ package infinity.settings;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
-import groovy.lang.GroovyShell;
 import infinity.config.ArenaConfig;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -44,15 +39,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Evaluates a per-arena Groovy config and returns a typed {@link ArenaConfig}.
- * Mirrors {@link GroovyZoneLoader} (which mirrors {@link GroovyShipLoader}) —
- * filesystem-first dev-mode read, classpath fallback, Closure DSL.
+ * Thin facade over {@link GroovySettingsHost} — the host owns I/O, hardening
+ * and error handling; this class supplies the {@code arena { … }} DSL.
  *
- * <p>Intentionally returns {@code null} when the script is missing — callers
- * use that to decide whether to fall back to the legacy INI loader. Failure
- * to evaluate (parse error, eval error, IO error) returns
- * {@link ArenaConfig#EMPTY} and logs a warning, so a syntactically broken
- * Groovy file doesn't silently fall back to the INI as if no migration had
- * been attempted.
+ * <p>Returns {@code null} when the arena.groovy file is missing — callers
+ * (e.g. {@code ArenaSystem.loadArenaConfig}) fail-fast on that since the
+ * legacy {@code arena.conf} INI fallback was retired in
+ * zone-arena-to-groovy #3. Returns {@link ArenaConfig#EMPTY} on parse / eval
+ * failure (logged) so a broken Groovy file uses defaults rather than failing
+ * the whole arena.
  *
  * <p>Script DSL:
  *
@@ -80,55 +75,43 @@ public final class GroovyArenaLoader {
   public static final String ARENA_GROOVY_TEMPLATE = "/arenas/%s/arena.groovy";
 
   private static final Logger log = LoggerFactory.getLogger(GroovyArenaLoader.class);
+  private static final ArenaAdapter ADAPTER = new ArenaAdapter();
 
   /**
    * Try to load and parse {@code /arenas/<arenaName>/arena.groovy}.
    *
    * @return the parsed {@link ArenaConfig}, or {@code null} if no Groovy file
-   *     exists for this arena (caller should fall back to INI). Returns
-   *     {@link ArenaConfig#EMPTY} on parse / eval failure (logged) so callers
-   *     don't silently revert to INI on a broken Groovy file.
+   *     exists for this arena (caller fails fast — INI fallback is retired).
+   *     Returns {@link ArenaConfig#EMPTY} on parse / eval failure (logged) so
+   *     callers don't silently fail-fast on a broken Groovy file.
    */
   @Nullable
   public ArenaConfig load(final String arenaName) {
-    final String classpathPath = String.format(ARENA_GROOVY_TEMPLATE, arenaName);
-    return load(arenaName, classpathPath);
+    return load(arenaName, String.format(ARENA_GROOVY_TEMPLATE, arenaName));
   }
 
   /** Same as {@link #load(String)} but with an explicit classpath path. */
   @Nullable
   public ArenaConfig load(final String arenaName, final String classpathPath) {
-    final String source;
-    try {
-      source = readSource(classpathPath);
-    } catch (final IOException e) {
-      log.warn(
-          "{} for arena {} failed to read; using ArenaConfig.EMPTY",
-          classpathPath, arenaName, e);
-      return ArenaConfig.EMPTY;
-    }
-    if (source == null) {
-      // No Groovy file — caller falls back to INI. This is a normal
-      // unmigrated-arena case, not a warning condition.
-      log.debug("{} not found for arena {}; INI fallback expected", classpathPath, arenaName);
+    final ArenaConfig cfg = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
+    if (cfg == null) {
+      log.debug("{} not found for arena {}; null signals fail-fast", classpathPath, arenaName);
       return null;
     }
-    try {
-      final ArenaConfig cfg = evaluate(source, classpathPath);
+    if (cfg != ArenaConfig.EMPTY) {
       log.info(
           "Applied {} for arena {}: map='{}', ships='{}', spawn=({},{}), wallFriction={},"
               + " fragments={}",
-          classpathPath, arenaName,
-          cfg.mapFile(), cfg.shipsScript(), cfg.spawnX(), cfg.spawnZ(),
+          classpathPath,
+          arenaName,
+          cfg.mapFile(),
+          cfg.shipsScript(),
+          cfg.spawnX(),
+          cfg.spawnZ(),
           cfg.wallFriction(),
           cfg.fragmentIncludes());
-      return cfg;
-    } catch (final Exception e) {
-      log.warn(
-          "{} for arena {} failed to evaluate; using ArenaConfig.EMPTY",
-          classpathPath, arenaName, e);
-      return ArenaConfig.EMPTY;
     }
+    return cfg;
   }
 
   /**
@@ -140,34 +123,7 @@ public final class GroovyArenaLoader {
    */
   @Nullable
   public Path resolveOnDisk(final String classpathPath) {
-    if (classpathPath == null || classpathPath.isBlank()) {
-      return null;
-    }
-    final String relative =
-        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
-    for (final Path p : candidates) {
-      if (Files.isReadable(p)) {
-        return p;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private String readSource(final String classpathPath) throws IOException {
-    final Path onDisk = resolveOnDisk(classpathPath);
-    if (onDisk != null) {
-      log.debug("Reading {} from filesystem source: {}", classpathPath, onDisk);
-      return Files.readString(onDisk, StandardCharsets.UTF_8);
-    }
-    try (InputStream is = getClass().getResourceAsStream(classpathPath)) {
-      if (is == null) {
-        return null;
-      }
-      log.debug("Reading {} from classpath", classpathPath);
-      return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-    }
+    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
   /**
@@ -177,27 +133,38 @@ public final class GroovyArenaLoader {
    * exercise that branch without writing to disk.
    */
   ArenaConfig evaluateSourceForTest(final String source, final String virtualPath) {
-    try {
-      return evaluate(source, virtualPath);
-    } catch (final Exception e) {
-      log.warn("test source {} failed to evaluate; using ArenaConfig.EMPTY", virtualPath, e);
+    return GroovySettingsHost.INSTANCE.evaluate(ADAPTER, source, virtualPath);
+  }
+
+  /** Adapter holding the {@code arena { … }} DSL semantics. */
+  private static final class ArenaAdapter
+      implements GroovySettingsAdapter<ArenaConfig, ArenaConfigBuilder> {
+
+    @Override
+    public List<String> allowedImports() {
+      // arena.groovy uses no explicit imports; auto-imports cover String/List.
+      return Collections.emptyList();
+    }
+
+    @Override
+    public ArenaConfigBuilder bind(final Binding binding) {
+      final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+      binding.setVariable("arena", new ArenaClosure(builder));
+      return builder;
+    }
+
+    @Override
+    public ArenaConfig extract(final ArenaConfigBuilder accumulator) {
+      return accumulator.build();
+    }
+
+    @Override
+    public ArenaConfig empty() {
       return ArenaConfig.EMPTY;
     }
   }
 
-  private ArenaConfig evaluate(final String source, final String path) {
-    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
-
-    final Binding binding = new Binding();
-    binding.setVariable("arena", new ArenaClosure(builder));
-
-    final GroovyShell shell = new GroovyShell(binding);
-    shell.evaluate(source, path);
-
-    return builder.build();
-  }
-
-  /** Bound to the {@code arena} variable; mirrors {@code ZoneClosure} from #1. */
+  /** Bound to the {@code arena} variable; mirrors {@code ZoneClosure}. */
   private static final class ArenaClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 

@@ -58,20 +58,13 @@ public class GroovySettingsHostTest {
     static final String SENTINEL_EMPTY = "EMPTY";
 
     private final List<String> imports;
-    private final String defaultPath;
 
     TestAdapter() {
-      this(Collections.emptyList(), "/unused-by-tests.groovy");
+      this(Collections.emptyList());
     }
 
-    TestAdapter(final List<String> imports, final String defaultPath) {
+    TestAdapter(final List<String> imports) {
       this.imports = imports;
-      this.defaultPath = defaultPath;
-    }
-
-    @Override
-    public String defaultPath() {
-      return defaultPath;
     }
 
     @Override
@@ -141,8 +134,7 @@ public class GroovySettingsHostTest {
 
   @Test
   public void evaluate_allowedImport_passesAndScriptRuns() {
-    final TestAdapter adapter =
-        new TestAdapter(List.of("java.util.Date"), "/unused-by-tests.groovy");
+    final TestAdapter adapter = new TestAdapter(List.of("java.util.Date"));
     final String src = "import java.util.Date\nput 'imported-ok'";
 
     final String result =
@@ -152,21 +144,15 @@ public class GroovySettingsHostTest {
   }
 
   @Test
-  public void load_missingFile_returnsAdapterEmpty() {
+  public void load_missingFile_returnsNull() {
+    // null on file-not-found is the primitive callers like GroovyArenaLoader
+    // need to distinguish "no Groovy file for this arena" (fail-fast) from
+    // "Groovy file exists but is broken" (use defaults). Callers that don't
+    // care coalesce: `cfg == null ? adapter.empty() : cfg`.
     final String result =
         GroovySettingsHost.INSTANCE.load(new TestAdapter(), "/nope-not-on-classpath.groovy");
 
-    assertSame("missing file must short-circuit to adapter.empty()", "EMPTY", result);
-  }
-
-  @Test
-  public void load_noArg_threadsAdapterDefaultPath() {
-    // Adapter's default path is /unused-by-tests.groovy — file not found,
-    // so we get empty back. Test pins that the no-arg overload uses
-    // adapter.defaultPath().
-    final String result = GroovySettingsHost.INSTANCE.load(new TestAdapter());
-
-    assertEquals(TestAdapter.SENTINEL_EMPTY, result);
+    assertNull("missing file must return null, not adapter.empty()", result);
   }
 
   @Test

@@ -71,15 +71,25 @@ public final class GroovySettingsHost {
   /** Stateless; safe to share across threads. Convenience for callers that don't keep a field. */
   public static final GroovySettingsHost INSTANCE = new GroovySettingsHost();
 
-  /** Load using the adapter's {@link GroovySettingsAdapter#defaultPath default path}. */
-  public <T, A> T load(final GroovySettingsAdapter<T, A> adapter) {
-    return load(adapter, adapter.defaultPath());
-  }
-
   /**
-   * Load a Groovy settings file at {@code classpathPath}. Returns
-   * {@code adapter.empty()} on any failure. Never throws.
+   * Load a Groovy settings file at {@code classpathPath}. Distinguishes the
+   * two failure modes callers may need to handle differently:
+   *
+   * <ul>
+   *   <li>{@code null} — the file does not exist on filesystem or classpath.
+   *       Callers can treat this as "no config supplied" (e.g. unmigrated
+   *       arena, optional fragment).
+   *   <li>{@code adapter.empty()} — the file exists but failed to read,
+   *       compile, or evaluate. The error is logged; the sentinel signals
+   *       "broken config, use defaults" without propagating an exception.
+   * </ul>
+   *
+   * <p>Callers that don't need the distinction should coalesce: {@code cfg ==
+   * null ? adapter.empty() : cfg}.
+   *
+   * <p>Never throws.
    */
+  @Nullable
   public <T, A> T load(final GroovySettingsAdapter<T, A> adapter, final String classpathPath) {
     final String source;
     try {
@@ -89,8 +99,8 @@ public final class GroovySettingsHost {
       return adapter.empty();
     }
     if (source == null) {
-      log.warn("{} not found on filesystem or classpath; using empty", classpathPath);
-      return adapter.empty();
+      log.debug("{} not found on filesystem or classpath; returning null", classpathPath);
+      return null;
     }
     return evaluate(adapter, source, classpathPath);
   }

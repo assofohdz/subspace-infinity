@@ -82,7 +82,10 @@ public final class GroovyZoneLoader {
 
   /** Same contract as {@link #load()} but with a caller-supplied classpath path. */
   public ZoneConfig load(final String classpathPath) {
-    final ZoneConfig cfg = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
+    // Host returns null on file-not-found (a distinction the arena loader needs);
+    // zone treats missing the same as broken — both fall through to EMPTY.
+    final ZoneConfig raw = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
+    final ZoneConfig cfg = raw == null ? ZoneConfig.EMPTY : raw;
     if (cfg != ZoneConfig.EMPTY) {
       log.info(
           "Applied {}: autoLoad={}, enterSpawn='{}'",
@@ -108,11 +111,6 @@ public final class GroovyZoneLoader {
   /** Adapter holding the {@code zone { … }} DSL semantics. */
   private static final class ZoneAdapter
       implements GroovySettingsAdapter<ZoneConfig, ZoneConfigBuilder> {
-
-    @Override
-    public String defaultPath() {
-      return DEFAULT_PATH;
-    }
 
     @Override
     public List<String> allowedImports() {

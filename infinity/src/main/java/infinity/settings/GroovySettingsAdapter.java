@@ -47,12 +47,6 @@ import java.util.List;
 public interface GroovySettingsAdapter<T, A> {
 
   /**
-   * Default classpath-absolute path for this adapter (e.g. {@code "/zone.groovy"}).
-   * Used by the no-arg {@link GroovySettingsHost#load(GroovySettingsAdapter)}.
-   */
-  String defaultPath();
-
-  /**
    * Explicit imports the script may use. Empty list = no explicit imports at
    * all (Groovy's auto-imports — {@code java.lang.*}, {@code java.util.*},
    * etc. — are unaffected). Anything outside this list is rejected at
