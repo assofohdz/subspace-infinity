@@ -243,8 +243,21 @@ public class BitmapSaving {
             rgbReserved = 0;
         }
 
-        public boolean equals(final RGBQuad other) {
-            return (rgbBlue == other.rgbBlue && rgbRed == other.rgbRed && rgbGreen == other.rgbGreen);
+        @Override
+        public boolean equals(final Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof RGBQuad)) {
+                return false;
+            }
+            final RGBQuad o = (RGBQuad) other;
+            return rgbBlue == o.rgbBlue && rgbRed == o.rgbRed && rgbGreen == o.rgbGreen;
+        }
+
+        @Override
+        public int hashCode() {
+            return ((rgbRed & 0xff) << 16) | ((rgbGreen & 0xff) << 8) | (rgbBlue & 0xff);
         }
 
         public void save(final BufferedOutputStream bof) throws IOException {
