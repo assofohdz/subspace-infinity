@@ -95,8 +95,7 @@ Skipped intentionally:
 
 ### Architecture micro-refactors
 
-- **`IEnum` rename + relocate.** [`api/src/infinity/IEnum.java`](../../api/src/infinity/IEnum.java) — Hungarian-prefixed marker interface, only used by [`Bombs.java`](../../api/src/infinity/Bombs.java) + [`Guns.java`](../../api/src/infinity/Guns.java). Rename (`Enumerated` or `BitmaskEnum` depending on the actual contract) and move into a subpackage.
-- **Loose `api/src/infinity/` root files.** Five files at api top level have no clear package: `Ship.java`, `Bombs.java`, `Guns.java`, `BombRegistry.java`, `IEnum.java`. Move into `api/src/infinity/types/` (or absorb into `es/` where applicable). Pairs naturally with the `IEnum` rename.
+- **Loose `api/src/infinity/` root files.** Four files at api top level have no clear package: `Ship.java`, `Bombs.java`, `Guns.java`, `BombRegistry.java`. Move into `api/src/infinity/types/` (or absorb into `es/` where applicable). Note ABI risk — these have ~30 importers across `api/` + `infinity/` + tests; check `modules/` doesn't reach in. ([`IEnum`](../../api/src/infinity/IEnum.java) lived here too; it was removed in commit `cdf762f` after inlining `next()` into the two callers.)
 - **Retire custom `Preconditions`.** [`infinity/util/Preconditions.java`](../../infinity/src/main/java/infinity/util/Preconditions.java) — 230 lines, likely re-implements `java.util.Objects.requireNonNull` and a few `IllegalArgumentException` helpers. Audit call sites, replace with stdlib (or Guava's `Preconditions` if the contract is more elaborate), delete.
 - **Nullable annotation consolidation.** Project pulls in both `javax.annotation.Nullable` (jsr305, 8 files) and `org.jetbrains.annotations.Nullable` (1 file: [`api/sim/GameSounds.java`](../../api/src/infinity/sim/GameSounds.java)). Migrate the single jetbrains site to `javax.annotation`, drop the `org.jetbrains:annotations` dep. See [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
 
