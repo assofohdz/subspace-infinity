@@ -34,13 +34,15 @@ import com.simsilica.es.EntityId;
  */
 public class ArenaId implements EntityComponent {
 
-  private String arena;
-  private EntityId owner;
+  private final String arena;
+  private final EntityId owner;
 
   // For serialization
-  public ArenaId() {}
+  public ArenaId() {
+    this(null, null);
+  }
 
-  public ArenaId(final String arenaId, EntityId owner) {
+  public ArenaId(final String arenaId, final EntityId owner) {
     this.arena = arenaId;
     this.owner = owner;
   }

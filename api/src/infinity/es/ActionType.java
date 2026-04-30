@@ -35,9 +35,10 @@ import com.simsilica.es.EntityData;
  */
 public class ActionType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected ActionType() {
+        this(0);
     }
 
     public ActionType(final int type) {

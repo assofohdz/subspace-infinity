@@ -34,7 +34,11 @@ import com.simsilica.mathd.Vec3d;
  */
 public class WarpTo implements EntityComponent {
 
-    Vec3d targetLocation;
+    private final Vec3d targetLocation;
+
+    public WarpTo() {
+        this(new Vec3d());
+    }
 
     public WarpTo(final Vec3d targetLocation) {
         this.targetLocation = targetLocation;

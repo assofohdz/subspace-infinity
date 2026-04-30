@@ -40,6 +40,10 @@ public class GravityWell implements EntityComponent {
     private final double force;
     private final String gravityType;
 
+    public GravityWell() {
+        this(0.0, 0.0, null);
+    }
+
     public GravityWell(final double distance, final double force, final String gravityType) {
         this.distance = distance;
         this.force = Math.abs(force);

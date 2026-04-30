@@ -30,24 +30,23 @@ import com.simsilica.es.EntityComponent;
 
 public class Door implements EntityComponent {
 
-  private long interval;
-  private long endTime;
+  private final long interval;
+  private final long endTime;
+
+  public Door() {
+    this(0L, 0L);
+  }
+
+  public Door(final long createdTime, final long interval) {
+    this.endTime = createdTime + interval;
+    this.interval = interval;
+  }
 
   public long getEndTime() {
     return endTime;
   }
 
-  public Door() {
-    //For serialization
-  }
-
   public long getInterval() {
     return interval;
-  }
-
-
-  public Door ( long createdTime, long interval) {
-    this.endTime = createdTime + interval;
-    this.interval = interval;
   }
 }

@@ -36,12 +36,16 @@ public class ThorCurrentCount implements EntityComponent {
 
     private final int count;
 
-    public int getCount() {
-        return count;
+    public ThorCurrentCount() {
+        this(0);
     }
 
     public ThorCurrentCount(final int count) {
         this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 
     public ThorCurrentCount add(final int count) {

@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class MineCost implements EntityComponent {
 
-    int cost;
+    private final int cost;
 
-    public int getCost() {
-        return cost;
+    public MineCost() {
+        this(0);
     }
 
     public MineCost(final int cost) {
         this.cost = cost;
+    }
+
+    public int getCost() {
+        return cost;
     }
 }

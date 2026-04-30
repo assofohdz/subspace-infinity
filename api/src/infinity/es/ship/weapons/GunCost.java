@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class GunCost implements EntityComponent {
 
-    int cost;
+    private final int cost;
 
-    public int getCost() {
-        return cost;
+    public GunCost() {
+        this(0);
     }
 
     public GunCost(final int cost) {
         this.cost = cost;
+    }
+
+    public int getCost() {
+        return cost;
     }
 }

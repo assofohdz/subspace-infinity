@@ -32,13 +32,17 @@ package infinity.es.ship.weapons;
  */
 public class DoubleBarrel {
 
-    boolean doubleBarrel;
+    private final boolean doubleBarrel;
 
-    public boolean isDoubleBarrel() {
-        return doubleBarrel;
+    public DoubleBarrel() {
+        this(false);
     }
 
     public DoubleBarrel(final boolean doubleBarrel) {
         this.doubleBarrel = doubleBarrel;
+    }
+
+    public boolean isDoubleBarrel() {
+        return doubleBarrel;
     }
 }

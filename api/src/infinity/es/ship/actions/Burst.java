@@ -36,6 +36,10 @@ public class Burst implements EntityComponent {
 
     private final int count;
 
+    public Burst() {
+        this(0);
+    }
+
     public Burst(final int count) {
         this.count = count;
     }

@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class Decoy implements EntityComponent {
 
-    int count;
+    private final int count;
 
-    public int getCount() {
-        return count;
+    public Decoy() {
+        this(0);
     }
 
     public Decoy(final int count) {
         this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

@@ -33,13 +33,17 @@ package infinity.es.ship.toggles;
  */
 public class StealthStatus {
 
-    int status;
+    private final int status;
 
-    public int getStatus() {
-        return status;
+    public StealthStatus() {
+        this(0);
     }
 
     public StealthStatus(final int status) {
         this.status = status;
+    }
+
+    public int getStatus() {
+        return status;
     }
 }

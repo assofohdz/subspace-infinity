@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class Rocket implements EntityComponent {
 
-    int count;
+    private final int count;
 
-    public int getCount() {
-        return count;
+    public Rocket() {
+        this(0);
     }
 
     public Rocket(final int count) {
         this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

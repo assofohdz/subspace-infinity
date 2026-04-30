@@ -34,13 +34,17 @@ import com.simsilica.es.EntityId;
  */
 public class SteeringSeek implements EntityComponent {
 
-    EntityId target;
+    private final EntityId target;
 
-    public EntityId getTarget() {
-        return target;
+    public SteeringSeek() {
+        this(null);
     }
 
     public SteeringSeek(final EntityId target) {
         this.target = target;
+    }
+
+    public EntityId getTarget() {
+        return target;
     }
 }

@@ -34,19 +34,23 @@ import com.simsilica.mathd.Vec3d;
  */
 public class WarpTouch implements EntityComponent {
 
-    double targetAreaRadius; // The uncertainty of where you pop up
-    Vec3d targetLocation; // The target area for warping to{
+    private final double targetAreaRadius; // The uncertainty of where you pop up
+    private final Vec3d targetLocation; // The target area for warping to
+
+    public WarpTouch() {
+        this(0.0, null);
+    }
+
+    public WarpTouch(final Vec3d targetLocation) {
+        this(0.0, targetLocation);
+    }
 
     public WarpTouch(final double targetAreaRadius, final Vec3d targetLocation) {
         this.targetAreaRadius = targetAreaRadius;
         this.targetLocation = targetLocation;
-        this.targetLocation.y = 1;
-    }
-
-    public WarpTouch(final Vec3d targetLocation) {
-        this.targetLocation = targetLocation;
-        this.targetLocation.y = 1;
-        targetAreaRadius = 0.0d;
+        if (this.targetLocation != null) {
+            this.targetLocation.y = 1;
+        }
     }
 
     public double getTargetAreaRadius() {

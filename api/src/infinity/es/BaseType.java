@@ -30,9 +30,10 @@ import com.simsilica.es.EntityData;
 
 public class BaseType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected BaseType() {
+        this(0);
     }
 
     public BaseType(final int type) {

@@ -31,11 +31,11 @@ import org.ini4j.Ini;
 
 public class ArenaSettings implements EntityComponent {
 
-  private String arenaName;
-  private Ini settings;
+  private final String arenaName;
+  private final Ini settings;
 
   public ArenaSettings() {
-    //For serialization
+    this(null, null);
   }
 
   public ArenaSettings(final String arenaName, final Ini settings) {

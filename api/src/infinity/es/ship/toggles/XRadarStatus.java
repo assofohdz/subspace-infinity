@@ -33,13 +33,17 @@ package infinity.es.ship.toggles;
  */
 public class XRadarStatus {
 
-    int status;
+    private final int status;
 
-    public int getStatus() {
-        return status;
+    public XRadarStatus() {
+        this(0);
     }
 
     public XRadarStatus(final int status) {
         this.status = status;
+    }
+
+    public int getStatus() {
+        return status;
     }
 }

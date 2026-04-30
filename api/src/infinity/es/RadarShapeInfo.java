@@ -46,9 +46,10 @@ import com.simsilica.es.EntityData;
  */
 public class RadarShapeInfo implements EntityComponent {
 
-    private int shapeName;
+    private final int shapeName;
 
     protected RadarShapeInfo() {
+        this(0);
     }
 
     public RadarShapeInfo(final int shapeName) {

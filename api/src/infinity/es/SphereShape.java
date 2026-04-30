@@ -30,12 +30,13 @@ import com.simsilica.es.EntityComponent;
 
 public class SphereShape implements EntityComponent {
 
-    private double radius;
+    private final double radius;
 
     protected SphereShape() {
+        this(0.0);
     }
 
-    public SphereShape(double radius){
+    public SphereShape(final double radius) {
         this.radius = radius;
     }
 

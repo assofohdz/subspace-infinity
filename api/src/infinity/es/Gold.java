@@ -33,9 +33,10 @@ import com.simsilica.es.EntityComponent;
  */
 public class Gold implements EntityComponent {
 
-    private int gold;
+    private final int gold;
 
     public Gold() {
+        this(0);
     }
 
     public Gold(final int gold) {

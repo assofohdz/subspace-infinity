@@ -34,12 +34,12 @@ import com.simsilica.es.EntityId;
  * @author Paul Speed
  */
 public class Buff implements EntityComponent {
-    private EntityId target;
+    private final EntityId target;
     // private EntityId source;
-    private long startTime;
+    private final long startTime;
 
     public Buff() {
-        super();
+        this(null, 0L);
     }
 
     public Buff(final EntityId target, final long startTime) {

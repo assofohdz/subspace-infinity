@@ -32,10 +32,10 @@ import com.simsilica.es.EntityComponent;
  * @author ss
  */
 public class AttackRate implements EntityComponent {
-    private int rate; // [ms]
+    private final int rate; // [ms]
 
     public AttackRate() {
-
+        this(0);
     }
 
     public AttackRate(final int rate) {

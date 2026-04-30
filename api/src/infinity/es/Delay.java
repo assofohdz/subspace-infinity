@@ -44,6 +44,10 @@ public class Delay implements EntityComponent {
     private final HashSet<EntityComponent> delayedComponents;
     private final String type;
 
+    public Delay() {
+        this(0L, null, null);
+    }
+
     public Delay(final long deltaMillis, final HashSet<EntityComponent> delayedComponents, final String type) {
         start = System.nanoTime();
         delta = deltaMillis * 1000000;

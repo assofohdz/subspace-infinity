@@ -35,13 +35,22 @@ import com.simsilica.es.EntityComponent;
  */
 public class Spawner implements EntityComponent {
 
-  private boolean weighted;
-  private int maxCount;
-  private SpawnType type;
+  private final boolean weighted;
+  private final int maxCount;
+  private final SpawnType type;
   // Add option to have a spawn interval between spawning, in milliseconds
-  private double spawnInterval;
+  private final double spawnInterval;
   // add option to spawn on the radius or in the circle
-  private boolean spawnOnRing;
+  private final boolean spawnOnRing;
+
+  public Spawner() {
+    this(0, 0.0, false, null, false);
+  }
+
+  public Spawner(final SpawnType type) {
+    this(0, 0.0, false, type, false);
+  }
+
   public Spawner(
       final int maxCount,
       final double spawnInterval,
@@ -53,12 +62,6 @@ public class Spawner implements EntityComponent {
     this.spawnInterval = spawnInterval;
     this.spawnOnRing = spawnAllOver;
     this.weighted = weighted;
-  }
-
-  public Spawner() {}
-
-  public Spawner(final SpawnType type) {
-    this.type = type;
   }
 
   public boolean isWeighted() {

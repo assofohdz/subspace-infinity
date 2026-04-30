@@ -50,14 +50,15 @@ public class CharacterInput implements EntityComponent {
     public static final byte NONE = 0x0;
     public static final byte JUMP = 0x1;
 
-    private Vec3d move;
-    private Quatd facing;
-    private byte flags;
+    private final Vec3d move;
+    private final Quatd facing;
+    private final byte flags;
 
     private CharacterInput() {
+        this(null, null, NONE);
     }
 
-    public CharacterInput( Vec3d move, Quatd facing, byte flags ) {
+    public CharacterInput(final Vec3d move, final Quatd facing, final byte flags) {
         this.move = move;
         this.facing = facing;
         this.flags = flags;

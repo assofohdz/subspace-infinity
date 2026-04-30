@@ -33,9 +33,10 @@ import com.simsilica.es.EntityComponent;
  * @author Paul Speed
  */
 public class Dead implements EntityComponent {
-    private long time;
+    private final long time;
 
     public Dead() {
+        this(0L);
     }
 
     public Dead(final long time) {

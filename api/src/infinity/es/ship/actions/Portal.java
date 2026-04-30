@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class Portal implements EntityComponent {
 
-    int count;
+    private final int count;
 
-    public int getCount() {
-        return count;
+    public Portal() {
+        this(0);
     }
 
     public Portal(final int count) {
         this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

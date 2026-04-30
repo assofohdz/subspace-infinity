@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class PortalMax implements EntityComponent {
 
-    int max;
+    private final int max;
 
-    public int getCount() {
-        return max;
+    public PortalMax() {
+        this(0);
     }
 
     public PortalMax(final int count) {
         max = count;
+    }
+
+    public int getCount() {
+        return max;
     }
 }

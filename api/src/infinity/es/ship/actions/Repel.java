@@ -34,14 +34,18 @@ import com.simsilica.es.EntityComponent;
  */
 public class Repel implements EntityComponent {
 
-    int count;
+    private final int count;
 
-    public int getCount() {
-        return count;
+    public Repel() {
+        this(0);
     }
 
     public Repel(final int count) {
         this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 
     public Repel decrement(final int decrement) {

@@ -35,13 +35,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class StealthEnergy implements EntityComponent {
 
-    int energyDrain;
+    private final int energyDrain;
 
-    public int getEnergy() {
-        return energyDrain;
+    public StealthEnergy() {
+        this(0);
     }
 
     public StealthEnergy(final int energyDrain) {
         this.energyDrain = energyDrain;
+    }
+
+    public int getEnergy() {
+        return energyDrain;
     }
 }

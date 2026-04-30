@@ -36,7 +36,11 @@ import infinity.sim.CategoryFilter;
  */
 public class CollisionCategory implements EntityComponent {
 
-    CategoryFilter filter;
+    private final CategoryFilter filter;
+
+    public CollisionCategory() {
+        this(null);
+    }
 
     public CollisionCategory(final CategoryFilter filter) {
         this.filter = filter;
@@ -45,5 +49,4 @@ public class CollisionCategory implements EntityComponent {
     public CategoryFilter getFilter() {
         return filter;
     }
-
 }

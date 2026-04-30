@@ -34,7 +34,11 @@ import infinity.Bombs;
  */
 public class GravityBomb implements EntityComponent {
 
-    Bombs level;
+    private final Bombs level;
+
+    public GravityBomb() {
+        this(null);
+    }
 
     public GravityBomb(final Bombs level) {
         this.level = level;

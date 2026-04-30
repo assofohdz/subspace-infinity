@@ -33,9 +33,10 @@ import com.simsilica.es.EntityComponent;
  */
 public class Bounty implements EntityComponent {
 
-    private int bounty;
+    private final int bounty;
 
     public Bounty() {
+        this(0);
     }
 
     public Bounty(final int bounty) {

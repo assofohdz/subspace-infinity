@@ -34,7 +34,11 @@ import infinity.Bombs;
  */
 public class MineCurrentLevel implements EntityComponent {
 
-    Bombs level;
+    private final Bombs level;
+
+    public MineCurrentLevel() {
+        this(null);
+    }
 
     public MineCurrentLevel(final Bombs level) {
         this.level = level;

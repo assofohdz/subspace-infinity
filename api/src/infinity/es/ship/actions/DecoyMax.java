@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class DecoyMax implements EntityComponent {
 
-    int max;
+    private final int max;
 
-    public int getCount() {
-        return max;
+    public DecoyMax() {
+        this(0);
     }
 
     public DecoyMax(final int count) {
         max = count;
+    }
+
+    public int getCount() {
+        return max;
     }
 }

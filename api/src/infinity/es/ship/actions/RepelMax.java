@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class RepelMax implements EntityComponent {
 
-    int max;
+    private final int max;
 
-    public int getCount() {
-        return max;
+    public RepelMax() {
+        this(0);
     }
 
     public RepelMax(final int count) {
         max = count;
+    }
+
+    public int getCount() {
+        return max;
     }
 }

@@ -33,9 +33,10 @@ import com.simsilica.es.EntityComponent;
  */
 public class AttackRange implements EntityComponent {
 
-    private double range;
+    private final double range;
 
     public AttackRange() {
+        this(0.0);
     }
 
     public AttackRange(final double range) {

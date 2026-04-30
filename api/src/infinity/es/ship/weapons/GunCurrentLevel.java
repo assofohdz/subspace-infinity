@@ -35,7 +35,11 @@ import infinity.Guns;
  */
 public class GunCurrentLevel implements EntityComponent {
 
-    Guns level;
+    private final Guns level;
+
+    public GunCurrentLevel() {
+        this(null);
+    }
 
     public GunCurrentLevel(final Guns level) {
         this.level = level;

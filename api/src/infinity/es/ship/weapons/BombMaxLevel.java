@@ -35,7 +35,11 @@ import infinity.Bombs;
  */
 public class BombMaxLevel implements EntityComponent {
 
-    Bombs level;
+    private final Bombs level;
+
+    public BombMaxLevel() {
+        this(null);
+    }
 
     public BombMaxLevel(final Bombs level) {
         this.level = level;

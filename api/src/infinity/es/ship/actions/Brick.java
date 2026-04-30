@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class Brick implements EntityComponent {
 
-    int count;
+    private final int count;
 
-    public int getCount() {
-        return count;
+    public Brick() {
+        this(0);
     }
 
     public Brick(final int count) {
         this.count = count;
+    }
+
+    public int getCount() {
+        return count;
     }
 }

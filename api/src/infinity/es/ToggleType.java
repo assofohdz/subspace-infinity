@@ -35,9 +35,10 @@ import com.simsilica.es.EntityData;
  */
 public class ToggleType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected ToggleType() {
+        this(0);
     }
 
     public ToggleType(final int type) {

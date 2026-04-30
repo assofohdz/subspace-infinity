@@ -53,13 +53,14 @@ public class ProbeInfo implements EntityComponent {
     // set of query flags set by the using driver.
     // We'll also put them directly on the entity until
     // we have some use-case for multiple probes.
-    private Vec3d offset;
-    private double radius;
+    private final Vec3d offset;
+    private final double radius;
 
     protected ProbeInfo() {
+        this(null, 0.0);
     }
 
-    public ProbeInfo( Vec3d offset, double radius ) {
+    public ProbeInfo(final Vec3d offset, final double radius) {
         this.offset = offset;
         this.radius = radius;
     }

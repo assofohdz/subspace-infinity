@@ -35,13 +35,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class CloakEnergy implements EntityComponent {
 
-    int energyDrain;
+    private final int energyDrain;
 
-    public int getEnergy() {
-        return energyDrain;
+    public CloakEnergy() {
+        this(0);
     }
 
     public CloakEnergy(final int energyDrain) {
         this.energyDrain = energyDrain;
+    }
+
+    public int getEnergy() {
+        return energyDrain;
     }
 }

@@ -34,7 +34,11 @@ import com.simsilica.es.EntityComponent;
  */
 public class Meta implements EntityComponent {
 
-    long timeCreated;
+    private final long timeCreated;
+
+    public Meta() {
+        this(0L);
+    }
 
     public Meta(final long timeCreated) {
         this.timeCreated = timeCreated;
@@ -43,5 +47,4 @@ public class Meta implements EntityComponent {
     public long getTimeCreated() {
         return timeCreated;
     }
-
 }

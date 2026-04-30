@@ -49,13 +49,14 @@ import com.simsilica.es.*;
 public class Speech implements EntityComponent {
     static Logger log = LoggerFactory.getLogger(Speech.class);
 
-    private EntityId speaker;
-    private String text;
+    private final EntityId speaker;
+    private final String text;
 
     protected Speech() {
+        this(null, null);
     }
 
-    public Speech( EntityId speaker, String text ) {
+    public Speech(final EntityId speaker, final String text) {
         this.speaker = speaker;
         this.text = text;
     }

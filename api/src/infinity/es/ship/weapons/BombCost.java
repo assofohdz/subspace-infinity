@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class BombCost implements EntityComponent {
 
-    int cost;
+    private final int cost;
 
-    public int getCost() {
-        return cost;
+    public BombCost() {
+        this(0);
     }
 
     public BombCost(final int cost) {
         this.cost = cost;
+    }
+
+    public int getCost() {
+        return cost;
     }
 }

@@ -35,13 +35,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class XRadarEnergy implements EntityComponent {
 
-    int energyDrain;
+    private final int energyDrain;
 
-    public int getEnergy() {
-        return energyDrain;
+    public XRadarEnergy() {
+        this(0);
     }
 
     public XRadarEnergy(final int energyDrain) {
         this.energyDrain = energyDrain;
+    }
+
+    public int getEnergy() {
+        return energyDrain;
     }
 }

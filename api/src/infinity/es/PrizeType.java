@@ -34,9 +34,10 @@ import com.simsilica.es.EntityData;
  */
 public class PrizeType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected PrizeType() {
+        this(0);
     }
 
     public PrizeType(final int type) {

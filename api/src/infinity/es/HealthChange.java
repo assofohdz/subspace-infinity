@@ -35,9 +35,10 @@ import com.simsilica.es.EntityComponent;
  * @author Paul Speed
  */
 public class HealthChange implements EntityComponent {
-    private int delta;
+    private final int delta;
 
     public HealthChange() {
+        this(0);
     }
 
     public HealthChange(final int delta) {

@@ -30,9 +30,10 @@ import com.simsilica.es.EntityData;
 
 public class MobType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected MobType() {
+        this(0);
     }
 
     public MobType(final int type) {

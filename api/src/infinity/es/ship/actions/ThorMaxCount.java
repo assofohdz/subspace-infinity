@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class ThorMaxCount implements EntityComponent {
 
-    int max;
+    private final int max;
 
-    public int getCount() {
-        return max;
+    public ThorMaxCount() {
+        this(0);
     }
 
     public ThorMaxCount(final int count) {
         max = count;
+    }
+
+    public int getCount() {
+        return max;
     }
 }

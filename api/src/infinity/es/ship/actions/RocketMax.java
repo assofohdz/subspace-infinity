@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class RocketMax implements EntityComponent {
 
-    int max;
+    private final int max;
 
-    public int getCount() {
-        return max;
+    public RocketMax() {
+        this(0);
     }
 
     public RocketMax(final int count) {
         max = count;
+    }
+
+    public int getCount() {
+        return max;
     }
 }

@@ -35,9 +35,10 @@ import com.simsilica.es.EntityData;
  */
 public class AudioType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected AudioType() {
+        this(0);
     }
 
     public AudioType(final int type) {

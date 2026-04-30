@@ -34,13 +34,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class BrickMax implements EntityComponent {
 
-    int max;
+    private final int max;
 
-    public int getCount() {
-        return max;
+    public BrickMax() {
+        this(0);
     }
 
     public BrickMax(final int count) {
         max = count;
+    }
+
+    public int getCount() {
+        return max;
     }
 }

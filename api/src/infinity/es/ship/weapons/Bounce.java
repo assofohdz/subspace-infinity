@@ -36,6 +36,10 @@ public class Bounce implements EntityComponent {
 
   private final int bounces;
 
+  public Bounce() {
+    this(0);
+  }
+
   public Bounce(final int bounces) {
     this.bounces = bounces;
   }

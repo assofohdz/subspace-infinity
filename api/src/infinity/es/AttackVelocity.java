@@ -32,10 +32,10 @@ import com.simsilica.es.EntityComponent;
  * @author ss
  */
 public class AttackVelocity implements EntityComponent {
-    private double velocity;
+    private final double velocity;
 
     public AttackVelocity() {
-
+        this(0.0);
     }
 
     public AttackVelocity(final double velocity) {

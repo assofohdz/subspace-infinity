@@ -33,13 +33,17 @@ package infinity.es.ship.toggles;
  */
 public class CloakStatus {
 
-    int status;
+    private final int status;
 
-    public int getStatus() {
-        return status;
+    public CloakStatus() {
+        this(0);
     }
 
     public CloakStatus(final int status) {
         this.status = status;
+    }
+
+    public int getStatus() {
+        return status;
     }
 }

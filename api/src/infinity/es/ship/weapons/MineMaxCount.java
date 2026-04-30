@@ -35,7 +35,11 @@ import com.simsilica.es.EntityComponent;
  */
 public class MineMaxCount implements EntityComponent {
 
-  int max;
+  private final int max;
+
+  public MineMaxCount() {
+    this(0);
+  }
 
   public MineMaxCount(final int count) {
     max = count;

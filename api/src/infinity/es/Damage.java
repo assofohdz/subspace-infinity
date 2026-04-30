@@ -40,18 +40,22 @@ public class Damage implements EntityComponent {
     private final int intendedDamage;
     private final ShapeInfo explosionShape;
 
+    public Damage() {
+        this(0L, 0, null);
+    }
+
+    public Damage(final long explosionDecay, final int intendedDamage, final ShapeInfo explosionShape) {
+        this.explosionDecay = explosionDecay;
+        this.intendedDamage = intendedDamage;
+        this.explosionShape = explosionShape;
+    }
+
     public ShapeInfo getExplosionShape() {
         return explosionShape;
     }
 
     public long getExplosionDecay() {
         return explosionDecay;
-    }
-
-    public Damage(long explosionDecay, final int intendedDamage, ShapeInfo explosionShape) {
-        this.explosionDecay = explosionDecay;
-        this.intendedDamage = intendedDamage;
-        this.explosionShape = explosionShape;
     }
 
     public int getIntendedDamage() {

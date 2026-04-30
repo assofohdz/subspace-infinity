@@ -35,9 +35,10 @@ import com.simsilica.es.EntityData;
  */
 public class WeaponType implements EntityComponent {
 
-    private int type;
+    private final int type;
 
     protected WeaponType() {
+        this(0);
     }
 
     public WeaponType(final int type) {

@@ -35,13 +35,17 @@ import infinity.Bombs;
  */
 public class MineMaxLevel implements EntityComponent {
 
-    Bombs level;
+    private final Bombs level;
 
-    public Bombs getLevel() {
-        return level;
+    public MineMaxLevel() {
+        this(null);
     }
 
     public MineMaxLevel(final Bombs count) {
         level = count;
+    }
+
+    public Bombs getLevel() {
+        return level;
     }
 }

@@ -33,10 +33,10 @@ import com.simsilica.es.EntityComponent;
  */
 public class Frequency implements EntityComponent {
 
-    private int freq;
+    private final int freq;
 
     public Frequency() {
-
+        this(0);
     }
 
     public Frequency(final int freq) {

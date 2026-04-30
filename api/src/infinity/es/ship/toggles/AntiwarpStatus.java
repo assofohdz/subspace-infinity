@@ -33,13 +33,17 @@ package infinity.es.ship.toggles;
  */
 public class AntiwarpStatus {
 
-    int status;
+    private final int status;
 
-    public int getStatus() {
-        return status;
+    public AntiwarpStatus() {
+        this(0);
     }
 
     public AntiwarpStatus(final int status) {
         this.status = status;
+    }
+
+    public int getStatus() {
+        return status;
     }
 }
