@@ -29,20 +29,14 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import groovy.lang.GroovyShell;
 import infinity.Ship;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nullable;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
@@ -52,14 +46,20 @@ import org.slf4j.LoggerFactory;
  * Evaluates a Groovy preset fragment script and returns its content as an
  * {@link Ini} so it can merge into the per-arena settings store via
  * {@link SettingsSystem#loadFragments} alongside the still-INI fragments.
+ * Thin facade over {@link GroovySettingsHost} for the I/O + eval pipeline;
+ * the recursive {@code include} directive is owned here because the
+ * accumulator (Ini) and cycle-detection stack must persist across each
+ * include re-entry.
  *
- * <p>Mirrors {@link GroovyShipLoader} / {@link GroovyZoneLoader} in style:
- * filesystem-first dev-mode read, classpath fallback for packaged jars, and a
- * "log + return null" failure mode so a broken fragment never throws past the
- * caller. The caller (currently {@code SettingsSystem.loadFragments}) treats a
- * {@code null} return as "skip this fragment, log the warning, keep going" —
- * matching how the legacy {@code IniLoader} dispatch already handles missing
- * fragments.
+ * <p>Failure modes:
+ *
+ * <ul>
+ *   <li><b>Missing file or eval error</b> — log + return {@code null}. Callers
+ *       (currently {@code SettingsSystem.loadFragments}) treat {@code null}
+ *       as "skip this fragment, keep going."
+ *   <li><b>Include cycle / depth violation</b> — propagated as
+ *       {@link IllegalStateException}. Author bug; do not soft-skip.
+ * </ul>
  *
  * <p>Script DSL:
  *
@@ -78,17 +78,13 @@ import org.slf4j.LoggerFactory;
  *     InitialBurst 1
  *     InitialDecoy 2
  * }
+ *
+ * include '/conf/svs/cost.groovy'
  * }</pre>
  *
- * <p>The {@code Ship} enum is on the classpath of the script (via the imports
- * customizer) for parity with {@code ships.groovy}, even though the DSL takes
- * ship names as strings (so unmigrated keys can stay verbatim from the INI
- * surface). Inside a {@code shipSection} / {@code shipSections} block the name
- * is validated against {@link Ship} so typos fail loudly.
- *
- * <p>Recursive {@code include '/conf/.../x.groovy'} support is intentionally
- * deferred — it lands when the first preset that needs it migrates
- * ({@code svs-league/}, which composes {@code svs/} with overrides).
+ * <p>The {@code Ship} enum is added as a default import (and whitelisted) by
+ * the host. Inside a {@code shipSection} / {@code shipSections} block the
+ * name is validated against {@link Ship} so typos fail loudly.
  */
 public final class GroovyFragmentLoader {
 
@@ -151,7 +147,7 @@ public final class GroovyFragmentLoader {
     }
     final String source;
     try {
-      source = readSource(classpathPath);
+      source = GroovySettingsHost.INSTANCE.readSource(classpathPath);
     } catch (final IOException e) {
       log.warn("Fragment {} failed to read", classpathPath, e);
       return false;
@@ -162,7 +158,8 @@ public final class GroovyFragmentLoader {
     }
     stack.push(classpathPath);
     try {
-      evaluateInto(source, classpathPath, ini, stack);
+      final FragmentAdapter adapter = new FragmentAdapter(this, ini, stack);
+      GroovySettingsHost.INSTANCE.evaluateOrThrow(adapter, source, classpathPath);
     } catch (final IllegalStateException cycleOrDepth) {
       // Author bug — propagate so the outermost load() reports it instead of swallowing.
       throw cycleOrDepth;
@@ -196,39 +193,7 @@ public final class GroovyFragmentLoader {
    */
   @Nullable
   public Path resolveOnDisk(final String classpathPath) {
-    if (classpathPath == null || classpathPath.isBlank()) {
-      return null;
-    }
-    final String relative =
-        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
-    for (final Path p : candidates) {
-      if (Files.isReadable(p)) {
-        return p;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  private String readSource(final String classpathPath) throws IOException {
-    // Dev mode: filesystem-first so edits show up without a rebuild. Same
-    // rationale as GroovyShipLoader.readSource — Gradle's :infinity:run sets
-    // the JVM working directory to the infinity/ subproject and zone/ is the
-    // resource root, so /conf/x.groovy on the classpath maps to zone/conf/x.groovy
-    // on disk. The "infinity/zone" candidate covers running from the project root.
-    final Path onDisk = resolveOnDisk(classpathPath);
-    if (onDisk != null) {
-      log.debug("Reading {} from filesystem source: {}", classpathPath, onDisk);
-      return Files.readString(onDisk, StandardCharsets.UTF_8);
-    }
-    try (InputStream is = getClass().getResourceAsStream(classpathPath)) {
-      if (is == null) {
-        return null;
-      }
-      log.debug("Reading {} from classpath", classpathPath);
-      return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-    }
+    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
   /**
@@ -237,37 +202,74 @@ public final class GroovyFragmentLoader {
    * through {@link #load} (and recursive {@code include} calls re-enter via
    * {@link #loadInto}).
    *
-   * <p>Kept on the class for test-source compatibility; internally delegates to
-   * {@link #evaluateInto} with a fresh {@link Ini} and a stack pre-seeded with
-   * {@code path} so an {@code include} of the same path is treated as a cycle.
+   * <p>The stack is pre-seeded with {@code path} so an {@code include} of
+   * the same path is treated as a 1-step cycle, matching production
+   * semantics.
    */
   Ini evaluate(final String source, final String path) {
     final Ini ini = new Ini();
     final Deque<String> stack = new ArrayDeque<>();
     stack.push(path);
     try {
-      evaluateInto(source, path, ini, stack);
+      final FragmentAdapter adapter = new FragmentAdapter(this, ini, stack);
+      GroovySettingsHost.INSTANCE.evaluateOrThrow(adapter, source, path);
     } finally {
       stack.pop();
     }
     return ini;
   }
 
-  private void evaluateInto(
-      final String source, final String path, final Ini ini, final Deque<String> stack) {
-    final CompilerConfiguration cc = new CompilerConfiguration();
-    final ImportCustomizer imports = new ImportCustomizer();
-    imports.addImports(Ship.class.getName());
-    cc.addCompilationCustomizers(imports);
+  /**
+   * Adapter holding the fragment DSL semantics. Stateful: each instance is
+   * scoped to one evaluation (one outer {@code load} or one {@code include}
+   * re-entry), carrying the shared accumulator {@link Ini} and the
+   * cycle-detection {@code stack}.
+   */
+  private static final class FragmentAdapter implements GroovySettingsAdapter<Ini, Ini> {
 
-    final Binding binding = new Binding();
-    binding.setVariable("section", new SectionClosure(ini, /* validateAsShip */ false));
-    binding.setVariable("shipSection", new SectionClosure(ini, /* validateAsShip */ true));
-    binding.setVariable("shipSections", new ShipSectionsClosure(ini));
-    binding.setVariable("include", new IncludeClosure(this, ini, stack));
+    /**
+     * Sentinel returned by {@link #empty} when an outer caller hits the
+     * normal {@link GroovySettingsHost#load} path. Never observed in
+     * fragment usage today — {@link GroovyFragmentLoader} drives evaluation
+     * via {@link GroovySettingsHost#evaluateOrThrow} so it can do its own
+     * exception classification.
+     */
+    private static final Ini SENTINEL_BROKEN = new Ini();
 
-    final GroovyShell shell = new GroovyShell(binding, cc);
-    shell.evaluate(source, path);
+    private final GroovyFragmentLoader loader;
+    private final Ini ini;
+    private final Deque<String> stack;
+
+    FragmentAdapter(final GroovyFragmentLoader loader, final Ini ini, final Deque<String> stack) {
+      this.loader = loader;
+      this.ini = ini;
+      this.stack = stack;
+    }
+
+    @Override
+    public List<String> allowedImports() {
+      // Ship enum is the only class fragment scripts reference directly.
+      return List.of(Ship.class.getName());
+    }
+
+    @Override
+    public Ini bind(final Binding binding) {
+      binding.setVariable("section", new SectionClosure(ini, /* validateAsShip */ false));
+      binding.setVariable("shipSection", new SectionClosure(ini, /* validateAsShip */ true));
+      binding.setVariable("shipSections", new ShipSectionsClosure(ini));
+      binding.setVariable("include", new IncludeClosure(loader, ini, stack));
+      return ini;
+    }
+
+    @Override
+    public Ini extract(final Ini accumulator) {
+      return accumulator;
+    }
+
+    @Override
+    public Ini empty() {
+      return SENTINEL_BROKEN;
+    }
   }
 
   /**

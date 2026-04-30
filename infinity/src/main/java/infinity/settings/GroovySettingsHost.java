@@ -126,6 +126,23 @@ public final class GroovySettingsHost {
   }
 
   /**
+   * Evaluate a Groovy source string and propagate any exception. Same as
+   * {@link #evaluate} but without the catch-all — used by adapters whose
+   * caller logic needs to distinguish exception classes (e.g.
+   * {@link GroovyFragmentLoader} re-throws cycle / depth
+   * {@link IllegalStateException}s but soft-skips ordinary parse / eval
+   * errors).
+   *
+   * <p>Package-private; production callers should prefer {@link #load} or
+   * {@link #evaluate}.
+   */
+  <T, A> T evaluateOrThrow(
+      final GroovySettingsAdapter<T, A> adapter, final String source, final String sourceName) {
+    return evaluateInternal(adapter, source, sourceName);
+  }
+
+
+  /**
    * Resolve {@code classpathPath} to an on-disk file when a dev-mode source
    * exists, or {@code null} when only the classpath copy is reachable.
    * Public so file watchers (e.g. arena ships.groovy reload) can stat / poll
@@ -153,8 +170,20 @@ public final class GroovySettingsHost {
     return null;
   }
 
+  /**
+   * Read a Groovy source file at {@code classpathPath}. Filesystem-first
+   * dev-mode lookup, classpath fallback for packaged jars. Returns
+   * {@code null} when neither candidate is reachable; throws on actual I/O
+   * errors so callers can distinguish "file does not exist" (recoverable)
+   * from "file exists but cannot be read" (probably a real problem).
+   *
+   * <p>Package-private; production callers go through {@link #load}.
+   * Exposed for {@link GroovyFragmentLoader}'s recursive {@code include}
+   * pipeline, which needs to read each included source separately while
+   * sharing a single accumulator across the whole tree.
+   */
   @Nullable
-  private String readSource(final String classpathPath) throws IOException {
+  String readSource(final String classpathPath) throws IOException {
     final Path onDisk = resolveOnDisk(classpathPath);
     if (onDisk != null) {
       log.debug("Reading {} from filesystem source: {}", classpathPath, onDisk);
