@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.settings;
+package infinity.systems;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -81,6 +81,9 @@ import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineMaxLevel;
+import infinity.settings.ConfigRegistry;
+import infinity.settings.ConfigRegistrySystem;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

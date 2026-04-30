@@ -51,7 +51,6 @@ import infinity.es.arena.ArenaId;
 import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovyShipLoader;
 import infinity.settings.GroovyZoneLoader;
-import infinity.settings.ShipSpawnSystem;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
 import infinity.es.ship.Player;
