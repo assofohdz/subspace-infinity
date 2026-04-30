@@ -1,6 +1,6 @@
 subprojects {
 
-    version='1.0.7'
+    version='1.0.8'
 
     //For now we want the latest version of everything except JMonkeyEngine
     //Could also specify major versions like 4.+
