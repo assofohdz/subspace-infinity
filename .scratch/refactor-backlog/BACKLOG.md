@@ -78,6 +78,34 @@ PMD wiring (commit `5bb2e71`) surfaced 99 violations on first run:
 
 Numeric-suffix smell flagged in commit `d87adf1`. Both `createWormhole` and `createWormhole2` have callers — one is likely an experimental variant. Investigate, rename the experimental one to something semantic (e.g. `createWarpGate` if it's a different shape), or merge if they're redundant.
 
+## Additional cleanup targets — added 2026-04-30
+
+Surfaced by a follow-up scan for architecture / library / framework smells beyond the original eighteen-commit arc. The dep-cleanup batch landed in the same change as this update; everything below is still open.
+
+### Large-file splits (not already covered above)
+
+- **`ArenaSystem.java`** (950 lines) — three-way split. `ArenaSystem` keeps lifecycle (reconcile/load/unload/slot allocation/bootstrap); extract `ArenaSpatialIndex` (`findArenaAt`, `findArenaEntityAt`, `arenaToWorld`, `worldToArena`, `getArenaSpawn`, `getArenaMap`) for spatial queries; extract `ArenaScriptWatcher` (`registerScriptWatch`, `unregisterScriptWatch`, `pollScriptWatches`) for hot-reload. Chat command handlers (`loadArenaByNameCommand` etc.) optionally move to a `ArenaCommandHandler` if they grow further.
+- **`PrizeSystem.java`** (812 lines) — clean two-way split. `PrizeSystem` keeps spawn/contact orchestration; the 10 `handleAcquireXxx` methods (~250 lines) collapse into a `PrizeApplier` interface with one impl per prize type. Same shape as the `WeaponHandler` interface split planned for `WeaponsSystem`. Coordinate with the active [`prizes/`](../prizes/) scratch dir.
+- **`SISpatialFactory.java`** (811 lines) — two-way split: gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see Heart entry in [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
+- **`ModelViewState.java`** (888 lines) — promote inner classes. Outer state is ~280 lines; the rest is `Model`, `LargeModelContainer`, `BodyContainer`/`ModelContainer` inner classes. Promote each to package-private top-level in the same package. Pure refactor, no behavior change.
+- **`GameServer.java`** (690 lines) — partial. Extract `expandBlockTypeIndexForTiles` + `expandCollidersForTiles` (lines 573-661, ~140 lines) to a `BlockTypeExpander` utility. Leave the rest — entry-point boilerplate is unavoidable.
+
+Skipped intentionally:
+- `SettingsTypes.java` (489 lines) — flat string-key catalog, zero methods. One file is the right shape for a constants registry. Possible follow-up: convert to typed `SettingKey<T>` records, but no split.
+
+### Architecture micro-refactors
+
+- **`IEnum` rename + relocate.** [`api/src/infinity/IEnum.java`](../../api/src/infinity/IEnum.java) — Hungarian-prefixed marker interface, only used by [`Bombs.java`](../../api/src/infinity/Bombs.java) + [`Guns.java`](../../api/src/infinity/Guns.java). Rename (`Enumerated` or `BitmaskEnum` depending on the actual contract) and move into a subpackage.
+- **Loose `api/src/infinity/` root files.** Five files at api top level have no clear package: `Ship.java`, `Bombs.java`, `Guns.java`, `BombRegistry.java`, `IEnum.java`. Move into `api/src/infinity/types/` (or absorb into `es/` where applicable). Pairs naturally with the `IEnum` rename.
+- **Retire custom `Preconditions`.** [`infinity/util/Preconditions.java`](../../infinity/src/main/java/infinity/util/Preconditions.java) — 230 lines, likely re-implements `java.util.Objects.requireNonNull` and a few `IllegalArgumentException` helpers. Audit call sites, replace with stdlib (or Guava's `Preconditions` if the contract is more elaborate), delete.
+- **Nullable annotation consolidation.** Project pulls in both `javax.annotation.Nullable` (jsr305, 8 files) and `org.jetbrains.annotations.Nullable` (1 file: [`api/sim/GameSounds.java`](../../api/src/infinity/sim/GameSounds.java)). Migrate the single jetbrains site to `javax.annotation`, drop the `org.jetbrains:annotations` dep. See [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
+
+### Library follow-ups (still in use today)
+
+- **commons-math 2.2 → commons-math3** — used at one site ([`infinity/util/MathUtil.java`](../../infinity/src/main/java/infinity/util/MathUtil.java)). 2.x is end-of-life. Mostly mechanical: package rename + a couple of class renames. See [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
+- **Heart `jme3utilities.MyMesh` — single usage.** [`SISpatialFactory.java:64`](../../infinity/src/main/java/infinity/client/states/SISpatialFactory.java). 30-min check whether it can be replaced with raw `com.jme3.scene.Mesh` calls; if so, drop the Heart dep.
+- **`'+'` version pinning audit.** Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'`. The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
+
 ## How to use this list
 
 When the user asks "what's next?" or starts a new session asking about cleanup / refactoring opportunities, surface relevant items from this list rather than re-running the friction scan from scratch. Keep the file in sync — when an item lands, delete it from this file in the same commit.
