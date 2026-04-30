@@ -132,6 +132,7 @@ public class lightTester extends BaseGameModule {
     EventBus.removeListener(this, ShipEvent.shipDestroyed, ShipEvent.shipSpawned);
   }
 
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String messageHandler(
       EntityId id,
       EntityId id2,

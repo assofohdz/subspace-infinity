@@ -80,6 +80,7 @@ public class WorldSystem extends AbstractGameSystem {
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::flipWorldCell));
   }
 
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String flipWorldCell(EntityId player, EntityId avatarId, Matcher matcher) {
     String x = matcher.group(1);
     String z = matcher.group(2);

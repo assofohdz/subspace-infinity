@@ -137,6 +137,7 @@ public class RegionSystem extends AbstractGameSystem {
     return v;
   }
 
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String commandWhere(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
     if (avatarEntityId == null) {

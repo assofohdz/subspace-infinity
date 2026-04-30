@@ -88,6 +88,7 @@ public class FrequencySystem extends AbstractGameSystem
    * @param entityId The id of the player
    * @param m The matcher that contains the frequency as group 1
    */
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String changeFrequency(EntityId entityId, EntityId avatarEntityId, Matcher m) {
     ed.setComponent(avatarEntityId, new Frequency(Integer.parseInt(m.group(1))));
     return "Frequency changed to " + m.group(1);

@@ -266,7 +266,7 @@ public class GameServer {
     // Set up the physics space
     ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
 
-    registerShapeFactories(shapeFactory, ed);
+    registerShapeFactories(shapeFactory);
 
     systems.register(ShapeFactory.class, shapeFactory);
 
@@ -411,8 +411,7 @@ public class GameServer {
     }
   }
 
-  private void registerShapeFactories(
-      ShapeFactoryRegistry<MBlockShape> shapeFactory, EntityData ed) {
+  private void registerShapeFactories(ShapeFactoryRegistry<MBlockShape> shapeFactory) {
     // Need a shape factory to turn ShapeInfo components into
 
     SphereFactory sphereFactory = new SphereFactory();

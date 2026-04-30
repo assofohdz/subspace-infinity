@@ -98,6 +98,7 @@ public class doorTester extends BaseGameModule {
             new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::messageHandler));
   }
 
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String messageHandler(
       EntityId id,
       EntityId id2,

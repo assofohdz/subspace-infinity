@@ -852,6 +852,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   /* Chat command handlers — imperative face over declarative core    */
   /* ---------------------------------------------------------------- */
 
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String loadArenaByNameCommand(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
     return loadArena(matcher.group(1));
@@ -861,6 +862,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * {@code ~loadMap <mapFile>} — the map's base name is used as the arena name, per current
    * convention.
    */
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String loadArenaByMapCommand(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
     final String mapFile = matcher.group(1);
@@ -869,6 +871,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /** {@code ~unloadMap <mapFile>} — resolves to its owning arena and flips desired=false. */
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String unloadArenaByMapCommand(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
     final String mapFile = matcher.group(1);
@@ -885,6 +888,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * {@code ~swapMap <arenaName> <newMap>} — replace the map of a loaded arena in place. The arena
    * entity, name, and settings are preserved; only the underlying map cells change.
    */
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String swapArenaCommand(
       final EntityId id, final EntityId avatarEntityId, final Matcher matcher) {
     final String arenaName = matcher.group(1);
