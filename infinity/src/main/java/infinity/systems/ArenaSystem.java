@@ -37,11 +37,13 @@ import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.ArenaConfig;
+import infinity.config.PrizeSpawnerSpec;
 import infinity.config.ZoneConfig;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
@@ -59,6 +61,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
 import infinity.sim.CoreGameConstants;
+import infinity.sim.GameEntities;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
@@ -68,6 +71,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -707,12 +711,72 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
           "Arena {} ghost-cube placed: anchor={} edge={} bounds=[{}..{}] (sensor)",
           rec.name, minB, InfinityConstants.TILE_SIZE, minB, maxB);
 
+      materializePrizeSpawners(rec, arena);
+
       rec.state = ArenaState.LOADED;
       rec.lastError = null;
       log.info("Arena {} loaded with map {} at slot {}", rec.name, mapFile, rec.arenaIndex);
     } catch (final Exception e) {
       fail(rec, arena, e.toString());
       log.error("Arena " + rec.name + " load failed", e);
+    }
+  }
+
+  /**
+   * Translate each {@link PrizeSpawnerSpec} from the arena's typed config into
+   * a real spawner entity inside the loaded arena. Arena-local {@code (x, z)}
+   * is mapped to world coords via {@link #arenaToWorld}, then handed to
+   * {@link GameEntities#createWeightedPrizeSpawner(EntityData, EntityId,
+   * PhysicsSpace, long, Vec3d, double, boolean, double, int, long)} so the
+   * resulting spawner carries the per-spawner {@code maxCount} and (optional)
+   * {@code PrizeDecayMillis}. The spawner is tagged with the arena's
+   * {@link ArenaId} so {@code PrizeSystem}'s membership-aware lookups (e.g.
+   * the {@code ShipConfig} read in {@code handleAcquireBomb}) keep working
+   * for the prizes it produces.
+   */
+  private void materializePrizeSpawners(final ArenaRecord rec, final EntityId arenaEntity) {
+    final List<PrizeSpawnerSpec> specs = rec.config.prizeSpawners();
+    if (specs == null || specs.isEmpty()) {
+      return;
+    }
+    final ArenaMap map = ed.getComponent(arenaEntity, ArenaMap.class);
+    if (map == null) {
+      log.warn(
+          "Arena {} has prizeSpawners but no ArenaMap; skipping {} spawner(s)",
+          rec.name, specs.size());
+      return;
+    }
+    @SuppressWarnings("rawtypes")
+    final PhysicsSpace phys = getSystem(PhysicsSpace.class, true);
+    final long now = getSystem(InfinityTimeSystem.class).getTime();
+    final ArenaId arenaId = new ArenaId(rec.name, arenaEntity);
+    for (final PrizeSpawnerSpec spec : specs) {
+      final Vec3d worldPos = arenaToWorld(map, spec.x(), spec.z());
+      final EntityId spawnerId =
+          GameEntities.createWeightedPrizeSpawner(
+              ed,
+              EntityId.NULL_ID,
+              phys,
+              now,
+              worldPos,
+              spec.spawnIntervalMs(),
+              spec.spawnOnRing(),
+              spec.radius(),
+              spec.maxCount(),
+              spec.ttlMillis(),
+              spec.weightOverrides());
+      ed.setComponent(spawnerId, arenaId);
+      log.info(
+          "Arena {} prize spawner {} placed at arena({},{}) world{} radius={} max={} ttlMs={}"
+              + " overrides={}",
+          rec.name,
+          spawnerId,
+          spec.x(), spec.z(),
+          worldPos,
+          spec.radius(),
+          spec.maxCount(),
+          spec.ttlMillis(),
+          spec.weightOverrides().isEmpty() ? "<none>" : spec.weightOverrides());
     }
   }
 
@@ -846,7 +910,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         rec.config.spawnX(),
         rec.config.spawnZ(),
         rec.config.fragmentIncludes(),
-        rec.config.wallFriction());
+        rec.config.wallFriction(),
+        rec.config.prizeSpawners());
     return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
   }
 

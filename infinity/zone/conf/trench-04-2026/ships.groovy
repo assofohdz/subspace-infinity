@@ -52,12 +52,15 @@
 // INI fragments in this directory (the canonical trench tuning). Feel knobs
 // are uniform across ships for now — tune per-ship empirically.
 
+// Testbed override: Warbird intentionally has non-zero upgrade values so
+// prize-driven progression (Rotation / Thruster / Recharge / Energy / TopSpeed)
+// is observable in trench. The other 7 ships keep the no-upgrade design.
 ship(Ship.WARBIRD) {
-    rotation initial: 200,  max: 200,  upgrade: 0
-    thrust   initial: 16,   max: 24,   upgrade: 0
-    speed    initial: 2000, max: 6000, upgrade: 0
-    recharge initial: 4000, max: 4000, upgrade: 0
-    energy   initial: 1500, max: 1500, upgrade: 0
+    rotation initial: 200,  max: 300,  upgrade: 20
+    thrust   initial: 16,   max: 24,   upgrade: 2
+    speed    initial: 2000, max: 6000, upgrade: 200
+    recharge initial: 4000, max: 8000, upgrade: 200
+    energy   initial: 1500, max: 3000, upgrade: 100
     dragFactor          0.05
     turnResponsiveness  2.0
     bounceRestitution   0.3

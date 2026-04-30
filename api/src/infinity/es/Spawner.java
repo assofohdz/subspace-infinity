@@ -42,13 +42,20 @@ public class Spawner implements EntityComponent {
   private final double spawnInterval;
   // add option to spawn on the radius or in the circle
   private final boolean spawnOnRing;
+  // Per-spawner TTL imprinted on each spawned entity at creation time. The
+  // spawned entity gets a {@link com.simsilica.es.common.Decay} component
+  // sized from this; {@code 0} means "use the global default for the entity
+  // type the spawner produces" (e.g. {@code CoreGameConstants.PRIZEDECAY}
+  // for a prize spawner). Stored here rather than on the spawned entity
+  // because it's a per-spawner configuration knob, not per-instance state.
+  private final long spawnedDecayMillis;
 
   public Spawner() {
-    this(0, 0.0, false, null, false);
+    this(0, 0.0, false, null, false, 0L);
   }
 
   public Spawner(final SpawnType type) {
-    this(0, 0.0, false, type, false);
+    this(0, 0.0, false, type, false, 0L);
   }
 
   public Spawner(
@@ -57,11 +64,22 @@ public class Spawner implements EntityComponent {
       final boolean spawnAllOver,
       final SpawnType type,
       final boolean weighted) {
+    this(maxCount, spawnInterval, spawnAllOver, type, weighted, 0L);
+  }
+
+  public Spawner(
+      final int maxCount,
+      final double spawnInterval,
+      final boolean spawnAllOver,
+      final SpawnType type,
+      final boolean weighted,
+      final long spawnedDecayMillis) {
     this.maxCount = maxCount;
     this.type = type;
     this.spawnInterval = spawnInterval;
     this.spawnOnRing = spawnAllOver;
     this.weighted = weighted;
+    this.spawnedDecayMillis = spawnedDecayMillis;
   }
 
   public boolean isWeighted() {
@@ -82,6 +100,17 @@ public class Spawner implements EntityComponent {
 
   public SpawnType getType() {
     return type;
+  }
+
+  /**
+   * Per-spawned-entity TTL in milliseconds imprinted by this spawner. Read at
+   * spawn time by {@code PrizeSystem} (and any future spawn system) and used
+   * to size the {@link com.simsilica.es.common.Decay} component on the
+   * spawned entity. {@code 0} means "fall back to the type-specific global"
+   * (e.g. {@code CoreGameConstants.PRIZEDECAY}).
+   */
+  public long getSpawnedDecayMillis() {
+    return spawnedDecayMillis;
   }
 
   public enum SpawnType {

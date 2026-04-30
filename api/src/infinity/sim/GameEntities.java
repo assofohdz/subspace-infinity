@@ -54,6 +54,7 @@ import infinity.es.Meta;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.PrizeType;
+import infinity.es.PrizeWeightsOverride;
 import infinity.es.ShapeNames;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
@@ -65,6 +66,7 @@ import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.Thor;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -491,8 +493,30 @@ public class GameEntities {
       final long createdTime,
       final Vec3d pos,
       final String prizeType) {
+    return createPrize(ed, phys, createdTime, pos, prizeType, CoreGameConstants.PRIZEDECAY);
+  }
+
+  /**
+   * Like {@link #createPrize(EntityData, PhysicsSpace, long, Vec3d, String)},
+   * but with a per-prize lifetime override. Used by {@code PrizeSystem} when
+   * the source spawner carries a {@code PrizeDecayMillis} component populated
+   * from {@code PrizeSpawnerSpec.ttlMillis}. The shorter signature delegates
+   * here with the global {@code CoreGameConstants.PRIZEDECAY} default.
+   *
+   * @param decayMillis prize lifetime; non-positive values are clamped up to
+   *     the global default so a misconfigured Groovy spec can't accidentally
+   *     produce zero-decay prizes that vanish on the next tick
+   */
+  public static EntityId createPrize(
+      final EntityData ed,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos,
+      final String prizeType,
+      final long decayMillis) {
     final EntityId result = ed.createEntity();
 
+    final long effectiveDecay = decayMillis > 0L ? decayMillis : CoreGameConstants.PRIZEDECAY;
     ed.setComponents(
         result,
         ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed),
@@ -501,9 +525,7 @@ public class GameEntities {
         PrizeType.create(prizeType, ed),
         new Decay(
             createdTime,
-            createdTime
-                + TimeUnit.NANOSECONDS.convert(
-                    CoreGameConstants.PRIZEDECAY, TimeUnit.MILLISECONDS)));
+            createdTime + TimeUnit.NANOSECONDS.convert(effectiveDecay, TimeUnit.MILLISECONDS)));
 
     // Filter and mass goes hand in hand
     ed.setComponent(result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_PRIZES));
@@ -515,13 +537,63 @@ public class GameEntities {
 
   public static EntityId createWeightedPrizeSpawner(
       final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
+      final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
       final double spawnInterval,
       final boolean spawnOnRing,
       final double radius) {
+    return createWeightedPrizeSpawner(
+        ed,
+        owner,
+        phys,
+        createdTime,
+        pos,
+        spawnInterval,
+        spawnOnRing,
+        radius,
+        CoreGameConstants.PRIZEMAXCOUNT,
+        0L,
+        Map.of());
+  }
+
+  /**
+   * Like {@link #createWeightedPrizeSpawner(EntityData, EntityId, PhysicsSpace,
+   * long, Vec3d, double, boolean, double)}, but with explicit {@code maxCount}
+   * (number of prizes simultaneously alive from this spawner), per-spawner
+   * {@code prizeDecayMillis} (lifetime imprinted on each prize this spawner
+   * produces, stored on {@link Spawner#getSpawnedDecayMillis()}) and a sparse
+   * {@code weightOverrides} map (per-spawner overrides on top of the arena's
+   * {@code [PrizeWeight]} defaults — see
+   * {@link infinity.es.PrizeWeightsOverride}). Used by {@code ArenaSystem}
+   * when materializing the per-arena {@code prizeSpawners} block declared in
+   * {@code arena.groovy}.
+   *
+   * @param maxCount target number of prizes alive at once (the existing
+   *     {@code Spawner.maxCount} field). The shorter signature uses
+   *     {@code CoreGameConstants.PRIZEMAXCOUNT}.
+   * @param prizeDecayMillis per-prize TTL stored in the {@code Spawner}'s
+   *     {@code spawnedDecayMillis} field. {@code 0} (or any non-positive
+   *     value) means "use the global {@code CoreGameConstants.PRIZEDECAY}".
+   * @param weightOverrides per-spawner prize-type weight overrides. Empty map
+   *     ({@code Map.of()}) = "no overrides; use arena defaults". When
+   *     non-empty, a {@link infinity.es.PrizeWeightsOverride} component is
+   *     attached so {@code PrizeSystem} merges these atop the arena defaults
+   *     at selection time.
+   */
+  public static EntityId createWeightedPrizeSpawner(
+      final EntityData ed,
+      @SuppressWarnings("unused") final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos,
+      final double spawnInterval,
+      final boolean spawnOnRing,
+      final double radius,
+      final int maxCount,
+      final long prizeDecayMillis,
+      final Map<String, Integer> weightOverrides) {
     final EntityId result = ed.createEntity();
 
     ed.setComponents(
@@ -529,12 +601,16 @@ public class GameEntities {
         // Possible to add model if we want the players to be able to see the spawner
         new SpawnPosition(phys.getGrid(), pos),
         new Spawner(
-            CoreGameConstants.PRIZEMAXCOUNT,
+            maxCount,
             spawnInterval,
             spawnOnRing,
             Spawner.SpawnType.Prizes,
-            true),
+            true,
+            prizeDecayMillis),
         new SphereShape(radius));
+    if (weightOverrides != null && !weightOverrides.isEmpty()) {
+      ed.setComponent(result, new PrizeWeightsOverride(weightOverrides));
+    }
     ed.setComponent(result, new Meta(createdTime));
     return result;
   }

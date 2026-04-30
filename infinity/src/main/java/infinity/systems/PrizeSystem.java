@@ -48,6 +48,7 @@ import infinity.config.ShipConfig;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
+import infinity.es.PrizeWeightsOverride;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.arena.ArenaId;
@@ -107,13 +108,35 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
   private final PhysicsSpace<EntityId, MBlockShape> phys;
   private final HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<>();
-  private final HashMap<String, Integer> prizeWeights = new HashMap<>();
   private final HashMap<EntityId, Double> spawnerLastSpawned = new HashMap<>();
   BiMap<Integer, String> prizeMap = HashBiMap.create();
-  RandomSelector<String> rc;
+  /**
+   * Last-resort selector built from the hardcoded {@link #FALLBACK_WEIGHTS}.
+   * Used only for spawners with no {@link ArenaId} (the legacy
+   * {@code BasicEnvironment} hardcoded spawner) or when an arena has no
+   * {@code [PrizeWeight]} keys at all.
+   */
+  RandomSelector<String> globalFallbackSelector;
+
+  /**
+   * Cached per-arena selector built lazily from
+   * {@code SettingsSystem.getIni(arenaName).getSection("PrizeWeight")}. One
+   * entry per arena seen so far.
+   */
+  private final HashMap<String, RandomSelector<String>> arenaSelectors = new HashMap<>();
+
+  /**
+   * Cached per-spawner selector built lazily for spawners carrying a
+   * {@link PrizeWeightsOverride} component. Each entry merges the spawner's
+   * arena defaults with the spawner-specific overrides at construction time;
+   * dropped on spawner removal in {@link #update}.
+   */
+  private final HashMap<EntityId, RandomSelector<String>> spawnerSelectors = new HashMap<>();
+
   Random random;
   private EntityData ed;
   private ConfigRegistrySystem configRegistry;
+  private SettingsSystem settingsSystem;
   private EntitySet prizeSpawners;
   private EntitySet prizes;
   private SimTime ourTime;
@@ -129,6 +152,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
     ed = getSystem(EntityData.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
+    settingsSystem = getSystem(SettingsSystem.class);
 
     ComponentFilter<?> prizeSpawnerFilter =
         FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
@@ -136,12 +160,9 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     prizeSpawners =
         ed.getEntities(prizeSpawnerFilter, Spawner.class, SpawnPosition.class, SphereShape.class);
 
-    // TODO: Read prize weights and load into random collection
     random = new Random();
-
-    this.loadPrizeWeights();
-
-    rc = RandomSelector.weighted(prizeWeights.keySet(), prizeWeights::get);
+    globalFallbackSelector =
+        RandomSelector.weighted(FALLBACK_WEIGHTS.keySet(), FALLBACK_WEIGHTS::get);
 
     ComponentFilter<?> shipColliderFilter =
         FieldFilter.create(
@@ -187,35 +208,135 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     prizeMap.put(28, PrizeTypes.PORTAL);
   }
 
-  private void loadPrizeWeights() {
-    prizeWeights.put(PrizeTypes.ALLWEAPONS, 5);
-    prizeWeights.put(PrizeTypes.ANTIWARP, 10);
-    prizeWeights.put(PrizeTypes.BOMB, 25);
-    prizeWeights.put(PrizeTypes.BOUNCINGBULLETS, 5);
-    prizeWeights.put(PrizeTypes.BRICK, 5);
-    prizeWeights.put(PrizeTypes.BURST, 5);
-    prizeWeights.put(PrizeTypes.CLOAK, 5);
-    prizeWeights.put(PrizeTypes.DECOY, 5);
-    prizeWeights.put(PrizeTypes.ENERGY, 5);
-    prizeWeights.put(PrizeTypes.GLUE, 5);
-    prizeWeights.put(PrizeTypes.GUN, 25);
-    prizeWeights.put(PrizeTypes.MULTIFIRE, 5);
-    prizeWeights.put(PrizeTypes.MULTIPRIZE, 5);
-    prizeWeights.put(PrizeTypes.PORTAL, 5);
-    prizeWeights.put(PrizeTypes.PROXIMITY, 5);
-    prizeWeights.put(PrizeTypes.QUICKCHARGE, 5);
-    prizeWeights.put(PrizeTypes.RECHARGE, 5);
-    prizeWeights.put(PrizeTypes.REPEL, 5);
-    prizeWeights.put(PrizeTypes.ROCKET, 5);
-    prizeWeights.put(PrizeTypes.ROTATION, 5);
-    prizeWeights.put(PrizeTypes.SHIELDS, 5);
-    prizeWeights.put(PrizeTypes.SHRAPNEL, 5);
-    prizeWeights.put(PrizeTypes.STEALTH, 5);
-    prizeWeights.put(PrizeTypes.THOR, 5);
-    prizeWeights.put(PrizeTypes.THRUSTER, 5);
-    prizeWeights.put(PrizeTypes.TOPSPEED, 5);
-    prizeWeights.put(PrizeTypes.WARP, 5);
-    prizeWeights.put(PrizeTypes.XRADAR, 5);
+  /**
+   * Last-resort weights used only when an arena has no {@code [PrizeWeight]}
+   * keys configured AND the spawner doesn't carry a per-spawner override.
+   * Mirrors the historical hardcoded distribution so existing behaviour for
+   * the legacy {@code BasicEnvironment} spawner stays the same.
+   */
+  private static final java.util.Map<String, Integer> FALLBACK_WEIGHTS =
+      java.util.Map.ofEntries(
+          java.util.Map.entry(PrizeTypes.ALLWEAPONS, 5),
+          java.util.Map.entry(PrizeTypes.ANTIWARP, 10),
+          java.util.Map.entry(PrizeTypes.BOMB, 25),
+          java.util.Map.entry(PrizeTypes.BOUNCINGBULLETS, 5),
+          java.util.Map.entry(PrizeTypes.BRICK, 5),
+          java.util.Map.entry(PrizeTypes.BURST, 5),
+          java.util.Map.entry(PrizeTypes.CLOAK, 5),
+          java.util.Map.entry(PrizeTypes.DECOY, 5),
+          java.util.Map.entry(PrizeTypes.ENERGY, 5),
+          java.util.Map.entry(PrizeTypes.GLUE, 5),
+          java.util.Map.entry(PrizeTypes.GUN, 25),
+          java.util.Map.entry(PrizeTypes.MULTIFIRE, 5),
+          java.util.Map.entry(PrizeTypes.MULTIPRIZE, 5),
+          java.util.Map.entry(PrizeTypes.PORTAL, 5),
+          java.util.Map.entry(PrizeTypes.PROXIMITY, 5),
+          java.util.Map.entry(PrizeTypes.QUICKCHARGE, 5),
+          java.util.Map.entry(PrizeTypes.RECHARGE, 5),
+          java.util.Map.entry(PrizeTypes.REPEL, 5),
+          java.util.Map.entry(PrizeTypes.ROCKET, 5),
+          java.util.Map.entry(PrizeTypes.ROTATION, 5),
+          java.util.Map.entry(PrizeTypes.SHIELDS, 5),
+          java.util.Map.entry(PrizeTypes.SHRAPNEL, 5),
+          java.util.Map.entry(PrizeTypes.STEALTH, 5),
+          java.util.Map.entry(PrizeTypes.THOR, 5),
+          java.util.Map.entry(PrizeTypes.THRUSTER, 5),
+          java.util.Map.entry(PrizeTypes.TOPSPEED, 5),
+          java.util.Map.entry(PrizeTypes.WARP, 5),
+          java.util.Map.entry(PrizeTypes.XRADAR, 5));
+
+  /**
+   * Lazily build (and cache) the {@link RandomSelector} for the given arena
+   * by reading its {@code [PrizeWeight]} INI section via {@link
+   * SettingsSystem}. Keys with weight {@code 0} are dropped (matches the
+   * "weight 0 means never spawn" convention in the legacy fragments).
+   *
+   * @return the per-arena selector, or {@link #globalFallbackSelector} when
+   *     the arena has no usable {@code [PrizeWeight]} entries
+   */
+  private RandomSelector<String> arenaSelector(final String arenaName) {
+    final RandomSelector<String> cached = arenaSelectors.get(arenaName);
+    if (cached != null) {
+      return cached;
+    }
+    final java.util.Map<String, Integer> weights = readArenaWeights(arenaName);
+    final RandomSelector<String> selector =
+        weights.isEmpty()
+            ? globalFallbackSelector
+            : RandomSelector.weighted(weights.keySet(), weights::get);
+    arenaSelectors.put(arenaName, selector);
+    log.info(
+        "PrizeWeight selector built for arena '{}' with {} non-zero entries",
+        arenaName,
+        weights.size());
+    return selector;
+  }
+
+  private java.util.Map<String, Integer> readArenaWeights(final String arenaName) {
+    final java.util.Map<String, Integer> weights = new HashMap<>();
+    final org.ini4j.Ini ini = settingsSystem.getIni(arenaName);
+    if (ini == null) {
+      return weights;
+    }
+    final org.ini4j.Profile.Section section = ini.get("PrizeWeight");
+    if (section == null) {
+      return weights;
+    }
+    for (final String key : section.keySet()) {
+      final String raw = section.get(key);
+      if (raw == null) {
+        continue;
+      }
+      try {
+        final int w = Integer.parseInt(raw.trim());
+        if (w > 0) {
+          weights.put(key, w);
+        }
+      } catch (final NumberFormatException nfe) {
+        log.warn("Arena '{}' [PrizeWeight] '{}' is non-numeric ({}); skipping", arenaName, key, raw);
+      }
+    }
+    return weights;
+  }
+
+  /**
+   * Build (and cache) a per-spawner selector by merging the spawner's arena
+   * defaults with its {@link PrizeWeightsOverride} entries. Override entries
+   * with {@code <= 0} weight are removed entirely so an arena default of
+   * "Bomb=25" can be turned off by an override of "Bomb=0".
+   */
+  private RandomSelector<String> spawnerSelector(
+      final EntityId spawnerId, final String arenaName, final PrizeWeightsOverride override) {
+    final RandomSelector<String> cached = spawnerSelectors.get(spawnerId);
+    if (cached != null) {
+      return cached;
+    }
+    final java.util.Map<String, Integer> merged = new HashMap<>();
+    if (arenaName != null) {
+      merged.putAll(readArenaWeights(arenaName));
+    }
+    if (merged.isEmpty()) {
+      merged.putAll(FALLBACK_WEIGHTS);
+    }
+    for (final java.util.Map.Entry<String, Integer> e : override.getOverrides().entrySet()) {
+      if (e.getValue() == null || e.getValue() <= 0) {
+        merged.remove(e.getKey());
+      } else {
+        merged.put(e.getKey(), e.getValue());
+      }
+    }
+    final RandomSelector<String> selector =
+        merged.isEmpty()
+            ? globalFallbackSelector
+            : RandomSelector.weighted(merged.keySet(), merged::get);
+    spawnerSelectors.put(spawnerId, selector);
+    log.info(
+        "PrizeWeight selector built for spawner {} (arena='{}', override={}, merged={} entries)",
+        spawnerId,
+        arenaName,
+        override.getOverrides(),
+        merged.size());
+    return selector;
   }
 
   @Override
@@ -251,6 +372,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
     prizeSpawners.applyChanges();
 
+    // Drop cached selectors for spawners that left the set (arena unload,
+    // explicit despawn) so next-time-around builds reflect current settings.
+    for (Entity removedSpawner : prizeSpawners.getRemovedEntities()) {
+      spawnerSelectors.remove(removedSpawner.getId());
+      spawnerBounties.remove(removedSpawner.getId());
+      spawnerLastSpawned.remove(removedSpawner.getId());
+    }
+
     for (Entity entitySpawner : prizeSpawners) { // Spawn max one per update-call / frame
       EntityId spawnerId = entitySpawner.getId();
       Spawner s = entitySpawner.get(Spawner.class);
@@ -258,8 +387,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       SphereShape c = entitySpawner.get(SphereShape.class);
 
       if (!spawnerBounties.containsKey(spawnerId)) {
-        EntityId idBounty =
-            spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
+        EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), c.getRadius());
 
         HashSet<EntityId> spawnerBountySet = new HashSet<>();
         spawnerBountySet.add(idBounty);
@@ -271,8 +399,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
           && spawnerBounties.get(spawnerId).size() < s.getMaxCount()
           && spawnerLastSpawned.get(spawnerId) > s.getSpawnInterval()) {
 
-        EntityId idBounty =
-            spawnBounty(p.getLocation(), c.getRadius(), s.spawnOnRing(), s.isWeighted());
+        EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), c.getRadius());
 
         spawnerLastSpawned.put(entitySpawner.getId(), 0d);
 
@@ -287,12 +414,32 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     }
   }
 
+  /**
+   * Spawn one prize for {@code spawner}. Reads the spawner's per-spawner
+   * {@link Spawner#getSpawnedDecayMillis()} and forwards it to
+   * {@code GameEntities.createPrize} so prizes from arena.groovy-declared
+   * spawners can override the global {@code CoreGameConstants.PRIZEDECAY}.
+   * Spawners created without a per-spawner TTL (e.g. the legacy
+   * {@code BasicEnvironment} call) carry {@code 0} here, which
+   * {@code createPrize} interprets as "fall back to the global default".
+   *
+   * <p>Prize-type weighting goes through {@link #getPrizeType(EntityId,
+   * Spawner)} which honours {@link PrizeWeightsOverride} on the spawner,
+   * falling back to the spawner's arena defaults, then the global
+   * {@link #FALLBACK_WEIGHTS}.
+   */
   private EntityId spawnBounty(
-      Vec3d spawnerLocation, double radius, boolean spawnOnRing, boolean weighted) {
-    String prizeType = getPrizeType(weighted);
-    Vec3d prizeSpawnLocation = this.getSpawnLocation(spawnerLocation, radius, spawnOnRing);
-
-    return GameEntities.createPrize(ed, phys, ourTime.getTime(), prizeSpawnLocation, prizeType);
+      EntityId spawnerId, Spawner spawner, Vec3d spawnerLocation, double radius) {
+    String prizeType = getPrizeType(spawnerId, spawner);
+    Vec3d prizeSpawnLocation =
+        this.getSpawnLocation(spawnerLocation, radius, spawner.spawnOnRing());
+    return GameEntities.createPrize(
+        ed,
+        phys,
+        ourTime.getTime(),
+        prizeSpawnLocation,
+        prizeType,
+        spawner.getSpawnedDecayMillis());
   }
 
   @Override
@@ -316,10 +463,26 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     return new Vec3d(x, 1, z);
   }
 
-  private String getPrizeType(boolean weighted) {
-    return weighted
-        ? rc.next(random)
-        : prizeMap.get(ThreadLocalRandom.current().nextInt(1, 28 + 1));
+  /**
+   * Pick a prize-type string for {@code spawner}'s next prize. Weighted
+   * spawners go through the right selector (per-spawner override > arena
+   * defaults > global fallback); unweighted spawners pick uniformly from
+   * {@link #prizeMap}'s 28 named entries (matches legacy behaviour).
+   */
+  private String getPrizeType(EntityId spawnerId, Spawner spawner) {
+    if (!spawner.isWeighted()) {
+      return prizeMap.get(ThreadLocalRandom.current().nextInt(1, 28 + 1));
+    }
+    final PrizeWeightsOverride override = ed.getComponent(spawnerId, PrizeWeightsOverride.class);
+    final ArenaId arenaId = ed.getComponent(spawnerId, ArenaId.class);
+    final String arenaName = arenaId == null ? null : arenaId.getArena();
+    if (override != null && !override.getOverrides().isEmpty()) {
+      return spawnerSelector(spawnerId, arenaName, override).next(random);
+    }
+    if (arenaName != null) {
+      return arenaSelector(arenaName).next(random);
+    }
+    return globalFallbackSelector.next(random);
   }
 
   private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {

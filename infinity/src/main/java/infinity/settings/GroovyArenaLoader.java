@@ -29,10 +29,12 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.config.ArenaConfig;
+import infinity.config.PrizeSpawnerSpec;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,10 @@ import org.slf4j.LoggerFactory;
  *     wallFriction 0.0   // tangential friction on ship-vs-wall hits (0 = slidey)
  *     includeFragment '/conf/trench-04-2026/trench.conf'
  *     // includeFragment '/conf/another.conf' — repeat as needed
+ *     prizeSpawners {
+ *         spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
+ *         spawn x:  50, z:  50, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
+ *     }
  * }
  * }</pre>
  *
@@ -200,6 +206,7 @@ public final class GroovyArenaLoader {
     private int spawnZ = ArenaConfig.EMPTY.spawnZ();
     private final List<String> fragmentIncludes = new ArrayList<>();
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
+    private final List<PrizeSpawnerSpec> prizeSpawners = new ArrayList<>();
 
     // Package-private so tests can build configs without the full GroovyShell.
     ArenaConfigBuilder() {}
@@ -244,9 +251,142 @@ public final class GroovyArenaLoader {
       this.wallFriction = v;
     }
 
+    /**
+     * {@code prizeSpawners { spawn x:..., z:..., ... }} block. Each
+     * {@code spawn} call inside the closure appends a {@link PrizeSpawnerSpec}
+     * entry that {@code ArenaSystem} materializes into a real spawner entity
+     * at arena-load time.
+     */
+    public void prizeSpawners(final Closure<?> body) {
+      final PrizeSpawnersBlock block = new PrizeSpawnersBlock(prizeSpawners);
+      body.setDelegate(block);
+      body.setResolveStrategy(Closure.DELEGATE_FIRST);
+      body.call();
+    }
+
     ArenaConfig build() {
       return new ArenaConfig(
-          mapFile, shipsScript, spawnX, spawnZ, List.copyOf(fragmentIncludes), wallFriction);
+          mapFile,
+          shipsScript,
+          spawnX,
+          spawnZ,
+          List.copyOf(fragmentIncludes),
+          wallFriction,
+          List.copyOf(prizeSpawners));
+    }
+  }
+
+  /**
+   * Delegate for the {@code prizeSpawners { ... }} block. Each {@code spawn}
+   * call inside it accepts a Groovy named-argument map and appends a typed
+   * {@link PrizeSpawnerSpec} entry to the parent builder's list.
+   */
+  public static final class PrizeSpawnersBlock {
+
+    private final List<PrizeSpawnerSpec> entries;
+
+    PrizeSpawnersBlock(final List<PrizeSpawnerSpec> entries) {
+      this.entries = entries;
+    }
+
+    /**
+     * {@code spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000,
+     * ttlMs: 10000, onRing: false, weights: [Bomb: 100, Gun: 100]}.
+     * {@code onRing} defaults to {@code false} (uniform-disc spawn);
+     * {@code ttlMs} defaults to {@code 0} (use the global
+     * {@code CoreGameConstants.PRIZEDECAY}); {@code weights} defaults to an
+     * empty map (no override; use the arena's {@code [PrizeWeight]} defaults).
+     */
+    public void spawn(final Map<String, ?> args) {
+      entries.add(
+          new PrizeSpawnerSpec(
+              intArg(args, "x"),
+              intArg(args, "z"),
+              doubleArg(args, "radius"),
+              intArg(args, "maxCount"),
+              doubleArg(args, "intervalMs"),
+              longArg(args, "ttlMs", 0L),
+              boolArg(args, "onRing", false),
+              weightsArg(args, "weights")));
+    }
+
+    private static int intArg(final Map<String, ?> args, final String key) {
+      final Object v = args.get(key);
+      if (v instanceof Number n) {
+        return n.intValue();
+      }
+      throw new IllegalArgumentException(
+          "prizeSpawners.spawn missing numeric '" + key + "' (got " + v + ")");
+    }
+
+    private static double doubleArg(final Map<String, ?> args, final String key) {
+      final Object v = args.get(key);
+      if (v instanceof Number n) {
+        return n.doubleValue();
+      }
+      throw new IllegalArgumentException(
+          "prizeSpawners.spawn missing numeric '" + key + "' (got " + v + ")");
+    }
+
+    private static long longArg(final Map<String, ?> args, final String key, final long fallback) {
+      final Object v = args.get(key);
+      if (v == null) {
+        return fallback;
+      }
+      if (v instanceof Number n) {
+        return n.longValue();
+      }
+      throw new IllegalArgumentException(
+          "prizeSpawners.spawn '" + key + "' must be numeric (got " + v + ")");
+    }
+
+    private static boolean boolArg(
+        final Map<String, ?> args, final String key, final boolean fallback) {
+      final Object v = args.get(key);
+      if (v == null) {
+        return fallback;
+      }
+      if (v instanceof Boolean b) {
+        return b;
+      }
+      throw new IllegalArgumentException(
+          "prizeSpawners.spawn '" + key + "' must be a boolean (got " + v + ")");
+    }
+
+    /**
+     * Coerce {@code args[key]} into a {@code Map<String, Integer>}. Missing
+     * key → empty map (use arena defaults). Groovy's {@code [k: v]} literals
+     * arrive here as {@code Map<String, Object>}; values must be numeric.
+     */
+    private static java.util.Map<String, Integer> weightsArg(
+        final Map<String, ?> args, final String key) {
+      final Object v = args.get(key);
+      if (v == null) {
+        return java.util.Map.of();
+      }
+      if (!(v instanceof Map<?, ?> raw)) {
+        throw new IllegalArgumentException(
+            "prizeSpawners.spawn '" + key + "' must be a [String: int] map (got " + v + ")");
+      }
+      final java.util.Map<String, Integer> out = new java.util.HashMap<>();
+      for (final Map.Entry<?, ?> e : raw.entrySet()) {
+        if (!(e.getKey() instanceof String k)) {
+          throw new IllegalArgumentException(
+              "prizeSpawners.spawn '" + key + "' has non-String key: " + e.getKey());
+        }
+        if (!(e.getValue() instanceof Number n)) {
+          throw new IllegalArgumentException(
+              "prizeSpawners.spawn '"
+                  + key
+                  + "' value for '"
+                  + k
+                  + "' must be numeric (got "
+                  + e.getValue()
+                  + ")");
+        }
+        out.put(k, n.intValue());
+      }
+      return out;
     }
   }
 }
