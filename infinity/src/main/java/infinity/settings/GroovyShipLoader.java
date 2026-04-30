@@ -28,34 +28,27 @@ package infinity.settings;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
-import groovy.lang.GroovyShell;
 import infinity.Ship;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Evaluates an arena's Groovy ship config and installs the result into
- * {@link ConfigRegistrySystem}. The caller supplies the classpath path to
- * the script (typically read from the arena's {@code [Scripts] Ships}
- * setting so the arena can point at any preset's script).
+ * {@link ConfigRegistrySystem}. Thin facade over {@link GroovySettingsHost} —
+ * the host owns I/O, hardening and error handling; this class supplies the
+ * {@code ship(Ship.X) { … }} DSL and composes the result with
+ * {@code ConfigRegistrySystem.replace}.
  *
  * <p>Failure handling — any failure (no path configured, missing file, parse
- * error, eval error, IO error) logs a warning and installs a built-in
- * fallback snapshot so the arena stays playable. Callers never see an
- * exception; see {@link #FALLBACK} for the default values.
+ * error, eval error) logs a warning and installs the built-in {@link #FALLBACK}
+ * snapshot so the arena stays playable. Callers never see an exception.
  *
  * <p>Script DSL:
  *
@@ -73,17 +66,17 @@ import org.slf4j.LoggerFactory;
  * }
  * }</pre>
  *
- * <p>The {@code Ship} enum is made available as a default import. Stats
- * omitted in a ship block default to {@code ShipStat(0, 0, 0)}; partial stat
- * blocks (missing {@code initial}/{@code max}/{@code upgrade}) fail with a
- * clear error message. Physics-feel knobs ({@code dragFactor},
+ * <p>The {@code Ship} enum is added as a default import (and whitelisted) by
+ * the host. Stats omitted in a ship block default to {@code ShipStat(0, 0, 0)};
+ * partial stat blocks (missing {@code initial}/{@code max}/{@code upgrade})
+ * fail with a clear error message. Physics-feel knobs ({@code dragFactor},
  * {@code turnResponsiveness}, {@code bounceRestitution}) and {@code radarRange}
- * default to the historical / conservative values (0.05 / 8.0 / 1.0 / 250)
- * when omitted, so an existing ship script keeps the prior feel without edits.
+ * default to historical / conservative values (0.05 / 8.0 / 1.0 / 250).
  */
 public final class GroovyShipLoader {
 
   private static final Logger log = LoggerFactory.getLogger(GroovyShipLoader.class);
+  private static final ShipAdapter ADAPTER = new ShipAdapter();
 
   /**
    * Default coast-drag fraction used when a ship script omits
@@ -226,95 +219,79 @@ public final class GroovyShipLoader {
       configRegistry.replace(arenaId, FALLBACK);
       return;
     }
-    try {
-      final String source = readSource(classpathPath);
-      if (source == null) {
-        log.warn(
-            "ships.groovy for arena {} not found at {}; installing fallback defaults",
-            arenaId.getArena(),
-            classpathPath);
-        configRegistry.replace(arenaId, FALLBACK);
-        return;
-      }
-      final ConfigRegistry snapshot = evaluate(source, classpathPath);
-      configRegistry.replace(arenaId, snapshot);
-      log.info(
-          "Applied {} for arena {} ({} ships configured)",
-          classpathPath,
-          arenaId.getArena(),
-          snapshot.configuredShips().size());
-      for (final infinity.Ship ship : snapshot.configuredShips()) {
-        log.info("  parsed config: {} -> {}", ship, snapshot.getShip(ship));
-      }
-    } catch (final Exception e) {
+
+    final ConfigRegistry snapshot = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
+    if (snapshot == null) {
+      // Missing — host's not-found log is debug-level; surface the fallback
+      // install at warn with arena context so unmigrated arenas are visible.
       log.warn(
-          "ships.groovy for arena {} at {} failed to evaluate; installing fallback defaults",
+          "ships.groovy for arena {} not found at {}; installing fallback defaults",
           arenaId.getArena(),
-          classpathPath,
-          e);
+          classpathPath);
       configRegistry.replace(arenaId, FALLBACK);
+      return;
     }
-  }
+    if (snapshot == FALLBACK) {
+      // Broken — host already logged the exception at warn. Add an arena-
+      // context warn so a tail of the log shows which arena got the fallback.
+      log.warn(
+          "ships.groovy for arena {} at {} failed to evaluate; installed fallback defaults",
+          arenaId.getArena(),
+          classpathPath);
+      configRegistry.replace(arenaId, FALLBACK);
+      return;
+    }
 
-  private ConfigRegistry evaluate(final String source, final String path) {
-    final ConfigRegistry.Builder registryBuilder = ConfigRegistry.builder();
-
-    final CompilerConfiguration cc = new CompilerConfiguration();
-    final ImportCustomizer imports = new ImportCustomizer();
-    imports.addImports(Ship.class.getName());
-    cc.addCompilationCustomizers(imports);
-
-    final Binding binding = new Binding();
-    binding.setVariable("ship", new ShipClosure(registryBuilder));
-
-    final GroovyShell shell = new GroovyShell(binding, cc);
-    shell.evaluate(source, path);
-
-    return registryBuilder.build();
+    configRegistry.replace(arenaId, snapshot);
+    log.info(
+        "Applied {} for arena {} ({} ships configured)",
+        classpathPath,
+        arenaId.getArena(),
+        snapshot.configuredShips().size());
+    for (final Ship ship : snapshot.configuredShips()) {
+      log.info("  parsed config: {} -> {}", ship, snapshot.getShip(ship));
+    }
   }
 
   /**
-   * Resolve a classpath script path (e.g. {@code "/conf/trench-04-2026/ships.groovy"}) to
-   * the on-disk source path if dev-mode candidates exist, or {@code null} when only the
-   * classpath copy is reachable (production / packaged jar). Public so callers wiring a
-   * file watcher (e.g. {@code ArenaSystem}) can stat / poll the same file the loader
-   * actually reads from.
+   * Resolve a classpath script path to the on-disk source path if dev-mode
+   * candidates exist, or {@code null} when only the classpath copy is
+   * reachable (production / packaged jar). Public so callers wiring a file
+   * watcher (e.g. {@code ArenaSystem}) can stat / poll the same file the
+   * loader actually reads from.
    */
   @Nullable
   public Path resolveOnDisk(final String classpathPath) {
-    if (classpathPath == null || classpathPath.isBlank()) {
-      return null;
-    }
-    final String relative =
-        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
-    for (final Path p : candidates) {
-      if (Files.isReadable(p)) {
-        return p;
-      }
-    }
-    return null;
+    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
-  @Nullable
-  private String readSource(final String classpathPath) throws IOException {
-    // Dev mode: try the filesystem source first so edits show up without a rebuild.
-    // Gradle's :infinity:run sets the JVM working directory to the infinity/ subproject,
-    // and zone/ is the resource root — so /conf/x.groovy on the classpath is zone/conf/x.groovy
-    // on disk. The "infinity/zone" candidate covers the case where the JVM is launched
-    // from the project root instead.
-    final Path onDisk = resolveOnDisk(classpathPath);
-    if (onDisk != null) {
-      log.debug("Reading {} from filesystem source: {}", classpathPath, onDisk);
-      return Files.readString(onDisk, StandardCharsets.UTF_8);
+  /** Adapter holding the {@code ship(Ship.X) { … }} DSL semantics. */
+  private static final class ShipAdapter
+      implements GroovySettingsAdapter<ConfigRegistry, ConfigRegistry.Builder> {
+
+    @Override
+    public List<String> allowedImports() {
+      // Ship enum is the only class scripts reference. The host adds it as
+      // a default import (so `Ship.WARBIRD` works without `import infinity.Ship`)
+      // AND whitelists it so an explicit import would also be valid.
+      return List.of(Ship.class.getName());
     }
-    // Production / packaged jar: fall back to classpath.
-    try (InputStream is = getClass().getResourceAsStream(classpathPath)) {
-      if (is == null) {
-        return null;
-      }
-      log.debug("Reading {} from classpath", classpathPath);
-      return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+    @Override
+    public ConfigRegistry.Builder bind(final Binding binding) {
+      final ConfigRegistry.Builder builder = ConfigRegistry.builder();
+      binding.setVariable("ship", new ShipClosure(builder));
+      return builder;
+    }
+
+    @Override
+    public ConfigRegistry extract(final ConfigRegistry.Builder accumulator) {
+      return accumulator.build();
+    }
+
+    @Override
+    public ConfigRegistry empty() {
+      return FALLBACK;
     }
   }
 

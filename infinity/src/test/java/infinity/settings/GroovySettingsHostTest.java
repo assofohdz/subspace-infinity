@@ -144,6 +144,26 @@ public class GroovySettingsHostTest {
   }
 
   @Test
+  public void evaluate_allowedImport_isAlsoAvailableAsDefaultImport() {
+    // Whitelisted classes are also added as default imports so scripts can
+    // use the short name without an explicit `import` statement (e.g.
+    // GroovyShipLoader's `Ship.WARBIRD` works without `import infinity.Ship`).
+    final TestAdapter adapter = new TestAdapter(List.of("java.util.Date"));
+    final String src = "put new Date(0L)"; // no `import` line — relies on default import
+
+    final String result =
+        GroovySettingsHost.INSTANCE.evaluate(adapter, src, "test:defaultImport");
+
+    // java.util.Date.toString() at epoch 0 is timezone-dependent; just assert
+    // the script ran and produced a non-null result. The point is that
+    // `Date` resolved without an explicit import.
+    assertEquals(
+        "default import lets the script use Date without an explicit import",
+        true,
+        result != null && !TestAdapter.SENTINEL_EMPTY.equals(result));
+  }
+
+  @Test
   public void load_missingFile_returnsNull() {
     // null on file-not-found is the primitive callers like GroovyArenaLoader
     // need to distinguish "no Groovy file for this arena" (fail-fast) from

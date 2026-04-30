@@ -47,10 +47,23 @@ import java.util.List;
 public interface GroovySettingsAdapter<T, A> {
 
   /**
-   * Explicit imports the script may use. Empty list = no explicit imports at
-   * all (Groovy's auto-imports — {@code java.lang.*}, {@code java.util.*},
-   * etc. — are unaffected). Anything outside this list is rejected at
-   * compile time by {@code SecureASTCustomizer}.
+   * Fully-qualified class names the script may reference. The host applies
+   * the list two ways:
+   *
+   * <ul>
+   *   <li><b>Default imports</b>: each name is registered with an
+   *       {@code ImportCustomizer} so scripts can use the short name
+   *       without writing an {@code import} statement (e.g. {@code Ship.WARBIRD}
+   *       works without {@code import infinity.Ship}).
+   *   <li><b>Security whitelist</b>: {@code SecureASTCustomizer} rejects
+   *       every explicit {@code import} not in this list. Empty list = no
+   *       explicit imports allowed (Groovy's auto-imports —
+   *       {@code java.lang.*}, {@code java.util.*}, etc. — are unaffected).
+   * </ul>
+   *
+   * <p>The conflation is intentional: any class an adapter wants to expose
+   * to scripts should be both auto-imported (for ergonomics) and
+   * whitelisted (for security). Splitting the two would invite drift.
    */
   List<String> allowedImports();
 

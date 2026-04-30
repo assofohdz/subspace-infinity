@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,8 +174,18 @@ public final class GroovySettingsHost {
     final Binding binding = new Binding();
     final A accumulator = adapter.bind(binding);
 
+    final List<String> allowed =
+        adapter.allowedImports() == null ? Collections.emptyList() : adapter.allowedImports();
+
     final CompilerConfiguration cc = new CompilerConfiguration();
-    cc.addCompilationCustomizers(secureCustomizer(adapter.allowedImports()));
+    if (!allowed.isEmpty()) {
+      // Default imports: scripts can use these names without an explicit
+      // `import` statement (e.g. `Ship.WARBIRD` works without `import infinity.Ship`).
+      final ImportCustomizer imports = new ImportCustomizer();
+      imports.addImports(allowed.toArray(new String[0]));
+      cc.addCompilationCustomizers(imports);
+    }
+    cc.addCompilationCustomizers(secureCustomizer(allowed));
 
     final GroovyShell shell = new GroovyShell(binding, cc);
     shell.evaluate(source, path);
@@ -191,11 +202,10 @@ public final class GroovySettingsHost {
    */
   private static SecureASTCustomizer secureCustomizer(final List<String> allowed) {
     final SecureASTCustomizer sec = new SecureASTCustomizer();
-    final List<String> safe = allowed == null ? Collections.emptyList() : allowed;
-    sec.setImportsWhitelist(safe);
-    sec.setStaticImportsWhitelist(safe);
-    sec.setStarImportsWhitelist(safe);
-    sec.setStaticStarImportsWhitelist(safe);
+    sec.setImportsWhitelist(allowed);
+    sec.setStaticImportsWhitelist(allowed);
+    sec.setStarImportsWhitelist(allowed);
+    sec.setStaticStarImportsWhitelist(allowed);
     return sec;
   }
 }
