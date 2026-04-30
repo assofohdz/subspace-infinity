@@ -31,6 +31,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
@@ -162,21 +163,21 @@ public class LevelFile extends JPanel {
         } else {
             // read header
             final byte[] header = readIn(12);
-            final ByteArray headerArray = new ByteArray(header);
-            ByteArray curData;
+            final ByteBuffer headerArray = LvlBinUtil.wrapLE(header);
+            ByteBuffer curData;
 
-            if (!headerArray.readString(0, 4).equals("elvl")) {
+            if (!LvlBinUtil.readString(headerArray, 0, 4).equals("elvl")) {
                 error = "The elvl header tag was not detected at the start of " + " the eLVL data section.";
             } else {
-                final int size = headerArray.readLittleEndianInt(4); // total size of the metadata section
+                final int size = headerArray.getInt(4); // total size of the metadata section
                 int current = 12; // current number of bytes read
 
                 while (current < size && error == null) {
                     if (available(8)) {
-                        curData = new ByteArray(readIn(8));
+                        curData = LvlBinUtil.wrapLE(readIn(8));
                         current += 8;
-                        final String type = curData.readString(0, 4);
-                        final int chunkLength = curData.readLittleEndianInt(4);
+                        final String type = LvlBinUtil.readString(curData, 0, 4);
+                        final int chunkLength = curData.getInt(4);
 
                         if (!available(chunkLength)) {
                             error = "EOF while reading in a eLVL chunk of type " + type;
@@ -186,8 +187,8 @@ public class LevelFile extends JPanel {
 
                         if (type.equals("ATTR")) { // attribute chunk
                             current += chunkLength;
-                            curData = new ByteArray(readIn(chunkLength));
-                            final String attr = curData.readString(0, chunkLength);
+                            curData = LvlBinUtil.wrapLE(readIn(chunkLength));
+                            final String attr = LvlBinUtil.readString(curData, 0, chunkLength);
                             final String[] keyTag = attr.split("=");
                             if (keyTag.length != 2) {
                                 error = "ATTR tag does not contain exactly " + "one '=' sign: " + attr;
@@ -199,7 +200,7 @@ public class LevelFile extends JPanel {
                             row.add(keyTag[1]);
                             eLvlAttrs.add(row);
                         } else if (type.equals("REGN")) { // region chunk
-                            curData = new ByteArray(readIn(chunkLength));
+                            curData = LvlBinUtil.wrapLE(readIn(chunkLength));
                             current += chunkLength;
 
                             final Region r = new Region();
@@ -214,7 +215,7 @@ public class LevelFile extends JPanel {
                         } else // unknown chunk
                         {
                             // System.out.println("unknown chunk: " + type);
-                            curData = new ByteArray(readIn(chunkLength));
+                            curData = LvlBinUtil.wrapLE(readIn(chunkLength));
                             current += chunkLength;
 
                             // encode header
@@ -229,7 +230,7 @@ public class LevelFile extends JPanel {
 
                             // encode data
                             for (int c = 0; c < chunkLength; ++c) {
-                                final byte b = curData.readByte(c);
+                                final byte b = curData.get(c);
                                 unknownELVLData.add(Byte.valueOf(b));
                             }
 
@@ -283,8 +284,8 @@ public class LevelFile extends JPanel {
         if (error == null) {
             while (available(4)) {
                 final byte[] b = readIn(4);
-                final ByteArray array = new ByteArray(b);
-                final int i = array.readLittleEndianInt(0);
+                final ByteBuffer array = LvlBinUtil.wrapLE(b);
+                final int i = array.getInt(0);
                 final int tile = i >> 24 & 0x00ff;
                 final int y = (i >> 12) & 0x03FF;
                 final int x = i & 0x03FF;

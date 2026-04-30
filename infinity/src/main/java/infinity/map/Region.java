@@ -518,14 +518,14 @@ public class Region {
     }
 
     /**
-     * Load the data in this ByteArray into this region
+     * Load the data in this ByteBuffer into this region.
      *
-     * @param encoding an eLVL REGN chunk, without the header
+     * @param encoding an eLVL REGN chunk, without the header (must be little-endian)
      * @return the error String, or null
      */
-    public String decodeRegion(final ByteArray encoding) {
+    public String decodeRegion(final java.nio.ByteBuffer encoding) {
         String error = null;
-        final int superChunkLen = encoding.m_array.length;
+        final int superChunkLen = encoding.limit();
         int cur = 0;
 
         while (cur < superChunkLen) {
@@ -534,9 +534,9 @@ public class Region {
                 error = "Not enogh bytes to make a subchunk header in REGN superchunk.";
                 break;
             }
-            final String type = encoding.readString(cur, 4);
+            final String type = LvlBinUtil.readString(encoding, cur, 4);
             cur += 4;
-            final int len = encoding.readLittleEndianInt(cur);
+            final int len = encoding.getInt(cur);
             cur += 4;
 
             // "rBSE" - whether the region represents a base in a flag game
@@ -554,18 +554,18 @@ public class Region {
             } // "rAWP" - auto-warp
             else if (type.equals("rAWP")) {
                 isAutoWarp = true;
-                x = encoding.readLittleEndianShort(cur);
+                x = encoding.getShort(cur);
                 cur += 2;
-                y = encoding.readLittleEndianShort(cur);
+                y = encoding.getShort(cur);
                 cur += 2;
                 if (len == 20) // we also have an arena
                 {
-                    arena = encoding.readNullTerminatedString(cur);
+                    arena = LvlBinUtil.readNullTerminatedString(encoding, cur);
                     cur += 16;
                 }
             } // "rNAM" - a descriptive name for the region
             else if (type.equals("rNAM")) {
-                name = encoding.readString(cur, len);
+                name = LvlBinUtil.readString(encoding, cur, len);
                 cur += len;
 
                 final int padding = 4 - len % 4;
@@ -574,7 +574,7 @@ public class Region {
                 }
             } // "rTIL" - tile data, the definition of the region
             else if (type.equals("rTIL")) {
-                error = decodeTiles(encoding.m_array, cur, len);
+                error = decodeTiles(encoding.array(), cur, len);
 
                 if (error != null) {
                     break;
@@ -601,7 +601,7 @@ public class Region {
                 // encode data
                 final int endIndex = cur + len;
                 for (int c = cur; c < endIndex; ++c) {
-                    final byte b = encoding.readByte(c);
+                    final byte b = encoding.get(c);
                     unknownBytes.add(Byte.valueOf(b));
                 }
                 cur += len;

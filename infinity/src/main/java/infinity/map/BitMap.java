@@ -28,8 +28,8 @@ package infinity.map;
 import java.awt.Image;
 import java.awt.image.MemoryImageSource;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.swing.JPanel;
 
@@ -44,7 +44,6 @@ public class BitMap extends JPanel {
 
     private byte[] fileHeader;
     private byte[] infoHeader;
-    private ByteArray fileData;
 
     // private String fh_type;
     private int m_size;
@@ -68,25 +67,21 @@ public class BitMap extends JPanel {
     }
 
     public void readBitMap(final boolean trans) {
-        fileData = new ByteArray();
-
         // Read 14 bytes for file header
         fileHeader = readIn(14);
-        ByteArray array = new ByteArray(fileHeader);
-        // fh_type = array.readString(0, 2);
+        ByteBuffer array = LvlBinUtil.wrapLE(fileHeader);
 
-        if (array.readString(0, 2).equals("BM")) {
+        if (LvlBinUtil.readString(array, 0, 2).equals("BM")) {
             m_validBMP = true;
         } else {
-            if (array.readString(0, 4).equals("elvl")) {
+            if (LvlBinUtil.readString(array, 0, 4).equals("elvl")) {
                 hasELVL = true;
                 ELvlOffset = 0;
             }
 
             return;
         }
-        m_size = array.readLittleEndianInt(2);
-        // m_offset = array.readLittleEndianInt(10);
+        m_size = array.getInt(2);
 
         // The Subspace convention stores the eLVL section's offset in the BMP's 4-byte `reserved`
         // field (fileHeader[6..9]). Reference: SubspaceServer/src/Core/Map/BitmapHeader.cs — `Reserved`
@@ -94,7 +89,7 @@ public class BitMap extends JPanel {
         // works for classic 8-bit trench maps (fileSize=49718, eLVL at 49720 fits in 16 bits) but
         // truncates for larger 24-bit BMPs where the offset exceeds 65,535 (e.g. pub2025.lvl stores
         // 145,976 here).
-        final int reservedOffset = array.readLittleEndianInt(6);
+        final int reservedOffset = array.getInt(6);
         if (reservedOffset != 0) {
             ELvlOffset = reservedOffset;
             hasELVL = true;
@@ -102,12 +97,12 @@ public class BitMap extends JPanel {
 
         // Read 40 bytes for info header
         infoHeader = readIn(40);
-        array = new ByteArray(infoHeader);
-        m_width = array.readLittleEndianInt(4);
-        m_height = array.readLittleEndianInt(8);
-        m_bitCount = array.readLittleEndianShort(14);
-        m_compressionType = array.readLittleEndianInt(16);
-        m_colorsUsed = array.readLittleEndianInt(20);
+        array = LvlBinUtil.wrapLE(infoHeader);
+        m_width = array.getInt(4);
+        m_height = array.getInt(8);
+        m_bitCount = array.getShort(14);
+        m_compressionType = array.getInt(16);
+        m_colorsUsed = array.getInt(20);
 
         // Create our image container
         m_image = new int[m_width * m_height];
@@ -120,8 +115,8 @@ public class BitMap extends JPanel {
             // Read in the color table
             for (int i = 0; i < m_colorsUsed; i++) {
                 final byte c[] = readIn(4);
-                array = new ByteArray(c);
-                m_colorTable[i] = (array.readLittleEndianInt(0) & 0xffffff) + 0xff000000;
+                array = LvlBinUtil.wrapLE(c);
+                m_colorTable[i] = (array.getInt(0) & 0xffffff) + 0xff000000;
 
                 // Make black transparent. SS specific need, will adjust to be dynamic
                 if (m_colorTable[i] == 0xff000000 && trans) {
@@ -261,17 +256,10 @@ public class BitMap extends JPanel {
         try {
             final byte[] b = new byte[1];
             m_stream.read(b);
-            // fileData.addByteArray( b );
             return b[0] & 255;
         } catch (@SuppressWarnings("unused") final IOException e) {
             return 0;
         }
-    }
-
-    public void appendTo(final BufferedOutputStream out) throws IOException {
-        // Write bitmap File Data
-        out.write(fileData.getByteArray(), 0, fileData.size());
-        out.close();
     }
 
     public Image getImage() {
