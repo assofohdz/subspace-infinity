@@ -44,18 +44,20 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.Bombs;
-import infinity.Guns;
+import infinity.config.ShipConfig;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
+import infinity.es.arena.ArenaId;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
 import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
+import infinity.es.ship.ShipType;
+import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.RechargeMax;
 import infinity.es.ship.RechargeUpgrade;
 import infinity.es.ship.Rotation;
@@ -85,7 +87,6 @@ import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.sim.CollisionFilters;
-import infinity.sim.CoreGameConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.util.RandomSelector;
@@ -112,6 +113,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   RandomSelector<String> rc;
   Random random;
   private EntityData ed;
+  private ConfigRegistrySystem configRegistry;
   private EntitySet prizeSpawners;
   private EntitySet prizes;
   private SimTime ourTime;
@@ -126,6 +128,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     this.initializePrizeMap();
 
     ed = getSystem(EntityData.class);
+    configRegistry = getSystem(ConfigRegistrySystem.class);
 
     ComponentFilter<?> prizeSpawnerFilter =
         FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
@@ -449,6 +452,25 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
    *
    * @param ship The ship that picked up the bomb prize.
    */
+  /**
+   * Look up the per-arena {@link ShipConfig} for {@code ship}'s current ship
+   * type and arena membership. Returns {@code null} when either the
+   * {@link ShipType} or {@link ArenaId} component is missing, or the arena
+   * doesn't have a config for that ship type — callers log and skip in that
+   * case (matches {@code ShipSpawnSystem}'s null-config handling).
+   */
+  private ShipConfig getShipConfig(EntityId ship) {
+    final ShipType shipType = ed.getComponent(ship, ShipType.class);
+    if (shipType == null || shipType.getType() == null) {
+      return null;
+    }
+    final ArenaId arenaId = ed.getComponent(ship, ArenaId.class);
+    if (arenaId == null) {
+      return null;
+    }
+    return configRegistry.forArena(arenaId).getShip(shipType.getType());
+  }
+
   private void handleAcquireMine(EntityId ship) {
     MineCurrentLevel mineCurrentLevel = ed.getComponent(ship, MineCurrentLevel.class);
     MineMaxLevel mineMaxLevel = ed.getComponent(ship, MineMaxLevel.class);
@@ -460,11 +482,18 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
           (mineCurrentLevel.getLevel().next()));
       ed.setComponent(ship, new MineCurrentLevel(mineCurrentLevel.getLevel().next()));
     } else if (mineCurrentLevel == null && mineMaxLevel != null) {
+      // First-time mine acquisition: project starting level / max / cost / delay
+      // from the per-arena ShipConfig (Pattern 4) instead of hardcoded constants.
+      final ShipConfig cfg = getShipConfig(ship);
+      if (cfg == null) {
+        log.warn("Ship {} acquired mine prize without ShipConfig context; skipping", ship);
+        return;
+      }
       log.info("Ship {} picked up mine prize", ship);
-      ed.setComponent(ship, new MineCurrentLevel(Bombs.BOMB_1));
-      ed.setComponent(ship, new MineCost(CoreGameConstants.MINECOST));
-      ed.setComponent(ship, new MineFireDelay(CoreGameConstants.MINECOOLDOWN));
-      ed.setComponent(ship, new MineMaxLevel(Bombs.BOMB_4));
+      ed.setComponent(ship, new MineCurrentLevel(cfg.mines().start()));
+      ed.setComponent(ship, new MineCost(cfg.mines().cost()));
+      ed.setComponent(ship, new MineFireDelay(cfg.mines().fireDelayCs()));
+      ed.setComponent(ship, new MineMaxLevel(cfg.mines().max()));
     }
   }
 
@@ -479,11 +508,17 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
           (bombCurrentLevel.getLevel().next()));
       ed.setComponent(ship, new BombCurrentLevel(bombCurrentLevel.getLevel().next()));
     } else if (bombCurrentLevel == null && bombMaxLevel != null) {
+      // First-time bomb acquisition: project from per-arena ShipConfig.
+      final ShipConfig cfg = getShipConfig(ship);
+      if (cfg == null) {
+        log.warn("Ship {} acquired bomb prize without ShipConfig context; skipping", ship);
+        return;
+      }
       log.info("Ship {} picked up bomb prize", ship);
-      ed.setComponent(ship, new BombCurrentLevel(Bombs.BOMB_1));
-      ed.setComponent(ship, new BombCost(CoreGameConstants.BOMBCOST));
-      ed.setComponent(ship, new BombFireDelay(CoreGameConstants.BOMBCOOLDOWN));
-      ed.setComponent(ship, new BombMaxLevel(Bombs.BOMB_4));
+      ed.setComponent(ship, new BombCurrentLevel(cfg.bombs().start()));
+      ed.setComponent(ship, new BombCost(cfg.bombs().cost()));
+      ed.setComponent(ship, new BombFireDelay(cfg.bombs().fireDelayCs()));
+      ed.setComponent(ship, new BombMaxLevel(cfg.bombs().max()));
     }
   }
 
@@ -506,11 +541,17 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       log.info("Gun level increased to {}", (gunCurrentLevel.getLevel().next()));
       ed.setComponent(ship, new GunCurrentLevel(gunCurrentLevel.getLevel().next()));
     } else if (gunCurrentLevel == null) {
-      log.info("Ship {} just acquired guns and now has level {} guns", ship, 1);
-      ed.setComponent(ship, new GunCurrentLevel(Guns.LEVEL_1));
-      ed.setComponent(ship, new GunCost(CoreGameConstants.GUNCOST));
-      ed.setComponent(ship, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-      ed.setComponent(ship, new GunMaxLevel(Guns.LEVEL_4));
+      // First-time gun acquisition: project from per-arena ShipConfig.
+      final ShipConfig cfg = getShipConfig(ship);
+      if (cfg == null) {
+        log.warn("Ship {} acquired gun prize without ShipConfig context; skipping", ship);
+        return;
+      }
+      log.info("Ship {} just acquired guns at level {}", ship, cfg.guns().start().level);
+      ed.setComponent(ship, new GunCurrentLevel(cfg.guns().start()));
+      ed.setComponent(ship, new GunCost(cfg.guns().cost()));
+      ed.setComponent(ship, new GunFireDelay(cfg.guns().fireDelayCs()));
+      ed.setComponent(ship, new GunMaxLevel(cfg.guns().max()));
     }
   }
 

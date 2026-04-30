@@ -56,6 +56,13 @@ import infinity.Ship;
  *     elastic, {@code 0} = stick)
  * @param radarRange radius (world units) around the ship that the client
  *     radar viewport displays
+ * @param bombs starting + max bomb level, fire cost, fire-delay
+ * @param guns starting + max gun level, fire cost, fire-delay
+ * @param mines starting + max mine level (reuses Bombs enum), drop cost,
+ *     drop-delay
+ * @param bursts starting + max burst inventory count
+ * @param thors starting + max thor inventory count + per-fire delay
+ * @param repels starting + max repel inventory count
  */
 public record ShipConfig(
     Ship type,
@@ -67,4 +74,10 @@ public record ShipConfig(
     double dragFactor,
     double turnResponsiveness,
     double bounceRestitution,
-    double radarRange) {}
+    double radarRange,
+    BombStats bombs,
+    GunStats guns,
+    MineStats mines,
+    CountStats bursts,
+    CountWithDelayStats thors,
+    CountStats repels) {}

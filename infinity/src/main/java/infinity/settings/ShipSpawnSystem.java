@@ -32,6 +32,11 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.config.BombStats;
+import infinity.config.CountStats;
+import infinity.config.CountWithDelayStats;
+import infinity.config.GunStats;
+import infinity.config.MineStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.RadarShapeInfo;
@@ -57,6 +62,25 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
+import infinity.es.ship.actions.Burst;
+import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.Repel;
+import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.ThorCurrentCount;
+import infinity.es.ship.actions.ThorFireDelay;
+import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.weapons.BombCurrentLevel;
+import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombMaxLevel;
+import infinity.es.ship.weapons.GunCost;
+import infinity.es.ship.weapons.GunCurrentLevel;
+import infinity.es.ship.weapons.GunFireDelay;
+import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.MineCurrentLevel;
+import infinity.es.ship.weapons.MineFireDelay;
+import infinity.es.ship.weapons.MineMaxLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,6 +280,12 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectEnergy(shipId, cfg.energy(), resetLivePool);
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
+    projectBombs(shipId, cfg.bombs(), resetLivePool);
+    projectGuns(shipId, cfg.guns(), resetLivePool);
+    projectMines(shipId, cfg.mines(), resetLivePool);
+    projectBursts(shipId, cfg.bursts(), resetLivePool);
+    projectThors(shipId, cfg.thors(), resetLivePool);
+    projectRepels(shipId, cfg.repels(), resetLivePool);
   }
 
   // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from
@@ -311,5 +341,66 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     // Blip name derived from the ship enum's canonical name (e.g. "ship_warbird")
     // so client-side blip-spatial registries can mirror SISpatialFactory's naming.
     ed.setComponent(shipId, RadarShapeInfo.create(cfg.type().getName() + "_blip", ed));
+  }
+
+  // Weapon / inventory projections — same Pattern-4 split as Energy:
+  // the live "current count / level" component resets only on respawn so a
+  // mid-fight Groovy reload doesn't refill ammo or revoke earned upgrades;
+  // capability components (max, cost, fire-delay) always re-project so a
+  // tuning edit takes effect immediately.
+
+  private void projectBombs(
+      final EntityId shipId, final BombStats bombs, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new BombCurrentLevel(bombs.start()));
+    }
+    ed.setComponent(shipId, new BombMaxLevel(bombs.max()));
+    ed.setComponent(shipId, new BombCost(bombs.cost()));
+    ed.setComponent(shipId, new BombFireDelay(bombs.fireDelayCs()));
+  }
+
+  private void projectGuns(
+      final EntityId shipId, final GunStats guns, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new GunCurrentLevel(guns.start()));
+    }
+    ed.setComponent(shipId, new GunMaxLevel(guns.max()));
+    ed.setComponent(shipId, new GunCost(guns.cost()));
+    ed.setComponent(shipId, new GunFireDelay(guns.fireDelayCs()));
+  }
+
+  private void projectMines(
+      final EntityId shipId, final MineStats mines, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new MineCurrentLevel(mines.start()));
+    }
+    ed.setComponent(shipId, new MineMaxLevel(mines.max()));
+    ed.setComponent(shipId, new MineCost(mines.cost()));
+    ed.setComponent(shipId, new MineFireDelay(mines.fireDelayCs()));
+  }
+
+  private void projectBursts(
+      final EntityId shipId, final CountStats bursts, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Burst(bursts.start()));
+    }
+    ed.setComponent(shipId, new BurstMax(bursts.max()));
+  }
+
+  private void projectThors(
+      final EntityId shipId, final CountWithDelayStats thors, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new ThorCurrentCount(thors.start()));
+    }
+    ed.setComponent(shipId, new ThorMaxCount(thors.max()));
+    ed.setComponent(shipId, new ThorFireDelay(thors.fireDelayCs()));
+  }
+
+  private void projectRepels(
+      final EntityId shipId, final CountStats repels, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Repel(repels.start()));
+    }
+    ed.setComponent(shipId, new RepelMax(repels.max()));
   }
 }

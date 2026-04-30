@@ -28,7 +28,14 @@ package infinity.settings;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
+import infinity.Bombs;
+import infinity.Guns;
 import infinity.Ship;
+import infinity.config.BombStats;
+import infinity.config.CountStats;
+import infinity.config.CountWithDelayStats;
+import infinity.config.GunStats;
+import infinity.config.MineStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
@@ -63,15 +70,26 @@ import org.slf4j.LoggerFactory;
  *     turnResponsiveness  8.0
  *     bounceRestitution   1.0
  *     radarRange          250
+ *     bombs   start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 10, fireDelay: 25
+ *     guns    start: Guns.LEVEL_1,  max: Guns.LEVEL_4,  cost: 10, fireDelay: 25
+ *     mines   start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 50, fireDelay: 500
+ *     bursts  start: 5,  max: 5
+ *     thors   start: 2,  max: 2,  fireDelay: 1000
+ *     repels  start: 10, max: 20
  * }
  * }</pre>
  *
- * <p>The {@code Ship} enum is added as a default import (and whitelisted) by
- * the host. Stats omitted in a ship block default to {@code ShipStat(0, 0, 0)};
- * partial stat blocks (missing {@code initial}/{@code max}/{@code upgrade})
- * fail with a clear error message. Physics-feel knobs ({@code dragFactor},
- * {@code turnResponsiveness}, {@code bounceRestitution}) and {@code radarRange}
- * default to historical / conservative values (0.05 / 8.0 / 1.0 / 250).
+ * <p>The {@code Ship}, {@code Bombs}, and {@code Guns} enums are added as
+ * default imports (and whitelisted) by the host. Movement stats omitted in
+ * a ship block default to {@code ShipStat(0, 0, 0)}; partial stat blocks
+ * (missing {@code initial}/{@code max}/{@code upgrade}) fail with a clear
+ * error message. Physics-feel knobs ({@code dragFactor},
+ * {@code turnResponsiveness}, {@code bounceRestitution}) and
+ * {@code radarRange} default to historical / conservative values
+ * (0.05 / 8.0 / 1.0 / 250). The weapon / inventory blocks
+ * ({@code bombs}, {@code guns}, {@code mines}, {@code bursts}, {@code thors},
+ * {@code repels}) default to the values previously inlined in
+ * {@code GameEntities.createShip} so existing presets behave identically.
  */
 public final class GroovyShipLoader {
 
@@ -106,6 +124,33 @@ public final class GroovyShipLoader {
    * the rendered world view.
    */
   static final double DEFAULT_RADAR_RANGE = 250.0;
+
+  // --- Defaults for the per-ship weapon / inventory stat groups ---------
+  // Match the values previously inlined in GameEntities.createShip and the
+  // CoreGameConstants references it pulled from. Preserves prior behaviour
+  // for any preset whose ships.groovy doesn't override these.
+
+  /** Default starting bomb level + max + cost + fire-delay. */
+  static final BombStats DEFAULT_BOMBS =
+      new BombStats(Bombs.BOMB_1, Bombs.BOMB_4, /* cost */ 10, /* fireDelayCs */ 25);
+
+  /** Default starting gun level + max + cost + fire-delay. */
+  static final GunStats DEFAULT_GUNS =
+      new GunStats(Guns.LEVEL_1, Guns.LEVEL_4, /* cost */ 10, /* fireDelayCs */ 25);
+
+  /** Default starting mine level + max + cost + fire-delay. */
+  static final MineStats DEFAULT_MINES =
+      new MineStats(Bombs.BOMB_1, Bombs.BOMB_4, /* cost */ 50, /* fireDelayCs */ 500);
+
+  /** Default starting + max burst inventory count. */
+  static final CountStats DEFAULT_BURSTS = new CountStats(/* start */ 5, /* max */ 5);
+
+  /** Default starting + max thor inventory count + per-fire delay. */
+  static final CountWithDelayStats DEFAULT_THORS =
+      new CountWithDelayStats(/* start */ 2, /* max */ 2, /* fireDelayCs */ 1000);
+
+  /** Default starting + max repel inventory count. */
+  static final CountStats DEFAULT_REPELS = new CountStats(/* start */ 10, /* max */ 20);
 
   /**
    * Built-in fallback snapshot installed when an arena's {@code ships.groovy}
@@ -192,7 +237,13 @@ public final class GroovyShipLoader {
         DEFAULT_DRAG_FACTOR,
         DEFAULT_TURN_RESPONSIVENESS,
         DEFAULT_BOUNCE_RESTITUTION,
-        DEFAULT_RADAR_RANGE);
+        DEFAULT_RADAR_RANGE,
+        DEFAULT_BOMBS,
+        DEFAULT_GUNS,
+        DEFAULT_MINES,
+        DEFAULT_BURSTS,
+        DEFAULT_THORS,
+        DEFAULT_REPELS);
   }
 
   private final ConfigRegistrySystem configRegistry;
@@ -271,10 +322,13 @@ public final class GroovyShipLoader {
 
     @Override
     public List<String> allowedImports() {
-      // Ship enum is the only class scripts reference. The host adds it as
-      // a default import (so `Ship.WARBIRD` works without `import infinity.Ship`)
-      // AND whitelists it so an explicit import would also be valid.
-      return List.of(Ship.class.getName());
+      // Scripts reference three enums directly: Ship (for the ship() block
+      // arg), Bombs (for bombs/mines start/max), and Guns (for guns
+      // start/max). The host adds each as a default import (so
+      // `Ship.WARBIRD` / `Bombs.BOMB_1` / `Guns.LEVEL_1` work without
+      // explicit `import` lines) AND whitelists them so an explicit import
+      // would also be valid.
+      return List.of(Ship.class.getName(), Bombs.class.getName(), Guns.class.getName());
     }
 
     @Override
@@ -338,6 +392,12 @@ public final class GroovyShipLoader {
     private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
     private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
     private double radarRange = DEFAULT_RADAR_RANGE;
+    private BombStats bombs = DEFAULT_BOMBS;
+    private GunStats guns = DEFAULT_GUNS;
+    private MineStats mines = DEFAULT_MINES;
+    private CountStats bursts = DEFAULT_BURSTS;
+    private CountWithDelayStats thors = DEFAULT_THORS;
+    private CountStats repels = DEFAULT_REPELS;
 
     // Package-private so unit tests in this package can build configs without
     // standing up the full GroovyShell pipeline.
@@ -381,6 +441,57 @@ public final class GroovyShipLoader {
       this.radarRange = doubleArg("radarRange", value);
     }
 
+    /** {@code bombs start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 10, fireDelay: 25} */
+    public void bombs(final Map<String, ?> args) {
+      this.bombs =
+          new BombStats(
+              bombsArg("bombs", args, "start"),
+              bombsArg("bombs", args, "max"),
+              intArg("bombs", args, "cost"),
+              longArg("bombs", args, "fireDelay"));
+    }
+
+    /** {@code guns start: Guns.LEVEL_1, max: Guns.LEVEL_4, cost: 10, fireDelay: 25} */
+    public void guns(final Map<String, ?> args) {
+      this.guns =
+          new GunStats(
+              gunsArg("guns", args, "start"),
+              gunsArg("guns", args, "max"),
+              intArg("guns", args, "cost"),
+              longArg("guns", args, "fireDelay"));
+    }
+
+    /** {@code mines start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 50, fireDelay: 500} */
+    public void mines(final Map<String, ?> args) {
+      this.mines =
+          new MineStats(
+              bombsArg("mines", args, "start"),
+              bombsArg("mines", args, "max"),
+              intArg("mines", args, "cost"),
+              longArg("mines", args, "fireDelay"));
+    }
+
+    /** {@code bursts start: 5, max: 5} */
+    public void bursts(final Map<String, ?> args) {
+      this.bursts =
+          new CountStats(intArg("bursts", args, "start"), intArg("bursts", args, "max"));
+    }
+
+    /** {@code thors start: 2, max: 2, fireDelay: 1000} */
+    public void thors(final Map<String, ?> args) {
+      this.thors =
+          new CountWithDelayStats(
+              intArg("thors", args, "start"),
+              intArg("thors", args, "max"),
+              longArg("thors", args, "fireDelay"));
+    }
+
+    /** {@code repels start: 10, max: 20} */
+    public void repels(final Map<String, ?> args) {
+      this.repels =
+          new CountStats(intArg("repels", args, "start"), intArg("repels", args, "max"));
+    }
+
     private static ShipStat toStat(final String statName, final Map<String, ?> args) {
       return new ShipStat(
           intArg(statName, args, "initial"),
@@ -396,6 +507,36 @@ public final class GroovyShipLoader {
       }
       throw new IllegalArgumentException(
           "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
+    }
+
+    private static long longArg(
+        final String statName, final Map<String, ?> args, final String key) {
+      final Object v = args.get(key);
+      if (v instanceof Number n) {
+        return n.longValue();
+      }
+      throw new IllegalArgumentException(
+          "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
+    }
+
+    private static Bombs bombsArg(
+        final String statName, final Map<String, ?> args, final String key) {
+      final Object v = args.get(key);
+      if (v instanceof Bombs b) {
+        return b;
+      }
+      throw new IllegalArgumentException(
+          "Ship stat '" + statName + "' '" + key + "' must be a Bombs enum value (got " + v + ")");
+    }
+
+    private static Guns gunsArg(
+        final String statName, final Map<String, ?> args, final String key) {
+      final Object v = args.get(key);
+      if (v instanceof Guns g) {
+        return g;
+      }
+      throw new IllegalArgumentException(
+          "Ship stat '" + statName + "' '" + key + "' must be a Guns enum value (got " + v + ")");
     }
 
     private static double doubleArg(final String fieldName, final Number value) {
@@ -417,7 +558,13 @@ public final class GroovyShipLoader {
           dragFactor,
           turnResponsiveness,
           bounceRestitution,
-          radarRange);
+          radarRange,
+          bombs,
+          guns,
+          mines,
+          bursts,
+          thors,
+          repels);
     }
   }
 }
