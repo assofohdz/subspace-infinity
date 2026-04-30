@@ -27,7 +27,6 @@
 package infinity.systems;
 
 import com.simsilica.es.ComponentFilter;
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -101,18 +100,9 @@ public class AvatarSystem extends AbstractGameSystem {
   @SuppressWarnings("unused")
   @Override
   public void update(final SimTime tpf) {
-
-    if (captains.applyChanges()) {
-      for (final Entity e : captains.getAddedEntities()) {
-        // TODO implement me
-      }
-      for (final Entity e : captains.getChangedEntities()) {
-        // TODO implement me
-      }
-      for (final Entity e : captains.getRemovedEntities()) {
-        // TODO implement me
-      }
-    }
+    // Keep `captains` current — isCaptain() reads from the live set.
+    // TODO: react to add / change / remove events when captain logic lands.
+    captains.applyChanges();
   }
 
   @Override
