@@ -26,7 +26,6 @@
 
 package infinity.util;
 
-import static infinity.util.Preconditions.checkArgument;
 /*
  * Copyright 2015 Olivier Grégoire.
  *
@@ -98,7 +97,9 @@ public final class RandomSelector<T> {
      */
     public static <T> RandomSelector<T> uniform(final Collection<T> elements) throws IllegalArgumentException {
         requireNonNull(elements, "collection must not be null");
-        checkArgument(!elements.isEmpty(), "collection must not be empty");
+        if (elements.isEmpty()) {
+            throw new IllegalArgumentException("collection must not be empty");
+        }
 
         final int size = elements.size();
         @SuppressWarnings("unchecked")
@@ -127,7 +128,9 @@ public final class RandomSelector<T> {
             final ToDoubleFunction<? super T> weighter) throws IllegalArgumentException {
         requireNonNull(elements, "elements must not be null");
         requireNonNull(weighter, "weighter must not be null");
-        checkArgument(!elements.isEmpty(), "elements must not be empty");
+        if (elements.isEmpty()) {
+            throw new IllegalArgumentException("elements must not be empty");
+        }
 
         final int size = elements.size();
         @SuppressWarnings("unchecked")
@@ -137,7 +140,9 @@ public final class RandomSelector<T> {
         final double[] discreteProbabilities = new double[size];
         for (int i = 0; i < size; i++) {
             final double weight = weighter.applyAsDouble(elementArray[i]);
-            checkArgument(weight >= 0d, "weighter returned a negative number");
+            if (weight < 0d) {
+                throw new IllegalArgumentException("weighter returned a negative number");
+            }
             discreteProbabilities[i] = weight;
             totalWeight += weight;
         }

@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.sim;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -37,7 +37,6 @@ import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import infinity.es.input.CharacterInput;
 import infinity.es.ship.Player;
-import infinity.sim.GameEntities;
 
 public class AIEntities {
 

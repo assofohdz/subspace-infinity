@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.client.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -49,8 +49,6 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.ElementId;
-
-import infinity.client.states.InfinityCameraState;
 
 /**
  *

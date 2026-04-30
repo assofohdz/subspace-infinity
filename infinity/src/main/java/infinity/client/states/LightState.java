@@ -38,7 +38,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
 import infinity.Main;
-import infinity.TimeState;
 import infinity.client.ConnectionState;
 import infinity.es.PointLightComponent;
 import java.util.HashMap;

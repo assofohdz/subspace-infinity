@@ -16,7 +16,6 @@ import com.simsilica.lemur.*;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.style.ElementId;
 import infinity.Main;
-import infinity.MainMenuState;
 import infinity.client.ConnectionState;
 
 /**

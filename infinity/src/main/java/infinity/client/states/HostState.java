@@ -5,7 +5,7 @@
  * All rights reserved.
  */
 
-package infinity;
+package infinity.client.states;
 
 import com.simsilica.sim.GameSystemManager;
 import infinity.client.ConnectionState;
@@ -26,6 +26,7 @@ import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.style.ElementId;
 import com.simsilica.state.DebugHudState;
 import com.simsilica.state.DebugHudState.Location;
+import infinity.Main;
 
 /**
  *  Manages the game server when hosting a game.

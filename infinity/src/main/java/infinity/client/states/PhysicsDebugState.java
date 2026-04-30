@@ -53,7 +53,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.PhysicsStats;
 import com.simsilica.state.CompositeAppState;
 import com.simsilica.state.DebugHudState;
-import infinity.HostState;
 import infinity.client.AvatarMovementState;
 import infinity.client.view.DebugFunctions;
 import org.slf4j.Logger;

@@ -37,7 +37,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import com.simsilica.mathd.Vec3d;
 import infinity.Ship;
-import infinity.ShipRestrictor;
+import infinity.sim.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;

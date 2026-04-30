@@ -66,7 +66,10 @@ import com.simsilica.state.MemoryDebugState;
 import com.simsilica.state.MessageState;
 
 import infinity.client.AvatarMovementFunctions;
+import infinity.client.MainGameFunctions;
+import infinity.client.states.HelpState;
 import infinity.client.states.LightingTunerState;
+import infinity.client.states.MainMenuState;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 

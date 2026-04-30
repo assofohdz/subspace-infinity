@@ -57,7 +57,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.GameSystemManager;
 import com.simsilica.state.DebugHudState;
-import infinity.HostState;
 import infinity.ai.MobStats;
 import infinity.ai.MobSystem;
 import infinity.es.MobType;

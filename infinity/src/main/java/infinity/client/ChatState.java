@@ -49,7 +49,6 @@ import com.simsilica.state.CommandConsoleState;
 import com.simsilica.state.CommandEntry;
 import com.simsilica.state.MessageState;
 
-import infinity.MainGameFunctions;
 import infinity.client.chat.ChatClientService;
 import infinity.net.chat.ChatSessionListener;
 

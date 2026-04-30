@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.client.states;
 
 /*
  * $Id$

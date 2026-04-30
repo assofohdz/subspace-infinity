@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.client.states;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +48,7 @@ import com.jme3.input.KeyInput;
 import com.jme3.input.KeyNames;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import infinity.client.MainGameFunctions;
 
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;

@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity;
+package infinity.client.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;

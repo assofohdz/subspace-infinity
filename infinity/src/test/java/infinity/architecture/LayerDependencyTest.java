@@ -69,9 +69,17 @@ public class LayerDependencyTest {
   /**
    * Client must not reach into server/modules/ai. Commands go via RMI, not direct calls.
    *
-   * <p>Exception: {@code MobDebugState} is a client-side debug overlay that intentionally reads
-   * {@code MobSystem}/{@code MobStats} internals for debug visualization — legitimate in
-   * co-hosted client/server.
+   * <p>Exceptions:
+   *
+   * <ul>
+   *   <li>{@code MobDebugState} — client-side debug overlay that intentionally reads
+   *       {@code MobSystem}/{@code MobStats} internals for debug visualization, legitimate in
+   *       co-hosted client/server.
+   *   <li>{@code HostState} — "Host a Game" state that spawns and manages a local
+   *       {@code GameServer} inside the client process. It IS the co-hosting orchestration
+   *       boundary, so a direct dependency on {@code infinity.server.GameServer} is
+   *       structural, not a layering leak.
+   * </ul>
    */
   @ArchTest
   static final ArchRule client_must_not_depend_on_server_modules_or_ai =
@@ -80,6 +88,8 @@ public class LayerDependencyTest {
           .resideInAPackage("infinity.client..")
           .and()
           .doNotHaveSimpleName("MobDebugState")
+          .and()
+          .doNotHaveSimpleName("HostState")
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(

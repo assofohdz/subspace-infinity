@@ -32,7 +32,6 @@ import infinity.es.arena.ArenaId;
 import infinity.server.AssetLoaderService;
 import infinity.settings.GroovyFragmentLoader;
 import infinity.settings.IniLoader;
-import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.ArrayList;
@@ -78,10 +77,6 @@ public class SettingsSystem extends AbstractGameSystem {
     assetLoader.registerLoader(IniLoader.class, "ini");
     assetLoader.registerLoader(IniLoader.class, "cfg");
     assetLoader.registerLoader(IniLoader.class, "conf");
-
-    assetLoader.registerLoader(SSSLoader.class, "sss");
-    assetLoader.registerLoader(SSSLoader.class, "set");
-
   }
 
   @Override

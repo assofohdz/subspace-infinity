@@ -46,7 +46,7 @@ import com.simsilica.lemur.Label;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.ElementId;
 
-import infinity.MainGameFunctions;
+import infinity.client.MainGameFunctions;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.es.Frequency;
