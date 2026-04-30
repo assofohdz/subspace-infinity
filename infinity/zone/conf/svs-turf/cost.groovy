@@ -1,11 +1,10 @@
 section('Cost') {
-    PurchaseAnytime 0
-    XRadar 0
     Recharge 0
     Energy 0
     Rotation 0
     Stealth 0
     Cloak 0
+    XRadar 0
     Gun 0
     Bomb 0
     Bounce 0
@@ -24,4 +23,5 @@ section('Cost') {
     Brick 0
     Rocket 0
     Portal 0
+    PurchaseAnytime 0
 }

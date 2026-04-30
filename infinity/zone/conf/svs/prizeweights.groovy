@@ -1,0 +1,30 @@
+section('PrizeWeight') {
+    QuickCharge 80
+    Energy 110
+    Rotation 50
+    Stealth 25
+    Cloak 30
+    AntiWarp 30
+    XRadar 30
+    Warp 10
+    Gun 50
+    Bomb 45
+    BouncingBullets 45
+    Thruster 50
+    TopSpeed 80
+    Recharge 30
+    MultiFire 40
+    Proximity 45
+    Glue 0
+    AllWeapons 5
+    Shields 5
+    Shrapnel 60
+    Repel 20
+    Burst 10
+    Decoy 25
+    Thor 20
+    Portal 25
+    Brick 10
+    Rocket 25
+    MultiPrize 80
+}

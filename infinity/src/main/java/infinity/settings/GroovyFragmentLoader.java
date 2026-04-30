@@ -37,6 +37,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Locale;
 import javax.annotation.Nullable;
 import org.codehaus.groovy.control.CompilerConfiguration;
@@ -90,6 +92,13 @@ import org.slf4j.LoggerFactory;
  */
 public final class GroovyFragmentLoader {
 
+  /**
+   * Maximum recursive {@code include} depth before bailing — matches the
+   * value baked into the INI {@code IniLoader} preprocessor so the two
+   * include systems behave identically.
+   */
+  static final int MAX_INCLUDE_DEPTH = 16;
+
   private static final Logger log = LoggerFactory.getLogger(GroovyFragmentLoader.class);
 
   /**
@@ -103,17 +112,79 @@ public final class GroovyFragmentLoader {
    */
   @Nullable
   public Ini load(final String classpathPath) {
-    try {
-      final String source = readSource(classpathPath);
-      if (source == null) {
-        log.warn("Fragment {} not found on filesystem or classpath", classpathPath);
-        return null;
-      }
-      return evaluate(source, classpathPath);
-    } catch (final Exception e) {
-      log.warn("Fragment {} failed to evaluate", classpathPath, e);
+    final Ini ini = new Ini();
+    final Deque<String> stack = new ArrayDeque<>();
+    if (!loadInto(ini, classpathPath, stack)) {
       return null;
     }
+    return ini;
+  }
+
+  /**
+   * Recursive entry point used by both the public {@link #load} and the
+   * {@code include} script keyword. Reads the file at {@code classpathPath}
+   * and applies its contents to {@code ini}; {@code stack} tracks
+   * in-progress includes so cycles surface as {@link IllegalStateException}
+   * rather than infinite recursion / stack overflow.
+   *
+   * @return {@code true} on a successful evaluation, {@code false} if the
+   *     file was missing or evaluated but failed (warning logged either
+   *     way). Cycles + depth violations propagate as exceptions so the
+   *     parent script eval surfaces them too — those are author bugs, not
+   *     soft "skip and continue" conditions.
+   */
+  private boolean loadInto(
+      final Ini ini, final String classpathPath, final Deque<String> stack) {
+    if (stack.contains(classpathPath)) {
+      throw new IllegalStateException(
+          "include cycle detected: " + describeChain(stack, classpathPath));
+    }
+    if (stack.size() >= MAX_INCLUDE_DEPTH) {
+      throw new IllegalStateException(
+          "include depth exceeded "
+              + MAX_INCLUDE_DEPTH
+              + " at "
+              + classpathPath
+              + " (chain: "
+              + describeChain(stack, classpathPath)
+              + ")");
+    }
+    final String source;
+    try {
+      source = readSource(classpathPath);
+    } catch (final IOException e) {
+      log.warn("Fragment {} failed to read", classpathPath, e);
+      return false;
+    }
+    if (source == null) {
+      log.warn("Fragment {} not found on filesystem or classpath", classpathPath);
+      return false;
+    }
+    stack.push(classpathPath);
+    try {
+      evaluateInto(source, classpathPath, ini, stack);
+    } catch (final IllegalStateException cycleOrDepth) {
+      // Author bug — propagate so the outermost load() reports it instead of swallowing.
+      throw cycleOrDepth;
+    } catch (final Exception e) {
+      log.warn("Fragment {} failed to evaluate", classpathPath, e);
+      return false;
+    } finally {
+      stack.pop();
+    }
+    return true;
+  }
+
+  private static String describeChain(final Deque<String> stack, final String tail) {
+    // stack is LIFO; convert to a left-to-right "outer -> inner -> tail" chain.
+    final StringBuilder sb = new StringBuilder();
+    final java.util.List<String> reversed = new java.util.ArrayList<>(stack);
+    java.util.Collections.reverse(reversed);
+    for (final String s : reversed) {
+      sb.append(s).append(" -> ");
+    }
+    sb.append(tail);
+    return sb.toString();
   }
 
   /**
@@ -160,10 +231,30 @@ public final class GroovyFragmentLoader {
     }
   }
 
-  // Package-private so tests can drive the evaluation pipeline directly.
+  /**
+   * Package-private — exposed so unit tests can drive the evaluation pipeline
+   * with a literal source string and no on-disk file. Production callers go
+   * through {@link #load} (and recursive {@code include} calls re-enter via
+   * {@link #loadInto}).
+   *
+   * <p>Kept on the class for test-source compatibility; internally delegates to
+   * {@link #evaluateInto} with a fresh {@link Ini} and a stack pre-seeded with
+   * {@code path} so an {@code include} of the same path is treated as a cycle.
+   */
   Ini evaluate(final String source, final String path) {
     final Ini ini = new Ini();
+    final Deque<String> stack = new ArrayDeque<>();
+    stack.push(path);
+    try {
+      evaluateInto(source, path, ini, stack);
+    } finally {
+      stack.pop();
+    }
+    return ini;
+  }
 
+  private void evaluateInto(
+      final String source, final String path, final Ini ini, final Deque<String> stack) {
     final CompilerConfiguration cc = new CompilerConfiguration();
     final ImportCustomizer imports = new ImportCustomizer();
     imports.addImports(Ship.class.getName());
@@ -173,11 +264,10 @@ public final class GroovyFragmentLoader {
     binding.setVariable("section", new SectionClosure(ini, /* validateAsShip */ false));
     binding.setVariable("shipSection", new SectionClosure(ini, /* validateAsShip */ true));
     binding.setVariable("shipSections", new ShipSectionsClosure(ini));
+    binding.setVariable("include", new IncludeClosure(this, ini, stack));
 
     final GroovyShell shell = new GroovyShell(binding, cc);
     shell.evaluate(source, path);
-
-    return ini;
   }
 
   /**
@@ -248,6 +338,38 @@ public final class GroovyFragmentLoader {
       for (int i = 0; i < args.length - 1; i++) {
         applySection(ini, (String) args[i], body);
       }
+      return null;
+    }
+  }
+
+  /**
+   * Bound to the {@code include} variable. Takes a single classpath-absolute
+   * path and recursively loads that fragment into the same {@link Ini} the
+   * including script writes to (so includes contribute to the same merged
+   * result, last-writer-wins on key conflict — matches INI {@code #include}
+   * semantics).
+   */
+  private static final class IncludeClosure extends Closure<Void> {
+    private static final long serialVersionUID = 1L;
+
+    private final GroovyFragmentLoader loader;
+    private final Ini ini;
+    private final Deque<String> stack;
+
+    IncludeClosure(
+        final GroovyFragmentLoader loader, final Ini ini, final Deque<String> stack) {
+      super(null);
+      this.loader = loader;
+      this.ini = ini;
+      this.stack = stack;
+    }
+
+    @SuppressWarnings("unused") // invoked via Groovy dispatch
+    public Void doCall(final String path) {
+      if (path == null || path.isBlank()) {
+        throw new IllegalArgumentException("include requires a non-blank classpath path");
+      }
+      loader.loadInto(ini, path, stack);
       return null;
     }
   }
