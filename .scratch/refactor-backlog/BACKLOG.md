@@ -66,13 +66,13 @@ Suggested shape: minimal SiO2 `GameSystemManager` test fixture booting `EntityDa
 
 The harness is a vertical slice in itself — write a PRD when picked up.
 
-### PMD residual cleanup
+### PMD residual cleanup — verify status
 
-PMD wiring (commit `5bb2e71`) surfaced 99 violations on first run:
+PMD wiring (commit `5bb2e71`) surfaced 99 violations on first run; six cleanup batches landed before v1.0.7 (commits `7bd3482`, `c0cd5d5`, `aee9acb`, `a826163`, `85d860c`, `5634e6b`). Re-run PMD against current `infinity` and confirm whether any of the original three categories still have stragglers:
 
-- **~10 genuine dead-code one-liners** — `BasicEnvironment.world`, `EmptyLeafDb.worldData`, duplicate imports in `GameServer`, `allocatedSlot` initializer overwritten in `ArenaSystem`, `shipGravBombCost` in `WeaponsSystem`, `settings` fields in `prizeTester`/`wangTester`. Easy mop-up.
-- **~30 chat-command handler false positives** — `UnusedFormalParameter` flags `playerEntityId`/`avatarEntityId`/`matcher` on chat handlers whose signature is fixed by a framework contract. Need per-method `@SuppressWarnings("PMD.UnusedFormalParameter")` or rule relaxation in the ruleset.
-- **3 empty-foreach EntitySet drain idioms** in `AvatarSystem.java:106-112` — likely intentional Zay-ES drain pattern; verify and either suppress or refactor.
+- **~10 genuine dead-code one-liners** — most likely resolved in batches 1, 2, 3, 6.
+- **~30 chat-command handler false positives** — annotated in batch 4.
+- **3 empty-foreach EntitySet drain idioms** in `AvatarSystem.java:106-112` — possibly addressed by batch 5 (`AvatarSystem.update TODO scaffolding`); verify the idiom is now suppressed or refactored.
 
 ### `createWormhole2` rename
 
@@ -86,7 +86,7 @@ Surfaced by a follow-up scan for architecture / library / framework smells beyon
 
 - **`ArenaSystem.java`** (950 lines) — three-way split. `ArenaSystem` keeps lifecycle (reconcile/load/unload/slot allocation/bootstrap); extract `ArenaSpatialIndex` (`findArenaAt`, `findArenaEntityAt`, `arenaToWorld`, `worldToArena`, `getArenaSpawn`, `getArenaMap`) for spatial queries; extract `ArenaScriptWatcher` (`registerScriptWatch`, `unregisterScriptWatch`, `pollScriptWatches`) for hot-reload. Chat command handlers (`loadArenaByNameCommand` etc.) optionally move to a `ArenaCommandHandler` if they grow further.
 - **`PrizeSystem.java`** (812 lines) — clean two-way split. `PrizeSystem` keeps spawn/contact orchestration; the 10 `handleAcquireXxx` methods (~250 lines) collapse into a `PrizeApplier` interface with one impl per prize type. Same shape as the `WeaponHandler` interface split planned for `WeaponsSystem`. Coordinate with the active [`prizes/`](../prizes/) scratch dir.
-- **`SISpatialFactory.java`** (811 lines) — two-way split: gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see Heart entry in [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
+- **`SISpatialFactory.java`** (811 lines) — two-way split: gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see "Heart" under "Library follow-ups" below.
 - **`ModelViewState.java`** (888 lines) — promote inner classes. Outer state is ~280 lines; the rest is `Model`, `LargeModelContainer`, `BodyContainer`/`ModelContainer` inner classes. Promote each to package-private top-level in the same package. Pure refactor, no behavior change.
 - **`GameServer.java`** (690 lines) — partial. Extract `expandBlockTypeIndexForTiles` + `expandCollidersForTiles` (lines 573-661, ~140 lines) to a `BlockTypeExpander` utility. Leave the rest — entry-point boilerplate is unavoidable.
 
@@ -101,14 +101,34 @@ Skipped intentionally:
 
 - **Move `ShipSpawnSystem` to `infinity/systems/`.** Currently at [`infinity/settings/ShipSpawnSystem.java`](../../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) but it extends `AbstractGameSystem` and is the canonical Pattern 4 spawn-projection system (the boundary that turns `ShipConfig` templates into per-entity components). The CLAUDE.md quick-reference table maps systems to `infinity/systems/`. ~10 importers across `infinity/systems/`, `infinity/server/`, and `api/sim/GameEntities` to update.
 
-- **Retire custom `Preconditions`.** [`infinity/util/Preconditions.java`](../../infinity/src/main/java/infinity/util/Preconditions.java) — 230 lines, likely re-implements `java.util.Objects.requireNonNull` and a few `IllegalArgumentException` helpers. Audit call sites, replace with stdlib (or Guava's `Preconditions` if the contract is more elaborate), delete.
-- **Nullable annotation consolidation.** Project pulls in both `javax.annotation.Nullable` (jsr305, 8 files) and `org.jetbrains.annotations.Nullable` (1 file: [`api/sim/GameSounds.java`](../../api/src/infinity/sim/GameSounds.java)). Migrate the single jetbrains site to `javax.annotation`, drop the `org.jetbrains:annotations` dep. See [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
+- **Nullable annotation consolidation.** Project pulls in both `com.google.code.findbugs:jsr305:3.0.2` (`javax.annotation.Nullable`, 8 files: most of `settings/`, `ArenaSystem`, `RandomSelector`) and `org.jetbrains:annotations` (`org.jetbrains.annotations.Nullable`, 1 file: [`api/sim/GameSounds.java`](../../api/src/infinity/sim/GameSounds.java)). Easier path: migrate the single jetbrains site to `javax.annotation` and drop the `org.jetbrains:annotations` dep. (Reverse direction is an 8-file change.)
 
 ### Library follow-ups (still in use today)
 
-- **commons-math 2.2 → commons-math3** — used at one site ([`infinity/util/MathUtil.java`](../../infinity/src/main/java/infinity/util/MathUtil.java)). 2.x is end-of-life. Mostly mechanical: package rename + a couple of class renames. See [`dep-cleanup-issue.md`](./dep-cleanup-issue.md).
-- **Heart `jme3utilities.MyMesh` — single usage.** [`SISpatialFactory.java:64`](../../infinity/src/main/java/infinity/client/states/SISpatialFactory.java). 30-min check whether it can be replaced with raw `com.jme3.scene.Mesh` calls; if so, drop the Heart dep.
-- **`'+'` version pinning audit.** Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'`. The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
+- **commons-math 2.2 → commons-math3.** Used at one site ([`infinity/util/MathUtil.java`](../../infinity/src/main/java/infinity/util/MathUtil.java)) for `MathException`, `distribution.TDistributionImpl`, `stat.StatUtils`. The 2.x line shipped in 2010 and is end-of-life; `commons-math3:3.6.1` is the successor. Migration is mostly mechanical: package rename to `org.apache.commons.math3.*`, `MathException` → `MathRuntimeException`, `TDistributionImpl` → `TDistribution`. Worth doing before the next major version bump.
+- **Heart `jme3utilities.MyMesh` — single usage.** Stephen Gold's jME utility library [`com.github.stephengold:Heart:9.3.0`](https://github.com/stephengold/Heart) is used at exactly one site: [`SISpatialFactory.java:64`](../../infinity/src/main/java/infinity/client/states/SISpatialFactory.java). 30-min check whether `MyMesh` can be replaced with raw `com.jme3.scene.Mesh` calls; if so, drop the Heart dep.
+- **`'+'` version pinning audit.** Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'` (latest). Pinned exceptions are JME (`3.9.0-stable`), log4j (`2.25.4`), slf4j (`2.0.17`), pager/sim-fx (`1.0.1-SNAPSHOT`), Heart (`9.3.0`), ini4j (`0.5.4`), commons-math (`2.2`). The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
+
+## Historical: v1.0.7 dependency cleanup
+
+Snapshot from commit [`cf811e0`](https://github.com/assofohdz/subspace-infinity/commit/cf811e0) (`chore(deps): drop unused libs`). Catalogues the five libraries removed in v1.0.7 with rationale for re-add. Kept here because "we tried X for Y" knowledge has a way of getting lost otherwise.
+
+### Removed (zero imports across `*.java`)
+
+These were declared in [`infinity/build.gradle`](../../infinity/build.gradle) but had no usages anywhere in the codebase. If gameplay needs any of them later, re-add the line with the version pinned at the date of the requirement.
+
+- **`com.badlogicgames.gdx:gdx-ai:1.8.2`** — LibGDX's AI library: steering behaviours, behaviour trees, state machines, pathfinding. Originally pulled in to back the `infinity/ai/` Brain/Action/Strategy stack. The current AI stack in [`infinity/src/main/java/infinity/ai/`](../../infinity/src/main/java/infinity/ai/) is hand-rolled; gdx-ai was never wired up. If we ever want a "real" steering system or a battle-tested behavior-tree DSL, gdx-ai is mature and free of jME-incompatible deps.
+- **`de.lighti:Clipper:6.4.2`** — Java port of [Angus Johnson's Clipper](http://www.angusj.com/delphi/clipper.php): 2D polygon boolean operations (union, intersection, difference, offset). Useful for arena boundary computation, line-of-sight polygon clipping, blocking-region merges. If we add geometric arena masks or LOS-based mechanics, Clipper or its successor `Clipper2` is the obvious dep.
+- **`com.github.czyzby:noise4j:0.1.0`** — Procedural dungeon / map generation: cellular automata caves, Drunkard's Walk, room-and-corridor generators. Was likely intended for procedural arena generation that never landed. Subspace's gameplay leans on hand-authored `.lvl` maps, so this stayed unused. If we add a "generate a random arena" mode, noise4j is small and self-contained — the one-off 0.1.0 release suggests low maintenance though, so SquidLib or libnoise-java are alternatives.
+- **`com.google.code.gson:gson:2.11.0`** — JSON parsing/serialization. The build comment said "Trying this for saving/loading configs" — that experiment was superseded by the Groovy `*.groovy` config layer. If we add a save-game format, savefile-to-server protocol, or external integration that demands JSON, Gson is the obvious choice.
+- **`org.apache.commons:commons-collections4:4.4`** — Bidirectional maps (`BidiMap`), multi-key maps, `ListUtils`, `CollectionUtils`. Apparently never actually used; the JDK collections + Guava (also pulled in) cover the real usages. If we want `BidiMap` or `MultiValuedMap` later, commons-collections4 is the canonical choice.
+
+### Stale commented-out dependency lines (also removed)
+
+- `org.dyn4j:dyn4j:3.4.0` — old physics engine, replaced long ago by Moss/`mblock-physb`.
+- `com.github.implicit-invocation:jwalkable:master-SNAPSHOT` — 2D polygonal pathfinding. Listed but never imported.
+- `com.simsilica:mphys` — Moss raw physics. Code uses `mblock-physb` and `sio2-mphys`; raw `mphys` not needed.
+- `com.badlogicgames.gdx:gdx-ai:1.8.1:sources` / `:javadoc` — IDE-only classifiers for gdx-ai (which we just removed).
 
 ## How to use this list
 
