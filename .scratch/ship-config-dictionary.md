@@ -146,7 +146,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 | INI key | Notes |
 |---|---|
-| `SoccerBallFriction` | How fast the ball decelerates when carried by this ship. |
+| `SoccerBallFriction` | How fast the ball decelerates when fired by a ship (like throwing a ball) |
 | `SoccerBallProximity` | Pickup radius. |
 | `SoccerBallSpeed` | Throw speed. |
 | `SoccerThrowTime` | Throw cooldown. |
