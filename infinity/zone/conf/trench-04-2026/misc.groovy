@@ -52,18 +52,18 @@ section('Soccer') {
 }
 
 section('Spawn') {
-    Team0-Radius 96
-    Team0-X 416
-    Team0-Y(-480)
-    Team1-Radius 96
-    Team1-X(-416)
-    Team1-Y(-480)
-    Team2-Radius 0
-    Team2-X 0
-    Team2-Y 0
-    Team3-Radius 0
-    Team3-X 0
-    Team3-Y 0
+    "Team0-Radius"(96)
+    "Team0-X"(416)
+    "Team0-Y"(-480)
+    "Team1-Radius"(96)
+    "Team1-X"(-416)
+    "Team1-Y"(-480)
+    "Team2-Radius"(0)
+    "Team2-X"(0)
+    "Team2-Y"(0)
+    "Team3-Radius"(0)
+    "Team3-X"(0)
+    "Team3-Y"(0)
 }
 
 section('Bomb') {

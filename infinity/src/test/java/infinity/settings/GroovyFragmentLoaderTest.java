@@ -60,6 +60,27 @@ public class GroovyFragmentLoaderTest {
   }
 
   @Test
+  public void section_acceptsQuotedHyphenatedKeys() {
+    // INI keys like `Team0-Radius` aren't valid Groovy identifiers (hyphen
+    // tokenises as minus), so fragments must quote them as method-name
+    // strings: `"Team0-Radius"(96)`. Groovy dispatches that to invokeMethod
+    // with name="Team0-Radius", which the SectionDelegate stores verbatim.
+    final String src =
+        "section('Spawn') {\n"
+            + "    \"Team0-Radius\"(96)\n"
+            + "    \"Team0-X\"(416)\n"
+            + "    \"Team0-Y\"(-480)\n"
+            + "}\n";
+
+    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:hyphenatedKeys");
+
+    final Section spawn = ini.get("Spawn");
+    assertEquals("96", spawn.get("Team0-Radius"));
+    assertEquals("416", spawn.get("Team0-X"));
+    assertEquals("-480", spawn.get("Team0-Y"));
+  }
+
+  @Test
   public void multipleSections_eachLandsUnderItsOwnHeader() {
     final String src =
         "section('Bullet') { BulletDamageLevel 100 }\n"
