@@ -49,8 +49,9 @@ Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infi
 
 Single source of truth — version lives only in the root `build.gradle` `subprojects` block. No `-SNAPSHOT` suffix; the git tag is the source of truth for what's released.
 1. Bump `build.gradle` → `version='X.Y.Z'`
-2. Commit, tag (`git tag -a vX.Y.Z -m "msg"`), push both
-3. Bump `build.gradle` → `version='X.Y.(Z+1)'` for ongoing dev
+2. **Add a `vX.Y.Z` section to [`RELEASE-NOTES.md`](RELEASE-NOTES.md)** at the top, under New Features / Bug Fixes / Breaking Changes / Other. Draw from `git log <prev-tag>..HEAD --no-merges`. Land it in the same commit as the version bump.
+3. Commit, tag (`git tag -a vX.Y.Z -m "msg"`), push both
+4. Bump `build.gradle` → `version='X.Y.(Z+1)'` for ongoing dev
 
 ## Skills Reference
 
