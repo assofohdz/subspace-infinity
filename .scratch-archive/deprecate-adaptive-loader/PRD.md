@@ -1,7 +1,26 @@
 # Deprecate the Java `AdaptiveLoader` hot-module system in favour of Groovy
 
-Status: ready-for-human
+Status: done
 Cross-ref: [GH #63](https://github.com/assofohdz/subspace-infinity/issues/63)
+
+**Resolution (2026-04-30):** The `AdaptiveLoader` interface, `AdaptiveLoadingService` (custom hosted service + classloader chat commands), and `AdaptiveClassLoader` were deleted outright rather than ported. Inspection showed the 6 `*Tester` modules under `modules/src/main/java/infinity/modules/` are scaffolding stubs — empty `update()` bodies, `messageHandler` either throws `UnsupportedOperationException` or returns a placeholder string — and nothing outside their own packages references them. The `~startModule` / `~stopModule` / `~startService` / `~stopService` chat commands had zero non-test invocations. Building a `GroovyModuleLoader` parallel to `GroovyShipLoader` to host nothing was YAGNI.
+
+What was removed:
+- `api/src/infinity/sim/AdaptiveLoader.java`
+- `infinity/src/main/java/infinity/util/AdaptiveLoadingService.java`
+- `infinity/src/main/java/infinity/util/AdaptiveClassLoader.java`
+- The `AdaptiveLoader loader` parameter / field / `getLoader()` from `BaseGameModule` + `BaseGameService`, and from each `*Tester` constructor + `super(...)` call.
+- The `AdaptiveLoadingService` wiring from `GameServer.buildSystems()`.
+
+What was kept:
+- The 6 `*Tester` directories. They no longer have an instantiator (they're inert until a Groovy module loader replaces the runtime), but the gameplay intent each one captures is worth preserving for future port.
+- `BaseGameModule` + `BaseGameService` abstractions, with `// TODO: instantiate via a future GroovyModuleLoader` markers.
+
+Follow-up: [`groovy-module-loader/PRD.md`](../groovy-module-loader/PRD.md) — open design for the eventual hot-module surface.
+
+---
+
+## Original PRD (preserved for context)
 
 The current dynamic-module surface is a custom Java classloader + service stack:
 

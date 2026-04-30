@@ -134,7 +134,6 @@ import infinity.systems.SettingsSystem;
 import infinity.systems.WarpSystem;
 import infinity.systems.WeaponsSystem;
 import infinity.systems.WorldSystem;
-import infinity.util.AdaptiveLoadingService;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -331,10 +330,6 @@ public class GameServer {
     final AssetLoaderService assetLoader = new AssetLoaderService();
     server.getServices().addService(assetLoader);
     systems.register(AssetLoaderService.class, assetLoader);
-
-    final AdaptiveLoadingService adaptiveLoader = new AdaptiveLoadingService(systems);
-    server.getServices().addService(adaptiveLoader);
-    systems.register(AdaptiveLoadingService.class, adaptiveLoader);
 
     systems.register(SettingsSystem.class, new SettingsSystem());
     final ConfigRegistrySystem configRegistry = new ConfigRegistrySystem();

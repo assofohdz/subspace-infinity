@@ -31,7 +31,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
-import infinity.sim.AdaptiveLoader;
 import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
@@ -63,11 +62,10 @@ public class prizeTester extends BaseGameModule {
   public prizeTester(
       final ChatHostedPoster chp,
       final AccountManager am,
-      final AdaptiveLoader loader,
       final ArenaManager arenas,
       final TimeManager time,
       final PhysicsManager physics) {
-    super(chp, am, loader, arenas, time, physics);
+    super(chp, am, arenas, time, physics);
   }
 
   @Override

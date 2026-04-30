@@ -31,30 +31,22 @@ import com.simsilica.sim.AbstractGameSystem;
  *
  * @author Asser
  */
+// TODO: instantiate via a future GroovyModuleLoader. The legacy AdaptiveLoader
+// (custom ClassLoader + reflection-based ~startModule chat command) was retired;
+// see .scratch/deprecate-adaptive-loader/PRD.md. Until that loader exists,
+// concrete subclasses live in modules/ but have no runtime instantiator.
 public abstract class BaseGameModule extends AbstractGameSystem {
 
     private final ChatHostedPoster chp;
     private final AccountManager am;
-    private final AdaptiveLoader loader;
     private final ArenaManager arenas;
     private final TimeManager time;
     private final PhysicsManager physics;
 
-    /**
-     * Instantiates a base game module with settings and reference to chat and
-     * account services
-     *
-     * @param chp    reference to the hosted chat server
-     * @param am     reference to the account management service
-     * @param loader reference to the adaptive loading service
-     * @param arenas
-     * @param time
-     */
-    public BaseGameModule(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+    public BaseGameModule(final ChatHostedPoster chp, final AccountManager am,
             final ArenaManager arenas, final TimeManager time, final PhysicsManager physics) {
         this.chp = chp;
         this.am = am;
-        this.loader = loader;
         this.arenas = arenas;
         this.time = time;
         this.physics = physics;
@@ -66,10 +58,6 @@ public abstract class BaseGameModule extends AbstractGameSystem {
 
     public AccountManager getAm() {
         return am;
-    }
-
-    public AdaptiveLoader getLoader() {
-        return loader;
     }
 
     public ArenaManager getArenas() {

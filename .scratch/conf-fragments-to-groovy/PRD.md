@@ -2,7 +2,7 @@
 
 Status: ready-for-human
 
-The follow-on to [`zone-arena-to-groovy`](../zone-arena-to-groovy/PRD.md), which deliberately scoped itself to the zone- and arena-tier files and called out the preset fragments as out-of-scope:
+The follow-on to [`zone-arena-to-groovy`](../../.scratch-archive/zone-arena-to-groovy/PRD.md), which deliberately scoped itself to the zone- and arena-tier files and called out the preset fragments as out-of-scope:
 
 > Out of scope: the per-preset `conf/<preset>/*.conf` fragments under `infinity/zone/conf/`. Larger surface, separate migration; track as a future item if needed.
 
@@ -53,6 +53,6 @@ Two consumer shapes today:
 ## Out of scope
 
 - Changing the Subspace setting names or units. The DSL re-uses the canonical names and just types them.
-- Migrating the `arena.conf`-tier or `zone.conf`-tier files — already done in [`zone-arena-to-groovy`](../zone-arena-to-groovy/PRD.md).
+- Migrating the `arena.conf`-tier or `zone.conf`-tier files — already done in [`zone-arena-to-groovy`](../../.scratch-archive/zone-arena-to-groovy/PRD.md).
 
 ## Comments

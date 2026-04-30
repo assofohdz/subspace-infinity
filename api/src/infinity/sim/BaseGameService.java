@@ -31,27 +31,19 @@ import com.jme3.network.service.AbstractHostedService;
  *
  * @author Asser
  */
+// TODO: instantiate via a future GroovyModuleLoader. The legacy AdaptiveLoader
+// was retired; see .scratch/deprecate-adaptive-loader/PRD.md. No concrete
+// subclasses exist today; kept as scaffolding for the planned Groovy port.
 public abstract class BaseGameService extends AbstractHostedService {
 
     private final ChatHostedPoster chp;
     private final AccountManager am;
-    private final AdaptiveLoader loader;
     private final ArenaManager arenas;
 
-    /**
-     * Instantiates a base game service with settings and reference to chat and
-     * account services
-     *
-     * @param chp    reference to the hosted chat server
-     * @param loader reference to the adaptive loading service
-     * @param am     reference to the account management service
-     * @param arenas
-     */
-    public BaseGameService(final ChatHostedPoster chp, final AccountManager am, final AdaptiveLoader loader,
+    public BaseGameService(final ChatHostedPoster chp, final AccountManager am,
             final ArenaManager arenas) {
         this.chp = chp;
         this.am = am;
-        this.loader = loader;
         this.arenas = arenas;
     }
 
@@ -61,10 +53,6 @@ public abstract class BaseGameService extends AbstractHostedService {
 
     public AccountManager getAm() {
         return am;
-    }
-
-    public AdaptiveLoader getLoader() {
-        return loader;
     }
 
     public ArenaManager getArenas() {
