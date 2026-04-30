@@ -99,7 +99,7 @@ public final class RadarLeafSilhouetteIndex {
         final FloatBuffer positions = BufferUtils.createFloatBuffer(columnCount * 4 * 3);
         final ShortBuffer indices = BufferUtils.createShortBuffer(columnCount * 6);
 
-        short vertexBase = 0;
+        int vertexBase = 0;
         for (int cx = 0; cx < sizeX; cx++) {
             for (int cz = 0; cz < sizeZ; cz++) {
                 if (!anySolidInColumn(cells, cx, cz, sizeY)) {

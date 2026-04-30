@@ -33,9 +33,11 @@ jobs:
           - os: macos-latest
             platform: mac
             ext: dmg
-    
+
     runs-on: ${{ matrix.os }}
-    
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -131,8 +133,10 @@ jobs:
   publish-itchio:
     needs: build-native
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
       - name: Get version from tag
         id: version
