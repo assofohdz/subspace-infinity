@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the bounty value awarded for destroying this entity.
  *
  * @author Asser
  */

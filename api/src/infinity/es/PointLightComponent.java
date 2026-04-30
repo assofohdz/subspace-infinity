@@ -31,6 +31,7 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 
 /**
+ * Component describing a point light attached to this entity.
  *
  * @author Asser
  */

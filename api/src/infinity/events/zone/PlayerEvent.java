@@ -30,6 +30,7 @@ import com.simsilica.event.EventType;
 import com.simsilica.event.PlayerEntityEvent;
 
 /**
+ * Zone-level event for player lifecycle changes (joined, banned, etc.).
  *
  * @author Asser
  */

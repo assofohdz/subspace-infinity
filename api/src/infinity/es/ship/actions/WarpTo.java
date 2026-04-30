@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 
 /**
+ * Component requesting a warp to a target world location.
  *
  * @author Asser
  */

@@ -29,6 +29,7 @@ package infinity.sim;
 import infinity.es.input.MovementInput;
 
 /**
+ * Receives movement input on behalf of a driven entity.
  *
  * @author AFahrenholz
  */

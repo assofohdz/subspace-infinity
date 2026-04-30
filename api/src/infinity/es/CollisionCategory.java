@@ -31,6 +31,7 @@ import com.simsilica.es.EntityComponent;
 import infinity.sim.CategoryFilter;
 
 /**
+ * Component carrying the collision category filter for this entity.
  *
  * @author AFahrenholz
  */

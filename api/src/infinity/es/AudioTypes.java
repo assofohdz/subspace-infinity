@@ -30,6 +30,7 @@ import infinity.Bombs;
 import infinity.Guns;
 
 /**
+ * Audio asset identifiers used to look up sound effects.
  *
  * @author Asser
  */

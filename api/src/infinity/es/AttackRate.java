@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the time between attacks (milliseconds).
  *
  * @author ss
  */

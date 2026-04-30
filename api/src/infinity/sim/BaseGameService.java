@@ -28,6 +28,7 @@ package infinity.sim;
 import com.jme3.network.service.AbstractHostedService;
 
 /**
+ * Base class for pluggable hosted services.
  *
  * @author Asser
  */

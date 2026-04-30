@@ -29,6 +29,7 @@ package infinity.sim;
 import com.simsilica.mphys.PhysicsSpace;
 
 /**
+ * Manager interface exposing the physics space to game systems.
  *
  * @author AFahrenholz
  */

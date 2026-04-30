@@ -38,6 +38,7 @@ import com.jme3.scene.Spatial;
 import infinity.client.states.ModelViewState;
 
 /**
+ * Builder for client-side particle effects (explosions, smoke, sparks).
  *
  * @author Asser
  */

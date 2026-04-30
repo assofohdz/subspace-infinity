@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the projectile launch velocity for this entity's attacks.
  *
  * @author ss
  */

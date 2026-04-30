@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import infinity.Bombs;
 
 /**
+ * Component holding the current mine level for this ship.
  *
  * @author Asser
  */

@@ -26,6 +26,7 @@
 package infinity.sim;
 
 /**
+ * Chat message-type constants.
  *
  * @author Asser
  */

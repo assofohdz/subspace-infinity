@@ -28,6 +28,7 @@ package infinity.es.ship.toggles;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Toggle component enabling multi-barrel firing.
  *
  * @author Asser
  */

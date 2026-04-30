@@ -28,6 +28,7 @@ package infinity.es.ship.weapons;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the cooldown timer between gravity-bomb shots.
  *
  * @author Asser
  */

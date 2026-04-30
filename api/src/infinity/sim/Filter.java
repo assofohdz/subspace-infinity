@@ -27,6 +27,7 @@
 package infinity.sim;
 
 /**
+ * Generic boolean filter interface.
  *
  * @author AFahrenholz
  */

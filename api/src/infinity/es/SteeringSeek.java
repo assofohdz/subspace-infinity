@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
 /**
+ * Component pointing this entity at a target to seek toward.
  *
  * @author Asser
  */

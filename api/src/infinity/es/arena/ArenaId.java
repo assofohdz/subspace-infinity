@@ -30,6 +30,8 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
 /**
+ * Component tying an entity to a specific arena instance.
+ *
  * @author Asser
  */
 public class ArenaId implements EntityComponent {

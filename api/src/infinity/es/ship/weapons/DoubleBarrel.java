@@ -27,6 +27,7 @@
 package infinity.es.ship.weapons;
 
 /**
+ * Component flagging the ship as having double-barrel weapons.
  *
  * @author Asser Fahrenholz
  */

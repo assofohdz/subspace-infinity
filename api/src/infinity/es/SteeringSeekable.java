@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Marker component for entities that can be sought by steering AI.
  *
  * @author Asser
  */

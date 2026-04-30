@@ -26,6 +26,7 @@
 package infinity.sim;
 
 /**
+ * Server-side event-type identifiers.
  *
  * @author Asser
  */

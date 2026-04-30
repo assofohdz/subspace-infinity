@@ -27,6 +27,7 @@
 package infinity.sim;
 
 /**
+ * Manager interface for arena state lookup.
  *
  * @author Asser Fahrenholz
  */

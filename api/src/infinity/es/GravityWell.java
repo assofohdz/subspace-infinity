@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component describing a gravitational pull or push field.
  *
  * @author Asser
  */

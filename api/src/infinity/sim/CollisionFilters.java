@@ -26,6 +26,8 @@
 package infinity.sim;
 
 /**
+ * Project-wide collision category constants and category filters.
+ *
  * @author Asser
  */
 public class CollisionFilters {

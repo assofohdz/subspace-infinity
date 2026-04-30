@@ -44,6 +44,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Test module for basic chat-command wiring.
+ *
  * @author AFahrenholz
  */
 public class basicTester extends BaseGameModule {

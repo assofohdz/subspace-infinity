@@ -43,6 +43,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Helpers for spawning short-lived audio entities.
+ *
  * @author AFahrenholz
  */
 public class GameSounds {

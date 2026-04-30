@@ -29,6 +29,8 @@ package infinity.es.ship;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Marker component identifying this entity as a player ship.
+ *
  * @author AFahrenholz
  */
 public class Player implements EntityComponent {

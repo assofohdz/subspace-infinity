@@ -27,6 +27,7 @@
 package infinity.es;
 
 /**
+ * Lookup key identifying a tile by tileset, type, and index.
  *
  * @author Asser Fahrenholz
  */

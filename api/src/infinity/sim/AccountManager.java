@@ -26,6 +26,7 @@
 package infinity.sim;
 
 /**
+ * Manager interface for player accounts.
  *
  * @author Asser
  */

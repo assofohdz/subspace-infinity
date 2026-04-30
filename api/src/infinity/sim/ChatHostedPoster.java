@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import com.simsilica.es.EntityId;
 
 /**
+ * Service for posting chat messages and registering chat-command handlers.
  *
  * @author Asser
  */

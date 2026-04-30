@@ -29,6 +29,7 @@ package infinity.es.ship.weapons;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the energy cost to fire a gun shot.
  *
  * @author Asser Fahrenholz
  */

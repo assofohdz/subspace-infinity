@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 
 /**
+ * Component on a sensor that warps any ship that touches it.
  *
  * @author Asser
  */

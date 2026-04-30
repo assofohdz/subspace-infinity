@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the attack range of this entity.
  *
  * @author ss
  */

@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import infinity.Bombs;
 
 /**
+ * Component holding the gravity-bomb level for this projectile.
  *
  * @author Asser
  */

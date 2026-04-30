@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding a path of waypoints for steering AI.
  *
  * @author Asser
  */

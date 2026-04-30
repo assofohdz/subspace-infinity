@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component identifying a captureable flag entity.
  *
  * @author Asser
  */

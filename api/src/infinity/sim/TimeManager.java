@@ -27,6 +27,7 @@
 package infinity.sim;
 
 /**
+ * Manager interface returning the current game time.
  *
  * @author asser
  */

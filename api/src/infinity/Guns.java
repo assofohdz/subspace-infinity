@@ -26,6 +26,8 @@
 package infinity;
 
 /**
+ * Gun level enum (1-4) with sprite offsets in the bm2 file.
+ *
  * @author Asser
  */
 public enum Guns implements IEnum<Guns>{

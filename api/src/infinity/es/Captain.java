@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Marker component identifying this entity as a team captain.
  *
  * @author Asser
  */

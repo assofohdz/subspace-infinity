@@ -29,6 +29,8 @@ package infinity.sim;
 import java.util.function.BiFunction;
 
 /**
+ * Two-argument chat-command handler with a required access level.
+ *
  * @author Asser
  */
 public class CommandBiFunction<T, U, R>{

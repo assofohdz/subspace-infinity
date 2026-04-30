@@ -28,6 +28,7 @@ package infinity.sim;
 import com.simsilica.sim.AbstractGameSystem;
 
 /**
+ * Base class for pluggable server-side game modules.
  *
  * @author Asser
  */

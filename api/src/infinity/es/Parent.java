@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
 /**
+ * Component linking this entity to a parent entity.
  *
  * @author Asser
  */

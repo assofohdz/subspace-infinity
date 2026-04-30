@@ -28,6 +28,7 @@ package infinity.sim;
 import java.util.function.Function;
 
 /**
+ * One-argument chat-command handler with a required access level.
  *
  * @author Asser
  */

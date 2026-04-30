@@ -28,6 +28,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the gold/score value carried by this entity.
  *
  * @author ss
  */

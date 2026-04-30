@@ -29,6 +29,7 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 
 /**
+ * Component identifying the prize type for a pickup entity.
  *
  * @author Asser
  */

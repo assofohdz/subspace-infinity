@@ -28,6 +28,8 @@ package infinity;
 import com.jme3.math.ColorRGBA;
 
 /**
+ * Bomb level enum (1-4) with sprite offsets, light colors, and damage values.
+ *
  * @author Asser
  */
 public enum Bombs implements IEnum<Bombs>{

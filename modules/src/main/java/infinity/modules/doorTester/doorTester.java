@@ -42,6 +42,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Test module for door-related entities.
+ *
  * @author AFahrenholz
  */
 public class doorTester extends BaseGameModule {

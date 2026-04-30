@@ -26,6 +26,8 @@
 package infinity.sim;
 
 /**
+ * Three-argument chat-command handler with a required access level.
+ *
  * @author Asser
  */
 public class CommandTriFunction<T, U, V, R> {

@@ -29,6 +29,7 @@ package infinity.es.ship.actions;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding the cooldown timer between Thor weapon shots.
  *
  * @author Asser
  */

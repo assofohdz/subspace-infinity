@@ -26,6 +26,7 @@
 package infinity.sim;
 
 /**
+ * Access tier enum used to gate chat commands and admin actions.
  *
  * @author Asser
  */

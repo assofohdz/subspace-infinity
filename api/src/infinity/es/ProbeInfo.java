@@ -42,7 +42,7 @@ import com.simsilica.es.*;
 import com.simsilica.mathd.*;
 
 /**
- *
+ * Component holding metadata about a probe / projectile sent into the world.
  *
  *  @author    Paul Speed
  */

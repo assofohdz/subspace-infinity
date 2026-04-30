@@ -29,6 +29,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 
 /**
+ * Component holding metadata such as the entity's creation timestamp.
  *
  * @author asser
  */
