@@ -27,8 +27,9 @@ infinity/src/main/java/infinity/
   *.java                     # Client app states
 infinity/assets/             # JME asset root: Maps/*.lvl, textures, sounds
 infinity/zone/               # Second asset root for runtime config
-  arenas/<name>/arena.conf   # per-arena config (thin: Map= + #include + overrides)
-  conf/base/                 # project baseline tuning (current default, 7 ships)
+  zone.groovy                # zone-wide config (autoLoad, enterSpawn)
+  arenas/<name>/arena.groovy # per-arena config (map, shipsScript, spawn, includeFragment)
+  conf/base/                 # project baseline tuning (current default, 7 ships) — still INI
   conf/svs/                  # canonical Standard VIE Settings (verbatim from SubspaceServer, 8 ships)
   conf/svs-league/           # SVS league + duel variants
   conf/svs-pb/               # PowerBall approximation
@@ -37,7 +38,7 @@ infinity/zone/               # Second asset root for runtime config
 modules/src/main/java/       # Extension modules
 ```
 
-Arena identity is by **folder name** under `arenas/`, not by map filename. An arena's `.lvl` is declared by `[General] Map=` inside its `arena.conf`. See [arena-settings](../arena-settings/SKILL.md) for the full model.
+Arena identity is by **folder name** under `arenas/`, not by map filename. An arena's `.lvl` is declared by the `map` directive in its `arena.groovy`. See [arena-settings](../arena-settings/SKILL.md) for the full model.
 
 ## Key Conventions
 - BSD 2-clause license header on all files (Copyright Asser Fahrenholz)

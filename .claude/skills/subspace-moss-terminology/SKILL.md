@@ -16,7 +16,7 @@ Several nouns collide across these three systems and mean very different things.
 | **Map** | A `.lvl` file: 1024×1024 tiles + optional BMP tileset + eLVL metadata | — | Same as Subspace. One map fills one MOSS `TileId`. |
 | **Arena** | A named game space: one map + one settings bundle + its players | — | An Arena **entity** with components `ArenaId`, `ArenaMap`, `ArenaSettings`. Occupies one `TileId`. |
 | **Zone** | The whole server — a collection of arenas + zone-wide config | — | Same concept. `infinity/zone/` is the on-disk root. |
-| **Settings** | INI config: ship stats, weapon rules, prize tables, etc. | — | `arena.conf` loaded by `SettingsSystem`, with `(default)` fallback. |
+| **Settings** | INI config: ship stats, weapon rules, prize tables, etc. | — | `arena.groovy` (arena-scope core) + INI fragments under `conf/<preset>/` loaded by `SettingsSystem`. |
 | **Region** | eLVL **REGN chunk**: named polygon inside a map (bases, no-weapon zones, autowarps). RLE-encoded, irregular shape. | — | **Overloaded:** `RegionSystem` uses "region" to mean a 32×32 leaf-aligned grid cell (A1–AF32), not an eLVL polygon. |
 | **Leaf** | — | `LeafId` — 32×32×32 paging unit; one `.col` file on disk. | Same as MOSS. |
 | **Column** | — | `ColumnId` — 32×1024×32, vertical stack of 32 leafs. | Same as MOSS, rarely referenced. |
