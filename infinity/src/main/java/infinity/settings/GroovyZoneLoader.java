@@ -28,15 +28,10 @@ package infinity.settings;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
-import groovy.lang.GroovyShell;
 import infinity.config.ZoneConfig;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
@@ -44,14 +39,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Evaluates the zone-scope Groovy config and returns a typed {@link ZoneConfig}.
- * Mirrors {@link GroovyShipLoader} (filesystem-first dev-mode read, classpath
- * fallback for packaged jars, fallback installed on any failure) but at zone
- * scope, so it has no per-arena id and the script defines exactly one
- * {@code zone {…}} block.
+ * Thin facade over {@link GroovySettingsHost} — the host owns I/O, hardening
+ * and error handling; this class supplies the {@code zone { … }} DSL.
  *
- * <p>Failure handling — any failure (missing file, parse error, eval error,
- * IO error) logs a warning and returns {@link ZoneConfig#EMPTY}, matching the
- * legacy INI behaviour of "no auto-load list, spawn at world origin" so an
+ * <p>Failure handling — any failure (missing file, parse error, eval error)
+ * logs a warning and returns {@link ZoneConfig#EMPTY}, matching the legacy
+ * INI behaviour of "no auto-load list, spawn at world origin" so an
  * unconfigured server still boots. Callers never see an exception.
  *
  * <p>Script DSL:
@@ -77,6 +70,7 @@ public final class GroovyZoneLoader {
   public static final String DEFAULT_PATH = "/zone.groovy";
 
   private static final Logger log = LoggerFactory.getLogger(GroovyZoneLoader.class);
+  private static final ZoneAdapter ADAPTER = new ZoneAdapter();
 
   /**
    * Load and parse {@link #DEFAULT_PATH}. {@link ZoneConfig#EMPTY} if the file
@@ -88,25 +82,15 @@ public final class GroovyZoneLoader {
 
   /** Same contract as {@link #load()} but with a caller-supplied classpath path. */
   public ZoneConfig load(final String classpathPath) {
-    try {
-      final String source = readSource(classpathPath);
-      if (source == null) {
-        log.warn(
-            "{} not found on filesystem or classpath; using ZoneConfig.EMPTY",
-            classpathPath);
-        return ZoneConfig.EMPTY;
-      }
-      final ZoneConfig cfg = evaluate(source, classpathPath);
+    final ZoneConfig cfg = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
+    if (cfg != ZoneConfig.EMPTY) {
       log.info(
           "Applied {}: autoLoad={}, enterSpawn='{}'",
           classpathPath,
           cfg.autoLoadArenas(),
           cfg.enterSpawnArena());
-      return cfg;
-    } catch (final Exception e) {
-      log.warn("{} failed to evaluate; using ZoneConfig.EMPTY", classpathPath, e);
-      return ZoneConfig.EMPTY;
     }
+    return cfg;
   }
 
   /**
@@ -118,57 +102,45 @@ public final class GroovyZoneLoader {
    */
   @Nullable
   public Path resolveOnDisk(final String classpathPath) {
-    if (classpathPath == null || classpathPath.isBlank()) {
-      return null;
-    }
-    final String relative =
-        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
-    for (final Path p : candidates) {
-      if (Files.isReadable(p)) {
-        return p;
-      }
-    }
-    return null;
+    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
-  @Nullable
-  private String readSource(final String classpathPath) throws IOException {
-    // Dev mode: try the filesystem source first so edits show up without a rebuild.
-    // (Same dev-mode rationale as GroovyShipLoader.readSource — Gradle's :infinity:run
-    // sets the JVM working directory to the infinity/ subproject and zone/ is the
-    // resource root, so /x.groovy on the classpath maps to zone/x.groovy on disk.
-    // The "infinity/zone" candidate covers running from the project root.)
-    final Path onDisk = resolveOnDisk(classpathPath);
-    if (onDisk != null) {
-      log.debug("Reading {} from filesystem source: {}", classpathPath, onDisk);
-      return Files.readString(onDisk, StandardCharsets.UTF_8);
+  /** Adapter holding the {@code zone { … }} DSL semantics. */
+  private static final class ZoneAdapter
+      implements GroovySettingsAdapter<ZoneConfig, ZoneConfigBuilder> {
+
+    @Override
+    public String defaultPath() {
+      return DEFAULT_PATH;
     }
-    try (InputStream is = getClass().getResourceAsStream(classpathPath)) {
-      if (is == null) {
-        return null;
-      }
-      log.debug("Reading {} from classpath", classpathPath);
-      return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+    @Override
+    public List<String> allowedImports() {
+      // zone.groovy uses no explicit imports; auto-imports cover String/List.
+      return Collections.emptyList();
     }
-  }
 
-  private ZoneConfig evaluate(final String source, final String path) {
-    final ZoneConfigBuilder builder = new ZoneConfigBuilder();
+    @Override
+    public ZoneConfigBuilder bind(final Binding binding) {
+      final ZoneConfigBuilder builder = new ZoneConfigBuilder();
+      binding.setVariable("zone", new ZoneClosure(builder));
+      return builder;
+    }
 
-    final Binding binding = new Binding();
-    binding.setVariable("zone", new ZoneClosure(builder));
+    @Override
+    public ZoneConfig extract(final ZoneConfigBuilder accumulator) {
+      return accumulator.build();
+    }
 
-    final GroovyShell shell = new GroovyShell(binding);
-    shell.evaluate(source, path);
-
-    return builder.build();
+    @Override
+    public ZoneConfig empty() {
+      return ZoneConfig.EMPTY;
+    }
   }
 
   /**
    * Bound to the {@code zone} variable in the script; takes a configuring
-   * closure and applies it to a {@link ZoneConfigBuilder}. Mirrors the
-   * {@code ShipClosure} pattern in {@link GroovyShipLoader}.
+   * closure and applies it to a {@link ZoneConfigBuilder}.
    */
   private static final class ZoneClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
