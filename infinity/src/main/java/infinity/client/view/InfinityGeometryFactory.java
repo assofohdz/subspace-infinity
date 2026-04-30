@@ -36,21 +36,10 @@
 
 package infinity.client.view;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
 import java.nio.*;
-import java.util.HashMap;
 import java.util.Map;
 
-import com.jme3.asset.DesktopAssetManager;
-import com.jme3.texture.Image;
-import com.jme3.texture.Texture2D;
-import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.mblock.geom.*;
-import infinity.map.LevelFile;
-import infinity.map.LevelLoader;
 import org.slf4j.*;
 
 import com.jme3.material.Material;
@@ -75,23 +64,10 @@ import com.simsilica.mblock.*;
  *  @author    Paul Speed
  */
 public class InfinityGeometryFactory {
-    private static int TILEID_MASK = 0x000000ff;
-    private static int MAPID_MASK = 0x000fff00;
-    // Map from tilekey to image
-    private final HashMap<Integer, Image> tileKeyToImageMap = new HashMap<>();
-    private final Map<Integer, LevelFile> mapIdToLevels = new HashMap<>();
-    private final Map<Integer, BlockType> tileKeyToBlockTypeMap = new HashMap<>();
-    private final Map<Integer, MaterialType> tileKeyToMaterialType = new HashMap<>();
-    // private boolean logged;
-    private final AWTLoader imgLoader;
-    private DesktopAssetManager am;
 
     static Logger log = LoggerFactory.getLogger(InfinityGeometryFactory.class);
 
-    private Map<Integer, Material> IntegerMaterials;
-
     private Map<String, Material> materials;
-    private Map<Integer, Material> tileMaterials;
     private boolean allowCollisions;
 
     public InfinityGeometryFactory( Map<String, Material> materials ) {
@@ -101,10 +77,6 @@ public class InfinityGeometryFactory {
     public InfinityGeometryFactory( boolean allowCollisions, Map<String, Material> materials ) {
         this.allowCollisions = allowCollisions;
         this.materials = materials;
-        this.imgLoader = new AWTLoader();
-        this.tileMaterials = new HashMap<>();
-        this.am = new DesktopAssetManager(true);
-        this.am.registerLoader(LevelLoader.class, "lvl");
     }
 
     /**
@@ -645,139 +617,6 @@ public class InfinityGeometryFactory {
 
             colors.put(red).put(green).put(blue).put(sun);
         }
-    }
-
-    private BlockFactory createFactory(final int tileKey, @SuppressWarnings("unused") final int color) {
-        final InfinityBlockFactory result = InfinityBlockFactory.createCube(0, getMaterialType(tileKey));
-        return result;
-    }
-
-    private BlockType getBlockType(final int tileKey) {
-        BlockType type = tileKeyToBlockTypeMap.get(Integer.valueOf(tileKey));
-
-        if (type == null) {
-            type = new BlockType(new BlockName("", ""), createFactory(tileKey, 1));
-
-            tileKeyToBlockTypeMap.put(Integer.valueOf(tileKey), type);
-        } else {
-            // log.info("Found cached BlockType: "+type);
-        }
-        return type;
-    }
-
-    protected LevelFile loadMap(final String tileSet) {
-        final LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
-
-        return localMap;
-    }
-
-    // First type of information:
-    private BlockType getBlockType(final int tileId, final int mapId) {
-
-        // Check to see if we have loaded this map before
-        if (!mapIdToLevels.containsKey(Integer.valueOf(mapId))) {
-            // TODO: Lookup stringname based on mapId
-            //For now, use same mapname as server side
-            //final LevelFile level = loadMap(MapSystem.MAPNAME);
-            //mapIdToLevels.put(Integer.valueOf(mapId), level);
-        }
-
-        final int tileKey = tileId | (mapId << 8);
-        // log.info("getBlockType:: tileKey = " + tileKey + " <= (Tile,Map) = (" +
-        // tileId + "," + mapId + ")");
-
-        return getBlockType(tileKey);
-    }
-    // Second type of info:
-    private MaterialType getMaterialType(final int tileKey) {
-
-        MaterialType matType = tileKeyToMaterialType.get(Integer.valueOf(tileKey));
-
-        if (matType == null) {
-
-            // final int tileId = tileKey & TILEID_MASK;
-            // final int mapId = (tileKey & MAPID_MASK) >> 8;
-            // TODO: Lookup the levelname, using the id:
-
-            // log.info("getMaterialType:: tileKey = " + tileKey + " => (Tile,Map) = (" +
-            // tileId + "," + mapId + ")");
-
-            // final String mapName = "aswz.lvl";
-
-            // matType = new MaterialType("",tileKey);
-            matType = new MaterialType(String.valueOf(tileKey), false, false, false);
-
-            tileKeyToMaterialType.put(Integer.valueOf(tileKey), matType);
-        }
-
-        return matType;
-    }
-    // Third type of information:
-    private Material getMaterial(final int tileKey) {
-        // int tileKey = tileId | (mapId << 16);
-        final int tileId = tileKey & TILEID_MASK;
-        final int mapId = (tileKey & MAPID_MASK) >> 8;
-
-        Material mat = materials.get(Integer.valueOf(tileKey));
-
-        if (mat == null) {
-            mat = new Material(am, "MatDefs/BlackTransparentShader.j3md");
-
-            // int key = tileIndex | (mapId << 16);
-            Image jmeOutputImage = tileKeyToImageMap.get(Integer.valueOf(tileKey));
-            if (jmeOutputImage == null) {
-                final java.awt.Image awtInputImage = mapIdToLevels.get(Integer.valueOf(mapId)).getTiles()[tileId - 1];
-                jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
-
-                tileKeyToImageMap.put(Integer.valueOf(tileKey), jmeOutputImage);
-                // log.info("Put tile: "+tileIndex+" image into map");
-            }
-            final Texture2D tex2D = new Texture2D(jmeOutputImage);
-            mat.setTexture("ColorMap", tex2D);
-            // mat = globals.createMaterial(texture, false).getMaterial();
-            tileMaterials.put(tileKey, mat);
-
-            jmeOutputImage.dispose();
-        } else {
-            // log.info("Found cached material: "+mat+" for tileKey = " + tileKey + " <=
-            // (Tile,Map) = (" + tileId + "," + mapId + ")");
-        }
-        return mat;
-    }
-
-    /**
-     * Converts a given Image into a BufferedImage
-     *
-     * @param img The Image to be converted
-     * @return The converted BufferedImage
-     */
-    private BufferedImage toBufferedImage(final java.awt.Image img) {
-        if (img instanceof BufferedImage) {
-            return (BufferedImage) img;
-        }
-
-        final int width = img.getWidth(null);
-        final int height = img.getHeight(null);
-
-        // Create a buffered image with transparency
-        BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        // Draw the image on to the buffered image
-        final Graphics2D bGr = bimage.createGraphics();
-        bGr.drawImage(img, 0, 0, null); // No flip
-        // bGr.drawImage(img, 0 + width, 0, -width, height, null); //Horisontal flip
-        // bGr.drawImage(img, 0, 0 + height, width, -height, null); //Vertical flip
-        // bGr.drawImage(img, height, 0, -width, height, null);
-
-        bGr.dispose();
-
-        final AffineTransform tx = AffineTransform.getScaleInstance(-11, -1);
-        tx.translate(-bimage.getWidth(null), -bimage.getHeight(null));
-        final AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-        bimage = op.filter(bimage, null);
-
-        // Return the buffered image
-        return bimage;
     }
 
 }
