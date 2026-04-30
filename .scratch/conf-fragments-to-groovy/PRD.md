@@ -1,6 +1,16 @@
 # Migrate `conf/<preset>/*.conf` fragments to Groovy
 
-Status: in-progress
+Status: in-progress (Phase A bulk port shipped, hot-reload + IniLoader retirement pending)
+
+**Shipped (commits `a52a66a`, `5e9fef5`):**
+- `GroovyFragmentLoader` with `section` / `shipSection` / `shipSections` DSL + recursive `include` (cycle detection, depth 16).
+- `SettingsSystem.loadFragmentIni` dispatches `.groovy` → `GroovyFragmentLoader`, others → `IniLoader`.
+- All 8 presets ported leaf-by-leaf to `.groovy`. All composite `*.conf` files retired. Live arenas (`(default)`, `trench`, `deva`) point at per-section `includeFragment` paths.
+- 14 unit + integration tests in `GroovyFragmentLoaderTest`. `:infinity:test` green.
+
+**Outstanding (Phase A follow-ups):**
+- PR #2 — generalise `ArenaSystem.pollScriptWatches` to watch every Groovy `includeFragment` path (today only `ships.groovy` hot-reloads).
+- Cleanup PR — retire `IniLoader` / `org.ini4j` once nothing else references them.
 
 The follow-on to [`zone-arena-to-groovy`](../../.scratch-archive/zone-arena-to-groovy/PRD.md), which deliberately scoped itself to the zone- and arena-tier files and called out the preset fragments as out-of-scope:
 

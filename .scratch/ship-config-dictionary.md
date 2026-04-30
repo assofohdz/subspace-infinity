@@ -1,27 +1,27 @@
-# Ship Config Dictionary — INI → Groovy port status
+# Ship Config Dictionary — typed `ShipConfig` port status
 
-Tracks the per-ship tuning surface from the legacy `infinity/zone/conf/<preset>/ship-<name>` INI fragments and which keys have been promoted to the typed Groovy `ShipConfig` template (Pattern 4) vs. which still live in INI / are not yet read at all.
+Tracks the per-ship tuning surface and which keys have been promoted to the typed Groovy `ShipConfig` template (Pattern 4 — `ship(Ship.X) { … }` blocks in `ships.groovy`) vs. which still live as untyped `shipSection 'X' { Key value }` blocks in the per-preset Groovy fragments under `infinity/zone/conf/<preset>/ship-<name>.groovy`.
 
-**Scope:** the 84 keys per ship that appear in every `ship-<name>` fragment under `infinity/zone/conf/trench-04-2026/` (verified to be the same set across all 8 ships). The same key set holds for the SVS preset family.
+**Scope:** the 84 keys per ship that appear in every `ship-<name>.groovy` fragment under `infinity/zone/conf/trench-04-2026/` (verified to be the same set across all 8 ships). The same key set holds for the SVS preset family. (These keys came from the original Subspace `shipSection` surface; the conf-fragments-to-groovy migration ported the bag verbatim into `shipSection` blocks — the names and values are unchanged.)
 
-**Why this file exists:** Always-on rule #5 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". This dictionary is the running ledger of the migration: which knobs are already in Groovy (and where), which are still in INI, and which haven't been wired anywhere yet. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
+**Why this file exists:** Always-on rule #5 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". All 84 keys are in Groovy now, but only 15 are *typed* — the rest sit in untyped `shipSection` blocks (read by `SettingsSystem.getInt/getString` if read at all). This dictionary is the running ledger of which knobs are typed (Pattern 4 — projected to ECS components at spawn) vs. which still flow through the untyped flat-bag accessors. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
 
 ## How to use
 
-- **Adding a new typed Groovy field that ports an INI key** → move the row from "Pending" to "Ported" and fill in the Groovy DSL name, `ShipConfig` field, projected component(s), and consumer.
-- **Adding a brand-new typed field that has no INI source** (e.g. `dragFactor`, `turnResponsiveness`, `bounceRestitution`) → add a row in the "Infinity-only Groovy fields (no INI source)" table.
-- **Extending the per-ship key surface** (a new INI key appears) → add a row in "Pending" with status `Pending — not yet read by any consumer`.
-- **Removing a Groovy field** → either move the row back to "Pending" (if INI source still exists) or delete it (if both the INI key and the Groovy field are gone).
+- **Adding a new typed `ShipConfig` field that ports a `shipSection` key** → move the row from "Pending" to "Ported" and fill in the Groovy DSL name, `ShipConfig` field, projected component(s), and consumer.
+- **Adding a brand-new typed field that has no fragment source** (e.g. `dragFactor`, `turnResponsiveness`, `bounceRestitution`) → add a row in the "Infinity-only Groovy fields (no fragment source)" table.
+- **Extending the per-ship key surface** (a new `shipSection` key appears) → add a row in "Pending" with status `Pending — not yet read by any consumer`.
+- **Removing a typed field** → either move the row back to "Pending" (if the `shipSection` key still exists) or delete it (if both are gone).
 
 Update this file in the same change that adds/moves/removes a typed config field. See always-on rule #6 in [CLAUDE.md](../CLAUDE.md).
 
 ---
 
-## Ported — INI keys with a typed Groovy binding
+## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
 15 keys (5 stat triples). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) into per-entity ECS components.
 
-| INI key | Groovy DSL | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
+| `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
 | `InitialRotation` | `rotation initial:` | `rotation.initial()` | `Rotation` (rad/sec; ×2π/400 at projection) | `PlayerDriver.update()` |
 | `MaximumRotation` | `rotation max:` | `rotation.max()` | `RotationMax` | `PrizeSystem.handleAcquireRotation()` |
@@ -39,7 +39,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `MaximumEnergy` | `energy max:` | `energy.max()` | `EnergyMax` | `PrizeSystem.handleAcquireEnergy()` |
 | `UpgradeEnergy` | `energy upgrade:` | `energy.upgrade()` | `EnergyUpgrade` | `PrizeSystem.handleAcquireEnergy()` |
 
-## Infinity-only Groovy fields (no INI source)
+## Infinity-only Groovy fields (no fragment source)
 
 Added during Pattern 4 follow-up #4. Defaults match the historical Java globals so existing Groovy scripts keep the prior feel.
 
@@ -52,13 +52,13 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ---
 
-## Pending — INI keys not yet ported to Groovy
+## Pending — `shipSection` keys not yet ported to typed `ShipConfig`
 
-69 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the legacy `SettingsSystem` string-keyed accessors, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
+69 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
 
 ### Weapons — gun / bomb / mine firing
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `BulletFireDelay` | Per-shot cooldown for guns. |
 | `BulletFireEnergy` | Energy cost per gun shot. |
@@ -81,11 +81,11 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ### Inventory — initial counts and caps
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `InitialBombs` / `MaxBombs` | Bomb-level inventory (already partially handled by `Bombs` enum + `BombCurrentLevel`/`BombMaxLevel` components, but not yet driven by Groovy). |
 | `InitialGuns` / `MaxGuns` | Same for `Guns` / `GunCurrentLevel` / `GunMaxLevel`. |
-| `MaxMines` | Mine inventory cap. (No `InitialMines` in the INI surface.) |
+| `MaxMines` | Mine inventory cap. (No `InitialMines` in the `shipSection` surface.) |
 | `InitialBurst` / `BurstMax` | Burst grenades. `Burst` / `BurstMax` components exist; not Groovy-driven. |
 | `BurstShrapnel` | Shrapnel count per burst. |
 | `BurstSpeed` | Burst projectile speed. |
@@ -100,7 +100,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ### Abilities — energy costs and on/off
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `AfterburnerEnergy` | Energy/sec cost while afterburner is held. |
 | `CloakEnergy` / `CloakStatus` | Cloak cost + initial state. |
@@ -112,7 +112,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ### Turret
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `TurretLimit` | Max riders allowed on this ship. |
 | `TurretSpeedPenalty` | Speed reduction per attached turret. |
@@ -120,7 +120,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ### Bounty / damage / share
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `AttachBounty` | Bounty awarded for attaching as a turret. |
 | `InitialBounty` | Spawn bounty. |
@@ -129,14 +129,14 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ### Visibility
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `SeeBombLevel` | Which bomb levels this ship can see in radar/HUD. |
 | `SeeMines` | Whether this ship sees mines. |
 
 ### Physics
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `Gravity` | Gravity well pull strength (per-ship). |
 | `GravityTopSpeed` | Top speed under gravity well influence. |
@@ -144,7 +144,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ### Soccer
 
-| INI key | Notes |
+| `shipSection` key | Notes |
 |---|---|
 | `SoccerBallFriction` | How fast the ball decelerates when fired by a ship (like throwing a ball) |
 | `SoccerBallProximity` | Pickup radius. |

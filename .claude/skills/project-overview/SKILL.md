@@ -23,13 +23,13 @@ infinity/src/main/java/infinity/
   systems/                   # Server-side game systems (ArenaSystem, SettingsSystem, ...)
   server/                    # Server networking (GameServer, BasicEnvironment)
   ai/                        # AI/mob systems
-  settings/                  # IniLoader (#include preprocessor), SettingListener
+  settings/                  # GroovyFragmentLoader (Groovy preset fragments), IniLoader (legacy / operator INI), SettingListener
   *.java                     # Client app states
 infinity/assets/             # JME asset root: Maps/*.lvl, textures, sounds
 infinity/zone/               # Second asset root for runtime config
   zone.groovy                # zone-wide config (autoLoad, enterSpawn)
   arenas/<name>/arena.groovy # per-arena config (map, shipsScript, spawn, includeFragment)
-  conf/base/                 # project baseline tuning (current default, 7 ships) — still INI
+  conf/base/                 # project baseline tuning (current default, 7 ships) — Groovy
   conf/svs/                  # canonical Standard VIE Settings (verbatim from SubspaceServer, 8 ships)
   conf/svs-league/           # SVS league + duel variants
   conf/svs-pb/               # PowerBall approximation

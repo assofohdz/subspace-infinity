@@ -16,12 +16,12 @@ Several nouns collide across these three systems and mean very different things.
 | **Map** | A `.lvl` file: 1024×1024 tiles + optional BMP tileset + eLVL metadata | — | Same as Subspace. One map fills one MOSS `TileId`. |
 | **Arena** | A named game space: one map + one settings bundle + its players | — | An Arena **entity** with components `ArenaId`, `ArenaMap`, `ArenaSettings`. Occupies one `TileId`. |
 | **Zone** | The whole server — a collection of arenas + zone-wide config | — | Same concept. `infinity/zone/` is the on-disk root. |
-| **Settings** | INI config: ship stats, weapon rules, prize tables, etc. | — | `arena.groovy` (arena-scope core) + INI fragments under `conf/<preset>/` loaded by `SettingsSystem`. |
+| **Settings** | Per-arena config: ship stats, weapon rules, prize tables, etc. | — | `arena.groovy` (arena-scope core) + Groovy fragments under `conf/<preset>/` loaded by `SettingsSystem` via `GroovyFragmentLoader`. |
 | **Region** | eLVL **REGN chunk**: named polygon inside a map (bases, no-weapon zones, autowarps). RLE-encoded, irregular shape. | — | **Overloaded:** `RegionSystem` uses "region" to mean a 32×32 leaf-aligned grid cell (A1–AF32), not an eLVL polygon. |
 | **Leaf** | — | `LeafId` — 32×32×32 paging unit; one `.col` file on disk. | Same as MOSS. |
 | **Column** | — | `ColumnId` — 32×1024×32, vertical stack of 32 leafs. | Same as MOSS, rarely referenced. |
 | **Grid** | Informal: the minimap overlay | `Grid` object: `TILE_GRID`, `LEAF_GRID`, `COLUMN_GRID`, `SEDECTILE_GRID`. | MOSS grids. The classic Subspace minimap is our new `RegionSystem` labelling. |
-| **Ship** | One of 8 classes (Warbird, Javelin, Spider, Leviathan, Terrier, Weasel, Lancaster, Shark) — also INI section names | — | Mapped via `ShapeNames.SHIP_*` in `SettingsSystem.updateShipSettings`. |
+| **Ship** | One of 8 classes (Warbird, Javelin, Spider, Leviathan, Terrier, Weasel, Lancaster, Shark) — also Groovy fragment section names (`shipSection 'Warbird' { … }`) | — | Mapped via `ShapeNames.SHIP_*` in `SettingsSystem.updateShipSettings`. |
 | **Player / Avatar** | "Player" = the human | — | Two entities: the **player** entity (identity, login) and the **avatar** entity (the ship in the world). Commands get both IDs. |
 
 ## The two "Tile" and "Cell" traps
@@ -113,7 +113,8 @@ Rule of thumb: **in-project code reads `InfinityConstants.*`**. Referencing `Wor
 |---|---|
 | `.lvl` | Subspace map — binary tile data (+ optional BMP tileset + eLVL chunks) |
 | `.lvz` | Zone graphics/overlays bundle (LVZ format; objects, images). Not gameplay tiles. |
-| `.conf` / `.cfg` / `.ini` | Settings. Loaded via `IniLoader`, supports `#include`. |
+| `.groovy` | Settings — preset fragments. Loaded via `GroovyFragmentLoader` (`section` / `shipSection` / `shipSections` DSL, recursive `include` keyword). All preset content under `conf/<preset>/` is `.groovy`. |
+| `.conf` / `.cfg` / `.ini` | Legacy / operator-supplied INI. Still loadable via `IniLoader` (with `#include` preprocessor) but no preset fragments use it. |
 | `.sss` / `.set` | Setting-metadata sidecar files; loaded by `SSSLoader`. |
 | `.col` | One MOSS leaf serialized to disk under `world.db/`. |
 

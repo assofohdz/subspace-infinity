@@ -1,6 +1,6 @@
 ---
 name: arena-settings
-description: Work with Subspace Infinity arena settings — the per-arena `arena.groovy` files under `infinity/zone/arenas/`, the still-INI `conf/` fragment library, the `#include` preprocessor (used inside fragments), the `SettingsSystem` typed accessors, the `~loadArena`/`~swapMap` commands, and the `SettingListener` API. Use when adding or reading settings, creating a new arena, splitting settings fragments, or listening for setting changes.
+description: Work with Subspace Infinity arena settings — the per-arena `arena.groovy` files under `infinity/zone/arenas/`, the Groovy `conf/` preset fragment library (section/shipSection/shipSections DSL), the recursive `include` directive, the `SettingsSystem` typed accessors, the `~loadArena`/`~swapMap` commands, and the `SettingListener` API. Use when adding or reading settings, creating a new arena, splitting settings fragments, or listening for setting changes.
 ---
 
 # Arena Settings
@@ -13,25 +13,27 @@ A **Zone** (server) contains many **Arenas**. An Arena = one **Map** (`.lvl`) + 
 infinity/zone/
 ├── zone.groovy                       # zone-wide config (autoLoad, enterSpawn) — see GroovyZoneLoader
 ├── arenas/
-│   ├── (default)/arena.groovy        # thin: includeFragment + map (override)
+│   ├── (default)/arena.groovy        # thin: includeFragment list + map
 │   ├── trench/arena.groovy
 │   └── deva/arena.groovy
 └── conf/
-    ├── base/                         # PROJECT baseline — current Infinity tuning (still INI)
-    │   ├── base.conf                 # composite root (#includes all fragments)
-    │   ├── ship-warbird              # extensionless fragments
-    │   ├── ship-javelin ...          # (7 ships — no shark yet)
-    │   ├── prizeweights
-    │   ├── cost
-    │   └── misc
-    ├── svs/                          # CANONICAL Standard VIE Settings (still INI)
-    │   ├── svs.conf                  # verbatim from SubspaceServer
-    │   ├── ship-warbird              # (8 ships — includes shark)
-    │   ├── ship-javelin ...
-    │   ├── prizeweights
-    │   ├── cost
-    │   └── misc
+    ├── base/                         # PROJECT baseline — current Infinity tuning (Groovy, 7 ships)
+    │   ├── ship-warbird.groovy
+    │   ├── ship-javelin.groovy ...   # (7 ships — no shark)
+    │   ├── prizeweights.groovy
+    │   ├── cost.groovy
+    │   └── misc.groovy
+    ├── svs/                          # CANONICAL Standard VIE Settings (Groovy, 8 ships)
+    │   ├── ship-warbird.groovy
+    │   ├── ship-javelin.groovy ...   # (8 ships — includes shark)
+    │   ├── prizeweights.groovy
+    │   ├── cost.groovy
+    │   └── misc.groovy
     ├── svs-league/                   # SVS league / duel variant
+    │   ├── svs-league.groovy         # composite root: include directives + shipSections splat
+    │   ├── svs-dueling.groovy
+    │   ├── ship-warbird.groovy ...   # per-ship overrides
+    │   └── misc.groovy, prizeweights.groovy, cost.groovy
     ├── svs-pb/                       # PowerBall approximation
     ├── svs-tce/                      # Turf Classic East
     ├── svs-turf/                     # post-VIE Turf Zone
@@ -39,24 +41,26 @@ infinity/zone/
     └── trench-04-2026/               # the trench preset
 ```
 
-**Two authoring formats, by tier.** The arena-scope core (map / shipsScript / spawn / fragment list) and zone-scope config (`autoLoad`, `enterSpawn`) are typed Groovy. The preset fragments under `conf/<preset>/` are still INI (out of scope of the zone-arena-to-groovy migration; tracked as a future item). Arenas pull the fragments in via `includeFragment`; the fragments themselves keep using `#include` recursively.
+**All authoring is Groovy.** The zone-scope, arena-scope, and preset fragment tiers are all `.groovy` files. Arenas list individual per-section fragment paths under `includeFragment`; composite `.conf` files and the `IniLoader` `#include` preprocessor are gone from the preset tier. The `IniLoader` itself remains registered for `.ini`/`.cfg`/`.conf` files (operator-supplied settings; legacy compatibility) but no preset fragments use it.
 
-**Variant pick-up** — an arena that wants PowerBall-style tuning:
+**Variant pick-up** — an arena that wants PowerBall-style tuning lists per-section fragments:
 ```groovy
 arena {
     map 'pb-map.lvl'
-    includeFragment '/conf/svs-pb/svs.conf'
+    includeFragment '/conf/svs-pb/misc.groovy'
+    includeFragment '/conf/svs-pb/prizeweights.groovy'
+    includeFragment '/conf/svs-pb/cost.groovy'
 }
 ```
-A duel arena:
+A league arena that uses the composite root (which `include`s its section files internally):
 ```groovy
 arena {
     map 'duel-map.lvl'
-    includeFragment '/conf/svs-league/svs-dueling.conf'
+    includeFragment '/conf/svs-league/svs-league.groovy'
 }
 ```
 
-`zone/` is added as a resource source dir by [buildSrc/.../infinity.app-with-assets.gradle:16](../../../buildSrc/src/main/groovy/infinity.app-with-assets.gradle#L16), so JME's `AssetManager` and Groovy-classpath reads see everything under `zone/` on the classpath. Asset keys are relative to that root: `arenas/{name}/arena.groovy`, `conf/svs/svs.conf`.
+`zone/` is added as a resource source dir by [buildSrc/.../infinity.app-with-assets.gradle:16](../../../buildSrc/src/main/groovy/infinity.app-with-assets.gradle#L16), so JME's `AssetManager` and Groovy-classpath reads see everything under `zone/` on the classpath. Asset keys are relative to that root: `arenas/{name}/arena.groovy`, `conf/svs/cost.groovy`.
 
 Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity/src/main/java/infinity/settings/):
 
@@ -65,7 +69,8 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 | `GroovyZoneLoader` | Loads `zone.groovy` → `ZoneConfig`. Filesystem-first dev mode, classpath fallback. |
 | `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. Same pattern as `GroovyZoneLoader`. |
 | `GroovyShipLoader` | Loads each arena's `ships.groovy` (referenced via `arena { shipsScript ... }`) → per-arena `ConfigRegistry`. |
-| `IniLoader` | `AssetLoader` for `.ini` / `.cfg` / `.conf`. Expands `#include` directives before parsing with `ini4j`. Used for the still-INI preset fragments. |
+| `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments` when the path ends in `.groovy`. |
+| `IniLoader` | `AssetLoader` for `.ini` / `.cfg` / `.conf`. Expands `#include` directives before parsing with `ini4j`. Still registered for operator-supplied or legacy files; no preset fragment uses it any longer. |
 | `SSSLoader` | `AssetLoader` for `.sss` / `.set` (colon-delimited rows → `ArrayList<String[]>`). Setting-metadata sidecars. |
 | `SettingListener` | Callback: `arenaSettingsChange(ArenaId, section, setting)` fired from `SettingsSystem.setSetting`. |
 | `SettingsTypes` | Exhaustive enumeration of known Subspace setting keys — reference, not runtime. |
@@ -87,13 +92,16 @@ Typed Groovy DSL evaluated by `GroovyArenaLoader`. Every directive is optional; 
 arena {
     map '04-2026-trench/pub2025.lvl'
     shipsScript '/conf/trench-04-2026/ships.groovy'
-    spawn 1000, 20                                    // arena-local; (0,0)=NW, (1024,1024)=SE
-    includeFragment '/conf/trench-04-2026/trench.conf' // still-INI preset fragment
-    // includeFragment '/conf/another.conf'           // multiple allowed; last-wins on key conflict
+    spawn 1000, 20                                              // player spawn point in this arena, arena-local: (0,0)=NW, (512,512)=center, (1024,1024)=SE
+    includeFragment '/conf/trench-04-2026/prizeweights.groovy'  // multiple allowed; last-wins on key conflict
+    includeFragment '/conf/trench-04-2026/ship-warbird.groovy'
+    // …
+    includeFragment '/conf/trench-04-2026/misc.groovy'
+    wallFriction 0.1
 }
 ```
 
-**Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no INI rule sections are loaded; without `spawn` the arena spawns at `(0, 0)`.
+**Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no rule sections are loaded; without `spawn` players spawn at the arena's center `(512, 512)`.
 
 ### Where each directive lands
 
@@ -101,31 +109,71 @@ arena {
 |---|---|---|---|
 | `map '...'` | String | `ArenaConfig.mapFile()` | `ArenaSystem` (load / unload / swap / `findArenaByMap`) |
 | `shipsScript '...'` | String | `ArenaConfig.shipsScript()` | `GroovyShipLoader.apply()` at arena-load |
-| `spawn x, z` | int, int | `ArenaConfig.spawnX()`/`spawnZ()` | `ArenaSystem.getArenaSpawn()` |
+| `spawn x, z` | int, int | `ArenaConfig.spawnX()`/`spawnZ()` | `ArenaSystem.getArenaSpawn()` — player spawn point in this arena, arena-local; defaults to `(512, 512)` (arena center) when omitted |
 | `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
 
-### Section categories (in fragments)
+## Groovy fragment DSL
 
-The fragments themselves are still INI and obey the standard Subspace section layout:
+Each `.groovy` fragment under `conf/<preset>/` declares one or more sections. Loaded by `GroovyFragmentLoader` and merged into the arena's `Ini` (last-wins on key conflict, same as the legacy `#include`).
 
-1. **Global rule sections** (one per arena): `[Bullet]`, `[Bomb]`, `[Mine]`, `[Shrapnel]`, `[Burst]`, `[Prize]`, `[PrizeWeight]`, `[Flag]`, `[Soccer]`, `[Radar]`, `[Team]`, `[Kill]`, `[Repel]`, `[Message]`, `[Wormhole]`, `[Latency]`, `[Brick]`, `[Rocket]`, `[Door]`, `[Misc]`, `[Custom]`, `[Territory]`, `[Periodic]`, `[Security]`, `[PacketLoss]`, `[Routing]`, `[King]`, `[Cost]`, `[Owner]`, `[Toggle]`, `[General]`.
-2. **Per-ship sections**: `[Warbird]`, `[Javelin]`, `[Spider]`, `[Leviathan]`, `[Terrier]`, `[Weasel]`, `[Lancaster]`, `[Shark]`. Same key set, per ship — keys like `MaximumSpeed`, `InitialEnergy`, `BombFireEnergy`.
-3. **`[Owner]`** — free-form metadata.
+```groovy
+// /conf/svs/misc.groovy — generic [Section] form
+section('Bomb') {
+    BombDamageLevel 750
+    BombAliveTime   6000
+    JitterTime      72
+}
+section('Mine') {
+    MineAliveTime 12000
+    TeamMaxMines  12
+}
+```
 
-Canonical key list per section: [SettingsTypes.java](../../../infinity/src/main/java/infinity/settings/SettingsTypes.java).
+```groovy
+// /conf/svs/ship-warbird.groovy — per-ship section
+shipSection('Warbird') {
+    SuperTime         6000
+    BulletFireEnergy  20
+    MaximumSpeed      3250
+    // …
+}
+```
 
-## `#include` preprocessor (fragments only)
+```groovy
+// /conf/svs-pb/ships.groovy — splat one block over multiple ship sections
+shipSections('Warbird', 'Javelin', 'Spider', 'Leviathan',
+             'Terrier', 'Weasel', 'Lancaster', 'Shark') {
+    MaximumSpeed   3250
+    InitialBounty  100
+}
+```
 
-`IniLoader` runs a lightweight preprocessor inside fragments before handing text to `ini4j`. The arena-scope `includeFragment` directive is not the same thing — it's the Groovy-side handle that names which fragments to feed in.
+```groovy
+// /conf/svs-league/svs-league.groovy — composite + override (uses include)
+include '/conf/svs-league/ship-warbird.groovy'
+include '/conf/svs-league/misc.groovy'
+include '/conf/svs-league/cost.groovy'
 
-- `#include /conf/svs/svs.conf` — **absolute** path from asset root (preferred for library fragments)
-- `#include flags.conf` — **relative** to the including fragment's folder (preferred for sibling overrides)
-- Quoted paths ok: `#include "some path.conf"`
-- Cycles detected and rejected with the full chain
-- Max depth 16
+shipSections('Warbird', 'Javelin', /* …8 ships */) {
+    RepelMax 2
+}
+section('Prize') { UseDeathPrizeWeights 1 }
+```
 
-ini4j doesn't do `#include` natively; it's all in [IniLoader](../../../infinity/src/main/java/infinity/settings/IniLoader.java). Don't reach around it — put new shared fragments under `conf/` and `#include` them from a sibling fragment, or feed them via `includeFragment` in `arena.groovy`.
+**Authoring rules:**
+- Section names: any string in `section(...)`; for `shipSection` and `shipSections`, names are validated against the `Ship` enum at parse time so typos fail loudly.
+- Inside a section block, every line is `KeyName value` — Groovy command-style call. Negatives need parens: `DoorMode(-1)` (bare `DoorMode -1` parses as subtraction).
+- Strings are quoted: `SheepMessage 'Baaah'`.
+- `include '/conf/.../foo.groovy'` recurses (cycle-detected, max depth 16). Used for compose-and-override patterns; otherwise list section files directly under `arena.groovy`'s `includeFragment` instead.
+
+Canonical Subspace key list per section: [SettingsTypes.java](../../../infinity/src/main/java/infinity/settings/SettingsTypes.java).
+
+### Section categories
+
+1. **Global rule sections** (one per arena): `Bullet`, `Bomb`, `Mine`, `Shrapnel`, `Burst`, `Prize`, `PrizeWeight`, `DPrizeWeight`, `Flag`, `Soccer`, `Radar`, `Team`, `Kill`, `Repel`, `Message`, `Wormhole`, `Latency`, `Brick`, `Rocket`, `Door`, `Misc`, `Custom`, `Territory`, `Periodic`, `Security`, `PacketLoss`, `Routing`, `King`, `Cost`, `Toggle`, `Spawn`, `Spectator`, `General`.
+2. **Per-ship sections** (use `shipSection` / `shipSections`): `Warbird`, `Javelin`, `Spider`, `Leviathan`, `Terrier`, `Weasel`, `Lancaster`, `Shark`. Same key set, per ship — `MaximumSpeed`, `InitialEnergy`, `BombFireEnergy`, etc.
+3. **`Owner`** — free-form metadata.
 
 ## Loading an arena's settings
 
@@ -133,7 +181,7 @@ Arena-load flow in [ArenaSystem.doLoad](../../../infinity/src/main/java/infinity
 
 1. `GroovyArenaLoader.load(arenaName)` reads `arenas/{arenaName}/arena.groovy`.
 2. Parsed `ArenaConfig` is cached on the per-arena `ArenaRecord` (single source of truth for in-memory arena state — `getArenaSpawn`, `swapMap`, etc. all read from it).
-3. `SettingsSystem.loadFragments(arenaName, cfg.fragmentIncludes())` loads each fragment via `IniLoader` (so each fragment's own `#include`s expand) and merges them into the per-arena `Ini` for `getInt`/`getString` consumers.
+3. `SettingsSystem.loadFragments(arenaName, cfg.fragmentIncludes())` loads each fragment and merges into the per-arena `Ini` for `getInt`/`getString` consumers. Each include path is dispatched on extension: `.groovy` → `GroovyFragmentLoader` (recurses on `include` directives), anything else → `IniLoader` (legacy / operator-supplied INI).
 
 A missing `arena.groovy` fails the load with a clear "No arena.groovy found" error — the legacy `arena.conf` path was retired in zone-arena-to-groovy #3.
 
@@ -161,7 +209,7 @@ ArenaConfig cfg = arenas.getArenaConfig(arenaName); // returns ArenaConfig.EMPTY
 double friction = cfg.wallFriction();
 ```
 
-For **fragment data** (the rule sections in the included `conf/<preset>/*.conf` files), use `SettingsSystem`'s typed accessors:
+For **fragment data** (the rule sections in the included `conf/<preset>/*.groovy` files), use `SettingsSystem`'s typed accessors:
 
 ```java
 SettingsSystem s = getSystem(SettingsSystem.class);
@@ -216,9 +264,12 @@ The arena-scope core (map / shipsScript / spawn / wallFriction) is not editable 
    ```groovy
    arena {
        map 'your-map.lvl'
-       shipsScript '/conf/{preset}/ships.groovy'   // or omit for the GroovyShipLoader.FALLBACK
-       spawn 100, 100                              // arena-local NW=(0,0), SE=(1024,1024)
-       includeFragment '/conf/base/base.conf'      // or /conf/svs/svs.conf for canonical VIE
+       shipsScript '/conf/{preset}/ships.groovy'        // or omit for the GroovyShipLoader.FALLBACK
+       spawn 100, 100                                   // player spawn point in this arena, arena-local: NW=(0,0), center=(512,512), SE=(1024,1024)
+       includeFragment '/conf/base/prizeweights.groovy' // list each section file you want
+       includeFragment '/conf/base/ship-warbird.groovy'
+       // …
+       includeFragment '/conf/base/misc.groovy'
    }
    ```
 3. Put the `.lvl` in `infinity/assets/Maps/`.
@@ -226,41 +277,64 @@ The arena-scope core (map / shipsScript / spawn / wallFriction) is not editable 
 
 ### Override a fragment value for one arena
 
-`arena.groovy`'s `includeFragment` doesn't support inline overrides today (the fragments are merged whole). To override a single key, author a small sibling fragment that does the overriding:
+`arena.groovy`'s `includeFragment` is positional, last-wins on key conflict. Author a small sibling fragment that overrides only the keys you want changed and list it after the base in `arena.groovy`:
 
-```
-infinity/zone/conf/{your-preset}/
-├── overrides.conf       ; e.g. [Bomb] BombDamageLevel = 2000
-└── ...
-```
-
-Then in `arena.groovy`:
 ```groovy
-arena {
-    includeFragment '/conf/base/base.conf'
-    includeFragment '/conf/{your-preset}/overrides.conf'   // last-wins
+// /conf/{your-preset}/overrides.groovy
+section('Bomb') {
+    BombDamageLevel 2000
 }
 ```
 
-### Create a new conf variant (e.g. `svs-arcade`)
+```groovy
+// arenas/your-arena/arena.groovy
+arena {
+    map 'your-map.lvl'
+    includeFragment '/conf/base/misc.groovy'
+    includeFragment '/conf/{your-preset}/overrides.groovy'   // wins on key conflict
+}
+```
 
-Same as before — fragment library is still INI:
+### Create a new preset variant (e.g. `svs-arcade`)
 
-1. `mkdir infinity/zone/conf/svs-arcade/`.
-2. Inside, create a composite root (`svs-arcade.conf`) that `#include`s shared base fragments from `/conf/svs/` and overrides what differs:
-   ```ini
-   #include /conf/svs/prizeweights
-   #include /conf/svs/ship-warbird
-   ; ...
-   #include /conf/svs-arcade/misc    ; arcade-tuned version instead of /conf/svs/misc
-   ```
-3. Arena `arena.groovy` references it:
-   ```groovy
-   arena {
-       map '...'
-       includeFragment '/conf/svs-arcade/svs-arcade.conf'
-   }
-   ```
+Two shapes — pick whichever is cleaner.
+
+**A. Per-section split** (the shape `svs/`, `trench-04-2026/`, etc. use today). One file per section / per ship; arenas list each one under `includeFragment`.
+
+```
+infinity/zone/conf/svs-arcade/
+├── ship-warbird.groovy
+├── ship-javelin.groovy
+├── …
+├── misc.groovy
+├── prizeweights.groovy
+└── cost.groovy
+```
+
+**B. Composite-with-overrides** (the shape `svs-league/svs-league.groovy` uses). One root `.groovy` that `include`s the section files of a base preset and layers overrides on top. Arenas reference just the root file.
+
+```groovy
+// /conf/svs-arcade/svs-arcade.groovy
+include '/conf/svs/ship-warbird.groovy'
+include '/conf/svs/misc.groovy'
+include '/conf/svs/prizeweights.groovy'
+include '/conf/svs/cost.groovy'
+
+// Arcade overrides — written after the includes so they win on key conflict.
+section('Bomb') {
+    BombDamageLevel 2500
+}
+shipSections('Warbird', 'Javelin', /* …8 ships */) {
+    InitialBounty 200
+}
+```
+```groovy
+// arenas/arcade/arena.groovy
+arena {
+    map 'arcade-map.lvl'
+    includeFragment '/conf/svs-arcade/svs-arcade.groovy'
+}
+```
 
 ### Read a setting in an `AbstractGameSystem`
 
@@ -286,7 +360,7 @@ Adding a new settings file extension? Register it here — `AssetLoaderService` 
 
 - **Don't hardcode game constants** that already exist in a fragment — route through `SettingsSystem.getInt(...)` / `getBool(...)` so operators can tune without recompiling.
 - **Don't put tuning knobs in `arena.conf`** — that file is gone. Tuning knobs go in the appropriate Groovy preset (e.g. `conf/<preset>/ships.groovy` for ship stats, `arena.groovy` for arena-scope core, `zone.groovy` for zone-wide).
-- **Don't duplicate the SVS baseline** inside arena fragments — `includeFragment '/conf/svs/svs.conf'` and layer overrides below.
+- **Don't duplicate the SVS baseline** inside arena fragments — list the per-section files from `/conf/svs/` under `includeFragment` (or `include` them from a per-preset composite root) and layer overrides below.
 - **Don't mint new section names** in fragments — prefer existing Subspace section/key conventions from `SettingsTypes` so configs stay interoperable with legacy Subspace tooling.
 - **Don't bypass `SettingListener`** by polling `getIni` every tick — cache locally and update on callback.
 - **Don't reach into `WorldGrids.*` for sizes** — go through `InfinityConstants.*` (see [subspace-moss-terminology](../subspace-moss-terminology/SKILL.md)).
