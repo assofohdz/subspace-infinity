@@ -3,9 +3,6 @@ plugins {
 }
 
 dependencies {
-	//Ini4j to parse settings files
-	//http://ini4j.sourceforge.net/// 
-	//https://mvnrepository.com/artifact/org.ini4j/ini4j
 	implementation "org.ini4j:ini4j:0.5.4"
 
 	// Simsilica

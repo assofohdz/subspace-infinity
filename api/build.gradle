@@ -11,13 +11,6 @@ sourceSets {
 }
 
 dependencies {
-    //Dyn4j
-    //http://www.dyn4j.org/
-	//implementation "org.dyn4j:dyn4j:3.4.0"
-
-    //Ini4j to parse settings files
-    //http://ini4j.sourceforge.net/// 
-    //https://mvnrepository.com/artifact/org.ini4j/ini4j
 	implementation "org.ini4j:ini4j:0.5.4"
 
 	// Simsilica
@@ -33,8 +26,4 @@ dependencies {
 	implementation "com.simsilica:sio2-mphys:$mossVersion"
 
     implementation "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
-
-	//jWalkable for 2d polygonal pathfinding
-    //https://github.com/implicit-invocation/jwalkable
-	//implementation "com.github.implicit-invocation:jwalkable:master-SNAPSHOT"
 }

@@ -68,24 +68,11 @@ dependencies {
     //https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
     implementation "com.google.code.findbugs:jsr305:3.0.2"
 
-    //Dyn4j
-    //http://www.dyn4j.org/
-    //implementation "org.dyn4j:dyn4j:3.4.0"
-    //implementation "org.dyn4j:dyn4j:4.0.0"
-    //implementation project(":dyn4j-bin")
-
-    //Ini4j to parse settings files
-    //http://ini4j.sourceforge.net/// 
-    //https://mvnrepository.com/artifact/org.ini4j/ini4j
+    // Ini4j to parse settings files (legacy arena.conf path; phasing out per conf-fragments-to-groovy PRD)
     implementation "org.ini4j:ini4j:0.5.4"
 
-    // Apache Commons Stuff
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
-    implementation "org.apache.commons:commons-collections4:4.4"
+    // commons-math 2.2 — used by infinity/util/MathUtil.java. EOL; flagged for migration to commons-math3.
     implementation "org.apache.commons:commons-math:2.2"
-
-    // Trying this for saving/loading configs
-    implementation "com.google.code.gson:gson:${gsonVersion}"
 
     // For Lemur styles
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
@@ -110,7 +97,6 @@ dependencies {
     implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
 
     // Simsilica MOSS
-    //implementation "com.simsilica:mphys:$mossVersion"
     implementation "com.simsilica:mblock:$mossVersion"
     implementation "com.simsilica:mblock-physb:$mossVersion"
     implementation "com.simsilica:mworld:$mossVersion"
@@ -118,23 +104,6 @@ dependencies {
     implementation "com.simsilica:sio2-mphys:$mossVersion"
     implementation "com.simsilica:bpos:$mossVersion"
     implementation "com.simsilica:crig:$mossVersion"
-
-    //jWalkable for 2d polygonal pathfinding
-    //https://github.com/implicit-invocation/jwalkable
-    //implementation "com.github.implicit-invocation:jwalkable:master-SNAPSHOT"
-
-    //Noise4j dungeon generation
-    //https://github.com/czyzby/noise4j
-    implementation "com.github.czyzby:noise4j:0.1.0"
-
-    //GDX-AI for steering behaviours
-    //https://github.com/libgdx/gdx-ai
-    //compile "com.badlogicgames.gdx:gdx-ai:1.8.1:sources"
-    //compile "com.badlogicgames.gdx:gdx-ai:1.8.1:javadoc"
-    implementation "com.badlogicgames.gdx:gdx-ai:1.8.2"
-
-    //We"re using a java port of http://www.angusj.com/delphi/clipper.php to do polygon boolean operations
-    implementation "de.lighti:Clipper:6.4.2"
 
     // Local dependencies
     implementation project(":api")
