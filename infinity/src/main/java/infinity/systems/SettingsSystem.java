@@ -34,6 +34,7 @@ import com.simsilica.sim.SimTime;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.server.AssetLoaderService;
+import infinity.settings.GroovyFragmentLoader;
 import infinity.settings.IniLoader;
 import infinity.settings.SSSLoader;
 import infinity.settings.SettingListener;
@@ -274,6 +275,7 @@ public class SettingsSystem extends AbstractGameSystem {
   private final List<String> shipIntSettings = Arrays.asList("SuperTime", "ShieldsTime");
   ArrayList<SettingListener> listeners = new ArrayList<>();
   private AssetLoaderService assetLoader;
+  private final GroovyFragmentLoader groovyFragmentLoader = new GroovyFragmentLoader();
   private EntityData ed;
   private double timeSinceLastSettingsUpdate_ms = 0;
 
@@ -407,15 +409,20 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   private Ini loadFragmentIni(final String classpathPath) {
+    if (classpathPath == null || classpathPath.isBlank()) {
+      return null;
+    }
+    // Dispatch on extension so Groovy fragments and INI fragments share one
+    // includeFragment surface in arena.groovy. Groovy fragments produce an
+    // ini4j Ini with the same shape (sections + string values) as IniLoader,
+    // so the merge / getInt / getString path downstream is identical.
+    if (classpathPath.endsWith(".groovy")) {
+      return groovyFragmentLoader.load(classpathPath);
+    }
     // The asset loader's keys are leading-slashless; arena.groovy paths are
     // typically classpath-absolute with a leading slash, so strip it.
     final String key =
-        classpathPath != null && classpathPath.startsWith("/")
-            ? classpathPath.substring(1)
-            : classpathPath;
-    if (key == null || key.isBlank()) {
-      return null;
-    }
+        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
     try {
       return (Ini) assetLoader.loadAsset(key);
     } catch (final Exception e) {
