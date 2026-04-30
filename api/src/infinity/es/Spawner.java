@@ -54,19 +54,6 @@ public class Spawner implements EntityComponent {
     this(0, 0.0, false, null, false, 0L);
   }
 
-  public Spawner(final SpawnType type) {
-    this(0, 0.0, false, type, false, 0L);
-  }
-
-  public Spawner(
-      final int maxCount,
-      final double spawnInterval,
-      final boolean spawnAllOver,
-      final SpawnType type,
-      final boolean weighted) {
-    this(maxCount, spawnInterval, spawnAllOver, type, weighted, 0L);
-  }
-
   public Spawner(
       final int maxCount,
       final double spawnInterval,

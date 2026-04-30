@@ -487,21 +487,10 @@ public class GameEntities {
 
   }
 
-  public static EntityId createPrize(
-      final EntityData ed,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final String prizeType) {
-    return createPrize(ed, phys, createdTime, pos, prizeType, CoreGameConstants.PRIZEDECAY);
-  }
-
   /**
-   * Like {@link #createPrize(EntityData, PhysicsSpace, long, Vec3d, String)},
-   * but with a per-prize lifetime override. Used by {@code PrizeSystem} when
-   * the source spawner carries a {@code PrizeDecayMillis} component populated
-   * from {@code PrizeSpawnerSpec.ttlMillis}. The shorter signature delegates
-   * here with the global {@code CoreGameConstants.PRIZEDECAY} default.
+   * Create a prize entity at {@code pos}. Called by {@code PrizeSystem} from
+   * {@code spawnBounty}; prize-type weighting and per-spawner TTL selection
+   * happen there.
    *
    * @param decayMillis prize lifetime; non-positive values are clamped up to
    *     the global default so a misconfigured Groovy spec can't accidentally

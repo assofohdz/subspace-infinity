@@ -26,8 +26,6 @@
 
 package infinity.systems;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -94,7 +92,6 @@ import infinity.util.RandomSelector;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +106,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   private final PhysicsSpace<EntityId, MBlockShape> phys;
   private final HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<>();
   private final HashMap<EntityId, Double> spawnerLastSpawned = new HashMap<>();
-  BiMap<Integer, String> prizeMap = HashBiMap.create();
   /**
    * Last-resort selector built from the hardcoded {@link #FALLBACK_WEIGHTS}.
    * Used only for spawners with no {@link ArenaId} (the legacy
@@ -148,8 +144,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
   @Override
   protected void initialize() {
-    this.initializePrizeMap();
-
     ed = getSystem(EntityData.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
     settingsSystem = getSystem(SettingsSystem.class);
@@ -175,37 +169,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
 
     getSystem(ContactSystem.class).addListener(this);
-  }
-
-  private void initializePrizeMap() {
-    prizeMap.put(1, PrizeTypes.RECHARGE);
-    prizeMap.put(2, PrizeTypes.ENERGY);
-    prizeMap.put(3, PrizeTypes.ROTATION);
-    prizeMap.put(4, PrizeTypes.STEALTH);
-    prizeMap.put(5, PrizeTypes.CLOAK);
-    prizeMap.put(6, PrizeTypes.XRADAR);
-    prizeMap.put(7, PrizeTypes.WARP);
-    prizeMap.put(8, PrizeTypes.GUN);
-    prizeMap.put(9, PrizeTypes.BOMB);
-    prizeMap.put(10, PrizeTypes.BOUNCINGBULLETS);
-    prizeMap.put(11, PrizeTypes.THRUSTER);
-    prizeMap.put(12, PrizeTypes.TOPSPEED);
-    prizeMap.put(13, PrizeTypes.QUICKCHARGE);
-    prizeMap.put(14, PrizeTypes.DUD);
-    prizeMap.put(15, PrizeTypes.MULTIFIRE);
-    prizeMap.put(16, PrizeTypes.PROXIMITY);
-    prizeMap.put(17, PrizeTypes.SUPER);
-    prizeMap.put(18, PrizeTypes.SHIELDS);
-    prizeMap.put(19, PrizeTypes.SHRAPNEL);
-    prizeMap.put(20, PrizeTypes.ANTIWARP);
-    prizeMap.put(21, PrizeTypes.REPEL);
-    prizeMap.put(22, PrizeTypes.BURST);
-    prizeMap.put(23, PrizeTypes.DECOY);
-    prizeMap.put(24, PrizeTypes.THOR);
-    prizeMap.put(25, PrizeTypes.MULTIPRIZE);
-    prizeMap.put(26, PrizeTypes.BRICK);
-    prizeMap.put(27, PrizeTypes.ROCKET);
-    prizeMap.put(28, PrizeTypes.PORTAL);
   }
 
   /**
@@ -423,14 +386,13 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
    * {@code BasicEnvironment} call) carry {@code 0} here, which
    * {@code createPrize} interprets as "fall back to the global default".
    *
-   * <p>Prize-type weighting goes through {@link #getPrizeType(EntityId,
-   * Spawner)} which honours {@link PrizeWeightsOverride} on the spawner,
-   * falling back to the spawner's arena defaults, then the global
-   * {@link #FALLBACK_WEIGHTS}.
+   * <p>Prize-type weighting goes through {@link #getPrizeType(EntityId)}
+   * which honours {@link PrizeWeightsOverride} on the spawner, falling back
+   * to the spawner's arena defaults, then the global {@link #FALLBACK_WEIGHTS}.
    */
   private EntityId spawnBounty(
       EntityId spawnerId, Spawner spawner, Vec3d spawnerLocation, double radius) {
-    String prizeType = getPrizeType(spawnerId, spawner);
+    String prizeType = getPrizeType(spawnerId);
     Vec3d prizeSpawnLocation =
         this.getSpawnLocation(spawnerLocation, radius, spawner.spawnOnRing());
     return GameEntities.createPrize(
@@ -464,15 +426,10 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   }
 
   /**
-   * Pick a prize-type string for {@code spawner}'s next prize. Weighted
-   * spawners go through the right selector (per-spawner override > arena
-   * defaults > global fallback); unweighted spawners pick uniformly from
-   * {@link #prizeMap}'s 28 named entries (matches legacy behaviour).
+   * Pick a prize-type string for {@code spawner}'s next prize via the right
+   * selector: per-spawner override > arena defaults > global fallback.
    */
-  private String getPrizeType(EntityId spawnerId, Spawner spawner) {
-    if (!spawner.isWeighted()) {
-      return prizeMap.get(ThreadLocalRandom.current().nextInt(1, 28 + 1));
-    }
+  private String getPrizeType(EntityId spawnerId) {
     final PrizeWeightsOverride override = ed.getComponent(spawnerId, PrizeWeightsOverride.class);
     final ArenaId arenaId = ed.getComponent(spawnerId, ArenaId.class);
     final String arenaName = arenaId == null ? null : arenaId.getArena();
