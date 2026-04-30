@@ -33,6 +33,7 @@ Path-scoped rules live in `.claude/rules/` and load automatically when relevant 
 - [`api-contracts.md`](.claude/rules/api-contracts.md) — api/ is data + interfaces only; no deps on server/client/modules (`api/src/**`)
 - [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`client/**` + loose `*AppState`)
 - [`config-pattern.md`](.claude/rules/config-pattern.md) — template (`*Config` records) vs instance (components); spawn systems project template → component; hot-path consumers read components only (`api/src/infinity/config/**` + `api/src/infinity/es/ship/**`)
+- [`decay-ttl.md`](.claude/rules/decay-ttl.md) — `Decay` is the only TTL mechanism; templates carry duration, spawn systems project to `Decay`; no parallel `*Decay`/`*Ttl` components (`api/src/infinity/es/**`, `systems/**`, `modules/`)
 
 Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
 

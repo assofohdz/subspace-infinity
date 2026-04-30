@@ -98,10 +98,30 @@ arena {
     // …
     includeFragment '/conf/trench-04-2026/misc.groovy'
     wallFriction 0.1
+    prizeSpawners {
+        // Minimal: uses arena [PrizeWeight] defaults, global prize TTL
+        spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
+        // With per-spawner weight overrides (sparse — other types keep arena defaults)
+        spawn x: 900, z: 100, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000,
+              weights: [Bomb: 100, Gun: 100, Rotation: 50]
+    }
 }
 ```
 
-**Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no rule sections are loaded; without `spawn` players spawn at the arena's center `(512, 512)`.
+**`prizeSpawners` parameters:**
+| Parameter | Type | Effect |
+|---|---|---|
+| `x`, `z` | int (arena-local) | Spawner center; `(0,0)` = NW, `(1024,1024)` = SE |
+| `radius` | double (world units) | Prizes scatter within disc of this radius |
+| `maxCount` | int | Max live prizes from this spawner at once |
+| `intervalMs` | double | Milliseconds between spawn attempts |
+| `ttlMs` | long | Prize `Decay` duration; `0` falls back to `CoreGameConstants.PRIZEDECAY` |
+| `onRing` | boolean (default `false`) | `true` = spawn on ring edge; `false` = uniform within disc |
+| `weights` | Map (optional) | Per-type weight overrides merged atop arena `[PrizeWeight]` defaults; sparse |
+
+Each `spawn` entry materializes into a real spawner entity at arena-load. `PrizeWeightsOverride` is set on the entity only when `weights` is non-empty.
+
+**Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no rule sections are loaded; without `spawn` players spawn at the arena's center `(512, 512)`. `prizeSpawners` is optional; omitting it leaves prize spawning to any globally-configured spawners.
 
 ### Where each directive lands
 
@@ -112,6 +132,7 @@ arena {
 | `spawn x, z` | int, int | `ArenaConfig.spawnX()`/`spawnZ()` | `ArenaSystem.getArenaSpawn()` — player spawn point in this arena, arena-local; defaults to `(512, 512)` (arena center) when omitted |
 | `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
+| `prizeSpawners { spawn ... }` | Block (repeatable) | `ArenaConfig.prizeSpawners()` → `List<PrizeSpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
 
 ## Groovy fragment DSL
 
