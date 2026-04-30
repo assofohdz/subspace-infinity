@@ -30,7 +30,7 @@ package infinity;
  *
  * @author Asser
  */
-public enum Guns implements IEnum<Guns>{
+public enum Guns implements OrdinalEnum<Guns>{
   LEVEL_1(1, 9),
   LEVEL_2(2, 8),
   LEVEL_3(3, 7),

@@ -26,7 +26,7 @@
 
 package infinity;
 
-public interface IEnum<E extends Enum<E>> {
+public interface OrdinalEnum<E extends Enum<E>> {
 
   int ordinal();
 
@@ -41,7 +41,7 @@ public interface IEnum<E extends Enum<E>> {
 
   @SuppressWarnings("unchecked")
   default E[] getAllValues() {//java 9 private methods in interface
-    IEnum[] ies = this.getClass().getEnumConstants();
+    OrdinalEnum[] ies = this.getClass().getEnumConstants();
     return (E[]) ies;
   }
 }

@@ -32,7 +32,7 @@ import com.jme3.math.ColorRGBA;
  *
  * @author Asser
  */
-public enum Bombs implements IEnum<Bombs>{
+public enum Bombs implements OrdinalEnum<Bombs>{
   BOMB_1(1, 12, ColorRGBA.Red, 25),
   BOMB_2(2, 11, ColorRGBA.Yellow, 30),
   BOMB_3(3, 10, ColorRGBA.Blue, 35),
