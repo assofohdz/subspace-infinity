@@ -1247,3 +1247,755 @@ Spectator:NoXRadar:0:1:If specs are allowed to have X (0=yes, 1=no)
 +Maker:Maker:::Editing was done by Mine GO BOOM with the help of the letter K. Version 1.34.14   For more help, visit http://www.shanky.com/server/
 ```
 
+
+## Source — SettingsTypes.java (Java key catalog)
+
+Before deletion, [`infinity/settings/SettingsTypes.java`](../../infinity/src/main/java/infinity/settings/SettingsTypes.java)
+held 372 `private static String` constants of the form
+`SECTION_FIELDNAME = "Section-FieldName"`. The class was `@SuppressWarnings("unused")`
+and had zero callers — kept for historical completeness because it is the most
+complete Java-side enumeration of which INI fields the codebase was designed to
+read.
+
+**Format note**: this catalog uses `-` as the section/field separator. The
+`.sss` / `.set` blocks above use `:`. On-disk `.ini` files use `[Section]`
+headers with `Field = value` lines. All three are flat-key projections of
+the same INI data.
+
+### Notes
+
+```
+Notes-SettingName
+Notes-Maker
+Notes-CoMaker
+Notes-MapName
+Notes-Mapper
+Notes-Note1
+Notes-Note2
+Notes-Note3
+Notes-Note4
+Notes-Note5
+```
+
+### Bomb
+
+```
+Bomb-BombDamageLevel
+Bomb-BombAliveTime
+Bomb-BombExplodeDelay
+Bomb-BombExplodePixels
+Bomb-ProximityDistance
+Bomb-JitterTime
+Bomb-BombSafety
+Bomb-EBombShutdownTime
+Bomb-EBombDamagePercent
+Bomb-BBombDamagePercent
+```
+
+### Brick
+
+```
+Brick-BrickTime
+Brick-BrickSpan
+```
+
+### Bullet
+
+```
+Bullet-BulletDamageLevel
+Bullet-BulletDamageUpgrade
+Bullet-BulletAliveTime
+Bullet-ExactDamage
+```
+
+### Burst
+
+```
+Burst-BurstDamageLevel
+```
+
+### Cost
+
+```
+Cost-PurchaseAnytime
+Cost-Recharge
+Cost-Energy
+Cost-Rotation
+Cost-Stealth
+Cost-Cloak
+Cost-XRadar
+Cost-Gun
+Cost-Bomb
+Cost-Bounce
+Cost-Thrust
+Cost-Speed
+Cost-MultiFire
+Cost-Prox
+Cost-Super
+Cost-Shield
+Cost-Shrap
+Cost-AntiWarp
+Cost-Repel
+Cost-Burst
+Cost-Decoy
+Cost-Thor
+Cost-Brick
+Cost-Rocket
+Cost-Portal
+```
+
+### Custom
+
+```
+Custom-SaveStatsTime
+```
+
+### Door
+
+```
+Door-DoorDelay
+Door-DoorMode
+```
+
+### Flag
+
+```
+Flag-FlaggerOnRadar
+Flag-FlaggerKillMultiplier
+Flag-FlaggerGunUpgrade
+Flag-FlaggerBombUpgrade
+Flag-FlaggerFireCostPercent
+Flag-FlaggerDamagePercent
+Flag-FlaggerSpeedAdjustment
+Flag-FlaggerThrustAdjustment
+Flag-FlaggerBombFireDelay
+Flag-CarryFlags
+Flag-FlagDropDelay
+Flag-FlagDropResetReward
+Flag-EnterGameFlaggingDelay
+Flag-FlagBlankDelay
+Flag-NoDataFlagDropDelay
+Flag-FlagMode
+Flag-FlagResetDelay
+Flag-MaxFlags
+Flag-RandomFlags
+Flag-FlagReward
+Flag-FlagRewardMode
+Flag-FlagTerritoryRadius
+Flag-FlagTerritoryRadiusCentroid
+Flag-FriendlyTransfer
+```
+
+### Kill
+
+```
+Kill-MaxBonus
+Kill-MaxPenalty
+Kill-RewardBase
+Kill-BountyIncreaseForKill
+Kill-EnterDelay
+Kill-KillPointsPerFlag
+Kill-KillPointsMinimumBounty
+Kill-DebtKills
+Kill-NoRewardKillDelay
+Kill-BountyRewardPercent
+Kill-FixedKillReward
+Kill-JackpotBountyPercent
+```
+
+### King
+
+```
+King-DeathCount
+King-ExpireTime
+King-RewardFactor
+King-NonCrownAdjustTime
+King-NonCrownMinimumBounty
+King-CrownRecoverKills
+```
+
+### Latency
+
+```
+Latency-SendRoutePercent
+Latency-KickOutDelay
+Latency-NoFlagDelay
+Latency-NoFlagPenalty
+Latency-SlowPacketKickoutPercent
+Latency-SlowPacketTime
+Latency-SlowPacketSampleSize
+Latency-ClientSlowPacketKickoutPercent
+Latency-ClientSlowPacketTime
+Latency-ClientSlowPacketSampleSize
+Latency-MaxLatencyForWeapons
+Latency-MaxLatencyForPrizes
+Latency-MaxLatencyForKickOut
+Latency-LatencyKickOutTime
+Latency-S2CNoDataKickoutDelay
+Latency-CutbackWatermark
+Latency-C2SNoDataAction
+Latency-C2SNoDataTime
+Latency-NegativeClientSlowPacketTime
+```
+
+### Message
+
+```
+Message-MessageReliable
+Message-AllowAudioMessages
+Message-BongAllowed
+Message-QuickMessageLimit
+Message-MessageTeamReliable
+Message-MessageDistance
+```
+
+### Mine
+
+```
+Mine-MineAliveTime
+Mine-TeamMaxMines
+```
+
+### Misc
+
+```
+Misc-FrequencyShipTypes
+Misc-WarpPointDelay
+Misc-DecoyAliveTime
+Misc-BounceFactor
+Misc-SafetyLimit
+Misc-TickerDelay
+Misc-WarpRadiusLimit
+Misc-ActivateAppShutdownTime
+Misc-NearDeathLevel
+Misc-VictoryMusic
+Misc-BannerPoints
+Misc-MaxLossesToPlay
+Misc-SpectatorQuiet
+Misc-MaxPlaying
+Misc-TimedGame
+Misc-ResetScoreOnFrequencyChange
+Misc-SendPositionDelay
+Misc-SlowFrameCheck
+Misc-SlowFrameRate
+Misc-AllowSavedShips
+Misc-FrequencyShift
+Misc-ExtraPositionData
+Misc-SheepMessage
+Misc-MaxPlayers
+Misc-GreetMessage
+Misc-PeriodicMessage0
+Misc-PeriodicMessage1
+Misc-PeriodicMessage2
+Misc-PeriodicMessage3
+Misc-PeriodicMessage4
+Misc-MaxXRes
+Misc-MaxYRes
+Misc-ContinuumOnly
+Misc-LevelFiles
+Misc-MinUsage
+Misc-StartInSpec
+Misc-MaxTimerDrift
+Misc-DisableScreenshot
+Misc-AntiWarpSettleDelay
+Misc-SaveSpawnScore
+```
+
+### Owner
+
+```
+Owner-UserId
+Owner-Name
+```
+
+### PacketLoss
+
+```
+PacketLoss-C2SKickOutPercent
+PacketLoss-S2CKickOutPercent
+PacketLoss-SpectatorPercentAdjust
+PacketLoss-PacketLossDisableWeapons
+```
+
+### Periodic
+
+```
+Periodic-RewardDelay
+Periodic-RewardMinimumPlayers
+Periodic-RewardPoints
+```
+
+### Prize
+
+```
+Prize-MultiPrizeCount
+Prize-PrizeFactor
+Prize-PrizeDelay
+Prize-PrizeHideCount
+Prize-MinimumVirtual
+Prize-UpgradeVirtual
+Prize-PrizeMaxExist
+Prize-PrizeMinExist
+Prize-PrizeNegativeFactor
+Prize-DeathPrizeTime
+Prize-EngineShutdownTime
+Prize-TakePrizeReliable
+Prize-S2CTakePrizeReliable
+```
+
+### PrizeWeight
+
+```
+PrizeWeight-Recharge
+PrizeWeight-QuickCharge
+PrizeWeight-Energy
+PrizeWeight-Rotation
+PrizeWeight-Stealth
+PrizeWeight-Cloak
+PrizeWeight-AntiWarp
+PrizeWeight-XRadar
+PrizeWeight-Warp
+PrizeWeight-Gun
+PrizeWeight-Bomb
+PrizeWeight-BouncingBullets
+PrizeWeight-Thruster
+PrizeWeight-TopSpeed
+PrizeWeight-MultiFire
+PrizeWeight-Proximity
+PrizeWeight-Glue
+PrizeWeight-AllWeapons
+PrizeWeight-Shields
+PrizeWeight-Shrapnel
+PrizeWeight-Repel
+PrizeWeight-Burst
+PrizeWeight-Decoy
+PrizeWeight-Thor
+PrizeWeight-Portal
+PrizeWeight-Brick
+PrizeWeight-Rocket
+PrizeWeight-MultiPrize
+```
+
+### Radar
+
+```
+Radar-RadarMode
+Radar-RadarNeutralSize
+Radar-MapZoomFactor
+```
+
+### Repel
+
+```
+Repel-RepelSpeed
+Repel-RepelTime
+Repel-RepelDistance
+```
+
+### Rocket
+
+```
+Rocket-RocketThrust
+Rocket-RocketSpeed
+```
+
+### Routing
+
+```
+Routing-RadarFavor
+Routing-CloseEnoughBulletAdjust
+Routing-CloseEnoughBombAdjust
+Routing-DeathDistance
+Routing-DoubleSendPercent
+Routing-WallResendCount
+Routing-QueuePositions
+Routing-PosSendRadar
+Routing-PosSendEdge
+Routing-PosSendClose
+Routing-ClosePosPixels
+```
+
+### Security
+
+```
+Security-S2CKickOutPercentWeapons
+Security-SecurityKickOff
+Security-SuicideLimit
+Security-MaxShipTypeSwitchCount
+Security-PacketModificationMax
+Security-MaxDeathWithoutFiring
+```
+
+### Shrapnel
+
+```
+Shrapnel-ShrapnelSpeed
+Shrapnel-InactiveShrapDamage
+Shrapnel-ShrapnelDamagePercent
+Shrapnel-Random
+```
+
+### Spawn
+
+```
+Spawn-Team0-X
+Spawn-Team0-Y
+Spawn-Team0-Radius
+Spawn-Team1-X
+Spawn-Team1-Y
+Spawn-Team1-Radius
+Spawn-Team2-X
+Spawn-Team2-Y
+Spawn-Team2-Radius
+Spawn-Team3-X
+Spawn-Team3-Y
+Spawn-Team3-Radius
+```
+
+### Soccer
+
+```
+Soccer-BallBounce
+Soccer-AllowBombs
+Soccer-AllowGuns
+Soccer-PassDelay
+Soccer-Mode
+Soccer-BallCount
+Soccer-SendTime
+Soccer-Reward
+Soccer-CapturePoints
+Soccer-UseFlagger
+Soccer-BallLocation
+Soccer-BallBlankDelay
+Soccer-CatchMinimum
+Soccer-CatchPoints
+Soccer-WinBy
+Soccer-DisableWallPass
+Soccer-DisableBallKilling
+```
+
+### Team
+
+```
+Team-MaxFrequency
+Team-MaxPerTeam
+Team-MaxPerPrivateTeam
+Team-DesiredTeams
+Team-ForceEvenTeams
+Team-SpectatorFrequency
+```
+
+### Territory
+
+```
+Territory-RewardDelay
+Territory-RewardBaseFlags
+Territory-RewardMinimumPlayers
+Territory-RewardPoints
+```
+
+### Toggle
+
+```
+Toggle-AntiWarpPixels
+```
+
+### Wormhole
+
+```
+Wormhole-GravityBombs
+Wormhole-SwitchTime
+```
+
+### All
+
+```
+All-InitialRotation
+All-InitialThrust
+All-InitialSpeed
+All-InitialRecharge
+All-InitialEnergy
+All-MaximumRotation
+All-MaximumThrust
+All-MaximumSpeed
+All-MaximumRecharge
+All-MaximumEnergy
+All-UpgradeRotation
+All-UpgradeThrust
+All-UpgradeSpeed
+All-UpgradeRecharge
+All-UpgradeEnergy
+All-CloakStatus
+All-StealthStatus
+All-XRadarStatus
+All-AntiWarpStatus
+All-CloakEnergy
+All-StealthEnergy
+All-XRadarEnergy
+All-AntiWarpEnergy
+All-InitialRepel
+All-InitialBurst
+All-InitialBrick
+All-InitialRocket
+All-InitialThor
+All-InitialDecoy
+All-InitialPortal
+All-InitialGuns
+All-InitialBombs
+All-RepelMax
+All-BurstMax
+All-DecoyMax
+All-RocketMax
+All-ThorMax
+All-BrickMax
+All-PortalMax
+All-MaxGuns
+All-MaxBombs
+All-BulletFireEnergy
+All-BulletSpeed
+All-BulletFireDelay
+All-MultiFireEnergy
+All-MultiFireDelay
+All-MultiFireAngle
+```
+
+### All_DoubleBarrel
+
+```
+All_DoubleBarrel
+```
+
+### All_BombFireEnergy
+
+```
+All_BombFireEnergy
+```
+
+### All_BombFireEnergyUpgrade
+
+```
+All_BombFireEnergyUpgrade
+```
+
+### All_BombThrust
+
+```
+All_BombThrust
+```
+
+### All_BombBounceCount
+
+```
+All_BombBounceCount
+```
+
+### All_BombSpeed
+
+```
+All_BombSpeed
+```
+
+### All_BombFireDelay
+
+```
+All_BombFireDelay
+```
+
+### All_EmpBomb
+
+```
+All_EmpBomb
+```
+
+### All_SeeBombLevel
+
+```
+All_SeeBombLevel
+```
+
+### All_MaxMines
+
+```
+All_MaxMines
+```
+
+### All_SeeMines
+
+```
+All_SeeMines
+```
+
+### All_LandmineFireEnergy
+
+```
+All_LandmineFireEnergy
+```
+
+### All_LandmineFireEnergyUpgrade
+
+```
+All_LandmineFireEnergyUpgrade
+```
+
+### All_LandmineFireDelay
+
+```
+All_LandmineFireDelay
+```
+
+### All_ShrapnelMax
+
+```
+All_ShrapnelMax
+```
+
+### All_ShrapnelRate
+
+```
+All_ShrapnelRate
+```
+
+### All_BurstSpeed
+
+```
+All_BurstSpeed
+```
+
+### All_BurstShrapnel
+
+```
+All_BurstShrapnel
+```
+
+### All_TurretThrustPenalty
+
+```
+All_TurretThrustPenalty
+```
+
+### All_TurretSpeedPenalty
+
+```
+All_TurretSpeedPenalty
+```
+
+### All_TurretLimit
+
+```
+All_TurretLimit
+```
+
+### All_RocketTime
+
+```
+All_RocketTime
+```
+
+### All_InitialBounty
+
+```
+All_InitialBounty
+```
+
+### All_AttachBounty
+
+```
+All_AttachBounty
+```
+
+### All_AfterburnerEnergy
+
+```
+All_AfterburnerEnergy
+```
+
+### All_DisableFastShooting
+
+```
+All_DisableFastShooting
+```
+
+### All_Radius
+
+```
+All_Radius
+```
+
+### All_DamageFactor
+
+```
+All_DamageFactor
+```
+
+### All_PrizeShareLimit
+
+```
+All_PrizeShareLimit
+```
+
+### All_SuperTime
+
+```
+All_SuperTime
+```
+
+### All_ShieldsTime
+
+```
+All_ShieldsTime
+```
+
+### All_Gravity
+
+```
+All_Gravity
+```
+
+### All_GravityTopSpeed
+
+```
+All_GravityTopSpeed
+```
+
+### All_SoccerBallFriction
+
+```
+All_SoccerBallFriction
+```
+
+### All_SoccerBallProximity
+
+```
+All_SoccerBallProximity
+```
+
+### All_SoccerBallSpeed
+
+```
+All_SoccerBallSpeed
+```
+
+### All_SoccerThrowTime
+
+```
+All_SoccerThrowTime
+```
+
+### Spectator_HideFlags
+
+```
+Spectator_HideFlags
+```
+
+### Spectator_NoXRadar
+
+```
+Spectator_NoXRadar
+```
+
+### Maker_Maker
+
+```
+Maker_Maker
+```
+
