@@ -812,16 +812,10 @@ public class Region {
      * @return the length that's encoded
      */
     private static int getEncodedLength(final byte[] data, final int offset, final int type) {
-        int len = -1;
-
-        if (type % 2 == 0) // short
-        {
-            len = getEncodedLength(data[offset]);
-        } else {
-            len = getEncodedLength(data[offset], data[offset + 1]);
+        if (type % 2 == 0) {
+            return getEncodedLength(data[offset]);
         }
-
-        return len;
+        return getEncodedLength(data[offset], data[offset + 1]);
     }
 
     /**

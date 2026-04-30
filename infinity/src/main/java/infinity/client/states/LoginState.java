@@ -39,8 +39,6 @@ public class LoginState extends BaseAppState {
   }
 
   protected void join() {
-
-    String name = nameField.getText().trim();
     if( getState(ConnectionState.class).join(nameField.getText()) ) {
       getStateManager().detach(this);
     }

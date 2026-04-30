@@ -52,8 +52,6 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.mesh.IndexBuffer;
 import com.jme3.util.BufferUtils;
 
-import com.simsilica.mathd.*;
-
 import com.simsilica.mblock.*;
 
 
@@ -125,12 +123,8 @@ public class InfinityGeometryFactory {
         // customized then we should break it out as a parameter.  Might also
         // consider supporting pregenerated part buffers though I have no
         // strong reason why today.  2020-11-22
-        LightGradient gradient = null;
-        if( smoothLighting ) {
-            gradient = calculateLightGradient(cells, lightData);
-        } else {
-            gradient = new NoLightGradient(lightData);
-        }
+        LightGradient gradient =
+                smoothLighting ? calculateLightGradient(cells, lightData) : new NoLightGradient(lightData);
         renderBuffer(result, buffer, gradient, lightData);
 
         long end = System.nanoTime();
@@ -193,12 +187,8 @@ public class InfinityGeometryFactory {
         // customized then we should break it out as a parameter.  Might also
         // consider supporting pregenerated part buffers though I have no
         // strong reason why today.  2020-11-22
-        LightGradient gradient = null;
-        if( smoothLighting ) {
-            gradient = calculateLightGradient(fluid, lightData);
-        } else {
-            gradient = new NoLightGradient(lightData);
-        }
+        LightGradient gradient =
+                smoothLighting ? calculateLightGradient(fluid, lightData) : new NoLightGradient(lightData);
         renderBuffer(result, buffer, gradient, lightData);
 
         long end = System.nanoTime();

@@ -464,7 +464,6 @@ public class WeaponsSystem extends AbstractGameSystem
   private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
     GravityBomb gravityBomb = this.gravityBombs.getEntity(requester).get(GravityBomb.class);
-    final GravityBombCost shipGravBombCost = ed.getComponent(requester, GravityBombCost.class);
 
     EntityId projectile;
     final HashSet<EntityComponent> delayedComponents = new HashSet<>();

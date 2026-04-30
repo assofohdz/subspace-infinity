@@ -44,9 +44,7 @@ import com.jme3.texture.*;
 
 import com.simsilica.es.*;
 import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.mathd.*;
 
-import com.simsilica.mphys.*;
 import com.simsilica.mblock.phys.*;
 import com.simsilica.ext.mphys.*;
 import infinity.client.view.BlockGeometryIndex;
@@ -145,12 +143,10 @@ public class SpatialFactory {
         // If we are the root level then we'll need a cog shift
         // to match with the rigid body
         if( isRoot ) {
-            BodyMass bm = part.getMass();
-
             // The position of the object is its CoG... which means
             // we need to offset our model's origin by it.  It should
             // already be scaled and everything... just need to negate it.
-            //Vector3f cogOffset = bm.getCog().toVector3f().negate();
+            //Vector3f cogOffset = part.getMass().getCog().toVector3f().negate();
 
             // We need to sort out what the center should be.  Directly out of generateBlocks()
             // the geometry is all relative to the corner.   See cog-offset.txt

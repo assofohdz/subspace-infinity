@@ -355,7 +355,7 @@ public class LocalViewState extends BaseAppState {
       // viewRoot.move(0, 0.1f, 0);
     }
 
-    LeafId leafId = null;
+    LeafId leafId;
     while ((leafId = updatedLeafIds.poll()) != null) {
       leafChanged(leafId);
     }
@@ -481,8 +481,6 @@ public class LocalViewState extends BaseAppState {
 
   protected void leafChanged(LeafId leafId) {
     // log.info("leafChanged(" + leafId + ")");
-    // Convert it to our grid... because they're different
-    Vec3i w = leafId.getWorld(null);
     LeafView view = viewCache.get(leafId);
     // log.info("view:" + view);
     if (view != null) {

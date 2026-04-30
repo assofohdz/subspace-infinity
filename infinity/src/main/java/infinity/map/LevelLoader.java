@@ -84,7 +84,7 @@ public class LevelLoader implements AssetLoader {
         am = assetInfo.getManager();
         m_file = assetInfo.getKey().getName();
 
-        String errorWithELVL = null;
+        String errorWithELVL;
         BitMap bmp;
 
         try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {

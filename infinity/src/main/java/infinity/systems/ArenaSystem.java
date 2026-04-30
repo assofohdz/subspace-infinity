@@ -637,9 +637,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     final SettingsSystem settings = getSystem(SettingsSystem.class);
     final MapSystem maps = getSystem(MapSystem.class);
     EntityId arena = null;
-    int allocatedSlot = -1;
     try {
-      allocatedSlot = allocateSlot();
+      final int allocatedSlot = allocateSlot();
       if (allocatedSlot < 0) {
         fail(rec, null, "No free arena slot (MAX_ARENAS=" + InfinityConstants.MAX_ARENAS + ")");
         return;
