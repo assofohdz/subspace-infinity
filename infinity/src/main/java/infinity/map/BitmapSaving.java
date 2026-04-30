@@ -146,7 +146,6 @@ public class BitmapSaving {
         i = i >> 8;
 
         WORD[1] = (byte) (i & 0xff);
-        i = i >> 8;
 
         return WORD;
     }
@@ -161,12 +160,10 @@ public class BitmapSaving {
             pg.grabPixels();
         } catch (@SuppressWarnings("unused") final InterruptedException e) {
             JOptionPane.showMessageDialog(null, "interrupted waiting for pixels!");
-            storeHere = null;
             return null;
         }
         if ((pg.getStatus() & ImageObserver.ABORT) != 0) {
             JOptionPane.showMessageDialog(null, "image fetch aborted or errored");
-            storeHere = null;
             return null;
         }
 
@@ -186,11 +183,11 @@ public class BitmapSaving {
     public class BitmapFileHeader {
         public final static int SIZE = 14;
         byte[] bfType = new byte[2]; // 2 Bytes, Specifies the file type, must be BM
-        byte[] bfSize = new byte[4]; // 4 Bytes, Specifies the size, in bytes, of the bitmap file
+        byte[] bfSize; // 4 Bytes, Specifies the size, in bytes, of the bitmap file
         byte[] bfReserved1 = new byte[2]; // 2 Bytes, Reserved; must be zero.
         byte[] bfReserved2 = new byte[2]; // 2 Bytes, Reserved; must be zero.
-        byte[] bfOffBits = new byte[4]; // 4 Bytes, Specifies the offset, in bytes, from the beginning of
-                                        // the BITMAPFILEHEADER structure to the bitmap bits.
+        byte[] bfOffBits; // 4 Bytes, Specifies the offset, in bytes, from the beginning of
+                          // the BITMAPFILEHEADER structure to the bitmap bits.
 
         /**
          * Make a new bitmap file header
@@ -264,32 +261,32 @@ public class BitmapSaving {
     public class BitmapInfoHeader {
         public static final int SIZE = 40;
 
-        byte[] biSize = new byte[4]; // Specifies the number of bytes required by the structure.
-        byte[] biWidth = new byte[4]; // Specifies the width of the bitmap, in pixels.
-        byte[] biHeight = new byte[4]; // Specifies the height of the bitmap, in pixels.
-                                       // If biHeight is positive, the bitmap is a bottom-up DIB
-                                       // and its origin is the lower-left corner.
-        byte[] biPlanes = new byte[2]; // Specifies the number of planes for the target device.
-                                       // This value must be set to 1.
+        byte[] biSize; // 4 Bytes, Specifies the number of bytes required by the structure.
+        byte[] biWidth; // 4 Bytes, Specifies the width of the bitmap, in pixels.
+        byte[] biHeight; // 4 Bytes, Specifies the height of the bitmap, in pixels.
+                         // If biHeight is positive, the bitmap is a bottom-up DIB
+                         // and its origin is the lower-left corner.
+        byte[] biPlanes; // 2 Bytes, Specifies the number of planes for the target device.
+                         // This value must be set to 1.
 
-        byte[] biBitCount = new byte[2]; // Specifies the number of bits-per-pixel. 8 for 256 color
-        byte[] biCompression = new byte[4]; // Specifies the type of compression,
-                                            // 0 = BI_RGB = uncompressed
-        byte[] biSizeImage = new byte[4]; // Specifies the size, in bytes, of the image.
-                                          // This may be set to zero for BI_RGB bitmaps.
-        byte[] biXPelsPerMeter = new byte[4]; // Specifies the horizontal resolution, in pixels-per-meter,
-                                              // of the target device for the bitmap.
-        byte[] biYPelsPerMeter = new byte[4]; // Specifies the vertical resolution, in pixels-per-meter,
-                                              // of the target device for the bitmap.
+        byte[] biBitCount; // 2 Bytes, Specifies the number of bits-per-pixel. 8 for 256 color
+        byte[] biCompression; // 4 Bytes, Specifies the type of compression,
+                              // 0 = BI_RGB = uncompressed
+        byte[] biSizeImage; // 4 Bytes, Specifies the size, in bytes, of the image.
+                            // This may be set to zero for BI_RGB bitmaps.
+        byte[] biXPelsPerMeter; // 4 Bytes, Specifies the horizontal resolution, in pixels-per-meter,
+                                // of the target device for the bitmap.
+        byte[] biYPelsPerMeter; // 4 Bytes, Specifies the vertical resolution, in pixels-per-meter,
+                                // of the target device for the bitmap.
 
-        byte[] biClrUsed = new byte[4]; // Specifies the number of color indexes in the color table
-                                        // that are actually used by the bitmap. If this value is
-                                        // zero, the bitmap uses the maximum number of colors
-                                        // corresponding to the value of the biBitCount member for
-                                        // the compression mode specified by biCompression.
-        byte[] biClrImportant = new byte[4]; // Specifies the number of color indexes that are required
-                                             // for displaying the bitmap. If this value is zero, all
-                                             // colors are required.
+        byte[] biClrUsed; // 4 Bytes, Specifies the number of color indexes in the color table
+                          // that are actually used by the bitmap. If this value is
+                          // zero, the bitmap uses the maximum number of colors
+                          // corresponding to the value of the biBitCount member for
+                          // the compression mode specified by biCompression.
+        byte[] biClrImportant; // 4 Bytes, Specifies the number of color indexes that are required
+                               // for displaying the bitmap. If this value is zero, all
+                               // colors are required.
 
         public BitmapInfoHeader() {
             biSize = toDWORD(SIZE);
