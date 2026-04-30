@@ -134,7 +134,10 @@ public class LocalViewState extends BaseAppState {
   // Temporary box template
   private Geometry debugCellTemplate;
   private BlockGeometryIndex geomIndex;
+  // Reserved for fog rendering — see commented-out wire-up in initialize().
+  @SuppressWarnings("PMD.UnusedPrivateField")
   private FogSettings fogSettings;
+  @SuppressWarnings("PMD.UnusedPrivateField")
   private VersionedReference<FogSettings> fogSettingsRef;
 
   private boolean smoothLighting = true;
@@ -527,6 +530,8 @@ public class LocalViewState extends BaseAppState {
     private final Geometry testGeom;
 
     private LeafData leafData;
+    // Reserved for per-leaf lighting — see commented-out neighborhood-lighting code below.
+    @SuppressWarnings("PMD.UnusedPrivateField")
     private LightData lightData;
     private Node parts;
     private Node generatedParts;

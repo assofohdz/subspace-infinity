@@ -79,18 +79,15 @@ public class SISpatialFactory {
   private static final String STARTTIME = "StartTime";
   static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
   private final AssetManager assets;
-  private final Node rootNode;
   private final Timer timer;
   private final BlockGeometryIndex geomIndex;
   private EffectFactory ef;
   private String objectString = "Object:";
 
   SISpatialFactory(
-      final Node rootNode,
       final AssetManager assets,
       final Timer timer,
       BlockGeometryIndex geomIndex) {
-    this.rootNode = rootNode;
     this.assets = assets;
     this.timer = timer;
     this.geomIndex = geomIndex;

@@ -38,12 +38,8 @@ import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +53,6 @@ public class prizeTester extends BaseGameModule {
   static Logger log = LoggerFactory.getLogger(prizeTester.class);
   private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
   private EntityData ed;
-  private Ini settings;
 
   public prizeTester(
       final ChatHostedPoster chp,
@@ -71,14 +66,6 @@ public class prizeTester extends BaseGameModule {
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
-    settings = new Ini();
-    try {
-      InputStream is =
-          prizeTester.class.getResourceAsStream(this.getClass().getSimpleName() + ".ini");
-      settings = new Ini(is);
-    } catch (final IOException ex) {
-      java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
-    }
 
     GameEntities.createWeightedPrizeSpawner(
         ed,

@@ -126,7 +126,6 @@ public class SpeechViewState extends BaseAppState {
     }
 
     private class SpeechBubble {
-        private EntityId entityId;
         private EntityId speaker;
         private String text;
         private Decay decay;
@@ -137,8 +136,7 @@ public class SpeechViewState extends BaseAppState {
         private float yOffset;
         private float lineOffset = 0;
 
-        public SpeechBubble(EntityId entityId, Speech speech, Decay decay ) {
-            this.entityId = entityId;
+        public SpeechBubble(Speech speech, Decay decay ) {
             this.decay = decay;
             this.speaker = speech.getSpeaker();
             this.text = speech.getText();
@@ -213,7 +211,7 @@ public class SpeechViewState extends BaseAppState {
             Speech speech = e.get(Speech.class);
             Decay decay = e.get(Decay.class);
 log.info("New speech:" + speech);
-            return new SpeechBubble(e.getId(), speech, decay);
+            return new SpeechBubble(speech, decay);
         }
 
         protected void updateObject( SpeechBubble object, Entity e ) {

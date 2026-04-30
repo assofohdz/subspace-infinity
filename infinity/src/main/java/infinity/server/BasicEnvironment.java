@@ -40,7 +40,6 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.sim.GameEntities;
@@ -60,7 +59,6 @@ public class BasicEnvironment extends AbstractGameSystem {
   private EntityData ed;
   private PhysicsSpace<?, ?> phys;
   private long time;
-  private World world;
   private boolean worldCreated = false;
 
   /** Creates a new BasicEnvironment. This should be loaded as the last game system. */
@@ -68,7 +66,6 @@ public class BasicEnvironment extends AbstractGameSystem {
   protected void initialize() {
     ed = getSystem(EntityData.class, true);
     phys = getSystem(PhysicsSpace.class, true);
-    world = super.getManager().get(World.class);
 
     this.time = getSystem(InfinityTimeSystem.class).getTime();
   }

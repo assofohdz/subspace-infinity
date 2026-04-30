@@ -65,19 +65,12 @@ public class GridState extends BaseAppState {
     private final Grid grid;
 
     private Node floor;
-    private Geometry wireFloor;
-    private Geometry flatFloor;
 
     private Camera camera;
     private final Vec3i pos = new Vec3i();
     private final Vec3i lastPos = new Vec3i();
 
-    private final int floorGridSize = 100;
-
-    private final ColorRGBA gridColor = new ColorRGBA(0.5f, 0.75f, 0.75f, 1);
-    private final ColorRGBA cellColor = new ColorRGBA(0.5f, 0.45f, 0.45f, 0.25f);
     private final ColorRGBA boxColor = new ColorRGBA(1, 1, 0, 0.45f);
-    // private ColorRGBA boxColor = new ColorRGBA(1, 1, 0, 1f);
 
     private Node cellRoot;
 
@@ -102,39 +95,6 @@ public class GridState extends BaseAppState {
         floor = new Node("grid");
 
         final GuiGlobals globals = GuiGlobals.getInstance();
-        /*
-        {
-            final com.jme3.scene.debug.Grid mesh = new com.jme3.scene.debug.Grid(floorGridSize + 1, floorGridSize + 1,
-                    1);
-            wireFloor = new Geometry("grid-lines", mesh);
-            final Material mat = globals.createMaterial(gridColor, false).getMaterial();
-            mat.getAdditionalRenderState().setDepthWrite(false);
-            wireFloor.setMaterial(mat);
-            wireFloor.setLocalTranslation(-(floorGridSize * 0.5f), 0, -(floorGridSize * 0.5f));
-            wireFloor.setUserData("layer", Integer.valueOf(1));
-            wireFloor.setQueueBucket(Bucket.Transparent);
-            floor.attachChild(wireFloor);
-        }
-
-        {
-            final Quad mesh = new Quad(floorGridSize, floorGridSize);
-            mesh.scaleTextureCoordinates(new Vector2f(floorGridSize, floorGridSize));
-            final Texture gridTexture = globals.loadTexture("Interface/grid-cell.png", true, false);
-            final Material mat = globals.createMaterial(gridTexture, false).getMaterial();
-            flatFloor = new Geometry("grid-quads", mesh);
-            mat.setColor("Color", cellColor);
-            mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-            mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-            // mat.getAdditionalRenderState().setDepthWrite(false);
-            flatFloor.setMaterial(mat);
-            flatFloor.setQueueBucket(Bucket.Transparent);
-
-            flatFloor.rotate(-FastMath.HALF_PI, 0, 0);
-            flatFloor.setLocalTranslation(-(floorGridSize * 0.5f), -0.001f, (floorGridSize * 0.5f));
-            flatFloor.setUserData("layer", Integer.valueOf(2));
-            floor.attachChild(flatFloor);
-        }
-*/
         {
             // Create the 3D grid cell zones. We know we are only using a 2D
             // grid right now so we'll simplify and simply give a reasonable max

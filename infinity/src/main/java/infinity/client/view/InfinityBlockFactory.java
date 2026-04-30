@@ -49,13 +49,6 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
     private final PartFactory[] dirParts;
     private final PartFactory internalParts;
-    private final boolean allSolid;
-    private final boolean[] solid;
-    private final double[] transparency;
-    private final boolean isTransparent;
-    private final double volume;
-    private final Vec3d min;
-    private final Vec3d max;
     // private Collider collider;
 
     /**
@@ -70,26 +63,6 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
         this.dirParts = dirParts;
         this.internalParts = internalParts;
-        this.solid = solid;
-        this.transparency = transparency;
-        this.volume = volume;
-        this.min = min;
-        this.max = max;
-
-        boolean all = true;
-        if (solid != null) {
-            for (final boolean b : solid) {
-                if (!b) {
-                    all = false;
-                }
-            }
-        }
-        allSolid = all;
-        if (transparency == null) {
-            isTransparent = false;
-        } else {
-            isTransparent = (transparency[0] + transparency[1] + transparency[2]) != 0;
-        }
     }
 
     /**

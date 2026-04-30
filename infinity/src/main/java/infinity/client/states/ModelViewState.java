@@ -36,7 +36,6 @@
 
 package infinity.client.states;
 
-import infinity.Main;
 
 import com.jme3.anim.AnimComposer;
 import com.jme3.app.Application;
@@ -133,7 +132,6 @@ public class ModelViewState extends BaseAppState {
   private static final int gridRadius = 2;
   private final Map<EntityId, Model> modelIndex = new HashMap<>();
   private final Vector3f avatarLoc = new Vector3f();
-  private final Quaternion avatarRot = new Quaternion();
   // Center cell
   private Vec3i centerWorld = new Vec3i();
   private EntityData ed;
@@ -220,7 +218,6 @@ public class ModelViewState extends BaseAppState {
     // a light on viewRoot wouldn't reach the world tiles at all.
     this.SImodelFactory =
         new SISpatialFactory(
-            ((Main) app).getRootNode(),
             app.getAssetManager(),
             this.getApplication().getTimer(),
             localView.getGeomIndex());

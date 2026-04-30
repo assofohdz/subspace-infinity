@@ -779,6 +779,7 @@ public class RadarState extends BaseAppState {
         }
 
         @Override
+        @SuppressWarnings("PMD.UnusedAssignment") // null is the final state when next == null
         public double runOnUpdate() {
             final Node next;
             synchronized (this) {

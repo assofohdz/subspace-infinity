@@ -205,7 +205,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     // private final EntityId fireAlt = null;
     // private final BinIndex binIndex;
     private final WeaponsSystem weaponsSystem;
-    private final boolean selfSet = false;
     private WarpSystem warpSys;
     private ActionSystem actionSys;
     private AvatarSystem avatarSys;
