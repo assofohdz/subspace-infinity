@@ -43,7 +43,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import infinity.Ship;
 import infinity.es.AudioTypes;
 import infinity.es.Bounty;
-import infinity.es.Buff;
 import infinity.es.CollisionCategory;
 import infinity.es.Delay;
 import infinity.es.Door;
@@ -51,7 +50,6 @@ import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.Gold;
 import infinity.es.GravityWell;
-import infinity.es.HealthChange;
 import infinity.es.Meta;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
@@ -59,8 +57,6 @@ import infinity.es.PrizeType;
 import infinity.es.ShapeNames;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
-import infinity.es.TileType;
-import infinity.es.TileTypes;
 import infinity.es.WarpTouch;
 import infinity.es.WeaponTypes;
 import infinity.es.input.MovementInput;
@@ -106,21 +102,6 @@ public class GameEntities {
   // TODO: All constants should come through the parameters - for now, they come from the constants
   // TODO: All parameters should be dumb types and should be the basis of the complex types used in
   // the backend
-  public static EntityId createGravSphere(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final double radius) {
-    final EntityId result = ed.createEntity();
-    ed.setComponents(
-        result, ShapeInfo.create("gravitysphere", 1, ed), new SpawnPosition(phys.getGrid(), pos));
-
-    ed.setComponent(result, new Meta(createdTime));
-    return result;
-  }
-
   public static EntityId createDelayedBomb(
       final EntityData ed,
       final EntityId owner,
@@ -293,22 +274,6 @@ public class GameEntities {
     return lastDoor;
   }
 
-  /*
-   * public static EntityId createAttack(EntityId owner, String attackType,
-   * EntityData ed, Ini settings, long createdTime, PhysicsSpace phys) { EntityId
-   * lastAttack = ed.createEntity(); ed.setComponents(lastAttack, new
-   * Attack(owner), WeaponType.create(attackType, ed), new Damage(-20));
-   *
-   * return lastAttack; }
-   *
-   * public static EntityId createForce(EntityId owner, Force force, Vec3d
-   * forceWorldCoords, EntityData ed, Ini settings, long createdTime, PhysicsSpace
-   * phys) { EntityId lastForce = ed.createEntity(); ed.setComponents(lastForce,
-   * new PhysicsForce(owner, force, forceWorldCoords)); ed.setComponent(lastForce,
-   * new Meta(createdTime));
-   *
-   * return lastForce; }
-   */
   public static EntityId createWormhole2(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
@@ -440,29 +405,6 @@ public class GameEntities {
     }
 
     return lastFlag;
-  }
-
-  public static EntityId createHealthBuff(
-      final EntityData ed,
-      final EntityId parent,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final int healthChange,
-      final EntityId target) {
-
-    final EntityId lastHealthBuff = ed.createEntity();
-
-    ed.setComponents(
-        lastHealthBuff,
-        new HealthChange(healthChange), // apply the damage
-        new Buff(target, 0)); // apply right away
-    ed.setComponent(lastHealthBuff, new Meta(createdTime));
-
-    if (parent != null) {
-      ed.setComponent(lastHealthBuff, new Parent(parent));
-    }
-
-    return lastHealthBuff;
   }
 
   /**
@@ -681,62 +623,6 @@ public class GameEntities {
     return lastBomb;
   }
 
-  public static EntityId createMapTile(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final String tileSet,
-      final short tileIndex,
-      final Vec3d pos,
-      final String tileType) {
-    final EntityId lastTileInfo = ed.createEntity();
-
-    ed.setComponents(
-        lastTileInfo,
-        TileType.create(tileType, tileSet, tileIndex, ed),
-        // TODO: Register map tiles with a block shape factory instead of default sphere
-        // factory
-        new Mass(0),
-        ShapeInfo.create(ShapeNames.MAPTILE, CorePhysicsConstants.MAPTILEWIDTH, ed),
-        new SpawnPosition(phys.getGrid(), pos));
-
-    ed.setComponent(lastTileInfo, new Meta(createdTime));
-
-    return lastTileInfo;
-  }
-
-  // This is called by the server when it has calculcated the correct tileIndex
-  // number
-  public static EntityId updateWangBlobEntity(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final EntityId entity,
-      final String tileSet,
-      final short tileIndex,
-      final Vec3d pos) {
-
-    // TODO: Update the shapename to something from ShapeNames
-    ed.setComponents(
-        entity,
-        TileTypes.wangblob(tileSet, tileIndex, ed),
-        ShapeInfo.create("wangblob", 1, ed),
-        new SpawnPosition(phys.getGrid(), pos));
-
-    ed.setComponent(entity, new Meta(createdTime));
-    return entity;
-  }
-
-  /*
-   * public static EntityId createForce(EntityId owner, Force force, Vec3d
-   * forceWorldCoords, EntityData ed, long createdTime, PhysicsSpace phys) {
-   * EntityId lastForce = ed.createEntity(); ed.setComponents(lastForce, new
-   * PhysicsForce(owner, force, forceWorldCoords));
-   *
-   * ed.setComponent(lastForce, new Meta(createdTime)); return lastForce; }
-   */
   public static EntityId createRepel(
       final EntityData ed,
       final EntityId owner,
