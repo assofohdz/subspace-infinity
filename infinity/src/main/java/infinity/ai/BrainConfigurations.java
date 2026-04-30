@@ -77,7 +77,6 @@ public class BrainConfigurations {
         (brain) -> {
           log.info("selectGoal() failed goals:" + brain.getFailedGoals());
 
-          Goal result = null;
           Actor actor = brain.getActor();
 
           double min = Double.POSITIVE_INFINITY;
@@ -97,9 +96,9 @@ public class BrainConfigurations {
           }
           log.info("Closest food:" + nearest + "  distance:" + min);
           if (min < 1.5) {
-            result = new Eat(nearest.getId());
-            if (!brain.isFailedGoal(result)) {
-              return result;
+            Goal eat = new Eat(nearest.getId());
+            if (!brain.isFailedGoal(eat)) {
+              return eat;
             }
           }
 
@@ -113,9 +112,9 @@ public class BrainConfigurations {
               // possible for a single chicken to just keep pacing back
               // and forth outside the pen, neither getting close enough nor
               // getting 'blocked'.
-              result = new Go(home, 2);
-              if (!brain.isFailedGoal(result)) {
-                return result;
+              Goal goHome = new Go(home, 2);
+              if (!brain.isFailedGoal(goHome)) {
+                return goHome;
               }
             }
           }
@@ -366,7 +365,6 @@ public class BrainConfigurations {
         (brain) -> {
           log.info("selectGoal() failed goals:" + brain.getFailedGoals());
 
-          Goal result = null;
           Actor actor = brain.getActor();
 
           Vec3d home = brain.getProperty("home", null); // new Vec3d(-17, 64, 19);
@@ -375,9 +373,9 @@ public class BrainConfigurations {
             log.info("Distance to home:" + v.length());
             if (v.length() > 10) {
               // Go back to within 5 meters of home
-              result = new Go(home, 5);
-              if (!brain.isFailedGoal(result)) {
-                return result;
+              Goal goHome = new Go(home, 5);
+              if (!brain.isFailedGoal(goHome)) {
+                return goHome;
               }
             }
           }
@@ -406,13 +404,7 @@ public class BrainConfigurations {
                     return false;
                   }
 
-                  // Else if it's a relatively fast moving object then we'll
-                  // chase it... probably we could filter on size, too, to automatically
-                  // miss things like corn.
-                  double speed = obj.getVelocity().lengthSq();
-
-                  // Need to implement chasing
-
+                  // TODO chase fast-moving objects (filter by size to skip corn).
                   return false;
                 }));
 
@@ -555,7 +547,6 @@ public class BrainConfigurations {
         (brain) -> {
           log.info("selectGoal() failed goals:" + brain.getFailedGoals());
 
-          Goal result = null;
           Actor actor = brain.getActor();
 
           Vec3d home = brain.getProperty("home", null); // new Vec3d(-17, 64, 19);
@@ -564,9 +555,9 @@ public class BrainConfigurations {
             log.info("Distance to home:" + v.length());
             if (v.length() > 15) {
               // Go back to within 5 meters of home
-              result = new Go(home, 5);
-              if (!brain.isFailedGoal(result)) {
-                return result;
+              Goal goHome = new Go(home, 5);
+              if (!brain.isFailedGoal(goHome)) {
+                return goHome;
               }
             }
           }
@@ -595,13 +586,7 @@ public class BrainConfigurations {
                     return false;
                   }
 
-                  // Else if it's a relatively fast moving object then we'll
-                  // chase it... probably we could filter on size, too, to automatically
-                  // miss things like corn.
-                  double speed = obj.getVelocity().lengthSq();
-
-                  // Need to implement chasing
-
+                  // TODO chase fast-moving objects (filter by size to skip corn).
                   return false;
                 }));
 

@@ -84,7 +84,6 @@ import com.simsilica.lemur.style.ElementId;
 import com.simsilica.state.CommandConsoleState;
 
 import infinity.client.ClientEvent;
-import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 
 /**
@@ -100,7 +99,6 @@ public class MainMenuState extends BaseAppState {
     private Container mainWindow;
     private Node originalGuiNode;
 
-    private ConnectionState connection;
     private HostState host;
 
     public MainMenuState() {
@@ -196,7 +194,6 @@ public class MainMenuState extends BaseAppState {
             // more connection. The connection state cleans itself up
             getStateManager().detach(host);
             host = null;
-            connection = null;
         }
 
         EventBus.removeListener(this, ClientEvent.clientDisconnected);

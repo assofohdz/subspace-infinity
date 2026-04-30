@@ -386,7 +386,7 @@ public class MobSystem extends AbstractGameSystem {
 
             String type = e.get(MobType.class).getTypeName(ed);
             BrainConfiguration config = BrainConfigurations.getConfig(type);
-            Brain result = new Brain(ed, e.getId(), config);
+            Brain result = new Brain(e.getId(), config);
 
             // See if it already has a driver
             MobDriver driver = drivers.getObject(e.getId());

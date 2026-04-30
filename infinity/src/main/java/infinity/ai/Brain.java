@@ -37,7 +37,6 @@
 package infinity.ai;
 
 import com.google.common.base.MoreObjects;
-import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.sim.SimTime;
 import java.util.Collection;
@@ -60,7 +59,6 @@ public class Brain {
   static Logger log = LoggerFactory.getLogger(Brain.class);
 
   private BrainScheduler scheduler;
-  private final EntityData ed;
   private final EntityId id;
   private Actor actor;
 
@@ -83,17 +81,12 @@ public class Brain {
 
   private Action action;
 
-  private Goal lastGoal;
-
   // Used to force the status in the next think() pass and skip
   // the regular action processing... for when failing goals, etc.
   private ActionStatus forcedStatus;
 
-  public Brain(EntityData ed, EntityId id, BrainConfiguration config) {
-    this.ed = ed;
+  public Brain(EntityId id, BrainConfiguration config) {
     this.id = id;
-
-    // config = BrainConfigurations.createChicken(ed);
     this.config = config;
   }
 
@@ -364,7 +357,6 @@ public class Brain {
     // If there is no follow-on action then we're ready
     // for a new goal
     if (action == null) {
-      lastGoal = currentGoal;
       currentGoal = null;
     }
 

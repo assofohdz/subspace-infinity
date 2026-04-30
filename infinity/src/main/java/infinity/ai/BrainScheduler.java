@@ -152,8 +152,8 @@ public class BrainScheduler {
         }
         // Run through all of the current 'expired' heartbeats
         long t = time.getTime();
-        Brain brain = null;
-        while( (brain = schedule.getFirst()) != null ) {
+        while( !schedule.isEmpty() ) {
+            Brain brain = schedule.getFirst();
             if( brain.getNextHeartbeat() > t ) {
                 break;
             }

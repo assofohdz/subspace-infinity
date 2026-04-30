@@ -454,8 +454,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
         // Vec3d dir = body.orientation.mult(Vec3d.UNIT_Z);
         // Vec3d left = body.orientation.mult(Vec3d.UNIT_X);
         double turn = probe.turn; // left.dot(v);
-        double fwd = probe.forward; // dir.dot(v);
-        // log.info("******* turn:" + turn + "  fwd:" + fwd); // + "   offset:" + v + "   left:" +
+        // log.info("******* turn:" + turn + "  fwd:" + probe.forward); // + "   offset:" + v + "   left:" +
         // left);
 
         // When left is positive, we want to turn right and when
@@ -624,7 +623,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     private final Vec3d dir = new Vec3d();
     private final Vec3d left = new Vec3d();
     private double turn;
-    private double forward;
 
     public Probe(ProbeInfo info) {
       this.shape = MBlockShape.createGhost(info.getRadius());
@@ -662,22 +660,13 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
         return;
       }
 
-      double fwd = relative.dot(dir);
-      // if( fwd < 0.37 ) {
-      // "Too close" is going to take some more tweaking and we
-      // probably want to consider 'leftness', too.
-      // Could be that if we add an oscillation test then we could
-      // let more contacts through anyway.
-      //    log.info("Too close:" + fwd + "  " + contact);
-      //    return;
-      // }
+      // Possible future "too close" check: relative.dot(dir) < threshold → return.
 
       double distSq = contact.contactPoint.distanceSq(getBody().position);
       if (distSq < minDistanceSq) {
         closest = contact;
         minDistanceSq = distSq;
         turn = relative.dot(left);
-        forward = fwd;
       }
     }
   }

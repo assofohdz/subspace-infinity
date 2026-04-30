@@ -121,12 +121,8 @@ public class AudioState extends BaseAppState {
       final Spatial spatial, final Entity entity, final boolean updatePosition) {
     if (updatePosition) {
       final Parent p = entity.get(Parent.class);
-      if (p.getParentEntityId().getId() == 0L) {
-        // No position to update to
-      } else {
+      if (p.getParentEntityId().getId() != 0L) {
         final SpawnPosition pos = entity.get(SpawnPosition.class);
-
-        // I like to move it... move it...
         spatial.setLocalTranslation(pos.getLocation().toVector3f());
       }
     }

@@ -104,10 +104,7 @@ public class ConnectionState extends CompositeAppState {
     }
 
     protected void onLoggedOn( boolean loggedIn ) {
-        if( !loggedIn ) {
-            // We'd want to present an error... but right now this will
-            // never happen.
-        }
+        // No error path yet — login currently can't fail server-side.
         addChild(new GameSessionState(), true);
     }
 

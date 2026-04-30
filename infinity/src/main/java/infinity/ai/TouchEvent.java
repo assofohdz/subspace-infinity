@@ -61,4 +61,12 @@ public class TouchEvent {
     public SeenObject getObject() {
         return object;
     }
+
+    public Vec3d getContact() {
+        return contact;
+    }
+
+    public Vec3d getNormal() {
+        return normal;
+    }
 }

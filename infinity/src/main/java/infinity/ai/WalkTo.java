@@ -52,8 +52,7 @@ public class WalkTo implements Action {
 
     private Vec3d target = new Vec3d();
     private double speed;
-    private double range = 0;
-    private double maxTime;
+    private double range;
 
     // How often do we confirm our direction and movement
     private double checkTime;

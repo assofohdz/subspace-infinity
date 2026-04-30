@@ -256,14 +256,12 @@ public class OctBytes {
 
   /** An expanded read-only debug view of the octree. */
   public class OctCell {
-    private final Octad octad;
     private final Vec3i origin;
     private final int size;
     private final byte value;
     private OctCell[] children;
 
     private OctCell(Octad octad, Vec3i origin, int size) {
-      this.octad = octad;
       this.origin = origin;
       this.size = size;
       this.value = octad.value;

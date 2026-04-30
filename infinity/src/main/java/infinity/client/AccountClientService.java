@@ -35,8 +35,6 @@ public class AccountClientService extends AbstractClientService
   private RmiClientService rmiService;
   private AccountSession delegate;
 
-  private String playerName;
-
   private AccountSessionCallback sessionCallback = new AccountSessionCallback();
   private List<AccountSessionListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -50,7 +48,6 @@ public class AccountClientService extends AbstractClientService
 
   @Override
   public void login( String playerName ) {
-    this.playerName = playerName;
     delegate.login(playerName);
   }
 
