@@ -6,6 +6,7 @@ plugins {
     id 'java'
     id 'groovy'
     id 'checkstyle'
+    id 'pmd'
     id 'com.diffplug.spotless'
     id 'net.ltgt.errorprone'
 }
@@ -73,6 +74,41 @@ checkstyle {
     configFile = rootProject.file('config/checkstyle/checkstyle.xml')
     ignoreFailures = true
     showViolations = true
+}
+
+// =============================================================================
+// PMD — focused dead-code rules (unused private fields/methods/locals,
+// unnecessary imports, empty catch blocks). NOT a style/format tool —
+// Spotless owns whitespace, Checkstyle owns convention. Config at
+// config/pmd/ruleset.xml.
+//
+// Starts as warnings-only (ignoreFailures = true) so existing flags don't
+// break the build; ratchet to failing once the codebase is clean. Test
+// sources are skipped — too noisy for early adoption.
+//
+// ECS components in api/src/infinity/es/** carry no-arg constructors that
+// PMD sees as unused: they're invoked via reflection by Zay-ES's
+// FieldSerializer. Suppress that path explicitly so we don't drown in
+// false positives there. Same shape as a Lombok-generated-code exclusion.
+// =============================================================================
+pmd {
+    toolVersion = '7.7.0'
+    ruleSets = []  // disable PMD's default ruleset; only use ours
+    ruleSetFiles = files(rootProject.file('config/pmd/ruleset.xml'))
+    ignoreFailures = true
+    consoleOutput = true
+}
+
+tasks.withType(Pmd).configureEach {
+    // Skip ECS components — no-arg ctors and final fields are reflection-
+    // accessed and look "unused" to static analysis.
+    exclude '**/infinity/es/**'
+}
+
+// Skip PMD for test sources — same rationale as Error Prone: too noisy
+// for early adoption.
+tasks.named('pmdTest').configure {
+    enabled = false
 }
 
 // =============================================================================

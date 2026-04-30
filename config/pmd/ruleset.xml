@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<ruleset name="Subspace Infinity — focused dead-code rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
+             https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>
+    Catches the dead-code patterns the April 2026 big-file cull
+    surfaced — unused private members, unused imports, empty
+    catch/control statements. Style and formatting rules live in
+    Spotless / Checkstyle and are intentionally NOT included here.
+  </description>
+
+  <!-- ========================================================== -->
+  <!-- Dead-code: unused private members + locals + parameters    -->
+  <!-- ========================================================== -->
+
+  <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+  <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+  <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+  <rule ref="category/java/bestpractices.xml/UnusedFormalParameter">
+    <properties>
+      <!-- Allow unused params when overriding (the override may not need them). -->
+      <property name="checkAll" value="false"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/bestpractices.xml/UnusedAssignment"/>
+
+  <!-- ========================================================== -->
+  <!-- Dead-code: import / control-flow hygiene                   -->
+  <!-- ========================================================== -->
+
+  <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+  <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+    <properties>
+      <!-- Allow `catch (Foo ignored)` / `catch (Foo expected)` etc. -->
+      <property name="allowCommentedBlocks" value="true"/>
+      <property name="allowExceptionNameRegex" value="^(ignored|ignore|expected)$"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/codestyle.xml/EmptyControlStatement"/>
+
+</ruleset>
