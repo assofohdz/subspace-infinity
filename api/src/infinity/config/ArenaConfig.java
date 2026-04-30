@@ -44,10 +44,12 @@ import java.util.List;
  * @param shipsScript classpath-absolute path to the ship Groovy script
  *     (formerly {@code [Scripts] Ships=}); blank means "no script — install
  *     the {@code GroovyShipLoader.FALLBACK} snapshot"
- * @param spawnX arena-local X for first-spawn / respawn (formerly
- *     {@code [Spawn] X=})
- * @param spawnZ arena-local Z for first-spawn / respawn (formerly
- *     {@code [Spawn] Z=})
+ * @param spawnX arena-local X for the player spawn point in this arena
+ *     (formerly {@code [Spawn] X=}). Default {@code 512} — arena center —
+ *     when {@code arena.groovy} omits the {@code spawn} directive.
+ * @param spawnZ arena-local Z for the player spawn point in this arena
+ *     (formerly {@code [Spawn] Z=}). Default {@code 512} — arena center —
+ *     when {@code arena.groovy} omits the {@code spawn} directive.
  * @param fragmentIncludes paths the arena's settings come from (formerly the
  *     {@code #include} directives at the bottom of {@code arena.conf}); each
  *     path is loaded individually through the existing INI loader, with its
@@ -75,10 +77,11 @@ public record ArenaConfig(
     double wallFriction) {
 
   /**
-   * Empty fallback — a clean ArenaConfig with no map / ships / spawn / fragments
-   * and the historical {@code wallFriction = 0.0} (frictionless walls). Used by
+   * Empty fallback — a clean ArenaConfig with no map / ships / fragments,
+   * the player spawn at the arena's centre tile {@code (512, 512)}, and the
+   * historical {@code wallFriction = 0.0} (frictionless walls). Used by
    * callers that need a non-null default before the real config is assembled,
    * mirroring {@link ZoneConfig#EMPTY}.
    */
-  public static final ArenaConfig EMPTY = new ArenaConfig("", "", 0, 0, List.of(), 0.0);
+  public static final ArenaConfig EMPTY = new ArenaConfig("", "", 512, 512, List.of(), 0.0);
 }

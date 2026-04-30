@@ -226,8 +226,11 @@ public final class GroovyArenaLoader {
 
     private String mapFile = "";
     private String shipsScript = "";
-    private int spawnX = 0;
-    private int spawnZ = 0;
+    // Default to the arena's centre tile so an arena.groovy that omits the
+    // `spawn` directive puts players in the middle of the map instead of the
+    // NW corner. Mirrors ArenaConfig.EMPTY's spawn fallback.
+    private int spawnX = ArenaConfig.EMPTY.spawnX();
+    private int spawnZ = ArenaConfig.EMPTY.spawnZ();
     private final List<String> fragmentIncludes = new ArrayList<>();
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
 

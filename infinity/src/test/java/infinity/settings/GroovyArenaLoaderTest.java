@@ -89,8 +89,11 @@ public class GroovyArenaLoaderTest {
 
     assertEquals("", cfg.mapFile());
     assertEquals("", cfg.shipsScript());
-    assertEquals(0, cfg.spawnX());
-    assertEquals(0, cfg.spawnZ());
+    // Spawn defaults to the arena centre (512, 512) — the documented
+    // ArenaConfig.EMPTY contract — so an arena.groovy that forgets the
+    // `spawn` directive puts players in the middle, not the NW corner.
+    assertEquals(512, cfg.spawnX());
+    assertEquals(512, cfg.spawnZ());
     assertTrue(cfg.fragmentIncludes().isEmpty());
   }
 
@@ -152,14 +155,17 @@ public class GroovyArenaLoaderTest {
   }
 
   @Test
-  public void emptySnapshot_hasZeroDefaults() {
+  public void emptySnapshot_hasDocumentedDefaults() {
     final ArenaConfig empty = ArenaConfig.EMPTY;
 
     assertNotNull(empty);
     assertEquals("", empty.mapFile());
     assertEquals("", empty.shipsScript());
-    assertEquals(0, empty.spawnX());
-    assertEquals(0, empty.spawnZ());
+    // Spawn defaults to the arena centre (512, 512) so an unconfigured arena
+    // (or one whose arena.groovy omits `spawn`) puts the player at the middle
+    // of the map instead of the NW corner.
+    assertEquals(512, empty.spawnX());
+    assertEquals(512, empty.spawnZ());
     assertTrue(empty.fragmentIncludes().isEmpty());
     assertEquals(0.0, empty.wallFriction(), 0.0);
   }
