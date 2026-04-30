@@ -26,9 +26,6 @@
 
 package infinity.systems;
 
-import com.github.czyzby.noise4j.map.Grid;
-import com.github.czyzby.noise4j.map.generator.room.RoomType.DefaultRoomType;
-import com.github.czyzby.noise4j.map.generator.room.dungeon.DungeonGenerator;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.MPhysSystem;
@@ -46,15 +43,11 @@ import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
-import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,14 +97,10 @@ public class MapSystem extends AbstractGameSystem {
   private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "Maps";
-  private final LinkedHashSet<Vec3d> sessionTileRemovals = new LinkedHashSet<>();
-  private final LinkedHashSet<Vec3d> sessionTileCreations = new LinkedHashSet<>();
   // Map that holds all block coordinates for a given map:
   private final HashMap<String, HashSet<Vec3d>> activeMaps = new HashMap<>();
   // Map that holds the offset coordinates of each map:
   private final LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
-  private final boolean mapCreated = false;
-  private InfinityChatHostedService chat;
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
@@ -119,10 +108,7 @@ public class MapSystem extends AbstractGameSystem {
   private SimTime time;
   // private EntitySet tileTypes;
   private AssetLoaderService assetLoader;
-  private LinkedList<MapTileCallable> mapTileQueue;
   private World world;
-  private double accumulatedTime;
-  // private final boolean logged = false;
   private Direction direction = Direction.S;
 
   public MapSystem() {}
@@ -154,7 +140,6 @@ public class MapSystem extends AbstractGameSystem {
     if (world == null) {
       throw new RuntimeException(getClass().getName() + " system requires the World system.");
     }
-    this.chat = getSystem(InfinityChatHostedService.class);
     this.assetLoader = getSystem(AssetLoaderService.class);
 
     physicsSpace = physics.getPhysicsSpace();
@@ -169,13 +154,6 @@ public class MapSystem extends AbstractGameSystem {
     final EntityId e2 = ed.createEntity();
     final short s2 = 0;
     ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
-
-    /*
-     * Grid dungeon = this.createDungeonGrid(); dungeon =
-     * this.expandCorridors(dungeon); this.createMapTilesFromDungeonGrid(dungeon,
-     * -50f, -50f);
-     */
-    mapTileQueue = new LinkedList<>();
   }
 
   /**
@@ -666,23 +644,7 @@ public class MapSystem extends AbstractGameSystem {
 
   @Override
   public void update(final SimTime tpf) {
-
     time = tpf;
-    accumulatedTime += tpf.getTpf();
-
-    // Create map:
-    // if (!mapCreated && accumulatedTime > 2) {
-    // TODO: See InfinityBlockGeometryIndex - same map name is used there to translate back
-    // createEntitiesFromLegacyMap(loadMap(trenchMap), new Vec3d(-MAP_SIZE * 0.5, 0, -MAP_SIZE *
-    // 0.5));
-    // createEntitiesFromLegacyMap(loadMap("Maps/tunnelbase.lvl"), new
-    // Vec3d(-MAP_SIZE, 0, MAP_SIZE));
-    // createEntitiesFromLegacyMap(loadMap("Maps/trench.lvl"), new
-    // Vec3d(-HALF,HALF,0 , 0));
-    // createEntitiesFromMap(loadMap("Maps/turretwarz.lvl"), new
-    // Vec3d(0,MAP_SIZE,0,0));
-    // mapCreated = true;
-    // }
   }
 
   @Override
@@ -691,155 +653,6 @@ public class MapSystem extends AbstractGameSystem {
   @Override
   public void stop() {}
 
-  /**
-   * Returns a tile location key based on a Vec3d.
-   *
-   * @param location the Vec3d to clamp
-   * @return the clamped Vec3d location
-   */
-  private Vec3d getKey(final Vec3d location) {
-    final Vec3d coordinates =
-        new Vec3d(Math.round(location.x - 0.5) + 0.5, 0, Math.round(location.z - 0.5) + 0.5);
-    return coordinates;
-  }
-
-  /**
-   * Queue up a tile for removal.
-   *
-   * @param x the x-coordinate
-   * @param z the y-coordinate
-   */
-  public void sessionRemoveTile(final double x, final double z) {
-    final Vec3d clampedLocation = getKey(new Vec3d(x, 0, z));
-    sessionTileRemovals.add(clampedLocation);
-  }
-
-  /**
-   * Queue up a tile for creation.
-   *
-   * @param x the x-coordinate
-   * @param z the y-coordinate
-   */
-  public void sessionCreateTile(final double x, final double z) {
-    final Vec3d clampedLocation = getKey(new Vec3d(x, 0, z));
-    sessionTileCreations.add(clampedLocation);
-  }
-
-  @SuppressWarnings("unused")
-  private Grid createDungeonGrid() {
-    final Grid result = new Grid(100, 100);
-
-    final DungeonGenerator dungeonGenerator = new DungeonGenerator();
-
-    dungeonGenerator.setCorridorThreshold(NOISE4J_CORRIDOR);
-    dungeonGenerator.setFloorThreshold(NOISE4J_FLOOR);
-    dungeonGenerator.setWallThreshold(NOISE4J_WALL);
-
-    dungeonGenerator.setRoomGenerationAttempts(100);
-    dungeonGenerator.setMaxRoomsAmount(10);
-    dungeonGenerator.addRoomTypes(DefaultRoomType.values());
-
-    // Max first, then min. Only odd values
-    dungeonGenerator.setMaxRoomSize(21);
-    dungeonGenerator.setMinRoomSize(9);
-
-    dungeonGenerator.generate(result);
-
-    // result = carveCorridors(result);
-    return result;
-  }
-
-  /**
-   * Expands the corridors of a (dungeon) Grid by one.
-   *
-   * @param grid the Grid to expand corridors in
-   * @return the new Grid with expanded corridors
-   */
-  @SuppressWarnings("unused")
-  private Grid expandCorridors(final Grid grid) {
-    final Grid newGrid = grid.copy();
-
-    for (int i = 0; i < grid.getWidth(); i++) {
-      for (int j = 0; j < grid.getHeight(); j++) {
-        if (grid.get(i, j) == NOISE4J_CORRIDOR) {
-          // newGrid.set(i - 1, j - 1, 0f);
-          // newGrid.set(i - 1, j, 0f);
-          // newGrid.set(i - 1, j + 1, 0f);
-          // newGrid.set(i + 1, j - 1, 0f);
-
-          if (grid.get(i + 1, j) == NOISE4J_WALL && grid.get(i + 1, j) != NOISE4J_FLOOR) {
-            newGrid.set(i + 1, j, NOISE4J_CORRIDOR);
-          }
-          if (grid.get(i + 1, j + 1) == NOISE4J_WALL && grid.get(i + 1, j + 1) != NOISE4J_FLOOR) {
-            newGrid.set(i + 1, j + 1, NOISE4J_CORRIDOR);
-          }
-          if (grid.get(i, j + 1) == NOISE4J_WALL && grid.get(i, j + 1) != NOISE4J_FLOOR) {
-            newGrid.set(i, j + 1, NOISE4J_CORRIDOR);
-          }
-          // newGrid.set(i, j - 1, 0f);
-          // newGrid.set(i, j, 0f);
-        }
-      }
-    }
-    grid.set(newGrid);
-
-    return grid;
-  }
-
-  /*
-   * So I dont forget:
-   *
-   * <p>Go through grid, carve all corridors to be 2 wide in a copy Assign copy to grid Go through
-   * grid, set all tiles adjacent to floor or corridor to wall Create one or more entrances
-   */
-
-  /**
-   * Creates map tiles from a Dungeon Grid. Default values: wallThreshold = 1f; floorThreshold =
-   * 0.5f; corridorThreshold = 0f; Use the statics NOISE4J_*.
-   *
-   * @param grid the Grid to create entities from
-   * @param offsetX the offset x-coordinate to create the entities in
-   * @param offsetZ the offset y-coordinate to create the entities in
-   */
-  @SuppressWarnings("unused")
-  private void createMapTilesFromDungeonGrid(
-      final Grid grid, final float offsetX, final float offsetZ) {
-    float f;
-    for (int i = 0; i < grid.getHeight(); i++) {
-      for (int j = 0; j < grid.getWidth(); j++) {
-        f = grid.get(j, i);
-        if (f == 0f || f == 0.5f) {
-          // Floors (rooms) && Corridors
-
-          // Should create maptiles around rooms and corridors
-          if (grid.get(j + 1, i) == 1f) {
-            sessionCreateTile(j + 1 + offsetX, i + offsetZ);
-          }
-          if (grid.get(j - 1, i) == 1f) {
-            sessionCreateTile(j - 1 + offsetX, i + offsetZ);
-          }
-          if (grid.get(j, i + 1) == 1f) {
-            sessionCreateTile(j + offsetX, i + 1 + offsetZ);
-          }
-          if (grid.get(j, i - 1) == 1f) {
-            sessionCreateTile(j + offsetX, i - 1 + offsetZ);
-          }
-          if (grid.get(j + 1, i + 1) == 1f) {
-            sessionCreateTile(j + 1 + offsetX, i + 1 + offsetZ);
-          }
-          if (grid.get(j - 1, i + 1) == 1f) {
-            sessionCreateTile(j - 1 + offsetX, i + 1 + offsetZ);
-          }
-          if (grid.get(j + 1, i - 1) == 1f) {
-            sessionCreateTile(j + 1 + offsetX, i - 1 + offsetZ);
-          }
-          if (grid.get(j - 1, i - 1) == 1f) {
-            sessionCreateTile(j - 1 + offsetX, i - 1 + offsetZ);
-          }
-        }
-      }
-    }
-  }
 
   private enum Direction {
     E(1, 0) {
@@ -877,62 +690,4 @@ public class MapSystem extends AbstractGameSystem {
     abstract Direction next();
   }
 
-  private static final class MapTileCallable implements Callable<EntityId> {
-
-    String mFile;
-    short s;
-    Vec3d loc;
-    String type;
-    EntityData ed;
-    long time;
-    PhysicsSpace<EntityId, MBlockShape> space;
-
-    @SuppressWarnings("unused")
-    public MapTileCallable(
-        final String file,
-        final short s,
-        final Vec3d location,
-        final String type,
-        final EntityData ed,
-        final long time,
-        final PhysicsSpace<EntityId, MBlockShape> space) {
-      this.mFile = file;
-      this.s = s;
-      loc = location;
-      this.type = type;
-      this.ed = ed;
-      this.time = time;
-      this.space = space;
-    }
-
-    @Override
-    public EntityId call() throws Exception {
-      // EntityId id = GameEntities.createMapTile(m_file, s, loc, type, ed, time);
-
-      final EntityId id =
-          GameEntities.createMapTile(ed, EntityId.NULL_ID, space, time, mFile, s, loc, type);
-
-      log.debug("Called up creation of entity: " + id + ". " + this);
-      return id;
-    }
-
-    @Override
-    public String toString() {
-      String sb =
-          "MapTileCallable{m_file="
-              + mFile
-              + ", s="
-              + s
-              + ", loc="
-              + loc
-              + ", type="
-              + type
-              + ", ed="
-              + ed
-              + ", time="
-              + time
-              + '}';
-      return sb;
-    }
-  }
 }
