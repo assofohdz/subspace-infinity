@@ -30,7 +30,7 @@ package infinity;
  *
  * @author Asser
  */
-public enum Guns implements OrdinalEnum<Guns>{
+public enum Guns {
   LEVEL_1(1, 9),
   LEVEL_2(2, 8),
   LEVEL_3(3, 7),
@@ -45,5 +45,12 @@ public enum Guns implements OrdinalEnum<Guns>{
   Guns(final int level, final int viewOffset) {
     this.level = level;
     this.viewOffset = viewOffset;
+  }
+
+  /** Next gun level, or null at the maximum. */
+  public Guns next() {
+    final Guns[] vals = values();
+    final int n = ordinal() + 1;
+    return n < vals.length ? vals[n] : null;
   }
 }

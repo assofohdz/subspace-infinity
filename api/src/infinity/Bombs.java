@@ -32,7 +32,7 @@ import com.jme3.math.ColorRGBA;
  *
  * @author Asser
  */
-public enum Bombs implements OrdinalEnum<Bombs>{
+public enum Bombs {
   BOMB_1(1, 12, ColorRGBA.Red, 25),
   BOMB_2(2, 11, ColorRGBA.Yellow, 30),
   BOMB_3(3, 10, ColorRGBA.Blue, 35),
@@ -55,5 +55,12 @@ public enum Bombs implements OrdinalEnum<Bombs>{
     this.viewOffset = viewOffset;
     this.lightColor = lightColor;
     this.lightRadius = lightRadius;
+  }
+
+  /** Next bomb level, or null at the maximum. */
+  public Bombs next() {
+    final Bombs[] vals = values();
+    final int n = ordinal() + 1;
+    return n < vals.length ? vals[n] : null;
   }
 }
