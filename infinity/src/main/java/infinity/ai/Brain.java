@@ -67,7 +67,7 @@ public class Brain {
   private long nextHeartbeat;
 
   private Goal currentGoal;
-  private Strategy currentStrategy;
+  private Strategy<Goal> currentStrategy;
 
   private final LinkedList<Goal> failedGoals = new LinkedList<>();
 
@@ -130,6 +130,7 @@ public class Brain {
   }
 
   public <T> T getProperty(String name, T defaultValue) {
+    @SuppressWarnings("unchecked")
     T result = (T) localProperties.get(name);
     if (result != null) {
       return result;
@@ -210,10 +211,12 @@ public class Brain {
     return config.selectGoal(this);
   }
 
-  protected Strategy selectStrategy(Goal goal) {
+  protected Strategy<Goal> selectStrategy(Goal goal) {
     log.info("selectStrategy(" + goal + ")");
-    // Strategy result = strategies.get(goal.getClass());
-    Strategy result = config.getStrategy(goal.getClass());
+    // Stored Strategy<G> is keyed on the runtime goal class — bridging into
+    // Strategy<Goal> here so currentGoal can flow through plan/done/failed.
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Strategy<Goal> result = (Strategy<Goal>) (Strategy) config.getStrategy(goal.getClass());
     log.info(" found:" + result);
     if (result == null) {
       log.error("No strategy found to support goal:" + goal);
@@ -225,7 +228,7 @@ public class Brain {
     return result;
   }
 
-  protected Action makePlan(Strategy strategy, Goal goal) {
+  protected Action makePlan(Strategy<Goal> strategy, Goal goal) {
     log.info("makePlan(" + strategy + ", " + goal + ")");
     return strategy.plan(this, goal);
   }

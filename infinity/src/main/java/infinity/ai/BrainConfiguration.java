@@ -52,8 +52,8 @@ public class BrainConfiguration implements GoalSelector {
     private BrainConfiguration parent;
     private GoalSelector goalSelector;
     private Map<String, Object> properties = new HashMap<>();
-    private Map<Class<? extends Goal>, Strategy> strategies = new HashMap<>();
-    private Strategy defaultStrategy;
+    private Map<Class<? extends Goal>, Strategy<?>> strategies = new HashMap<>();
+    private Strategy<?> defaultStrategy;
 
     public BrainConfiguration() {
     }
@@ -79,7 +79,8 @@ public class BrainConfiguration implements GoalSelector {
     }
 
     public <T> T getProperty( String name, T defaultValue ) {
-        T result = (T)properties.get(name);
+        @SuppressWarnings("unchecked")
+        T result = (T) properties.get(name);
         if( result == null && parent != null ) {
             result = parent.getProperty(name, defaultValue);
         }
@@ -99,7 +100,9 @@ public class BrainConfiguration implements GoalSelector {
     }
 
     public <G extends Goal> Strategy<G> getStrategy( Class<G> type ) {
-        Strategy<G> result = strategies.get(type);
+        // Safe by setStrategy's contract: stored Strategy<? super G> is keyed on Class<G>.
+        @SuppressWarnings("unchecked")
+        Strategy<G> result = (Strategy<G>) strategies.get(type);
         if( result != null ) {
             return result;
         }
@@ -109,11 +112,11 @@ public class BrainConfiguration implements GoalSelector {
         return null;
     }
 
-    public void setDefaultStrategy( Strategy strategy ) {
+    public void setDefaultStrategy( Strategy<?> strategy ) {
         this.defaultStrategy = strategy;
     }
 
-    public Strategy getDefaultStrategy() {
+    public Strategy<?> getDefaultStrategy() {
         return defaultStrategy;
     }
 
