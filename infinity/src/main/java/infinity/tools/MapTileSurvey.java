@@ -62,7 +62,7 @@ public final class MapTileSurvey {
     for (int i = 1; i <= 190; i++) HANDLED[i] = true; // visible tiles (incl. doors/flags/fly*)
     HANDLED[216] = true; // asteroidSmall
     HANDLED[217] = true; // asteroidMedium
-    HANDLED[218] = true; // asteroidEnd / wormhole2
+    HANDLED[218] = true; // asteroidEnd / over5
     HANDLED[219] = true; // station (currently falls to INVISIBLE; still "known")
     HANDLED[220] = true; // wormhole
   }

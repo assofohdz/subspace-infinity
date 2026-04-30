@@ -419,7 +419,7 @@ public class MapSystem extends AbstractGameSystem {
     int turfFlags = 0;
     int asteroidsSmall = 0;
     int asteroidsMedium = 0;
-    int wormhole2 = 0;
+    int over5 = 0;
     int doors = 0;
     int wormholes = 0;
     int cellsVisible = 0;
@@ -458,8 +458,8 @@ public class MapSystem extends AbstractGameSystem {
           continue;
         }
         if (s == MapTypes.vieAsteroidEnd) {
-          GameEntities.createWormhole2(ed, null, physicsSpace, createdTime, location);
-          wormhole2++;
+          GameEntities.createOver5(ed, null, physicsSpace, createdTime, location);
+          over5++;
           continue;
         }
         if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
@@ -503,11 +503,11 @@ public class MapSystem extends AbstractGameSystem {
         cellsInvisible,
         cellsFailedLeaf);
     log.info(
-        "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} wormhole2={} doors={} wormholes={}",
+        "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} over5={} doors={} wormholes={}",
         turfFlags,
         asteroidsSmall,
         asteroidsMedium,
-        wormhole2,
+        over5,
         doors,
         wormholes);
     if (firstWritten != null) {

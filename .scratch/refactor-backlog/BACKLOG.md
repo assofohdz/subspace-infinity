@@ -74,10 +74,6 @@ PMD wiring (commit `5bb2e71`) surfaced 99 violations on first run; six cleanup b
 - **~30 chat-command handler false positives** — annotated in batch 4.
 - **3 empty-foreach EntitySet drain idioms** in `AvatarSystem.java:106-112` — possibly addressed by batch 5 (`AvatarSystem.update TODO scaffolding`); verify the idiom is now suppressed or refactored.
 
-### `createWormhole2` rename
-
-Numeric-suffix smell flagged in commit `d87adf1`. Both `createWormhole` and `createWormhole2` have callers — one is likely an experimental variant. Investigate, rename the experimental one to something semantic (e.g. `createWarpGate` if it's a different shape), or merge if they're redundant.
-
 ## Additional cleanup targets — added 2026-04-30
 
 Surfaced by a follow-up scan for architecture / library / framework smells beyond the original eighteen-commit arc. The dep-cleanup batch landed in the same change as this update; everything below is still open.

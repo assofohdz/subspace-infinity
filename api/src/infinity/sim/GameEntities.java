@@ -255,23 +255,23 @@ public class GameEntities {
     return lastDoor;
   }
 
-  public static EntityId createWormhole2(
+  /**
+   * OVER5 visual overlay entity at a position. Distinct from {@link #createWormhole} —
+   * no gravity, no warp behavior, just a sized animation overlay. Pairs with
+   * {@code SISpatialFactory.createOver5} on the client side.
+   */
+  public static EntityId createOver5(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
-      final Vec3d pos
-      // , final double force,
-      //                                   final double gravityRadius, final String gravityType
-      ) {
+      final Vec3d pos) {
     final EntityId lastOver5 = ed.createEntity();
 
     ed.setComponents(
         lastOver5,
         ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.OVER5SIZERADIUS, ed),
-        new SpawnPosition(phys.getGrid(), pos)
-        // , new GravityWell(gravityRadius, force, gravityType)
-        );
+        new SpawnPosition(phys.getGrid(), pos));
     ed.setComponent(lastOver5, new Meta(createdTime));
 
     return lastOver5;

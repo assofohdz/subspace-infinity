@@ -116,13 +116,13 @@ public class warpTester extends BaseGameModule {
         new Vec3d(0, 1, 0),
         10);
 
-    GameEntities.createWormhole2(
+    GameEntities.createOver5(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
         new Vec3d(0, 1, -10));
-    GameEntities.createWormhole2(
+    GameEntities.createOver5(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
