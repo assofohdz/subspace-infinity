@@ -97,10 +97,13 @@ import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.Gold;
 import com.simsilica.bpos.LargeObject;
+import infinity.es.MobType;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
+import infinity.es.ProbeInfo;
 import infinity.es.RadarShapeInfo;
 import infinity.es.ShapeNames;
+import infinity.es.Speech;
 import infinity.es.TileType;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
@@ -474,6 +477,12 @@ public class GameServer {
     Serializer.registerClass(ArenaMap.class, new FieldSerializer());
     Serializer.registerClass(RadarRange.class, new FieldSerializer());
     Serializer.registerClass(RadarShapeInfo.class, new FieldSerializer());
+    // Client-visible components surfaced by the immutability audit
+    // (a3c62a2): each is read by a client AppState/view and would crash
+    // the first network sync without a registered serializer.
+    Serializer.registerClass(MobType.class, new FieldSerializer());
+    Serializer.registerClass(ProbeInfo.class, new FieldSerializer());
+    Serializer.registerClass(Speech.class, new FieldSerializer());
   }
 
   public Server getServer() {
