@@ -23,14 +23,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity.events;
+package infinity.events.zone;
+
+import com.simsilica.es.EntityId;
+import com.simsilica.event.EventType;
+import com.simsilica.event.PlayerEntityEvent;
 
 /**
  *
  * @author Asser
  */
-public class FrequencyEvent {
-    /*
-     * FrequencyChange FrequencyShipChange
-     */
+public class PlayerEvent extends PlayerEntityEvent {
+
+    public static EventType<PlayerEvent> playerBanned = EventType.create("PlayerBanned", PlayerEvent.class);
+
+    public PlayerEvent(final EntityId player) {
+        super(player);
+    }
+
 }

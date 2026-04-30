@@ -30,7 +30,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
-import infinity.events.ShipEvent;
+import infinity.events.arena.ShipEvent;
 import infinity.modules.prizeTester.prizeTester;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;

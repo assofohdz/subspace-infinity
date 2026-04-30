@@ -45,7 +45,7 @@ import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.WarpTo;
-import infinity.events.ShipEvent;
+import infinity.events.arena.ShipEvent;
 import infinity.sim.CorePhysicsConstants;
 import java.util.HashMap;
 
