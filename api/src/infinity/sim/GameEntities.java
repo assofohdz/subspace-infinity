@@ -63,28 +63,7 @@ import infinity.es.input.MovementInput;
 import infinity.es.ship.CollidesWithLargeStatics;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
-import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
-import infinity.es.ship.actions.Repel;
-import infinity.es.ship.actions.RepelMax;
 import infinity.es.ship.actions.Thor;
-import infinity.es.ship.actions.ThorCurrentCount;
-import infinity.es.ship.actions.ThorFireDelay;
-import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.weapons.BombCurrentLevel;
-import infinity.es.ship.weapons.BombCost;
-import infinity.es.ship.weapons.BombFireDelay;
-import infinity.Bombs;
-import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunCost;
-import infinity.es.ship.weapons.GunFireDelay;
-import infinity.Guns;
-import infinity.es.ship.weapons.GunMaxLevel;
-import infinity.es.ship.weapons.MineCurrentLevel;
-import infinity.es.ship.weapons.MineCost;
-import infinity.es.ship.weapons.MineFireDelay;
-import infinity.es.ship.weapons.MineMaxLevel;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
@@ -440,11 +419,6 @@ public class GameEntities {
     final EntityId result = ed.createEntity();
 
     ed.setComponent(result, new Parent(owner));
-
-    // TODO(pattern4-arena): ships should carry their own ArenaId component so the spawn
-    // system can look up per-arena config without relying on ambient state. Deferred until
-    // the player/arena association is modeled — for now the spawn path resolves arena from
-    // the currently-loaded arena ("Option R"). Multi-arena correctness depends on fixing this.
     ed.setComponent(result, new ShipType(Ship.getShip(ship)));
 
     ed.setComponent(result, ShapeNames.createShip(ship, ed));
@@ -460,44 +434,15 @@ public class GameEntities {
 
     ed.setComponent(result, new Gold(0));
 
-    // Energy/EnergyMax/Health/Recharge are projected by ShipSpawnSystem from
-    // the per-arena ShipConfig — no inline defaults here.
-
-    // Add bombs:
-    ed.setComponent(result, new BombCurrentLevel(Bombs.BOMB_1));
-    ed.setComponent(result, new BombCost(CoreGameConstants.BOMBCOST));
-    ed.setComponent(result, new BombFireDelay(CoreGameConstants.BOMBCOOLDOWN));
-    ed.setComponent(result, new BombMaxLevel(Bombs.BOMB_4));
-
-    // Add burst:
-    ed.setComponent(result, new Burst(5));
-    ed.setComponent(result, new BurstMax(5));
-
-    // Add guns:
-     ed.setComponent(result, new GunCurrentLevel(Guns.LEVEL_1));
-     ed.setComponent(result, new GunCost(CoreGameConstants.GUNCOST));
-     ed.setComponent(result, new GunFireDelay(CoreGameConstants.GUNCOOLDOWN));
-     ed.setComponent(result, new GunMaxLevel(Guns.LEVEL_4));
-
-    // Add gravity bombs
-//    ed.setComponent(result, new GravityBomb(BombLevelEnum.BOMB_1));
-//    ed.setComponent(result, new GravityBombCost(10));
-//    ed.setComponent(result, new GravityBombFireDelay(1000));
-
-    // Add mines
-    ed.setComponent(result, new MineCurrentLevel(Bombs.BOMB_1));
-    ed.setComponent(result, new MineCost(50));
-    ed.setComponent(result, new MineFireDelay(500));
-    ed.setComponent(result, new MineMaxLevel(Bombs.BOMB_4));
-
-    // Add thors
-    ed.setComponent(result, new ThorCurrentCount(2));
-    ed.setComponent(result, new ThorMaxCount(2));
-    ed.setComponent(result, new ThorFireDelay(1000));
-
-    // Add repels
-    ed.setComponent(result, new Repel(10));
-    ed.setComponent(result, new RepelMax(20));
+    // All tunable per-ship stats (Energy/Health/Recharge/Thrust/Speed/Rotation
+    // movement triples, drag/turn/bounce feel, radar range, and the
+    // bomb/gun/mine/burst/thor/repel weapon + inventory groups) are projected
+    // by ShipSpawnSystem from the per-arena ShipConfig — see Pattern 4 in
+    // .claude/rules/config-pattern.md and CONTEXT.md. createShip composes the
+    // structural pieces only (Parent, ShipType, ShapeNames, SpawnPosition,
+    // Mass, Gravity, Gold, CollisionCategory, CollidesWithLargeStatics, Meta);
+    // the spawn system writes the tunable components on the next tick when
+    // the ship enters its arena.
 
     ed.setComponent(
         result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));

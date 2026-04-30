@@ -63,16 +63,17 @@ public class CoreGameConstants {
   public static final int MOBHEALTH = 100;
 
   // Cooldowns
+  // GUNCOOLDOWN / BOMBCOOLDOWN / MINECOOLDOWN moved to per-arena ShipConfig
+  // (GunStats.fireDelayCs / BombStats.fireDelayCs / MineStats.fireDelayCs)
+  // — see config-pattern.md. THORCOOLDOWN / BURSTCOOLDOWN are still
+  // referenced by WeaponsSystem and pending the same migration.
   public static final long THORCOOLDOWN = 500;
   public static final long BURSTCOOLDOWN = 250;
-  public static final long GUNCOOLDOWN = 25;
-  public static final long BOMBCOOLDOWN = 25;
-  public static final long MINECOOLDOWN = 25;
 
   // Cost of firing
-  public static final int GUNCOST = 10;
-  public static final int BOMBCOST = 10;
-  public static final int MINECOST = 10;
+  // GUNCOST / BOMBCOST / MINECOST moved to per-arena ShipConfig
+  // (GunStats.cost / BombStats.cost / MineStats.cost) — see
+  // config-pattern.md.
 
   public static final long BURSTPROJECTILECOUNT = 30;
 
