@@ -66,14 +66,6 @@ Suggested shape: minimal SiO2 `GameSystemManager` test fixture booting `EntityDa
 
 The harness is a vertical slice in itself — write a PRD when picked up.
 
-### Build with dependencies from `libs/m2` instead of `~/.m2`
-
-Local Gradle builds resolve Moss snapshots via `mavenLocal()` ([`buildSrc/src/main/groovy/infinity.java-conventions.gradle`](../../buildSrc/src/main/groovy/infinity.java-conventions.gradle)), which means the developer's `~/.m2` is the source of truth at compile time. CI (only [`release.yml`](../../.github/workflows/release.yml)) seeds its `~/.m2` from the vendored [`libs/m2/`](../../libs/m2/) tree before building. When the two diverge — e.g. a fresh `publishToMavenLocal` from a Moss checkout that hasn't been mirrored into `libs/m2` — local builds pass and CI fails on missing symbols. This is exactly what bit v1.0.8 (`PhysicsSpace.setLargeStaticCollisionFilter` existed in `~/.m2/.../mphys-1.0.0-SNAPSHOT.jar` but not in the vendored copy; release CI failed at [`GameServer.java:304`](../../infinity/src/main/java/infinity/server/GameServer.java#L304)).
-
-Fix shape: point local builds at `libs/m2/` as the primary Maven repo (replace or precede `mavenLocal()`), so a missing/stale jar surfaces as a local compile error instead of a tag-time CI failure. The `publishToMavenLocal` workflow stays — but the dev refreshes `libs/m2` (the README's documented copy step) before the next build instead of after the next failed release. Keep `mavenCentral()` for everything non-Simsilica.
-
-Watch out for: (1) the regular [`gradle.yml`](../../.github/workflows/gradle.yml) push/PR CI doesn't have the `libs/m2 → ~/.m2` copy step at all, so it currently relies on whatever `+` resolves to from Central — fixing local + adding the same copy step to `gradle.yml` should be one PR. (2) `publishToMavenLocal` runs in other Simsilica projects (Lemur, Zay-ES, etc.) too, not just Moss; same staleness pattern can apply to any of them.
-
 ### PMD residual cleanup — verify status
 
 PMD wiring (commit `5bb2e71`) surfaced 99 violations on first run; six cleanup batches landed before v1.0.7 (commits `7bd3482`, `c0cd5d5`, `aee9acb`, `a826163`, `85d860c`, `5634e6b`). Re-run PMD against current `infinity` and confirm whether any of the original three categories still have stragglers:

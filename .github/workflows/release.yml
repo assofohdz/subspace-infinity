@@ -47,12 +47,6 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
 
-      - name: Copy libs to Maven Local
-        shell: bash
-        run: |
-          mkdir -p ~/.m2/repository
-          cp -r libs/m2/* ~/.m2/repository/
-
       - name: Get version from tag
         id: version
         shell: bash

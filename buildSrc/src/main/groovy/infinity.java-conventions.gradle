@@ -11,9 +11,17 @@ plugins {
     id 'net.ltgt.errorprone'
 }
 
-// Projects should use Maven Central for external dependencies
+// Projects should use Maven Central for external dependencies.
+//
+// Simsilica/Moss snapshots resolve from the vendored libs/m2/ tree (single
+// source of truth for both local builds and CI). Refresh after publishing
+// from a Moss checkout — see libs/README.md. We override mavenLocal()'s URL
+// rather than declaring a plain `maven {}` repo so Gradle keeps the local
+// Maven layout semantics (maven-metadata-local.xml, '+' version resolution).
 repositories {
-    mavenLocal()
+    mavenLocal {
+        url = rootProject.file('libs/m2').toURI()
+    }
     mavenCentral()
     jcenter()  // deprecated but some old deps still there
     maven { url 'https://maven.scijava.org/content/repositories/public/' }  // for de.lighti:Clipper
