@@ -25,5 +25,5 @@ dependencies {
 	// Simsilica MOSS
 	implementation "com.simsilica:sio2-mphys:$mossVersion"
 
-    implementation "org.jetbrains:annotations:$jetbrainsAnnotationsVersion"
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
 }

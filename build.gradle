@@ -25,6 +25,5 @@ subprojects {
     ext.pagerVersion = '1.0.1-SNAPSHOT'
     ext.simFxVersion = '1.0.1-SNAPSHOT'
 
-    ext.jetbrainsAnnotationsVersion = '+'
     ext.junitVersion = '+'
 }

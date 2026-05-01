@@ -38,7 +38,7 @@ import infinity.es.Meta;
 import infinity.es.Parent;
 import infinity.Bombs;
 import infinity.Guns;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import java.util.concurrent.TimeUnit;
 
@@ -163,11 +163,11 @@ public class GameSounds {
   }
 
   public static void createPrizeSound(
-      final @NotNull EntityData ed,
+      final @Nonnull EntityData ed,
       final long createdTime,
       EntityId parent,
       Vec3d loc,
-      @NotNull PhysicsSpace phys) {
+      @Nonnull PhysicsSpace phys) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
@@ -180,11 +180,11 @@ public class GameSounds {
   }
 
   public static void createThorSound(
-      final @NotNull EntityData ed,
+      final @Nonnull EntityData ed,
       final long createdTime,
       EntityId parent,
       Vec3d loc,
-      @NotNull PhysicsSpace phys) {
+      @Nonnull PhysicsSpace phys) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
@@ -199,7 +199,7 @@ public class GameSounds {
   public static void createMineSound(
       EntityData ed,
       EntityId requester,
-      @NotNull PhysicsSpace phys,
+      @Nonnull PhysicsSpace phys,
       long time,
       Vec3d location,
       Bombs level) {
