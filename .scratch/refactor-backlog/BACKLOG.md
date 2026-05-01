@@ -100,7 +100,6 @@ Skipped intentionally:
 ### Library follow-ups (still in use today)
 
 - **commons-math 2.2 → commons-math3.** Used at one site ([`infinity/util/MathUtil.java`](../../infinity/src/main/java/infinity/util/MathUtil.java)) for `MathException`, `distribution.TDistributionImpl`, `stat.StatUtils`. The 2.x line shipped in 2010 and is end-of-life; `commons-math3:3.6.1` is the successor. Migration is mostly mechanical: package rename to `org.apache.commons.math3.*`, `MathException` → `MathRuntimeException`, `TDistributionImpl` → `TDistribution`. Worth doing before the next major version bump.
-- **Heart `jme3utilities.MyMesh` — single usage.** Stephen Gold's jME utility library [`com.github.stephengold:Heart:9.3.0`](https://github.com/stephengold/Heart) is used at exactly one site: [`SISpatialFactory.java:64`](../../infinity/src/main/java/infinity/client/states/SISpatialFactory.java). 30-min check whether `MyMesh` can be replaced with raw `com.jme3.scene.Mesh` calls; if so, drop the Heart dep.
 - **`'+'` version pinning audit.** Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'` (latest). Pinned exceptions are JME (`3.9.0-stable`), log4j (`2.25.4`), slf4j (`2.0.17`), pager/sim-fx (`1.0.1-SNAPSHOT`), Heart (`9.3.0`), ini4j (`0.5.4`), commons-math (`2.2`). The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
 
 ## Historical: v1.0.7 dependency cleanup

@@ -36,6 +36,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.VertexBuffer;
@@ -61,7 +62,7 @@ import infinity.Bombs;
 import infinity.Guns;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.util.InfinityRunTimeException;
-import jme3utilities.MyMesh;
+import java.nio.FloatBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,9 +312,9 @@ public class SISpatialFactory {
     // this works.
     final float halfSize = CoreViewConstants.DOORSIZE * 0.5f;
     final float quarterSize = CoreViewConstants.DOORSIZE * 0.25f;
-    MyMesh.translate(box, new Vector3f(halfSize, halfSize, halfSize));
-    MyMesh.scale(box, 0.5f);
-    MyMesh.translate(box, new Vector3f(quarterSize, quarterSize, quarterSize));
+    translateMesh(box, new Vector3f(halfSize, halfSize, halfSize));
+    scaleMesh(box, 0.5f);
+    translateMesh(box, new Vector3f(quarterSize, quarterSize, quarterSize));
     box.updateBound();
 
     Geometry geom = new Geometry("Door", box); // create cube geometry from the shape
@@ -572,7 +573,7 @@ public class SISpatialFactory {
     final float edge = (float) (scale * 0.5);
     final float halfEdge = edge * 0.5f;
     final Box box = new Box(halfEdge, halfEdge, halfEdge);
-    MyMesh.translate(box, new Vector3f(halfEdge, halfEdge, halfEdge));
+    translateMesh(box, new Vector3f(halfEdge, halfEdge, halfEdge));
     box.updateBound();
 
     final Geometry geom = new Geometry("Arena", box);
@@ -807,5 +808,27 @@ public class SISpatialFactory {
     float[] normals;
     normals = new float[] {0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
     return normals;
+  }
+
+  private static void translateMesh(final Mesh mesh, final Vector3f offset) {
+    final VertexBuffer posBuffer = mesh.getBuffer(VertexBuffer.Type.Position);
+    final FloatBuffer pos = (FloatBuffer) posBuffer.getData();
+    for (int i = 0; i + 2 < pos.limit(); i += 3) {
+      pos.put(i,     pos.get(i)     + offset.x);
+      pos.put(i + 1, pos.get(i + 1) + offset.y);
+      pos.put(i + 2, pos.get(i + 2) + offset.z);
+    }
+    posBuffer.setUpdateNeeded();
+    mesh.updateBound();
+  }
+
+  private static void scaleMesh(final Mesh mesh, final float factor) {
+    final VertexBuffer posBuffer = mesh.getBuffer(VertexBuffer.Type.Position);
+    final FloatBuffer pos = (FloatBuffer) posBuffer.getData();
+    for (int i = 0; i < pos.limit(); i++) {
+      pos.put(i, pos.get(i) * factor);
+    }
+    posBuffer.setUpdateNeeded();
+    mesh.updateBound();
   }
 }
