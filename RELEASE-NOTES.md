@@ -1,3 +1,10 @@
+## v1.0.10 — 2026-05-02
+
+Diagnostics release. No gameplay changes.
+
+Other:
+- **Bridge `java.util.logging` → log4j2.** JME's render-thread errors and other JUL output were going to stderr — which the itch.io launcher discards — making packaged-build crashes (e.g. the "black-then-close" join-game crash on Windows) invisible in `infinity.log`. Added the `log4j-jul` runtime dep and `-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager` to `applicationDefaultJvmArgs` and both `jpackageImage` / `jpackage` tasks, so JME's `SEVERE` records now flow through the existing `Root level="error"` config into both `infinity.log` and `infinity-errors.log`. The logger name is `com.jme3.*` so the failing class is unambiguous.
+
 ## v1.0.9 — 2026-05-02
 
 Cleanup release focused on closing the conf-fragments-to-groovy migration, retiring `CoreGameConstants`, and seeding the first programmatic spawn-projection test harness.
