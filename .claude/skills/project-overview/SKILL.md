@@ -23,7 +23,7 @@ infinity/src/main/java/infinity/
   systems/                   # Server-side game systems (ArenaSystem, SettingsSystem, ...)
   server/                    # Server networking (GameServer, BasicEnvironment)
   ai/                        # AI/mob systems
-  settings/                  # GroovyFragmentLoader (Groovy preset fragments), IniLoader (legacy / operator INI), SettingListener
+  settings/                  # GroovySettingsHost + per-tier Groovy*Loader (zone/arena/ship/fragment), ConfigRegistry, SettingListener
   *.java                     # Client app states
 infinity/assets/             # JME asset root: Maps/*.lvl, textures, sounds
 infinity/zone/               # Second asset root for runtime config

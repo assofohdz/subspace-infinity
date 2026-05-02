@@ -114,8 +114,8 @@ Rule of thumb: **in-project code reads `InfinityConstants.*`**. Referencing `Wor
 | `.lvl` | Subspace map — binary tile data (+ optional BMP tileset + eLVL chunks) |
 | `.lvz` | Zone graphics/overlays bundle (LVZ format; objects, images). Not gameplay tiles. |
 | `.groovy` | Settings — preset fragments. Loaded via `GroovyFragmentLoader` (`section` / `shipSection` / `shipSections` DSL, recursive `include` keyword). All preset content under `conf/<preset>/` is `.groovy`. |
-| `.conf` / `.cfg` / `.ini` | Legacy / operator-supplied INI. Still loadable via `IniLoader` (with `#include` preprocessor) but no preset fragments use it. |
-| `.sss` / `.set` | Setting-metadata sidecar files; loaded by `SSSLoader`. |
+| `.conf` / `.cfg` / `.ini` | Legacy Subspace INI format. **No longer loadable at runtime** — `IniLoader` was deleted in v1.0.10 once all preset fragments became `.groovy`. Surviving `.ini` files in `infinity/src/main/resources/` and `infinity/assets/Maps/aswz/` are unread historical artifacts. |
+| `.sss` / `.set` | Subspace setting-metadata sidecar files. **No longer loadable at runtime** — `SSSLoader` was retired alongside `IniLoader`. The on-disk samples are kept as a key-list reference (see [`.scratch/subspace-ini-reference/server-defaults.md`](../../../.scratch/subspace-ini-reference/server-defaults.md)). |
 | `.col` | One MOSS leaf serialized to disk under `world.db/`. |
 
 ## When this skill applies

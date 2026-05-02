@@ -41,7 +41,7 @@ infinity/zone/
     └── trench-04-2026/               # the trench preset
 ```
 
-**All authoring is Groovy.** The zone-scope, arena-scope, and preset fragment tiers are all `.groovy` files. Arenas list individual per-section fragment paths under `includeFragment`; composite `.conf` files and the `IniLoader` `#include` preprocessor are gone from the preset tier. The `IniLoader` itself remains registered for `.ini`/`.cfg`/`.conf` files (operator-supplied settings; legacy compatibility) but no preset fragments use it.
+**All authoring is Groovy.** The zone-scope, arena-scope, and preset fragment tiers are all `.groovy` files. Arenas list individual per-section fragment paths under `includeFragment`; composite `.conf` files, the `IniLoader` `#include` preprocessor, and the `.ini`/`.cfg`/`.conf` asset-loader registration are all gone (deleted in v1.0.10). `SettingsSystem.loadFragmentIni` now rejects non-`.groovy` paths.
 
 **Variant pick-up** — an arena that wants PowerBall-style tuning lists per-section fragments:
 ```groovy
@@ -66,14 +66,15 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 
 | File | Purpose |
 |---|---|
-| `GroovyZoneLoader` | Loads `zone.groovy` → `ZoneConfig`. Filesystem-first dev mode, classpath fallback. |
-| `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. Same pattern as `GroovyZoneLoader`. |
+| `GroovySettingsHost` | Stateless pipeline that evaluates a Groovy settings file end to end: filesystem-first source resolution, sandboxed `GroovyShell` build, eval, error classification. Shared by every loader below. |
+| `GroovySettingsAdapter` | Per-file DSL contract: each loader implements this to declare allowed imports, bind script variables, and extract its typed result from the accumulator. |
+| `GroovyZoneLoader` | Loads `zone.groovy` → `ZoneConfig`. |
+| `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. |
 | `GroovyShipLoader` | Loads each arena's `ships.groovy` (referenced via `arena { shipsScript ... }`) → per-arena `ConfigRegistry`. |
-| `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments` when the path ends in `.groovy`. |
-| `IniLoader` | `AssetLoader` for `.ini` / `.cfg` / `.conf`. Expands `#include` directives before parsing with `ini4j`. Still registered for operator-supplied or legacy files; no preset fragment uses it any longer. |
-| `SSSLoader` | `AssetLoader` for `.sss` / `.set` (colon-delimited rows → `ArrayList<String[]>`). Setting-metadata sidecars. |
-| `SettingListener` | Callback: `arenaSettingsChange(ArenaId, section, setting)` fired from `SettingsSystem.setSetting`. |
-| `SettingsTypes` | Exhaustive enumeration of known Subspace setting keys — reference, not runtime. |
+| `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments`; Groovy is the only fragment format supported (no `.ini` / `.cfg` / `.conf` ingest path remains). |
+| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records (currently `ShipConfig` only; expand as Phase B promotes more sections). |
+| `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Atomic-swap installs from `GroovyShipLoader` / live-reload; readers see either the old or new snapshot, never a torn state. |
+| `SettingListener` | Callback: `arenaSettingsChange(ArenaId, section, setting)` fired from `SettingsSystem.setSetting` and from fragment hot-reload diffs. |
 
 Runtime entry point: [infinity/src/main/java/infinity/systems/SettingsSystem.java](../../../infinity/src/main/java/infinity/systems/SettingsSystem.java).
 
@@ -188,7 +189,7 @@ section('Prize') { UseDeathPrizeWeights 1 }
 - Strings are quoted: `SheepMessage 'Baaah'`.
 - `include '/conf/.../foo.groovy'` recurses (cycle-detected, max depth 16). Used for compose-and-override patterns; otherwise list section files directly under `arena.groovy`'s `includeFragment` instead.
 
-Canonical Subspace key list per section: [SettingsTypes.java](../../../infinity/src/main/java/infinity/settings/SettingsTypes.java).
+Canonical Subspace key list per section: [`.scratch/subspace-ini-reference/server-defaults.md`](../../../.scratch/subspace-ini-reference/server-defaults.md) — extracted from the historical `SettingsTypes.java` catalog (deleted in v1.0.8) plus on-disk `.sss` / `.set` server defaults.
 
 ### Section categories
 
@@ -202,7 +203,7 @@ Arena-load flow in [ArenaSystem.doLoad](../../../infinity/src/main/java/infinity
 
 1. `GroovyArenaLoader.load(arenaName)` reads `arenas/{arenaName}/arena.groovy`.
 2. Parsed `ArenaConfig` is cached on the per-arena `ArenaRecord` (single source of truth for in-memory arena state — `getArenaSpawn`, `swapMap`, etc. all read from it).
-3. `SettingsSystem.loadFragments(arenaName, cfg.fragmentIncludes())` loads each fragment and merges into the per-arena `Ini` for `getInt`/`getString` consumers. Each include path is dispatched on extension: `.groovy` → `GroovyFragmentLoader` (recurses on `include` directives), anything else → `IniLoader` (legacy / operator-supplied INI).
+3. `SettingsSystem.loadFragments(arenaName, cfg.fragmentIncludes())` loads each fragment and merges into the per-arena `Ini` for `getInt`/`getString` consumers. Only `.groovy` paths are supported — `GroovyFragmentLoader` recurses on `include` directives (cycle-detected, max depth 16). Non-`.groovy` paths log a warning and are skipped.
 
 A missing `arena.groovy` fails the load with a clear "No arena.groovy found" error — the legacy `arena.conf` path was retired in zone-arena-to-groovy #3.
 
@@ -368,21 +369,14 @@ Or — if you need many keys at once — pull the whole `Ini` once via `Settings
 
 ## Asset-loader registration
 
-`SettingsSystem.initialize()` registers loaders on the server-side `AssetLoaderService`:
-
-```java
-assetLoader.registerLoader(IniLoader.class, "ini", "cfg", "conf");
-assetLoader.registerLoader(SSSLoader.class, "sss", "set");
-```
-
-Adding a new settings file extension? Register it here — `AssetLoaderService` is one per `GameServer`. Groovy files are read directly by the Groovy loaders (filesystem dev path + classpath fallback), they don't go through `AssetLoaderService`.
+`SettingsSystem.initialize()` is currently a no-op — there are no settings-file `AssetLoader` registrations to maintain. Groovy files are read directly by `GroovySettingsHost` (filesystem dev path + classpath fallback); the formerly-registered `IniLoader` (`.ini`/`.cfg`/`.conf`) and `SSSLoader` (`.sss`/`.set`) were both retired in v1.0.10 once Groovy became the only supported authoring format. If a future settings file needs registration, do it here and add the corresponding loader class next to `GroovyFragmentLoader`.
 
 ## Anti-patterns
 
 - **Don't hardcode game constants** that already exist in a fragment — route through `SettingsSystem.getInt(...)` / `getBool(...)` so operators can tune without recompiling.
 - **Don't put tuning knobs in `arena.conf`** — that file is gone. Tuning knobs go in the appropriate Groovy preset (e.g. `conf/<preset>/ships.groovy` for ship stats, `arena.groovy` for arena-scope core, `zone.groovy` for zone-wide).
 - **Don't duplicate the SVS baseline** inside arena fragments — list the per-section files from `/conf/svs/` under `includeFragment` (or `include` them from a per-preset composite root) and layer overrides below.
-- **Don't mint new section names** in fragments — prefer existing Subspace section/key conventions from `SettingsTypes` so configs stay interoperable with legacy Subspace tooling.
+- **Don't mint new section names** in fragments — prefer existing Subspace section/key conventions catalogued in [`.scratch/subspace-ini-reference/server-defaults.md`](../../../.scratch/subspace-ini-reference/server-defaults.md) so configs stay interoperable with legacy Subspace tooling.
 - **Don't bypass `SettingListener`** by polling `getIni` every tick — cache locally and update on callback.
 - **Don't reach into `WorldGrids.*` for sizes** — go through `InfinityConstants.*` (see [subspace-moss-terminology](../subspace-moss-terminology/SKILL.md)).
 

@@ -1250,12 +1250,12 @@ Spectator:NoXRadar:0:1:If specs are allowed to have X (0=yes, 1=no)
 
 ## Source — SettingsTypes.java (Java key catalog)
 
-Before deletion, [`infinity/settings/SettingsTypes.java`](../../infinity/src/main/java/infinity/settings/SettingsTypes.java)
-held 372 `private static String` constants of the form
-`SECTION_FIELDNAME = "Section-FieldName"`. The class was `@SuppressWarnings("unused")`
-and had zero callers — kept for historical completeness because it is the most
-complete Java-side enumeration of which INI fields the codebase was designed to
-read.
+Before deletion (commit `81bea3a`, shipped in v1.0.8),
+`infinity/settings/SettingsTypes.java` held 372 `private static String`
+constants of the form `SECTION_FIELDNAME = "Section-FieldName"`. The class was
+`@SuppressWarnings("unused")` and had zero callers — kept for historical
+completeness because it was the most complete Java-side enumeration of which
+INI fields the codebase was designed to read.
 
 **Format note**: this catalog uses `-` as the section/field separator. The
 `.sss` / `.set` blocks above use `:`. On-disk `.ini` files use `[Section]`
