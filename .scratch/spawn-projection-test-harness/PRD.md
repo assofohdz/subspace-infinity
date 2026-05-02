@@ -1,6 +1,6 @@
 # Spawn-projection test harness
 
-Status: ready-for-human (first slice in progress)
+Status: ready-for-human (slice 0 done — three pillars wired)
 
 End-to-end ECS flows have zero automated coverage today. Every Pattern 4 / spawn / prize / energy refactor is verified by manual game launch — see [`project_spawn_projection_test_gap.md`](../../.claude/projects/-home-assofohdz-github-assofohdz-subspace-infinity/memory/project_spawn_projection_test_gap.md). This PRD closes that gap by introducing a minimal SiO2 `GameSystemManager` test fixture that boots only the systems under test, projects a synthetic `ConfigRegistry` snapshot, and asserts the resulting ECS components match.
 
@@ -48,7 +48,9 @@ Each slice adds one independently-testable flow. Land them as separate PRs so ea
 
 | # | Slice | Asserts |
 |---|---|---|
-| **1** | **`ShipSpawnSystem` respawn projection** ⏳ | A fully-specified WARBIRD `ShipConfig` projected onto a fresh ship entity produces the documented components — Thrust / Speed / Rotation / Recharge / Energy triples, Health, feel knobs, weapons, inventory. Establishes the harness pattern. |
+| **1** | **`ShipSpawnSystem` respawn projection** ✅ | A fully-specified WARBIRD `ShipConfig` projected onto a fresh ship entity produces the documented components — Thrust / Speed / Rotation / Recharge / Energy triples, Health, feel knobs, weapons, inventory. Establishes the harness pattern. |
+| **1b** | **Prize-pickup pillar** ✅ | `RepelPrizeApplierTest` covers below-cap, at-cap, and disallowed branches by invoking the applier directly against `DefaultEntityData`. Establishes the no-`GameSystemManager` shape future Count-family applier tests follow. |
+| **1c** | **Projectile-spawn pillar** ✅ | `BulletFactoryTest` constructs a real `PhysicsSpace` from a single-cell `Grid` and asserts `GameEntities.createBullet` projects `BulletConfig.decayMs()` into a `Decay` deadline + Parent ownership; the per-level damage formula on `BulletConfig` is asserted at the seam where `WeaponsSystem` reads it. |
 | 2 | **Tuning projection (no live-pool reset)** | Damaging a ship (manual `Health` write), then triggering a tuning re-project (ArenaId change OR `reprojectAll`), preserves Health/Energy and Bomb/Gun/Mine/Burst/Thor/Repel current counts while updating capability stats and `*Max`. |
 | 3 | **Hot-reload diff event surface** | Replacing a snapshot via `ConfigRegistrySystem.replace`, then calling `reprojectAll`, fires the expected component changes. (Test the seam the conf-fragments hot-reload depends on.) |
 | 4 | **No-config fallback** | Ship in an arena with no entry in the registry retains its prior component values; the system logs the warning and skips projection. |
@@ -64,8 +66,8 @@ Each slice adds one independently-testable flow. Land them as separate PRs so ea
 
 ## Comments
 
-### Test harness for spawn / projection / prize flows — in-progress
+### Test harness for spawn / projection / prize flows — slice 0 done
 
-Tracked in [`spawn-projection-test-harness/PRD.md`](../spawn-projection-test-harness/PRD.md). Slice 1 (`ShipSpawnSystem` respawn projection) shipped — establishes the `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` fixture pattern. Remaining slices: tuning projection (no live-pool reset), hot-reload diff event surface, no-config fallback, and one-per-cluster Pattern 4 candidates as those migrations land.
+Tracked in [`spawn-projection-test-harness/PRD.md`](../spawn-projection-test-harness/PRD.md). Three pillars shipped: ship-spawn projection (`ShipSpawnSystemTest`), prize pickup (`RepelPrizeApplierTest`), and projectile spawn (`BulletFactoryTest`). The `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` fixture, the no-system applier fixture, and the `PhysicsSpace`-from-`Grid` factory fixture are all callable templates for the remaining slices. Remaining: tuning projection (no live-pool reset), hot-reload diff event surface, no-config fallback, and one-per-cluster Pattern 4 candidates as those migrations land.
 
-This is also slice 0 in [`settings-pipeline-slices.md`](../settings-pipeline-slices.md) — without it, the pipeline tracker's Test column can never honestly flip to ✅.
+This is also slice 0 in [`settings-pipeline-slices.md`](../settings-pipeline-slices.md) — pipeline tracker's Test column can now honestly flip to ✅ for slices that exercise these three pillars.

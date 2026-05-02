@@ -33,14 +33,22 @@ including the Test column) before starting the next.
 
 ## Slice 0 — Test harness (precondition)
 
-🔲 Build the programmatic spawn-projection test harness.
+✅ Programmatic spawn-projection test harness, three pillars in place:
 
-- Without this, the Test column can never honestly flip to ✅, and
-  every later slice lands as ⚠️ instead of ✅.
-- DoD: programmatic test can spawn a ship of a given type in a given
-  arena and assert template-projected components carry the expected
-  values. Same harness should extend to projectile spawn and prize
-  pickup mutations.
+- **Ship spawn** — `ShipSpawnSystemTest` boots a minimal
+  `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` +
+  `ShipSpawnSystem` and asserts a fully-specified `ShipConfig` projects
+  onto the per-entity components.
+- **Prize pickup** — `RepelPrizeApplierTest` exercises a representative
+  Count-family `PrizeApplier` directly against `DefaultEntityData`;
+  Status-family appliers (Slice 6) will extend the fixture with an
+  `EnergySystem` stub.
+- **Projectile spawn** — `BulletFactoryTest` constructs a real
+  `PhysicsSpace` from a single-cell `Grid` and asserts
+  `GameEntities.createBullet` projects `BulletConfig.decayMs()` into a
+  `Decay` deadline plus the per-level damage formula on `BulletConfig`.
+
+Later slices' Test column can now honestly flip to ✅.
 
 ## Slices 1–5 — Finish what we ship
 
