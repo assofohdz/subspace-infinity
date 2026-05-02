@@ -53,7 +53,7 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 **The five clusters above migrated together** in a single sweep: new typed records [`BulletConfig`](../../api/src/infinity/config/BulletConfig.java) / [`BombConfig`](../../api/src/infinity/config/BombConfig.java) / [`GravBombConfig`](../../api/src/infinity/config/GravBombConfig.java) / [`MineConfig`](../../api/src/infinity/config/MineConfig.java) / [`ThorConfig`](../../api/src/infinity/config/ThorConfig.java) / [`BurstFireConfig`](../../api/src/infinity/config/BurstFireConfig.java) bundled into [`WeaponsConfig`](../../api/src/infinity/config/WeaponsConfig.java); plus [`PrizeConfig`](../../api/src/infinity/config/PrizeConfig.java). [`ConfigRegistry`](../../infinity/src/main/java/infinity/settings/ConfigRegistry.java) gained `weapons()` / `prize()` accessors with the `Builder` defaulting to `*Config.DEFAULTS`. `WeaponsSystem.weaponsFor(attacker)` and `ConsumableSystem.thorConfigFor(attacker)` look up per-attacker via `ArenaId`; arenas / void attackers fall back to `DEFAULTS`.
 
 **Phase B (Groovy fragment → typed record):**
-- ~~`[Bullet] BulletDamageLevel`, `BulletAliveTime`~~ — wired (commit `b96c42d`).
+- ~~`[Bullet] BulletDamageLevel`, `BulletDamageUpgrade`, `BulletAliveTime`~~ — wired. Damage scales per gun level via `BulletConfig.damageAtLevel(N) = damage + (N - 1) * damageUpgrade` (Subspace canonical formula). `WeaponsSystem.createProjectileGun` now reads `damageAtLevel(gunCurrentLevel)` instead of flat `damage()`.
 - ~~`[Bomb] BombDamageLevel`, `BombAliveTime`~~ — wired.
 - ~~`[Mine] MineAliveTime`~~ — wired.
 - ~~`[Burst] BurstDamageLevel`~~ — wired (added `damage` field to `BurstFireConfig`; retired the hardcoded `20` in `WeaponsSystem.createProjectileBurst`).

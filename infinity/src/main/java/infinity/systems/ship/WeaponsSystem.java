@@ -460,7 +460,7 @@ public class WeaponsSystem extends AbstractGameSystem
         gunProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION0DECAY,
-            cfg.bullet().damage(),
+            cfg.bullet().damageAtLevel(gunCurrentLevel.getLevel().level),
             ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
   }
 

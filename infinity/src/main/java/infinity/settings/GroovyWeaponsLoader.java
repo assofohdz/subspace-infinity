@@ -90,13 +90,19 @@ public final class GroovyWeaponsLoader {
     final int damage =
         settings.getInt(
             arenaName, BULLET_SECTION, "BulletDamageLevel", BulletConfig.DEFAULTS.damage());
+    final int damageUpgrade =
+        settings.getInt(
+            arenaName,
+            BULLET_SECTION,
+            "BulletDamageUpgrade",
+            BulletConfig.DEFAULTS.damageUpgrade());
     final int aliveCs =
         settings.getInt(
             arenaName,
             BULLET_SECTION,
             "BulletAliveTime",
             (int) (BulletConfig.DEFAULTS.decayMs() / 10L));
-    return new BulletConfig(damage, aliveCs * 10L);
+    return new BulletConfig(damage, damageUpgrade, aliveCs * 10L);
   }
 
   private BombConfig loadBomb(final SettingsSystem settings, final String arenaName) {
