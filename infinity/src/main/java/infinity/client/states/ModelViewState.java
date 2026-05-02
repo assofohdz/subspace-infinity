@@ -42,20 +42,15 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
-import com.simsilica.bpos.BodyPosition;
-import com.simsilica.bpos.ChildPositionTransition3d;
 import com.simsilica.bpos.LargeGridCell;
-import com.simsilica.bpos.LargeObject;
 import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -73,7 +68,6 @@ import com.simsilica.lemur.core.VersionedObject;
 import com.simsilica.lemur.core.VersionedReference;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
-import com.simsilica.mathd.trans.TransitionBuffer;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mworld.WorldGrids;
 import com.simsilica.state.BlackboardState;
@@ -92,7 +86,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,7 +99,11 @@ import org.slf4j.LoggerFactory;
  */
 public class ModelViewState extends BaseAppState {
 
-  private static final long VIS_DELAY = 100000000L; // 100 ms
+  // Package-private fields — touched by the promoted Model / Body /
+  // {Body,Model,LargeModel}Container / MarkVisible siblings in this package.
+  // Kept package-private rather than public so the surface stays internal to
+  // this package, but no longer private since they're read across files.
+  static final long VIS_DELAY = 100000000L; // 100 ms
   static Logger log = LoggerFactory.getLogger(ModelViewState.class);
   // If the block at 0, 0, 0 is the block whose own origin as
   // at 0,0,0 then it extends up to 1,1,1... So we want to make
@@ -116,7 +113,7 @@ public class ModelViewState extends BaseAppState {
   // from 64 to 65 and be sitting on the ground.
   private final List<Vector4f> testCoords = new ArrayList<>();
   private final List<Spatial> tests = new ArrayList<>();
-  private final LinkedList<MarkVisible> markerQueue = new LinkedList<>();
+  final LinkedList<MarkVisible> markerQueue = new LinkedList<>();
   // Physics grid is 32x32 but SimEthereal's grid is 64x64... which
   // means the maximum we'll see updates for is 128< away.  So for
   // a 32 grid we'd need a radius of 3... but then sometimes we'd
@@ -130,15 +127,15 @@ public class ModelViewState extends BaseAppState {
   // is necessary for building the array of model filters.
   private final Vec3i largeModelCenter = new Vec3i();
   private static final int gridRadius = 2;
-  private final Map<EntityId, Model> modelIndex = new HashMap<>();
+  final Map<EntityId, Model> modelIndex = new HashMap<>();
   private final Vector3f avatarLoc = new Vector3f();
   // Center cell
-  private Vec3i centerWorld = new Vec3i();
-  private EntityData ed;
+  Vec3i centerWorld = new Vec3i();
+  EntityData ed;
   private SISpatialFactory SImodelFactory;
   // The root node to which all managed objects will be added
   private Node viewRoot;
-  private TimeSource timeSource;
+  TimeSource timeSource;
   private BodyContainer bodies;
   private ModelContainer models;
   private LargeModelContainer largeModels;
@@ -148,8 +145,8 @@ public class ModelViewState extends BaseAppState {
   private VersionedHolder<String> modelCount;
   private VersionedHolder<String> largeModelCount;
   private VersionedHolder<String> spatialCount;
-  private EntitySet flags;
-  private int avatarFrequency;
+  EntitySet flags;
+  int avatarFrequency;
   private WatchedEntity avatarEntity;
   private boolean avatarInitialized = false;
   private LocalViewState localView;
@@ -234,9 +231,9 @@ public class ModelViewState extends BaseAppState {
 
     this.flags = ed.getEntities(Flag.class, Frequency.class);
 
-    this.bodies = new BodyContainer(ed);
-    this.models = new ModelContainer(ed);
-    this.largeModels = new LargeModelContainer(ed);
+    this.bodies = new BodyContainer(this, ed);
+    this.models = new ModelContainer(this, ed);
+    this.largeModels = new LargeModelContainer(this, ed);
 
     resetModelFilter();
     resetLargeModelFilter();
@@ -377,7 +374,7 @@ public class ModelViewState extends BaseAppState {
     }
   }
 
-  private void updateSingleFlagMaterial(int shipFrequency, Entity flagEntity) {
+  void updateSingleFlagMaterial(int shipFrequency, Entity flagEntity) {
     Frequency flagfrequency = flags.getEntity(flagEntity.getId()).get(Frequency.class);
     SImodelFactory.setFlagMaterialVariables(
         getModelSpatial(flagEntity.getId(), true),
@@ -476,7 +473,7 @@ public class ModelViewState extends BaseAppState {
   protected Model getModel(EntityId entityId, boolean create) {
     Model result = modelIndex.get(entityId);
     if (result == null && create) {
-      result = new Model(entityId);
+      result = new Model(this, entityId);
       modelIndex.put(entityId, result);
     }
     result.acquire();
@@ -508,381 +505,5 @@ public class ModelViewState extends BaseAppState {
 
   public Vector3f getAvatarLoc() {
     return avatarLoc;
-  }
-
-  /**
-   * Marks static models visible at a delay so that they act similar to bodies which have a strict
-   * visibility time. This is to make up for the fact that SpawnPosition doesn't have a timestamp
-   * and that rigid bodies will typically have both a SpawnPosition and a BodyPosition. These two
-   * compete and cause the object to flicker on creation: SpawnPosition makes it visible
-   * BodyPosition makes it invisible BodyPosition + delay makes it visible again. A timestamp on
-   * SpawnPosition would fix this but might be overkill.
-   */
-  private class MarkVisible {
-    Model model;
-    long visibleTime;
-
-    public MarkVisible(Model model, long visibleTime) {
-      this.model = model;
-      this.visibleTime = visibleTime;
-    }
-
-    public void update() {
-      log.info("MarkVisible.update() useCount:" + model.useCount + "  dynamic:" + model.dynamic);
-      // If the model is still static in some way then
-      // we'll mark for static visibility
-      if (model.useCount == 1 && model.dynamic) {
-        log.info("only dynamic... should already be visible.");
-        // Somehow it's only dynamic... no spawn position at all
-        return;
-      }
-      if (model.useCount == 0) {
-        // Model is no longer in use
-        log.info("not used anymore");
-        return;
-      }
-
-      log.info("Marking static object visible:" + model.entityId);
-      // Should be safe to add our static visibility marker
-      model.markVisible();
-    }
-  }
-
-  /**
-   * Models may be detected as static and dynamic objects at the same time because of SpawnPosition
-   * and BodyPosition. Furthermore, we can't guarantee that a BodyPosition will always have a
-   * corresponding SpawnPosition because it may have moved into a different zone that see see (and
-   * we may not see the original spawn zone). So we need to cache them and keep track of the number
-   * of 'views' using it. Also, if we already have one being managed by a Body view then we should
-   * not update its static position from SpawnPosition.
-   */
-  private class Model {
-    private final EntityId entityId;
-    private Spatial spatial;
-    private ShapeInfo shapeInfo;
-    private int useCount;
-    private boolean dynamic;
-    private SpawnPosition pos;
-    private int visibleCount;
-
-    public Model(EntityId entityId) {
-      this.entityId = entityId;
-    }
-
-    public void acquire() {
-      useCount++;
-    }
-
-    public boolean release() {
-      useCount--;
-      if (useCount <= 0) {
-        if (spatial != null) {
-          spatial.removeFromParent();
-        }
-        return true;
-      }
-      return false;
-    }
-
-    public void setShape(ShapeInfo shapeInfo) {
-      if (Objects.equals(this.shapeInfo, shapeInfo)) {
-        return;
-      }
-      this.shapeInfo = shapeInfo;
-      if (spatial != null) {
-        spatial.removeFromParent();
-      }
-      Mass mass = ed.getComponent(entityId, Mass.class);
-      spatial = createModel(entityId, shapeInfo, mass);
-      if (spatial != null) {
-        getViewRoot().attachChild(spatial);
-        resetVisibility();
-      }
-    }
-
-    public void setPosition(SpawnPosition pos) {
-      this.pos = pos;
-      updateRelativePosition();
-    }
-
-    public void updateRelativePosition() {
-      if (!dynamic) {
-        if (pos == null) {
-          // We are not a static model and we are probably being removed
-          log.info("dynamic=false, pos=null, useCount=" + useCount);
-        } else {
-          Vector3f loc = pos.getLocation().toVector3f();
-
-          // Make the position relative to our "conveyor"
-          loc.subtractLocal(centerWorld.toVector3f());
-
-          spatial.setLocalTranslation(loc);
-          log.info("updateRelPos(" + entityId + "):" + loc);
-          spatial.setLocalRotation(pos.getOrientation().toQuaternion());
-        }
-      }
-    }
-
-    public void setDynamic(boolean dynamic) {
-      if (this.dynamic == dynamic) {
-        return;
-      }
-      this.dynamic = dynamic;
-      if (!dynamic) {
-        updateRelativePosition();
-      }
-    }
-
-    protected void markVisible() {
-      visibleCount++;
-      resetVisibility();
-    }
-
-    protected void markInvisible() {
-      visibleCount--;
-      resetVisibility();
-    }
-
-    protected void resetVisibility() {
-      log.info("resetVisibility():" + visibleCount);
-      if (visibleCount > 0) {
-        // Spatials marked "arena" opt out of frustum culling — the wireframe
-        // cube extends y=0..1024 but the camera sits ~75 above the avatar,
-        // so most of the bounding box is behind the camera and JME's frustum
-        // test would otherwise drop the spatial when alongside.
-        boolean noCull = spatial.getUserData("arena") != null;
-        log.info("visible:" + entityId);
-        spatial.setCullHint(noCull ? Spatial.CullHint.Never : Spatial.CullHint.Inherit);
-      } else {
-        log.info("invisible:" + entityId);
-        spatial.setCullHint(Spatial.CullHint.Always);
-      }
-    }
-  }
-
-  private class Body {
-    private final Entity entity;
-    private final Model model;
-    boolean visible;
-    boolean forceInvisible; // just in case
-    private BodyPosition pos;
-    private TransitionBuffer<ChildPositionTransition3d> buffer;
-    private EntityId lastParent;
-
-    public Body(Entity entity) {
-      this.entity = entity;
-      this.model = getModel(entity.getId(), true);
-      model.setDynamic(true);
-    }
-
-    public void setShape(ShapeInfo shapeInfo) {
-      model.setShape(shapeInfo);
-    }
-
-    public void setPosition(BodyPosition pos) {
-      if (this.pos == pos) {
-        return;
-      }
-
-      // BodyPosition requires special management to make
-      // sure all instances of BodyPosition are sharing the same
-      // thread-safe history buffer.  Everywhere it's used, it should
-      // be 'initialized'.
-      pos.initialize(entity.getId(), 12);
-      this.buffer = pos.getBuffer();
-    }
-
-    public void update(long time) {
-
-      // Look back in the brief history that we've kept and
-      // pull an interpolated value.  To do this, we grab the
-      // span of time that contains the time we want.  PositionTransition3d
-      // represents a starting and an ending pos+rot over a span of time.
-      ChildPositionTransition3d trans = buffer.getTransition(time);
-      if (trans != null) {
-        Vector3f transPos = trans.getPosition(time, true).toVector3f();
-        // if( entity.getId().getId() == 7 || entity.getId().getId() == 6 ) {
-        //    log.info("object root:" + getObjectRoot() + " parent:" + model.spatial.getParent());
-        // }
-        Quaternion rot = trans.getRotation(time, true).toQuaternion();
-
-        if (model.spatial.getParent() == getViewRoot()) {
-          // Make the position relative to our "conveyor"
-          transPos.subtractLocal(centerWorld.toVector3f());
-        }
-        // log.info("pos: "+pos.toString());
-        // log.info("body.update(" + entity.getId() + "):" + pos);
-        model.spatial.setLocalTranslation(transPos);
-        model.spatial.setLocalRotation(rot);
-
-        setVisible(trans.getVisibility(time));
-
-        /*
-                        if (trans.getVisibility(time)){
-                            if (entity.getId().getId() == avatarEntityId.getId()){
-
-        //log.info("Body[" + entity.getId() + "] position:" + model.spatial.getLocalTranslation());
-        //if( entity.getId().getId() == 7 || entity.getId().getId() == 6 ) {
-        log.info("Body[" + entity.getId() + "] world position:" +
-        model.spatial.getWorldTranslation()+", centerCellWorld = "+centerCellWorld);
-        //    log.info("**** setVisible(" + trans.getVisibility(time) + ")");
-        //}
-
-                avatarEnabled = true;
-                //We need the world location to make sure we move the view accordingly
-                setAvatarLoc(model.spatial.getWorldTranslation());
-            }
-        }
-        */
-        // See if it's connected to a parent
-        EntityId parentId = trans.getParentId(time, true);
-
-        // if( entity.getId().getId() == 7 || entity.getId().getId() == 6 ) {
-        //    log.info("parent:" + parentId);
-        // }
-        if (!Objects.equals(parentId, lastParent)) {
-          // Now make the parent right
-          if (parentId == null) {
-            getViewRoot().attachChild(model.spatial);
-            lastParent = parentId;
-          } else {
-            // See if we have a parent model already
-            // We look it up directly so that it doesn't
-            // trigger an "acquire".  We don't want to add to
-            // the usage count as that's meant for managing bodies
-            // versus statics.
-            Model parent = modelIndex.get(parentId);
-            if (parent != null) {
-              ((Node) parent.spatial).attachChild(model.spatial);
-            }
-            lastParent = parentId;
-          }
-        }
-      }
-    }
-
-    protected void setVisible(boolean f) {
-      if (this.visible == f) {
-        return;
-      }
-      this.visible = f;
-      if (visible) {
-        model.markVisible();
-      } else {
-        model.markInvisible();
-      }
-    }
-
-    public void release() {
-      releaseModel(entity.getId());
-      model.setDynamic(false);
-    }
-  }
-
-  private class BodyContainer extends EntityContainer<Body> {
-    public BodyContainer(EntityData ed) {
-      // Because at least in this demo, shape and model are the same thing
-      super(ed, BodyPosition.class, ShapeInfo.class);
-    }
-
-    @Override
-    public Body[] getArray() {
-      return super.getArray();
-    }
-
-    protected Body addObject(Entity e) {
-      log.info("add body for:" + e.getId());
-      Body object = new Body(e);
-      updateObject(object, e);
-      return object;
-    }
-
-    protected void updateObject(Body object, Entity e) {
-      object.setShape(e.get(ShapeInfo.class));
-      object.setPosition(e.get(BodyPosition.class));
-    }
-
-    protected void removeObject(Body object, Entity e) {
-      log.info("remove body for:" + e.getId());
-      object.release();
-    }
-  }
-
-  /** Keeps track of the static models in the scene. */
-  private class ModelContainer extends EntityContainer<Model> {
-    public ModelContainer(EntityData ed) {
-      super(ed, SpawnPosition.class, ShapeInfo.class);
-    }
-
-    public void setFilter(ComponentFilter filter) {
-      super.setFilter(filter);
-    }
-
-    @Override
-    public Model[] getArray() {
-      return super.getArray();
-    }
-
-    protected Model addObject(Entity e) {
-      log.info("add model for:" + e.getId() + "   at time:" + timeSource.getTime());
-      Model object = getModel(e.getId(), true);
-      updateObject(object, e);
-
-      // Add it to the queue to be made visible at a future time
-      markerQueue.add(new MarkVisible(object, timeSource.getTime() + VIS_DELAY));
-
-      return object;
-    }
-
-    protected void updateObject(Model object, Entity e) {
-      object.setShape(e.get(ShapeInfo.class));
-      object.setPosition(e.get(SpawnPosition.class));
-
-      // Check if the entity is a flag and if so, update the flagmaterials
-      if (flags.containsId(e.getId())) {
-        updateSingleFlagMaterial(avatarFrequency, e);
-      }
-    }
-
-    protected void removeObject(Model object, Entity e) {
-      log.info("remove model for:" + e.getId());
-      releaseModel(e.getId());
-    }
-  }
-
-  /** Keeps track of the large static models in the scene. */
-  private class LargeModelContainer extends EntityContainer<Model> {
-    public LargeModelContainer(EntityData ed) {
-      super(ed, SpawnPosition.class, ShapeInfo.class, LargeObject.class, LargeGridCell.class);
-    }
-
-    public void setFilter(ComponentFilter filter) {
-      super.setFilter(filter);
-    }
-
-    public Model[] getArray() {
-      return super.getArray();
-    }
-
-    protected Model addObject(Entity e) {
-      log.info("LargeObject add model for:" + e.getId() + "   at time:" + timeSource.getTime());
-      Model object = getModel(e.getId(), true);
-      updateObject(object, e);
-
-      // Add it to the queue to be made visible at a future time
-      markerQueue.add(new MarkVisible(object, timeSource.getTime() + VIS_DELAY));
-
-      return object;
-    }
-
-    protected void updateObject(Model object, Entity e) {
-      object.setShape(e.get(ShapeInfo.class));
-      object.setPosition(e.get(SpawnPosition.class));
-    }
-
-    protected void removeObject(Model object, Entity e) {
-      log.info("LargeObject remove model for:" + e.getId());
-      releaseModel(e.getId());
-    }
   }
 }
