@@ -1,3 +1,14 @@
+## v1.0.11 — 2026-05-02
+
+Crash fix for packaged Windows builds on NVIDIA GPUs.
+
+Bug Fixes:
+- **MiniMap shader crashed at join-game on NVIDIA GPUs.** `MatDefs/MiniMap/MiniMap.{frag,vert}` used legacy GLSL syntax (`varying`, `attribute`, `gl_FragColor`) but the j3md offered a `GLSL150` variant. NVIDIA's strict compiler rejected the deprecated syntax (`C7555`/`C7533`); Mesa on Linux accepted it silently. `RadarState` loads the MiniMap material when the ship enters an arena, producing the "black-then-close" symptom ~70 ms after spawn. Added `#import "Common/ShaderLib/GLSLCompat.glsllib"` to both files (matches the convention already used by `Lighting`, `Unshaded`, the `AnimateSprite`/`Multiline`/`StaticSprite` shaders in this repo).
+- **`AnimateOnceSpriteShader.{frag,vert}` defensively patched** with the same shim. Currently unwired, but the intended one-shot-sprite-animation use would have hit the same NVIDIA wall when enabled.
+
+Other:
+- Audit confirms all 27 `.frag`/`.vert` files in `infinity/assets/MatDefs/` now import `GLSLCompat.glsllib`, and none use the rarer deprecated built-ins (`gl_FragData`, `gl_TexCoord`, `ftransform`, `gl_ModelViewProjectionMatrix`, `gl_Vertex`, `gl_Color`, `gl_Normal`) that would be the next class of strict-mode failures.
+
 ## v1.0.10 — 2026-05-02
 
 Diagnostics release. No gameplay changes.
