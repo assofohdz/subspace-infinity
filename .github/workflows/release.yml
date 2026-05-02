@@ -47,6 +47,11 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name != 'push' }}
+
       - name: Get version from tag
         id: version
         shell: bash
@@ -62,14 +67,8 @@ jobs:
         run: |
           sed -i.bak 's/version = ".*"/version = "${{ steps.version.outputs.VERSION }}"/' infinity/build.gradle
 
-      - name: Build with Gradle
-        run: ./gradlew :infinity:build
-
-      - name: Create app image (for itch.io)
-        run: ./gradlew :infinity:jpackageImage
-
-      - name: Create native installer (for GitHub releases)
-        run: ./gradlew :infinity:jpackage
+      - name: Build, app image, and installer
+        run: ./gradlew :infinity:build :infinity:jpackageImage :infinity:jpackage --build-cache
 
       - name: Upload app image for itch.io
         uses: actions/upload-artifact@v4
