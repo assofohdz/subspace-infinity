@@ -25,36 +25,25 @@
  */
 package infinity;
 
-import com.jme3.math.ColorRGBA;
-
 /**
- * Bomb level enum (1-4) with sprite offsets, light colors, and damage values.
+ * Bomb level identity (1-4) — wire-protocol enum used by {@code BombStats},
+ * {@code BombCurrentLevel} / {@code BombMaxLevel}, etc. Sprite-sheet offsets
+ * and other render data live in {@code infinity.client.view.BombVisuals},
+ * kept out of the api layer per {@code api-contracts.md}.
  *
  * @author Asser
  */
 public enum Bombs {
-  BOMB_1(1, 12, ColorRGBA.Red, 25),
-  BOMB_2(2, 11, ColorRGBA.Yellow, 30),
-  BOMB_3(3, 10, ColorRGBA.Blue, 35),
-  BOMB_4(4, 9, ColorRGBA.White, 40);
+  BOMB_1(1),
+  BOMB_2(2),
+  BOMB_3(3),
+  BOMB_4(4);
 
-  /** Level value */
+  /** Level value (1-4). */
   public final int level;
 
-  /** Offset in the bm2 file */
-  public final int viewOffset;
-
-  /** Light color */
-  public final ColorRGBA lightColor;
-
-  public final float lightRadius;
-
-  Bombs(
-      final int level, final int viewOffset, final ColorRGBA lightColor, final float lightRadius) {
+  Bombs(final int level) {
     this.level = level;
-    this.viewOffset = viewOffset;
-    this.lightColor = lightColor;
-    this.lightRadius = lightRadius;
   }
 
   /** Next bomb level, or null at the maximum. */

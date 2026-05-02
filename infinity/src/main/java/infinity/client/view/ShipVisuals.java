@@ -23,33 +23,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity;
+
+package infinity.client.view;
+
+import infinity.Ship;
 
 /**
- * Gun level identity (1-4) — wire-protocol enum used by {@code GunStats},
- * {@code GunCurrentLevel} / {@code GunMaxLevel}. Sprite-sheet offsets live
- * in {@code infinity.client.view.GunVisuals}, kept out of the api layer per
- * {@code api-contracts.md}.
- *
- * @author Asser
+ * Client-side sprite-sheet row offsets for each {@link Ship}. Pure render data
+ * — kept out of the api {@code Ship} enum so the wire-protocol identity stays
+ * free of jME-side concerns. The constant names mirror {@code Ship} so the
+ * lookup is direct: {@code ShipVisuals.WARBIRD.visualOffset}.
  */
-public enum Guns {
-  LEVEL_1(1),
-  LEVEL_2(2),
-  LEVEL_3(3),
-  LEVEL_4(4);
+public enum ShipVisuals {
+  WARBIRD(Ship.WARBIRD, 31),
+  JAVELIN(Ship.JAVELIN, 27),
+  SPIDER(Ship.SPIDER, 23),
+  LEVIATHAN(Ship.LEVIATHAN, 19),
+  TERRIER(Ship.TERRIER, 15),
+  WEASEL(Ship.WEASEL, 11),
+  LANCASTER(Ship.LANCASTER, 7),
+  SHARK(Ship.SHARK, 3);
 
-  /** Level value (1-4). */
-  public final int level;
+  public final Ship ship;
+  public final int visualOffset;
 
-  Guns(final int level) {
-    this.level = level;
+  ShipVisuals(final Ship ship, final int visualOffset) {
+    this.ship = ship;
+    this.visualOffset = visualOffset;
   }
 
-  /** Next gun level, or null at the maximum. */
-  public Guns next() {
-    final Guns[] vals = values();
-    final int n = ordinal() + 1;
-    return n < vals.length ? vals[n] : null;
+  /** Look up the visuals for a given ship. */
+  public static ShipVisuals forShip(final Ship ship) {
+    for (final ShipVisuals v : values()) {
+      if (v.ship == ship) {
+        return v;
+      }
+    }
+    throw new IllegalArgumentException("No ShipVisuals for " + ship);
   }
 }

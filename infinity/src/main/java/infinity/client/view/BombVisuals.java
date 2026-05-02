@@ -23,33 +23,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity;
+
+package infinity.client.view;
+
+import infinity.Bombs;
 
 /**
- * Gun level identity (1-4) — wire-protocol enum used by {@code GunStats},
- * {@code GunCurrentLevel} / {@code GunMaxLevel}. Sprite-sheet offsets live
- * in {@code infinity.client.view.GunVisuals}, kept out of the api layer per
- * {@code api-contracts.md}.
- *
- * @author Asser
+ * Client-side sprite-sheet offsets for each {@link Bombs} level. Pure render
+ * data — kept out of the api {@code Bombs} enum so the wire-protocol identity
+ * stays free of jME-side concerns. (The previous {@code lightColor} /
+ * {@code lightRadius} fields on {@code Bombs} were dropped — only the
+ * commented-out {@code GameEntities} call referenced them, and the live
+ * lighting pipeline uses {@code SISpatialFactory}'s own logic.)
  */
-public enum Guns {
-  LEVEL_1(1),
-  LEVEL_2(2),
-  LEVEL_3(3),
-  LEVEL_4(4);
+public enum BombVisuals {
+  BOMB_1(Bombs.BOMB_1, 12),
+  BOMB_2(Bombs.BOMB_2, 11),
+  BOMB_3(Bombs.BOMB_3, 10),
+  BOMB_4(Bombs.BOMB_4, 9);
 
-  /** Level value (1-4). */
-  public final int level;
+  public final Bombs level;
+  public final int viewOffset;
 
-  Guns(final int level) {
+  BombVisuals(final Bombs level, final int viewOffset) {
     this.level = level;
+    this.viewOffset = viewOffset;
   }
 
-  /** Next gun level, or null at the maximum. */
-  public Guns next() {
-    final Guns[] vals = values();
-    final int n = ordinal() + 1;
-    return n < vals.length ? vals[n] : null;
+  /** Look up the visuals for a given bomb level. */
+  public static BombVisuals forLevel(final Bombs level) {
+    for (final BombVisuals v : values()) {
+      if (v.level == level) {
+        return v;
+      }
+    }
+    throw new IllegalArgumentException("No BombVisuals for " + level);
   }
 }

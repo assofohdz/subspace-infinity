@@ -29,58 +29,57 @@ package infinity;
 import infinity.sim.util.InfinityRunTimeException;
 
 /**
- * This enum holds both byte information and string names for the ships in the game.
- * The order of the ships are warbird, javelin, spider, leviathan, terrier, weasel, lancaster, shark.
+ * Wire-protocol identity for the eight playable ships. Order is warbird,
+ * javelin, spider, leviathan, terrier, weasel, lancaster, shark — the byte
+ * id is what flows through {@code ShipType} on the network.
+ *
+ * <p>Sprite-sheet offsets and other client-side render data live in
+ * {@code infinity.client.view.ShipVisuals}, kept out of the api layer per
+ * {@code api-contracts.md}.
  *
  * @author asser
  */
 public enum Ship {
-  WARBIRD(1, "ship_warbird", 31),
-    JAVELIN(2, "ship_javelin", 27),
-    SPIDER(3, "ship_spider", 23),
-    LEVIATHAN(4, "ship_leviathan",19),
-    TERRIER(5, "ship_terrier",15),
-    WEASEL(6, "ship_weasel", 11),
-    LANCASTER(7, "ship_lancaster",7),
-    SHARK(8, "ship_shark",3);
+  WARBIRD(1, "ship_warbird"),
+  JAVELIN(2, "ship_javelin"),
+  SPIDER(3, "ship_spider"),
+  LEVIATHAN(4, "ship_leviathan"),
+  TERRIER(5, "ship_terrier"),
+  WEASEL(6, "ship_weasel"),
+  LANCASTER(7, "ship_lancaster"),
+  SHARK(8, "ship_shark");
 
-    private final byte id;
-    private final String name;
-    private final int visualOffset;
+  private final byte id;
+  private final String name;
 
-    Ship(final int id, final String name, int visualOffset) {
-        this.id = (byte) id;
-        this.name = name;
-        this.visualOffset = visualOffset;
+  Ship(final int id, final String name) {
+    this.id = (byte) id;
+    this.name = name;
+  }
+
+  public byte getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public static Ship getShip(final byte id) {
+    for (final Ship ship : values()) {
+      if (ship.getId() == id) {
+        return ship;
+      }
     }
+    throw new InfinityRunTimeException("No ship with id " + id);
+  }
 
-    public byte getId() {
-        return id;
+  public static Ship getShip(final String name) {
+    for (final Ship ship : values()) {
+      if (ship.getName().equals(name)) {
+        return ship;
+      }
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public static Ship getShip(final byte id) {
-        for (final Ship ship : values()) {
-            if (ship.getId() == id) {
-                return ship;
-            }
-        }
-        throw new InfinityRunTimeException("No ship with id " + id);
-    }
-
-    public static Ship getShip(final String name) {
-        for (final Ship ship : values()) {
-            if (ship.getName().equals(name)) {
-                return ship;
-            }
-        }
-        throw new InfinityRunTimeException("No ship with name " + name);
-    }
-
-  public int getVisualOffset() {
-    return visualOffset;
+    throw new InfinityRunTimeException("No ship with name " + name);
   }
 }

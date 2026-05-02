@@ -52,14 +52,14 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.Part;
-import infinity.BombRegistry;
-import infinity.Ship;
+import infinity.client.view.BombVisuals;
+import infinity.client.view.GunVisuals;
+import infinity.client.view.ShipVisuals;
+import infinity.client.view.SpecialBombVisuals;
 import infinity.client.view.BlockGeometryIndex;
 import infinity.client.view.EffectFactory;
 import infinity.es.Flag;
 import infinity.es.ShapeNames;
-import infinity.Bombs;
-import infinity.Guns;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import java.nio.FloatBuffer;
@@ -108,27 +108,27 @@ public class SISpatialFactory {
 
     switch (shapeName) {
       case ShapeNames.BULLETL4:
-        return createBullet(Guns.LEVEL_4.viewOffset);
+        return createBullet(GunVisuals.LEVEL_4.viewOffset);
       case ShapeNames.BULLETL3:
-        return createBullet(Guns.LEVEL_3.viewOffset);
+        return createBullet(GunVisuals.LEVEL_3.viewOffset);
       case ShapeNames.BULLETL2:
-        return createBullet(Guns.LEVEL_2.viewOffset);
+        return createBullet(GunVisuals.LEVEL_2.viewOffset);
       case ShapeNames.BULLETL1:
-        return createBullet(Guns.LEVEL_1.viewOffset);
+        return createBullet(GunVisuals.LEVEL_1.viewOffset);
       case ShapeNames.MINEL1:
       case ShapeNames.BOMBL1:
-        return createBomb(Bombs.BOMB_1.viewOffset);
+        return createBomb(BombVisuals.BOMB_1.viewOffset);
       case ShapeNames.MINEL2:
       case ShapeNames.BOMBL2:
-        return createBomb(Bombs.BOMB_2.viewOffset);
+        return createBomb(BombVisuals.BOMB_2.viewOffset);
       case ShapeNames.MINEL3:
       case ShapeNames.BOMBL3:
-        return createBomb(Bombs.BOMB_3.viewOffset);
+        return createBomb(BombVisuals.BOMB_3.viewOffset);
       case ShapeNames.MINEL4:
       case ShapeNames.BOMBL4:
-        return createBomb(Bombs.BOMB_4.viewOffset);
+        return createBomb(BombVisuals.BOMB_4.viewOffset);
       case ShapeNames.THOR:
-        return createBomb(BombRegistry.THOR.viewOffset);
+        return createBomb(SpecialBombVisuals.THOR.viewOffset);
       case ShapeNames.BURST:
         return createBurst();
       case ShapeNames.EXPLOSION:
@@ -156,21 +156,21 @@ public class SISpatialFactory {
       case ShapeNames.OVER2:
         return createOver2();
       case ShapeNames.SHIP_WARBIRD:
-        return createShip(Ship.WARBIRD.getVisualOffset());
+        return createShip(ShipVisuals.WARBIRD.visualOffset);
       case ShapeNames.SHIP_JAVELIN:
-        return createShip(Ship.JAVELIN.getVisualOffset());
+        return createShip(ShipVisuals.JAVELIN.visualOffset);
       case ShapeNames.SHIP_SPIDER:
-        return createShip(Ship.SPIDER.getVisualOffset());
+        return createShip(ShipVisuals.SPIDER.visualOffset);
       case ShapeNames.SHIP_LEVI:
-        return createShip(Ship.LEVIATHAN.getVisualOffset());
+        return createShip(ShipVisuals.LEVIATHAN.visualOffset);
       case ShapeNames.SHIP_TERRIER:
-        return createShip(Ship.TERRIER.getVisualOffset());
+        return createShip(ShipVisuals.TERRIER.visualOffset);
       case ShapeNames.SHIP_WEASEL:
-        return createShip(Ship.WEASEL.getVisualOffset());
+        return createShip(ShipVisuals.WEASEL.visualOffset);
       case ShapeNames.SHIP_LANCASTER:
-        return createShip(Ship.LANCASTER.getVisualOffset());
+        return createShip(ShipVisuals.LANCASTER.visualOffset);
       case ShapeNames.SHIP_SHARK:
-        return createShip(Ship.SHARK.getVisualOffset());
+        return createShip(ShipVisuals.SHARK.visualOffset);
       case ShapeNames.FLAG:
         return createFlag(Flag.FLAG_THEIRS);
       case ShapeNames.DOOR:

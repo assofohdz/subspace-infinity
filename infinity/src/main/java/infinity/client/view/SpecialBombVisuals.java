@@ -23,33 +23,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package infinity;
+
+package infinity.client.view;
 
 /**
- * Gun level identity (1-4) — wire-protocol enum used by {@code GunStats},
- * {@code GunCurrentLevel} / {@code GunMaxLevel}. Sprite-sheet offsets live
- * in {@code infinity.client.view.GunVisuals}, kept out of the api layer per
- * {@code api-contracts.md}.
+ * Client-side sprite-sheet offsets for the special-bomb variants (EMP, Super,
+ * Thor). Relocated from the former api {@code BombRegistry} enum, which was
+ * client-only data leaking into the api layer. Only {@link #THOR} is currently
+ * referenced by {@code SISpatialFactory}; the EMP and Super variants are kept
+ * as scaffolding for the planned weapon-variant feature (parallel to the
+ * unwired one-shot sprite-shader stub).
  *
- * @author Asser
+ * <p>The previous {@code lightColor} / {@code lightRadius} fields were dropped
+ * — only the constructor assignments referenced them, no consumer ever read.
  */
-public enum Guns {
-  LEVEL_1(1),
-  LEVEL_2(2),
-  LEVEL_3(3),
-  LEVEL_4(4);
+public enum SpecialBombVisuals {
+  EMP_1(1, 8),
+  EMP_2(2, 7),
+  EMP_3(3, 6),
+  EMP_4(4, 5),
+  SUPER_1(1, 4),
+  SUPER_2(2, 3),
+  SUPER_3(3, 2),
+  SUPER_4(4, 1),
+  THOR(1, 0);
 
-  /** Level value (1-4). */
+  /** Variant level (1-4 within the EMP / Super families; 1 for Thor). */
   public final int level;
 
-  Guns(final int level) {
-    this.level = level;
-  }
+  /** Offset in the bm2 sprite sheet. */
+  public final int viewOffset;
 
-  /** Next gun level, or null at the maximum. */
-  public Guns next() {
-    final Guns[] vals = values();
-    final int n = ordinal() + 1;
-    return n < vals.length ? vals[n] : null;
+  SpecialBombVisuals(final int level, final int viewOffset) {
+    this.level = level;
+    this.viewOffset = viewOffset;
   }
 }
