@@ -1,3 +1,4 @@
+#import "Common/ShaderLib/GLSLCompat.glsllib"
 
 uniform sampler2D m_ColorMap;
 uniform sampler2D m_Mask;

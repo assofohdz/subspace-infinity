@@ -1,3 +1,5 @@
+#import "Common/ShaderLib/GLSLCompat.glsllib"
+
 uniform mat4 g_WorldViewProjectionMatrix;
 uniform float g_Tpf;
 uniform float g_Time;

@@ -1,3 +1,5 @@
+#import "Common/ShaderLib/GLSLCompat.glsllib"
+
 varying vec2 texCoordAni;
 varying float completed;
 uniform sampler2D m_AniTexMap;
