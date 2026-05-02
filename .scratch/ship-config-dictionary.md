@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-15 keys (5 stat triples). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/settings/ShipSpawnSystem.java) into per-entity ECS components.
+15 keys (5 stat triples). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
