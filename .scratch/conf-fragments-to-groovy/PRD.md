@@ -1,6 +1,6 @@
 # Migrate `conf/<preset>/*.conf` fragments to Groovy
 
-Status: Phase A complete. Phase B (typed `*Config` records per `[Section]`) is deferred — see [`ship-config-dictionary.md`](../ship-config-dictionary.md) for the per-ship slice.
+Status: Phase A complete. Phase B partially shipped (commits b96c42d, 7d3253a, 4eaeca8): `[Bullet]`, `[Bomb]`, `[Mine]`, `[Burst]`, and `[Prize]` sections are now wired into typed `WeaponsConfig` + `PrizeConfig` records via `GroovyWeaponsLoader`. Per-ship typed graduation tracked in [`ship-config-dictionary.md`](../ship-config-dictionary.md). `org.ini4j` / untyped string-keyed accessors remain for sections not yet promoted.
 
 **Shipped (commits `a52a66a`, `5e9fef5`, plus the hot-reload + IniLoader-retirement follow-up):**
 - `GroovyFragmentLoader` with `section` / `shipSection` / `shipSections` DSL + recursive `include` (cycle detection, depth 16).

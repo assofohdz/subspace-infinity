@@ -72,7 +72,8 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 | `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. |
 | `GroovyShipLoader` | Loads each arena's `ships.groovy` (referenced via `arena { shipsScript ... }`) → per-arena `ConfigRegistry`. |
 | `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments`; Groovy is the only fragment format supported (no `.ini` / `.cfg` / `.conf` ingest path remains). |
-| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records (currently `ShipConfig` only; expand as Phase B promotes more sections). |
+| `GroovyWeaponsLoader` | Phase B bridge. Reads `[Bullet]`, `[Bomb]`, `[Mine]`, `[Burst]`, `[Prize]` sections from the merged `Ini` and produces `WeaponsConfig` + `PrizeConfig`. Called from `ArenaSystem.applyWeaponsConfig` after `shipLoader.apply`, on `ships.groovy` reload, and on fragment hot-reload. Registered as a system in `GameServer`. |
+| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records: `ShipConfig` (via `GroovyShipLoader`), `WeaponsConfig` and `PrizeConfig` (via `GroovyWeaponsLoader`). Use `withWeapons(WeaponsConfig)` / `withPrize(PrizeConfig)` for immutable-copy updates. |
 | `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Atomic-swap installs from `GroovyShipLoader` / live-reload; readers see either the old or new snapshot, never a torn state. |
 | `SettingListener` | Callback: `arenaSettingsChange(ArenaId, section, setting)` fired from `SettingsSystem.setSetting` and from fragment hot-reload diffs. |
 
