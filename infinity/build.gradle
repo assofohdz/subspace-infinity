@@ -14,7 +14,11 @@ crashLogDir.mkdirs()
 applicationDefaultJvmArgs = [
     "-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m",
     "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
-    "-XX:ErrorFile=${crashLogDir}/hs_err_pid%p.log"
+    "-XX:ErrorFile=${crashLogDir}/hs_err_pid%p.log",
+    // Route java.util.logging → log4j2 (paired with the log4j-jul runtime dep
+    // above). Must be set before any j.u.l class is touched, hence here in
+    // the JVM args rather than at runtime.
+    "-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager"
 ]
 
 // Force X11 mode for LWJGL3 on Wayland systems (fixes EGL window creation issues)
@@ -62,6 +66,11 @@ dependencies {
     implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
     implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+    // Bridge java.util.logging → log4j2 so JME's render-thread errors and
+    // any other JUL output land in infinity.log instead of disappearing
+    // into stderr (which itch.io's launcher discards). Activated by the
+    // -Djava.util.logging.manager=... JVM arg below.
+    runtimeOnly "org.apache.logging.log4j:log4j-jul:$log4jVersion"
 
     //https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
     implementation "com.google.code.findbugs:jsr305:3.0.2"
@@ -173,7 +182,11 @@ tasks.register('jpackageImage', Exec) {
         '--java-options', '-Xmx1024m',
         '--java-options', '-Xms512m',
         '--java-options', '-XX:MaxDirectMemorySize=1024m',
-        '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED'
+        '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED',
+        // Route JME's java.util.logging output through log4j so render-thread
+        // exceptions land in infinity.log on packaged builds (itch.io's
+        // launcher discards stderr otherwise).
+        '--java-options', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager'
     ]
     
     // Add icon if it exists
@@ -211,7 +224,10 @@ tasks.register('jpackage', Exec) {
         '--java-options', '-Xmx1024m',
         '--java-options', '-Xms512m',
         '--java-options', '-XX:MaxDirectMemorySize=1024m',
-        '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED'
+        '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED',
+        // Route JME's java.util.logging output through log4j so render-thread
+        // exceptions land in infinity.log on packaged builds.
+        '--java-options', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager'
     ]
     
     // OS-specific installer type
