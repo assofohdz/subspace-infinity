@@ -128,6 +128,7 @@ import infinity.systems.MovementInputSystem;
 import infinity.systems.PrizeSystem;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.GroovyShipLoader;
+import infinity.settings.GroovyWeaponsLoader;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ship.ShipSpawnSystem;
 import infinity.systems.ship.WarpSystem;
@@ -333,6 +334,7 @@ public class GameServer {
     final ConfigRegistrySystem configRegistry = new ConfigRegistrySystem();
     systems.register(ConfigRegistrySystem.class, configRegistry);
     systems.register(GroovyShipLoader.class, new GroovyShipLoader(configRegistry));
+    systems.register(GroovyWeaponsLoader.class, new GroovyWeaponsLoader());
     systems.register(ShipSpawnSystem.class, new ShipSpawnSystem());
     systems.register(MapSystem.class, new MapSystem());
     systems.register(WarpSystem.class, new WarpSystem());

@@ -31,12 +31,22 @@ package infinity.config;
  * {@code WeaponsSystem.createProjectileGun} via the attacker's
  * {@code ArenaId} → {@link infinity.settings.ConfigRegistry#weapons()}.
  *
- * @param damage damage applied on hit (legacy default {@code 10})
+ * <p>Populated from the merged Groovy fragment store at arena-load — see
+ * {@code GroovyWeaponsLoader}. Subspace fragment keys:
+ * <ul>
+ *   <li>{@code [Bullet] BulletDamageLevel} → {@link #damage}
+ *   <li>{@code [Bullet] BulletAliveTime} (centiseconds) × 10 → {@link #decayMs}
+ * </ul>
+ *
+ * @param damage damage applied on hit
  * @param decayMs lifetime in milliseconds before the projectile expires
- *     (legacy default {@code 1500})
  */
 public record BulletConfig(int damage, long decayMs) {
 
-  /** Defaults matching the legacy Java {@code BULLET_DAMAGE} / {@code BULLET_DECAY_MS} constants. */
-  public static final BulletConfig DEFAULTS = new BulletConfig(10, 1500L);
+  /**
+   * Subspace-canonical baseline used when no fragment provides a value.
+   * Pulled from the {@code svs} preset's {@code [Bullet]} section
+   * ({@code BulletDamageLevel 100}, {@code BulletAliveTime 550}).
+   */
+  public static final BulletConfig DEFAULTS = new BulletConfig(100, 5500L);
 }

@@ -49,10 +49,14 @@ import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.systems.ship.ShipSpawnSystem;
+import infinity.settings.ConfigRegistry;
+import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovySettingsHost;
 import infinity.settings.GroovyShipLoader;
+import infinity.settings.GroovyWeaponsLoader;
 import infinity.settings.GroovyZoneLoader;
+import infinity.config.WeaponsConfig;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
 import infinity.es.ship.Player;
@@ -175,6 +179,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntitySet arenaEntities;
   private EntitySet playerEntities;
   private GroovyShipLoader shipLoader;
+  private GroovyWeaponsLoader weaponsLoader;
+  private ConfigRegistrySystem configRegistry;
   private final GroovyArenaLoader arenaLoader = new GroovyArenaLoader();
   private boolean bootstrapped;
 
@@ -238,6 +244,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
     shipLoader = getSystem(GroovyShipLoader.class);
+    weaponsLoader = getSystem(GroovyWeaponsLoader.class);
+    configRegistry = getSystem(ConfigRegistrySystem.class);
 
     chat.registerPatternTriConsumer(
         loadMap,
@@ -615,6 +623,21 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
+   * Phase B: derive {@link WeaponsConfig} from the per-arena merged fragment
+   * store and fold it into the {@link ConfigRegistry} snapshot. Called after
+   * {@code shipLoader.apply} (which installs the ship part of the snapshot)
+   * and on fragment hot-reload, so an operator's {@code BulletDamageLevel}
+   * edit in {@code misc.groovy} reaches {@code WeaponsSystem} without a
+   * server restart.
+   */
+  private void applyWeaponsConfig(
+      final SettingsSystem settings, final String arenaName, final ArenaId arenaId) {
+    final WeaponsConfig weapons = weaponsLoader.load(settings, arenaName);
+    final ConfigRegistry current = configRegistry.forArena(arenaId);
+    configRegistry.replace(arenaId, current.withWeapons(weapons));
+  }
+
+  /**
    * Load {@code zone.groovy} into {@link #zoneConfig} and set desired=true for each
    * arena in {@code autoLoad}. Idempotent — safe to call once at startup.
    */
@@ -691,11 +714,13 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final String shipsScript =
           rec.config.shipsScript().isBlank() ? null : rec.config.shipsScript();
       shipLoader.apply(arenaId, shipsScript);
+      applyWeaponsConfig(settings, rec.name, arenaId);
       registerFileWatch(
           arenaId,
           shipsScript,
           () -> {
             shipLoader.apply(arenaId, shipsScript);
+            applyWeaponsConfig(settings, rec.name, arenaId);
             final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
             log.info(
                 "{} changed for arena {}; reprojected {} ship(s)",
@@ -714,6 +739,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
               fragmentPath,
               () -> {
                 settings.reloadFragments(arenaId, allFragments);
+                applyWeaponsConfig(settings, rec.name, arenaId);
                 log.info(
                     "{} changed for arena {}; settings reloaded",
                     fragmentPath, arenaId.getArena());

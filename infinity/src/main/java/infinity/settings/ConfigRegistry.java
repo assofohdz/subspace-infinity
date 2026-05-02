@@ -109,6 +109,19 @@ public final class ConfigRegistry {
   }
 
   /**
+   * Return a copy of this snapshot with {@link #weapons} replaced. Used by
+   * Phase B fragment loaders that derive weapon tuning from the per-arena
+   * {@code Ini} after the ship snapshot is already installed — keeps both
+   * loaders independent without exposing a mutable builder.
+   */
+  public ConfigRegistry withWeapons(final WeaponsConfig replacement) {
+    Objects.requireNonNull(replacement, "weapons");
+    final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
+    source.putAll(this.ships);
+    return new ConfigRegistry(source, replacement, this.prize);
+  }
+
+  /**
    * Mutable accumulator for a snapshot. Intended to be short-lived — populate
    * via the config layer, then call {@link #build()} to freeze. Not
    * thread-safe; build from one thread, publish via
