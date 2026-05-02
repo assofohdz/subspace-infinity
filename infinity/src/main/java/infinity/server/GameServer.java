@@ -38,8 +38,6 @@ package infinity.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Arrays;
 
 import com.jme3.network.HostedConnection;
 import com.jme3.network.Network;
@@ -72,11 +70,9 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mblock.BlockType;
 import com.simsilica.mblock.BlockTypeIndex;
 import com.simsilica.mblock.config.DefaultBlockSet;
 import com.simsilica.mblock.phys.Collider;
-import com.simsilica.mblock.phys.collision.CubeCollider;
 import com.simsilica.mblock.phys.MBlockCollisionSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mblock.phys.collision.ColliderFactories;
@@ -128,7 +124,6 @@ import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
-import infinity.systems.MapTypes;
 import infinity.systems.MovementInputSystem;
 import infinity.systems.PrizeSystem;
 import infinity.settings.ConfigRegistrySystem;
@@ -262,7 +257,7 @@ public class GameServer {
     }
 
     // Expand BlockTypeIndex to accommodate tile types (100-289)
-    expandBlockTypeIndexForTiles();
+    BlockTypeExpander.expandBlockTypeIndex();
 
     // Set up the physics space
     ShapeFactoryRegistry<MBlockShape> shapeFactory = new ShapeFactoryRegistry<>();
@@ -289,7 +284,7 @@ public class GameServer {
 
     // Create colliders, expanding for tile types (which have null/passthrough colliders)
     Collider[] baseColliders = new ColliderFactories(true).createColliders(BlockTypeIndex.getTypes());
-    Collider[] colliders = expandCollidersForTiles(baseColliders);
+    Collider[] colliders = BlockTypeExpander.expandCollidersForTiles(baseColliders);
     mBlockShapeMPhysSystem.setCollisionSystem(new MBlockCollisionSystem<>(world, colliders));
 
     systems.register(InfinityChatHostedService.class, chp);
@@ -557,98 +552,6 @@ public class GameServer {
               "[%d] Average msg size: %d bytes",
               conn.getId(), listener.getConnectionStats().getAverageMessageSize()));
     }
-  }
-
-  // Tile-type layout — see InfinityConstants.{TILE_TYPE_BASE, TILE_COUNT,
-  // BLOCK_TYPE_INDEX_SIZE} for the canonical definition shared with the client.
-
-  /**
-   * Expands the BlockTypeIndex array to accommodate tile types (100-289). Tile slots reuse the
-   * INVISIBLE_BLOCK_TYPE's BlockType so {@link com.simsilica.mblock.MaskUtils#recalculateSideMasks}
-   * treats them as solid cubes and computes non-zero side masks — without that, collider lookups
-   * succeed but {@link com.simsilica.mblock.phys.collision.CubeCollider#getSphereContact} early-
-   * returns because dirMask == 0. Rendering is unaffected: the client's BlockGeometryIndex
-   * registers its own per-tile visual BlockTypes.
-   */
-  private void expandBlockTypeIndexForTiles() {
-    try {
-      BlockType[] currentTypes = BlockTypeIndex.getTypes();
-      if (currentTypes.length >= InfinityConstants.BLOCK_TYPE_INDEX_SIZE) {
-        log.info("BlockTypeIndex already has sufficient size: {}", currentTypes.length);
-        return;
-      }
-
-      BlockType[] expandedTypes =
-          Arrays.copyOf(currentTypes, InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
-      BlockType solidStandin = BlockTypeIndex.get(MapSystem.INVISIBLE_BLOCK_TYPE);
-      if (solidStandin == null) {
-        throw new InfinityRunTimeException(
-            "INVISIBLE_BLOCK_TYPE (" + MapSystem.INVISIBLE_BLOCK_TYPE
-                + ") has no registered BlockType; cannot set up tile masks");
-      }
-      for (int i = InfinityConstants.TILE_TYPE_BASE;
-          i < InfinityConstants.BLOCK_TYPE_INDEX_SIZE;
-          i++) {
-        expandedTypes[i] = solidStandin;
-      }
-
-      Field typesField = BlockTypeIndex.class.getDeclaredField("types");
-      typesField.setAccessible(true);
-      typesField.set(null, expandedTypes);
-
-      Field typeCountField = BlockTypeIndex.class.getDeclaredField("typeCount");
-      typeCountField.setAccessible(true);
-      typeCountField.set(null, InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
-
-      log.info("Expanded BlockTypeIndex from {} to {} types for tile support",
-          currentTypes.length, InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
-    } catch (Exception e) {
-      throw new InfinityRunTimeException("Failed to expand BlockTypeIndex for tiles", e);
-    }
-  }
-
-  /**
-   * Installs colliders for tile block types. Visible tiles get a unit-cube collider; flyover
-   * (173-175) and flyunder (176-190) stay null so ships pass through. The incoming array is
-   * already sized to {@link #REQUIRED_ARRAY_SIZE} because
-   * {@link #expandBlockTypeIndexForTiles()} ran first.
-   *
-   * <p>The same per-tile pattern is repeated for every arena slot
-   * ({@code arenaIndex} 0..{@link InfinityConstants#MAX_ARENAS}-1) at offset
-   * {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}, mirroring the encoding
-   * {@code ArenaSystem} uses to allocate tile-type ranges per loaded arena. Without
-   * the per-arena loop, ships colliding with a tile in arena 1+ would index off the
-   * end of the colliders array (or hit a null collider) and crash in
-   * {@code MBlockCollisionSystem.getCollider}.
-   */
-  private Collider[] expandCollidersForTiles(final Collider[] baseColliders) {
-    Collider[] expanded = baseColliders.length >= InfinityConstants.BLOCK_TYPE_INDEX_SIZE
-        ? baseColliders
-        : Arrays.copyOf(baseColliders, InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
-
-    Collider solid = new CubeCollider();
-    int installed = 0;
-    for (int arenaIndex = 0; arenaIndex < InfinityConstants.MAX_ARENAS; arenaIndex++) {
-      final int arenaBase =
-          InfinityConstants.TILE_TYPE_BASE + arenaIndex * InfinityConstants.TILE_COUNT;
-      for (int tileId = 1; tileId <= InfinityConstants.TILE_COUNT; tileId++) {
-        boolean passThrough =
-            (tileId >= MapTypes.vieFlyOverStart && tileId <= MapTypes.vieFlyOverEnd)
-                || (tileId >= MapTypes.vieFlyUnderStart && tileId <= MapTypes.vieFlyUnderEnd);
-        if (!passThrough) {
-          expanded[arenaBase + tileId - 1] = solid;
-          installed++;
-        }
-      }
-    }
-    log.info(
-        "Installed {} solid tile colliders across {} arena slots ({}-{} minus flyover/flyunder); array size {}",
-        installed,
-        InfinityConstants.MAX_ARENAS,
-        InfinityConstants.TILE_TYPE_BASE,
-        InfinityConstants.BLOCK_TYPE_INDEX_SIZE - 1,
-        expanded.length);
-    return expanded;
   }
 
   /**
