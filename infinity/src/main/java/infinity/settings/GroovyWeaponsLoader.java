@@ -31,22 +31,23 @@ import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.GravBombConfig;
 import infinity.config.MineConfig;
+import infinity.config.PrizeConfig;
 import infinity.config.ThorConfig;
 import infinity.config.WeaponsConfig;
 import infinity.systems.SettingsSystem;
 
 /**
- * Phase B bridge: derive a {@link WeaponsConfig} from the per-arena merged
- * Groovy fragment store ({@link SettingsSystem}). Today only the
- * {@code [Bullet]} section is wired; the other weapon sub-records keep their
- * {@link BulletConfig#DEFAULTS}-style defaults until each cluster's section
- * is wired in turn (see {@code .scratch/refactor-backlog/BACKLOG.md}).
+ * Phase B bridge: derive {@link WeaponsConfig} and {@link PrizeConfig} from
+ * the per-arena merged Groovy fragment store ({@link SettingsSystem}).
+ * See {@code .scratch/refactor-backlog/BACKLOG.md} for the cluster-by-cluster
+ * status of which sections are wired vs. still on {@code DEFAULTS}.
  *
  * <p>Subspace fragment-key conventions used here:
  * <ul>
  *   <li>{@code *DamageLevel} — base damage on hit (raw integer, no scale).
- *   <li>{@code *AliveTime} — projectile lifetime in <em>centiseconds</em>
- *       (1cs = 10ms), per Subspace VIE convention. Multiplied by 10 to get ms.
+ *   <li>{@code *AliveTime} / {@code PrizeMaxExist} — durations in
+ *       <em>centiseconds</em> (1cs = 10ms), per Subspace VIE convention.
+ *       Multiplied by 10 to get ms.
  * </ul>
  */
 public final class GroovyWeaponsLoader {
@@ -62,6 +63,9 @@ public final class GroovyWeaponsLoader {
 
   /** {@code Burst} section name in the merged fragment store. */
   static final String BURST_SECTION = "Burst";
+
+  /** {@code Prize} section name in the merged fragment store. */
+  static final String PRIZE_SECTION = "Prize";
 
   /**
    * Build a {@link WeaponsConfig} for {@code arenaName}. Keys missing from the
@@ -126,5 +130,26 @@ public final class GroovyWeaponsLoader {
         BurstFireConfig.DEFAULTS.projectileCount(),
         BurstFireConfig.DEFAULTS.decayMs(),
         damage);
+  }
+
+  /**
+   * Build a {@link PrizeConfig} for {@code arenaName}. Today only
+   * {@code PrizeMaxExist} maps to an existing {@link PrizeConfig} field;
+   * other Subspace {@code [Prize]} keys ({@code PrizeFactor},
+   * {@code PrizeDelay}, {@code MultiPrizeCount}, …) need new
+   * {@link PrizeConfig} fields + consumer wiring before they can be picked
+   * up here.
+   */
+  public PrizeConfig loadPrize(final SettingsSystem settings, final String arenaName) {
+    final int maxExistCs =
+        settings.getInt(
+            arenaName,
+            PRIZE_SECTION,
+            "PrizeMaxExist",
+            (int) (PrizeConfig.DEFAULTS.defaultDecayMs() / 10L));
+    return new PrizeConfig(
+        maxExistCs * 10L,
+        PrizeConfig.DEFAULTS.defaultMaxCount(),
+        PrizeConfig.DEFAULTS.bountyValue());
   }
 }

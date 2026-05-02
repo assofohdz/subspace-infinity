@@ -56,6 +56,7 @@ import infinity.settings.GroovySettingsHost;
 import infinity.settings.GroovyShipLoader;
 import infinity.settings.GroovyWeaponsLoader;
 import infinity.settings.GroovyZoneLoader;
+import infinity.config.PrizeConfig;
 import infinity.config.WeaponsConfig;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.ArenaSettings;
@@ -623,18 +624,20 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
-   * Phase B: derive {@link WeaponsConfig} from the per-arena merged fragment
-   * store and fold it into the {@link ConfigRegistry} snapshot. Called after
-   * {@code shipLoader.apply} (which installs the ship part of the snapshot)
-   * and on fragment hot-reload, so an operator's {@code BulletDamageLevel}
-   * edit in {@code misc.groovy} reaches {@code WeaponsSystem} without a
-   * server restart.
+   * Phase B: derive {@link WeaponsConfig} and {@link PrizeConfig} from the
+   * per-arena merged fragment store and fold both into the
+   * {@link ConfigRegistry} snapshot. Called after {@code shipLoader.apply}
+   * (which installs the ship part of the snapshot) and on fragment
+   * hot-reload, so an operator's {@code BulletDamageLevel} or
+   * {@code PrizeMaxExist} edit in {@code misc.groovy} reaches its consumers
+   * without a server restart.
    */
   private void applyWeaponsConfig(
       final SettingsSystem settings, final String arenaName, final ArenaId arenaId) {
     final WeaponsConfig weapons = weaponsLoader.load(settings, arenaName);
+    final PrizeConfig prize = weaponsLoader.loadPrize(settings, arenaName);
     final ConfigRegistry current = configRegistry.forArena(arenaId);
-    configRegistry.replace(arenaId, current.withWeapons(weapons));
+    configRegistry.replace(arenaId, current.withWeapons(weapons).withPrize(prize));
   }
 
   /**

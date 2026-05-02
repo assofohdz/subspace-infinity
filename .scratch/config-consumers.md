@@ -45,6 +45,7 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 | `BombConfig.decayMs` | `WeaponsSystem.createProjectileBomb()` | `template` via `ConfigRegistry.weapons().bomb()` | Phase B-wired: reads `[Bomb] BombAliveTime` (centiseconds × 10). Missing key falls back to `BombConfig.DEFAULTS` (base preset baseline = 60000ms / 6000cs). |
 | `MineConfig.decayMs` | `WeaponsSystem.createProjectileMine()` | `template` via `ConfigRegistry.weapons().mine()` | Phase B-wired: reads `[Mine] MineAliveTime` (centiseconds × 10). Missing key falls back to `MineConfig.DEFAULTS` (svs preset baseline = 120000ms / 12000cs / 2min). |
 | `BurstFireConfig.damage` | `WeaponsSystem.createProjectileBurst()` | `template` via `ConfigRegistry.weapons().burst()` | Phase B-wired: reads `[Burst] BurstDamageLevel`. Replaces the previous hardcoded `20` damage in the `Damage` component set on each burst-bullet projectile. Missing key falls back to `BurstFireConfig.DEFAULTS` (svs preset baseline = 250). |
+| `PrizeConfig.defaultDecayMs` | `PrizeSystem.computePrizeDecayMs()` | `template` via `ConfigRegistry.prize()` | Phase B-wired: `GroovyWeaponsLoader.loadPrize()` reads `[Prize] PrizeMaxExist` (centiseconds × 10); `ArenaSystem.applyWeaponsConfig` folds the result into the snapshot via `ConfigRegistry.withPrize`. Missing key falls back to `PrizeConfig.DEFAULTS` (svs preset baseline = 80000ms / 8000cs). |
 
 **Column meaning:**
 

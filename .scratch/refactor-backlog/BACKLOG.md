@@ -57,9 +57,9 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 - ~~`[Bomb] BombDamageLevel`, `BombAliveTime`~~ — wired.
 - ~~`[Mine] MineAliveTime`~~ — wired.
 - ~~`[Burst] BurstDamageLevel`~~ — wired (added `damage` field to `BurstFireConfig`; retired the hardcoded `20` in `WeaponsSystem.createProjectileBurst`).
+- ~~`[Prize] PrizeMaxExist`~~ — wired into `PrizeConfig.defaultDecayMs`. Other `[Prize]` keys (`PrizeFactor`, `PrizeDelay`, `MultiPrizeCount`, `PrizeNegativeFactor`, `DeathPrizeTime`, etc.) need new `PrizeConfig` fields + consumer wiring before they can be picked up.
 - **GravBomb** — no `[GravBomb]` Subspace fragment section exists (gravbombs share `[Bomb]` tuning in VIE). `GravBombConfig` stays on `DEFAULTS` until either (a) we add an Infinity-only section, or (b) we route gravbomb damage through the same `[Bomb] BombDamageLevel` read.
 - **Thor** — no canonical fragment section (Infinity addition). `ThorConfig` stays on `DEFAULTS` until an Infinity-named section is introduced.
-- `[Prize]` (PrizeFactor / PrizeDelay / etc.) — pending; same shape as the weapon sections.
 
 `*Config.DEFAULTS` are now Subspace-canonical baselines (svs / base preset values), not the previously-arbitrary Java placeholders. Live arenas receive their preset's fragment values; arenas with no `[Section]` block fall through to canonical defaults.
 

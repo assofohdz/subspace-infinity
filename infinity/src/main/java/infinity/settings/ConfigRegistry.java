@@ -121,6 +121,14 @@ public final class ConfigRegistry {
     return new ConfigRegistry(source, replacement, this.prize);
   }
 
+  /** Counterpart to {@link #withWeapons} for the {@code [Prize]} fragment section. */
+  public ConfigRegistry withPrize(final PrizeConfig replacement) {
+    Objects.requireNonNull(replacement, "prize");
+    final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
+    source.putAll(this.ships);
+    return new ConfigRegistry(source, this.weapons, replacement);
+  }
+
   /**
    * Mutable accumulator for a snapshot. Intended to be short-lived — populate
    * via the config layer, then call {@link #build()} to freeze. Not
