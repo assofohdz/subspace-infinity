@@ -44,8 +44,8 @@ import infinity.systems.SettingsSystem;
  *
  * <p>Subspace fragment-key conventions used here:
  * <ul>
- *   <li>{@code BulletDamageLevel} — base damage on hit (raw integer, no scale).
- *   <li>{@code BulletAliveTime} — projectile lifetime in <em>centiseconds</em>
+ *   <li>{@code *DamageLevel} — base damage on hit (raw integer, no scale).
+ *   <li>{@code *AliveTime} — projectile lifetime in <em>centiseconds</em>
  *       (1cs = 10ms), per Subspace VIE convention. Multiplied by 10 to get ms.
  * </ul>
  */
@@ -54,19 +54,32 @@ public final class GroovyWeaponsLoader {
   /** {@code Bullet} section name in the merged fragment store. */
   static final String BULLET_SECTION = "Bullet";
 
+  /** {@code Bomb} section name in the merged fragment store. */
+  static final String BOMB_SECTION = "Bomb";
+
+  /** {@code Mine} section name in the merged fragment store. */
+  static final String MINE_SECTION = "Mine";
+
+  /** {@code Burst} section name in the merged fragment store. */
+  static final String BURST_SECTION = "Burst";
+
   /**
    * Build a {@link WeaponsConfig} for {@code arenaName}. Keys missing from the
    * merged store fall back to the matching sub-record's {@code DEFAULTS}.
+   *
+   * <p>{@code GravBombConfig} and {@code ThorConfig} have no Subspace
+   * fragment section today (gravbombs share {@code [Bomb]} tuning in VIE,
+   * Thors are an Infinity addition without a canonical section), so those
+   * stay on {@code DEFAULTS}.
    */
   public WeaponsConfig load(final SettingsSystem settings, final String arenaName) {
-    final BulletConfig bullet = loadBullet(settings, arenaName);
     return new WeaponsConfig(
-        bullet,
-        BombConfig.DEFAULTS,
+        loadBullet(settings, arenaName),
+        loadBomb(settings, arenaName),
         GravBombConfig.DEFAULTS,
-        MineConfig.DEFAULTS,
+        loadMine(settings, arenaName),
         ThorConfig.DEFAULTS,
-        BurstFireConfig.DEFAULTS);
+        loadBurst(settings, arenaName));
   }
 
   private BulletConfig loadBullet(final SettingsSystem settings, final String arenaName) {
@@ -80,5 +93,38 @@ public final class GroovyWeaponsLoader {
             "BulletAliveTime",
             (int) (BulletConfig.DEFAULTS.decayMs() / 10L));
     return new BulletConfig(damage, aliveCs * 10L);
+  }
+
+  private BombConfig loadBomb(final SettingsSystem settings, final String arenaName) {
+    final int damage =
+        settings.getInt(
+            arenaName, BOMB_SECTION, "BombDamageLevel", BombConfig.DEFAULTS.damage());
+    final int aliveCs =
+        settings.getInt(
+            arenaName,
+            BOMB_SECTION,
+            "BombAliveTime",
+            (int) (BombConfig.DEFAULTS.decayMs() / 10L));
+    return new BombConfig(damage, aliveCs * 10L);
+  }
+
+  private MineConfig loadMine(final SettingsSystem settings, final String arenaName) {
+    final int aliveCs =
+        settings.getInt(
+            arenaName,
+            MINE_SECTION,
+            "MineAliveTime",
+            (int) (MineConfig.DEFAULTS.decayMs() / 10L));
+    return new MineConfig(aliveCs * 10L);
+  }
+
+  private BurstFireConfig loadBurst(final SettingsSystem settings, final String arenaName) {
+    final int damage =
+        settings.getInt(
+            arenaName, BURST_SECTION, "BurstDamageLevel", BurstFireConfig.DEFAULTS.damage());
+    return new BurstFireConfig(
+        BurstFireConfig.DEFAULTS.projectileCount(),
+        BurstFireConfig.DEFAULTS.decayMs(),
+        damage);
   }
 }

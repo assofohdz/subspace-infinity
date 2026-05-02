@@ -42,7 +42,7 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 
 **⚠ Dual source of truth today.** The Groovy fragments under `infinity/zone/conf/<preset>/` already declare operator-facing equivalents — `BulletDamageLevel`, `BombAliveTime`, `MineAliveTime`, `PrizeFactor`, `PrizeDelay`, etc. — populated into the per-arena `Ini` store at arena-load. **No Java code reads them** today (except `PrizeSystem` for `[PrizeWeight]`). The Java constants below and the Groovy values are parallel: same concepts, disconnected scales (Java `BOMB_DAMAGE = 10`; Groovy `BombDamageLevel 750`). Each Pattern 4 promotion below is therefore not just "move Java constant to Groovy" — it's "wire the Groovy value that already exists into a typed `*Config` record, then retire the Java constant." This is the deferred Phase B from [`conf-fragments-to-groovy/PRD.md`](../conf-fragments-to-groovy/PRD.md).
 
-**Live clusters — typed `*Config` migration done; per-arena content (Phase B) deferred:**
+**Live clusters — typed `*Config` migration done; per-arena content (Phase B) underway:**
 
 - ~~**Damage** — `WeaponsSystem.{BULLET,BOMB,GRAVBOMB}_DAMAGE` + `ConsumableSystem.THOR_DAMAGE`~~ — promoted.
 - ~~**Projectile decays** — `WeaponsSystem.{BULLET,GRAVBOMB,MINE}_DECAY_MS` + `ConsumableSystem.THOR_DECAY_MS`~~ — promoted.
@@ -50,7 +50,20 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 - ~~**Grav bomb knobs** — `WeaponsSystem.{GRAVBOMB_DELAY_MS, GRAVBOMB_WORMHOLE_FORCE}`~~ — promoted.
 - ~~**Prize defaults** — per-arena resolution in `PrizeSystem`~~ — promoted. `GameEntities.{PRIZE_DEFAULT_DECAY_MS, PRIZE_DEFAULT_MAX_COUNT, BOUNTY_VALUE}` retained as api-factory fallback constants for module-author callers without server context (per `api-contracts.md`'s factory-ABI rule).
 
-**The five clusters above migrated together** in a single sweep: new typed records [`BulletConfig`](../../api/src/infinity/config/BulletConfig.java) / [`BombConfig`](../../api/src/infinity/config/BombConfig.java) / [`GravBombConfig`](../../api/src/infinity/config/GravBombConfig.java) / [`MineConfig`](../../api/src/infinity/config/MineConfig.java) / [`ThorConfig`](../../api/src/infinity/config/ThorConfig.java) / [`BurstFireConfig`](../../api/src/infinity/config/BurstFireConfig.java) bundled into [`WeaponsConfig`](../../api/src/infinity/config/WeaponsConfig.java); plus [`PrizeConfig`](../../api/src/infinity/config/PrizeConfig.java). [`ConfigRegistry`](../../infinity/src/main/java/infinity/settings/ConfigRegistry.java) gained `weapons()` / `prize()` accessors with the `Builder` defaulting to `*Config.DEFAULTS` (= legacy Java values). `WeaponsSystem.weaponsFor(attacker)` and `ConsumableSystem.thorConfigFor(attacker)` look up per-attacker via `ArenaId`; arenas / void attackers fall back to `DEFAULTS`. **Zero behaviour change today** — every arena receives `DEFAULTS` — but the architecture now supports per-arena weapon tuning. **Phase B** (reading the actual untyped fragment values like `[Bullet] BulletDamageLevel 100` into the typed records) remains deferred; the typed slots are ready to receive them.
+**The five clusters above migrated together** in a single sweep: new typed records [`BulletConfig`](../../api/src/infinity/config/BulletConfig.java) / [`BombConfig`](../../api/src/infinity/config/BombConfig.java) / [`GravBombConfig`](../../api/src/infinity/config/GravBombConfig.java) / [`MineConfig`](../../api/src/infinity/config/MineConfig.java) / [`ThorConfig`](../../api/src/infinity/config/ThorConfig.java) / [`BurstFireConfig`](../../api/src/infinity/config/BurstFireConfig.java) bundled into [`WeaponsConfig`](../../api/src/infinity/config/WeaponsConfig.java); plus [`PrizeConfig`](../../api/src/infinity/config/PrizeConfig.java). [`ConfigRegistry`](../../infinity/src/main/java/infinity/settings/ConfigRegistry.java) gained `weapons()` / `prize()` accessors with the `Builder` defaulting to `*Config.DEFAULTS`. `WeaponsSystem.weaponsFor(attacker)` and `ConsumableSystem.thorConfigFor(attacker)` look up per-attacker via `ArenaId`; arenas / void attackers fall back to `DEFAULTS`.
+
+**Phase B (Groovy fragment → typed record):**
+- ~~`[Bullet] BulletDamageLevel`, `BulletAliveTime`~~ — wired (commit `b96c42d`).
+- ~~`[Bomb] BombDamageLevel`, `BombAliveTime`~~ — wired.
+- ~~`[Mine] MineAliveTime`~~ — wired.
+- ~~`[Burst] BurstDamageLevel`~~ — wired (added `damage` field to `BurstFireConfig`; retired the hardcoded `20` in `WeaponsSystem.createProjectileBurst`).
+- **GravBomb** — no `[GravBomb]` Subspace fragment section exists (gravbombs share `[Bomb]` tuning in VIE). `GravBombConfig` stays on `DEFAULTS` until either (a) we add an Infinity-only section, or (b) we route gravbomb damage through the same `[Bomb] BombDamageLevel` read.
+- **Thor** — no canonical fragment section (Infinity addition). `ThorConfig` stays on `DEFAULTS` until an Infinity-named section is introduced.
+- `[Prize]` (PrizeFactor / PrizeDelay / etc.) — pending; same shape as the weapon sections.
+
+`*Config.DEFAULTS` are now Subspace-canonical baselines (svs / base preset values), not the previously-arbitrary Java placeholders. Live arenas receive their preset's fragment values; arenas with no `[Section]` block fall through to canonical defaults.
+
+The wiring lives in [`GroovyWeaponsLoader`](../../infinity/src/main/java/infinity/settings/GroovyWeaponsLoader.java); [`ConfigRegistry.withWeapons`](../../infinity/src/main/java/infinity/settings/ConfigRegistry.java) folds the loader's output into the per-arena snapshot installed by `GroovyShipLoader`. Hot-reload propagates: editing `[Bullet] BulletDamageLevel` in a preset's `misc.groovy` re-derives the `WeaponsConfig` without a server restart.
 
 - **Resource / tower** — `ResourceSystem.{RESOURCE_UPDATE_INTERVAL, GOLD_PER_SECOND, TOWER_COST}`. Gold / tower mechanics are inactive gameplay, so promotion isn't urgent. Same shape as the weapons cluster: a `ResourceConfig` record + per-arena lookup; the consumer is single (`ResourceSystem`).
 

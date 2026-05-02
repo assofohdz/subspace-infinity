@@ -555,7 +555,7 @@ public class WeaponsSystem extends AbstractGameSystem
           projectile,
           new Damage(
               CoreViewConstants.EXPLOSION0DECAY,
-              20,
+              cfg.burst().damage(),
               ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
     }
   }

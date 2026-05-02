@@ -28,17 +28,24 @@ package infinity.config;
 
 /**
  * Per-arena bomb projectile tuning. Read at projectile-creation time by
- * {@code WeaponsSystem.createProjectileBomb}. Decay matches the legacy
- * routing where bombs inherited bullet decay (1500 ms) — preserved here so
- * promotion is behaviour-neutral. To diverge bomb-vs-bullet decay later,
- * set {@code BombConfig.decayMs} independently in the per-arena config.
+ * {@code WeaponsSystem.createProjectileBomb}.
  *
- * @param damage damage applied on detonation (legacy default {@code 10})
- * @param decayMs bomb projectile lifetime in milliseconds (legacy default
- *     {@code 1500} — same value as {@link BulletConfig#decayMs} for the
- *     historical routing)
+ * <p>Populated from the merged Groovy fragment store at arena-load — see
+ * {@code GroovyWeaponsLoader}. Subspace fragment keys:
+ * <ul>
+ *   <li>{@code [Bomb] BombDamageLevel} → {@link #damage}
+ *   <li>{@code [Bomb] BombAliveTime} (centiseconds) × 10 → {@link #decayMs}
+ * </ul>
+ *
+ * @param damage damage applied on detonation
+ * @param decayMs bomb projectile lifetime in milliseconds
  */
 public record BombConfig(int damage, long decayMs) {
 
-  public static final BombConfig DEFAULTS = new BombConfig(10, 1500L);
+  /**
+   * Subspace-canonical baseline used when no fragment provides a value.
+   * Pulled from the {@code base} preset's {@code [Bomb]} section
+   * ({@code BombDamageLevel 750}, {@code BombAliveTime 6000}).
+   */
+  public static final BombConfig DEFAULTS = new BombConfig(750, 60000L);
 }
