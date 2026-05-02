@@ -24,6 +24,7 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 
    True magic numbers (loop bounds, math identities like `2π`, well-known protocol constants) stay in Java. When unsure, lean toward Groovy — it's easier to demote a knob back to a constant than to flush a magic number out of compiled code.
 6. **Keep [`ship-config-dictionary.md`](.scratch/ship-config-dictionary.md) in sync.** Tracks which per-ship INI keys are ported to typed Groovy `ShipConfig` fields and which still live in INI (or aren't read at all). When you add, move, or delete a typed ship-config field, update the matching row in the same change. Don't let the ledger drift — a stale dictionary is worse than no dictionary because it nudges future edits toward duplicate fields.
+7. **Keep [`settings-pipeline.md`](.scratch/settings-pipeline.md) in sync.** Master tracker for every Subspace fragment key as it flows through the five gates: groovy file → `Groovy*Loader` → `*Config` record → `PrizeSystem` applier → consuming subsystem. Whenever you author a new key in a `.groovy` preset, extend a loader to read a key, add a `*Config` field, implement a prize applier, or wire a runtime consumer, flip the matching cell in the same change. The table is the canonical "what's wired vs what's a TODO" view — drift makes it lie about gameplay status.
 
 Path-scoped rules live in `.claude/rules/` and load automatically when relevant files are read:
 - [`components.md`](.claude/rules/components.md) — immutability + no-arg constructor (`api/src/infinity/es/**`)
