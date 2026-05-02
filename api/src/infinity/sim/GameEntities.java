@@ -78,6 +78,29 @@ import java.util.concurrent.TimeUnit;
  */
 public class GameEntities {
 
+  /**
+   * Default lifetime for prizes when a spawner doesn't specify its own.
+   * Per-spawner {@code prizeDecayMillis} on {@link infinity.es.Spawner}
+   * overrides this. Pattern 4 candidate — promote to per-arena typed
+   * config when a real per-arena requirement materializes.
+   */
+  public static final long PRIZE_DEFAULT_DECAY_MS = 20000;
+
+  /**
+   * Default {@code maxCount} for the no-arg-cap {@link
+   * #createWeightedPrizeSpawner(EntityData, EntityId, PhysicsSpace, long,
+   * Vec3d, double, boolean, double)} overload — the simultaneous-prize cap
+   * for spawners that don't take an explicit value.
+   */
+  public static final int PRIZE_DEFAULT_MAX_COUNT = 10;
+
+  /**
+   * Bounty granted on each kill, stamped onto the slain ship's
+   * {@link infinity.es.Bounty} component when the prize entity is created.
+   * Pattern 4 candidate.
+   */
+  public static final int BOUNTY_VALUE = 10;
+
   private GameEntities() {}
 
   // TODO: All constants should come through the parameters - for now, they come from the constants
@@ -505,12 +528,12 @@ public class GameEntities {
       final long decayMillis) {
     final EntityId result = ed.createEntity();
 
-    final long effectiveDecay = decayMillis > 0L ? decayMillis : CoreGameConstants.PRIZEDECAY;
+    final long effectiveDecay = decayMillis > 0L ? decayMillis : PRIZE_DEFAULT_DECAY_MS;
     ed.setComponents(
         result,
         ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed),
         new SpawnPosition(phys.getGrid(), pos),
-        new Bounty(CoreGameConstants.BOUNTYVALUE),
+        new Bounty(BOUNTY_VALUE),
         PrizeType.create(prizeType, ed),
         new Decay(
             createdTime,
@@ -542,7 +565,7 @@ public class GameEntities {
         spawnInterval,
         spawnOnRing,
         radius,
-        CoreGameConstants.PRIZEMAXCOUNT,
+        PRIZE_DEFAULT_MAX_COUNT,
         0L,
         Map.of());
   }
@@ -561,10 +584,10 @@ public class GameEntities {
    *
    * @param maxCount target number of prizes alive at once (the existing
    *     {@code Spawner.maxCount} field). The shorter signature uses
-   *     {@code CoreGameConstants.PRIZEMAXCOUNT}.
+   *     {@code PRIZE_DEFAULT_MAX_COUNT}.
    * @param prizeDecayMillis per-prize TTL stored in the {@code Spawner}'s
    *     {@code spawnedDecayMillis} field. {@code 0} (or any non-positive
-   *     value) means "use the global {@code CoreGameConstants.PRIZEDECAY}".
+   *     value) means "use the global {@code PRIZE_DEFAULT_DECAY_MS}".
    * @param weightOverrides per-spawner prize-type weight overrides. Empty map
    *     ({@code Map.of()}) = "no overrides; use arena defaults". When
    *     non-empty, a {@link infinity.es.PrizeWeightsOverride} component is

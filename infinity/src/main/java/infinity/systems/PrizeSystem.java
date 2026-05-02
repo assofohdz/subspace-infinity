@@ -381,7 +381,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
    * Spawn one prize for {@code spawner}. Reads the spawner's per-spawner
    * {@link Spawner#getSpawnedDecayMillis()} and forwards it to
    * {@code GameEntities.createPrize} so prizes from arena.groovy-declared
-   * spawners can override the global {@code CoreGameConstants.PRIZEDECAY}.
+   * spawners can override the global {@code GameEntities.PRIZE_DEFAULT_DECAY_MS}.
    * Spawners created without a per-spawner TTL (e.g. the legacy
    * {@code BasicEnvironment} call) carry {@code 0} here, which
    * {@code createPrize} interprets as "fall back to the global default".

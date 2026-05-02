@@ -60,7 +60,6 @@ import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
-import infinity.sim.CoreGameConstants;
 import infinity.sim.GameEntities;
 import java.net.URI;
 import java.net.URL;
@@ -148,6 +147,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   private static final String ARENA_ROOT = "arenas";
   private static final String ARENA_CONF = "arena.conf";
+  /**
+   * Arena name returned by {@link #getDefaultArenaId()} — the convention
+   * arena that consumers fall back to when no specific arena context is
+   * available (e.g. early-connect player spawn before the arena gate).
+   */
+  private static final String DEFAULT_ARENA_ID = "default";
 
   private final Map<String, ArenaRecord> registry = new ConcurrentHashMap<>();
   /**
@@ -996,6 +1001,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   public String getDefaultArenaId() {
-    return CoreGameConstants.DEFAULTARENAID;
+    return DEFAULT_ARENA_ID;
   }
 }

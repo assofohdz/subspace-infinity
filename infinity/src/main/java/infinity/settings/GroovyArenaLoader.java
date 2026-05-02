@@ -281,7 +281,7 @@ public final class GroovyArenaLoader {
      * ttlMs: 10000, onRing: false, weights: [Bomb: 100, Gun: 100]}.
      * {@code onRing} defaults to {@code false} (uniform-disc spawn);
      * {@code ttlMs} defaults to {@code 0} (use the global
-     * {@code CoreGameConstants.PRIZEDECAY}); {@code weights} defaults to an
+     * {@code GameEntities.PRIZE_DEFAULT_DECAY_MS}); {@code weights} defaults to an
      * empty map (no override; use the arena's {@code [PrizeWeight]} defaults).
      */
     public void spawn(final Map<String, ?> args) {

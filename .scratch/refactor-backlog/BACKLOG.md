@@ -38,23 +38,31 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 
 ## Pattern 4 migrations (multi-PR campaign)
 
-`CoreGameConstants` still holds ~25 tuning knobs after commit `31d2de6` removed the six ship-spawn ones. Each cluster is its own future Pattern 4 migration following the shape established for ship weapon/inventory:
+`CoreGameConstants` is gone. The original 30-knob list collapsed two ways: half were phantoms (no consumers, deleted), the other half were relocated to their consuming systems as private constants so each cluster's Pattern 4 promotion can be handled independently without touching a centralized dumping ground. The clusters below are still Pattern 4 candidates — same shape (typed `*Config` record + Groovy DSL extension + system projection), now scoped per consumer.
 
-- **Damage** — `BOMBDAMAGE`, `BULLETDAMAGE`, `THORDAMAGE`, `GRAVBOMBDAMAGE` → projectile-config records, projected by `WeaponsSystem` per-fire
-- **Projectile speeds** — `BASEPROJECTILESPEED`, `BOMBPROJECTILESPEED`, `BULLETPROJECTILESPEED`, `GRAVBOMBPROJECTILESPEED`, `THORPROJECTILESPEED`, `BURSTPROJECTILESPEED`
-- **Decays** — `BULLETDECAY`, `THORDECAY`, `GRAVBOMBDECAY`, `MINEDECAY`, `PRIZEDECAY`
-- ~~**Cooldowns** — `THORCOOLDOWN`, `BURSTCOOLDOWN`~~ — done. `THORCOOLDOWN` was already migrated (`ActionSystem.setCoolDownThor` reads `ThorFireDelay`, projected from `ShipConfig.thors.fireDelayCs`); `BURSTCOOLDOWN` was dead — never wired to a consumer. Both constants deleted; the burst-cooldown feature gap (no `BurstFireDelay` component, no enforcement) is a separate item below.
-- **Health** — `SHIPHEALTH`, `BASEHEALTH`, `MOBHEALTH`
-- **Burst count** — `BURSTPROJECTILECOUNT`
-- **Bounty / prize** — `BOUNTYVALUE`, `PRIZEMAXCOUNT`
-- **Grav bomb knobs** — `GRAVBOMBDELAY`, `GRAVBOMBWORMHOLEFORCE`
-- **Resource rates** — `RESOURCE_UPDATE_INTERVAL`, `GOLD_PER_SECOND`
-- **AI knobs** — `MOBSPEED`, `MOBMAXFORCE`, `PATHWAYPOINTDISTANCE`, `PATHHELPERHEIGHT`, `PATHHELPERWIDTH`
-- **Tower** — `TOWERCOST`
+**⚠ Dual source of truth today.** The Groovy fragments under `infinity/zone/conf/<preset>/` already declare operator-facing equivalents — `BulletDamageLevel`, `BombAliveTime`, `MineAliveTime`, `PrizeFactor`, `PrizeDelay`, etc. — populated into the per-arena `Ini` store at arena-load. **No Java code reads them** today (except `PrizeSystem` for `[PrizeWeight]`). The Java constants below and the Groovy values are parallel: same concepts, disconnected scales (Java `BOMB_DAMAGE = 10`; Groovy `BombDamageLevel 750`). Each Pattern 4 promotion below is therefore not just "move Java constant to Groovy" — it's "wire the Groovy value that already exists into a typed `*Config` record, then retire the Java constant." This is the deferred Phase B from [`conf-fragments-to-groovy/PRD.md`](../conf-fragments-to-groovy/PRD.md).
 
-Goal: each cluster moves to a `*Config` record + Groovy DSL extension + system projection. When all clusters are done, `CoreGameConstants` can be deleted.
+**Live clusters — co-located with consumers, awaiting per-arena promotion:**
 
-True magic numbers stay (DEFAULTARENAID, BOMBLEVELPREPENDTEXT, BULLETLEVELPREPENDTEXT, MINELEVELPREPENDTEXT, UPDATE_SETTINGS_INTERVAL_MS) — these are framework convention strings / system tick intervals, not gameplay tuning.
+- **Damage** — `WeaponsSystem.{BULLET,BOMB,GRAVBOMB}_DAMAGE` + `ActionSystem.THOR_DAMAGE`. Read at projectile-creation time; per-arena lookup would use the attacker's `ArenaId`.
+- **Projectile decays** — `WeaponsSystem.{BULLET,GRAVBOMB,MINE}_DECAY_MS` + `ActionSystem.THOR_DECAY_MS` (split out from a shared bullet-decay reference; same value today, can diverge in a future tuning PR).
+- **Prize defaults** — `GameEntities.PRIZE_DEFAULT_DECAY_MS` + `GameEntities.PRIZE_DEFAULT_MAX_COUNT`. `PrizeSpawnerSpec.ttlMillis` already overrides per-spawner; the constants are the fallback. `BOUNTY_VALUE` is co-located.
+- **Burst count** — `WeaponsSystem.BURST_PROJECTILE_COUNT`.
+- **Grav bomb knobs** — `WeaponsSystem.{GRAVBOMB_DELAY_MS, GRAVBOMB_WORMHOLE_FORCE}`.
+- **Resource / tower** — `ResourceSystem.{RESOURCE_UPDATE_INTERVAL, GOLD_PER_SECOND, TOWER_COST}`. Gold / tower mechanics are inactive gameplay, so promotion isn't urgent.
+
+**Spatial-name prefixes** — `WeaponsSystem.{BOMB,BULLET,MINE}_LEVEL_PREFIX` form `ShapeNames` strings the client maps to spatials. Framework convention; not a Pattern 4 candidate.
+
+**Default arena id** — `ArenaSystem.DEFAULT_ARENA_ID = "default"`. Framework convention.
+
+**Done — phantom culls (constants deleted, no behavioral change):**
+
+- ~~Cooldowns (`THORCOOLDOWN`, `BURSTCOOLDOWN`)~~ — `THORCOOLDOWN` was already migrated (`ActionSystem.setCoolDownThor` reads `ThorFireDelay` projected from `ShipConfig.thors.fireDelayCs`); `BURSTCOOLDOWN` had no consumer (`WeaponsSystem.setCoolDown` for `BURST` is `// No delay on this for now`). The unenforced burst-cooldown gap is a feature item below.
+- ~~Projectile speeds (`BASE/BOMB/BULLET/GRAVBOMB/THOR/BURSTPROJECTILESPEED`)~~ — none had a consumer; actual velocities are inline hardcodes in `WeaponsSystem.getAttackInfo` and `ActionSystem.getActionPosition` with a long-standing `// TODO: Look these settings up in SettingsSystem` comment. Wiring up tunable projectile speeds is a feature add — see below.
+- ~~Health (`SHIPHEALTH`, `BASEHEALTH`, `MOBHEALTH`)~~ — none had a consumer; ship `Health` is projected from `ShipConfig.energy.initial()` already, and base/mob health were never tunable.
+- ~~AI knobs (`MOBSPEED`, `MOBMAXFORCE`, `PATHWAYPOINTDISTANCE`, `PATHHELPERHEIGHT`, `PATHHELPERWIDTH`)~~ — entire `infinity/ai/` stack is on the shelf; if the AI is revived these come back as a typed config first.
+- ~~`THORDECAY`~~ — no consumer.
+- ~~`UPDATE_SETTINGS_INTERVAL_MS`~~ — no consumer.
 
 ## Tooling / test infrastructure
 
@@ -90,6 +98,8 @@ Skipped intentionally:
 ### Feature gaps surfaced during cleanup
 
 - **Burst cooldown is unenforced.** [`WeaponsSystem.setCoolDown`](../../infinity/src/main/java/infinity/systems/WeaponsSystem.java) for `BURST` is `// No delay on this for now`; there's no `BurstFireDelay` component, and the `CountStats` record for bursts has no `fireDelayCs` field. To wire it: replace `CountStats bursts` with `CountWithDelayStats bursts` in `ShipConfig`, add a `BurstFireDelay` component (mirror `ThorFireDelay`), project it from `ShipSpawnSystem.projectBursts`, and read it in `WeaponsSystem.setCoolDownBurst`. Adds a real feature (burst cadence cap), so it's a feature add rather than a Pattern 4 cleanup — surfaced here because the dead `BURSTCOOLDOWN = 250` constant referenced this gap before it was removed.
+
+- **Projectile speeds are inline hardcodes.** [`WeaponsSystem.getAttackInfo`](../../infinity/src/main/java/infinity/systems/WeaponsSystem.java) and [`ActionSystem.getActionPosition`](../../infinity/src/main/java/infinity/systems/ActionSystem.java) compute projectile velocities with literal `addLocal(0, 0, 50)` etc. and a long-standing `// TODO: Look these settings up in SettingsSystem` comment. The six dead `*PROJECTILESPEED` constants in `CoreGameConstants` were the never-realized first attempt; they're gone now. Wiring up tunable speeds is a Pattern 4 candidate: add per-arena per-weapon-type projectile speeds (probably alongside damage in a unified projectile-config record), look them up at projectile-creation time using the attacker's `ArenaId`. Today's inline values: gun=50, bomb=25, gravbomb/mine=0 (inherits ship velocity), thor=50 (drifted from the deleted `THORPROJECTILESPEED=30`), burst is created with its own velocity logic. Treat any chosen "default" as a balance decision — the inline values won the drift, so they're production behavior.
 
 ### Architecture micro-refactors
 

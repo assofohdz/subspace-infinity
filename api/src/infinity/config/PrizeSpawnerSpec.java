@@ -46,7 +46,7 @@ import java.util.Map;
  *     first prize lands; {@code 0} means "respawn as soon as room opens"
  * @param ttlMillis how long each prize lives before its {@code Decay}
  *     component expires; {@code 0} or negative falls back to
- *     {@code CoreGameConstants.PRIZEDECAY}
+ *     {@link infinity.sim.GameEntities#PRIZE_DEFAULT_DECAY_MS}
  * @param spawnOnRing {@code true} = prizes appear on the ring at exactly
  *     {@code radius}; {@code false} = uniformly within the disc
  * @param weightOverrides per-spawner weight overrides on top of the arena's

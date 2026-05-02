@@ -38,7 +38,6 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import infinity.es.Gold;
-import infinity.sim.CoreGameConstants;
 
 /**
  * This state is meant to keep track of resources that can be spent.
@@ -46,6 +45,14 @@ import infinity.sim.CoreGameConstants;
  * @author ss
  */
 public class ResourceSystem extends AbstractGameSystem {
+
+    // Tuning defaults — Pattern 4 candidates. Tower / gold-economy is on the
+    // shelf today (no active gameplay), so per-arena promotion waits until
+    // the feature comes back. Until then they're co-located here so the
+    // file is self-contained.
+    private static final double RESOURCE_UPDATE_INTERVAL = 1;
+    private static final double GOLD_PER_SECOND = 10000;
+    private static final int TOWER_COST = 1000;
 
     private EntityData ed;
     private EntitySet ships;
@@ -74,11 +81,11 @@ public class ResourceSystem extends AbstractGameSystem {
         // only update every RESOURCE_UPDATE_INTERVAL
         ships.applyChanges();
 
-        if (time_since_last_update > CoreGameConstants.RESOURCE_UPDATE_INTERVAL) {
+        if (time_since_last_update > RESOURCE_UPDATE_INTERVAL) {
             time_since_last_update = 0;
 
             // TPF is in seconds
-            final int gold = (int) (tpf.getTpf() * CoreGameConstants.GOLD_PER_SECOND);
+            final int gold = (int) (tpf.getTpf() * GOLD_PER_SECOND);
 
             // Handle old ships
             for (final Entity e : ships) {
@@ -111,7 +118,7 @@ public class ResourceSystem extends AbstractGameSystem {
      * @return true if the entity has enough gold
      */
     public boolean canAffordTower(final EntityId owner) {
-        return goldMap.get(owner).intValue() >= CoreGameConstants.TOWERCOST;
+        return goldMap.get(owner).intValue() >= TOWER_COST;
     }
 
     /**
@@ -122,7 +129,7 @@ public class ResourceSystem extends AbstractGameSystem {
      */
     public void buyTower(final EntityId owner) {
         final int currentGold = goldMap.get(owner).intValue();
-        final int newGold = currentGold - CoreGameConstants.TOWERCOST;
+        final int newGold = currentGold - TOWER_COST;
         ed.setComponent(owner, new Gold(newGold));
         goldMap.put(owner, Integer.valueOf(newGold));
     }

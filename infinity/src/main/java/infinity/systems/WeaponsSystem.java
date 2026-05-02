@@ -65,7 +65,6 @@ import infinity.es.ship.weapons.GunFireDelay;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
-import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
@@ -91,6 +90,27 @@ public class WeaponsSystem extends AbstractGameSystem
   public static final byte GRAVBOMB = 0x2;
   public static final byte MINE = 0x3;
   public static final byte BURST = 0x4;
+
+  // Tuning defaults — Pattern 4 candidates (per-arena tunable). Co-located
+  // here as private constants so the consuming code is self-contained;
+  // promote each cluster to a per-arena typed config when a real
+  // per-arena requirement materializes.
+  private static final int BULLET_DAMAGE = 10;
+  private static final int BOMB_DAMAGE = 10;
+  private static final int GRAVBOMB_DAMAGE = 10;
+  private static final long BULLET_DECAY_MS = 1500;
+  private static final long GRAVBOMB_DECAY_MS = 4000;
+  private static final long MINE_DECAY_MS = 10000;
+  private static final long BURST_PROJECTILE_COUNT = 30;
+  private static final long GRAVBOMB_DELAY_MS = 1000;
+  private static final double GRAVBOMB_WORMHOLE_FORCE = 5000;
+
+  // Bomb / bullet / mine spatial-name prefixes — combined with the
+  // current-level int produces the ShapeNames the client maps to spatials.
+  private static final String BOMB_LEVEL_PREFIX = "bomb_l";
+  private static final String BULLET_LEVEL_PREFIX = "bullet_l";
+  private static final String MINE_LEVEL_PREFIX = "mine_l";
+
   static Logger log = LoggerFactory.getLogger(WeaponsSystem.class);
   private final KeySetView<Attack, Boolean> sessionAttackCreations = ConcurrentHashMap.newKeySet();
   private EntityData ed;
@@ -414,7 +434,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
     GunCurrentLevel gunCurrentLevel = this.guns.getEntity(requester).get(GunCurrentLevel.class);
     final String bulletShape =
-        CoreGameConstants.BULLETLEVELPREPENDTEXT + gunCurrentLevel.getLevel().level;
+        BULLET_LEVEL_PREFIX + gunCurrentLevel.getLevel().level;
 
     EntityId gunProjectile;
     gunProjectile =
@@ -425,14 +445,14 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.location,
             info.attackVelocity,
-            CoreGameConstants.BULLETDECAY,
+            BULLET_DECAY_MS,
             bulletShape);
 
     ed.setComponent(
         gunProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION0DECAY,
-            CoreGameConstants.BULLETDAMAGE,
+            BULLET_DAMAGE,
             ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
   }
 
@@ -441,7 +461,7 @@ public class WeaponsSystem extends AbstractGameSystem
     BombCurrentLevel bombCurrentLevel = this.bombs.getEntity(requester).get(BombCurrentLevel.class);
 
     final String bombShape =
-        CoreGameConstants.BOMBLEVELPREPENDTEXT + bombCurrentLevel.getLevel().level;
+        BOMB_LEVEL_PREFIX + bombCurrentLevel.getLevel().level;
 
     final EntityId bombProjectile =
         GameEntities.createBomb(
@@ -451,13 +471,13 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.getLocation(),
             info.getAttackVelocity(),
-            CoreGameConstants.BULLETDECAY,
+            BULLET_DECAY_MS,
             bombShape);
     ed.setComponent(
         bombProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
-            CoreGameConstants.BOMBDAMAGE,
+            BOMB_DAMAGE,
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
@@ -469,7 +489,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final HashSet<EntityComponent> delayedComponents = new HashSet<>();
     delayedComponents.add(
         new GravityWell(
-            5, CoreGameConstants.GRAVBOMBWORMHOLEFORCE, GravityWell.PULL)); // Suck everything in
+            5, GRAVBOMB_WORMHOLE_FORCE, GravityWell.PULL)); // Suck everything in
 
     projectile =
         GameEntities.createDelayedBomb(
@@ -479,26 +499,26 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.getLocation(),
             info.getAttackVelocity(),
-            CoreGameConstants.GRAVBOMBDECAY,
-            CoreGameConstants.GRAVBOMBDELAY,
+            GRAVBOMB_DECAY_MS,
+            GRAVBOMB_DELAY_MS,
             delayedComponents,
-            CoreGameConstants.BOMBLEVELPREPENDTEXT + gravityBomb.getLevel());
+            BOMB_LEVEL_PREFIX + gravityBomb.getLevel());
 
     ed.setComponent(
         projectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
-            CoreGameConstants.GRAVBOMBDAMAGE,
+            GRAVBOMB_DAMAGE,
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
   private void createProjectileBurst(Entity requesterEntity, long time) {
     Quatd orientation = new Quatd();
 
-    final double angle = (360d / CoreGameConstants.BURSTPROJECTILECOUNT) * FastMath.DEG_TO_RAD;
+    final double angle = (360d / BURST_PROJECTILE_COUNT) * FastMath.DEG_TO_RAD;
 
     final AttackPosition infoOrig = getAttackInfo(requesterEntity, WeaponsSystem.BURST);
-    for (int i = 0; i < CoreGameConstants.BURSTPROJECTILECOUNT; i++) {
+    for (int i = 0; i < BURST_PROJECTILE_COUNT; i++) {
       final AttackPosition info = new AttackPosition(infoOrig);
       orientation = orientation.fromAngles(0, angle * i, 0);
 
@@ -518,7 +538,7 @@ public class WeaponsSystem extends AbstractGameSystem
               time,
               info.getLocation(),
               info.getAttackVelocity(),
-              CoreGameConstants.BULLETDECAY);
+              BULLET_DECAY_MS);
       ed.setComponent(
           projectile,
           new Damage(
@@ -557,7 +577,7 @@ public class WeaponsSystem extends AbstractGameSystem
     MineCost mc = this.mines.getEntity(requester).get(MineCost.class);
 
     final String mineShape =
-        CoreGameConstants.MINELEVELPREPENDTEXT + mineCurrentLevel.getLevel().level;
+        MINE_LEVEL_PREFIX + mineCurrentLevel.getLevel().level;
 
     final EntityId mineProjectile =
         GameEntities.createMine(
@@ -566,7 +586,7 @@ public class WeaponsSystem extends AbstractGameSystem
             physicsSpace,
             time,
             info.getLocation(),
-            CoreGameConstants.MINEDECAY,
+            MINE_DECAY_MS,
             mineShape);
     ed.setComponent(
         mineProjectile,

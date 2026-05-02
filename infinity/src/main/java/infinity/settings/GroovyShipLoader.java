@@ -125,9 +125,9 @@ public final class GroovyShipLoader {
   static final double DEFAULT_RADAR_RANGE = 250.0;
 
   // --- Defaults for the per-ship weapon / inventory stat groups ---------
-  // Match the values previously inlined in GameEntities.createShip and the
-  // CoreGameConstants references it pulled from. Preserves prior behaviour
-  // for any preset whose ships.groovy doesn't override these.
+  // Match the values previously inlined in GameEntities.createShip.
+  // Preserves prior behaviour for any preset whose ships.groovy doesn't
+  // override these.
 
   /** Default starting bomb level + max + cost + fire-delay. */
   static final BombStats DEFAULT_BOMBS =

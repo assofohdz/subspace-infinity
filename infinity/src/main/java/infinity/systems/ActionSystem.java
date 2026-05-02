@@ -47,7 +47,6 @@ import infinity.es.ShapeNames;
 import infinity.es.ship.actions.Thor;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
-import infinity.sim.CoreGameConstants;
 import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
@@ -73,6 +72,13 @@ public class ActionSystem extends AbstractGameSystem
   public static final byte FIREROCKET = 0x5;
   public static final byte FIRETHOR = 0x6;
   public static final byte WARP = 0x7;
+
+  // Tuning defaults — Pattern 4 candidates. Thor decay matches the bullet
+  // decay used elsewhere by historical accident; kept at the same value to
+  // preserve current behaviour, but split out here so a future per-arena
+  // promotion can tune them independently.
+  private static final int THOR_DAMAGE = 10;
+  private static final long THOR_DECAY_MS = 1500;
   private final KeySetView<Action, Boolean> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
   private SimTime time;
@@ -186,9 +192,9 @@ public class ActionSystem extends AbstractGameSystem
             time,
             info.location,
             info.attackVelocity,
-            CoreGameConstants.BULLETDECAY);
+            THOR_DECAY_MS);
 
-    ed.setComponent(gunProjectile, new Damage(CoreViewConstants.EXPLOSION1DECAY, CoreGameConstants.THORDAMAGE, ShapeInfo.create(
+    ed.setComponent(gunProjectile, new Damage(CoreViewConstants.EXPLOSION1DECAY, THOR_DAMAGE, ShapeInfo.create(
         ShapeNames.EXPLODE_1, 1, ed)));
   }
 
