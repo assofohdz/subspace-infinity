@@ -35,6 +35,7 @@ import com.simsilica.mworld.LeafInfo;
 import com.simsilica.mworld.db.LeafDb;
 import infinity.map.BitMap;
 import infinity.map.LevelFile;
+import infinity.map.MapTypes;
 import infinity.sim.InfinityDefaultLeafWorld;
 
 import java.io.BufferedInputStream;

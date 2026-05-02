@@ -41,6 +41,7 @@ import infinity.InfinityConstants;
 import infinity.es.GravityWell;
 import infinity.es.TileTypes;
 import infinity.map.LevelFile;
+import infinity.map.MapTypes;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.sim.CoreViewConstants;

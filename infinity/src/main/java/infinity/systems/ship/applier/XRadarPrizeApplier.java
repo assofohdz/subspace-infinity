@@ -24,21 +24,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.systems.ship.applier;
+
+import com.simsilica.es.EntityId;
 
 /**
- *
- * @author AFahrenholz
+ * <b>STATUS family</b> — STUB. Flip an {@code XRadarAvailable} marker on the
+ * ship if the per-ship {@code XRadarStatus} setting permits it.
  */
-public class ToggleSystem {
+public final class XRadarPrizeApplier implements PrizeApplier {
 
-    public static final byte ANTIWARP_ENABLE = 0x0;
-    public static final byte ANTIWARP_DISABLE = 0x1;
-    public static final byte CLOAK_ENABLE = 0x2;
-    public static final byte CLOAK_DISABLE = 0x3;
-    public static final byte STEALTH_ENABLE = 0x4;
-    public static final byte STEALTH_DISABLE = 0x5;
-    public static final byte XRADAR_ENABLE = 0x6;
-    public static final byte XRADAR_DISABLE = 0x7;
-
+  @Override
+  public void apply(final EntityId ship, final PrizeApplierContext ctx) {
+    throw new UnsupportedOperationException(
+        "XRadar prize not yet implemented (STATUS family pending)");
+  }
 }

@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.map;
 
 public class MapTypes {
   public static final short vieNoTile = 0;

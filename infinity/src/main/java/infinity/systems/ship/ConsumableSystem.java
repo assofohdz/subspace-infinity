@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.systems.ship;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -42,9 +42,13 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.config.ThorConfig;
+import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.ShapeNames;
+import infinity.es.arena.ArenaId;
 import infinity.es.ship.actions.Thor;
+import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.sim.CorePhysicsConstants;
@@ -61,7 +65,7 @@ import java.util.concurrent.ConcurrentHashMap.KeySetView;
  *
  * @author AFahrenholz
  */
-public class ActionSystem extends AbstractGameSystem
+public class ConsumableSystem extends AbstractGameSystem
     implements ContactListener<EntityId, MBlockShape> {
 
   public static final byte PLACEBRICK = 0x0;
@@ -73,12 +77,6 @@ public class ActionSystem extends AbstractGameSystem
   public static final byte FIRETHOR = 0x6;
   public static final byte WARP = 0x7;
 
-  // Tuning defaults — Pattern 4 candidates. Thor decay matches the bullet
-  // decay used elsewhere by historical accident; kept at the same value to
-  // preserve current behaviour, but split out here so a future per-arena
-  // promotion can tune them independently.
-  private static final int THOR_DAMAGE = 10;
-  private static final long THOR_DECAY_MS = 1500;
   private final KeySetView<Action, Boolean> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
   private SimTime time;
@@ -86,6 +84,20 @@ public class ActionSystem extends AbstractGameSystem
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private MPhysSystem<MBlockShape> physics;
   private EntitySet thorProjectiles;
+  private ConfigRegistrySystem configRegistry;
+
+  /**
+   * Per-arena Thor tuning. Keyed by attacker's {@link ArenaId}; arenas
+   * without a config (or attackers in no-arena void) fall back to
+   * {@link ThorConfig#DEFAULTS}.
+   */
+  private ThorConfig thorConfigFor(final EntityId attacker) {
+    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
+    if (arenaId == null) {
+      return ThorConfig.DEFAULTS;
+    }
+    return configRegistry.forArena(arenaId).weapons().thor();
+  }
 
   @Override
   protected void initialize() {
@@ -101,6 +113,7 @@ public class ActionSystem extends AbstractGameSystem
     }
 
     physicsSpace = physics.getPhysicsSpace();
+    configRegistry = getSystem(ConfigRegistrySystem.class);
     // Here we find the ships that have a thor weapon
     thorOwners = ed.getEntities(ThorCurrentCount.class);
     thorProjectiles = ed.getEntities(Thor.class);
@@ -182,6 +195,7 @@ public class ActionSystem extends AbstractGameSystem
 
   private void createThor(Entity requesterEntity, final long time, ActionPosition info) {
     EntityId requester = requesterEntity.getId();
+    final ThorConfig cfg = thorConfigFor(requester);
 
     EntityId gunProjectile;
     gunProjectile =
@@ -192,10 +206,14 @@ public class ActionSystem extends AbstractGameSystem
             time,
             info.location,
             info.attackVelocity,
-            THOR_DECAY_MS);
+            cfg.decayMs());
 
-    ed.setComponent(gunProjectile, new Damage(CoreViewConstants.EXPLOSION1DECAY, THOR_DAMAGE, ShapeInfo.create(
-        ShapeNames.EXPLODE_1, 1, ed)));
+    ed.setComponent(
+        gunProjectile,
+        new Damage(
+            CoreViewConstants.EXPLOSION1DECAY,
+            cfg.damage(),
+            ShapeInfo.create(ShapeNames.EXPLODE_1, 1, ed)));
   }
 
   private boolean createSound(Entity requesterEntity, byte flag, long time, ActionPosition info) {

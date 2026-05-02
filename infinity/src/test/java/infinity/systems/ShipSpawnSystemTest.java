@@ -43,6 +43,7 @@ import infinity.config.MineStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
+import infinity.systems.ship.ShipSpawnSystem;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.DragFactor;
 import infinity.es.ship.Energy;

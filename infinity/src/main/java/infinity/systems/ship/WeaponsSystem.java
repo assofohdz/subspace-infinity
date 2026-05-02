@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.systems.ship;
 
 import com.jme3.math.FastMath;
 import com.simsilica.es.Entity;
@@ -45,10 +45,14 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.config.WeaponsConfig;
+import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
 import infinity.es.ShapeNames;
+import infinity.es.arena.ArenaId;
+import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.Health;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.Thor;
@@ -91,22 +95,9 @@ public class WeaponsSystem extends AbstractGameSystem
   public static final byte MINE = 0x3;
   public static final byte BURST = 0x4;
 
-  // Tuning defaults — Pattern 4 candidates (per-arena tunable). Co-located
-  // here as private constants so the consuming code is self-contained;
-  // promote each cluster to a per-arena typed config when a real
-  // per-arena requirement materializes.
-  private static final int BULLET_DAMAGE = 10;
-  private static final int BOMB_DAMAGE = 10;
-  private static final int GRAVBOMB_DAMAGE = 10;
-  private static final long BULLET_DECAY_MS = 1500;
-  private static final long GRAVBOMB_DECAY_MS = 4000;
-  private static final long MINE_DECAY_MS = 10000;
-  private static final long BURST_PROJECTILE_COUNT = 30;
-  private static final long GRAVBOMB_DELAY_MS = 1000;
-  private static final double GRAVBOMB_WORMHOLE_FORCE = 5000;
-
   // Bomb / bullet / mine spatial-name prefixes — combined with the
   // current-level int produces the ShapeNames the client maps to spatials.
+  // Framework convention; not a Pattern 4 candidate.
   private static final String BOMB_LEVEL_PREFIX = "bomb_l";
   private static final String BULLET_LEVEL_PREFIX = "bullet_l";
   private static final String MINE_LEVEL_PREFIX = "mine_l";
@@ -116,6 +107,7 @@ public class WeaponsSystem extends AbstractGameSystem
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
+  private ConfigRegistrySystem configRegistry;
   private EntitySet mines;
   private EntitySet gravityBombs;
   private EntitySet bursts;
@@ -127,6 +119,20 @@ public class WeaponsSystem extends AbstractGameSystem
   private EnergySystem energySystem;
   private EntitySet damageEntities;
   private EntitySet energyEntities;
+
+  /**
+   * Per-arena weapon-projectile tuning lookup. The attacker's {@link ArenaId}
+   * keys into {@link ConfigRegistrySystem}; arenas with no config get
+   * {@link WeaponsConfig#DEFAULTS} (the legacy Java values). Falls back to
+   * {@code DEFAULTS} when the attacker has no {@code ArenaId} (no-arena void).
+   */
+  private WeaponsConfig weaponsFor(final EntityId attacker) {
+    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
+    if (arenaId == null) {
+      return WeaponsConfig.DEFAULTS;
+    }
+    return configRegistry.forArena(arenaId).weapons();
+  }
 
   @Override
   protected void initialize() {
@@ -143,6 +149,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
     physicsSpace = physics.getPhysicsSpace();
     energySystem = getSystem(EnergySystem.class);
+    configRegistry = getSystem(ConfigRegistrySystem.class);
     guns = ed.getEntities(GunCurrentLevel.class, GunFireDelay.class, GunCost.class);
     bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
     bursts = ed.getEntities(Burst.class);
@@ -436,6 +443,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final String bulletShape =
         BULLET_LEVEL_PREFIX + gunCurrentLevel.getLevel().level;
 
+    final WeaponsConfig cfg = weaponsFor(requester);
     EntityId gunProjectile;
     gunProjectile =
         GameEntities.createBullet(
@@ -445,14 +453,14 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.location,
             info.attackVelocity,
-            BULLET_DECAY_MS,
+            cfg.bullet().decayMs(),
             bulletShape);
 
     ed.setComponent(
         gunProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION0DECAY,
-            BULLET_DAMAGE,
+            cfg.bullet().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
   }
 
@@ -463,6 +471,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final String bombShape =
         BOMB_LEVEL_PREFIX + bombCurrentLevel.getLevel().level;
 
+    final WeaponsConfig cfg = weaponsFor(requester);
     final EntityId bombProjectile =
         GameEntities.createBomb(
             ed,
@@ -471,13 +480,13 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.getLocation(),
             info.getAttackVelocity(),
-            BULLET_DECAY_MS,
+            cfg.bomb().decayMs(),
             bombShape);
     ed.setComponent(
         bombProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
-            BOMB_DAMAGE,
+            cfg.bomb().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
@@ -485,11 +494,12 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requester = requesterEntity.getId();
     GravityBomb gravityBomb = this.gravityBombs.getEntity(requester).get(GravityBomb.class);
 
+    final WeaponsConfig cfg = weaponsFor(requester);
     EntityId projectile;
     final HashSet<EntityComponent> delayedComponents = new HashSet<>();
     delayedComponents.add(
         new GravityWell(
-            5, GRAVBOMB_WORMHOLE_FORCE, GravityWell.PULL)); // Suck everything in
+            5, cfg.gravBomb().wormholeForce(), GravityWell.PULL)); // Suck everything in
 
     projectile =
         GameEntities.createDelayedBomb(
@@ -499,8 +509,8 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.getLocation(),
             info.getAttackVelocity(),
-            GRAVBOMB_DECAY_MS,
-            GRAVBOMB_DELAY_MS,
+            cfg.gravBomb().decayMs(),
+            cfg.gravBomb().delayMs(),
             delayedComponents,
             BOMB_LEVEL_PREFIX + gravityBomb.getLevel());
 
@@ -508,17 +518,19 @@ public class WeaponsSystem extends AbstractGameSystem
         projectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
-            GRAVBOMB_DAMAGE,
+            cfg.gravBomb().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
   private void createProjectileBurst(Entity requesterEntity, long time) {
     Quatd orientation = new Quatd();
 
-    final double angle = (360d / BURST_PROJECTILE_COUNT) * FastMath.DEG_TO_RAD;
+    final WeaponsConfig cfg = weaponsFor(requesterEntity.getId());
+    final long burstCount = cfg.burst().projectileCount();
+    final double angle = (360d / burstCount) * FastMath.DEG_TO_RAD;
 
     final AttackPosition infoOrig = getAttackInfo(requesterEntity, WeaponsSystem.BURST);
-    for (int i = 0; i < BURST_PROJECTILE_COUNT; i++) {
+    for (int i = 0; i < burstCount; i++) {
       final AttackPosition info = new AttackPosition(infoOrig);
       orientation = orientation.fromAngles(0, angle * i, 0);
 
@@ -538,7 +550,7 @@ public class WeaponsSystem extends AbstractGameSystem
               time,
               info.getLocation(),
               info.getAttackVelocity(),
-              BULLET_DECAY_MS);
+              cfg.burst().decayMs());
       ed.setComponent(
           projectile,
           new Damage(
@@ -579,6 +591,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final String mineShape =
         MINE_LEVEL_PREFIX + mineCurrentLevel.getLevel().level;
 
+    final WeaponsConfig cfg = weaponsFor(requester);
     final EntityId mineProjectile =
         GameEntities.createMine(
             ed,
@@ -586,7 +599,7 @@ public class WeaponsSystem extends AbstractGameSystem
             physicsSpace,
             time,
             info.getLocation(),
-            MINE_DECAY_MS,
+            cfg.mine().decayMs(),
             mineShape);
     ed.setComponent(
         mineProjectile,

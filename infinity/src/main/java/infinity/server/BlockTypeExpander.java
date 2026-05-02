@@ -33,7 +33,7 @@ import com.simsilica.mblock.phys.collision.CubeCollider;
 import infinity.InfinityConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.MapSystem;
-import infinity.systems.MapTypes;
+import infinity.map.MapTypes;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import org.slf4j.Logger;

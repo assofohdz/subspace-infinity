@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.systems.ship;
 
 import com.simsilica.bpos.BodyPosition;
 import com.simsilica.es.Entity;
@@ -42,6 +42,11 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.WarpTouch;
+import infinity.systems.ArenaMembershipSystem;
+import infinity.systems.ArenaSystem;
+import infinity.systems.ContactSystem;
+import infinity.systems.MapSystem;
+import infinity.systems.WorldSystem;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Health;

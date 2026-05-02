@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.systems.ship;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;

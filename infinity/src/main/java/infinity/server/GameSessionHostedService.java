@@ -64,11 +64,11 @@ import infinity.net.GameSessionListener;
 import infinity.sim.GameEntities;
 import infinity.systems.ArenaSystem;
 import infinity.sim.util.InfinityRunTimeException;
-import infinity.systems.ActionSystem;
+import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.MapSystem;
-import infinity.systems.WarpSystem;
-import infinity.systems.WeaponsSystem;
+import infinity.systems.ship.WarpSystem;
+import infinity.systems.ship.WeaponsSystem;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
@@ -206,7 +206,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     // private final BinIndex binIndex;
     private final WeaponsSystem weaponsSystem;
     private WarpSystem warpSys;
-    private ActionSystem actionSys;
+    private ConsumableSystem actionSys;
     private AvatarSystem avatarSys;
     private GameSessionListener callback;
     // private final MPhysSystem mphys;
@@ -317,7 +317,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       log.info("GameSessionImpl.initialized()");
 
       warpSys = gameSystems.get(WarpSystem.class);
-      actionSys = gameSystems.get(ActionSystem.class);
+      actionSys = gameSystems.get(ConsumableSystem.class);
       avatarSys = gameSystems.get(AvatarSystem.class);
     }
 
@@ -397,11 +397,11 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     @Override
     public void action(final byte actionInput) {
       switch(actionInput){
-        case ActionSystem.WARP:
+        case ConsumableSystem.WARP:
           warpSys.warpToCenter(avatarEntityId);
           return;
-        case ActionSystem.FIRETHOR:
-          actionSys.sessionAct(avatarEntityId, ActionSystem.FIRETHOR);
+        case ConsumableSystem.FIRETHOR:
+          actionSys.sessionAct(avatarEntityId, ConsumableSystem.FIRETHOR);
             return;
       }
     }

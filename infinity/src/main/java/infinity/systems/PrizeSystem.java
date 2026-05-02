@@ -42,7 +42,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.config.ShipConfig;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
@@ -50,44 +49,45 @@ import infinity.es.PrizeWeightsOverride;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.EnergyUpgrade;
 import infinity.es.ship.Player;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.ShipType;
 import infinity.settings.ConfigRegistrySystem;
-import infinity.es.ship.RechargeMax;
-import infinity.es.ship.RechargeUpgrade;
-import infinity.es.ship.Rotation;
-import infinity.es.ship.RotationMax;
-import infinity.es.ship.RotationUpgrade;
-import infinity.es.ship.Speed;
-import infinity.es.ship.SpeedMax;
-import infinity.es.ship.SpeedUpgrade;
-import infinity.es.ship.Thrust;
-import infinity.es.ship.ThrustMax;
-import infinity.es.ship.ThrustUpgrade;
-import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
-import infinity.es.ship.actions.ThorCurrentCount;
-import infinity.es.ship.actions.ThorFireDelay;
-import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.weapons.BombCost;
-import infinity.es.ship.weapons.BombCurrentLevel;
-import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.GunCost;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.GunMaxLevel;
-import infinity.es.ship.weapons.MineCost;
-import infinity.es.ship.weapons.MineCurrentLevel;
-import infinity.es.ship.weapons.MineFireDelay;
-import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.sim.CollisionFilters;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
+import infinity.systems.ship.EnergySystem;
+import infinity.systems.ship.applier.AntiWarpPrizeApplier;
+import infinity.systems.ship.applier.BombPrizeApplier;
+import infinity.systems.ship.applier.BouncingBulletsPrizeApplier;
+import infinity.systems.ship.applier.BrickPrizeApplier;
+import infinity.systems.ship.applier.BurstPrizeApplier;
+import infinity.systems.ship.applier.CloakPrizeApplier;
+import infinity.systems.ship.applier.CompositePrizeApplier;
+import infinity.systems.ship.applier.DecoyPrizeApplier;
+import infinity.systems.ship.applier.DudPrizeApplier;
+import infinity.systems.ship.applier.EnergyPrizeApplier;
+import infinity.systems.ship.applier.GluePrizeApplier;
+import infinity.systems.ship.applier.GunPrizeApplier;
+import infinity.systems.ship.applier.MinePrizeApplier;
+import infinity.systems.ship.applier.MultiFirePrizeApplier;
+import infinity.systems.ship.applier.MultiPrizePrizeApplier;
+import infinity.systems.ship.applier.PortalPrizeApplier;
+import infinity.systems.ship.applier.PrizeApplier;
+import infinity.systems.ship.applier.PrizeApplierContext;
+import infinity.systems.ship.applier.ProximityPrizeApplier;
+import infinity.systems.ship.applier.QuickChargePrizeApplier;
+import infinity.systems.ship.applier.RechargePrizeApplier;
+import infinity.systems.ship.applier.RepelPrizeApplier;
+import infinity.systems.ship.applier.RocketPrizeApplier;
+import infinity.systems.ship.applier.RotationPrizeApplier;
+import infinity.systems.ship.applier.ShieldsPrizeApplier;
+import infinity.systems.ship.applier.ShrapnelPrizeApplier;
+import infinity.systems.ship.applier.StealthPrizeApplier;
+import infinity.systems.ship.applier.SuperPrizeApplier;
+import infinity.systems.ship.applier.ThorPrizeApplier;
+import infinity.systems.ship.applier.ThrusterPrizeApplier;
+import infinity.systems.ship.applier.TopSpeedPrizeApplier;
+import infinity.systems.ship.applier.WarpPrizeApplier;
+import infinity.systems.ship.applier.XRadarPrizeApplier;
 import infinity.util.RandomSelector;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -133,6 +133,17 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   private EntityData ed;
   private ConfigRegistrySystem configRegistry;
   private SettingsSystem settingsSystem;
+  /**
+   * Registry of prize-type-name → applier. Built once in {@link #initialize()}
+   * — one entry per Subspace prize type, with composite appliers wired for
+   * {@code BOMB} (bomb+mine) and {@code ALLWEAPONS} (bomb+burst+gun+mine).
+   * Stub appliers throw {@link UnsupportedOperationException}; the dispatch
+   * in {@link #handlePrizeAcquisition} catches that and logs a warning so
+   * unimplemented prize types degrade to a visible no-op rather than
+   * crashing the contact loop.
+   */
+  private java.util.Map<String, PrizeApplier> appliers;
+  private PrizeApplierContext applierContext;
   private EntitySet prizeSpawners;
   private EntitySet prizes;
   private SimTime ourTime;
@@ -167,6 +178,46 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     // Can be updated later to include bots
     ships = ed.getEntities(shipColliderFilter, Player.class);
     prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
+
+    // Build the prize-applier registry. Composites for BOMB (bomb+mine)
+    // and ALLWEAPONS (bomb+burst+gun+mine) — Subspace tradition.
+    final EnergySystem energySystem = getSystem(EnergySystem.class);
+    applierContext = new PrizeApplierContext(ed, energySystem);
+    final BombPrizeApplier bomb = new BombPrizeApplier();
+    final BurstPrizeApplier burst = new BurstPrizeApplier();
+    final GunPrizeApplier gun = new GunPrizeApplier();
+    final MinePrizeApplier mine = new MinePrizeApplier();
+    appliers = new HashMap<>();
+    appliers.put(PrizeTypes.ALLWEAPONS, new CompositePrizeApplier(bomb, burst, gun, mine));
+    appliers.put(PrizeTypes.ANTIWARP, new AntiWarpPrizeApplier());
+    appliers.put(PrizeTypes.BOMB, new CompositePrizeApplier(bomb, mine));
+    appliers.put(PrizeTypes.BOUNCINGBULLETS, new BouncingBulletsPrizeApplier());
+    appliers.put(PrizeTypes.BRICK, new BrickPrizeApplier());
+    appliers.put(PrizeTypes.BURST, burst);
+    appliers.put(PrizeTypes.CLOAK, new CloakPrizeApplier());
+    appliers.put(PrizeTypes.DECOY, new DecoyPrizeApplier());
+    appliers.put(PrizeTypes.DUD, new DudPrizeApplier());
+    appliers.put(PrizeTypes.ENERGY, new EnergyPrizeApplier());
+    appliers.put(PrizeTypes.GLUE, new GluePrizeApplier());
+    appliers.put(PrizeTypes.GUN, gun);
+    appliers.put(PrizeTypes.MULTIFIRE, new MultiFirePrizeApplier());
+    appliers.put(PrizeTypes.MULTIPRIZE, new MultiPrizePrizeApplier());
+    appliers.put(PrizeTypes.PORTAL, new PortalPrizeApplier());
+    appliers.put(PrizeTypes.PROXIMITY, new ProximityPrizeApplier());
+    appliers.put(PrizeTypes.QUICKCHARGE, new QuickChargePrizeApplier());
+    appliers.put(PrizeTypes.RECHARGE, new RechargePrizeApplier());
+    appliers.put(PrizeTypes.REPEL, new RepelPrizeApplier());
+    appliers.put(PrizeTypes.ROCKET, new RocketPrizeApplier());
+    appliers.put(PrizeTypes.ROTATION, new RotationPrizeApplier());
+    appliers.put(PrizeTypes.SHIELDS, new ShieldsPrizeApplier());
+    appliers.put(PrizeTypes.SHRAPNEL, new ShrapnelPrizeApplier());
+    appliers.put(PrizeTypes.STEALTH, new StealthPrizeApplier());
+    appliers.put(PrizeTypes.SUPER, new SuperPrizeApplier());
+    appliers.put(PrizeTypes.THOR, new ThorPrizeApplier());
+    appliers.put(PrizeTypes.THRUSTER, new ThrusterPrizeApplier());
+    appliers.put(PrizeTypes.TOPSPEED, new TopSpeedPrizeApplier());
+    appliers.put(PrizeTypes.WARP, new WarpPrizeApplier());
+    appliers.put(PrizeTypes.XRADAR, new XRadarPrizeApplier());
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -378,13 +429,24 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   }
 
   /**
-   * Spawn one prize for {@code spawner}. Reads the spawner's per-spawner
-   * {@link Spawner#getSpawnedDecayMillis()} and forwards it to
-   * {@code GameEntities.createPrize} so prizes from arena.groovy-declared
-   * spawners can override the global {@code GameEntities.PRIZE_DEFAULT_DECAY_MS}.
-   * Spawners created without a per-spawner TTL (e.g. the legacy
-   * {@code BasicEnvironment} call) carry {@code 0} here, which
-   * {@code createPrize} interprets as "fall back to the global default".
+   * Spawn one prize for {@code spawner}. Resolves the prize-decay from
+   * (in priority order):
+   *
+   * <ol>
+   *   <li>The spawner's per-spawner TTL ({@link Spawner#getSpawnedDecayMillis()})
+   *       — set when the spawner was declared in {@code arena.groovy} with
+   *       a {@code ttlMs} field.
+   *   <li>The arena's typed {@link infinity.config.PrizeConfig#defaultDecayMs()}
+   *       — read via the spawner's {@link ArenaId} from
+   *       {@link infinity.settings.ConfigRegistrySystem}.
+   *   <li>{@link infinity.config.PrizeConfig#DEFAULTS} (legacy
+   *       {@code 20000} ms) when the spawner has no {@code ArenaId}.
+   * </ol>
+   *
+   * <p>Always passes a non-zero {@code decayMillis} to
+   * {@link GameEntities#createPrize} so the api-side fallback constant
+   * {@code GameEntities.PRIZE_DEFAULT_DECAY_MS} is reserved for direct
+   * module-author calls without server context.
    *
    * <p>Prize-type weighting goes through {@link #getPrizeType(EntityId)}
    * which honours {@link PrizeWeightsOverride} on the spawner, falling back
@@ -395,13 +457,25 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     String prizeType = getPrizeType(spawnerId);
     Vec3d prizeSpawnLocation =
         this.getSpawnLocation(spawnerLocation, radius, spawner.spawnOnRing());
+    final long decayMs = resolveDecayMs(spawnerId, spawner);
     return GameEntities.createPrize(
         ed,
         phys,
         ourTime.getTime(),
         prizeSpawnLocation,
         prizeType,
-        spawner.getSpawnedDecayMillis());
+        decayMs);
+  }
+
+  private long resolveDecayMs(final EntityId spawnerId, final Spawner spawner) {
+    if (spawner.getSpawnedDecayMillis() > 0L) {
+      return spawner.getSpawnedDecayMillis();
+    }
+    final ArenaId arenaId = ed.getComponent(spawnerId, ArenaId.class);
+    if (arenaId == null) {
+      return infinity.config.PrizeConfig.DEFAULTS.defaultDecayMs();
+    }
+    return configRegistry.forArena(arenaId).prize().defaultDecayMs();
   }
 
   @Override
@@ -442,340 +516,24 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     return globalFallbackSelector.next(random);
   }
 
-  private void handlePrizeAcquisition(PrizeType pt, EntityId ship) {
-    log.info("Ship {} picked up prize: {}", ship, pt.getTypeName(ed));
-    switch (pt.getTypeName(ed)) {
-      case PrizeTypes.ALLWEAPONS:
-        handleAcquireBomb(ship);
-        handleAcquireBurst(ship);
-        handleAcquireGun(ship);
-        handleAcquireMine(ship);
-        break;
-      case PrizeTypes.ANTIWARP:
-        // TODO: Handle acquiring antiwarp
-        break;
-      case PrizeTypes.BOMB:
-        handleAcquireBomb(ship);
-        handleAcquireMine(ship);
-        break;
-      case PrizeTypes.BOUNCINGBULLETS:
-        // TODO: Handle acquiring bouncing bullets
-        break;
-      case PrizeTypes.BRICK:
-        // TODO: Handle acquiring brick
-        break;
-      case PrizeTypes.BURST:
-        handleAcquireBurst(ship);
-        break;
-      case PrizeTypes.CLOAK:
-        // TODO: Handle acquiring cloak
-        break;
-      case PrizeTypes.DECOY:
-        // TODO: Handle acquiring decoy
-        break;
-      case PrizeTypes.ENERGY:
-        handleAcquireEnergy(ship);
-        break;
-      case PrizeTypes.GLUE:
-        // TODO: Handle acquiring glue
-        break;
-      case PrizeTypes.GUN:
-        handleAcquireGun(ship);
-        break;
-      case PrizeTypes.MULTIFIRE:
-        // TODO: Handle acquiring multifire
-        break;
-      case PrizeTypes.MULTIPRIZE:
-        // TODO: Handle acquiring multiprize
-        break;
-      case PrizeTypes.PORTAL:
-        // TODO: Handle acquiring portal
-        break;
-      case PrizeTypes.PROXIMITY:
-        // TODO: Handle acquiring proximity
-        break;
-      case PrizeTypes.QUICKCHARGE:
-        getSystem(EnergySystem.class).refillHealth(ship);
-        break;
-      case PrizeTypes.RECHARGE:
-        handleAcquireRecharge(ship);
-        break;
-      case PrizeTypes.REPEL:
-        // TODO: Handle acquiring repel
-        break;
-      case PrizeTypes.ROCKET:
-        // TODO: Handle acquiring rocket
-        break;
-      case PrizeTypes.ROTATION:
-        handleAcquireRotation(ship);
-        break;
-      case PrizeTypes.SHIELDS:
-        // TODO: Handle acquiring shields
-        break;
-      case PrizeTypes.SHRAPNEL:
-        // TODO: Handle acquiring shrapnel
-        break;
-      case PrizeTypes.STEALTH:
-        // TODO: Handle acquiring stealth
-        break;
-      case PrizeTypes.THOR:
-        handleAcquireThor(ship);
-        break;
-      case PrizeTypes.THRUSTER:
-        handleAcquireThruster(ship);
-        break;
-      case PrizeTypes.TOPSPEED:
-        handleAcquireTopSpeed(ship);
-        break;
-      case PrizeTypes.WARP:
-        // TODO: Handle acquiring warp
-        break;
-      case PrizeTypes.XRADAR:
-        // TODO: Handle acquiring xradar
-        break;
-      case PrizeTypes.SUPER:
-        // TODO: Handle acquiring super
-        break;
-      case PrizeTypes.DUD:
-        // TODO: Handle acquiring dud
-        break;
-      default:
-        throw new UnsupportedOperationException(
-            "Prize type: "
-                + pt.getTypeName(ed)
-                + " is not supported by "
-                + pt.getClass().toString());
-    }
-  }
-
-  private void handleAcquireThor(EntityId ship) {
-    ThorCurrentCount thorCurrentCount = ed.getComponent(ship, ThorCurrentCount.class);
-    ThorMaxCount thorMaxCount = ed.getComponent(ship, ThorMaxCount.class);
-    if (thorCurrentCount != null && thorCurrentCount.getCount() < thorMaxCount.getCount()) {
-      ThorCurrentCount thorNextCount = thorCurrentCount.add(1);
-      log.info(
-          "Ship {} picked up thor prize and now has {} thor", ship, (thorNextCount.getCount()));
-      ed.setComponent(ship, thorNextCount);
-    } else if (thorMaxCount != null) {
-      log.info("Ship {} picked up thor prize", ship);
-      ed.setComponent(ship, new ThorCurrentCount(1));
-      ed.setComponent(ship, new ThorFireDelay(1000));
-    }
-  }
-
-  /**
-   * This method handles upgrading or acquiring mines. This happens when a ship picks up a bomb
-   * prize. The ship will either acquire a mine if it does not have one, or upgrade its mine if it
-   * already has one. If the ship already has the maximum mine, nothing happens.
-   *
-   * <p>Note: A bomb prize also acts a mine prize.
-   *
-   * @param ship The ship that picked up the bomb prize.
-   */
-  /**
-   * Look up the per-arena {@link ShipConfig} for {@code ship}'s current ship
-   * type and arena membership. Returns {@code null} when either the
-   * {@link ShipType} or {@link ArenaId} component is missing, or the arena
-   * doesn't have a config for that ship type — callers log and skip in that
-   * case (matches {@code ShipSpawnSystem}'s null-config handling).
-   */
-  private ShipConfig getShipConfig(EntityId ship) {
-    final ShipType shipType = ed.getComponent(ship, ShipType.class);
-    if (shipType == null || shipType.getType() == null) {
-      return null;
-    }
-    final ArenaId arenaId = ed.getComponent(ship, ArenaId.class);
-    if (arenaId == null) {
-      return null;
-    }
-    return configRegistry.forArena(arenaId).getShip(shipType.getType());
-  }
-
-  private void handleAcquireMine(EntityId ship) {
-    MineCurrentLevel mineCurrentLevel = ed.getComponent(ship, MineCurrentLevel.class);
-    MineMaxLevel mineMaxLevel = ed.getComponent(ship, MineMaxLevel.class);
-    if (mineCurrentLevel != null
-        && mineCurrentLevel.getLevel().level < mineMaxLevel.getLevel().level) {
-      log.info(
-          "Ship {} picked up mine prize and now has {} mines",
-          ship,
-          (mineCurrentLevel.getLevel().next()));
-      ed.setComponent(ship, new MineCurrentLevel(mineCurrentLevel.getLevel().next()));
-    } else if (mineCurrentLevel == null && mineMaxLevel != null) {
-      // First-time mine acquisition: project starting level / max / cost / delay
-      // from the per-arena ShipConfig (Pattern 4) instead of hardcoded constants.
-      final ShipConfig cfg = getShipConfig(ship);
-      if (cfg == null) {
-        log.warn("Ship {} acquired mine prize without ShipConfig context; skipping", ship);
-        return;
-      }
-      log.info("Ship {} picked up mine prize", ship);
-      ed.setComponent(ship, new MineCurrentLevel(cfg.mines().start()));
-      ed.setComponent(ship, new MineCost(cfg.mines().cost()));
-      ed.setComponent(ship, new MineFireDelay(cfg.mines().fireDelayCs()));
-      ed.setComponent(ship, new MineMaxLevel(cfg.mines().max()));
-    }
-  }
-
-  private void handleAcquireBomb(EntityId ship) {
-    BombCurrentLevel bombCurrentLevel = ed.getComponent(ship, BombCurrentLevel.class);
-    BombMaxLevel bombMaxLevel = ed.getComponent(ship, BombMaxLevel.class);
-    if (bombCurrentLevel != null
-        && bombCurrentLevel.getLevel().level < bombMaxLevel.getLevel().level) {
-      log.info(
-          "Ship {} picked up bomb prize and now has {} bombs",
-          ship,
-          (bombCurrentLevel.getLevel().next()));
-      ed.setComponent(ship, new BombCurrentLevel(bombCurrentLevel.getLevel().next()));
-    } else if (bombCurrentLevel == null && bombMaxLevel != null) {
-      // First-time bomb acquisition: project from per-arena ShipConfig.
-      final ShipConfig cfg = getShipConfig(ship);
-      if (cfg == null) {
-        log.warn("Ship {} acquired bomb prize without ShipConfig context; skipping", ship);
-        return;
-      }
-      log.info("Ship {} picked up bomb prize", ship);
-      ed.setComponent(ship, new BombCurrentLevel(cfg.bombs().start()));
-      ed.setComponent(ship, new BombCost(cfg.bombs().cost()));
-      ed.setComponent(ship, new BombFireDelay(cfg.bombs().fireDelayCs()));
-      ed.setComponent(ship, new BombMaxLevel(cfg.bombs().max()));
-    }
-  }
-
-  private void handleAcquireBurst(EntityId ship) {
-    Burst burst = ed.getComponent(ship, Burst.class);
-    BurstMax burstMax = ed.getComponent(ship, BurstMax.class);
-    if (burst != null && burstMax != null && burst.getCount() < burstMax.getCount()) {
-      log.info("Ship {} picked up burst prize and now has {} bursts", ship, burst.getCount() + 1);
-      ed.setComponent(ship, new Burst(burst.getCount() + 1));
-    } else if (burst == null && burstMax != null) {
-      log.info("Ship {} picked up burst prize", ship);
-      ed.setComponent(ship, new Burst(1));
-    }
-  }
-
-  private void handleAcquireGun(EntityId ship) {
-    GunCurrentLevel gunCurrentLevel = ed.getComponent(ship, GunCurrentLevel.class);
-    GunMaxLevel max = ed.getComponent(ship, GunMaxLevel.class);
-    if (gunCurrentLevel != null && gunCurrentLevel.getLevel().level < max.getLevel().level) {
-      log.info("Gun level increased to {}", (gunCurrentLevel.getLevel().next()));
-      ed.setComponent(ship, new GunCurrentLevel(gunCurrentLevel.getLevel().next()));
-    } else if (gunCurrentLevel == null) {
-      // First-time gun acquisition: project from per-arena ShipConfig.
-      final ShipConfig cfg = getShipConfig(ship);
-      if (cfg == null) {
-        log.warn("Ship {} acquired gun prize without ShipConfig context; skipping", ship);
-        return;
-      }
-      log.info("Ship {} just acquired guns at level {}", ship, cfg.guns().start().level);
-      ed.setComponent(ship, new GunCurrentLevel(cfg.guns().start()));
-      ed.setComponent(ship, new GunCost(cfg.guns().cost()));
-      ed.setComponent(ship, new GunFireDelay(cfg.guns().fireDelayCs()));
-      ed.setComponent(ship, new GunMaxLevel(cfg.guns().max()));
-    }
-  }
-
-  /**
-   * THRUSTER prize: bumps the ship's current effective {@link Thrust} by
-   * {@link ThrustUpgrade}, clamped at {@link ThrustMax}. No-op if the ship is
-   * already at the cap, the upgrade increment is zero (e.g. trench preset's
-   * "no upgrades" design), or the spawn projection hasn't run yet.
-   */
-  private void handleAcquireThruster(EntityId ship) {
-    Thrust current = ed.getComponent(ship, Thrust.class);
-    ThrustMax max = ed.getComponent(ship, ThrustMax.class);
-    ThrustUpgrade up = ed.getComponent(ship, ThrustUpgrade.class);
-    if (current == null || max == null || up == null) {
+  private void handlePrizeAcquisition(final PrizeType pt, final EntityId ship) {
+    final String name = pt.getTypeName(ed);
+    log.info("Ship {} picked up prize: {}", ship, name);
+    final PrizeApplier applier = appliers.get(name);
+    if (applier == null) {
+      log.warn("Prize type {} has no registered applier; skipping", name);
       return;
     }
-    int next = Math.min(current.getThrust() + up.getThrustUpgrade(), max.getThrustMax());
-    if (next > current.getThrust()) {
-      log.info("Ship {} thruster upgrade: thrust {} -> {}", ship, current.getThrust(), next);
-      ed.setComponent(ship, new Thrust(next));
+    try {
+      applier.apply(ship, applierContext);
+    } catch (final UnsupportedOperationException e) {
+      // Stub applier — prize family is identified but the apply-time logic
+      // hasn't landed yet. Degrade to a visible no-op rather than crashing
+      // the contact loop. See the corresponding *PrizeApplier class for
+      // family + intent.
+      log.warn("Prize type {} not yet implemented: {}", name, e.getMessage());
     }
   }
-
-  /**
-   * TOPSPEED prize: bumps the ship's current effective {@link Speed} by
-   * {@link SpeedUpgrade}, clamped at {@link SpeedMax}.
-   */
-  private void handleAcquireTopSpeed(EntityId ship) {
-    Speed current = ed.getComponent(ship, Speed.class);
-    SpeedMax max = ed.getComponent(ship, SpeedMax.class);
-    SpeedUpgrade up = ed.getComponent(ship, SpeedUpgrade.class);
-    if (current == null || max == null || up == null) {
-      return;
-    }
-    int next = Math.min(current.getSpeed() + up.getSpeedUpgrade(), max.getSpeedMax());
-    if (next > current.getSpeed()) {
-      log.info("Ship {} topspeed upgrade: speed {} -> {}", ship, current.getSpeed(), next);
-      ed.setComponent(ship, new Speed(next));
-    }
-  }
-
-  /**
-   * ROTATION prize: bumps the ship's current effective {@link Rotation} by
-   * {@link RotationUpgrade}, clamped at {@link RotationMax}. All values are
-   * in rad/sec (the Subspace integer rotation units are converted by
-   * ShipSpawnSystem at spawn).
-   */
-  private void handleAcquireRotation(EntityId ship) {
-    Rotation current = ed.getComponent(ship, Rotation.class);
-    RotationMax max = ed.getComponent(ship, RotationMax.class);
-    RotationUpgrade up = ed.getComponent(ship, RotationUpgrade.class);
-    if (current == null || max == null || up == null) {
-      return;
-    }
-    double next = Math.min(current.getRadSec() + up.getRadSecUpgrade(), max.getRadSecMax());
-    if (next > current.getRadSec()) {
-      log.info("Ship {} rotation upgrade: rad/sec {} -> {}", ship, current.getRadSec(), next);
-      ed.setComponent(ship, new Rotation(next));
-    }
-  }
-
-  /**
-   * ENERGY prize: bumps the ship's current effective energy cap {@link Energy}
-   * by {@link EnergyUpgrade}, clamped at {@link EnergyMax}. Does <i>not</i>
-   * touch the live pool — that's QUICKCHARGE's job (refills Health to Energy).
-   */
-  private void handleAcquireEnergy(EntityId ship) {
-    Energy current = ed.getComponent(ship, Energy.class);
-    EnergyMax max = ed.getComponent(ship, EnergyMax.class);
-    EnergyUpgrade up = ed.getComponent(ship, EnergyUpgrade.class);
-    if (current == null || max == null || up == null) {
-      return;
-    }
-    int next = Math.min(current.getEnergy() + up.getEnergyUpgrade(), max.getMaxEnergy());
-    if (next > current.getEnergy()) {
-      log.info("Ship {} energy upgrade: cap {} -> {}", ship, current.getEnergy(), next);
-      ed.setComponent(ship, new Energy(next));
-    }
-  }
-
-  /**
-   * RECHARGE prize: bumps the ship's current effective {@link Recharge} rate
-   * by {@link RechargeUpgrade}, clamped at {@link RechargeMax}. Values are in
-   * energy-per-second (raw Subspace recharge units are converted by
-   * ShipSpawnSystem at spawn).
-   */
-  private void handleAcquireRecharge(EntityId ship) {
-    Recharge current = ed.getComponent(ship, Recharge.class);
-    RechargeMax max = ed.getComponent(ship, RechargeMax.class);
-    RechargeUpgrade up = ed.getComponent(ship, RechargeUpgrade.class);
-    if (current == null || max == null || up == null) {
-      return;
-    }
-    double next = Math.min(
-        current.getRechargePerSecond() + up.getRechargePerSecondUpgrade(),
-        max.getMaxRechargePerSecond());
-    if (next > current.getRechargePerSecond()) {
-      log.info(
-          "Ship {} recharge upgrade: energy/sec {} -> {}",
-          ship, current.getRechargePerSecond(), next);
-      ed.setComponent(ship, new Recharge(next));
-    }
-  }
-
   @Override
   public void newContact(Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;

@@ -27,6 +27,7 @@
 package infinity.config;
 
 import infinity.Ship;
+import javax.annotation.Nullable;
 
 /**
  * Immutable template describing one ship type's baseline tuning for a given
@@ -39,8 +40,15 @@ import infinity.Ship;
  * directly — they watch the components, which can diverge from the template
  * via upgrades, damage, or status effects.
  *
- * <p>MVP scope: movement + energy + physics-feel knobs. Expand with weapons /
- * ammo / special fields as consumers are wired.
+ * <p>Weapon and inventory fields ({@code bombs}, {@code guns}, {@code mines},
+ * {@code bursts}, {@code thors}, {@code repels}) are nullable: a {@code null}
+ * means "this ship type doesn't carry / can't acquire this weapon at all".
+ * {@code ShipSpawnSystem} skips the corresponding projection block on null,
+ * so the ship spawns without {@code BombMaxLevel} / {@code BurstMax} / etc.,
+ * which the prize appliers interpret as "not allowed" (component-absence as
+ * the disallow signal). Today every existing {@code ships.groovy} relies on
+ * the {@code GroovyShipLoader.DEFAULT_*} permissive fallbacks — explicit
+ * {@code null} expressions in script form are a future authoring extension.
  *
  * @param type the ship this template applies to
  * @param rotation rotation-rate triple (initial / max / per-upgrade)
@@ -56,13 +64,16 @@ import infinity.Ship;
  *     elastic, {@code 0} = stick)
  * @param radarRange radius (world units) around the ship that the client
  *     radar viewport displays
- * @param bombs starting + max bomb level, fire cost, fire-delay
- * @param guns starting + max gun level, fire cost, fire-delay
+ * @param bombs starting + max bomb level, fire cost, fire-delay; {@code null}
+ *     = no bombs
+ * @param guns starting + max gun level, fire cost, fire-delay; {@code null}
+ *     = no guns
  * @param mines starting + max mine level (reuses BombLevel enum), drop cost,
- *     drop-delay
- * @param bursts starting + max burst inventory count
- * @param thors starting + max thor inventory count + per-fire delay
- * @param repels starting + max repel inventory count
+ *     drop-delay; {@code null} = no mines
+ * @param bursts starting + max burst inventory count; {@code null} = no bursts
+ * @param thors starting + max thor inventory count + per-fire delay;
+ *     {@code null} = no thors
+ * @param repels starting + max repel inventory count; {@code null} = no repels
  */
 public record ShipConfig(
     Ship type,
@@ -75,9 +86,9 @@ public record ShipConfig(
     double turnResponsiveness,
     double bounceRestitution,
     double radarRange,
-    BombStats bombs,
-    GunStats guns,
-    MineStats mines,
-    CountStats bursts,
-    CountWithDelayStats thors,
-    CountStats repels) {}
+    @Nullable BombStats bombs,
+    @Nullable GunStats guns,
+    @Nullable MineStats mines,
+    @Nullable CountStats bursts,
+    @Nullable CountWithDelayStats thors,
+    @Nullable CountStats repels) {}

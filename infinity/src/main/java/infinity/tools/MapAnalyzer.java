@@ -27,7 +27,7 @@ package infinity.tools;
 
 import infinity.map.BitMap;
 import infinity.map.LevelFile;
-import infinity.systems.MapTypes;
+import infinity.map.MapTypes;
 
 import java.io.BufferedInputStream;
 import java.io.File;

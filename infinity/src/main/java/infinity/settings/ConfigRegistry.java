@@ -27,7 +27,9 @@
 package infinity.settings;
 
 import infinity.Ship;
+import infinity.config.PrizeConfig;
 import infinity.config.ShipConfig;
+import infinity.config.WeaponsConfig;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -38,15 +40,17 @@ import javax.annotation.Nullable;
 /**
  * Immutable per-arena config snapshot. Holds typed {@code *Config} records
  * produced by the config layer (Groovy script / legacy INI) and consumed by
- * spawn systems to seed per-entity components.
+ * spawn systems and projectile-creation paths.
  *
  * <p>Snapshots are frozen at construction — the internal map is defensively
  * copied and wrapped unmodifiable. Live-reload installs a new snapshot via
  * {@link ConfigRegistrySystem#replace}; readers see either the old or new
  * snapshot, never a torn state.
  *
- * <p>MVP scope: ships only. Grow by adding per-type maps (bombs, bullets,
- * flags, ...) alongside {@link #ships} as their consumers land.
+ * <p>Scope: per-ship templates ({@link #ships}), per-arena weapon-projectile
+ * tuning ({@link #weapons}), per-arena prize-spawn defaults ({@link #prize}).
+ * Grow by adding per-type slots as new clusters migrate from local Java
+ * constants to typed config — see config-pattern.md.
  */
 public final class ConfigRegistry {
 
@@ -54,11 +58,18 @@ public final class ConfigRegistry {
   public static final ConfigRegistry EMPTY = builder().build();
 
   private final Map<Ship, ShipConfig> ships;
+  private final WeaponsConfig weapons;
+  private final PrizeConfig prize;
 
-  private ConfigRegistry(final EnumMap<Ship, ShipConfig> shipsSource) {
+  private ConfigRegistry(
+      final EnumMap<Ship, ShipConfig> shipsSource,
+      final WeaponsConfig weapons,
+      final PrizeConfig prize) {
     final EnumMap<Ship, ShipConfig> copy = new EnumMap<>(Ship.class);
     copy.putAll(shipsSource);
     this.ships = Collections.unmodifiableMap(copy);
+    this.weapons = weapons;
+    this.prize = prize;
   }
 
   /**
@@ -76,6 +87,23 @@ public final class ConfigRegistry {
     return ships.keySet();
   }
 
+  /**
+   * Per-arena weapon-projectile tuning (damage, decay, grav-bomb knobs,
+   * burst count). Never {@code null} — the builder defaults to
+   * {@link WeaponsConfig#DEFAULTS} when not specified.
+   */
+  public WeaponsConfig weapons() {
+    return weapons;
+  }
+
+  /**
+   * Per-arena prize-spawn defaults (decay / max count / bounty value).
+   * Never {@code null} — the builder defaults to {@link PrizeConfig#DEFAULTS}.
+   */
+  public PrizeConfig prize() {
+    return prize;
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -89,6 +117,8 @@ public final class ConfigRegistry {
   public static final class Builder {
 
     private final EnumMap<Ship, ShipConfig> ships = new EnumMap<>(Ship.class);
+    private WeaponsConfig weapons = WeaponsConfig.DEFAULTS;
+    private PrizeConfig prize = PrizeConfig.DEFAULTS;
 
     public Builder ship(final Ship type, final ShipConfig config) {
       Objects.requireNonNull(type, "type");
@@ -97,8 +127,18 @@ public final class ConfigRegistry {
       return this;
     }
 
+    public Builder weapons(final WeaponsConfig weapons) {
+      this.weapons = Objects.requireNonNull(weapons, "weapons");
+      return this;
+    }
+
+    public Builder prize(final PrizeConfig prize) {
+      this.prize = Objects.requireNonNull(prize, "prize");
+      return this;
+    }
+
     public ConfigRegistry build() {
-      return new ConfigRegistry(ships);
+      return new ConfigRegistry(ships, weapons, prize);
     }
   }
 }

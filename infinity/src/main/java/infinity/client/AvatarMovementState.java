@@ -48,9 +48,9 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.BlackboardState;
 import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
-import infinity.systems.ActionSystem;
+import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
-import infinity.systems.WeaponsSystem;
+import infinity.systems.ship.WeaponsSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,7 +307,7 @@ public class AvatarMovementState extends BaseAppState
       } else if (func == AvatarMovementFunctions.F_SHARK) {
         session.avatar(AvatarSystem.SHARK);
       } else if (func == AvatarMovementFunctions.F_WARP) {
-        session.action(ActionSystem.WARP);
+        session.action(ConsumableSystem.WARP);
       } else if (func == AvatarMovementFunctions.F_SHIFT){
         this.shiftPressed = false;
       }
@@ -357,11 +357,11 @@ public class AvatarMovementState extends BaseAppState
     } else if (func == AvatarMovementFunctions.F_BOMB && shiftPressed) {
       session.attack(WeaponsSystem.MINE);
     } else if (func == AvatarMovementFunctions.F_THOR) {
-      session.action(ActionSystem.FIRETHOR);
+      session.action(ConsumableSystem.FIRETHOR);
     } else if (func == AvatarMovementFunctions.F_REPEL) {
-      session.action(ActionSystem.REPEL);
+      session.action(ConsumableSystem.REPEL);
     } else if (func == AvatarMovementFunctions.F_BURST) {
-      session.action(ActionSystem.FIREBURST);
+      session.action(ConsumableSystem.FIREBURST);
     } else if (func == AvatarMovementFunctions.F_SHOOT && !shiftPressed) {
       session.attack(WeaponsSystem.GUN);
     }

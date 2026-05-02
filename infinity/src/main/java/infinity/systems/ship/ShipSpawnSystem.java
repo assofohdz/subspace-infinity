@@ -24,7 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.systems;
+package infinity.systems.ship;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -37,6 +37,7 @@ import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
 import infinity.config.GunStats;
 import infinity.config.MineStats;
+import javax.annotation.Nullable;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.RadarShapeInfo;
@@ -352,8 +353,17 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   // capability components (max, cost, fire-delay) always re-project so a
   // tuning edit takes effect immediately.
 
+  // Each weapon/inventory projection block guards against a null stat so a
+  // ShipConfig can express "this ship doesn't carry bombs / guns / mines /
+  // bursts / thors / repels" by setting the field to null. The corresponding
+  // *Max component is then absent on the ship, which prize appliers
+  // interpret as "not allowed" (component-absence as the disallow signal).
+
   private void projectBombs(
-      final EntityId shipId, final BombStats bombs, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final BombStats bombs, final boolean resetLivePool) {
+    if (bombs == null) {
+      return;
+    }
     if (resetLivePool) {
       ed.setComponent(shipId, new BombCurrentLevel(bombs.start()));
     }
@@ -363,7 +373,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectGuns(
-      final EntityId shipId, final GunStats guns, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final GunStats guns, final boolean resetLivePool) {
+    if (guns == null) {
+      return;
+    }
     if (resetLivePool) {
       ed.setComponent(shipId, new GunCurrentLevel(guns.start()));
     }
@@ -373,7 +386,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectMines(
-      final EntityId shipId, final MineStats mines, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final MineStats mines, final boolean resetLivePool) {
+    if (mines == null) {
+      return;
+    }
     if (resetLivePool) {
       ed.setComponent(shipId, new MineCurrentLevel(mines.start()));
     }
@@ -383,7 +399,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectBursts(
-      final EntityId shipId, final CountStats bursts, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final CountStats bursts, final boolean resetLivePool) {
+    if (bursts == null) {
+      return;
+    }
     if (resetLivePool) {
       ed.setComponent(shipId, new Burst(bursts.start()));
     }
@@ -391,7 +410,12 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectThors(
-      final EntityId shipId, final CountWithDelayStats thors, final boolean resetLivePool) {
+      final EntityId shipId,
+      @Nullable final CountWithDelayStats thors,
+      final boolean resetLivePool) {
+    if (thors == null) {
+      return;
+    }
     if (resetLivePool) {
       ed.setComponent(shipId, new ThorCurrentCount(thors.start()));
     }
@@ -400,7 +424,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectRepels(
-      final EntityId shipId, final CountStats repels, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final CountStats repels, final boolean resetLivePool) {
+    if (repels == null) {
+      return;
+    }
     if (resetLivePool) {
       ed.setComponent(shipId, new Repel(repels.start()));
     }

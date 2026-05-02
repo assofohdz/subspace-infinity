@@ -48,6 +48,7 @@ import infinity.config.ZoneConfig;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.systems.ship.ShipSpawnSystem;
 import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovySettingsHost;
 import infinity.settings.GroovyShipLoader;
