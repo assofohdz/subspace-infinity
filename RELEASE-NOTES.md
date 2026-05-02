@@ -1,3 +1,18 @@
+## v1.0.9 — 2026-05-02
+
+Cleanup release focused on closing the conf-fragments-to-groovy migration, retiring `CoreGameConstants`, and seeding the first programmatic spawn-projection test harness.
+
+New Features:
+- **Hot-reload for Groovy preset fragments.** `ArenaSystem.registerFileWatch` watches every `.groovy` `includeFragment` per loaded arena. Edits trigger `SettingsSystem.reloadFragments`, which rebuilds the merged `Ini` and fires `SettingListener` events for each `(section, key)` whose value actually changed. Previously only `ships.groovy` hot-reloaded.
+- **Spawn-projection test harness.** New `ShipSpawnSystemTest` boots a minimal `GameSystemManager` (`DefaultEntityData` + `ConfigRegistrySystem` + `ShipSpawnSystem`, no physics / map / network), projects a fully-specified `ShipConfig`, and asserts every documented per-entity component lands with the expected value. PRD at `.scratch/spawn-projection-test-harness/PRD.md` queues four follow-up slices.
+
+Other:
+- **`IniLoader` retired** along with the four dead `Groovy*Loader.resolveOnDisk` passthroughs and the `.ini` / `.cfg` / `.conf` asset-loader registration. `SettingsSystem.loadFragmentIni` is Groovy-only. `org.ini4j` stays as the merged-store shape until Phase B.
+- **`CoreGameConstants` deleted** (-103 lines). 15 phantom constants with no consumers (all 6 `*PROJECTILESPEED`, all 3 health knobs, all 5 AI knobs, `THORDECAY`, `UPDATE_SETTINGS_INTERVAL_MS`) dropped; the 15 live knobs relocated to their consuming systems as private constants. The unused `THORCOOLDOWN` / `BURSTCOOLDOWN` constants and the dead `BURSTCOOLDOWN` enforcement gap are tracked in the refactor backlog.
+- **Build sourcing flipped to `libs/m2/`.** Simsilica deps now resolve from the vendored repo instead of `~/.m2`, removing the developer-machine-state coupling that bit v1.0.7's CI matrix.
+- **Heart dep dropped.** `SISpatialFactory` inlines the two `MyMesh.translate` / `scale` use-sites; the only remaining `jme3utilities` reference is gone.
+- **`@NotNull` → `@Nonnull` migration.** `GameSounds` switched from JetBrains annotations to JSR-305; the `org.jetbrains:annotations` dependency is dropped.
+
 ## v1.0.8 — 2026-04-30
 
 CI hotfix release. No gameplay changes.
