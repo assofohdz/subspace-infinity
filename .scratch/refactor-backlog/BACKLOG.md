@@ -58,13 +58,11 @@ True magic numbers stay (DEFAULTARENAID, BOMBLEVELPREPENDTEXT, BULLETLEVELPREPEN
 
 ## Tooling / test infrastructure
 
-### Test harness for spawn / projection / prize flows
+### Test harness for spawn / projection / prize flows — in-progress
 
-Stored in memory: [`project_spawn_projection_test_gap.md`](../../../../.claude/projects/-home-assofohdz-github-assofohdz-subspace-infinity/memory/project_spawn_projection_test_gap.md). End-to-end ECS flows have zero automated coverage; manual game-launch is the only verification path. Each Pattern 4 / spawn-system / projection refactor adds another piece to verify by hand. The cost compounds.
+Now tracked in [`spawn-projection-test-harness/PRD.md`](../spawn-projection-test-harness/PRD.md). Slice 1 (`ShipSpawnSystem` respawn projection) shipped — establishes the `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` fixture pattern. Remaining slices: tuning projection (no live-pool reset), hot-reload diff event surface, no-config fallback, and one-per-cluster Pattern 4 candidates as those migrations land.
 
-Suggested shape: minimal SiO2 `GameSystemManager` test fixture booting `EntityData` + `ConfigRegistrySystem` + system-under-test only, with a fixture `ConfigRegistry` for a synthetic arena. Synthesize a ship entity, advance one tick, assert components projected correctly.
-
-The harness is a vertical slice in itself — write a PRD when picked up.
+Memory still tracks the gap at [`project_spawn_projection_test_gap.md`](../../../../.claude/projects/-home-assofohdz-github-assofohdz-subspace-infinity/memory/project_spawn_projection_test_gap.md) — surface the PRD when proposing similar work; the gap shrinks one slice at a time.
 
 ### PMD residual cleanup — verify status
 
