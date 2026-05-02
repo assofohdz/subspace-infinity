@@ -78,9 +78,6 @@ dependencies {
     // Ini4j to parse settings files (legacy arena.conf path; phasing out per conf-fragments-to-groovy PRD)
     implementation "org.ini4j:ini4j:0.5.4"
 
-    // commons-math 2.2 — used by infinity/util/MathUtil.java. EOL; flagged for migration to commons-math3.
-    implementation "org.apache.commons:commons-math:2.2"
-
     // For Lemur styles
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 

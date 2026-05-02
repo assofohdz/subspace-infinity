@@ -108,8 +108,8 @@ Surfaced by a follow-up scan for architecture / library / framework smells beyon
 
 ### Library follow-ups (still in use today)
 
-- **commons-math 2.2 → commons-math3.** Used at one site ([`infinity/util/MathUtil.java`](../../infinity/src/main/java/infinity/util/MathUtil.java)) for `MathException`, `distribution.TDistributionImpl`, `stat.StatUtils`. The 2.x line shipped in 2010 and is end-of-life; `commons-math3:3.6.1` is the successor. Migration is mostly mechanical: package rename to `org.apache.commons.math3.*`, `MathException` → `MathRuntimeException`, `TDistributionImpl` → `TDistribution`. Worth doing before the next major version bump.
-- **`'+'` version pinning audit.** Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'` (latest). Pinned exceptions are JME (`3.9.0-stable`), log4j (`2.25.4`), slf4j (`2.0.17`), pager/sim-fx (`1.0.1-SNAPSHOT`), Heart (`9.3.0`), ini4j (`0.5.4`), commons-math (`2.2`). The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
+- ~~**commons-math 2.2 → commons-math3**~~ — done by deletion. The lone consumer (`infinity/util/MathUtil.java`, a Grubbs-outlier helper with `min`/`max`/`avg`/`stdDev` utilities) had zero callers anywhere in the repo — only a `main()` self-test. YAGNI: deleted `MathUtil.java` (-329 lines) along with the EOL `commons-math:2.2` dep. If outlier detection or stats utilities are needed later, re-add `commons-math3:3.6.1` against fresh consumers — don't resurrect the 2.x bridge.
+- **`'+'` version pinning audit.** Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'` (latest). Pinned exceptions are JME (`3.9.0-stable`), log4j (`2.25.4`), slf4j (`2.0.17`), pager/sim-fx (`1.0.1-SNAPSHOT`), and ini4j (`0.5.4`). The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
 
 ## Historical: v1.0.7 dependency cleanup
 
