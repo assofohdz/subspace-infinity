@@ -62,13 +62,14 @@ public class CoreGameConstants {
   public static final int BASEHEALTH = 1000;
   public static final int MOBHEALTH = 100;
 
-  // Cooldowns
-  // GUNCOOLDOWN / BOMBCOOLDOWN / MINECOOLDOWN moved to per-arena ShipConfig
-  // (GunStats.fireDelayCs / BombStats.fireDelayCs / MineStats.fireDelayCs)
-  // — see config-pattern.md. THORCOOLDOWN / BURSTCOOLDOWN are still
-  // referenced by WeaponsSystem and pending the same migration.
-  public static final long THORCOOLDOWN = 500;
-  public static final long BURSTCOOLDOWN = 250;
+  // Cooldowns moved to per-arena ShipConfig — see config-pattern.md:
+  // - GunStats.fireDelayCs / BombStats.fireDelayCs / MineStats.fireDelayCs
+  //   project onto GunFireDelay / BombFireDelay / MineFireDelay components
+  //   (read by WeaponsSystem.setCoolDownX).
+  // - CountWithDelayStats.fireDelayCs (thors) projects onto ThorFireDelay
+  //   (read by ActionSystem.setCoolDownThor).
+  // Burst has no cooldown enforcement today — see refactor-backlog for the
+  // burst-cooldown feature gap.
 
   // Cost of firing
   // GUNCOST / BOMBCOST / MINECOST moved to per-arena ShipConfig

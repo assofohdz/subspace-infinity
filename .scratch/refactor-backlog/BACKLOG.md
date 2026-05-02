@@ -43,7 +43,7 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 - **Damage** — `BOMBDAMAGE`, `BULLETDAMAGE`, `THORDAMAGE`, `GRAVBOMBDAMAGE` → projectile-config records, projected by `WeaponsSystem` per-fire
 - **Projectile speeds** — `BASEPROJECTILESPEED`, `BOMBPROJECTILESPEED`, `BULLETPROJECTILESPEED`, `GRAVBOMBPROJECTILESPEED`, `THORPROJECTILESPEED`, `BURSTPROJECTILESPEED`
 - **Decays** — `BULLETDECAY`, `THORDECAY`, `GRAVBOMBDECAY`, `MINEDECAY`, `PRIZEDECAY`
-- **Cooldowns** — `THORCOOLDOWN`, `BURSTCOOLDOWN` (the others — gun/bomb/mine — are already done)
+- ~~**Cooldowns** — `THORCOOLDOWN`, `BURSTCOOLDOWN`~~ — done. `THORCOOLDOWN` was already migrated (`ActionSystem.setCoolDownThor` reads `ThorFireDelay`, projected from `ShipConfig.thors.fireDelayCs`); `BURSTCOOLDOWN` was dead — never wired to a consumer. Both constants deleted; the burst-cooldown feature gap (no `BurstFireDelay` component, no enforcement) is a separate item below.
 - **Health** — `SHIPHEALTH`, `BASEHEALTH`, `MOBHEALTH`
 - **Burst count** — `BURSTPROJECTILECOUNT`
 - **Bounty / prize** — `BOUNTYVALUE`, `PRIZEMAXCOUNT`
@@ -86,6 +86,10 @@ Surfaced by a follow-up scan for architecture / library / framework smells beyon
 
 Skipped intentionally:
 - `SettingsTypes.java` (489 lines) — flat string-key catalog, zero methods. One file is the right shape for a constants registry. Possible follow-up: convert to typed `SettingKey<T>` records, but no split.
+
+### Feature gaps surfaced during cleanup
+
+- **Burst cooldown is unenforced.** [`WeaponsSystem.setCoolDown`](../../infinity/src/main/java/infinity/systems/WeaponsSystem.java) for `BURST` is `// No delay on this for now`; there's no `BurstFireDelay` component, and the `CountStats` record for bursts has no `fireDelayCs` field. To wire it: replace `CountStats bursts` with `CountWithDelayStats bursts` in `ShipConfig`, add a `BurstFireDelay` component (mirror `ThorFireDelay`), project it from `ShipSpawnSystem.projectBursts`, and read it in `WeaponsSystem.setCoolDownBurst`. Adds a real feature (burst cadence cap), so it's a feature add rather than a Pattern 4 cleanup — surfaced here because the dead `BURSTCOOLDOWN = 250` constant referenced this gap before it was removed.
 
 ### Architecture micro-refactors
 
