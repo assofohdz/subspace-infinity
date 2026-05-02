@@ -55,6 +55,7 @@ import infinity.sim.CollisionFilters;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.systems.ship.EnergySystem;
+import infinity.systems.ship.WarpSystem;
 import infinity.systems.ship.applier.AntiWarpPrizeApplier;
 import infinity.systems.ship.applier.BombPrizeApplier;
 import infinity.systems.ship.applier.BouncingBulletsPrizeApplier;
@@ -182,7 +183,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     // Build the prize-applier registry. Composites for BOMB (bomb+mine)
     // and ALLWEAPONS (bomb+burst+gun+mine) — Subspace tradition.
     final EnergySystem energySystem = getSystem(EnergySystem.class);
-    applierContext = new PrizeApplierContext(ed, energySystem);
+    final WarpSystem warpSystem = getSystem(WarpSystem.class);
+    applierContext = new PrizeApplierContext(ed, energySystem, warpSystem);
     final BombPrizeApplier bomb = new BombPrizeApplier();
     final BurstPrizeApplier burst = new BurstPrizeApplier();
     final GunPrizeApplier gun = new GunPrizeApplier();
