@@ -26,13 +26,13 @@
 
 package infinity.config;
 
-import infinity.Bombs;
+import infinity.BombLevel;
 
 /**
  * Per-ship mine tuning template. Projected at spawn into
  * {@code MineCurrentLevel} / {@code MineMaxLevel} / {@code MineCost} /
  * {@code MineFireDelay} components by {@code ShipSpawnSystem}. Mines reuse
- * the {@link Bombs} enum for level since they share the bomb-level numbering
+ * the {@link BombLevel} enum for level since they share the bomb-level numbering
  * scheme.
  *
  * @param start initial mine level a freshly-spawned ship has equipped
@@ -40,4 +40,4 @@ import infinity.Bombs;
  * @param cost energy cost per mine drop
  * @param fireDelayCs cooldown between mine drops, in centiseconds
  */
-public record MineStats(Bombs start, Bombs max, int cost, long fireDelayCs) {}
+public record MineStats(BombLevel start, BombLevel max, int cost, long fireDelayCs) {}

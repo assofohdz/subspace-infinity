@@ -28,8 +28,8 @@ package infinity.settings;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
-import infinity.Bombs;
-import infinity.Guns;
+import infinity.BombLevel;
+import infinity.GunLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
 import infinity.config.CountStats;
@@ -69,16 +69,16 @@ import org.slf4j.LoggerFactory;
  *     turnResponsiveness  8.0
  *     bounceRestitution   1.0
  *     radarRange          250
- *     bombs   start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 10, fireDelay: 25
- *     guns    start: Guns.LEVEL_1,  max: Guns.LEVEL_4,  cost: 10, fireDelay: 25
- *     mines   start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 50, fireDelay: 500
+ *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25
+ *     guns    start: GunLevel.LEVEL_1,  max: GunLevel.LEVEL_4,  cost: 10, fireDelay: 25
+ *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500
  *     bursts  start: 5,  max: 5
  *     thors   start: 2,  max: 2,  fireDelay: 1000
  *     repels  start: 10, max: 20
  * }
  * }</pre>
  *
- * <p>The {@code Ship}, {@code Bombs}, and {@code Guns} enums are added as
+ * <p>The {@code Ship}, {@code BombLevel}, and {@code GunLevel} enums are added as
  * default imports (and whitelisted) by the host. Movement stats omitted in
  * a ship block default to {@code ShipStat(0, 0, 0)}; partial stat blocks
  * (missing {@code initial}/{@code max}/{@code upgrade}) fail with a clear
@@ -131,15 +131,15 @@ public final class GroovyShipLoader {
 
   /** Default starting bomb level + max + cost + fire-delay. */
   static final BombStats DEFAULT_BOMBS =
-      new BombStats(Bombs.BOMB_1, Bombs.BOMB_4, /* cost */ 10, /* fireDelayCs */ 25);
+      new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, /* cost */ 10, /* fireDelayCs */ 25);
 
   /** Default starting gun level + max + cost + fire-delay. */
   static final GunStats DEFAULT_GUNS =
-      new GunStats(Guns.LEVEL_1, Guns.LEVEL_4, /* cost */ 10, /* fireDelayCs */ 25);
+      new GunStats(GunLevel.LEVEL_1, GunLevel.LEVEL_4, /* cost */ 10, /* fireDelayCs */ 25);
 
   /** Default starting mine level + max + cost + fire-delay. */
   static final MineStats DEFAULT_MINES =
-      new MineStats(Bombs.BOMB_1, Bombs.BOMB_4, /* cost */ 50, /* fireDelayCs */ 500);
+      new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, /* cost */ 50, /* fireDelayCs */ 500);
 
   /** Default starting + max burst inventory count. */
   static final CountStats DEFAULT_BURSTS = new CountStats(/* start */ 5, /* max */ 5);
@@ -310,12 +310,12 @@ public final class GroovyShipLoader {
     @Override
     public List<String> allowedImports() {
       // Scripts reference three enums directly: Ship (for the ship() block
-      // arg), Bombs (for bombs/mines start/max), and Guns (for guns
+      // arg), BombLevel (for bombs/mines start/max), and GunLevel (for guns
       // start/max). The host adds each as a default import (so
-      // `Ship.WARBIRD` / `Bombs.BOMB_1` / `Guns.LEVEL_1` work without
+      // `Ship.WARBIRD` / `BombLevel.BOMB_1` / `GunLevel.LEVEL_1` work without
       // explicit `import` lines) AND whitelists them so an explicit import
       // would also be valid.
-      return List.of(Ship.class.getName(), Bombs.class.getName(), Guns.class.getName());
+      return List.of(Ship.class.getName(), BombLevel.class.getName(), GunLevel.class.getName());
     }
 
     @Override
@@ -428,7 +428,7 @@ public final class GroovyShipLoader {
       this.radarRange = doubleArg("radarRange", value);
     }
 
-    /** {@code bombs start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 10, fireDelay: 25} */
+    /** {@code bombs start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25} */
     public void bombs(final Map<String, ?> args) {
       this.bombs =
           new BombStats(
@@ -438,7 +438,7 @@ public final class GroovyShipLoader {
               longArg("bombs", args, "fireDelay"));
     }
 
-    /** {@code guns start: Guns.LEVEL_1, max: Guns.LEVEL_4, cost: 10, fireDelay: 25} */
+    /** {@code guns start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_4, cost: 10, fireDelay: 25} */
     public void guns(final Map<String, ?> args) {
       this.guns =
           new GunStats(
@@ -448,7 +448,7 @@ public final class GroovyShipLoader {
               longArg("guns", args, "fireDelay"));
     }
 
-    /** {@code mines start: Bombs.BOMB_1, max: Bombs.BOMB_4, cost: 50, fireDelay: 500} */
+    /** {@code mines start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500} */
     public void mines(final Map<String, ?> args) {
       this.mines =
           new MineStats(
@@ -506,24 +506,24 @@ public final class GroovyShipLoader {
           "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
     }
 
-    private static Bombs bombsArg(
+    private static BombLevel bombsArg(
         final String statName, final Map<String, ?> args, final String key) {
       final Object v = args.get(key);
-      if (v instanceof Bombs b) {
+      if (v instanceof BombLevel b) {
         return b;
       }
       throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' '" + key + "' must be a Bombs enum value (got " + v + ")");
+          "Ship stat '" + statName + "' '" + key + "' must be a BombLevel enum value (got " + v + ")");
     }
 
-    private static Guns gunsArg(
+    private static GunLevel gunsArg(
         final String statName, final Map<String, ?> args, final String key) {
       final Object v = args.get(key);
-      if (v instanceof Guns g) {
+      if (v instanceof GunLevel g) {
         return g;
       }
       throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' '" + key + "' must be a Guns enum value (got " + v + ")");
+          "Ship stat '" + statName + "' '" + key + "' must be a GunLevel enum value (got " + v + ")");
     }
 
     private static double doubleArg(final String fieldName, final Number value) {

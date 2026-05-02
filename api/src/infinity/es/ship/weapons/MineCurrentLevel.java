@@ -26,7 +26,7 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
-import infinity.Bombs;
+import infinity.BombLevel;
 
 /**
  * Component holding the current mine level for this ship.
@@ -35,17 +35,17 @@ import infinity.Bombs;
  */
 public class MineCurrentLevel implements EntityComponent {
 
-    private final Bombs level;
+    private final BombLevel level;
 
     public MineCurrentLevel() {
         this(null);
     }
 
-    public MineCurrentLevel(final Bombs level) {
+    public MineCurrentLevel(final BombLevel level) {
         this.level = level;
     }
 
-    public Bombs getLevel() {
+    public BombLevel getLevel() {
         return level;
     }
 

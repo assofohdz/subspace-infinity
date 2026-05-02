@@ -58,7 +58,7 @@ import infinity.Ship;
  *     radar viewport displays
  * @param bombs starting + max bomb level, fire cost, fire-delay
  * @param guns starting + max gun level, fire cost, fire-delay
- * @param mines starting + max mine level (reuses Bombs enum), drop cost,
+ * @param mines starting + max mine level (reuses BombLevel enum), drop cost,
  *     drop-delay
  * @param bursts starting + max burst inventory count
  * @param thors starting + max thor inventory count + per-fire delay

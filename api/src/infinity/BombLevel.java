@@ -26,29 +26,29 @@
 package infinity;
 
 /**
- * Gun level identity (1-4) — wire-protocol enum used by {@code GunStats},
- * {@code GunCurrentLevel} / {@code GunMaxLevel}. Sprite-sheet offsets live
- * in {@code infinity.client.view.GunVisuals}, kept out of the api layer per
- * {@code api-contracts.md}.
+ * Bomb level identity (1-4) — wire-protocol enum used by {@code BombStats},
+ * {@code BombCurrentLevel} / {@code BombMaxLevel}, etc. Sprite-sheet offsets
+ * and other render data live in {@code infinity.client.view.BombVisuals},
+ * kept out of the api layer per {@code api-contracts.md}.
  *
  * @author Asser
  */
-public enum Guns {
-  LEVEL_1(1),
-  LEVEL_2(2),
-  LEVEL_3(3),
-  LEVEL_4(4);
+public enum BombLevel {
+  BOMB_1(1),
+  BOMB_2(2),
+  BOMB_3(3),
+  BOMB_4(4);
 
   /** Level value (1-4). */
   public final int level;
 
-  Guns(final int level) {
+  BombLevel(final int level) {
     this.level = level;
   }
 
-  /** Next gun level, or null at the maximum. */
-  public Guns next() {
-    final Guns[] vals = values();
+  /** Next bomb level, or null at the maximum. */
+  public BombLevel next() {
+    final BombLevel[] vals = values();
     final int n = ordinal() + 1;
     return n < vals.length ? vals[n] : null;
   }

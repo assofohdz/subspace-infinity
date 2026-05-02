@@ -32,8 +32,8 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
-import infinity.Bombs;
-import infinity.Guns;
+import infinity.BombLevel;
+import infinity.GunLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
 import infinity.config.CountStats;
@@ -112,9 +112,9 @@ public class ShipSpawnSystemTest {
             8.0,                            // turnResponsiveness
             1.0,                            // bounceRestitution
             250.0,                          // radarRange
-            new BombStats(Bombs.BOMB_1, Bombs.BOMB_4, 10, 25L),
-            new GunStats(Guns.LEVEL_1, Guns.LEVEL_4, 10, 25L),
-            new MineStats(Bombs.BOMB_1, Bombs.BOMB_4, 50, 500L),
+            new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L),
+            new GunStats(GunLevel.LEVEL_1, GunLevel.LEVEL_4, 10, 25L),
+            new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L),
             new CountStats(5, 5),                       // bursts
             new CountWithDelayStats(2, 2, 1000L),       // thors
             new CountStats(10, 20));                    // repels
@@ -187,19 +187,19 @@ public class ShipSpawnSystemTest {
           1.0, ed.getComponent(shipId, BounceRestitution.class).getRestitution(), EPSILON);
       assertEquals(250.0, ed.getComponent(shipId, RadarRange.class).getRange(), EPSILON);
 
-      // Bombs: current level resets to start; max + cost project verbatim.
-      assertEquals(Bombs.BOMB_1, ed.getComponent(shipId, BombCurrentLevel.class).getLevel());
-      assertEquals(Bombs.BOMB_4, ed.getComponent(shipId, BombMaxLevel.class).getLevel());
+      // BombLevel: current level resets to start; max + cost project verbatim.
+      assertEquals(BombLevel.BOMB_1, ed.getComponent(shipId, BombCurrentLevel.class).getLevel());
+      assertEquals(BombLevel.BOMB_4, ed.getComponent(shipId, BombMaxLevel.class).getLevel());
       assertEquals(10, ed.getComponent(shipId, BombCost.class).getCost());
 
-      // Guns.
-      assertEquals(Guns.LEVEL_1, ed.getComponent(shipId, GunCurrentLevel.class).getLevel());
-      assertEquals(Guns.LEVEL_4, ed.getComponent(shipId, GunMaxLevel.class).getLevel());
+      // GunLevel.
+      assertEquals(GunLevel.LEVEL_1, ed.getComponent(shipId, GunCurrentLevel.class).getLevel());
+      assertEquals(GunLevel.LEVEL_4, ed.getComponent(shipId, GunMaxLevel.class).getLevel());
       assertEquals(10, ed.getComponent(shipId, GunCost.class).getCost());
 
-      // Mines (reuse Bombs enum).
-      assertEquals(Bombs.BOMB_1, ed.getComponent(shipId, MineCurrentLevel.class).getLevel());
-      assertEquals(Bombs.BOMB_4, ed.getComponent(shipId, MineMaxLevel.class).getLevel());
+      // Mines (reuse BombLevel enum).
+      assertEquals(BombLevel.BOMB_1, ed.getComponent(shipId, MineCurrentLevel.class).getLevel());
+      assertEquals(BombLevel.BOMB_4, ed.getComponent(shipId, MineMaxLevel.class).getLevel());
       assertEquals(50, ed.getComponent(shipId, MineCost.class).getCost());
 
       // Inventory counters: current resets to start, max projects verbatim.

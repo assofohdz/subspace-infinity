@@ -26,29 +26,29 @@
 
 package infinity.client.view;
 
-import infinity.Guns;
+import infinity.GunLevel;
 
 /**
- * Client-side sprite-sheet offsets for each {@link Guns} level. Pure render
- * data — kept out of the api {@code Guns} enum so the wire-protocol identity
+ * Client-side sprite-sheet offsets for each {@link GunLevel} level. Pure render
+ * data — kept out of the api {@code GunLevel} enum so the wire-protocol identity
  * stays free of jME-side concerns.
  */
 public enum GunVisuals {
-  LEVEL_1(Guns.LEVEL_1, 9),
-  LEVEL_2(Guns.LEVEL_2, 8),
-  LEVEL_3(Guns.LEVEL_3, 7),
-  LEVEL_4(Guns.LEVEL_4, 6);
+  LEVEL_1(GunLevel.LEVEL_1, 9),
+  LEVEL_2(GunLevel.LEVEL_2, 8),
+  LEVEL_3(GunLevel.LEVEL_3, 7),
+  LEVEL_4(GunLevel.LEVEL_4, 6);
 
-  public final Guns level;
+  public final GunLevel level;
   public final int viewOffset;
 
-  GunVisuals(final Guns level, final int viewOffset) {
+  GunVisuals(final GunLevel level, final int viewOffset) {
     this.level = level;
     this.viewOffset = viewOffset;
   }
 
   /** Look up the visuals for a given gun level. */
-  public static GunVisuals forLevel(final Guns level) {
+  public static GunVisuals forLevel(final GunLevel level) {
     for (final GunVisuals v : values()) {
       if (v.level == level) {
         return v;

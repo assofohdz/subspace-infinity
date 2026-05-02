@@ -26,7 +26,7 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
-import infinity.Bombs;
+import infinity.BombLevel;
 
 /**
  * Max level bombs an entity can acquire
@@ -35,17 +35,17 @@ import infinity.Bombs;
  */
 public class BombMaxLevel implements EntityComponent {
 
-    private final Bombs level;
+    private final BombLevel level;
 
     public BombMaxLevel() {
         this(null);
     }
 
-    public BombMaxLevel(final Bombs level) {
+    public BombMaxLevel(final BombLevel level) {
         this.level = level;
     }
 
-    public Bombs getLevel() {
+    public BombLevel getLevel() {
         return level;
     }
 }

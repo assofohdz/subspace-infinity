@@ -26,7 +26,7 @@
 
 package infinity.config;
 
-import infinity.Bombs;
+import infinity.BombLevel;
 
 /**
  * Per-ship bomb tuning template. Projected at spawn into
@@ -39,4 +39,4 @@ import infinity.Bombs;
  * @param cost energy cost per bomb fire
  * @param fireDelayCs cooldown between bomb fires, in centiseconds
  */
-public record BombStats(Bombs start, Bombs max, int cost, long fireDelayCs) {}
+public record BombStats(BombLevel start, BombLevel max, int cost, long fireDelayCs) {}

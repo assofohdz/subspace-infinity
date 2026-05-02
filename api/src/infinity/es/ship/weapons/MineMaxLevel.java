@@ -26,7 +26,7 @@
 package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
-import infinity.Bombs;
+import infinity.BombLevel;
 
 /**
  * Max level mines an entity can acquire
@@ -35,17 +35,17 @@ import infinity.Bombs;
  */
 public class MineMaxLevel implements EntityComponent {
 
-    private final Bombs level;
+    private final BombLevel level;
 
     public MineMaxLevel() {
         this(null);
     }
 
-    public MineMaxLevel(final Bombs count) {
+    public MineMaxLevel(final BombLevel count) {
         level = count;
     }
 
-    public Bombs getLevel() {
+    public BombLevel getLevel() {
         return level;
     }
 }

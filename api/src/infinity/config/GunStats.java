@@ -26,7 +26,7 @@
 
 package infinity.config;
 
-import infinity.Guns;
+import infinity.GunLevel;
 
 /**
  * Per-ship gun tuning template. Projected at spawn into
@@ -39,4 +39,4 @@ import infinity.Guns;
  * @param cost energy cost per gun fire
  * @param fireDelayCs cooldown between gun fires, in centiseconds
  */
-public record GunStats(Guns start, Guns max, int cost, long fireDelayCs) {}
+public record GunStats(GunLevel start, GunLevel max, int cost, long fireDelayCs) {}

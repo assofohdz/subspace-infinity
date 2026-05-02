@@ -26,8 +26,8 @@
 package infinity.es;
 
 import com.simsilica.es.EntityData;
-import infinity.Bombs;
-import infinity.Guns;
+import infinity.BombLevel;
+import infinity.GunLevel;
 
 /**
  * Audio asset identifiers used to look up sound effects.
@@ -73,7 +73,7 @@ public class AudioTypes {
         return AudioType.create(FIRE_GRAVBOMB, ed);
     }
 
-    public static AudioType fire_mine(final EntityData ed, final Bombs level){
+    public static AudioType fire_mine(final EntityData ed, final BombLevel level){
         switch(level.level){
             case 1:
                 return AudioType.create(FIRE_MINE_L1, ed);
@@ -88,8 +88,8 @@ public class AudioTypes {
         }
     }
 
-    // Bombs
-    public static AudioType fire_bomb(final EntityData ed, final Bombs level) {
+    // BombLevel
+    public static AudioType fire_bomb(final EntityData ed, final BombLevel level) {
         switch (level.level) {
         case 1:
             return AudioType.create(FIRE_BOMBS_L1, ed);
@@ -105,7 +105,7 @@ public class AudioTypes {
     }
 
     // Bullets
-    public static AudioType fire_bullet(final EntityData ed, final Guns level) {
+    public static AudioType fire_bullet(final EntityData ed, final GunLevel level) {
         switch (level.level) {
         case 1:
             return AudioType.create(FIRE_GUNS_L1, ed);
