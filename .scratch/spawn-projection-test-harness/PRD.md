@@ -63,3 +63,9 @@ Each slice adds one independently-testable flow. Land them as separate PRs so ea
 5. **Live-tune fields are not magic.** Memory says only `ShipSpawnSystem` writes the `*Max` components. The harness preserves that — tests only mutate components the production code mutates.
 
 ## Comments
+
+### Test harness for spawn / projection / prize flows — in-progress
+
+Tracked in [`spawn-projection-test-harness/PRD.md`](../spawn-projection-test-harness/PRD.md). Slice 1 (`ShipSpawnSystem` respawn projection) shipped — establishes the `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` fixture pattern. Remaining slices: tuning projection (no live-pool reset), hot-reload diff event surface, no-config fallback, and one-per-cluster Pattern 4 candidates as those migrations land.
+
+This is also slice 0 in [`settings-pipeline-slices.md`](../settings-pipeline-slices.md) — without it, the pipeline tracker's Test column can never honestly flip to ✅.

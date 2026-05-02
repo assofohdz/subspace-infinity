@@ -1,13 +1,17 @@
 # Config Consumers Registry
 
-Tracks the relationship between **config fields** (what the Groovy script / INI / registry declares) and **consumers** (what system, driver, or class actually reads the value at runtime).
+Tracks the relationship between **config fields** and **runtime consumers** for Infinity-specific config that lives outside the Subspace canon.
 
-Purpose:
+For Subspace-canonical settings (sections like `[Bomb]`, `[Bullet]`, `[Repel]`, per-ship `Initial*` / `Maximum*` / `Upgrade*` / `*Status` / `*Energy`, etc.) the canonical view is the [`settings-pipeline.md`](settings-pipeline.md) tracker — its Subsystem and Component columns name the same `(field, consumer)` linkages this file used to duplicate. Don't add Subspace-canon rows here; add them there.
 
-- Spot **orphan config** — fields declared in a script but read by nothing (dead config).
-- Spot **orphan consumers** — systems that reach for a field no script populates (silent default).
-- Answer "what breaks if I change `MaximumThrust`?" in one lookup.
-- Document the **path** a value takes, since Pattern 4 has multiple (template → component → reader).
+Purpose of this file (post-trim):
+
+- **Infinity-only `ShipConfig` fields** (drag, turn responsiveness, restitution, radar range) — not in Subspace canon.
+- **Marker components** that gate physics or rendering behavior.
+- **Arena-scope config** (wall friction, prize spawner specs) — keyed off `ArenaId`, not Subspace `[Section]` keys.
+- **Coordination fields** (zone-enter spawn arena, arena-local `[Spawn] X/Z`) — wire across multiple subsystems.
+
+Rule of thumb: if it appears as a `[Section] Key` in [`REFERENCE.md`](subspace-ini-reference/REFERENCE.md), it goes in the pipeline tracker. Otherwise it goes here.
 
 ## Format
 
@@ -15,20 +19,10 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 
 | Config field | Consumer | Path | Notes |
 |---|---|---|---|
-| `ShipConfig.thrust` | `PlayerDriver.update()` | `component:Thrust` | Used as acceleration rate per tick. Projected at spawn by `ShipSpawnSystem`. |
-| `ShipConfig.thrust` | `PrizeSystem.handleAcquireThruster()` | `component:Thrust` / `component:ThrustMax` / `component:ThrustUpgrade` | THRUSTER prize bumps `Thrust` by `ThrustUpgrade`, clamped at `ThrustMax`. No-op when upgrade=0 (trench preset). |
-| `ShipConfig.speed` | `PlayerDriver.update()` | `component:Speed` | Used as forward-velocity cap. Projected at spawn by `ShipSpawnSystem`. |
-| `ShipConfig.speed` | `PrizeSystem.handleAcquireTopSpeed()` | `component:Speed` / `component:SpeedMax` / `component:SpeedUpgrade` | TOPSPEED prize bumps `Speed` by `SpeedUpgrade`, clamped at `SpeedMax`. |
-| `ShipConfig.rotation` | `PlayerDriver.update()` | `component:Rotation` | Used as rad/sec scalar for rotation input. Projected at spawn by `ShipSpawnSystem` (int → rad/sec via 2π/400). |
-| `ShipConfig.rotation` | `PrizeSystem.handleAcquireRotation()` | `component:Rotation` / `component:RotationMax` / `component:RotationUpgrade` | ROTATION prize bumps `Rotation` by `RotationUpgrade`, clamped at `RotationMax`. All values rad/sec (converted at spawn). |
-| `ShipConfig.recharge` | `EnergySystem.update()` | `component:Recharge` | Used as energy/sec regen rate. Projected at spawn by `ShipSpawnSystem`. |
-| `ShipConfig.recharge` | `PrizeSystem.handleAcquireRecharge()` | `component:Recharge` / `component:RechargeMax` / `component:RechargeUpgrade` | RECHARGE prize bumps `Recharge` by `RechargeUpgrade`, clamped at `RechargeMax`. All values energy/sec (converted at spawn). |
-| `ShipConfig.energy` | `EnergySystem.update()` | `component:Health` / `component:Energy` | `Health` is the live pool (depletes from damage / weapon costs, regens via `Recharge`); `Energy` is the upgradeable cap that `Health` tops out at. Both projected at spawn by `ShipSpawnSystem` (Health = Energy = `stat.initial()`). |
-| `ShipConfig.energy` | `PrizeSystem.handleAcquireEnergy()` | `component:Energy` / `component:EnergyMax` / `component:EnergyUpgrade` | ENERGY prize bumps `Energy` (the cap) by `EnergyUpgrade`, clamped at `EnergyMax` (the absolute hard cap). Live pool `Health` is untouched here — that's QUICKCHARGE's job. |
-| `ShipConfig.dragFactor` | `PlayerDriver.update()` | `component:DragFactor` | Coast-drag fraction of `Thrust` when no thrust intent (`0` = pure coast, `1` = decelerate as fast as full thrust). Default `0.05` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
-| `ShipConfig.turnResponsiveness` | `PlayerDriver.update()` | `component:TurnResponsiveness` | Rate constant (1/sec) for angular-velocity ease-toward-target; `8.0` ≈ 95% of target in ~0.4 sec. Default `8.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
-| `ShipConfig.bounceRestitution` | `ContactSystem.newContact()` | `component:BounceRestitution` | Wall-bounce energy retention (`1.0` = perfectly elastic, `0` = stick). Read per ship-vs-static contact; non-ship dynamic bodies fall back to `1.0` when the component is absent. Default `1.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
-| `ShipConfig.radarRange` | `RadarState` (TBD, issue radar-viewport/02) | `component:RadarRange` | World-unit radius the client radar viewport displays around the ship. Drives the off-screen camera frustum size and the radar-side leaf-paging radius. Default `250.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. |
+| `ShipConfig.dragFactor` | `PlayerDriver.update()` | `component:DragFactor` | Coast-drag fraction of `Thrust` when no thrust intent (`0` = pure coast, `1` = decelerate as fast as full thrust). Default `0.05` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition (no Subspace counterpart). |
+| `ShipConfig.turnResponsiveness` | `PlayerDriver.update()` | `component:TurnResponsiveness` | Rate constant (1/sec) for angular-velocity ease-toward-target; `8.0` ≈ 95% of target in ~0.4 sec. Default `8.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition. |
+| `ShipConfig.bounceRestitution` | `ContactSystem.newContact()` | `component:BounceRestitution` | Wall-bounce energy retention (`1.0` = perfectly elastic, `0` = stick). Read per ship-vs-static contact; non-ship dynamic bodies fall back to `1.0` when the component is absent. Default `1.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition. |
+| `ShipConfig.radarRange` | `RadarState` (TBD, issue radar-viewport/02) | `component:RadarRange` | World-unit radius the client radar viewport displays around the ship. Drives the off-screen camera frustum size and the radar-side leaf-paging radius. Default `250.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition. |
 | `ShipConfig.type` (derived) | `RadarState` (TBD, issue radar-viewport/03) | `component:RadarShapeInfo` | Server projects `RadarShapeInfo` from `cfg.type().getName() + "_blip"` (e.g. `"ship_warbird_blip"`); client-side blip-spatial registry resolves the name to a flat 2D Geometry, mirroring `SISpatialFactory.shapeName`. Color is resolved client-side from `Frequency`, NOT carried in `RadarShapeInfo`. Projected at spawn by `ShipSpawnSystem`. |
 | `LargeObject` (marker) | `MPhysSystem.largeEntitySelector` | `component:LargeObject` | Wired in `GameServer.buildSystems()` as `id -> ed.getComponent(id, LargeObject.class) != null`. Partitions ECS entities between the fine `BinEntityManager` (LEAF_GRID, 32-cell) and the coarse one (TILE_GRID, 1024-cell). Set on arena ghost-cubes by `ArenaSystem` so contact-gen sees them from any fine bin within their 1024×1024 bounds. |
 | `CollidesWithLargeStatics` (marker) | `PhysicsSpace.largeStaticCollisionFilter` | `component:CollidesWithLargeStatics` | Wired in `GameServer.buildSystems()` as `body -> ed.getComponent(body.id, CollidesWithLargeStatics.class) != null`. Bodies without the marker skip the entire coarse large-static contact pass before narrow phase. Set on ships at spawn by `GameEntities.createShip` (covers both player ships and AI mobs). Projectiles / sensors / non-ship dynamics deliberately stay opted out. |
@@ -39,19 +33,10 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 | `ArenaConfig.wallFriction` | `ContactSystem.newContact()` (body-vs-static branch) | `component:ArenaId` → `ArenaSystem.getArenaConfig(arenaName).wallFriction()` | Per-contact tangential-velocity drain. Applied directly to `body1.linearVelocity` (decompose against `contact.contactNormal`, scale tangent by `1 - wallFriction`, recombine), with `contact.friction = 0` so the resolver's friction-impulse-induced torque doesn't rotate ship heading at off-center contact points. The historical `0.0` is preserved by `ArenaConfig.EMPTY` for bodies without an `ArenaId` (projectiles, debris). DSL: `wallFriction 0.05` inside `arena { … }`. Validates `[0, 1]` at parse time. |
 | `PrizeSpawnerSpec.ttlMillis` → `Spawner.spawnedDecayMillis` | `PrizeSystem` (prize spawn path) | `component:Spawner` → `getSpawnedDecayMillis()` → projected into spawned prize's `Decay` at creation | Authored in `arena.groovy` as `ttlMs: N` inside a `prizeSpawners { spawn ... }` entry. `ArenaSystem.doLoad` materializes the spec into a `Spawner` component (field `spawnedDecayMillis`). `PrizeSystem` reads it at spawn time; `0` falls back to `CoreGameConstants.PRIZEDECAY`. Server-only — spawner entities are not synced to clients. |
 | `PrizeSpawnerSpec.weightOverrides` → `PrizeWeightsOverride` | `PrizeSystem` (prize weight selection) | `component:PrizeWeightsOverride` → `getOverrides()` merged atop arena `[PrizeWeight]` defaults from `SettingsSystem` | Authored in `arena.groovy` as `weights: [Bomb: 100, ...]` inside a `prizeSpawners { spawn ... }` entry. Set as `PrizeWeightsOverride` on the spawner entity by `ArenaSystem.doLoad` only when the map is non-empty. Absent component = use arena defaults only. Server-only. |
-| `BulletConfig.damage` + `damageUpgrade` | `WeaponsSystem.createProjectileGun()` | `template` via `ConfigRegistry.weapons().bullet().damageAtLevel(gunLevel)` | Phase B-wired: `GroovyWeaponsLoader.load()` reads `[Bullet] BulletDamageLevel` (level-1 base) and `BulletDamageUpgrade` (per-level increment) from the merged Groovy fragment store at arena-load and on fragment hot-reload; `ArenaSystem.applyWeaponsConfig` folds the resulting `WeaponsConfig` into the arena's `ConfigRegistry` snapshot. Damage at gun level N = `damage + (N - 1) * damageUpgrade`. Missing keys fall back to `BulletConfig.DEFAULTS` (svs preset baseline = 100/50). |
-| `BulletConfig.decayMs` | `WeaponsSystem.createProjectileGun()` | `template` via `ConfigRegistry.weapons().bullet()` | Phase B-wired: `GroovyWeaponsLoader.load()` reads `[Bullet] BulletAliveTime` (Subspace centiseconds; ×10 to get ms). Missing key falls back to `BulletConfig.DEFAULTS` (svs preset baseline = 5500ms / 550cs). |
-| `BombConfig.damage` | `WeaponsSystem.createProjectileBomb()` | `template` via `ConfigRegistry.weapons().bomb()` | Phase B-wired: reads `[Bomb] BombDamageLevel`. Missing key falls back to `BombConfig.DEFAULTS` (base preset baseline = 750). |
-| `BombConfig.decayMs` | `WeaponsSystem.createProjectileBomb()` | `template` via `ConfigRegistry.weapons().bomb()` | Phase B-wired: reads `[Bomb] BombAliveTime` (centiseconds × 10). Missing key falls back to `BombConfig.DEFAULTS` (base preset baseline = 60000ms / 6000cs). |
-| `BombConfig.damage` | `WeaponsSystem.createProjectileGravBomb()` | `template` via `ConfigRegistry.weapons().bomb()` | Subspace VIE: gravbombs are level-3 bombs sharing `[Bomb]` tuning. Reads the same `cfg.bomb().damage()` as `createProjectileBomb`. `GravBombConfig` no longer has its own `damage` / `decayMs` — only Infinity-specific `delayMs` / `wormholeForce` remain. |
-| `BombConfig.decayMs` | `WeaponsSystem.createProjectileGravBomb()` | `template` via `ConfigRegistry.weapons().bomb()` | Same reasoning — gravbombs share `[Bomb] BombAliveTime`. |
-| `MineConfig.decayMs` | `WeaponsSystem.createProjectileMine()` | `template` via `ConfigRegistry.weapons().mine()` | Phase B-wired: reads `[Mine] MineAliveTime` (centiseconds × 10). Missing key falls back to `MineConfig.DEFAULTS` (svs preset baseline = 120000ms / 12000cs / 2min). |
-| `BurstFireConfig.damage` | `WeaponsSystem.createProjectileBurst()` | `template` via `ConfigRegistry.weapons().burst()` | Phase B-wired: reads `[Burst] BurstDamageLevel`. Replaces the previous hardcoded `20` damage in the `Damage` component set on each burst-bullet projectile. Missing key falls back to `BurstFireConfig.DEFAULTS` (svs preset baseline = 250). |
-| `PrizeConfig.defaultDecayMs` | `PrizeSystem.computePrizeDecayMs()` | `template` via `ConfigRegistry.prize()` | Phase B-wired: `GroovyWeaponsLoader.loadPrize()` reads `[Prize] PrizeMaxExist` (centiseconds × 10); `ArenaSystem.applyWeaponsConfig` folds the result into the snapshot via `ConfigRegistry.withPrize`. Missing key falls back to `PrizeConfig.DEFAULTS` (svs preset baseline = 80000ms / 8000cs). |
 
 **Column meaning:**
 
-- **Config field** — the canonical typed path, e.g. `ShipConfig.maximumThrust`, `BombConfig.damageLevel`, `FlagConfig.dropDelay`. Match the Groovy DSL name.
+- **Config field** — the canonical typed path, e.g. `ShipConfig.dragFactor`, `ArenaConfig.wallFriction`. Match the Groovy DSL name.
 - **Consumer** — `ClassName.methodName()` or `ClassName (field)`. Include the method when useful for finding the read site.
 - **Path** — how the consumer obtains the value. Typical entries:
   - `template` — direct read from `ConfigRegistry.get(type).field()`
@@ -61,7 +46,7 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 
 ## When to append
 
-- Adding a new field to any `*Config` record → add rows for each planned consumer (or a row with consumer = `TBD` if wiring is staged).
+- Adding a new field to an Infinity-specific `*Config` record (not Subspace canon) → add rows for each planned consumer (or a row with consumer = `TBD` if wiring is staged).
 - Changing a consumer to read a new field → add a row.
 - Removing a consumer → delete its row; if field has zero consumers after, flag it as orphan config for review.
 - Adding a new consumer class reading existing config → add one row per field it reads.
@@ -70,6 +55,6 @@ Don't log per-tick / per-call reads inside one method — one row per `(field, c
 
 ## What NOT to track here
 
-- Literal magic numbers in code — those go in [`hardcoded-values.md`](hardcoded-values.md).
+- **Subspace-canonical settings** — those go in [`settings-pipeline.md`](settings-pipeline.md). Adding them here duplicates the pipeline tracker and creates drift risk.
 - Per-entity component values that don't derive from config (e.g. current energy, current velocity).
-- INI-only settings nothing reads yet — they'd all appear as "orphan config". Don't preload; only add rows when a consumer is wired.
+- Settings nothing reads yet — they'd all appear as "orphan config". Don't preload; only add rows when a consumer is wired.
