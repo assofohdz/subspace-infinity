@@ -34,6 +34,7 @@ Path-scoped rules live in `.claude/rules/` and load automatically when relevant 
 - [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`client/**` + loose `*AppState`)
 - [`config-pattern.md`](.claude/rules/config-pattern.md) — template (`*Config` records) vs instance (components); spawn systems project template → component; hot-path consumers read components only (`api/src/infinity/config/**` + `api/src/infinity/es/ship/**`)
 - [`decay-ttl.md`](.claude/rules/decay-ttl.md) — `Decay` is the only TTL mechanism; templates carry duration, spawn systems project to `Decay`; no parallel `*Decay`/`*Ttl` components (`api/src/infinity/es/**`, `systems/**`, `modules/`)
+- [`prize-applier.md`](.claude/rules/prize-applier.md) — look up prize logic + canonical Subspace tunables in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before implementing or modifying a prize applier (`infinity/src/main/java/infinity/systems/ship/applier/**`)
 
 Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
 
