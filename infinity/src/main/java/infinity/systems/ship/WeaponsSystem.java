@@ -501,6 +501,7 @@ public class WeaponsSystem extends AbstractGameSystem
         new GravityWell(
             5, cfg.gravBomb().wormholeForce(), GravityWell.PULL)); // Suck everything in
 
+    // Subspace VIE: gravbombs are level-3 bombs; damage / decay come from [Bomb].
     projectile =
         GameEntities.createDelayedBomb(
             ed,
@@ -509,7 +510,7 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.getLocation(),
             info.getAttackVelocity(),
-            cfg.gravBomb().decayMs(),
+            cfg.bomb().decayMs(),
             cfg.gravBomb().delayMs(),
             delayedComponents,
             BOMB_LEVEL_PREFIX + gravityBomb.getLevel());
@@ -518,7 +519,7 @@ public class WeaponsSystem extends AbstractGameSystem
         projectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
-            cfg.gravBomb().damage(),
+            cfg.bomb().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 

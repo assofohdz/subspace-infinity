@@ -30,15 +30,19 @@ package infinity.config;
  * Per-arena gravity-bomb (warp-bomb / wormhole-bomb) tuning. Read at
  * projectile-creation time by {@code WeaponsSystem.createProjectileGravBomb}.
  *
- * @param damage damage applied on detonation (legacy default {@code 10})
- * @param decayMs gravity-bomb projectile lifetime in ms before expiring
- *     (legacy default {@code 4000})
+ * <p><b>Damage and decay are inherited from {@link BombConfig}.</b> Subspace
+ * VIE treats gravity bombs as level-3 bombs sharing the {@code [Bomb]}
+ * section's tuning; this record only carries the two Infinity-specific
+ * knobs ({@link #delayMs}, {@link #wormholeForce}) that govern the
+ * wormhole phase. There is no canonical {@code [GravBomb]} fragment
+ * section.
+ *
  * @param delayMs delay before the bomb transitions into a wormhole
- *     (legacy default {@code 1000})
+ *     (Infinity default {@code 1000})
  * @param wormholeForce gravity-well pull strength once the bomb opens its
- *     wormhole phase (legacy default {@code 5000})
+ *     wormhole phase (Infinity default {@code 5000})
  */
-public record GravBombConfig(int damage, long decayMs, long delayMs, double wormholeForce) {
+public record GravBombConfig(long delayMs, double wormholeForce) {
 
-  public static final GravBombConfig DEFAULTS = new GravBombConfig(10, 4000L, 1000L, 5000.0);
+  public static final GravBombConfig DEFAULTS = new GravBombConfig(1000L, 5000.0);
 }
