@@ -29,11 +29,9 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.config.ZoneConfig;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,18 +92,6 @@ public final class GroovyZoneLoader {
           cfg.enterSpawnArena());
     }
     return cfg;
-  }
-
-  /**
-   * Resolve {@code classpathPath} to an on-disk file when a dev-mode source
-   * exists, or {@code null} when only the classpath copy is reachable. Public
-   * so a future file watcher (parallel to the per-arena ships.groovy reload
-   * path in {@code ArenaSystem}) can stat / poll the same file the loader
-   * actually reads from.
-   */
-  @Nullable
-  public Path resolveOnDisk(final String classpathPath) {
-    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
   /** Adapter holding the {@code zone { … }} DSL semantics. */

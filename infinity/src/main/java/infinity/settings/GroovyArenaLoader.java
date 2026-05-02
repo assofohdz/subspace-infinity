@@ -30,7 +30,6 @@ import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.config.ArenaConfig;
 import infinity.config.PrizeSpawnerSpec;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -118,18 +117,6 @@ public final class GroovyArenaLoader {
           cfg.fragmentIncludes());
     }
     return cfg;
-  }
-
-  /**
-   * Resolve {@code classpathPath} to the on-disk source path when a dev-mode
-   * candidate exists, or {@code null} otherwise. Public so a future file
-   * watcher (parallel to the per-arena ships.groovy reload path in
-   * {@code ArenaSystem}) can stat / poll the same file the loader actually
-   * reads from.
-   */
-  @Nullable
-  public Path resolveOnDisk(final String classpathPath) {
-    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
   /**

@@ -39,7 +39,6 @@ import infinity.config.MineStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -302,18 +301,6 @@ public final class GroovyShipLoader {
     for (final Ship ship : snapshot.configuredShips()) {
       log.info("  parsed config: {} -> {}", ship, snapshot.getShip(ship));
     }
-  }
-
-  /**
-   * Resolve a classpath script path to the on-disk source path if dev-mode
-   * candidates exist, or {@code null} when only the classpath copy is
-   * reachable (production / packaged jar). Public so callers wiring a file
-   * watcher (e.g. {@code ArenaSystem}) can stat / poll the same file the
-   * loader actually reads from.
-   */
-  @Nullable
-  public Path resolveOnDisk(final String classpathPath) {
-    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
   /** Adapter holding the {@code ship(Ship.X) { … }} DSL semantics. */

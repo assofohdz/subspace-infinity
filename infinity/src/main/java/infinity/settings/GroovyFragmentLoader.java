@@ -31,7 +31,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import infinity.Ship;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -90,8 +89,8 @@ public final class GroovyFragmentLoader {
 
   /**
    * Maximum recursive {@code include} depth before bailing — matches the
-   * value baked into the INI {@code IniLoader} preprocessor so the two
-   * include systems behave identically.
+   * value the retired {@code IniLoader} {@code #include} preprocessor used
+   * so behaviour stays familiar to operators who hit the bound previously.
    */
   static final int MAX_INCLUDE_DEPTH = 16;
 
@@ -182,18 +181,6 @@ public final class GroovyFragmentLoader {
     }
     sb.append(tail);
     return sb.toString();
-  }
-
-  /**
-   * Resolve {@code classpathPath} to an on-disk file when a dev-mode source
-   * exists, or {@code null} when only the classpath copy is reachable. Public
-   * so callers wiring a file watcher (parallel to the per-arena
-   * {@code ships.groovy} reload path in {@code ArenaSystem}) can stat / poll
-   * the same file the loader actually reads from.
-   */
-  @Nullable
-  public Path resolveOnDisk(final String classpathPath) {
-    return GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
   }
 
   /**

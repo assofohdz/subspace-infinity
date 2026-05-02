@@ -1,16 +1,14 @@
 # Migrate `conf/<preset>/*.conf` fragments to Groovy
 
-Status: in-progress (Phase A bulk port shipped, hot-reload + IniLoader retirement pending)
+Status: Phase A complete. Phase B (typed `*Config` records per `[Section]`) is deferred — see [`ship-config-dictionary.md`](../ship-config-dictionary.md) for the per-ship slice.
 
-**Shipped (commits `a52a66a`, `5e9fef5`):**
+**Shipped (commits `a52a66a`, `5e9fef5`, plus the hot-reload + IniLoader-retirement follow-up):**
 - `GroovyFragmentLoader` with `section` / `shipSection` / `shipSections` DSL + recursive `include` (cycle detection, depth 16).
-- `SettingsSystem.loadFragmentIni` dispatches `.groovy` → `GroovyFragmentLoader`, others → `IniLoader`.
 - All 8 presets ported leaf-by-leaf to `.groovy`. All composite `*.conf` files retired. Live arenas (`(default)`, `trench`, `deva`) point at per-section `includeFragment` paths.
-- 14 unit + integration tests in `GroovyFragmentLoaderTest`. `:infinity:test` green.
-
-**Outstanding (Phase A follow-ups):**
-- PR #2 — generalise `ArenaSystem.pollScriptWatches` to watch every Groovy `includeFragment` path (today only `ships.groovy` hot-reloads).
-- Cleanup PR — retire `IniLoader` / `org.ini4j` once nothing else references them.
+- `SettingsSystem.loadFragmentIni` is Groovy-only (no INI fallback).
+- `ArenaSystem.registerFileWatch` watches every `.groovy` `includeFragment` for each loaded arena. Edits trigger `SettingsSystem.reloadFragments`, which rebuilds the merged store and fires `SettingListener` events for each `(section, key)` whose value actually changed.
+- `IniLoader` (the asset-loader for `.ini` / `.cfg` / `.conf`) deleted along with the four `Groovy*Loader.resolveOnDisk` passthroughs that were only used by the watcher. `org.ini4j` stays as the merged-store shape until Phase B retires the string-keyed accessors.
+- 14 unit + integration tests in `GroovyFragmentLoaderTest`. `:infinity:test` + `./gradlew build` green.
 
 The follow-on to [`zone-arena-to-groovy`](../../.scratch-archive/zone-arena-to-groovy/PRD.md), which deliberately scoped itself to the zone- and arena-tier files and called out the preset fragments as out-of-scope:
 
@@ -112,7 +110,7 @@ infinity/zone/conf/
 | # | Scope | Files touched (rough) | Notes |
 |---|---|---|---|
 | **1** | **Loader infra + smoke port** | `GroovyFragmentLoader.java` (new), `SettingsSystem.loadFragments` dispatch, `svs/cost.groovy` fixture, unit tests | This PRD's first deliverable. No live-arena impact — `svs/cost` (INI) stays in place as the unmigrated path; `svs/cost.groovy` exercises the loader in tests. |
-| **2** | **Hot-reload for fragments** | `ArenaSystem.registerScriptWatch` / `pollScriptWatches` generalized to watch every `.groovy` `includeFragment` path the arena resolves; `SettingListener` events fired for changed `(section, key)` pairs | Today only `ships.groovy` is watched. After this, every Groovy fragment hot-reloads. INI fragments still don't hot-reload (out of scope; the goal is to retire INI). |
+| **2** | **Hot-reload for fragments** ✅ | `ArenaSystem.registerFileWatch` watches every `.groovy` `includeFragment` per arena; `SettingsSystem.reloadFragments` rebuilds the merged `Ini` and fires `SettingListener` events for each `(section, key)` whose value changed | Shipped together with PR #10. Production-jar paths still skip live reload (`resolveOnDisk` returns `null` when only the classpath copy is reachable). |
 | **3** | **Recursive `include` directive** | `GroovyFragmentLoader.evaluate` adds `include '/conf/.../x.groovy'` keyword + cycle detection (max depth 16) | Needed before `svs-league/` migrates (it `#include`s `svs/svs.groovy` and overrides on top). |
 | **4** | Port `base/` | 10 files | Project baseline. Used by `arenas/(default)`. Replace `arena.groovy`'s `includeFragment '/conf/base/base.conf'` with the per-section list. |
 | **5** | Port `trench-04-2026/` | 10 files | Live arena. 8 `ship-<name>` files port to `shipSection 'X' { … }` blocks, keeping flat-bag for unported keys. |
@@ -120,7 +118,7 @@ infinity/zone/conf/
 | **7** | Port `svs/` | 11 files | Canonical reference; mirror the existing "treat as read-only-ish" notice in the Groovy file headers. |
 | **8** | Port `svs-pb`, `svs-tce`, `svs-turf` | small, monolithic | One PR or three tiny ones. |
 | **9** | Port `svs-league/` | 13 files | Last because it depends on PR #3 (recursive include) + PR #7 (svs/). |
-| **10** | Cleanup (separate PRD or ad-hoc) | retire `IniLoader`, `#include` preprocessor, `org.ini4j` dep, `Section`/`Ini` plumbing | Triggers when the last INI fragment is gone. Conditional on Phase B typing or string-key callers all being typed-equivalent. |
+| **10** | Cleanup ✅ (partial) | `IniLoader` + `#include` preprocessor deleted; the `.ini` / `.cfg` / `.conf` asset-loader registration is gone; `loadFragmentIni` is Groovy-only | `org.ini4j` dep + `Section` / `Ini` plumbing inside `SettingsSystem` and `ArenaSettings` remain — those retire with Phase B (typed records replace string-keyed callers). |
 
 ## Out of scope (Phase A)
 

@@ -29,14 +29,15 @@ package infinity.systems;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
-import infinity.server.AssetLoaderService;
 import infinity.settings.GroovyFragmentLoader;
-import infinity.settings.IniLoader;
 import infinity.settings.SettingListener;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
@@ -57,7 +58,6 @@ public class SettingsSystem extends AbstractGameSystem {
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
   private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
   ArrayList<SettingListener> listeners = new ArrayList<>();
-  private AssetLoaderService assetLoader;
   private final GroovyFragmentLoader groovyFragmentLoader = new GroovyFragmentLoader();
 
 
@@ -71,12 +71,9 @@ public class SettingsSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-
-    this.assetLoader = getSystem(AssetLoaderService.class);
-
-    assetLoader.registerLoader(IniLoader.class, "ini");
-    assetLoader.registerLoader(IniLoader.class, "cfg");
-    assetLoader.registerLoader(IniLoader.class, "conf");
+    // Fragment loading is now Groovy-only; the asset-loader registration that
+    // used to bind .ini/.cfg/.conf to IniLoader is gone, since arena.groovy's
+    // includeFragment paths only ever resolve to .groovy files now.
   }
 
   @Override
@@ -113,19 +110,19 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
-   * Load each {@code classpathPath} as an INI fragment (with the existing
-   * {@link IniLoader} {@code #include} support) and merge them into a single
-   * {@link Ini} stored under {@code arenaName}. Used by the Groovy arena-load
-   * path: {@code arena.groovy}'s typed core fields (map / shipsScript / spawn)
-   * live in {@link infinity.config.ArenaConfig}, so the {@code Ini} cached
-   * here only carries the included-fragment data (the still-INI
-   * {@code conf/<preset>/*.conf} preset content) for downstream
-   * {@link #getString} / {@link #getInt} lookups.
+   * Load each {@code classpathPath} as a Groovy fragment (with
+   * {@link GroovyFragmentLoader}'s recursive {@code include} support) and merge
+   * them into a single {@link Ini} stored under {@code arenaName}. Used by the
+   * Groovy arena-load path: {@code arena.groovy}'s typed core fields (map /
+   * shipsScript / spawn) live in {@link infinity.config.ArenaConfig}, so the
+   * {@code Ini} cached here only carries the included-fragment data (the
+   * preset {@code .groovy} files under {@code infinity/zone/conf/}) for
+   * downstream {@link #getString} / {@link #getInt} lookups.
    *
    * @param arenaName arena identity (folder name under {@code arenas/})
    * @param classpathPaths fragment paths in declaration order; later fragments
    *     overwrite earlier ones on key conflict (last-wins, matching
-   *     {@code #include}'s semantics)
+   *     {@code include}'s semantics)
    */
   public void loadFragments(final String arenaName, final List<String> classpathPaths) {
     final Ini merged = new Ini();
@@ -142,27 +139,71 @@ public class SettingsSystem extends AbstractGameSystem {
     arenaSettingsMap.put(arenaName, merged);
   }
 
+  /**
+   * Reload the arena's merged settings from {@code classpathPaths} and fire
+   * {@link SettingListener#arenaSettingsChange} for every {@code (section, key)}
+   * whose effective value changed. Used by {@code ArenaSystem}'s file watcher
+   * when a Groovy fragment is edited at runtime, so listeners with cached
+   * tuning stay in sync without a server restart.
+   *
+   * <p>The diff is taken against the pre-reload merged {@link Ini}, not against
+   * the individual fragment that changed — that handles the case where a key
+   * in fragment A is shadowed by fragment B (only B's reload should produce a
+   * "changed" event for that key). No-op-equivalent reloads (mtime bump
+   * without value changes) fire no events.
+   *
+   * @param arenaId identifies the arena (its {@code arenaName} keys the merged
+   *     store; the {@link ArenaId} is forwarded to listeners verbatim)
+   * @param classpathPaths fragment paths to load, in declaration order; same
+   *     contract as {@link #loadFragments}
+   */
+  public void reloadFragments(final ArenaId arenaId, final List<String> classpathPaths) {
+    final String arenaName = arenaId.getArena();
+    final Ini oldIni = arenaSettingsMap.get(arenaName);
+    loadFragments(arenaName, classpathPaths);
+    final Ini newIni = arenaSettingsMap.get(arenaName);
+    fireChangeDiff(arenaId, oldIni, newIni);
+  }
+
+  private void fireChangeDiff(final ArenaId arenaId, final Ini oldIni, final Ini newIni) {
+    final Set<String> sectionNames = new HashSet<>();
+    if (oldIni != null) {
+      sectionNames.addAll(oldIni.keySet());
+    }
+    if (newIni != null) {
+      sectionNames.addAll(newIni.keySet());
+    }
+    for (final String sectionName : sectionNames) {
+      final Section oldSec = oldIni == null ? null : oldIni.get(sectionName);
+      final Section newSec = newIni == null ? null : newIni.get(sectionName);
+      final Set<String> keyNames = new HashSet<>();
+      if (oldSec != null) {
+        keyNames.addAll(oldSec.keySet());
+      }
+      if (newSec != null) {
+        keyNames.addAll(newSec.keySet());
+      }
+      for (final String key : keyNames) {
+        final String oldV = oldSec == null ? null : oldSec.get(key);
+        final String newV = newSec == null ? null : newSec.get(key);
+        if (!Objects.equals(oldV, newV)) {
+          settingChanged(arenaId, sectionName, key);
+        }
+      }
+    }
+  }
+
   private Ini loadFragmentIni(final String classpathPath) {
     if (classpathPath == null || classpathPath.isBlank()) {
       return null;
     }
-    // Dispatch on extension so Groovy fragments and INI fragments share one
-    // includeFragment surface in arena.groovy. Groovy fragments produce an
-    // ini4j Ini with the same shape (sections + string values) as IniLoader,
-    // so the merge / getInt / getString path downstream is identical.
-    if (classpathPath.endsWith(".groovy")) {
-      return groovyFragmentLoader.load(classpathPath);
-    }
-    // The asset loader's keys are leading-slashless; arena.groovy paths are
-    // typically classpath-absolute with a leading slash, so strip it.
-    final String key =
-        classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    try {
-      return (Ini) assetLoader.loadAsset(key);
-    } catch (final Exception e) {
-      log.warn("Fragment {} failed to load: {}", classpathPath, e.getMessage());
+    if (!classpathPath.endsWith(".groovy")) {
+      log.warn(
+          "Fragment {} is not a .groovy file; only Groovy fragments are supported",
+          classpathPath);
       return null;
     }
+    return groovyFragmentLoader.load(classpathPath);
   }
 
   private static void mergeInto(final Ini target, final Ini source) {

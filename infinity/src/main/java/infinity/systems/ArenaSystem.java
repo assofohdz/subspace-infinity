@@ -49,6 +49,7 @@ import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.settings.GroovyArenaLoader;
+import infinity.settings.GroovySettingsHost;
 import infinity.settings.GroovyShipLoader;
 import infinity.settings.GroovyZoneLoader;
 import infinity.es.arena.ArenaMap;
@@ -69,6 +70,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -171,12 +173,15 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private boolean bootstrapped;
 
   /**
-   * Per-arena watch state for the arena's {@code ships.groovy}. Polled each tick by
-   * {@link #pollScriptWatches()} so dev-mode edits to the script trigger an immediate
-   * config reload + {@code reprojectAll()} without requiring a ship change. Keyed by
-   * arena name. Production / classpath-only deployments are not watched (no entry).
+   * Per-arena watch state for hot-reloadable Groovy files (the arena's
+   * {@code ships.groovy} plus every {@code .groovy} fragment in
+   * {@code arena.groovy}'s {@code includeFragment} list). Polled each tick by
+   * {@link #pollScriptWatches()} so dev-mode edits trigger an immediate reload
+   * via the watch's {@link WatchedFile#onChanged} callback. Keyed by arena
+   * name. Production / classpath-only deployments are not watched (no
+   * entries — the on-disk path is unresolvable).
    */
-  private final Map<String, WatchedScript> watchedScripts = new ConcurrentHashMap<>();
+  private final Map<String, List<WatchedFile>> watchedFiles = new ConcurrentHashMap<>();
 
   /**
    * Throttle deadline for {@link #pollScriptWatches()} — stat() once per arena
@@ -186,21 +191,31 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    */
   private long nextScriptPollNanos;
 
-  private static final class WatchedScript {
-    final ArenaId arenaId;
+  /**
+   * One Groovy file the watcher is tracking on disk. The {@link #onChanged}
+   * callback is the per-file reload action — for {@code ships.groovy} it
+   * re-applies the typed ship config and reprojects live ships; for fragments
+   * it asks {@link SettingsSystem#reloadFragments} to rebuild the merged
+   * settings store and fan out {@code SettingListener} events.
+   */
+  private static final class WatchedFile {
+    final String arenaName;
     final String classpathPath;
     final Path onDisk;
     FileTime lastModified;
+    final Runnable onChanged;
 
-    WatchedScript(
-        final ArenaId arenaId,
+    WatchedFile(
+        final String arenaName,
         final String classpathPath,
         final Path onDisk,
-        final FileTime lastModified) {
-      this.arenaId = arenaId;
+        final FileTime lastModified,
+        final Runnable onChanged) {
+      this.arenaName = arenaName;
       this.classpathPath = classpathPath;
       this.onDisk = onDisk;
       this.lastModified = lastModified;
+      this.onChanged = onChanged;
     }
   }
 
@@ -268,25 +283,28 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
-   * Register a per-arena watch on its {@code ships.groovy} so a dev-mode edit to the
-   * file fires an automatic reload + {@code reprojectAll()} on the next tick. No-op
-   * if the script isn't reachable on disk (production / classpath-only).
+   * Register a per-arena watch on a Groovy file so a dev-mode edit fires
+   * {@code onChanged} on the next throttled poll. No-op if the file isn't
+   * reachable on disk (production / classpath-only deployments) or the path
+   * is blank.
    */
-  private void registerScriptWatch(final ArenaId arenaId, final String classpathPath) {
+  private void registerFileWatch(
+      final ArenaId arenaId, final String classpathPath, final Runnable onChanged) {
     if (classpathPath == null || classpathPath.isBlank()) {
       return;
     }
-    final Path onDisk = shipLoader.resolveOnDisk(classpathPath);
+    final Path onDisk = GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
     if (onDisk == null) {
       log.debug(
-          "ships.groovy for arena {} not on disk; live reload disabled for this run",
-          arenaId.getArena());
+          "{} for arena {} not on disk; live reload disabled for this run",
+          classpathPath, arenaId.getArena());
       return;
     }
     try {
       final FileTime mtime = Files.getLastModifiedTime(onDisk);
-      watchedScripts.put(
-          arenaId.getArena(), new WatchedScript(arenaId, classpathPath, onDisk, mtime));
+      watchedFiles
+          .computeIfAbsent(arenaId.getArena(), k -> new ArrayList<>())
+          .add(new WatchedFile(arenaId.getArena(), classpathPath, onDisk, mtime, onChanged));
       log.info("Watching {} for arena {}", onDisk, arenaId.getArena());
     } catch (final java.io.IOException e) {
       log.warn(
@@ -296,38 +314,44 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   private void unregisterScriptWatch(final String arenaName) {
-    final WatchedScript prev = watchedScripts.remove(arenaName);
-    if (prev != null) {
-      log.debug("Stopped watching {} for arena {}", prev.onDisk, arenaName);
+    final List<WatchedFile> removed = watchedFiles.remove(arenaName);
+    if (removed != null && !removed.isEmpty()) {
+      log.debug("Stopped watching {} file(s) for arena {}", removed.size(), arenaName);
     }
   }
 
   /**
-   * Stat each watched script's on-disk path; if the mtime changed, re-evaluate the
-   * Groovy and push the new tuning to every live ship in scope. Throttled to roughly
-   * once per {@link #SCRIPT_POLL_INTERVAL_NANOS} by the caller in {@link #update}.
+   * Stat each watched file's on-disk path; if the mtime changed, run the
+   * file's reload callback. Throttled to roughly once per
+   * {@code zoneConfig.scriptPollIntervalNanos()} by the caller in
+   * {@link #update}. Reload failures are logged and contained so a single
+   * file's failure doesn't abort the rest of the poll.
    */
   private void pollScriptWatches() {
-    if (watchedScripts.isEmpty()) {
+    if (watchedFiles.isEmpty()) {
       return;
     }
-    for (final WatchedScript w : watchedScripts.values()) {
-      final FileTime mtime;
-      try {
-        mtime = Files.getLastModifiedTime(w.onDisk);
-      } catch (final java.io.IOException e) {
-        log.debug("Stat failed for {} (arena {}); skipping reload tick", w.onDisk, w.arenaId.getArena());
-        continue;
+    for (final List<WatchedFile> arenaWatches : watchedFiles.values()) {
+      for (final WatchedFile w : arenaWatches) {
+        final FileTime mtime;
+        try {
+          mtime = Files.getLastModifiedTime(w.onDisk);
+        } catch (final java.io.IOException e) {
+          log.debug("Stat failed for {} (arena {}); skipping reload tick", w.onDisk, w.arenaName);
+          continue;
+        }
+        if (mtime.equals(w.lastModified)) {
+          continue;
+        }
+        w.lastModified = mtime;
+        try {
+          w.onChanged.run();
+        } catch (final RuntimeException e) {
+          log.warn(
+              "Reload of {} for arena {} failed: {}",
+              w.classpathPath, w.arenaName, e.toString());
+        }
       }
-      if (mtime.equals(w.lastModified)) {
-        continue;
-      }
-      w.lastModified = mtime;
-      shipLoader.apply(w.arenaId, w.classpathPath);
-      final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
-      log.info(
-          "{} changed for arena {}; reprojected {} ship(s)",
-          w.onDisk, w.arenaId.getArena(), reprojected);
     }
   }
 
@@ -661,7 +685,35 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final String shipsScript =
           rec.config.shipsScript().isBlank() ? null : rec.config.shipsScript();
       shipLoader.apply(arenaId, shipsScript);
-      registerScriptWatch(arenaId, shipsScript);
+      registerFileWatch(
+          arenaId,
+          shipsScript,
+          () -> {
+            shipLoader.apply(arenaId, shipsScript);
+            final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
+            log.info(
+                "{} changed for arena {}; reprojected {} ship(s)",
+                shipsScript, arenaId.getArena(), reprojected);
+          });
+      // Watch every Groovy includeFragment so editing a fragment file at
+      // runtime rebuilds the merged settings store and fans out
+      // SettingListener events for any (section, key) whose value changed.
+      // Non-Groovy fragments aren't supported by the loader anymore, so the
+      // filter is just defence in depth against a stale arena.groovy.
+      for (final String fragmentPath : rec.config.fragmentIncludes()) {
+        if (fragmentPath != null && fragmentPath.endsWith(".groovy")) {
+          final List<String> allFragments = rec.config.fragmentIncludes();
+          registerFileWatch(
+              arenaId,
+              fragmentPath,
+              () -> {
+                settings.reloadFragments(arenaId, allFragments);
+                log.info(
+                    "{} changed for arena {}; settings reloaded",
+                    fragmentPath, arenaId.getArena());
+              });
+        }
+      }
 
       if (!maps.loadMap(mapFile, rec.arenaIndex)) {
         fail(rec, arena, "loadMap returned false for " + mapFile);
