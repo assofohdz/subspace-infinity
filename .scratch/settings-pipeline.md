@@ -7,11 +7,148 @@ runtime consumer. Rows = canonical settings keys. Columns trace the five
 gates a setting must pass to actually affect gameplay, plus a derived
 roll-up (Complete) and a coverage column (Test).
 
+> **Out-of-scope keys live in [`out-of-scope.md`](out-of-scope.md).**
+> Sections Infinity has decided not to implement (`[Cost]`, `[Flag]`,
+> `[Kill]`, `[King]`, `[Latency]`, `[PacketLoss]`, `[Periodic]`,
+> `[Routing]`, `[Security]`, `[Soccer]`, `[Team]`, `[Territory]`, plus
+> `[Message] MessageDistance` and per-ship Soccer keys) have been cut
+> from the `.groovy` sources and removed from this tracker. Don't
+> re-add them here unless they become in-scope.
+
+## Target architecture (post-migration)
+
+Decided 2026-05-03. Source: grilling session resolving option (b) of
+the typed-record migration in
+[`settings-pipeline-slices.md`](settings-pipeline-slices.md) (slices
+B0–B4). The end state for the settings pipeline is a single typed
+`ConfigRegistry` per arena, owned by `ConfigRegistrySystem`, populated
+from typed Groovy fragments (one fragment file per typed slot, one
+adapter per fragment). The `Ini`-mirror DSL and `SettingsSystem` are
+deleted in B4.
+
+Reference this section when authoring new fragment keys, designing a
+new `*Config` record, or deciding which file a tunable belongs in.
+
+### Flattened `ConfigRegistry`
+
+```
+ConfigRegistry (per-arena snapshot, owned by ConfigRegistrySystem)
+│
+├── Per-ship template
+│   └── ships : Map<Ship, ShipConfig>           ← ships.groovy
+│
+├── Weapon-projectile tuning  (flattened from old WeaponsConfig)
+│   ├── bullet            : BulletConfig         ← bullet.groovy        [Bullet]
+│   ├── bomb              : BombConfig           ← bomb.groovy          [Bomb]
+│   ├── gravBomb          : GravBombConfig       ← gravbomb.groovy      [Bomb] *shared in VIE
+│   ├── mine              : MineConfig           ← mine.groovy          [Mine]
+│   ├── burst             : BurstFireConfig      ← burst.groovy         [Burst]
+│   ├── repel             : RepelConfig          ← repel.groovy         [Repel]
+│   └── thor              : ThorConfig           ← thor.groovy          (Infinity addition)
+│
+├── Prize spawning + dispatch
+│   ├── prize             : PrizeConfig          ← prize.groovy         [Prize]
+│   ├── prizeWeights      : PrizeWeightsConfig   ← prizeweights.groovy  [PrizeWeight]
+│   └── deathPrizeWeights : PrizeWeightsConfig   ← deathprizeweights.groovy  [DPrizeWeight] *svs-league only
+│
+├── Other gameplay sections (typed in later gameplay slices)
+│   ├── brick             : BrickConfig          ← brick.groovy         [Brick]
+│   ├── rocket            : RocketConfig         ← rocket.groovy        [Rocket]
+│   ├── shrapnel          : ShrapnelConfig       ← shrapnel.groovy      [Shrapnel]
+│   ├── wormhole          : WormholeConfig       ← wormhole.groovy      [Wormhole]
+│   └── door              : DoorConfig           ← door.groovy          [Door]
+│
+└── Cosmetic / metadata
+    ├── radar             : RadarConfig          ← radar.groovy         [Radar]
+    ├── toggle            : ToggleConfig         ← toggle.groovy        [Toggle]
+    ├── spectator         : SpectatorConfig      ← spectator.groovy     [Spectator]
+    ├── message           : MessageConfig        ← message.groovy       [Message]
+    ├── misc              : MiscConfig           ← misc.groovy          [Misc]   *narrow — only wired knobs
+    ├── custom            : CustomConfig         ← custom.groovy        [Custom]
+    └── owner             : OwnerConfig          ← owner.groovy         [Owner]
+```
+
+### Lives outside `ConfigRegistry`
+
+```
+ArenaConfig (per-arena structural — read by ArenaSystem)
+│   ← arena.groovy
+│
+├── map               : String
+├── fragmentIncludes  : List<String>     ← arena.groovy include list
+├── wallFriction      : double
+└── spawn             : SpawnConfig      ← absorbs [Spawn]'s 12 keys (in-scope, gameplay Slice 7)
+```
+
+`ArenaConfig` doesn't sit in `ConfigRegistry` because `ArenaSystem`
+reads it *before* loading fragments — it tells the loader **which**
+fragments to load. Two-phase load:
+1. `GroovyArenaLoader` → `ArenaConfig` (resolves the includeFragment list)
+2. `ConfigRegistrySystem.load(arenaId, ArenaConfig.fragmentIncludes())` →
+   evaluates each fragment with its typed adapter → `ConfigRegistry` →
+   atomic `replace()`
+
+### Cut / out-of-scope (already deleted in 🚫 sweep, see `out-of-scope.md`)
+
+These have **no slot in `ConfigRegistry`** and **no `*.groovy` file**.
+Promotion path documented in
+[`out-of-scope.md`](out-of-scope.md#promotion-path).
+
+`[Cost]`, `[Flag]`, `[Kill]`, `[King]`, `[Latency]`, `[PacketLoss]`,
+`[Periodic]`, `[Routing]`, `[Security]`, `[Soccer]`, `[Team]`,
+`[Territory]`, `[Message] MessageDistance` (single key), per-ship
+Soccer keys.
+
+### Per-arena fragment file inventory (post-migration)
+
+A preset only authors files for sections it overrides; the rest fall
+back to the matching `*Config.DEFAULTS` constant in `api/src/infinity/config/`.
+
+```
+infinity/zone/arenas/<arena>/arena.groovy           ← arena.groovy entry point
+infinity/zone/conf/<preset>/
+├── ships.groovy           ← ship(WARBIRD) { ... } per Ship enum
+├── bullet.groovy          ← bullet { damageLevel … }
+├── bomb.groovy            ← bomb { damageLevel …; aliveTime … }
+├── gravbomb.groovy        ← gravBomb { … }            *if preset diverges from bomb defaults
+├── mine.groovy
+├── burst.groovy
+├── repel.groovy
+├── thor.groovy                                        *only if preset wants Thor tuning override
+├── prize.groovy
+├── prizeweights.groovy
+├── deathprizeweights.groovy                           *svs-league only
+├── brick.groovy
+├── rocket.groovy
+├── shrapnel.groovy
+├── wormhole.groovy
+├── door.groovy
+├── radar.groovy
+├── toggle.groovy
+├── spectator.groovy
+├── message.groovy
+├── misc.groovy            *narrow — only the [Misc] knobs that are actually wired
+├── custom.groovy
+└── owner.groovy
+```
+
+### Why these design choices
+
+| Decision | Rationale |
+|---|---|
+| **Promote `ConfigRegistrySystem`, delete `SettingsSystem`** | `ConfigRegistrySystem` is already the typed-record store; `SettingsSystem` is the laggard `Ini`-mirror middleware. One keeper > two. |
+| **Load orchestration lives in `ConfigRegistrySystem`** | Single entry point for load + reload; per-section loaders become internal collaborators. ArenaSystem doesn't need to know about specific loaders. |
+| **No listener API in B0–B4 (YAGNI)** | 0 subscribers exist. Hot tuning works via "respawn the ship" (weapons/prizes auto-pick-up on next consumption). When a real subscriber appears, the API can be shaped to fit. |
+| **Per-file typed adapters, not a mega-adapter** | Keeps the existing `GroovySettingsAdapter` contract (one file = one result type). Each adapter stays small + focused. |
+| **Flatten `WeaponsConfig` into direct slots** | The old `WeaponsConfig` is a 7-field grouping struct with no behavior; consumers always reach through. Flattening makes `ConfigRegistry`'s public API the visual inventory of "what's tunable." |
+| **`ArenaConfig` stays separate** | Read by `ArenaSystem` before fragments load (it specifies which fragments to load). Different lifecycle, different consumer. |
+| **Full-replace on each load** | No partial-update API. Fragment evaluation is fast; whole-snapshot atomic swap matches existing `replace()` semantics. |
+
 ## Columns
 
 | # | Column | Question | Marker meaning |
 |---|--------|----------|----------------|
-| 1 | **Complete** | Roll-up of all other gates | ✅ all wired · ⚠️ partial · ❌ unwired · 🚫 out of scope |
+| 1 | **Complete** | Roll-up of all other gates | ✅ all wired · ⚠️ partial · ❌ unwired |
 | 2 | **Setting** | Canonical Subspace key name | — |
 | 3 | **Authored?** | Does any preset's `.groovy` file declare this key? | ✅ yes (filename) / ❌ no |
 | 4 | **Loader** | Which `Groovy*Loader` reads it from `SettingsSystem`? | Class name / — for keys read elsewhere / ❌ |
@@ -28,19 +165,16 @@ Arena-global tuning tables ([Bomb], [Bullet], etc.) read `*Config`
 directly at projectile-creation time and have no per-entity slot, so
 they remain 8-column.
 
-Marker glossary: ✅ wired · ❌ not wired · — not applicable · 🚫 out of
-scope. The **Complete** column is derived from the other gates:
+Marker glossary: ✅ wired · ❌ not wired · — not applicable. The
+**Complete** column is derived from the other gates:
 
 - ✅ — every gate is ✅ or `—`
 - ⚠️ — at least one ✅ and at least one ❌
 - ❌ — every gate is ❌ (no progress)
-- 🚫 — row covers a Subspace mechanic Infinity has explicitly chosen
-  not to implement (e.g. shop, soccer, flag-mode). Stays 🚫 regardless
-  of individual gate state; do not treat as a TODO.
 
 A row with Complete = ✅ is fully gameplay-active. ⚠️ is the
-"in-flight" state. ❌ rows are unstarted but in-scope. 🚫 rows are
-preserved for canonical inventory only.
+"in-flight" state. ❌ rows are unstarted but in-scope. Out-of-scope
+keys live in [`out-of-scope.md`](out-of-scope.md), not here.
 
 ## When to update this table
 
@@ -55,6 +189,48 @@ preserved for canonical inventory only.
 
 Drift between this table and the code is worse than no table — see the
 always-on rule in [`CLAUDE.md`](../CLAUDE.md#always-on-rules).
+
+## Known issue: dual-pipeline drift on per-ship inventory
+
+Two parallel paths read ship config and they don't agree:
+
+- **Typed loader** — `infinity/zone/conf/<preset>/ships.groovy` evaluated
+  by [`GroovyShipLoader`](../infinity/src/main/java/infinity/settings/GroovyShipLoader.java)
+  via the typed DSL (`repels start: X, max: Y`, `bursts ...`, etc.).
+  Output: `ShipConfig.repels` / `bursts` / `thors` / weapons stats →
+  `ShipSpawnSystem` projects to ECS components. Drives Pattern-4 tuning.
+- **Untyped fragments** — `infinity/zone/conf/<preset>/ship-<name>.groovy`
+  evaluated by [`GroovyFragmentLoader`](../infinity/src/main/java/infinity/settings/GroovyFragmentLoader.java)
+  via `shipSection(name) { Key Value }` which writes Subspace-canonical
+  INI keys (`RepelMax`, `InitialRepel`, `BurstMax`, …) into the merged
+  `Ini` store backing `SettingsSystem`. Drives Subspace-canonical
+  consumers that read from `SettingsSystem` directly.
+
+When `ships.groovy` omits an inventory block (e.g. trench-04-2026 has no
+`repels`/`bursts`/`thors` blocks for any ship), the typed loader falls
+back to `DEFAULT_REPELS = CountStats(start=10, max=20)`. The
+`ship-<name>.groovy` fragment's `RepelMax 4` for that same ship is
+silently ignored by the spawn-projection path — it only affects code
+that reads `SettingsSystem` directly. End result: per-ship `Repel` /
+`RepelMax` rows below show ✅ but the *value* a player sees is the
+loader default, not the Subspace fragment value.
+
+Resolution options for a future slice:
+
+1. Make `GroovyShipLoader.ShipBuilder` consult the merged `Ini` store
+   for inventory keys when its typed block is missing — single source
+   per ship, fragment values win.
+2. Move every per-ship inventory key to the typed `ships.groovy` DSL
+   and delete the corresponding lines from `ship-<name>.groovy`.
+   Higher migration cost, fully eliminates the dual path for inventory.
+3. Document the split as intentional: `ships.groovy` for the typed
+   tuning surface, `ship-<name>.groovy` for unmigrated/legacy keys
+   that still go through `SettingsSystem`. Lowest churn, leaves the
+   footgun in place.
+
+Verify with `~ship` (in-game) — if `repel=10/20` doesn't match the
+`InitialRepel`/`RepelMax` in the preset's `ship-<name>.groovy`, this
+drift is the cause.
 
 ---
 
@@ -95,15 +271,6 @@ always-on rule in [`CLAUDE.md`](../CLAUDE.md#always-on-rules).
 |---|---|---|---|---|---|---|---|
 | ✅ | `BurstDamageLevel` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBurst` | `BurstFireConfig.damage` | — | `WeaponsSystem.createProjectileBurst` | ❌ |
 
-## [Cost]
-
-Per-prize point cost for a shop mechanic Infinity does not implement. Preserved for canonical inventory.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | `PurchaseAnytime` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `Recharge`/`Energy`/`Rotation`/`Stealth`/`Cloak`/`XRadar`/`Gun`/`Bomb`/`Bounce`/`Thrust`/`Speed`/`MultiFire`/`Prox`/`Super`/`Shield`/`Shrap`/`AntiWarp`/`Repel`/`Burst`/`Decoy`/`Thor`/`Brick`/`Rocket`/`Portal` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-
 ## [Custom]
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
@@ -117,61 +284,6 @@ Per-prize point cost for a shop mechanic Infinity does not implement. Preserved 
 | ⚠️ | `DoorDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ (DoorSystem reads via different path?) | ❌ |
 | ⚠️ | `DoorMode` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
-## [Flag]
-
-19 keys; flag-mode gameplay is not active. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | `FlaggerOnRadar` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerKillMultiplier` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerGunUpgrade` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerBombUpgrade` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerFireCostPercent` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerDamagePercent` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerSpeedAdjustment` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerThrustAdjustment` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlaggerBombFireDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `CarryFlags` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagDropDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagDropResetReward` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `EnterGameFlaggingDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagBlankDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `NoDataFlagDropDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagMode` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagResetDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `MaxFlags` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `RandomFlags` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagReward` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagRewardMode` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagTerritoryRadius` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FlagTerritoryRadiusCentroid` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `FriendlyTransfer` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Kill]
-
-13 keys; kill-reward economy not implemented. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | `MaxBonus` / `MaxPenalty` / `RewardBase` / `BountyIncreaseForKill` / `EnterDelay` / `KillPointsPerFlag` / `KillPointsMinimumBounty` / `DebtKills` / `NoRewardKillDelay` / `BountyRewardPercent` / `FixedKillReward` / `JackpotBountyPercent` | ✅ misc.groovy (most) | ❌ | ❌ | — | ❌ | ❌ |
-
-## [King]
-
-6 keys; king-of-hill mode not implemented. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | `DeathCount` / `ExpireTime` / `RewardFactor` / `NonCrownAdjustTime` / `NonCrownMinimumBounty` / `CrownRecoverKills` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Latency]
-
-17 keys; client/server latency policing not implemented. Out of scope. Subsystem column would be a network-layer class, not a game system.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | `SendRoutePercent` / `KickOutDelay` / `NoFlagDelay` / `NoFlagPenalty` / `SlowPacketKickoutPercent` / `SlowPacketTime` / `SlowPacketSampleSize` / `ClientSlowPacketKickoutPercent` / `ClientSlowPacketTime` / `ClientSlowPacketSampleSize` / `MaxLatencyForWeapons` / `MaxLatencyForPrizes` / `MaxLatencyForKickOut` / `LatencyKickOutTime` / `S2CNoDataKickoutDelay` / `CutbackWatermark` / `C2SNoDataAction` / `C2SNoDataTime` / `NegativeClientSlowPacketTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-
 ## [Message]
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
@@ -181,7 +293,6 @@ Per-prize point cost for a shop mechanic Infinity does not implement. Preserved 
 | ⚠️ | `BongAllowed` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ❌ | `QuickMessageLimit` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
 | ❌ | `MessageTeamReliable` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| 🚫 | `MessageDistance` (deprecated) | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
 ## [Mine]
 
@@ -239,22 +350,6 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ❌ | `UserId` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `Name` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
-## [PacketLoss]
-
-4 keys; not enforced server-side. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 4 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Periodic]
-
-3 keys; periodic-reward loop not implemented. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 3 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-
 ## [Prize]
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
@@ -287,7 +382,6 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `XRadar` | ✅ misc.groovy | `PrizeSystem` | — | `XRadar`/`XRadarStatus` | `XRadarPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
 | ✅ | `Gun` (= "Gun Upgrade") | ✅ misc.groovy | `PrizeSystem` | — | `GunCurrentLevel`/`GunMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileGun` | ❌ |
 | ✅ | `Bomb` (= "Bomb Upgrade") | ✅ misc.groovy | `PrizeSystem` | — | `BombCurrentLevel`/`BombMaxLevel` + `MineCurrentLevel`/`MineMaxLevel` | `CompositePrizeApplier(BombPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (bomb + mine) | ❌ |
-| 🚫 | `Bounce` | — | — | — | — | — (covered by `BouncingBulletsPrizeApplier`) | ❌ | ❌ |
 | ✅ | `Thrust` | ✅ misc.groovy | `PrizeSystem` | — | `Thrust`/`ThrustMax` | `ThrusterPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
 | ✅ | `Speed` (= "Top Speed") | ✅ misc.groovy | `PrizeSystem` | — | `Speed`/`SpeedMax` | `TopSpeedPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
 | ⚠️ | `MultiFire` | ✅ misc.groovy | `PrizeSystem` | — | `Multishot` | `MultiFirePrizeApplier` ❌ stub | (needs Multishot wiring) | ❌ |
@@ -308,7 +402,6 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `Glue` (= "Engine Shutdown") | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no EngineShutdown component) | `GluePrizeApplier` ❌ stub | (needs EngineShutdown component + timer) | ❌ |
 | ✅ | `AllWeapons` (= "Super!") | ✅ misc.groovy | `PrizeSystem` | — | composite (Guns/Bombs/Bursts/Mines) | `CompositePrizeApplier(BombPrizeApplier, BurstPrizeApplier, GunPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (composite) | ❌ |
 | ⚠️ | `MultiPrize` | ✅ misc.groovy | `PrizeSystem` | — | — (recursive dispatch, no slot) | `MultiPrizePrizeApplier` ❌ stub | (needs recursive dispatch + RNG) | ❌ |
-| 🚫 | `Dud` (negative) | — | — | — | — | `DudPrizeApplier` (placeholder) | — | ❌ |
 
 ## [Radar]
 
@@ -322,9 +415,9 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ⚠️ | `RepelSpeed` | ✅ misc.groovy | ❌ | ❌ | — | ❌ (consumed at fire-time by `ConsumableSystem`) | ❌ |
-| ⚠️ | `RepelTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `RepelDistance` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `RepelSpeed` | ✅ misc.groovy | ✅ `GroovyWeaponsLoader.loadRepel` | ✅ `RepelConfig.speed` | — | ✅ `ConsumableSystem.createRepel` → `RepelSpeed` component | ✅ `RepelFactoryTest` |
+| ✅ | `RepelTime` | ✅ misc.groovy | ✅ `GroovyWeaponsLoader.loadRepel` (cs×10→ms) | ✅ `RepelConfig.timeMs` | — | ✅ `ConsumableSystem.createRepel` → `Decay` | ✅ `RepelFactoryTest` |
+| ✅ | `RepelDistance` | ✅ misc.groovy | ✅ `GroovyWeaponsLoader.loadRepel` | ✅ `RepelConfig.distancePixels` | — | ✅ `ConsumableSystem.createRepel` → `RepelDistance` component | ✅ `RepelFactoryTest` |
 
 ## [Rocket]
 
@@ -332,22 +425,6 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 |---|---|---|---|---|---|---|---|
 | ⚠️ | `RocketThrust` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `RocketSpeed` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Routing]
-
-10 keys; net-layer concerns. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 10 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Security]
-
-6 keys; anti-cheat policing not implemented. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 6 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
 
 ## [Shrapnel]
 
@@ -366,36 +443,12 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 |---|---|---|---|---|---|---|---|
 | ❌ | (all 12 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
 
-## [Soccer]
-
-19 keys; soccer mode not active. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 19 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-
 ## [Spectator]
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
 | ⚠️ | `HideFlags` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `NoXRadar` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Team]
-
-6 keys; freq-cap enforcement not implemented. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 6 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-
-## [Territory]
-
-4 keys; territory rewards not implemented. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | (all 4 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
 
 ## [Toggle]
 
@@ -493,14 +546,6 @@ this table is the macro view.
 | ⚠️ | `ShieldsTime` | ✅ ships.groovy | ❌ | ❌ | (used by `ShieldsPrizeApplier`) | ❌ | ❌ |
 | ⚠️ | `Gravity` / `GravityTopSpeed` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
-### Soccer (per-ship)
-
-Soccer mode not active. Out of scope.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| 🚫 | `SoccerBallFriction` / `SoccerBallProximity` / `SoccerBallSpeed` / `SoccerThrowTime` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
-
 ---
 
 ## Summary
@@ -510,6 +555,6 @@ Soccer mode not active. Out of scope.
 - **Per-ship `ShipConfig`:** thrust/speed/rotation/recharge/energy stat triples + 8 inventory CountStats + 3 weapon stats — fully wired via `GroovyShipLoader`.
 - **Status family `*Status` / `*Energy` ship keys:** authored in ships.groovy and the per-entity components (`CloakStatus`, `Cloak`, `CloakEnergy`, etc.) **already exist** — what's missing is the `GroovyShipLoader` read, the `*Config` field, and the prize applier. So these rows are 1 component-class step further along than they look at first glance.
 - **Component-class gaps surfaced by the v2 column:** `Proximity`, `Super`, `Shields`, `Shrap` (Shrapnel/ShrapnelMax), `BouncingBullets`, `Glue` (EngineShutdown) all need new component classes before their stub appliers can do anything meaningful.
-- **Out-of-scope (🚫):** `[Cost]`, `[Flag]` (24), `[Kill]` (13), `[King]` (6), `[Latency]` (~17), `[PacketLoss]` (4), `[Periodic]` (3), `[Routing]` (10), `[Security]` (6), `[Soccer]` (19), `[Team]` (6), `[Territory]` (4), per-ship soccer (4) — Subspace mechanics Infinity has decided not to implement.
+- **Out-of-scope (🚫):** see [`out-of-scope.md`](out-of-scope.md). Cut from this tracker and the `.groovy` sources in the typed-DSL migration sweep.
 - **In-scope but unstarted (❌):** `[Spawn]` (12 keys, today driven by hardcoded `centerOfArena`), several `[Misc]` rows that are unauthored.
 - **Test coverage:** 0 rows have any automated test today. Per the spawn-projection-test-gap, manual launch is the only verification path. Filling the Test column is a separate workstream.
