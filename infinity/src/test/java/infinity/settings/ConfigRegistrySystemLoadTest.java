@@ -171,6 +171,40 @@ public class ConfigRegistrySystemLoadTest {
           warbird.cloak());
       assertNull("WARBIRD has no stealth block (forbidden, omitted)",
           warbird.stealth());
+      // Slice 6b: trench/warbird also has no xradar/antiwarp (both
+      // status==0 in legacy ship-warbird.groovy → omitted).
+      assertNull("WARBIRD has no xradar block (forbidden, omitted)",
+          warbird.xradar());
+      assertNull("WARBIRD has no antiwarp block (forbidden, omitted)",
+          warbird.antiwarp());
+
+      // Slice 6b: trench/spider gets both XRadar and AntiWarp (legacy
+      // ship-spider.groovy: XRadarStatus 2 + XRadarEnergy 200; AntiWarpStatus 1
+      // + AntiWarpEnergy 800).
+      final var spider = snapshot.getShip(Ship.SPIDER);
+      assertNotNull("SPIDER config", spider);
+      assertNotNull("SPIDER has xradar (XRadarStatus 2)", spider.xradar());
+      assertEquals("SPIDER XRadarStatus = 2 (start active)",
+          2, spider.xradar().status());
+      assertEquals("SPIDER XRadarEnergy = 200",
+          200, spider.xradar().energyDrainPer1000Cs());
+      assertNotNull("SPIDER has antiwarp (AntiWarpStatus 1)",
+          spider.antiwarp());
+      assertEquals("SPIDER AntiWarpStatus = 1 (acquirable)",
+          1, spider.antiwarp().status());
+      assertEquals("SPIDER AntiWarpEnergy = 800",
+          800, spider.antiwarp().energyDrainPer1000Cs());
+
+      // Slice 6b: trench/lancaster has xradar acquirable (status 1,
+      // energy 2000); no antiwarp (status 0).
+      final var lancaster = snapshot.getShip(Ship.LANCASTER);
+      assertNotNull("LANCASTER config", lancaster);
+      assertNotNull("LANCASTER has xradar (XRadarStatus 1)", lancaster.xradar());
+      assertEquals("LANCASTER XRadarStatus = 1", 1, lancaster.xradar().status());
+      assertEquals("LANCASTER XRadarEnergy = 2000",
+          2000, lancaster.xradar().energyDrainPer1000Cs());
+      assertNull("LANCASTER has no antiwarp block (forbidden, omitted)",
+          lancaster.antiwarp());
 
       // Phase 3 — weapons compat shim pulled trench's misc.groovy values
       // into ConfigRegistry's flat weapon-projectile slots (post-B1a flatten).

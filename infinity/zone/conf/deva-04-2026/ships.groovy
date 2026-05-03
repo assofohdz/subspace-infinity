@@ -41,6 +41,7 @@ ship(Ship.WARBIRD) {
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
     stealth status: 1, energy: 0
+    xradar  status: 2, energy: 0
 }
 
 ship(Ship.JAVELIN) {
@@ -59,6 +60,7 @@ ship(Ship.JAVELIN) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 2
     decoys  start: 1, max: 3
+    xradar  status: 1, energy: 0
 }
 
 ship(Ship.SPIDER) {
@@ -79,6 +81,7 @@ ship(Ship.SPIDER) {
     decoys  start: 0, max: 2
     cloak   status: 1, energy: 900
     stealth status: 1, energy: 1
+    xradar  status: 1, energy: 0
 }
 
 ship(Ship.LEVIATHAN) {
@@ -98,6 +101,7 @@ ship(Ship.LEVIATHAN) {
     repels  start: 0, max: 3
     decoys  start: 0, max: 3
     stealth status: 1, energy: 1
+    xradar  status: 1, energy: 0
 }
 
 ship(Ship.TERRIER) {
@@ -117,6 +121,7 @@ ship(Ship.TERRIER) {
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
     stealth status: 1, energy: 0
+    xradar  status: 2, energy: 0
 }
 
 ship(Ship.WEASEL) {
@@ -136,6 +141,7 @@ ship(Ship.WEASEL) {
     repels  start: 0, max: 1
     decoys  start: 0, max: 2
     stealth status: 1, energy: 0
+    xradar  status: 1, energy: 0
 }
 
 ship(Ship.LANCASTER) {
@@ -155,6 +161,7 @@ ship(Ship.LANCASTER) {
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
     stealth status: 1, energy: 0
+    xradar  status: 2, energy: 0
 }
 
 ship(Ship.SHARK) {
@@ -175,4 +182,5 @@ ship(Ship.SHARK) {
     decoys  start: 0, max: 2
     cloak   status: 2, energy: 900
     stealth status: 1, energy: 1
+    xradar  status: 1, energy: 0
 }

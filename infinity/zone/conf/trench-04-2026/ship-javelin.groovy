@@ -12,8 +12,6 @@ shipSection('Javelin') {
     DisableFastShooting 1
     Radius 0
     MultiFireAngle 2000
-    AntiWarpEnergy 2000
-    XRadarEnergy 2000
     MaximumRotation 200
     MaximumThrust 24
     MaximumSpeed 6000
@@ -45,8 +43,6 @@ shipSection('Javelin') {
     BombBounceCount 1
     ShrapnelMax 15
     ShrapnelRate 3
-    XRadarStatus 0
-    AntiWarpStatus 0
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 1

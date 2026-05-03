@@ -12,8 +12,6 @@ shipSection('Spider') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 758
-    AntiWarpEnergy 1350
-    XRadarEnergy 0
     MaximumRotation 360
     MaximumThrust 31
     MaximumSpeed 3500
@@ -45,8 +43,6 @@ shipSection('Spider') {
     BombBounceCount 2
     ShrapnelMax 16
     ShrapnelRate 3
-    XRadarStatus 1
-    AntiWarpStatus 0
     DoubleBarrel 1
     EmpBomb 1
     SeeMines 0

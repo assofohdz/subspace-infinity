@@ -9,10 +9,14 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.ship.Health;
+import infinity.es.ship.toggles.Antiwarp;
+import infinity.es.ship.toggles.AntiwarpEnergy;
 import infinity.es.ship.toggles.Cloak;
 import infinity.es.ship.toggles.CloakEnergy;
 import infinity.es.ship.toggles.Stealth;
 import infinity.es.ship.toggles.StealthEnergy;
+import infinity.es.ship.toggles.XRadar;
+import infinity.es.ship.toggles.XRadarEnergy;
 import infinity.sim.util.InfinityRunTimeException;
 
 /**
@@ -23,9 +27,8 @@ import infinity.sim.util.InfinityRunTimeException;
  * Health drain is {@code (energy / 1000) * (tpfSeconds * 100)} =
  * {@code energy * tpfSeconds / 10}.
  *
- * <p>Slice 6a wires Cloak + Stealth; Slice 6b extends the same pattern
- * to XRadar + AntiWarp by adding two more EntitySets and per-tick
- * drain calls.
+ * <p>Slice 6a wires Cloak + Stealth; Slice 6b extends to XRadar +
+ * AntiWarp by adding two more EntitySets and per-tick drain calls.
  *
  * <p><b>Behaviour notes (Subspace canon):</b>
  * <ul>
@@ -48,6 +51,8 @@ public class StatusDrainSystem extends AbstractGameSystem {
   private EnergySystem energySystem;
   private EntitySet cloakDrainers;
   private EntitySet stealthDrainers;
+  private EntitySet xradarDrainers;
+  private EntitySet antiwarpDrainers;
 
   @Override
   protected void initialize() {
@@ -63,6 +68,8 @@ public class StatusDrainSystem extends AbstractGameSystem {
     }
     cloakDrainers = ed.getEntities(Cloak.class, CloakEnergy.class, Health.class);
     stealthDrainers = ed.getEntities(Stealth.class, StealthEnergy.class, Health.class);
+    xradarDrainers = ed.getEntities(XRadar.class, XRadarEnergy.class, Health.class);
+    antiwarpDrainers = ed.getEntities(Antiwarp.class, AntiwarpEnergy.class, Health.class);
   }
 
   @Override
@@ -71,12 +78,18 @@ public class StatusDrainSystem extends AbstractGameSystem {
     cloakDrainers = null;
     stealthDrainers.release();
     stealthDrainers = null;
+    xradarDrainers.release();
+    xradarDrainers = null;
+    antiwarpDrainers.release();
+    antiwarpDrainers = null;
   }
 
   @Override
   public void update(final SimTime time) {
     cloakDrainers.applyChanges();
     stealthDrainers.applyChanges();
+    xradarDrainers.applyChanges();
+    antiwarpDrainers.applyChanges();
 
     final double tpf = time.getTpf();
 
@@ -96,6 +109,28 @@ public class StatusDrainSystem extends AbstractGameSystem {
         continue;
       }
       final int rate = e.get(StealthEnergy.class).getEnergy();
+      final int drain = perTickDrain(rate, tpf);
+      if (drain > 0) {
+        energySystem.damage(e.getId(), -drain);
+      }
+    }
+
+    for (final Entity e : xradarDrainers) {
+      if (!e.get(XRadar.class).isEnabled()) {
+        continue;
+      }
+      final int rate = e.get(XRadarEnergy.class).getEnergy();
+      final int drain = perTickDrain(rate, tpf);
+      if (drain > 0) {
+        energySystem.damage(e.getId(), -drain);
+      }
+    }
+
+    for (final Entity e : antiwarpDrainers) {
+      if (!e.get(Antiwarp.class).isEnabled()) {
+        continue;
+      }
+      final int rate = e.get(AntiwarpEnergy.class).getEnergy();
       final int drain = perTickDrain(rate, tpf);
       if (drain > 0) {
         energySystem.damage(e.getId(), -drain);

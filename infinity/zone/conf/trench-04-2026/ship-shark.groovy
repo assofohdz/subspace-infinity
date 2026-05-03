@@ -12,8 +12,6 @@ shipSection('Shark') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 0
-    AntiWarpEnergy 2000
-    XRadarEnergy 2000
     MaximumRotation 210
     MaximumThrust 24
     MaximumSpeed 6000
@@ -45,8 +43,6 @@ shipSection('Shark') {
     BombBounceCount 0
     ShrapnelMax 8
     ShrapnelRate 3
-    XRadarStatus 1
-    AntiWarpStatus 0
     DoubleBarrel 0
     EmpBomb 1
     SeeMines 1

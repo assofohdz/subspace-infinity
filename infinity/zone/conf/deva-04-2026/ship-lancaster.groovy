@@ -12,8 +12,6 @@ shipSection('Lancaster') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 790
-    AntiWarpEnergy 1100
-    XRadarEnergy 0
     MaximumRotation 420
     MaximumThrust 31
     MaximumSpeed 3500
@@ -45,8 +43,6 @@ shipSection('Lancaster') {
     BombBounceCount 2
     ShrapnelMax 16
     ShrapnelRate 3
-    XRadarStatus 2
-    AntiWarpStatus 0
     DoubleBarrel 1
     EmpBomb 0
     SeeMines 0

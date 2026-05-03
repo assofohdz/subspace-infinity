@@ -29,8 +29,10 @@
 //       bricks  start: <I>, max: <M>
 //       rockets start: <I>, max: <M>, activeTimeCs: <T>   // T = per-ship Subspace [Ship] RocketTime (cs)
 //       portals start: <I>, max: <M>
-//       cloak   status: <0..2>, energy: <0..32000>   // [Ship] CloakStatus + CloakEnergy
-//       stealth status: <0..2>, energy: <0..32000>   // [Ship] StealthStatus + StealthEnergy
+//       cloak    status: <0..2>, energy: <0..32000>   // [Ship] CloakStatus + CloakEnergy
+//       stealth  status: <0..2>, energy: <0..32000>   // [Ship] StealthStatus + StealthEnergy
+//       xradar   status: <0..2>, energy: <0..32000>   // [Ship] XRadarStatus + XRadarEnergy
+//       antiwarp status: <0..2>, energy: <0..32000>   // [Ship] AntiWarpStatus + AntiWarpEnergy
 //   }
 //
 // Omit a stat to leave it at ShipStat(0, 0, 0). Omit an inventory block to
@@ -93,6 +95,8 @@ ship(Ship.SPIDER) {
     guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 225, fireDelay: 35
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
+    xradar   status: 2, energy: 200
+    antiwarp status: 1, energy: 800
 }
 
 ship(Ship.LEVIATHAN) {
@@ -131,6 +135,7 @@ ship(Ship.TERRIER) {
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
     portals start: 1, max: 1
+    xradar  status: 2, energy: 100
 }
 
 ship(Ship.WEASEL) {
@@ -166,6 +171,7 @@ ship(Ship.LANCASTER) {
     guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_2, cost: 300, fireDelay: 50
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
+    xradar  status: 1, energy: 2000
 }
 
 ship(Ship.SHARK) {
@@ -184,4 +190,5 @@ ship(Ship.SHARK) {
     thors   start: 0, max: 3, fireDelay: 1000
     repels  start: 3, max: 3
     decoys  start: 0, max: 1
+    xradar  status: 1, energy: 2000
 }

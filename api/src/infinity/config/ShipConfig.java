@@ -60,6 +60,10 @@ import javax.annotation.Nullable;
  *     = capability not authored (legacy permissive default)
  * @param stealth Stealth capability tri-state + energy drain rate;
  *     {@code null} = capability not authored
+ * @param xradar XRadar capability tri-state + energy drain rate;
+ *     {@code null} = capability not authored
+ * @param antiwarp AntiWarp capability tri-state + energy drain rate;
+ *     {@code null} = capability not authored
  */
 public record ShipConfig(
     Ship type,
@@ -83,4 +87,6 @@ public record ShipConfig(
     @Nullable RocketStats rockets,
     @Nullable CountStats portals,
     @Nullable StatusStats cloak,
-    @Nullable StatusStats stealth) {}
+    @Nullable StatusStats stealth,
+    @Nullable StatusStats xradar,
+    @Nullable StatusStats antiwarp) {}

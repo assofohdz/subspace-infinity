@@ -12,8 +12,6 @@ shipSection('Warbird') {
     DisableFastShooting 1
     Radius 0
     MultiFireAngle 0
-    AntiWarpEnergy 2000
-    XRadarEnergy 2000
     MaximumRotation 200
     MaximumThrust 24
     MaximumSpeed 6000
@@ -45,8 +43,6 @@ shipSection('Warbird') {
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
-    XRadarStatus 0
-    AntiWarpStatus 0
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 0

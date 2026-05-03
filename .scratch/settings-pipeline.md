@@ -363,7 +363,7 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 | ✅ | `Rotation` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Rotation`/`RotationMax` | `RotationPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
 | ✅ | `Stealth` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Stealth`/`StealthStatus` | `StealthPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ❌ |
 | ✅ | `Cloak` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Cloak`/`CloakStatus` | `CloakPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ✅ `CloakPrizeApplierTest` |
-| ⚠️ | `XRadar` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `XRadar`/`XRadarStatus` | `XRadarPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
+| ✅ | `XRadar` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `XRadar`/`XRadarStatus` | `XRadarPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ✅ `XRadarPrizeApplierTest` |
 | ✅ | `Gun` (= "Gun Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `GunCurrentLevel`/`GunMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileGun` | ❌ |
 | ✅ | `Bomb` (= "Bomb Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `BombCurrentLevel`/`BombMaxLevel` + `MineCurrentLevel`/`MineMaxLevel` | `CompositePrizeApplier(BombPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (bomb + mine) | ❌ |
 | ✅ | `Thrust` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Thrust`/`ThrustMax` | `ThrusterPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
@@ -373,7 +373,7 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 | ⚠️ | `Super` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Super-active component) | `SuperPrizeApplier` ❌ stub | (needs Super-active component) | ❌ |
 | ⚠️ | `Shields` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Shields-active component) | `ShieldsPrizeApplier` ❌ stub | (needs Shields-active component) | ❌ |
 | ⚠️ | `Shrap` (= "Shrapnel") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Shrapnel/ShrapnelMax) | `ShrapnelPrizeApplier` ❌ stub | needs Shrapnel/ShrapnelMax components | ❌ |
-| ⚠️ | `AntiWarp` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Antiwarp`/`AntiwarpStatus` | `AntiWarpPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
+| ✅ | `AntiWarp` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Antiwarp`/`AntiwarpStatus` | `AntiWarpPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ❌ |
 | ✅ | `Repel` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Repel`/`RepelMax` | `RepelPrizeApplier` ✅ | `ConsumableSystem.actOut` | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `Burst` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Burst`/`BurstMax` | `BurstPrizeApplier` ✅ | `WeaponsSystem.createProjectileBurst` | ❌ |
 | ✅ | `Decoy` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Decoy`/`DecoyMax` | `DecoyPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
@@ -476,10 +476,9 @@ is the macro view.
 |---|---|---|---|---|---|---|---|---|
 | ✅ | `CloakStatus` | ✅ ships.groovy | `GroovyShipLoader` (cloak block) | `ShipConfig.cloak.status` (`StatusStats`) | `CloakStatus` (+ `Cloak` toggle) | `CloakPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ✅ `CloakPrizeApplierTest` + `ConfigRegistrySystemLoadTest` |
 | ✅ | `StealthStatus` | ✅ ships.groovy | `GroovyShipLoader` (stealth block) | `ShipConfig.stealth.status` (`StatusStats`) | `StealthStatus` (+ `Stealth` toggle) | `StealthPrizeApplier` ✅ | `StatusDrainSystem` | ✅ `ConfigRegistrySystemLoadTest` |
-| ⚠️ | `XRadarStatus` | ✅ ships.groovy | ❌ (deferred to Slice 6b) | ❌ | `XRadarStatus` (+ `XRadar` toggle) | `XRadarPrizeApplier` ❌ stub | ❌ | ❌ |
-| ⚠️ | `AntiWarpStatus` | ✅ ships.groovy | ❌ (deferred to Slice 6b) | ❌ | `AntiwarpStatus` (+ `Antiwarp` toggle) | `AntiWarpPrizeApplier` ❌ stub | ❌ | ❌ |
-| ✅ | `CloakEnergy` / `StealthEnergy` | ✅ ships.groovy | `GroovyShipLoader` (cloak/stealth `energy:`) | `ShipConfig.cloak.energyDrainPer1000Cs` / `ShipConfig.stealth.energyDrainPer1000Cs` | `CloakEnergy` / `StealthEnergy` | — (drain rates) | `StatusDrainSystem` | ✅ `StatusDrainSystemTest` |
-| ⚠️ | `XRadarEnergy` / `AntiWarpEnergy` | ✅ ships.groovy | ❌ (deferred to Slice 6b) | ❌ | `XRadarEnergy` / `AntiwarpEnergy` | — (drain rates) | ❌ | ❌ |
+| ✅ | `XRadarStatus` | ✅ ships.groovy | `GroovyShipLoader` (xradar block) | `ShipConfig.xradar.status` (`StatusStats`) | `XRadarStatus` (+ `XRadar` toggle) | `XRadarPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ✅ `XRadarPrizeApplierTest` + `ConfigRegistrySystemLoadTest` |
+| ✅ | `AntiWarpStatus` | ✅ ships.groovy | `GroovyShipLoader` (antiwarp block) | `ShipConfig.antiwarp.status` (`StatusStats`) | `AntiwarpStatus` (+ `Antiwarp` toggle) | `AntiWarpPrizeApplier` ✅ | `StatusDrainSystem` | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `CloakEnergy` / `StealthEnergy` / `XRadarEnergy` / `AntiWarpEnergy` | ✅ ships.groovy | `GroovyShipLoader` (`energy:` arg on each Status block) | `ShipConfig.{cloak,stealth,xradar,antiwarp}.energyDrainPer1000Cs` | `CloakEnergy` / `StealthEnergy` / `XRadarEnergy` / `AntiwarpEnergy` | — (drain rates) | `StatusDrainSystem` | ✅ `StatusDrainSystemTest` |
 
 ### Inventory caps and starts
 

@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-24 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+28 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
@@ -47,6 +47,10 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `CloakEnergy` | `cloak energy:` | `cloak.energyDrainPer1000Cs()` | `CloakEnergy` | `StatusDrainSystem.update` (drain rate while toggle on) |
 | `StealthStatus` | `stealth status:` | `stealth.status()` | `StealthStatus` | `StealthPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectStealth` |
 | `StealthEnergy` | `stealth energy:` | `stealth.energyDrainPer1000Cs()` | `StealthEnergy` | `StatusDrainSystem.update` |
+| `XRadarStatus` | `xradar status:` | `xradar.status()` | `XRadarStatus` | `XRadarPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectXRadar` |
+| `XRadarEnergy` | `xradar energy:` | `xradar.energyDrainPer1000Cs()` | `XRadarEnergy` | `StatusDrainSystem.update` |
+| `AntiWarpStatus` | `antiwarp status:` | `antiwarp.status()` | `AntiwarpStatus` | `AntiWarpPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectAntiwarp` |
+| `AntiWarpEnergy` | `antiwarp energy:` | `antiwarp.energyDrainPer1000Cs()` | `AntiwarpEnergy` | `StatusDrainSystem.update` |
 
 ## Infinity-only Groovy fields (no fragment source)
 
@@ -109,8 +113,6 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `shipSection` key | Notes |
 |---|---|
 | `AfterburnerEnergy` | Energy/sec cost while afterburner is held. |
-| `XRadarEnergy` / `XRadarStatus` | XRadar cost + initial state. |
-| `AntiWarpEnergy` / `AntiWarpStatus` | Antiwarp cost + initial state. |
 | `SuperTime` | Duration of the SUPER prize effect. |
 | `ShieldsTime` | Duration of the SHIELDS prize effect. |
 

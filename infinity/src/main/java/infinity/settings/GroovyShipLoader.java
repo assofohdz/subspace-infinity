@@ -247,7 +247,9 @@ public final class GroovyShipLoader {
         DEFAULT_ROCKETS,
         DEFAULT_PORTALS,
         /* cloak */ null,
-        /* stealth */ null);
+        /* stealth */ null,
+        /* xradar */ null,
+        /* antiwarp */ null);
   }
 
   private final ConfigRegistrySystem configRegistry;
@@ -401,6 +403,8 @@ public final class GroovyShipLoader {
     private CountStats portals = null;
     private StatusStats cloak = null;
     private StatusStats stealth = null;
+    private StatusStats xradar = null;
+    private StatusStats antiwarp = null;
 
     // Package-private so unit tests in this package can build configs without
     // standing up the full GroovyShell pipeline.
@@ -561,6 +565,39 @@ public final class GroovyShipLoader {
               intArg("stealth", args, "status"), intArg("stealth", args, "energy"));
     }
 
+    /**
+     * {@code xradar status: 1, energy: 100}
+     *
+     * <p>Same shape as {@link #cloak}. Projects to
+     * {@link infinity.es.ship.toggles.XRadarStatus} +
+     * {@link infinity.es.ship.toggles.XRadarEnergy} +
+     * {@link infinity.es.ship.toggles.XRadar}.
+     */
+    public void xradar(final Map<String, ?> args) {
+      this.xradar =
+          new StatusStats(
+              intArg("xradar", args, "status"), intArg("xradar", args, "energy"));
+    }
+
+    /**
+     * {@code antiwarp status: 1, energy: 100}
+     *
+     * <p>Same shape as {@link #cloak}. Projects to
+     * {@link infinity.es.ship.toggles.AntiwarpStatus} +
+     * {@link infinity.es.ship.toggles.AntiwarpEnergy} +
+     * {@link infinity.es.ship.toggles.Antiwarp}.
+     *
+     * <p>Note: arena-global {@code [Toggle] AntiWarpPixels} (range) and
+     * {@code [Misc] AntiWarpSettleDelay} are separate concerns —
+     * deferred to their own slices (polish-bag), not part of 6b's
+     * per-ship Status-family scope.
+     */
+    public void antiwarp(final Map<String, ?> args) {
+      this.antiwarp =
+          new StatusStats(
+              intArg("antiwarp", args, "status"), intArg("antiwarp", args, "energy"));
+    }
+
     private static ShipStat toStat(final String statName, final Map<String, ?> args) {
       return new ShipStat(
           intArg(statName, args, "initial"),
@@ -639,7 +676,9 @@ public final class GroovyShipLoader {
           rockets,
           portals,
           cloak,
-          stealth);
+          stealth,
+          xradar,
+          antiwarp);
     }
   }
 }

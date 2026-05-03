@@ -12,8 +12,6 @@ shipSection('Weasel') {
     DisableFastShooting 0
     Radius 7
     MultiFireAngle 250
-    AntiWarpEnergy 32000
-    XRadarEnergy 32000
     MaximumRotation 130
     MaximumThrust 24
     MaximumSpeed 6000
@@ -45,8 +43,6 @@ shipSection('Weasel') {
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
-    XRadarStatus 0
-    AntiWarpStatus 0
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 0

@@ -242,15 +242,35 @@ cloak/stealth off (no key bound today; in Subspace this is the player's
 explicit cloak/stealth-off action). Until that lands, status==2 ships
 have permanent toggle-on (matches Subspace pre-input behaviour).
 
-### Slice 6b — XRadar + AntiWarp 🔲
-Reuses `StatusStats` + `StatusDrainSystem` shape from 6a. Adds:
+### Slice 6b — XRadar + AntiWarp
+✅ Landed. Reused `StatusStats` + `StatusDrainSystem` infrastructure
+from 6a. Added:
 - `ShipConfig.xradar` / `ShipConfig.antiwarp` slots + DSL.
-- `projectXRadar` / `projectAntiwarp` in spawn system.
-- Two more EntitySets in `StatusDrainSystem`.
-- `XRadarPrizeApplier` + `AntiWarpPrizeApplier` from stub → canonical.
-- Strip `XRadarStatus` / `AntiWarpStatus` / `XRadarEnergy` /
-  `AntiWarpEnergy` from trench/deva `ship-<name>.groovy` legacy files;
-  author per-ship blocks in `ships.groovy`.
+- `projectXRadar` / `projectAntiwarp` in `ShipSpawnSystem`.
+- Two more EntitySets + drain loops in `StatusDrainSystem`.
+- `XRadarPrizeApplier` + `AntiWarpPrizeApplier` from ❌ stub → ✅
+  canonical (tri-state respecting).
+
+Bug fix: `AntiwarpEnergy` component had a `boolean enabled` field —
+clearly a copy-paste error from the toggle component, since the
+Javadoc and the parallel `CloakEnergy`/`StealthEnergy`/`XRadarEnergy`
+all hold an int drain rate. Fixed to int + `getEnergy()` accessor;
+no other callers existed.
+
+Active arenas only (trench + deva): per-ship `xradar` / `antiwarp`
+blocks authored in `ships.groovy` for ships with status > 0 (trench
+SPIDER/LEVIATHAN/TERRIER/WEASEL/LANCASTER/SHARK; all 8 deva ships
+get xradar; no deva ship has antiwarp). Legacy XRadar/AntiWarp keys
+stripped from 16 `ship-<name>.groovy` files. Tests: `XRadarPrizeApplierTest`
+(parallels CloakPrizeApplierTest); `ConfigRegistrySystemLoadTest`
+extended (SPIDER xradar=2+antiwarp=1, LANCASTER xradar=1+no antiwarp,
+WARBIRD both omitted).
+
+**Behaviour change:** trench/spider now has start-active xradar that
+drains energy at 200/1000 per cs (= 20/sec); trench/lancaster + shark
++ leviathan + terrier can acquire xradar via prize. Most deva ships
+have xradar (status 1 or 2) but with energy=0 → drain math is 0 → no
+actual energy cost (matches operator intent in legacy fragments).
 
 ### Slice 6c — MultiFire 🔲
 Different mechanic — bullet-firing mode in `[Bullets]`, not Status.

@@ -12,16 +12,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class AntiwarpEnergy implements EntityComponent {
 
-    boolean enabled;
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public AntiwarpEnergy(final boolean enabled) {
-        this.enabled = enabled;
-    }
+    private final int energyDrain;
 
     public AntiwarpEnergy() {
+        this(0);
+    }
+
+    public AntiwarpEnergy(final int energyDrain) {
+        this.energyDrain = energyDrain;
+    }
+
+    public int getEnergy() {
+        return energyDrain;
     }
 }

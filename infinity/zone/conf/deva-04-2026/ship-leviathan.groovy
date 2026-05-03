@@ -12,8 +12,6 @@ shipSection('Leviathan') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 1200
-    AntiWarpEnergy 1100
-    XRadarEnergy 0
     MaximumRotation 300
     MaximumThrust 31
     MaximumSpeed 3350
@@ -45,8 +43,6 @@ shipSection('Leviathan') {
     BombBounceCount 0
     ShrapnelMax 31
     ShrapnelRate 7
-    XRadarStatus 1
-    AntiWarpStatus 0
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 1

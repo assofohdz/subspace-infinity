@@ -12,8 +12,6 @@ shipSection('Terrier') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 500
-    AntiWarpEnergy 1300
-    XRadarEnergy 0
     MaximumRotation 300
     MaximumThrust 31
     MaximumSpeed 3400
@@ -45,8 +43,6 @@ shipSection('Terrier') {
     BombBounceCount 3
     ShrapnelMax 16
     ShrapnelRate 3
-    XRadarStatus 2
-    AntiWarpStatus 0
     DoubleBarrel 1
     EmpBomb 0
     SeeMines 0

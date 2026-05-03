@@ -58,12 +58,18 @@ import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.toggles.Antiwarp;
+import infinity.es.ship.toggles.AntiwarpEnergy;
+import infinity.es.ship.toggles.AntiwarpStatus;
 import infinity.es.ship.toggles.Cloak;
 import infinity.es.ship.toggles.CloakEnergy;
 import infinity.es.ship.toggles.CloakStatus;
 import infinity.es.ship.toggles.Stealth;
 import infinity.es.ship.toggles.StealthEnergy;
 import infinity.es.ship.toggles.StealthStatus;
+import infinity.es.ship.toggles.XRadar;
+import infinity.es.ship.toggles.XRadarEnergy;
+import infinity.es.ship.toggles.XRadarStatus;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
@@ -290,6 +296,8 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectPortals(shipId, cfg.portals(), resetLivePool);
     projectCloak(shipId, cfg.cloak(), resetLivePool);
     projectStealth(shipId, cfg.stealth(), resetLivePool);
+    projectXRadar(shipId, cfg.xradar(), resetLivePool);
+    projectAntiwarp(shipId, cfg.antiwarp(), resetLivePool);
   }
 
   // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from
@@ -528,6 +536,40 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     if (resetLivePool) {
       if (stealth.status() >= 1) {
         ed.setComponent(shipId, new Stealth(stealth.status() == 2));
+      }
+    }
+  }
+
+  /** Same shape as {@link #projectCloak} for XRadar. */
+  private void projectXRadar(
+      final EntityId shipId, @Nullable final StatusStats xradar, final boolean resetLivePool) {
+    if (xradar == null) {
+      return;
+    }
+    ed.setComponent(shipId, new XRadarStatus(xradar.status()));
+    if (xradar.status() >= 1) {
+      ed.setComponent(shipId, new XRadarEnergy(xradar.energyDrainPer1000Cs()));
+    }
+    if (resetLivePool) {
+      if (xradar.status() >= 1) {
+        ed.setComponent(shipId, new XRadar(xradar.status() == 2));
+      }
+    }
+  }
+
+  /** Same shape as {@link #projectCloak} for AntiWarp. */
+  private void projectAntiwarp(
+      final EntityId shipId, @Nullable final StatusStats antiwarp, final boolean resetLivePool) {
+    if (antiwarp == null) {
+      return;
+    }
+    ed.setComponent(shipId, new AntiwarpStatus(antiwarp.status()));
+    if (antiwarp.status() >= 1) {
+      ed.setComponent(shipId, new AntiwarpEnergy(antiwarp.energyDrainPer1000Cs()));
+    }
+    if (resetLivePool) {
+      if (antiwarp.status() >= 1) {
+        ed.setComponent(shipId, new Antiwarp(antiwarp.status() == 2));
       }
     }
   }
