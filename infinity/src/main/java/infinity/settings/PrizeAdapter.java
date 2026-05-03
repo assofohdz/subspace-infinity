@@ -17,8 +17,9 @@ import java.util.List;
  *
  * <pre>{@code
  * prize {
- *     minExist  4000    // [Prize] PrizeMinExist (centiseconds → ms ×10); optional
- *     maxExist  8000    // [Prize] PrizeMaxExist (centiseconds → ms ×10)
+ *     minExist        4000    // [Prize] PrizeMinExist  (cs → ms ×10); optional
+ *     maxExist        8000    // [Prize] PrizeMaxExist  (cs → ms ×10)
+ *     deathPrizeTime  1500    // [Prize] DeathPrizeTime (cs → ms ×10); optional, 0=disabled
  * }
  * }</pre>
  *
@@ -29,10 +30,15 @@ import java.util.List;
  * maxExist} throws at parse time — explicit author error rather than a
  * silent clamp/swap.
  *
+ * <p>{@code deathPrizeTime} controls the lifetime of prizes dropped at a
+ * ship's death point. Omitting it leaves {@code deathPrizeTimeMs == 0}
+ * (= death-drops disabled), preserving 1:1 behaviour for un-migrated
+ * arenas.
+ *
  * <p>Other Subspace {@code [Prize]} keys (PrizeFactor, PrizeDelay,
- * MultiPrizeCount, DeathPrizeTime, PrizeNegativeFactor, PrizeHideCount,
+ * MultiPrizeCount, PrizeNegativeFactor, PrizeHideCount,
  * EngineShutdownTime, etc.) aren't in {@link PrizeConfig} today — they're
- * sub-slices 8b/8c/8d work per the slice queue. The adapter only exposes
+ * sub-slices 8c/8d work per the slice queue. The adapter only exposes
  * fields that have a typed config + active consumer.
  */
 public final class PrizeAdapter
@@ -90,6 +96,7 @@ public final class PrizeAdapter
 
     private long defaultDecayMs = PrizeConfig.DEFAULTS.defaultDecayMs();
     private Long defaultMinDecayMs = null; // null = "not authored; pin to defaultDecayMs at build()"
+    private long deathPrizeTimeMs = PrizeConfig.DEFAULTS.deathPrizeTimeMs(); // 0 = disabled
 
     PrizeBuilder() {}
 
@@ -110,6 +117,15 @@ public final class PrizeAdapter
       this.defaultMinDecayMs = centiseconds * 10L;
     }
 
+    /**
+     * {@code [Prize] DeathPrizeTime} in <em>centiseconds</em>; the adapter
+     * multiplies by 10 to store milliseconds. Optional — omit to leave at
+     * {@code 0} (death-drops disabled).
+     */
+    public void deathPrizeTime(final int centiseconds) {
+      this.deathPrizeTimeMs = centiseconds * 10L;
+    }
+
     PrizeConfig build() {
       final long min =
           defaultMinDecayMs != null ? defaultMinDecayMs.longValue() : defaultDecayMs;
@@ -124,6 +140,7 @@ public final class PrizeAdapter
       return new PrizeConfig(
           defaultDecayMs,
           min,
+          deathPrizeTimeMs,
           PrizeConfig.DEFAULTS.defaultMaxCount(),
           PrizeConfig.DEFAULTS.bountyValue());
     }

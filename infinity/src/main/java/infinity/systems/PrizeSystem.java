@@ -489,6 +489,58 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   }
 
   /**
+   * Spawn a single weighted prize at a ship's death point. Called from
+   * {@code DeathSystem} when a {@link Player} ship transitions to
+   * {@code Dead}.
+   *
+   * <p>Behaviour (Slice 8b, contract B from grilling — no threshold,
+   * always-drop):
+   *
+   * <ul>
+   *   <li>No-op when the ship's arena has {@code deathPrizeTimeMs == 0}
+   *       (= death-drops disabled). Default for un-authored arenas.
+   *   <li>Prize type selected from the ship's arena
+   *       {@code [PrizeWeight]} table (same selector default-cadence
+   *       spawners use for that arena). Falls back to the global
+   *       fallback weights when the ship has no {@link ArenaId}.
+   *   <li>Lifetime is {@code prize().deathPrizeTimeMs()} from the
+   *       arena's {@link infinity.config.PrizeConfig} — distinct from
+   *       the {@code [PrizeMinExist..PrizeMaxExist]} range used by
+   *       default-cadence spawners.
+   * </ul>
+   *
+   * <p>Threshold gating (e.g. "only drop if ship-bounty &gt; N") and
+   * ship-bounty growth tracking are deferred to a later slice — that
+   * mechanic doesn't exist in Infinity today. See
+   * {@code .scratch/settings-pipeline-slices.md} sub-slice 8b.
+   */
+  public void spawnDeathPrize(
+      final EntityId shipId, final Vec3d deathPosition, final long timeNs) {
+    final ArenaId arenaId = ed.getComponent(shipId, ArenaId.class);
+    final infinity.config.PrizeConfig prize =
+        arenaId == null
+            ? infinity.config.PrizeConfig.DEFAULTS
+            : configRegistry.forArena(arenaId).prize();
+    final long deathPrizeTimeMs = prize.deathPrizeTimeMs();
+    if (deathPrizeTimeMs <= 0L) {
+      return;
+    }
+    final String arenaName = arenaId == null ? null : arenaId.getArena();
+    final String prizeType =
+        arenaName == null
+            ? globalFallbackSelector.next(random)
+            : arenaSelector(arenaName).next(random);
+    GameEntities.createPrize(ed, phys, timeNs, deathPosition, prizeType, deathPrizeTimeMs);
+    log.info(
+        "Death-drop: ship {} died in arena '{}' at {} → spawned {} (lifetime={} ms)",
+        shipId,
+        arenaName,
+        deathPosition,
+        prizeType,
+        deathPrizeTimeMs);
+  }
+
+  /**
    * Pick a prize-type string for {@code spawner}'s next prize via the right
    * selector: per-spawner override > arena defaults > global fallback.
    */

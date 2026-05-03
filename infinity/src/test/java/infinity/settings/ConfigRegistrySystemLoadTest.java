@@ -270,6 +270,13 @@ public class ConfigRegistrySystemLoadTest {
           40_000L,
           snapshot.prize().defaultMinDecayMs());
 
+      // Slice 8b: DeathPrizeTime governs the lifetime of prizes dropped
+      // at a ship's death point. trench: deathPrizeTime 1500 cs (15s).
+      assertEquals(
+          "trench's [Prize] DeathPrizeTime = 1500 cs (= 15000 ms)",
+          15_000L,
+          snapshot.prize().deathPrizeTimeMs());
+
       // Typed prize-weights.groovy populated the prizeWeights slot (B3).
       // trench is a no-greens preset for most prize types; sample the few
       // non-zero entries to pin the typed loader's behaviour.

@@ -11,6 +11,7 @@
 // is a fixed override (precedence α from Slice 8a) — no randomisation.
 
 prize {
-    minExist  2000     // 20 sec — proportional to deva's shorter maxExist
-    maxExist  5000     // 50 sec
+    minExist        2000    // 20 sec — proportional to deva's shorter maxExist
+    maxExist        5000    // 50 sec
+    deathPrizeTime  1500    // 15 sec — Subspace SVS canonical death-drop lifetime (Slice 8b)
 }

@@ -355,10 +355,43 @@ override (precedence α). Active arenas authored: trench
 `ConfigRegistrySystemLoadTest` extended.
 
 ### Slice 8b — Death-dropped prizes (`DeathPrizeTime`)
-🔲 `[Prize] DeathPrizeTime` lifetime for prizes dropped at a ship's
-death location. Requires a death-event hook + greens-on-death
-mechanic that doesn't exist today. Touches `EnergySystem` (or
-wherever ship→dead transitions live) + adds a death-drop call site.
+✅ `[Prize] DeathPrizeTime` wired end-to-end with the simplest viable
+contract (option B from grilling — no threshold, always-drop):
+on ship death, spawn 1 weighted prize at the ship's current
+`BodyPosition` with `deathPrizeTimeMs` lifetime. Prize-type via the
+arena's `[PrizeWeight]` table (same selector default-cadence
+spawners use). Plumbed:
+- `PrizeConfig.deathPrizeTimeMs` field (default `0L` = disabled),
+  `PrizeAdapter` parses optional `deathPrizeTime <cs>` (×10→ms).
+- `PrizeSystem.spawnDeathPrize(shipId, deathPosition, timeNs)` —
+  no-op when `deathPrizeTimeMs == 0`; selector falls back to
+  `globalFallbackSelector` for ships without an `ArenaId`.
+- `EnergySystem` death branch (the only seat where
+  `Health<=0 → Dead` happens today) inlines a synchronous call to
+  `prizeSystem.spawnDeathPrize` filtered by `Player.class +
+  BodyPosition.class` so non-ship dying entities don't trigger
+  drops.
+
+Active arenas authored: trench + deva each set
+`deathPrizeTime 1500` (= 15s, Subspace SVS canon).
+Test: `ConfigRegistrySystemLoadTest` extended.
+
+**Out of scope (own follow-up slice):** ship-bounty growth + the
+threshold check ("only drop if bounty &gt; N"). Infinity has no
+ship-bounty tracking today (no per-ship score component, no
+prize-pickup-bumps-bounty hook, no respawn-resets-bounty).
+Building it requires a new `ShipBounty(int)` component, migration
+of `InitialBounty` to typed `ShipConfig`, prize-pickup wiring, and
+respawn-reset wiring — too much surface for one slice. Tracked as
+"ship-bounty + scoring" follow-up; once it lands, an "8b-extension"
+slice adds the `deathPrizeThreshold` config knob.
+
+**Out of scope (orthogonal to 8b):** the dormant
+`infinity.systems.DeathSystem` (unregistered class with `Decay(now,
+now)` reap logic + a "doesn't work with how DecaySystem works" TODO
+comment) is left alone. It doesn't run today; 8b doesn't activate
+it. Whoever fixes the broader respawn flow (Slice TBD) decides
+whether to register it, replace it, or delete it.
 
 ### Slice 8c — Negative prizes (`PrizeNegativeFactor`)
 🔲 `[Prize] PrizeNegativeFactor` flips a prize to its "negative"

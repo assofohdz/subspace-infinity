@@ -3,6 +3,7 @@
 
 package infinity.systems.ship;
 
+import com.simsilica.bpos.BodyPosition;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -14,7 +15,9 @@ import infinity.es.Dead;
 import infinity.es.HealthChange;
 import infinity.es.ship.Energy;
 import infinity.es.ship.Health;
+import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
+import infinity.systems.PrizeSystem;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -40,6 +43,14 @@ public class EnergySystem extends AbstractGameSystem {
   private EntitySet changes;
   private EntitySet recharges;
   private EntitySet capped;
+  /**
+   * Resolved lazily inside the death branch so {@link EnergySystem} stays
+   * usable in test fixtures that don't register {@link PrizeSystem}.
+   * Lazily — system order in {@code GameServer} runs PrizeSystem before
+   * EnergySystem, but the lazy lookup is cheap and avoids a hard init
+   * dependency.
+   */
+  private PrizeSystem prizeSystem;
 
   public EnergySystem() {
     // Nothing to do
@@ -153,6 +164,25 @@ public class EnergySystem extends AbstractGameSystem {
         // don't set death if it is already dead.
         if (ed.getComponent(target.getId(), Dead.class) == null) {
           target.set(new Dead(time.getTime()));
+          // Slice 8b: drop one weighted prize at the death point for player
+          // ships. Filter for Player so non-ship dying entities (any
+          // future Health-bearing thing) don't trigger a prize. BodyPosition
+          // is the current world coord — captured synchronously while it's
+          // still valid (the Decay reaper can sweep the entity later).
+          // PrizeSystem handles the no-op when the arena's
+          // PrizeConfig.deathPrizeTimeMs == 0 (death-drops disabled).
+          if (ed.getComponent(target.getId(), Player.class) != null) {
+            final BodyPosition bp = ed.getComponent(target.getId(), BodyPosition.class);
+            if (bp != null) {
+              if (prizeSystem == null) {
+                prizeSystem = getSystem(PrizeSystem.class);
+              }
+              if (prizeSystem != null) {
+                prizeSystem.spawnDeathPrize(
+                    target.getId(), bp.getLastLocation(), time.getTime());
+              }
+            }
+          }
         }
       }
     }
