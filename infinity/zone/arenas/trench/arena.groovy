@@ -6,7 +6,7 @@
 arena {
     map '04-2026-trench/pub2025.lvl'
     shipsScript '/conf/trench-04-2026/ships.groovy'
-    spawn 1000, 20
+    includeFragment '/conf/trench-04-2026/spawn.groovy'
     includeFragment '/conf/trench-04-2026/prize-weights.groovy'
     includeFragment '/conf/trench-04-2026/ship-warbird.groovy'
     includeFragment '/conf/trench-04-2026/ship-javelin.groovy'

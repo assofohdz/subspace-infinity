@@ -167,17 +167,18 @@ public class AvatarSystem extends AbstractGameSystem {
       ed.removeComponent(shipEntity, ShipType.class);
       ed.setComponent(shipEntity, new ShipType(Ship.getShip(shipType)));
 
-      // Teleport to the ship's *current* arena's configured spawn point. ArenaId is
-      // maintained by ArenaMembershipSystem (sensor contacts) + WarpSystem (post-
-      // teleport reconcile) + spawn-time seeding in GameSessionHostedService /
-      // BasicEnvironment. A null ArenaId (or unloaded arena) means there's no
-      // spawn coord to teleport to — skip the warp and let the ship-change happen
-      // in place. ArenaSystem.getArenaSpawn translates the arena-local [Spawn]
-      // X/Z to a world coord by adding ArenaMap.min — same translation used by
-      // GameSessionHostedService for connect-time spawn.
+      // Teleport to the ship's *current* arena's configured spawn point.
+      // ArenaId is maintained by ArenaMembershipSystem (sensor contacts) +
+      // WarpSystem (post-teleport reconcile) + spawn-time seeding in
+      // GameSessionHostedService / BasicEnvironment. A null ArenaId (or
+      // unloaded arena) means there's no spawn coord to teleport to —
+      // skip the warp and let the ship-change happen in place.
+      // ArenaSystem.getArenaSpawn(arenaName, freq) reads Pattern 4 typed
+      // SpawnConfig (per-team) when the arena has a spawn.groovy authored;
+      // falls back to legacy ArenaConfig.spawnX/spawnZ otherwise.
       final ArenaId arena = ed.getComponent(shipEntity, ArenaId.class);
       if (arena != null) {
-        final Vec3d target = getSystem(ArenaSystem.class).getArenaSpawn(arena.getArena());
+        final Vec3d target = getSystem(ArenaSystem.class).getArenaSpawn(arena.getArena(), freq);
         if (target != null) {
           ed.setComponent(shipEntity, new WarpTo(target));
         }

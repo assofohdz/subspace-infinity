@@ -16,6 +16,7 @@ import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
+import infinity.config.SpawnConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.Map;
@@ -140,6 +141,13 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
                     GroovySettingsHost.INSTANCE.load(PrizeWeightsAdapter.INSTANCE, path);
                 return current.withPrizeWeights(
                     parsed != null ? parsed : PrizeWeightsConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "spawn.groovy",
+              (current, path) -> {
+                final SpawnConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(SpawnAdapter.INSTANCE, path);
+                return current.withSpawn(parsed != null ? parsed : SpawnConfig.DEFAULTS);
               }));
 
   /** Functional contract for a typed fragment installer. */

@@ -71,7 +71,8 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/decoy.groovy",
                   "/conf/trench-04-2026/portal.groovy",
                   "/conf/trench-04-2026/prize.groovy",
-                  "/conf/trench-04-2026/prize-weights.groovy"),
+                  "/conf/trench-04-2026/prize-weights.groovy",
+                  "/conf/trench-04-2026/spawn.groovy"),
               0.0,
               List.of());
 
@@ -276,6 +277,30 @@ public class ConfigRegistrySystemLoadTest {
           "trench Brick weight = 3",
           Integer.valueOf(3),
           snapshot.prizeWeights().weights().get("Brick"));
+
+      // Slice 7: typed spawn.groovy populated the spawn slot.
+      // trench/spawn.groovy: warpRadiusLimit 1024, single team0 at
+      // (1000, 20) radius 0 — migrated 1:1 from arena.groovy's
+      // legacy `spawn 1000, 20`.
+      assertEquals(
+          "trench spawn warpRadiusLimit = 1024 (= no cap)",
+          1024,
+          snapshot.spawn().warpRadiusLimit());
+      assertEquals(
+          "trench spawn has 1 team authored",
+          1,
+          snapshot.spawn().teams().size());
+      final var team0 = snapshot.spawn().forFreq(0);
+      assertNotNull("trench team0 resolved for freq=0", team0);
+      assertEquals("trench team0 X = 1000 (arena-local tile)", 1000, team0.x());
+      assertEquals("trench team0 Y = 20 (arena-local tile)", 20, team0.y());
+      assertEquals("trench team0 radius = 0 (exact-point spawn)", 0, team0.radiusTiles());
+      // Wraparound: freq 1, 2, 3, 4, … all resolve to team0 because
+      // teams.size() == 1 and floorMod(N, 1) == 0.
+      assertEquals(
+          "trench freq=4 wraps to team0 (single-team config)",
+          team0,
+          snapshot.spawn().forFreq(4));
     } finally {
       systems.stop();
       systems.terminate();

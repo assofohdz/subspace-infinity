@@ -21,6 +21,8 @@ import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.ArenaConfig;
 import infinity.config.PrizeSpawnerSpec;
+import infinity.config.SpawnConfig;
+import infinity.config.TeamSpawn;
 import infinity.config.ZoneConfig;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
@@ -391,23 +393,48 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /**
-   * Resolve the world-space spawn coordinate for the named arena. Reads the arena's
-   * arena-local {@code [Spawn] X/Z} via {@link SettingsSystem} and translates to world
-   * by anchoring at the arena's NW corner ({@link ArenaMap#getMax() ArenaMap.max} —
-   * see {@link #arenaToWorld} for the orientation rationale).
+   * Resolve the world-space spawn coordinate for the named arena and a
+   * given player frequency. Single source of truth for both the
+   * connect-time spawn (called from
+   * {@code GameSessionHostedService.resolveInitialSpawn} via the
+   * {@code zone.groovy enterSpawn} arena pointer) and in-arena
+   * ship-change / respawns (called from
+   * {@code AvatarSystem.requestShipChange} with the ship's own
+   * {@code ArenaId} and {@link infinity.es.ship.Frequency}).
    *
-   * <p>Single source of truth for both the connect-time spawn (called from {@code
-   * GameSessionHostedService} via the {@code zone.conf [ZoneEnterSpawn] Arena}
-   * lookup) and in-arena respawns (called from {@code AvatarSystem.requestShipChange}
-   * with the ship's own {@code ArenaId}).
+   * <p>Two-tier lookup:
+   * <ol>
+   *   <li><b>Typed Pattern 4 first.</b> Read the arena's
+   *       {@link SpawnConfig} from {@link ConfigRegistrySystem}. If
+   *       {@link SpawnConfig#teams()} is non-empty, look up the team
+   *       via {@link SpawnConfig#forFreq(int)} (Subspace canonical
+   *       wraparound: {@code freq % teams.size()}). When the team's
+   *       {@code radiusTiles > 0}, sample uniformly inside the disc;
+   *       {@code radiusTiles == 0} means exact-point spawn.
+   *   <li><b>Legacy fallback.</b> No typed {@code spawn.groovy}
+   *       authored → fall back to {@link ArenaConfig#spawnX()} /
+   *       {@link ArenaConfig#spawnZ()} (the single-spawn-point
+   *       directive in {@code arena.groovy}). Preserves behaviour for
+   *       arenas not yet migrated to typed spawn data — most notably
+   *       the {@code (default)} arena and the SVS-family presets.
+   * </ol>
    *
-   * @param arenaName arena registry key (folder name under {@code zone/arenas/})
-   * @return world-space {@link Vec3d} on the gameplay plane, or {@code null} if the
-   *     arena isn't loaded (no entity / no {@code ArenaMap}). Callers fall back as
-   *     they see fit (typically world origin).
+   * <p>Coordinates are arena-local <em>tiles</em> (REFERENCE.md
+   * {@code ## Spawn}); {@link #arenaToWorld} translates to world space.
+   *
+   * @param arenaName arena registry key (folder name under
+   *     {@code zone/arenas/})
+   * @param freq player frequency; wraps via
+   *     {@link Math#floorMod(int, int)} so any non-negative or
+   *     negative value resolves to a valid team index when typed
+   *     spawn data is present
+   * @return world-space {@link Vec3d} on the gameplay plane, or
+   *     {@code null} if the arena isn't loaded (no entity / no
+   *     {@code ArenaMap}). Callers fall back as they see fit
+   *     (typically world origin).
    */
   @Nullable
-  public Vec3d getArenaSpawn(final String arenaName) {
+  public Vec3d getArenaSpawn(final String arenaName, final int freq) {
     final ArenaRecord rec = registry.get(arenaName);
     if (rec == null || rec.entityId == null) {
       log.warn("getArenaSpawn: arena '{}' not loaded", arenaName);
@@ -418,7 +445,35 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       log.warn("getArenaSpawn: arena '{}' has no ArenaMap component", arenaName);
       return null;
     }
+
+    final SpawnConfig spawn =
+        configRegistry.forArena(new ArenaId(arenaName, rec.entityId)).spawn();
+    final TeamSpawn team = spawn.forFreq(freq);
+    if (team != null) {
+      final double[] xy = sampleTeamSpawn(team);
+      return arenaToWorld(map, xy[0], xy[1]);
+    }
+
+    // Legacy fallback — un-migrated arena (no spawn.groovy authored).
     return arenaToWorld(map, rec.config.spawnX(), rec.config.spawnZ());
+  }
+
+  /**
+   * Uniform-disc sample around a team's spawn centre. Returns the
+   * exact centre when {@link TeamSpawn#radiusTiles()} is {@code 0}
+   * (point spawn) so authors get deterministic behaviour without
+   * needing to seed an RNG.
+   */
+  private static double[] sampleTeamSpawn(final TeamSpawn team) {
+    final int radius = team.radiusTiles();
+    if (radius <= 0) {
+      return new double[] {team.x(), team.y()};
+    }
+    // sqrt(rand) gives a uniform area distribution over the disc;
+    // omitting the sqrt would cluster samples toward the centre.
+    final double r = radius * Math.sqrt(Math.random());
+    final double theta = Math.random() * 2.0 * Math.PI;
+    return new double[] {team.x() + r * Math.cos(theta), team.y() + r * Math.sin(theta)};
   }
 
   /**

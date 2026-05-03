@@ -295,7 +295,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `BounceFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SafetyLimit` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `TickerDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `WarpRadiusLimit` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ⚠️ | `WarpRadiusLimit` | ✅ misc.groovy + spawn.groovy slot | ✅ `SpawnAdapter` (slot reserved on `SpawnConfig.warpRadiusLimit`, unconsumed) | ✅ `SpawnConfig.warpRadiusLimit` | — | ❌ (deferred — WarpSystem warp-key/Warp-prize randomization is the follow-up consumer slice) | ❌ |
 | ⚠️ | `ActivateAppShutdownTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `NearDeathLevel` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `VictoryMusic` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
@@ -421,11 +421,14 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 
 ## [Spawn]
 
-12 keys (4 teams × 3 each: X, Y, Radius). Spawn-point selection not yet wired through ConfigRegistry; today driven by hardcoded centerOfArena in `WarpSystem`. In-scope but unstarted.
+Per-team spawn data. Subspace canonical encoding is 12 keys (4 teams ×
+3 each: X, Y, Radius); Infinity's typed shape is a `List<TeamSpawn>` of
+arbitrary length, looked up via `freq % teams.size()` — generalizes the
+canon "Freq 4 → Team0, Freq 5 → Team1, …" wraparound to N teams.
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ❌ | (all 12 keys) | ❌ | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | per-team `Team<N>-X` / `Team<N>-Y` / `Team<N>-Radius` | ✅ trench/deva spawn.groovy | `SpawnAdapter` | `SpawnConfig.teams` | — | `ArenaSystem.getArenaSpawn(arenaName, freq)` → `GameSessionHostedService.resolveInitialSpawn` + `AvatarSystem.requestShipChange` | ✅ `ConfigRegistrySystemLoadTest` |
 
 ## [Spectator]
 

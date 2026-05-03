@@ -17,6 +17,7 @@ import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ShipConfig;
+import infinity.config.SpawnConfig;
 import infinity.config.ThorConfig;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -59,6 +60,7 @@ public final class ConfigRegistry {
   private final ThorConfig thor;
   private final PrizeConfig prize;
   private final PrizeWeightsConfig prizeWeights;
+  private final SpawnConfig spawn;
 
   private ConfigRegistry(
       final EnumMap<Ship, ShipConfig> shipsSource,
@@ -74,7 +76,8 @@ public final class ConfigRegistry {
       final PortalConfig portal,
       final ThorConfig thor,
       final PrizeConfig prize,
-      final PrizeWeightsConfig prizeWeights) {
+      final PrizeWeightsConfig prizeWeights,
+      final SpawnConfig spawn) {
     final EnumMap<Ship, ShipConfig> copy = new EnumMap<>(Ship.class);
     copy.putAll(shipsSource);
     this.ships = Collections.unmodifiableMap(copy);
@@ -91,6 +94,7 @@ public final class ConfigRegistry {
     this.thor = thor;
     this.prize = prize;
     this.prizeWeights = prizeWeights;
+    this.spawn = spawn;
   }
 
   /**
@@ -160,6 +164,17 @@ public final class ConfigRegistry {
     return prizeWeights;
   }
 
+  /**
+   * Per-arena spawn-point data — list of per-team spawns + reserved
+   * {@code WarpRadiusLimit} slot. Never {@code null}; defaults to
+   * {@link SpawnConfig#DEFAULTS} (empty teams list = consumer falls
+   * back to legacy {@code ArenaConfig.spawnX/spawnZ}). Populated by
+   * {@link SpawnAdapter} from the typed {@code spawn.groovy} fragment.
+   */
+  public SpawnConfig spawn() {
+    return spawn;
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -167,79 +182,85 @@ public final class ConfigRegistry {
   /** Return a copy of this snapshot with {@link #bullet} replaced. */
   public ConfigRegistry withBullet(final BulletConfig replacement) {
     Objects.requireNonNull(replacement, "bullet");
-    return copyWith(replacement, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(replacement, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #bomb} replaced. */
   public ConfigRegistry withBomb(final BombConfig replacement) {
     Objects.requireNonNull(replacement, "bomb");
-    return copyWith(bullet, replacement, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, replacement, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #gravBomb} replaced. */
   public ConfigRegistry withGravBomb(final GravBombConfig replacement) {
     Objects.requireNonNull(replacement, "gravBomb");
-    return copyWith(bullet, bomb, replacement, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, replacement, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #mine} replaced. */
   public ConfigRegistry withMine(final MineConfig replacement) {
     Objects.requireNonNull(replacement, "mine");
-    return copyWith(bullet, bomb, gravBomb, replacement, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, replacement, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #burst} replaced. */
   public ConfigRegistry withBurst(final BurstFireConfig replacement) {
     Objects.requireNonNull(replacement, "burst");
-    return copyWith(bullet, bomb, gravBomb, mine, replacement, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, replacement, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #repel} replaced. */
   public ConfigRegistry withRepel(final RepelConfig replacement) {
     Objects.requireNonNull(replacement, "repel");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, replacement, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, replacement, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #rocket} replaced. */
   public ConfigRegistry withRocket(final RocketConfig replacement) {
     Objects.requireNonNull(replacement, "rocket");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, replacement, brick, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, replacement, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #brick} replaced. */
   public ConfigRegistry withBrick(final BrickConfig replacement) {
     Objects.requireNonNull(replacement, "brick");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, replacement, decoy, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, replacement, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #decoy} replaced. */
   public ConfigRegistry withDecoy(final DecoyConfig replacement) {
     Objects.requireNonNull(replacement, "decoy");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, replacement, portal, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, replacement, portal, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #portal} replaced. */
   public ConfigRegistry withPortal(final PortalConfig replacement) {
     Objects.requireNonNull(replacement, "portal");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, replacement, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, replacement, thor, prize, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #thor} replaced. */
   public ConfigRegistry withThor(final ThorConfig replacement) {
     Objects.requireNonNull(replacement, "thor");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, replacement, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, replacement, prize, prizeWeights, spawn);
   }
 
   /** Counterpart to the weapon-section withers for the {@code [Prize]} fragment section. */
   public ConfigRegistry withPrize(final PrizeConfig replacement) {
     Objects.requireNonNull(replacement, "prize");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, replacement, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, replacement, prizeWeights, spawn);
   }
 
   /** Return a copy of this snapshot with {@link #prizeWeights} replaced. */
   public ConfigRegistry withPrizeWeights(final PrizeWeightsConfig replacement) {
     Objects.requireNonNull(replacement, "prizeWeights");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, replacement);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, replacement, spawn);
+  }
+
+  /** Return a copy of this snapshot with {@link #spawn} replaced. */
+  public ConfigRegistry withSpawn(final SpawnConfig replacement) {
+    Objects.requireNonNull(replacement, "spawn");
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, replacement);
   }
 
   private ConfigRegistry copyWith(
@@ -255,11 +276,12 @@ public final class ConfigRegistry {
       final PortalConfig portal,
       final ThorConfig thor,
       final PrizeConfig prize,
-      final PrizeWeightsConfig prizeWeights) {
+      final PrizeWeightsConfig prizeWeights,
+      final SpawnConfig spawn) {
     final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
     source.putAll(this.ships);
     return new ConfigRegistry(
-        source, bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+        source, bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
   }
 
   /**
@@ -284,6 +306,7 @@ public final class ConfigRegistry {
     private ThorConfig thor = ThorConfig.DEFAULTS;
     private PrizeConfig prize = PrizeConfig.DEFAULTS;
     private PrizeWeightsConfig prizeWeights = PrizeWeightsConfig.DEFAULTS;
+    private SpawnConfig spawn = SpawnConfig.DEFAULTS;
 
     public Builder ship(final Ship type, final ShipConfig config) {
       Objects.requireNonNull(type, "type");
@@ -357,9 +380,14 @@ public final class ConfigRegistry {
       return this;
     }
 
+    public Builder spawn(final SpawnConfig spawn) {
+      this.spawn = Objects.requireNonNull(spawn, "spawn");
+      return this;
+    }
+
     public ConfigRegistry build() {
       return new ConfigRegistry(
-          ships, bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights);
+          ships, bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
     }
   }
 }

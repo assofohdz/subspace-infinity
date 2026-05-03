@@ -6,7 +6,7 @@
 arena {
     map '04-2026-deva/bdegb.lvl'
     shipsScript '/conf/deva-04-2026/ships.groovy'
-    spawn 20, 20
+    includeFragment '/conf/deva-04-2026/spawn.groovy'
     includeFragment '/conf/deva-04-2026/prize-weights.groovy'
     includeFragment '/conf/deva-04-2026/ship-warbird.groovy'
     includeFragment '/conf/deva-04-2026/ship-javelin.groovy'

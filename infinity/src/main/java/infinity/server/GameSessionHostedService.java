@@ -258,7 +258,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     /**
      * Pick the player's initial spawn by reading the zone-scope
      * {@code enterSpawn} pointer, then translating that arena's arena-local
-     * {@code [Spawn] X/Z} to a world coord via {@link ArenaSystem#getArenaSpawn(String)}.
+     * {@code [Spawn]} per-team data (or legacy {@code arena.groovy spawn x, z})
+     * to a world coord via {@link ArenaSystem#getArenaSpawn(String, int)}.
      *
      * <p>Unifies the per-arena {@code [Spawn]} as the single source of truth for
      * spawn coords across both flows: connect-time (this method, picking which
@@ -278,7 +279,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         log.warn("zone.groovy has no enterSpawn arena; spawning at world origin");
         return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);
       }
-      final Vec3d spawn = arenas.getArenaSpawn(arenaName);
+      // Connect-time freq is always 0 — the player hasn't been assigned a
+      // frequency yet (Frequency component is set by the team-balancing
+      // path, which runs after spawn). Maps to team0 for typed
+      // SpawnConfig arenas; legacy `arena.groovy spawn x, z` arenas
+      // ignore the freq.
+      final Vec3d spawn = arenas.getArenaSpawn(arenaName, 0);
       if (spawn == null) {
         log.warn("zone.groovy enterSpawn='{}' not loaded; spawning at world origin", arenaName);
         return new Vec3d(0, InfinityConstants.GAMEPLAY_Y, 0);

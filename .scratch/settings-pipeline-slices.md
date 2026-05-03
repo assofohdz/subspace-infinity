@@ -297,8 +297,37 @@ Follow-up (own slice — sits with Slice 14 in the queue):
 ## Slices 7–9 — Coherent mid-effort features
 
 ### Slice 7 — Spawn-point selection
-🔲 `[Spawn]` 12 keys (4 teams × X/Y/Radius). Replaces hardcoded
-`centerOfArena` in `WarpSystem`.
+✅ `[Spawn]` per-team spawn data wired end-to-end (Subspace authors
+4 teams × X/Y/Radius; Infinity's typed shape is a `List<TeamSpawn>`
+of any length, looked up via `freq % teams.size()` — generalizes the
+canonical "Freq 4 → Team0, Freq 5 → Team1, …" wraparound to N teams).
+`SpawnConfig` + `TeamSpawn` records (api/), `SpawnAdapter`,
+`ConfigRegistry.spawn()` slot, dispatch entry, and
+`ArenaSystem.getArenaSpawn(arenaName, freq)` reading typed
+`SpawnConfig` with legacy `ArenaConfig.spawnX/spawnZ` fallback. Two
+consumer call sites (`GameSessionHostedService.resolveInitialSpawn`
+freq=0 connect-time, `AvatarSystem.requestShipChange` reading
+ship's `Frequency`) updated. Active arenas only (trench + deva)
+authored `spawn.groovy` with team0 = pre-migration single-spawn
+coords (1:1 behaviour preservation); `spawn x, z` directives stripped
+from each arena.groovy. Test:
+`ConfigRegistrySystemLoadTest` extended with spawn-parse +
+freq-wraparound assertions.
+
+`warpRadiusLimit` lives on `SpawnConfig` as an unconsumed slot per
+the agreed scope; consumption deferred to the WarpSystem-randomization
+follow-up.
+
+Follow-ups (own slices):
+- WarpSystem-randomization — wires the unconsumed
+  `SpawnConfig.warpRadiusLimit` slot. The WARP-key + Warp-prize
+  consumers (`WarpSystem.warpToCenter` callers) currently warp to
+  arena centre; canon Subspace warps to a random spot within
+  `WarpRadiusLimit`.
+- Migrate `(default)` arena + SVS-family presets to typed
+  `spawn.groovy`; once every active preset has typed spawn data, a
+  cleanup slice deletes the legacy `ArenaConfig.spawnX/spawnZ` fields
+  + the `arena.groovy spawn x, z` directive.
 
 ### Slice 8 — Prize spawning loop
 🔲 `[Prize]` PrizeFactor, PrizeDelay, MinimumVirtual, UpgradeVirtual,
