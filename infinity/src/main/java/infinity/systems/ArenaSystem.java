@@ -36,7 +36,6 @@ import infinity.settings.GroovyZoneLoader;
 import infinity.config.PrizeConfig;
 import infinity.config.WeaponsConfig;
 import infinity.es.arena.ArenaMap;
-import infinity.es.arena.ArenaSettings;
 import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
@@ -62,7 +61,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.ini4j.Ini;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,7 +184,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * callback is the per-file reload action — for {@code ships.groovy} it
    * re-applies the typed ship config and reprojects live ships; for fragments
    * it asks {@link SettingsSystem#reloadFragments} to rebuild the merged
-   * settings store and fan out {@code SettingListener} events.
+   * settings store. Consumers re-read on next consumption; no event fires.
    */
   private static final class WatchedFile {
     final String arenaName;
@@ -734,9 +732,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final Vec3d maxB = maps.getMapBoundsMax(mapFile);
       final Vec3d minB = maps.getMapBoundsMin(mapFile);
       ed.setComponent(arena, new ArenaMap(minB, maxB, mapFile, rec.arenaIndex));
-
-      final Ini ini = settings.getIni(rec.name);
-      ed.setComponent(arena, new ArenaSettings(rec.name, ini));
 
       rec.entityId = arena;
 

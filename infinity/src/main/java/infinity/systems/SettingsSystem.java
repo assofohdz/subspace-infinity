@@ -7,26 +7,19 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
 import infinity.settings.GroovyFragmentLoader;
-import infinity.settings.SettingListener;
-import infinity.sim.util.InfinityRunTimeException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This state loads the settings for all arenas and notifies all listeners of the new settings.
- * Listeners are meant to keep a local copy of the settings so as not to reference this state every
- * time they have use for a setting
- *
- * <p>Every setting will be stored per ship in the entitydata, but this state will load the settings
- * and can update ship settings when requested (for example when a ship enters a new arena)
+ * Per-arena {@link Ini} store backing the still-INI-routed settings reads
+ * (weapons / prize sections). Slated for deletion in the typed-record
+ * migration: {@code ConfigRegistrySystem} absorbs the load + reload
+ * responsibilities; see
+ * {@code .scratch/settings-pipeline-slices.md} (slices B0–B4).
  *
  * @author Asser Fahrenholz
  */
@@ -34,23 +27,11 @@ public class SettingsSystem extends AbstractGameSystem {
 
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
   private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
-  ArrayList<SettingListener> listeners = new ArrayList<>();
   private final GroovyFragmentLoader groovyFragmentLoader = new GroovyFragmentLoader();
-
-
-  public void addListener(final SettingListener listener) {
-    listeners.add(listener);
-  }
-
-  public void removeListener(final SettingListener listener) {
-    listeners.remove(listener);
-  }
 
   @Override
   protected void initialize() {
-    // Fragment loading is now Groovy-only; the asset-loader registration that
-    // used to bind .ini/.cfg/.conf to IniLoader is gone, since arena.groovy's
-    // includeFragment paths only ever resolve to .groovy files now.
+    // Fragment loading is Groovy-only; nothing to bootstrap.
   }
 
   @Override
@@ -71,19 +52,6 @@ public class SettingsSystem extends AbstractGameSystem {
   @Override
   public void stop() {
     // Nothing to do here
-  }
-
-  /**
-   * Called when some setting change and listeners has to update their local copy of the settings.
-   *
-   * @param arenaId the arena to lookup settings for
-   * @param section the section of the setting
-   * @param setting the setting to retrieve
-   */
-  private void settingChanged(final ArenaId arenaId, final String section, final String setting) {
-    for (final SettingListener listener : listeners) {
-      listener.arenaSettingsChange(arenaId, section, setting);
-    }
   }
 
   /**
@@ -117,57 +85,18 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   /**
-   * Reload the arena's merged settings from {@code classpathPaths} and fire
-   * {@link SettingListener#arenaSettingsChange} for every {@code (section, key)}
-   * whose effective value changed. Used by {@code ArenaSystem}'s file watcher
-   * when a Groovy fragment is edited at runtime, so listeners with cached
-   * tuning stay in sync without a server restart.
-   *
-   * <p>The diff is taken against the pre-reload merged {@link Ini}, not against
-   * the individual fragment that changed — that handles the case where a key
-   * in fragment A is shadowed by fragment B (only B's reload should produce a
-   * "changed" event for that key). No-op-equivalent reloads (mtime bump
-   * without value changes) fire no events.
+   * Reload the arena's merged settings from {@code classpathPaths}. Used by
+   * {@code ArenaSystem}'s file watcher when a Groovy fragment is edited at
+   * runtime. Currently a thin wrapper over {@link #loadFragments}; will be
+   * replaced by {@code ConfigRegistrySystem.load} in slice B0.
    *
    * @param arenaId identifies the arena (its {@code arenaName} keys the merged
-   *     store; the {@link ArenaId} is forwarded to listeners verbatim)
+   *     store)
    * @param classpathPaths fragment paths to load, in declaration order; same
    *     contract as {@link #loadFragments}
    */
   public void reloadFragments(final ArenaId arenaId, final List<String> classpathPaths) {
-    final String arenaName = arenaId.getArena();
-    final Ini oldIni = arenaSettingsMap.get(arenaName);
-    loadFragments(arenaName, classpathPaths);
-    final Ini newIni = arenaSettingsMap.get(arenaName);
-    fireChangeDiff(arenaId, oldIni, newIni);
-  }
-
-  private void fireChangeDiff(final ArenaId arenaId, final Ini oldIni, final Ini newIni) {
-    final Set<String> sectionNames = new HashSet<>();
-    if (oldIni != null) {
-      sectionNames.addAll(oldIni.keySet());
-    }
-    if (newIni != null) {
-      sectionNames.addAll(newIni.keySet());
-    }
-    for (final String sectionName : sectionNames) {
-      final Section oldSec = oldIni == null ? null : oldIni.get(sectionName);
-      final Section newSec = newIni == null ? null : newIni.get(sectionName);
-      final Set<String> keyNames = new HashSet<>();
-      if (oldSec != null) {
-        keyNames.addAll(oldSec.keySet());
-      }
-      if (newSec != null) {
-        keyNames.addAll(newSec.keySet());
-      }
-      for (final String key : keyNames) {
-        final String oldV = oldSec == null ? null : oldSec.get(key);
-        final String newV = newSec == null ? null : newSec.get(key);
-        if (!Objects.equals(oldV, newV)) {
-          settingChanged(arenaId, sectionName, key);
-        }
-      }
-    }
+    loadFragments(arenaId.getArena(), classpathPaths);
   }
 
   private Ini loadFragmentIni(final String classpathPath) {
@@ -196,33 +125,6 @@ public class SettingsSystem extends AbstractGameSystem {
         dst.put(k, src.get(k));
       }
     }
-  }
-
-  /**
-   * Update a single setting for the given arena and notify listeners. The caller must pass the
-   * arena's {@link ArenaId} component so listeners can filter on arena identity.
-   *
-   * @param arenaId the arena whose settings to mutate
-   * @param section INI section name (e.g. {@code "Bomb"})
-   * @param setting key within the section (e.g. {@code "BombDamageLevel"})
-   * @param value new value; written as a string, consumers coerce as needed
-   * @return the previous value under that key, or {@code null} if none
-   */
-  public String setSetting(
-      final ArenaId arenaId, final String section, final String setting, final String value) {
-    final String arenaName = arenaId.getArena();
-    final Ini ini = arenaSettingsMap.get(arenaName);
-    if (ini == null) {
-      throw new InfinityRunTimeException("No settings loaded for arena " + arenaName);
-    }
-    Section sec = ini.get(section);
-    if (sec == null) {
-      sec = ini.add(section);
-    }
-    final String previous = sec.get(setting);
-    sec.put(setting, value);
-    settingChanged(arenaId, section, setting);
-    return previous;
   }
 
   public Ini getIni(final String arenaName) {

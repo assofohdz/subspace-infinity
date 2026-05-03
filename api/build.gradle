@@ -11,8 +11,6 @@ sourceSets {
 }
 
 dependencies {
-	implementation "org.ini4j:ini4j:0.5.4"
-
 	// Simsilica
 	implementation "com.simsilica:sim-math:$simMathVersion"
 	implementation "com.simsilica:zay-es:$zayEsVersion"
