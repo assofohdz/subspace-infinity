@@ -47,7 +47,6 @@ public class ConfigRegistrySystemLoadTest {
         systems.register(ConfigRegistrySystem.class, new ConfigRegistrySystem());
     systems.register(GroovyShipLoader.class, new GroovyShipLoader(registry));
     systems.register(SettingsSystem.class, new SettingsSystem());
-    systems.register(GroovyWeaponsLoader.class, new GroovyWeaponsLoader());
     systems.initialize();
     systems.start();
 
@@ -65,7 +64,8 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/bomb.groovy",
                   "/conf/trench-04-2026/mine.groovy",
                   "/conf/trench-04-2026/burst.groovy",
-                  "/conf/trench-04-2026/repel.groovy"),
+                  "/conf/trench-04-2026/repel.groovy",
+                  "/conf/trench-04-2026/prize.groovy"),
               0.0,
               List.of());
 

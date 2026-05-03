@@ -50,21 +50,6 @@ section('Toggle') {
     AntiWarpPixels 1500
 }
 
-section('Prize') {
-    DeathPrizeTime 5000
-    EngineShutdownTime 300
-    PrizeFactor 6000
-    PrizeDelay 2000
-    MinimumVirtual 85
-    UpgradeVirtual 1
-    PrizeMaxExist 5000
-    PrizeMinExist 300
-    PrizeNegativeFactor 10000
-    MultiPrizeCount 10
-    TakePrizeReliable 1
-    PrizeHideCount 90
-}
-
 section('Radar') {
     MapZoomFactor 8
     RadarNeutralSize 100

@@ -9,6 +9,7 @@ import infinity.config.BombConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.MineConfig;
+import infinity.config.PrizeConfig;
 import infinity.config.RepelConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
@@ -43,7 +44,6 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
 
   private SettingsSystem settings;
   private GroovyShipLoader shipLoader;
-  private GroovyWeaponsLoader weaponsLoader;
 
   /**
    * Centralized dispatch for typed per-fragment adapters. Key = fragment
@@ -87,6 +87,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final RepelConfig parsed =
                 GroovySettingsHost.INSTANCE.load(RepelAdapter.INSTANCE, path);
             return current.withRepel(parsed != null ? parsed : RepelConfig.DEFAULTS);
+          },
+          "prize.groovy",
+          (current, path) -> {
+            final PrizeConfig parsed =
+                GroovySettingsHost.INSTANCE.load(PrizeAdapter.INSTANCE, path);
+            return current.withPrize(parsed != null ? parsed : PrizeConfig.DEFAULTS);
           });
 
   /** Functional contract for a typed fragment installer. */
@@ -101,7 +107,6 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     // here once the server has wired everything up.
     settings = getSystem(SettingsSystem.class);
     shipLoader = getSystem(GroovyShipLoader.class);
-    weaponsLoader = getSystem(GroovyWeaponsLoader.class);
   }
 
   @Override
@@ -197,8 +202,11 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     // Thor have no Subspace fragment section (gravbombs share [Bomb] tuning
     // in VIE; Thors are an Infinity addition), so they stay on DEFAULTS via
     // ConfigRegistry.Builder's defaults until either gets its own typed slot.
-    ConfigRegistry current =
-        forArena(arenaId).withPrize(weaponsLoader.loadPrize(settings, arenaName));
+    // Phase 3a: legacy compat shim is now empty — every weapon-projectile +
+    // prize section migrated to its own typed adapter (B1-Bullet through
+    // B1-Prize). The starting snapshot for typed dispatch is just the current
+    // ConfigRegistry. GroovyWeaponsLoader is fully unused — B4 deletes it.
+    ConfigRegistry current = forArena(arenaId);
 
     // Phase 3b: typed adapters via dispatch table. Runs AFTER the compat shim
     // so typed values overwrite legacy defaults during transitional states.

@@ -11,22 +11,6 @@ section('Toggle') {
     AntiWarpPixels 1500
 }
 
-section('Prize') {
-    MultiPrizeCount 19
-    PrizeFactor 4000
-    PrizeDelay 300
-    PrizeHideCount 20
-    MinimumVirtual 256
-    UpgradeVirtual 9
-    PrizeMaxExist 8000
-    PrizeMinExist 4000
-    PrizeNegativeFactor 300
-    DeathPrizeTime 1000
-    EngineShutdownTime 700
-    TakePrizeReliable 0
-    S2CTakePrizeReliable 0
-}
-
 section('Radar') {
     RadarMode 0
     RadarNeutralSize 128
