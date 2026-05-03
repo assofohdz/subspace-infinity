@@ -72,9 +72,9 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 | `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. |
 | `GroovyShipLoader` | Loads each arena's `ships.groovy` (referenced via `arena { shipsScript ... }`) → per-arena `ConfigRegistry`. |
 | `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments`; Groovy is the only fragment format supported (no `.ini` / `.cfg` / `.conf` ingest path remains). |
-| `GroovyWeaponsLoader` | Phase B bridge. Reads `[Bullet]`, `[Bomb]`, `[Mine]`, `[Burst]`, `[Repel]`, `[Prize]` sections from the merged `Ini` and produces a `WeaponsConfig` (composite of `BulletConfig` / `BombConfig` / `MineConfig` / `BurstFireConfig` / `RepelConfig` / `ThorConfig` / `GravBombConfig`) plus a `PrizeConfig`. Called from `ArenaSystem.applyWeaponsConfig` after `shipLoader.apply`, on `ships.groovy` reload, and on fragment hot-reload. Registered as a system in `GameServer`. |
+| `GroovyWeaponsLoader` | Phase B bridge. Reads `[Bullet]`, `[Bomb]`, `[Mine]`, `[Burst]`, `[Repel]`, `[Prize]` sections from the merged `Ini` and produces a `WeaponsConfig` (composite of `BulletConfig` / `BombConfig` / `MineConfig` / `BurstFireConfig` / `RepelConfig` / `ThorConfig` / `GravBombConfig`) plus a `PrizeConfig`. Called from `ConfigRegistrySystem.load` as the third (compat-shim) phase of load orchestration. Registered as a system in `GameServer`. |
 | `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records: `ShipConfig` (via `GroovyShipLoader`), `WeaponsConfig` (composite of weapon-projectile sub-records), and `PrizeConfig` (both via `GroovyWeaponsLoader`). Use `withWeapons(WeaponsConfig)` / `withPrize(PrizeConfig)` for immutable-copy updates. |
-| `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Atomic-swap installs from `GroovyShipLoader` / live-reload; readers see either the old or new snapshot, never a torn state. |
+| `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Owns load orchestration via `load(arenaId, arenaConfig)`: three-phase sequence — legacy fragment `Ini` load → typed ship loader → weapons + prize compat shim. Single entry point for both initial arena load and hot-reload. Atomic-swap installs ensure readers see either the old or new snapshot, never a torn state. |
 
 Runtime entry point: [infinity/src/main/java/infinity/systems/SettingsSystem.java](../../../infinity/src/main/java/infinity/systems/SettingsSystem.java).
 
@@ -248,7 +248,7 @@ MyMode mode = s.getEnum(arenaName, "Soccer", "Mode", MyMode.DEFAULT);
 
 ## Hot-reloading edits
 
-Edits to a fragment file (e.g. `misc.groovy`) are picked up automatically by the file watcher in `ArenaSystem` — default poll interval 5s, configurable via `zone.groovy`'s `scriptPollIntervalNanos`. On change, `SettingsSystem.reloadFragments` rebuilds the merged store and `applyWeaponsConfig` re-derives the typed records into `ConfigRegistry`. Consumers re-read on next consumption — no event/callback fires (the listener API was retired pre-B0). For ship config (`ships.groovy`), the watcher additionally calls `ShipSpawnSystem.reprojectAll()` so live ships pick up the new stats without respawning.
+Edits to a fragment file (e.g. `misc.groovy`) are picked up automatically by the file watcher in `ArenaSystem` — default poll interval 5s, configurable via `zone.groovy`'s `scriptPollIntervalNanos`. On change, `ConfigRegistrySystem.load` re-runs the full three-phase orchestration and atomic-swaps a fresh snapshot. Consumers re-read on next consumption — no event/callback fires (the listener API was retired pre-B0). For ship config (`ships.groovy`), the watcher additionally calls `ShipSpawnSystem.reprojectAll()` so live ships pick up the new stats without respawning.
 
 For mid-session ad-hoc tuning without editing files, the typed `~set` admin command is planned as a follow-on slice (B5 in `.scratch/settings-pipeline-slices.md`); not available today.
 
