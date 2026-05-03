@@ -85,6 +85,42 @@ public class ConfigRegistrySystemLoadTest {
           16,
           warbird.thrust().initial());
 
+      // Per-ship inventory (post-B2-Migration): trench/warbird is a
+      // gun-only build — no bombs/mines/repels/bursts/bricks/rockets/portals
+      // (Q6 maps Subspace `*Max 0` to null = disallow). Has guns, thors,
+      // decoys per ship-warbird.groovy's authored values.
+      assertNotNull("WARBIRD has guns", warbird.guns());
+      assertEquals("WARBIRD MaxGuns = 3 (LEVEL_3)",
+          infinity.GunLevel.LEVEL_3, warbird.guns().max());
+      assertNotNull("WARBIRD has thors", warbird.thors());
+      assertEquals("WARBIRD ThorMax = 3", 3, warbird.thors().max());
+      assertNotNull("WARBIRD has decoys (B2-activated)", warbird.decoys());
+      assertEquals("WARBIRD DecoyMax = 1", 1, warbird.decoys().max());
+      // Disallow checks — verifies Q6 null mapping fixed the dual-pipeline
+      // drift (was: silently 10 repels via DEFAULT_REPELS; now: null per
+      // operator's authored RepelMax 0).
+      assertEquals("WARBIRD bombs disallowed (MaxBombs 0)",
+          null, warbird.bombs());
+      assertEquals("WARBIRD repels disallowed (RepelMax 0)",
+          null, warbird.repels());
+      assertEquals("WARBIRD bursts disallowed (BurstMax 0)",
+          null, warbird.bursts());
+      assertEquals("WARBIRD bricks disallowed (BrickMax 0)",
+          null, warbird.bricks());
+
+      // trench/leviathan is a heavy build with bombs + mines + portals.
+      final var leviathan = snapshot.getShip(Ship.LEVIATHAN);
+      assertNotNull("LEVIATHAN config", leviathan);
+      assertNotNull("LEVIATHAN has bombs (MaxBombs 3)", leviathan.bombs());
+      assertEquals("LEVIATHAN bomb max = BOMB_3",
+          infinity.BombLevel.BOMB_3, leviathan.bombs().max());
+      assertNotNull("LEVIATHAN has mines (MaxMines > 0)", leviathan.mines());
+      assertEquals("LEVIATHAN mine cost (LandmineFireEnergy 800)",
+          800, leviathan.mines().cost());
+      assertNotNull("LEVIATHAN has portals (PortalMax 1, B2-activated)",
+          leviathan.portals());
+      assertEquals("LEVIATHAN PortalMax = 1", 1, leviathan.portals().max());
+
       // Phase 3 — weapons compat shim pulled trench's misc.groovy values
       // into ConfigRegistry's flat weapon-projectile slots (post-B1a flatten).
       assertEquals(

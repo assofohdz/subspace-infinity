@@ -382,39 +382,71 @@ because they reframe the original B2 description above:
   `portals` blocks in `ships.groovy` yet, so all four fields default to
   `null` (disallow). Manual smoke = "still loads" same as B0.
 
-**B2-Migration commit scope:**
-- For each preset (7 presets that have `ship-<name>.groovy` files —
-  base, deva-04-2026, svs, svs-league, svs-tce, svs-turf,
-  trench-04-2026):
-  - For each ship, read the `*Max` and `Initial*` values for the 10
-    inventory items (Bombs, Guns, Mines, Repels, Bursts, Thors,
-    Decoys, Bricks, Rockets, Portals) from `ship-<name>.groovy`.
-  - Apply Q6 rule: `*Max == 0` → omit the typed inventory block;
-    `*Max > 0` → emit `inventoryName start: Initial*, max: *Max` in
-    the typed `ship(Ship.X) { … }` block in `ships.groovy`.
-  - **Strip those 10 inventory keys** (and only those) from
-    `ship-<name>.groovy`. Other unwired per-ship keys (Status,
-    speeds, etc.) **stay** in the file for their owning gameplay
-    slice to migrate.
-- For svs-pb: rewrite the existing `shipSections` splat in
-  `ships.groovy` as a native Groovy `each` loop over the 8 ship types,
-  each calling the typed `ship(Ship.X) { … }` builder.
-- For svs-league/svs-dueling: replace the `shipSections` splat in the
-  composition files with a native Groovy `each` loop. Per-ship
-  overrides stay as individual `shipSection` blocks (until their
-  inventory keys migrate to typed `ship` blocks too).
-- **Behavior change**: trench, deva, and other presets with `*Max 0`
-  values for inventory items will start playing without those
-  inventory items (matching the operator's original `ship-<name>.groovy`
-  intent, fixing the dual-pipeline drift).
+**B2-Migration commit scope (descoped 2026-05-03):** active arenas only.
+
+The original B2-Migration plan covered all 7 presets that have
+`ship-<name>.groovy` files. **In practice the only arenas in
+`infinity/zone/arenas/` are `(default)` (→ base), `deva` (→
+deva-04-2026), and `trench` (→ trench-04-2026)**. The other 5
+SVS-family presets (svs, svs-pb, svs-tce, svs-turf, svs-league) are
+scaffolding for content that doesn't ship today; migrating them is
+sunk cost. Pragmatic descope:
+
+- **In scope: trench-04-2026, deva-04-2026.** Both are
+  `-04-2026` presets currently in active development.
+- **Out of scope: base, svs, svs-pb, svs-tce, svs-turf, svs-league.**
+  Their `ship-<name>.groovy` and INI-mirror `shipSections` splats
+  stay as-is. `(default)` arena (which uses base preset) continues
+  to rely on `GroovyShipLoader.DEFAULT_*` Java fallback constants
+  (= permissive 10/20 repels, etc.) for inventory. No behavior
+  change for `(default)`. Future slice migrates these presets when
+  they become active arenas.
+
+**For trench + deva (the migrated presets):**
+- For each ship, read the `*Max` and `Initial*` values for the 10
+  inventory items (Bombs, Guns, Mines, Repels, Bursts, Thors,
+  Decoys, Bricks, Rockets, Portals) from `ship-<name>.groovy`.
+- Apply Q6 rule: `*Max == 0` → omit the typed inventory block;
+  `*Max > 0` → emit `inventoryName start: Initial*, max: *Max` in
+  the typed `ship(Ship.X) { … }` block in `ships.groovy`.
+- Mines: per-ship `MaxMines` (count cap) is **not yet represented in
+  the typed mines block** (only level + cost + fireDelay are typed).
+  Migration treats `MaxMines 0` as "omit mines block"; for `MaxMines
+  > 0` keeps the mines block with the per-ship cost+fireDelay and
+  default BombLevel range. The count cap stays in `ship-<name>.groovy`
+  as deferred until a future slice models it.
+- Strip the 18 inventory keys (Initial*+*Max for all 10 items + 6
+  fire-cost/delay keys; not MaxMines, not *Upgrade) from
+  `ship-<name>.groovy`. Other unwired per-ship keys (Status, speeds,
+  etc.) stay in the file for their owning gameplay slice to migrate.
+
+**For all presets (Q6 default change):** `ShipConfigBuilder` per-field
+inventory defaults changed from permissive `DEFAULT_*` to `null`. An
+explicit `ship(Ship.X) { … }` block now disallows any inventory type
+whose block isn't declared (the Q6 contract). The permissive
+`DEFAULT_*` constants remain in use only by `FALLBACK` (the snapshot
+installed when `ships.groovy` is missing or fails to parse).
+
+**Behavior change**: trench and deva will start playing without the
+inventory items their operators wrote `*Max 0` for. Trench warbird,
+for example, becomes a gun-only build (no bombs / no repels / no
+bursts), matching `ship-warbird.groovy`'s authored intent. Manual
+smoke must verify the new loadouts feel right.
+
+**Splat removal (descoped):** with the SVS-family migrations deferred,
+the `shipSections` splat usages in `svs-league.groovy` /
+`svs-dueling.groovy` / `svs-pb/ships.groovy` stay in place. Q4's
+"drop splat" decision still holds for when the SVS migration runs;
+it's just deferred along with the rest.
 
 **Tests:**
 - B1 tests stay green.
 - Extend `ConfigRegistrySystemLoadTest`'s trench assertion to cover
-  per-ship inventory: pick warbird, assert `ConfigRegistry.getShip(WARBIRD)`
-  has `decoys.max() == 1`, `thors.max() == 3`, `repels == null`,
-  `bursts == null` (matching trench/ship-warbird.groovy intent
-  post-Q1).
+  per-ship inventory: pick warbird (gun-only build) + leviathan
+  (heavy bomber with mines+portals). Asserts both opt-ins
+  (decoys/thors/portals present at expected counts) and Q6 disallow
+  (bombs/repels/bursts/bricks all `null` for warbird), pinning the
+  drift fix.
 
 **Out of scope for B2** (deferred to owning gameplay slices):
 - Status family (Cloak/Stealth/XRadar/AntiWarp) → S6

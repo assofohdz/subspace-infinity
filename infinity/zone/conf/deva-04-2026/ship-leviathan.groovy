@@ -3,11 +3,8 @@ shipSection('Leviathan') {
     ShieldsTime 3000
     Gravity 1000
     GravityTopSpeed 250
-    BulletFireEnergy 30
     MultiFireEnergy 40
-    BombFireEnergy 600
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 625
     LandmineFireEnergyUpgrade 0
     BulletSpeed 4000
     BombSpeed 5000
@@ -39,10 +36,7 @@ shipSection('Leviathan') {
     BurstSpeed 8000
     TurretThrustPenalty 0
     TurretSpeedPenalty 0
-    BulletFireDelay 6
     MultiFireDelay 7
-    BombFireDelay 45
-    LandmineFireDelay 36
     RocketTime 1000
     InitialBounty 3
     DamageFactor 5000
@@ -51,20 +45,6 @@ shipSection('Leviathan') {
     TurretLimit 3
     BurstShrapnel 130
     MaxMines 4
-    RepelMax 3
-    BurstMax 2
-    DecoyMax 3
-    ThorMax 0
-    BrickMax 0
-    PortalMax 0
-    RocketMax 0
-    InitialRepel 0
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 0
     BombBounceCount 0
     ShrapnelMax 31
     ShrapnelRate 7
@@ -72,10 +52,6 @@ shipSection('Leviathan') {
     StealthStatus 1
     XRadarStatus 1
     AntiWarpStatus 0
-    InitialGuns 3
-    MaxGuns 3
-    InitialBombs 2
-    MaxBombs 3
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 1

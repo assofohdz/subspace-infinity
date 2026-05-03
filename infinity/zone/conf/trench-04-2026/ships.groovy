@@ -19,15 +19,23 @@
 //       turnResponsiveness  <R>     // 1/sec — angular ease rate; 8.0 ≈ ~95% of target in ~0.4 sec
 //       bounceRestitution   <B>     // 0..1 — wall-bounce energy retention; 1.0 = perfectly elastic
 //       radarRange          <RR>    // world units — radar viewport visible radius around the ship
+//       bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 1100, fireDelay: 75
+//       guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_4, cost: 300,  fireDelay: 60
+//       mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 800,  fireDelay: 20
+//       bursts  start: <I>, max: <M>
+//       thors   start: <I>, max: <M>, fireDelay: 1000
+//       repels  start: <I>, max: <M>
+//       decoys  start: <I>, max: <M>
+//       bricks  start: <I>, max: <M>
+//       rockets start: <I>, max: <M>
+//       portals start: <I>, max: <M>
 //   }
 //
-// Omit a stat to leave it at ShipStat(0, 0, 0). The three feel knobs default to
-// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted; radarRange
-// defaults to 250 world units.
-//
-// All 8 ships are configured. Numeric stats mirror the per-ship `ship-<name>`
-// INI fragments in this directory (the canonical trench tuning). Feel knobs
-// are uniform across ships for now — tune per-ship empirically.
+// Omit a stat to leave it at ShipStat(0, 0, 0). Omit an inventory block to
+// disallow that item (= null in ShipConfig; per-ship *Max component not
+// projected; prize applier no-ops on pickup). Per the B2 grilled-through plan
+// (.scratch/settings-pipeline-slices.md), authored Subspace `*Max 0`
+// values were translated to "omit block" during the B2-Migration commit.
 
 // Testbed override: Warbird intentionally has non-zero upgrade values so
 // prize-driven progression (Rotation / Thruster / Recharge / Energy / TopSpeed)
@@ -42,6 +50,9 @@ ship(Ship.WARBIRD) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 450, fireDelay: 100
+    thors   start: 0, max: 3, fireDelay: 1000
+    decoys  start: 0, max: 1
 }
 
 ship(Ship.JAVELIN) {
@@ -54,6 +65,11 @@ ship(Ship.JAVELIN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75
+    guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 300,  fireDelay: 60
+    thors   start: 0, max: 3, fireDelay: 1000
+    decoys  start: 0, max: 1
+    rockets start: 1, max: 3
 }
 
 ship(Ship.SPIDER) {
@@ -66,6 +82,9 @@ ship(Ship.SPIDER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 225, fireDelay: 35
+    thors   start: 0, max: 3, fireDelay: 1000
+    decoys  start: 0, max: 1
 }
 
 ship(Ship.LEVIATHAN) {
@@ -78,6 +97,14 @@ ship(Ship.LEVIATHAN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 1100, fireDelay: 75
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_2, cost: 400,  fireDelay: 60
+    // mines uses default BombLevel start/max; per-ship MaxMines (count cap)
+    // not yet represented in typed pipeline — tracked in ship-<name>.groovy.
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 800, fireDelay: 20
+    repels  start: 4, max: 4
+    decoys  start: 0, max: 3
+    portals start: 1, max: 1
 }
 
 ship(Ship.TERRIER) {
@@ -90,6 +117,11 @@ ship(Ship.TERRIER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 400, fireDelay: 75
+    bursts  start: 1, max: 1
+    thors   start: 0, max: 3, fireDelay: 1000
+    decoys  start: 0, max: 1
+    portals start: 1, max: 1
 }
 
 ship(Ship.WEASEL) {
@@ -102,6 +134,12 @@ ship(Ship.WEASEL) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 208, fireDelay: 40
+    thors   start: 0, max: 3, fireDelay: 1000
+    repels  start: 0, max: 1
+    decoys  start: 0, max: 1
+    bricks  start: 0, max: 2
+    rockets start: 0, max: 1
 }
 
 ship(Ship.LANCASTER) {
@@ -114,6 +152,9 @@ ship(Ship.LANCASTER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_2, cost: 300, fireDelay: 50
+    thors   start: 0, max: 3, fireDelay: 1000
+    decoys  start: 0, max: 1
 }
 
 ship(Ship.SHARK) {
@@ -126,4 +167,10 @@ ship(Ship.SHARK) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1150, fireDelay: 45
+    // shark has no guns (MaxGuns 0 in trench/ship-shark.groovy)
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 10
+    thors   start: 0, max: 3, fireDelay: 1000
+    repels  start: 3, max: 3
+    decoys  start: 0, max: 1
 }

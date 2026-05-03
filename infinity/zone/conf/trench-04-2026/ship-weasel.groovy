@@ -3,11 +3,8 @@ shipSection('Weasel') {
     ShieldsTime 6000
     Gravity 1500
     GravityTopSpeed 100
-    BulletFireEnergy 208
     MultiFireEnergy 242
-    BombFireEnergy 32000
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 32000
     LandmineFireEnergyUpgrade 0
     BulletSpeed 1000
     BombSpeed 5000
@@ -39,10 +36,7 @@ shipSection('Weasel') {
     BurstSpeed 1
     TurretThrustPenalty 5
     TurretSpeedPenalty 220
-    BulletFireDelay 40
     MultiFireDelay 40
-    BombFireDelay 30
-    LandmineFireDelay 20
     RocketTime 80
     InitialBounty 3
     DamageFactor 2000
@@ -51,20 +45,6 @@ shipSection('Weasel') {
     TurretLimit 0
     BurstShrapnel 1
     MaxMines 0
-    RepelMax 1
-    BurstMax 0
-    DecoyMax 1
-    ThorMax 3
-    BrickMax 2
-    PortalMax 0
-    RocketMax 1
-    InitialRepel 0
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 0
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
@@ -72,10 +52,6 @@ shipSection('Weasel') {
     StealthStatus 2
     XRadarStatus 0
     AntiWarpStatus 0
-    InitialGuns 3
-    MaxGuns 3
-    InitialBombs 0
-    MaxBombs 0
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 0

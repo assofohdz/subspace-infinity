@@ -3,11 +3,8 @@ shipSection('Javelin') {
     ShieldsTime 6000
     Gravity 1500
     GravityTopSpeed 100
-    BulletFireEnergy 300
     MultiFireEnergy 300
-    BombFireEnergy 1100
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 32000
     LandmineFireEnergyUpgrade 0
     BulletSpeed 64636
     BombSpeed 2250
@@ -39,10 +36,7 @@ shipSection('Javelin') {
     BurstSpeed 1
     TurretThrustPenalty 3
     TurretSpeedPenalty 380
-    BulletFireDelay 60
     MultiFireDelay 150
-    BombFireDelay 75
-    LandmineFireDelay 20
     RocketTime 400
     InitialBounty 3
     DamageFactor 0
@@ -51,20 +45,6 @@ shipSection('Javelin') {
     TurretLimit 1
     BurstShrapnel 1
     MaxMines 0
-    RepelMax 0
-    BurstMax 0
-    DecoyMax 1
-    ThorMax 3
-    BrickMax 0
-    PortalMax 0
-    RocketMax 3
-    InitialRepel 0
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 1
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 0
     BombBounceCount 1
     ShrapnelMax 15
     ShrapnelRate 3
@@ -72,10 +52,6 @@ shipSection('Javelin') {
     StealthStatus 0
     XRadarStatus 0
     AntiWarpStatus 0
-    InitialGuns 1
-    MaxGuns 1
-    InitialBombs 1
-    MaxBombs 1
     DoubleBarrel 0
     EmpBomb 0
     SeeMines 1

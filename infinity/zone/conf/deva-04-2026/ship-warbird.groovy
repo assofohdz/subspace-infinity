@@ -3,11 +3,8 @@ shipSection('Warbird') {
     ShieldsTime 3000
     Gravity 1000
     GravityTopSpeed 250
-    BulletFireEnergy 28
     MultiFireEnergy 30
-    BombFireEnergy 325
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 460
     LandmineFireEnergyUpgrade 0
     BulletSpeed 4100
     BombSpeed 4300
@@ -39,10 +36,7 @@ shipSection('Warbird') {
     BurstSpeed 8000
     TurretThrustPenalty 0
     TurretSpeedPenalty 30
-    BulletFireDelay 6
     MultiFireDelay 10
-    BombFireDelay 175
-    LandmineFireDelay 36
     RocketTime 1000
     InitialBounty 3
     DamageFactor 5000
@@ -51,20 +45,6 @@ shipSection('Warbird') {
     TurretLimit 4
     BurstShrapnel 130
     MaxMines 2
-    RepelMax 2
-    BurstMax 2
-    DecoyMax 2
-    ThorMax 0
-    BrickMax 0
-    PortalMax 0
-    RocketMax 0
-    InitialRepel 0
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 1
-    InitialPortal 0
     BombBounceCount 0
     ShrapnelMax 16
     ShrapnelRate 3
@@ -72,10 +52,6 @@ shipSection('Warbird') {
     StealthStatus 1
     XRadarStatus 2
     AntiWarpStatus 0
-    InitialGuns 2
-    MaxGuns 3
-    InitialBombs 3
-    MaxBombs 3
     DoubleBarrel 0
     EmpBomb 1
     SeeMines 0

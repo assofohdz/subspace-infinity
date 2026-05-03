@@ -3,11 +3,8 @@ shipSection('Lancaster') {
     ShieldsTime 6000
     Gravity 1500
     GravityTopSpeed 100
-    BulletFireEnergy 300
     MultiFireEnergy 420
-    BombFireEnergy 32000
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 32000
     LandmineFireEnergyUpgrade 0
     BulletSpeed 3850
     BombSpeed 5000
@@ -39,10 +36,7 @@ shipSection('Lancaster') {
     BurstSpeed 1
     TurretThrustPenalty 3
     TurretSpeedPenalty 360
-    BulletFireDelay 50
     MultiFireDelay 50
-    BombFireDelay 30
-    LandmineFireDelay 20
     RocketTime 1
     InitialBounty 3
     DamageFactor 0
@@ -51,20 +45,6 @@ shipSection('Lancaster') {
     TurretLimit 1
     BurstShrapnel 1
     MaxMines 0
-    RepelMax 0
-    BurstMax 0
-    DecoyMax 1
-    ThorMax 3
-    BrickMax 0
-    PortalMax 0
-    RocketMax 0
-    InitialRepel 0
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 0
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
@@ -72,10 +52,6 @@ shipSection('Lancaster') {
     StealthStatus 0
     XRadarStatus 1
     AntiWarpStatus 0
-    InitialGuns 2
-    MaxGuns 2
-    InitialBombs 0
-    MaxBombs 0
     DoubleBarrel 1
     EmpBomb 0
     SeeMines 0

@@ -8,26 +8,15 @@
 // integer Subspace units (matches ship-<name> INI fragments); the ShipSpawn
 // system converts to ECS-component units (e.g. rad/sec for Rotation) at spawn.
 //
-// DSL:
-//   ship(Ship.WARBIRD) {
-//       rotation initial: <I>, max: <M>, upgrade: <U>
-//       thrust   initial: <I>, max: <M>, upgrade: <U>
-//       speed    initial: <I>, max: <M>, upgrade: <U>
-//       recharge initial: <I>, max: <M>, upgrade: <U>
-//       energy   initial: <I>, max: <M>, upgrade: <U>
-//       dragFactor          <D>     // 0..1 — fraction of Thrust applied as drag while coasting
-//       turnResponsiveness  <R>     // 1/sec — angular ease rate; 8.0 ≈ ~95% of target in ~0.4 sec
-//       bounceRestitution   <B>     // 0..1 — wall-bounce energy retention; 1.0 = perfectly elastic
-//       radarRange          <RR>    // world units — radar viewport visible radius around the ship
-//   }
-//
-// Omit a stat to leave it at ShipStat(0, 0, 0). The three feel knobs default to
-// 0.05 / 8.0 / 1.0 (the historical Java globals) when omitted; radarRange
-// defaults to 250 world units.
+// Inventory blocks (B2-Migration): each block declares an inventory item the
+// ship can carry. Omit the block to disallow that item entirely (= null in
+// ShipConfig; per-ship *Max component not projected; prize applier no-ops on
+// pickup). Per Q6 of the B2 grilled-through plan
+// (.scratch/settings-pipeline-slices.md), authored Subspace `*Max 0` values
+// translate to "omit block."
 //
 // All 8 ships are configured. Numeric stats mirror the per-ship `ship-<name>`
-// INI fragments in this directory (the canonical trench tuning). Feel knobs
-// are uniform across ships for now — tune per-ship empirically.
+// INI fragments in this directory (the canonical deva tuning).
 
 ship(Ship.WARBIRD) {
     rotation initial: 200,  max: 200,  upgrade: 0
@@ -39,6 +28,12 @@ ship(Ship.WARBIRD) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 325, fireDelay: 175
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 28,  fireDelay: 6
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 460, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 2
+    decoys  start: 1, max: 2
 }
 
 ship(Ship.JAVELIN) {
@@ -51,6 +46,12 @@ ship(Ship.JAVELIN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 510, fireDelay: 25
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 27,  fireDelay: 6
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 2
+    decoys  start: 1, max: 3
 }
 
 ship(Ship.SPIDER) {
@@ -63,6 +64,12 @@ ship(Ship.SPIDER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 300, fireDelay: 200
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 25,  fireDelay: 8
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 2
+    decoys  start: 0, max: 2
 }
 
 ship(Ship.LEVIATHAN) {
@@ -75,6 +82,12 @@ ship(Ship.LEVIATHAN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 45
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 6
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 625, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 3
+    decoys  start: 0, max: 3
 }
 
 ship(Ship.TERRIER) {
@@ -87,6 +100,12 @@ ship(Ship.TERRIER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 207
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 10
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 400, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 2
+    decoys  start: 0, max: 2
 }
 
 ship(Ship.WEASEL) {
@@ -99,6 +118,12 @@ ship(Ship.WEASEL) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 400, fireDelay: 175
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 27,  fireDelay: 5
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 250, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 1
+    decoys  start: 0, max: 2
 }
 
 ship(Ship.LANCASTER) {
@@ -111,6 +136,12 @@ ship(Ship.LANCASTER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 600, fireDelay: 25
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 6
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 36
+    bursts  start: 0, max: 2
+    repels  start: 0, max: 2
+    decoys  start: 1, max: 2
 }
 
 ship(Ship.SHARK) {
@@ -123,4 +154,10 @@ ship(Ship.SHARK) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 320, fireDelay: 180
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 29,  fireDelay: 8
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
+    bursts  start: 0, max: 3
+    repels  start: 0, max: 2
+    decoys  start: 0, max: 2
 }

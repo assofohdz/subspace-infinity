@@ -3,11 +3,8 @@ shipSection('Shark') {
     ShieldsTime 6000
     Gravity 1500
     GravityTopSpeed 100
-    BulletFireEnergy 32000
     MultiFireEnergy 32000
-    BombFireEnergy 1150
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 200
     LandmineFireEnergyUpgrade 0
     BulletSpeed 1
     BombSpeed 1
@@ -39,10 +36,7 @@ shipSection('Shark') {
     BurstSpeed 1
     TurretThrustPenalty 4
     TurretSpeedPenalty 450
-    BulletFireDelay 32000
     MultiFireDelay 32000
-    BombFireDelay 45
-    LandmineFireDelay 10
     RocketTime 1
     InitialBounty 3
     DamageFactor 0
@@ -51,20 +45,6 @@ shipSection('Shark') {
     TurretLimit 1
     BurstShrapnel 1
     MaxMines 4
-    RepelMax 3
-    BurstMax 0
-    DecoyMax 1
-    ThorMax 3
-    BrickMax 0
-    PortalMax 0
-    RocketMax 0
-    InitialRepel 3
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 0
     BombBounceCount 0
     ShrapnelMax 8
     ShrapnelRate 3
@@ -72,10 +52,6 @@ shipSection('Shark') {
     StealthStatus 0
     XRadarStatus 1
     AntiWarpStatus 0
-    InitialGuns 0
-    MaxGuns 0
-    InitialBombs 1
-    MaxBombs 1
     DoubleBarrel 0
     EmpBomb 1
     SeeMines 1

@@ -380,16 +380,21 @@ public final class GroovyShipLoader {
     private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
     private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
     private double radarRange = DEFAULT_RADAR_RANGE;
-    private BombStats bombs = DEFAULT_BOMBS;
-    private GunStats guns = DEFAULT_GUNS;
-    private MineStats mines = DEFAULT_MINES;
-    private CountStats bursts = DEFAULT_BURSTS;
-    private CountWithDelayStats thors = DEFAULT_THORS;
-    private CountStats repels = DEFAULT_REPELS;
-    private CountStats decoys = DEFAULT_DECOYS;
-    private CountStats bricks = DEFAULT_BRICKS;
-    private CountStats rockets = DEFAULT_ROCKETS;
-    private CountStats portals = DEFAULT_PORTALS;
+    // Inventory fields default to null per the Q6 grilled-through decision
+    // (.scratch/settings-pipeline-slices.md): an explicit `ship(Ship.X) { … }`
+    // block disallows any inventory type whose block isn't declared. The
+    // permissive `DEFAULT_*` constants above remain in use only by FALLBACK
+    // (the snapshot installed when ships.groovy is missing or fails to parse).
+    private BombStats bombs = null;
+    private GunStats guns = null;
+    private MineStats mines = null;
+    private CountStats bursts = null;
+    private CountWithDelayStats thors = null;
+    private CountStats repels = null;
+    private CountStats decoys = null;
+    private CountStats bricks = null;
+    private CountStats rockets = null;
+    private CountStats portals = null;
 
     // Package-private so unit tests in this package can build configs without
     // standing up the full GroovyShell pipeline.

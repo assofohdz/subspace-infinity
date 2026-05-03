@@ -10,25 +10,7 @@
 section('Warbird') {
     // Weapons inventory caps — was 0 in the canonical fragment, so the ship
     // could never carry these. Bump to non-zero so prize pickups land.
-    InitialBombs 1
-    MaxBombs 4
     MaxMines 4
-    InitialGuns 1
-    MaxGuns 4
-    BurstMax 5
-    InitialBurst 0
-    DecoyMax 3
-    InitialDecoy 0
-    ThorMax 3
-    InitialThor 0
-    RepelMax 5
-    InitialRepel 0
-    PortalMax 2
-    InitialPortal 0
-    BrickMax 2
-    InitialBrick 0
-    RocketMax 2
-    InitialRocket 0
 }
 
 // Bump weights for the weapon / movement prizes the testbed should produce.

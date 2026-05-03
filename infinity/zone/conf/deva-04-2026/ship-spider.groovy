@@ -3,11 +3,8 @@ shipSection('Spider') {
     ShieldsTime 3000
     Gravity 1000
     GravityTopSpeed 250
-    BulletFireEnergy 25
     MultiFireEnergy 45
-    BombFireEnergy 300
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 500
     LandmineFireEnergyUpgrade 0
     BulletSpeed 4100
     BombSpeed 4300
@@ -39,10 +36,7 @@ shipSection('Spider') {
     BurstSpeed 8000
     TurretThrustPenalty 0
     TurretSpeedPenalty 40
-    BulletFireDelay 8
     MultiFireDelay 9
-    BombFireDelay 200
-    LandmineFireDelay 36
     RocketTime 1000
     InitialBounty 3
     DamageFactor 5000
@@ -51,20 +45,6 @@ shipSection('Spider') {
     TurretLimit 3
     BurstShrapnel 130
     MaxMines 2
-    RepelMax 2
-    BurstMax 2
-    DecoyMax 2
-    ThorMax 0
-    BrickMax 0
-    PortalMax 0
-    RocketMax 0
-    InitialRepel 0
-    InitialBurst 0
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 0
     BombBounceCount 2
     ShrapnelMax 16
     ShrapnelRate 3
@@ -72,10 +52,6 @@ shipSection('Spider') {
     StealthStatus 1
     XRadarStatus 1
     AntiWarpStatus 0
-    InitialGuns 2
-    MaxGuns 3
-    InitialBombs 2
-    MaxBombs 3
     DoubleBarrel 1
     EmpBomb 1
     SeeMines 0

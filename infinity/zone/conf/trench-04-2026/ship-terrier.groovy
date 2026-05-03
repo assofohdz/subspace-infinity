@@ -3,11 +3,8 @@ shipSection('Terrier') {
     ShieldsTime 6000
     Gravity 1500
     GravityTopSpeed 100
-    BulletFireEnergy 400
     MultiFireEnergy 500
-    BombFireEnergy 32000
     BombFireEnergyUpgrade 0
-    LandmineFireEnergy 32000
     LandmineFireEnergyUpgrade 0
     BulletSpeed 800
     BombSpeed 5000
@@ -39,10 +36,7 @@ shipSection('Terrier') {
     BurstSpeed 3500
     TurretThrustPenalty 1
     TurretSpeedPenalty 150
-    BulletFireDelay 75
     MultiFireDelay 75
-    BombFireDelay 30
-    LandmineFireDelay 20
     RocketTime 1
     InitialBounty 3
     DamageFactor 0
@@ -51,20 +45,6 @@ shipSection('Terrier') {
     TurretLimit 10
     BurstShrapnel 3
     MaxMines 0
-    RepelMax 0
-    BurstMax 1
-    DecoyMax 1
-    ThorMax 3
-    BrickMax 0
-    PortalMax 1
-    RocketMax 0
-    InitialRepel 0
-    InitialBurst 1
-    InitialBrick 0
-    InitialRocket 0
-    InitialThor 0
-    InitialDecoy 0
-    InitialPortal 1
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
@@ -72,10 +52,6 @@ shipSection('Terrier') {
     StealthStatus 0
     XRadarStatus 2
     AntiWarpStatus 0
-    InitialGuns 1
-    MaxGuns 1
-    InitialBombs 0
-    MaxBombs 0
     DoubleBarrel 1
     EmpBomb 0
     SeeMines 1
