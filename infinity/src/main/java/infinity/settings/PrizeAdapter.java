@@ -17,9 +17,10 @@ import java.util.List;
  *
  * <pre>{@code
  * prize {
- *     minExist        4000    // [Prize] PrizeMinExist  (cs → ms ×10); optional
- *     maxExist        8000    // [Prize] PrizeMaxExist  (cs → ms ×10)
- *     deathPrizeTime  1500    // [Prize] DeathPrizeTime (cs → ms ×10); optional, 0=disabled
+ *     minExist        4000    // [Prize] PrizeMinExist       (cs → ms ×10); optional
+ *     maxExist        8000    // [Prize] PrizeMaxExist       (cs → ms ×10)
+ *     deathPrizeTime  1500    // [Prize] DeathPrizeTime      (cs → ms ×10); optional, 0=disabled
+ *     negativeFactor  1000    // [Prize] PrizeNegativeFactor (1-in-N);     optional, 0=disabled
  * }
  * }</pre>
  *
@@ -35,11 +36,15 @@ import java.util.List;
  * (= death-drops disabled), preserving 1:1 behaviour for un-migrated
  * arenas.
  *
+ * <p>{@code negativeFactor} is Subspace's 1-in-N odds for a spawning
+ * prize to be replaced by {@code Dud}. Omitting it leaves
+ * {@code prizeNegativeFactor == 0} (= no negative-prize roll).
+ *
  * <p>Other Subspace {@code [Prize]} keys (PrizeFactor, PrizeDelay,
- * MultiPrizeCount, PrizeNegativeFactor, PrizeHideCount,
- * EngineShutdownTime, etc.) aren't in {@link PrizeConfig} today — they're
- * sub-slices 8c/8d work per the slice queue. The adapter only exposes
- * fields that have a typed config + active consumer.
+ * MultiPrizeCount, PrizeHideCount, EngineShutdownTime, etc.) aren't in
+ * {@link PrizeConfig} today — they're sub-slice 8d (deferred) / polish-
+ * bag work per the slice queue. The adapter only exposes fields that
+ * have a typed config + active consumer.
  */
 public final class PrizeAdapter
     implements GroovySettingsAdapter<PrizeConfig, PrizeAdapter.PrizeBuilder> {
@@ -97,6 +102,7 @@ public final class PrizeAdapter
     private long defaultDecayMs = PrizeConfig.DEFAULTS.defaultDecayMs();
     private Long defaultMinDecayMs = null; // null = "not authored; pin to defaultDecayMs at build()"
     private long deathPrizeTimeMs = PrizeConfig.DEFAULTS.deathPrizeTimeMs(); // 0 = disabled
+    private int prizeNegativeFactor = PrizeConfig.DEFAULTS.prizeNegativeFactor(); // 0 = disabled
 
     PrizeBuilder() {}
 
@@ -126,6 +132,15 @@ public final class PrizeAdapter
       this.deathPrizeTimeMs = centiseconds * 10L;
     }
 
+    /**
+     * {@code [Prize] PrizeNegativeFactor} — 1-in-N odds for a spawning
+     * prize to be replaced by {@code Dud}. Optional — omit to leave at
+     * {@code 0} (no negative-prize roll).
+     */
+    public void negativeFactor(final int oneInN) {
+      this.prizeNegativeFactor = oneInN;
+    }
+
     PrizeConfig build() {
       final long min =
           defaultMinDecayMs != null ? defaultMinDecayMs.longValue() : defaultDecayMs;
@@ -141,6 +156,7 @@ public final class PrizeAdapter
           defaultDecayMs,
           min,
           deathPrizeTimeMs,
+          prizeNegativeFactor,
           PrizeConfig.DEFAULTS.defaultMaxCount(),
           PrizeConfig.DEFAULTS.bountyValue());
     }

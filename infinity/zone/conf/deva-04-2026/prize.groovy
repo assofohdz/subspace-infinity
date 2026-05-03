@@ -14,4 +14,5 @@ prize {
     minExist        2000    // 20 sec — proportional to deva's shorter maxExist
     maxExist        5000    // 50 sec
     deathPrizeTime  1500    // 15 sec — Subspace SVS canonical death-drop lifetime (Slice 8b)
+    negativeFactor  1000    // 1-in-1000 odds for a green to spawn as a Dud (Slice 8c)
 }

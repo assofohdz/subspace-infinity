@@ -423,6 +423,12 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   private EntityId spawnBounty(
       EntityId spawnerId, Spawner spawner, Vec3d spawnerLocation, double radius) {
     String prizeType = getPrizeType(spawnerId);
+    final ArenaId arenaId = ed.getComponent(spawnerId, ArenaId.class);
+    final infinity.config.PrizeConfig prize =
+        arenaId == null
+            ? infinity.config.PrizeConfig.DEFAULTS
+            : configRegistry.forArena(arenaId).prize();
+    prizeType = maybeRollNegative(prizeType, prize);
     Vec3d prizeSpawnLocation =
         this.getSpawnLocation(spawnerLocation, radius, spawner.spawnOnRing());
     final long decayMs = resolveDecayMs(spawnerId, spawner);
@@ -433,6 +439,36 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         prizeSpawnLocation,
         prizeType,
         decayMs);
+  }
+
+  /**
+   * Subspace 1-in-N negative-prize roll (REFERENCE.md {@code ## Prize}
+   * → {@code PrizeNegativeFactor}). When the roll hits, the selected
+   * prize-type is replaced by {@link PrizeTypes#DUD} (a no-op pickup
+   * applier). Slice 8c implements the canonical odds via DUD
+   * substitution rather than building inverse stat-degradation
+   * appliers — the config knob preserves the probability semantics so
+   * a follow-up slice can swap the substitution for proper inverse
+   * appliers without re-authoring presets.
+   *
+   * <p>Short-circuits when:
+   * <ul>
+   *   <li>{@code prizeNegativeFactor <= 0} — roll disabled (default for
+   *       un-authored arenas; preserves 1:1 behaviour).
+   *   <li>The selected type is already {@link PrizeTypes#DUD} — re-rolling
+   *       to DUD is a no-op.
+   * </ul>
+   */
+  String maybeRollNegative(final String prizeType, final infinity.config.PrizeConfig prize) {
+    final int factor = prize.prizeNegativeFactor();
+    if (factor <= 0 || PrizeTypes.DUD.equals(prizeType)) {
+      return prizeType;
+    }
+    if (random.nextInt(factor) == 0) {
+      log.info("Negative-prize roll hit (1 in {}): {} → Dud", factor, prizeType);
+      return PrizeTypes.DUD;
+    }
+    return prizeType;
   }
 
   private long resolveDecayMs(final EntityId spawnerId, final Spawner spawner) {
@@ -526,10 +562,11 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       return;
     }
     final String arenaName = arenaId == null ? null : arenaId.getArena();
-    final String prizeType =
+    final String selected =
         arenaName == null
             ? globalFallbackSelector.next(random)
             : arenaSelector(arenaName).next(random);
+    final String prizeType = maybeRollNegative(selected, prize);
     GameEntities.createPrize(ed, phys, timeNs, deathPosition, prizeType, deathPrizeTimeMs);
     log.info(
         "Death-drop: ship {} died in arena '{}' at {} → spawned {} (lifetime={} ms)",

@@ -344,7 +344,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `UpgradeVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ✅ | `PrizeMaxExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultDecayMs` | — | `PrizeSystem` (decay routing for prize entities) | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `PrizeMinExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultMinDecayMs` | — | `PrizeSystem.sampleDecayMs` (uniform random in `[minDecayMs, maxDecayMs]` for spawners with no explicit `ttlMs`) | ✅ `ConfigRegistrySystemLoadTest` |
-| ⚠️ | `PrizeNegativeFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `PrizeNegativeFactor` | ✅ prize.groovy | `PrizeAdapter` (raw int) | `PrizeConfig.prizeNegativeFactor` | — | `PrizeSystem.maybeRollNegative` (1-in-N → swap to `Dud` via DUD substitution; called from both `spawnBounty` + `spawnDeathPrize`) | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `DeathPrizeTime` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.deathPrizeTimeMs` | — | `EnergySystem` death branch → `PrizeSystem.spawnDeathPrize` (1 weighted prize at ship's `BodyPosition` on death; no-op when `deathPrizeTimeMs == 0`) | ✅ `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `EngineShutdownTime` | ✅ misc.groovy | ❌ | ❌ | (Glue family — see Status appliers) | ❌ | ❌ |
 | ⚠️ | `TakePrizeReliable` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |

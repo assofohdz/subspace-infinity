@@ -277,6 +277,13 @@ public class ConfigRegistrySystemLoadTest {
           15_000L,
           snapshot.prize().deathPrizeTimeMs());
 
+      // Slice 8c: PrizeNegativeFactor — 1-in-N odds for a spawning prize
+      // to be replaced by Dud. trench: negativeFactor 1000.
+      assertEquals(
+          "trench's [Prize] PrizeNegativeFactor = 1000 (1-in-1000 odds)",
+          1000,
+          snapshot.prize().prizeNegativeFactor());
+
       // Typed prize-weights.groovy populated the prizeWeights slot (B3).
       // trench is a no-greens preset for most prize types; sample the few
       // non-zero entries to pin the typed loader's behaviour.

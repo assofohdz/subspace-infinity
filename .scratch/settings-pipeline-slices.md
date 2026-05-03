@@ -394,11 +394,31 @@ it. Whoever fixes the broader respawn flow (Slice TBD) decides
 whether to register it, replace it, or delete it.
 
 ### Slice 8c — Negative prizes (`PrizeNegativeFactor`)
-🔲 `[Prize] PrizeNegativeFactor` flips a prize to its "negative"
-counterpart at 1-in-N odds (Subspace canon: 1=every prize negative,
-32000=extremely rare). Requires the negative-prize family — needs
-content-side decision on which prizes have negatives + applier-side
-inverse semantics.
+✅ `[Prize] PrizeNegativeFactor` wired via DUD substitution
+(option E from grilling — gentler than canonical inverse stat
+degradation): when the 1-in-N roll hits at prize-spawn time, the
+selected prize-type is replaced by `Dud` (existing no-op applier)
+instead of running an inverse stat-loss effect. Preserves the
+canonical *probability* semantics so a future follow-up slice can
+swap DUD for proper inverse appliers without re-authoring presets.
+Plumbed:
+- `PrizeConfig.prizeNegativeFactor` field (default `0` = disabled).
+- `PrizeAdapter` parses optional `negativeFactor <int>`.
+- `PrizeSystem.maybeRollNegative(prizeType, prizeConfig)` —
+  no-ops when `factor <= 0` or selected is already `Dud`; otherwise
+  `random.nextInt(factor) == 0` triggers DUD substitution.
+- `spawnBounty` + `spawnDeathPrize` both route through the helper.
+
+Active arenas authored: trench + deva each set
+`negativeFactor 1000` (Subspace SVS canon, 1-in-1000 odds).
+Test: `ConfigRegistrySystemLoadTest` extended.
+
+**Out of scope (own follow-up slice):** the inverse-applier matrix
+(stat-downgrade Energy/Recharge/Rotation/Thruster/TopSpeed
+appliers, weapon-level demotion, inventory removal). The DUD
+substitution preserves the probability knob's semantics so the
+follow-up just swaps the dispatch target without touching
+`prize.groovy` author surface.
 
 ### Slice 8d — Subspace canonical hidden-prize regen loop (deferred,
 big) `[Prize] PrizeFactor`, `PrizeDelay`, `MinimumVirtual`,
