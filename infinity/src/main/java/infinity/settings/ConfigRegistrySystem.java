@@ -188,8 +188,17 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     Objects.requireNonNull(arenaConfig, "arenaConfig");
     final String arenaName = arenaId.getArena();
 
-    // Phase 1: fragment Ini load (legacy compat; B4 deletes)
-    settings.loadFragments(arenaName, arenaConfig.fragmentIncludes());
+    // Phase 1: fragment Ini load (legacy compat; B4 deletes). Skips fragments
+    // that have a typed adapter — those are handled in Phase 3b's dispatch
+    // and would fail INI-mirror parse since their content uses typed-DSL
+    // blocks (e.g. `bullet { damageLevel 200 }`) instead of `section('Bullet')`.
+    final java.util.List<String> iniFragments = new java.util.ArrayList<>();
+    for (final String path : arenaConfig.fragmentIncludes()) {
+      if (path != null && !DISPATCH.containsKey(basenameOf(path))) {
+        iniFragments.add(path);
+      }
+    }
+    settings.loadFragments(arenaName, iniFragments);
 
     // Phase 2: ships via typed loader (installs ship-only snapshot)
     final String shipsScript =
