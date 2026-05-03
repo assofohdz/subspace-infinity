@@ -94,8 +94,32 @@ effect only. The plumbing is canonical and ready; the impulse system is
 the next gate.
 
 ### Slice 2 — Rocket feel
-🔲 `[Rocket]` RocketThrust, RocketSpeed; per-ship `RocketTime`.
-Applier `RocketPrizeApplier` already ✅.
+✅ Full-loop landed: `[Rocket] RocketThrust`/`RocketSpeed` arena-global +
+per-ship `RocketTime` wired end-to-end. Typed `rocket.groovy` adapter
+(`RocketAdapter`) → `RocketConfig` → `ConfigRegistry.rocket()` slot.
+Per-ship `rockets start: N, max: M, activeTimeCs: T` extended via new
+`RocketStats` record (replaces `CountStats` for rockets) →
+`ShipSpawnSystem.projectRockets` projects `Rocket`/`RocketMax`/`RocketTime`
+onto the ship.
+
+Fire path: `ConsumableSystem.actOut FIREROCKET` decrements `Rocket`,
+snapshots ship's `Thrust`/`Speed`, swaps to `RocketConfig` overrides,
+creates a buff entity (`Parent`+`RocketBuff`+`RocketSnapshot`+`Decay`)
+via `GameEntities.createRocketBuff`. New `RocketBuffSystem` watches the
+buff EntitySet — on add it stamps `RocketActive` on the ship + caches
+the snapshot keyed by buff id (Zay-ES `getRemovedEntities` doesn't
+preserve component values); on the canonical Decay reaper deleting the
+buff, the cached snapshot reverts the ship's `Thrust`/`Speed` and
+strips `RocketActive`.
+
+Active arenas only (trench + deva); SVS-family deferred. Tests:
+`ConfigRegistrySystemLoadTest` pins arena-global + per-ship parsing;
+`RocketBuffActivationTest` pins the swap/revert lifecycle through the
+buff entity's add+remove edges.
+
+Follow-up (own slice): wire a client-side input binding for FIREROCKET
+(no key bound today; server-side seam is canonical and ready). Also a
+fire-SFX entity once a rocket-fire audio asset lands.
 
 ### Slice 3 — Brick feel
 🔲 `[Brick]` BrickTime, BrickSpan.
@@ -334,9 +358,9 @@ files when every cluster is migrated.
 - Multifire/DoubleBarrel → S14
 - Turret family → S15
 - Polish bag: Radius, DamageFactor, EmpBomb, SeeBombLevel, SeeMines,
-  RocketTime (per-ship duration — see Slice 2), AfterburnerEnergy,
-  InitialBounty, AttachBounty, PrizeShareLimit, DisableFastShooting,
-  BombThrust, BombBounceCount, BurstShrapnel, MaxMines (count cap)
+  AfterburnerEnergy, InitialBounty, AttachBounty, PrizeShareLimit,
+  DisableFastShooting, BombThrust, BombBounceCount, BurstShrapnel,
+  MaxMines (count cap)
 - SVS-family per-ship migrations + typed `shipSections` splat removal
   (deferred until those presets become active arenas).
 

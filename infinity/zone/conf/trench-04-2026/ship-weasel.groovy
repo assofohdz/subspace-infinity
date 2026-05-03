@@ -37,7 +37,6 @@ shipSection('Weasel') {
     TurretThrustPenalty 5
     TurretSpeedPenalty 220
     MultiFireDelay 40
-    RocketTime 80
     InitialBounty 3
     DamageFactor 2000
     PrizeShareLimit 0

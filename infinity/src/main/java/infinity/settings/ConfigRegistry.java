@@ -12,6 +12,7 @@ import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
+import infinity.config.RocketConfig;
 import infinity.config.ShipConfig;
 import infinity.config.ThorConfig;
 import java.util.Collections;
@@ -48,6 +49,7 @@ public final class ConfigRegistry {
   private final MineConfig mine;
   private final BurstFireConfig burst;
   private final RepelConfig repel;
+  private final RocketConfig rocket;
   private final ThorConfig thor;
   private final PrizeConfig prize;
   private final PrizeWeightsConfig prizeWeights;
@@ -60,6 +62,7 @@ public final class ConfigRegistry {
       final MineConfig mine,
       final BurstFireConfig burst,
       final RepelConfig repel,
+      final RocketConfig rocket,
       final ThorConfig thor,
       final PrizeConfig prize,
       final PrizeWeightsConfig prizeWeights) {
@@ -72,6 +75,7 @@ public final class ConfigRegistry {
     this.mine = mine;
     this.burst = burst;
     this.repel = repel;
+    this.rocket = rocket;
     this.thor = thor;
     this.prize = prize;
     this.prizeWeights = prizeWeights;
@@ -110,6 +114,9 @@ public final class ConfigRegistry {
   /** Per-arena Repel-effect tuning. Never {@code null} (defaults to {@link RepelConfig#DEFAULTS}). */
   public RepelConfig repel() { return repel; }
 
+  /** Per-arena Rocket-buff tuning ({@code RocketThrust}/{@code RocketSpeed}). Never {@code null} (defaults to {@link RocketConfig#DEFAULTS}). */
+  public RocketConfig rocket() { return rocket; }
+
   /** Per-arena Thor projectile tuning. Never {@code null} (defaults to {@link ThorConfig#DEFAULTS}). */
   public ThorConfig thor() { return thor; }
 
@@ -139,55 +146,61 @@ public final class ConfigRegistry {
   /** Return a copy of this snapshot with {@link #bullet} replaced. */
   public ConfigRegistry withBullet(final BulletConfig replacement) {
     Objects.requireNonNull(replacement, "bullet");
-    return copyWith(replacement, bomb, gravBomb, mine, burst, repel, thor, prize, prizeWeights);
+    return copyWith(replacement, bomb, gravBomb, mine, burst, repel, rocket, thor, prize, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #bomb} replaced. */
   public ConfigRegistry withBomb(final BombConfig replacement) {
     Objects.requireNonNull(replacement, "bomb");
-    return copyWith(bullet, replacement, gravBomb, mine, burst, repel, thor, prize, prizeWeights);
+    return copyWith(bullet, replacement, gravBomb, mine, burst, repel, rocket, thor, prize, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #gravBomb} replaced. */
   public ConfigRegistry withGravBomb(final GravBombConfig replacement) {
     Objects.requireNonNull(replacement, "gravBomb");
-    return copyWith(bullet, bomb, replacement, mine, burst, repel, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, replacement, mine, burst, repel, rocket, thor, prize, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #mine} replaced. */
   public ConfigRegistry withMine(final MineConfig replacement) {
     Objects.requireNonNull(replacement, "mine");
-    return copyWith(bullet, bomb, gravBomb, replacement, burst, repel, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, replacement, burst, repel, rocket, thor, prize, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #burst} replaced. */
   public ConfigRegistry withBurst(final BurstFireConfig replacement) {
     Objects.requireNonNull(replacement, "burst");
-    return copyWith(bullet, bomb, gravBomb, mine, replacement, repel, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, replacement, repel, rocket, thor, prize, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #repel} replaced. */
   public ConfigRegistry withRepel(final RepelConfig replacement) {
     Objects.requireNonNull(replacement, "repel");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, replacement, thor, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, replacement, rocket, thor, prize, prizeWeights);
+  }
+
+  /** Return a copy of this snapshot with {@link #rocket} replaced. */
+  public ConfigRegistry withRocket(final RocketConfig replacement) {
+    Objects.requireNonNull(replacement, "rocket");
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, replacement, thor, prize, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #thor} replaced. */
   public ConfigRegistry withThor(final ThorConfig replacement) {
     Objects.requireNonNull(replacement, "thor");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, replacement, prize, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, replacement, prize, prizeWeights);
   }
 
   /** Counterpart to the weapon-section withers for the {@code [Prize]} fragment section. */
   public ConfigRegistry withPrize(final PrizeConfig replacement) {
     Objects.requireNonNull(replacement, "prize");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, thor, replacement, prizeWeights);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, thor, replacement, prizeWeights);
   }
 
   /** Return a copy of this snapshot with {@link #prizeWeights} replaced. */
   public ConfigRegistry withPrizeWeights(final PrizeWeightsConfig replacement) {
     Objects.requireNonNull(replacement, "prizeWeights");
-    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, thor, prize, replacement);
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, rocket, thor, prize, replacement);
   }
 
   private ConfigRegistry copyWith(
@@ -197,13 +210,14 @@ public final class ConfigRegistry {
       final MineConfig mine,
       final BurstFireConfig burst,
       final RepelConfig repel,
+      final RocketConfig rocket,
       final ThorConfig thor,
       final PrizeConfig prize,
       final PrizeWeightsConfig prizeWeights) {
     final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
     source.putAll(this.ships);
     return new ConfigRegistry(
-        source, bullet, bomb, gravBomb, mine, burst, repel, thor, prize, prizeWeights);
+        source, bullet, bomb, gravBomb, mine, burst, repel, rocket, thor, prize, prizeWeights);
   }
 
   /**
@@ -221,6 +235,7 @@ public final class ConfigRegistry {
     private MineConfig mine = MineConfig.DEFAULTS;
     private BurstFireConfig burst = BurstFireConfig.DEFAULTS;
     private RepelConfig repel = RepelConfig.DEFAULTS;
+    private RocketConfig rocket = RocketConfig.DEFAULTS;
     private ThorConfig thor = ThorConfig.DEFAULTS;
     private PrizeConfig prize = PrizeConfig.DEFAULTS;
     private PrizeWeightsConfig prizeWeights = PrizeWeightsConfig.DEFAULTS;
@@ -262,6 +277,11 @@ public final class ConfigRegistry {
       return this;
     }
 
+    public Builder rocket(final RocketConfig rocket) {
+      this.rocket = Objects.requireNonNull(rocket, "rocket");
+      return this;
+    }
+
     public Builder thor(final ThorConfig thor) {
       this.thor = Objects.requireNonNull(thor, "thor");
       return this;
@@ -279,7 +299,7 @@ public final class ConfigRegistry {
 
     public ConfigRegistry build() {
       return new ConfigRegistry(
-          ships, bullet, bomb, gravBomb, mine, burst, repel, thor, prize, prizeWeights);
+          ships, bullet, bomb, gravBomb, mine, burst, repel, rocket, thor, prize, prizeWeights);
     }
   }
 }

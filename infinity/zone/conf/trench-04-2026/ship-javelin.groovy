@@ -37,7 +37,6 @@ shipSection('Javelin') {
     TurretThrustPenalty 3
     TurretSpeedPenalty 380
     MultiFireDelay 150
-    RocketTime 400
     InitialBounty 3
     DamageFactor 0
     PrizeShareLimit 0

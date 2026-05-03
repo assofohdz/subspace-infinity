@@ -12,6 +12,7 @@ import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
+import infinity.config.RocketConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.Map;
@@ -88,6 +89,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final RepelConfig parsed =
                 GroovySettingsHost.INSTANCE.load(RepelAdapter.INSTANCE, path);
             return current.withRepel(parsed != null ? parsed : RepelConfig.DEFAULTS);
+          },
+          "rocket.groovy",
+          (current, path) -> {
+            final RocketConfig parsed =
+                GroovySettingsHost.INSTANCE.load(RocketAdapter.INSTANCE, path);
+            return current.withRocket(parsed != null ? parsed : RocketConfig.DEFAULTS);
           },
           "prize.groovy",
           (current, path) -> {

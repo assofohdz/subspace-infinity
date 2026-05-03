@@ -113,6 +113,7 @@ import infinity.sim.InfinityEntityBodyFactory;
 import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ship.ConsumableSystem;
+import infinity.systems.ship.RocketBuffSystem;
 import infinity.systems.ArenaMembershipSystem;
 import infinity.systems.ArenaSystem;
 import infinity.systems.ChecksSystem;
@@ -317,6 +318,7 @@ public class GameServer {
     systems.register(MobSystem.class, new MobSystem());
     systems.register(WeaponsSystem.class, new WeaponsSystem());
     systems.register(ConsumableSystem.class, new ConsumableSystem());
+    systems.register(RocketBuffSystem.class, new RocketBuffSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
     systems.register(ArenaMembershipSystem.class, new ArenaMembershipSystem());
     systems.register(RegionSystem.class, new RegionSystem());

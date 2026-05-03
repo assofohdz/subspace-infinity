@@ -37,7 +37,6 @@ shipSection('Warbird') {
     TurretThrustPenalty 4
     TurretSpeedPenalty 400
     MultiFireDelay 100
-    RocketTime 1
     InitialBounty 3
     DamageFactor 0
     PrizeShareLimit 0

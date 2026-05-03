@@ -70,11 +70,6 @@ section('Brick') {
     BrickTime 1000
 }
 
-section('Rocket') {
-    RocketThrust 85
-    RocketSpeed 4000
-}
-
 section('Door') {
     DoorDelay 0
     DoorMode 255

@@ -24,4 +24,8 @@ public class Rocket implements EntityComponent {
     public int getCount() {
         return count;
     }
+
+    public Rocket decrement(final int amount) {
+        return new Rocket(count - amount);
+    }
 }

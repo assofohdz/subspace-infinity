@@ -53,7 +53,8 @@ import javax.annotation.Nullable;
  * @param repels starting + max repel inventory count; {@code null} = no repels
  * @param decoys starting + max decoy inventory count; {@code null} = no decoys
  * @param bricks starting + max brick inventory count; {@code null} = no bricks
- * @param rockets starting + max rocket inventory count; {@code null} = no rockets
+ * @param rockets starting + max rocket inventory count + per-ship buff
+ *     lifetime ({@code RocketTime}); {@code null} = no rockets
  * @param portals starting + max portal inventory count; {@code null} = no portals
  */
 public record ShipConfig(
@@ -75,5 +76,5 @@ public record ShipConfig(
     @Nullable CountStats repels,
     @Nullable CountStats decoys,
     @Nullable CountStats bricks,
-    @Nullable CountStats rockets,
+    @Nullable RocketStats rockets,
     @Nullable CountStats portals) {}

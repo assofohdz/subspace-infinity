@@ -27,7 +27,7 @@
 //       repels  start: <I>, max: <M>
 //       decoys  start: <I>, max: <M>
 //       bricks  start: <I>, max: <M>
-//       rockets start: <I>, max: <M>
+//       rockets start: <I>, max: <M>, activeTimeCs: <T>   // T = per-ship Subspace [Ship] RocketTime (cs)
 //       portals start: <I>, max: <M>
 //   }
 //
@@ -69,7 +69,7 @@ ship(Ship.JAVELIN) {
     guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 300,  fireDelay: 60
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
-    rockets start: 1, max: 3
+    rockets start: 1, max: 3, activeTimeCs: 400
 }
 
 ship(Ship.SPIDER) {
@@ -139,7 +139,7 @@ ship(Ship.WEASEL) {
     repels  start: 0, max: 1
     decoys  start: 0, max: 1
     bricks  start: 0, max: 2
-    rockets start: 0, max: 1
+    rockets start: 0, max: 1, activeTimeCs: 80
 }
 
 ship(Ship.LANCASTER) {

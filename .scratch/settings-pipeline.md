@@ -403,8 +403,8 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ⚠️ | `RocketThrust` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `RocketSpeed` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `RocketThrust` | ✅ rocket.groovy | `RocketAdapter` (typed DSL) | `RocketConfig.thrust` | — | `ConsumableSystem.createRocketBuff` (Thrust override on ship for buff lifetime) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `RocketSpeed` | ✅ rocket.groovy | `RocketAdapter` (typed DSL) | `RocketConfig.speed` | — | `ConsumableSystem.createRocketBuff` (Speed override on ship for buff lifetime) | ✅ `ConfigRegistrySystemLoadTest` |
 
 ## [Shrapnel]
 
@@ -518,7 +518,7 @@ is the macro view.
 | ⚠️ | `BurstSpeed` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `BurstShrapnel` | ✅ ships.groovy | ❌ (lives in `BurstFireConfig.projectileCount`?) | partial | — | `WeaponsSystem.createProjectileBurst` | ❌ |
 | ⚠️ | `TurretThrustPenalty` / `TurretSpeedPenalty` / `TurretLimit` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `RocketTime` | ✅ ships.groovy | ❌ | ❌ | (used by `RocketPrizeApplier` for active duration) | ❌ | ❌ |
+| ✅ | `RocketTime` | ✅ ships.groovy | `GroovyShipLoader` (`activeTimeCs` arg on `rockets` block; cs×10→ms at projection to ship `RocketTime` component) | `RocketStats.activeTimeCs` | — | `ConsumableSystem.createRocketBuff` (buff entity Decay deadline); `RocketBuffSystem` (swap/revert Thrust+Speed) | ✅ `RocketBuffActivationTest` |
 | ⚠️ | `InitialBounty` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `AttachBounty` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `AfterburnerEnergy` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |

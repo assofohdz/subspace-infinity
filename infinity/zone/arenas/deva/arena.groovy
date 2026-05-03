@@ -22,5 +22,6 @@ arena {
     includeFragment '/conf/deva-04-2026/mine.groovy'
     includeFragment '/conf/deva-04-2026/burst.groovy'
     includeFragment '/conf/deva-04-2026/repel.groovy'
+    includeFragment '/conf/deva-04-2026/rocket.groovy'
     includeFragment '/conf/deva-04-2026/prize.groovy'
 }

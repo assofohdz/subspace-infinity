@@ -37,7 +37,6 @@ shipSection('Leviathan') {
     TurretThrustPenalty 0
     TurretSpeedPenalty 0
     MultiFireDelay 100
-    RocketTime 180
     InitialBounty 3
     DamageFactor 3000
     PrizeShareLimit 15

@@ -37,7 +37,6 @@ shipSection('Spider') {
     TurretThrustPenalty 5
     TurretSpeedPenalty 340
     MultiFireDelay 35
-    RocketTime 0
     InitialBounty 3
     DamageFactor 0
     PrizeShareLimit 0

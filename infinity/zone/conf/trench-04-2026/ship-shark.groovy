@@ -37,7 +37,6 @@ shipSection('Shark') {
     TurretThrustPenalty 4
     TurretSpeedPenalty 450
     MultiFireDelay 32000
-    RocketTime 1
     InitialBounty 3
     DamageFactor 0
     PrizeShareLimit 0

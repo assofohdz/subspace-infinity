@@ -37,7 +37,6 @@ shipSection('Terrier') {
     TurretThrustPenalty 1
     TurretSpeedPenalty 150
     MultiFireDelay 75
-    RocketTime 1
     InitialBounty 3
     DamageFactor 0
     PrizeShareLimit 20000

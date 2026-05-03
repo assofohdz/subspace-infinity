@@ -20,14 +20,20 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.RepelConfig;
+import infinity.config.RocketConfig;
 import infinity.config.ThorConfig;
 import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.Speed;
+import infinity.es.ship.Thrust;
 import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
+import infinity.es.ship.actions.Rocket;
+import infinity.es.ship.actions.RocketMax;
+import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.Thor;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.actions.ThorCurrentCount;
@@ -61,6 +67,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private final KeySetView<Action, Boolean> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
   private EntitySet repelOwners;
+  private EntitySet rocketOwners;
   private SimTime time;
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -94,6 +101,19 @@ public class ConsumableSystem extends AbstractGameSystem
     return configRegistry.forArena(arenaId).repel();
   }
 
+  /**
+   * Per-arena Rocket tuning. Keyed by attacker's {@link ArenaId}; arenas
+   * without a config (or attackers in no-arena void) fall back to
+   * {@link RocketConfig#DEFAULTS}.
+   */
+  private RocketConfig rocketConfigFor(final EntityId attacker) {
+    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
+    if (arenaId == null) {
+      return RocketConfig.DEFAULTS;
+    }
+    return configRegistry.forArena(arenaId).rocket();
+  }
+
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
@@ -115,6 +135,9 @@ public class ConsumableSystem extends AbstractGameSystem
     // Ships allowed to fire repels (Repel inventory component projected
     // from per-ship `InitialRepel` at spawn).
     repelOwners = ed.getEntities(Repel.class);
+    // Ships allowed to fire rockets (Rocket inventory + RocketMax + per-ship
+    // RocketTime all projected from `RocketStats` at spawn).
+    rocketOwners = ed.getEntities(Rocket.class, RocketMax.class, RocketTime.class);
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -131,6 +154,9 @@ public class ConsumableSystem extends AbstractGameSystem
     repelOwners.release();
     repelOwners = null;
 
+    rocketOwners.release();
+    rocketOwners = null;
+
     getSystem(ContactSystem.class).removeListener(this);
   }
 
@@ -141,6 +167,7 @@ public class ConsumableSystem extends AbstractGameSystem
     thorOwners.applyChanges();
     thorProjectiles.applyChanges();
     repelOwners.applyChanges();
+    rocketOwners.applyChanges();
     /*
      * Default pattern to let multiple sessions call methods and then process them
      * one by one
@@ -192,6 +219,8 @@ public class ConsumableSystem extends AbstractGameSystem
       createThor(requesterEntity, time, info);
     } else if (flag == REPEL) {
       createRepel(requesterEntity, time, info);
+    } else if (flag == FIREROCKET) {
+      createRocketBuff(requesterEntity, time);
     } else {
       throw new IllegalArgumentException("Unknown flag: " + flag);
     }
@@ -241,6 +270,39 @@ public class ConsumableSystem extends AbstractGameSystem
     ed.setComponent(repelEffect, new RepelDistance(cfg.distancePixels()));
   }
 
+  /**
+   * Pattern 4 fire-time projection for the rocket buff: snapshot the
+   * ship's pre-buff {@link Thrust} / {@link Speed}, swap them to the
+   * arena's {@link RocketConfig} override values, and create the
+   * lifecycle-owning buff entity. {@code RocketBuffSystem} reacts to
+   * the buff entity's add/remove to maintain {@code RocketActive} on
+   * the ship and revert the swap when the buff entity expires (via
+   * {@link com.simsilica.es.common.Decay}).
+   */
+  private void createRocketBuff(final Entity requesterEntity, final long time) {
+    final EntityId ship = requesterEntity.getId();
+    final RocketConfig cfg = rocketConfigFor(ship);
+    final RocketTime rocketTime = ed.getComponent(ship, RocketTime.class);
+    if (rocketTime == null) {
+      // Defensive — canAct already gated on rocketOwners (which requires
+      // RocketTime). Belt-and-suspenders for ship-swap races.
+      return;
+    }
+
+    // Snapshot pre-buff Thrust/Speed onto the buff entity for revert.
+    final Thrust currentThrust = ed.getComponent(ship, Thrust.class);
+    final Speed currentSpeed = ed.getComponent(ship, Speed.class);
+    final int originalThrust = currentThrust != null ? currentThrust.getThrust() : 0;
+    final int originalSpeed = currentSpeed != null ? currentSpeed.getSpeed() : 0;
+
+    // Swap ship's effective values to the rocket-active overrides.
+    ed.setComponent(ship, new Thrust(cfg.thrust()));
+    ed.setComponent(ship, new Speed(cfg.speed()));
+
+    GameEntities.createRocketBuff(
+        ed, ship, time, rocketTime.getActiveTimeMs(), originalThrust, originalSpeed);
+  }
+
   private boolean createSound(Entity requesterEntity, byte flag, long time, ActionPosition info) {
     EntityId requester = requesterEntity.getId();
     if (flag == FIRETHOR) {
@@ -250,6 +312,11 @@ public class ConsumableSystem extends AbstractGameSystem
     if (flag == REPEL) {
       // Repel audio is composed onto the effect entity by GameEntities.createRepel
       // via AudioTypes.repel(ed) — no separate sound entity needed here.
+      return true;
+    }
+    if (flag == FIREROCKET) {
+      // No rocket-fire SFX wired today — Subspace ships had a per-arena
+      // sound but the audio asset isn't in the project yet. Polish-bag item.
       return true;
     }
     throw new IllegalArgumentException("Unknown flag: " + flag);
@@ -264,6 +331,9 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == REPEL) {
       return deductCostOfActionRepel(requester);
+    }
+    if (flag == FIREROCKET) {
+      return deductCostOfActionRocket(requester);
     }
     return false;
   }
@@ -282,6 +352,13 @@ public class ConsumableSystem extends AbstractGameSystem
     return true;
   }
 
+  private boolean deductCostOfActionRocket(final Entity requester) {
+    final EntityId requesterId = requester.getId();
+    final Rocket curr = ed.getComponent(requesterId, Rocket.class);
+    ed.setComponent(requesterId, curr.decrement(1));
+    return true;
+  }
+
   private boolean canAct(Entity requester, byte actionType) {
     if (requester == null) {
       return false;
@@ -291,6 +368,9 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (actionType == REPEL) {
       return canFireRepel(requester);
+    }
+    if (actionType == FIREROCKET) {
+      return canFireRocket(requester);
     }
     return false;
   }
@@ -330,6 +410,22 @@ public class ConsumableSystem extends AbstractGameSystem
     return curr != null && curr.getCount() > 0;
   }
 
+  /**
+   * Rocket firing gate: ship must own {@link Rocket} +
+   * {@link RocketMax} + {@link RocketTime} (all projected together at
+   * spawn from {@link infinity.config.RocketStats}) with at least one
+   * inventory charge. No fire-delay component today — Subspace
+   * {@code [Rocket]} has no canonical fire-delay knob.
+   */
+  private boolean canFireRocket(final Entity requester) {
+    final EntityId requesterId = requester.getId();
+    if (!rocketOwners.containsId(requesterId)) {
+      return false;
+    }
+    final Rocket curr = ed.getComponent(requesterId, Rocket.class);
+    return curr != null && curr.getCount() > 0;
+  }
+
   private boolean setCoolDown(final Entity requester, final byte flag) {
 
     if (requester == null) {
@@ -340,6 +436,11 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == REPEL) {
       // No per-ship fire-delay component for repel today.
+      return true;
+    }
+    if (flag == FIREROCKET) {
+      // No per-ship fire-delay component for rocket today; the buff
+      // entity's Decay is the only timing primitive.
       return true;
     }
     return false;
@@ -369,6 +470,12 @@ public class ConsumableSystem extends AbstractGameSystem
     // forward offset, no inheriting ship velocity), so short-circuit before
     // the projectile-shaped math below.
     if (weaponFlag == REPEL) {
+      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
+    }
+    // Rocket is a buff on the ship itself — no projectile to position. The
+    // ActionPosition is dropped by createRocketBuff; the short-circuit just
+    // avoids the projectile-shaped math.
+    if (weaponFlag == FIREROCKET) {
       return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
     }
 

@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-15 keys (5 stat triples). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+18 keys (5 stat triples + 3 rocket inventory/lifetime). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
@@ -38,6 +38,9 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `InitialEnergy` | `energy initial:` | `energy.initial()` | `Health` (live pool) + `Energy` (cap) | `EnergySystem.update()` (both); `WeaponsSystem` / `WarpSystem` filter on `Health` |
 | `MaximumEnergy` | `energy max:` | `energy.max()` | `EnergyMax` | `PrizeSystem.handleAcquireEnergy()` |
 | `UpgradeEnergy` | `energy upgrade:` | `energy.upgrade()` | `EnergyUpgrade` | `PrizeSystem.handleAcquireEnergy()` |
+| `InitialRocket` | `rockets start:` | `rockets.start()` | `Rocket` | `RocketPrizeApplier` (reads cap to gate); `ConsumableSystem.canFireRocket` |
+| `RocketMax` | `rockets max:` | `rockets.max()` | `RocketMax` | `RocketPrizeApplier` (cap check) |
+| `RocketTime` | `rockets activeTimeCs:` (cs×10→ms at projection) | `rockets.activeTimeCs()` | `RocketTime` (ms) | `ConsumableSystem.createRocketBuff` (buff entity Decay deadline); `RocketBuffSystem` (revert seam) |
 
 ## Infinity-only Groovy fields (no fragment source)
 
@@ -54,7 +57,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ## Pending — `shipSection` keys not yet ported to typed `ShipConfig`
 
-69 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
+66 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
 
 ### Weapons — gun / bomb / mine firing
 
@@ -91,8 +94,6 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `BurstSpeed` | Burst projectile speed. |
 | `InitialRepel` / `RepelMax` | Repel charges. |
 | `InitialDecoy` / `DecoyMax` | Decoy charges. |
-| `InitialRocket` / `RocketMax` | Rocket charges. |
-| `RocketTime` | Rocket flight duration. |
 | `InitialThor` / `ThorMax` | Thor charges. `ThorCurrentCount` / `ThorMaxCount` components exist; not Groovy-driven. |
 | `InitialPortal` / `PortalMax` | Portal charges. |
 | `InitialBrick` / `BrickMax` | Brick charges. |

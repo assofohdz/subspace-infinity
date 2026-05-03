@@ -14,6 +14,7 @@ import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
 import infinity.config.GunStats;
 import infinity.config.MineStats;
+import infinity.config.RocketStats;
 import javax.annotation.Nullable;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
@@ -52,6 +53,7 @@ import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelMax;
 import infinity.es.ship.actions.Rocket;
 import infinity.es.ship.actions.RocketMax;
+import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorMaxCount;
@@ -446,7 +448,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectRockets(
-      final EntityId shipId, @Nullable final CountStats rockets, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final RocketStats rockets, final boolean resetLivePool) {
     if (rockets == null) {
       return;
     }
@@ -454,6 +456,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
       ed.setComponent(shipId, new Rocket(rockets.start()));
     }
     ed.setComponent(shipId, new RocketMax(rockets.max()));
+    // Per-ship buff lifetime (Subspace [Ship] RocketTime, centiseconds → ms).
+    // Read at fire-time by ConsumableSystem to compute the buff entity's
+    // Decay deadline.
+    ed.setComponent(shipId, new RocketTime(rockets.activeTimeCs() * 10L));
   }
 
   private void projectPortals(

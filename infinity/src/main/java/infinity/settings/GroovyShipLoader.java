@@ -13,6 +13,7 @@ import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
 import infinity.config.GunStats;
 import infinity.config.MineStats;
+import infinity.config.RocketStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
@@ -143,7 +144,7 @@ public final class GroovyShipLoader {
   static final CountStats DEFAULT_BRICKS = null;
 
   /** See {@link #DEFAULT_DECOYS}. */
-  static final CountStats DEFAULT_ROCKETS = null;
+  static final RocketStats DEFAULT_ROCKETS = null;
 
   /** See {@link #DEFAULT_DECOYS}. */
   static final CountStats DEFAULT_PORTALS = null;
@@ -393,7 +394,7 @@ public final class GroovyShipLoader {
     private CountStats repels = null;
     private CountStats decoys = null;
     private CountStats bricks = null;
-    private CountStats rockets = null;
+    private RocketStats rockets = null;
     private CountStats portals = null;
 
     // Package-private so unit tests in this package can build configs without
@@ -501,10 +502,20 @@ public final class GroovyShipLoader {
           new CountStats(intArg("bricks", args, "start"), intArg("bricks", args, "max"));
     }
 
-    /** {@code rockets start: 0, max: 3} */
+    /**
+     * {@code rockets start: 0, max: 3, activeTimeCs: 100}
+     *
+     * <p>The third arg is Subspace per-ship {@code RocketTime} in
+     * centiseconds — buff lifetime once the player fires a rocket. Stored
+     * raw on {@link RocketStats}; {@code ShipSpawnSystem} converts to ms
+     * when projecting onto the ship's {@code RocketTime} component.
+     */
     public void rockets(final Map<String, ?> args) {
       this.rockets =
-          new CountStats(intArg("rockets", args, "start"), intArg("rockets", args, "max"));
+          new RocketStats(
+              intArg("rockets", args, "start"),
+              intArg("rockets", args, "max"),
+              longArg("rockets", args, "activeTimeCs"));
     }
 
     /** {@code portals start: 0, max: 2} */

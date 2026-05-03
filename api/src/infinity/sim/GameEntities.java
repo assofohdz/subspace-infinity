@@ -41,6 +41,8 @@ import infinity.es.input.MovementInput;
 import infinity.es.ship.CollidesWithLargeStatics;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
+import infinity.es.ship.actions.RocketBuff;
+import infinity.es.ship.actions.RocketSnapshot;
 import infinity.es.ship.actions.Thor;
 import java.util.HashSet;
 import java.util.Map;
@@ -654,6 +656,40 @@ public class GameEntities {
 
     ed.setComponent(lastWarpTo, new Meta(createdTime));
     return lastWarpTo;
+  }
+
+  /**
+   * Compose the buff entity that drives a rocket activation. Lifecycle is
+   * owned by {@link Decay}: when the deadline passes, the canonical decay
+   * reaper deletes this entity, and {@code RocketBuffSystem} reacts to
+   * the removal by reverting the parent ship's {@code Thrust} / {@code Speed}
+   * from the {@link RocketSnapshot} carried here.
+   *
+   * @param ship parent ship being buffed (revert target)
+   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
+   * @param activeTimeMs buff lifetime in ms
+   * @param originalThrust ship's {@code Thrust} value before the buff
+   *     (snapshotted by the caller; restored on buff expiry)
+   * @param originalSpeed ship's {@code Speed} value before the buff
+   */
+  public static EntityId createRocketBuff(
+      final EntityData ed,
+      final EntityId ship,
+      final long createdTime,
+      final long activeTimeMs,
+      final int originalThrust,
+      final int originalSpeed) {
+    final EntityId buff = ed.createEntity();
+    ed.setComponents(
+        buff,
+        new RocketBuff(),
+        new Parent(ship),
+        new RocketSnapshot(originalThrust, originalSpeed),
+        new Decay(
+            createdTime,
+            createdTime + TimeUnit.NANOSECONDS.convert(activeTimeMs, TimeUnit.MILLISECONDS)),
+        new Meta(createdTime));
+    return buff;
   }
 
   public static EntityId createThor(

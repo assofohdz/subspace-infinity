@@ -37,7 +37,6 @@ shipSection('Lancaster') {
     TurretThrustPenalty 0
     TurretSpeedPenalty 40
     MultiFireDelay 6
-    RocketTime 500
     InitialBounty 3
     DamageFactor 5000
     PrizeShareLimit 0

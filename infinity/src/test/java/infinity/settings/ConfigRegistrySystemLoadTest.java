@@ -65,6 +65,7 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/mine.groovy",
                   "/conf/trench-04-2026/burst.groovy",
                   "/conf/trench-04-2026/repel.groovy",
+                  "/conf/trench-04-2026/rocket.groovy",
                   "/conf/trench-04-2026/prize.groovy",
                   "/conf/trench-04-2026/prize-weights.groovy"),
               0.0,
@@ -108,6 +109,18 @@ public class ConfigRegistrySystemLoadTest {
           null, warbird.bursts());
       assertEquals("WARBIRD bricks disallowed (BrickMax 0)",
           null, warbird.bricks());
+      assertEquals("WARBIRD rockets disallowed (omitted block in trench/ships.groovy)",
+          null, warbird.rockets());
+
+      // trench/javelin gets rockets (start: 1, max: 3, activeTimeCs: 400) per
+      // ship-javelin.groovy's `RocketTime 400`.
+      final var javelin = snapshot.getShip(Ship.JAVELIN);
+      assertNotNull("JAVELIN config", javelin);
+      assertNotNull("JAVELIN has rockets (RocketMax > 0)", javelin.rockets());
+      assertEquals("JAVELIN rocket start = 1", 1, javelin.rockets().start());
+      assertEquals("JAVELIN rocket max = 3", 3, javelin.rockets().max());
+      assertEquals("JAVELIN rocket activeTimeCs = 400 (per-ship RocketTime)",
+          400L, javelin.rockets().activeTimeCs());
 
       // trench/leviathan is a heavy build with bombs + mines + portals.
       final var leviathan = snapshot.getShip(Ship.LEVIATHAN);
@@ -132,6 +145,16 @@ public class ConfigRegistrySystemLoadTest {
           "trench's [Bomb] BombDamageLevel = 2650",
           2650,
           snapshot.bomb().damage());
+
+      // [Rocket] arena-global tuning from rocket.groovy.
+      assertEquals(
+          "trench's [Rocket] RocketThrust = 100",
+          100,
+          snapshot.rocket().thrust());
+      assertEquals(
+          "trench's [Rocket] RocketSpeed = 3000",
+          3000,
+          snapshot.rocket().speed());
 
       // Phase 3 — prize compat shim. trench's PrizeMaxExist = 12000 (cs) → 120000 ms.
       assertEquals(
