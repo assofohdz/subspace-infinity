@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-20 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+24 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
@@ -43,6 +43,10 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `RocketTime` | `rockets activeTimeCs:` (cs×10→ms at projection) | `rockets.activeTimeCs()` | `RocketTime` (ms) | `ConsumableSystem.createRocketBuff` (buff entity Decay deadline); `RocketBuffSystem` (revert seam) |
 | `InitialBrick` | `bricks start:` | `bricks.start()` | `Brick` | `BrickPrizeApplier` (reads cap to gate); `ConsumableSystem.canPlaceBrick` |
 | `BrickMax` | `bricks max:` | `bricks.max()` | `BrickMax` | `BrickPrizeApplier` (cap check) |
+| `CloakStatus` | `cloak status:` | `cloak.status()` | `CloakStatus` | `CloakPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectCloak` (seed `Cloak` toggle on `status==2`) |
+| `CloakEnergy` | `cloak energy:` | `cloak.energyDrainPer1000Cs()` | `CloakEnergy` | `StatusDrainSystem.update` (drain rate while toggle on) |
+| `StealthStatus` | `stealth status:` | `stealth.status()` | `StealthStatus` | `StealthPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectStealth` |
+| `StealthEnergy` | `stealth energy:` | `stealth.energyDrainPer1000Cs()` | `StealthEnergy` | `StatusDrainSystem.update` |
 
 ## Infinity-only Groovy fields (no fragment source)
 
@@ -105,8 +109,6 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `shipSection` key | Notes |
 |---|---|
 | `AfterburnerEnergy` | Energy/sec cost while afterburner is held. |
-| `CloakEnergy` / `CloakStatus` | Cloak cost + initial state. |
-| `StealthEnergy` / `StealthStatus` | Stealth cost + initial state. |
 | `XRadarEnergy` / `XRadarStatus` | XRadar cost + initial state. |
 | `AntiWarpEnergy` / `AntiWarpStatus` | Antiwarp cost + initial state. |
 | `SuperTime` | Duration of the SUPER prize effect. |

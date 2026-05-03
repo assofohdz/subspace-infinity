@@ -12,8 +12,6 @@ shipSection('Terrier') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 10000
-    CloakEnergy 600
-    StealthEnergy 2000
     AntiWarpEnergy 2000
     XRadarEnergy 100
     MaximumRotation 300
@@ -47,8 +45,6 @@ shipSection('Terrier') {
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
-    CloakStatus 0
-    StealthStatus 0
     XRadarStatus 2
     AntiWarpStatus 0
     DoubleBarrel 1

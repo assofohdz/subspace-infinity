@@ -99,7 +99,9 @@ public class ShipSpawnSystemTest {
             null,                                       // decoys (disallow)
             null,                                       // bricks (disallow)
             null,                                       // rockets (disallow)
-            null);                                      // portals (disallow)
+            null,                                       // portals (disallow)
+            null,                                       // cloak (not authored)
+            null);                                      // stealth (not authored)
 
     final ConfigRegistry snapshot =
         ConfigRegistry.builder().ship(Ship.WARBIRD, warbird).build();

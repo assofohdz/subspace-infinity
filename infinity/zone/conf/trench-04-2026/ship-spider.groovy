@@ -12,8 +12,6 @@ shipSection('Spider') {
     DisableFastShooting 1
     Radius 0
     MultiFireAngle 0
-    CloakEnergy 600
-    StealthEnergy 2000
     AntiWarpEnergy 800
     XRadarEnergy 200
     MaximumRotation 180
@@ -47,8 +45,6 @@ shipSection('Spider') {
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
-    CloakStatus 0
-    StealthStatus 0
     XRadarStatus 2
     AntiWarpStatus 1
     DoubleBarrel 0

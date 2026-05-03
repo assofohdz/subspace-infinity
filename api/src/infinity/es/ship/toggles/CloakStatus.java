@@ -3,12 +3,14 @@
 
 package infinity.es.ship.toggles;
 
+import com.simsilica.es.EntityComponent;
+
 /**
  * Whether ships are allowed to receive 'Cloak' 0=no 1=yes 2=yes/start-with
  *
  * @author Asser Fahrenholz
  */
-public class CloakStatus {
+public class CloakStatus implements EntityComponent {
 
     private final int status;
 

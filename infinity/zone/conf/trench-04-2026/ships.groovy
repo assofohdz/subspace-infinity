@@ -29,6 +29,8 @@
 //       bricks  start: <I>, max: <M>
 //       rockets start: <I>, max: <M>, activeTimeCs: <T>   // T = per-ship Subspace [Ship] RocketTime (cs)
 //       portals start: <I>, max: <M>
+//       cloak   status: <0..2>, energy: <0..32000>   // [Ship] CloakStatus + CloakEnergy
+//       stealth status: <0..2>, energy: <0..32000>   // [Ship] StealthStatus + StealthEnergy
 //   }
 //
 // Omit a stat to leave it at ShipStat(0, 0, 0). Omit an inventory block to
@@ -36,6 +38,12 @@
 // projected; prize applier no-ops on pickup). Per the B2 grilled-through plan
 // (.scratch/settings-pipeline-slices.md), authored Subspace `*Max 0`
 // values were translated to "omit block" during the B2-Migration commit.
+//
+// Status-family blocks (cloak, stealth) follow the same convention: omit
+// when CloakStatus / StealthStatus is 0 (= forbidden, prize applier no-ops).
+// Author with `status: 1` (acquirable via prize) or `status: 2` (starts
+// active at spawn). Energy is the Subspace 1000ths-per-centisecond drain
+// rate (REFERENCE.md "Ship abilities").
 
 // Testbed override: Warbird intentionally has non-zero upgrade values so
 // prize-driven progression (Rotation / Thruster / Recharge / Energy / TopSpeed)
@@ -105,6 +113,7 @@ ship(Ship.LEVIATHAN) {
     repels  start: 4, max: 4
     decoys  start: 0, max: 3
     portals start: 1, max: 1
+    stealth status: 2, energy: 1000
 }
 
 ship(Ship.TERRIER) {
@@ -140,6 +149,8 @@ ship(Ship.WEASEL) {
     decoys  start: 0, max: 1
     bricks  start: 0, max: 2
     rockets start: 0, max: 1, activeTimeCs: 80
+    cloak   status: 2, energy: 1250
+    stealth status: 2, energy: 400
 }
 
 ship(Ship.LANCASTER) {

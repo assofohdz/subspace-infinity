@@ -16,6 +16,7 @@ import infinity.config.MineStats;
 import infinity.config.RocketStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
+import infinity.config.StatusStats;
 import infinity.es.arena.ArenaId;
 import java.util.List;
 import java.util.Map;
@@ -244,7 +245,9 @@ public final class GroovyShipLoader {
         DEFAULT_DECOYS,
         DEFAULT_BRICKS,
         DEFAULT_ROCKETS,
-        DEFAULT_PORTALS);
+        DEFAULT_PORTALS,
+        /* cloak */ null,
+        /* stealth */ null);
   }
 
   private final ConfigRegistrySystem configRegistry;
@@ -396,6 +399,8 @@ public final class GroovyShipLoader {
     private CountStats bricks = null;
     private RocketStats rockets = null;
     private CountStats portals = null;
+    private StatusStats cloak = null;
+    private StatusStats stealth = null;
 
     // Package-private so unit tests in this package can build configs without
     // standing up the full GroovyShell pipeline.
@@ -524,6 +529,38 @@ public final class GroovyShipLoader {
           new CountStats(intArg("portals", args, "start"), intArg("portals", args, "max"));
     }
 
+    /**
+     * {@code cloak status: 1, energy: 100}
+     *
+     * <p>Subspace per-ship Cloak capability — {@code status} tri-state
+     * ({@code 0..2}) and {@code energy} drain rate ({@code 0..32000},
+     * 1000ths-per-centisecond per REFERENCE.md). Stored raw on
+     * {@link StatusStats}; {@code ShipSpawnSystem} projects to
+     * {@link infinity.es.ship.toggles.CloakStatus} +
+     * {@link infinity.es.ship.toggles.CloakEnergy} +
+     * {@link infinity.es.ship.toggles.Cloak} components per the Status-
+     * family applier rule.
+     */
+    public void cloak(final Map<String, ?> args) {
+      this.cloak =
+          new StatusStats(
+              intArg("cloak", args, "status"), intArg("cloak", args, "energy"));
+    }
+
+    /**
+     * {@code stealth status: 1, energy: 100}
+     *
+     * <p>Same shape as {@link #cloak}. Projects to
+     * {@link infinity.es.ship.toggles.StealthStatus} +
+     * {@link infinity.es.ship.toggles.StealthEnergy} +
+     * {@link infinity.es.ship.toggles.Stealth}.
+     */
+    public void stealth(final Map<String, ?> args) {
+      this.stealth =
+          new StatusStats(
+              intArg("stealth", args, "status"), intArg("stealth", args, "energy"));
+    }
+
     private static ShipStat toStat(final String statName, final Map<String, ?> args) {
       return new ShipStat(
           intArg(statName, args, "initial"),
@@ -600,7 +637,9 @@ public final class GroovyShipLoader {
           decoys,
           bricks,
           rockets,
-          portals);
+          portals,
+          cloak,
+          stealth);
     }
   }
 }

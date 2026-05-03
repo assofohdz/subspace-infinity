@@ -18,6 +18,7 @@ import infinity.config.RocketStats;
 import javax.annotation.Nullable;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
+import infinity.config.StatusStats;
 import infinity.es.RadarShapeInfo;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
@@ -57,6 +58,12 @@ import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.toggles.Cloak;
+import infinity.es.ship.toggles.CloakEnergy;
+import infinity.es.ship.toggles.CloakStatus;
+import infinity.es.ship.toggles.Stealth;
+import infinity.es.ship.toggles.StealthEnergy;
+import infinity.es.ship.toggles.StealthStatus;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
@@ -281,6 +288,8 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectBricks(shipId, cfg.bricks(), resetLivePool);
     projectRockets(shipId, cfg.rockets(), resetLivePool);
     projectPortals(shipId, cfg.portals(), resetLivePool);
+    projectCloak(shipId, cfg.cloak(), resetLivePool);
+    projectStealth(shipId, cfg.stealth(), resetLivePool);
   }
 
   // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from
@@ -471,5 +480,55 @@ public class ShipSpawnSystem extends AbstractGameSystem {
       ed.setComponent(shipId, new Portal(portals.start()));
     }
     ed.setComponent(shipId, new PortalMax(portals.max()));
+  }
+
+  /**
+   * Pattern 4 spawn projection for the Cloak Status-family capability.
+   * Always sets {@link CloakStatus} so the {@code CloakPrizeApplier} +
+   * {@code StatusDrainSystem} can read the tri-state without a null
+   * check; only sets {@link CloakEnergy} when the capability is at
+   * least acquirable ({@code status >= 1}); seeds the {@link Cloak}
+   * toggle component as {@code true} when {@code status == 2} (start
+   * active per Subspace canon) and {@code false} when {@code status == 1}.
+   *
+   * <p>{@code resetLivePool == false} (e.g. swap-ships, mid-arena
+   * reload) preserves the live toggle state — the player keeps cloak
+   * on/off across the swap. Only the cap-style components ({@code
+   * CloakStatus}, {@code CloakEnergy}) re-project unconditionally so
+   * Groovy edits to the per-ship knobs propagate.
+   */
+  private void projectCloak(
+      final EntityId shipId, @Nullable final StatusStats cloak, final boolean resetLivePool) {
+    if (cloak == null) {
+      return;
+    }
+    ed.setComponent(shipId, new CloakStatus(cloak.status()));
+    if (cloak.status() >= 1) {
+      ed.setComponent(shipId, new CloakEnergy(cloak.energyDrainPer1000Cs()));
+    }
+    if (resetLivePool) {
+      // status == 0 (forbidden) → no toggle component; status == 1 → off;
+      // status == 2 → start active (Subspace canon).
+      if (cloak.status() >= 1) {
+        ed.setComponent(shipId, new Cloak(cloak.status() == 2));
+      }
+    }
+  }
+
+  /** Same shape as {@link #projectCloak} for Stealth. */
+  private void projectStealth(
+      final EntityId shipId, @Nullable final StatusStats stealth, final boolean resetLivePool) {
+    if (stealth == null) {
+      return;
+    }
+    ed.setComponent(shipId, new StealthStatus(stealth.status()));
+    if (stealth.status() >= 1) {
+      ed.setComponent(shipId, new StealthEnergy(stealth.energyDrainPer1000Cs()));
+    }
+    if (resetLivePool) {
+      if (stealth.status() >= 1) {
+        ed.setComponent(shipId, new Stealth(stealth.status() == 2));
+      }
+    }
   }
 }

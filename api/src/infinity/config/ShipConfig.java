@@ -56,6 +56,10 @@ import javax.annotation.Nullable;
  * @param rockets starting + max rocket inventory count + per-ship buff
  *     lifetime ({@code RocketTime}); {@code null} = no rockets
  * @param portals starting + max portal inventory count; {@code null} = no portals
+ * @param cloak Cloak capability tri-state + energy drain rate; {@code null}
+ *     = capability not authored (legacy permissive default)
+ * @param stealth Stealth capability tri-state + energy drain rate;
+ *     {@code null} = capability not authored
  */
 public record ShipConfig(
     Ship type,
@@ -77,4 +81,6 @@ public record ShipConfig(
     @Nullable CountStats decoys,
     @Nullable CountStats bricks,
     @Nullable RocketStats rockets,
-    @Nullable CountStats portals) {}
+    @Nullable CountStats portals,
+    @Nullable StatusStats cloak,
+    @Nullable StatusStats stealth) {}

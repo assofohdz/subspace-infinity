@@ -12,8 +12,6 @@ shipSection('Leviathan') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 4440
-    CloakEnergy 600
-    StealthEnergy 1000
     AntiWarpEnergy 2000
     XRadarEnergy 2000
     MaximumRotation 800
@@ -47,8 +45,6 @@ shipSection('Leviathan') {
     BombBounceCount 0
     ShrapnelMax 0
     ShrapnelRate 0
-    CloakStatus 0
-    StealthStatus 2
     XRadarStatus 0
     AntiWarpStatus 0
     DoubleBarrel 1

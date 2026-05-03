@@ -15,6 +15,12 @@
 // (.scratch/settings-pipeline-slices.md), authored Subspace `*Max 0` values
 // translate to "omit block."
 //
+// Status-family blocks (cloak, stealth) follow the inventory-block
+// convention: omit when CloakStatus / StealthStatus is 0 (= forbidden).
+// Author with `status: 1` (acquirable via prize) or `status: 2` (starts
+// active at spawn). Energy is the Subspace 1000ths-per-centisecond drain
+// rate (REFERENCE.md "Ship abilities").
+//
 // All 8 ships are configured. Numeric stats mirror the per-ship `ship-<name>`
 // INI fragments in this directory (the canonical deva tuning).
 
@@ -34,6 +40,7 @@ ship(Ship.WARBIRD) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
+    stealth status: 1, energy: 0
 }
 
 ship(Ship.JAVELIN) {
@@ -70,6 +77,8 @@ ship(Ship.SPIDER) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
+    cloak   status: 1, energy: 900
+    stealth status: 1, energy: 1
 }
 
 ship(Ship.LEVIATHAN) {
@@ -88,6 +97,7 @@ ship(Ship.LEVIATHAN) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 3
     decoys  start: 0, max: 3
+    stealth status: 1, energy: 1
 }
 
 ship(Ship.TERRIER) {
@@ -106,6 +116,7 @@ ship(Ship.TERRIER) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
+    stealth status: 1, energy: 0
 }
 
 ship(Ship.WEASEL) {
@@ -124,6 +135,7 @@ ship(Ship.WEASEL) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 1
     decoys  start: 0, max: 2
+    stealth status: 1, energy: 0
 }
 
 ship(Ship.LANCASTER) {
@@ -142,6 +154,7 @@ ship(Ship.LANCASTER) {
     bursts  start: 0, max: 2
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
+    stealth status: 1, energy: 0
 }
 
 ship(Ship.SHARK) {
@@ -160,4 +173,6 @@ ship(Ship.SHARK) {
     bursts  start: 0, max: 3
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
+    cloak   status: 2, energy: 900
+    stealth status: 1, energy: 1
 }

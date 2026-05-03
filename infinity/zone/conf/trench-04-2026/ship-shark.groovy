@@ -12,8 +12,6 @@ shipSection('Shark') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 0
-    CloakEnergy 600
-    StealthEnergy 2000
     AntiWarpEnergy 2000
     XRadarEnergy 2000
     MaximumRotation 210
@@ -47,8 +45,6 @@ shipSection('Shark') {
     BombBounceCount 0
     ShrapnelMax 8
     ShrapnelRate 3
-    CloakStatus 0
-    StealthStatus 0
     XRadarStatus 1
     AntiWarpStatus 0
     DoubleBarrel 0

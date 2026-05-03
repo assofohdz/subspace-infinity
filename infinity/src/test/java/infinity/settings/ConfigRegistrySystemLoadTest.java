@@ -4,6 +4,7 @@ package infinity.settings;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.simsilica.es.EntityData;
@@ -137,6 +138,39 @@ public class ConfigRegistrySystemLoadTest {
       assertNotNull("LEVIATHAN has portals (PortalMax 1, B2-activated)",
           leviathan.portals());
       assertEquals("LEVIATHAN PortalMax = 1", 1, leviathan.portals().max());
+
+      // Slice 6a: trench/leviathan has stealth status 2 (start active) per
+      // ship-leviathan.groovy's StealthStatus 2 / StealthEnergy 1000.
+      // Cloak is forbidden (omitted block → null).
+      assertNull("LEVIATHAN has no cloak block (forbidden, omitted)",
+          leviathan.cloak());
+      assertNotNull("LEVIATHAN has stealth (StealthStatus 2)",
+          leviathan.stealth());
+      assertEquals("LEVIATHAN StealthStatus = 2 (start active)",
+          2, leviathan.stealth().status());
+      assertEquals("LEVIATHAN StealthEnergy = 1000",
+          1000, leviathan.stealth().energyDrainPer1000Cs());
+
+      // Slice 6a: trench/weasel has both cloak + stealth at status 2 per
+      // ship-weasel.groovy (CloakStatus 2 / CloakEnergy 1250 + StealthStatus
+      // 2 / StealthEnergy 400).
+      final var weasel = snapshot.getShip(Ship.WEASEL);
+      assertNotNull("WEASEL config", weasel);
+      assertNotNull("WEASEL has cloak (CloakStatus 2)", weasel.cloak());
+      assertEquals("WEASEL CloakStatus = 2", 2, weasel.cloak().status());
+      assertEquals("WEASEL CloakEnergy = 1250",
+          1250, weasel.cloak().energyDrainPer1000Cs());
+      assertNotNull("WEASEL has stealth (StealthStatus 2)", weasel.stealth());
+      assertEquals("WEASEL StealthStatus = 2", 2, weasel.stealth().status());
+      assertEquals("WEASEL StealthEnergy = 400",
+          400, weasel.stealth().energyDrainPer1000Cs());
+
+      // Slice 6a: trench/warbird has neither cloak nor stealth (both
+      // omitted = forbidden in trench).
+      assertNull("WARBIRD has no cloak block (forbidden, omitted)",
+          warbird.cloak());
+      assertNull("WARBIRD has no stealth block (forbidden, omitted)",
+          warbird.stealth());
 
       // Phase 3 — weapons compat shim pulled trench's misc.groovy values
       // into ConfigRegistry's flat weapon-projectile slots (post-B1a flatten).

@@ -12,8 +12,6 @@ shipSection('Lancaster') {
     DisableFastShooting 0
     Radius 0
     MultiFireAngle 790
-    CloakEnergy 0
-    StealthEnergy 0
     AntiWarpEnergy 1100
     XRadarEnergy 0
     MaximumRotation 420
@@ -47,8 +45,6 @@ shipSection('Lancaster') {
     BombBounceCount 2
     ShrapnelMax 16
     ShrapnelRate 3
-    CloakStatus 0
-    StealthStatus 1
     XRadarStatus 2
     AntiWarpStatus 0
     DoubleBarrel 1

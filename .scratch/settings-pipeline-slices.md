@@ -199,21 +199,64 @@ Subspace mechanic (ship within radius of its own placed portal can
 teleport to it). That follow-up is also where `WarpRadiusLimit` may
 finally be consumed if Subspace canon ties them together — TBD.
 
-## Slice 6 — Status family infrastructure (biggest unlock)
+## Slice 6 — Status family infrastructure (biggest unlock; split into 6a/6b/6c)
 
-🔲 Per-ship `CloakStatus`/`StealthStatus`/`XRadarStatus`/`AntiWarpStatus`
-+ `*Energy` drain rates; `[PrizeWeight]` Cloak/Stealth/XRadar/AntiWarp/
-MultiFire applier completion; loader + Config + applier + consumer
-wiring.
+### Slice 6a — Cloak + Stealth (with shared Status/Energy infrastructure)
+✅ Foundation landed: per-ship `CloakStatus`/`StealthStatus` +
+`CloakEnergy`/`StealthEnergy` wired end-to-end.
 
-ECS components already exist (`Cloak`, `CloakStatus`, `CloakEnergy`,
-etc., per the Component column audit). One coherent infra build flips
-five stub appliers from ❌ to ✅. Biggest single-slice leverage in
-the doc.
+- New `StatusStats(status, energyDrainPer1000Cs)` record (shared by
+  6b's XRadar/AntiWarp).
+- `ShipConfig.cloak` / `ShipConfig.stealth` nullable fields.
+- `GroovyShipLoader` DSL: `cloak status: <0..2>, energy: <0..32000>` +
+  `stealth status: …, energy: …` blocks.
+- `ShipSpawnSystem.projectCloak` / `projectStealth` — always set
+  `*Status`; set `*Energy` when status >= 1; seed toggle component
+  (`Cloak`/`Stealth`) on `resetLivePool` per status (off at 1, on at 2).
+- Applier rewrites: `CloakPrizeApplier` + `StealthPrizeApplier` from
+  ❌ stub → ✅ canonical tri-state (no-op on status 0; toggle on at >=1).
+- New `StatusDrainSystem` (parallels `RocketBuffSystem` shape) — watches
+  Cloak/Stealth EntitySets, drains Health via `EnergySystem.damage(-d)`
+  at Subspace canonical rate `energy × tpf / 10` per tick.
+- Registered `StatusDrainSystem` in `GameServer`.
+- Bug fix: 4 `*Status` components missing `implements EntityComponent`
+  (Cloak/Stealth/XRadar/Antiwarp) — fixed all four since they're a
+  shared latent bug, even though 6a only wires Cloak+Stealth.
+- Active arenas only (trench + deva): per-ship `cloak`/`stealth` blocks
+  authored in `ships.groovy` for ships with status > 0; legacy
+  `CloakStatus`/`StealthStatus`/`CloakEnergy`/`StealthEnergy` keys
+  stripped from `ship-<name>.groovy` for trench + deva.
+- Tests: `CloakPrizeApplierTest` (tri-state behaviour);
+  `StatusDrainSystemTest` (per-tick drain math + edge cases);
+  `ConfigRegistrySystemLoadTest` extended (LEVIATHAN stealth=2,
+  WEASEL cloak=2+stealth=2, WARBIRD both omitted).
 
-If the slice is too big, natural sub-batches: (Cloak+Stealth)
-together, then (XRadar+AntiWarp), then (MultiFire). They all share
-the same toggle-wiring infrastructure.
+**Behaviour change on active arenas:** trench/weasel and trench/leviathan
+now drain energy while cloaked/stealthed at the canonical Subspace
+rate (was: silently no-op since the appliers threw `UnsupportedOperationException`
+and the drain system didn't exist). Operators can dial the drain or
+set status=0 in `ships.groovy` if the rates feel wrong.
+
+Follow-up (own slice): client-side input binding to toggle
+cloak/stealth off (no key bound today; in Subspace this is the player's
+explicit cloak/stealth-off action). Until that lands, status==2 ships
+have permanent toggle-on (matches Subspace pre-input behaviour).
+
+### Slice 6b — XRadar + AntiWarp 🔲
+Reuses `StatusStats` + `StatusDrainSystem` shape from 6a. Adds:
+- `ShipConfig.xradar` / `ShipConfig.antiwarp` slots + DSL.
+- `projectXRadar` / `projectAntiwarp` in spawn system.
+- Two more EntitySets in `StatusDrainSystem`.
+- `XRadarPrizeApplier` + `AntiWarpPrizeApplier` from stub → canonical.
+- Strip `XRadarStatus` / `AntiWarpStatus` / `XRadarEnergy` /
+  `AntiWarpEnergy` from trench/deva `ship-<name>.groovy` legacy files;
+  author per-ship blocks in `ships.groovy`.
+
+### Slice 6c — MultiFire 🔲
+Different mechanic — bullet-firing mode in `[Bullets]`, not Status.
+Per-ship `MultiFireEnergy` / `MultiFireDelay` / `MultiFireAngle`. Flips
+`MultiFirePrizeApplier` from ❌ stub by toggling the `Multishot`
+component (already exists). No drain system — fire-time energy cost.
 
 ## Slices 7–9 — Coherent mid-effort features
 
