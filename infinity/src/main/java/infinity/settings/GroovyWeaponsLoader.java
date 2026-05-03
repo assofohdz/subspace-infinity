@@ -3,7 +3,6 @@
 
 package infinity.settings;
 
-import infinity.config.BurstFireConfig;
 import infinity.config.PrizeConfig;
 import infinity.config.RepelConfig;
 import infinity.systems.SettingsSystem;
@@ -29,24 +28,11 @@ import infinity.systems.SettingsSystem;
  */
 public final class GroovyWeaponsLoader {
 
-  /** {@code Burst} section name in the merged fragment store. */
-  static final String BURST_SECTION = "Burst";
-
   /** {@code Repel} section name in the merged fragment store. */
   static final String REPEL_SECTION = "Repel";
 
   /** {@code Prize} section name in the merged fragment store. */
   static final String PRIZE_SECTION = "Prize";
-
-  public BurstFireConfig loadBurst(final SettingsSystem settings, final String arenaName) {
-    final int damage =
-        settings.getInt(
-            arenaName, BURST_SECTION, "BurstDamageLevel", BurstFireConfig.DEFAULTS.damage());
-    return new BurstFireConfig(
-        BurstFireConfig.DEFAULTS.projectileCount(),
-        BurstFireConfig.DEFAULTS.decayMs(),
-        damage);
-  }
 
   public RepelConfig loadRepel(final SettingsSystem settings, final String arenaName) {
     final int speed =

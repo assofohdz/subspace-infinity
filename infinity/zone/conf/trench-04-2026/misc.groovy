@@ -46,10 +46,6 @@ section('Shrapnel') {
     ShrapnelDamagePercent 1500
 }
 
-section('Burst') {
-    BurstDamageLevel 2000
-}
-
 section('Toggle') {
     AntiWarpPixels 1250
 }

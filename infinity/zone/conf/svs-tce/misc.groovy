@@ -7,10 +7,6 @@ section('Shrapnel') {
     Random 0
 }
 
-section('Burst') {
-    BurstDamageLevel 300
-}
-
 section('Toggle') {
     AntiWarpPixels 1500
 }
