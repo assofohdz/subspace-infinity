@@ -1,3 +1,132 @@
+## v1.0.12 — 2026-05-03
+
+Major release. Closes the multi-day **typed settings-pipeline migration**
+(Pre-B0 → B0 → B1a → B1-Bullet/Bomb/Mine/Burst/Repel/Prize → B2 → B3),
+ships **gameplay slices 1–3** (Repel feel, Rocket feel, Brick feel),
+introduces a **programmatic spawn-projection test harness**, and switches
+the project to **BSD-3-Clause + SPDX-only** licensing.
+
+New Features:
+- **Typed Groovy preset DSL.** Per-section `*Adapter` classes
+  (`BulletAdapter`, `BombAdapter`, `MineAdapter`, `BurstAdapter`,
+  `RepelAdapter`, `RocketAdapter`, `BrickAdapter`, `PrizeAdapter`,
+  `PrizeWeightsAdapter`) replace the INI-mirror `section('X') { Key V }`
+  shape. Each fragment file (`bullet.groovy`, `bomb.groovy`, ...) carries
+  one typed slot in `ConfigRegistry`, populated via a centralized
+  dispatch table inside `ConfigRegistrySystem`. `GroovyWeaponsLoader`
+  deleted (-158 LOC).
+- **Slice 1 — Repel feel.** `[Repel] RepelSpeed`/`RepelTime`/
+  `RepelDistance` wired end-to-end. `ConsumableSystem` REPEL branch
+  composes the effect entity via `GameEntities.createRepel`; spawned
+  entity carries `Decay` + `RepelSpeed` + `RepelDistance` for the
+  (deferred) impulse system.
+- **Slice 2 — Rocket feel (full-loop).** `[Rocket]` arena-global tuning
+  + per-ship `RocketTime` lifetime. `ConsumableSystem` FIREROCKET branch
+  snapshots ship `Thrust`/`Speed`, swaps to `RocketConfig` overrides,
+  spawns a buff entity with `Decay`. New `RocketBuffSystem` watches the
+  buff EntitySet and reverts the ship via the canonical Decay-removal
+  seam when the buff expires.
+- **Slice 3 — Brick feel (plumbing).** `[Brick] BrickSpan`/`BrickTime`
+  wired end-to-end. `ConsumableSystem` PLACEBRICK branch decrements
+  `Brick` inventory and spawns a marker entity with `BrickSpan` + `Decay`.
+  Solid-wall geometry, collision filter, and client visual deferred to
+  a follow-up slice.
+- **Per-ship typed inventory consolidation** (trench + deva). Inventory
+  blocks (`bombs`/`guns`/`mines`/`bursts`/`thors`/`repels`/`decoys`/
+  `bricks`/`rockets`/`portals`) now flow through the typed
+  `ship(Ship.X) { … }` DSL exclusively. Subspace `*Max 0` correctly
+  maps to `null` (= disallow per canon) — fixes a silent dual-pipeline
+  override that gave trench warbird 10 repels / 5 bursts / `BOMB_4`
+  bombs from permissive defaults.
+- **Decoy / Brick / Rocket / Portal prize types activated.** Their
+  appliers existed but no `*Max` component was projected — pickups
+  silently no-op'd. `ShipSpawnSystem` now projects all four when the
+  preset declares the corresponding inventory block.
+- **Programmatic spawn-projection test harness** — three pillars:
+  `ShipSpawnSystemTest` (template → component projection),
+  `RepelPrizeApplierTest` (Count-family applier), `BulletFactoryTest`
+  (projectile spawn). Slice 2/3 each added a fourth (`RocketBuffActivationTest`,
+  `BrickFactoryTest`). `ConfigRegistrySystemLoadTest` exercises the full
+  dispatch chain against the real trench preset.
+- **Hot-reload for Groovy preset fragments** (`ArenaSystem.pollScriptWatches`
+  every 5s). Edits trigger `ConfigRegistrySystem.load`; `ships.groovy`
+  changes also reproject every live ship via `ShipSpawnSystem.reprojectAll`.
+- **`Warp` prize applier** (INSTANT family) — wires `WarpPrizeApplier` →
+  `WarpSystem.warpToCenter`.
+- **Count-family prize appliers** for Repel / Decoy / Brick / Rocket /
+  Portal — uniform `PrizeApplier` shape (cap-aware increment, no-op when
+  `*Max` absent).
+
+Bug Fixes:
+- **Phase 1 INI-mirror loader skips typed fragments.** `ConfigRegistrySystem.load`
+  now filters fragment paths against the dispatch table before passing
+  to the legacy `Ini` loader — typed-DSL files (e.g. `bullet { damageLevel
+  200 }`) no longer crash the INI parser. Caught by trench smoke after
+  B1-Bullet shipped.
+- **`MobSystem` nanoTime stats overflow.** Cast `long`s to `double` before
+  subtraction in the per-tick AI stats reducer, fixing intermittent
+  negative-millis readings.
+
+Breaking Changes:
+- **License switch to BSD-3-Clause** (was BSD-2-Clause). Source files
+  carry SPDX-only `BSD-3-Clause` headers; full text moved to
+  `LICENSE.md`. Third-party material (Subspace/Continuum game files,
+  community maps, MillionthVector textures) carved out into
+  `THIRD-PARTY-NOTICES.md` — these assets are NOT covered by the new
+  project license and retain their original terms.
+- **`WeaponsConfig` deleted** (B1a). Sub-records (Bullet/Bomb/GravBomb/
+  Mine/Burst/Repel/Thor) promoted to direct `ConfigRegistry` slots;
+  consumers that read `registry.weapons().bullet()` now read
+  `registry.bullet()` directly.
+- **`GroovyWeaponsLoader` deleted** (B1-Prize). Per-fragment typed
+  adapters replace it.
+- **`ShipConfig.rockets` type** changed from `CountStats` to
+  `RocketStats(start, max, activeTimeCs)` to carry per-ship buff
+  lifetime alongside inventory caps.
+- **API enums renamed:** `Bombs` → `BombLevel`, `Guns` → `GunLevel`.
+  Client visuals split out of `Bombs`/`Guns`/`BombRegistry` into their
+  own classes; api-side enums are now data-only.
+- **Pre-B0 dead-code purge.** Deleted `ArenaSettings` ECS component,
+  `SettingListener` interface, `SettingsSystem.setSetting`. None had
+  callers; surfaced during the B0 grilling session.
+- **Cut out-of-scope Subspace sections** from preset fragments
+  (`[Cost]`, `[Flag]`, `[Kill]`, `[King]`, `[Latency]`, `[PacketLoss]`,
+  `[Periodic]`, `[Routing]`, `[Security]`, `[Soccer]`, `[Team]`,
+  `[Territory]`, `[Message] MessageDistance`, per-ship Soccer keys).
+  Documented in `.scratch/out-of-scope.md` with a promotion path.
+
+Other:
+- **Massive documentation refresh.** `README.md` rewritten as a
+  best-practice contributor README (no screenshots — those moved to
+  the GitHub Pages player landing). `CONTRIBUTING.md` rewritten as a
+  proper contributor guide. `LICENSE.md` (was `LICENSE`) reformatted
+  as Markdown. `THIRD-PARTY-NOTICES.md` documents external assets.
+  GitHub Pages site replaced with a player-facing landing
+  (`/conf/<preset>` content, screenshots, install steps).
+- **Settings pipeline trackers.** `.scratch/settings-pipeline.md`
+  (master state-of-keys table, ~80 rows across 14 Subspace sections)
+  + `.scratch/settings-pipeline-slices.md` (kanban work queue) + 
+  `.scratch/ship-config-dictionary.md` (per-ship ported-vs-pending
+  ledger). Always-on rules #6/#7/#8 in `CLAUDE.md` keep them in sync.
+- **`systems.ship` cluster.** Player-driver / weapons / consumable /
+  spawn / energy systems moved under `infinity.systems.ship.*` to
+  match the package-by-feature convention.
+- **`BlockTypeExpander` extracted from `GameServer`** — cuts the
+  monolithic boot path; tile-color / shape registration now lives in
+  its own class.
+- **`BombRegistry` / `Bombs` / `Guns` split** — client visuals moved
+  out of api/ enums into their own classes (api/ stays data-only per
+  the `api-contracts.md` rule).
+- **`ModelViewState` inner classes promoted to siblings.**
+- **Build sourcing: dropped `commons-math` + `MathUtil`** — unused.
+- **CI: `dependabot` weekly grouped GitHub Actions updates** + Lint
+  Workflows action. `gradle.yml` + `release.yml` aligned to skip
+  build on docs-only changes.
+- **Dispatch table for typed fragment installers.** `ConfigRegistrySystem`
+  now owns the single `(filename → installer)` map. Each per-section
+  slice adds one entry; B4 will delete the legacy compat shim once
+  every section migrates.
+
 ## v1.0.11 — 2026-05-02
 
 Crash fix for packaged Windows builds on NVIDIA GPUs.
