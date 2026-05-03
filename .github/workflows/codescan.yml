@@ -29,21 +29,21 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout repository
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
             -   name: Cache files
-                uses: actions/cache@v4
+                uses: actions/cache@v5
                 with:
                     path: |
                         ~/.sonar
                     key: ${{ runner.os }}-sonar
                     restore-keys: ${{ runner.os }}-sonar
             -   name: Run Analysis
-                uses: codescan-io/codescan-scanner-action@5b2e8c5683ef6a5adc8fa3b7950bb07debccce12
+                uses: codescan-io/codescan-scanner-action@955d3d1b4a9e374064189719484005ce8e08a749
                 with:
                     login: ${{ secrets.CODESCAN_AUTH_TOKEN }}
                     organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
                     projectKey: ${{ secrets.CODESCAN_PROJECT_KEY }}
             -   name: Upload SARIF file
-                uses: github/codeql-action/upload-sarif@v3
+                uses: github/codeql-action/upload-sarif@v4
                 with:
                     sarif_file: codescan.sarif
