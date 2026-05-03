@@ -121,9 +121,27 @@ Follow-up (own slice): wire a client-side input binding for FIREROCKET
 (no key bound today; server-side seam is canonical and ready). Also a
 fire-SFX entity once a rocket-fire audio asset lands.
 
-### Slice 3 — Brick feel
-🔲 `[Brick]` BrickTime, BrickSpan.
-Applier `BrickPrizeApplier` already ✅.
+### Slice 3 — Brick feel (plumbing only)
+✅ Plumbing-only landed: `[Brick] BrickTime`/`BrickSpan` arena-global
+wired end-to-end. Typed `brick.groovy` adapter (`BrickAdapter`) →
+`BrickConfig` → `ConfigRegistry.brick()` slot.
+
+Fire path: `ConsumableSystem.actOut PLACEBRICK` decrements `Brick`,
+calls `GameEntities.createBrick` which composes a marker entity
+(`Parent(ship) + BrickSpan(N) + Decay(BrickTime ms)`). The canonical
+Decay reaper deletes the marker at deadline — no separate system
+needed.
+
+Active arenas only (trench + deva) — both author `BrickSpan 7` (canon
+base value) since neither pre-migration `misc.groovy` set it. SVS-
+family deferred. Tests: `BrickFactoryTest` pins the marker-entity
+projection contract; `ConfigRegistrySystemLoadTest` extended to assert
+trench's `[Brick]` parses as `(spanTiles=7, timeMs=10000)`.
+
+Follow-up (own slice): "make bricks solid" — adds `ShapeNames.BRICK`,
+per-tile wall geometry from `BrickSpan`, brick-vs-ship/bullet/bomb
+collision filter, and a client visual. Crosses into client work, so
+kept separate from this server-side migration slice.
 
 ### Slice 4 — Decoy feel
 🔲 `[Misc]` DecoyAliveTime.

@@ -6,6 +6,7 @@ package infinity.settings;
 import com.simsilica.sim.AbstractGameSystem;
 import infinity.config.ArenaConfig;
 import infinity.config.BombConfig;
+import infinity.config.BrickConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.MineConfig;
@@ -95,6 +96,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final RocketConfig parsed =
                 GroovySettingsHost.INSTANCE.load(RocketAdapter.INSTANCE, path);
             return current.withRocket(parsed != null ? parsed : RocketConfig.DEFAULTS);
+          },
+          "brick.groovy",
+          (current, path) -> {
+            final BrickConfig parsed =
+                GroovySettingsHost.INSTANCE.load(BrickAdapter.INSTANCE, path);
+            return current.withBrick(parsed != null ? parsed : BrickConfig.DEFAULTS);
           },
           "prize.groovy",
           (current, path) -> {

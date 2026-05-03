@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-18 keys (5 stat triples + 3 rocket inventory/lifetime). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+20 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
@@ -41,6 +41,8 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `InitialRocket` | `rockets start:` | `rockets.start()` | `Rocket` | `RocketPrizeApplier` (reads cap to gate); `ConsumableSystem.canFireRocket` |
 | `RocketMax` | `rockets max:` | `rockets.max()` | `RocketMax` | `RocketPrizeApplier` (cap check) |
 | `RocketTime` | `rockets activeTimeCs:` (cs×10→ms at projection) | `rockets.activeTimeCs()` | `RocketTime` (ms) | `ConsumableSystem.createRocketBuff` (buff entity Decay deadline); `RocketBuffSystem` (revert seam) |
+| `InitialBrick` | `bricks start:` | `bricks.start()` | `Brick` | `BrickPrizeApplier` (reads cap to gate); `ConsumableSystem.canPlaceBrick` |
+| `BrickMax` | `bricks max:` | `bricks.max()` | `BrickMax` | `BrickPrizeApplier` (cap check) |
 
 ## Infinity-only Groovy fields (no fragment source)
 
@@ -57,7 +59,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ## Pending — `shipSection` keys not yet ported to typed `ShipConfig`
 
-66 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
+64 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
 
 ### Weapons — gun / bomb / mine firing
 
@@ -96,7 +98,6 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `InitialDecoy` / `DecoyMax` | Decoy charges. |
 | `InitialThor` / `ThorMax` | Thor charges. `ThorCurrentCount` / `ThorMaxCount` components exist; not Groovy-driven. |
 | `InitialPortal` / `PortalMax` | Portal charges. |
-| `InitialBrick` / `BrickMax` | Brick charges. |
 | `ShrapnelMax` / `ShrapnelRate` | Shrapnel-on-bomb-detonation. |
 
 ### Abilities — energy costs and on/off

@@ -41,6 +41,7 @@ import infinity.es.input.MovementInput;
 import infinity.es.ship.CollidesWithLargeStatics;
 import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
+import infinity.es.ship.actions.BrickSpan;
 import infinity.es.ship.actions.RocketBuff;
 import infinity.es.ship.actions.RocketSnapshot;
 import infinity.es.ship.actions.Thor;
@@ -672,6 +673,41 @@ public class GameEntities {
    *     (snapshotted by the caller; restored on buff expiry)
    * @param originalSpeed ship's {@code Speed} value before the buff
    */
+  /**
+   * Compose the marker entity for a placed brick. Lifecycle is owned by
+   * {@link Decay}: when the deadline passes, the canonical decay reaper
+   * deletes the entity.
+   *
+   * <p>Slice 3 ships plumbing only — the marker carries the span +
+   * decay deadline but no shape, no contact handler, no client visual.
+   * The follow-up "make bricks solid" slice consumes {@link BrickSpan}
+   * to spawn the per-tile wall geometry, registers a brick collision
+   * filter, and adds the client visual. This factory is the seam
+   * those consumers will read from.
+   *
+   * @param ship parent ship that placed the brick
+   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
+   * @param spanTiles wall length in tiles (from {@code BrickConfig.spanTiles})
+   * @param timeMs brick lifetime in ms (from {@code BrickConfig.timeMs})
+   */
+  public static EntityId createBrick(
+      final EntityData ed,
+      final EntityId ship,
+      final long createdTime,
+      final int spanTiles,
+      final long timeMs) {
+    final EntityId brick = ed.createEntity();
+    ed.setComponents(
+        brick,
+        new Parent(ship),
+        new BrickSpan(spanTiles),
+        new Decay(
+            createdTime,
+            createdTime + TimeUnit.NANOSECONDS.convert(timeMs, TimeUnit.MILLISECONDS)),
+        new Meta(createdTime));
+    return brick;
+  }
+
   public static EntityId createRocketBuff(
       final EntityData ed,
       final EntityId ship,

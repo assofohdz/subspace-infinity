@@ -19,6 +19,7 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.config.BrickConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ThorConfig;
@@ -28,6 +29,8 @@ import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
+import infinity.es.ship.actions.Brick;
+import infinity.es.ship.actions.BrickMax;
 import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
@@ -68,6 +71,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private EntitySet thorOwners;
   private EntitySet repelOwners;
   private EntitySet rocketOwners;
+  private EntitySet brickOwners;
   private SimTime time;
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -114,6 +118,19 @@ public class ConsumableSystem extends AbstractGameSystem
     return configRegistry.forArena(arenaId).rocket();
   }
 
+  /**
+   * Per-arena Brick tuning. Keyed by attacker's {@link ArenaId}; arenas
+   * without a config (or attackers in no-arena void) fall back to
+   * {@link BrickConfig#DEFAULTS}.
+   */
+  private BrickConfig brickConfigFor(final EntityId attacker) {
+    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
+    if (arenaId == null) {
+      return BrickConfig.DEFAULTS;
+    }
+    return configRegistry.forArena(arenaId).brick();
+  }
+
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
@@ -138,6 +155,9 @@ public class ConsumableSystem extends AbstractGameSystem
     // Ships allowed to fire rockets (Rocket inventory + RocketMax + per-ship
     // RocketTime all projected from `RocketStats` at spawn).
     rocketOwners = ed.getEntities(Rocket.class, RocketMax.class, RocketTime.class);
+    // Ships allowed to place bricks (Brick inventory + BrickMax projected from
+    // `CountStats` at spawn). Brick lifetime is arena-global, not per-ship.
+    brickOwners = ed.getEntities(Brick.class, BrickMax.class);
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -157,6 +177,9 @@ public class ConsumableSystem extends AbstractGameSystem
     rocketOwners.release();
     rocketOwners = null;
 
+    brickOwners.release();
+    brickOwners = null;
+
     getSystem(ContactSystem.class).removeListener(this);
   }
 
@@ -168,6 +191,7 @@ public class ConsumableSystem extends AbstractGameSystem
     thorProjectiles.applyChanges();
     repelOwners.applyChanges();
     rocketOwners.applyChanges();
+    brickOwners.applyChanges();
     /*
      * Default pattern to let multiple sessions call methods and then process them
      * one by one
@@ -221,6 +245,8 @@ public class ConsumableSystem extends AbstractGameSystem
       createRepel(requesterEntity, time, info);
     } else if (flag == FIREROCKET) {
       createRocketBuff(requesterEntity, time);
+    } else if (flag == PLACEBRICK) {
+      createBrick(requesterEntity, time);
     } else {
       throw new IllegalArgumentException("Unknown flag: " + flag);
     }
@@ -279,6 +305,21 @@ public class ConsumableSystem extends AbstractGameSystem
    * the ship and revert the swap when the buff entity expires (via
    * {@link com.simsilica.es.common.Decay}).
    */
+  /**
+   * Plumbing-only brick placement: decrement {@link Brick} inventory and
+   * compose a marker entity that owns the brick lifetime via
+   * {@link com.simsilica.es.common.Decay}. The (deferred) brick-geometry
+   * slice will consume the marker's
+   * {@link infinity.es.ship.actions.BrickSpan} to spawn the per-tile
+   * solid wall, register a brick collision filter, and add the client
+   * visual.
+   */
+  private void createBrick(final Entity requesterEntity, final long time) {
+    final EntityId ship = requesterEntity.getId();
+    final BrickConfig cfg = brickConfigFor(ship);
+    GameEntities.createBrick(ed, ship, time, cfg.spanTiles(), cfg.timeMs());
+  }
+
   private void createRocketBuff(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final RocketConfig cfg = rocketConfigFor(ship);
@@ -319,6 +360,11 @@ public class ConsumableSystem extends AbstractGameSystem
       // sound but the audio asset isn't in the project yet. Polish-bag item.
       return true;
     }
+    if (flag == PLACEBRICK) {
+      // No brick-place SFX wired today — Subspace had a brick sound but
+      // the audio asset isn't in the project yet. Polish-bag item.
+      return true;
+    }
     throw new IllegalArgumentException("Unknown flag: " + flag);
   }
 
@@ -334,6 +380,9 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == FIREROCKET) {
       return deductCostOfActionRocket(requester);
+    }
+    if (flag == PLACEBRICK) {
+      return deductCostOfActionBrick(requester);
     }
     return false;
   }
@@ -359,6 +408,13 @@ public class ConsumableSystem extends AbstractGameSystem
     return true;
   }
 
+  private boolean deductCostOfActionBrick(final Entity requester) {
+    final EntityId requesterId = requester.getId();
+    final Brick curr = ed.getComponent(requesterId, Brick.class);
+    ed.setComponent(requesterId, curr.decrement(1));
+    return true;
+  }
+
   private boolean canAct(Entity requester, byte actionType) {
     if (requester == null) {
       return false;
@@ -371,6 +427,9 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (actionType == FIREROCKET) {
       return canFireRocket(requester);
+    }
+    if (actionType == PLACEBRICK) {
+      return canPlaceBrick(requester);
     }
     return false;
   }
@@ -426,6 +485,21 @@ public class ConsumableSystem extends AbstractGameSystem
     return curr != null && curr.getCount() > 0;
   }
 
+  /**
+   * Brick placement gate: ship must own {@link Brick} + {@link BrickMax}
+   * (per-ship {@code BrickMax > 0}) with at least one inventory charge.
+   * No fire-delay component today — Subspace {@code [Brick]} has no
+   * canonical fire-delay knob.
+   */
+  private boolean canPlaceBrick(final Entity requester) {
+    final EntityId requesterId = requester.getId();
+    if (!brickOwners.containsId(requesterId)) {
+      return false;
+    }
+    final Brick curr = ed.getComponent(requesterId, Brick.class);
+    return curr != null && curr.getCount() > 0;
+  }
+
   private boolean setCoolDown(final Entity requester, final byte flag) {
 
     if (requester == null) {
@@ -440,6 +514,11 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == FIREROCKET) {
       // No per-ship fire-delay component for rocket today; the buff
+      // entity's Decay is the only timing primitive.
+      return true;
+    }
+    if (flag == PLACEBRICK) {
+      // No per-ship fire-delay component for brick today; the brick
       // entity's Decay is the only timing primitive.
       return true;
     }
@@ -476,6 +555,12 @@ public class ConsumableSystem extends AbstractGameSystem
     // ActionPosition is dropped by createRocketBuff; the short-circuit just
     // avoids the projectile-shaped math.
     if (weaponFlag == FIREROCKET) {
+      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
+    }
+    // Brick (plumbing-only): no projectile shape today — the marker entity
+    // carries the span and ConsumableSystem.createBrick drops the position
+    // info entirely. Short-circuit to skip projectile math.
+    if (weaponFlag == PLACEBRICK) {
       return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
     }
 

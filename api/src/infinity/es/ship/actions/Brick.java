@@ -24,4 +24,8 @@ public class Brick implements EntityComponent {
     public int getCount() {
         return count;
     }
+
+    public Brick decrement(final int amount) {
+        return new Brick(count - amount);
+    }
 }

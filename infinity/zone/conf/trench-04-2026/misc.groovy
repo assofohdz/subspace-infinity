@@ -66,10 +66,6 @@ section('Wormhole') {
     GravityBombs 1
 }
 
-section('Brick') {
-    BrickTime 1000
-}
-
 section('Door') {
     DoorDelay 250
     DoorMode 41

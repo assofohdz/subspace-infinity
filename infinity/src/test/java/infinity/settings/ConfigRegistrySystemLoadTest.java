@@ -66,6 +66,7 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/burst.groovy",
                   "/conf/trench-04-2026/repel.groovy",
                   "/conf/trench-04-2026/rocket.groovy",
+                  "/conf/trench-04-2026/brick.groovy",
                   "/conf/trench-04-2026/prize.groovy",
                   "/conf/trench-04-2026/prize-weights.groovy"),
               0.0,
@@ -155,6 +156,18 @@ public class ConfigRegistrySystemLoadTest {
           "trench's [Rocket] RocketSpeed = 3000",
           3000,
           snapshot.rocket().speed());
+
+      // [Brick] arena-global tuning from brick.groovy. trench's
+      // pre-migration misc.groovy authored only BrickTime; brick.groovy
+      // fills in the canonical base BrickSpan = 7.
+      assertEquals(
+          "trench's [Brick] BrickSpan = 7",
+          7,
+          snapshot.brick().spanTiles());
+      assertEquals(
+          "trench's [Brick] BrickTime = 1000 cs (= 10000 ms)",
+          10_000L,
+          snapshot.brick().timeMs());
 
       // Phase 3 — prize compat shim. trench's PrizeMaxExist = 12000 (cs) → 120000 ms.
       assertEquals(

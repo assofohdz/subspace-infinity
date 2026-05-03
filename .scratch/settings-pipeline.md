@@ -231,8 +231,8 @@ matches `ship-warbird.groovy`'s `RepelMax 0`).
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ⚠️ | `BrickTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `BrickSpan` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `BrickTime` | ✅ brick.groovy | `BrickAdapter` (cs×10→ms) | `BrickConfig.timeMs` | — | `ConsumableSystem.createBrick` → `GameEntities.createBrick` (marker entity Decay deadline) | ✅ `BrickFactoryTest` + `ConfigRegistrySystemLoadTest` |
+| ✅ | `BrickSpan` | ✅ brick.groovy | `BrickAdapter` (typed DSL) | `BrickConfig.spanTiles` | — | `ConsumableSystem.createBrick` → `BrickSpan` component on marker entity | ✅ `BrickFactoryTest` + `ConfigRegistrySystemLoadTest` |
 
 ## [Bullet]
 
