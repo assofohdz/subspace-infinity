@@ -1,8 +1,4 @@
 
-section('Mine') {
-    MineAliveTime 6000
-    TeamMaxMines 12
-}
 
 section('Shrapnel') {
     ShrapnelSpeed 3000

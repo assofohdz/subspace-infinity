@@ -39,11 +39,6 @@ section('Spawn') {
     "Team3-Y"(509)
 }
 
-section('Mine') {
-    MineAliveTime 6000
-    TeamMaxMines 21
-}
-
 section('Shrapnel') {
     InactiveShrapDamage 65
     ShrapnelSpeed 3000

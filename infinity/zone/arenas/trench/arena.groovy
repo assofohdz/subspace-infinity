@@ -19,6 +19,7 @@ arena {
     includeFragment '/conf/trench-04-2026/misc.groovy'
     includeFragment '/conf/trench-04-2026/bullet.groovy'
     includeFragment '/conf/trench-04-2026/bomb.groovy'
+    includeFragment '/conf/trench-04-2026/mine.groovy'
     // Test override: enables all weapons + non-zero prize weights so trench
     // can be used as a sandbox for prize / weapon work. Loaded last so its
     // keys win the last-wins merge in SettingsSystem.loadFragments.

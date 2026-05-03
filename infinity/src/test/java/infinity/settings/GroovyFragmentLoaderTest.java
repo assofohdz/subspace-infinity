@@ -224,9 +224,10 @@ public class GroovyFragmentLoaderTest {
     assertNotNull("svs-league.groovy should load", ini);
 
     // From misc.groovy (included) — sample a section still in the Ini-mirror
-    // path. [Bullet] and [Bomb] migrated to typed adapters in B1; [Mine]
-    // remains in misc.groovy until its B1-Mine vertical slice lands.
-    assertEquals("12", ini.get("Mine").get("TeamMaxMines"));
+    // path. Weapons sections progressively migrate to typed adapters in
+    // B1-X slices; [Brick] is polish-bag and stays in misc.groovy through
+    // all of B1.
+    assertEquals("2000", ini.get("Brick").get("BrickTime"));
     // From prizeweights.groovy (included)
     assertEquals("25", ini.get("PrizeWeight").get("BouncingBullets"));
     // From ship-warbird.groovy (included)
