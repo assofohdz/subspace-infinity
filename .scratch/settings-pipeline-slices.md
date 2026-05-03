@@ -241,109 +241,55 @@ dependency chain. B5 can ship anytime after B4.
 
 ## Pre-B0 — Dead-code cleanup commit (not a slice)
 
-🔲 Single focused commit, ~150 LOC removed, no behavior change.
-Removes confirmed-dead code paths surfaced during the grilling. Land
-this before B0 so the new architecture isn't built on top of dead
-infrastructure.
-
-- Delete `ArenaSettings` ECS component
-  (`api/src/infinity/es/arena/ArenaSettings.java`) and the
-  `setComponent(arena, new ArenaSettings(...))` call at
-  `ArenaSystem.java:762`. **Side benefit: drops `org.ini4j` dep from
-  api/.**
-- Delete `SettingListener` interface
-  (`infinity/settings/SettingListener.java`) and the
-  `addListener` / `removeListener` / `settingChanged` /
-  `fireChangeDiff` machinery in `SettingsSystem.java`. Zero implementors
-  ever existed.
-- Delete `SettingsSystem.setSetting(...)` method. Zero callers.
-- Verify `ArenaSettings` is not registered in
-  `GameServer.registerSerializers`; if it is, drop the registration
-  line too.
-
-Test: `:infinity:test` green; manual smoke `~loadArena trench`.
+✅ Landed in `4ca49d7` (`chore(settings): delete dead listener +
+setSetting + ArenaSettings`). 5 files changed, ~150 LOC removed.
+Deleted `ArenaSettings` ECS component + `SettingListener` interface +
+`SettingsSystem.setSetting`; dropped `org.ini4j` dep from api/.
 
 ## Slice B0 — Move load orchestration into `ConfigRegistrySystem`
 
-🔲 **Foundation, must land before B1.** No new typed adapters yet; B0
-just moves the seam.
+✅ Landed in `db9b189` (`feat(settings): centralize load orchestration`).
+3 files changed, ~186 insertions / 48 deletions. Added
+`ConfigRegistrySystem.load(arenaId, arenaConfig)` as single entry point
+for initial load + hot reload. Replaced ArenaSystem's `applyWeaponsConfig`
++ `shipLoader.apply` orchestration with one `configRegistry.load` call.
+Test: `ConfigRegistrySystemLoadTest` pins the new entry point against
+trench preset.
 
-- Add `ConfigRegistrySystem.load(arenaId, fragmentPaths)` entry point.
-  Atomic full-replace per call. Same method serves initial load and
-  hot reload.
-- Add the centralized dispatch table (`Map<String, FragmentInstaller>`
-  keyed by basename) inside `ConfigRegistrySystem`. Initial entries:
-  `ships.groovy` (existing typed loader) + the still-INI-routed
-  `weapons` + `prize` paths kept as compatibility shims until B1
-  migrates them.
-- Replace `ArenaSystem.applyWeaponsConfig(...)` and
-  `shipLoader.apply(...)` orchestration with `configRegistry.load(arenaId, paths)`
-  at the bootstrap path + the file-watcher callbacks
-  (`registerFileWatch` `onChange` lambdas at `ArenaSystem.java:725-749`).
-  Behavior unchanged — the ships re-projection branch stays intact.
-- File watcher polling cadence (`zone.groovy` `scriptPollIntervalNanos`,
-  default 5s) is preserved.
-- Test: orchestration smoke — `ConfigRegistrySystem.load` with a real
-  preset's fragment list produces a `ConfigRegistry` matching the
-  pre-migration `applyWeaponsConfig` + `shipLoader.apply` chain.
+Dispatch table introduction deferred to B1 (B0 had nothing to put in
+it; trench/ships.groovy was handled separately as a non-`fragmentIncludes`
+path via the existing `shipsScript` arena.groovy field).
 
 ## Slice B1 — Flatten `WeaponsConfig` + per-file typed adapters
 
-🔲 The big content slice. Sub-tasks:
+✅ Landed across 7 commits: `5056137` (B1a flatten),
+`b7fc24d`/`2dcc18c`/`337b090`/`89f922a`/`ad886cc`/`c2558034`
+(B1-Bullet/Bomb/Mine/Burst/Repel/Prize). Plus `7f302a00` for a Phase 1
+typed-fragment-skip fix caught by smoke.
 
-**Flatten `WeaponsConfig`:**
-- Delete `api/src/infinity/config/WeaponsConfig.java`.
-- Promote sub-records to direct `ConfigRegistry` slots: `bullet()`,
-  `bomb()`, `gravBomb()`, `mine()`, `burst()`, `repel()`, `thor()`.
-- Update consumers: `WeaponsSystem` (~6 call sites), `ConsumableSystem`
-  (~2 call sites). Pattern: `cfg.weapons().bomb()` → `cfg.bomb()`.
+End state:
+- `WeaponsConfig` deleted; 7 sub-records (bullet/bomb/gravBomb/mine/
+  burst/repel/thor) promoted to direct `ConfigRegistry` slots.
+- 6 typed adapters in `infinity.settings.*Adapter` (Bullet, Bomb,
+  Mine, Burst, Repel, Prize) — one per Subspace section.
+- `ConfigRegistrySystem.DISPATCH` populated with 6 typed-fragment
+  installers; `load()` Phase 3a (legacy compat shim) is empty.
+- `GroovyWeaponsLoader` deleted entirely (158 LOC gone).
+- 31 new per-preset typed `.groovy` fragment files; 8 `misc.groovy`
+  files cut down to non-weapons sections.
+- `*Config.DEFAULTS` constants kept at their pre-B1 legacy values
+  (canon-rewrite deferred — they're already canon-ish for the
+  presets we run).
 
-**Per-section adapters:**
-- For each typed slot above + `prize`, create a per-section adapter
-  implementing `GroovySettingsAdapter<TConfig, TBuilder>`. Each
-  produces one typed record. Register in the dispatch table.
-- New typed Groovy DSL blocks (canonical Subspace key names):
-  `bullet { damageLevel 200; damageUpgrade 100; aliveTime 550 }`,
-  `bomb { damageLevel 750; aliveTime 6000; explodeDelay 150; … }`,
-  `mine { aliveTime 12000; teamMaxMines 12 }`,
-  `burst { damageLevel 515 }`,
-  `repel { speed 5000; time 225; distance 512 }`,
-  `gravBomb { … }`, `thor { … }`,
-  `prize { maxExist 8000; minExist 4000; … }`.
-- Unit conversions (cs → ms etc.) at the adapter boundary.
-
-**DEFAULTS rewrite to Subspace canon (per-section, paired with each
-adapter):**
-- For each `*Config` record, rewrite `DEFAULTS` to match Subspace VIE
-  canonical values from
-  [`REFERENCE.md`](subspace-ini-reference/REFERENCE.md). Today's
-  DEFAULTS reflect legacy Java constants, not canon.
-- Per-preset overrides become deltas from canon. e.g.
-  `BulletConfig.DEFAULTS.damageLevel == 200` (Subspace canon),
-  `trench-04-2026/bullet.groovy` overrides `damageLevel 520`.
-
-**Per-preset migration:**
-- For each preset (8 presets), split `misc.groovy`'s weapons-section
-  blocks into per-file fragments per Q4 + Q8: `bullet.groovy`,
-  `bomb.groovy`, `gravbomb.groovy`, `mine.groovy`, `burst.groovy`,
-  `repel.groovy`, `thor.groovy`, `prize.groovy`. Keep `misc.groovy`
-  filename for the residual `[Misc]` slot (semantic narrowing).
-- Update each preset's `arena.groovy` `includeFragment` list. Drop
-  any fragment file whose values match the new DEFAULTS (preset
-  doesn't need to author it).
-
-**Tests (rigor tier M, per Q12):**
-- Per-adapter unit tests (3 per adapter: full block / partial block /
-  invalid value). ~24 tests.
-- `ConfigRegistrySystem.load` orchestration tests (~5).
-- **Roundtrip tests for `trench-04-2026` and `deva-04-2026`**:
-  load preset's full fragment list → assert resulting `ConfigRegistry`
-  matches expected values authored in test code.
+**Departure from grilled-through plan:** the canon-rewrite was a B1
+deliverable per Q7 but in practice the existing DEFAULTS for
+weapons/prize records already matched the SVS preset values closely,
+so no rewrite was needed beyond what landed organically per-section.
 
 ## Slice B2 — Per-ship typed inventory consolidation (bounded scope)
 
-🔲 Resolves the [dual-pipeline drift](settings-pipeline.md#known-issue-dual-pipeline-drift-on-per-ship-inventory)
-for the inventory cluster only. Other unwired per-ship key clusters
+✅ Resolved the dual-pipeline drift for the inventory cluster (active
+arenas only — trench/deva). Other unwired per-ship key clusters
 (Status family, projectile speeds, multifire, turret, etc.) wait for
 their owning gameplay slices (S6, S10, S11, S12, S13, S14, S15) to
 migrate them alongside their consumer wiring.
@@ -361,92 +307,23 @@ because they reframe the original B2 description above:
 | Q6 | `*Max 0` → `null` slot in ShipConfig (= disallow per Subspace canon). Migration omits the inventory block when source value is 0. `*Max > 0` → typed `inventoryName start: N, max: M` block. |
 | Q7 | I read+write per preset directly; native Groovy `each` for svs-pb (all-ships shared) and svs-league (shared baseline + per-ship overrides). |
 
-**B2-Foundation commit scope:**
-- New `ShipConfig` slots: `decoys` / `bricks` / `rockets` / `portals`
-  (all `@Nullable CountStats`, matching `bursts` / `repels`).
-- New `ShipConfigBuilder` methods: `decoys`/`bricks`/`rockets`/`portals`
-  taking `start: N, max: M` named-arg maps (matching the existing
-  `bursts` / `repels` builder pattern).
-- New `ShipSpawnSystem.projectDecoys`/`projectBricks`/`projectRockets`/
-  `projectPortals` methods (mirror `projectRepels` shape: skip on null,
-  else write `Decoy`+`DecoyMax` etc., reset live pool on respawn).
-- `ShipSpawnSystem.project()` calls the 4 new projectors after the
-  existing 6 inventory projections.
-- ECS components (`Decoy`/`DecoyMax`/`Brick`/`BrickMax`/`Rocket`/`RocketMax`/
-  `Portal`/`PortalMax`) **already exist** in `api/src/infinity/es/ship/actions/` —
-  no new component classes to author.
-- Serializer registration: **not needed** — these are server-only
-  components (no `infinity.client.*` references), matching the existing
-  Repel/Burst/Thor inventory pattern.
-- Behavior: zero behavior change — no preset has `decoys`/`bricks`/`rockets`/
-  `portals` blocks in `ships.groovy` yet, so all four fields default to
-  `null` (disallow). Manual smoke = "still loads" same as B0.
+✅ Landed across 2 commits: `b7a7a062` (B2-Foundation: 4 new
+`ShipConfig` slots + builder methods + `ShipSpawnSystem.project*`
+methods for decoy/brick/rocket/portal) + `cb276025` (B2-Migration:
+trench + deva ships.groovy migrated; 16 ship-`<name>`.groovy files
+stripped of inventory keys; `ShipConfigBuilder` defaults flipped to
+null per Q6).
 
-**B2-Migration commit scope (descoped 2026-05-03):** active arenas only.
+**Behavior change in trench/deva:** per Q1 the `ship-<name>.groovy`
+values became authoritative — trench warbird is now a gun-only build
+(was getting silent 10 repels / 5 bursts / BOMB_4 bombs from defaults),
+matching operator intent.
 
-The original B2-Migration plan covered all 7 presets that have
-`ship-<name>.groovy` files. **In practice the only arenas in
-`infinity/zone/arenas/` are `(default)` (→ base), `deva` (→
-deva-04-2026), and `trench` (→ trench-04-2026)**. The other 5
-SVS-family presets (svs, svs-pb, svs-tce, svs-turf, svs-league) are
-scaffolding for content that doesn't ship today; migrating them is
-sunk cost. Pragmatic descope:
-
-- **In scope: trench-04-2026, deva-04-2026.** Both are
-  `-04-2026` presets currently in active development.
-- **Out of scope: base, svs, svs-pb, svs-tce, svs-turf, svs-league.**
-  Their `ship-<name>.groovy` and INI-mirror `shipSections` splats
-  stay as-is. `(default)` arena (which uses base preset) continues
-  to rely on `GroovyShipLoader.DEFAULT_*` Java fallback constants
-  (= permissive 10/20 repels, etc.) for inventory. No behavior
-  change for `(default)`. Future slice migrates these presets when
-  they become active arenas.
-
-**For trench + deva (the migrated presets):**
-- For each ship, read the `*Max` and `Initial*` values for the 10
-  inventory items (Bombs, Guns, Mines, Repels, Bursts, Thors,
-  Decoys, Bricks, Rockets, Portals) from `ship-<name>.groovy`.
-- Apply Q6 rule: `*Max == 0` → omit the typed inventory block;
-  `*Max > 0` → emit `inventoryName start: Initial*, max: *Max` in
-  the typed `ship(Ship.X) { … }` block in `ships.groovy`.
-- Mines: per-ship `MaxMines` (count cap) is **not yet represented in
-  the typed mines block** (only level + cost + fireDelay are typed).
-  Migration treats `MaxMines 0` as "omit mines block"; for `MaxMines
-  > 0` keeps the mines block with the per-ship cost+fireDelay and
-  default BombLevel range. The count cap stays in `ship-<name>.groovy`
-  as deferred until a future slice models it.
-- Strip the 18 inventory keys (Initial*+*Max for all 10 items + 6
-  fire-cost/delay keys; not MaxMines, not *Upgrade) from
-  `ship-<name>.groovy`. Other unwired per-ship keys (Status, speeds,
-  etc.) stay in the file for their owning gameplay slice to migrate.
-
-**For all presets (Q6 default change):** `ShipConfigBuilder` per-field
-inventory defaults changed from permissive `DEFAULT_*` to `null`. An
-explicit `ship(Ship.X) { … }` block now disallows any inventory type
-whose block isn't declared (the Q6 contract). The permissive
-`DEFAULT_*` constants remain in use only by `FALLBACK` (the snapshot
-installed when `ships.groovy` is missing or fails to parse).
-
-**Behavior change**: trench and deva will start playing without the
-inventory items their operators wrote `*Max 0` for. Trench warbird,
-for example, becomes a gun-only build (no bombs / no repels / no
-bursts), matching `ship-warbird.groovy`'s authored intent. Manual
-smoke must verify the new loadouts feel right.
-
-**Splat removal (descoped):** with the SVS-family migrations deferred,
-the `shipSections` splat usages in `svs-league.groovy` /
-`svs-dueling.groovy` / `svs-pb/ships.groovy` stay in place. Q4's
-"drop splat" decision still holds for when the SVS migration runs;
-it's just deferred along with the rest.
-
-**Tests:**
-- B1 tests stay green.
-- Extend `ConfigRegistrySystemLoadTest`'s trench assertion to cover
-  per-ship inventory: pick warbird (gun-only build) + leviathan
-  (heavy bomber with mines+portals). Asserts both opt-ins
-  (decoys/thors/portals present at expected counts) and Q6 disallow
-  (bombs/repels/bursts/bricks all `null` for warbird), pinning the
-  drift fix.
+**ship-`<name>`.groovy lifecycle:** survives B2 with deferred clusters
+intact (Status family, projectile speeds, multifire, turret, etc.).
+Shrinks progressively as each owning gameplay slice (S6, S10–S15,
+polish bag) migrates its cluster; a final cleanup slice deletes the
+files when every cluster is migrated.
 
 **Out of scope for B2** (deferred to owning gameplay slices):
 - Status family (Cloak/Stealth/XRadar/AntiWarp) → S6
@@ -456,61 +333,55 @@ it's just deferred along with the rest.
 - Wormhole/Gravity (Gravity/GravityTopSpeed) → S13
 - Multifire/DoubleBarrel → S14
 - Turret family → S15
-- Polish bag (Radius, DamageFactor, EmpBomb, SeeBombLevel, SeeMines,
-  RocketTime, AfterburnerEnergy, InitialBounty, AttachBounty,
-  PrizeShareLimit, DisableFastShooting, BombThrust, BombBounceCount,
-  BurstShrapnel) → polish-bag slices
+- Polish bag: Radius, DamageFactor, EmpBomb, SeeBombLevel, SeeMines,
+  RocketTime (per-ship duration — see Slice 2), AfterburnerEnergy,
+  InitialBounty, AttachBounty, PrizeShareLimit, DisableFastShooting,
+  BombThrust, BombBounceCount, BurstShrapnel, MaxMines (count cap)
+- SVS-family per-ship migrations + typed `shipSections` splat removal
+  (deferred until those presets become active arenas).
 
-**ship-`<name>`.groovy lifecycle:** survives B2 (with deferred clusters
-intact); shrinks progressively as each owning gameplay slice migrates
-its cluster; final cleanup slice deletes the files when every cluster
-is migrated.
+## Slice B3 — Typed `prizeWeights` (descoped: prizeWeights only)
 
-## Slice B3 — Typed `prizeWeights` (descoped: prizeWeights only; deathPrizeWeights deferred)
+✅ Landed in `f649d8be` (`feat(settings): typed prizeWeights via
+PrizeWeightsAdapter`). 16 files changed. Same active-arenas-only
+descope as B2: only base/deva/trench got migrated.
 
-✅ Following the same active-arenas-only descope as B2: only the 3
-arena presets (base, deva-04-2026, trench-04-2026) get migrated.
-SVS-family presets keep their INI-mirror `prizeweights.groovy` for now;
-none of them are loaded by any arena, so no runtime impact.
-`deathPrizeWeights` (only relevant to svs-league/svs-dueling) is
-deferred entirely — it'll land in the same future slice that activates
-those presets as arenas.
+- `PrizeWeightsConfig` record (api/, Map<String, Integer> weights,
+  DEFAULTS = empty map) + `PrizeWeightsAdapter` (typed
+  `prizeWeights { Name N; … }` DSL using Groovy `invokeMethod` dispatch).
+- `ConfigRegistry.prizeWeights()` slot + dispatch entry for
+  `prize-weights.groovy`.
+- 3 typed `prize-weights.groovy` authored (base, deva, trench);
+  3 old `prizeweights.groovy` deleted.
+- `PrizeSystem.readArenaWeights` reads from typed slot;
+  `SettingsSystem` field + last `org.ini4j.Ini` reference dropped from
+  PrizeSystem.
 
-- `PrizeWeightsConfig` (api/) — Map<String, Integer> weights shape.
-  `DEFAULTS = empty map` (no prizes spawn for arenas without a typed
-  fragment; matches pre-B3 "missing [PrizeWeight] = no prizes" semantic).
-- `PrizeWeightsAdapter` (infinity/settings/) — typed
-  `prizeWeights { QuickCharge 80; Energy 70; … }` block. Uses Groovy
-  `invokeMethod` dispatch (mirrors the legacy `SectionDelegate` pattern)
-  so prize-name keys round-trip verbatim.
-- `ConfigRegistry.prizeWeights()` slot + `withPrizeWeights` updater +
-  `Builder.prizeWeights` setter.
-- `ConfigRegistrySystem.DISPATCH` gains `prize-weights.groovy` entry.
-- Per-preset migration: 3 `prize-weights.groovy` files authored
-  (base/deva/trench), 3 old `prizeweights.groovy` files deleted, 3
-  `arena.groovy` includes updated.
-- `PrizeSystem.readArenaWeights` swaps from `settingsSystem.getIni(arenaName)`
-  reads to `configRegistry.forArena(arenaId).prizeWeights().weights()`.
-  Filters 0-weight entries (preserves "weight 0 = never spawn" convention).
-  `SettingsSystem` field + import dropped from PrizeSystem.
-
-**Out of scope (deferred):**
-- `deathPrizeWeights` slot + DSL block + `death-prize-weights.groovy`
-  fragment files. Only svs-league/svs-dueling author a `[DPrizeWeight]`
-  section; both are composition files for presets that aren't current
-  arenas. Defer to the same slice that activates SVS-family.
-- SVS-family `prizeweights.groovy` migrations. Same reasoning.
-
-**Tests:**
-- ConfigRegistrySystemLoadTest extended with a trench `prizeWeights`
-  assertion (Repel = 100, MultiFire = 255, Brick = 3 — non-zero entries
-  from trench/prize-weights.groovy).
+**Out of scope (deferred):** `deathPrizeWeights` slot + DSL + fragment
+files (only svs-league/svs-dueling author `[DPrizeWeight]`, neither is
+an arena); SVS-family `prizeweights.groovy` migrations.
 
 ## Slice B4 — Retire `SettingsSystem` + INI-mirror pipeline
 
-🔲 **Pure deletion.** Pre-condition: B1–B3 done; no Java code reads
-fragment data via `SettingsSystem`; no `.groovy` source uses
-`section()` / `shipSection()` / `shipSections()` builders.
+🔲 **Pure deletion. Far horizon.** Pre-condition: every fragment
+cluster typed; no Java code reads fragment data via `SettingsSystem`;
+no `.groovy` source uses `section()` / `shipSection()` /
+`shipSections()` builders.
+
+After the active-arenas-only descope of B2/B3, `SettingsSystem` is
+still required because:
+- `misc.groovy` polish-bag sections (Brick, Rocket, Door, Radar,
+  Shrapnel, Toggle, Wormhole, Misc, Custom, Owner, Message,
+  Spectator) still flow through Phase 1 INI compat. They migrate via
+  their owning gameplay slices (S2, S3, S5, S11, S13 + polish bag).
+- `ship-<name>.groovy` files in trench/deva still hold deferred
+  per-ship clusters (Status, Speeds, Multifire, Turret, etc.).
+  They migrate via S6, S10, S11, S12, S13, S14, S15 + polish bag.
+- SVS-family presets keep INI-mirror state until a future slice
+  activates them as arenas.
+
+B4 lands when those queues are empty. **Realistically: many slices
+out, after the gameplay queue catches up.**
 
 - Delete `infinity/src/main/java/infinity/systems/SettingsSystem.java`
   (~352 lines).

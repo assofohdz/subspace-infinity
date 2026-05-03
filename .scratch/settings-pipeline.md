@@ -48,8 +48,8 @@ ConfigRegistry (per-arena snapshot, owned by ConfigRegistrySystem)
 │
 ├── Prize spawning + dispatch
 │   ├── prize             : PrizeConfig          ← prize.groovy         [Prize]
-│   ├── prizeWeights      : PrizeWeightsConfig   ← prizeweights.groovy  [PrizeWeight]
-│   └── deathPrizeWeights : PrizeWeightsConfig   ← deathprizeweights.groovy  [DPrizeWeight] *svs-league only
+│   ├── prizeWeights      : PrizeWeightsConfig   ← prize-weights.groovy [PrizeWeight]
+│   └── deathPrizeWeights : PrizeWeightsConfig   ← death-prize-weights.groovy  [DPrizeWeight] *svs-league only
 │
 ├── Other gameplay sections (typed in later gameplay slices)
 │   ├── brick             : BrickConfig          ← brick.groovy         [Brick]
@@ -116,8 +116,8 @@ infinity/zone/conf/<preset>/
 ├── repel.groovy
 ├── thor.groovy                                        *only if preset wants Thor tuning override
 ├── prize.groovy
-├── prizeweights.groovy
-├── deathprizeweights.groovy                           *svs-league only
+├── prize-weights.groovy
+├── death-prize-weights.groovy                         *svs-league only
 ├── brick.groovy
 ├── rocket.groovy
 ├── shrapnel.groovy
@@ -190,47 +190,25 @@ keys live in [`out-of-scope.md`](out-of-scope.md), not here.
 Drift between this table and the code is worse than no table — see the
 always-on rule in [`CLAUDE.md`](../CLAUDE.md#always-on-rules).
 
-## Known issue: dual-pipeline drift on per-ship inventory
+## Resolved (was: dual-pipeline drift on per-ship inventory)
 
-Two parallel paths read ship config and they don't agree:
+Fixed for active arenas (trench, deva) in B2-Migration (`cb276025`,
+2026-05-03). Per-ship inventory keys (`Initial*` / `*Max` for bombs,
+guns, mines, bursts, thors, repels, decoys, bricks, rockets, portals)
+now flow through the typed `ship(Ship.X) { … }` DSL exclusively;
+`ship-<name>.groovy` files in trench/deva no longer carry inventory
+keys (deferred clusters like Status, Speeds, Multifire, etc. remain
+until their owning gameplay slices migrate them).
 
-- **Typed loader** — `infinity/zone/conf/<preset>/ships.groovy` evaluated
-  by [`GroovyShipLoader`](../infinity/src/main/java/infinity/settings/GroovyShipLoader.java)
-  via the typed DSL (`repels start: X, max: Y`, `bursts ...`, etc.).
-  Output: `ShipConfig.repels` / `bursts` / `thors` / weapons stats →
-  `ShipSpawnSystem` projects to ECS components. Drives Pattern-4 tuning.
-- **Untyped fragments** — `infinity/zone/conf/<preset>/ship-<name>.groovy`
-  evaluated by [`GroovyFragmentLoader`](../infinity/src/main/java/infinity/settings/GroovyFragmentLoader.java)
-  via `shipSection(name) { Key Value }` which writes Subspace-canonical
-  INI keys (`RepelMax`, `InitialRepel`, `BurstMax`, …) into the merged
-  `Ini` store backing `SettingsSystem`. Drives Subspace-canonical
-  consumers that read from `SettingsSystem` directly.
+`(default)` arena (base preset) still uses `GroovyShipLoader.FALLBACK`
+for inventory (= permissive `DEFAULT_*` constants) since base has no
+typed `ships.groovy`. SVS-family presets keep their pre-migration
+state — none are loaded by any arena. These deferred migrations land
+when their arena becomes active.
 
-When `ships.groovy` omits an inventory block (e.g. trench-04-2026 has no
-`repels`/`bursts`/`thors` blocks for any ship), the typed loader falls
-back to `DEFAULT_REPELS = CountStats(start=10, max=20)`. The
-`ship-<name>.groovy` fragment's `RepelMax 4` for that same ship is
-silently ignored by the spawn-projection path — it only affects code
-that reads `SettingsSystem` directly. End result: per-ship `Repel` /
-`RepelMax` rows below show ✅ but the *value* a player sees is the
-loader default, not the Subspace fragment value.
-
-Resolution options for a future slice:
-
-1. Make `GroovyShipLoader.ShipBuilder` consult the merged `Ini` store
-   for inventory keys when its typed block is missing — single source
-   per ship, fragment values win.
-2. Move every per-ship inventory key to the typed `ships.groovy` DSL
-   and delete the corresponding lines from `ship-<name>.groovy`.
-   Higher migration cost, fully eliminates the dual path for inventory.
-3. Document the split as intentional: `ships.groovy` for the typed
-   tuning surface, `ship-<name>.groovy` for unmigrated/legacy keys
-   that still go through `SettingsSystem`. Lowest churn, leaves the
-   footgun in place.
-
-Verify with `~ship` (in-game) — if `repel=10/20` doesn't match the
-`InitialRepel`/`RepelMax` in the preset's `ship-<name>.groovy`, this
-drift is the cause.
+Verify per-arena with `~ship`: trench/deva ships now show the
+operator's authored loadout (e.g. trench warbird is gun-only —
+matches `ship-warbird.groovy`'s `RepelMax 0`).
 
 ---
 
@@ -238,8 +216,8 @@ drift is the cause.
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `BombDamageLevel` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBomb` | `BombConfig.damage` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ❌ |
-| ✅ | `BombAliveTime` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBomb` | `BombConfig.decayMs` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ❌ |
+| ✅ | `BombDamageLevel` | ✅ bomb.groovy | `BombAdapter` (typed DSL) | `BombConfig.damage` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `BombAliveTime` | ✅ bomb.groovy | `BombAdapter` (cs×10→ms) | `BombConfig.decayMs` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ❌ |
 | ⚠️ | `BombExplodeDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `BombExplodePixels` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `ProximityDistance` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
@@ -260,16 +238,16 @@ drift is the cause.
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `BulletDamageLevel` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBullet` | `BulletConfig.damage` | — | `WeaponsSystem.createProjectileGun` (via `damageAtLevel`) | ❌ |
-| ✅ | `BulletDamageUpgrade` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBullet` | `BulletConfig.damageUpgrade` | — | `WeaponsSystem.createProjectileGun` (via `damageAtLevel`) | ❌ |
-| ✅ | `BulletAliveTime` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBullet` | `BulletConfig.decayMs` | — | `WeaponsSystem.createProjectileGun` | ❌ |
+| ✅ | `BulletDamageLevel` | ✅ bullet.groovy | `BulletAdapter` (typed DSL) | `BulletConfig.damage` | — | `WeaponsSystem.createProjectileGun` (via `damageAtLevel`) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `BulletDamageUpgrade` | ✅ bullet.groovy | `BulletAdapter` (typed DSL) | `BulletConfig.damageUpgrade` | — | `WeaponsSystem.createProjectileGun` (via `damageAtLevel`) | ❌ |
+| ✅ | `BulletAliveTime` | ✅ bullet.groovy | `BulletAdapter` (cs×10→ms) | `BulletConfig.decayMs` | — | `WeaponsSystem.createProjectileGun` | ❌ |
 | ⚠️ | `ExactDamage` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
 ## [Burst]
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `BurstDamageLevel` | ✅ misc.groovy | `GroovyWeaponsLoader.loadBurst` | `BurstFireConfig.damage` | — | `WeaponsSystem.createProjectileBurst` | ❌ |
+| ✅ | `BurstDamageLevel` | ✅ burst.groovy | `BurstAdapter` (typed DSL) | `BurstFireConfig.damage` | — | `WeaponsSystem.createProjectileBurst` | ❌ |
 
 ## [Custom]
 
@@ -298,7 +276,7 @@ drift is the cause.
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `MineAliveTime` | ✅ misc.groovy | `GroovyWeaponsLoader.loadMine` | `MineConfig.decayMs` | — | `WeaponsSystem.createProjectileMine` | ❌ |
+| ✅ | `MineAliveTime` | ✅ mine.groovy | `MineAdapter` (cs×10→ms) | `MineConfig.decayMs` | — | `WeaponsSystem.createProjectileMine` | ❌ |
 | ⚠️ | `TeamMaxMines` | ✅ misc.groovy | ❌ | ❌ (probably belongs in a TeamConfig) | — | ❌ | ❌ |
 
 ## [Misc]
@@ -360,7 +338,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `PrizeHideCount` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `MinimumVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `UpgradeVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ✅ | `PrizeMaxExist` | ✅ misc.groovy | `GroovyWeaponsLoader.loadPrize` | `PrizeConfig.defaultDecayMs` | — | `PrizeSystem` (decay routing for prize entities) | ❌ |
+| ✅ | `PrizeMaxExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultDecayMs` | — | `PrizeSystem` (decay routing for prize entities) | ✅ `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `PrizeMinExist` | ✅ misc.groovy | ❌ | ❌ (would need a range field) | — | ❌ | ❌ |
 | ⚠️ | `PrizeNegativeFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `DeathPrizeTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
@@ -370,38 +348,40 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 
 ## [PrizeWeight] — applier dispatch
 
-[PrizeWeight] keys are spawn-frequency multipliers per prize type, read by `PrizeSystem.handlePrizeAcquisition` via the merged `Ini`. The "Applier" column tracks the per-prize implementation status. "Subsystem" column = which ship-side system the applier writes through (or delegates to).
+[PrizeWeight] keys are spawn-frequency multipliers per prize type, authored in a typed `prize-weights.groovy` fragment, read by `PrizeWeightsAdapter` into `PrizeWeightsConfig.weights`, and consumed by `PrizeSystem.readArenaWeights` via `ConfigRegistry.prizeWeights()`. The "Applier" column tracks the per-prize implementation status. "Subsystem" column = which ship-side system the applier writes through (or delegates to).
+
+Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key into the same `Map<String,Integer>` slot.
 
 | C | Prize type | Authored? | Loader | API config | Component | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|---|
-| ✅ | `Recharge` (= "Full Charge") | ✅ misc.groovy | `PrizeSystem` (PrizeWeights) | — | `Energy`/`Health` | `QuickChargePrizeApplier` ✅ | `EnergySystem.refillHealth` | ❌ |
-| ✅ | `Energy` | ✅ misc.groovy | `PrizeSystem` | — | `Energy`/`EnergyMax` | `EnergyPrizeApplier` ✅ | `EnergySystem.update` | ❌ |
-| ✅ | `Rotation` | ✅ misc.groovy | `PrizeSystem` | — | `Rotation`/`RotationMax` | `RotationPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
-| ⚠️ | `Stealth` | ✅ misc.groovy | `PrizeSystem` | — | `Stealth`/`StealthStatus` | `StealthPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
-| ⚠️ | `Cloak` | ✅ misc.groovy | `PrizeSystem` | — | `Cloak`/`CloakStatus` | `CloakPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
-| ⚠️ | `XRadar` | ✅ misc.groovy | `PrizeSystem` | — | `XRadar`/`XRadarStatus` | `XRadarPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
-| ✅ | `Gun` (= "Gun Upgrade") | ✅ misc.groovy | `PrizeSystem` | — | `GunCurrentLevel`/`GunMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileGun` | ❌ |
-| ✅ | `Bomb` (= "Bomb Upgrade") | ✅ misc.groovy | `PrizeSystem` | — | `BombCurrentLevel`/`BombMaxLevel` + `MineCurrentLevel`/`MineMaxLevel` | `CompositePrizeApplier(BombPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (bomb + mine) | ❌ |
-| ✅ | `Thrust` | ✅ misc.groovy | `PrizeSystem` | — | `Thrust`/`ThrustMax` | `ThrusterPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
-| ✅ | `Speed` (= "Top Speed") | ✅ misc.groovy | `PrizeSystem` | — | `Speed`/`SpeedMax` | `TopSpeedPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
-| ⚠️ | `MultiFire` | ✅ misc.groovy | `PrizeSystem` | — | `Multishot` | `MultiFirePrizeApplier` ❌ stub | (needs Multishot wiring) | ❌ |
-| ⚠️ | `Proximity` | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no Proximity component) | `ProximityPrizeApplier` ❌ stub | (needs Proximity component + applier) | ❌ |
-| ⚠️ | `Super` | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no Super-active component) | `SuperPrizeApplier` ❌ stub | (needs Super-active component) | ❌ |
-| ⚠️ | `Shields` | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no Shields-active component) | `ShieldsPrizeApplier` ❌ stub | (needs Shields-active component) | ❌ |
-| ⚠️ | `Shrap` (= "Shrapnel") | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no Shrapnel/ShrapnelMax) | `ShrapnelPrizeApplier` ❌ stub | needs Shrapnel/ShrapnelMax components | ❌ |
-| ⚠️ | `AntiWarp` | ✅ misc.groovy | `PrizeSystem` | — | `Antiwarp`/`AntiwarpStatus` | `AntiWarpPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
-| ✅ | `Repel` | ✅ misc.groovy | `PrizeSystem` | — | `Repel`/`RepelMax` | `RepelPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
-| ✅ | `Burst` | ✅ misc.groovy | `PrizeSystem` | — | `Burst`/`BurstMax` | `BurstPrizeApplier` ✅ | `WeaponsSystem.createProjectileBurst` | ❌ |
-| ✅ | `Decoy` | ✅ misc.groovy | `PrizeSystem` | — | `Decoy`/`DecoyMax` | `DecoyPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
-| ✅ | `Thor` | ✅ misc.groovy | `PrizeSystem` | — | `Thor`/`ThorCurrentCount`/`ThorMaxCount` | `ThorPrizeApplier` ✅ | `ConsumableSystem.actOut` (FIRETHOR) | ❌ |
-| ✅ | `Brick` | ✅ misc.groovy | `PrizeSystem` | — | `Brick`/`BrickMax` | `BrickPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
-| ✅ | `Rocket` | ✅ misc.groovy | `PrizeSystem` | — | `Rocket`/`RocketMax` | `RocketPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
-| ✅ | `Portal` | ✅ misc.groovy | `PrizeSystem` | — | `Portal`/`PortalMax` | `PortalPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
-| ✅ | `Warp` | ✅ misc.groovy | `PrizeSystem` | — | — (teleport, no slot) | `WarpPrizeApplier` ✅ | `WarpSystem.warpToCenter` | ❌ |
-| ⚠️ | `BouncingBullets` | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no Bounce ship-toggle) | `BouncingBulletsPrizeApplier` ❌ stub | (needs Bounce-toggle component) | ❌ |
-| ⚠️ | `Glue` (= "Engine Shutdown") | ✅ misc.groovy | `PrizeSystem` | — | ❌ (no EngineShutdown component) | `GluePrizeApplier` ❌ stub | (needs EngineShutdown component + timer) | ❌ |
-| ✅ | `AllWeapons` (= "Super!") | ✅ misc.groovy | `PrizeSystem` | — | composite (Guns/Bombs/Bursts/Mines) | `CompositePrizeApplier(BombPrizeApplier, BurstPrizeApplier, GunPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (composite) | ❌ |
-| ⚠️ | `MultiPrize` | ✅ misc.groovy | `PrizeSystem` | — | — (recursive dispatch, no slot) | `MultiPrizePrizeApplier` ❌ stub | (needs recursive dispatch + RNG) | ❌ |
+| ✅ | `Recharge` (= "Full Charge") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Energy`/`Health` | `QuickChargePrizeApplier` ✅ | `EnergySystem.refillHealth` | ❌ |
+| ✅ | `Energy` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Energy`/`EnergyMax` | `EnergyPrizeApplier` ✅ | `EnergySystem.update` | ❌ |
+| ✅ | `Rotation` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Rotation`/`RotationMax` | `RotationPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
+| ⚠️ | `Stealth` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Stealth`/`StealthStatus` | `StealthPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
+| ⚠️ | `Cloak` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Cloak`/`CloakStatus` | `CloakPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
+| ⚠️ | `XRadar` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `XRadar`/`XRadarStatus` | `XRadarPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
+| ✅ | `Gun` (= "Gun Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `GunCurrentLevel`/`GunMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileGun` | ❌ |
+| ✅ | `Bomb` (= "Bomb Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `BombCurrentLevel`/`BombMaxLevel` + `MineCurrentLevel`/`MineMaxLevel` | `CompositePrizeApplier(BombPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (bomb + mine) | ❌ |
+| ✅ | `Thrust` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Thrust`/`ThrustMax` | `ThrusterPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
+| ✅ | `Speed` (= "Top Speed") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Speed`/`SpeedMax` | `TopSpeedPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
+| ⚠️ | `MultiFire` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Multishot` | `MultiFirePrizeApplier` ❌ stub | (needs Multishot wiring) | ❌ |
+| ⚠️ | `Proximity` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Proximity component) | `ProximityPrizeApplier` ❌ stub | (needs Proximity component + applier) | ❌ |
+| ⚠️ | `Super` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Super-active component) | `SuperPrizeApplier` ❌ stub | (needs Super-active component) | ❌ |
+| ⚠️ | `Shields` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Shields-active component) | `ShieldsPrizeApplier` ❌ stub | (needs Shields-active component) | ❌ |
+| ⚠️ | `Shrap` (= "Shrapnel") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Shrapnel/ShrapnelMax) | `ShrapnelPrizeApplier` ❌ stub | needs Shrapnel/ShrapnelMax components | ❌ |
+| ⚠️ | `AntiWarp` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Antiwarp`/`AntiwarpStatus` | `AntiWarpPrizeApplier` ❌ stub | (needs toggle wiring) | ❌ |
+| ✅ | `Repel` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Repel`/`RepelMax` | `RepelPrizeApplier` ✅ | `ConsumableSystem.actOut` | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `Burst` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Burst`/`BurstMax` | `BurstPrizeApplier` ✅ | `WeaponsSystem.createProjectileBurst` | ❌ |
+| ✅ | `Decoy` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Decoy`/`DecoyMax` | `DecoyPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
+| ✅ | `Thor` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Thor`/`ThorCurrentCount`/`ThorMaxCount` | `ThorPrizeApplier` ✅ | `ConsumableSystem.actOut` (FIRETHOR) | ❌ |
+| ✅ | `Brick` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Brick`/`BrickMax` | `BrickPrizeApplier` ✅ | `ConsumableSystem.actOut` | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `Rocket` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Rocket`/`RocketMax` | `RocketPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
+| ✅ | `Portal` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Portal`/`PortalMax` | `PortalPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
+| ✅ | `Warp` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | — (teleport, no slot) | `WarpPrizeApplier` ✅ | `WarpSystem.warpToCenter` | ❌ |
+| ⚠️ | `BouncingBullets` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Bounce ship-toggle) | `BouncingBulletsPrizeApplier` ❌ stub | (needs Bounce-toggle component) | ❌ |
+| ⚠️ | `Glue` (= "Engine Shutdown") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no EngineShutdown component) | `GluePrizeApplier` ❌ stub | (needs EngineShutdown component + timer) | ❌ |
+| ✅ | `AllWeapons` (= "Super!") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | composite (Guns/Bombs/Bursts/Mines) | `CompositePrizeApplier(BombPrizeApplier, BurstPrizeApplier, GunPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (composite) | ❌ |
+| ⚠️ | `MultiPrize` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | — (recursive dispatch, no slot) | `MultiPrizePrizeApplier` ❌ stub | (needs recursive dispatch + RNG) | ❌ |
 
 ## [Radar]
 
@@ -415,9 +395,9 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `RepelSpeed` | ✅ misc.groovy | ✅ `GroovyWeaponsLoader.loadRepel` | ✅ `RepelConfig.speed` | — | ✅ `ConsumableSystem.createRepel` → `RepelSpeed` component | ✅ `RepelFactoryTest` |
-| ✅ | `RepelTime` | ✅ misc.groovy | ✅ `GroovyWeaponsLoader.loadRepel` (cs×10→ms) | ✅ `RepelConfig.timeMs` | — | ✅ `ConsumableSystem.createRepel` → `Decay` | ✅ `RepelFactoryTest` |
-| ✅ | `RepelDistance` | ✅ misc.groovy | ✅ `GroovyWeaponsLoader.loadRepel` | ✅ `RepelConfig.distancePixels` | — | ✅ `ConsumableSystem.createRepel` → `RepelDistance` component | ✅ `RepelFactoryTest` |
+| ✅ | `RepelSpeed` | ✅ repel.groovy | ✅ `RepelAdapter` (typed DSL) | ✅ `RepelConfig.speed` | — | ✅ `ConsumableSystem.createRepel` → `RepelSpeed` component | ✅ `RepelFactoryTest` |
+| ✅ | `RepelTime` | ✅ repel.groovy | ✅ `RepelAdapter` (cs×10→ms) | ✅ `RepelConfig.timeMs` | — | ✅ `ConsumableSystem.createRepel` → `Decay` | ✅ `RepelFactoryTest` |
+| ✅ | `RepelDistance` | ✅ repel.groovy | ✅ `RepelAdapter` (typed DSL) | ✅ `RepelConfig.distancePixels` | — | ✅ `ConsumableSystem.createRepel` → `RepelDistance` component | ✅ `RepelFactoryTest` |
 
 ## [Rocket]
 
@@ -468,9 +448,13 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 ## Per-ship sections (`[All]`, `[Warbird]`, `[Javelin]`, `[Spider]`, `[Leviathan]`, `[Terrier]`, `[Weasel]`, `[Lancaster]`, `[Shark]`)
 
 Per-ship keys flow through `GroovyShipLoader` (parses `ships.groovy`'s
-typed DSL into `ShipConfig`), not `GroovyWeaponsLoader`. Authoritative
-per-ship coverage lives in [`ship-config-dictionary.md`](ship-config-dictionary.md);
-this table is the macro view.
+typed DSL into `ShipConfig`). Arena-global weapon/prize knobs flow
+through their per-fragment typed adapters (`BulletAdapter`,
+`BombAdapter`, `MineAdapter`, `BurstAdapter`, `RepelAdapter`,
+`PrizeAdapter`, `PrizeWeightsAdapter`) — see the per-section tables
+above. Authoritative per-ship coverage lives in
+[`ship-config-dictionary.md`](ship-config-dictionary.md); this table
+is the macro view.
 
 ### Initial / Maximum / Upgrade stats
 
