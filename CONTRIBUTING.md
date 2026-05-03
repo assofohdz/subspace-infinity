@@ -2,7 +2,7 @@
 
 Subspace Infinity is a single-maintainer, pre-alpha hobby project. Contributions are welcome — code, documentation, bug reports, balance feedback — and are reviewed on a best-effort basis. Reviews typically happen within 2–3 days; if your PR sits longer than that, ping in [Discord](https://discord.gg/FXqNB6N).
 
-By submitting a pull request, you agree your contribution is licensed under the [BSD 2-Clause license](LICENSE) that covers the rest of the project.
+By submitting a pull request, you agree your contribution is licensed under the [BSD-3-Clause license](LICENSE) that covers the rest of the project. Note that `LICENSE` covers code and Subspace Infinity's own assets only — see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for material with separate provenance (Subspace/Continuum game files, community maps, attributed textures).
 
 ## Before You Start
 
