@@ -65,7 +65,7 @@ These rules are mirrored from [CLAUDE.md](CLAUDE.md). **CLAUDE.md is canonical**
 | Rule | Why | Canonical |
 |---|---|---|
 | Use `final` for method parameters | Project convention; catches accidental reassignment | [CLAUDE.md §Always-on Rules #1](CLAUDE.md) |
-| BSD 2-Clause license header on every Java file | Licensing; copy from any existing file | [CLAUDE.md §Always-on Rules #2](CLAUDE.md) |
+| SPDX-only `BSD-3-Clause` license header on every source file | Licensing; copy from any existing file | [CLAUDE.md §Always-on Rules #2](CLAUDE.md) |
 | Tuning knobs go in Groovy, not Java | Gameplay balance shouldn't require a recompile | [CLAUDE.md §Always-on Rules #4](CLAUDE.md) |
 | Layer boundaries: `api/` is data + interfaces only; client observes, server owns | Keeps the api ↔ server ↔ client split honest; enforced by [LayerDependencyTest](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java) | [.claude/rules/](.claude/rules/) |
 
@@ -88,7 +88,7 @@ When you touch the corresponding directory, the rules below apply. The full text
 ## Code Style
 
 - **Run Spotless before submitting:** `./gradlew spotlessApply`. The build will fail if formatting is wrong.
-- **License header on every Java file.** BSD 2-Clause, copyright Asser Fahrenholz. Copy the block from any existing file (e.g. [api/src/infinity/sim/CoreViewConstants.java](api/src/infinity/sim/CoreViewConstants.java)).
+- **License header on every source file.** SPDX-only — `// SPDX-License-Identifier: BSD-3-Clause` followed by `// Copyright (c) 2018-2026 Asser Fahrenholz`. Full text is in [LICENSE](LICENSE).
 - **`final` on method parameters.** Always.
 - **Comments: default to none.** Only write a comment when the *why* is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain what well-named code already says.
 
@@ -129,7 +129,7 @@ Aim for a single concern and a reviewable diff. PRs that are too large to review
 
 - [ ] `./gradlew build` passes locally
 - [ ] `./gradlew spotlessApply` run, no diff left over
-- [ ] BSD 2-Clause header on any new Java files
+- [ ] SPDX-only `BSD-3-Clause` header on any new source files
 - [ ] Followed the path-scoped rules in [.claude/rules/](.claude/rules/) for files you touched
 - [ ] One concern per PR
 - [ ] Linked an issue if applicable

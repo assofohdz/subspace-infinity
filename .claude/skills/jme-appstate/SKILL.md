@@ -14,15 +14,12 @@ Client-side states manage UI, rendering, and input using jME3's state system.
 1. Extend `com.jme3.app.state.BaseAppState`
 2. Implement lifecycle methods properly
 3. Clean up all resources in `cleanup()` - **CRITICAL: release EntitySets**
-4. Include BSD 2-clause license header
+4. Include SPDX-only `BSD-3-Clause` license header
 
 ## Template
 ```java
-/*
- * Copyright (c) 2018, Asser Fahrenholz
- * All rights reserved.
- * [BSD 2-clause license...]
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity;
 
 import com.jme3.app.Application;

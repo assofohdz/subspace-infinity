@@ -97,7 +97,7 @@ public class MyModule extends BaseGameModule {
 - Components go in `infinity.es` package
 - Systems go in `infinity.systems` package  
 - Client states go in `infinity` package
-- Use BSD 2-clause license header on all files
+- Use SPDX-only `BSD-3-Clause` license header on all source files (`// SPDX-License-Identifier: BSD-3-Clause` then `// Copyright (c) 2018-2026 Asser Fahrenholz`)
 - Use `final` for method parameters
 - EntitySets MUST be released in `terminate()`
 - Components should be immutable when possible

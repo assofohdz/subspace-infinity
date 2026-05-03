@@ -22,15 +22,12 @@ From the wiki:
 3. Create `EntitySet` queries for needed components
 4. **CRITICAL: Release all EntitySets in terminate()** - memory leak otherwise
 5. Use `applyChanges()` pattern in `update()`
-6. Include BSD 2-clause license header
+6. Include SPDX-only `BSD-3-Clause` license header
 
 ## Template
 ```java
-/*
- * Copyright (c) 2018, Asser Fahrenholz
- * All rights reserved.
- * [BSD 2-clause license...]
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.systems;
 
 import com.simsilica.es.Entity;

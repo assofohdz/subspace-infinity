@@ -41,7 +41,7 @@ modules/src/main/java/       # Extension modules
 Arena identity is by **folder name** under `arenas/`, not by map filename. An arena's `.lvl` is declared by the `map` directive in its `arena.groovy`. See [arena-settings](../arena-settings/SKILL.md) for the full model.
 
 ## Key Conventions
-- BSD 2-clause license header on all files (Copyright Asser Fahrenholz)
+- SPDX-only `BSD-3-Clause` license header on all source files (Copyright Asser Fahrenholz)
 - Components: immutable, in `infinity.es` package
 - Systems: extend `AbstractGameSystem`, in `infinity.systems`
 - App States: extend `BaseAppState`, in `infinity` package
