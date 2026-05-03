@@ -402,7 +402,10 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
           return;
         case ConsumableSystem.FIRETHOR:
           actionSys.sessionAct(avatarEntityId, ConsumableSystem.FIRETHOR);
-            return;
+          return;
+        case ConsumableSystem.REPEL:
+          actionSys.sessionAct(avatarEntityId, ConsumableSystem.REPEL);
+          return;
       }
     }
 
