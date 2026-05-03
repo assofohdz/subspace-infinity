@@ -340,45 +340,99 @@ adapter):**
   load preset's full fragment list → assert resulting `ConfigRegistry`
   matches expected values authored in test code.
 
-## Slice B2 — Per-ship typed inventory consolidation + `shipSections` splat
+## Slice B2 — Per-ship typed inventory consolidation (bounded scope)
 
-🔲 Resolves the [dual-pipeline drift](settings-pipeline.md#known-issue-dual-pipeline-drift-on-per-ship-inventory).
+🔲 Resolves the [dual-pipeline drift](settings-pipeline.md#known-issue-dual-pipeline-drift-on-per-ship-inventory)
+for the inventory cluster only. Other unwired per-ship key clusters
+(Status family, projectile speeds, multifire, turret, etc.) wait for
+their owning gameplay slices (S6, S10, S11, S12, S13, S14, S15) to
+migrate them alongside their consumer wiring.
 
-**Per-ship migration:**
-- Move every per-ship key from `ship-<name>.groovy` (INI-mirror
-  `shipSection` shape) into the typed `ship(Ship.X) { … }` builder in
-  `ships.groovy`. Targets:
-  - `Initial*` / `*Max` inventory triples (Repel, Burst, Brick,
-    Rocket, Thor, Decoy, Portal, Guns, Bombs).
-  - `*FireEnergy` / `*FireDelay` weapon costs/cadences.
-  - `CloakStatus` / `StealthStatus` / `XRadarStatus` /
-    `AntiWarpStatus` ability tri-states.
-  - `*Energy` drain rates.
-  - Per-ship `Bullet*Speed`, `Bomb*Speed`, `Radius`, `DamageFactor`,
-    `EmpBomb`, `SeeBombLevel`, `SeeMines`, `SuperTime`, `ShieldsTime`,
-    `Gravity`, `GravityTopSpeed`, `BurstShrapnel`,
-    `TurretThrustPenalty` — full inventory.
-- Delete the eight `ship-<name>.groovy` files × N presets (potentially
-  ~64 file deletions; presets that fully match DEFAULTS need no per-ship
-  file).
+**Decisions locked in 2026-05-03 grilling session** — recorded inline
+because they reframe the original B2 description above:
 
-**`shipSections` splat in the typed pipeline:**
-- Implement typed equivalent of the INI-mirror `shipSections('A','B') { … }`
-  block. svs-league uses this for league/dueling baseline; svs-pb
-  uses it for the all-ships shared block in `ships.groovy`.
-- The typed splat should call the typed `ship(Ship.X) { … }` builder
-  for each named ship, applying the same closure body. Last-write
-  semantics match the existing INI-mirror behavior.
+| # | Decision |
+|---|---|
+| Q1 | `ship-<name>.groovy` is authoritative — migration *fixes* the dual-pipeline drift. Trench warbird's `RepelMax 0` becomes effective (was silently overridden by `DEFAULT_REPELS = 10/20`). Behavior change visible in-game; that's the bug fix. |
+| Q2 | Include decoy/brick/rocket/portal *activation* — currently dead (no `*Max` component is projected anywhere; 4 prize appliers silently no-op). B2 wires their projection so they actually work. |
+| Q3 | Bounded scope: inventory + currently-typed keys + the 4 newly-activated types. **Other unwired per-ship keys stay in `ship-<name>.groovy`** until their owning gameplay slice. ship-`<name>`.groovy files survive B2 (smaller; holding deferred clusters). |
+| Q4 | **Drop the typed `shipSections` splat.** Native Groovy `each` handles the same use cases without bespoke DSL surface. Rewrite svs-league/svs-dueling/svs-pb splat usages as `each` blocks. |
+| Q5 | **2-commit slicing**: B2-Foundation (add 4 fields/builder methods/projections; no preset changes) + B2-Migration (per-preset value migration + splat removal in one commit). |
+| Q6 | `*Max 0` → `null` slot in ShipConfig (= disallow per Subspace canon). Migration omits the inventory block when source value is 0. `*Max > 0` → typed `inventoryName start: N, max: M` block. |
+| Q7 | I read+write per preset directly; native Groovy `each` for svs-pb (all-ships shared) and svs-league (shared baseline + per-ship overrides). |
+
+**B2-Foundation commit scope:**
+- New `ShipConfig` slots: `decoys` / `bricks` / `rockets` / `portals`
+  (all `@Nullable CountStats`, matching `bursts` / `repels`).
+- New `ShipConfigBuilder` methods: `decoys`/`bricks`/`rockets`/`portals`
+  taking `start: N, max: M` named-arg maps (matching the existing
+  `bursts` / `repels` builder pattern).
+- New `ShipSpawnSystem.projectDecoys`/`projectBricks`/`projectRockets`/
+  `projectPortals` methods (mirror `projectRepels` shape: skip on null,
+  else write `Decoy`+`DecoyMax` etc., reset live pool on respawn).
+- `ShipSpawnSystem.project()` calls the 4 new projectors after the
+  existing 6 inventory projections.
+- ECS components (`Decoy`/`DecoyMax`/`Brick`/`BrickMax`/`Rocket`/`RocketMax`/
+  `Portal`/`PortalMax`) **already exist** in `api/src/infinity/es/ship/actions/` —
+  no new component classes to author.
+- Serializer registration: **not needed** — these are server-only
+  components (no `infinity.client.*` references), matching the existing
+  Repel/Burst/Thor inventory pattern.
+- Behavior: zero behavior change — no preset has `decoys`/`bricks`/`rockets`/
+  `portals` blocks in `ships.groovy` yet, so all four fields default to
+  `null` (disallow). Manual smoke = "still loads" same as B0.
+
+**B2-Migration commit scope:**
+- For each preset (7 presets that have `ship-<name>.groovy` files —
+  base, deva-04-2026, svs, svs-league, svs-tce, svs-turf,
+  trench-04-2026):
+  - For each ship, read the `*Max` and `Initial*` values for the 10
+    inventory items (Bombs, Guns, Mines, Repels, Bursts, Thors,
+    Decoys, Bricks, Rockets, Portals) from `ship-<name>.groovy`.
+  - Apply Q6 rule: `*Max == 0` → omit the typed inventory block;
+    `*Max > 0` → emit `inventoryName start: Initial*, max: *Max` in
+    the typed `ship(Ship.X) { … }` block in `ships.groovy`.
+  - **Strip those 10 inventory keys** (and only those) from
+    `ship-<name>.groovy`. Other unwired per-ship keys (Status,
+    speeds, etc.) **stay** in the file for their owning gameplay
+    slice to migrate.
+- For svs-pb: rewrite the existing `shipSections` splat in
+  `ships.groovy` as a native Groovy `each` loop over the 8 ship types,
+  each calling the typed `ship(Ship.X) { … }` builder.
+- For svs-league/svs-dueling: replace the `shipSections` splat in the
+  composition files with a native Groovy `each` loop. Per-ship
+  overrides stay as individual `shipSection` blocks (until their
+  inventory keys migrate to typed `ship` blocks too).
+- **Behavior change**: trench, deva, and other presets with `*Max 0`
+  values for inventory items will start playing without those
+  inventory items (matching the operator's original `ship-<name>.groovy`
+  intent, fixing the dual-pipeline drift).
 
 **Tests:**
 - B1 tests stay green.
-- **Add `svs-league` roundtrip test** (covers the splat case):
-  load `svs-league.groovy` (uses `include` + `shipSections` splat) →
-  assert each ship in `ConfigRegistry.ships()` carries the expected
-  league baseline values + per-ship overrides.
+- Extend `ConfigRegistrySystemLoadTest`'s trench assertion to cover
+  per-ship inventory: pick warbird, assert `ConfigRegistry.getShip(WARBIRD)`
+  has `decoys.max() == 1`, `thors.max() == 3`, `repels == null`,
+  `bursts == null` (matching trench/ship-warbird.groovy intent
+  post-Q1).
 
-May split into B2a (inventory) / B2b (abilities + drain) / B2c
-(everything else) if the slice grows beyond a single coherent commit.
+**Out of scope for B2** (deferred to owning gameplay slices):
+- Status family (Cloak/Stealth/XRadar/AntiWarp) → S6
+- Per-ship projectile speeds (BulletSpeed/BombSpeed/BurstSpeed) → S10
+- Shrapnel cluster (ShrapnelMax/ShrapnelRate) → S11
+- Super/Shields (SuperTime/ShieldsTime) → S12
+- Wormhole/Gravity (Gravity/GravityTopSpeed) → S13
+- Multifire/DoubleBarrel → S14
+- Turret family → S15
+- Polish bag (Radius, DamageFactor, EmpBomb, SeeBombLevel, SeeMines,
+  RocketTime, AfterburnerEnergy, InitialBounty, AttachBounty,
+  PrizeShareLimit, DisableFastShooting, BombThrust, BombBounceCount,
+  BurstShrapnel) → polish-bag slices
+
+**ship-`<name>`.groovy lifecycle:** survives B2 (with deferred clusters
+intact); shrinks progressively as each owning gameplay slice migrates
+its cluster; final cleanup slice deletes the files when every cluster
+is migrated.
 
 ## Slice B3 — Typed `prizeWeights` + `deathPrizeWeights`
 
