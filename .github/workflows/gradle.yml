@@ -10,8 +10,36 @@ name: Java CI with Gradle
 on:
   push:
     branches: [ "infinity" ]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.scratch/**'
+      - '.claude/**'
+      - 'pages/**'
+      - 'LICENSE'
+      - 'LICENSE.md'
+      - 'THIRD-PARTY-NOTICES.md'
+      - 'RELEASE-NOTES.md'
+      - 'CONTRIBUTING.md'
+      - 'README.md'
+      - '.gitignore'
+      - '.gitattributes'
   pull_request:
     branches: [ "infinity" ]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.scratch/**'
+      - '.claude/**'
+      - 'pages/**'
+      - 'LICENSE'
+      - 'LICENSE.md'
+      - 'THIRD-PARTY-NOTICES.md'
+      - 'RELEASE-NOTES.md'
+      - 'CONTRIBUTING.md'
+      - 'README.md'
+      - '.gitignore'
+      - '.gitattributes'
 
 permissions:
   contents: read
