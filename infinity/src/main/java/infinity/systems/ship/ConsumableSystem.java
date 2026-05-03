@@ -78,7 +78,7 @@ public class ConsumableSystem extends AbstractGameSystem
     if (arenaId == null) {
       return ThorConfig.DEFAULTS;
     }
-    return configRegistry.forArena(arenaId).weapons().thor();
+    return configRegistry.forArena(arenaId).thor();
   }
 
   /**
@@ -91,7 +91,7 @@ public class ConsumableSystem extends AbstractGameSystem
     if (arenaId == null) {
       return RepelConfig.DEFAULTS;
     }
-    return configRegistry.forArena(arenaId).weapons().repel();
+    return configRegistry.forArena(arenaId).repel();
   }
 
   @Override

@@ -5,8 +5,6 @@ package infinity.settings;
 
 import com.simsilica.sim.AbstractGameSystem;
 import infinity.config.ArenaConfig;
-import infinity.config.PrizeConfig;
-import infinity.config.WeaponsConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.Objects;
@@ -108,12 +106,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
    *   <li><b>Ships</b> — {@link GroovyShipLoader#apply} parses the typed
    *       {@code ships.groovy} (referenced via {@link ArenaConfig#shipsScript()})
    *       and installs a ship-only snapshot via {@link #replace}.
-   *   <li><b>Weapons + prize compat</b> —
-   *       {@link GroovyWeaponsLoader#load} and
-   *       {@link GroovyWeaponsLoader#loadPrize} derive {@link WeaponsConfig}
-   *       and {@link PrizeConfig} from the merged {@code Ini}; the result is
-   *       layered onto the ship snapshot via
-   *       {@link ConfigRegistry#withWeapons} / {@link ConfigRegistry#withPrize}.
+   *   <li><b>Weapons + prize compat</b> — {@link GroovyWeaponsLoader}'s
+   *       per-section {@code loadBullet} / {@code loadBomb} / {@code loadMine}
+   *       / {@code loadBurst} / {@code loadRepel} / {@code loadPrize} methods
+   *       derive each typed sub-record from the merged {@code Ini}; the
+   *       results are layered onto the ship snapshot via the per-slot
+   *       {@code ConfigRegistry.with*} updaters.
    * </ol>
    *
    * <p>The dispatch table for typed per-fragment adapters
@@ -137,10 +135,21 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
         arenaConfig.shipsScript().isBlank() ? null : arenaConfig.shipsScript();
     shipLoader.apply(arenaId, shipsScript);
 
-    // Phase 3: weapons + prize compat shim (B1 narrows; B4 deletes)
-    final WeaponsConfig weapons = weaponsLoader.load(settings, arenaName);
-    final PrizeConfig prize = weaponsLoader.loadPrize(settings, arenaName);
+    // Phase 3: weapons + prize compat shim (B1b narrows per-section as typed
+    // adapters land; B4 deletes once every section has its own adapter).
+    // GravBomb and Thor have no Subspace fragment section today (gravbombs
+    // share [Bomb] tuning in VIE; Thors are an Infinity addition without a
+    // canonical section), so they keep their *Config.DEFAULTS until either
+    // gets its own typed slot.
     final ConfigRegistry current = forArena(arenaId);
-    replace(arenaId, current.withWeapons(weapons).withPrize(prize));
+    replace(
+        arenaId,
+        current
+            .withBullet(weaponsLoader.loadBullet(settings, arenaName))
+            .withBomb(weaponsLoader.loadBomb(settings, arenaName))
+            .withMine(weaponsLoader.loadMine(settings, arenaName))
+            .withBurst(weaponsLoader.loadBurst(settings, arenaName))
+            .withRepel(weaponsLoader.loadRepel(settings, arenaName))
+            .withPrize(weaponsLoader.loadPrize(settings, arenaName)));
   }
 }

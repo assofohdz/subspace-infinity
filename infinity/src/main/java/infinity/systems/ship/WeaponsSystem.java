@@ -22,13 +22,13 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.config.WeaponsConfig;
 import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.Health;
 import infinity.es.ship.actions.Burst;
@@ -98,17 +98,18 @@ public class WeaponsSystem extends AbstractGameSystem
   private EntitySet energyEntities;
 
   /**
-   * Per-arena weapon-projectile tuning lookup. The attacker's {@link ArenaId}
-   * keys into {@link ConfigRegistrySystem}; arenas with no config get
-   * {@link WeaponsConfig#DEFAULTS} (the legacy Java values). Falls back to
-   * {@code DEFAULTS} when the attacker has no {@code ArenaId} (no-arena void).
+   * Per-arena config lookup. The attacker's {@link ArenaId} keys into
+   * {@link ConfigRegistrySystem}; arenas with no config get
+   * {@link ConfigRegistry#EMPTY} (each weapon-projectile slot defaults to
+   * its sub-record's {@code DEFAULTS}). Falls back to {@code EMPTY} when
+   * the attacker has no {@code ArenaId} (no-arena void).
    */
-  private WeaponsConfig weaponsFor(final EntityId attacker) {
+  private ConfigRegistry weaponsFor(final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
     if (arenaId == null) {
-      return WeaponsConfig.DEFAULTS;
+      return ConfigRegistry.EMPTY;
     }
-    return configRegistry.forArena(arenaId).weapons();
+    return configRegistry.forArena(arenaId);
   }
 
   @Override
@@ -420,7 +421,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final String bulletShape =
         BULLET_LEVEL_PREFIX + gunCurrentLevel.getLevel().level;
 
-    final WeaponsConfig cfg = weaponsFor(requester);
+    final ConfigRegistry cfg = weaponsFor(requester);
     EntityId gunProjectile;
     gunProjectile =
         GameEntities.createBullet(
@@ -448,7 +449,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final String bombShape =
         BOMB_LEVEL_PREFIX + bombCurrentLevel.getLevel().level;
 
-    final WeaponsConfig cfg = weaponsFor(requester);
+    final ConfigRegistry cfg = weaponsFor(requester);
     final EntityId bombProjectile =
         GameEntities.createBomb(
             ed,
@@ -471,7 +472,7 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requester = requesterEntity.getId();
     GravityBomb gravityBomb = this.gravityBombs.getEntity(requester).get(GravityBomb.class);
 
-    final WeaponsConfig cfg = weaponsFor(requester);
+    final ConfigRegistry cfg = weaponsFor(requester);
     EntityId projectile;
     final HashSet<EntityComponent> delayedComponents = new HashSet<>();
     delayedComponents.add(
@@ -503,7 +504,7 @@ public class WeaponsSystem extends AbstractGameSystem
   private void createProjectileBurst(Entity requesterEntity, long time) {
     Quatd orientation = new Quatd();
 
-    final WeaponsConfig cfg = weaponsFor(requesterEntity.getId());
+    final ConfigRegistry cfg = weaponsFor(requesterEntity.getId());
     final long burstCount = cfg.burst().projectileCount();
     final double angle = (360d / burstCount) * FastMath.DEG_TO_RAD;
 
@@ -569,7 +570,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final String mineShape =
         MINE_LEVEL_PREFIX + mineCurrentLevel.getLevel().level;
 
-    final WeaponsConfig cfg = weaponsFor(requester);
+    final ConfigRegistry cfg = weaponsFor(requester);
     final EntityId mineProjectile =
         GameEntities.createMine(
             ed,

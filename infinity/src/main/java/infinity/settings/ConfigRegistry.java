@@ -4,9 +4,15 @@
 package infinity.settings;
 
 import infinity.Ship;
+import infinity.config.BombConfig;
+import infinity.config.BulletConfig;
+import infinity.config.BurstFireConfig;
+import infinity.config.GravBombConfig;
+import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
+import infinity.config.RepelConfig;
 import infinity.config.ShipConfig;
-import infinity.config.WeaponsConfig;
+import infinity.config.ThorConfig;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
@@ -24,10 +30,10 @@ import javax.annotation.Nullable;
  * {@link ConfigRegistrySystem#replace}; readers see either the old or new
  * snapshot, never a torn state.
  *
- * <p>Scope: per-ship templates ({@link #ships}), per-arena weapon-projectile
- * tuning ({@link #weapons}), per-arena prize-spawn defaults ({@link #prize}).
- * Grow by adding per-type slots as new clusters migrate from local Java
- * constants to typed config — see config-pattern.md.
+ * <p>Each weapon-projectile sub-record sits as a direct slot here (post-B1a
+ * flatten) — no intermediate {@code WeaponsConfig} grouping struct. Per
+ * {@code .scratch/settings-pipeline.md}'s target architecture: the public
+ * API is the visual inventory of "what's tunable per arena."
  */
 public final class ConfigRegistry {
 
@@ -35,17 +41,35 @@ public final class ConfigRegistry {
   public static final ConfigRegistry EMPTY = builder().build();
 
   private final Map<Ship, ShipConfig> ships;
-  private final WeaponsConfig weapons;
+  private final BulletConfig bullet;
+  private final BombConfig bomb;
+  private final GravBombConfig gravBomb;
+  private final MineConfig mine;
+  private final BurstFireConfig burst;
+  private final RepelConfig repel;
+  private final ThorConfig thor;
   private final PrizeConfig prize;
 
   private ConfigRegistry(
       final EnumMap<Ship, ShipConfig> shipsSource,
-      final WeaponsConfig weapons,
+      final BulletConfig bullet,
+      final BombConfig bomb,
+      final GravBombConfig gravBomb,
+      final MineConfig mine,
+      final BurstFireConfig burst,
+      final RepelConfig repel,
+      final ThorConfig thor,
       final PrizeConfig prize) {
     final EnumMap<Ship, ShipConfig> copy = new EnumMap<>(Ship.class);
     copy.putAll(shipsSource);
     this.ships = Collections.unmodifiableMap(copy);
-    this.weapons = weapons;
+    this.bullet = bullet;
+    this.bomb = bomb;
+    this.gravBomb = gravBomb;
+    this.mine = mine;
+    this.burst = burst;
+    this.repel = repel;
+    this.thor = thor;
     this.prize = prize;
   }
 
@@ -64,14 +88,26 @@ public final class ConfigRegistry {
     return ships.keySet();
   }
 
-  /**
-   * Per-arena weapon-projectile tuning (damage, decay, grav-bomb knobs,
-   * burst count). Never {@code null} — the builder defaults to
-   * {@link WeaponsConfig#DEFAULTS} when not specified.
-   */
-  public WeaponsConfig weapons() {
-    return weapons;
-  }
+  /** Per-arena gun-bullet tuning. Never {@code null} (defaults to {@link BulletConfig#DEFAULTS}). */
+  public BulletConfig bullet() { return bullet; }
+
+  /** Per-arena bomb tuning. Never {@code null} (defaults to {@link BombConfig#DEFAULTS}). */
+  public BombConfig bomb() { return bomb; }
+
+  /** Per-arena gravity-bomb / wormhole tuning. Never {@code null} (defaults to {@link GravBombConfig#DEFAULTS}). */
+  public GravBombConfig gravBomb() { return gravBomb; }
+
+  /** Per-arena mine tuning. Never {@code null} (defaults to {@link MineConfig#DEFAULTS}). */
+  public MineConfig mine() { return mine; }
+
+  /** Per-arena burst-firing tuning. Never {@code null} (defaults to {@link BurstFireConfig#DEFAULTS}). */
+  public BurstFireConfig burst() { return burst; }
+
+  /** Per-arena Repel-effect tuning. Never {@code null} (defaults to {@link RepelConfig#DEFAULTS}). */
+  public RepelConfig repel() { return repel; }
+
+  /** Per-arena Thor projectile tuning. Never {@code null} (defaults to {@link ThorConfig#DEFAULTS}). */
+  public ThorConfig thor() { return thor; }
 
   /**
    * Per-arena prize-spawn defaults (decay / max count / bounty value).
@@ -85,25 +121,66 @@ public final class ConfigRegistry {
     return new Builder();
   }
 
-  /**
-   * Return a copy of this snapshot with {@link #weapons} replaced. Used by
-   * Phase B fragment loaders that derive weapon tuning from the per-arena
-   * {@code Ini} after the ship snapshot is already installed — keeps both
-   * loaders independent without exposing a mutable builder.
-   */
-  public ConfigRegistry withWeapons(final WeaponsConfig replacement) {
-    Objects.requireNonNull(replacement, "weapons");
-    final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
-    source.putAll(this.ships);
-    return new ConfigRegistry(source, replacement, this.prize);
+  /** Return a copy of this snapshot with {@link #bullet} replaced. */
+  public ConfigRegistry withBullet(final BulletConfig replacement) {
+    Objects.requireNonNull(replacement, "bullet");
+    return copyWith(replacement, bomb, gravBomb, mine, burst, repel, thor, prize);
   }
 
-  /** Counterpart to {@link #withWeapons} for the {@code [Prize]} fragment section. */
+  /** Return a copy of this snapshot with {@link #bomb} replaced. */
+  public ConfigRegistry withBomb(final BombConfig replacement) {
+    Objects.requireNonNull(replacement, "bomb");
+    return copyWith(bullet, replacement, gravBomb, mine, burst, repel, thor, prize);
+  }
+
+  /** Return a copy of this snapshot with {@link #gravBomb} replaced. */
+  public ConfigRegistry withGravBomb(final GravBombConfig replacement) {
+    Objects.requireNonNull(replacement, "gravBomb");
+    return copyWith(bullet, bomb, replacement, mine, burst, repel, thor, prize);
+  }
+
+  /** Return a copy of this snapshot with {@link #mine} replaced. */
+  public ConfigRegistry withMine(final MineConfig replacement) {
+    Objects.requireNonNull(replacement, "mine");
+    return copyWith(bullet, bomb, gravBomb, replacement, burst, repel, thor, prize);
+  }
+
+  /** Return a copy of this snapshot with {@link #burst} replaced. */
+  public ConfigRegistry withBurst(final BurstFireConfig replacement) {
+    Objects.requireNonNull(replacement, "burst");
+    return copyWith(bullet, bomb, gravBomb, mine, replacement, repel, thor, prize);
+  }
+
+  /** Return a copy of this snapshot with {@link #repel} replaced. */
+  public ConfigRegistry withRepel(final RepelConfig replacement) {
+    Objects.requireNonNull(replacement, "repel");
+    return copyWith(bullet, bomb, gravBomb, mine, burst, replacement, thor, prize);
+  }
+
+  /** Return a copy of this snapshot with {@link #thor} replaced. */
+  public ConfigRegistry withThor(final ThorConfig replacement) {
+    Objects.requireNonNull(replacement, "thor");
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, replacement, prize);
+  }
+
+  /** Counterpart to the weapon-section withers for the {@code [Prize]} fragment section. */
   public ConfigRegistry withPrize(final PrizeConfig replacement) {
     Objects.requireNonNull(replacement, "prize");
+    return copyWith(bullet, bomb, gravBomb, mine, burst, repel, thor, replacement);
+  }
+
+  private ConfigRegistry copyWith(
+      final BulletConfig bullet,
+      final BombConfig bomb,
+      final GravBombConfig gravBomb,
+      final MineConfig mine,
+      final BurstFireConfig burst,
+      final RepelConfig repel,
+      final ThorConfig thor,
+      final PrizeConfig prize) {
     final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
     source.putAll(this.ships);
-    return new ConfigRegistry(source, this.weapons, replacement);
+    return new ConfigRegistry(source, bullet, bomb, gravBomb, mine, burst, repel, thor, prize);
   }
 
   /**
@@ -115,7 +192,13 @@ public final class ConfigRegistry {
   public static final class Builder {
 
     private final EnumMap<Ship, ShipConfig> ships = new EnumMap<>(Ship.class);
-    private WeaponsConfig weapons = WeaponsConfig.DEFAULTS;
+    private BulletConfig bullet = BulletConfig.DEFAULTS;
+    private BombConfig bomb = BombConfig.DEFAULTS;
+    private GravBombConfig gravBomb = GravBombConfig.DEFAULTS;
+    private MineConfig mine = MineConfig.DEFAULTS;
+    private BurstFireConfig burst = BurstFireConfig.DEFAULTS;
+    private RepelConfig repel = RepelConfig.DEFAULTS;
+    private ThorConfig thor = ThorConfig.DEFAULTS;
     private PrizeConfig prize = PrizeConfig.DEFAULTS;
 
     public Builder ship(final Ship type, final ShipConfig config) {
@@ -125,8 +208,38 @@ public final class ConfigRegistry {
       return this;
     }
 
-    public Builder weapons(final WeaponsConfig weapons) {
-      this.weapons = Objects.requireNonNull(weapons, "weapons");
+    public Builder bullet(final BulletConfig bullet) {
+      this.bullet = Objects.requireNonNull(bullet, "bullet");
+      return this;
+    }
+
+    public Builder bomb(final BombConfig bomb) {
+      this.bomb = Objects.requireNonNull(bomb, "bomb");
+      return this;
+    }
+
+    public Builder gravBomb(final GravBombConfig gravBomb) {
+      this.gravBomb = Objects.requireNonNull(gravBomb, "gravBomb");
+      return this;
+    }
+
+    public Builder mine(final MineConfig mine) {
+      this.mine = Objects.requireNonNull(mine, "mine");
+      return this;
+    }
+
+    public Builder burst(final BurstFireConfig burst) {
+      this.burst = Objects.requireNonNull(burst, "burst");
+      return this;
+    }
+
+    public Builder repel(final RepelConfig repel) {
+      this.repel = Objects.requireNonNull(repel, "repel");
+      return this;
+    }
+
+    public Builder thor(final ThorConfig thor) {
+      this.thor = Objects.requireNonNull(thor, "thor");
       return this;
     }
 
@@ -136,7 +249,7 @@ public final class ConfigRegistry {
     }
 
     public ConfigRegistry build() {
-      return new ConfigRegistry(ships, weapons, prize);
+      return new ConfigRegistry(ships, bullet, bomb, gravBomb, mine, burst, repel, thor, prize);
     }
   }
 }

@@ -6,19 +6,21 @@ package infinity.settings;
 import infinity.config.BombConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
-import infinity.config.GravBombConfig;
 import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
 import infinity.config.RepelConfig;
-import infinity.config.ThorConfig;
-import infinity.config.WeaponsConfig;
 import infinity.systems.SettingsSystem;
 
 /**
- * Phase B bridge: derive {@link WeaponsConfig} and {@link PrizeConfig} from
- * the per-arena merged Groovy fragment store ({@link SettingsSystem}).
- * See {@code .scratch/refactor-backlog/BACKLOG.md} for the cluster-by-cluster
- * status of which sections are wired vs. still on {@code DEFAULTS}.
+ * Phase B bridge: derive per-section {@code *Config} records from the
+ * per-arena merged Groovy fragment store ({@link SettingsSystem}). One
+ * public method per section; {@link ConfigRegistrySystem#load} calls each
+ * and threads the result into a {@link ConfigRegistry} via the per-slot
+ * {@code with*} updaters.
+ *
+ * <p>This is the legacy {@code Ini}-routed compat shim. Slice B1b adds
+ * per-section typed adapters that bypass the {@code Ini} entirely; B4
+ * deletes this loader once every section has its typed adapter.
  *
  * <p>Subspace fragment-key conventions used here:
  * <ul>
@@ -48,27 +50,7 @@ public final class GroovyWeaponsLoader {
   /** {@code Prize} section name in the merged fragment store. */
   static final String PRIZE_SECTION = "Prize";
 
-  /**
-   * Build a {@link WeaponsConfig} for {@code arenaName}. Keys missing from the
-   * merged store fall back to the matching sub-record's {@code DEFAULTS}.
-   *
-   * <p>{@code GravBombConfig} and {@code ThorConfig} have no Subspace
-   * fragment section today (gravbombs share {@code [Bomb]} tuning in VIE,
-   * Thors are an Infinity addition without a canonical section), so those
-   * stay on {@code DEFAULTS}.
-   */
-  public WeaponsConfig load(final SettingsSystem settings, final String arenaName) {
-    return new WeaponsConfig(
-        loadBullet(settings, arenaName),
-        loadBomb(settings, arenaName),
-        GravBombConfig.DEFAULTS,
-        loadMine(settings, arenaName),
-        ThorConfig.DEFAULTS,
-        loadBurst(settings, arenaName),
-        loadRepel(settings, arenaName));
-  }
-
-  private BulletConfig loadBullet(final SettingsSystem settings, final String arenaName) {
+  public BulletConfig loadBullet(final SettingsSystem settings, final String arenaName) {
     final int damage =
         settings.getInt(
             arenaName, BULLET_SECTION, "BulletDamageLevel", BulletConfig.DEFAULTS.damage());
@@ -87,7 +69,7 @@ public final class GroovyWeaponsLoader {
     return new BulletConfig(damage, damageUpgrade, aliveCs * 10L);
   }
 
-  private BombConfig loadBomb(final SettingsSystem settings, final String arenaName) {
+  public BombConfig loadBomb(final SettingsSystem settings, final String arenaName) {
     final int damage =
         settings.getInt(
             arenaName, BOMB_SECTION, "BombDamageLevel", BombConfig.DEFAULTS.damage());
@@ -100,7 +82,7 @@ public final class GroovyWeaponsLoader {
     return new BombConfig(damage, aliveCs * 10L);
   }
 
-  private MineConfig loadMine(final SettingsSystem settings, final String arenaName) {
+  public MineConfig loadMine(final SettingsSystem settings, final String arenaName) {
     final int aliveCs =
         settings.getInt(
             arenaName,
@@ -110,7 +92,7 @@ public final class GroovyWeaponsLoader {
     return new MineConfig(aliveCs * 10L);
   }
 
-  private BurstFireConfig loadBurst(final SettingsSystem settings, final String arenaName) {
+  public BurstFireConfig loadBurst(final SettingsSystem settings, final String arenaName) {
     final int damage =
         settings.getInt(
             arenaName, BURST_SECTION, "BurstDamageLevel", BurstFireConfig.DEFAULTS.damage());
@@ -120,7 +102,7 @@ public final class GroovyWeaponsLoader {
         damage);
   }
 
-  private RepelConfig loadRepel(final SettingsSystem settings, final String arenaName) {
+  public RepelConfig loadRepel(final SettingsSystem settings, final String arenaName) {
     final int speed =
         settings.getInt(arenaName, REPEL_SECTION, "RepelSpeed", RepelConfig.DEFAULTS.speed());
     final int timeCs =

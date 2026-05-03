@@ -79,15 +79,16 @@ public class ConfigRegistrySystemLoadTest {
           16,
           warbird.thrust().initial());
 
-      // Phase 3 — weapons compat shim pulled trench's misc.groovy values.
+      // Phase 3 — weapons compat shim pulled trench's misc.groovy values
+      // into ConfigRegistry's flat weapon-projectile slots (post-B1a flatten).
       assertEquals(
           "trench's [Bullet] BulletDamageLevel = 520",
           520,
-          snapshot.weapons().bullet().damage());
+          snapshot.bullet().damage());
       assertEquals(
           "trench's [Bomb] BombDamageLevel = 2650",
           2650,
-          snapshot.weapons().bomb().damage());
+          snapshot.bomb().damage());
 
       // Phase 3 — prize compat shim. trench's PrizeMaxExist = 12000 (cs) → 120000 ms.
       assertEquals(
