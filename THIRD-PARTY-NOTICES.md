@@ -32,16 +32,22 @@ license. If you are the rights holder, see the contact above.
 
 ---
 
-## Subspace community maps
+## Subspace community maps and zone snapshots
 
 **Paths:**
 
 - `infinity/assets/Maps/*.lvl`
 - `infinity/assets/Maps/*.lvz`
+- `infinity/assets/Maps/04-2026-trench/` — a snapshot of the Trench
+  Survivor / Trench Wars community zone's map and overlay set as of
+  April 2026 (`TSL*.lvl`, `pub*.lvl`, `wbduel.lvl`, `javduel.lvl`, plus
+  the zone's `.lvz` overlays). Each file in this directory is community
+  work; the directory itself is bundled here as a configuration package
+  pointing the project at that zone's content.
 
-**Origin:** Maps and overlay packs created by the Subspace / Continuum
-player community, distributed across player-run zones and forums over
-the lifetime of the game.
+**Origin:** Maps, overlay packs, and zone snapshots created by the
+Subspace / Continuum player community, distributed across player-run
+zones and forums over the lifetime of the game.
 
 **Status:** Each map's authorship rests with its original author.
 Many `.lvl` files contain author attribution inside their eLVL `ATTR`
@@ -52,6 +58,40 @@ the project `LICENSE`. Map authors retain all rights.
 
 If you authored a map included here and want it removed or attributed
 differently, see the contact above.
+
+---
+
+## Subspace zone configurations
+
+**Paths:**
+
+- `infinity/zone/conf/deva-04-2026/`
+- `infinity/zone/conf/svs/`, `svs-league/`, `svs-pb/`, `svs-tce/`, `svs-turf/`
+- `infinity/zone/conf/trench-04-2026/`
+- `infinity/zone/arenas/deva/`, `infinity/zone/arenas/trench/`
+
+**Origin:** These directories hold settings ported from real Subspace
+community zones — Devastation (`deva`), SubSpace Veteran Server
+(`svs*`), Trench Wars / Trench Survivor (`trench`) — captured as of
+April 2026 where dated. The Groovy DSL form (the `section` /
+`shipSection` invocation patterns, the `include` directive, the loader
+machinery in `infinity/src/main/java/infinity/settings/`) is Subspace
+Infinity's own work. The canonical setting **values** — ship balance
+numbers, weapon parameters, prize tables, zone rules — are sourced
+from those community zones and reflect choices made by their
+maintainers, not by Subspace Infinity.
+
+**Status:** Numerical settings are typically not copyrightable
+expression on their own, but the curated *combination* of values that
+defines a zone's identity is community work. Subspace Infinity ports
+these as faithfully as it can to reproduce play feel and is not the
+original author of the configurations. If you operate one of these
+zones (or a successor) and want a configuration changed, attributed
+differently, or removed, see the contact above.
+
+`infinity/zone/arenas/(default)/` and `infinity/zone/conf/base/` are
+Subspace Infinity's own scaffolding (project defaults, not ported
+from a specific community zone).
 
 ---
 
@@ -94,7 +134,6 @@ correct their provenance, see the contact above.
 ## Project's own assets
 
 All other files under `infinity/assets/` — including `Materials/`,
-`MatDefs/`, `Shaders/`, `Tilesets/`, `Interface/`, `Blocks/`, the
-`Maps/04-2026-trench/` arena and similar Subspace Infinity-authored
-arenas, and `assets/Textures/MiniMap/` — are Subspace Infinity's own
-work and are covered by the project [`LICENSE.md`](LICENSE.md).
+`MatDefs/`, `Shaders/`, `Tilesets/`, `Interface/`, `Blocks/`, and
+`assets/Textures/MiniMap/` — are Subspace Infinity's own work and are
+covered by the project [`LICENSE.md`](LICENSE.md).

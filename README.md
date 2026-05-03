@@ -85,4 +85,15 @@ Thanks to the original Subspace and Continuum developers, POiD, Grelminar, Gigam
 
 ## License
 
-BSD-3-Clause — see [LICENSE.md](LICENSE.md). The license covers Subspace Infinity's own code and assets; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for material with separate provenance (original Subspace/Continuum game files, community maps, attributed textures).
+BSD-3-Clause — see [LICENSE.md](LICENSE.md). The license covers Subspace Infinity's own code and assets only.
+
+Material with separate provenance is documented in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md):
+
+- Original Subspace / Continuum game files (`*.bm2`, `*.wa2`) bundled for compatibility — VIE / Continuum origin, no redistribution license held.
+- Community-made maps and overlays (`*.lvl`, `*.lvz`) — original authors retain rights.
+- Subspace zone snapshots (`Maps/04-2026-trench/`) — community zone content.
+- Subspace zone configurations (`infinity/zone/conf/deva-04-2026/`, `svs*/`, `trench-04-2026/` and the corresponding arenas) — settings ported from real community zones; the Groovy DSL is mine, the canonical values are community work.
+- MillionthVector textures — CC BY 4.0, attribution preserved.
+- Simsilica-derived source files retain their original BSD-3 headers (clause 1: keep upstream copyright notices).
+
+If you are a rights holder for any of the above and want it removed, ping in [Discord](https://discord.gg/FXqNB6N).
