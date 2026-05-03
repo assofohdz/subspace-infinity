@@ -4,7 +4,11 @@
 package infinity.settings;
 
 import com.simsilica.sim.AbstractGameSystem;
+import infinity.config.ArenaConfig;
+import infinity.config.PrizeConfig;
+import infinity.config.WeaponsConfig;
 import infinity.es.arena.ArenaId;
+import infinity.systems.SettingsSystem;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -19,6 +23,13 @@ import org.slf4j.LoggerFactory;
  * <p>Snapshots are installed by atomic reference swap via {@link #replace} —
  * readers never see a half-updated state. Each swap replaces the entire
  * snapshot for the arena; there are no partial updates.
+ *
+ * <p><b>Load orchestration</b> ({@link #load}) is the single entry point for
+ * building an arena's snapshot from its {@link ArenaConfig}: ships via the
+ * typed {@link GroovyShipLoader}, weapons + prize via the still-INI-routed
+ * {@link GroovyWeaponsLoader} compat shim. Same method serves initial load
+ * and hot-reload. The compat shim disappears in slice B4 once every
+ * fragment section has its own typed adapter (B1–B3).
  */
 public class ConfigRegistrySystem extends AbstractGameSystem {
 
@@ -26,9 +37,17 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
 
   private final ConcurrentMap<String, ConfigRegistry> byArena = new ConcurrentHashMap<>();
 
+  private SettingsSystem settings;
+  private GroovyShipLoader shipLoader;
+  private GroovyWeaponsLoader weaponsLoader;
+
   @Override
   protected void initialize() {
-    // No startup work — registries are populated as arenas load.
+    // Collaborators are registered after this system in GameServer; pull them
+    // here once the server has wired everything up.
+    settings = getSystem(SettingsSystem.class);
+    shipLoader = getSystem(GroovyShipLoader.class);
+    weaponsLoader = getSystem(GroovyWeaponsLoader.class);
   }
 
   @Override
@@ -69,5 +88,59 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
   public void remove(final ArenaId arenaId) {
     Objects.requireNonNull(arenaId, "arenaId");
     byArena.remove(arenaId.getArena());
+  }
+
+  /**
+   * Load and install the per-arena {@link ConfigRegistry} snapshot from its
+   * {@link ArenaConfig}. Single entry point for both initial arena load and
+   * hot-reload (the file watcher in {@code ArenaSystem} calls this on every
+   * watched-file change). Atomic full-replace per call — readers see the
+   * old or the new snapshot, never a torn state.
+   *
+   * <p>Three-phase orchestration:
+   *
+   * <ol>
+   *   <li><b>Fragment Ini load</b> — {@link SettingsSystem#loadFragments}
+   *       reads each {@link ArenaConfig#fragmentIncludes()} path and merges
+   *       the {@code Ini} store under {@code arenaName}. Legacy compat path;
+   *       slice B4 deletes once every fragment section has its own typed
+   *       adapter.
+   *   <li><b>Ships</b> — {@link GroovyShipLoader#apply} parses the typed
+   *       {@code ships.groovy} (referenced via {@link ArenaConfig#shipsScript()})
+   *       and installs a ship-only snapshot via {@link #replace}.
+   *   <li><b>Weapons + prize compat</b> —
+   *       {@link GroovyWeaponsLoader#load} and
+   *       {@link GroovyWeaponsLoader#loadPrize} derive {@link WeaponsConfig}
+   *       and {@link PrizeConfig} from the merged {@code Ini}; the result is
+   *       layered onto the ship snapshot via
+   *       {@link ConfigRegistry#withWeapons} / {@link ConfigRegistry#withPrize}.
+   * </ol>
+   *
+   * <p>The dispatch table for typed per-fragment adapters
+   * (see {@code .scratch/settings-pipeline-slices.md} slice B0 design) is
+   * deferred to slice B1 — until per-section typed adapters exist
+   * ({@code BulletAdapter}, {@code BombAdapter}, …) the table would have only
+   * one effective entry ({@code ships.groovy}, handled separately because it
+   * lives outside {@code fragmentIncludes()}). Adding it now is premature
+   * abstraction; B1 introduces it alongside its first per-fragment adapter.
+   */
+  public void load(final ArenaId arenaId, final ArenaConfig arenaConfig) {
+    Objects.requireNonNull(arenaId, "arenaId");
+    Objects.requireNonNull(arenaConfig, "arenaConfig");
+    final String arenaName = arenaId.getArena();
+
+    // Phase 1: fragment Ini load (legacy compat; B4 deletes)
+    settings.loadFragments(arenaName, arenaConfig.fragmentIncludes());
+
+    // Phase 2: ships via typed loader (installs ship-only snapshot)
+    final String shipsScript =
+        arenaConfig.shipsScript().isBlank() ? null : arenaConfig.shipsScript();
+    shipLoader.apply(arenaId, shipsScript);
+
+    // Phase 3: weapons + prize compat shim (B1 narrows; B4 deletes)
+    final WeaponsConfig weapons = weaponsLoader.load(settings, arenaName);
+    final PrizeConfig prize = weaponsLoader.loadPrize(settings, arenaName);
+    final ConfigRegistry current = forArena(arenaId);
+    replace(arenaId, current.withWeapons(weapons).withPrize(prize));
   }
 }

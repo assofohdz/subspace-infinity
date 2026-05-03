@@ -26,15 +26,10 @@ import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.systems.ship.ShipSpawnSystem;
-import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovySettingsHost;
-import infinity.settings.GroovyShipLoader;
-import infinity.settings.GroovyWeaponsLoader;
 import infinity.settings.GroovyZoneLoader;
-import infinity.config.PrizeConfig;
-import infinity.config.WeaponsConfig;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
@@ -154,8 +149,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private EntityData ed;
   private EntitySet arenaEntities;
   private EntitySet playerEntities;
-  private GroovyShipLoader shipLoader;
-  private GroovyWeaponsLoader weaponsLoader;
   private ConfigRegistrySystem configRegistry;
   private final GroovyArenaLoader arenaLoader = new GroovyArenaLoader();
   private boolean bootstrapped;
@@ -219,8 +212,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     ed = getSystem(EntityData.class);
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
-    shipLoader = getSystem(GroovyShipLoader.class);
-    weaponsLoader = getSystem(GroovyWeaponsLoader.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
 
     chat.registerPatternTriConsumer(
@@ -579,40 +570,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   /**
    * Resolve the arena's typed config from {@code arenas/<arenaName>/arena.groovy}.
-   * Side effect: populates {@code SettingsSystem}'s per-arena INI store with the
-   * fragment data named in {@code includeFragment} so downstream
-   * {@link SettingsSystem#getString} / {@link SettingsSystem#getInt} lookups
-   * against fragment keys (e.g. {@code Bomb.BombDamageLevel}) keep working.
+   * Pure parse — no side effects. Fragment loading + typed-record assembly
+   * happens later via {@link ConfigRegistrySystem#load}.
    *
    * @return the parsed config, or {@code null} if the Groovy file is missing
    *     entirely; callers fail-fast in that case (no INI fallback —
    *     {@code arena.conf} support was retired in zone-arena-to-groovy #3)
    */
   @Nullable
-  private ArenaConfig loadArenaConfig(final SettingsSystem settings, final String arenaName) {
-    final ArenaConfig groovyConfig = arenaLoader.load(arenaName);
-    if (groovyConfig == null) {
-      return null;
-    }
-    settings.loadFragments(arenaName, groovyConfig.fragmentIncludes());
-    return groovyConfig;
-  }
-
-  /**
-   * Phase B: derive {@link WeaponsConfig} and {@link PrizeConfig} from the
-   * per-arena merged fragment store and fold both into the
-   * {@link ConfigRegistry} snapshot. Called after {@code shipLoader.apply}
-   * (which installs the ship part of the snapshot) and on fragment
-   * hot-reload, so an operator's {@code BulletDamageLevel} or
-   * {@code PrizeMaxExist} edit in {@code misc.groovy} reaches its consumers
-   * without a server restart.
-   */
-  private void applyWeaponsConfig(
-      final SettingsSystem settings, final String arenaName, final ArenaId arenaId) {
-    final WeaponsConfig weapons = weaponsLoader.load(settings, arenaName);
-    final PrizeConfig prize = weaponsLoader.loadPrize(settings, arenaName);
-    final ConfigRegistry current = configRegistry.forArena(arenaId);
-    configRegistry.replace(arenaId, current.withWeapons(weapons).withPrize(prize));
+  private ArenaConfig loadArenaConfig(final String arenaName) {
+    return arenaLoader.load(arenaName);
   }
 
   /**
@@ -678,7 +645,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       // arena.groovy is the only authoring surface for arena-scope config —
       // INI arena.conf was retired in zone-arena-to-groovy #3. A missing
       // arena.groovy is a configuration error rather than a fallback case.
-      final ArenaConfig groovyConfig = loadArenaConfig(settings, rec.name);
+      final ArenaConfig groovyConfig = loadArenaConfig(rec.name);
       if (groovyConfig == null) {
         fail(rec, null, "No arena.groovy found for arena '" + rec.name + "'");
         return;
@@ -689,35 +656,31 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       arena = ed.createEntity();
       final ArenaId arenaId = new ArenaId(rec.name, EntityId.NULL_ID);
       ed.setComponent(arena, arenaId);
+      configRegistry.load(arenaId, rec.config);
       final String shipsScript =
           rec.config.shipsScript().isBlank() ? null : rec.config.shipsScript();
-      shipLoader.apply(arenaId, shipsScript);
-      applyWeaponsConfig(settings, rec.name, arenaId);
       registerFileWatch(
           arenaId,
           shipsScript,
           () -> {
-            shipLoader.apply(arenaId, shipsScript);
-            applyWeaponsConfig(settings, rec.name, arenaId);
+            configRegistry.load(arenaId, rec.config);
             final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
             log.info(
                 "{} changed for arena {}; reprojected {} ship(s)",
                 shipsScript, arenaId.getArena(), reprojected);
           });
       // Watch every Groovy includeFragment so editing a fragment file at
-      // runtime rebuilds the merged settings store and fans out
-      // SettingListener events for any (section, key) whose value changed.
+      // runtime triggers a full re-load through ConfigRegistrySystem.
+      // Consumers re-read on next consumption — no event/callback fires.
       // Non-Groovy fragments aren't supported by the loader anymore, so the
       // filter is just defence in depth against a stale arena.groovy.
       for (final String fragmentPath : rec.config.fragmentIncludes()) {
         if (fragmentPath != null && fragmentPath.endsWith(".groovy")) {
-          final List<String> allFragments = rec.config.fragmentIncludes();
           registerFileWatch(
               arenaId,
               fragmentPath,
               () -> {
-                settings.reloadFragments(arenaId, allFragments);
-                applyWeaponsConfig(settings, rec.name, arenaId);
+                configRegistry.load(arenaId, rec.config);
                 log.info(
                     "{} changed for arena {}; settings reloaded",
                     fragmentPath, arenaId.getArena());
