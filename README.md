@@ -3,7 +3,7 @@
 A cross-platform [Subspace Continuum](https://store.steampowered.com/app/352700/Subspace_Continuum/) client and server reimagined in Java — built for extensibility, modularity, and modern multiplayer infrastructure.
 
 [![Build](https://github.com/assofohdz/Subspace-Infinity/actions/workflows/gradle.yml/badge.svg)](https://github.com/assofohdz/Subspace-Infinity/actions/workflows/gradle.yml)
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE.md)
 [![Latest Release](https://img.shields.io/github/v/release/assofohdz/Subspace-Infinity)](https://github.com/assofohdz/Subspace-Infinity/releases)
 
 ## About
@@ -85,4 +85,4 @@ Thanks to the original Subspace and Continuum developers, POiD, Grelminar, Gigam
 
 ## License
 
-BSD-3-Clause — see [LICENSE](LICENSE). The license covers Subspace Infinity's own code and assets; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for material with separate provenance (original Subspace/Continuum game files, community maps, attributed textures).
+BSD-3-Clause — see [LICENSE.md](LICENSE.md). The license covers Subspace Infinity's own code and assets; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for material with separate provenance (original Subspace/Continuum game files, community maps, attributed textures).

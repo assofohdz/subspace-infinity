@@ -44,4 +44,4 @@ Join the Subspace Infinity Discord:
 
 ---
 
-Source code, build instructions, and contribution guidelines live on GitHub: [github.com/assofohdz/Subspace-Infinity](https://github.com/assofohdz/Subspace-Infinity). Licensed under [BSD-3-Clause](https://github.com/assofohdz/Subspace-Infinity/blob/infinity/LICENSE).
+Source code, build instructions, and contribution guidelines live on GitHub: [github.com/assofohdz/Subspace-Infinity](https://github.com/assofohdz/Subspace-Infinity). Licensed under [BSD-3-Clause](https://github.com/assofohdz/Subspace-Infinity/blob/infinity/LICENSE.md).

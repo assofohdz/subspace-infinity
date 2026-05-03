@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-The [`LICENSE`](LICENSE) at the root of this repository (BSD-3-Clause) covers
+The [`LICENSE.md`](LICENSE.md) at the root of this repository (BSD-3-Clause) covers
 Subspace Infinity's own source code and assets only. The material listed
 below is third-party and is **not** licensed under the project's `LICENSE`.
 Each item retains its own provenance and rights status, summarized here.
@@ -97,4 +97,4 @@ All other files under `infinity/assets/` — including `Materials/`,
 `MatDefs/`, `Shaders/`, `Tilesets/`, `Interface/`, `Blocks/`, the
 `Maps/04-2026-trench/` arena and similar Subspace Infinity-authored
 arenas, and `assets/Textures/MiniMap/` — are Subspace Infinity's own
-work and are covered by the project [`LICENSE`](LICENSE).
+work and are covered by the project [`LICENSE.md`](LICENSE.md).

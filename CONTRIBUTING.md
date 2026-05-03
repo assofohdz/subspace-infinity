@@ -2,7 +2,7 @@
 
 Subspace Infinity is a single-maintainer, pre-alpha hobby project. Contributions are welcome — code, documentation, bug reports, balance feedback — and are reviewed on a best-effort basis. Reviews typically happen within 2–3 days; if your PR sits longer than that, ping in [Discord](https://discord.gg/FXqNB6N).
 
-By submitting a pull request, you agree your contribution is licensed under the [BSD-3-Clause license](LICENSE) that covers the rest of the project. Note that `LICENSE` covers code and Subspace Infinity's own assets only — see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for material with separate provenance (Subspace/Continuum game files, community maps, attributed textures).
+By submitting a pull request, you agree your contribution is licensed under the [BSD-3-Clause license](LICENSE.md) that covers the rest of the project. Note that `LICENSE.md` covers code and Subspace Infinity's own assets only — see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) for material with separate provenance (Subspace/Continuum game files, community maps, attributed textures).
 
 ## Before You Start
 
@@ -88,7 +88,7 @@ When you touch the corresponding directory, the rules below apply. The full text
 ## Code Style
 
 - **Run Spotless before submitting:** `./gradlew spotlessApply`. The build will fail if formatting is wrong.
-- **License header on every source file.** SPDX-only — `// SPDX-License-Identifier: BSD-3-Clause` followed by `// Copyright (c) 2018-2026 Asser Fahrenholz`. Full text is in [LICENSE](LICENSE).
+- **License header on every source file.** SPDX-only — `// SPDX-License-Identifier: BSD-3-Clause` followed by `// Copyright (c) 2018-2026 Asser Fahrenholz`. Full text is in [LICENSE.md](LICENSE.md).
 - **`final` on method parameters.** Always.
 - **Comments: default to none.** Only write a comment when the *why* is non-obvious — a hidden constraint, a subtle invariant, a workaround for a specific bug. Don't explain what well-named code already says.
 
