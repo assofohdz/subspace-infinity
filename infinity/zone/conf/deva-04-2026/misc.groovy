@@ -71,12 +71,6 @@ section('Radar') {
     RadarMode 0
 }
 
-section('Repel') {
-    RepelSpeed 4700
-    RepelTime 280
-    RepelDistance 330
-}
-
 section('Message') {
     MessageReliable 0
     AllowAudioMessages 0

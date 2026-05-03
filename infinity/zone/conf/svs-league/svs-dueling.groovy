@@ -17,6 +17,7 @@ include '/conf/svs-league/misc.groovy'
 include '/conf/svs-league/bullet.groovy'
 include '/conf/svs-league/mine.groovy'
 include '/conf/svs-league/burst.groovy'
+include '/conf/svs-league/repel.groovy'
 include '/conf/svs-league/prizeweights.groovy'
 
 // Dueling item baseline — 255 repels (max possible), nothing else.

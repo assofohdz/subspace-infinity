@@ -9,6 +9,7 @@ import infinity.config.BombConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.MineConfig;
+import infinity.config.RepelConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.Map;
@@ -80,6 +81,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final BurstFireConfig parsed =
                 GroovySettingsHost.INSTANCE.load(BurstAdapter.INSTANCE, path);
             return current.withBurst(parsed != null ? parsed : BurstFireConfig.DEFAULTS);
+          },
+          "repel.groovy",
+          (current, path) -> {
+            final RepelConfig parsed =
+                GroovySettingsHost.INSTANCE.load(RepelAdapter.INSTANCE, path);
+            return current.withRepel(parsed != null ? parsed : RepelConfig.DEFAULTS);
           });
 
   /** Functional contract for a typed fragment installer. */
@@ -191,9 +198,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     // in VIE; Thors are an Infinity addition), so they stay on DEFAULTS via
     // ConfigRegistry.Builder's defaults until either gets its own typed slot.
     ConfigRegistry current =
-        forArena(arenaId)
-            .withRepel(weaponsLoader.loadRepel(settings, arenaName))
-            .withPrize(weaponsLoader.loadPrize(settings, arenaName));
+        forArena(arenaId).withPrize(weaponsLoader.loadPrize(settings, arenaName));
 
     // Phase 3b: typed adapters via dispatch table. Runs AFTER the compat shim
     // so typed values overwrite legacy defaults during transitional states.

@@ -33,12 +33,6 @@ section('Radar') {
     MapZoomFactor 10
 }
 
-section('Repel') {
-    RepelSpeed 4000
-    RepelTime 250
-    RepelDistance 520
-}
-
 section('Message') {
     MessageReliable 0
     AllowAudioMessages 1

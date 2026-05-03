@@ -4,7 +4,6 @@
 package infinity.settings;
 
 import infinity.config.PrizeConfig;
-import infinity.config.RepelConfig;
 import infinity.systems.SettingsSystem;
 
 /**
@@ -28,26 +27,8 @@ import infinity.systems.SettingsSystem;
  */
 public final class GroovyWeaponsLoader {
 
-  /** {@code Repel} section name in the merged fragment store. */
-  static final String REPEL_SECTION = "Repel";
-
   /** {@code Prize} section name in the merged fragment store. */
   static final String PRIZE_SECTION = "Prize";
-
-  public RepelConfig loadRepel(final SettingsSystem settings, final String arenaName) {
-    final int speed =
-        settings.getInt(arenaName, REPEL_SECTION, "RepelSpeed", RepelConfig.DEFAULTS.speed());
-    final int timeCs =
-        settings.getInt(
-            arenaName,
-            REPEL_SECTION,
-            "RepelTime",
-            (int) (RepelConfig.DEFAULTS.timeMs() / 10L));
-    final int distance =
-        settings.getInt(
-            arenaName, REPEL_SECTION, "RepelDistance", RepelConfig.DEFAULTS.distancePixels());
-    return new RepelConfig(speed, timeCs * 10L, distance);
-  }
 
   /**
    * Build a {@link PrizeConfig} for {@code arenaName}. Today only
