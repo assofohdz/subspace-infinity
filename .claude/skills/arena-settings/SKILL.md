@@ -1,6 +1,6 @@
 ---
 name: arena-settings
-description: Work with Subspace Infinity arena settings — the per-arena `arena.groovy` files under `infinity/zone/arenas/`, the Groovy `conf/` preset fragment library (section/shipSection/shipSections DSL), the recursive `include` directive, the `SettingsSystem` typed accessors, the `~loadArena`/`~swapMap` commands, and the `SettingListener` API. Use when adding or reading settings, creating a new arena, splitting settings fragments, or listening for setting changes.
+description: Work with Subspace Infinity arena settings — the per-arena `arena.groovy` files under `infinity/zone/arenas/`, the Groovy `conf/` preset fragment library (section/shipSection/shipSections DSL), the recursive `include` directive, the `SettingsSystem` typed accessors, and the `~loadArena`/`~swapMap` commands. Use when adding or reading settings, creating a new arena, or splitting settings fragments.
 ---
 
 # Arena Settings
@@ -72,10 +72,9 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 | `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. |
 | `GroovyShipLoader` | Loads each arena's `ships.groovy` (referenced via `arena { shipsScript ... }`) → per-arena `ConfigRegistry`. |
 | `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments`; Groovy is the only fragment format supported (no `.ini` / `.cfg` / `.conf` ingest path remains). |
-| `GroovyWeaponsLoader` | Phase B bridge. Reads `[Bullet]`, `[Bomb]`, `[Mine]`, `[Burst]`, `[Prize]`, `[Repel]` sections from the merged `Ini` and produces `WeaponsConfig`, `PrizeConfig`, and `RepelConfig`. Called from `ArenaSystem.applyWeaponsConfig` after `shipLoader.apply`, on `ships.groovy` reload, and on fragment hot-reload. Registered as a system in `GameServer`. |
-| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records: `ShipConfig` (via `GroovyShipLoader`), plus `WeaponsConfig`, `PrizeConfig`, and `RepelConfig` (via `GroovyWeaponsLoader`). Use `withWeapons(WeaponsConfig)` / `withPrize(PrizeConfig)` / `withRepel(RepelConfig)` for immutable-copy updates. |
+| `GroovyWeaponsLoader` | Phase B bridge. Reads `[Bullet]`, `[Bomb]`, `[Mine]`, `[Burst]`, `[Repel]`, `[Prize]` sections from the merged `Ini` and produces a `WeaponsConfig` (composite of `BulletConfig` / `BombConfig` / `MineConfig` / `BurstFireConfig` / `RepelConfig` / `ThorConfig` / `GravBombConfig`) plus a `PrizeConfig`. Called from `ArenaSystem.applyWeaponsConfig` after `shipLoader.apply`, on `ships.groovy` reload, and on fragment hot-reload. Registered as a system in `GameServer`. |
+| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records: `ShipConfig` (via `GroovyShipLoader`), `WeaponsConfig` (composite of weapon-projectile sub-records), and `PrizeConfig` (both via `GroovyWeaponsLoader`). Use `withWeapons(WeaponsConfig)` / `withPrize(PrizeConfig)` for immutable-copy updates. |
 | `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Atomic-swap installs from `GroovyShipLoader` / live-reload; readers see either the old or new snapshot, never a torn state. |
-| `SettingListener` | Callback: `arenaSettingsChange(ArenaId, section, setting)` fired from `SettingsSystem.setSetting` and from fragment hot-reload diffs. |
 
 Runtime entry point: [infinity/src/main/java/infinity/systems/SettingsSystem.java](../../../infinity/src/main/java/infinity/systems/SettingsSystem.java).
 
@@ -247,36 +246,13 @@ MyMode mode = s.getEnum(arenaName, "Soccer", "Mode", MyMode.DEFAULT);
 - `getEnum` matches enum constant names case-insensitive.
 - All accessors return the provided default when the key is absent.
 
-## Writing & listening for changes
+## Hot-reloading edits
 
-`setSetting` mutates the in-memory fragment Ini (the merged-fragment store under `arenaName`) and fires `SettingListener.arenaSettingsChange(arenaId, section, setting)` on every registered listener. Changes are **not persisted to disk** — session-only.
+Edits to a fragment file (e.g. `misc.groovy`) are picked up automatically by the file watcher in `ArenaSystem` — default poll interval 5s, configurable via `zone.groovy`'s `scriptPollIntervalNanos`. On change, `SettingsSystem.reloadFragments` rebuilds the merged store and `applyWeaponsConfig` re-derives the typed records into `ConfigRegistry`. Consumers re-read on next consumption — no event/callback fires (the listener API was retired pre-B0). For ship config (`ships.groovy`), the watcher additionally calls `ShipSpawnSystem.reprojectAll()` so live ships pick up the new stats without respawning.
 
-```java
-SettingsSystem s = getSystem(SettingsSystem.class);
-s.setSetting(arenaId, "Bomb", "BombDamageLevel", "1500");
-```
+For mid-session ad-hoc tuning without editing files, the typed `~set` admin command is planned as a follow-on slice (B5 in `.scratch/settings-pipeline-slices.md`); not available today.
 
-Implement `SettingListener`:
-```java
-public class MyModule implements SettingListener {
-  @Override
-  public void arenaSettingsChange(ArenaId arenaId, String section, String setting) {
-    if ("Bomb".equals(section) && "BombDamageLevel".equals(setting)) {
-      int v = getSystem(SettingsSystem.class).getInt(
-          arenaId.getArena(), section, setting, 1000);
-      // update cached copy
-    }
-  }
-}
-
-getSystem(SettingsSystem.class).addListener(myModule);   // in initialize()
-// ...
-getSystem(SettingsSystem.class).removeListener(myModule); // in terminate()
-```
-
-Listeners are expected to **cache** their own copy — don't reach back into `SettingsSystem` on every gameplay read.
-
-The arena-scope core (map / shipsScript / spawn / wallFriction) is not editable through `setSetting` — it lives on the typed `ArenaConfig` and is set at load-time only. `~swapMap` is the chat command for changing the map of an already-open arena; it updates `ArenaConfig` directly, no `SettingListener` fires.
+The arena-scope core (map / shipsScript / spawn / wallFriction) lives on the typed `ArenaConfig` and is set at load-time only. `~swapMap` is the chat command for changing the map of an already-open arena; it updates `ArenaConfig` directly without re-running the fragment loader.
 
 ## Common patterns
 
@@ -378,7 +354,7 @@ Or — if you need many keys at once — pull the whole `Ini` once via `Settings
 - **Don't put tuning knobs in `arena.conf`** — that file is gone. Tuning knobs go in the appropriate Groovy preset (e.g. `conf/<preset>/ships.groovy` for ship stats, `arena.groovy` for arena-scope core, `zone.groovy` for zone-wide).
 - **Don't duplicate the SVS baseline** inside arena fragments — list the per-section files from `/conf/svs/` under `includeFragment` (or `include` them from a per-preset composite root) and layer overrides below.
 - **Don't mint new section names** in fragments — prefer existing Subspace section/key conventions catalogued in [`.scratch/subspace-ini-reference/server-defaults.md`](../../../.scratch/subspace-ini-reference/server-defaults.md) so configs stay interoperable with legacy Subspace tooling.
-- **Don't bypass `SettingListener`** by polling `getIni` every tick — cache locally and update on callback.
+- **Don't poll `getIni` every tick** — cache locally; rely on the hot-reload pipeline to re-derive typed records into `ConfigRegistry` when fragments change.
 - **Don't reach into `WorldGrids.*` for sizes** — go through `InfinityConstants.*` (see [subspace-moss-terminology](../subspace-moss-terminology/SKILL.md)).
 
 ## When this skill applies
@@ -387,4 +363,4 @@ Or — if you need many keys at once — pull the whole `Ini` once via `Settings
 - Creating a new arena folder or a new `conf/{variant}/` family.
 - Implementing a system that reads ship/weapon/prize constants.
 - Building a setting-edit command or runtime tuning UI.
-- Debugging "setting not found", "no arena.groovy found", or `ArenaSettings` with a null `Ini`.
+- Debugging "setting not found" or "no arena.groovy found" errors.
