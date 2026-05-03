@@ -3,7 +3,7 @@
 
 arena {
     map '(default).lvl'
-    includeFragment '/conf/base/prizeweights.groovy'
+    includeFragment '/conf/base/prize-weights.groovy'
     includeFragment '/conf/base/ship-warbird.groovy'
     includeFragment '/conf/base/ship-javelin.groovy'
     includeFragment '/conf/base/ship-spider.groovy'

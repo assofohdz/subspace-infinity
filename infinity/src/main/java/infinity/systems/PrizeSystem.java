@@ -94,8 +94,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
   /**
    * Cached per-arena selector built lazily from
-   * {@code SettingsSystem.getIni(arenaName).getSection("PrizeWeight")}. One
-   * entry per arena seen so far.
+   * {@code ConfigRegistrySystem.forArena(arenaId).prizeWeights()} (typed
+   * via {@code PrizeWeightsAdapter}). One entry per arena seen so far.
    */
   private final HashMap<String, RandomSelector<String>> arenaSelectors = new HashMap<>();
 
@@ -110,7 +110,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   Random random;
   private EntityData ed;
   private ConfigRegistrySystem configRegistry;
-  private SettingsSystem settingsSystem;
   /**
    * Registry of prize-type-name → applier. Built once in {@link #initialize()}
    * — one entry per Subspace prize type, with composite appliers wired for
@@ -135,7 +134,6 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   protected void initialize() {
     ed = getSystem(EntityData.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
-    settingsSystem = getSystem(SettingsSystem.class);
 
     ComponentFilter<?> prizeSpawnerFilter =
         FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
@@ -240,12 +238,12 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
   /**
    * Lazily build (and cache) the {@link RandomSelector} for the given arena
-   * by reading its {@code [PrizeWeight]} INI section via {@link
-   * SettingsSystem}. Keys with weight {@code 0} are dropped (matches the
-   * "weight 0 means never spawn" convention in the legacy fragments).
+   * by reading the typed {@code prizeWeights()} slot on its
+   * {@link infinity.settings.ConfigRegistry}. Keys with weight {@code 0}
+   * are dropped (matches the "weight 0 means never spawn" convention).
    *
    * @return the per-arena selector, or {@link #globalFallbackSelector} when
-   *     the arena has no usable {@code [PrizeWeight]} entries
+   *     the arena has no usable {@code prizeWeights} entries
    */
   private RandomSelector<String> arenaSelector(final String arenaName) {
     final RandomSelector<String> cached = arenaSelectors.get(arenaName);
@@ -266,27 +264,18 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   }
 
   private java.util.Map<String, Integer> readArenaWeights(final String arenaName) {
+    // B3: typed pipeline. PrizeWeightsAdapter parses prize-weights.groovy
+    // into the typed PrizeWeightsConfig slot on the arena's ConfigRegistry;
+    // we filter out 0-weight entries here (matches the legacy "weight 0
+    // means never spawn" convention).
+    final infinity.es.arena.ArenaId arenaId =
+        new infinity.es.arena.ArenaId(arenaName, com.simsilica.es.EntityId.NULL_ID);
+    final java.util.Map<String, Integer> source =
+        configRegistry.forArena(arenaId).prizeWeights().weights();
     final java.util.Map<String, Integer> weights = new HashMap<>();
-    final org.ini4j.Ini ini = settingsSystem.getIni(arenaName);
-    if (ini == null) {
-      return weights;
-    }
-    final org.ini4j.Profile.Section section = ini.get("PrizeWeight");
-    if (section == null) {
-      return weights;
-    }
-    for (final String key : section.keySet()) {
-      final String raw = section.get(key);
-      if (raw == null) {
-        continue;
-      }
-      try {
-        final int w = Integer.parseInt(raw.trim());
-        if (w > 0) {
-          weights.put(key, w);
-        }
-      } catch (final NumberFormatException nfe) {
-        log.warn("Arena '{}' [PrizeWeight] '{}' is non-numeric ({}); skipping", arenaName, key, raw);
+    for (final var entry : source.entrySet()) {
+      if (entry.getValue() > 0) {
+        weights.put(entry.getKey(), entry.getValue());
       }
     }
     return weights;

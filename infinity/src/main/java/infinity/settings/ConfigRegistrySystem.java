@@ -10,6 +10,7 @@ import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
+import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
@@ -93,6 +94,13 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final PrizeConfig parsed =
                 GroovySettingsHost.INSTANCE.load(PrizeAdapter.INSTANCE, path);
             return current.withPrize(parsed != null ? parsed : PrizeConfig.DEFAULTS);
+          },
+          "prize-weights.groovy",
+          (current, path) -> {
+            final PrizeWeightsConfig parsed =
+                GroovySettingsHost.INSTANCE.load(PrizeWeightsAdapter.INSTANCE, path);
+            return current.withPrizeWeights(
+                parsed != null ? parsed : PrizeWeightsConfig.DEFAULTS);
           });
 
   /** Functional contract for a typed fragment installer. */

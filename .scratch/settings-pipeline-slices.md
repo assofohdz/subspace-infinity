@@ -466,32 +466,45 @@ intact); shrinks progressively as each owning gameplay slice migrates
 its cluster; final cleanup slice deletes the files when every cluster
 is migrated.
 
-## Slice B3 — Typed `prizeWeights` + `deathPrizeWeights`
+## Slice B3 — Typed `prizeWeights` (descoped: prizeWeights only; deathPrizeWeights deferred)
 
-🔲 New typed Groovy blocks + new `*Config` record:
+✅ Following the same active-arenas-only descope as B2: only the 3
+arena presets (base, deva-04-2026, trench-04-2026) get migrated.
+SVS-family presets keep their INI-mirror `prizeweights.groovy` for now;
+none of them are loaded by any arena, so no runtime impact.
+`deathPrizeWeights` (only relevant to svs-league/svs-dueling) is
+deferred entirely — it'll land in the same future slice that activates
+those presets as arenas.
 
-- `prizeWeights { repel 100; xradar 100; multiFire 255; … }` →
-  `PrizeWeightsConfig` record (new — Map<PrizeType, Integer> shape).
-- `deathPrizeWeights { … }` → same record type, separate
-  `ConfigRegistry` slot.
-- Add `prizeWeights()` + `deathPrizeWeights()` slots to `ConfigRegistry`.
+- `PrizeWeightsConfig` (api/) — Map<String, Integer> weights shape.
+  `DEFAULTS = empty map` (no prizes spawn for arenas without a typed
+  fragment; matches pre-B3 "missing [PrizeWeight] = no prizes" semantic).
+- `PrizeWeightsAdapter` (infinity/settings/) — typed
+  `prizeWeights { QuickCharge 80; Energy 70; … }` block. Uses Groovy
+  `invokeMethod` dispatch (mirrors the legacy `SectionDelegate` pattern)
+  so prize-name keys round-trip verbatim.
+- `ConfigRegistry.prizeWeights()` slot + `withPrizeWeights` updater +
+  `Builder.prizeWeights` setter.
+- `ConfigRegistrySystem.DISPATCH` gains `prize-weights.groovy` entry.
+- Per-preset migration: 3 `prize-weights.groovy` files authored
+  (base/deva/trench), 3 old `prizeweights.groovy` files deleted, 3
+  `arena.groovy` includes updated.
+- `PrizeSystem.readArenaWeights` swaps from `settingsSystem.getIni(arenaName)`
+  reads to `configRegistry.forArena(arenaId).prizeWeights().weights()`.
+  Filters 0-weight entries (preserves "weight 0 = never spawn" convention).
+  `SettingsSystem` field + import dropped from PrizeSystem.
 
-**Per-preset migration:**
-- Migrate `prizeweights.groovy` (~8 presets) → renamed to
-  `prize-weights.groovy` per Q8 (lowercase + hyphens).
-- Migrate `section('DPrizeWeight') { … }` blocks in `svs-league.groovy`
-  + `svs-dueling.groovy` → typed `deathPrizeWeights { … }` blocks in
-  new `death-prize-weights.groovy` files for those presets.
-- Consumers: `PrizeSystem.handlePrizeAcquisition` (and
-  `PrizeSystem.readArenaWeights` at `PrizeSystem.java:291-316`) read
-  via `cfg.prizeWeights()` / `cfg.deathPrizeWeights()` directly.
-  `org.ini4j.Ini` reference in PrizeSystem dies here.
+**Out of scope (deferred):**
+- `deathPrizeWeights` slot + DSL block + `death-prize-weights.groovy`
+  fragment files. Only svs-league/svs-dueling author a `[DPrizeWeight]`
+  section; both are composition files for presets that aren't current
+  arenas. Defer to the same slice that activates SVS-family.
+- SVS-family `prizeweights.groovy` migrations. Same reasoning.
 
 **Tests:**
-- `PrizeWeightsAdapter` unit tests (full block / partial block / unknown
-  prize type).
-- Extend the svs-league roundtrip from B2 to assert
-  `cfg.deathPrizeWeights()` matches the SVS league config.
+- ConfigRegistrySystemLoadTest extended with a trench `prizeWeights`
+  assertion (Repel = 100, MultiFire = 255, Brick = 3 — non-zero entries
+  from trench/prize-weights.groovy).
 
 ## Slice B4 — Retire `SettingsSystem` + INI-mirror pipeline
 

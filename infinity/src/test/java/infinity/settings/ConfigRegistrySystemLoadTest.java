@@ -65,7 +65,8 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/mine.groovy",
                   "/conf/trench-04-2026/burst.groovy",
                   "/conf/trench-04-2026/repel.groovy",
-                  "/conf/trench-04-2026/prize.groovy"),
+                  "/conf/trench-04-2026/prize.groovy",
+                  "/conf/trench-04-2026/prize-weights.groovy"),
               0.0,
               List.of());
 
@@ -137,6 +138,22 @@ public class ConfigRegistrySystemLoadTest {
           "trench's [Prize] PrizeMaxExist = 12000 cs (= 120000 ms)",
           120_000L,
           snapshot.prize().defaultDecayMs());
+
+      // Typed prize-weights.groovy populated the prizeWeights slot (B3).
+      // trench is a no-greens preset for most prize types; sample the few
+      // non-zero entries to pin the typed loader's behaviour.
+      assertEquals(
+          "trench Repel weight = 100",
+          Integer.valueOf(100),
+          snapshot.prizeWeights().weights().get("Repel"));
+      assertEquals(
+          "trench MultiFire weight = 255",
+          Integer.valueOf(255),
+          snapshot.prizeWeights().weights().get("MultiFire"));
+      assertEquals(
+          "trench Brick weight = 3",
+          Integer.valueOf(3),
+          snapshot.prizeWeights().weights().get("Brick"));
     } finally {
       systems.stop();
       systems.terminate();
