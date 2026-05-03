@@ -17,4 +17,5 @@ arena {
     includeFragment '/conf/deva-04-2026/ship-lancaster.groovy'
     includeFragment '/conf/deva-04-2026/ship-shark.groovy'
     includeFragment '/conf/deva-04-2026/misc.groovy'
+    includeFragment '/conf/deva-04-2026/bullet.groovy'
 }

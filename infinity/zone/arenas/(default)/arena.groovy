@@ -12,4 +12,5 @@ arena {
     includeFragment '/conf/base/ship-weasel.groovy'
     includeFragment '/conf/base/ship-lancaster.groovy'
     includeFragment '/conf/base/misc.groovy'
+    includeFragment '/conf/base/bullet.groovy'
 }

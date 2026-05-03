@@ -4,7 +4,6 @@
 package infinity.settings;
 
 import infinity.config.BombConfig;
-import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
@@ -32,9 +31,6 @@ import infinity.systems.SettingsSystem;
  */
 public final class GroovyWeaponsLoader {
 
-  /** {@code Bullet} section name in the merged fragment store. */
-  static final String BULLET_SECTION = "Bullet";
-
   /** {@code Bomb} section name in the merged fragment store. */
   static final String BOMB_SECTION = "Bomb";
 
@@ -49,25 +45,6 @@ public final class GroovyWeaponsLoader {
 
   /** {@code Prize} section name in the merged fragment store. */
   static final String PRIZE_SECTION = "Prize";
-
-  public BulletConfig loadBullet(final SettingsSystem settings, final String arenaName) {
-    final int damage =
-        settings.getInt(
-            arenaName, BULLET_SECTION, "BulletDamageLevel", BulletConfig.DEFAULTS.damage());
-    final int damageUpgrade =
-        settings.getInt(
-            arenaName,
-            BULLET_SECTION,
-            "BulletDamageUpgrade",
-            BulletConfig.DEFAULTS.damageUpgrade());
-    final int aliveCs =
-        settings.getInt(
-            arenaName,
-            BULLET_SECTION,
-            "BulletAliveTime",
-            (int) (BulletConfig.DEFAULTS.decayMs() / 10L));
-    return new BulletConfig(damage, damageUpgrade, aliveCs * 10L);
-  }
 
   public BombConfig loadBomb(final SettingsSystem settings, final String arenaName) {
     final int damage =

@@ -1,8 +1,3 @@
-section('Bullet') {
-    BulletDamageLevel 200
-    BulletDamageUpgrade 100
-    BulletAliveTime 550
-}
 
 section('Bomb') {
     BombDamageLevel 750

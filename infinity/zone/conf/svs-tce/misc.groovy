@@ -111,10 +111,3 @@ section('Misc') {
     ResetScoreOnFrequencyChange 0
     MaxPlaying 0
 }
-
-section('Bullet') {
-    BulletDamageLevel 200
-    BulletDamageUpgrade 100
-    BulletAliveTime 450
-    ExactDamage 0
-}

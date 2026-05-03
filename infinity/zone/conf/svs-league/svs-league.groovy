@@ -14,6 +14,7 @@ include '/conf/svs-league/ship-weasel.groovy'
 include '/conf/svs-league/ship-lancaster.groovy'
 include '/conf/svs-league/ship-shark.groovy'
 include '/conf/svs-league/misc.groovy'
+include '/conf/svs-league/bullet.groovy'
 include '/conf/svs-league/prizeweights.groovy'
 
 // League/prac item baseline — splatted across every ship after the per-ship

@@ -3,13 +3,6 @@ section('Spectator') {
     NoXRadar 1
 }
 
-section('Bullet') {
-    ExactDamage 1
-    BulletDamageLevel 520
-    BulletDamageUpgrade 520
-    BulletAliveTime 800
-}
-
 section('Misc') {
     SlowFrameRate 0
     MaxTimerDrift 5

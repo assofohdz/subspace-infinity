@@ -5,8 +5,10 @@ package infinity.settings;
 
 import com.simsilica.sim.AbstractGameSystem;
 import infinity.config.ArenaConfig;
+import infinity.config.BulletConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -38,6 +40,32 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
   private SettingsSystem settings;
   private GroovyShipLoader shipLoader;
   private GroovyWeaponsLoader weaponsLoader;
+
+  /**
+   * Centralized dispatch for typed per-fragment adapters. Key = fragment
+   * basename (e.g. {@code "bullet.groovy"}); value = installer that loads
+   * the file via {@link GroovySettingsHost} and writes the parsed record
+   * into the {@link ConfigRegistry} under construction.
+   *
+   * <p>Each B1-X vertical slice ({@code .scratch/settings-pipeline-slices.md})
+   * adds one entry here and deletes the corresponding section's legacy
+   * {@code GroovyWeaponsLoader.load*} call from {@link #load}'s Phase 3
+   * compat shim. When the shim is empty the loader itself disappears (B4).
+   */
+  private static final Map<String, FragmentInstaller> DISPATCH =
+      Map.of(
+          "bullet.groovy",
+          (current, path) -> {
+            final BulletConfig parsed =
+                GroovySettingsHost.INSTANCE.load(BulletAdapter.INSTANCE, path);
+            return current.withBullet(parsed != null ? parsed : BulletConfig.DEFAULTS);
+          });
+
+  /** Functional contract for a typed fragment installer. */
+  @FunctionalInterface
+  private interface FragmentInstaller {
+    ConfigRegistry install(ConfigRegistry current, String classpathPath);
+  }
 
   @Override
   protected void initialize() {
@@ -135,21 +163,35 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
         arenaConfig.shipsScript().isBlank() ? null : arenaConfig.shipsScript();
     shipLoader.apply(arenaId, shipsScript);
 
-    // Phase 3: weapons + prize compat shim (B1b narrows per-section as typed
-    // adapters land; B4 deletes once every section has its own adapter).
-    // GravBomb and Thor have no Subspace fragment section today (gravbombs
-    // share [Bomb] tuning in VIE; Thors are an Infinity addition without a
-    // canonical section), so they keep their *Config.DEFAULTS until either
-    // gets its own typed slot.
-    final ConfigRegistry current = forArena(arenaId);
-    replace(
-        arenaId,
-        current
-            .withBullet(weaponsLoader.loadBullet(settings, arenaName))
+    // Phase 3a: legacy compat shim — pulls per-section records from the merged
+    // Ini for sections that don't yet have a typed adapter. Each B1-X vertical
+    // slice removes the corresponding withX call from this chain. GravBomb +
+    // Thor have no Subspace fragment section (gravbombs share [Bomb] tuning
+    // in VIE; Thors are an Infinity addition), so they stay on DEFAULTS via
+    // ConfigRegistry.Builder's defaults until either gets its own typed slot.
+    ConfigRegistry current =
+        forArena(arenaId)
             .withBomb(weaponsLoader.loadBomb(settings, arenaName))
             .withMine(weaponsLoader.loadMine(settings, arenaName))
             .withBurst(weaponsLoader.loadBurst(settings, arenaName))
             .withRepel(weaponsLoader.loadRepel(settings, arenaName))
-            .withPrize(weaponsLoader.loadPrize(settings, arenaName)));
+            .withPrize(weaponsLoader.loadPrize(settings, arenaName));
+
+    // Phase 3b: typed adapters via dispatch table. Runs AFTER the compat shim
+    // so typed values overwrite legacy defaults during transitional states.
+    for (final String path : arenaConfig.fragmentIncludes()) {
+      if (path == null) continue;
+      final FragmentInstaller installer = DISPATCH.get(basenameOf(path));
+      if (installer != null) {
+        current = installer.install(current, path);
+      }
+    }
+
+    replace(arenaId, current);
+  }
+
+  private static String basenameOf(final String path) {
+    final int slash = path.lastIndexOf('/');
+    return slash >= 0 ? path.substring(slash + 1) : path;
   }
 }
