@@ -188,7 +188,7 @@ public class MobSystem extends AbstractGameSystem {
             long start = System.nanoTime();
             scheduler.update(time);
             long end = System.nanoTime();
-            frameTimeStat.updateValue(end - start);
+            frameTimeStat.updateValue((double) end - (double) start);
             activeMobCountStat.updateValue(brains.size());
         } else {
             scheduler.update(time);
