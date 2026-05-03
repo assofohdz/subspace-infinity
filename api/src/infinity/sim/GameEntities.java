@@ -708,6 +708,37 @@ public class GameEntities {
     return brick;
   }
 
+  /**
+   * Compose the marker entity for a placed decoy. Lifecycle is owned by
+   * {@link Decay}: when the deadline passes, the canonical decay reaper
+   * deletes the entity.
+   *
+   * <p>Slice 4 ships plumbing only — the marker carries the decay
+   * deadline + parent linkage but no shape, no radar visibility, no
+   * fake-ship behaviour. The follow-up "decoy as radar fake" slice will
+   * extend this factory with the canonical Subspace mechanic (a phantom
+   * ship on enemy radar that mimics the placer's heading).
+   *
+   * @param ship parent ship that placed the decoy
+   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
+   * @param aliveTimeMs decoy lifetime in ms (from {@code DecoyConfig.aliveTimeMs})
+   */
+  public static EntityId createDecoy(
+      final EntityData ed,
+      final EntityId ship,
+      final long createdTime,
+      final long aliveTimeMs) {
+    final EntityId decoy = ed.createEntity();
+    ed.setComponents(
+        decoy,
+        new Parent(ship),
+        new Decay(
+            createdTime,
+            createdTime + TimeUnit.NANOSECONDS.convert(aliveTimeMs, TimeUnit.MILLISECONDS)),
+        new Meta(createdTime));
+    return decoy;
+  }
+
   public static EntityId createRocketBuff(
       final EntityData ed,
       final EntityId ship,

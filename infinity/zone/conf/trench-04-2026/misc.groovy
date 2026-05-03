@@ -8,7 +8,6 @@ section('Misc') {
     MaxTimerDrift 5
     DisableScreenshot 0
     WarpPointDelay 24000
-    DecoyAliveTime 10000
     SafetyLimit 180000
     FrequencyShift 900
     NearDeathLevel 0

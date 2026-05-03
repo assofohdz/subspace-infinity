@@ -24,4 +24,8 @@ public class Decoy implements EntityComponent {
     public int getCount() {
         return count;
     }
+
+    public Decoy decrement(final int amount) {
+        return new Decoy(count - amount);
+    }
 }

@@ -67,6 +67,7 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/repel.groovy",
                   "/conf/trench-04-2026/rocket.groovy",
                   "/conf/trench-04-2026/brick.groovy",
+                  "/conf/trench-04-2026/decoy.groovy",
                   "/conf/trench-04-2026/prize.groovy",
                   "/conf/trench-04-2026/prize-weights.groovy"),
               0.0,
@@ -168,6 +169,14 @@ public class ConfigRegistrySystemLoadTest {
           "trench's [Brick] BrickTime = 1000 cs (= 10000 ms)",
           10_000L,
           snapshot.brick().timeMs());
+
+      // [Misc] DecoyAliveTime arena-global tuning from decoy.groovy.
+      // Migrated 1:1 from trench's pre-migration misc.groovy
+      // (DecoyAliveTime 10000 cs = 100000 ms).
+      assertEquals(
+          "trench's [Misc] DecoyAliveTime = 10000 cs (= 100000 ms)",
+          100_000L,
+          snapshot.decoy().aliveTimeMs());
 
       // Phase 3 — prize compat shim. trench's PrizeMaxExist = 12000 (cs) → 120000 ms.
       assertEquals(

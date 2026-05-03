@@ -9,6 +9,7 @@ import infinity.config.BombConfig;
 import infinity.config.BrickConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
+import infinity.config.DecoyConfig;
 import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
@@ -102,6 +103,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final BrickConfig parsed =
                 GroovySettingsHost.INSTANCE.load(BrickAdapter.INSTANCE, path);
             return current.withBrick(parsed != null ? parsed : BrickConfig.DEFAULTS);
+          },
+          "decoy.groovy",
+          (current, path) -> {
+            final DecoyConfig parsed =
+                GroovySettingsHost.INSTANCE.load(DecoyAdapter.INSTANCE, path);
+            return current.withDecoy(parsed != null ? parsed : DecoyConfig.DEFAULTS);
           },
           "prize.groovy",
           (current, path) -> {

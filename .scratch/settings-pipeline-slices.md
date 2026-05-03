@@ -143,10 +143,30 @@ per-tile wall geometry from `BrickSpan`, brick-vs-ship/bullet/bomb
 collision filter, and a client visual. Crosses into client work, so
 kept separate from this server-side migration slice.
 
-### Slice 4 — Decoy feel
-🔲 `[Misc]` DecoyAliveTime.
-Applier `DecoyPrizeApplier` already ✅; route DecoyAliveTime through
-typed loader → `Decay` per the TTL rule.
+### Slice 4 — Decoy feel (plumbing only)
+✅ Plumbing-only landed: `[Misc] DecoyAliveTime` arena-global wired
+end-to-end. Typed `decoy.groovy` adapter (`DecoyAdapter`, cs×10→ms) →
+`DecoyConfig` → `ConfigRegistry.decoy()` slot.
+
+Place path: `ConsumableSystem.actOut PLACEDECOY` decrements `Decoy`,
+calls `GameEntities.createDecoy` which composes a marker entity
+(`Parent(ship) + Decay(DecoyAliveTime ms) + Meta`). The canonical
+Decay reaper deletes the marker at deadline — no separate system
+needed.
+
+Active arenas only (trench + deva) — values migrated 1:1 from each
+preset's pre-migration `misc.groovy` (trench: 10000 cs = 100000 ms;
+deva: 4500 cs = 45000 ms). SVS-family deferred. Tests:
+`DecoyFactoryTest` pins the marker-entity projection contract;
+`ConfigRegistrySystemLoadTest` extended to assert trench's `[Misc]
+DecoyAliveTime` parses as `100000 ms`.
+
+Follow-up (own slice): "decoy as radar fake" — adds the canonical
+Subspace decoy mechanic (a phantom ship on enemy radar that mimics
+the placer's heading). Crosses into client-side radar rendering, so
+kept separate from this server-side migration slice. Also a
+client-side input binding for `PLACEDECOY` (no key bound today;
+server-side seam is canonical and ready).
 
 ### Slice 5 — Warp feel
 🔲 `[Misc]` WarpPointDelay, WarpRadiusLimit.

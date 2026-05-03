@@ -20,6 +20,7 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.BrickConfig;
+import infinity.config.DecoyConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ThorConfig;
@@ -31,6 +32,8 @@ import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
 import infinity.es.ship.actions.Brick;
 import infinity.es.ship.actions.BrickMax;
+import infinity.es.ship.actions.Decoy;
+import infinity.es.ship.actions.DecoyMax;
 import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
@@ -72,6 +75,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private EntitySet repelOwners;
   private EntitySet rocketOwners;
   private EntitySet brickOwners;
+  private EntitySet decoyOwners;
   private SimTime time;
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -131,6 +135,19 @@ public class ConsumableSystem extends AbstractGameSystem
     return configRegistry.forArena(arenaId).brick();
   }
 
+  /**
+   * Per-arena Decoy tuning. Keyed by attacker's {@link ArenaId}; arenas
+   * without a config (or attackers in no-arena void) fall back to
+   * {@link DecoyConfig#DEFAULTS}.
+   */
+  private DecoyConfig decoyConfigFor(final EntityId attacker) {
+    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
+    if (arenaId == null) {
+      return DecoyConfig.DEFAULTS;
+    }
+    return configRegistry.forArena(arenaId).decoy();
+  }
+
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
@@ -158,6 +175,9 @@ public class ConsumableSystem extends AbstractGameSystem
     // Ships allowed to place bricks (Brick inventory + BrickMax projected from
     // `CountStats` at spawn). Brick lifetime is arena-global, not per-ship.
     brickOwners = ed.getEntities(Brick.class, BrickMax.class);
+    // Ships allowed to place decoys (Decoy inventory + DecoyMax projected from
+    // `CountStats` at spawn). Decoy lifetime is arena-global, not per-ship.
+    decoyOwners = ed.getEntities(Decoy.class, DecoyMax.class);
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -180,6 +200,9 @@ public class ConsumableSystem extends AbstractGameSystem
     brickOwners.release();
     brickOwners = null;
 
+    decoyOwners.release();
+    decoyOwners = null;
+
     getSystem(ContactSystem.class).removeListener(this);
   }
 
@@ -192,6 +215,7 @@ public class ConsumableSystem extends AbstractGameSystem
     repelOwners.applyChanges();
     rocketOwners.applyChanges();
     brickOwners.applyChanges();
+    decoyOwners.applyChanges();
     /*
      * Default pattern to let multiple sessions call methods and then process them
      * one by one
@@ -247,6 +271,8 @@ public class ConsumableSystem extends AbstractGameSystem
       createRocketBuff(requesterEntity, time);
     } else if (flag == PLACEBRICK) {
       createBrick(requesterEntity, time);
+    } else if (flag == PLACEDECOY) {
+      createDecoy(requesterEntity, time);
     } else {
       throw new IllegalArgumentException("Unknown flag: " + flag);
     }
@@ -320,6 +346,20 @@ public class ConsumableSystem extends AbstractGameSystem
     GameEntities.createBrick(ed, ship, time, cfg.spanTiles(), cfg.timeMs());
   }
 
+  /**
+   * Plumbing-only decoy placement: decrement {@link Decoy} inventory and
+   * compose a marker entity that owns the decoy lifetime via
+   * {@link com.simsilica.es.common.Decay}. The (deferred) decoy-as-radar-fake
+   * slice will read from this marker to drive the canonical Subspace
+   * mechanic (a phantom ship on enemy radar that mimics the placer's
+   * heading).
+   */
+  private void createDecoy(final Entity requesterEntity, final long time) {
+    final EntityId ship = requesterEntity.getId();
+    final DecoyConfig cfg = decoyConfigFor(ship);
+    GameEntities.createDecoy(ed, ship, time, cfg.aliveTimeMs());
+  }
+
   private void createRocketBuff(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final RocketConfig cfg = rocketConfigFor(ship);
@@ -365,6 +405,11 @@ public class ConsumableSystem extends AbstractGameSystem
       // the audio asset isn't in the project yet. Polish-bag item.
       return true;
     }
+    if (flag == PLACEDECOY) {
+      // No decoy-place SFX wired today — Subspace had a decoy sound but
+      // the audio asset isn't in the project yet. Polish-bag item.
+      return true;
+    }
     throw new IllegalArgumentException("Unknown flag: " + flag);
   }
 
@@ -383,6 +428,9 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == PLACEBRICK) {
       return deductCostOfActionBrick(requester);
+    }
+    if (flag == PLACEDECOY) {
+      return deductCostOfActionDecoy(requester);
     }
     return false;
   }
@@ -415,6 +463,13 @@ public class ConsumableSystem extends AbstractGameSystem
     return true;
   }
 
+  private boolean deductCostOfActionDecoy(final Entity requester) {
+    final EntityId requesterId = requester.getId();
+    final Decoy curr = ed.getComponent(requesterId, Decoy.class);
+    ed.setComponent(requesterId, curr.decrement(1));
+    return true;
+  }
+
   private boolean canAct(Entity requester, byte actionType) {
     if (requester == null) {
       return false;
@@ -430,6 +485,9 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (actionType == PLACEBRICK) {
       return canPlaceBrick(requester);
+    }
+    if (actionType == PLACEDECOY) {
+      return canPlaceDecoy(requester);
     }
     return false;
   }
@@ -500,6 +558,21 @@ public class ConsumableSystem extends AbstractGameSystem
     return curr != null && curr.getCount() > 0;
   }
 
+  /**
+   * Decoy placement gate: ship must own {@link Decoy} + {@link DecoyMax}
+   * (per-ship {@code DecoyMax > 0}) with at least one inventory charge.
+   * No fire-delay component today — Subspace {@code [Misc] DecoyAliveTime}
+   * is the only canonical decoy-tuning knob.
+   */
+  private boolean canPlaceDecoy(final Entity requester) {
+    final EntityId requesterId = requester.getId();
+    if (!decoyOwners.containsId(requesterId)) {
+      return false;
+    }
+    final Decoy curr = ed.getComponent(requesterId, Decoy.class);
+    return curr != null && curr.getCount() > 0;
+  }
+
   private boolean setCoolDown(final Entity requester, final byte flag) {
 
     if (requester == null) {
@@ -519,6 +592,11 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == PLACEBRICK) {
       // No per-ship fire-delay component for brick today; the brick
+      // entity's Decay is the only timing primitive.
+      return true;
+    }
+    if (flag == PLACEDECOY) {
+      // No per-ship fire-delay component for decoy today; the decoy
       // entity's Decay is the only timing primitive.
       return true;
     }
@@ -561,6 +639,12 @@ public class ConsumableSystem extends AbstractGameSystem
     // carries the span and ConsumableSystem.createBrick drops the position
     // info entirely. Short-circuit to skip projectile math.
     if (weaponFlag == PLACEBRICK) {
+      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
+    }
+    // Decoy (plumbing-only): no projectile shape today — the marker entity
+    // carries only Parent + Decay and ConsumableSystem.createDecoy drops
+    // the position info entirely. Short-circuit to skip projectile math.
+    if (weaponFlag == PLACEDECOY) {
       return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
     }
 
