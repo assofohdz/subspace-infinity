@@ -1,28 +1,5 @@
-/*
- * Copyright (c) 2018-2026, Asser Fahrenholz
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 
 package infinity.systems.ship;
 
@@ -42,11 +19,15 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.config.RepelConfig;
 import infinity.config.ThorConfig;
 import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.actions.Repel;
+import infinity.es.ship.actions.RepelDistance;
+import infinity.es.ship.actions.RepelSpeed;
 import infinity.es.ship.actions.Thor;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.actions.ThorCurrentCount;
@@ -79,6 +60,7 @@ public class ConsumableSystem extends AbstractGameSystem
 
   private final KeySetView<Action, Boolean> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
+  private EntitySet repelOwners;
   private SimTime time;
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -99,6 +81,19 @@ public class ConsumableSystem extends AbstractGameSystem
     return configRegistry.forArena(arenaId).weapons().thor();
   }
 
+  /**
+   * Per-arena Repel tuning. Keyed by attacker's {@link ArenaId}; arenas
+   * without a config (or attackers in no-arena void) fall back to
+   * {@link RepelConfig#DEFAULTS}.
+   */
+  private RepelConfig repelConfigFor(final EntityId attacker) {
+    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
+    if (arenaId == null) {
+      return RepelConfig.DEFAULTS;
+    }
+    return configRegistry.forArena(arenaId).weapons().repel();
+  }
+
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
@@ -117,6 +112,9 @@ public class ConsumableSystem extends AbstractGameSystem
     // Here we find the ships that have a thor weapon
     thorOwners = ed.getEntities(ThorCurrentCount.class);
     thorProjectiles = ed.getEntities(Thor.class);
+    // Ships allowed to fire repels (Repel inventory component projected
+    // from per-ship `InitialRepel` at spawn).
+    repelOwners = ed.getEntities(Repel.class);
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -130,6 +128,9 @@ public class ConsumableSystem extends AbstractGameSystem
     thorProjectiles.release();
     thorProjectiles = null;
 
+    repelOwners.release();
+    repelOwners = null;
+
     getSystem(ContactSystem.class).removeListener(this);
   }
 
@@ -139,6 +140,7 @@ public class ConsumableSystem extends AbstractGameSystem
 
     thorOwners.applyChanges();
     thorProjectiles.applyChanges();
+    repelOwners.applyChanges();
     /*
      * Default pattern to let multiple sessions call methods and then process them
      * one by one
@@ -188,6 +190,8 @@ public class ConsumableSystem extends AbstractGameSystem
   private void act(Entity requesterEntity, final byte flag, long time, ActionPosition info) {
     if (flag == FIRETHOR) {
       createThor(requesterEntity, time, info);
+    } else if (flag == REPEL) {
+      createRepel(requesterEntity, time, info);
     } else {
       throw new IllegalArgumentException("Unknown flag: " + flag);
     }
@@ -216,10 +220,36 @@ public class ConsumableSystem extends AbstractGameSystem
             ShapeInfo.create(ShapeNames.EXPLODE_1, 1, ed)));
   }
 
+  /**
+   * Pattern 4 spawn projection: read per-arena {@link RepelConfig}, project
+   * {@code timeMs} into {@link com.simsilica.es.common.Decay} via
+   * {@link GameEntities#createRepel}, and stamp {@code speed} /
+   * {@code distancePixels} as {@link RepelSpeed} / {@link RepelDistance}
+   * components on the spawned effect entity. The future repel-impulse
+   * system reads those components — never the {@link RepelConfig} template
+   * — per the hot-path-consumer rule in
+   * {@code .claude/rules/config-pattern.md}.
+   */
+  private void createRepel(Entity requesterEntity, final long time, ActionPosition info) {
+    EntityId requester = requesterEntity.getId();
+    final RepelConfig cfg = repelConfigFor(requester);
+
+    final EntityId repelEffect =
+        GameEntities.createRepel(ed, requester, physicsSpace, time, info.location, cfg.timeMs());
+
+    ed.setComponent(repelEffect, new RepelSpeed(cfg.speed()));
+    ed.setComponent(repelEffect, new RepelDistance(cfg.distancePixels()));
+  }
+
   private boolean createSound(Entity requesterEntity, byte flag, long time, ActionPosition info) {
     EntityId requester = requesterEntity.getId();
     if (flag == FIRETHOR) {
       GameSounds.createThorSound(ed, time, requester, info.location, physicsSpace);
+      return true;
+    }
+    if (flag == REPEL) {
+      // Repel audio is composed onto the effect entity by GameEntities.createRepel
+      // via AudioTypes.repel(ed) — no separate sound entity needed here.
       return true;
     }
     throw new IllegalArgumentException("Unknown flag: " + flag);
@@ -232,6 +262,9 @@ public class ConsumableSystem extends AbstractGameSystem
     if (flag == FIRETHOR) {
       return deductCostOfActionThor(requester);
     }
+    if (flag == REPEL) {
+      return deductCostOfActionRepel(requester);
+    }
     return false;
   }
 
@@ -242,12 +275,22 @@ public class ConsumableSystem extends AbstractGameSystem
     return true;
   }
 
+  private boolean deductCostOfActionRepel(final Entity requester) {
+    EntityId requesterId = requester.getId();
+    final Repel curr = ed.getComponent(requesterId, Repel.class);
+    ed.setComponent(requesterId, curr.decrement(1));
+    return true;
+  }
+
   private boolean canAct(Entity requester, byte actionType) {
     if (requester == null) {
       return false;
     }
     if (actionType == FIRETHOR) {
       return canFireThor(requester);
+    }
+    if (actionType == REPEL) {
+      return canFireRepel(requester);
     }
     return false;
   }
@@ -271,6 +314,22 @@ public class ConsumableSystem extends AbstractGameSystem
     return false;
   }
 
+  /**
+   * Repel firing gate: ship must own a {@link Repel} inventory component
+   * (per-ship {@code RepelMax > 0}) with at least one charge remaining.
+   * No fire-delay component today — Subspace {@code [Repel]} has no
+   * canonical fire-delay knob.
+   */
+  private boolean canFireRepel(Entity requester) {
+    EntityId requesterId = requester.getId();
+
+    if (!repelOwners.containsId(requesterId)) {
+      return false;
+    }
+    final Repel curr = ed.getComponent(requesterId, Repel.class);
+    return curr != null && curr.getCount() > 0;
+  }
+
   private boolean setCoolDown(final Entity requester, final byte flag) {
 
     if (requester == null) {
@@ -278,6 +337,10 @@ public class ConsumableSystem extends AbstractGameSystem
     }
     if (flag == FIRETHOR) {
       return setCoolDownThor(requester);
+    }
+    if (flag == REPEL) {
+      // No per-ship fire-delay component for repel today.
+      return true;
     }
     return false;
   }
@@ -301,6 +364,13 @@ public class ConsumableSystem extends AbstractGameSystem
     Vec3d projectileVelocity = new Vec3d(0, 0, 1);
 
     final RigidBody<?, ?> shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
+
+    // Repel is centered on the ship and does not project a velocity (no
+    // forward offset, no inheriting ship velocity), so short-circuit before
+    // the projectile-shaped math below.
+    if (weaponFlag == REPEL) {
+      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
+    }
 
     // Step 1: Scale the velocity based on weapon type, weapon level and ship type
     // TODO: Look these settings up in SettingsSystem

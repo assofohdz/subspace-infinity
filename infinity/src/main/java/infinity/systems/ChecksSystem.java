@@ -1,28 +1,5 @@
-/*
- * Copyright (c) 2018-2026, Asser Fahrenholz
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 
 package infinity.systems;
 
@@ -38,14 +15,19 @@ import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Captain;
+import infinity.es.Frequency;
 import infinity.es.PrizeType;
 import infinity.es.PrizeWeightsOverride;
 import infinity.es.Spawner;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
+import infinity.es.ship.BounceRestitution;
+import infinity.es.ship.DragFactor;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
+import infinity.es.ship.Health;
 import infinity.es.ship.Player;
+import infinity.es.ship.RadarRange;
 import infinity.es.ship.Recharge;
 import infinity.es.ship.RechargeMax;
 import infinity.es.ship.Rotation;
@@ -55,12 +37,28 @@ import infinity.es.ship.Speed;
 import infinity.es.ship.SpeedMax;
 import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
+import infinity.es.ship.TurnResponsiveness;
+import infinity.es.ship.actions.Brick;
+import infinity.es.ship.actions.BrickMax;
+import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.Decoy;
+import infinity.es.ship.actions.DecoyMax;
+import infinity.es.ship.actions.Portal;
+import infinity.es.ship.actions.PortalMax;
+import infinity.es.ship.actions.Repel;
+import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.Rocket;
+import infinity.es.ship.actions.RocketMax;
+import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombMaxLevel;
+import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.server.chat.InfinityChatHostedService;
@@ -104,6 +102,8 @@ public class ChecksSystem extends AbstractGameSystem {
   static final Logger log = LoggerFactory.getLogger(ChecksSystem.class);
 
   private final Pattern checkShipsCommand = Pattern.compile("\\~checkships");
+  /** {@code ~ship} = your avatar; {@code ~ship 17} = ship by EntityId. */
+  private final Pattern checkShipCommand = Pattern.compile("\\~ship(?:\\s+(\\d+))?");
   private final Pattern checkPrizesCommand = Pattern.compile("\\~checkprizes");
   private final Pattern checkArenasCommand = Pattern.compile("\\~checkarenas");
   private final Pattern checkDecayCommand = Pattern.compile("\\~checkdecay");
@@ -140,6 +140,10 @@ public class ChecksSystem extends AbstractGameSystem {
         checkShipsCommand,
         "~checkships — audits Pattern-4 component coverage on each live ship",
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::checkShips));
+    chat.registerPatternTriConsumer(
+        checkShipCommand,
+        "~ship [id] — deep-dump every projected component on a ship (default: your avatar)",
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::checkShip));
     chat.registerPatternTriConsumer(
         checkPrizesCommand,
         "~checkprizes — audits prize spawners and the Decay component on each live prize",
@@ -217,7 +221,7 @@ public class ChecksSystem extends AbstractGameSystem {
           .append(arenaId == null ? "<none>" : arenaId.getArena())
           .append('\n');
 
-      // Engine stats — Pattern 4 baseline
+      // Engine stats — Pattern 4 baseline (missing here = projection bug).
       final int missing = appendComponentMatrix(sb, id,
           Energy.class, EnergyMax.class,
           Recharge.class, RechargeMax.class,
@@ -229,10 +233,289 @@ public class ChecksSystem extends AbstractGameSystem {
           MineCurrentLevel.class, MineMaxLevel.class,
           BurstMax.class, ThorMaxCount.class);
       missingTotal += missing;
-      sb.append("  ").append(missing == 0 ? "OK — all 18 components present" : "MISSING " + missing).append('\n');
+      sb.append("  ").append(missing == 0 ? "engine OK — all 18 components present" : "engine MISSING " + missing).append('\n');
+
+      // Inventory — absence is allowed (per-ship `*Max 0` = ship not allowed
+      // that prize type), so we just report present/absent per pair without
+      // contributing to the failure tally.
+      sb.append("  inventory:");
+      appendInventory(sb, id, "repel", Repel.class, RepelMax.class);
+      appendInventory(sb, id, "burst", Burst.class, BurstMax.class);
+      appendInventory(sb, id, "thor", ThorCurrentCount.class, ThorMaxCount.class);
+      appendInventory(sb, id, "brick", Brick.class, BrickMax.class);
+      appendInventory(sb, id, "decoy", Decoy.class, DecoyMax.class);
+      appendInventory(sb, id, "rocket", Rocket.class, RocketMax.class);
+      appendInventory(sb, id, "portal", Portal.class, PortalMax.class);
+      sb.append('\n');
     }
     sb.append(missingTotal == 0 ? "PASS" : "FAIL (" + missingTotal + " missing across all ships)");
     return sb.toString();
+  }
+
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
+  private String checkShip(
+      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
+    // Resolve target — explicit id arg wins, otherwise default to caller's avatar.
+    final EntityId target;
+    final String idArg = matcher.group(1);
+    if (idArg != null) {
+      try {
+        target = new EntityId(Long.parseLong(idArg));
+      } catch (final NumberFormatException ex) {
+        return "~ship: bad id '" + idArg + "'";
+      }
+    } else if (avatarEntityId == null) {
+      return "~ship: no avatar to inspect — pass an id (~ship <n>)";
+    } else {
+      target = avatarEntityId;
+    }
+
+    final ShipType type = ed.getComponent(target, ShipType.class);
+    if (type == null) {
+      return "~ship: entity[" + target.getId() + "] has no ShipType (not a ship)";
+    }
+    final ArenaId arenaId = ed.getComponent(target, ArenaId.class);
+    final Frequency freq = ed.getComponent(target, Frequency.class);
+
+    final StringBuilder sb = new StringBuilder("~ship[").append(target.getId()).append("] type=")
+        .append(type.getType())
+        .append(" arena=").append(arenaId == null ? "<none>" : arenaId.getArena())
+        .append(" freq=").append(freq == null ? "-" : freq.getFrequency())
+        .append('\n');
+
+    // Engine — capability stat triples (current/max), live pool (Energy/Health),
+    // converted-unit doubles (Recharge/Rotation in per-sec / rad-sec).
+    sb.append("  energy: ");
+    appendIntPair(sb, target, "energy", Energy.class, EnergyMax.class);
+    appendInt(sb, target, "health", Health.class);
+    appendDoublePair(sb, target, "recharge", Recharge.class, RechargeMax.class);
+    sb.append('\n');
+
+    sb.append("  movement:");
+    appendIntPair(sb, target, "thrust", Thrust.class, ThrustMax.class);
+    appendIntPair(sb, target, "speed", Speed.class, SpeedMax.class);
+    appendDoublePair(sb, target, "rotation", Rotation.class, RotationMax.class);
+    sb.append('\n');
+
+    sb.append("  feel:");
+    appendDouble(sb, target, "drag", DragFactor.class);
+    appendDouble(sb, target, "turnResp", TurnResponsiveness.class);
+    appendDouble(sb, target, "bounce", BounceRestitution.class);
+    appendDouble(sb, target, "radar", RadarRange.class);
+    sb.append('\n');
+
+    sb.append("  weapons:");
+    appendWeapon(sb, target, "bomb", BombCurrentLevel.class, BombMaxLevel.class, BombCost.class);
+    appendWeapon(sb, target, "gun", GunCurrentLevel.class, GunMaxLevel.class, GunCost.class);
+    appendWeapon(sb, target, "mine", MineCurrentLevel.class, MineMaxLevel.class, MineCost.class);
+    sb.append('\n');
+
+    sb.append("  inventory:");
+    appendInventoryWithCounts(sb, target, "repel", Repel.class, RepelMax.class);
+    appendInventoryWithCounts(sb, target, "burst", Burst.class, BurstMax.class);
+    appendInventoryWithCounts(sb, target, "thor", ThorCurrentCount.class, ThorMaxCount.class);
+    appendInventoryWithCounts(sb, target, "brick", Brick.class, BrickMax.class);
+    appendInventoryWithCounts(sb, target, "decoy", Decoy.class, DecoyMax.class);
+    appendInventoryWithCounts(sb, target, "rocket", Rocket.class, RocketMax.class);
+    appendInventoryWithCounts(sb, target, "portal", Portal.class, PortalMax.class);
+    sb.append('\n');
+
+    return sb.toString();
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* ~ship formatters                                                 */
+  /* ---------------------------------------------------------------- */
+  // Each helper reads one component (or a pair) and appends "label=value"
+  // (or "label=-" for absent). Reflection-via-known-getters keeps the dump
+  // local to this file — adding a new component just means adding one line
+  // to checkShip + one helper call.
+
+  private void appendInt(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> c) {
+    final EntityComponent comp = ed.getComponent(id, c);
+    sb.append(' ').append(label).append('=');
+    if (comp == null) {
+      sb.append('-');
+    } else if (comp instanceof Health h) {
+      sb.append(h.getHealth());
+    } else if (comp instanceof Energy e) {
+      sb.append(e.getEnergy());
+    } else {
+      sb.append('?');
+    }
+  }
+
+  private void appendDouble(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> c) {
+    final EntityComponent comp = ed.getComponent(id, c);
+    sb.append(' ').append(label).append('=');
+    if (comp == null) {
+      sb.append('-');
+    } else if (comp instanceof DragFactor d) {
+      sb.append(formatDouble(d.getFactor()));
+    } else if (comp instanceof TurnResponsiveness tr) {
+      sb.append(formatDouble(tr.getRate()));
+    } else if (comp instanceof BounceRestitution br) {
+      sb.append(formatDouble(br.getRestitution()));
+    } else if (comp instanceof RadarRange r) {
+      sb.append(formatDouble(r.getRange()));
+    } else {
+      sb.append('?');
+    }
+  }
+
+  private void appendIntPair(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> curr,
+      final Class<? extends EntityComponent> max) {
+    final EntityComponent c = ed.getComponent(id, curr);
+    final EntityComponent m = ed.getComponent(id, max);
+    sb.append(' ').append(label).append('=');
+    sb.append(intValue(c)).append('/').append(intValue(m));
+  }
+
+  private void appendDoublePair(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> curr,
+      final Class<? extends EntityComponent> max) {
+    final EntityComponent c = ed.getComponent(id, curr);
+    final EntityComponent m = ed.getComponent(id, max);
+    sb.append(' ').append(label).append('=');
+    sb.append(doubleValue(c)).append('/').append(doubleValue(m));
+  }
+
+  private void appendWeapon(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> curr,
+      final Class<? extends EntityComponent> max,
+      final Class<? extends EntityComponent> cost) {
+    final EntityComponent c = ed.getComponent(id, curr);
+    final EntityComponent m = ed.getComponent(id, max);
+    final EntityComponent co = ed.getComponent(id, cost);
+    sb.append(' ').append(label).append('=');
+    if (c == null && m == null && co == null) {
+      sb.append('-');
+      return;
+    }
+    sb.append(weaponLevel(c)).append('/').append(weaponLevel(m));
+    if (co instanceof BombCost bc) {
+      sb.append("(cost=").append(bc.getCost()).append(')');
+    } else if (co instanceof GunCost gc) {
+      sb.append("(cost=").append(gc.getCost()).append(')');
+    } else if (co instanceof MineCost mc) {
+      sb.append("(cost=").append(mc.getCost()).append(')');
+    }
+  }
+
+  /**
+   * Inventory pair with values. {@code repel=10/20} when projected,
+   * {@code repel=-} when neither component is present (ship disallows
+   * repels), {@code repel=?/N} or {@code repel=N/?} for half-pair
+   * projection bugs.
+   */
+  private void appendInventoryWithCounts(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> curr,
+      final Class<? extends EntityComponent> max) {
+    final EntityComponent c = ed.getComponent(id, curr);
+    final EntityComponent m = ed.getComponent(id, max);
+    sb.append(' ').append(label).append('=');
+    if (c == null && m == null) {
+      sb.append('-');
+    } else {
+      sb.append(intValue(c)).append('/').append(intValue(m));
+    }
+  }
+
+  /** Read getCount() across the whole inventory family + Energy/etc. as a flat int. */
+  private static String intValue(final EntityComponent c) {
+    if (c == null) return "?";
+    if (c instanceof Repel r) return Integer.toString(r.getCount());
+    if (c instanceof RepelMax r) return Integer.toString(r.getCount());
+    if (c instanceof Burst b) return Integer.toString(b.getCount());
+    if (c instanceof BurstMax b) return Integer.toString(b.getCount());
+    if (c instanceof ThorCurrentCount t) return Integer.toString(t.getCount());
+    if (c instanceof ThorMaxCount t) return Integer.toString(t.getCount());
+    if (c instanceof Brick b) return Integer.toString(b.getCount());
+    if (c instanceof BrickMax b) return Integer.toString(b.getCount());
+    if (c instanceof Decoy d) return Integer.toString(d.getCount());
+    if (c instanceof DecoyMax d) return Integer.toString(d.getCount());
+    if (c instanceof Rocket r) return Integer.toString(r.getCount());
+    if (c instanceof RocketMax r) return Integer.toString(r.getCount());
+    if (c instanceof Portal p) return Integer.toString(p.getCount());
+    if (c instanceof PortalMax p) return Integer.toString(p.getCount());
+    if (c instanceof Energy e) return Integer.toString(e.getEnergy());
+    if (c instanceof EnergyMax e) return Integer.toString(e.getMaxEnergy());
+    if (c instanceof Thrust t) return Integer.toString(t.getThrust());
+    if (c instanceof ThrustMax t) return Integer.toString(t.getThrustMax());
+    if (c instanceof Speed s) return Integer.toString(s.getSpeed());
+    if (c instanceof SpeedMax s) return Integer.toString(s.getSpeedMax());
+    return "?";
+  }
+
+  private static String doubleValue(final EntityComponent c) {
+    if (c == null) return "?";
+    if (c instanceof Recharge r) return formatDouble(r.getRechargePerSecond());
+    if (c instanceof RechargeMax r) return formatDouble(r.getMaxRechargePerSecond());
+    if (c instanceof Rotation r) return formatDouble(r.getRadSec());
+    if (c instanceof RotationMax r) return formatDouble(r.getRadSecMax());
+    return "?";
+  }
+
+  private static String weaponLevel(final EntityComponent c) {
+    if (c == null) return "?";
+    if (c instanceof BombCurrentLevel b) return b.getLevel().name();
+    if (c instanceof BombMaxLevel b) return b.getLevel().name();
+    if (c instanceof GunCurrentLevel g) return g.getLevel().name();
+    if (c instanceof GunMaxLevel g) return g.getLevel().name();
+    if (c instanceof MineCurrentLevel m) return m.getLevel().name();
+    if (c instanceof MineMaxLevel m) return m.getLevel().name();
+    return "?";
+  }
+
+  private static String formatDouble(final double d) {
+    return String.format(java.util.Locale.ROOT, "%.2f", d);
+  }
+
+  /**
+   * Append a {@code label=+|-} marker to {@code sb} based on whether both the
+   * current-counter and the {@code *Max} cap components are present on the
+   * ship. {@code +} = both present (ship can use this prize type),
+   * {@code -} = both absent (ship not configured for it). A half-pair is a
+   * spawn-projection bug and surfaces as {@code label=?}.
+   */
+  private void appendInventory(
+      final StringBuilder sb,
+      final EntityId id,
+      final String label,
+      final Class<? extends EntityComponent> curr,
+      final Class<? extends EntityComponent> max) {
+    final boolean hasCurr = ed.getComponent(id, curr) != null;
+    final boolean hasMax = ed.getComponent(id, max) != null;
+    final String marker;
+    if (hasCurr && hasMax) {
+      marker = "+";
+    } else if (!hasCurr && !hasMax) {
+      marker = "-";
+    } else {
+      marker = "?";
+    }
+    sb.append(' ').append(label).append('=').append(marker);
   }
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature

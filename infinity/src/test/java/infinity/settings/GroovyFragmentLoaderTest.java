@@ -1,28 +1,5 @@
-/*
- * Copyright (c) 2018-2026, Asser Fahrenholz
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.settings;
 
 import static org.junit.Assert.assertEquals;
@@ -178,20 +155,20 @@ public class GroovyFragmentLoaderTest {
   }
 
   @Test
-  public void smokePort_svsCost_loadsFromClasspath() {
-    // End-to-end check: the real /conf/svs/cost.groovy fixture loads and
-    // contains the expected canonical-SVS Cost section with all-zero values.
-    // Sanity-check four representative keys from the 25-key fragment so we
-    // catch a wholesale regression without enumerating every key.
-    final Ini ini = new GroovyFragmentLoader().load("/conf/svs/cost.groovy");
+  public void smokePort_svsPrizeWeights_loadsFromClasspath() {
+    // End-to-end check: a real classpath fragment loads and parses into the
+    // expected section + key shape. Sanity-check a handful of keys from the
+    // canonical-SVS [PrizeWeight] table so a wholesale regression in the
+    // loader (eval, section binding, key capture) shows up.
+    final Ini ini = new GroovyFragmentLoader().load("/conf/svs/prizeweights.groovy");
 
-    assertNotNull("cost.groovy should load from the classpath", ini);
-    final Section cost = ini.get("Cost");
-    assertNotNull("Cost section must exist", cost);
-    assertEquals("0", cost.get("PurchaseAnytime"));
-    assertEquals("0", cost.get("Gun"));
-    assertEquals("0", cost.get("Bomb"));
-    assertEquals("0", cost.get("Portal"));
+    assertNotNull("prizeweights.groovy should load from the classpath", ini);
+    final Section pw = ini.get("PrizeWeight");
+    assertNotNull("PrizeWeight section must exist", pw);
+    assertEquals("80", pw.get("QuickCharge"));
+    assertEquals("110", pw.get("Energy"));
+    assertEquals("50", pw.get("Gun"));
+    assertEquals("25", pw.get("Portal"));
   }
 
   @Test
@@ -202,18 +179,18 @@ public class GroovyFragmentLoaderTest {
 
   @Test
   public void include_pullsAnotherFragmentIntoTheSameIni() {
-    // svs/cost.groovy is on the classpath (committed in PR #1). Verify that an
-    // including script can pull it in and that the resulting Ini carries both
-    // its own sections and the included file's sections.
+    // Verify that an including script can pull in another classpath fragment
+    // and that the resulting Ini carries both its own sections and the
+    // included file's sections.
     final String src =
-        "include '/conf/svs/cost.groovy'\n"
+        "include '/conf/svs/prizeweights.groovy'\n"
             + "section('Bomb') { BombDamageLevel 1234 }\n";
 
     final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:include_basic");
 
-    // Included file contributes [Cost]
-    assertNotNull("Cost section from included file", ini.get("Cost"));
-    assertEquals("0", ini.get("Cost").get("PurchaseAnytime"));
+    // Included file contributes [PrizeWeight]
+    assertNotNull("PrizeWeight section from included file", ini.get("PrizeWeight"));
+    assertEquals("80", ini.get("PrizeWeight").get("QuickCharge"));
     // Including script contributes [Bomb]
     assertNotNull("Bomb section from outer script", ini.get("Bomb"));
     assertEquals("1234", ini.get("Bomb").get("BombDamageLevel"));
@@ -224,15 +201,15 @@ public class GroovyFragmentLoaderTest {
     // Mimics the override pattern svs-league uses: include the base preset,
     // then write keys after the include to override.
     final String src =
-        "include '/conf/svs/cost.groovy'\n"
-            + "section('Cost') { PurchaseAnytime 1 }\n";
+        "include '/conf/svs/prizeweights.groovy'\n"
+            + "section('PrizeWeight') { QuickCharge 999 }\n";
 
     final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:include_override");
 
     assertEquals(
-        "Outer's later write should win over the included file's earlier 0",
-        "1",
-        ini.get("Cost").get("PurchaseAnytime"));
+        "Outer's later write should win over the included file's earlier 80",
+        "999",
+        ini.get("PrizeWeight").get("QuickCharge"));
   }
 
   @Test
@@ -246,8 +223,6 @@ public class GroovyFragmentLoaderTest {
 
     assertNotNull("svs-league.groovy should load", ini);
 
-    // From cost.groovy (included)
-    assertEquals("0", ini.get("Cost").get("PurchaseAnytime"));
     // From misc.groovy (included)
     assertEquals("750", ini.get("Bomb").get("BombDamageLevel"));
     // From prizeweights.groovy (included)
