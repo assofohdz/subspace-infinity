@@ -6,7 +6,7 @@ below is third-party and is **not** licensed under the project's `LICENSE`.
 Each item retains its own provenance and rights status, summarized here.
 
 If you are a rights holder for any of the material listed below and would
-like it removed, contact the maintainer at <asser@fahrenholz.dk>.
+like it removed, contact the maintainer in the project [Discord](https://discord.gg/FXqNB6N).
 
 ---
 
