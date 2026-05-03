@@ -272,11 +272,27 @@ drains energy at 200/1000 per cs (= 20/sec); trench/lancaster + shark
 have xradar (status 1 or 2) but with energy=0 → drain math is 0 → no
 actual energy cost (matches operator intent in legacy fragments).
 
-### Slice 6c — MultiFire 🔲
-Different mechanic — bullet-firing mode in `[Bullets]`, not Status.
-Per-ship `MultiFireEnergy` / `MultiFireDelay` / `MultiFireAngle`. Flips
-`MultiFirePrizeApplier` from ❌ stub by toggling the `Multishot`
-component (already exists). No drain system — fire-time energy cost.
+### Slice 6c — MultiFire (applier flip only)
+✅ Landed. `MultiFirePrizeApplier` from ❌ stub → ✅ canonical: stamps
+`Multishot(true)` on the ship unconditionally (no per-ship `*Status`
+tri-state for MultiFire per REFERENCE.md "Bullets"). Test:
+`MultiFirePrizeApplierTest`.
+
+Tiny slice — the heavy lift (per-ship `MultiFireEnergy` /
+`MultiFireDelay` / `MultiFireAngle` plumbing into the firing path) is
+deferred to a follow-up "MultiFire firing mode" slice that extends
+`WeaponsSystem`. Until that lands, the `Multishot` toggle is set but
+unconsumed; gun fire ignores it.
+
+Follow-up (own slice — sits with Slice 14 in the queue):
+1. New per-ship MultiFire stats on `ShipConfig` + DSL.
+2. Project `MultiFireEnergy` / `MultiFireDelay` / `MultiFireAngle` to
+   per-entity components at spawn.
+3. `WeaponsSystem` gun-fire path reads `Multishot` toggle + the
+   per-ship knobs to fire 3+ bullets at the canonical angle spread.
+4. `DoubleBarrel` (separate per-ship 0/1 toggle, no prize) — also
+   deferred. `DoubleBarrel` component currently missing
+   `implements EntityComponent` (latent bug; fix when wiring it up).
 
 ## Slices 7–9 — Coherent mid-effort features
 

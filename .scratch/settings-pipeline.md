@@ -368,7 +368,7 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 | ✅ | `Bomb` (= "Bomb Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `BombCurrentLevel`/`BombMaxLevel` + `MineCurrentLevel`/`MineMaxLevel` | `CompositePrizeApplier(BombPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (bomb + mine) | ❌ |
 | ✅ | `Thrust` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Thrust`/`ThrustMax` | `ThrusterPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
 | ✅ | `Speed` (= "Top Speed") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Speed`/`SpeedMax` | `TopSpeedPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
-| ⚠️ | `MultiFire` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Multishot` | `MultiFirePrizeApplier` ❌ stub | (needs Multishot wiring) | ❌ |
+| ⚠️ | `MultiFire` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Multishot` | `MultiFirePrizeApplier` ✅ | (firing-mode consumer in `WeaponsSystem` deferred) | ✅ `MultiFirePrizeApplierTest` |
 | ⚠️ | `Proximity` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Proximity component) | `ProximityPrizeApplier` ❌ stub | (needs Proximity component + applier) | ❌ |
 | ⚠️ | `Super` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Super-active component) | `SuperPrizeApplier` ❌ stub | (needs Super-active component) | ❌ |
 | ⚠️ | `Shields` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | ❌ (no Shields-active component) | `ShieldsPrizeApplier` ❌ stub | (needs Shields-active component) | ❌ |
