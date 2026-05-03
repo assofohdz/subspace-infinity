@@ -51,6 +51,10 @@ import javax.annotation.Nullable;
  * @param thors starting + max thor inventory count + per-fire delay;
  *     {@code null} = no thors
  * @param repels starting + max repel inventory count; {@code null} = no repels
+ * @param decoys starting + max decoy inventory count; {@code null} = no decoys
+ * @param bricks starting + max brick inventory count; {@code null} = no bricks
+ * @param rockets starting + max rocket inventory count; {@code null} = no rockets
+ * @param portals starting + max portal inventory count; {@code null} = no portals
  */
 public record ShipConfig(
     Ship type,
@@ -68,4 +72,8 @@ public record ShipConfig(
     @Nullable MineStats mines,
     @Nullable CountStats bursts,
     @Nullable CountWithDelayStats thors,
-    @Nullable CountStats repels) {}
+    @Nullable CountStats repels,
+    @Nullable CountStats decoys,
+    @Nullable CountStats bricks,
+    @Nullable CountStats rockets,
+    @Nullable CountStats portals) {}

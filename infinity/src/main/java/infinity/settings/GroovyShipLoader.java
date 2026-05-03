@@ -129,6 +129,26 @@ public final class GroovyShipLoader {
   static final CountStats DEFAULT_REPELS = new CountStats(/* start */ 10, /* max */ 20);
 
   /**
+   * Default decoy/brick/rocket/portal inventory: {@code null} = "ship doesn't
+   * carry / can't acquire this item." Per the B2 grilled-through plan
+   * (see {@code .scratch/settings-pipeline-slices.md}), the typed pipeline
+   * treats {@code null} as the disallow signal — the corresponding
+   * {@code *Max} component isn't projected, and the prize applier no-ops.
+   * Presets that want decoys/bricks/rockets/portals must declare them
+   * explicitly in {@code ships.groovy}.
+   */
+  static final CountStats DEFAULT_DECOYS = null;
+
+  /** See {@link #DEFAULT_DECOYS}. */
+  static final CountStats DEFAULT_BRICKS = null;
+
+  /** See {@link #DEFAULT_DECOYS}. */
+  static final CountStats DEFAULT_ROCKETS = null;
+
+  /** See {@link #DEFAULT_DECOYS}. */
+  static final CountStats DEFAULT_PORTALS = null;
+
+  /**
    * Built-in fallback snapshot installed when an arena's {@code ships.groovy}
    * is missing or fails to evaluate. Covers all 8 ships with SVS-canonical
    * tuning (matches the {@code conf/svs/ship-*} INI fragments) so picking any
@@ -219,7 +239,11 @@ public final class GroovyShipLoader {
         DEFAULT_MINES,
         DEFAULT_BURSTS,
         DEFAULT_THORS,
-        DEFAULT_REPELS);
+        DEFAULT_REPELS,
+        DEFAULT_DECOYS,
+        DEFAULT_BRICKS,
+        DEFAULT_ROCKETS,
+        DEFAULT_PORTALS);
   }
 
   private final ConfigRegistrySystem configRegistry;
@@ -362,6 +386,10 @@ public final class GroovyShipLoader {
     private CountStats bursts = DEFAULT_BURSTS;
     private CountWithDelayStats thors = DEFAULT_THORS;
     private CountStats repels = DEFAULT_REPELS;
+    private CountStats decoys = DEFAULT_DECOYS;
+    private CountStats bricks = DEFAULT_BRICKS;
+    private CountStats rockets = DEFAULT_ROCKETS;
+    private CountStats portals = DEFAULT_PORTALS;
 
     // Package-private so unit tests in this package can build configs without
     // standing up the full GroovyShell pipeline.
@@ -456,6 +484,30 @@ public final class GroovyShipLoader {
           new CountStats(intArg("repels", args, "start"), intArg("repels", args, "max"));
     }
 
+    /** {@code decoys start: 0, max: 1} */
+    public void decoys(final Map<String, ?> args) {
+      this.decoys =
+          new CountStats(intArg("decoys", args, "start"), intArg("decoys", args, "max"));
+    }
+
+    /** {@code bricks start: 0, max: 1} */
+    public void bricks(final Map<String, ?> args) {
+      this.bricks =
+          new CountStats(intArg("bricks", args, "start"), intArg("bricks", args, "max"));
+    }
+
+    /** {@code rockets start: 0, max: 3} */
+    public void rockets(final Map<String, ?> args) {
+      this.rockets =
+          new CountStats(intArg("rockets", args, "start"), intArg("rockets", args, "max"));
+    }
+
+    /** {@code portals start: 0, max: 2} */
+    public void portals(final Map<String, ?> args) {
+      this.portals =
+          new CountStats(intArg("portals", args, "start"), intArg("portals", args, "max"));
+    }
+
     private static ShipStat toStat(final String statName, final Map<String, ?> args) {
       return new ShipStat(
           intArg(statName, args, "initial"),
@@ -528,7 +580,11 @@ public final class GroovyShipLoader {
           mines,
           bursts,
           thors,
-          repels);
+          repels,
+          decoys,
+          bricks,
+          rockets,
+          portals);
     }
   }
 }

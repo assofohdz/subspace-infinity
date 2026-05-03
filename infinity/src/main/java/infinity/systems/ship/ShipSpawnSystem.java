@@ -40,10 +40,18 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
+import infinity.es.ship.actions.Brick;
+import infinity.es.ship.actions.BrickMax;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.Decoy;
+import infinity.es.ship.actions.DecoyMax;
+import infinity.es.ship.actions.Portal;
+import infinity.es.ship.actions.PortalMax;
 import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.Rocket;
+import infinity.es.ship.actions.RocketMax;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorMaxCount;
@@ -267,6 +275,10 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectBursts(shipId, cfg.bursts(), resetLivePool);
     projectThors(shipId, cfg.thors(), resetLivePool);
     projectRepels(shipId, cfg.repels(), resetLivePool);
+    projectDecoys(shipId, cfg.decoys(), resetLivePool);
+    projectBricks(shipId, cfg.bricks(), resetLivePool);
+    projectRockets(shipId, cfg.rockets(), resetLivePool);
+    projectPortals(shipId, cfg.portals(), resetLivePool);
   }
 
   // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from
@@ -409,5 +421,49 @@ public class ShipSpawnSystem extends AbstractGameSystem {
       ed.setComponent(shipId, new Repel(repels.start()));
     }
     ed.setComponent(shipId, new RepelMax(repels.max()));
+  }
+
+  private void projectDecoys(
+      final EntityId shipId, @Nullable final CountStats decoys, final boolean resetLivePool) {
+    if (decoys == null) {
+      return;
+    }
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Decoy(decoys.start()));
+    }
+    ed.setComponent(shipId, new DecoyMax(decoys.max()));
+  }
+
+  private void projectBricks(
+      final EntityId shipId, @Nullable final CountStats bricks, final boolean resetLivePool) {
+    if (bricks == null) {
+      return;
+    }
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Brick(bricks.start()));
+    }
+    ed.setComponent(shipId, new BrickMax(bricks.max()));
+  }
+
+  private void projectRockets(
+      final EntityId shipId, @Nullable final CountStats rockets, final boolean resetLivePool) {
+    if (rockets == null) {
+      return;
+    }
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Rocket(rockets.start()));
+    }
+    ed.setComponent(shipId, new RocketMax(rockets.max()));
+  }
+
+  private void projectPortals(
+      final EntityId shipId, @Nullable final CountStats portals, final boolean resetLivePool) {
+    if (portals == null) {
+      return;
+    }
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Portal(portals.start()));
+    }
+    ed.setComponent(shipId, new PortalMax(portals.max()));
   }
 }

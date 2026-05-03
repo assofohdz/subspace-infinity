@@ -95,7 +95,11 @@ public class ShipSpawnSystemTest {
             new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L),
             new CountStats(5, 5),                       // bursts
             new CountWithDelayStats(2, 2, 1000L),       // thors
-            new CountStats(10, 20));                    // repels
+            new CountStats(10, 20),                     // repels
+            null,                                       // decoys (disallow)
+            null,                                       // bricks (disallow)
+            null,                                       // rockets (disallow)
+            null);                                      // portals (disallow)
 
     final ConfigRegistry snapshot =
         ConfigRegistry.builder().ship(Ship.WARBIRD, warbird).build();
