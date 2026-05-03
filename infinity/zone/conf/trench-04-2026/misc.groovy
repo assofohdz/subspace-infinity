@@ -39,19 +39,6 @@ section('Spawn') {
     "Team3-Y"(0)
 }
 
-section('Bomb') {
-    BombDamageLevel 2650
-    BombAliveTime 6000
-    BombExplodeDelay 150
-    BombExplodePixels 150
-    JitterTime 32
-    ProximityDistance 0
-    EBombShutdownTime 2000
-    EBombDamagePercent 1000
-    BBombDamagePercent 1000
-    BombSafety 1
-}
-
 section('Mine') {
     MineAliveTime 15000
     TeamMaxMines 12

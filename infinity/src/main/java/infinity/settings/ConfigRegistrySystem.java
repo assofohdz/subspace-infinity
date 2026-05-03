@@ -5,6 +5,7 @@ package infinity.settings;
 
 import com.simsilica.sim.AbstractGameSystem;
 import infinity.config.ArenaConfig;
+import infinity.config.BombConfig;
 import infinity.config.BulletConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
@@ -59,6 +60,12 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
             final BulletConfig parsed =
                 GroovySettingsHost.INSTANCE.load(BulletAdapter.INSTANCE, path);
             return current.withBullet(parsed != null ? parsed : BulletConfig.DEFAULTS);
+          },
+          "bomb.groovy",
+          (current, path) -> {
+            final BombConfig parsed =
+                GroovySettingsHost.INSTANCE.load(BombAdapter.INSTANCE, path);
+            return current.withBomb(parsed != null ? parsed : BombConfig.DEFAULTS);
           });
 
   /** Functional contract for a typed fragment installer. */
@@ -171,7 +178,6 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     // ConfigRegistry.Builder's defaults until either gets its own typed slot.
     ConfigRegistry current =
         forArena(arenaId)
-            .withBomb(weaponsLoader.loadBomb(settings, arenaName))
             .withMine(weaponsLoader.loadMine(settings, arenaName))
             .withBurst(weaponsLoader.loadBurst(settings, arenaName))
             .withRepel(weaponsLoader.loadRepel(settings, arenaName))

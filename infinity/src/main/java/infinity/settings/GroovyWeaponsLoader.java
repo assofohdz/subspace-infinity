@@ -3,7 +3,6 @@
 
 package infinity.settings;
 
-import infinity.config.BombConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.MineConfig;
 import infinity.config.PrizeConfig;
@@ -31,9 +30,6 @@ import infinity.systems.SettingsSystem;
  */
 public final class GroovyWeaponsLoader {
 
-  /** {@code Bomb} section name in the merged fragment store. */
-  static final String BOMB_SECTION = "Bomb";
-
   /** {@code Mine} section name in the merged fragment store. */
   static final String MINE_SECTION = "Mine";
 
@@ -45,19 +41,6 @@ public final class GroovyWeaponsLoader {
 
   /** {@code Prize} section name in the merged fragment store. */
   static final String PRIZE_SECTION = "Prize";
-
-  public BombConfig loadBomb(final SettingsSystem settings, final String arenaName) {
-    final int damage =
-        settings.getInt(
-            arenaName, BOMB_SECTION, "BombDamageLevel", BombConfig.DEFAULTS.damage());
-    final int aliveCs =
-        settings.getInt(
-            arenaName,
-            BOMB_SECTION,
-            "BombAliveTime",
-            (int) (BombConfig.DEFAULTS.decayMs() / 10L));
-    return new BombConfig(damage, aliveCs * 10L);
-  }
 
   public MineConfig loadMine(final SettingsSystem settings, final String arenaName) {
     final int aliveCs =

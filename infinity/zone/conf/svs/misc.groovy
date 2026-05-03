@@ -1,15 +1,3 @@
-section('Bomb') {
-    BombDamageLevel 750
-    BombAliveTime 6000
-    BombExplodeDelay 150
-    BombExplodePixels 80
-    ProximityDistance 3
-    JitterTime 72
-    BombSafety 1
-    EBombShutdownTime 400
-    EBombDamagePercent 1000
-    BBombDamagePercent 1000
-}
 
 section('Mine') {
     MineAliveTime 12000

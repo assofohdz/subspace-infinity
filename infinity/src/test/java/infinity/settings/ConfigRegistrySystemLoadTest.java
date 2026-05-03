@@ -61,7 +61,8 @@ public class ConfigRegistrySystemLoadTest {
               512,
               List.of(
                   "/conf/trench-04-2026/misc.groovy",
-                  "/conf/trench-04-2026/bullet.groovy"),
+                  "/conf/trench-04-2026/bullet.groovy",
+                  "/conf/trench-04-2026/bomb.groovy"),
               0.0,
               List.of());
 

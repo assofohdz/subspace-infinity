@@ -223,8 +223,10 @@ public class GroovyFragmentLoaderTest {
 
     assertNotNull("svs-league.groovy should load", ini);
 
-    // From misc.groovy (included)
-    assertEquals("750", ini.get("Bomb").get("BombDamageLevel"));
+    // From misc.groovy (included) — sample a section still in the Ini-mirror
+    // path. [Bullet] and [Bomb] migrated to typed adapters in B1; [Mine]
+    // remains in misc.groovy until its B1-Mine vertical slice lands.
+    assertEquals("12", ini.get("Mine").get("TeamMaxMines"));
     // From prizeweights.groovy (included)
     assertEquals("25", ini.get("PrizeWeight").get("BouncingBullets"));
     // From ship-warbird.groovy (included)
