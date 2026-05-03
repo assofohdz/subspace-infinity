@@ -262,6 +262,14 @@ public class ConfigRegistrySystemLoadTest {
           120_000L,
           snapshot.prize().defaultDecayMs());
 
+      // Slice 8a: PrizeMinExist authored alongside PrizeMaxExist gives
+      // each prize a random lifetime in [minExist, maxExist] cs.
+      // trench: minExist 4000 cs (= 40000 ms).
+      assertEquals(
+          "trench's [Prize] PrizeMinExist = 4000 cs (= 40000 ms)",
+          40_000L,
+          snapshot.prize().defaultMinDecayMs());
+
       // Typed prize-weights.groovy populated the prizeWeights slot (B3).
       // trench is a no-greens preset for most prize types; sample the few
       // non-zero entries to pin the typed loader's behaviour.

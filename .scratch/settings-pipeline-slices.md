@@ -329,10 +329,54 @@ Follow-ups (own slices):
   cleanup slice deletes the legacy `ArenaConfig.spawnX/spawnZ` fields
   + the `arena.groovy spawn x, z` directive.
 
-### Slice 8 — Prize spawning loop
-🔲 `[Prize]` PrizeFactor, PrizeDelay, MinimumVirtual, UpgradeVirtual,
-PrizeMinExist, DeathPrizeTime, PrizeNegativeFactor, PrizeHideCount.
-Controls when/where/how often prize entities spawn.
+## Slice 8 — Prize lifecycle knobs (sub-slices)
+
+The original Slice 8 description bundled 8 disparate `[Prize]` knobs
+into one slice. After grilling, that's three different mechanics —
+declarative-spawner lifetime randomisation, death-dropped prizes,
+negative prizes, and a Subspace-canonical global hidden-prize regen
+loop — which violates the slice queue's WIP=1 vertical-slice ethos.
+Split into four sub-slices, each independently shippable. Infinity
+keeps its declarative `prizeSpawners { ... }` model (strictly more
+flexible than the canon hidden-prize loop) and cherry-picks the canon
+knobs that map cleanly onto declarative spawners.
+
+### Slice 8a — Prize random lifetime range (`PrizeMinExist`)
+✅ `[Prize] PrizeMinExist` paired with already-wired `PrizeMaxExist`
+gives each prize a random lifetime in `[PrizeMinExist, PrizeMaxExist]`
+(REFERENCE.md `## Prize`). `PrizeConfig.defaultMinDecayMs` field added,
+`PrizeAdapter` parses optional `minExist <cs>` (×10→ms) and throws when
+`minExist > maxExist`. `PrizeSystem.sampleDecayMs` samples uniformly
+in `[min, max]`; `[min, min]` collapse for arenas omitting `minExist`
+preserves 1:1 behaviour. Per-spawner explicit `ttlMs` remains a fixed
+override (precedence α). Active arenas authored: trench
+`minExist 4000` (40s, paired with maxExist 12000=120s), deva
+`minExist 2000` (20s, paired with maxExist 5000=50s). Test:
+`ConfigRegistrySystemLoadTest` extended.
+
+### Slice 8b — Death-dropped prizes (`DeathPrizeTime`)
+🔲 `[Prize] DeathPrizeTime` lifetime for prizes dropped at a ship's
+death location. Requires a death-event hook + greens-on-death
+mechanic that doesn't exist today. Touches `EnergySystem` (or
+wherever ship→dead transitions live) + adds a death-drop call site.
+
+### Slice 8c — Negative prizes (`PrizeNegativeFactor`)
+🔲 `[Prize] PrizeNegativeFactor` flips a prize to its "negative"
+counterpart at 1-in-N odds (Subspace canon: 1=every prize negative,
+32000=extremely rare). Requires the negative-prize family — needs
+content-side decision on which prizes have negatives + applier-side
+inverse semantics.
+
+### Slice 8d — Subspace canonical hidden-prize regen loop (deferred,
+big) `[Prize] PrizeFactor`, `PrizeDelay`, `MinimumVirtual`,
+`UpgradeVirtual`, `PrizeHideCount`. The Subspace "hidden prize cloud"
+that rains across the whole map, sized by `PrizeFactor × playerCount`,
+regenerating `PrizeHideCount` every `PrizeDelay`, dropping on a
+virtual ring of radius `MinimumVirtual + UpgradeVirtual × playerCount`
+from arena center. Fundamentally different model from
+`prizeSpawners`; not yet decided whether it ships at all
+(declarative spawners are strictly more flexible). Owns its own
+grilling session before scoping.
 
 ### Slice 9 — Proximity bomb mechanic
 🔲 `[Bomb]` BombExplodeDelay, BombExplodePixels, ProximityDistance,

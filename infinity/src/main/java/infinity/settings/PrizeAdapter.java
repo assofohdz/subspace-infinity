@@ -17,15 +17,23 @@ import java.util.List;
  *
  * <pre>{@code
  * prize {
+ *     minExist  4000    // [Prize] PrizeMinExist (centiseconds → ms ×10); optional
  *     maxExist  8000    // [Prize] PrizeMaxExist (centiseconds → ms ×10)
  * }
  * }</pre>
  *
+ * <p>{@code minExist} + {@code maxExist} define a uniform random lifetime
+ * range that {@code PrizeSystem} samples per-prize at spawn time. Omitting
+ * {@code minExist} pins it equal to {@code maxExist} (= no randomness;
+ * preserves 1:1 behaviour for un-migrated arenas). {@code minExist >
+ * maxExist} throws at parse time — explicit author error rather than a
+ * silent clamp/swap.
+ *
  * <p>Other Subspace {@code [Prize]} keys (PrizeFactor, PrizeDelay,
- * MultiPrizeCount, PrizeMinExist, DeathPrizeTime, EngineShutdownTime, etc.)
- * aren't in {@link PrizeConfig} today — they're polish-bag work / B-slice
- * candidates per the pipeline tracker. The adapter only exposes fields that
- * have a typed config + active consumer.
+ * MultiPrizeCount, DeathPrizeTime, PrizeNegativeFactor, PrizeHideCount,
+ * EngineShutdownTime, etc.) aren't in {@link PrizeConfig} today — they're
+ * sub-slices 8b/8c/8d work per the slice queue. The adapter only exposes
+ * fields that have a typed config + active consumer.
  */
 public final class PrizeAdapter
     implements GroovySettingsAdapter<PrizeConfig, PrizeAdapter.PrizeBuilder> {
@@ -81,6 +89,7 @@ public final class PrizeAdapter
   public static final class PrizeBuilder {
 
     private long defaultDecayMs = PrizeConfig.DEFAULTS.defaultDecayMs();
+    private Long defaultMinDecayMs = null; // null = "not authored; pin to defaultDecayMs at build()"
 
     PrizeBuilder() {}
 
@@ -92,9 +101,29 @@ public final class PrizeAdapter
       this.defaultDecayMs = centiseconds * 10L;
     }
 
+    /**
+     * {@code [Prize] PrizeMinExist} in <em>centiseconds</em>; the adapter
+     * multiplies by 10 to store milliseconds. Optional — omit to pin
+     * equal to {@code maxExist} (no random-lifetime variation).
+     */
+    public void minExist(final int centiseconds) {
+      this.defaultMinDecayMs = centiseconds * 10L;
+    }
+
     PrizeConfig build() {
+      final long min =
+          defaultMinDecayMs != null ? defaultMinDecayMs.longValue() : defaultDecayMs;
+      if (min > defaultDecayMs) {
+        throw new IllegalArgumentException(
+            "prize.minExist ("
+                + (min / 10)
+                + " cs) must be <= maxExist ("
+                + (defaultDecayMs / 10)
+                + " cs)");
+      }
       return new PrizeConfig(
           defaultDecayMs,
+          min,
           PrizeConfig.DEFAULTS.defaultMaxCount(),
           PrizeConfig.DEFAULTS.bountyValue());
     }

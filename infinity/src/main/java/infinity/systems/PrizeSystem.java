@@ -437,13 +437,34 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
   private long resolveDecayMs(final EntityId spawnerId, final Spawner spawner) {
     if (spawner.getSpawnedDecayMillis() > 0L) {
+      // Per-spawner ttlMs is a fixed override (precedence α from the
+      // Slice 8a grill): explicit author intent wins, no randomisation.
       return spawner.getSpawnedDecayMillis();
     }
     final ArenaId arenaId = ed.getComponent(spawnerId, ArenaId.class);
-    if (arenaId == null) {
-      return infinity.config.PrizeConfig.DEFAULTS.defaultDecayMs();
+    final infinity.config.PrizeConfig prize =
+        arenaId == null
+            ? infinity.config.PrizeConfig.DEFAULTS
+            : configRegistry.forArena(arenaId).prize();
+    return sampleDecayMs(prize);
+  }
+
+  /**
+   * Uniform sample in {@code [defaultMinDecayMs, defaultDecayMs]} —
+   * Subspace's {@code [Prize] PrizeMinExist..PrizeMaxExist} hidden-prize
+   * lifetime range (REFERENCE.md {@code ## Prize}). When the arena hasn't
+   * authored {@code minExist}, {@code defaultMinDecayMs == defaultDecayMs}
+   * and the sample collapses to the upper bound — preserves 1:1 behaviour
+   * for un-migrated arenas.
+   */
+  private long sampleDecayMs(final infinity.config.PrizeConfig prize) {
+    final long min = prize.defaultMinDecayMs();
+    final long max = prize.defaultDecayMs();
+    if (min >= max) {
+      return max;
     }
-    return configRegistry.forArena(arenaId).prize().defaultDecayMs();
+    // nextLong(origin, bound) is bound-exclusive; +1 makes the range inclusive.
+    return random.nextLong(min, max + 1);
   }
 
   @Override

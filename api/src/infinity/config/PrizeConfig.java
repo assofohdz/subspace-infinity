@@ -12,29 +12,49 @@ package infinity.config;
  * the api can call them without a config lookup, but the per-arena values
  * here are authoritative on the server hot path.
  *
- * <p>Populated from the merged Groovy fragment store at arena-load — see
- * {@code GroovyWeaponsLoader.loadPrize}. Subspace fragment keys:
+ * <p>Populated from the typed {@code prize.groovy} fragment via
+ * {@code PrizeAdapter}. Subspace fragment keys
+ * (REFERENCE.md {@code ## Prize}):
  * <ul>
  *   <li>{@code [Prize] PrizeMaxExist} (centiseconds) × 10 → {@link #defaultDecayMs}
+ *   <li>{@code [Prize] PrizeMinExist} (centiseconds) × 10 → {@link #defaultMinDecayMs}
  * </ul>
- * {@link #defaultMaxCount} and {@link #bountyValue} have no canonical
+ *
+ * <p>{@link #defaultMinDecayMs} + {@link #defaultDecayMs} together define a
+ * uniform random lifetime range — {@code PrizeSystem} samples in
+ * {@code [defaultMinDecayMs, defaultDecayMs]} when a prize spawner has no
+ * explicit per-spawner {@code ttlMs}. Arenas that don't author
+ * {@code minExist} get {@code defaultMinDecayMs == defaultDecayMs}
+ * (= no randomness; every prize lives exactly {@link #defaultDecayMs}),
+ * preserving 1:1 behaviour for un-migrated arenas.
+ *
+ * <p>{@link #defaultMaxCount} and {@link #bountyValue} have no canonical
  * Subspace fragment key today; they stay on their Infinity defaults until
  * a content-side decision wires them.
  *
- * @param defaultDecayMs default lifetime in ms for prizes that don't
- *     specify per-spawner ttl
+ * @param defaultDecayMs upper bound of the random-lifetime range in ms
+ *     (Subspace {@code PrizeMaxExist} converted from centiseconds);
+ *     also the legacy "default decay" for spawners with no explicit
+ *     {@code ttlMs} when {@code minExist} isn't authored
+ * @param defaultMinDecayMs lower bound of the random-lifetime range in ms
+ *     (Subspace {@code PrizeMinExist} converted from centiseconds);
+ *     equals {@link #defaultDecayMs} when the arena's {@code prize.groovy}
+ *     omits the {@code minExist} field
  * @param defaultMaxCount default simultaneous-prize cap for spawners that
  *     don't specify their own (Infinity default {@code 10})
  * @param bountyValue greens granted to a ship picking up a prize (Infinity
  *     default {@code 10})
  */
-public record PrizeConfig(long defaultDecayMs, int defaultMaxCount, int bountyValue) {
+public record PrizeConfig(
+    long defaultDecayMs, long defaultMinDecayMs, int defaultMaxCount, int bountyValue) {
 
   /**
    * Subspace-canonical baseline used when no fragment provides a value.
    * Decay pulled from the {@code svs} preset's {@code [Prize] PrizeMaxExist}
-   * ({@code 8000} centiseconds = 80000ms). Count and bounty keep Infinity
-   * defaults — no canonical Subspace key for those.
+   * ({@code 8000} centiseconds = 80000 ms); {@link #defaultMinDecayMs}
+   * defaults to the same value (= no randomness) until an arena authors
+   * {@code minExist}. Count and bounty keep Infinity defaults — no
+   * canonical Subspace key for those.
    */
-  public static final PrizeConfig DEFAULTS = new PrizeConfig(80000L, 10, 10);
+  public static final PrizeConfig DEFAULTS = new PrizeConfig(80_000L, 80_000L, 10, 10);
 }

@@ -343,7 +343,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `MinimumVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `UpgradeVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ✅ | `PrizeMaxExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultDecayMs` | — | `PrizeSystem` (decay routing for prize entities) | ✅ `ConfigRegistrySystemLoadTest` |
-| ⚠️ | `PrizeMinExist` | ✅ misc.groovy | ❌ | ❌ (would need a range field) | — | ❌ | ❌ |
+| ✅ | `PrizeMinExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultMinDecayMs` | — | `PrizeSystem.sampleDecayMs` (uniform random in `[minDecayMs, maxDecayMs]` for spawners with no explicit `ttlMs`) | ✅ `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `PrizeNegativeFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `DeathPrizeTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `EngineShutdownTime` | ✅ misc.groovy | ❌ | ❌ | (Glue family — see Status appliers) | ❌ | ❌ |

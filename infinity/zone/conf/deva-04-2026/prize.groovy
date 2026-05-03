@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright (c) 2018-2026 Asser Fahrenholz
+//
+// Deva [Prize] tuning. Read by PrizeAdapter into PrizeConfig;
+// consumed by PrizeSystem.sampleDecayMs at prize-spawn time.
+//
+// minExist + maxExist define a uniform random lifetime range
+// (REFERENCE.md ## Prize) — each prize from a default-cadence
+// spawner gets a per-prize sampled lifetime in [minExist, maxExist] cs.
+// Per-spawner explicit `ttlMs` in arena.groovy's prizeSpawners block
+// is a fixed override (precedence α from Slice 8a) — no randomisation.
 
 prize {
-    maxExist  5000
+    minExist  2000     // 20 sec — proportional to deva's shorter maxExist
+    maxExist  5000     // 50 sec
 }
