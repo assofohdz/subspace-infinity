@@ -15,7 +15,6 @@ include '/conf/svs-league/ship-lancaster.groovy'
 include '/conf/svs-league/ship-shark.groovy'
 include '/conf/svs-league/misc.groovy'
 include '/conf/svs-league/prizeweights.groovy'
-include '/conf/svs-league/cost.groovy'
 
 // Dueling item baseline — 255 repels (max possible), nothing else.
 shipSections('Warbird', 'Javelin', 'Spider', 'Leviathan',

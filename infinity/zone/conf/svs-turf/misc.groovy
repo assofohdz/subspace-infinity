@@ -53,30 +53,6 @@ section('Radar') {
     MapZoomFactor 10
 }
 
-section('Team') {
-    MaxFrequency 9999
-    MaxPerTeam 8
-    MaxPerPrivateTeam 0
-    ForceEvenTeams 0
-    DesiredTeams 2
-    SpectatorFrequency 8025
-}
-
-section('Kill') {
-    MaxBonus 0
-    MaxPenalty 0
-    RewardBase 0
-    BountyIncreaseForKill 10
-    EnterDelay 200
-    KillPointsPerFlag 2
-    KillPointsMinimumBounty 80
-    DebtKills 0
-    NoRewardKillDelay 0
-    BountyRewardPercent 10
-    FixedKillReward(-1)
-    JackpotBountyPercent 0
-}
-
 section('Repel') {
     RepelSpeed 5000
     RepelTime 225
@@ -89,31 +65,11 @@ section('Message') {
     BongAllowed 0
     QuickMessageLimit 8
     MessageTeamReliable 1
-    MessageDistance 17000
 }
 
 section('Wormhole') {
     GravityBombs 1
     SwitchTime 0
-}
-
-section('Latency') {
-    SendRoutePercent 500
-    ClientSlowPacketSampleSize 100
-    ClientSlowPacketTime 40
-    S2CNoDataKickoutDelay 500
-    KickOutDelay 1000
-    NoFlagDelay 500
-    NoFlagPenalty 300
-    SlowPacketKickoutPercent 200
-    ClientSlowPacketKickoutPercent 200
-    SlowPacketTime 50
-    SlowPacketSampleSize 300
-    MaxLatencyForWeapons 45
-    MaxLatencyForPrizes 80
-    MaxLatencyForKickOut 120
-    LatencyKickOutTime 2200
-    CutbackWatermark 2400
 }
 
 section('Brick') {
@@ -154,54 +110,6 @@ section('Misc') {
     SheepMessage 'Hold your TURF!'
     ResetScoreOnFrequencyChange 0
     MaxPlaying 0
-}
-
-section('Territory') {
-    RewardDelay 30000
-    RewardBaseFlags 8
-    RewardMinimumPlayers 254
-    RewardPoints 30
-}
-
-section('Periodic') {
-    RewardDelay 30000
-    RewardMinimumPlayers 3
-    RewardPoints 3
-}
-
-section('Security') {
-    S2CKickOutPercentWeapons 700
-    SuicideLimit 10
-    MaxShipTypeSwitchCount 40
-    PacketModificationMax 3
-    MaxDeathWithoutFiring 5
-    SecurityKickOff 0
-}
-
-section('PacketLoss') {
-    C2SKickOutPercent 800
-    S2CKickOutPercent 800
-    SpectatorPercentAdjust 100
-    PacketLossDisableWeapons 0
-    C2SNegativeKickOutPercent 50
-}
-
-section('Routing') {
-    RadarFavor 3
-    CloseEnoughBulletAdjust 512
-    CloseEnoughBombAdjust 2048
-    DeathDistance 2800
-    DoubleSendPercent 880
-    WallResendCount 1
-}
-
-section('King') {
-    DeathCount 0
-    ExpireTime 30000
-    RewardFactor 1000
-    NonCrownAdjustTime 3000
-    NonCrownMinimumBounty 100
-    CrownRecoverKills 3
 }
 
 section('Bullet') {

@@ -31,26 +31,6 @@ section('Misc') {
     AntiWarpSettleDelay 0
 }
 
-section('Latency') {
-    SendRoutePercent 500
-    ClientSlowPacketTime 100
-    S2CNoDataKickoutDelay 1000
-    ClientSlowPacketSampleSize 500
-}
-
-section('Soccer') {
-    DisableBallKilling 1
-    DisableWallPass 1
-    PassDelay 50
-    BallBlankDelay 200
-    BallBounce 1
-    AllowBombs 1
-    AllowGuns 1
-    Mode 0
-    UseFlagger 0
-    BallLocation 1
-}
-
 section('Spawn') {
     "Team0-Radius"(96)
     "Team0-X"(416)
@@ -114,42 +94,10 @@ section('Prize') {
     PrizeHideCount 50
 }
 
-section('Flag') {
-    FlagDropDelay 0
-    EnterGameFlaggingDelay 1
-    FlaggerOnRadar 1
-    FlaggerKillMultiplier 2
-    FlagBlankDelay 200
-    NoDataFlagDropDelay 500
-    FlagDropResetReward 0
-    FlaggerFireCostPercent 800
-    FlaggerDamagePercent 4000
-    FlaggerBombFireDelay 0
-    FlaggerThrustAdjustment 10
-    FlaggerSpeedAdjustment 30
-    CarryFlags 0
-    FlaggerGunUpgrade 1
-    FlaggerBombUpgrade 1
-}
-
 section('Radar') {
     MapZoomFactor 8
     RadarNeutralSize 128
     RadarMode 0
-}
-
-section('Team') {
-    MaxFrequency 9998
-    MaxPerTeam 30
-    MaxPerPrivateTeam 25
-}
-
-section('Kill') {
-    EnterDelay 400
-    BountyIncreaseForKill 6
-    MaxBonus 0
-    MaxPenalty 0
-    RewardBase 0
 }
 
 section('Repel') {

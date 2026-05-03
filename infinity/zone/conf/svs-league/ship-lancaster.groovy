@@ -77,8 +77,4 @@ shipSection('Lancaster') {
     SeeMines 0
     SeeBombLevel 1
     DoubleBarrel 0
-    SoccerBallFriction 12
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
 }

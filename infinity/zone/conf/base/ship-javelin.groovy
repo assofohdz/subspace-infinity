@@ -75,8 +75,4 @@ shipSection('Javelin') {
     EmpBomb 0
     SeeMines 0
     DoubleBarrel 0
-    SoccerBallFriction 12
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
 }

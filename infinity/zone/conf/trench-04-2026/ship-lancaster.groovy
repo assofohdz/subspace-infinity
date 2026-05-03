@@ -48,10 +48,6 @@ shipSection('Lancaster') {
     DamageFactor 0
     PrizeShareLimit 0
     AttachBounty 3
-    SoccerBallFriction 30
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
     TurretLimit 1
     BurstShrapnel 1
     MaxMines 0

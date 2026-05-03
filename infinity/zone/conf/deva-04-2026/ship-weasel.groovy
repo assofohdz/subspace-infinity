@@ -48,10 +48,6 @@ shipSection('Weasel') {
     DamageFactor 5000
     PrizeShareLimit 0
     AttachBounty 0
-    SoccerBallFriction 10
-    SoccerBallProximity 50
-    SoccerThrowTime 2500
-    SoccerBallSpeed 2500
     TurretLimit 5
     BurstShrapnel 130
     MaxMines 3

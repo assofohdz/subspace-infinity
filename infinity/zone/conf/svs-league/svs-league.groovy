@@ -15,7 +15,6 @@ include '/conf/svs-league/ship-lancaster.groovy'
 include '/conf/svs-league/ship-shark.groovy'
 include '/conf/svs-league/misc.groovy'
 include '/conf/svs-league/prizeweights.groovy'
-include '/conf/svs-league/cost.groovy'
 
 // League/prac item baseline — splatted across every ship after the per-ship
 // includes above so the item overrides win on key conflict.

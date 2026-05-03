@@ -76,8 +76,4 @@ shipSection('Terrier') {
     EmpBomb 0
     SeeMines 0
     DoubleBarrel 1
-    SoccerBallFriction 12
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
 }

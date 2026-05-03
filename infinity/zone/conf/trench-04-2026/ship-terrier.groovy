@@ -48,10 +48,6 @@ shipSection('Terrier') {
     DamageFactor 0
     PrizeShareLimit 20000
     AttachBounty 20
-    SoccerBallFriction 30
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
     TurretLimit 10
     BurstShrapnel 3
     MaxMines 0

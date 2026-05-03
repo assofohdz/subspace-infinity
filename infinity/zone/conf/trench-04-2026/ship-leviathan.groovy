@@ -48,10 +48,6 @@ shipSection('Leviathan') {
     DamageFactor 3000
     PrizeShareLimit 15
     AttachBounty 20
-    SoccerBallFriction 12
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
     TurretLimit 0
     BurstShrapnel 1
     MaxMines 1

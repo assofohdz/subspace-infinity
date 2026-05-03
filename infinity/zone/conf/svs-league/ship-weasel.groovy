@@ -77,8 +77,4 @@ shipSection('Weasel') {
     SeeMines 1
     SeeBombLevel 0
     DoubleBarrel 0
-    SoccerBallFriction 12
-    SoccerBallProximity 64
-    SoccerThrowTime 1200
-    SoccerBallSpeed 2500
 }
