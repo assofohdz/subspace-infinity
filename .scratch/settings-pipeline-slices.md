@@ -168,9 +168,36 @@ kept separate from this server-side migration slice. Also a
 client-side input binding for `PLACEDECOY` (no key bound today;
 server-side seam is canonical and ready).
 
-### Slice 5 — Warp feel
-🔲 `[Misc]` WarpPointDelay, WarpRadiusLimit.
-Applier `WarpPrizeApplier` already ✅.
+### Slice 5 — Portal feel (plumbing only)
+✅ Plumbing-only landed: `[Misc] WarpPointDelay` arena-global wired
+end-to-end. Typed `portal.groovy` adapter (`PortalAdapter`, cs×10→ms) →
+`PortalConfig` → `ConfigRegistry.portal()` slot. The dispatch table
+crossed `Map.of`'s 10-entry ceiling; converted to `Map.ofEntries`.
+
+Place path: `ConsumableSystem.actOut PLACEPORTAL` decrements `Portal`,
+calls `GameEntities.createPortal` which composes a marker entity
+(`Parent(ship) + Decay(WarpPointDelay ms) + Meta`). The canonical
+Decay reaper deletes the marker at deadline — no separate system
+needed.
+
+Active arenas only (trench + deva) — values migrated 1:1 from each
+preset's pre-migration `misc.groovy` (trench: 24000 cs = 240000 ms;
+deva: 12000 cs = 120000 ms). Tests: `PortalFactoryTest` pins the
+marker-entity projection contract; `ConfigRegistrySystemLoadTest`
+extended to assert trench's `[Misc] WarpPointDelay` parses as
+`240000 ms`.
+
+**Scope correction during slicing:** initially planned to also wire
+`WarpRadiusLimit` here based on a misread of its meaning. REFERENCE.md
+clarifies it's a Spawn-mechanic — "Random spawn distance limit from
+arena center (1024=anywhere)" — so it belongs with Slice 7 (Spawn-point
+selection), not Portal. `WarpRadiusLimit` retained in trench/deva
+`misc.groovy` pending Slice 7 migration.
+
+Follow-up (own slice): "warp to placed portal" — adds the canonical
+Subspace mechanic (ship within radius of its own placed portal can
+teleport to it). That follow-up is also where `WarpRadiusLimit` may
+finally be consumed if Subspace canon ties them together — TBD.
 
 ## Slice 6 — Status family infrastructure (biggest unlock)
 

@@ -11,6 +11,7 @@ import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
 import infinity.config.DecoyConfig;
 import infinity.config.MineConfig;
+import infinity.config.PortalConfig;
 import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
@@ -61,68 +62,85 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
    * compat shim. When the shim is empty the loader itself disappears (B4).
    */
   private static final Map<String, FragmentInstaller> DISPATCH =
-      Map.of(
-          "bullet.groovy",
-          (current, path) -> {
-            final BulletConfig parsed =
-                GroovySettingsHost.INSTANCE.load(BulletAdapter.INSTANCE, path);
-            return current.withBullet(parsed != null ? parsed : BulletConfig.DEFAULTS);
-          },
-          "bomb.groovy",
-          (current, path) -> {
-            final BombConfig parsed =
-                GroovySettingsHost.INSTANCE.load(BombAdapter.INSTANCE, path);
-            return current.withBomb(parsed != null ? parsed : BombConfig.DEFAULTS);
-          },
-          "mine.groovy",
-          (current, path) -> {
-            final MineConfig parsed =
-                GroovySettingsHost.INSTANCE.load(MineAdapter.INSTANCE, path);
-            return current.withMine(parsed != null ? parsed : MineConfig.DEFAULTS);
-          },
-          "burst.groovy",
-          (current, path) -> {
-            final BurstFireConfig parsed =
-                GroovySettingsHost.INSTANCE.load(BurstAdapter.INSTANCE, path);
-            return current.withBurst(parsed != null ? parsed : BurstFireConfig.DEFAULTS);
-          },
-          "repel.groovy",
-          (current, path) -> {
-            final RepelConfig parsed =
-                GroovySettingsHost.INSTANCE.load(RepelAdapter.INSTANCE, path);
-            return current.withRepel(parsed != null ? parsed : RepelConfig.DEFAULTS);
-          },
-          "rocket.groovy",
-          (current, path) -> {
-            final RocketConfig parsed =
-                GroovySettingsHost.INSTANCE.load(RocketAdapter.INSTANCE, path);
-            return current.withRocket(parsed != null ? parsed : RocketConfig.DEFAULTS);
-          },
-          "brick.groovy",
-          (current, path) -> {
-            final BrickConfig parsed =
-                GroovySettingsHost.INSTANCE.load(BrickAdapter.INSTANCE, path);
-            return current.withBrick(parsed != null ? parsed : BrickConfig.DEFAULTS);
-          },
-          "decoy.groovy",
-          (current, path) -> {
-            final DecoyConfig parsed =
-                GroovySettingsHost.INSTANCE.load(DecoyAdapter.INSTANCE, path);
-            return current.withDecoy(parsed != null ? parsed : DecoyConfig.DEFAULTS);
-          },
-          "prize.groovy",
-          (current, path) -> {
-            final PrizeConfig parsed =
-                GroovySettingsHost.INSTANCE.load(PrizeAdapter.INSTANCE, path);
-            return current.withPrize(parsed != null ? parsed : PrizeConfig.DEFAULTS);
-          },
-          "prize-weights.groovy",
-          (current, path) -> {
-            final PrizeWeightsConfig parsed =
-                GroovySettingsHost.INSTANCE.load(PrizeWeightsAdapter.INSTANCE, path);
-            return current.withPrizeWeights(
-                parsed != null ? parsed : PrizeWeightsConfig.DEFAULTS);
-          });
+      Map.ofEntries(
+          Map.entry(
+              "bullet.groovy",
+              (current, path) -> {
+                final BulletConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(BulletAdapter.INSTANCE, path);
+                return current.withBullet(parsed != null ? parsed : BulletConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "bomb.groovy",
+              (current, path) -> {
+                final BombConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(BombAdapter.INSTANCE, path);
+                return current.withBomb(parsed != null ? parsed : BombConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "mine.groovy",
+              (current, path) -> {
+                final MineConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(MineAdapter.INSTANCE, path);
+                return current.withMine(parsed != null ? parsed : MineConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "burst.groovy",
+              (current, path) -> {
+                final BurstFireConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(BurstAdapter.INSTANCE, path);
+                return current.withBurst(parsed != null ? parsed : BurstFireConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "repel.groovy",
+              (current, path) -> {
+                final RepelConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(RepelAdapter.INSTANCE, path);
+                return current.withRepel(parsed != null ? parsed : RepelConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "rocket.groovy",
+              (current, path) -> {
+                final RocketConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(RocketAdapter.INSTANCE, path);
+                return current.withRocket(parsed != null ? parsed : RocketConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "brick.groovy",
+              (current, path) -> {
+                final BrickConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(BrickAdapter.INSTANCE, path);
+                return current.withBrick(parsed != null ? parsed : BrickConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "decoy.groovy",
+              (current, path) -> {
+                final DecoyConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(DecoyAdapter.INSTANCE, path);
+                return current.withDecoy(parsed != null ? parsed : DecoyConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "portal.groovy",
+              (current, path) -> {
+                final PortalConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(PortalAdapter.INSTANCE, path);
+                return current.withPortal(parsed != null ? parsed : PortalConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "prize.groovy",
+              (current, path) -> {
+                final PrizeConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(PrizeAdapter.INSTANCE, path);
+                return current.withPrize(parsed != null ? parsed : PrizeConfig.DEFAULTS);
+              }),
+          Map.entry(
+              "prize-weights.groovy",
+              (current, path) -> {
+                final PrizeWeightsConfig parsed =
+                    GroovySettingsHost.INSTANCE.load(PrizeWeightsAdapter.INSTANCE, path);
+                return current.withPrizeWeights(
+                    parsed != null ? parsed : PrizeWeightsConfig.DEFAULTS);
+              }));
 
   /** Functional contract for a typed fragment installer. */
   @FunctionalInterface

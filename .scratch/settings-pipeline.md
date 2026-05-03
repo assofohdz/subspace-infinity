@@ -54,6 +54,7 @@ ConfigRegistry (per-arena snapshot, owned by ConfigRegistrySystem)
 ├── Other gameplay sections (typed in later gameplay slices)
 │   ├── brick             : BrickConfig          ← brick.groovy         [Brick]
 │   ├── decoy             : DecoyConfig          ← decoy.groovy         [Misc] DecoyAliveTime
+│   ├── portal            : PortalConfig         ← portal.groovy        [Misc] WarpPointDelay
 │   ├── rocket            : RocketConfig         ← rocket.groovy        [Rocket]
 │   ├── shrapnel          : ShrapnelConfig       ← shrapnel.groovy      [Shrapnel]
 │   ├── wormhole          : WormholeConfig       ← wormhole.groovy      [Wormhole]
@@ -121,6 +122,7 @@ infinity/zone/conf/<preset>/
 ├── death-prize-weights.groovy                         *svs-league only
 ├── brick.groovy
 ├── decoy.groovy           ← decoy { aliveTime … }     [Misc] DecoyAliveTime
+├── portal.groovy          ← portal { activeTime … }   [Misc] WarpPointDelay
 ├── rocket.groovy
 ├── shrapnel.groovy
 ├── wormhole.groovy
@@ -288,7 +290,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
 | ❌ | `FrequencyShipTypes` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `WarpPointDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `WarpPointDelay` | ✅ portal.groovy | `PortalAdapter` (cs×10→ms) | `PortalConfig.activeTimeMs` | — | `ConsumableSystem.createPortal` → `GameEntities.createPortal` (marker entity Decay deadline) | ✅ `PortalFactoryTest` + `ConfigRegistrySystemLoadTest` |
 | ✅ | `DecoyAliveTime` | ✅ decoy.groovy | `DecoyAdapter` (cs×10→ms) | `DecoyConfig.aliveTimeMs` | — | `ConsumableSystem.createDecoy` → `GameEntities.createDecoy` (marker entity Decay deadline) | ✅ `DecoyFactoryTest` + `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `BounceFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SafetyLimit` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
@@ -536,7 +538,7 @@ is the macro view.
 
 ## Summary
 
-- **Wired tuning settings (typed adapters):** `[Bullet]` (3 keys), `[Bomb]` (2), `[Mine]` (1), `[Burst]` (1), `[Repel]` (3), `[Rocket]` (2 + per-ship RocketTime), `[Brick]` (2), `[Misc] DecoyAliveTime` (1), `[Prize]` (1) — flow from preset → `*Config` → consuming subsystem.
+- **Wired tuning settings (typed adapters):** `[Bullet]` (3 keys), `[Bomb]` (2), `[Mine]` (1), `[Burst]` (1), `[Repel]` (3), `[Rocket]` (2 + per-ship RocketTime), `[Brick]` (2), `[Misc] DecoyAliveTime` (1), `[Misc] WarpPointDelay` (1), `[Prize]` (1) — flow from preset → `*Config` → consuming subsystem.
 - **Wired prize appliers (out of 30 PrizeTypes):** 17 done, 13 stubs (mostly Status family, Shrapnel, MultiPrize).
 - **Per-ship `ShipConfig`:** thrust/speed/rotation/recharge/energy stat triples + 8 inventory CountStats + 3 weapon stats — fully wired via `GroovyShipLoader`.
 - **Status family `*Status` / `*Energy` ship keys:** authored in ships.groovy and the per-entity components (`CloakStatus`, `Cloak`, `CloakEnergy`, etc.) **already exist** — what's missing is the `GroovyShipLoader` read, the `*Config` field, and the prize applier. So these rows are 1 component-class step further along than they look at first glance.

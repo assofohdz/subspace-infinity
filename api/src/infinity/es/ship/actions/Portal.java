@@ -24,4 +24,8 @@ public class Portal implements EntityComponent {
     public int getCount() {
         return count;
     }
+
+    public Portal decrement(final int amount) {
+        return new Portal(count - amount);
+    }
 }

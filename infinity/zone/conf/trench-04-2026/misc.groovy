@@ -7,7 +7,6 @@ section('Misc') {
     SlowFrameRate 0
     MaxTimerDrift 5
     DisableScreenshot 0
-    WarpPointDelay 24000
     SafetyLimit 180000
     FrequencyShift 900
     NearDeathLevel 0

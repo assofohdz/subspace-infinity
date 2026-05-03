@@ -739,6 +739,38 @@ public class GameEntities {
     return decoy;
   }
 
+  /**
+   * Compose the marker entity for a placed portal. Lifecycle is owned by
+   * {@link Decay}: when the deadline passes, the canonical decay reaper
+   * deletes the entity.
+   *
+   * <p>Slice 5 ships plumbing only — the marker carries the decay
+   * deadline + parent linkage but no shape, no contact handler, no
+   * client visual, no warp-to-portal action. The follow-up "warp to
+   * placed portal" slice consumes this marker entity to drive the
+   * canonical Subspace mechanic (ship within {@code WarpRadiusLimit} of
+   * its own portal can teleport to it).
+   *
+   * @param ship parent ship that placed the portal
+   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
+   * @param activeTimeMs portal lifetime in ms (from {@code PortalConfig.activeTimeMs})
+   */
+  public static EntityId createPortal(
+      final EntityData ed,
+      final EntityId ship,
+      final long createdTime,
+      final long activeTimeMs) {
+    final EntityId portal = ed.createEntity();
+    ed.setComponents(
+        portal,
+        new Parent(ship),
+        new Decay(
+            createdTime,
+            createdTime + TimeUnit.NANOSECONDS.convert(activeTimeMs, TimeUnit.MILLISECONDS)),
+        new Meta(createdTime));
+    return portal;
+  }
+
   public static EntityId createRocketBuff(
       final EntityData ed,
       final EntityId ship,
