@@ -72,8 +72,8 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 | `GroovyArenaLoader` | Loads `arenas/<name>/arena.groovy` → `ArenaConfig`. |
 | `GroovyShipLoader` | Loads each arena's `ships.groovy` (referenced via `arena { shipsScript ... }`) → per-arena `ConfigRegistry`. |
 | `GroovyFragmentLoader` | Evaluates `.groovy` preset fragments (`section`, `shipSection`, `shipSections`, `include`). Returns an `Ini`-shaped result for `SettingsSystem`. Dispatched from `SettingsSystem.loadFragments`; Groovy is the only fragment format supported (no `.ini` / `.cfg` / `.conf` ingest path remains). |
-| `BulletAdapter`, `BombAdapter`, `MineAdapter`, `BurstAdapter`, `RepelAdapter`, `PrizeAdapter` | Typed-DSL adapters (B1). Each parses its named typed fragment (`bullet.groovy`, `bomb.groovy`, …) and writes the result directly into the matching `ConfigRegistry` slot via `with*`. Registered in `ConfigRegistrySystem.DISPATCH` keyed by basename. |
-| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records. Direct slots: `ShipConfig` map (via `GroovyShipLoader`), plus per-section `BulletConfig`, `BombConfig`, `GravBombConfig`, `MineConfig`, `BurstFireConfig`, `RepelConfig`, `ThorConfig`, `PrizeConfig` (each populated by its typed adapter). Per-slot `with*` updaters return a new immutable copy. |
+| `BulletAdapter`, `BombAdapter`, `MineAdapter`, `BurstAdapter`, `RepelAdapter`, `PrizeAdapter`, `SpawnAdapter` | Typed-DSL adapters (B1). Each parses its named typed fragment (`bullet.groovy`, `bomb.groovy`, `spawn.groovy`, …) and writes the result directly into the matching `ConfigRegistry` slot via `with*`. Registered in `ConfigRegistrySystem.DISPATCH` keyed by basename. |
+| `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records. Direct slots: `ShipConfig` map (via `GroovyShipLoader`), plus per-section `BulletConfig`, `BombConfig`, `GravBombConfig`, `MineConfig`, `BurstFireConfig`, `RepelConfig`, `ThorConfig`, `PrizeConfig`, `SpawnConfig` (each populated by its typed adapter). Per-slot `with*` updaters return a new immutable copy. |
 | `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Owns load orchestration via `load(arenaId, arenaConfig)`: two-phase sequence — legacy fragment `Ini` load (still needed for unmigrated polish-bag sections) → typed dispatch (ship + six weapon/prize adapters via `DISPATCH`). Single entry point for both initial arena load and hot-reload. Atomic-swap installs ensure readers see either the old or new snapshot, never a torn state. |
 
 Runtime entry point: [infinity/src/main/java/infinity/systems/SettingsSystem.java](../../../infinity/src/main/java/infinity/systems/SettingsSystem.java).
@@ -93,7 +93,7 @@ Typed Groovy DSL evaluated by `GroovyArenaLoader`. Every directive is optional; 
 arena {
     map '04-2026-trench/pub2025.lvl'
     shipsScript '/conf/trench-04-2026/ships.groovy'
-    spawn 1000, 20                                              // player spawn point in this arena, arena-local: (0,0)=NW, (512,512)=center, (1024,1024)=SE
+    includeFragment '/conf/trench-04-2026/spawn.groovy'         // typed [Spawn] — per-team coords + radius; parsed by SpawnAdapter into SpawnConfig
     includeFragment '/conf/trench-04-2026/prizeweights.groovy'  // multiple allowed; last-wins on key conflict
     includeFragment '/conf/trench-04-2026/ship-warbird.groovy'
     // …
@@ -122,7 +122,7 @@ arena {
 
 Each `spawn` entry materializes into a real spawner entity at arena-load. `PrizeWeightsOverride` is set on the entity only when `weights` is non-empty.
 
-**Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no rule sections are loaded; without `spawn` players spawn at the arena's center `(512, 512)`. `prizeSpawners` is optional; omitting it leaves prize spawning to any globally-configured spawners.
+**Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no rule sections are loaded; without a `spawn.groovy` typed fragment (or a legacy `ArenaConfig.spawnX/spawnZ` fallback) players spawn at the arena's center `(512, 512)`. `prizeSpawners` is optional; omitting it leaves prize spawning to any globally-configured spawners.
 
 ### Where each directive lands
 
@@ -130,7 +130,7 @@ Each `spawn` entry materializes into a real spawner entity at arena-load. `Prize
 |---|---|---|---|
 | `map '...'` | String | `ArenaConfig.mapFile()` | `ArenaSystem` (load / unload / swap / `findArenaByMap`) |
 | `shipsScript '...'` | String | `ArenaConfig.shipsScript()` | `GroovyShipLoader.apply()` at arena-load |
-| `spawn x, z` | int, int | `ArenaConfig.spawnX()`/`spawnZ()` | `ArenaSystem.getArenaSpawn()` — player spawn point in this arena, arena-local; defaults to `(512, 512)` (arena center) when omitted |
+| `includeFragment '/conf/.../spawn.groovy'` | String | `ConfigRegistry.spawn()` → `SpawnConfig` | `ArenaSystem.getArenaSpawn(arenaName, freq)` — per-team spawn point selected by `freq % teams.size()`; falls back to `ArenaConfig.spawnX()/spawnZ()` when `SpawnConfig.teams` is empty |
 | `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
 | `prizeSpawners { spawn ... }` | Block (repeatable) | `ArenaConfig.prizeSpawners()` → `List<PrizeSpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
@@ -226,7 +226,7 @@ For the **arena-scope core** (map / shipsScript / spawn / wallFriction), prefer 
 
 ```java
 ArenaSystem arenas = getSystem(ArenaSystem.class);
-Vec3d spawn = arenas.getArenaSpawn(arenaName);
+Vec3d spawn = arenas.getArenaSpawn(arenaName, freq); // freq = player's team frequency; wraps via SpawnConfig.forFreq
 ArenaConfig cfg = arenas.getArenaConfig(arenaName); // returns ArenaConfig.EMPTY when not loaded
 double friction = cfg.wallFriction();
 ```
@@ -264,7 +264,7 @@ The arena-scope core (map / shipsScript / spawn / wallFriction) lives on the typ
    arena {
        map 'your-map.lvl'
        shipsScript '/conf/{preset}/ships.groovy'        // or omit for the GroovyShipLoader.FALLBACK
-       spawn 100, 100                                   // player spawn point in this arena, arena-local: NW=(0,0), center=(512,512), SE=(1024,1024)
+       includeFragment '/conf/{preset}/spawn.groovy'    // per-team spawn coords; omit to fall back to ArenaConfig.spawnX/spawnZ default (512, 512)
        includeFragment '/conf/base/prizeweights.groovy' // list each section file you want
        includeFragment '/conf/base/ship-warbird.groovy'
        // …
