@@ -131,4 +131,17 @@ Prior art for workflow tests in this repo: `.github/workflows/main.yml` and `.gi
 - The "Pages source = GitHub Actions" setting must be changed by a repo admin in Settings → Pages before the new workflow's deploys take effect. Until then, the old "deploy from branch" mode keeps publishing the legacy `docs/` HTML — so cleanup of old files should land *together* with the source-mode flip, not before.
 - This PRD is self-contained and does not depend on any other open PRD in `.scratch/`. The closest neighbour is `.scratch/server-web-interface/PRD.md`, which concerns a runtime web UI for the running server (players, bans, modules) — a different feature with no shared surface area.
 
+## Implementation Status
+
+**Phase 1 (shipped, 2026-05-03).** Single-page player-facing landing committed at [`docs/index.md`](../../docs/index.md), rendered by `jekyll-theme-cayman` against [`docs/_config.yml`](../../docs/_config.yml). Audience scoped to *players* (audience split with the contributor-facing `README.md` was clarified during scoping — see `project_audience_split.md` in user memory). Page blocks: hero (Cayman default), About Subspace Continuum, About Subspace Infinity, honest pre-alpha status, itch.io download CTA, Discord + related-Subspace-communities list, contributor footnote pointing to GitHub. Legacy hand-rolled assets deleted: `docs/index.html`, `docs/script.js`, `docs/style.css`, `docs/logo.jpg`, `docs/background.jpg`, root `/_config.yml`. Discord invite consolidated to README's canonical `discord.gg/FXqNB6N` (PRD's earlier `tfyWxbK` reference was already stale at PRD-authoring time). Pages still deploys via "Deploy from a branch" (`infinity` / `/docs`); no source-mode flip yet.
+
+**Deferred to later phases.**
+- `pages.yml` GitHub Actions deploy workflow + the "Pages source = GitHub Actions" repo settings flip.
+- Multi-page IA (`/setup/`, `/quick-reference/`, `/developer-guide/`, `/contributing/`, `/releases/`). The existing markdown guides remain in `docs/` as raw files reachable via the README, *not* surfaced on the Pages site (per the audience split — they are contributor docs).
+- `lychee` weekly link-rot guard.
+- Release-version display (`docs/_data/release.yml` + `release.yml` extension).
+- Screenshots block on the landing page (TODO — no curated screenshots yet).
+
+The Phase 1 landing is additive: none of the deferred items require it to be rewritten.
+
 ## Comments
