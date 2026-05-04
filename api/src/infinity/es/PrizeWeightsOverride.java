@@ -11,8 +11,8 @@ import java.util.Map;
  * PrizeSystem}. Keys are prize-type strings (matching {@code PrizeTypes}
  * constants — {@code "Bomb"}, {@code "Gun"}, ...); values are non-negative
  * weights. Authored declaratively via {@code arena.groovy}'s
- * {@code prizeSpawners { spawn ..., weights: [...] }} block (see
- * {@code PrizeSpawnerSpec.weightOverrides}).
+ * {@code spawners { spawn ..., weights: [...] }} block (see
+ * {@code SpawnerSpec.weightOverrides}).
  *
  * <p>Server-only — like {@code Spawner} itself, prize spawners aren't visible
  * to clients, so no network serializer registration is needed.

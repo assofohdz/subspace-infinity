@@ -32,7 +32,7 @@ arena {
     // keys win the last-wins merge in SettingsSystem.loadFragments.
     includeFragment '/conf/trench-04-2026/ship-warbird-test.groovy'
     wallFriction 0.1
-    prizeSpawners {
+    spawners {
         // Centre of the arena. No weights override → uses the typed
         // prize-weights.groovy via ConfigRegistry.prizeWeights().
         spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000

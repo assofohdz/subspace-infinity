@@ -42,7 +42,7 @@ public class wangTester extends BaseGameModule {
   protected void initialize() {
     ed = getSystem(EntityData.class);
 
-    GameEntities.createWeightedPrizeSpawner(
+    GameEntities.createSpawner(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),

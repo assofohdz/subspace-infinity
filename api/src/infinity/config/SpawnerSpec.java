@@ -6,11 +6,11 @@ package infinity.config;
 import java.util.Map;
 
 /**
- * One declarative prize-spawner entry from {@code arena.groovy}'s
- * {@code prizeSpawners { spawn x:..., z:..., ... }} block. Materialized at
+ * One declarative spawner entry from {@code arena.groovy}'s
+ * {@code spawners { spawn x:..., z:..., ... }} block. Materialized at
  * arena-load time into a real spawner entity by {@code ArenaSystem.doLoad},
  * which translates arena-local {@code (x, z)} into world coords via
- * {@code arenaToWorld} and calls {@code GameEntities.createWeightedPrizeSpawner}.
+ * {@code arenaToWorld} and calls {@code GameEntities.createSpawner}.
  *
  * @param x arena-local X (0 = NW corner, 1024 = SE)
  * @param z arena-local Z (0 = NW corner, 1024 = SE)
@@ -32,7 +32,7 @@ import java.util.Map;
  *     non-negative weights. Sparse — entries not listed here keep their arena
  *     default. Stored verbatim for the spawn system to merge at spawn time.
  */
-public record PrizeSpawnerSpec(
+public record SpawnerSpec(
     int x,
     int z,
     double radius,
@@ -44,7 +44,7 @@ public record PrizeSpawnerSpec(
 
   /** Compact constructor: defensively copy {@code weightOverrides} so the spec stays immutable. */
   @SuppressWarnings("PMD.UnusedAssignment") // record compact-ctor reassign is the canonical pattern
-  public PrizeSpawnerSpec {
+  public SpawnerSpec {
     weightOverrides =
         weightOverrides == null ? Map.of() : Map.copyOf(weightOverrides);
   }

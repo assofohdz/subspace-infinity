@@ -6,7 +6,7 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.config.ArenaConfig;
-import infinity.config.PrizeSpawnerSpec;
+import infinity.config.SpawnerSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *     wallFriction 0.0   // tangential friction on ship-vs-wall hits (0 = slidey)
  *     includeFragment '/conf/trench-04-2026/trench.conf'
  *     // includeFragment '/conf/another.conf' — repeat as needed
- *     prizeSpawners {
+ *     spawners {
  *         spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
  *         spawn x:  50, z:  50, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
  *     }
@@ -170,7 +170,7 @@ public final class GroovyArenaLoader {
     private int spawnZ = ArenaConfig.EMPTY.spawnZ();
     private final List<String> fragmentIncludes = new ArrayList<>();
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
-    private final List<PrizeSpawnerSpec> prizeSpawners = new ArrayList<>();
+    private final List<SpawnerSpec> spawners = new ArrayList<>();
 
     // Package-private so tests can build configs without the full GroovyShell.
     ArenaConfigBuilder() {}
@@ -216,13 +216,13 @@ public final class GroovyArenaLoader {
     }
 
     /**
-     * {@code prizeSpawners { spawn x:..., z:..., ... }} block. Each
-     * {@code spawn} call inside the closure appends a {@link PrizeSpawnerSpec}
+     * {@code spawners { spawn x:..., z:..., ... }} block. Each
+     * {@code spawn} call inside the closure appends a {@link SpawnerSpec}
      * entry that {@code ArenaSystem} materializes into a real spawner entity
      * at arena-load time.
      */
-    public void prizeSpawners(final Closure<?> body) {
-      final PrizeSpawnersBlock block = new PrizeSpawnersBlock(prizeSpawners);
+    public void spawners(final Closure<?> body) {
+      final SpawnersBlock block = new SpawnersBlock(spawners);
       body.setDelegate(block);
       body.setResolveStrategy(Closure.DELEGATE_FIRST);
       body.call();
@@ -236,20 +236,20 @@ public final class GroovyArenaLoader {
           spawnZ,
           List.copyOf(fragmentIncludes),
           wallFriction,
-          List.copyOf(prizeSpawners));
+          List.copyOf(spawners));
     }
   }
 
   /**
-   * Delegate for the {@code prizeSpawners { ... }} block. Each {@code spawn}
+   * Delegate for the {@code spawners { ... }} block. Each {@code spawn}
    * call inside it accepts a Groovy named-argument map and appends a typed
-   * {@link PrizeSpawnerSpec} entry to the parent builder's list.
+   * {@link SpawnerSpec} entry to the parent builder's list.
    */
-  public static final class PrizeSpawnersBlock {
+  public static final class SpawnersBlock {
 
-    private final List<PrizeSpawnerSpec> entries;
+    private final List<SpawnerSpec> entries;
 
-    PrizeSpawnersBlock(final List<PrizeSpawnerSpec> entries) {
+    SpawnersBlock(final List<SpawnerSpec> entries) {
       this.entries = entries;
     }
 
@@ -263,7 +263,7 @@ public final class GroovyArenaLoader {
      */
     public void spawn(final Map<String, ?> args) {
       entries.add(
-          new PrizeSpawnerSpec(
+          new SpawnerSpec(
               intArg(args, "x"),
               intArg(args, "z"),
               doubleArg(args, "radius"),
@@ -280,7 +280,7 @@ public final class GroovyArenaLoader {
         return n.intValue();
       }
       throw new IllegalArgumentException(
-          "prizeSpawners.spawn missing numeric '" + key + "' (got " + v + ")");
+          "spawners.spawn missing numeric '" + key + "' (got " + v + ")");
     }
 
     private static double doubleArg(final Map<String, ?> args, final String key) {
@@ -289,7 +289,7 @@ public final class GroovyArenaLoader {
         return n.doubleValue();
       }
       throw new IllegalArgumentException(
-          "prizeSpawners.spawn missing numeric '" + key + "' (got " + v + ")");
+          "spawners.spawn missing numeric '" + key + "' (got " + v + ")");
     }
 
     private static long longArg(final Map<String, ?> args, final String key, final long fallback) {
@@ -301,7 +301,7 @@ public final class GroovyArenaLoader {
         return n.longValue();
       }
       throw new IllegalArgumentException(
-          "prizeSpawners.spawn '" + key + "' must be numeric (got " + v + ")");
+          "spawners.spawn '" + key + "' must be numeric (got " + v + ")");
     }
 
     private static boolean boolArg(
@@ -314,7 +314,7 @@ public final class GroovyArenaLoader {
         return b;
       }
       throw new IllegalArgumentException(
-          "prizeSpawners.spawn '" + key + "' must be a boolean (got " + v + ")");
+          "spawners.spawn '" + key + "' must be a boolean (got " + v + ")");
     }
 
     /**
@@ -330,17 +330,17 @@ public final class GroovyArenaLoader {
       }
       if (!(v instanceof Map<?, ?> raw)) {
         throw new IllegalArgumentException(
-            "prizeSpawners.spawn '" + key + "' must be a [String: int] map (got " + v + ")");
+            "spawners.spawn '" + key + "' must be a [String: int] map (got " + v + ")");
       }
       final java.util.Map<String, Integer> out = new java.util.HashMap<>();
       for (final Map.Entry<?, ?> e : raw.entrySet()) {
         if (!(e.getKey() instanceof String k)) {
           throw new IllegalArgumentException(
-              "prizeSpawners.spawn '" + key + "' has non-String key: " + e.getKey());
+              "spawners.spawn '" + key + "' has non-String key: " + e.getKey());
         }
         if (!(e.getValue() instanceof Number n)) {
           throw new IllegalArgumentException(
-              "prizeSpawners.spawn '"
+              "spawners.spawn '"
                   + key
                   + "' value for '"
                   + k

@@ -44,9 +44,9 @@ import java.util.List;
  *     frames. Values must be in {@code [0, 1]} (validated at parse time).
  *     Normal-direction velocity (the bounce) is untouched here — that stays
  *     under {@code BounceRestitution}'s control.
- * @param prizeSpawners declarative prize spawner entries materialized at
- *     arena-load by {@code ArenaSystem.doLoad}. Empty list means "no per-arena
- *     prize spawners"; the legacy hardcoded spawner in
+ * @param spawners declarative spawner entries materialized at arena-load
+ *     by {@code ArenaSystem.doLoad}. Empty list means "no per-arena
+ *     spawners"; the legacy hardcoded spawner in
  *     {@code BasicEnvironment} continues to run independently.
  */
 public record ArenaConfig(
@@ -56,7 +56,7 @@ public record ArenaConfig(
     int spawnZ,
     List<String> fragmentIncludes,
     double wallFriction,
-    List<PrizeSpawnerSpec> prizeSpawners) {
+    List<SpawnerSpec> spawners) {
 
   /**
    * Empty fallback — a clean ArenaConfig with no map / ships / fragments,

@@ -120,7 +120,7 @@ public class BasicEnvironment extends AbstractGameSystem {
 //            new Vec3d(40, 1, 16),
 //            20);
 //
-        GameEntities.createWeightedPrizeSpawner(
+        GameEntities.createSpawner(
             ed,
             EntityId.NULL_ID,
             phys,

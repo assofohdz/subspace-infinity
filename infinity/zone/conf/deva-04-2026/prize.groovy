@@ -7,7 +7,7 @@
 // minExist + maxExist define a uniform random lifetime range
 // (REFERENCE.md ## Prize) — each prize from a default-cadence
 // spawner gets a per-prize sampled lifetime in [minExist, maxExist] cs.
-// Per-spawner explicit `ttlMs` in arena.groovy's prizeSpawners block
+// Per-spawner explicit `ttlMs` in arena.groovy's spawners block
 // is a fixed override (precedence α from Slice 8a) — no randomisation.
 
 prize {

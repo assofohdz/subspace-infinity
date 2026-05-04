@@ -62,7 +62,7 @@ public class warpTester extends BaseGameModule {
       java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
     }
 
-    GameEntities.createWeightedPrizeSpawner(
+    GameEntities.createSpawner(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),

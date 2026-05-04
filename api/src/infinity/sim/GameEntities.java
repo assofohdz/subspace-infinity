@@ -68,7 +68,7 @@ public class GameEntities {
 
   /**
    * Default {@code maxCount} for the no-arg-cap {@link
-   * #createWeightedPrizeSpawner(EntityData, EntityId, PhysicsSpace, long,
+   * #createSpawner(EntityData, EntityId, PhysicsSpace, long,
    * Vec3d, double, boolean, double)} overload — the simultaneous-prize cap
    * for spawners that don't take an explicit value.
    */
@@ -527,7 +527,7 @@ public class GameEntities {
     return result;
   }
 
-  public static EntityId createWeightedPrizeSpawner(
+  public static EntityId createSpawner(
       final EntityData ed,
       final EntityId owner,
       final PhysicsSpace<?, ?> phys,
@@ -536,7 +536,7 @@ public class GameEntities {
       final double spawnInterval,
       final boolean spawnOnRing,
       final double radius) {
-    return createWeightedPrizeSpawner(
+    return createSpawner(
         ed,
         owner,
         phys,
@@ -551,7 +551,7 @@ public class GameEntities {
   }
 
   /**
-   * Like {@link #createWeightedPrizeSpawner(EntityData, EntityId, PhysicsSpace,
+   * Like {@link #createSpawner(EntityData, EntityId, PhysicsSpace,
    * long, Vec3d, double, boolean, double)}, but with explicit {@code maxCount}
    * (number of prizes simultaneously alive from this spawner), per-spawner
    * {@code prizeDecayMillis} (lifetime imprinted on each prize this spawner
@@ -559,7 +559,7 @@ public class GameEntities {
    * {@code weightOverrides} map (per-spawner overrides on top of the arena's
    * {@code [PrizeWeight]} defaults — see
    * {@link infinity.es.PrizeWeightsOverride}). Used by {@code ArenaSystem}
-   * when materializing the per-arena {@code prizeSpawners} block declared in
+   * when materializing the per-arena {@code spawners} block declared in
    * {@code arena.groovy}.
    *
    * @param maxCount target number of prizes alive at once (the existing
@@ -574,7 +574,7 @@ public class GameEntities {
    *     attached so {@code PrizeSystem} merges these atop the arena defaults
    *     at selection time.
    */
-  public static EntityId createWeightedPrizeSpawner(
+  public static EntityId createSpawner(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
