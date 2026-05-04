@@ -207,6 +207,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private final Pattern swapMap =
       Pattern.compile("\\~swapMap\\s([\\w()\\-]+)\\s+(\\w+\\.(?:lvl|lvz))");
   private final Pattern loadArenaByName = Pattern.compile("\\~loadArena\\s([\\w()\\-]+)");
+  private final Pattern listArenas = Pattern.compile("\\~arenas");
 
   @Override
   protected void initialize() {
@@ -237,6 +238,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
             + "arenas/<arenaName>/arena.conf, loads the map declared by its [General] Map= key "
             + "(falling back to <arenaName>.lvl), and attaches the settings.",
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::loadArenaByNameCommand));
+    chat.registerPatternTriConsumer(
+        listArenas,
+        "~arenas lists every loaded arena with its world bounds + centre. Marks the "
+            + "arena containing your avatar with [you].",
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::listArenasCommand));
   }
 
   @Override
@@ -937,6 +943,58 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private String loadArenaByNameCommand(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
     return loadArena(matcher.group(1));
+  }
+
+  /**
+   * {@code ~arenas} — list every loaded arena with its world bounds + centre,
+   * marking the arena that contains the player's avatar with {@code [you]}.
+   * Helps operators navigate a multi-arena zone (e.g. {@code testarena} +
+   * {@code trench} + {@code deva} all autoLoaded).
+   */
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
+  private String listArenasCommand(
+      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
+    arenaEntities.applyChanges();
+    if (arenaEntities.isEmpty()) {
+      return "No arenas loaded.";
+    }
+
+    Vec3d avatarPos = null;
+    if (avatarEntityId != null) {
+      final BodyPosition bp = ed.getComponent(avatarEntityId, BodyPosition.class);
+      if (bp != null) {
+        avatarPos = bp.getLastLocation();
+      }
+    }
+
+    final StringBuilder out = new StringBuilder();
+    out.append("Loaded arenas (").append(arenaEntities.size()).append("):\n");
+    for (final Entity arena : arenaEntities) {
+      final ArenaId arenaId = arena.get(ArenaId.class);
+      final ArenaMap map = arena.get(ArenaMap.class);
+      final Vec3d min = map.getMin();
+      final Vec3d max = map.getMax();
+      final boolean youAreHere =
+          avatarPos != null
+              && avatarPos.x >= min.x
+              && avatarPos.x < max.x
+              && avatarPos.z >= min.z
+              && avatarPos.z < max.z;
+      out.append("  ")
+          .append(arenaId.getArena())
+          .append(" — bounds=(")
+          .append((int) min.x).append(",").append((int) min.z)
+          .append(")..(")
+          .append((int) max.x).append(",").append((int) max.z)
+          .append(") centre=(")
+          .append((int) ((min.x + max.x) / 2)).append(",").append((int) ((min.z + max.z) / 2))
+          .append(")");
+      if (youAreHere) {
+        out.append(" [you]");
+      }
+      out.append("\n");
+    }
+    return out.toString().trim();
   }
 
   /**
