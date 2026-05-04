@@ -113,14 +113,18 @@ arena {
 | Parameter | Type | Effect |
 |---|---|---|
 | `x`, `z` | int (arena-local) | Spawner center; `(0,0)` = NW, `(1024,1024)` = SE |
-| `radius` | double (world units) | Prizes scatter within disc of this radius |
-| `maxCount` | int | Max live prizes from this spawner at once |
+| `radius` | double (world units) | Base spawn radius. Effective = `radius + radiusPerPlayer × playersInArena` |
+| `maxCount` | int | Base prize cap. Effective = `maxCount + countPerPlayer × playersInArena` |
 | `intervalMs` | double | Milliseconds between spawn attempts |
-| `ttlMs` | long | Prize `Decay` duration; `0` falls back to `CoreGameConstants.PRIZEDECAY` |
+| `ttlMs` | long | Prize `Decay` duration; `0` falls back to `PrizeConfig.defaultDecayMs` |
 | `onRing` | boolean (default `false`) | `true` = spawn on ring edge; `false` = uniform within disc |
 | `weights` | Map (optional) | Per-type weight overrides merged atop arena `[PrizeWeight]` defaults; sparse |
+| `countPerPlayer` | int (default `0`) | Slice 8d: additive per-player count scaling. `0` = no scaling. Subspace `[Prize] PrizeFactor` analogue |
+| `radiusPerPlayer` | double (default `0.0`) | Slice 8d: additive per-player radius scaling, world units. `0` = no scaling. Subspace `[Prize] UpgradeVirtual` analogue |
+| `regenBatch` | int (default `1`) | Slice 8d: prizes spawned per `intervalMs` tick when below cap. Subspace `[Prize] PrizeHideCount` analogue |
+| `hidden` | boolean (default `false`) | Slice 8d: spawned prizes carry an `infinity.es.Hidden` marker; client doesn't render them but server still owns collision / pickup. Reusable forward-compat marker for future cloak/decoy mechanics |
 
-Each `spawn` entry materializes into a real spawner entity at arena-load. `PrizeWeightsOverride` is set on the entity only when `weights` is non-empty.
+Each `spawn` entry materializes into a real spawner entity at arena-load. `PrizeWeightsOverride` is set on the entity only when `weights` is non-empty. Player-count for scaling is per-arena (filtered on `ArenaId`); spawners without an `ArenaId` (legacy `BasicEnvironment`, test modules) collapse to no-scaling.
 
 **Required for a playable arena:** `map`. Without `shipsScript` the arena gets `GroovyShipLoader.FALLBACK`; without `includeFragment` no rule sections are loaded; without a `spawn.groovy` typed fragment (or a legacy `ArenaConfig.spawnX/spawnZ` fallback) players spawn at the arena's center `(512, 512)`. `spawners` is optional; omitting it leaves prize spawning to any globally-configured spawners.
 

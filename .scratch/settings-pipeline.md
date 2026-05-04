@@ -175,10 +175,17 @@ Marker glossary: ✅ wired · ❌ not wired · — not applicable. The
 - ✅ — every gate is ✅ or `—`
 - ⚠️ — at least one ✅ and at least one ❌
 - ❌ — every gate is ❌ (no progress)
+- 🔀 — **diverged**: Infinity intentionally skips this canonical key
+  and absorbs the concept into a different surface (typically a
+  per-spawner / per-entity DSL). The "Subsystem" cell points to where
+  the concept now lives. Diverged rows aren't TODOs — they're
+  documented gaps.
 
 A row with Complete = ✅ is fully gameplay-active. ⚠️ is the
-"in-flight" state. ❌ rows are unstarted but in-scope. Out-of-scope
-keys live in [`out-of-scope.md`](out-of-scope.md), not here.
+"in-flight" state. ❌ rows are unstarted but in-scope. 🔀 rows are
+intentional divergences from Subspace canon (look at the Subsystem
+cell for where the equivalent now lives). Out-of-scope keys live in
+[`out-of-scope.md`](out-of-scope.md), not here.
 
 ## When to update this table
 
@@ -337,11 +344,11 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
 | ⚠️ | `MultiPrizeCount` | ✅ misc.groovy | ❌ | ❌ | (used by `MultiPrizePrizeApplier` stub) | ❌ | ❌ |
-| ⚠️ | `PrizeFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `PrizeDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `PrizeHideCount` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `MinimumVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `UpgradeVirtual` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| 🔀 | `PrizeFactor` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.countPerPlayer` per-spawner DSL (Slice 8d) — additive scaling, not canonical pure-scale | (n/a) |
+| 🔀 | `PrizeDelay` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.spawnIntervalMs` per-spawner DSL (Slice 8d C1, was already there pre-rename) | (n/a) |
+| 🔀 | `PrizeHideCount` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.regenBatch` per-spawner DSL (Slice 8d) | (n/a) |
+| 🔀 | `MinimumVirtual` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.radius` per-spawner DSL (Slice 8d C1, was already there pre-rename) | (n/a) |
+| 🔀 | `UpgradeVirtual` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.radiusPerPlayer` per-spawner DSL (Slice 8d) | (n/a) |
 | ✅ | `PrizeMaxExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultDecayMs` | — | `PrizeSystem` (decay routing for prize entities) | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `PrizeMinExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultMinDecayMs` | — | `PrizeSystem.sampleDecayMs` (uniform random in `[minDecayMs, maxDecayMs]` for spawners with no explicit `ttlMs`) | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `PrizeNegativeFactor` | ✅ prize.groovy | `PrizeAdapter` (raw int) | `PrizeConfig.prizeNegativeFactor` | — | `PrizeSystem.maybeRollNegative` (1-in-N → swap to `Dud` via DUD substitution; called from both `spawnBounty` + `spawnDeathPrize`) | ✅ `ConfigRegistrySystemLoadTest` |

@@ -255,11 +255,21 @@ public final class GroovyArenaLoader {
 
     /**
      * {@code spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000,
-     * ttlMs: 10000, onRing: false, weights: [Bomb: 100, Gun: 100]}.
-     * {@code onRing} defaults to {@code false} (uniform-disc spawn);
-     * {@code ttlMs} defaults to {@code 0} (use the global
-     * {@code GameEntities.PRIZE_DEFAULT_DECAY_MS}); {@code weights} defaults to an
-     * empty map (no override; use the arena's {@code [PrizeWeight]} defaults).
+     * ttlMs: 10000, onRing: false, weights: [Bomb: 100, Gun: 100],
+     * countPerPlayer: 2, radiusPerPlayer: 50, regenBatch: 3, hidden: true}.
+     *
+     * <p>Required: {@code x}, {@code z}, {@code radius}, {@code maxCount},
+     * {@code intervalMs}.
+     * Optional with defaults: {@code ttlMs} (0 = use the global
+     * {@code GameEntities.PRIZE_DEFAULT_DECAY_MS}); {@code onRing} (false = uniform
+     * within disc); {@code weights} (empty map = use arena {@code [PrizeWeight]}
+     * defaults); {@code countPerPlayer} (0 = no count scaling);
+     * {@code radiusPerPlayer} (0 = no radius scaling); {@code regenBatch} (1 = one
+     * prize per interval); {@code hidden} (false = visible to clients).
+     *
+     * <p>Slice 8d (C2) added the four scaling/visibility fields. See
+     * {@link SpawnerSpec} for the additive-scaling formula and Subspace canon
+     * mapping.
      */
     public void spawn(final Map<String, ?> args) {
       entries.add(
@@ -271,7 +281,11 @@ public final class GroovyArenaLoader {
               doubleArg(args, "intervalMs"),
               longArg(args, "ttlMs", 0L),
               boolArg(args, "onRing", false),
-              weightsArg(args, "weights")));
+              weightsArg(args, "weights"),
+              intArg(args, "countPerPlayer", 0),
+              doubleArg(args, "radiusPerPlayer", 0.0),
+              intArg(args, "regenBatch", 1),
+              boolArg(args, "hidden", false)));
     }
 
     private static int intArg(final Map<String, ?> args, final String key) {
@@ -283,6 +297,18 @@ public final class GroovyArenaLoader {
           "spawners.spawn missing numeric '" + key + "' (got " + v + ")");
     }
 
+    private static int intArg(final Map<String, ?> args, final String key, final int fallback) {
+      final Object v = args.get(key);
+      if (v == null) {
+        return fallback;
+      }
+      if (v instanceof Number n) {
+        return n.intValue();
+      }
+      throw new IllegalArgumentException(
+          "spawners.spawn '" + key + "' must be numeric (got " + v + ")");
+    }
+
     private static double doubleArg(final Map<String, ?> args, final String key) {
       final Object v = args.get(key);
       if (v instanceof Number n) {
@@ -290,6 +316,19 @@ public final class GroovyArenaLoader {
       }
       throw new IllegalArgumentException(
           "spawners.spawn missing numeric '" + key + "' (got " + v + ")");
+    }
+
+    private static double doubleArg(
+        final Map<String, ?> args, final String key, final double fallback) {
+      final Object v = args.get(key);
+      if (v == null) {
+        return fallback;
+      }
+      if (v instanceof Number n) {
+        return n.doubleValue();
+      }
+      throw new IllegalArgumentException(
+          "spawners.spawn '" + key + "' must be numeric (got " + v + ")");
     }
 
     private static long longArg(final Map<String, ?> args, final String key, final long fallback) {

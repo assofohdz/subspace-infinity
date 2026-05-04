@@ -10,6 +10,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import infinity.config.ArenaConfig;
+import infinity.config.SpawnerSpec;
 import infinity.settings.GroovyArenaLoader.ArenaConfigBuilder;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -129,6 +130,51 @@ public class GroovyArenaLoaderTest {
     assertThrows(IllegalArgumentException.class, () -> builder.wallFriction(Double.NaN));
     assertThrows(
         IllegalArgumentException.class, () -> builder.wallFriction(Double.POSITIVE_INFINITY));
+  }
+
+  @Test
+  public void evaluate_spawnersBlock_omittedNewFields_useNoOpDefaults() {
+    // Slice 8d (C2) introduced 4 optional spawner fields. Authors that
+    // pre-date the rename keep their old DSL working with no behavioural
+    // change because the new fields collapse to no-op defaults
+    // (countPerPlayer=0, radiusPerPlayer=0, regenBatch=1, hidden=false).
+    final String source =
+        "arena {\n"
+            + "  map 'foo.lvl'\n"
+            + "  spawners {\n"
+            + "    spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000\n"
+            + "  }\n"
+            + "}\n";
+
+    final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
+
+    assertEquals(1, cfg.spawners().size());
+    final SpawnerSpec s = cfg.spawners().get(0);
+    assertEquals(0, s.countPerPlayer());
+    assertEquals(0.0, s.radiusPerPlayer(), 0.0);
+    assertEquals(1, s.regenBatch());
+    assertEquals(false, s.hidden());
+  }
+
+  @Test
+  public void evaluate_spawnersBlock_explicitNewFields_passThrough() {
+    final String source =
+        "arena {\n"
+            + "  map 'foo.lvl'\n"
+            + "  spawners {\n"
+            + "    spawn x: 512, z: 512, radius: 400, maxCount: 5, intervalMs: 1500,\n"
+            + "          countPerPlayer: 2, radiusPerPlayer: 50, regenBatch: 3, hidden: true\n"
+            + "  }\n"
+            + "}\n";
+
+    final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
+
+    assertEquals(1, cfg.spawners().size());
+    final SpawnerSpec s = cfg.spawners().get(0);
+    assertEquals(2, s.countPerPlayer());
+    assertEquals(50.0, s.radiusPerPlayer(), 0.0);
+    assertEquals(3, s.regenBatch());
+    assertEquals(true, s.hidden());
   }
 
   @Test

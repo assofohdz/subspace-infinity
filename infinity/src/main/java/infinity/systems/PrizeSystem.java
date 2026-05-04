@@ -362,38 +362,69 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       spawnerLastSpawned.remove(removedSpawner.getId());
     }
 
-    for (Entity entitySpawner : prizeSpawners) { // Spawn max one per update-call / frame
+    for (Entity entitySpawner : prizeSpawners) {
       EntityId spawnerId = entitySpawner.getId();
       Spawner s = entitySpawner.get(Spawner.class);
       SpawnPosition p = entitySpawner.get(SpawnPosition.class);
       SphereShape c = entitySpawner.get(SphereShape.class);
 
-      if (!spawnerBounties.containsKey(spawnerId)) {
-        EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), c.getRadius());
+      // Slice 8d: per-arena player count drives additive count + radius scaling.
+      // Spawners without an ArenaId (legacy BasicEnvironment) get playerCount=0
+      // → scaling collapses, behaviour identical to pre-Slice-8d.
+      final ArenaId spawnerArenaId = ed.getComponent(spawnerId, ArenaId.class);
+      final int playersInArena = countPlayersInArena(spawnerArenaId);
+      final int effectiveMaxCount = s.getMaxCount() + s.getCountPerPlayer() * playersInArena;
+      final double effectiveRadius = c.getRadius() + s.getRadiusPerPlayer() * playersInArena;
 
-        HashSet<EntityId> spawnerBountySet = new HashSet<>();
+      HashSet<EntityId> spawnerBountySet = spawnerBounties.get(spawnerId);
+      if (spawnerBountySet == null) {
+        // First time we see this spawner: prime with one prize.
+        spawnerBountySet = new HashSet<>();
+        EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), effectiveRadius);
         spawnerBountySet.add(idBounty);
-        spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
+        spawnerBounties.put(spawnerId, spawnerBountySet);
+        spawnerLastSpawned.put(spawnerId, 0d);
 
-        spawnerLastSpawned.put(entitySpawner.getId(), 0d);
-
-      } else if (spawnerBounties.containsKey(spawnerId)
-          && spawnerBounties.get(spawnerId).size() < s.getMaxCount()
+      } else if (spawnerBountySet.size() < effectiveMaxCount
           && spawnerLastSpawned.get(spawnerId) > s.getSpawnInterval()) {
-
-        EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), c.getRadius());
-
-        spawnerLastSpawned.put(entitySpawner.getId(), 0d);
-
-        HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
-        spawnerBountySet.add(idBounty);
-        spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
+        // Interval met and below the effective cap: regenerate up to a full
+        // batch, but never overshoot the cap. Subspace [Prize] PrizeHideCount
+        // analogue.
+        final int deficit = effectiveMaxCount - spawnerBountySet.size();
+        final int batch = Math.min(Math.max(s.getRegenBatch(), 1), deficit);
+        for (int i = 0; i < batch; i++) {
+          EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), effectiveRadius);
+          spawnerBountySet.add(idBounty);
+        }
+        spawnerLastSpawned.put(spawnerId, 0d);
       }
 
-      spawnerLastSpawned.put(
-          entitySpawner.getId(),
-          spawnerLastSpawned.get(entitySpawner.getId()) + 1000 * time.getTpf());
+      spawnerLastSpawned.put(spawnerId, spawnerLastSpawned.get(spawnerId) + 1000 * time.getTpf());
     }
+  }
+
+  /**
+   * Count active player ships whose {@link ArenaId} matches the spawner's
+   * arena. Cheap: O(N_ships) HashMap lookups per spawner per tick — server
+   * frame budget can absorb this for typical {@code N <= 32}.
+   *
+   * <p>Returns {@code 0} when {@code spawnerArenaId} is null (legacy
+   * spawners with no arena tagging) so additive scaling collapses to the
+   * base values — preserves pre-Slice-8d behaviour for un-tagged spawners.
+   */
+  private int countPlayersInArena(final ArenaId spawnerArenaId) {
+    if (spawnerArenaId == null) {
+      return 0;
+    }
+    final String arenaName = spawnerArenaId.getArena();
+    int count = 0;
+    for (Entity ship : ships) {
+      final ArenaId shipArenaId = ed.getComponent(ship.getId(), ArenaId.class);
+      if (shipArenaId != null && arenaName.equals(shipArenaId.getArena())) {
+        count++;
+      }
+    }
+    return count;
   }
 
   /**
@@ -438,7 +469,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         ourTime.getTime(),
         prizeSpawnLocation,
         prizeType,
-        decayMs);
+        decayMs,
+        spawner.isHidden());
   }
 
   /**

@@ -481,6 +481,8 @@ public class GameServer {
     Serializer.registerClass(MobType.class, new FieldSerializer());
     Serializer.registerClass(ProbeInfo.class, new FieldSerializer());
     Serializer.registerClass(Speech.class, new FieldSerializer());
+    // Slice 8d: spawner-driven "client should not render" marker.
+    Serializer.registerClass(infinity.es.Hidden.class, new FieldSerializer());
   }
 
   public Server getServer() {

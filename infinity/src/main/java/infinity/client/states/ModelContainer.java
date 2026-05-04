@@ -42,14 +42,17 @@ import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
+import infinity.es.Hidden;
 
 /** Keeps track of the static models in the scene. */
 class ModelContainer extends EntityContainer<Model> {
   private final ModelViewState owner;
+  private final EntityData ed;
 
   ModelContainer(final ModelViewState owner, final EntityData ed) {
     super(ed, SpawnPosition.class, ShapeInfo.class);
     this.owner = owner;
+    this.ed = ed;
   }
 
   @Override
@@ -64,9 +67,17 @@ class ModelContainer extends EntityContainer<Model> {
 
   @Override
   protected Model addObject(final Entity e) {
+    final Model object = owner.getModel(e.getId(), true);
+    if (ed.getComponent(e.getId(), Hidden.class) != null) {
+      // Slice 8d: server-declared hidden — track the entity (so add/remove
+      // edges stay clean in the container's internal map) but skip the
+      // spatial bind + visibility queue. Server still owns collision +
+      // pickup; the client just doesn't render.
+      ModelViewState.log.info("skip hidden model for: " + e.getId());
+      return object;
+    }
     ModelViewState.log.info(
         "add model for:" + e.getId() + "   at time:" + owner.timeSource.getTime());
-    final Model object = owner.getModel(e.getId(), true);
     updateObject(object, e);
 
     // Add it to the queue to be made visible at a future time
@@ -78,6 +89,10 @@ class ModelContainer extends EntityContainer<Model> {
 
   @Override
   protected void updateObject(final Model object, final Entity e) {
+    if (ed.getComponent(e.getId(), Hidden.class) != null) {
+      // Hidden — never bind shape / position; the model stays empty.
+      return;
+    }
     object.setShape(e.get(ShapeInfo.class));
     object.setPosition(e.get(SpawnPosition.class));
 

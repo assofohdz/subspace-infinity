@@ -840,7 +840,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
               spec.radius(),
               spec.maxCount(),
               spec.ttlMillis(),
-              spec.weightOverrides());
+              spec.weightOverrides(),
+              spec.countPerPlayer(),
+              spec.radiusPerPlayer(),
+              spec.regenBatch(),
+              spec.hidden());
       ed.setComponent(spawnerId, arenaId);
       log.info(
           "Arena {} prize spawner {} placed at arena({},{}) world{} radius={} max={} ttlMs={}"

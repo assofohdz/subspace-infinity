@@ -420,16 +420,70 @@ substitution preserves the probability knob's semantics so the
 follow-up just swaps the dispatch target without touching
 `prize.groovy` author surface.
 
-### Slice 8d — Subspace canonical hidden-prize regen loop (deferred,
-big) `[Prize] PrizeFactor`, `PrizeDelay`, `MinimumVirtual`,
-`UpgradeVirtual`, `PrizeHideCount`. The Subspace "hidden prize cloud"
-that rains across the whole map, sized by `PrizeFactor × playerCount`,
-regenerating `PrizeHideCount` every `PrizeDelay`, dropping on a
-virtual ring of radius `MinimumVirtual + UpgradeVirtual × playerCount`
-from arena center. Fundamentally different model from
-`prizeSpawners`; not yet decided whether it ships at all
-(declarative spawners are strictly more flexible). Owns its own
-grilling session before scoping.
+### Slice 8d — Player-scaled spawners (was: hidden-prize regen loop)
+⏳ Pivoted scope after grilling: instead of wiring the Subspace
+canonical `[Prize] PrizeFactor`/`PrizeDelay`/`MinimumVirtual`/
+`UpgradeVirtual`/`PrizeHideCount` arena-global keys into `PrizeConfig`,
+absorb the *concepts* (player-count scaling, batch regen, hidden mode)
+into the per-spawner DSL. Subspace canon stays unwired; divergence is
+documented per-key in `SpawnerSpec` Javadoc.
+
+**C1 (rename, no behavior change) — landed `f1f62b2f`.**
+- `PrizeSpawnerSpec` → `SpawnerSpec`; `prizeSpawners {}` → `spawners {}`;
+  `createWeightedPrizeSpawner` → `createSpawner`; cascade through 4
+  prod callsites + 3 module testers + ArenaConfig field rename.
+
+**C2 (player scaling + hidden mode + regen batch) — in progress.**
+- `Hidden` empty-marker component (`api/src/infinity/es/`),
+  registered in `GameServer.registerSerializers`.
+- `Spawner` ECS component gained `countPerPlayer`, `radiusPerPlayer`,
+  `regenBatch`, `hidden` (10-arg ctor; getters).
+- `SpawnerSpec` record gained the same 4 fields; class Javadoc carries
+  the Subspace divergence table.
+- `GroovyArenaLoader.SpawnersBlock.spawn` DSL accepts the 4 new fields
+  with no-op defaults (`countPerPlayer: 0`, `radiusPerPlayer: 0.0`,
+  `regenBatch: 1`, `hidden: false`).
+- `GameEntities.createSpawner` (15-arg overload) + `createPrize` (7-arg
+  overload accepting `boolean hidden`) — original signatures preserved
+  via delegating overloads for ABI stability.
+- `ArenaSystem.materializePrizeSpawners` forwards the 4 new fields.
+- `PrizeSystem.update` computes per-arena player count via new
+  `countPlayersInArena(ArenaId)` helper; effective max =
+  `maxCount + countPerPlayer × players`; effective radius =
+  `radius + radiusPerPlayer × players`; spawns up to
+  `min(regenBatch, deficit)` prizes per interval tick.
+- `PrizeSystem.spawnBounty` passes `spawner.isHidden()` to
+  `createPrize`.
+- `ModelContainer.addObject`/`updateObject` early-return when target
+  entity carries `Hidden` — tracked in container map but no spatial
+  bind. Server-side collision / pickup unaffected.
+- New project rule `.claude/rules/player-scaling.md` ("consider
+  player scaling when designing spawn / balance knobs"; soft phrasing,
+  additive default) + CLAUDE.md path-scope entry.
+- Tests: `SpawnerProjectionTest` (factory-level: createSpawner stamps
+  new Spawner fields; createPrize(hidden=true) stamps Hidden;
+  legacy 6-arg createPrize stays visible). `GroovyArenaLoaderTest`
+  extended for new DSL fields (omitted = no-op defaults; explicit =
+  pass-through).
+
+**Deferred (own follow-up slices):**
+- Wall-aware spawn sampling — affects all spawners, not just hidden.
+  Today's `getSpawnLocation` is wall-blind (pre-existing bug, not a
+  regression).
+- `BodyContainer` Hidden filter — only ModelContainer covered today
+  since prizes are static (SpawnPosition+ShapeInfo). Dynamic-Hidden
+  consumers (ship cloaking) need to extend the filter.
+- Subspace canonical `[Prize]` arena-global keys themselves —
+  `PrizeFactor`/`PrizeDelay`/`MinimumVirtual`/`UpgradeVirtual`/
+  `PrizeHideCount` stay unwired. Operators porting a Subspace map
+  hand-author one large `spawners {}` entry covering the arena.
+- Full `PrizeSystem.update` integration test (additive-scaling math
+  + regen-batch loop with N synthetic ships) — heavy fixture; sits
+  with the broader spawn-projection harness backlog.
+
+**C3 (optional arena migration) — deferred.** trench/deva keep
+behaviour-preserving defaults (no scaling, visible, regen=1). Operator
+opt-in by editing arena.groovy.
 
 ### Slice 9 — Proximity bomb mechanic
 🔲 `[Bomb]` BombExplodeDelay, BombExplodePixels, ProximityDistance,

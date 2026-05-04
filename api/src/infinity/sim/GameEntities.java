@@ -506,6 +506,26 @@ public class GameEntities {
       final Vec3d pos,
       final String prizeType,
       final long decayMillis) {
+    return createPrize(ed, phys, createdTime, pos, prizeType, decayMillis, false);
+  }
+
+  /**
+   * Like {@link #createPrize(EntityData, PhysicsSpace, long, Vec3d, String,
+   * long)} but with an explicit {@code hidden} flag. When {@code true} the
+   * spawned prize gets an {@link infinity.es.Hidden} marker so the client
+   * filters it out of rendering; server-side state (collision, pickup,
+   * applier dispatch, decay) is unaffected. Used by {@code PrizeSystem} when
+   * a spawner is declared {@code hidden: true} in the arena's
+   * {@code spawners} block.
+   */
+  public static EntityId createPrize(
+      final EntityData ed,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos,
+      final String prizeType,
+      final long decayMillis,
+      final boolean hidden) {
     final EntityId result = ed.createEntity();
 
     final long effectiveDecay = decayMillis > 0L ? decayMillis : PRIZE_DEFAULT_DECAY_MS;
@@ -524,6 +544,9 @@ public class GameEntities {
     ed.setComponent(result, new Mass(1));
     ed.setComponent(result, new Gravity(0));
     ed.setComponent(result, new Meta(createdTime));
+    if (hidden) {
+      ed.setComponent(result, new infinity.es.Hidden());
+    }
     return result;
   }
 
@@ -547,7 +570,11 @@ public class GameEntities {
         radius,
         PRIZE_DEFAULT_MAX_COUNT,
         0L,
-        Map.of());
+        Map.of(),
+        0,
+        0.0,
+        1,
+        false);
   }
 
   /**
@@ -555,24 +582,32 @@ public class GameEntities {
    * long, Vec3d, double, boolean, double)}, but with explicit {@code maxCount}
    * (number of prizes simultaneously alive from this spawner), per-spawner
    * {@code prizeDecayMillis} (lifetime imprinted on each prize this spawner
-   * produces, stored on {@link Spawner#getSpawnedDecayMillis()}) and a sparse
+   * produces, stored on {@link Spawner#getSpawnedDecayMillis()}), a sparse
    * {@code weightOverrides} map (per-spawner overrides on top of the arena's
    * {@code [PrizeWeight]} defaults — see
-   * {@link infinity.es.PrizeWeightsOverride}). Used by {@code ArenaSystem}
-   * when materializing the per-arena {@code spawners} block declared in
+   * {@link infinity.es.PrizeWeightsOverride}), and the four Slice-8d
+   * scaling/visibility knobs ({@code countPerPlayer}, {@code radiusPerPlayer},
+   * {@code regenBatch}, {@code hidden}). Used by {@code ArenaSystem} when
+   * materializing the per-arena {@code spawners} block declared in
    * {@code arena.groovy}.
    *
-   * @param maxCount target number of prizes alive at once (the existing
-   *     {@code Spawner.maxCount} field). The shorter signature uses
-   *     {@code PRIZE_DEFAULT_MAX_COUNT}.
+   * @param maxCount base number of prizes alive at once. Effective cap is
+   *     {@code maxCount + countPerPlayer × playersInArena}.
    * @param prizeDecayMillis per-prize TTL stored in the {@code Spawner}'s
    *     {@code spawnedDecayMillis} field. {@code 0} (or any non-positive
    *     value) means "use the global {@code PRIZE_DEFAULT_DECAY_MS}".
    * @param weightOverrides per-spawner prize-type weight overrides. Empty map
-   *     ({@code Map.of()}) = "no overrides; use arena defaults". When
-   *     non-empty, a {@link infinity.es.PrizeWeightsOverride} component is
-   *     attached so {@code PrizeSystem} merges these atop the arena defaults
-   *     at selection time.
+   *     ({@code Map.of()}) = "no overrides; use arena defaults".
+   * @param countPerPlayer additive count scaling per active player in the
+   *     spawner's arena; {@code 0} disables count scaling.
+   * @param radiusPerPlayer additive radius scaling per active player, in
+   *     world units; {@code 0.0} disables radius scaling.
+   * @param regenBatch number of prizes to spawn per {@code spawnInterval}
+   *     when below the effective cap; {@code 1} preserves pre-Slice-8d
+   *     cadence.
+   * @param hidden when {@code true}, spawned prizes get an
+   *     {@link infinity.es.Hidden} marker so the client doesn't render
+   *     them.
    */
   public static EntityId createSpawner(
       final EntityData ed,
@@ -585,7 +620,11 @@ public class GameEntities {
       final double radius,
       final int maxCount,
       final long prizeDecayMillis,
-      final Map<String, Integer> weightOverrides) {
+      final Map<String, Integer> weightOverrides,
+      final int countPerPlayer,
+      final double radiusPerPlayer,
+      final int regenBatch,
+      final boolean hidden) {
     final EntityId result = ed.createEntity();
 
     ed.setComponents(
@@ -598,7 +637,11 @@ public class GameEntities {
             spawnOnRing,
             Spawner.SpawnType.Prizes,
             true,
-            prizeDecayMillis),
+            prizeDecayMillis,
+            countPerPlayer,
+            radiusPerPlayer,
+            regenBatch,
+            hidden),
         new SphereShape(radius));
     if (weightOverrides != null && !weightOverrides.isEmpty()) {
       ed.setComponent(result, new PrizeWeightsOverride(weightOverrides));
