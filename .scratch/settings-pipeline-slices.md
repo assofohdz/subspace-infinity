@@ -421,7 +421,7 @@ follow-up just swaps the dispatch target without touching
 `prize.groovy` author surface.
 
 ### Slice 8d — Player-scaled spawners (was: hidden-prize regen loop)
-⏳ Pivoted scope after grilling: instead of wiring the Subspace
+✅ Pivoted scope after grilling: instead of wiring the Subspace
 canonical `[Prize] PrizeFactor`/`PrizeDelay`/`MinimumVirtual`/
 `UpgradeVirtual`/`PrizeHideCount` arena-global keys into `PrizeConfig`,
 absorb the *concepts* (player-count scaling, batch regen, hidden mode)
@@ -464,7 +464,13 @@ documented per-key in `SpawnerSpec` Javadoc.
   new Spawner fields; createPrize(hidden=true) stamps Hidden;
   legacy 6-arg createPrize stays visible). `GroovyArenaLoaderTest`
   extended for new DSL fields (omitted = no-op defaults; explicit =
-  pass-through).
+  pass-through). Math + per-arena scoping extracted from
+  `PrizeSystem.update` into static helpers
+  (`computeEffectiveMaxCount`, `computeEffectiveRadius`,
+  `computeRegenAmount`, `countPlayersInArena`) and unit-tested in
+  `PrizeSystemScalingTest` (16 cases — additive formulas, regen-batch
+  capping, cross-arena scoping, null-arena fallback,
+  ArenaId-entity-id-equality irrelevance).
 
 **Deferred (own follow-up slices):**
 - Wall-aware spawn sampling — affects all spawners, not just hidden.
@@ -477,9 +483,11 @@ documented per-key in `SpawnerSpec` Javadoc.
   `PrizeFactor`/`PrizeDelay`/`MinimumVirtual`/`UpgradeVirtual`/
   `PrizeHideCount` stay unwired. Operators porting a Subspace map
   hand-author one large `spawners {}` entry covering the arena.
-- Full `PrizeSystem.update` integration test (additive-scaling math
-  + regen-batch loop with N synthetic ships) — heavy fixture; sits
-  with the broader spawn-projection harness backlog.
+- Full `PrizeSystem.update` integration test (real spawner entity,
+  contact loop, time stepping) — heavy fixture; sits with the broader
+  spawn-projection harness backlog. The math seams it would cover are
+  now unit-tested via the static helpers above; what's missing is
+  end-to-end behaviour over multiple ticks.
 
 **C3 (optional arena migration) — deferred.** trench/deva keep
 behaviour-preserving defaults (no scaling, visible, regen=1). Operator

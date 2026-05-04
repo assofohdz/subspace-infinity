@@ -362,6 +362,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       spawnerLastSpawned.remove(removedSpawner.getId());
     }
 
+    // Hoist ship-id collection above the spawner loop — every spawner in the
+    // arena needs the same per-arena player count, so paying the EntitySet
+    // iteration cost once per tick (not once per spawner) is a small win.
+    final java.util.List<EntityId> shipIds = new java.util.ArrayList<>(ships.size());
+    for (Entity ship : ships) {
+      shipIds.add(ship.getId());
+    }
+
     for (Entity entitySpawner : prizeSpawners) {
       EntityId spawnerId = entitySpawner.getId();
       Spawner s = entitySpawner.get(Spawner.class);
@@ -372,9 +380,11 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       // Spawners without an ArenaId (legacy BasicEnvironment) get playerCount=0
       // → scaling collapses, behaviour identical to pre-Slice-8d.
       final ArenaId spawnerArenaId = ed.getComponent(spawnerId, ArenaId.class);
-      final int playersInArena = countPlayersInArena(spawnerArenaId);
-      final int effectiveMaxCount = s.getMaxCount() + s.getCountPerPlayer() * playersInArena;
-      final double effectiveRadius = c.getRadius() + s.getRadiusPerPlayer() * playersInArena;
+      final int playersInArena = countPlayersInArena(ed, shipIds, spawnerArenaId);
+      final int effectiveMaxCount =
+          computeEffectiveMaxCount(s.getMaxCount(), s.getCountPerPlayer(), playersInArena);
+      final double effectiveRadius =
+          computeEffectiveRadius(c.getRadius(), s.getRadiusPerPlayer(), playersInArena);
 
       HashSet<EntityId> spawnerBountySet = spawnerBounties.get(spawnerId);
       if (spawnerBountySet == null) {
@@ -390,8 +400,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         // Interval met and below the effective cap: regenerate up to a full
         // batch, but never overshoot the cap. Subspace [Prize] PrizeHideCount
         // analogue.
-        final int deficit = effectiveMaxCount - spawnerBountySet.size();
-        final int batch = Math.min(Math.max(s.getRegenBatch(), 1), deficit);
+        final int batch =
+            computeRegenAmount(s.getRegenBatch(), spawnerBountySet.size(), effectiveMaxCount);
         for (int i = 0; i < batch; i++) {
           EntityId idBounty = spawnBounty(spawnerId, s, p.getLocation(), effectiveRadius);
           spawnerBountySet.add(idBounty);
@@ -404,22 +414,61 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   }
 
   /**
-   * Count active player ships whose {@link ArenaId} matches the spawner's
-   * arena. Cheap: O(N_ships) HashMap lookups per spawner per tick — server
-   * frame budget can absorb this for typical {@code N <= 32}.
-   *
-   * <p>Returns {@code 0} when {@code spawnerArenaId} is null (legacy
-   * spawners with no arena tagging) so additive scaling collapses to the
-   * base values — preserves pre-Slice-8d behaviour for un-tagged spawners.
+   * Slice 8d additive max-count formula. Effective cap =
+   * {@code baseMax + countPerPlayer × playerCount}. {@code countPerPlayer ==
+   * 0} or {@code playerCount == 0} collapses to the base. Static + visible
+   * for testing — pure function, no PrizeSystem state required.
    */
-  private int countPlayersInArena(final ArenaId spawnerArenaId) {
-    if (spawnerArenaId == null) {
+  static int computeEffectiveMaxCount(
+      final int baseMax, final int countPerPlayer, final int playerCount) {
+    return baseMax + countPerPlayer * playerCount;
+  }
+
+  /**
+   * Slice 8d additive radius formula. Effective radius =
+   * {@code baseRadius + radiusPerPlayer × playerCount}. Static + visible for
+   * testing.
+   */
+  static double computeEffectiveRadius(
+      final double baseRadius, final double radiusPerPlayer, final int playerCount) {
+    return baseRadius + radiusPerPlayer * playerCount;
+  }
+
+  /**
+   * Slice 8d regen-batch budget. Spawn at most {@code regenBatch} per
+   * interval, but never overshoot the effective cap (deficit-capped).
+   * {@code regenBatch} below {@code 1} clamps to {@code 1} so a misconfigured
+   * spawner still trickles rather than freezing entirely; deficit at or
+   * below zero returns {@code 0}. Static + visible for testing.
+   */
+  static int computeRegenAmount(
+      final int regenBatch, final int currentAlive, final int effectiveMaxCount) {
+    final int deficit = effectiveMaxCount - currentAlive;
+    if (deficit <= 0) {
       return 0;
     }
-    final String arenaName = spawnerArenaId.getArena();
+    return Math.min(Math.max(regenBatch, 1), deficit);
+  }
+
+  /**
+   * Count active ships whose {@link ArenaId} matches {@code targetArena}.
+   * Static + takes {@code Iterable<EntityId>} (rather than the live
+   * {@code EntitySet}) so tests can build the collection without booting
+   * the system manager.
+   *
+   * <p>Returns {@code 0} when {@code targetArena} is null (legacy spawners
+   * with no arena tagging) so additive scaling collapses to base values —
+   * preserves pre-Slice-8d behaviour for un-tagged spawners.
+   */
+  static int countPlayersInArena(
+      final EntityData ed, final Iterable<EntityId> shipIds, final ArenaId targetArena) {
+    if (targetArena == null) {
+      return 0;
+    }
+    final String arenaName = targetArena.getArena();
     int count = 0;
-    for (Entity ship : ships) {
-      final ArenaId shipArenaId = ed.getComponent(ship.getId(), ArenaId.class);
+    for (final EntityId shipId : shipIds) {
+      final ArenaId shipArenaId = ed.getComponent(shipId, ArenaId.class);
       if (shipArenaId != null && arenaName.equals(shipArenaId.getArena())) {
         count++;
       }
