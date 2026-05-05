@@ -228,6 +228,19 @@ public class ConfigRegistrySystemLoadTest {
           snapshot.bomb().explodeRadius(),
           0.0);
 
+      // Slice 9b — typed [Bomb] ProximityDistance + BombExplodeDelay parse
+      // through BombAdapter (proximityDistance direct in tiles;
+      // explodeDelayCs ×10 → ms). trench authors canon SVS values
+      // (3 tiles base, 10 cs fuse = 100 ms).
+      assertEquals(
+          "trench's [Bomb] ProximityDistance = 3 tiles",
+          3,
+          snapshot.bomb().proximityDistance());
+      assertEquals(
+          "trench's [Bomb] BombExplodeDelay = 10 cs (= 100 ms)",
+          100L,
+          snapshot.bomb().explodeDelayMs());
+
       // [Rocket] arena-global tuning from rocket.groovy.
       assertEquals(
           "trench's [Rocket] RocketThrust = 100",

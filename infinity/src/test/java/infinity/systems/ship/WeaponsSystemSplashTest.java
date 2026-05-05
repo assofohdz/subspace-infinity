@@ -52,6 +52,33 @@ public class WeaponsSystemSplashTest {
   }
 
   // -----------------------------------------------------------------
+  // proximityRadiusForLevel — per-level ADDITIVE scaling (slice 9b)
+  // -----------------------------------------------------------------
+
+  @Test
+  public void proximityRadiusForLevel_addsOnePerLevel() {
+    // Trench / testarena / testconf canon: ProximityDistance = 3 tiles
+    // → L1 = 3, L2 = 4, L3 = 5, L4 = 6 (REFERENCE.md ## Bomb: "Each level
+    // adds 1"). Distinct from splash's multiplicative scaling.
+    final int base = 3;
+    assertEquals(3.0, WeaponsSystem.proximityRadiusForLevel(base, 1), 1e-9);
+    assertEquals(4.0, WeaponsSystem.proximityRadiusForLevel(base, 2), 1e-9);
+    assertEquals(5.0, WeaponsSystem.proximityRadiusForLevel(base, 3), 1e-9);
+    assertEquals(6.0, WeaponsSystem.proximityRadiusForLevel(base, 4), 1e-9);
+  }
+
+  @Test
+  public void proximityRadiusForLevel_zeroBaseStillScales() {
+    // base = 0 still yields 0/1/2/3 — but createProjectileBomb gates on
+    // proximityDistance > 0 before stamping ProximityFuse, so a base-0
+    // arena disables proximity entirely regardless of level.
+    assertEquals(0.0, WeaponsSystem.proximityRadiusForLevel(0, 1), 1e-9);
+    assertEquals(1.0, WeaponsSystem.proximityRadiusForLevel(0, 2), 1e-9);
+    assertEquals(2.0, WeaponsSystem.proximityRadiusForLevel(0, 3), 1e-9);
+    assertEquals(3.0, WeaponsSystem.proximityRadiusForLevel(0, 4), 1e-9);
+  }
+
+  // -----------------------------------------------------------------
   // shouldDamageVictim — friendly-fire tri-state gate
   // -----------------------------------------------------------------
 

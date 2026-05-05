@@ -230,9 +230,9 @@ matches `ship-warbird.groovy`'s `RepelMax 0`).
 |---|---|---|---|---|---|---|---|
 | ✅ | `BombDamageLevel` | ✅ bomb.groovy | `BombAdapter` (typed DSL) | `BombConfig.damage` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `BombAliveTime` | ✅ bomb.groovy | `BombAdapter` (cs×10→ms) | `BombConfig.decayMs` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ❌ |
-| ⚠️ | `BombExplodeDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `BombExplodeDelay` | ✅ bomb.groovy (renamed `explodeDelayCs`) | `BombAdapter` (cs×10→ms) | `BombConfig.explodeDelayMs` | — | `WeaponsSystem.createProjectileBomb` (→ `ProximityFuse.fuseMs`) + `ProximityFuseSystem` (per-tick scan + detonate via `WeaponsSystem.detonateProjectile`) | ✅ `ProximityFuseSystemTest` + `ConfigRegistrySystemLoadTest` |
 | ✅ | `BombExplodePixels` | ✅ bomb.groovy (renamed `explodeRadius`, tiles) | `BombAdapter` (typed DSL) | `BombConfig.explodeRadius` (tiles / world units) | — | `WeaponsSystem.createProjectileBomb` (per-level mult → SplashDamage component) | ✅ `BombFactoryTest` + `WeaponsSystemSplashTest` + `ConfigRegistrySystemLoadTest` |
-| ⚠️ | `ProximityDistance` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `ProximityDistance` | ✅ bomb.groovy (renamed `proximityDistance`, tiles) | `BombAdapter` (typed DSL) | `BombConfig.proximityDistance` (tiles, base L1) | — | `WeaponsSystem.createProjectileBomb` (per-level +1 → `ProximityFuse.radiusWorldUnits`) + `ProximityFuseSystem` arming scan | ✅ `WeaponsSystemSplashTest.proximityRadiusForLevel*` + `ProximityFuseSystemTest` + `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `JitterTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `BombSafety` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `EBombShutdownTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |

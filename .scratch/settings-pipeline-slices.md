@@ -506,10 +506,15 @@ sub-slices, each independently shippable:
   around the contact point." Adds an arena-wide `friendlyFire` int knob
   (0=off, 1=bomb splash only, 2=all weapons) consumed by every damage
   path so the AoE has a sensible default.
-- **9b — Proximity arming + fuse.** `ProximityDistance` (per-level radius)
-  + `BombExplodeDelay` (fuse cs→ms) wired via per-bomb `Sensor` ghost +
-  `Delay` fuse component; bombs no longer detonate on direct contact —
-  they arm when an enemy enters proximity, then fuse and explode.
+- **9b — Proximity arming + fuse.** `ProximityDistance` (per-level
+  +1 additive radius) + `BombExplodeDelay` (fuse cs→ms) wired via a new
+  `ProximityFuseSystem` per-tick scan — chosen over the originally
+  sketched per-bomb sensor-ghost + `Delay`-component path because Moss
+  has no static-sensor-following-a-dynamic-body pattern; the
+  per-tick scan is O(bombs × ships) which is negligible at typical
+  arena sizes. Bombs no longer detonate on direct enemy body contact
+  — they arm at proximity radius, fuse for the configured delay,
+  then explode.
 - **9c — Polish.** `BombSafety` (fire-time check that an enemy isn't
   already in proximity radius) + `JitterTime` (server-side stamp that
   client camera-shakes the victim).
@@ -571,11 +576,61 @@ in `arena.groovy`.
   pop is undesirable.
 
 ### Slice 9b — Proximity arming + fuse
-🔲 `[Bomb]` ProximityDistance + BombExplodeDelay. Per-bomb `Sensor`
-ghost via the existing broadphase + ContactSystem listener fan-out;
-bomb gains an "armed" state on enemy proximity, then fuses through the
-existing `Delay` component to detonate. Couples the splash path from
-9a with the canonical arming behaviour Subspace players expect.
+✅ Landed.
+
+- `BombConfig.proximityDistance` (tiles, base L1) + `BombConfig.explodeDelayMs`
+  (cs×10→ms) added; `BombAdapter` exposes `proximityDistance` +
+  `explodeDelayCs` setters. Defaults `0/0` = disabled (preserves 9a
+  direct-contact behaviour for arenas that haven't opted in).
+- New api/-side server-only components: `ProximityFuse(radiusWorldUnits,
+  fuseMs)` and `ProximityArmed(armedAtSimNanos)`. Neither crosses the
+  wire (per `components.md`); no serializer registration.
+- `WeaponsSystem.createProjectileBomb` projects per-level radius via new
+  `proximityRadiusForLevel(base, level) = base + (level-1)` helper —
+  REFERENCE.md ## Bomb canon "Each level adds 1." Distinct from
+  `splashRadiusForLevel`'s multiplicative scaling (×level).
+- Detonation logic extracted into `WeaponsSystem.detonateProjectile(id,
+  damage, point, directVictim?, nowSimNanos)` — shared by the slice 9a
+  contact path AND the new proximity-fuse expiry path. Wall-hits bypass
+  the proximity gate (canonical: bombs explode on wall touch regardless
+  of arm state). Direct ship-contact on an unarmed proximity bomb is
+  swallowed (`contact.disable()`); arming flows through the per-tick
+  scan instead.
+- New server system `infinity.systems.ship.ProximityFuseSystem` —
+  per-tick arming scan + fuse-elapsed detonation. Pure-function helpers
+  `shouldArmOn(ownerFreq, victimFreq)` (canonical: friendlies never
+  arm, regardless of arena `friendlyFire` mode) and
+  `fuseElapsed(armedAt, now, fuseMs)` (boundary-inclusive `≥` check)
+  extracted for unit testing. Registered after `StatusDrainSystem` in
+  `GameServer`.
+- Active arenas authored: trench + deva + testconf bomb.groovy each
+  set `proximityDistance 3, explodeDelayCs 10` (canon SVS — 3 tiles
+  base → L1=3 / L2=4 / L3=5 / L4=6 tile arming radius; 100 ms fuse).
+- Tests: `ProximityFuseSystemTest` (arm-gate tri-state + fuse
+  arithmetic); `WeaponsSystemSplashTest` extended with
+  `proximityRadiusForLevel*` cases; `ConfigRegistrySystemLoadTest`
+  extended (trench parses `ProximityDistance=3,
+  BombExplodeDelay=10cs (=100ms)`).
+
+**Behaviour change on active arenas:** proximity-fuse bombs no longer
+detonate on direct enemy body contact — they arm at 3-tile (L1) →
+6-tile (L4) radius around an enemy, fuse for 100 ms, then explode at
+the bomb's position. Wall hits still detonate immediately. Same-team
+ships glide past unarmed bombs. Operators can dial back via lower
+`proximityDistance` / shorter `explodeDelayCs`, or disable entirely by
+setting either to 0.
+
+**Deviation from REFERENCE.md (documented on `BombConfig` +
+`ProximityFuseSystem` Javadoc):** canon says the bomb explodes
+"immediate if ship leaves trigger area" once armed. Infinity runs the
+fuse to completion regardless. Edge case visible only on near-miss
+fly-throughs of fast ships; tracked as polish-bag.
+
+**Integration test gap (per existing memory note):** the per-tick scan
++ body-position lookup + cross-system detonation call is not exercised
+by any automated test — only the static helpers + parse path are. Same
+gap as splash damage's contact-path integration; deferred to the
+spawn-projection harness backlog.
 
 ### Slice 9c — BombSafety + JitterTime
 🔲 `[Bomb]` BombSafety (0/1) — fire-time gate when an enemy is already

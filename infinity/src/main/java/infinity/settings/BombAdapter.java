@@ -18,21 +18,27 @@ import java.util.List;
  *
  * <pre>{@code
  * bomb {
- *     damageLevel   750    // [Bomb] BombDamageLevel
- *     aliveTimeCs   6000   // [Bomb] BombAliveTime in centiseconds (×10 → ms)
- *     explodeRadius 5      // [Bomb] BombExplodePixels expressed in tiles /
- *                          // world units (Infinity-native; SVS 80 px = 5
- *                          // tiles at 16 px/tile). Per-level multiplier
- *                          // applied at fire time (L1=1×, L2=2×, L3=3×,
- *                          // L4=4×). See slice 9a.
+ *     damageLevel       750    // [Bomb] BombDamageLevel
+ *     aliveTimeCs       6000   // [Bomb] BombAliveTime in centiseconds (×10 → ms)
+ *     explodeRadius     5      // [Bomb] BombExplodePixels expressed in tiles /
+ *                              // world units (Infinity-native; SVS 80 px = 5
+ *                              // tiles at 16 px/tile). Per-level multiplier
+ *                              // applied at fire time (L1=1×, L2=2×, L3=3×,
+ *                              // L4=4×). See slice 9a.
+ *     proximityDistance 3      // [Bomb] ProximityDistance — proximity-arm
+ *                              // radius in tiles, base (L1). Per-level
+ *                              // additive (+1 per level above L1) at fire
+ *                              // time. Value 0 disables. See slice 9b.
+ *     explodeDelayCs    10     // [Bomb] BombExplodeDelay in centiseconds
+ *                              // (×10 → ms). Fuse delay after arming. Value
+ *                              // 0 disables. See slice 9b.
  * }
  * }</pre>
  *
- * <p>The remaining Subspace {@code [Bomb]} keys (BombExplodeDelay,
- * ProximityDistance, JitterTime, BombSafety, EBombShutdownTime,
- * EBombDamagePercent, BBombDamagePercent) aren't in {@link BombConfig} today
- * — they belong to slices 9b/9c (proximity arming + safety/jitter polish)
- * or future EMP / bouncing-bomb work. The adapter only exposes fields that
+ * <p>The remaining Subspace {@code [Bomb]} keys (JitterTime, BombSafety,
+ * EBombShutdownTime, EBombDamagePercent, BBombDamagePercent) aren't in
+ * {@link BombConfig} today — they belong to slice 9c (safety + jitter) or
+ * future EMP / bouncing-bomb work. The adapter only exposes fields that
  * have a typed config + active consumer.
  */
 public final class BombAdapter
@@ -91,6 +97,8 @@ public final class BombAdapter
     private int damage = BombConfig.DEFAULTS.damage();
     private long decayMs = BombConfig.DEFAULTS.decayMs();
     private double explodeRadius = BombConfig.DEFAULTS.explodeRadius();
+    private int proximityDistance = BombConfig.DEFAULTS.proximityDistance();
+    private long explodeDelayMs = BombConfig.DEFAULTS.explodeDelayMs();
 
     BombBuilder() {}
 
@@ -130,8 +138,36 @@ public final class BombAdapter
       this.explodeRadius = v;
     }
 
+    /**
+     * {@code [Bomb] ProximityDistance} — base (L1) proximity-arm radius in
+     * <em>tiles</em>. Per-level additive scaling (+1 per level above L1) is
+     * applied at fire time. Set to 0 to disable proximity arming on this
+     * arena (bombs fall back to direct-contact detonation).
+     */
+    public void proximityDistance(final int tiles) {
+      if (tiles < 0) {
+        throw new IllegalArgumentException(
+            "proximityDistance must be >= 0; got " + tiles);
+      }
+      this.proximityDistance = tiles;
+    }
+
+    /**
+     * {@code [Bomb] BombExplodeDelay} authored in <em>centiseconds</em>
+     * (Subspace VIE convention); adapter ×10 to store milliseconds. Fuse
+     * delay after a bomb arms via proximity. Set to 0 to disable proximity
+     * arming (must be paired with {@code proximityDistance 0}).
+     */
+    public void explodeDelayCs(final int centiseconds) {
+      if (centiseconds < 0) {
+        throw new IllegalArgumentException(
+            "explodeDelayCs must be >= 0; got " + centiseconds);
+      }
+      this.explodeDelayMs = centiseconds * 10L;
+    }
+
     BombConfig build() {
-      return new BombConfig(damage, decayMs, explodeRadius);
+      return new BombConfig(damage, decayMs, explodeRadius, proximityDistance, explodeDelayMs);
     }
   }
 }

@@ -28,6 +28,8 @@ import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
 import infinity.es.Parent;
+import infinity.es.ProximityArmed;
+import infinity.es.ProximityFuse;
 import infinity.es.ShapeNames;
 import infinity.es.SplashDamage;
 import infinity.es.arena.ArenaId;
@@ -481,6 +483,19 @@ public class WeaponsSystem extends AbstractGameSystem
     if (splashRadius > 0.0) {
       ed.setComponent(bombProjectile, new SplashDamage(splashRadius));
     }
+
+    // Slice 9b — project [Bomb] ProximityDistance + BombExplodeDelay onto a
+    // ProximityFuse marker. Per-level additive scaling (+1 per level above L1)
+    // per REFERENCE.md ## Bomb — distinct from splash's multiplicative scaling.
+    // Both knobs must be > 0 to engage proximity arming; either being 0 falls
+    // back to direct-contact detonation (preserving 9a behaviour for arenas
+    // that haven't opted in).
+    final int proxBase = cfg.bomb().proximityDistance();
+    final long fuseMs = cfg.bomb().explodeDelayMs();
+    if (proxBase > 0 && fuseMs > 0L) {
+      final double proxRadius = proximityRadiusForLevel(proxBase, bombLevel);
+      ed.setComponent(bombProjectile, new ProximityFuse(proxRadius, fuseMs));
+    }
   }
 
   private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
@@ -780,24 +795,27 @@ public class WeaponsSystem extends AbstractGameSystem
         return;
       }
 
-      final Damage damage = damageEntity.get(Damage.class);
-      final SplashDamage splash = ed.getComponent(damageEntity.getId(), SplashDamage.class);
-
-      if (splash != null) {
-        applySplashDamage(damageEntity.getId(), damage, splash, contact.contactPoint);
-      } else {
-        applyDirectHitDamage(damageEntity.getId(), damage, energyEntity.getId());
+      // Slice 9b — proximity-fuse bombs that haven't yet armed must NOT detonate
+      // on direct body contact with a ship; arming + fuse + detonation flow
+      // through ProximityFuseSystem instead. Disabling the contact here means
+      // the projectile glides past the ship until the per-tick proximity scan
+      // fires. Wall hits + contacts on already-armed bombs fall through to the
+      // standard detonation path below.
+      final ProximityFuse fuse = ed.getComponent(damageEntity.getId(), ProximityFuse.class);
+      final boolean alreadyArmed =
+          fuse != null && ed.getComponent(damageEntity.getId(), ProximityArmed.class) != null;
+      if (fuse != null && !alreadyArmed) {
+        contact.disable();
+        return;
       }
 
-      GameEntities.createExplosion(
-          ed,
-          EntityId.NULL_ID,
-          physicsSpace,
-          time.getTime(),
+      final Damage damage = damageEntity.get(Damage.class);
+      detonateProjectile(
+          damageEntity.getId(),
+          damage,
           contact.contactPoint,
-          damage.getExplosionDecay(),
-          damage.getExplosionShape());
-      ed.setComponent(damageEntity.getId(), Decay.duration(time.getTime(), 0));
+          energyEntity.getId(),
+          time.getTime());
       contact.disable();
     } else if (body2 == null
         && entity1.get(Damage.class) != null
@@ -818,24 +836,57 @@ public class WeaponsSystem extends AbstractGameSystem
           ed.setComponent(idOne, bounce.decreaseBounces());
         }
       } else {
-        // Wall-hit detonation: splash bombs still AoE on world contact (no
-        // direct victim, but anything in radius takes damage subject to FF).
-        final SplashDamage splash = ed.getComponent(idOne, SplashDamage.class);
-        if (splash != null) {
-          applySplashDamage(idOne, damage, splash, contact.contactPoint);
-        }
-        GameEntities.createExplosion(
-            ed,
-            EntityId.NULL_ID,
-            physicsSpace,
-            time.getTime(),
-            contact.contactPoint,
-            damage.getExplosionDecay(),
-            damage.getExplosionShape());
-        ed.setComponent(idOne, Decay.duration(time.getTime(), 0));
+        // Wall-hit detonation: walls bypass the proximity-fuse gate (canonical
+        // Subspace — bombs detonate immediately on wall contact regardless of
+        // arm state) and fall straight through to the splash / direct path.
+        detonateProjectile(idOne, damage, contact.contactPoint, null, time.getTime());
         contact.disable();
       }
     }
+  }
+
+  /**
+   * Shared detonation path used by both the contact handler and
+   * {@code ProximityFuseSystem} (slice 9b) when a proximity fuse expires.
+   * Applies damage (splash if {@link SplashDamage} is present, direct otherwise),
+   * spawns the visual explosion, and stamps {@code Decay(now, 0)} so the
+   * canonical reaper removes the projectile next tick.
+   *
+   * @param damageEntityId the projectile entity that's detonating
+   * @param damage the projectile's {@link Damage} component (already resolved
+   *     by the caller)
+   * @param explosionPoint the world-space detonation point — for contact
+   *     detonation this is the contact point; for proximity-fuse detonation
+   *     this is the projectile's body position
+   * @param directVictimId the entity that triggered a direct-contact
+   *     detonation, or {@code null} for wall-hit / proximity-fuse paths where
+   *     no single victim exists. Splash bombs ignore this argument and damage
+   *     everything in {@link SplashDamage#getRadiusWorldUnits()}.
+   * @param nowSimNanos current simulation time — passed in (rather than read
+   *     from this system's {@code time} field) so callers in other systems
+   *     don't depend on update-order timing.
+   */
+  public void detonateProjectile(
+      final EntityId damageEntityId,
+      final Damage damage,
+      final Vec3d explosionPoint,
+      final EntityId directVictimId,
+      final long nowSimNanos) {
+    final SplashDamage splash = ed.getComponent(damageEntityId, SplashDamage.class);
+    if (splash != null) {
+      applySplashDamage(damageEntityId, damage, splash, explosionPoint);
+    } else if (directVictimId != null) {
+      applyDirectHitDamage(damageEntityId, damage, directVictimId);
+    }
+    GameEntities.createExplosion(
+        ed,
+        EntityId.NULL_ID,
+        physicsSpace,
+        nowSimNanos,
+        explosionPoint,
+        damage.getExplosionDecay(),
+        damage.getExplosionShape());
+    ed.setComponent(damageEntityId, Decay.duration(nowSimNanos, 0));
   }
 
   /**
@@ -959,6 +1010,18 @@ public class WeaponsSystem extends AbstractGameSystem
    */
   static double splashRadiusForLevel(final double baseRadius, final int level) {
     return baseRadius * level;
+  }
+
+  /**
+   * Pure-function projection of {@code BombConfig.proximityDistance} (tiles)
+   * onto a per-bomb proximity-arm radius. Subspace canon scaling: each level
+   * <em>adds</em> 1 tile (L1=base, L2=base+1, L3=base+2, L4=base+3) — REFERENCE.md
+   * ## Bomb {@code "Each level adds 1"}. Distinct from the multiplicative
+   * scaling on {@link #splashRadiusForLevel}. Exposed package-private so unit
+   * tests can pin per-level scaling without bringing up the spawn pipeline.
+   */
+  static double proximityRadiusForLevel(final int baseTiles, final int level) {
+    return baseTiles + (level - 1);
   }
 
   /**
