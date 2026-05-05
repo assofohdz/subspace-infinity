@@ -1,4 +1,7 @@
 {
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(./gradlew --no-daemon :api:compileJava :api:compileTestJava :infinity:compileJava :infinity:compileTestJava spotlessCheck)",
@@ -129,5 +132,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "jdtls-lsp@claude-plugins-official": true
   }
 }
