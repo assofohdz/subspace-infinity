@@ -74,7 +74,8 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/prize-weights.groovy",
                   "/conf/trench-04-2026/spawn.groovy"),
               0.0,
-              List.of());
+              List.of(),
+              0);
 
       registry.load(arenaId, arenaConfig);
 
@@ -217,6 +218,15 @@ public class ConfigRegistrySystemLoadTest {
           "trench's [Bomb] BombDamageLevel = 2650",
           2650,
           snapshot.bomb().damage());
+
+      // Slice 9a — typed [Bomb] BombExplodePixels parses to
+      // BombConfig.explodeRadius (Infinity authors in tiles / world units;
+      // SVS canonical 80 px = 5 tiles at 16 px/tile).
+      assertEquals(
+          "trench's [Bomb] explodeRadius = 5 tiles (= SVS BombExplodePixels 80)",
+          5.0,
+          snapshot.bomb().explodeRadius(),
+          0.0);
 
       // [Rocket] arena-global tuning from rocket.groovy.
       assertEquals(

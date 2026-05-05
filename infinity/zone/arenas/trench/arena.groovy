@@ -32,6 +32,12 @@ arena {
     // keys win the last-wins merge in SettingsSystem.loadFragments.
     includeFragment '/conf/trench-04-2026/ship-warbird-test.groovy'
     wallFriction 0.1
+    // Slice 9a — friendly-fire policy for trench (frozen reference preset):
+    //   0 = off (no same-team damage, default)
+    //   1 = bomb splash only (bomb AoE damages teammates)
+    //   2 = all weapons damage teammates
+    // Trench stays at the safe default; testarena exercises mode 1.
+    friendlyFire 0
     spawners {
         // Centre of the arena. No weights override → uses the typed
         // prize-weights.groovy via ConfigRegistry.prizeWeights().

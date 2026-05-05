@@ -48,6 +48,15 @@ import java.util.List;
  *     by {@code ArenaSystem.doLoad}. Empty list means "no per-arena
  *     spawners"; the legacy hardcoded spawner in
  *     {@code BasicEnvironment} continues to run independently.
+ * @param friendlyFire tri-state friendly-fire policy:
+ *     {@code 0} = off (no weapons damage same-team ships),
+ *     {@code 1} = bomb splash only (only bomb AoE damages teammates; bullets,
+ *     burst, mines pass through teammates without damage),
+ *     {@code 2} = all weapons damage teammates.
+ *     Default {@code 0}. This is an Infinity-specific knob (Subspace canon
+ *     models friendly fire with separate per-weapon flags); the tri-state
+ *     here is a deliberate divergence chosen for slice-9a scope. Consumed
+ *     by {@code WeaponsSystem.newContact}.
  */
 public record ArenaConfig(
     String mapFile,
@@ -56,15 +65,17 @@ public record ArenaConfig(
     int spawnZ,
     List<String> fragmentIncludes,
     double wallFriction,
-    List<SpawnerSpec> spawners) {
+    List<SpawnerSpec> spawners,
+    int friendlyFire) {
 
   /**
    * Empty fallback — a clean ArenaConfig with no map / ships / fragments,
-   * the player spawn at the arena's centre tile {@code (512, 512)}, and the
-   * historical {@code wallFriction = 0.0} (frictionless walls). Used by
-   * callers that need a non-null default before the real config is assembled,
-   * mirroring {@link ZoneConfig#EMPTY}.
+   * the player spawn at the arena's centre tile {@code (512, 512)}, the
+   * historical {@code wallFriction = 0.0} (frictionless walls), and
+   * {@code friendlyFire = 0} (off). Used by callers that need a non-null
+   * default before the real config is assembled, mirroring
+   * {@link ZoneConfig#EMPTY}.
    */
   public static final ArenaConfig EMPTY =
-      new ArenaConfig("", "", 512, 512, List.of(), 0.0, List.of());
+      new ArenaConfig("", "", 512, 512, List.of(), 0.0, List.of(), 0);
 }

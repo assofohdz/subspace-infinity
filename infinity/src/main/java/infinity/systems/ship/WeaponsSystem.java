@@ -23,11 +23,15 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.systems.ContactSystem;
+import infinity.config.ArenaConfig;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
+import infinity.es.Parent;
 import infinity.es.ShapeNames;
+import infinity.es.SplashDamage;
 import infinity.es.arena.ArenaId;
+import infinity.systems.ArenaSystem;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.es.ship.Health;
@@ -94,6 +98,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
   private SimTime time;
   private EnergySystem energySystem;
+  private ArenaSystem arenaSystem;
   private EntitySet damageEntities;
   private EntitySet energyEntities;
 
@@ -127,6 +132,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
     physicsSpace = physics.getPhysicsSpace();
     energySystem = getSystem(EnergySystem.class);
+    arenaSystem = getSystem(ArenaSystem.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
     guns = ed.getEntities(GunCurrentLevel.class, GunFireDelay.class, GunCost.class);
     bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
@@ -446,8 +452,8 @@ public class WeaponsSystem extends AbstractGameSystem
     EntityId requester = requesterEntity.getId();
     BombCurrentLevel bombCurrentLevel = this.bombs.getEntity(requester).get(BombCurrentLevel.class);
 
-    final String bombShape =
-        BOMB_LEVEL_PREFIX + bombCurrentLevel.getLevel().level;
+    final int bombLevel = bombCurrentLevel.getLevel().level;
+    final String bombShape = BOMB_LEVEL_PREFIX + bombLevel;
 
     final ConfigRegistry cfg = weaponsFor(requester);
     final EntityId bombProjectile =
@@ -466,6 +472,15 @@ public class WeaponsSystem extends AbstractGameSystem
             CoreViewConstants.EXPLOSION1DECAY,
             cfg.bomb().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
+
+    // Slice 9a — project [Bomb] BombExplodePixels onto a SplashDamage marker
+    // using the firing ship's bomb level: L1=1×, L2=2×, L3=3×, L4=4× per
+    // REFERENCE.md ## Bomb. BombConfig.explodeRadius is already in tiles /
+    // world units (Infinity-native; no pixel conversion at the consumer).
+    final double splashRadius = splashRadiusForLevel(cfg.bomb().explodeRadius(), bombLevel);
+    if (splashRadius > 0.0) {
+      ed.setComponent(bombProjectile, new SplashDamage(splashRadius));
+    }
   }
 
   private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
@@ -730,6 +745,13 @@ public class WeaponsSystem extends AbstractGameSystem
    * <p>We cannot be sure that the entitysets are updated, so we have to inquire about the entities
    * here and now.
    *
+   * <p>Slice 9a — when the damage-bearing entity carries a {@link SplashDamage} marker (today:
+   * bombs), the damage path switches from "single-target point damage at the contact" to "scan
+   * all {@code Health}-bearing bodies inside the splash radius and damage each one, gated by the
+   * arena's {@code friendlyFire} mode." Direct-hit damage on entities without {@link SplashDamage}
+   * (bullets, burst, mines, gravity-bomb fall-through) goes through the same friendly-fire gate
+   * but with the stricter "mode 2 only" rule.
+   *
    * @param contact the contact
    */
   @Override
@@ -758,9 +780,15 @@ public class WeaponsSystem extends AbstractGameSystem
         return;
       }
 
-      Damage damage = damageEntity.get(Damage.class);
+      final Damage damage = damageEntity.get(Damage.class);
+      final SplashDamage splash = ed.getComponent(damageEntity.getId(), SplashDamage.class);
 
-      energySystem.damage(energyEntity.getId(), damage.getIntendedDamage());
+      if (splash != null) {
+        applySplashDamage(damageEntity.getId(), damage, splash, contact.contactPoint);
+      } else {
+        applyDirectHitDamage(damageEntity.getId(), damage, energyEntity.getId());
+      }
+
       GameEntities.createExplosion(
           ed,
           EntityId.NULL_ID,
@@ -790,6 +818,12 @@ public class WeaponsSystem extends AbstractGameSystem
           ed.setComponent(idOne, bounce.decreaseBounces());
         }
       } else {
+        // Wall-hit detonation: splash bombs still AoE on world contact (no
+        // direct victim, but anything in radius takes damage subject to FF).
+        final SplashDamage splash = ed.getComponent(idOne, SplashDamage.class);
+        if (splash != null) {
+          applySplashDamage(idOne, damage, splash, contact.contactPoint);
+        }
         GameEntities.createExplosion(
             ed,
             EntityId.NULL_ID,
@@ -802,6 +836,142 @@ public class WeaponsSystem extends AbstractGameSystem
         contact.disable();
       }
     }
+  }
+
+  /**
+   * Direct-hit (non-splash) damage path. Subject to the arena's friendly-fire
+   * mode: only mode 2 ("all friendly fire") allows same-team damage; modes 0
+   * and 1 swallow the damage but the projectile still detonates (for visual
+   * feedback / consumption).
+   */
+  private void applyDirectHitDamage(
+      final EntityId damageEntityId, final Damage damage, final EntityId victimId) {
+    if (!shouldDamageVictim(damageEntityId, victimId, false)) {
+      return;
+    }
+    energySystem.damage(victimId, damage.getIntendedDamage());
+  }
+
+  /**
+   * Splash (AoE) damage path. Iterates all known {@link Health}-bearing
+   * entities, retains those within {@code splash.radiusWorldUnits} of the
+   * detonation point, and applies {@code damage.intendedDamage} to each
+   * (subject to the friendly-fire gate — splash uses the relaxed "mode &gt;= 1"
+   * rule). Does not yet attenuate damage with distance — that's a polish-bag
+   * follow-up.
+   */
+  private void applySplashDamage(
+      final EntityId damageEntityId,
+      final Damage damage,
+      final SplashDamage splash,
+      final Vec3d explosionPoint) {
+    final double radius = splash.getRadiusWorldUnits();
+    if (radius <= 0.0) {
+      return;
+    }
+    final double radiusSq = radius * radius;
+    for (final Entity victim : energyEntities) {
+      final EntityId victimId = victim.getId();
+      final RigidBody<EntityId, MBlockShape> body =
+          physicsSpace.getBinIndex().getRigidBody(victimId);
+      if (body == null) {
+        continue;
+      }
+      final Vec3d vp = body.position;
+      final double dx = vp.x - explosionPoint.x;
+      final double dy = vp.y - explosionPoint.y;
+      final double dz = vp.z - explosionPoint.z;
+      if (dx * dx + dy * dy + dz * dz > radiusSq) {
+        continue;
+      }
+      if (!shouldDamageVictim(damageEntityId, victimId, true)) {
+        continue;
+      }
+      energySystem.damage(victimId, damage.getIntendedDamage());
+    }
+  }
+
+  /**
+   * Friendly-fire gate. Returns {@code true} if the damage-bearing entity
+   * should be allowed to damage {@code victimId}, given the arena's
+   * {@code friendlyFire} mode and whether this is a splash (AoE) hit.
+   *
+   * <ul>
+   *   <li>If attacker or victim has no {@link Frequency} (NPC, prize, debris),
+   *       no FF gate applies and damage goes through.
+   *   <li>If teams differ, damage goes through (true enemy hit).
+   *   <li>If teams match: mode 0 swallows; mode 1 allows splash but not direct
+   *       hits; mode 2 allows everything.
+   * </ul>
+   */
+  private boolean shouldDamageVictim(
+      final EntityId damageEntityId, final EntityId victimId, final boolean isSplash) {
+    final Parent parent = ed.getComponent(damageEntityId, Parent.class);
+    if (parent == null) {
+      return true;
+    }
+    final EntityId attackerShipId = parent.getParentEntityId();
+    if (attackerShipId == null) {
+      return true;
+    }
+    if (attackerShipId.equals(victimId)) {
+      // Self-damage already filtered by ContactSystem.parentChildContact;
+      // guard here is a defence-in-depth no-op for the splash scan.
+      return false;
+    }
+    final Frequency attackerFreq = ed.getComponent(attackerShipId, Frequency.class);
+    final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
+    final Integer attackerFreqValue =
+        attackerFreq == null ? null : attackerFreq.getFrequency();
+    final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
+    final int ffMode = friendlyFireModeFor(attackerShipId);
+    return shouldDamageVictim(attackerFreqValue, victimFreqValue, ffMode, isSplash);
+  }
+
+  /**
+   * Pure-function friendly-fire decision — exposed package-private so unit
+   * tests can pin the tri-state behaviour without bringing up an ECS / arena
+   * system fixture. {@code null} freq means "no team" (NPC, prize, debris) →
+   * always damage.
+   */
+  static boolean shouldDamageVictim(
+      final Integer attackerFreq,
+      final Integer victimFreq,
+      final int friendlyFireMode,
+      final boolean isSplash) {
+    if (attackerFreq == null || victimFreq == null) {
+      return true;
+    }
+    if (!attackerFreq.equals(victimFreq)) {
+      return true;
+    }
+    if (isSplash) {
+      return friendlyFireMode >= 1;
+    }
+    return friendlyFireMode >= 2;
+  }
+
+  /**
+   * Pure-function projection of {@code BombConfig.explodeRadius} (tiles /
+   * world units) onto a per-bomb splash radius. Subspace canon scaling:
+   * L1 base, L2×2, L3×3, L4×4. Exposed package-private so unit tests can
+   * pin per-level scaling without bringing up the spawn pipeline.
+   */
+  static double splashRadiusForLevel(final double baseRadius, final int level) {
+    return baseRadius * level;
+  }
+
+  /**
+   * Resolve the friendly-fire mode for the arena that owns {@code attackerShipId}.
+   * Falls back to {@link ArenaConfig#EMPTY}'s default ({@code 0} = off) when
+   * the attacker has no {@link ArenaId} (no-arena void / spawner-fired).
+   */
+  private int friendlyFireModeFor(final EntityId attackerShipId) {
+    final ArenaId arenaId = ed.getComponent(attackerShipId, ArenaId.class);
+    if (arenaId == null) {
+      return ArenaConfig.EMPTY.friendlyFire();
+    }
+    return arenaSystem.getArenaConfig(arenaId.getArena()).friendlyFire();
   }
 
   /** A class that holds the position information needed to create an attack. */

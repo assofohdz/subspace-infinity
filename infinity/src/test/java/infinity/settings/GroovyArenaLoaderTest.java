@@ -191,6 +191,46 @@ public class GroovyArenaLoaderTest {
     assertEquals(512, empty.spawnZ());
     assertTrue(empty.fragmentIncludes().isEmpty());
     assertEquals(0.0, empty.wallFriction(), 0.0);
+    // Slice 9a — friendly-fire defaults to 0 (off) so unmigrated arenas keep
+    // the safer "no same-team damage" behaviour without authoring the knob.
+    assertEquals(0, empty.friendlyFire());
+  }
+
+  @Test
+  public void friendlyFire_omitted_defaultsToOff() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    final ArenaConfig cfg = build(builder);
+    assertEquals(0, cfg.friendlyFire());
+  }
+
+  @Test
+  public void friendlyFire_validValues_passThrough() {
+    for (int v = 0; v <= 2; v++) {
+      final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+      builder.friendlyFire(v);
+      assertEquals(v, build(builder).friendlyFire());
+    }
+  }
+
+  @Test
+  public void friendlyFire_outOfRange_rejected() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    assertThrows(IllegalArgumentException.class, () -> builder.friendlyFire(-1));
+    assertThrows(IllegalArgumentException.class, () -> builder.friendlyFire(3));
+    assertThrows(IllegalArgumentException.class, () -> builder.friendlyFire(null));
+  }
+
+  @Test
+  public void evaluate_friendlyFireDirective_capturedInConfig() {
+    final String source =
+        "arena {\n"
+            + "  map 'foo.lvl'\n"
+            + "  friendlyFire 1\n"
+            + "}\n";
+
+    final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
+
+    assertEquals(1, cfg.friendlyFire());
   }
 
   /** Reflective bridge to package-private build() — same trick as GroovyZoneLoaderTest. */

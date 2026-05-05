@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
  *     shipsScript '/conf/trench-04-2026/ships.groovy'
  *     spawn 1000, 20
  *     wallFriction 0.0   // tangential friction on ship-vs-wall hits (0 = slidey)
+ *     friendlyFire 0     // 0=off, 1=bomb splash only, 2=all weapons
  *     includeFragment '/conf/trench-04-2026/trench.conf'
  *     // includeFragment '/conf/another.conf' — repeat as needed
  *     spawners {
@@ -83,7 +84,7 @@ public final class GroovyArenaLoader {
     if (cfg != ArenaConfig.EMPTY) {
       log.info(
           "Applied {} for arena {}: map='{}', ships='{}', spawn=({},{}), wallFriction={},"
-              + " fragments={}",
+              + " friendlyFire={}, fragments={}",
           classpathPath,
           arenaName,
           cfg.mapFile(),
@@ -91,6 +92,7 @@ public final class GroovyArenaLoader {
           cfg.spawnX(),
           cfg.spawnZ(),
           cfg.wallFriction(),
+          cfg.friendlyFire(),
           cfg.fragmentIncludes());
     }
     return cfg;
@@ -171,6 +173,7 @@ public final class GroovyArenaLoader {
     private final List<String> fragmentIncludes = new ArrayList<>();
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
     private final List<SpawnerSpec> spawners = new ArrayList<>();
+    private int friendlyFire = ArenaConfig.EMPTY.friendlyFire();
 
     // Package-private so tests can build configs without the full GroovyShell.
     ArenaConfigBuilder() {}
@@ -216,6 +219,26 @@ public final class GroovyArenaLoader {
     }
 
     /**
+     * Tri-state friendly-fire policy. {@code 0} = off (default — same-team
+     * weapons deal no damage). {@code 1} = bomb splash only (bomb AoE
+     * damages teammates within blast radius; bullets / burst / mines still
+     * pass through teammates without damage). {@code 2} = all weapons damage
+     * teammates. Subspace canon uses per-weapon flags; this single tri-state
+     * is an Infinity-specific simplification scoped to slice 9a.
+     */
+    public void friendlyFire(final Number value) {
+      if (value == null) {
+        throw new IllegalArgumentException("friendlyFire requires a number (0, 1, or 2)");
+      }
+      final int v = value.intValue();
+      if (v < 0 || v > 2) {
+        throw new IllegalArgumentException(
+            "friendlyFire must be 0 (off), 1 (bomb splash only), or 2 (all); got " + value);
+      }
+      this.friendlyFire = v;
+    }
+
+    /**
      * {@code spawners { spawn x:..., z:..., ... }} block. Each
      * {@code spawn} call inside the closure appends a {@link SpawnerSpec}
      * entry that {@code ArenaSystem} materializes into a real spawner entity
@@ -236,7 +259,8 @@ public final class GroovyArenaLoader {
           spawnZ,
           List.copyOf(fragmentIncludes),
           wallFriction,
-          List.copyOf(spawners));
+          List.copyOf(spawners),
+          friendlyFire);
     }
   }
 

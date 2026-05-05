@@ -493,9 +493,97 @@ documented per-key in `SpawnerSpec` Javadoc.
 behaviour-preserving defaults (no scaling, visible, regen=1). Operator
 opt-in by editing arena.groovy.
 
-### Slice 9 — Proximity bomb mechanic
-🔲 `[Bomb]` BombExplodeDelay, BombExplodePixels, ProximityDistance,
-JitterTime, BombSafety.
+## Slice 9 — Proximity bomb mechanic (split into 9a/9b/9c)
+
+The original Slice 9 description bundled 5 disparate `[Bomb]` keys —
+splash radius, proximity arming, fuse delay, fire safety, screen jitter
+— that are independent mechanics. After grilling, split into three
+sub-slices, each independently shippable:
+
+- **9a — Splash damage path.** `BombExplodePixels` wired with per-level
+  scaling (Subspace canon: L1×1, L2×2, L3×3, L4×4); bomb damage path
+  switches from "single-target point damage" to "AoE damage in a radius
+  around the contact point." Adds an arena-wide `friendlyFire` int knob
+  (0=off, 1=bomb splash only, 2=all weapons) consumed by every damage
+  path so the AoE has a sensible default.
+- **9b — Proximity arming + fuse.** `ProximityDistance` (per-level radius)
+  + `BombExplodeDelay` (fuse cs→ms) wired via per-bomb `Sensor` ghost +
+  `Delay` fuse component; bombs no longer detonate on direct contact —
+  they arm when an enemy enters proximity, then fuse and explode.
+- **9c — Polish.** `BombSafety` (fire-time check that an enemy isn't
+  already in proximity radius) + `JitterTime` (server-side stamp that
+  client camera-shakes the victim).
+
+### Slice 9a — Splash damage path
+✅ Landed.
+
+- `ArenaConfig.friendlyFire` (int 0/1/2) added — `arena.groovy` directive
+  validated 0–2 in `GroovyArenaLoader`. Default 0 (off) preserves the
+  existing trench/deva PVP behaviour where the `CategoryFilter` allowed
+  same-team contacts but no FF check existed; the new gate now skips
+  same-team damage by default.
+- `BombConfig.explodeRadius` (tiles / world units, L1 base) added; typed
+  `bomb.groovy` `explodeRadius` directive in `BombAdapter`. Default 5.0
+  tiles (= SVS canonical `BombExplodePixels 80` divided by the 16 px/tile
+  rate). Diverges from Subspace's pixel unit because pixels aren't a
+  meaningful unit at the simulation layer (documented on `BombConfig`).
+  The `aliveTime` DSL setter was also renamed to `aliveTimeCs` for
+  unit-explicit naming at the call site.
+- New `infinity.es.SplashDamage(radiusWorldUnits)` component (server-only,
+  no serializer). Stamped on bomb projectiles at fire time by
+  `WeaponsSystem.createProjectileBomb` using
+  `splashRadiusForLevel(explodeRadius, bombLevel)` — per-level multiplier
+  with no unit conversion (input is already in tiles).
+- `WeaponsSystem.newContact` rewritten to switch between the splash AoE
+  path (when `SplashDamage` is present) and the direct-hit path
+  (everything else). Both paths run through `shouldDamageVictim` — a
+  pure-function tri-state FF gate (mode 0/1/2) that respects same-team.
+  World-hit detonations also trigger the splash scan when the bomb has
+  `SplashDamage`, so wall-strikes still AoE.
+- Active arenas: trench + deva keep the safe `friendlyFire 0` default;
+  testarena opts into mode 1 (bomb splash only) so smoke testers can
+  exercise the AoE path. trench / deva / testconf `bomb.groovy` all
+  author the canon `explodePixels 80`.
+- Tests: `BombFactoryTest` (api-side `createBomb` decay/parent contract);
+  `WeaponsSystemSplashTest` (per-level scaling + tri-state FF gate);
+  `GroovyArenaLoaderTest` extended (default 0, valid 0/1/2,
+  out-of-range rejected, DSL parse); `ConfigRegistrySystemLoadTest`
+  extended (trench's `[Bomb] BombExplodePixels = 80`).
+
+**Behaviour change on active arenas:** bombs now do AoE damage in a
+5-tile (L1) → 20-tile (L4) radius around the contact point instead of
+single-target damage at the bomb's body. Same-team is gated (no
+trench/deva same-team damage) until operator opts into FF mode 1 or 2
+in `arena.groovy`.
+
+**Out of scope (own follow-up slices):**
+- Distance attenuation — splash currently applies full damage at every
+  point inside the radius; canon Subspace attenuates linearly with
+  distance from the explosion. Polish-bag.
+- Mines, gravity bombs splash — only regular bombs get `SplashDamage`
+  today. Mines / gravbombs retain direct-hit semantics through the same
+  FF gate. Decide per-mechanic in their own slice (mines: own slice;
+  gravbombs: 9b candidate since they share bomb code paths).
+- `CategoryFilter` same-team rejection — FF=0 today swallows damage at
+  the contact-handler seam, which means projectiles still detonate
+  visually on a teammate. Subspace canon would have the contact never
+  fire at all. A future slice can extend `CategoryFilter` if the visual
+  pop is undesirable.
+
+### Slice 9b — Proximity arming + fuse
+🔲 `[Bomb]` ProximityDistance + BombExplodeDelay. Per-bomb `Sensor`
+ghost via the existing broadphase + ContactSystem listener fan-out;
+bomb gains an "armed" state on enemy proximity, then fuses through the
+existing `Delay` component to detonate. Couples the splash path from
+9a with the canonical arming behaviour Subspace players expect.
+
+### Slice 9c — BombSafety + JitterTime
+🔲 `[Bomb]` BombSafety (0/1) — fire-time gate when an enemy is already
+within proximity radius of the firing ship; canonical use is a
+self-protect. `JitterTime` (cs→ms) — server stamps a `Jitter`
+deadline component on the victim, client (BombHitState or similar)
+reads to camera-shake. Crosses into client work; defer until a
+`Jitter` consumer exists.
 
 ## Slice 10 — Projectile speed refactor
 

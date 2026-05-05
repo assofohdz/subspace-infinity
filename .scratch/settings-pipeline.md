@@ -79,6 +79,7 @@ ArenaConfig (per-arena structural — read by ArenaSystem)
 ├── map               : String
 ├── fragmentIncludes  : List<String>     ← arena.groovy include list
 ├── wallFriction      : double
+├── friendlyFire      : int (0/1/2)      ← Slice 9a; 0=off, 1=bomb splash only, 2=all
 └── spawn             : SpawnConfig      ← absorbs [Spawn]'s 12 keys (in-scope, gameplay Slice 7)
 ```
 
@@ -230,7 +231,7 @@ matches `ship-warbird.groovy`'s `RepelMax 0`).
 | ✅ | `BombDamageLevel` | ✅ bomb.groovy | `BombAdapter` (typed DSL) | `BombConfig.damage` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ✅ `ConfigRegistrySystemLoadTest` |
 | ✅ | `BombAliveTime` | ✅ bomb.groovy | `BombAdapter` (cs×10→ms) | `BombConfig.decayMs` | — | `WeaponsSystem.createProjectileBomb` (also gravbomb) | ❌ |
 | ⚠️ | `BombExplodeDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `BombExplodePixels` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `BombExplodePixels` | ✅ bomb.groovy (renamed `explodeRadius`, tiles) | `BombAdapter` (typed DSL) | `BombConfig.explodeRadius` (tiles / world units) | — | `WeaponsSystem.createProjectileBomb` (per-level mult → SplashDamage component) | ✅ `BombFactoryTest` + `WeaponsSystemSplashTest` + `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `ProximityDistance` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `JitterTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `BombSafety` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |

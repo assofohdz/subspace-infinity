@@ -40,6 +40,10 @@ arena {
     // last-wins merge in SettingsSystem.loadFragments.
     includeFragment '/conf/testconf/ship-warbird-test.groovy'
     wallFriction 0.1
+    // Slice 9a — exercise bomb splash friendly-fire so smoke testers can see
+    // the AoE path (bombs damage teammates within blast radius; bullets,
+    // burst, mines still pass through teammates safely).
+    friendlyFire 1
     spawners {
         // Slice 8d C3 opt-in: Centre spawner exercises additive count +
         // radius scaling and burst regen. With 4 active players,

@@ -1053,7 +1053,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         rec.config.spawnZ(),
         rec.config.fragmentIncludes(),
         rec.config.wallFriction(),
-        rec.config.spawners());
+        rec.config.spawners(),
+        rec.config.friendlyFire());
     return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
   }
 
