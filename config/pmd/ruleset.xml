@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="Subspace Infinity — focused dead-code rules"
+<ruleset name="Subspace Infinity — focused dead-code + complexity rules"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0
@@ -8,7 +8,8 @@
   <description>
     Catches the dead-code patterns the April 2026 big-file cull
     surfaced — unused private members, unused imports, empty
-    catch/control statements. Style and formatting rules live in
+    catch/control statements — plus cyclomatic and cognitive
+    complexity per method / class. Style and formatting rules live in
     Spotless / Checkstyle and are intentionally NOT included here.
   </description>
 
@@ -40,5 +41,172 @@
     </properties>
   </rule>
   <rule ref="category/java/codestyle.xml/EmptyControlStatement"/>
+
+  <!-- ========================================================== -->
+  <!-- Tier 1 — Best practices (additions on top of unused-stuff) -->
+  <!-- ========================================================== -->
+  <!-- Use SLF4J/log4j over `e.printStackTrace()`. -->
+  <rule ref="category/java/bestpractices.xml/AvoidPrintStackTrace"/>
+  <!-- log.debug("x" + obj) outside isDebugEnabled = always-stringifies. -->
+  <rule ref="category/java/bestpractices.xml/GuardLogStatement"/>
+  <!-- Pairs with WeaponsSystem / ConsumableSystem switches. -->
+  <rule ref="category/java/bestpractices.xml/NonExhaustiveSwitch"/>
+  <!-- Backstops the CLAUDE.md "use `final` for parameters" rule. -->
+  <rule ref="category/java/bestpractices.xml/AvoidReassigningParameters"/>
+  <!-- `ArrayList foo` should be `List foo` etc. (interface coupling). -->
+  <rule ref="category/java/bestpractices.xml/LooseCoupling"/>
+
+  <!-- ========================================================== -->
+  <!-- Tier 1 — Error-prone (high-signal bug detection)           -->
+  <!-- ========================================================== -->
+  <!-- Game-state-machine switches without break/return: classic bug. -->
+  <rule ref="category/java/errorprone.xml/ImplicitSwitchFallThrough"/>
+  <!-- if (foo == null && foo.bar()) — guaranteed NPE. -->
+  <rule ref="category/java/errorprone.xml/BrokenNullCheck"/>
+  <!-- if (foo.bar() && foo != null) — same family, opposite order. -->
+  <rule ref="category/java/errorprone.xml/MisplacedNullCheck"/>
+  <!-- foo.equals(null) instead of foo == null. -->
+  <rule ref="category/java/errorprone.xml/EqualsNull"/>
+  <!-- `==` on Strings / wrapper types: identity vs equality bug. -->
+  <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"/>
+  <!-- if (x = y) typo class. -->
+  <rule ref="category/java/errorprone.xml/AssignmentInOperand"/>
+  <!-- for (int i = 0; i < a; j++) typo. -->
+  <rule ref="category/java/errorprone.xml/JumbledIncrementer"/>
+  <!-- NaN compares always false; surface for physics math. -->
+  <rule ref="category/java/errorprone.xml/ComparisonWithNaN"/>
+  <!-- return inside finally swallows exceptions. -->
+  <rule ref="category/java/errorprone.xml/ReturnFromFinallyBlock"/>
+  <!-- equals() / hashCode() must travel together. -->
+  <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"/>
+  <!-- log4j placeholder count vs supplied args mismatch. -->
+  <rule ref="category/java/errorprone.xml/InvalidLogMessageFormat"/>
+  <!-- Calling overridable methods from a constructor — classic Java pitfall. -->
+  <rule ref="category/java/errorprone.xml/ConstructorCallsOverridableMethod"/>
+  <!-- catch (Foo) { throw new Bar(); } without cause — loses stack info. -->
+  <rule ref="category/java/errorprone.xml/AvoidLosingExceptionInformation"/>
+  <!-- for (float i = …) — accumulating drift. Use int + scale. -->
+  <rule ref="category/java/errorprone.xml/DontUseFloatTypeForLoopIndices"/>
+
+  <!-- ========================================================== -->
+  <!-- Tier 1 — Multithreading (server-side correctness)          -->
+  <!-- ========================================================== -->
+  <!-- Pre-Java-5 idiom; broken under modern memory model. -->
+  <rule ref="category/java/multithreading.xml/DoubleCheckedLocking"/>
+  <!-- Singleton + non-final instance reassignment. -->
+  <rule ref="category/java/multithreading.xml/NonThreadSafeSingleton"/>
+  <!-- SimpleDateFormat / MessageFormat / NumberFormat are thread-unsafe;
+       static usage is a bug magnet. -->
+  <rule ref="category/java/multithreading.xml/UnsynchronizedStaticFormatter"/>
+  <!-- wait()/notify() correctness — notifyAll is the safe default. -->
+  <rule ref="category/java/multithreading.xml/UseNotifyAllInsteadOfNotify"/>
+
+  <!-- ========================================================== -->
+  <!-- Tier 1 — Design (additions on top of cyclomatic + cognitive) -->
+  <!-- ========================================================== -->
+  <!-- throw new NullPointerException(...) — anti-pattern. -->
+  <rule ref="category/java/design.xml/AvoidThrowingNullPointerException"/>
+  <!-- throw new RuntimeException / Exception / Throwable — too broad. -->
+  <rule ref="category/java/design.xml/AvoidThrowingRawExceptionTypes"/>
+  <!-- void foo() throws Exception — too broad; force narrower types. -->
+  <rule ref="category/java/design.xml/SignatureDeclareThrowsException"/>
+  <!-- Field used in only one method — usually a misplaced local. -->
+  <rule ref="category/java/design.xml/SingularField"/>
+  <!-- Pairs with CyclomaticComplexity for the 1% of tangled methods CC misses. -->
+  <rule ref="category/java/design.xml/NPathComplexity"/>
+
+  <!-- ========================================================== -->
+  <!-- Tier 1 — Security (defence-in-depth, low-cost)             -->
+  <!-- ========================================================== -->
+  <!-- Hardcoded crypto secrets in source. -->
+  <rule ref="category/java/security.xml/HardCodedCryptoKey"/>
+  <!-- Initialization vector reuse / hardcoding. -->
+  <rule ref="category/java/security.xml/InsecureCryptoIv"/>
+
+  <!-- ========================================================== -->
+  <!-- Tier 1 — Performance (clear best practice, low noise)      -->
+  <!-- ========================================================== -->
+  <!-- Skipped: AvoidInstantiatingObjectsInLoops (game-loop hot   -->
+  <!-- path legitimately allocates Vec3d/Quatd temps per tick),   -->
+  <!-- RedundantFieldInitializer (intentional for clarity),       -->
+  <!-- ConsecutiveAppends* (cosmetic), TooFewBranchesForSwitch    -->
+  <!-- (state-machine readability over branch-count), Apache      -->
+  <!-- Commons FileItem (irrelevant).                             -->
+  <!-- ========================================================== -->
+
+  <!-- String / StringBuilder hygiene -->
+  <!-- "" + x is an antipattern; use String.valueOf(x). -->
+  <rule ref="category/java/performance.xml/AddEmptyString"/>
+  <!-- sb.append("x") should be sb.append('x') — char vs string. -->
+  <rule ref="category/java/performance.xml/AppendCharacterWithChar"/>
+  <!-- s.trim().length() == 0 should be s.isBlank() (modern Java). -->
+  <rule ref="category/java/performance.xml/InefficientEmptyStringCheck"/>
+  <!-- sb.append("a" + b) does an extra allocation. -->
+  <rule ref="category/java/performance.xml/InefficientStringBuffering"/>
+  <!-- new String("foo") antipattern. -->
+  <rule ref="category/java/performance.xml/StringInstantiation"/>
+  <!-- foo.toString().toString() redundancy. -->
+  <rule ref="category/java/performance.xml/StringToString"/>
+  <!-- s.indexOf(":") should be s.indexOf(':') — char overload faster. -->
+  <rule ref="category/java/performance.xml/UseIndexOfChar"/>
+  <!-- Redundant String.valueOf(...) wrapping. -->
+  <rule ref="category/java/performance.xml/UselessStringValueOf"/>
+  <!-- s += "foo" in loops should use StringBuilder. -->
+  <rule ref="category/java/performance.xml/UseStringBufferForStringAppends"/>
+  <!-- sb.toString().length() should be sb.length(). -->
+  <rule ref="category/java/performance.xml/UseStringBufferLength"/>
+
+  <!-- Collection / array correctness -->
+  <!-- Manual for-loop array copy should use System.arraycopy.
+       Real perf win on Region / level data. -->
+  <rule ref="category/java/performance.xml/AvoidArrayLoops"/>
+  <!-- c.toArray(new T[c.size()]) should be c.toArray(new T[0])
+       (modern JIT prefers the latter). -->
+  <rule ref="category/java/performance.xml/OptimizableToArrayCall"/>
+  <!-- Vector is legacy / synchronized; use ArrayList. -->
+  <rule ref="category/java/performance.xml/UseArrayListInsteadOfVector"/>
+  <!-- new ArrayList(Arrays.asList(...)) redundant. -->
+  <rule ref="category/java/performance.xml/UseArraysAsList"/>
+
+  <!-- Stream / I/O -->
+  <!-- new FileInputStream(...) should be Files.newInputStream(...) —
+       better try-with-resources + perf. -->
+  <rule ref="category/java/performance.xml/AvoidFileStream"/>
+
+  <!-- Misc -->
+  <!-- new BigInteger("0") should be BigInteger.ZERO etc. -->
+  <rule ref="category/java/performance.xml/BigIntegerInstantiation"/>
+
+  <!-- ========================================================== -->
+  <!-- Complexity — cyclomatic + cognitive                        -->
+  <!-- ========================================================== -->
+  <!-- Cyclomatic complexity = McCabe count of independent paths   -->
+  <!-- through a method (1 + branching points). Rule of thumb:    -->
+  <!--   1-10  simple, low risk                                   -->
+  <!--   11-20 moderate, understand-with-care                     -->
+  <!--   21-50 complex, refactor candidate                        -->
+  <!--   50+   untestable, refactor required                      -->
+  <!--                                                            -->
+  <!-- methodReportLevel = 10 → flags methods at the upper edge    -->
+  <!-- of "simple"; classReportLevel = 80 (PMD default) flags       -->
+  <!-- whole-class hot-spots.                                     -->
+  <!-- ========================================================== -->
+  <rule ref="category/java/design.xml/CyclomaticComplexity">
+    <properties>
+      <property name="methodReportLevel" value="10"/>
+      <property name="classReportLevel" value="80"/>
+    </properties>
+  </rule>
+
+  <!-- Cognitive complexity weights nesting depth and control-flow -->
+  <!-- structure more heavily than cyclomatic — better signal for  -->
+  <!-- "is this method hard to read." Often pairs with cyclomatic  -->
+  <!-- to surface the "20-line tangle" methods that look short on  -->
+  <!-- paper but unfold into nested ifs / loops / try-catches.     -->
+  <rule ref="category/java/design.xml/CognitiveComplexity">
+    <properties>
+      <property name="reportLevel" value="15"/>
+    </properties>
+  </rule>
 
 </ruleset>
