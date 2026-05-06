@@ -9,6 +9,7 @@ import infinity.BombLevel;
 import infinity.GunLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
+import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
 import infinity.config.GunStats;
@@ -108,20 +109,31 @@ public final class GroovyShipLoader {
   // Preserves prior behaviour for any preset whose ships.groovy doesn't
   // override these.
 
-  /** Default starting bomb level + max + cost + fire-delay. */
+  /** Default starting bomb level + max + cost + fire-delay + speed. */
   static final BombStats DEFAULT_BOMBS =
-      new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, /* cost */ 10, /* fireDelayCs */ 25);
+      new BombStats(
+          BombLevel.BOMB_1,
+          BombLevel.BOMB_4,
+          /* cost */ 10,
+          /* fireDelayCs */ 25,
+          /* speed */ 2000); // SVS canon BombSpeed=2000 (Subspace velocity units)
 
-  /** Default starting gun level + max + cost + fire-delay. */
+  /** Default starting gun level + max + cost + fire-delay + speed. */
   static final GunStats DEFAULT_GUNS =
-      new GunStats(GunLevel.LEVEL_1, GunLevel.LEVEL_4, /* cost */ 10, /* fireDelayCs */ 25);
+      new GunStats(
+          GunLevel.LEVEL_1,
+          GunLevel.LEVEL_4,
+          /* cost */ 10,
+          /* fireDelayCs */ 25,
+          /* speed */ 2000); // SVS canon BulletSpeed=2000
 
   /** Default starting mine level + max + cost + fire-delay. */
   static final MineStats DEFAULT_MINES =
       new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, /* cost */ 50, /* fireDelayCs */ 500);
 
-  /** Default starting + max burst inventory count. */
-  static final CountStats DEFAULT_BURSTS = new CountStats(/* start */ 5, /* max */ 5);
+  /** Default starting + max burst inventory count + per-projectile speed. */
+  static final BurstStats DEFAULT_BURSTS =
+      new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000); // SVS canon BurstSpeed=3000
 
   /** Default starting + max thor inventory count + per-fire delay. */
   static final CountWithDelayStats DEFAULT_THORS =
@@ -394,7 +406,7 @@ public final class GroovyShipLoader {
     private BombStats bombs = null;
     private GunStats guns = null;
     private MineStats mines = null;
-    private CountStats bursts = null;
+    private BurstStats bursts = null;
     private CountWithDelayStats thors = null;
     private CountStats repels = null;
     private CountStats decoys = null;
@@ -448,24 +460,41 @@ public final class GroovyShipLoader {
       this.radarRange = doubleArg("radarRange", value);
     }
 
-    /** {@code bombs start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25} */
+    /**
+     * {@code bombs start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10,
+     *        fireDelay: 25, speed: 2000}
+     *
+     * <p>{@code speed} is in Subspace velocity units (canonical
+     * {@code [Ship] BombSpeed} key range). Fire-time consumer applies
+     * {@code EngineConfig.subspaceVelocityScale} + cap to land in jME
+     * world units. See slice 10.
+     */
     public void bombs(final Map<String, ?> args) {
       this.bombs =
           new BombStats(
               bombsArg("bombs", args, "start"),
               bombsArg("bombs", args, "max"),
               intArg("bombs", args, "cost"),
-              longArg("bombs", args, "fireDelay"));
+              longArg("bombs", args, "fireDelay"),
+              intArg("bombs", args, "speed"));
     }
 
-    /** {@code guns start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_4, cost: 10, fireDelay: 25} */
+    /**
+     * {@code guns start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_4, cost: 10,
+     *        fireDelay: 25, speed: 2000}
+     *
+     * <p>{@code speed} is in Subspace velocity units (canonical
+     * {@code [Ship] BulletSpeed} key range). Fire-time consumer applies
+     * {@code EngineConfig.subspaceVelocityScale} + cap. See slice 10.
+     */
     public void guns(final Map<String, ?> args) {
       this.guns =
           new GunStats(
               gunsArg("guns", args, "start"),
               gunsArg("guns", args, "max"),
               intArg("guns", args, "cost"),
-              longArg("guns", args, "fireDelay"));
+              longArg("guns", args, "fireDelay"),
+              intArg("guns", args, "speed"));
     }
 
     /** {@code mines start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500} */
@@ -478,10 +507,20 @@ public final class GroovyShipLoader {
               longArg("mines", args, "fireDelay"));
     }
 
-    /** {@code bursts start: 5, max: 5} */
+    /**
+     * {@code bursts start: 5, max: 5, speed: 3000}
+     *
+     * <p>{@code speed} is in Subspace velocity units (canonical
+     * {@code [Ship] BurstSpeed} key range). Fire-time consumer applies
+     * {@code EngineConfig.subspaceVelocityScale} + cap to land each
+     * fan-projectile's launch speed in jME world units. See slice 10.
+     */
     public void bursts(final Map<String, ?> args) {
       this.bursts =
-          new CountStats(intArg("bursts", args, "start"), intArg("bursts", args, "max"));
+          new BurstStats(
+              intArg("bursts", args, "start"),
+              intArg("bursts", args, "max"),
+              intArg("bursts", args, "speed"));
     }
 
     /** {@code thors start: 2, max: 2, fireDelay: 1000} */

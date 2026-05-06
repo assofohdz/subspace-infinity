@@ -6,8 +6,6 @@ shipSection('Warbird') {
     MultiFireEnergy 450
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 5000
-    BombSpeed 5000
     SeeBombLevel 2
     DisableFastShooting 1
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Warbird') {
     UpgradeEnergy 0
     AfterburnerEnergy 5500
     BombThrust 1000
-    BurstSpeed 1
     TurretThrustPenalty 4
     TurretSpeedPenalty 400
     MultiFireDelay 100

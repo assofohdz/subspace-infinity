@@ -47,7 +47,9 @@ import javax.annotation.Nullable;
  *     = no guns
  * @param mines starting + max mine level (reuses BombLevel enum), drop cost,
  *     drop-delay; {@code null} = no mines
- * @param bursts starting + max burst inventory count; {@code null} = no bursts
+ * @param bursts starting + max burst inventory count + per-projectile speed;
+ *     {@code null} = no bursts. Speed is in Subspace velocity units;
+ *     fire-time consumer applies {@code EngineConfig.subspaceVelocityScale}.
  * @param thors starting + max thor inventory count + per-fire delay;
  *     {@code null} = no thors
  * @param repels starting + max repel inventory count; {@code null} = no repels
@@ -79,7 +81,7 @@ public record ShipConfig(
     @Nullable BombStats bombs,
     @Nullable GunStats guns,
     @Nullable MineStats mines,
-    @Nullable CountStats bursts,
+    @Nullable BurstStats bursts,
     @Nullable CountWithDelayStats thors,
     @Nullable CountStats repels,
     @Nullable CountStats decoys,

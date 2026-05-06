@@ -6,8 +6,6 @@ shipSection('Terrier') {
     MultiFireEnergy 500
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 800
-    BombSpeed 5000
     SeeBombLevel 2
     DisableFastShooting 0
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Terrier') {
     UpgradeEnergy 0
     AfterburnerEnergy 4000
     BombThrust 1000
-    BurstSpeed 3500
     TurretThrustPenalty 1
     TurretSpeedPenalty 150
     MultiFireDelay 75

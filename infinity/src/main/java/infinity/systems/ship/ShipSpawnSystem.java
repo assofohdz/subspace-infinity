@@ -10,6 +10,7 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.BombStats;
+import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
 import infinity.config.GunStats;
@@ -74,10 +75,13 @@ import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombMaxLevel;
+import infinity.es.ship.weapons.BombSpeed;
+import infinity.es.ship.weapons.BurstSpeed;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunFireDelay;
 import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.GunSpeed;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
@@ -378,6 +382,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, new BombMaxLevel(bombs.max()));
     ed.setComponent(shipId, new BombCost(bombs.cost()));
     ed.setComponent(shipId, new BombFireDelay(bombs.fireDelayCs()));
+    ed.setComponent(shipId, new BombSpeed(bombs.speed()));
   }
 
   private void projectGuns(
@@ -391,6 +396,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, new GunMaxLevel(guns.max()));
     ed.setComponent(shipId, new GunCost(guns.cost()));
     ed.setComponent(shipId, new GunFireDelay(guns.fireDelayCs()));
+    ed.setComponent(shipId, new GunSpeed(guns.speed()));
   }
 
   private void projectMines(
@@ -407,7 +413,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectBursts(
-      final EntityId shipId, @Nullable final CountStats bursts, final boolean resetLivePool) {
+      final EntityId shipId, @Nullable final BurstStats bursts, final boolean resetLivePool) {
     if (bursts == null) {
       return;
     }
@@ -415,6 +421,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
       ed.setComponent(shipId, new Burst(bursts.start()));
     }
     ed.setComponent(shipId, new BurstMax(bursts.max()));
+    ed.setComponent(shipId, new BurstSpeed(bursts.speed()));
   }
 
   private void projectThors(

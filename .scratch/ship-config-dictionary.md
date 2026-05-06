@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-28 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+31 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp + 3 projectile speeds). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
@@ -51,6 +51,9 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `XRadarEnergy` | `xradar energy:` | `xradar.energyDrainPer1000Cs()` | `XRadarEnergy` | `StatusDrainSystem.update` |
 | `AntiWarpStatus` | `antiwarp status:` | `antiwarp.status()` | `AntiwarpStatus` | `AntiWarpPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectAntiwarp` |
 | `AntiWarpEnergy` | `antiwarp energy:` | `antiwarp.energyDrainPer1000Cs()` | `AntiwarpEnergy` | `StatusDrainSystem.update` |
+| `BulletSpeed` | `guns speed:` | `guns.speed()` | `GunSpeed` (raw Subspace velocity units) | `WeaponsSystem.getAttackInfo` (case GUN) → `effectiveProjectileSpeed(speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` |
+| `BombSpeed` | `bombs speed:` | `bombs.speed()` | `BombSpeed` | `WeaponsSystem.getAttackInfo` (case BOMB) → `effectiveProjectileSpeed(...)` |
+| `BurstSpeed` | `bursts speed:` | `bursts.speed()` | `BurstSpeed` | `WeaponsSystem.getAttackInfo` (case BURST — slice 10 latent fix) → `effectiveProjectileSpeed(...)` |
 
 ## Infinity-only Groovy fields (no fragment source)
 
@@ -67,7 +70,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ## Pending — `shipSection` keys not yet ported to typed `ShipConfig`
 
-64 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
+61 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
 
 ### Weapons — gun / bomb / mine firing
 
@@ -75,11 +78,9 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 |---|---|
 | `BulletFireDelay` | Per-shot cooldown for guns. |
 | `BulletFireEnergy` | Energy cost per gun shot. |
-| `BulletSpeed` | Gun projectile speed. |
 | `BombFireDelay` | Per-shot cooldown for bombs. |
 | `BombFireEnergy` | Energy cost per bomb (level 1 baseline). |
 | `BombFireEnergyUpgrade` | Per-level energy delta for bombs. |
-| `BombSpeed` | Bomb projectile speed. |
 | `BombThrust` | Recoil thrust applied to the firing ship. |
 | `BombBounceCount` | How many wall-bounces a bomb survives. |
 | `EmpBomb` | Whether the ship's bombs deal EMP damage (boolean). |
@@ -101,7 +102,6 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `MaxMines` | Mine inventory cap. (No `InitialMines` in the `shipSection` surface.) |
 | `InitialBurst` / `BurstMax` | Burst grenades. `Burst` / `BurstMax` components exist; not Groovy-driven. |
 | `BurstShrapnel` | Shrapnel count per burst. |
-| `BurstSpeed` | Burst projectile speed. |
 | `InitialRepel` / `RepelMax` | Repel charges. |
 | `InitialDecoy` / `DecoyMax` | Decoy charges. |
 | `InitialThor` / `ThorMax` | Thor charges. `ThorCurrentCount` / `ThorMaxCount` components exist; not Groovy-driven. |

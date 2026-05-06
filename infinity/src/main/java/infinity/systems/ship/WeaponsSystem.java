@@ -25,6 +25,8 @@ import com.simsilica.sim.SimTime;
 import infinity.systems.ContactSystem;
 import infinity.config.ArenaConfig;
 import infinity.config.BombConfig;
+import infinity.config.EngineConfig;
+import infinity.settings.EngineConfigSystem;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
@@ -43,13 +45,16 @@ import infinity.es.ship.actions.Thor;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombSpeed;
 import infinity.es.ship.weapons.Bounce;
+import infinity.es.ship.weapons.BurstSpeed;
 import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.GunCost;
 import infinity.es.ship.weapons.GunCurrentLevel;
 import infinity.es.ship.weapons.GunFireDelay;
+import infinity.es.ship.weapons.GunSpeed;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
@@ -102,6 +107,7 @@ public class WeaponsSystem extends AbstractGameSystem
   private SimTime time;
   private EnergySystem energySystem;
   private ArenaSystem arenaSystem;
+  private EngineConfigSystem engineConfigSystem;
   private EntitySet damageEntities;
   private EntitySet energyEntities;
 
@@ -137,6 +143,11 @@ public class WeaponsSystem extends AbstractGameSystem
     energySystem = getSystem(EnergySystem.class);
     arenaSystem = getSystem(ArenaSystem.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
+    engineConfigSystem = getSystem(EngineConfigSystem.class);
+    if (engineConfigSystem == null) {
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires the EngineConfigSystem.");
+    }
     guns = ed.getEntities(GunCurrentLevel.class, GunFireDelay.class, GunCost.class);
     bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
     bursts = ed.getEntities(Burst.class);
@@ -759,14 +770,25 @@ public class WeaponsSystem extends AbstractGameSystem
 
     final RigidBody<?, ?> shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
 
-    // Step 1: Scale the velocity based on weapon type, weapon level and ship type
-    // TODO: Look these settings up in SettingsSystem
+    // Step 1: Scale the projectile velocity. Per-ship knobs come from the
+    // GunSpeed/BombSpeed/BurstSpeed components stamped at spawn (slice 10);
+    // engine-tier knobs (subspaceVelocityScale + maxProjectileSpeedJme)
+    // bridge Subspace velocity units → jME world units / sec.
+    final EngineConfig engineCfg = engineConfigSystem.get();
+    final double scale = engineCfg.subspaceVelocityScale();
+    final double maxJme = engineCfg.maxProjectileSpeedJme();
     switch (weaponFlag) {
       case WeaponsSystem.GUN:
-        projectileVelocity.addLocal(0, 0, 50);
+        projectileVelocity.addLocal(
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, GunSpeed.class).getSpeed(), scale, maxJme));
         break;
       case WeaponsSystem.BOMB:
-        projectileVelocity.addLocal(0, 0, 25);
+        projectileVelocity.addLocal(
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BombSpeed.class).getSpeed(), scale, maxJme));
+        break;
+      case WeaponsSystem.BURST:
+        projectileVelocity.addLocal(
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
         break;
       case WeaponsSystem.GRAVBOMB:
         break;
@@ -793,9 +815,11 @@ public class WeaponsSystem extends AbstractGameSystem
     final Vec3d shipPosition = new Vec3d(shipBody.position);
 
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
-    // Offset with the radius of the projectile
+    // Offset with the radius of the projectile. Burst projectiles are
+    // bullet-shaped, so they share the GUN-side radius.
     switch (weaponFlag) {
       case WeaponsSystem.GUN:
+      case WeaponsSystem.BURST:
         projectilePosition.addLocal(0, 0, CorePhysicsConstants.BULLETSIZERADIUS);
         break;
       case WeaponsSystem.BOMB:
@@ -1094,6 +1118,31 @@ public class WeaponsSystem extends AbstractGameSystem
    */
   static double proximityRadiusForLevel(final int baseTiles, final int level) {
     return baseTiles + (level - 1);
+  }
+
+  /**
+   * Slice 10 — pure-function projectile-speed translation. Multiplies the
+   * raw Subspace velocity unit value (from {@code GunSpeed}, {@code BombSpeed},
+   * or {@code BurstSpeed} component) by the engine-tier
+   * {@code subspaceVelocityScale}, then clamps the absolute value to the
+   * engine-tier {@code maxProjectileSpeedJme} cap to prevent legacy outliers
+   * (e.g. trench javelin's {@code BulletSpeed 64636}) from producing
+   * physics-breaking velocities.
+   *
+   * <p>Negative inputs preserve sign so a future slice 10b (backward firing)
+   * can author negative-speed values directly without consumer-side
+   * special-casing.
+   *
+   * <p>Exposed package-private so unit tests can pin scale + cap behaviour
+   * without bringing up an ECS / arena fixture.
+   */
+  static double effectiveProjectileSpeed(
+      final int subspaceValue, final double scale, final double maxJmeAbs) {
+    final double translated = subspaceValue * scale;
+    if (translated >= 0.0) {
+      return Math.min(translated, maxJmeAbs);
+    }
+    return Math.max(translated, -maxJmeAbs);
   }
 
   /**

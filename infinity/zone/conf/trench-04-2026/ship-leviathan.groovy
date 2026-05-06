@@ -6,8 +6,6 @@ shipSection('Leviathan') {
     MultiFireEnergy 400
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 1000
-    BombSpeed 4000
     SeeBombLevel 2
     DisableFastShooting 0
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Leviathan') {
     UpgradeEnergy 0
     AfterburnerEnergy 12000
     BombThrust 100
-    BurstSpeed 1
     TurretThrustPenalty 0
     TurretSpeedPenalty 0
     MultiFireDelay 100

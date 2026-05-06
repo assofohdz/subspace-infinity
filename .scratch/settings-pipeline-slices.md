@@ -708,13 +708,348 @@ perturbation, or `FilterPostProcessor`-based screen shake). Greenfield
 on the client side — no `BombHitState`, no camera-shake AppState
 exists today. Land alongside the broader client visual-feedback queue.
 
-## Slice 10 — Projectile speed refactor
+## Slice O1 — Operator-editable conf as external assets
 
-🔲 Per-ship `BulletSpeed`, `BombSpeed`. Replaces inline magic numbers
-(`addLocal(0,0,50)`, `25`) in `WeaponsSystem`. Touches projectile
-creation hot path so independence is lower than slices 1–9, but
-visibility is high — these are two of the most-noticed weapon
-attributes. Promote ahead of 7–9 if balance pressure dictates.
+🔲 Today every Groovy config file (`zone.groovy`, per-arena `arena.groovy`,
+`conf/<preset>/*.groovy`) is bundled inside the `infinity-fat.jar`.
+Operators tuning a live server can't edit these without a full rebuild
++ redeploy.
+
+**Goal:** zone + arena + per-preset conf files become **external assets**
+loaded from a config directory next to the jar, hot-reloadable while
+the server runs. Engine-tier config (`engine.groovy`, see Slice 10)
+stays inside the jar because it's developer-tuned, not operator-tuned.
+
+**Out of scope for this slice (deferred to its own follow-up):**
+- Authentication / signing of external configs (operator-supplied
+  Groovy is a security surface).
+- Persistence of `~set <slot> <field> <value>` mutations to the
+  external config files. Slice B5 introduces ephemeral `~set`;
+  persisting them is a separate concern.
+
+**Scope sketch (subject to grilling when the slice is picked):**
+- Resource loader gains an "external first, classpath fallback"
+  ordering for any path under `conf/`.
+- New `--config-dir <path>` CLI flag (default: `./conf` next to jar).
+- `ConfigRegistrySystem`'s file watcher already handles in-jar
+  hot-reload — extend to watch the external directory.
+- Update player-build scripts / installer to ship a `conf/` directory
+  alongside the jar with the active arena presets.
+
+**Sequence position:** independent of gameplay queue. Land when ops
+lifecycle pressure dictates (e.g., tournament servers wanting same-day
+balance tweaks without a rebuild).
+
+## Slice R1 — Rename `Gun*` → `Bullet*` to match Subspace canon
+
+🔲 Pure rename pass. Today Infinity uses `Gun*` for the bullet-firing
+weapon family (`GunCost`, `GunFireDelay`, `GunCurrentLevel`,
+`GunMaxLevel`, `GunStats`, `WeaponsSystem.GUN` flag, `projectGuns`,
+`guns` DSL, etc.) while Subspace canon authors `[Ship] BulletFireEnergy`,
+`BulletFireDelay`, `BulletSpeed`. Bomb stays Bomb (already canon-aligned).
+
+The two-name split is a small but persistent friction:
+- Slice authors have to translate `BulletSpeed → GunSpeed` mentally
+  every time per-ship bullet knobs come up.
+- New contributors hit a "wait, isn't it called bullet?" speed bump.
+- Component Javadoc carries explicit "Gun maps to Bullet*" notes that
+  exist solely to bridge the rename gap.
+
+**Scope (rename only — no behavior change):**
+- Components: `GunCost`/`GunFireDelay`/`GunCurrentLevel`/`GunMaxLevel`/
+  `GunSpeed` (slice 10) → `BulletCost`/`BulletFireDelay`/etc.
+- Records: `GunStats` → `BulletStats`; `GunLevel` enum → `BulletLevel`.
+- DSL: `guns start: …, max: …, cost: …, fireDelay: …, speed: …` →
+  `bullets start: …, max: …, …`. (One typed-DSL setter per
+  per-arena `ships.groovy`.)
+- WeaponsSystem: constants `GUN` → `BULLET`, methods `canAttackGun`/
+  `setCoolDownGun`/`createProjectileGun`/`projectGuns` →
+  `canAttackBullet`/etc.
+- ShipSpawnSystem: `projectGuns` → `projectBullets`.
+- Prize side: Subspace prize is canonically named `Gun` (= "Gun Upgrade"),
+  so `GunPrizeApplier` stays `GunPrizeApplier` and the prize type stays
+  `Gun`. The rename is for the **projectile-side weapon family**, not
+  the prize. (Document this asymmetry in the slice's class Javadoc.)
+- Tests: ~10-15 test files reference `Gun*` — rename in lockstep.
+- Per-ship `ships.groovy`: rename `guns` block → `bullets` block in 4
+  active arena presets (trench/deva/testconf + base if relevant).
+- Tracker rows: pipeline tracker's `[Bullet]` section + per-ship
+  inventory subsection get cell updates for new component names.
+
+**Sequencing notes:**
+- **Land after Slice 10** so `GunSpeed` is born and dies under the
+  new name in one slice. Doing it before would mean naming the new
+  component `GunSpeed` then renaming it next slice — wasted edit.
+- Burst rename ambiguous? — keep `BurstSpeed` / `BurstStats` as-is.
+  Burst is already canon-aligned (Subspace authors `BurstSpeed`,
+  Infinity authors `BurstSpeed`).
+
+**Risk:** zero behavior risk (pure rename + compile-verifies). Risk
+is purely conflict surface — if landed alongside other refactors
+touching `WeaponsSystem` / `ShipConfig`, merges get noisy.
+
+## Slice P2 — Physics implementation audit
+
+🔲 Open-ended audit / cleanup pass on Infinity's physics layer. Surfaced
+during Slice 10 grilling: there's persistent unit confusion across the
+existing physics integrations, no documented conversion boundary, and
+multiple "magic numbers" that exist only because nobody's written down
+what unit anything is in.
+
+**Concrete symptoms (audit material, not pre-decided answers):**
+
+1. **Unit mismatch — ship vs projectile speed.** Trench warbird
+   authors `speed initial: 2000, max: 6000` (Subspace pixel-flavored
+   units), consumed by `PlayerDriver` and turned into something the
+   physics integrator accepts. Same trench warbird's bullets fire at
+   `addLocal(0, 0, 50)` (jME world-units / sec). Two different unit
+   conventions in the same ship — no documented translation.
+2. **Inline magic numbers throughout `WeaponsSystem`.** Bullet `50`,
+   bomb `25`, thor `50` (in `ConsumableSystem`). Each is a tuning
+   knob in disguise — Slice 10 promotes bullet/bomb/burst to typed
+   `*Speed` fields, but the audit should sweep the rest:
+   `BombThrust`, `BombBounceCount`, `AfterburnerEnergy`, `Radius`,
+   `Gravity`, `GravityTopSpeed`, etc. — multiple have authored values
+   in `ship-X.groovy` that are stale-and-never-read.
+3. **`dragFactor`, `turnResponsiveness`, `bounceRestitution` are
+   typed and consumed**, but their unit semantics aren't documented
+   (they live in `ShipConfig` Javadoc as "0..1" or "1/sec" but
+   converting between Subspace `BounceFactor` and Infinity's
+   `bounceRestitution` is empirical).
+4. **`SpeedMax`, `ThrustMax`, etc. carry Subspace-canonical numeric
+   ranges** (4-digit) but the integrator probably scales them
+   internally somewhere. That scale factor isn't centralized — it's
+   wherever PlayerDriver does its thing. Possibly a hard-coded
+   constant; possibly part of the Moss physics integration.
+5. **Mines force `velocity = (0, 0, 0)` in `getAttackInfo`** as a
+   special-case, instead of the spawn pipeline projecting an
+   appropriate component value. Same shape of problem as bullet/bomb
+   speed before Slice 10 — could be folded into the same Pattern 4
+   solution.
+
+**Audit questions to answer (not pre-decided):**
+
+- Is there a single "Subspace-units → jME world-units" conversion
+  factor we can centralize, or is the relationship non-linear and
+  per-mechanic?
+- Should `*Speed` / `*Thrust` / etc. be authored in jME world-units
+  uniformly (Slice 10 / 9a precedent — own the divergence), or in
+  canon Subspace units with an adapter-side conversion (cleaner for
+  operators porting from SVS, but introduces a "magic constant" in
+  the loader)?
+- Are there magic numbers in `Moss` / `mphys` integration we can
+  replace with typed config?
+- Does `ShipConfig` need a unit-aware wrapper type (e.g. `WorldUnit`
+  vs `SubspaceUnit` value-objects) to surface unit-mismatch bugs at
+  compile time? Probably overkill for the size of the codebase, but
+  worth considering once.
+
+**Scope:** investigation + documentation first; concrete refactors
+fall out of what the audit surfaces. Likely produces 1-2 follow-up
+slices (e.g. "S2 — Centralize Subspace-to-Infinity speed conversion"
+or "S3 — Promote `BombThrust` / `Radius` / etc. to typed `ShipConfig`
+fields with documented units").
+
+**Non-goals:**
+- Not a Moss-replacement slice. Infinity's physics integration is
+  Moss/mphys; switching frameworks is a vastly larger conversation.
+- Not a gameplay-tuning slice. Audit informs future tuning; doesn't
+  do the tuning itself.
+
+**Sequence position:** post-everything. Land after the gameplay queue
+catches up so the audit has the full picture of what's wired vs not.
+Likely after Slice 16 + B4 + B5.
+
+## Slice P1 — ECS broad-phase + per-arena scan perf review
+
+🔲 Cross-cutting perf pass after slices 8d / 9a / 9b / 9c-BombSafety
+landed multiple per-tick / per-fire scans over global EntitySets.
+Each scan is fine alone; the concern is that they all walk the same
+underlying `Health.class` set without arena-pre-filtering, and a few
+recompute per-arena player counts on every tick.
+
+**Specific questions to answer:**
+
+1. **Do we need to scan arena vs ship every tick?**
+   `PrizeSystem.update` calls `countPlayersInArena(ArenaId)` per
+   spawner per tick (Slice 8d). `StatusDrainSystem` walks every
+   Cloak/Stealth/XRadar/AntiWarp toggle holder per tick (6a/6b).
+   These each filter the same global EntitySets by `ArenaId` from
+   scratch — could share a per-arena cache.
+
+2. **Do we need to scan proxbomb vs ship every tick?**
+   `ProximityFuseSystem.tryArm` walks every `Health` ship for every
+   in-flight proximity bomb each tick (Slice 9b). At 8 bombs × 32
+   ships × 60 tick = ~15k checks/sec just for arming. Plus
+   `WeaponsSystem.applySplashDamage` (per-detonation, finite),
+   `WeaponsSystem.bombSafetyClear` (per-fire-attempt, ~1-2/sec/ship).
+   Could pre-filter by arena via shared infrastructure.
+
+3. **Should EntitySet membership filter on `ArenaId` at the source?**
+   Today the EntitySets are global. Per-arena EntitySets would
+   eliminate the filter loop in every consumer. Trade-off: more
+   EntitySets to lifecycle-manage; per-arena cardinality might be
+   high enough that the win is marginal.
+
+4. **What per-arena snapshots are worth caching cross-system?**
+   Player count, ship-IDs-in-arena, bomb-IDs-in-arena, FF mode (the
+   last is already cached but recomputed via ED lookup per-call).
+   A per-arena `ArenaScanCache` updated once per tick by a single
+   producer system, read by all consumers, would centralize the cost.
+
+**Scope:** plumbing-only. No gameplay knob changes. Goal: cut the
+per-tick worst-case scan count by ≥1 order of magnitude under typical
+arena load (8 bombs in flight, 4 active per-arena ship spawners,
+8 Status holders, 32 ships) without changing any observable behavior.
+
+**Acceptance:**
+- Existing tests stay green.
+- A new micro-benchmark / perf test (TBD harness) shows the per-tick
+  scan-count delta for a representative scenario.
+- Each of the four scans documents its post-pass cost in Javadoc.
+
+**Sequence position:** independent — pick when there's no urgent
+gameplay slice in flight, ideally after another 1-2 gameplay slices
+add their scans (so the perf pass has the full picture). Could promote
+ahead of Slice 11 if frame-time becomes an in-arena concern.
+
+## Slice 10 — Projectile speed refactor
+✅ Landed.
+
+Per-ship `BulletSpeed` / `BombSpeed` / `BurstSpeed` wired end-to-end,
+authored in Subspace canon velocity units, translated to jME world
+units at fire time via a new engine-tier conversion + cap.
+
+**Engine-tier config introduction (new pattern — first of its kind):**
+- `infinity/src/main/resources/engine.groovy` — game-wide developer-tunable
+  knobs, packaged in jar. Distinct from per-arena/per-zone configs
+  (operator-tunable, intended to externalize per Slice O1).
+- `EngineConfig(double subspaceVelocityScale, double maxProjectileSpeedJme)`
+  record + `DEFAULTS = (0.01, 100.0)`.
+- `GroovyEngineLoader` (typed `engine { … }` DSL, mirrors `GroovyZoneLoader`
+  shape) + `EngineConfigSystem` (loads once at startup, exposes
+  `EngineConfig get()`). Registered in `GameServer` alongside
+  `ConfigRegistrySystem`.
+
+**Per-ship type changes:**
+- `BombStats(start, max, cost, fireDelayCs, **speed**)` — 5th field.
+- `GunStats(start, max, cost, fireDelayCs, **speed**)` — 5th field.
+- New `BurstStats(start, max, speed)` — replaces `CountStats` for
+  bursts only (decoys/bricks/portals stay on `CountStats`).
+- `ShipConfig.bursts` field type: `CountStats` → `BurstStats`.
+- New components in `api/src/infinity/es/ship/weapons/`:
+  `GunSpeed(int)`, `BombSpeed(int)`, `BurstSpeed(int)`. Server-only
+  (no client-side reference); skip serializer registration per
+  `components.md`.
+
+**DSL extensions:**
+- `bombs start: …, max: …, cost: …, fireDelay: …, **speed: 2000**`
+- `guns  start: …, max: …, cost: …, fireDelay: …, **speed: 2000**`
+- `bursts start: …, max: …, **speed: 3000**`
+
+**Spawn projection:** `ShipSpawnSystem.projectBombs` /
+`projectGuns` / `projectBursts` extended to stamp the new `*Speed`
+components. Bursts also project `BurstMax` (already wired).
+
+**WeaponsSystem refactor:**
+- `getAttackInfo` reads per-ship `GunSpeed` / `BombSpeed` /
+  `BurstSpeed` component, applies `effectiveProjectileSpeed(rawValue,
+  scale, maxJme) = clamp(rawValue × scale, ±maxJme)`.
+- Pure-function helper `effectiveProjectileSpeed` extracted (mirrors
+  `proximityRadiusForLevel` + `splashRadiusForLevel` style).
+  Negative-input pathway preserved for Slice 10b backward firing.
+- **Latent burst-broken bug fixed:** previously `getAttackInfo`'s
+  switch had no `case BURST` and threw `AssertionError` on every
+  burst fire. Both switches (velocity + position offset) now handle
+  BURST; burst projectiles inherit the bullet-radius position offset.
+
+**Per-arena migrations (Q6 lift-1:1):**
+- Trench/deva: per-ship speed values lifted directly from each
+  `ship-<name>.groovy` into the typed `ships.groovy` DSL. Stale
+  `BulletSpeed` / `BombSpeed` / `BurstSpeed` keys stripped from all
+  16 `ship-<name>.groovy` files via `sed`.
+- Trench javelin's legacy `BulletSpeed 64636` (likely SVS int16
+  overflow encoding for backward firing — Slice 10b territory) lifts
+  as raw `64636`; engine cap clamps the translated `646.36` to
+  `100.0` jME forward (intentionally wrong-direction-but-bounded
+  until 10b lands; comment in trench `ships.groovy`).
+- testconf: lifted from `svsSettings.cfg` SVS canon (uniform
+  `bulletSpeed: 2000, bombSpeed: 2000, burstSpeed: 3000`).
+
+**Behaviour change on active arenas:**
+- Trench warbird `BulletSpeed 5000 → 50` jME (matches today).
+- Trench warbird `BombSpeed 5000 → 50` jME (was hardcoded `25`,
+  now `50` — 2× faster bombs). Operator-noticeable gameplay shift.
+- Most other ships' speeds shift slightly (jav 2250→22, lev 4000→40,
+  etc.) per the 1:1 lift; previous behaviour ignored the ship-X
+  values entirely so this is the first time per-ship variation is
+  visible.
+
+**Tests:**
+- `WeaponsSystemSplashTest.effectiveProjectileSpeed_*` (6 cases:
+  scale math, cap clamping, zero, low, negative+sign, alternate scale).
+- `ConfigRegistrySystemLoadTest`: trench warbird parses
+  `BulletSpeed = 5000` through `ShipConfig.guns().speed()`.
+- New `EngineConfigSystemTest` (3 cases: packaged groovy parses to
+  defaults, missing path falls back, pre-init returns DEFAULTS).
+- `ShipSpawnSystemTest`: `GunSpeed` / `BombSpeed` / `BurstSpeed`
+  projection asserted alongside existing inventory components.
+  Constructor calls updated for the new `BombStats` / `GunStats` /
+  `BurstStats` arity.
+
+**Out of scope (own follow-up slice — `BurstShrapnel` per-ship):**
+canon Subspace authors `BurstShrapnel` per-ship in `[Ship]` sections,
+but Infinity currently consumes via arena-global
+`BurstFireConfig.projectileCount` (= per-arena, not per-ship). This
+is a known divergence; aligning canon would mean adding `count` to
+`BurstStats` and reading from the per-ship component instead of the
+arena-global config. Not bundled here.
+
+**Out of scope (deferred — slice 10b):** backward-firing semantics
+for legacy SVS int16-overflow values. Trench javelin currently
+fires forward+capped instead of backward.
+
+**Out of scope (deferred — slice R1):** rename `Gun*` → `Bullet*`
+across the component family (`GunSpeed` → `BulletSpeed`,
+`GunCost` → `BulletFireEnergy`, etc.) for canon alignment.
+
+## Slice 10b — Backward-firing projectiles
+
+🔲 Subspace VIE encoded projectile velocities as 16-bit signed ints
+(`int16`); values above 32767 wrap to negative and meant "fire
+backward" empirically. Slice 10 lifts legacy values 1:1 (so
+`BulletSpeed 64636` parses as raw `64636` and translates to fast
+forward + post-cap). This slice teaches Infinity's typed DSL the
+backward-firing intent.
+
+**Candidates flagged during Slice 10 grilling (verify empirically):**
+- **Trench javelin** `BulletSpeed 64636` (= int16 `-900`) — bullets
+  appear to fire backward at moderate speed. Slice-10-port
+  translates to 646 jME forward (clamped to cap), wrong direction.
+- **Trench shark** `BombSpeed 1` — possibly intended-slow-forward,
+  but flagged for verification alongside javelin since both are
+  outliers vs other ship presets. May NOT be backward-firing — only
+  jav fits the int16 hypothesis. Empirical test: launch trench,
+  swap to shark, fire bombs — direction observable.
+
+**Scope sketch (subject to grilling when picked):**
+- Typed DSL accepts negative `bulletSpeed` / `bombSpeed` /
+  `burstSpeed` values directly (`bulletSpeed: -900` for backward at
+  speed 9 jME with `0.01` scale).
+- Migration: re-author trench javelin's `bulletSpeed: -900`
+  (manual int16 → signed lift). Document the legacy int16 encoding
+  in record Javadoc.
+- Optional: loader detects values in `[32768, 65535]` and warns
+  "looks like int16-overflow encoded backward firing — consider
+  authoring as negative explicitly."
+- Consumer math: `addLocal(0, 0, signedValue * scale)` already works
+  with negative — projectile rotates with ship and fires "behind."
+  No new physics code; the cap clamps absolute value.
+- Test: pin negative-speed projection in `ConfigRegistrySystemLoadTest`
+  + smoke verification (launch, observe direction).
+
+**Sequence position:** post-Slice-10. Independent of other gameplay
+slices.
 
 ## Slices 11–15 — Bigger absent features
 

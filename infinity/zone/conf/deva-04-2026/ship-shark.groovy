@@ -6,8 +6,6 @@ shipSection('Shark') {
     MultiFireEnergy 29
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 3000
-    BombSpeed 4900
     SeeBombLevel 0
     DisableFastShooting 0
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Shark') {
     UpgradeEnergy 400
     AfterburnerEnergy 1
     BombThrust 0
-    BurstSpeed 8000
     TurretThrustPenalty 0
     TurretSpeedPenalty 30
     MultiFireDelay 10

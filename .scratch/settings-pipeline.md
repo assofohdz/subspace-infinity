@@ -510,13 +510,13 @@ is the macro view.
 | C | Setting | Authored? | Loader | API config | Component | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|---|
 | ✅ | `BulletFireEnergy` | ✅ ships.groovy | `GroovyShipLoader` | `GunStats.fireCost` | `GunCost` | — | `WeaponsSystem.deductCostOfAttackGun` | ❌ |
-| ⚠️ | `BulletSpeed` | ✅ ships.groovy | ❌ (per-ship — ShipConfig field?) | ❌ | ❌ (no component) | — | ❌ (today inline `addLocal(0,0,50)` in WeaponsSystem) | ❌ |
+| ✅ | `BulletSpeed` | ✅ ships.groovy (`guns ... speed:`) | `GroovyShipLoader.guns` | `GunStats.speed` | `GunSpeed` | — | `WeaponsSystem.getAttackInfo` (case GUN) → `effectiveProjectileSpeed(GunSpeed.speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` | ✅ `WeaponsSystemSplashTest.effectiveProjectileSpeed_*` + `ConfigRegistrySystemLoadTest` (trench warbird `5000`) + `ShipSpawnSystemTest` (projection) |
 | ✅ | `BulletFireDelay` | ✅ ships.groovy | `GroovyShipLoader` | `GunStats.fireDelayMs` | `GunFireDelay` | — | `WeaponsSystem` cooldown | ❌ |
 | ⚠️ | `MultiFireEnergy` / `MultiFireDelay` / `MultiFireAngle` | ✅ ships.groovy | ❌ | ❌ | `Multishot` (toggle exists, fields ❌) | — | ❌ | ❌ |
 | ⚠️ | `DoubleBarrel` | ✅ ships.groovy | ❌ | ❌ | `DoubleBarrel` (component exists) | — | ❌ | ❌ |
 | ✅ | `BombFireEnergy` / `BombFireEnergyUpgrade` | ✅ ships.groovy | `GroovyShipLoader` | `BombStats.fireCost`/`fireCostUpgrade` | `BombCost` | — | `WeaponsSystem.deductCostOfAttackBomb` | ❌ |
 | ⚠️ | `BombThrust` / `BombBounceCount` | ✅ ships.groovy | ❌ | ❌ | ❌ (no component) | — | ❌ | ❌ |
-| ⚠️ | `BombSpeed` | ✅ ships.groovy | ❌ | ❌ | ❌ (no component) | — | ❌ (inline `25` today) | ❌ |
+| ✅ | `BombSpeed` | ✅ ships.groovy (`bombs ... speed:`) | `GroovyShipLoader.bombs` | `BombStats.speed` | `BombSpeed` | — | `WeaponsSystem.getAttackInfo` (case BOMB) → `effectiveProjectileSpeed(BombSpeed.speed, scale, cap)` | ✅ `WeaponsSystemSplashTest.effectiveProjectileSpeed_*` + `ShipSpawnSystemTest` |
 | ✅ | `BombFireDelay` | ✅ ships.groovy | `GroovyShipLoader` | `BombStats.fireDelayMs` | `BombFireDelay` | — | `WeaponsSystem` cooldown | ❌ |
 | ⚠️ | `EmpBomb` / `SeeBombLevel` | ✅ ships.groovy | ❌ | ❌ | ❌ (no component) | — | ❌ | ❌ |
 | ✅ | `MaxMines` | ✅ ships.groovy | `GroovyShipLoader` | `MineStats.max` | `MineMaxCount` | — | `WeaponsSystem` mine cap check | ❌ |
@@ -530,7 +530,7 @@ is the macro view.
 |---|---|---|---|---|---|---|---|
 | ⚠️ | `ShrapnelMax` | ✅ ships.groovy | ❌ | ❌ | `ShrapnelPrizeApplier` ❌ stub | ❌ | ❌ |
 | ⚠️ | `ShrapnelRate` | ✅ ships.groovy | ❌ | ❌ | (used by `ShrapnelPrizeApplier` increment) | ❌ | ❌ |
-| ⚠️ | `BurstSpeed` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
+| ✅ | `BurstSpeed` | ✅ ships.groovy (`bursts ... speed:`) | `GroovyShipLoader.bursts` | `BurstStats.speed` | — | `WeaponsSystem.getAttackInfo` (case BURST — slice 10 latent fix) reads `BurstSpeed` component → `effectiveProjectileSpeed(.speed, scale, cap)` | ✅ `WeaponsSystemSplashTest.effectiveProjectileSpeed_*` + `ShipSpawnSystemTest` |
 | ⚠️ | `BurstShrapnel` | ✅ ships.groovy | ❌ (lives in `BurstFireConfig.projectileCount`?) | partial | — | `WeaponsSystem.createProjectileBurst` | ❌ |
 | ⚠️ | `TurretThrustPenalty` / `TurretSpeedPenalty` / `TurretLimit` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ✅ | `RocketTime` | ✅ ships.groovy | `GroovyShipLoader` (`activeTimeCs` arg on `rockets` block; cs×10→ms at projection to ship `RocketTime` component) | `RocketStats.activeTimeCs` | — | `ConsumableSystem.createRocketBuff` (buff entity Decay deadline); `RocketBuffSystem` (swap/revert Thrust+Speed) | ✅ `RocketBuffActivationTest` |

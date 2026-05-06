@@ -6,8 +6,6 @@ shipSection('Lancaster') {
     MultiFireEnergy 420
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 3850
-    BombSpeed 5000
     SeeBombLevel 2
     DisableFastShooting 1
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Lancaster') {
     UpgradeEnergy 0
     AfterburnerEnergy 4750
     BombThrust 1000
-    BurstSpeed 1
     TurretThrustPenalty 3
     TurretSpeedPenalty 360
     MultiFireDelay 50

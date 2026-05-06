@@ -13,6 +13,7 @@ import infinity.BombLevel;
 import infinity.GunLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
+import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
 import infinity.config.GunStats;
@@ -90,10 +91,10 @@ public class ShipSpawnSystemTest {
             8.0,                            // turnResponsiveness
             1.0,                            // bounceRestitution
             250.0,                          // radarRange
-            new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L),
-            new GunStats(GunLevel.LEVEL_1, GunLevel.LEVEL_4, 10, 25L),
+            new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, /* speed */ 2000),
+            new GunStats(GunLevel.LEVEL_1, GunLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
             new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L),
-            new CountStats(5, 5),                       // bursts
+            new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000),
             new CountWithDelayStats(2, 2, 1000L),       // thors
             new CountStats(10, 20),                     // repels
             null,                                       // decoys (disallow)
@@ -195,6 +196,20 @@ public class ShipSpawnSystemTest {
       assertEquals(2, ed.getComponent(shipId, ThorMaxCount.class).getCount());
       assertEquals(10, ed.getComponent(shipId, Repel.class).getCount());
       assertEquals(20, ed.getComponent(shipId, RepelMax.class).getCount());
+
+      // Slice 10 — projectile speeds project from BombStats.speed /
+      // GunStats.speed / BurstStats.speed onto BombSpeed / GunSpeed /
+      // BurstSpeed components. Stored raw (Subspace velocity units);
+      // WeaponsSystem applies engine-tier scale + cap at fire time.
+      assertEquals(
+          2000,
+          ed.getComponent(shipId, infinity.es.ship.weapons.BombSpeed.class).getSpeed());
+      assertEquals(
+          2000,
+          ed.getComponent(shipId, infinity.es.ship.weapons.GunSpeed.class).getSpeed());
+      assertEquals(
+          3000,
+          ed.getComponent(shipId, infinity.es.ship.weapons.BurstSpeed.class).getSpeed());
 
       // Weapon fire-delay components carry runtime state (start/delta nanos),
       // so existence is the right assertion here. Slice 2 covers the

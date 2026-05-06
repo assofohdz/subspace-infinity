@@ -6,8 +6,6 @@ shipSection('Javelin') {
     MultiFireEnergy 30
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 3300
-    BombSpeed 4300
     SeeBombLevel 0
     DisableFastShooting 0
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Javelin') {
     UpgradeEnergy 300
     AfterburnerEnergy 1
     BombThrust 0
-    BurstSpeed 8000
     TurretThrustPenalty 0
     TurretSpeedPenalty 0
     MultiFireDelay 6

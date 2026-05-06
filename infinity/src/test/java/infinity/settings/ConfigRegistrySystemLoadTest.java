@@ -100,6 +100,14 @@ public class ConfigRegistrySystemLoadTest {
       assertNotNull("WARBIRD has guns", warbird.guns());
       assertEquals("WARBIRD MaxGuns = 3 (LEVEL_3)",
           infinity.GunLevel.LEVEL_3, warbird.guns().max());
+      // Slice 10 — per-ship BulletSpeed lifted 1:1 from legacy
+      // ship-warbird.groovy (`BulletSpeed 5000` Subspace velocity units).
+      // Engine-tier scale 0.01 lands at jME 50 = today's hardcoded
+      // addLocal(0,0,50). See WeaponsSystemSplashTest for the math.
+      assertEquals(
+          "WARBIRD BulletSpeed = 5000 (lifted from legacy ship-warbird.groovy)",
+          5000,
+          warbird.guns().speed());
       assertNotNull("WARBIRD has thors", warbird.thors());
       assertEquals("WARBIRD ThorMax = 3", 3, warbird.thors().max());
       assertNotNull("WARBIRD has decoys (B2-activated)", warbird.decoys());

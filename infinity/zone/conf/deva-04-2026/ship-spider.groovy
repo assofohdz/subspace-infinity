@@ -6,8 +6,6 @@ shipSection('Spider') {
     MultiFireEnergy 45
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 4100
-    BombSpeed 4300
     SeeBombLevel 0
     DisableFastShooting 0
     Radius 0
@@ -29,7 +27,6 @@ shipSection('Spider') {
     UpgradeEnergy 400
     AfterburnerEnergy 1
     BombThrust 100
-    BurstSpeed 8000
     TurretThrustPenalty 0
     TurretSpeedPenalty 40
     MultiFireDelay 9

@@ -226,6 +226,58 @@ public class WeaponsSystemSplashTest {
         WeaponsSystem.victimBlocksBombFire(null, null, owner, victim, 3.0));
   }
 
+  // -----------------------------------------------------------------
+  // effectiveProjectileSpeed — Slice 10 Subspace→jME translation + cap
+  // -----------------------------------------------------------------
+
+  @Test
+  public void effectiveProjectileSpeed_appliesScale() {
+    // SVS canon BulletSpeed=2000 with default scale 0.01 → 20 jME.
+    assertEquals(20.0, WeaponsSystem.effectiveProjectileSpeed(2000, 0.01, 100.0), 1e-9);
+    // Trench warbird's BulletSpeed=5000 with default scale 0.01 → 50 jME
+    // (matches today's hardcoded addLocal(0,0,50) for guns, by design).
+    assertEquals(50.0, WeaponsSystem.effectiveProjectileSpeed(5000, 0.01, 100.0), 1e-9);
+  }
+
+  @Test
+  public void effectiveProjectileSpeed_clampsAtCap() {
+    // Trench javelin's legacy BulletSpeed=64636 with scale 0.01 → 646.36
+    // would be physics-breaking; the cap at 100 keeps it safe.
+    assertEquals(100.0, WeaponsSystem.effectiveProjectileSpeed(64636, 0.01, 100.0), 1e-9);
+    // Boundary: exactly at the cap passes through.
+    assertEquals(100.0, WeaponsSystem.effectiveProjectileSpeed(10000, 0.01, 100.0), 1e-9);
+  }
+
+  @Test
+  public void effectiveProjectileSpeed_zeroBaseYieldsZero() {
+    assertEquals(0.0, WeaponsSystem.effectiveProjectileSpeed(0, 0.01, 100.0), 0.0);
+  }
+
+  @Test
+  public void effectiveProjectileSpeed_lowValueStaysLow() {
+    // Trench shark's BulletSpeed=1 with scale 0.01 → 0.01 jME (essentially
+    // stopped — preserves the "shark super slow bullets" gameplay intent).
+    assertEquals(0.01, WeaponsSystem.effectiveProjectileSpeed(1, 0.01, 100.0), 1e-9);
+  }
+
+  @Test
+  public void effectiveProjectileSpeed_negativePreservesSignAndClamps() {
+    // Slice 10b will use negative values for backward firing; the helper
+    // already supports it. Cap clamps the absolute value, sign survives.
+    assertEquals(-9.0, WeaponsSystem.effectiveProjectileSpeed(-900, 0.01, 100.0), 1e-9);
+    assertEquals(-100.0, WeaponsSystem.effectiveProjectileSpeed(-50000, 0.01, 100.0), 1e-9);
+  }
+
+  @Test
+  public void effectiveProjectileSpeed_alternateScale() {
+    // Operator-tunable: different engine.groovy scale produces a
+    // proportionally different output for the same per-ship value.
+    // 2000 × 0.05 = 100 (just hits the cap).
+    assertEquals(100.0, WeaponsSystem.effectiveProjectileSpeed(2000, 0.05, 100.0), 1e-9);
+    // 2000 × 0.02 = 40 (below cap, passes through).
+    assertEquals(40.0, WeaponsSystem.effectiveProjectileSpeed(2000, 0.02, 100.0), 1e-9);
+  }
+
   @Test
   public void victimBlocksBombFire_radiusIs3D() {
     // Scan respects all three axes — a victim above the firing ship still

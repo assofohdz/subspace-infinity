@@ -8,12 +8,21 @@ import infinity.BombLevel;
 /**
  * Per-ship bomb tuning template. Projected at spawn into
  * {@code BombCurrentLevel} / {@code BombMaxLevel} / {@code BombCost} /
- * {@code BombFireDelay} components by {@code ShipSpawnSystem}.
+ * {@code BombFireDelay} / {@code BombSpeed} components by
+ * {@code ShipSpawnSystem}.
  *
  * @param start initial bomb level a freshly-spawned ship has equipped
  * @param max highest bomb level the ship can ever reach (cap on level-up
  *     prizes)
  * @param cost energy cost per bomb fire
  * @param fireDelayCs cooldown between bomb fires, in centiseconds
+ * @param speed projectile launch speed in <em>Subspace velocity units</em>
+ *     (Subspace canonical {@code [Ship] BombSpeed} key range). The
+ *     fire-time consumer ({@code WeaponsSystem.getAttackInfo}) multiplies
+ *     by {@code EngineConfig.subspaceVelocityScale} and clamps to
+ *     {@code EngineConfig.maxProjectileSpeedJme} to land at jME world
+ *     units. See slice 10. Negative / int16-overflow ({@code &gt; 32767})
+ *     values are not interpreted as backward firing in this slice — that's
+ *     deferred to slice 10b.
  */
-public record BombStats(BombLevel start, BombLevel max, int cost, long fireDelayCs) {}
+public record BombStats(BombLevel start, BombLevel max, int cost, long fireDelayCs, int speed) {}

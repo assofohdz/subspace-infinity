@@ -34,10 +34,10 @@ ship(Ship.WARBIRD) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 325, fireDelay: 175
-    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 28,  fireDelay: 6
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 325, fireDelay: 175, speed: 4300
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 28,  fireDelay: 6, speed: 4100
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 460, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
     stealth status: 1, energy: 0
@@ -54,10 +54,10 @@ ship(Ship.JAVELIN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 510, fireDelay: 25
-    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 27,  fireDelay: 6
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 510, fireDelay: 25, speed: 4300
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 27,  fireDelay: 6, speed: 3300
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 1, max: 3
     xradar  status: 1, energy: 0
@@ -73,10 +73,10 @@ ship(Ship.SPIDER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 300, fireDelay: 200
-    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 25,  fireDelay: 8
+    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 300, fireDelay: 200, speed: 4300
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 25,  fireDelay: 8, speed: 4100
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
     cloak   status: 1, energy: 900
@@ -94,10 +94,10 @@ ship(Ship.LEVIATHAN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 45
-    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 6
+    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 45, speed: 5000
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 6, speed: 4000
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 625, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 3
     decoys  start: 0, max: 3
     stealth status: 1, energy: 1
@@ -114,10 +114,10 @@ ship(Ship.TERRIER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 207
-    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 10
+    bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 207, speed: 4300
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 10, speed: 3200
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 400, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
     stealth status: 1, energy: 0
@@ -134,10 +134,10 @@ ship(Ship.WEASEL) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 400, fireDelay: 175
-    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 27,  fireDelay: 5
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 400, fireDelay: 175, speed: 4850
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 27,  fireDelay: 5, speed: 3600
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 250, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 1
     decoys  start: 0, max: 2
     stealth status: 1, energy: 0
@@ -154,10 +154,10 @@ ship(Ship.LANCASTER) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 600, fireDelay: 25
-    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 6
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 600, fireDelay: 25, speed: 2500
+    guns    start: GunLevel.LEVEL_3, max: GunLevel.LEVEL_3, cost: 30,  fireDelay: 6, speed: 3600
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 36
-    bursts  start: 0, max: 2
+    bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
     stealth status: 1, energy: 0
@@ -174,10 +174,10 @@ ship(Ship.SHARK) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 320, fireDelay: 180
-    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 29,  fireDelay: 8
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 320, fireDelay: 180, speed: 4900
+    guns    start: GunLevel.LEVEL_2, max: GunLevel.LEVEL_3, cost: 29,  fireDelay: 8, speed: 3000
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
-    bursts  start: 0, max: 3
+    bursts  start: 0, max: 3, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
     cloak   status: 2, energy: 900

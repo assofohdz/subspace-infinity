@@ -6,8 +6,6 @@ shipSection('Weasel') {
     MultiFireEnergy 242
     BombFireEnergyUpgrade 0
     LandmineFireEnergyUpgrade 0
-    BulletSpeed 1000
-    BombSpeed 5000
     SeeBombLevel 1
     DisableFastShooting 0
     Radius 7
@@ -29,7 +27,6 @@ shipSection('Weasel') {
     UpgradeEnergy 0
     AfterburnerEnergy 5200
     BombThrust 1000
-    BurstSpeed 1
     TurretThrustPenalty 5
     TurretSpeedPenalty 220
     MultiFireDelay 40

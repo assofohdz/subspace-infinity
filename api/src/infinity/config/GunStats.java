@@ -8,12 +8,26 @@ import infinity.GunLevel;
 /**
  * Per-ship gun tuning template. Projected at spawn into
  * {@code GunCurrentLevel} / {@code GunMaxLevel} / {@code GunCost} /
- * {@code GunFireDelay} components by {@code ShipSpawnSystem}.
+ * {@code GunFireDelay} / {@code GunSpeed} components by
+ * {@code ShipSpawnSystem}.
+ *
+ * <p>"Gun" is Infinity's internal name for the bullet-firing weapon family;
+ * Subspace canon authors {@code [Ship] BulletFireEnergy},
+ * {@code BulletFireDelay}, {@code BulletSpeed}. Slice R1 will rename the
+ * internal {@code Gun*} → {@code Bullet*} for canon alignment.
  *
  * @param start initial gun level a freshly-spawned ship has equipped
  * @param max highest gun level the ship can ever reach (cap on level-up
  *     prizes)
  * @param cost energy cost per gun fire
  * @param fireDelayCs cooldown between gun fires, in centiseconds
+ * @param speed projectile launch speed in <em>Subspace velocity units</em>
+ *     (Subspace canonical {@code [Ship] BulletSpeed} key range). The
+ *     fire-time consumer ({@code WeaponsSystem.getAttackInfo}) multiplies
+ *     by {@code EngineConfig.subspaceVelocityScale} and clamps to
+ *     {@code EngineConfig.maxProjectileSpeedJme} to land at jME world
+ *     units. See slice 10. Negative / int16-overflow ({@code &gt; 32767})
+ *     values are not interpreted as backward firing in this slice — that's
+ *     deferred to slice 10b.
  */
-public record GunStats(GunLevel start, GunLevel max, int cost, long fireDelayCs) {}
+public record GunStats(GunLevel start, GunLevel max, int cost, long fireDelayCs, int speed) {}
