@@ -493,11 +493,11 @@ documented per-key in `SpawnerSpec` Javadoc.
 behaviour-preserving defaults (no scaling, visible, regen=1). Operator
 opt-in by editing arena.groovy.
 
-## Slice 9 — Proximity bomb mechanic (split into 9a/9b/9c)
+## Slice 9 — Proximity bomb mechanic (split into 9a/9b/9c-BombSafety/9c-JitterTime)
 
 The original Slice 9 description bundled 5 disparate `[Bomb]` keys —
 splash radius, proximity arming, fuse delay, fire safety, screen jitter
-— that are independent mechanics. After grilling, split into three
+— that are independent mechanics. After grilling, split into four
 sub-slices, each independently shippable:
 
 - **9a — Splash damage path.** `BombExplodePixels` wired with per-level
@@ -515,9 +515,15 @@ sub-slices, each independently shippable:
   arena sizes. Bombs no longer detonate on direct enemy body contact
   — they arm at proximity radius, fuse for the configured delay,
   then explode.
-- **9c — Polish.** `BombSafety` (fire-time check that an enemy isn't
-  already in proximity radius) + `JitterTime` (server-side stamp that
-  client camera-shakes the victim).
+- **9c-BombSafety — fire-time safety gate.** `BombSafety` (boolean)
+  AND'd into `WeaponsSystem.canAttackBomb`; rejects bomb fire when an
+  enemy sits inside the firing ship's effective proximity-arm radius
+  (per-level scaled). Reuses 9b's radius math + FF gate; auto-no-ops
+  when proximity is disabled. Server-only.
+- **9c-JitterTime — bomb-hit screen jitter.** `JitterTime` (cs→ms) —
+  server stamps a `Jitter` deadline on the victim, client camera-shakes
+  for the duration. Crosses into client work; deferred until a
+  client-side jitter / camera-shake AppState exists.
 
 ### Slice 9a — Splash damage path
 ✅ Landed.
@@ -632,13 +638,75 @@ by any automated test — only the static helpers + parse path are. Same
 gap as splash damage's contact-path integration; deferred to the
 spawn-projection harness backlog.
 
-### Slice 9c — BombSafety + JitterTime
-🔲 `[Bomb]` BombSafety (0/1) — fire-time gate when an enemy is already
-within proximity radius of the firing ship; canonical use is a
-self-protect. `JitterTime` (cs→ms) — server stamps a `Jitter`
-deadline component on the victim, client (BombHitState or similar)
-reads to camera-shake. Crosses into client work; defer until a
-`Jitter` consumer exists.
+### Slice 9c-BombSafety — fire-time safety gate
+✅ Landed.
+
+- `BombConfig.bombSafety` (boolean) added; `BombAdapter` exposes the
+  typed DSL setter `bombSafety(boolean)`. Default `false` so arenas not
+  authoring the key keep slice 9b's "fire allowed regardless of nearby
+  enemies" behaviour.
+- `WeaponsSystem.canAttackBomb` extended with a `bombSafetyClear` step
+  AND'd after the existing cooldown + energy gates. Auto-no-ops when
+  `BombConfig.bombSafety == false` OR `BombConfig.proximityDistance == 0`
+  (the bomb wouldn't proximity-arm anyway, so "inside the arming
+  radius" has no meaning).
+- Effective radius reuses slice 9b's `proximityRadiusForLevel(base, level)`
+  (additive per-level scaling: L1 = base, L4 = base+3) — captures "would
+  my bomb arm immediately on a hugging enemy?" semantics.
+- FF gate reuses `ProximityFuseSystem.shouldArmOn` (cross-package call —
+  same `infinity.systems.ship.*` package): friendlies hugging the firer
+  don't block fire (canonical Subspace — same-team ships never arm a
+  proximity bomb, so they don't trip the safety either).
+- Scan source reuses WeaponsSystem's existing `energyEntities`
+  (`EntitySet(Health.class)` already lifecycle-managed + applyChanges'd
+  per tick).
+- Pure-function helper `WeaponsSystem.victimBlocksBombFire(ownerFreq,
+  victimFreq, ownerPos, victimPos, radius)` extracted (mirrors
+  `shouldDamageVictim` + `proximityRadiusForLevel` extraction style) —
+  unit-tested with 7 cases (enemy inside / outside / boundary,
+  friendly inside, zero radius, null-freq tri-state, 3D radius).
+- Active arenas authored: trench + deva + testconf `bomb.groovy` add
+  `bombSafety true` (= SVS canon `BombSafety=1`).
+- Tests: `WeaponsSystemSplashTest.victimBlocksBombFire_*` (7 new cases);
+  `ConfigRegistrySystemLoadTest` extended to assert trench parses
+  `bombSafety true`.
+
+**Behaviour change on active arenas:** trench + deva ships can no
+longer fire a bomb when an enemy sits inside their effective
+proximity-arm radius (trench L1 = 3 tiles; L4 = 6 tiles). Silent
+rejection — no fire, no cooldown, no energy spent. Operator can dial
+back via `bombSafety false` in `bomb.groovy` if it feels too defensive.
+
+**Deviation from canon:** none — Subspace VIE specifies BombSafety as a
+binary self-protect; Infinity matches semantics exactly. The boolean
+storage (vs Subspace's int 0/1) is a consumer-side clarity choice
+documented on `BombConfig`.
+
+**Out of scope (own follow-up slice — perf review):** the per-fire
+`canAttackBomb` scan currently walks every `Health`-bearing entity in
+the arena's EntitySet for *every* fire attempt. At typical arena sizes
+this is fine (a few dozen ships, fire rate ~1-2/sec), but worth a perf
+review pass alongside the per-tick `ProximityFuseSystem` scan — both
+paths could benefit from arena-level pre-filtering on `ArenaId` (today
+the scan is global because EntitySet membership is global), and from
+caching per-arena player counts so other systems (`PrizeSystem.update`,
+`StatusDrainSystem`) don't recompute it every tick. Sits with the
+spawn-projection / ECS broad-phase backlog.
+
+**Integration test gap (per existing memory note):** the EntitySet
+walk + body-position lookup + cross-tick fire-attempt timing is not
+exercised by any automated test — only the per-victim pure helper is.
+Same gap as splash damage's contact-path integration; deferred to the
+spawn-projection harness backlog.
+
+### Slice 9c-JitterTime — bomb-hit screen jitter
+🔲 `[Bomb] JitterTime` (cs→ms) — server stamps a `Jitter`
+deadline component on the victim of a bomb hit (both direct + splash
+paths in `WeaponsSystem.detonateProjectile`); client reads `Jitter`
+on the local avatar's id to camera-shake (ChaseCamera offset
+perturbation, or `FilterPostProcessor`-based screen shake). Greenfield
+on the client side — no `BombHitState`, no camera-shake AppState
+exists today. Land alongside the broader client visual-feedback queue.
 
 ## Slice 10 — Projectile speed refactor
 

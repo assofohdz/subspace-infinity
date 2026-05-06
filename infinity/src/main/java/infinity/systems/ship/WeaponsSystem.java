@@ -24,6 +24,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.systems.ContactSystem;
 import infinity.config.ArenaConfig;
+import infinity.config.BombConfig;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
@@ -235,9 +236,80 @@ public class WeaponsSystem extends AbstractGameSystem
         return false;
       }
       final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-      return bc.getCost() <= energySystem.getHealth(requesterId);
+      if (bc.getCost() > energySystem.getHealth(requesterId)) {
+        return false;
+      }
+      return bombSafetyClear(requesterId);
     }
     return false;
+  }
+
+  /**
+   * Slice 9c-BombSafety — fire-time gate that rejects bomb fire when an
+   * enemy {@link Health}-bearer sits inside the firing ship's effective
+   * proximity-arm radius. Auto-no-ops when:
+   *
+   * <ul>
+   *   <li>The arena's {@code BombConfig.bombSafety} is {@code false}
+   *       (operator opt-in).
+   *   <li>The arena's {@code BombConfig.proximityDistance} is {@code 0} —
+   *       proximity disabled means the ship's bomb wouldn't proximity-arm
+   *       on anything anyway, so "inside the arming radius" has no
+   *       meaning.
+   *   <li>The firing ship has no rigid body in the physics space (mid-spawn
+   *       / dead).
+   * </ul>
+   *
+   * <p>Effective radius mirrors slice 9b's
+   * {@link #proximityRadiusForLevel(int, int)} per-level additive scaling
+   * so a Warbird firing an L4 bomb has a strictly larger safety bubble
+   * than the same Warbird firing L1 — captures the real-game meaning of
+   * "would my bomb arm immediately on a hugging enemy?"
+   *
+   * <p>FF gate reused from {@link ProximityFuseSystem#shouldArmOn} —
+   * same-team ships never arm proximity bombs, so they don't count for
+   * the safety scan either. Result: friendlies hugging you don't block
+   * fire.
+   */
+  private boolean bombSafetyClear(final EntityId requesterId) {
+    final ConfigRegistry cfg = weaponsFor(requesterId);
+    final BombConfig bombCfg = cfg.bomb();
+    if (!bombCfg.bombSafety() || bombCfg.proximityDistance() <= 0) {
+      return true;
+    }
+    final RigidBody<EntityId, MBlockShape> ownerBody =
+        physicsSpace.getBinIndex().getRigidBody(requesterId);
+    if (ownerBody == null) {
+      return true;
+    }
+    final BombCurrentLevel bombLevel =
+        this.bombs.getEntity(requesterId).get(BombCurrentLevel.class);
+    final double radius =
+        proximityRadiusForLevel(bombCfg.proximityDistance(), bombLevel.getLevel().level);
+    if (radius <= 0.0) {
+      return true;
+    }
+    final Frequency ownerFreq = ed.getComponent(requesterId, Frequency.class);
+    final Integer ownerFreqValue = ownerFreq == null ? null : ownerFreq.getFrequency();
+    final Vec3d ownerPos = ownerBody.position;
+    for (final Entity victim : energyEntities) {
+      final EntityId victimId = victim.getId();
+      if (victimId.equals(requesterId)) {
+        continue;
+      }
+      final RigidBody<EntityId, MBlockShape> victimBody =
+          physicsSpace.getBinIndex().getRigidBody(victimId);
+      if (victimBody == null) {
+        continue;
+      }
+      final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
+      final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
+      if (victimBlocksBombFire(
+          ownerFreqValue, victimFreqValue, ownerPos, victimBody.position, radius)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private boolean canAttackGravityBomb(Entity requester) {
@@ -1022,6 +1094,43 @@ public class WeaponsSystem extends AbstractGameSystem
    */
   static double proximityRadiusForLevel(final int baseTiles, final int level) {
     return baseTiles + (level - 1);
+  }
+
+  /**
+   * Per-victim slice 9c-BombSafety decision: true iff this single victim
+   * blocks bomb fire — i.e., it's an enemy (per
+   * {@link ProximityFuseSystem#shouldArmOn}) sitting within {@code radius}
+   * of the firing ship.
+   *
+   * <p>Pure function — no ECS / physics deps. The instance-side scan
+   * (private {@code bombSafetyClear}) walks the {@code energyEntities}
+   * EntitySet, resolves each victim's {@link Frequency} +
+   * {@link RigidBody#position}, and calls this helper. Mirrors how
+   * {@link #shouldDamageVictim} splits a private ED-aware overload from a
+   * static pure overload so the FF tri-state is unit-testable.
+   *
+   * @param ownerFreq firing ship's freq; {@code null} = no team
+   * @param victimFreq victim's freq; {@code null} = no team
+   * @param ownerPos firing ship's body position
+   * @param victimPos victim's body position
+   * @param radius effective proximity-arm radius (per-level scaled)
+   */
+  static boolean victimBlocksBombFire(
+      final Integer ownerFreq,
+      final Integer victimFreq,
+      final Vec3d ownerPos,
+      final Vec3d victimPos,
+      final double radius) {
+    if (radius <= 0.0) {
+      return false;
+    }
+    if (!ProximityFuseSystem.shouldArmOn(ownerFreq, victimFreq)) {
+      return false;
+    }
+    final double dx = victimPos.x - ownerPos.x;
+    final double dy = victimPos.y - ownerPos.y;
+    final double dz = victimPos.z - ownerPos.z;
+    return dx * dx + dy * dy + dz * dz <= radius * radius;
   }
 
   /**

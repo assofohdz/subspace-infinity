@@ -32,14 +32,21 @@ import java.util.List;
  *     explodeDelayCs    10     // [Bomb] BombExplodeDelay in centiseconds
  *                              // (×10 → ms). Fuse delay after arming. Value
  *                              // 0 disables. See slice 9b.
+ *     bombSafety        true   // [Bomb] BombSafety — fire-time gate that
+ *                              // rejects bomb fire when an enemy sits
+ *                              // inside the firing ship's effective
+ *                              // proximity-arm radius. Auto-no-ops when
+ *                              // proximityDistance == 0. See slice
+ *                              // 9c-BombSafety.
  * }
  * }</pre>
  *
- * <p>The remaining Subspace {@code [Bomb]} keys (JitterTime, BombSafety,
+ * <p>The remaining Subspace {@code [Bomb]} keys (JitterTime,
  * EBombShutdownTime, EBombDamagePercent, BBombDamagePercent) aren't in
- * {@link BombConfig} today — they belong to slice 9c (safety + jitter) or
- * future EMP / bouncing-bomb work. The adapter only exposes fields that
- * have a typed config + active consumer.
+ * {@link BombConfig} today — they belong to slice 9c-JitterTime (deferred,
+ * pending a client-side jitter consumer) or future EMP / bouncing-bomb
+ * work. The adapter only exposes fields that have a typed config + active
+ * consumer.
  */
 public final class BombAdapter
     implements GroovySettingsAdapter<BombConfig, BombAdapter.BombBuilder> {
@@ -99,6 +106,7 @@ public final class BombAdapter
     private double explodeRadius = BombConfig.DEFAULTS.explodeRadius();
     private int proximityDistance = BombConfig.DEFAULTS.proximityDistance();
     private long explodeDelayMs = BombConfig.DEFAULTS.explodeDelayMs();
+    private boolean bombSafety = BombConfig.DEFAULTS.bombSafety();
 
     BombBuilder() {}
 
@@ -166,8 +174,20 @@ public final class BombAdapter
       this.explodeDelayMs = centiseconds * 10L;
     }
 
+    /**
+     * {@code [Bomb] BombSafety} — when {@code true}, fire-time scan rejects
+     * bomb fire if an enemy sits inside the firing ship's effective
+     * proximity-arm radius. Subspace canon is binary (0/1); the typed DSL
+     * accepts native Groovy booleans. Auto-no-ops when
+     * {@link #proximityDistance} is 0.
+     */
+    public void bombSafety(final boolean enabled) {
+      this.bombSafety = enabled;
+    }
+
     BombConfig build() {
-      return new BombConfig(damage, decayMs, explodeRadius, proximityDistance, explodeDelayMs);
+      return new BombConfig(
+          damage, decayMs, explodeRadius, proximityDistance, explodeDelayMs, bombSafety);
     }
   }
 }

@@ -12,4 +12,9 @@ bomb {
                              // above L1) at fire time. 0 to disable.
     explodeDelayCs    10     // Slice 9b — fuse delay after arming, in
                              // centiseconds (×10 → ms = 100ms). 0 to disable.
+    bombSafety        true   // Slice 9c-BombSafety — fire-time gate (= SVS
+                             // canon BombSafety=1). Rejects bomb fire when
+                             // an enemy sits inside the firing ship's
+                             // effective proximity-arm radius. Auto-no-ops
+                             // when proximityDistance == 0.
 }

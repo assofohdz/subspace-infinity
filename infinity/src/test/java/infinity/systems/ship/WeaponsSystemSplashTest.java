@@ -6,6 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.simsilica.mathd.Vec3d;
 import org.junit.Test;
 
 /**
@@ -144,5 +145,100 @@ public class WeaponsSystemSplashTest {
     assertTrue(
         "both null → damage",
         WeaponsSystem.shouldDamageVictim(null, null, 0, true));
+  }
+
+  // -----------------------------------------------------------------
+  // victimBlocksBombFire — slice 9c-BombSafety per-victim decision
+  // -----------------------------------------------------------------
+
+  @Test
+  public void victimBlocksBombFire_enemyInsideRadius_blocks() {
+    // Trench L1 effective radius = 3 tiles. Enemy at 2 tiles distance is
+    // strictly inside → block fire.
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d enemy = new Vec3d(2, 0, 0);
+    assertTrue(
+        "enemy strictly inside radius → blocks fire",
+        WeaponsSystem.victimBlocksBombFire(0, 1, owner, enemy, 3.0));
+  }
+
+  @Test
+  public void victimBlocksBombFire_enemyAtExactRadius_blocks() {
+    // Boundary-inclusive: an enemy exactly on the arming radius edge blocks
+    // (would arm a real bomb if proximity-fused). Mirrors the
+    // distance-squared <= radius-squared check.
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d enemy = new Vec3d(3, 0, 0);
+    assertTrue(
+        "enemy at boundary → blocks fire",
+        WeaponsSystem.victimBlocksBombFire(0, 1, owner, enemy, 3.0));
+  }
+
+  @Test
+  public void victimBlocksBombFire_enemyOutsideRadius_doesNotBlock() {
+    // 4 tiles away with a 3-tile arming radius → safe to fire.
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d enemy = new Vec3d(4, 0, 0);
+    assertFalse(
+        "enemy outside radius → fire allowed",
+        WeaponsSystem.victimBlocksBombFire(0, 1, owner, enemy, 3.0));
+  }
+
+  @Test
+  public void victimBlocksBombFire_friendlyInsideRadius_doesNotBlock() {
+    // FF gate (reused from ProximityFuseSystem.shouldArmOn): friendlies
+    // never arm a proximity bomb, so they don't block fire either.
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d friendly = new Vec3d(1, 0, 0);
+    assertFalse(
+        "same-team victim inside radius → fire allowed",
+        WeaponsSystem.victimBlocksBombFire(0, 0, owner, friendly, 3.0));
+  }
+
+  @Test
+  public void victimBlocksBombFire_zeroRadius_neverBlocks() {
+    // proximityDistance == 0 (or per-level result <= 0) — guard rail
+    // matching bombSafetyClear's caller-side early return. The pure helper
+    // should also short-circuit so callers can rely on a single source of
+    // truth for "0 radius means no scan."
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d enemy = new Vec3d(0, 0, 0);
+    assertFalse(
+        "zero radius → no scan, fire allowed even on co-located enemy",
+        WeaponsSystem.victimBlocksBombFire(0, 1, owner, enemy, 0.0));
+  }
+
+  @Test
+  public void victimBlocksBombFire_unknownTeams_treatedAsEnemies() {
+    // null freq on either side = "no team" (NPC, debris). Per
+    // ProximityFuseSystem.shouldArmOn canon, an unteamed entity is a valid
+    // arming target — and therefore blocks bomb fire when inside radius.
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d victim = new Vec3d(1, 0, 0);
+    assertTrue(
+        "null owner freq + teamed victim → blocks (canonical NPC firer)",
+        WeaponsSystem.victimBlocksBombFire(null, 0, owner, victim, 3.0));
+    assertTrue(
+        "teamed owner + null victim freq → blocks (canonical NPC victim)",
+        WeaponsSystem.victimBlocksBombFire(0, null, owner, victim, 3.0));
+    assertTrue(
+        "both null → blocks (no FF gate engages)",
+        WeaponsSystem.victimBlocksBombFire(null, null, owner, victim, 3.0));
+  }
+
+  @Test
+  public void victimBlocksBombFire_radiusIs3D() {
+    // Scan respects all three axes — a victim above the firing ship still
+    // counts. Trench's z-stack matters (ships at the same x/y but different
+    // z don't count as colocated).
+    final Vec3d owner = new Vec3d(0, 0, 0);
+    final Vec3d enemyAbove = new Vec3d(0, 0, 2);
+    assertTrue(
+        "enemy 2 above (radius 3) → blocks",
+        WeaponsSystem.victimBlocksBombFire(0, 1, owner, enemyAbove, 3.0));
+    final Vec3d enemyDiag = new Vec3d(2, 2, 2); // dist² = 12 > 9
+    assertFalse(
+        "enemy at sqrt(12) ≈ 3.46 (radius 3) → outside, fire allowed",
+        WeaponsSystem.victimBlocksBombFire(0, 1, owner, enemyDiag, 3.0));
   }
 }

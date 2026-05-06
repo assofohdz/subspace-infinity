@@ -30,6 +30,12 @@ package infinity.config;
  *       {@link #explodeDelayMs}, fuse delay between proximity arming and
  *       detonation. Value {@code 0} disables the proximity fuse. See
  *       slice 9b.
+ *   <li>{@code [Bomb] BombSafety} (0/1) → {@link #bombSafety}, fire-time
+ *       gate that rejects bomb fire when an enemy ship sits inside the
+ *       firing ship's would-be proximity-arm radius. Self-protect against
+ *       blowing yourself up by lobbing a proximity bomb at a hugging
+ *       enemy. Auto-no-ops when {@link #proximityDistance} is 0 (nothing
+ *       to scan against). See slice 9c-BombSafety.
  * </ul>
  *
  * <p><b>Deviation from canon:</b> REFERENCE.md says the bomb explodes
@@ -38,9 +44,10 @@ package infinity.config;
  * ship leaves the radius — operator-noticeable only on near-misses with
  * fast ships. Tracked as a polish-bag follow-up.
  *
- * <p>The remaining {@code [Bomb]} keys (JitterTime, BombSafety,
- * EBombShutdownTime, EBombDamagePercent, BBombDamagePercent) belong to
- * slices 9c (safety + jitter) or future EMP / bouncing-bomb work.
+ * <p>The remaining {@code [Bomb]} keys (JitterTime, EBombShutdownTime,
+ * EBombDamagePercent, BBombDamagePercent) belong to slice 9c-JitterTime
+ * (deferred, pending a client-side jitter consumer) or future EMP /
+ * bouncing-bomb work.
  *
  * @param damage damage applied on detonation
  * @param decayMs bomb projectile lifetime in milliseconds
@@ -61,13 +68,21 @@ package infinity.config;
  *     Both this and {@link #proximityDistance} must be &gt; 0 for the
  *     proximity-fuse path to engage; either being 0 falls back to
  *     direct-contact detonation.
+ * @param bombSafety when {@code true}, fire-time scan rejects bomb fire if
+ *     any enemy {@link infinity.es.ship.Health}-bearing entity sits inside
+ *     the firing ship's effective proximity-arm radius (per-level scaling
+ *     via the same formula used at projectile creation). Auto-no-ops when
+ *     {@link #proximityDistance} is 0. Subspace canonical key is binary
+ *     ({@code BombSafety=0/1}); Infinity stores as a boolean for
+ *     consumer-side clarity.
  */
 public record BombConfig(
     int damage,
     long decayMs,
     double explodeRadius,
     int proximityDistance,
-    long explodeDelayMs) {
+    long explodeDelayMs,
+    boolean bombSafety) {
 
   /**
    * Subspace-canonical baseline used when no fragment provides a value.
@@ -81,6 +96,10 @@ public record BombConfig(
    * splash-on-impact behaviour. Active arenas opt in by setting both
    * {@code proximityDistance} and {@code explodeDelayCs} in their
    * {@code bomb.groovy}.
+   *
+   * <p>{@code bombSafety} defaults to {@code false} so arenas that don't
+   * author the key keep slice 9b's "fire is allowed regardless of nearby
+   * enemies" behaviour. Active arenas opt in via {@code bombSafety true}.
    */
-  public static final BombConfig DEFAULTS = new BombConfig(750, 60000L, 5.0, 0, 0L);
+  public static final BombConfig DEFAULTS = new BombConfig(750, 60000L, 5.0, 0, 0L, false);
 }

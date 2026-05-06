@@ -241,6 +241,13 @@ public class ConfigRegistrySystemLoadTest {
           100L,
           snapshot.bomb().explodeDelayMs());
 
+      // Slice 9c-BombSafety — typed [Bomb] BombSafety parses through
+      // BombAdapter as a boolean. trench opts in (= SVS canon BombSafety=1)
+      // so a Warbird hugging an enemy can't lob a self-detonating bomb.
+      assertTrue(
+          "trench's [Bomb] BombSafety = true (opt-in, SVS canon)",
+          snapshot.bomb().bombSafety());
+
       // [Rocket] arena-global tuning from rocket.groovy.
       assertEquals(
           "trench's [Rocket] RocketThrust = 100",
