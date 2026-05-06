@@ -860,6 +860,53 @@ fields with documented units").
 catches up so the audit has the full picture of what's wired vs not.
 Likely after Slice 16 + B4 + B5.
 
+## Slice U1 — Arena outlines on radar
+
+🔲 Show each loaded arena's footprint on the radar so players can see the
+arena boundaries vs the surrounding void at a glance.
+
+**Visual contract:**
+- **Void** (anywhere outside any arena bounds) — darker green than
+  current radar background.
+- **Arena interior** — current green (today's radar background tint).
+- **Arena boundary** — 2D top-down outline of each arena's footprint
+  drawn on the radar (a wire-frame rectangle / polygon matching the
+  arena's `ArenaMap.bounds`).
+
+**Server seam:** arena bounds are already known at load time
+(`ArenaSystem`/`ArenaMap`). Arenas crossing the wire as components are
+already a thing (per `infinity.es.arena.ArenaId`), so a sibling
+`ArenaBounds(min, max)` component published by the server when an arena
+is loaded is a clean way to feed the client without a new RMI. Deferred
+naming-wise — the slice's grilling will pick the exact contract.
+
+**Client seam:**
+- `RadarState` (`infinity/src/main/java/infinity/client/states/RadarState.java`)
+  is the existing AppState. Today its background is a flat fill — the
+  void/interior split needs a per-pixel (or per-cell) test against
+  loaded-arena bounds.
+- `RadarBlipFactory` / `RadarTheme` already define the radar color
+  palette; a `voidGreen` + `arenaGreen` pair fits naturally there.
+- Arena outlines: cheapest is a `Geometry` per arena whose vertices
+  come from `ArenaBounds`. Colour matches a third theme entry
+  (`arenaOutline`).
+
+**Open design questions (grilling fodder when picked):**
+- Scale: at radar zoom levels covering many arenas, are outlines still
+  visible / useful? Maybe fade them at far zoom.
+- Multiple arenas overlapping: does Infinity have that today? If yes,
+  how should the visual stack? (Probably z-order by load order; revisit.)
+- Should outlines respect `Hidden` / spec-only modes? (Slice 8d's
+  `Hidden` marker is per-prize; not directly applicable but the
+  precedent says some entities skip radar render.)
+- Is "void" really arenas-not-loaded, or also player-locked
+  out-of-bounds zones? Probably the former — locked zones aren't a
+  concept today.
+
+**Sequence position:** independent client-side feature. Land when
+client UX work is in flight or when players ask for it. No dependency
+on the server-side gameplay queue.
+
 ## Slice P1 — ECS broad-phase + per-arena scan perf review
 
 🔲 Cross-cutting perf pass after slices 8d / 9a / 9b / 9c-BombSafety
