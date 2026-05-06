@@ -119,6 +119,39 @@ tasks.named('pmdTest').configure {
     enabled = false
 }
 
+// Ad-hoc per-file / per-path PMD task — useful for scoping the report to
+// just the files touched in the current change rather than re-scanning
+// every source file in the module.
+//
+// Usage:
+//   ./gradlew :infinity:pmdPath -PpmdPath=src/main/java/infinity/systems/ship/WeaponsSystem.java
+//   ./gradlew :infinity:pmdPath -PpmdPath=src/main/java/infinity/systems/   # whole package
+//   ./gradlew :infinity:pmdPath -PpmdPath=src/main/java/A.java,src/main/java/B.java   # multiple
+//
+// Path is comma-separated, relative to the module root. Uses the project
+// ruleset and the same ignoreFailures + consoleOutput config as pmdMain
+// so behaviour matches the full-scan baseline.
+//
+// Default (no -PpmdPath flag) is `src/main/java`, which is equivalent to
+// pmdMain — so the task is safe to invoke without arguments.
+tasks.register('pmdPath', Pmd) {
+    description = "Run PMD against -PpmdPath=<file_or_dir,...> (default: src/main/java)"
+    group = 'verification'
+    def rawPath = project.findProperty('pmdPath') ?: 'src/main/java'
+    def paths = rawPath.split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+    source = files(paths)
+    classpath = sourceSets.main.runtimeClasspath
+    pmdClasspath = configurations.pmd
+    ruleSets = []
+    ruleSetFiles = files(rootProject.file('config/pmd/ruleset.xml'))
+    ignoreFailures = true
+    consoleOutput = true
+    reports {
+        html.required = true
+        xml.required = false
+    }
+}
+
 // =============================================================================
 // Error Prone + NullAway — compile-time bug detection.
 // Starts as warnings-only; tighten by removing `allErrorsAsWarnings` and
