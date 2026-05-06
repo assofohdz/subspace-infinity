@@ -72,6 +72,14 @@ Join the Subspace Infinity Discord:
 - [Subspace Continuum](https://discord.gg/y3AanC8Z)
 - [Extreme Games](https://discord.gg/hY3gjeJ9)
 
+## AI Disclosure
+
+This project uses generative AI in the following areas:
+
+- **Ambient soundtracks** — background music generated via [Suno](https://suno.com/) AI platform. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for attribution and creator consent.
+
+No other generative AI is used in gameplay code, assets, or documentation.
+
 ## Acknowledgments
 
 Thanks to the original Subspace and Continuum developers, POiD, Grelminar, Gigamon, and the many mapmakers and module authors whose work this project builds on.

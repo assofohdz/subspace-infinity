@@ -114,6 +114,22 @@ Preserve this attribution when redistributing these assets.
 
 ---
 
+## AI-generated ambient soundtracks
+
+**Paths:**
+
+- `infinity/assets/Sounds/Ambient/` (pending)
+
+**Origin:** Ambient background music generated using [Suno](https://suno.com/) AI
+music generation platform by [@djancarnary](https://suno.com/@djancarnary).
+
+**Status:** The creator has consented to inclusion in this open-source project.
+Subspace Infinity makes no claim of independent authorship; the generative AI
+soundtracks are credited to and owned by the creator. These files are included
+under explicit consent for open-source redistribution.
+
+---
+
 ## Bundled `.j3o` files of uncertain origin
 
 **Paths:**
