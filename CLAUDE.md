@@ -39,6 +39,7 @@ Path-scoped rules live in `.claude/rules/` and load automatically when relevant 
 - [`player-scaling.md`](.claude/rules/player-scaling.md) — consider whether spawn / balance / threshold knobs should scale with active player count; default to additive `base + perPlayer × N`; per-arena, not global (`infinity/` + `modules/` Java systems)
 - [`prize-applier.md`](.claude/rules/prize-applier.md) — look up prize logic + canonical Subspace tunables in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before implementing or modifying a prize applier (`infinity/src/main/java/infinity/systems/ship/applier/**`)
 - [`settings-pipeline.md`](.claude/rules/settings-pipeline.md) — look up Subspace canon in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before authoring/modifying any typed adapter, `*Config`, or settings consumer; section headers (e.g. `[Misc]`) don't tell you which mechanic owns a key (`infinity/src/main/java/infinity/settings/**` + `api/src/infinity/config/**`)
+- [`pmd-on-touched-files.md`](.claude/rules/pmd-on-touched-files.md) — after editing any `*.java`, run `:<module>:pmdPath -PpmdPath=<paths>` on touched files, surface violations, and fix one lowest-effort violation per batch as a ratchet (`api/src/**`, `infinity/src/main/java/**`, `modules/src/main/java/**`)
 
 Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
 
