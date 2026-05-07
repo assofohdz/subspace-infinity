@@ -7,9 +7,10 @@ import com.jme3.math.ColorRGBA;
 /**
  * Client-side look-and-feel for the radar HUD — bundles every colour and
  * sizing knob the radar pipeline reads at one place. {@link #DEFAULT} carries
- * the shipping look (Continuum-style muddy-green BG, grey block silhouettes,
- * white-self / green-friend / red-enemy / grey-neutral team palette, 218 px
- * HUD footprint). A future HUD-theming system can construct alternative
+ * the shipping look (Continuum-style muddy-green arena interior, darker
+ * void surrounding loaded arenas, grey block silhouettes, white-self /
+ * green-friend / red-enemy / grey-neutral team palette, 218 px HUD
+ * footprint). A future HUD-theming system can construct alternative
  * {@link RadarTheme} instances (color-blind palettes, compact / classic /
  * large size profiles, dark / light variants, etc.) without touching the
  * radar's rendering code.
@@ -21,8 +22,15 @@ import com.jme3.math.ColorRGBA;
  * {@code BodyPosition} ring-buffer depth is a SimEthereal-side convention,
  * not a radar tuning knob.
  *
- * @param backgroundColor ambient fill inside the radar circle, set on the
- *     off-screen viewport's clear colour
+ * @param voidTintColor radar fill OUTSIDE any loaded arena footprint — set
+ *     on the off-screen viewport's clear colour. Slice U1: arena interior
+ *     fills render on top, so what's left showing is the "void" between
+ *     loaded arenas
+ * @param arenaTintColor interior fill colour for the closed-polygon footprint
+ *     of each loaded arena (carried by {@code ArenaFootprint} components,
+ *     stamped server-side by {@code ArenaSystem})
+ * @param arenaOutlineColor boundary colour for the same arena footprint —
+ *     drawn as a {@code Mesh.Mode.Lines} loop on top of the interior fill
  * @param blockColor solid-tile silhouette colour
  * @param selfColor blip colour for the local avatar
  * @param friendlyColor blip colour for entities sharing the local avatar's
@@ -45,7 +53,9 @@ import com.jme3.math.ColorRGBA;
  * @author Asser Fahrenholz
  */
 public record RadarTheme(
-    ColorRGBA backgroundColor,
+    ColorRGBA voidTintColor,
+    ColorRGBA arenaTintColor,
+    ColorRGBA arenaOutlineColor,
     ColorRGBA blockColor,
     ColorRGBA selfColor,
     ColorRGBA friendlyColor,
@@ -57,9 +67,11 @@ public record RadarTheme(
     int dotSegments,
     float staticBlipHalfSize) {
 
-  /** Shipping default — the look the radar has had since #4 of the radar PRD landed. */
+  /** Shipping default — Continuum-aesthetic muddy-green arenas on a darker void. */
   public static final RadarTheme DEFAULT = new RadarTheme(
-      /* backgroundColor */          new ColorRGBA(0.12f, 0.20f, 0.10f, 1f),
+      /* voidTintColor */            new ColorRGBA(0.06f, 0.10f, 0.05f, 1f),
+      /* arenaTintColor */           new ColorRGBA(0.12f, 0.20f, 0.10f, 1f),
+      /* arenaOutlineColor */        new ColorRGBA(0.40f, 0.65f, 0.30f, 1f),
       /* blockColor */               new ColorRGBA(0.55f, 0.55f, 0.55f, 1f),
       /* selfColor */                ColorRGBA.White,
       /* friendlyColor */            ColorRGBA.Green,

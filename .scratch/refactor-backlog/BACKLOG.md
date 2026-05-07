@@ -47,6 +47,18 @@ The audit's "split GameEntities into themed files" recommendation was deferred w
 1. **Themed sub-files within `api/sim/`** — `WeaponEntities.java`, `WorldEntities.java`, `EffectEntities.java`. Module authors still find them via the package; navigation gets cleaner. Top-level `GameEntities` becomes a thin re-exporter or pure-aggregate.
 2. **Parameter records** — `createMine(EntityData, EntityId, PhysicsSpace, long, Vec3d, long, String)` is 7 positional args. Builder or parameter records would help. ABI-breaking, so coordinate with module authors before doing it.
 
+### Radar `ArenaFootprint` — current-vs-neighbor styling
+
+Slice U1 landed all loaded arenas' footprints with the same outline + fill colors (`arenaTintColor` / `arenaOutlineColor`). Visually correct but doesn't distinguish "the arena I'm in" from "neighboring arenas." Subspace players think of one arena as theirs, the rest as adjacent worlds — the radar should reflect that.
+
+Fix shape: add a "current arena" detection on the client (already have avatar position + per-arena `ArenaFootprint`/`ArenaMap` bounds — point-in-polygon test, or use server-side `ArenaMembership` if/when that lands), branch styling at render time:
+- Avatar's arena: `arenaTintColor` + `arenaOutlineColor` (today's full-strength values)
+- Other loaded arenas: `arenaTintColorMuted` + `arenaOutlineColorMuted` (e.g. 50% saturation)
+
+Two new theme entries; one extra branch in `ArenaFootprintContainer.addObject` (or per-frame restyle if avatar changes arena). Add a `~set arenaOutlineMuted <hex>` admin path if Slice B5 (typed `~set`) lands.
+
+Out of scope until enough U1 in-game time confirms outlines are useful as-is. Picked up if uniformity feels noisy.
+
 ### `MapState` block create/delete interaction
 
 [`MapState.java:470, 494`](../../infinity/src/main/java/infinity/client/states/MapState.java) wires left/right mouse click through a raycast and calls `session.map(MapSystem.CREATE / MapSystem.DELETE, vec3)` to mutate world blocks. Two smells: (1) `MapSystem.CREATE` / `DELETE` are loose `static final byte` constants on a server-side system that the client reaches into — they slip past `LayerDependencyTest` only because the Java compiler inlines them at compile time and erases the bytecode dependency. (2) `MapState` mixes rendering with arena-click input handling. Cleanup: promote the action codes to a proper RMI command surface (typed enum or RMI method per intent — `createBlock(Vec3)` / `deleteBlock(Vec3)`), and consider extracting the click-to-block input handling into its own input AppState if the rendering responsibilities of `MapState` keep growing.

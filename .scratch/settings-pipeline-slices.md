@@ -829,50 +829,31 @@ Likely after Slice 16 + B4 + B5.
 
 ## Slice U1 — Arena outlines on radar
 
-🔲 Show each loaded arena's footprint on the radar so players can see the
-arena boundaries vs the surrounding void at a glance.
+✅ Landed. New `ArenaFootprint(Vec3d[] vertices)` component in
+`infinity.es.arena.*` carries a closed polygon — server stamps it on
+each arena entity at load time alongside `ArenaMap` (rectangle from
+`min`/`max`). Client `RadarState` opens an `EntityContainer<Node>` on
+`ArenaFootprint` and builds two child geometries per region: a fan-
+triangulated interior fill at `arenaTintColor` and a `Mesh.Mode.Lines`
+outline at `arenaOutlineColor`, layered behind blips via Y-offset
+(blips at Y=0, outlines Y=-1, fills Y=-2). Viewport clear color flipped
+from `backgroundColor` to `voidTintColor` (darker green, what
+non-arena pixels show). Smoke-verified in trench: trench / deva /
+testarena footprints all visible simultaneously.
 
-**Visual contract:**
-- **Void** (anywhere outside any arena bounds) — darker green than
-  current radar background.
-- **Arena interior** — current green (today's radar background tint).
-- **Arena boundary** — 2D top-down outline of each arena's footprint
-  drawn on the radar (a wire-frame rectangle / polygon matching the
-  arena's `ArenaMap.bounds`).
+Naming: initial `RadarShape` proposal collided with existing
+`RadarShapeInfo` (blip-shape names). Renamed to `ArenaFootprint` under
+`infinity.es.arena.*` per user feedback that "Region" is a Subspace
+canon term (eLVL REGN chunks; see `infinity.map.Region`). Component is
+generic on closed polygons — future entities (wormholes, safe zones,
+eLVL regions) can stamp themselves the same way via
+`ArenaFootprint.rectangle(min, max)` or the raw `Vec3d[] vertices`
+constructor.
 
-**Server seam:** arena bounds are already known at load time
-(`ArenaSystem`/`ArenaMap`). Arenas crossing the wire as components are
-already a thing (per `infinity.es.arena.ArenaId`), so a sibling
-`ArenaBounds(min, max)` component published by the server when an arena
-is loaded is a clean way to feed the client without a new RMI. Deferred
-naming-wise — the slice's grilling will pick the exact contract.
-
-**Client seam:**
-- `RadarState` (`infinity/src/main/java/infinity/client/states/RadarState.java`)
-  is the existing AppState. Today its background is a flat fill — the
-  void/interior split needs a per-pixel (or per-cell) test against
-  loaded-arena bounds.
-- `RadarBlipFactory` / `RadarTheme` already define the radar color
-  palette; a `voidGreen` + `arenaGreen` pair fits naturally there.
-- Arena outlines: cheapest is a `Geometry` per arena whose vertices
-  come from `ArenaBounds`. Colour matches a third theme entry
-  (`arenaOutline`).
-
-**Open design questions (grilling fodder when picked):**
-- Scale: at radar zoom levels covering many arenas, are outlines still
-  visible / useful? Maybe fade them at far zoom.
-- Multiple arenas overlapping: does Infinity have that today? If yes,
-  how should the visual stack? (Probably z-order by load order; revisit.)
-- Should outlines respect `Hidden` / spec-only modes? (Slice 8d's
-  `Hidden` marker is per-prize; not directly applicable but the
-  precedent says some entities skip radar render.)
-- Is "void" really arenas-not-loaded, or also player-locked
-  out-of-bounds zones? Probably the former — locked zones aren't a
-  concept today.
-
-**Sequence position:** independent client-side feature. Land when
-client UX work is in flight or when players ask for it. No dependency
-on the server-side gameplay queue.
+Current-vs-neighbor styling deferred to backlog
+(`refactor-backlog/BACKLOG.md` "Radar `ArenaFootprint` — current-vs-
+neighbor styling") — picked up if uniform styling feels noisy in
+extended play.
 
 ## Slice P1 — ECS broad-phase + per-arena scan perf review
 

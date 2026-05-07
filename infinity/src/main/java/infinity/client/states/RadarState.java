@@ -6,13 +6,17 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
+import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
+import com.jme3.util.BufferUtils;
 import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
@@ -44,12 +48,14 @@ import infinity.client.view.RadarBlipFactory;
 import infinity.client.view.RadarLeafSilhouetteIndex;
 import infinity.client.view.RadarTheme;
 import infinity.es.Frequency;
+import infinity.es.arena.ArenaFootprint;
 import infinity.es.RadarShapeInfo;
 import infinity.es.ship.RadarRange;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -130,6 +136,7 @@ public class RadarState extends BaseAppState {
     private Node radarRoot;
     private Node radarEntityRoot;
     private Node radarBlockRoot;
+    private Node footprintRoot;
 
     private Camera radarCam;
     private ViewPort radarViewport;
@@ -150,6 +157,7 @@ public class RadarState extends BaseAppState {
     private RadarBlipFactory blipFactory;
     private BodyContainer bodies;
     private StaticContainer statics;
+    private ArenaFootprintContainer regions;
     private EntitySet frequencies;
     private final Map<EntityId, Blip> blipsById = new HashMap<>();
     private float blipScale = 1f;
@@ -159,7 +167,7 @@ public class RadarState extends BaseAppState {
     private JobState priorityWorkers;
     private RadarLeafSilhouetteIndex silhouetteIndex;
     private final Map<LeafId, RadarLeafView> radarLeafCache = new HashMap<>();
-    private final ConcurrentLinkedQueue<LeafId> radarUpdatedLeafIds = new ConcurrentLinkedQueue<>();
+    private final Queue<LeafId> radarUpdatedLeafIds = new ConcurrentLinkedQueue<>();
     private RadarLeafObserver radarLeafObserver;
     private RadarViewEntry[] radarViewArray;
     private final Vec3i radarCenterCell = new Vec3i(0, 100, 0); // sentinel — no cell will match
@@ -199,11 +207,14 @@ public class RadarState extends BaseAppState {
         radarRoot = new Node("RadarRoot");
         radarEntityRoot = new Node("RadarEntityRoot");
         radarBlockRoot = new Node("RadarBlockRoot");
+        footprintRoot = new Node("ArenaFootprintRoot");
         radarRoot.attachChild(radarEntityRoot);
         radarRoot.attachChild(radarBlockRoot);
+        radarRoot.attachChild(footprintRoot);
 
         bodies = new BodyContainer(ed);
         statics = new StaticContainer(ed);
+        regions = new ArenaFootprintContainer(ed);
         frequencies = ed.getEntities(RadarShapeInfo.class, Frequency.class);
 
         radarCam = new Camera(theme.pixelSize(), theme.pixelSize());
@@ -218,7 +229,7 @@ public class RadarState extends BaseAppState {
 
         radarViewport = app.getRenderManager().createPreView("RadarOffscreen", radarCam);
         radarViewport.setClearFlags(true, true, true);
-        radarViewport.setBackgroundColor(theme.backgroundColor());
+        radarViewport.setBackgroundColor(theme.voidTintColor());
         radarViewport.attachScene(radarRoot);
 
         radarTex = new Texture2D(theme.pixelSize(), theme.pixelSize(), Image.Format.RGBA8);
@@ -275,6 +286,7 @@ public class RadarState extends BaseAppState {
         guiNode.attachChild(radarQuad);
         bodies.start();
         statics.start();
+        regions.start();
     }
 
     @Override
@@ -282,6 +294,7 @@ public class RadarState extends BaseAppState {
         radarQuad.removeFromParent();
         bodies.stop();
         statics.stop();
+        regions.stop();
     }
 
     @Override
@@ -292,6 +305,7 @@ public class RadarState extends BaseAppState {
 
         bodies.update();
         statics.update();
+        regions.update();
         applyFrequencyChanges();
         updateBodyBlipPositions();
 
@@ -692,6 +706,128 @@ public class RadarState extends BaseAppState {
             final Vec3d loc = pos.getLocation();
             blip.geom.setLocalTranslation((float) loc.x, 0f, (float) loc.z);
         }
+    }
+
+    /**
+     * Slice U1 — ArenaFootprint entities (today: arenas) get a closed-polygon
+     * footprint on the radar. Two child geometries per region: a triangulated
+     * interior fill (arenaTintColor) and a Mesh.Mode.Lines outline
+     * (arenaOutlineColor). Both share the polygon's vertices; Y-offsets layer
+     * fill behind outline behind blips so the existing entity-blip layer
+     * stays on top.
+     *
+     * <p>Region geometry is immutable per components.md — vertices don't
+     * change while a ArenaFootprint exists, so updateObject is a no-op. If a
+     * future entity replaces its ArenaFootprint with new vertices, removeObject
+     * + addObject will rebuild.
+     */
+    private final class ArenaFootprintContainer extends EntityContainer<Node> {
+        // Y-offsets layer geometries within the radar's top-down view: blips
+        // sit at Y=0, so outlines (-1) and fills (-2) render behind them with
+        // the orthographic camera looking down -Y from Y=1000.
+        private static final float OUTLINE_Y = -1f;
+        private static final float FILL_Y = -2f;
+
+        @SuppressWarnings("unchecked")
+        ArenaFootprintContainer(final EntityData ed) {
+            super(ed, ArenaFootprint.class);
+        }
+
+        @Override
+        protected Node addObject(final Entity e) {
+            final ArenaFootprint region = e.get(ArenaFootprint.class);
+            final Vec3d[] verts = region.getVertices();
+            final Node node = new Node("ArenaFootprint-" + e.getId());
+            if (verts != null && verts.length >= 3) {
+                node.attachChild(buildRegionFill(verts));
+                node.attachChild(buildRegionOutline(verts));
+            }
+            footprintRoot.attachChild(node);
+            return node;
+        }
+
+        @Override
+        protected void updateObject(final Node node, final Entity e) {
+            // ArenaFootprint vertices are immutable; no-op.
+        }
+
+        @Override
+        protected void removeObject(final Node node, final Entity e) {
+            node.removeFromParent();
+        }
+    }
+
+    /**
+     * Builds a triangulated interior fill mesh for a closed convex polygon
+     * via fan triangulation from {@code verts[0]}. Convex-only — adequate for
+     * arena bounds rectangles and any future convex shape; concave polygons
+     * would need ear-clipping (not in scope today).
+     */
+    private Geometry buildRegionFill(final Vec3d[] verts) {
+        final int n = verts.length;
+        final Vector3f[] positions = new Vector3f[n];
+        for (int i = 0; i < n; i++) {
+            positions[i] = new Vector3f(
+                (float) verts[i].x,
+                ArenaFootprintContainer.FILL_Y,
+                (float) verts[i].z);
+        }
+        final int[] indices = new int[(n - 2) * 3];
+        for (int i = 0; i < n - 2; i++) {
+            indices[i * 3] = 0;
+            indices[i * 3 + 1] = i + 1;
+            indices[i * 3 + 2] = i + 2;
+        }
+        final Mesh mesh = new Mesh();
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(positions));
+        mesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(indices));
+        mesh.updateBound();
+
+        final Geometry geom = new Geometry("ArenaFootprintFill", mesh);
+        final Material mat = new Material(
+            getApplication().getAssetManager(),
+            "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", theme.arenaTintColor());
+        // Top-down ortho camera could see either face depending on winding —
+        // disable culling so the fill always renders regardless of vertex order.
+        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
+        geom.setMaterial(mat);
+        return geom;
+    }
+
+    /**
+     * Builds a closed line-loop outline for a polygon using {@code Mesh.Mode.Lines}
+     * with index pairs forming each edge — last edge connects {@code verts[n-1]}
+     * back to {@code verts[0]}. Width is GL-default (1 pixel); upgrading to a
+     * thicker outline would replace this with a quad strip.
+     */
+    private Geometry buildRegionOutline(final Vec3d[] verts) {
+        final int n = verts.length;
+        final Vector3f[] positions = new Vector3f[n];
+        for (int i = 0; i < n; i++) {
+            positions[i] = new Vector3f(
+                (float) verts[i].x,
+                ArenaFootprintContainer.OUTLINE_Y,
+                (float) verts[i].z);
+        }
+        final int[] indices = new int[n * 2];
+        for (int i = 0; i < n; i++) {
+            indices[i * 2] = i;
+            indices[i * 2 + 1] = (i + 1) % n;
+        }
+        final Mesh mesh = new Mesh();
+        mesh.setMode(Mesh.Mode.Lines);
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(positions));
+        mesh.setBuffer(VertexBuffer.Type.Index, 2, BufferUtils.createIntBuffer(indices));
+        mesh.updateBound();
+
+        final Geometry geom = new Geometry("ArenaFootprintOutline", mesh);
+        final Material mat = new Material(
+            getApplication().getAssetManager(),
+            "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", theme.arenaOutlineColor());
+        geom.setMaterial(mat);
+        return geom;
     }
 
     /** Pre-computed paging entry: leaf-cell offset from the avatar's leaf. */

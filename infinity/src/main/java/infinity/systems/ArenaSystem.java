@@ -32,6 +32,7 @@ import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovySettingsHost;
 import infinity.settings.GroovyZoneLoader;
+import infinity.es.arena.ArenaFootprint;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Player;
 import infinity.server.chat.InfinityChatHostedService;
@@ -756,6 +757,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final Vec3d maxB = maps.getMapBoundsMax(mapFile);
       final Vec3d minB = maps.getMapBoundsMin(mapFile);
       ed.setComponent(arena, new ArenaMap(minB, maxB, mapFile, rec.arenaIndex));
+      // Slice U1 — radar reads ArenaFootprint to draw the arena's footprint as a
+      // closed polygon (interior fill + outline). Geometry is the same min/max
+      // rectangle ArenaMap carries; published as a separate component so the
+      // radar consumes presentation data, not gameplay state.
+      ed.setComponent(arena, ArenaFootprint.rectangle(minB, maxB));
 
       rec.entityId = arena;
 

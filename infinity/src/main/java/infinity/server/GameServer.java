@@ -97,6 +97,7 @@ import infinity.es.MobType;
 import infinity.es.Parent;
 import infinity.es.PointLightComponent;
 import infinity.es.ProbeInfo;
+import infinity.es.arena.ArenaFootprint;
 import infinity.es.RadarShapeInfo;
 import infinity.es.ShapeNames;
 import infinity.es.Speech;
@@ -479,6 +480,7 @@ public class GameServer {
     Serializer.registerClass(ArenaMap.class, new FieldSerializer());
     Serializer.registerClass(RadarRange.class, new FieldSerializer());
     Serializer.registerClass(RadarShapeInfo.class, new FieldSerializer());
+    Serializer.registerClass(ArenaFootprint.class, new FieldSerializer());
     // Client-visible components surfaced by the immutability audit
     // (a3c62a2): each is read by a client AppState/view and would crash
     // the first network sync without a registered serializer.
