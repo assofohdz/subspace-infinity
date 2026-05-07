@@ -157,7 +157,7 @@ public class RadarState extends BaseAppState {
     private RadarBlipFactory blipFactory;
     private BodyContainer bodies;
     private StaticContainer statics;
-    private ArenaFootprintContainer regions;
+    private ArenaFootprintContainer footprints;
     private EntitySet frequencies;
     private final Map<EntityId, Blip> blipsById = new HashMap<>();
     private float blipScale = 1f;
@@ -214,7 +214,7 @@ public class RadarState extends BaseAppState {
 
         bodies = new BodyContainer(ed);
         statics = new StaticContainer(ed);
-        regions = new ArenaFootprintContainer(ed);
+        footprints = new ArenaFootprintContainer(ed);
         frequencies = ed.getEntities(RadarShapeInfo.class, Frequency.class);
 
         radarCam = new Camera(theme.pixelSize(), theme.pixelSize());
@@ -286,7 +286,7 @@ public class RadarState extends BaseAppState {
         guiNode.attachChild(radarQuad);
         bodies.start();
         statics.start();
-        regions.start();
+        footprints.start();
     }
 
     @Override
@@ -294,7 +294,7 @@ public class RadarState extends BaseAppState {
         radarQuad.removeFromParent();
         bodies.stop();
         statics.stop();
-        regions.stop();
+        footprints.stop();
     }
 
     @Override
@@ -305,7 +305,7 @@ public class RadarState extends BaseAppState {
 
         bodies.update();
         statics.update();
-        regions.update();
+        footprints.update();
         applyFrequencyChanges();
         updateBodyBlipPositions();
 
@@ -710,16 +710,16 @@ public class RadarState extends BaseAppState {
 
     /**
      * Slice U1 — ArenaFootprint entities (today: arenas) get a closed-polygon
-     * footprint on the radar. Two child geometries per region: a triangulated
-     * interior fill (arenaTintColor) and a Mesh.Mode.Lines outline
-     * (arenaOutlineColor). Both share the polygon's vertices; Y-offsets layer
-     * fill behind outline behind blips so the existing entity-blip layer
-     * stays on top.
+     * footprint on the radar. Two child geometries per footprint: a
+     * triangulated interior fill (arenaTintColor) and a Mesh.Mode.Lines
+     * outline (arenaOutlineColor). Both share the polygon's vertices;
+     * Y-offsets layer fill behind outline behind blips so the existing
+     * entity-blip layer stays on top.
      *
-     * <p>Region geometry is immutable per components.md — vertices don't
-     * change while a ArenaFootprint exists, so updateObject is a no-op. If a
-     * future entity replaces its ArenaFootprint with new vertices, removeObject
-     * + addObject will rebuild.
+     * <p>Footprint geometry is immutable per components.md — vertices don't
+     * change while an ArenaFootprint exists, so updateObject is a no-op. If
+     * a future entity replaces its ArenaFootprint with new vertices,
+     * removeObject + addObject will rebuild.
      */
     private final class ArenaFootprintContainer extends EntityContainer<Node> {
         // Y-offsets layer geometries within the radar's top-down view: blips
@@ -735,12 +735,12 @@ public class RadarState extends BaseAppState {
 
         @Override
         protected Node addObject(final Entity e) {
-            final ArenaFootprint region = e.get(ArenaFootprint.class);
-            final Vec3d[] verts = region.getVertices();
+            final ArenaFootprint footprint = e.get(ArenaFootprint.class);
+            final Vec3d[] verts = footprint.getVertices();
             final Node node = new Node("ArenaFootprint-" + e.getId());
             if (verts != null && verts.length >= 3) {
-                node.attachChild(buildRegionFill(verts));
-                node.attachChild(buildRegionOutline(verts));
+                node.attachChild(buildFootprintFill(verts));
+                node.attachChild(buildFootprintOutline(verts));
             }
             footprintRoot.attachChild(node);
             return node;
@@ -763,7 +763,7 @@ public class RadarState extends BaseAppState {
      * arena bounds rectangles and any future convex shape; concave polygons
      * would need ear-clipping (not in scope today).
      */
-    private Geometry buildRegionFill(final Vec3d[] verts) {
+    private Geometry buildFootprintFill(final Vec3d[] verts) {
         final int n = verts.length;
         final Vector3f[] positions = new Vector3f[n];
         for (int i = 0; i < n; i++) {
@@ -801,7 +801,7 @@ public class RadarState extends BaseAppState {
      * back to {@code verts[0]}. Width is GL-default (1 pixel); upgrading to a
      * thicker outline would replace this with a quad strip.
      */
-    private Geometry buildRegionOutline(final Vec3d[] verts) {
+    private Geometry buildFootprintOutline(final Vec3d[] verts) {
         final int n = verts.length;
         final Vector3f[] positions = new Vector3f[n];
         for (int i = 0; i < n; i++) {

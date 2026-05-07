@@ -833,9 +833,10 @@ Likely after Slice 16 + B4 + B5.
 `infinity.es.arena.*` carries a closed polygon — server stamps it on
 each arena entity at load time alongside `ArenaMap` (rectangle from
 `min`/`max`). Client `RadarState` opens an `EntityContainer<Node>` on
-`ArenaFootprint` and builds two child geometries per region: a fan-
-triangulated interior fill at `arenaTintColor` and a `Mesh.Mode.Lines`
-outline at `arenaOutlineColor`, layered behind blips via Y-offset
+`ArenaFootprint` and builds two child geometries per footprint: a
+fan-triangulated interior fill at `arenaTintColor` and a
+`Mesh.Mode.Lines` outline at `arenaOutlineColor`, layered behind blips
+via Y-offset
 (blips at Y=0, outlines Y=-1, fills Y=-2). Viewport clear color flipped
 from `backgroundColor` to `voidTintColor` (darker green, what
 non-arena pixels show). Smoke-verified in trench: trench / deva /
@@ -846,9 +847,9 @@ Naming: initial `RadarShape` proposal collided with existing
 `infinity.es.arena.*` per user feedback that "Region" is a Subspace
 canon term (eLVL REGN chunks; see `infinity.map.Region`). Component is
 generic on closed polygons — future entities (wormholes, safe zones,
-eLVL regions) can stamp themselves the same way via
-`ArenaFootprint.rectangle(min, max)` or the raw `Vec3d[] vertices`
-constructor.
+eLVL regions per `infinity.map.Region`) can stamp themselves the same
+way via `ArenaFootprint.rectangle(min, max)` or the raw `Vec3d[]
+vertices` constructor.
 
 Current-vs-neighbor styling deferred to backlog
 (`refactor-backlog/BACKLOG.md` "Radar `ArenaFootprint` — current-vs-

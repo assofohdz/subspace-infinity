@@ -8,7 +8,7 @@ import com.simsilica.mathd.Vec3d;
 
 /**
  * Presentation marker that tells the client's radar an entity has a closed
- * polygon footprint region — vs the per-entity-point blip pattern carried by
+ * polygon footprint — vs the per-entity-point blip pattern carried by
  * {@link RadarShapeInfo} (which names a blip shape: "dot", "square",
  * "diamond" etc).
  *
@@ -25,8 +25,12 @@ import com.simsilica.mathd.Vec3d;
  *
  * <p>Today only arenas carry this component (see {@code ArenaSystem}). The
  * shape is generic so future entity types — wormholes, safe zones, capture
- * footprints, eLVL regions — can stamp themselves with a {@code ArenaFootprint}
- * and inherit the same render path.
+ * footprints, eLVL regions (Subspace's per-arena sub-areas, see
+ * {@code infinity.map.Region}) — can stamp themselves with an
+ * {@code ArenaFootprint} and inherit the same render path. (If non-arena
+ * entities ever stamp this component, the {@code Arena} prefix on the class
+ * name becomes a misnomer — rename to a generic {@code RadarPolygon}-style
+ * name at that point. Today every caller is an arena.)
  */
 public class ArenaFootprint implements EntityComponent {
 
