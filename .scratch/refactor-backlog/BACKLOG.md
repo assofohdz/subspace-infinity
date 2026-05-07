@@ -16,6 +16,30 @@ Six `*Tester` stubs (`basicTester`, `doorTester`, `lightTester`, `prizeTester`, 
 
 Surface to user before doing any work.
 
+### Eliminate Subspace pixels from gameplay types — author + carry world units only
+
+The simulation layer naturally speaks in world units (1 unit ≈ 1 tile). Subspace canon authors several knobs in pixels at the canonical 16 px/tile rate, and a few of those still carry the pixel value through Infinity's internal types instead of converting at the operator boundary.
+
+Today's pixel-flavored gameplay types (audit as of slice S5):
+- [`RepelConfig.distancePixels`](../../api/src/infinity/config/RepelConfig.java) — `int` in pixels.
+- [`RepelDistance`](../../api/src/infinity/es/ship/actions/RepelDistance.java) component — `int getPixels()`.
+- [`BombConfig.explodeRadius`](../../api/src/infinity/config/BombConfig.java) Javadoc — already migrated to tiles for the field itself, but Javadoc still references pixels for SVS-port operators.
+
+Already-clean precedent: `BombConfig.explodeRadius` was migrated tile-units-only in slice 9a and operators porting from SVS divide by 16 themselves. Same shape applies to repel:
+- Rename `distancePixels` → `distance` (or `distanceWorldUnits`); store `double` in tiles.
+- `repel.groovy` author key from `distance: <pixels>` → `distance: <tiles>` (e.g. SVS canon 512 px → 32).
+- `RepelAdapter` drops the pixel-flavored input; consumes a `Number tiles`.
+- `RepelDistance` component renamed (`getRadiusWorldUnits()` returns `double`).
+- `RepelSystem` drops the `/ 16` conversion; constant `PIXELS_PER_TILE` deletes.
+
+Wire-format change on `RepelDistance` — coordinated server+client update, but no client reads `RepelDistance` today (component is server-only) so the cost is just the consumer rename in `RepelSystem` + tests.
+
+Out of scope: rendering code that genuinely deals with image pixels (`BlockGeometryIndex`'s tileset loader). The cleanup is the **gameplay** types only — anywhere a value flows through the simulation in pixels rather than world units.
+
+Would also be the natural moment to introduce a centralized `PIXELS_PER_TILE` engine-tier constant **for operator-boundary conversion only** (e.g. an SVS-import tool or `~set` admin command's input adapter), if a centralized px↔tile bridge ever proves useful.
+
+Surfaced during slice S5 manual test (RepelSystem's `/ 16` conversion was the trigger to notice the broader pattern).
+
 ### `AvatarMovementFunctions` keybinding cleanup
 
 [`AvatarMovementFunctions.java:133-147`](../../infinity/src/main/java/infinity/client/AvatarMovementFunctions.java#L133-L147) has four `if (!inputMapper.hasMappings(F_<X>)) { inputMapper.map(F_REPEL, KEY_<Y>); }` blocks where `<X>` is `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` but the body always maps `F_REPEL` (looks like copy-paste rot). Net effect: `F_REPEL` is mapped to F3 + F4 + F5 + F7, while `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` get **no** key bindings at all. Plus a commented-out shift-key mapping at lines 126-128 (original repel binding).
