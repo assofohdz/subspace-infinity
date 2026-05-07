@@ -17,10 +17,6 @@ source files are the **what is the work** layer.
   ([physics-audit.md](./physics-audit.md)); branch
   `slice/s1-damping`; status: implementing — math fit, drop drag gate,
   PlayerDriver-side setDamping; angularDamping=1.0 on player ships
-- **desktop** — Slice S8: CorePhysicsConstants cleanup
-  ([physics-audit.md](./physics-audit.md)); branch
-  `slice/s8-physics-constants-cleanup`; status: grilling scope, full
-  sweep agreed
 
 ## Recently landed (last 7 days)
 
