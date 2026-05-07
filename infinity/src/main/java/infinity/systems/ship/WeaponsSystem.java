@@ -1223,9 +1223,10 @@ public class WeaponsSystem extends AbstractGameSystem
     // Slice S2-cal — recoil uses its own engine-tier `bombThrustScale`,
     // distinct from `subspaceVelocityScale` used by projectile-speed
     // paths. The projectile fit (400 × 0.01 = 4.0) felt too pushy in
-    // S2 playtest. Default `bombThrustScale 0.005` lands SVS canon
-    // BombThrust 400 at 2.0 jME/sec backward impulse. Cap reuses
-    // `maxProjectileSpeedJme` for physics-safety.
+    // S2 playtest. Default `bombThrustScale 0.0005` lands SVS canon
+    // BombThrust 400 at 0.2 jME/sec backward impulse — a subtle nudge
+    // (~1% of ship max-speed). Cap reuses `maxProjectileSpeedJme` for
+    // physics-safety.
     final Vec3d impulse =
         recoilImpulse(
             thrust.getThrust(),

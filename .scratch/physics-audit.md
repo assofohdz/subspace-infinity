@@ -337,17 +337,20 @@ Two new fields on `EngineConfig`, distinct from
 `subspaceVelocityScale` (which stays scoped to projectile speeds —
 `BulletSpeed` / `BombSpeed` / `BurstSpeed` fire paths):
 
-- **`shipMaxSpeedScale`** (default `0.025`) — applied in
-  `PlayerDriver.update` to convert the ship's raw Subspace
+- **`shipMaxSpeedScale`** (default `0.01` — playtest-tuned) — applied
+  in `PlayerDriver.update` to convert the ship's raw Subspace
   velocity-units `Speed` value to a jME max-speed cap. Trench
-  warbird's `Speed 2000 × 0.025 = 50 jME/sec`, putting ship max in
-  range of bullet velocity (resolves the "max-speed too high" S1
-  playtest verdict — post-S1 was reaching ~889 jME/sec under
-  `LinearDamping 0.99`).
-- **`bombThrustScale`** (default `0.005`) — replaces
-  `subspaceVelocityScale` in `WeaponsSystem.applyBombRecoil`. SVS
-  canon `BombThrust 400 × 0.005 = 2.0 jME/sec` backward impulse
-  (down from S2's initial `4.0`, which felt too pushy in playtest).
+  warbird's `Speed 2000 × 0.01 = 20 jME/sec` (steady-state ~19.75
+  under `LinearDamping 0.99`), putting ship max at ~40% of bullet
+  velocity (`5000 × subspaceVelocityScale 0.01 = 50`). Resolves the
+  "max-speed too high" S1 playtest verdict (post-S1 reached ~889
+  jME/sec under `LinearDamping 0.99`).
+- **`bombThrustScale`** (default `0.0005` — playtest-tuned) —
+  replaces `subspaceVelocityScale` in
+  `WeaponsSystem.applyBombRecoil`. SVS canon `BombThrust 400 ×
+  0.0005 = 0.2 jME/sec` backward impulse (down from S2's initial
+  `4.0`, which felt too pushy). Subtle nudge (~1% of ship
+  max-speed) rather than a strong shove.
 
 Both share the existing `maxProjectileSpeedJme 100` cap for
 physics-safety on absurd authored values.

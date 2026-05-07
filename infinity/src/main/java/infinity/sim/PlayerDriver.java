@@ -114,9 +114,10 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
         // units / sec. Distinct from the projectile subspaceVelocityScale
         // (which fits 5000→50 for bullets) because the same fit on ship
         // max-speed felt too fast once LinearDamping 0.99 landed in S1.
-        // Default `shipMaxSpeedScale 0.025` maps trench warbird's
-        // Speed 2000 → 50 jME/sec cap. Falls back to EngineConfig.DEFAULTS
-        // when no EngineConfigSystem is available (test harnesses).
+        // Default `shipMaxSpeedScale 0.01` maps trench warbird's
+        // Speed 2000 → 20 jME/sec cap (~40% of bullet velocity). Falls
+        // back to EngineConfig.DEFAULTS when no EngineConfigSystem is
+        // available (test harnesses).
         final EngineConfig engineCfg =
             (engineConfigSystem != null) ? engineConfigSystem.get() : EngineConfig.DEFAULTS;
         final double shipScale = engineCfg.shipMaxSpeedScale();

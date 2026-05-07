@@ -106,14 +106,15 @@ public class WeaponsSystemRecoilTest {
   // -----------------------------------------------------------------
 
   @Test
-  public void magnitude_currentBombThrustScale_400_at_0_005() {
-    // Pin the post-S2-cal calibration: SVS canon BombThrust 400 × the
-    // engine-tier bombThrustScale 0.005 = 2.0 jME/sec backward impulse.
-    // This is the magnitude trench warbird's bomb fires at after slice
-    // S2-cal landed. If EngineConfig.DEFAULTS.bombThrustScale or the
-    // engine.groovy author drift, the behaviour delta is intentional and
-    // should be tracked in physics-audit.md.
-    final Vec3d r = WeaponsSystem.recoilImpulse(400, 0.005, 100.0, new Quatd());
-    assertEquals("post-S2-cal recoil magnitude", 2.0, r.length(), EPSILON);
+  public void magnitude_currentBombThrustScale_400_at_0_0005() {
+    // Pin the post-S2-cal playtest-tuned calibration: SVS canon
+    // BombThrust 400 × the engine-tier bombThrustScale 0.0005 = 0.2
+    // jME/sec backward impulse — a subtle nudge (~1% of trench
+    // warbird's ~20 jME/sec max-speed under shipMaxSpeedScale 0.01).
+    // If EngineConfig.DEFAULTS.bombThrustScale or the engine.groovy
+    // author drift, the behaviour delta is intentional and should be
+    // tracked in physics-audit.md.
+    final Vec3d r = WeaponsSystem.recoilImpulse(400, 0.0005, 100.0, new Quatd());
+    assertEquals("post-S2-cal recoil magnitude", 0.2, r.length(), EPSILON);
   }
 }

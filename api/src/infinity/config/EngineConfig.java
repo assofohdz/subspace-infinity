@@ -44,21 +44,24 @@ package infinity.config;
  * @param shipMaxSpeedScale multiplier applied to the ship's
  *     {@code Speed} component (raw Subspace velocity units) at consumer
  *     time in {@code PlayerDriver.update} to derive the jME max-speed
- *     cap. Default {@code 0.025} maps trench warbird's
- *     {@code Speed 2000 → 50 jME/sec}, putting ship max in the same
- *     range as bullet velocity (slice S1-cal). Distinct from
+ *     cap. Default {@code 0.01} maps trench warbird's
+ *     {@code Speed 2000 → 20 jME/sec} cap (steady-state ~19.75 under
+ *     {@code LinearDamping 0.99}), putting ship max at ~40% of bullet
+ *     velocity (slice S1-cal). Distinct from
  *     {@code subspaceVelocityScale} because the math fit for projectile
  *     speed (5000 → 50) gave ship max-speed values that felt too fast
  *     once {@code LinearDamping 0.99} was wired in slice S1.
  * @param bombThrustScale multiplier applied to per-ship
  *     {@link infinity.es.ship.weapons.BombThrust} at fire time in
  *     {@code WeaponsSystem.applyBombRecoil} to derive the jME recoil
- *     impulse magnitude. Default {@code 0.005} maps SVS canon
- *     {@code BombThrust 400 → 2.0 jME/sec} backward impulse (slice
- *     S2-cal). Distinct from {@code subspaceVelocityScale} because the
- *     projectile fit (400 × 0.01 = 4.0) felt too pushy once recoil
- *     landed in slice S2. Cap reuses {@link #maxProjectileSpeedJme} for
- *     physics-safety on absurd authored values.
+ *     impulse magnitude. Default {@code 0.0005} maps SVS canon
+ *     {@code BombThrust 400 → 0.2 jME/sec} backward impulse (slice
+ *     S2-cal) — a subtle nudge (~1% of ship max-speed) rather than
+ *     a strong shove. Distinct from {@code subspaceVelocityScale}
+ *     because the projectile fit (400 × 0.01 = 4.0) felt too pushy
+ *     once recoil landed in slice S2. Cap reuses
+ *     {@link #maxProjectileSpeedJme} for physics-safety on absurd
+ *     authored values.
  */
 public record EngineConfig(
     double subspaceVelocityScale,
@@ -72,9 +75,10 @@ public record EngineConfig(
    * inferred from existing inline magic numbers ({@code 5000 * 0.01 = 50}
    * for bullets); cap {@code 100} bounds the worst-case translated value
    * without restricting today's tuning ranges.
-   * {@code shipMaxSpeedScale 0.025} + {@code bombThrustScale 0.005}
-   * land trench feel within range of pre-S1 max-speed and a
-   * subtle-but-felt recoil per the S1-cal/S2-cal playtest targets.
+   * {@code shipMaxSpeedScale 0.01} + {@code bombThrustScale 0.0005}
+   * land trench feel at ~40% of bullet velocity for ship max and a
+   * subtle (~1% of max-speed) recoil — values dialed in via S1-cal /
+   * S2-cal playtest.
    */
-  public static final EngineConfig DEFAULTS = new EngineConfig(0.01, 100.0, 0.025, 0.005);
+  public static final EngineConfig DEFAULTS = new EngineConfig(0.01, 100.0, 0.01, 0.0005);
 }
