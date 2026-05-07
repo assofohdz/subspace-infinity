@@ -757,7 +757,7 @@ trackers updated in lockstep. Prize-side stays unchanged
 
 ## Slice P2 — Physics implementation audit
 
-🔲 Open-ended audit / cleanup pass on Infinity's physics layer. Surfaced
+⏳ Open-ended audit / cleanup pass on Infinity's physics layer. Surfaced
 during Slice 10 grilling: there's persistent unit confusion across the
 existing physics integrations, no documented conversion boundary, and
 multiple "magic numbers" that exist only because nobody's written down
