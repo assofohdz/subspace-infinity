@@ -1092,6 +1092,12 @@ between bigger slices. Each item is 1 row, ~1 hour:
   Over1/2/5, Prize, Repel) → per-projectile-template Pattern 4 config
   (parallel to Slice 10 speeds; S6 owns SHIPSIZERADIUS for ships).
   Surfaced during S8 (CorePhysicsConstants cleanup).
+- `JitterState.MAX_OFFSET = 0.5f` hardcoded → engine.groovy
+  `cameraShakeMaxOffset` per CLAUDE.md rule #4. Surfaced during slice
+  9c-JitterTime.
+- Camera-shake mechanism: MVP uses additive camera-location offset
+  (slice 9c-JitterTime Q6=a). FilterPostProcessor screen-shake is the
+  alternative if visual feel is insufficient.
 
 ---
 

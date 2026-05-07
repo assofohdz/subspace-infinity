@@ -137,6 +137,11 @@ public class GameSessionState extends CompositeAppState {
 
     InfinityCameraState cameraState = new InfinityCameraState(avatarEntityId, timeSource);
     addChild(cameraState);
+    // Slice 9c-JitterTime: camera-shake state must run after the camera
+    // tracker so its offset additively perturbs CameraState's tracked
+    // location (CameraState rewrites the location each frame, so the
+    // perturbation is non-accumulating).
+    addChild(new infinity.client.states.JitterState(), true);
 
 
     getApplication().getAssetManager().registerLoader(AWTLoader.class, "bm2");
