@@ -46,9 +46,10 @@ Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infi
 ## Build & Run
 
 ```bash
-./gradlew build           # Build all
-./gradlew :infinity:run   # Run game
-./gradlew :infinity:runX11  # Run with X11 (Wayland fix)
+./gradlew build             # Build all
+./gradlew :infinity:run     # Run game
+./gradlew :infinity:runX11  # Run on Linux/Wayland (X11 backend)
+./gradlew :infinity:runMac  # Run on macOS (-XstartOnFirstThread)
 ```
 
 ## Release Process
