@@ -115,6 +115,7 @@ import infinity.sim.InfinityPhysicsManager;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.ship.ProximityFuseSystem;
+import infinity.systems.ship.RepelSystem;
 import infinity.systems.ship.RocketBuffSystem;
 import infinity.systems.ship.StatusDrainSystem;
 import infinity.systems.ArenaMembershipSystem;
@@ -328,6 +329,9 @@ public class GameServer {
     systems.register(RocketBuffSystem.class, new RocketBuffSystem());
     systems.register(StatusDrainSystem.class, new StatusDrainSystem());
     systems.register(ProximityFuseSystem.class, new ProximityFuseSystem());
+    // Slice S5 — applies one-shot impulse to Repellable bodies inside a
+    // repel effect's radius (added-set scan; uses sio2-mphys Impulse).
+    systems.register(RepelSystem.class, new RepelSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
     systems.register(ArenaMembershipSystem.class, new ArenaMembershipSystem());
     systems.register(RegionSystem.class, new RegionSystem());
