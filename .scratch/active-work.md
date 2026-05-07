@@ -16,6 +16,10 @@ source files are the **what is the work** layer.
 - **laptop** — Slice S1: drag → mphys native linear damping
   ([physics-audit.md](./physics-audit.md)); branch
   `slice/s1-damping`; status: planned, awaiting implementation start
+- **desktop** — Slice S8: CorePhysicsConstants cleanup
+  ([physics-audit.md](./physics-audit.md)); branch
+  `slice/s8-physics-constants-cleanup`; status: grilling scope, full
+  sweep agreed
 
 ## Recently landed (last 7 days)
 
