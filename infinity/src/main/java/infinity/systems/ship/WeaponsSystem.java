@@ -30,6 +30,7 @@ import infinity.settings.EngineConfigSystem;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
+import infinity.es.Jitter;
 import infinity.es.Parent;
 import infinity.es.ProximityArmed;
 import infinity.es.ProximityFuse;
@@ -970,9 +971,9 @@ public class WeaponsSystem extends AbstractGameSystem
       final long nowSimNanos) {
     final SplashDamage splash = ed.getComponent(damageEntityId, SplashDamage.class);
     if (splash != null) {
-      applySplashDamage(damageEntityId, damage, splash, explosionPoint);
+      applySplashDamage(damageEntityId, damage, splash, explosionPoint, nowSimNanos);
     } else if (directVictimId != null) {
-      applyDirectHitDamage(damageEntityId, damage, directVictimId);
+      applyDirectHitDamage(damageEntityId, damage, directVictimId, nowSimNanos);
     }
     GameEntities.createExplosion(
         ed,
@@ -992,11 +993,15 @@ public class WeaponsSystem extends AbstractGameSystem
    * feedback / consumption).
    */
   private void applyDirectHitDamage(
-      final EntityId damageEntityId, final Damage damage, final EntityId victimId) {
+      final EntityId damageEntityId,
+      final Damage damage,
+      final EntityId victimId,
+      final long nowSimNanos) {
     if (!shouldDamageVictim(damageEntityId, victimId, false)) {
       return;
     }
     energySystem.damage(victimId, damage.getIntendedDamage());
+    stampJitter(damageEntityId, victimId, nowSimNanos);
   }
 
   /**
@@ -1011,7 +1016,8 @@ public class WeaponsSystem extends AbstractGameSystem
       final EntityId damageEntityId,
       final Damage damage,
       final SplashDamage splash,
-      final Vec3d explosionPoint) {
+      final Vec3d explosionPoint,
+      final long nowSimNanos) {
     final double radius = splash.getRadiusWorldUnits();
     if (radius <= 0.0) {
       return;
@@ -1035,6 +1041,37 @@ public class WeaponsSystem extends AbstractGameSystem
         continue;
       }
       energySystem.damage(victimId, damage.getIntendedDamage());
+      stampJitter(damageEntityId, victimId, nowSimNanos);
+    }
+  }
+
+  /**
+   * Stamps a {@link Jitter} component on a bomb-damage victim after the FF
+   * gate has passed. Resolves the firing arena's
+   * {@link infinity.config.BombConfig#jitterTimeMs} from the bomb's
+   * {@link Parent}; no-ops if the value is 0 (arena disabled), if the bomb
+   * has no parent (no attacker context), or if the existing {@code Jitter}
+   * already runs longer than what this hit would extend to (Q4=a:
+   * max(existing, new), never shorten an in-flight shake).
+   */
+  private void stampJitter(
+      final EntityId damageEntityId, final EntityId victimId, final long nowSimNanos) {
+    final Parent parent = ed.getComponent(damageEntityId, Parent.class);
+    if (parent == null) {
+      return;
+    }
+    final EntityId attackerShipId = parent.getParentEntityId();
+    if (attackerShipId == null) {
+      return;
+    }
+    final long jitterMs = weaponsFor(attackerShipId).bomb().jitterTimeMs();
+    if (jitterMs <= 0L) {
+      return;
+    }
+    final long newEnd = nowSimNanos + jitterMs * 1_000_000L;
+    final Jitter existing = ed.getComponent(victimId, Jitter.class);
+    if (existing == null || newEnd > existing.getEndTime()) {
+      ed.setComponent(victimId, new Jitter(nowSimNanos, newEnd));
     }
   }
 

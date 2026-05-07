@@ -38,15 +38,17 @@ import java.util.List;
  *                              // proximity-arm radius. Auto-no-ops when
  *                              // proximityDistance == 0. See slice
  *                              // 9c-BombSafety.
+ *     jitterTimeCs      100    // [Bomb] JitterTime in centiseconds (×10 →
+ *                              // ms). Screen-jitter duration applied to
+ *                              // each FF-passing bomb victim. 0 disables.
+ *                              // See slice 9c-JitterTime.
  * }
  * }</pre>
  *
- * <p>The remaining Subspace {@code [Bomb]} keys (JitterTime,
- * EBombShutdownTime, EBombDamagePercent, BBombDamagePercent) aren't in
- * {@link BombConfig} today — they belong to slice 9c-JitterTime (deferred,
- * pending a client-side jitter consumer) or future EMP / bouncing-bomb
- * work. The adapter only exposes fields that have a typed config + active
- * consumer.
+ * <p>The remaining Subspace {@code [Bomb]} keys (EBombShutdownTime,
+ * EBombDamagePercent, BBombDamagePercent) aren't in {@link BombConfig}
+ * today — they belong to future EMP / bouncing-bomb work. The adapter only
+ * exposes fields that have a typed config + active consumer.
  */
 public final class BombAdapter
     implements GroovySettingsAdapter<BombConfig, BombAdapter.BombBuilder> {
@@ -107,6 +109,7 @@ public final class BombAdapter
     private int proximityDistance = BombConfig.DEFAULTS.proximityDistance();
     private long explodeDelayMs = BombConfig.DEFAULTS.explodeDelayMs();
     private boolean bombSafety = BombConfig.DEFAULTS.bombSafety();
+    private long jitterTimeMs = BombConfig.DEFAULTS.jitterTimeMs();
 
     BombBuilder() {}
 
@@ -185,9 +188,30 @@ public final class BombAdapter
       this.bombSafety = enabled;
     }
 
+    /**
+     * {@code [Bomb] JitterTime} authored in <em>centiseconds</em> (Subspace
+     * VIE convention); adapter ×10 to store milliseconds. Screen-jitter
+     * duration applied to each bomb-damage victim that passes the FF gate.
+     * Set to 0 to disable jitter on this arena. Flat across bomb levels —
+     * REFERENCE.md does not specify per-level scaling.
+     */
+    public void jitterTimeCs(final int centiseconds) {
+      if (centiseconds < 0) {
+        throw new IllegalArgumentException(
+            "jitterTimeCs must be >= 0; got " + centiseconds);
+      }
+      this.jitterTimeMs = centiseconds * 10L;
+    }
+
     BombConfig build() {
       return new BombConfig(
-          damage, decayMs, explodeRadius, proximityDistance, explodeDelayMs, bombSafety);
+          damage,
+          decayMs,
+          explodeRadius,
+          proximityDistance,
+          explodeDelayMs,
+          bombSafety,
+          jitterTimeMs);
     }
   }
 }

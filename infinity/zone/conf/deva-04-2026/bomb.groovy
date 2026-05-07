@@ -17,4 +17,8 @@ bomb {
                              // an enemy sits inside the firing ship's
                              // effective proximity-arm radius. Auto-no-ops
                              // when proximityDistance == 0.
+    jitterTimeCs      0      // Slice 9c-JitterTime — screen jitter duration
+                             // in centiseconds (×10 → ms). Disabled in
+                             // deva-04 (modern competitive default — many
+                             // SVS clients run cl_disable_jitter).
 }

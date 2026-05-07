@@ -253,6 +253,9 @@ public class GameServer {
 
     // Add some standard systems
     systems.addSystem(new DecaySystem());
+    // Slice 9c-JitterTime: reap expired Jitter components from bomb-damage
+    // victims (component carries deadline; reaper runs once per tick).
+    systems.addSystem(new infinity.systems.JitterReaperSystem());
 
     // We'll need the block set in order to have physics collision
     // information.  Eventually we'll want to do this differently... probably.
@@ -489,6 +492,9 @@ public class GameServer {
     Serializer.registerClass(Speech.class, new FieldSerializer());
     // Slice 8d: spawner-driven "client should not render" marker.
     Serializer.registerClass(infinity.es.Hidden.class, new FieldSerializer());
+    // Slice 9c-JitterTime: server stamps on bomb-damage victims, client
+    // JitterState reads on local avatar id to drive camera shake.
+    Serializer.registerClass(infinity.es.Jitter.class, new FieldSerializer());
   }
 
   public Server getServer() {

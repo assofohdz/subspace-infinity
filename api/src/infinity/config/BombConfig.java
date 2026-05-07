@@ -36,6 +36,14 @@ package infinity.config;
  *       blowing yourself up by lobbing a proximity bomb at a hugging
  *       enemy. Auto-no-ops when {@link #proximityDistance} is 0 (nothing
  *       to scan against). See slice 9c-BombSafety.
+ *   <li>{@code [Bomb] JitterTime} (centiseconds) × 10 → {@link #jitterTimeMs},
+ *       screen-jitter duration on bomb hit. Server stamps a
+ *       {@code infinity.es.Jitter} component on each victim that passes the
+ *       FF gate; client-side {@code JitterState} reads it on the local avatar
+ *       and perturbs the camera with decaying amplitude. Value {@code 0}
+ *       disables jitter on this arena. Flat — no per-bomb-level scaling
+ *       (REFERENCE.md is silent on per-level; Subspace canon is flat). See
+ *       slice 9c-JitterTime.
  * </ul>
  *
  * <p><b>Deviation from canon:</b> REFERENCE.md says the bomb explodes
@@ -44,10 +52,8 @@ package infinity.config;
  * ship leaves the radius — operator-noticeable only on near-misses with
  * fast ships. Tracked as a polish-bag follow-up.
  *
- * <p>The remaining {@code [Bomb]} keys (JitterTime, EBombShutdownTime,
- * EBombDamagePercent, BBombDamagePercent) belong to slice 9c-JitterTime
- * (deferred, pending a client-side jitter consumer) or future EMP /
- * bouncing-bomb work.
+ * <p>The remaining {@code [Bomb]} keys (EBombShutdownTime, EBombDamagePercent,
+ * BBombDamagePercent) belong to future EMP / bouncing-bomb work.
  *
  * @param damage damage applied on detonation
  * @param decayMs bomb projectile lifetime in milliseconds
@@ -75,6 +81,11 @@ package infinity.config;
  *     {@link #proximityDistance} is 0. Subspace canonical key is binary
  *     ({@code BombSafety=0/1}); Infinity stores as a boolean for
  *     consumer-side clarity.
+ * @param jitterTimeMs screen-jitter duration in milliseconds applied to each
+ *     bomb-damage victim (after the FF gate). Authored as
+ *     {@code [Bomb] JitterTime} in centiseconds; the adapter converts ×10 at
+ *     the loader boundary. Value 0 disables jitter on this arena. Flat
+ *     across bomb levels — REFERENCE.md does not specify per-level scaling.
  */
 public record BombConfig(
     int damage,
@@ -82,7 +93,8 @@ public record BombConfig(
     double explodeRadius,
     int proximityDistance,
     long explodeDelayMs,
-    boolean bombSafety) {
+    boolean bombSafety,
+    long jitterTimeMs) {
 
   /**
    * Subspace-canonical baseline used when no fragment provides a value.
@@ -100,6 +112,10 @@ public record BombConfig(
    * <p>{@code bombSafety} defaults to {@code false} so arenas that don't
    * author the key keep slice 9b's "fire is allowed regardless of nearby
    * enemies" behaviour. Active arenas opt in via {@code bombSafety true}.
+   *
+   * <p>{@code jitterTimeMs} defaults to {@code 0} (disabled): arenas that
+   * don't author {@code jitterTimeCs} get no screen jitter. Active arenas
+   * opt in via {@code jitterTimeCs} in their {@code bomb.groovy}.
    */
-  public static final BombConfig DEFAULTS = new BombConfig(750, 60000L, 5.0, 0, 0L, false);
+  public static final BombConfig DEFAULTS = new BombConfig(750, 60000L, 5.0, 0, 0L, false, 0L);
 }

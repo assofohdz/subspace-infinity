@@ -17,4 +17,7 @@ bomb {
                              // an enemy sits inside the firing ship's
                              // effective proximity-arm radius. Auto-no-ops
                              // when proximityDistance == 0.
+    jitterTimeCs      100    // Slice 9c-JitterTime — 1 second screen jitter
+                             // (×10 → 1000ms). testconf authors a non-zero
+                             // value so the feature is demo-able / testable.
 }
