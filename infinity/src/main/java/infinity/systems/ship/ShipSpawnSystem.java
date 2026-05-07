@@ -23,7 +23,7 @@ import infinity.config.StatusStats;
 import infinity.es.RadarShapeInfo;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
-import infinity.es.ship.DragFactor;
+import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
@@ -268,13 +268,13 @@ public class ShipSpawnSystem extends AbstractGameSystem {
         shipEntity.getId());
     if (log.isDebugEnabled()) {
       log.debug(
-          "  stats: thrust={} speed={} rotation={} recharge={} energy={} drag={} turn={} bounce={}",
+          "  stats: thrust={} speed={} rotation={} recharge={} energy={} linDamp={} turn={} bounce={}",
           cfg.thrust(),
           cfg.speed(),
           cfg.rotation(),
           cfg.recharge(),
           cfg.energy(),
-          cfg.dragFactor(),
+          cfg.linearDamping(),
           cfg.turnResponsiveness(),
           cfg.bounceRestitution());
     }
@@ -347,7 +347,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void projectFeel(final EntityId shipId, final ShipConfig cfg) {
-    ed.setComponent(shipId, new DragFactor(cfg.dragFactor()));
+    ed.setComponent(shipId, new LinearDamping(cfg.linearDamping()));
     ed.setComponent(shipId, new TurnResponsiveness(cfg.turnResponsiveness()));
     ed.setComponent(shipId, new BounceRestitution(cfg.bounceRestitution()));
   }

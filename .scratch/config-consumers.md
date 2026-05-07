@@ -6,7 +6,7 @@ For Subspace-canonical settings (sections like `[Bomb]`, `[Bullet]`, `[Repel]`, 
 
 Purpose of this file (post-trim):
 
-- **Infinity-only `ShipConfig` fields** (drag, turn responsiveness, restitution, radar range) — not in Subspace canon.
+- **Infinity-only `ShipConfig` fields** (linear damping, turn responsiveness, restitution, radar range) — not in Subspace canon.
 - **Marker components** that gate physics or rendering behavior.
 - **Arena-scope config** (wall friction, prize spawner specs) — keyed off `ArenaId`, not Subspace `[Section]` keys.
 - **Coordination fields** (zone-enter spawn arena, arena-local `[Spawn] X/Z`) — wire across multiple subsystems.
@@ -19,7 +19,7 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 
 | Config field | Consumer | Path | Notes |
 |---|---|---|---|
-| `ShipConfig.dragFactor` | `PlayerDriver.update()` | `component:DragFactor` | Coast-drag fraction of `Thrust` when no thrust intent (`0` = pure coast, `1` = decelerate as fast as full thrust). Default `0.05` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition (no Subspace counterpart). |
+| `ShipConfig.linearDamping` | `PlayerDriver.update()` | `component:LinearDamping` → `RigidBody.setDamping(linear, 1.0)` | Slice S1. Per-second velocity-retention multiplier passed to mphys's native damping. Integrator applies `velocity *= pow(damping, t)` per tick. Default `0.99` (1% loss/sec at typical speed). PlayerDriver re-pokes `body.setDamping` when `applyChanges()` returns true; angularDamping=1.0 so PlayerDriver's exponential rotation ease is unambiguous angular authority. Always-on (applies during thrust too) — max-speed reach lands ~5% short. Projected at spawn by `ShipSpawnSystem`. Infinity addition (Subspace canon = no drag). |
 | `ShipConfig.turnResponsiveness` | `PlayerDriver.update()` | `component:TurnResponsiveness` | Rate constant (1/sec) for angular-velocity ease-toward-target; `8.0` ≈ 95% of target in ~0.4 sec. Default `8.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition. |
 | `ShipConfig.bounceRestitution` | `ContactSystem.newContact()` | `component:BounceRestitution` | Wall-bounce energy retention (`1.0` = perfectly elastic, `0` = stick). Read per ship-vs-static contact; non-ship dynamic bodies fall back to `1.0` when the component is absent. Default `1.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition. |
 | `ShipConfig.radarRange` | `RadarState` (TBD, issue radar-viewport/02) | `component:RadarRange` | World-unit radius the client radar viewport displays around the ship. Drives the off-screen camera frustum size and the radar-side leaf-paging radius. Default `250.0` if Groovy omits it. Projected at spawn by `ShipSpawnSystem`. Infinity addition. |
@@ -43,7 +43,7 @@ One row per `(config field, consumer)` pair. A field with three consumers gets t
 
 **Column meaning:**
 
-- **Config field** — the canonical typed path, e.g. `ShipConfig.dragFactor`, `ArenaConfig.wallFriction`. Match the Groovy DSL name.
+- **Config field** — the canonical typed path, e.g. `ShipConfig.linearDamping`, `ArenaConfig.wallFriction`. Match the Groovy DSL name.
 - **Consumer** — `ClassName.methodName()` or `ClassName (field)`. Include the method when useful for finding the read site.
 - **Path** — how the consumer obtains the value. Typical entries:
   - `template` — direct read from `ConfigRegistry.get(type).field()`

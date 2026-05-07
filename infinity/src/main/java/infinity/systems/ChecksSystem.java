@@ -22,7 +22,7 @@ import infinity.es.Spawner;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.BounceRestitution;
-import infinity.es.ship.DragFactor;
+import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Health;
@@ -298,7 +298,7 @@ public class ChecksSystem extends AbstractGameSystem {
     sb.append('\n');
 
     sb.append("  feel:");
-    appendDouble(sb, target, "drag", DragFactor.class);
+    appendDouble(sb, target, "linDamp", LinearDamping.class);
     appendDouble(sb, target, "turnResp", TurnResponsiveness.class);
     appendDouble(sb, target, "bounce", BounceRestitution.class);
     appendDouble(sb, target, "radar", RadarRange.class);
@@ -358,8 +358,8 @@ public class ChecksSystem extends AbstractGameSystem {
     sb.append(' ').append(label).append('=');
     if (comp == null) {
       sb.append('-');
-    } else if (comp instanceof DragFactor d) {
-      sb.append(formatDouble(d.getFactor()));
+    } else if (comp instanceof LinearDamping ld) {
+      sb.append(formatDouble(ld.getDamping()));
     } else if (comp instanceof TurnResponsiveness tr) {
       sb.append(formatDouble(tr.getRate()));
     } else if (comp instanceof BounceRestitution br) {

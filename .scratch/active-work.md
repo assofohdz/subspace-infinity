@@ -13,14 +13,12 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-- **laptop** — Slice S1: drag → mphys native linear damping
-  ([physics-audit.md](./physics-audit.md)); branch
-  `slice/s1-damping`; status: implementing — math fit, drop drag gate,
-  PlayerDriver-side setDamping; angularDamping=1.0 on player ships
+_Empty — pick a slice and add a row before starting work._
 
 ## Recently landed (last 7 days)
 
-_Empty — populate as work lands; trim entries older than ~7 days._
+- **2026-05-07 (laptop)** — Slice S1: drag → mphys native linear damping
+  ([physics-audit.md](./physics-audit.md))
 
 ## Conventions
 

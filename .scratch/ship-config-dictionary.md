@@ -9,7 +9,7 @@ Tracks the per-ship tuning surface and which keys have been promoted to the type
 ## How to use
 
 - **Adding a new typed `ShipConfig` field that ports a `shipSection` key** → move the row from "Pending" to "Ported" and fill in the Groovy DSL name, `ShipConfig` field, projected component(s), and consumer.
-- **Adding a brand-new typed field that has no fragment source** (e.g. `dragFactor`, `turnResponsiveness`, `bounceRestitution`) → add a row in the "Infinity-only Groovy fields (no fragment source)" table.
+- **Adding a brand-new typed field that has no fragment source** (e.g. `linearDamping`, `turnResponsiveness`, `bounceRestitution`) → add a row in the "Infinity-only Groovy fields (no fragment source)" table.
 - **Extending the per-ship key surface** (a new `shipSection` key appears) → add a row in "Pending" with status `Pending — not yet read by any consumer`.
 - **Removing a typed field** → either move the row back to "Pending" (if the `shipSection` key still exists) or delete it (if both are gone).
 
@@ -61,7 +61,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 | Groovy DSL | `ShipConfig` field | Projected component | Hot-path consumer | Default | Notes |
 |---|---|---|---|---|---|
-| `dragFactor` | `dragFactor()` | `DragFactor` | `PlayerDriver.update()` | `0.05` | Coast-drag fraction of `Thrust` when no thrust intent. Continuum has no equivalent (client-authoritative). |
+| `linearDamping` | `linearDamping()` | `LinearDamping` | `PlayerDriver.update()` → `RigidBody.setDamping(linear, 1.0)` | `0.99` | Slice S1. Per-second velocity-retention multiplier (mphys-native). `0.99` = 1% loss/sec at typical speed; math fit against historical `dragFactor 0.05` coast-decay rate. Always-on (max-speed reach lands ~5% short). Continuum has no drag — Infinity extension. |
 | `turnResponsiveness` | `turnResponsiveness()` | `TurnResponsiveness` | `PlayerDriver.update()` | `8.0` | Angular-velocity ease rate (1/sec). Continuum has no equivalent. |
 | `bounceRestitution` | `bounceRestitution()` | `BounceRestitution` | `ContactSystem.newContact()` | `1.0` | Wall-bounce energy retention. Continuum walls are perfectly elastic by construction. |
 | `radarRange` | `radarRange()` | `RadarRange` | `RadarState` (TBD, issue radar-viewport/02) | `250.0` | World-unit radius the client radar viewport displays around the ship. Spawn also projects `RadarShapeInfo` (server-side, not from a `ShipConfig` field) — the blip name is derived from `cfg.type().getName() + "_blip"`. |

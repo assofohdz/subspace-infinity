@@ -23,7 +23,7 @@ import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
 import infinity.systems.ship.ShipSpawnSystem;
 import infinity.es.ship.BounceRestitution;
-import infinity.es.ship.DragFactor;
+import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Health;
@@ -87,7 +87,7 @@ public class ShipSpawnSystemTest {
             new ShipStat(2010, 3250, 250),  // speed
             new ShipStat(400, 1150, 166),   // recharge
             new ShipStat(1000, 1700, 100),  // energy
-            0.05,                           // dragFactor
+            0.99,                           // linearDamping
             8.0,                            // turnResponsiveness
             1.0,                            // bounceRestitution
             250.0,                          // radarRange
@@ -167,7 +167,7 @@ public class ShipSpawnSystemTest {
       assertEquals(1000, ed.getComponent(shipId, Health.class).getHealth());
 
       // Feel knobs.
-      assertEquals(0.05, ed.getComponent(shipId, DragFactor.class).getFactor(), EPSILON);
+      assertEquals(0.99, ed.getComponent(shipId, LinearDamping.class).getDamping(), EPSILON);
       assertEquals(
           8.0, ed.getComponent(shipId, TurnResponsiveness.class).getRate(), EPSILON);
       assertEquals(

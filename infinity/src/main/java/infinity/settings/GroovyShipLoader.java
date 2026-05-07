@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *     speed    initial: 2010, max: 3250, upgrade: 250
  *     recharge initial: 400,  max: 1150, upgrade: 166
  *     energy   initial: 1000, max: 1700, upgrade: 100
- *     dragFactor          0.05
+ *     linearDamping       0.99
  *     turnResponsiveness  8.0
  *     bounceRestitution   1.0
  *     radarRange          250
@@ -62,10 +62,10 @@ import org.slf4j.LoggerFactory;
  * default imports (and whitelisted) by the host. Movement stats omitted in
  * a ship block default to {@code ShipStat(0, 0, 0)}; partial stat blocks
  * (missing {@code initial}/{@code max}/{@code upgrade}) fail with a clear
- * error message. Physics-feel knobs ({@code dragFactor},
+ * error message. Physics-feel knobs ({@code linearDamping},
  * {@code turnResponsiveness}, {@code bounceRestitution}) and
  * {@code radarRange} default to historical / conservative values
- * (0.05 / 8.0 / 1.0 / 250). The weapon / inventory blocks
+ * (0.99 / 8.0 / 1.0 / 250). The weapon / inventory blocks
  * ({@code bombs}, {@code bullets}, {@code mines}, {@code bursts}, {@code thors},
  * {@code repels}) default to the values previously inlined in
  * {@code GameEntities.createShip} so existing presets behave identically.
@@ -76,11 +76,13 @@ public final class GroovyShipLoader {
   private static final ShipAdapter ADAPTER = new ShipAdapter();
 
   /**
-   * Default coast-drag fraction used when a ship script omits
-   * {@code dragFactor}. Matches the historical {@code PlayerDriver.DRAG_FACTOR}
-   * global so existing scripts keep the prior feel.
+   * Default per-second linear-damping coefficient used when a ship script
+   * omits {@code linearDamping}. {@code 0.99} = 1% velocity loss per second
+   * at typical operating speed (math fit against the historical
+   * {@code dragFactor 0.05} coast-decay rate; see Slice S1 in
+   * {@code .scratch/physics-audit.md}).
    */
-  static final double DEFAULT_DRAG_FACTOR = 0.05;
+  static final double DEFAULT_LINEAR_DAMPING = 0.99;
 
   /**
    * Default angular-velocity ease rate (1/sec) used when a ship script omits
@@ -244,7 +246,7 @@ public final class GroovyShipLoader {
         speed,
         recharge,
         energy,
-        DEFAULT_DRAG_FACTOR,
+        DEFAULT_LINEAR_DAMPING,
         DEFAULT_TURN_RESPONSIVENESS,
         DEFAULT_BOUNCE_RESTITUTION,
         DEFAULT_RADAR_RANGE,
@@ -394,7 +396,7 @@ public final class GroovyShipLoader {
     private ShipStat speed = new ShipStat(0, 0, 0);
     private ShipStat recharge = new ShipStat(0, 0, 0);
     private ShipStat energy = new ShipStat(0, 0, 0);
-    private double dragFactor = DEFAULT_DRAG_FACTOR;
+    private double linearDamping = DEFAULT_LINEAR_DAMPING;
     private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
     private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
     private double radarRange = DEFAULT_RADAR_RANGE;
@@ -444,8 +446,8 @@ public final class GroovyShipLoader {
       this.energy = toStat("energy", args);
     }
 
-    public void dragFactor(final Number value) {
-      this.dragFactor = doubleArg("dragFactor", value);
+    public void linearDamping(final Number value) {
+      this.linearDamping = doubleArg("linearDamping", value);
     }
 
     public void turnResponsiveness(final Number value) {
@@ -700,7 +702,7 @@ public final class GroovyShipLoader {
           speed,
           recharge,
           energy,
-          dragFactor,
+          linearDamping,
           turnResponsiveness,
           bounceRestitution,
           radarRange,

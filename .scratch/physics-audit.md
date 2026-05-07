@@ -245,19 +245,40 @@ bombs don't bounce.
 Ordered by impact ÷ effort. Each is independently shippable.
 
 ### S1 — Migrate ship drag from force-coupled to mphys native damping
-**Effort:** medium. **Impact:** large (decouples a unit confusion;
-cuts custom integrator code).
+✅ Landed.
 
-Add `linearDamping` / `angularDamping` to `ShipConfig` (Pattern 4).
-Project to per-entity components at spawn. Add a small post-spawn
-hook in `ShipSpawnSystem` that calls `body.setDamping(linear,
-angular)` once. Delete the force-based drag branch in
-`PlayerDriver`. Calibration pass to land trench/deva at the same
-ship-feel they have today.
+`DragFactor` component → `LinearDamping`; `ShipConfig.dragFactor` →
+`linearDamping`; `GroovyShipLoader.DEFAULT_DRAG_FACTOR 0.05` →
+`DEFAULT_LINEAR_DAMPING 0.99`. Per-ship migration across
+trench/deva/testconf (24 ship blocks). `PlayerDriver` deletes the
+force-based drag branch and instead pokes `body.setDamping(linear,
+1.0)` when `applyChanges()` returns true — angular damping=1.0
+because PlayerDriver hard-sets rotational velocity each tick from
+`turnResponsiveness` ease.
 
-**Risk:** ship feel change requires per-ship recalibration; acceptable
-because the existing values aren't "right" — they're an artifact of
-the coupling.
+**Drag gate dropped** — damping now applies during thrust too;
+steady-state under thrust lands ~5% below `MaxSpeed`
+(`v_steady = accelRate / (1 - damping + accelRate/maxSpeed)` ≈ 47.6
+for trench warbird's 50). Math fit criterion: preserve coast-decay
+rate at typical speed (50 jME/sec × 0.01 = 0.5 jME/sec² loss,
+matches today's `accelRate × dragFactor 0.5`).
+
+Tests: `ShipSpawnSystemTest` updated (assert
+`LinearDamping.getDamping() == 0.99` after projection). All 142 api +
+infinity tests green. PMD ratchet: 17 violations across the 4 touched
+infinity files, all Medium (`GuardLogStatement`) or High (complexity)
+tier — no Low-tier targets in this batch, so no fix landed (per
+`pmd-on-touched-files.md` "skip the fix step and say so").
+
+**Out of scope (own follow-up slices):**
+- **S1-cal** — per-ship `MaxSpeed` recalibration if the ~5% gap
+  feels noticeable in playtest. Polish-bag, deferred.
+- **NPC damping** — non-player ships still use mphys defaults
+  (0.9 / 0.8). If any NPC ship type wants the new linear damping,
+  `projectFeel` already writes the component but no system on the
+  body. Out of scope.
+- **Angular damping consolidation** — `turnResponsiveness` (ease
+  rate) stays as the angular tuning knob.
 
 ### S2 — Wire `BombThrust` (bomb recoil)
 **Effort:** small. **Impact:** medium (canon-faithful gameplay).

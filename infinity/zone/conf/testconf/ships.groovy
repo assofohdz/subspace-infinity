@@ -15,7 +15,7 @@
 //       speed    initial: <I>, max: <M>, upgrade: <U>
 //       recharge initial: <I>, max: <M>, upgrade: <U>
 //       energy   initial: <I>, max: <M>, upgrade: <U>
-//       dragFactor          <D>     // 0..1 — fraction of Thrust applied as drag while coasting
+//       linearDamping       <L>     // per-second velocity-retention; 0.99 = 1% loss/sec, 1.0 = no damping
 //       turnResponsiveness  <R>     // 1/sec — angular ease rate; 8.0 ≈ ~95% of target in ~0.4 sec
 //       bounceRestitution   <B>     // 0..1 — wall-bounce energy retention; 1.0 = perfectly elastic
 //       radarRange          <RR>    // world units — radar viewport visible radius around the ship
@@ -56,7 +56,7 @@ ship(Ship.WARBIRD) {
     speed    initial: 2000, max: 6000, upgrade: 200
     recharge initial: 4000, max: 8000, upgrade: 200
     energy   initial: 1500, max: 3000, upgrade: 100
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -71,7 +71,7 @@ ship(Ship.JAVELIN) {
     speed    initial: 1900, max: 6000, upgrade: 0
     recharge initial: 1500, max: 1500, upgrade: 0
     energy   initial: 1500, max: 1500, upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -88,7 +88,7 @@ ship(Ship.SPIDER) {
     speed    initial: 1700, max: 6000, upgrade: 0
     recharge initial: 2500, max: 2500, upgrade: 0
     energy   initial: 1400, max: 1400, upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -105,7 +105,7 @@ ship(Ship.LEVIATHAN) {
     speed    initial: 500,  max: 6000,  upgrade: 0
     recharge initial: 1100, max: 32000, upgrade: 0
     energy   initial: 1500, max: 1500,  upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -126,7 +126,7 @@ ship(Ship.TERRIER) {
     speed    initial: 4000, max: 6000, upgrade: 0
     recharge initial: 1800, max: 1800, upgrade: 0
     energy   initial: 1500, max: 1500, upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -144,7 +144,7 @@ ship(Ship.WEASEL) {
     speed    initial: 1100, max: 6000, upgrade: 0
     recharge initial: 1250, max: 1250, upgrade: 0
     energy   initial: 1020, max: 1020, upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -164,7 +164,7 @@ ship(Ship.LANCASTER) {
     speed    initial: 1800, max: 6000, upgrade: 0
     recharge initial: 2750, max: 2750, upgrade: 0
     energy   initial: 1500, max: 1500, upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
@@ -180,7 +180,7 @@ ship(Ship.SHARK) {
     speed    initial: 1875, max: 6000, upgrade: 0
     recharge initial: 1500, max: 1500, upgrade: 0
     energy   initial: 1200, max: 1200, upgrade: 0
-    dragFactor          0.05
+    linearDamping       0.99
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50

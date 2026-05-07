@@ -33,8 +33,15 @@ import javax.annotation.Nullable;
  * @param speed speed triple
  * @param recharge recharge-rate triple
  * @param energy energy-pool triple
- * @param dragFactor coast-drag fraction of {@code Thrust} when no thrust intent
- *     ({@code 0} = pure coast, {@code 1} = decelerate as fast as full thrust)
+ * @param linearDamping per-second velocity-retention multiplier passed to
+ *     mphys's {@code RigidBody.setDamping(linear, angular)}. Integrator applies
+ *     {@code velocity *= pow(damping, t)} per tick. {@code 1.0} = no damping
+ *     (Subspace-canonical glide); {@code 0.99} = 1% loss per second at
+ *     typical operating speed; {@code 0.9} = mphys default. Always-on
+ *     (applies during thrust too), so {@code MaximumSpeed} reach falls
+ *     slightly short — the math fit targets the coast-decay rate, not
+ *     max-speed reach. Infinity-specific extension (Subspace canon has
+ *     no drag).
  * @param turnResponsiveness rate constant (1/sec) for the angular-velocity
  *     ease-toward-target ({@code 8.0} ≈ 95% of target in ~0.4 sec)
  * @param bounceRestitution wall-bounce restitution ({@code 1} = perfectly
@@ -74,7 +81,7 @@ public record ShipConfig(
     ShipStat speed,
     ShipStat recharge,
     ShipStat energy,
-    double dragFactor,
+    double linearDamping,
     double turnResponsiveness,
     double bounceRestitution,
     double radarRange,

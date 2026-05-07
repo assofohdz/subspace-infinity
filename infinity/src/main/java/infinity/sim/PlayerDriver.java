@@ -12,7 +12,7 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.RigidBody;
 import infinity.InfinityConstants;
 import infinity.es.input.MovementInput;
-import infinity.es.ship.DragFactor;
+import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
@@ -45,7 +45,7 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
     public PlayerDriver(final EntityId shipEntityId, final EntityData ed) {
         this.shipStats = ed.watchEntity(shipEntityId,
                 Thrust.class, Speed.class, Rotation.class,
-                DragFactor.class, TurnResponsiveness.class);
+                LinearDamping.class, TurnResponsiveness.class);
     }
 
     public void applyMovementInput(final MovementInput input) {
@@ -69,33 +69,44 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
         // Drivable bodies should not fall asleep.
         body.wakeUp(true);
 
-        if (shipStats.applyChanges() && log.isDebugEnabled()) {
+        final boolean statsChanged = shipStats.applyChanges();
+        if (statsChanged && log.isDebugEnabled()) {
             log.debug(
-                    "Stats refreshed for entity {}: thrust={} speed={} rotation={} drag={} turn={}",
+                    "Stats refreshed for entity {}: thrust={} speed={} rotation={} linDamp={} turn={}",
                     shipStats.getId(),
                     shipStats.get(Thrust.class),
                     shipStats.get(Speed.class),
                     shipStats.get(Rotation.class),
-                    shipStats.get(DragFactor.class),
+                    shipStats.get(LinearDamping.class),
                     shipStats.get(TurnResponsiveness.class));
         }
         final Thrust thrust = shipStats.get(Thrust.class);
         final Speed speed = shipStats.get(Speed.class);
         final Rotation rotation = shipStats.get(Rotation.class);
-        final DragFactor drag = shipStats.get(DragFactor.class);
+        final LinearDamping damping = shipStats.get(LinearDamping.class);
         final TurnResponsiveness turn = shipStats.get(TurnResponsiveness.class);
 
         if (thrust == null || speed == null || rotation == null
-                || drag == null || turn == null) {
+                || damping == null || turn == null) {
             // Not yet configured — ShipSpawnSystem hasn't projected stats onto this entity
             // (e.g. no arena config loaded, no fallback installed). Leave ship idle.
             return;
         }
 
+        // Linear damping owns coast decay (mphys integrate applies
+        // velocity *= pow(linearDamping, t) per tick). Angular damping = 1.0
+        // (off) because PlayerDriver hard-sets rotational velocity each tick
+        // from the turnResponsiveness ease below — mphys's default 0.8 angular
+        // damping would be noise on top. Re-poke on applyChanges() so live
+        // edits to the ship's LinearDamping component take effect; idempotent
+        // when the component value hasn't moved.
+        if (statsChanged) {
+            body.setDamping(damping.getDamping(), 1.0);
+        }
+
         final double accelRate = thrust.getThrust();
         final double maxSpeed = speed.getSpeed();
         final double rotSpeed = rotation.getRadSec();
-        final double dragFactor = drag.getFactor();
         final double turnResponsiveness = turn.getRate();
 
         final Vec3d intent = movementForces.clone();
@@ -110,7 +121,12 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
             body.setLinearVelocity(currentVel.mult(maxSpeed / currentSpeed));
         }
 
-        // Thrust / drag as forces — MOSS integrates and handles collision response.
+        // Thrust as force — MOSS integrates and handles collision response. Coast
+        // decay comes from mphys's linear damping (set above); no force-based drag
+        // term here. The car-curve gates thrust to zero as the ship approaches
+        // maxSpeed, so steady-state under thrust lands slightly below maxSpeed
+        // (always-on damping eats a few percent of the cap; documented on
+        // ShipConfig.linearDamping).
         if (intent.z != 0) {
             // Car-style diminishing acceleration: full force at rest, zero force when
             // velocity-along-thrust reaches maxSpeed, linear in between. When velocity is
@@ -122,10 +138,6 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
                 Math.max(0.0, velAlongForward * Math.signum(intent.z)) / maxSpeed;
             final double factor = Math.max(0.0, 1.0 - progressTowardLimit);
             body.addForce(bodyForward.mult(accelRate * intent.z * factor));
-        } else if (currentSpeed > 0.001) {
-            // Drag: force opposite to current motion, magnitude = accelRate × dragFactor.
-            final Vec3d dragDir = currentVel.mult(-1.0 / currentSpeed);
-            body.addForce(dragDir.mult(accelRate * dragFactor));
         }
 
         // Rotation: ease current angular velocity toward target rather than snapping to
