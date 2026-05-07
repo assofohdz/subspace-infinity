@@ -319,12 +319,24 @@ extended (LEVIATHAN parses `thrust 400`). 149 api+infinity tests
 green (up from 142).
 
 **Out of scope (own follow-up slices):**
-- **S2-cal** — per-ship recalibration if the SVS canon 400 feels
-  wrong in trench/deva. Polish-bag.
+- **S2-cal** — playtest verdict: SVS canon `400 × 0.01 = 4.0 jME/sec`
+  recoil feels **too strong** (paired with the also-too-fast post-S1
+  max-speed; the existing `subspaceVelocityScale 0.01` was math-fit
+  for projectile speed, not for ship-impulse magnitude). Need a
+  separate "infinity-scale" knob for recoil — either
+  `engineConfig.bombThrustScale` distinct from
+  `subspaceVelocityScale`, OR a per-ship `bombs thrust:` recalibration
+  pass, OR a structural recoil-magnitude formula change. Open to
+  grilling when the slice starts. Filed alongside S1-cal as the
+  "engine-tier scale audit" workstream.
 - **S5** — Repel impulse using the same `Impulse` ECS pattern. Now
   unblocked by S2's first use of the path.
 - **EmpBomb / BBomb / Mine recoil** — out of canon (no recoil for
   those weapon types per REFERENCE.md).
+- **Ship-swap respawn projection bug fix** — landed alongside S2 as
+  `ac8d5c6b` (own commit on the slice branch); affects every
+  `*CurrentLevel` projection, not just bombs. Generic fix; future
+  death/respawn flows reuse the `ResetLivePool` marker.
 
 ### S3 — Wire `BombBounceCount`
 **Effort:** medium. **Impact:** medium (canon-faithful gameplay; opens
