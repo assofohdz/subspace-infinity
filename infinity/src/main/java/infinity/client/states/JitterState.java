@@ -5,7 +5,6 @@ package infinity.client.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
