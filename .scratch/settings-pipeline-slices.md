@@ -1062,41 +1062,22 @@ across the component family (`GunSpeed` → `BulletSpeed`,
 
 ## Slice 10b — Backward-firing projectiles
 
-🔲 Subspace VIE encoded projectile velocities as 16-bit signed ints
-(`int16`); values above 32767 wrap to negative and meant "fire
-backward" empirically. Slice 10 lifts legacy values 1:1 (so
-`BulletSpeed 64636` parses as raw `64636` and translates to fast
-forward + post-cap). This slice teaches Infinity's typed DSL the
-backward-firing intent.
+✅ Landed. Typed DSL `bulletSpeed` / `bombSpeed` accept signed Java
+ints — negative fires backward (signed scalar; magnitude capped at
+`maxProjectileSpeedJme`, sign preserved by `effectiveProjectileSpeed`
+since slice 10). Trench javelin migrated from `speed: 64636` to
+`speed: -900` (manual int16 → signed lift); `GunStats` / `BombStats`
+Javadoc carries the contract; `BurstStats.speed` documented as
+magnitude-only (radial-equidistant fan geometry has no "backward"
+direction). No loader change (`intArg` already passes negatives
+through); no engine-config change (cap already sign-preserving). Pinned
+by `ConfigRegistrySystemLoadTest` (`javelin.guns().speed() == -900`) +
+the slice-10-shipped `effectiveProjectileSpeed_negativePreservesSignAndClamps`
+helper test. Smoke-verified in trench: javelin bullets fire opposite
+ship facing.
 
-**Candidates flagged during Slice 10 grilling (verify empirically):**
-- **Trench javelin** `BulletSpeed 64636` (= int16 `-900`) — bullets
-  appear to fire backward at moderate speed. Slice-10-port
-  translates to 646 jME forward (clamped to cap), wrong direction.
-- **Trench shark** `BombSpeed 1` — possibly intended-slow-forward,
-  but flagged for verification alongside javelin since both are
-  outliers vs other ship presets. May NOT be backward-firing — only
-  jav fits the int16 hypothesis. Empirical test: launch trench,
-  swap to shark, fire bombs — direction observable.
-
-**Scope sketch (subject to grilling when picked):**
-- Typed DSL accepts negative `bulletSpeed` / `bombSpeed` /
-  `burstSpeed` values directly (`bulletSpeed: -900` for backward at
-  speed 9 jME with `0.01` scale).
-- Migration: re-author trench javelin's `bulletSpeed: -900`
-  (manual int16 → signed lift). Document the legacy int16 encoding
-  in record Javadoc.
-- Optional: loader detects values in `[32768, 65535]` and warns
-  "looks like int16-overflow encoded backward firing — consider
-  authoring as negative explicitly."
-- Consumer math: `addLocal(0, 0, signedValue * scale)` already works
-  with negative — projectile rotates with ship and fires "behind."
-  No new physics code; the cap clamps absolute value.
-- Test: pin negative-speed projection in `ConfigRegistrySystemLoadTest`
-  + smoke verification (launch, observe direction).
-
-**Sequence position:** post-Slice-10. Independent of other gameplay
-slices.
+Trench shark `BombSpeed 1` not migrated — confirmed slow-forward
+intent (literal value, doesn't fit int16-overflow shape).
 
 ## Slices 11–15 — Bigger absent features
 

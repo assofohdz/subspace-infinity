@@ -64,9 +64,9 @@ import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +92,7 @@ public class WeaponsSystem extends AbstractGameSystem
   private static final String MINE_LEVEL_PREFIX = "mine_l";
 
   static Logger log = LoggerFactory.getLogger(WeaponsSystem.class);
-  private final KeySetView<Attack, Boolean> sessionAttackCreations = ConcurrentHashMap.newKeySet();
+  private final Set<Attack> sessionAttackCreations = ConcurrentHashMap.newKeySet();
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -1129,9 +1129,9 @@ public class WeaponsSystem extends AbstractGameSystem
    * (e.g. trench javelin's {@code BulletSpeed 64636}) from producing
    * physics-breaking velocities.
    *
-   * <p>Negative inputs preserve sign so a future slice 10b (backward firing)
-   * can author negative-speed values directly without consumer-side
-   * special-casing.
+   * <p>Negative inputs preserve sign so backward-firing presets (e.g.
+   * trench javelin's {@code bulletSpeed: -900} per slice 10b) work
+   * without consumer-side special-casing.
    *
    * <p>Exposed package-private so unit tests can pin scale + cap behaviour
    * without bringing up an ECS / arena fixture.

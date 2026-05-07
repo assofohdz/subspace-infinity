@@ -21,8 +21,10 @@ import infinity.BombLevel;
  *     fire-time consumer ({@code WeaponsSystem.getAttackInfo}) multiplies
  *     by {@code EngineConfig.subspaceVelocityScale} and clamps to
  *     {@code EngineConfig.maxProjectileSpeedJme} to land at jME world
- *     units. See slice 10. Negative / int16-overflow ({@code &gt; 32767})
- *     values are not interpreted as backward firing in this slice — that's
- *     deferred to slice 10b.
+ *     units. See slice 10. Negative values fire backward (signed scalar;
+ *     magnitude is capped at {@code maxProjectileSpeedJme}, sign
+ *     preserved). Subspace VIE legacy presets sometimes encoded backward
+ *     as int16-overflow (e.g. {@code BombSpeed 64636} = signed {@code -900});
+ *     Infinity authors the negative literal directly.
  */
 public record BombStats(BombLevel start, BombLevel max, int cost, long fireDelayCs, int speed) {}

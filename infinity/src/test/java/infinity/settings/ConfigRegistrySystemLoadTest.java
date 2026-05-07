@@ -135,6 +135,11 @@ public class ConfigRegistrySystemLoadTest {
       assertEquals("JAVELIN rocket max = 3", 3, javelin.rockets().max());
       assertEquals("JAVELIN rocket activeTimeCs = 400 (per-ship RocketTime)",
           400L, javelin.rockets().activeTimeCs());
+      // Slice 10b — javelin fires bullets backward (signed-scalar contract).
+      // Lifted from legacy SVS BulletSpeed 64636 (= int16 -900).
+      assertNotNull("JAVELIN has guns", javelin.guns());
+      assertEquals("JAVELIN BulletSpeed = -900 (Slice 10b backward-firing lift)",
+          -900, javelin.guns().speed());
 
       // trench/leviathan is a heavy build with bombs + mines + portals.
       final var leviathan = snapshot.getShip(Ship.LEVIATHAN);

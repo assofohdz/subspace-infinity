@@ -29,6 +29,11 @@ package infinity.config;
  *     fire-time consumer ({@code WeaponsSystem.getAttackInfo}) multiplies
  *     by {@code EngineConfig.subspaceVelocityScale} and clamps to
  *     {@code EngineConfig.maxProjectileSpeedJme} to land at jME world
- *     units. See slice 10.
+ *     units. See slice 10. Magnitude only — burst is a radial-equidistant
+ *     fan around the firing ship, so a "backward" direction is undefined.
+ *     Slice 10b's signed-scalar contract on {@code bulletSpeed} /
+ *     {@code bombSpeed} does not apply here; a negative value would
+ *     invert the radial pattern (shrapnel fly inward), which is nonsense
+ *     gameplay rather than a feature.
  */
 public record BurstStats(int start, int max, int speed) {}

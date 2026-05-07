@@ -76,12 +76,11 @@ ship(Ship.JAVELIN) {
     bounceRestitution   0.3
     radarRange          50
     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75, speed: 2250
-    // BulletSpeed 64636 lifted from legacy ship-javelin.groovy. SVS int16
-    // overflow (= -900 signed) likely encoded backward firing — Slice 10b
-    // territory. Until 10b lands, the engine cap clamps the translated
-    // value to maxProjectileSpeedJme so this can't break physics; the
-    // direction stays forward (wrong vs Subspace canon, intentional gap).
-    guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 300,  fireDelay: 60, speed: 64636
+    // BulletSpeed lifted from legacy ship-javelin.groovy as signed -900
+    // (= int16 representation of the legacy unsigned 64636). Backward-
+    // firing javelin is Subspace canon for trench. See GunStats.speed
+    // Javadoc for the negative = backward contract.
+    guns    start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_1, cost: 300,  fireDelay: 60, speed: -900
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
     rockets start: 1, max: 3, activeTimeCs: 400
