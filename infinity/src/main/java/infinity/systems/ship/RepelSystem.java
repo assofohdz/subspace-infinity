@@ -161,77 +161,129 @@ public class RepelSystem extends AbstractGameSystem {
    * the firing ship (identified by {@link Parent} on the effect) and —
    * when zone-level {@code repelFriendlies} is false — same-frequency
    * ships.
+   *
+   * <p>Per-victim gating split into the static pure functions
+   * {@link #shouldRepelVictim} (self / FF gate) and
+   * {@link #planarImpulse} (distance + direction) so the gating logic is
+   * unit-testable without bringing up an ECS / physics fixture (mirrors
+   * {@link ProximityFuseSystem#shouldArmOn}).
    */
   private void applyRepelImpulse(
       final Entity effect,
       final double scale,
       final double maxJme,
       final boolean repelFriendlies) {
-    final EntityId effectId = effect.getId();
     final RigidBody<EntityId, MBlockShape> effectBody =
-        physicsSpace.getBinIndex().getRigidBody(effectId);
+        physicsSpace.getBinIndex().getRigidBody(effect.getId());
     if (effectBody == null) {
       return; // body not yet bound; can't compute direction
     }
-    final Vec3d effectPos = effectBody.position;
-
-    final EntityId ownerId = effect.get(Parent.class).getParentEntityId();
-    final Frequency ownerFreq =
-        ownerId == null ? null : ed.getComponent(ownerId, Frequency.class);
-    final Integer ownerFreqValue = ownerFreq == null ? null : ownerFreq.getFrequency();
-
     final double radiusWorldUnits =
         effect.get(RepelDistance.class).getPixels() / PIXELS_PER_TILE;
-    if (radiusWorldUnits <= 0.0) {
-      return;
-    }
-    final double radiusSq = radiusWorldUnits * radiusWorldUnits;
-
     final double magnitudeJme =
         WeaponsSystem.effectiveProjectileSpeed(
             effect.get(RepelSpeed.class).getSpeed(), scale, maxJme);
-    if (magnitudeJme == 0.0) {
+    if (radiusWorldUnits <= 0.0 || magnitudeJme == 0.0) {
       return;
     }
 
+    final EntityId ownerId = effect.get(Parent.class).getParentEntityId();
+    final Integer ownerFreqValue = freqValue(ownerId);
+    final Vec3d effectPos = effectBody.position;
+    final double radiusSq = radiusWorldUnits * radiusWorldUnits;
+
     for (final Entity victim : repellables) {
-      final EntityId victimId = victim.getId();
-      if (victimId.equals(ownerId)) {
-        continue; // self-repel filter (Q3)
-      }
-      if (!repelFriendlies) {
-        final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
-        final Integer victimFreqValue =
-            victimFreq == null ? null : victimFreq.getFrequency();
-        // Same-team ships skipped only when both have a freq AND the freqs
-        // match; entities without Frequency (bombs / mines / debris) are
-        // always pushed regardless of the toggle.
-        if (ownerFreqValue != null
-            && victimFreqValue != null
-            && ownerFreqValue.equals(victimFreqValue)) {
-          continue;
-        }
-      }
-      final RigidBody<EntityId, MBlockShape> victimBody =
-          physicsSpace.getBinIndex().getRigidBody(victimId);
-      if (victimBody == null) {
-        continue;
-      }
-      final Vec3d vp = victimBody.position;
-      final double dx = vp.x - effectPos.x;
-      final double dz = vp.z - effectPos.z; // Q8: planar (X, Z); Y always 0
-      final double distSq = dx * dx + dz * dz;
-      if (distSq > radiusSq) {
-        continue;
-      }
-      if (distSq <= 0.0) {
-        continue; // coincident with effect center; direction undefined
-      }
-      final double dist = Math.sqrt(distSq);
-      final Vec3d impulse =
-          new Vec3d((dx / dist) * magnitudeJme, 0.0, (dz / dist) * magnitudeJme);
+      tryRepelOne(victim, effectPos, ownerId, ownerFreqValue, radiusSq, magnitudeJme, repelFriendlies);
+    }
+  }
+
+  /**
+   * Per-victim attempt: gate, distance check, stamp impulse if all pass.
+   * Extracted from {@link #applyRepelImpulse} to keep that method below the
+   * complexity threshold; the gating decisions live in static pure helpers.
+   */
+  private void tryRepelOne(
+      final Entity victim,
+      final Vec3d effectPos,
+      final EntityId ownerId,
+      final Integer ownerFreqValue,
+      final double radiusSq,
+      final double magnitudeJme,
+      final boolean repelFriendlies) {
+    final EntityId victimId = victim.getId();
+    if (!shouldRepelVictim(victimId, ownerId, ownerFreqValue, freqValue(victimId), repelFriendlies)) {
+      return;
+    }
+    final RigidBody<EntityId, MBlockShape> victimBody =
+        physicsSpace.getBinIndex().getRigidBody(victimId);
+    if (victimBody == null) {
+      return;
+    }
+    final Vec3d vp = victimBody.position;
+    final Vec3d impulse =
+        planarImpulse(vp.x - effectPos.x, vp.z - effectPos.z, magnitudeJme, radiusSq);
+    if (impulse != null) {
       ed.setComponent(victimId, new Impulse(impulse));
     }
+  }
+
+  /**
+   * Pure-function FF + self-repel gate. {@code true} when this victim
+   * should be repelled by an effect owned by {@code ownerId}.
+   *
+   * <p>Self-repel filter (Q3): victim == owner returns false. FF gate
+   * (Q4): when {@code repelFriendlies} is true, every other victim is
+   * pushed; when false, same-frequency ships are skipped (entities
+   * without {@link Frequency} are always pushed regardless of the
+   * toggle).
+   *
+   * <p>Package-private so unit tests can pin the tri-state without
+   * standing up an ECS fixture.
+   */
+  static boolean shouldRepelVictim(
+      final EntityId victimId,
+      final EntityId ownerId,
+      final Integer ownerFreq,
+      final Integer victimFreq,
+      final boolean repelFriendlies) {
+    if (victimId.equals(ownerId)) {
+      return false;
+    }
+    if (repelFriendlies) {
+      return true;
+    }
+    if (ownerFreq == null || victimFreq == null) {
+      return true;
+    }
+    return !ownerFreq.equals(victimFreq);
+  }
+
+  /**
+   * Pure-function planar impulse computation. Returns the impulse vector
+   * (Y=0) for a victim at offset {@code (dx, dz)} from the effect center,
+   * or {@code null} if the victim is outside {@code radiusSq} or
+   * coincident with the center (direction undefined). Magnitude is the
+   * pre-computed jME-scale impulse magnitude.
+   *
+   * <p>Package-private so unit tests can pin the radius / falloff /
+   * direction rules without bringing up a physics fixture.
+   */
+  static Vec3d planarImpulse(
+      final double dx, final double dz, final double magnitudeJme, final double radiusSq) {
+    final double distSq = dx * dx + dz * dz;
+    if (distSq > radiusSq || distSq <= 0.0) {
+      return null;
+    }
+    final double dist = Math.sqrt(distSq);
+    return new Vec3d((dx / dist) * magnitudeJme, 0.0, (dz / dist) * magnitudeJme);
+  }
+
+  private Integer freqValue(final EntityId id) {
+    if (id == null) {
+      return null;
+    }
+    final Frequency freq = ed.getComponent(id, Frequency.class);
+    return freq == null ? null : freq.getFrequency();
   }
 
   @Override
