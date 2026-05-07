@@ -20,7 +20,13 @@ import org.junit.Test;
  */
 public class WeaponsSystemRecoilTest {
 
-  /** EngineConfig DEFAULTS — keep the math fit-able to authored values. */
+  /**
+   * Test scale = 0.01 — kept on the legacy projectile-scale value (pre-S2-cal)
+   * so existing test cases stay readable. The live consumer
+   * ({@code WeaponsSystem.applyBombRecoil}) passes
+   * {@code EngineConfig.bombThrustScale} (default {@code 0.005}) — see the
+   * dedicated S2-cal test below.
+   */
   private static final double SCALE = 0.01;
 
   private static final double MAX = 100.0;
@@ -93,5 +99,21 @@ public class WeaponsSystemRecoilTest {
     // -64636 * 0.01 = -646.36 → clamped to -100; final flip → +100 in z.
     final Vec3d r = WeaponsSystem.recoilImpulse(-64636, 0.01, 100.0, new Quatd());
     assertEquals(100.0, r.z, EPSILON);
+  }
+
+  // -----------------------------------------------------------------
+  // S2-cal — current bombThrustScale calibration (live consumer path)
+  // -----------------------------------------------------------------
+
+  @Test
+  public void magnitude_currentBombThrustScale_400_at_0_005() {
+    // Pin the post-S2-cal calibration: SVS canon BombThrust 400 × the
+    // engine-tier bombThrustScale 0.005 = 2.0 jME/sec backward impulse.
+    // This is the magnitude trench warbird's bomb fires at after slice
+    // S2-cal landed. If EngineConfig.DEFAULTS.bombThrustScale or the
+    // engine.groovy author drift, the behaviour delta is intentional and
+    // should be tracked in physics-audit.md.
+    final Vec3d r = WeaponsSystem.recoilImpulse(400, 0.005, 100.0, new Quatd());
+    assertEquals("post-S2-cal recoil magnitude", 2.0, r.length(), EPSILON);
   }
 }

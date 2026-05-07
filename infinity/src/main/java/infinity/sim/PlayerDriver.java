@@ -11,12 +11,14 @@ import com.simsilica.mphys.AbstractControlDriver;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.RigidBody;
 import infinity.InfinityConstants;
+import infinity.config.EngineConfig;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
 import infinity.es.ship.TurnResponsiveness;
+import infinity.settings.EngineConfigSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +43,14 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
     private Vec3d movementForces = new Vec3d();
 
     private final WatchedEntity shipStats;
+    private final EngineConfigSystem engineConfigSystem;
 
-    public PlayerDriver(final EntityId shipEntityId, final EntityData ed) {
+    public PlayerDriver(final EntityId shipEntityId, final EntityData ed,
+            final EngineConfigSystem engineConfigSystem) {
         this.shipStats = ed.watchEntity(shipEntityId,
                 Thrust.class, Speed.class, Rotation.class,
                 LinearDamping.class, TurnResponsiveness.class);
+        this.engineConfigSystem = engineConfigSystem;
     }
 
     public void applyMovementInput(final MovementInput input) {
@@ -104,8 +109,19 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
             body.setDamping(damping.getDamping(), 1.0);
         }
 
+        // Slice S1-cal — multiply the raw Subspace velocity-units `Speed`
+        // value by the engine-tier shipMaxSpeedScale to land in jME world
+        // units / sec. Distinct from the projectile subspaceVelocityScale
+        // (which fits 5000→50 for bullets) because the same fit on ship
+        // max-speed felt too fast once LinearDamping 0.99 landed in S1.
+        // Default `shipMaxSpeedScale 0.025` maps trench warbird's
+        // Speed 2000 → 50 jME/sec cap. Falls back to EngineConfig.DEFAULTS
+        // when no EngineConfigSystem is available (test harnesses).
+        final EngineConfig engineCfg =
+            (engineConfigSystem != null) ? engineConfigSystem.get() : EngineConfig.DEFAULTS;
+        final double shipScale = engineCfg.shipMaxSpeedScale();
         final double accelRate = thrust.getThrust();
-        final double maxSpeed = speed.getSpeed();
+        final double maxSpeed = speed.getSpeed() * shipScale;
         final double rotSpeed = rotation.getRadSec();
         final double turnResponsiveness = turn.getRate();
 

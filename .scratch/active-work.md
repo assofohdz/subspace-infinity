@@ -16,9 +16,6 @@ source files are the **what is the work** layer.
 - **desktop** — Slice S5: wire Repel impulse (Slice 1 follow-up)
   ([physics-audit.md](./physics-audit.md)); branch
   `slice/s5-repel-impulse`; status: scanning
-- **laptop** — Polish-bag: engine-tier scale calibration (S1-cal + S2-cal)
-  ([physics-audit.md](./physics-audit.md)); branch
-  `slice/engine-scale-cal`; status: scanning + grilling
 
 ## Recently landed (last 7 days)
 
@@ -28,6 +25,8 @@ source files are the **what is the work** layer.
   ([physics-audit.md](./physics-audit.md))
 - **2026-05-07 (laptop)** — Slice S2: bomb recoil (`BombThrust`)
   ([physics-audit.md](./physics-audit.md))
+- **2026-05-07 (laptop)** — Polish-bag: engine-tier scale calibration
+  (S1-cal + S2-cal) ([physics-audit.md](./physics-audit.md))
 
 ## Conventions
 

@@ -1220,10 +1220,16 @@ public class WeaponsSystem extends AbstractGameSystem
       return;
     }
     final EngineConfig engineCfg = engineConfigSystem.get();
+    // Slice S2-cal — recoil uses its own engine-tier `bombThrustScale`,
+    // distinct from `subspaceVelocityScale` used by projectile-speed
+    // paths. The projectile fit (400 × 0.01 = 4.0) felt too pushy in
+    // S2 playtest. Default `bombThrustScale 0.005` lands SVS canon
+    // BombThrust 400 at 2.0 jME/sec backward impulse. Cap reuses
+    // `maxProjectileSpeedJme` for physics-safety.
     final Vec3d impulse =
         recoilImpulse(
             thrust.getThrust(),
-            engineCfg.subspaceVelocityScale(),
+            engineCfg.bombThrustScale(),
             engineCfg.maxProjectileSpeedJme(),
             new Quatd(shipBody.orientation));
     ed.setComponent(shipId, new Impulse(impulse));

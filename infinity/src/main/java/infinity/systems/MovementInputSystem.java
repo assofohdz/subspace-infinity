@@ -50,6 +50,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.input.CharacterInput;
 import infinity.es.input.MovementInput;
+import infinity.settings.EngineConfigSystem;
 import infinity.sim.PlayerDriver;
 import infinity.sim.util.InfinityRunTimeException;
 import org.slf4j.Logger;
@@ -70,6 +71,7 @@ public class MovementInputSystem extends AbstractGameSystem {
   private MobContainer mobs;
   private final MovementBodyInitializer initializer = new MovementBodyInitializer();
   private PhysicsSpace<EntityId, MBlockShape> space;
+  private EngineConfigSystem engineConfigSystem;
 
   public MovementInputSystem() {
     // At the moment, we don't need to do anything here.
@@ -93,6 +95,12 @@ public class MovementInputSystem extends AbstractGameSystem {
 
     this.space = physics.getPhysicsSpace();
     physics.getBodyFactory().addDynamicInitializer(initializer);
+
+    // EngineConfigSystem provides the per-tick scale knobs the PlayerDriver
+    // needs (shipMaxSpeedScale at the cap clamp). Optional dependency: in
+    // tests / minimal harnesses without engine.groovy registered, the
+    // PlayerDriver falls back to EngineConfig.DEFAULTS.
+    this.engineConfigSystem = getSystem(EngineConfigSystem.class);
 
     // There are two ways that a PlayerDriver can be set on a
     // RigidBody.
@@ -160,7 +168,7 @@ public class MovementInputSystem extends AbstractGameSystem {
     protected PlayerDriver addObject(Entity e) {
       log.info("addObject(" + e + ")");
 
-      PlayerDriver result = new PlayerDriver(e.getId(), ed);
+      PlayerDriver result = new PlayerDriver(e.getId(), ed, engineConfigSystem);
 
       // See if the physics engine already has a body for this entity
       RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());

@@ -117,6 +117,8 @@ public final class GroovyEngineLoader {
 
     private double subspaceVelocityScale = EngineConfig.DEFAULTS.subspaceVelocityScale();
     private double maxProjectileSpeedJme = EngineConfig.DEFAULTS.maxProjectileSpeedJme();
+    private double shipMaxSpeedScale = EngineConfig.DEFAULTS.shipMaxSpeedScale();
+    private double bombThrustScale = EngineConfig.DEFAULTS.bombThrustScale();
 
     // Package-private so unit tests can build configs without standing up
     // the full GroovyShell pipeline.
@@ -158,8 +160,45 @@ public final class GroovyEngineLoader {
       this.maxProjectileSpeedJme = v;
     }
 
+    /**
+     * {@code shipMaxSpeedScale 0.025} — multiplier applied to a ship's
+     * {@code Speed} component (raw Subspace velocity units) at
+     * {@code PlayerDriver} consumer time to derive the jME max-speed cap.
+     * Slice S1-cal. Must be positive (negative would invert the cap
+     * direction, which has no meaningful interpretation).
+     */
+    public void shipMaxSpeedScale(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "shipMaxSpeedScale must be a finite value > 0; got " + value);
+      }
+      this.shipMaxSpeedScale = v;
+    }
+
+    /**
+     * {@code bombThrustScale 0.005} — multiplier applied to per-ship
+     * {@code BombThrust} at {@code WeaponsSystem.applyBombRecoil} time.
+     * Slice S2-cal. Must be positive.
+     */
+    public void bombThrustScale(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "bombThrustScale must be a finite value > 0; got " + value);
+      }
+      this.bombThrustScale = v;
+    }
+
     EngineConfig build() {
-      return new EngineConfig(subspaceVelocityScale, maxProjectileSpeedJme);
+      return new EngineConfig(
+          subspaceVelocityScale, maxProjectileSpeedJme, shipMaxSpeedScale, bombThrustScale);
     }
   }
 }

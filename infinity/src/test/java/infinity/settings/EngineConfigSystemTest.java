@@ -14,7 +14,9 @@ import org.junit.Test;
  * <ul>
  *   <li>The packaged {@code /engine.groovy} resource parses to the documented
  *       defaults ({@code subspaceVelocityScale 0.01},
- *       {@code maxProjectileSpeedJme 100}). If those defaults drift in code
+ *       {@code maxProjectileSpeedJme 100},
+ *       {@code shipMaxSpeedScale 0.025},
+ *       {@code bombThrustScale 0.005}). If those defaults drift in code
  *       but not in the file (or vice versa), this test catches it.
  *   <li>Missing classpath path falls back to {@link EngineConfig#DEFAULTS}
  *       without throwing.
@@ -39,6 +41,16 @@ public class EngineConfigSystemTest {
         "maxProjectileSpeedJme must match EngineConfig.DEFAULTS",
         EngineConfig.DEFAULTS.maxProjectileSpeedJme(),
         cfg.maxProjectileSpeedJme(),
+        0.0);
+    assertEquals(
+        "shipMaxSpeedScale must match EngineConfig.DEFAULTS",
+        EngineConfig.DEFAULTS.shipMaxSpeedScale(),
+        cfg.shipMaxSpeedScale(),
+        0.0);
+    assertEquals(
+        "bombThrustScale must match EngineConfig.DEFAULTS",
+        EngineConfig.DEFAULTS.bombThrustScale(),
+        cfg.bombThrustScale(),
         0.0);
   }
 

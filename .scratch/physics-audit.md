@@ -271,8 +271,8 @@ tier — no Low-tier targets in this batch, so no fix landed (per
 `pmd-on-touched-files.md` "skip the fix step and say so").
 
 **Out of scope (own follow-up slices):**
-- **S1-cal** — per-ship `MaxSpeed` recalibration if the ~5% gap
-  feels noticeable in playtest. Polish-bag, deferred.
+- **S1-cal** ✅ Landed via the engine-tier scale calibration
+  polish-bag — see the dedicated section below.
 - **NPC damping** — non-player ships still use mphys defaults
   (0.9 / 0.8). If any NPC ship type wants the new linear damping,
   `projectFeel` already writes the component but no system on the
@@ -319,16 +319,8 @@ extended (LEVIATHAN parses `thrust 400`). 149 api+infinity tests
 green (up from 142).
 
 **Out of scope (own follow-up slices):**
-- **S2-cal** — playtest verdict: SVS canon `400 × 0.01 = 4.0 jME/sec`
-  recoil feels **too strong** (paired with the also-too-fast post-S1
-  max-speed; the existing `subspaceVelocityScale 0.01` was math-fit
-  for projectile speed, not for ship-impulse magnitude). Need a
-  separate "infinity-scale" knob for recoil — either
-  `engineConfig.bombThrustScale` distinct from
-  `subspaceVelocityScale`, OR a per-ship `bombs thrust:` recalibration
-  pass, OR a structural recoil-magnitude formula change. Open to
-  grilling when the slice starts. Filed alongside S1-cal as the
-  "engine-tier scale audit" workstream.
+- **S2-cal** ✅ Landed via the engine-tier scale calibration
+  polish-bag — see the dedicated section below.
 - **S5** — Repel impulse using the same `Impulse` ECS pattern. Now
   unblocked by S2's first use of the path.
 - **EmpBomb / BBomb / Mine recoil** — out of canon (no recoil for
@@ -338,7 +330,56 @@ green (up from 142).
   `*CurrentLevel` projection, not just bombs. Generic fix; future
   death/respawn flows reuse the `ResetLivePool` marker.
 
-### S3 — Wire `BombBounceCount`
+### S1-cal + S2-cal — engine-tier scale calibration (polish-bag)
+✅ Landed.
+
+Two new fields on `EngineConfig`, distinct from
+`subspaceVelocityScale` (which stays scoped to projectile speeds —
+`BulletSpeed` / `BombSpeed` / `BurstSpeed` fire paths):
+
+- **`shipMaxSpeedScale`** (default `0.025`) — applied in
+  `PlayerDriver.update` to convert the ship's raw Subspace
+  velocity-units `Speed` value to a jME max-speed cap. Trench
+  warbird's `Speed 2000 × 0.025 = 50 jME/sec`, putting ship max in
+  range of bullet velocity (resolves the "max-speed too high" S1
+  playtest verdict — post-S1 was reaching ~889 jME/sec under
+  `LinearDamping 0.99`).
+- **`bombThrustScale`** (default `0.005`) — replaces
+  `subspaceVelocityScale` in `WeaponsSystem.applyBombRecoil`. SVS
+  canon `BombThrust 400 × 0.005 = 2.0 jME/sec` backward impulse
+  (down from S2's initial `4.0`, which felt too pushy in playtest).
+
+Both share the existing `maxProjectileSpeedJme 100` cap for
+physics-safety on absurd authored values.
+
+Architecture: engine-tier knob over per-preset recalibration
+(operator-tunable in one place; preserves Subspace-canonical
+authoring across `ships.groovy` and the Subspace upstream port).
+Two scales over a single unified knob (different mechanics; future
+afterburner / rocket-boost fits the same pattern as a third scale
+without breaking ship vs recoil tuning).
+
+`PlayerDriver` constructor now takes an `EngineConfigSystem` (passed
+through `MovementInputSystem.PlayerContainer.addObject`); reads the
+config per-tick (cheap record getter). Falls back to
+`EngineConfig.DEFAULTS` when the system is null (test harnesses).
+
+Tests: `EngineConfigSystemTest` extended (asserts both new field
+defaults parse from the packaged `engine.groovy` and match the
+record's `DEFAULTS`). `WeaponsSystemRecoilTest` extended with a
+post-S2-cal calibration test (`recoilImpulse(400, 0.005, 100, ...)
+= 2.0`). 151 api+infinity tests green.
+
+**Out of scope (own follow-up slices):**
+- **S1-cal-thrust** — Should ship `Thrust` also be scaled? Currently
+  PlayerDriver passes `thrust.getThrust()` raw (= jME force/sec).
+  Acceleration "reach is good" per S1 playtest, so deferred —
+  trench warbird at `Thrust 16` reaching new cap 50 in ~3s feels
+  acceptable. Revisit if calibration drifts.
+- **Per-mechanic scale calibration** — afterburner, rocket boost,
+  repel impulse may want their own scales rather than reusing
+  these. Decide per-mechanic when wiring (S5 Repel will probably
+  introduce `repelImpulseScale`).
 **Effort:** medium. **Impact:** medium (canon-faithful gameplay; opens
 a bomb-physics design surface).
 
