@@ -13,7 +13,9 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-_Empty — both slices (laptop S2, desktop 9c-JitterTime) landed; pick a slice and add a row before starting next work._
+- **desktop** — Slice S5: wire Repel impulse (Slice 1 follow-up)
+  ([physics-audit.md](./physics-audit.md)); branch
+  `slice/s5-repel-impulse`; status: scanning
 
 ## Recently landed (last 7 days)
 
