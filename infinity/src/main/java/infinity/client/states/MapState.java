@@ -39,6 +39,7 @@ import com.simsilica.mathd.Vec3d;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.es.TileType;
+import infinity.map.BitmapData;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.net.GameSession;
@@ -211,34 +212,45 @@ public class MapState extends BaseAppState {
         tileImages.update();
     }
 
+    // Subspace tileset geometry: 304×160 BMP holds a 19×10 grid of 16×16 tiles.
+    private static final int TILE_SIZE = 16;
+    private static final int TILES_PER_ROW = 19;
+
     /**
-     * Converts a given Image into a BufferedImage
-     *
-     * @param img The Image to be converted
-     * @return The converted BufferedImage
+     * Slices the 16×16 tile at {@code tileIndex} (1-based on disk) out of the
+     * given tileset bitmap.
      */
-    private BufferedImage toBufferedImage(final java.awt.Image img) {
-        if (img instanceof BufferedImage) {
-            return (BufferedImage) img;
-        }
+    private BitmapData sliceTile(final BitmapData tileset, final short tileIndex) {
+        final int t = tileIndex - 1; // disk uses 1-based indexing
+        return tileset.subRegion(
+                (t % TILES_PER_ROW) * TILE_SIZE,
+                (t / TILES_PER_ROW) * TILE_SIZE,
+                TILE_SIZE,
+                TILE_SIZE);
+    }
 
-        final int width = img.getWidth(null);
-        final int height = img.getHeight(null);
+    /**
+     * Converts a {@link BitmapData} into a {@link BufferedImage} feedable to
+     * {@code AWTLoader}. Applies the legacy horizontal flip so JME texture
+     * orientation matches the historical Subspace bitmap convention. Assumes
+     * the input is square (w == h) — true for the 16×16 tile crops this is
+     * called on.
+     */
+    private BufferedImage toBufferedImage(final BitmapData data) {
+        final int w = data.width();
+        final int h = data.height();
 
-        // Create a buffered image with transparency
-        final BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        // Build a non-flipped BufferedImage from the raw ARGB pixels.
+        final BufferedImage source = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        source.setRGB(0, 0, w, h, data.argb(), 0, w);
 
-        // Draw the image on to the buffered image
-        final Graphics2D bGr = bimage.createGraphics();
-        // bGr.drawImage(img, 0, 0, null); //No flip
-        // bGr.drawImage(img, 0 + width, 0, -width, height, null); //Horisontal flip
-        // bGr.drawImage(img, 0, 0 + height, width, -height, null); //Vertical flip
-        bGr.drawImage(img, img.getHeight(null), 0, -img.getWidth(null), img.getHeight(null), null);
-
-        bGr.dispose();
-
-        // Return the buffered image
-        return bimage;
+        // Apply the legacy horizontal flip via Graphics2D — preserves the exact
+        // dst-rect math (x=h, w=-w) the AWT-Image pipeline used.
+        final BufferedImage flipped = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        final Graphics2D g = flipped.createGraphics();
+        g.drawImage(source, h, 0, -w, h, null);
+        g.dispose();
+        return flipped;
     }
 
     public Image forceLoadImage(final EntityId id) {
@@ -256,8 +268,8 @@ public class MapState extends BaseAppState {
 
             }
 
-            final java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
-            final Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
+            final BitmapData tileBitmap = sliceTile(levelFiles.get(tileSet).getTileset(), tileIndex);
+            final Image jmeOutputImage = imgLoader.load(toBufferedImage(tileBitmap), true);
             // jmeOutputImage.dispose();
 
             imageMap.put(key, jmeOutputImage);
@@ -294,8 +306,8 @@ public class MapState extends BaseAppState {
 
                 }
 
-                final java.awt.Image awtInputImage = levelFiles.get(tileSet).getTiles()[tileIndex - 1];
-                final Image jmeOutputImage = imgLoader.load(toBufferedImage(awtInputImage), true);
+                final BitmapData tileBitmap = sliceTile(levelFiles.get(tileSet).getTileset(), tileIndex);
+                final Image jmeOutputImage = imgLoader.load(toBufferedImage(tileBitmap), true);
 
                 imageMap.put(key, jmeOutputImage);
 

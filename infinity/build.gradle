@@ -32,16 +32,13 @@ tasks.register('runX11', JavaExec) {
 }
 
 // macOS requires GLFW to live on the JVM's first/main thread; without
-// -XstartOnFirstThread the LWJGL window creation aborts. Pair with
-// java.awt.headless=true so the BMP-decode path (BitMap extends JPanel,
-// createImage via MemoryImageSource) doesn't try to spin up AWT/AppKit
-// peers — that deadlocks against GLFW since both want the main thread.
+// -XstartOnFirstThread the LWJGL window creation aborts.
 tasks.register('runMac', JavaExec) {
     group = 'application'
-    description = 'Run the game on macOS (-XstartOnFirstThread, headless AWT)'
+    description = 'Run the game on macOS (-XstartOnFirstThread)'
     classpath = sourceSets.main.runtimeClasspath
     mainClass = mainClassName
-    jvmArgs = applicationDefaultJvmArgs + ['-XstartOnFirstThread', '-Djava.awt.headless=true']
+    jvmArgs = applicationDefaultJvmArgs + ['-XstartOnFirstThread']
 }
 
 // Map inspection tool: ./gradlew :infinity:analyzeMaps --args "trench.lvl trench2.lvl"

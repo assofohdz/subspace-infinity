@@ -2,16 +2,11 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.map;
 
-import java.awt.Image;
-import java.awt.image.MemoryImageSource;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import javax.swing.JPanel;
-
-public class BitMap extends JPanel {
-    private static final long serialVersionUID = -1228135782001412920L;
+public class BitMap {
     public final static int BI_RGB = 0; // No compression
     public final static int BI_RLE8 = 1; // RLE 8-bit / pixel
     public final static int BI_RLE4 = 2; // RLE 4-bit / pixel
@@ -239,37 +234,13 @@ public class BitMap extends JPanel {
         }
     }
 
-    public Image getImage() {
-        return createImage(new MemoryImageSource(m_width, m_height, m_image, 0, m_width));
-    }
-
     /**
-     * Reads in a square tile of any size from the topleft. Good for getting the
-     * first image in any of the /graphics/*.bm2
-     *
-     * @param size the pixel size of the image to load
-     * @return the image loaded
+     * Snapshot of the decoded pixel buffer as a {@link BitmapData} record. ARGB
+     * top-to-bottom; consumers that need a JME texture build a
+     * {@code BufferedImage} from the buffer and feed it to {@code AWTLoader}.
      */
-    public Image getImage(final int size) {
-
-        final int image[] = new int[size * size];
-        for (int y = 0; y < size; y++) {
-            for (int x = 0; x < size; x++) {
-                image[y * size + x] = m_image[y * m_width + x];
-            }
-        }
-        return createImage(new MemoryImageSource(size, size, image, 0, size));
-    }
-
-    public Image getImage(final int width, final int height) {
-
-        final int image[] = new int[width * height];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                image[y * width + x] = m_image[y * m_width + x];
-            }
-        }
-        return createImage(new MemoryImageSource(width, height, image, 0, width));
+    public BitmapData getBitmap() {
+        return new BitmapData(m_width, m_height, m_image);
     }
 
     public boolean isBitMap() {
@@ -280,12 +251,10 @@ public class BitMap extends JPanel {
         return m_size;
     }
 
-    @Override
     public int getWidth() {
         return m_width;
     }
 
-    @Override
     public int getHeight() {
         return m_height;
     }

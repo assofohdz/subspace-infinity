@@ -2,20 +2,18 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.map;
 
-import java.awt.Image;
-import java.awt.image.MemoryImageSource;
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class LevelFile extends JPanel {
-    private static final long serialVersionUID = -4658344536954311587L;
+public class LevelFile {
+
+    private static final Logger log = LoggerFactory.getLogger(LevelFile.class);
+
     public String m_file;
     private final BitMap m_bitmap;
     private BufferedInputStream m_stream;
@@ -40,19 +38,6 @@ public class LevelFile extends JPanel {
 
     // unknown ELVL chunks read in on load
     public Vector<Byte> unknownELVLData = new Vector<>();
-
-    // the actual data we're going to save, as a Vector of Bytes... saved by
-    // makeELvlDataForSaving
-    public Vector<Byte> eLVLData;
-
-    // private String m_type;
-    // private int m_size;
-    // private int m_offset;
-    // private int m_width;
-    // private int m_height;
-    // private int m_bitCount;
-    // private int m_compressionType;
-    // private int m_colorsUsed;
 
     private final short[][] m_level = new short[1024][1024];
 
@@ -84,46 +69,6 @@ public class LevelFile extends JPanel {
      */
     public LevelFile(final BitMap b) {
         m_bitmap = b;
-    }
-
-    /**
-     * Add the default eLvl tags to this level file.
-     */
-    public void addDefaultELvLTags() {
-        String userName = System.getProperty("user.name");
-        if (userName == null) {
-            userName = "User";
-        }
-
-        Vector<String> row = new Vector<>();
-        row.add("NAME");
-        row.add("Unnamed");
-        eLvlAttrs.add(row);
-
-        row = new Vector<>();
-        row.add("VERSION");
-        row.add("1.0");
-        eLvlAttrs.add(row);
-
-        row = new Vector<>();
-        row.add("ZONE");
-        row.add(userName + "'s Zone");
-        eLvlAttrs.add(row);
-
-        row = new Vector<>();
-        row.add("MAPCREATOR");
-        row.add(userName);
-        eLvlAttrs.add(row);
-
-        row = new Vector<>();
-        row.add("TILESETCREATOR");
-        row.add(userName);
-        eLvlAttrs.add(row);
-
-        row = new Vector<>();
-        row.add("PROGRAM");
-        row.add("Continuum Level Ini Tool");
-        eLvlAttrs.add(row);
     }
 
     /**
@@ -225,7 +170,7 @@ public class LevelFile extends JPanel {
                                 readIn(padding);
                                 current += padding;
                             } else {
-                                JOptionPane.showMessageDialog(null, "EOF while reading eLVL chunk padding.");
+                                log.warn("EOF while reading eLVL chunk padding (file={}).", m_file);
                             }
                         }
                     } else {
@@ -276,166 +221,6 @@ public class LevelFile extends JPanel {
         return error;
     }
 
-    /**
-     * Save the level file with a different file name
-     *
-     * @param where   the new file to save it as
-     * @param tileset the tileset to save
-     * @param map     the map array[][] to save
-     * @param regions the vector of regions to save
-     */
-    public void saveLevelAs(final String where, final Image tileset, final short[][] map,
-            final Vector<Region> regions) {
-        m_file = where;
-        saveLevel(tileset, map, regions);
-    }
-
-    /**
-     * make the eLVL data and store it as a Vector of Bytes in eLVLData, not
-     * including the header
-     *
-     * @param regions the vector of Regions
-     */
-    private void makeELvlDataForSaving(final Vector<Region> regions) {
-        eLVLData = new Vector<>();
-
-        // first save the ATTR tags
-        final int size = eLvlAttrs.size();
-        for (int x = 0; x < size; ++x) {
-            final Vector<String> row = eLvlAttrs.get(x);
-            final String one = row.get(0).replace('=', '-');
-            final String two = row.get(1).replace('=', '-');
-            final String save = one + "=" + two;
-
-            // save chunk header
-            eLVLData.add(Byte.valueOf((byte) 'A'));
-            eLVLData.add(Byte.valueOf((byte) 'T'));
-            eLVLData.add(Byte.valueOf((byte) 'T'));
-            eLVLData.add(Byte.valueOf((byte) 'R'));
-
-            final int chunkLength = save.length();
-            final byte[] chunkSizeBytes = BitmapSaving.toDWORD(chunkLength);
-            for (int c = 0; c < 4; ++c) {
-                eLVLData.add(Byte.valueOf(chunkSizeBytes[c]));
-            }
-
-            final int len = save.length();
-            for (int c = 0; c < len; ++c) {
-                final byte letter = (byte) save.charAt(c);
-                eLVLData.add(Byte.valueOf(letter));
-            }
-
-            // padding
-            final int padding = 4 - (chunkLength % 4);
-            if (padding != 4) {
-                for (int c = 0; c < padding; ++c) {
-                    eLVLData.add(Byte.valueOf((byte) 0)); // padding byte
-                }
-            }
-        }
-
-        // now the REGN tags
-        for (final Object region : regions) {
-            final Region r = (Region) region;
-
-            eLVLData.add(Byte.valueOf((byte) 'R'));
-            eLVLData.add(Byte.valueOf((byte) 'E'));
-            eLVLData.add(Byte.valueOf((byte) 'G'));
-            eLVLData.add(Byte.valueOf((byte) 'N'));
-
-            final Vector<Byte> curRegionEncoded = r.getEncodedRegion();
-            final byte[] dword = BitmapSaving.toDWORD(curRegionEncoded.size());
-            for (int c = 0; c < 4; ++c) {
-                eLVLData.add(Byte.valueOf(dword[c]));
-            }
-
-            eLVLData.addAll(curRegionEncoded);
-        }
-
-        // now any unknown tags we enocuntered while loading
-        eLVLData.addAll(unknownELVLData);
-    }
-
-    /**
-     * Save the ELVL data to the current position in the stream. It's stored in a
-     * vector of Bytes in eLVLData
-     *
-     * @param out the output stream to save to
-     */
-    private void saveELvlData(final BufferedOutputStream out) throws IOException {
-        final int size = eLVLData.size();
-        final byte[] array = new byte[size];
-        byte[] dword = new byte[4];
-        final byte[] word = new byte[2];
-        word[0] = word[1] = 0;
-
-        // save two bytes padding
-        out.write(word);
-
-        // save header
-        dword[0] = (byte) 'e';
-        dword[1] = (byte) 'l';
-        dword[2] = (byte) 'v';
-        dword[3] = (byte) 'l';
-        out.write(dword);
-
-        dword = BitmapSaving.toDWORD(size + 12); // size
-        out.write(dword);
-
-        dword = BitmapSaving.toDWORD(0); // reserved
-        out.write(dword);
-
-        // save data
-        for (int x = 0; x < size; ++x) {
-            array[x] = eLVLData.get(x).byteValue();
-        }
-
-        out.write(array);
-
-        eLVLData.clear();
-    }
-
-    /**
-     * Actually save the .lvl file
-     *
-     * @param tileset the tileset to save it with
-     * @param map     the map aray[][] to save
-     * @param regions list of regions
-     */
-    public void saveLevel(final Image tileset, final short[][] map, final Vector<Region> regions) {
-        try (FileOutputStream fos = new FileOutputStream(m_file);
-                BufferedOutputStream out = new BufferedOutputStream(fos)) {
-            // final boolean containsELVLData = eLvlAttrs.size() > 0;
-            makeELvlDataForSaving(regions);
-
-            // save bitmap
-            BitmapSaving.saveAs256ColorBitmap(out, tileset, eLVLData.size());
-
-            // save eLVL data
-            if (eLVLData.size() > 0) {
-                saveELvlData(out);
-            }
-
-            // save tiles
-            for (int y = 0; y < 1024; ++y) {
-                for (int x = 0; x < 1024; ++x) {
-                    final int tile = map[x][y];
-
-                    if (tile == 0 || tile == -1) {
-                        continue;
-                    }
-
-                    final int intstruct = (tile << 24) | (y << 12) | x;
-                    final byte[] ar = BitmapSaving.toDWORD(intstruct);
-                    out.write(ar);
-                }
-            }
-        } catch (final IOException e) {
-            JOptionPane.showMessageDialog(null, e.toString());
-        }
-
-    }
-
     public byte[] readIn(final int n) {
         try {
             // readNBytes loops until n bytes are read or EOF is reached. The bare read() method
@@ -444,7 +229,7 @@ public class LevelFile extends JPanel {
             // stream mid-chunk and causing NegativeArraySize downstream.
             return m_stream.readNBytes(n);
         } catch (final IOException e) {
-            System.out.println(e);
+            log.warn("readIn failed (file={})", m_file, e);
             return new byte[0];
         }
     }
@@ -453,46 +238,19 @@ public class LevelFile extends JPanel {
         try {
             return m_stream.available() >= n;
         } catch (final IOException e) {
-            System.out.println(e);
+            log.warn("available() failed (file={})", m_file, e);
             return false;
         }
     }
 
-    public Image getTileSet() {
-        return m_bitmap.getImage();
-    }
-
-    public int[] getTileSetPixels() {
-        return m_bitmap.getImageData();
-    }
-
-    public int getTileSetImageWidth() {
-        return m_bitmap.getWidth();
-    }
-
-    public int getTileSetImageHeight() {
-        return m_bitmap.getHeight();
-    }
-
-    public Image[] getTiles() {
-
-        final int[] m_image = m_bitmap.getImageData();
-
-        final Image[] tiles = new Image[190];
-        for (int i = 0; i < 190; i++) {
-
-            final int yOffset = (int) Math.floor(i / 19) * 4864;
-            final int xOffset = (int) (i - Math.floor(i / 19) * 19) * 16;
-
-            final int thisTile[] = new int[256];
-            for (int y = 0; y < 16; y++) {
-                for (int x = 0; x < 16; x++) {
-                    thisTile[y * 16 + x] = m_image[(yOffset + xOffset) + y * 304 + x];
-                }
-            }
-            tiles[i] = createImage(new MemoryImageSource(16, 16, thisTile, 0, 16));
-        }
-        return tiles;
+    /**
+     * Snapshot of the BMP tileset's decoded pixel buffer. Replaces the legacy
+     * {@code getTileSet(): java.awt.Image} + {@code getTiles(): Image[]} pair —
+     * consumers slice individual 16×16 tile crops on demand via
+     * {@link BitmapData#subRegion(int, int, int, int)}.
+     */
+    public BitmapData getTileset() {
+        return m_bitmap.getBitmap();
     }
 
     public short[][] getMap() {

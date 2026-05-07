@@ -2,11 +2,9 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.map;
 
-import java.awt.Image;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Vector;
 
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
@@ -19,40 +17,7 @@ import com.jme3.asset.AssetManager;
 public class LevelLoader implements AssetLoader {
 
     private String m_file;
-    // private BitMap m_bitmap;
-    // private BufferedInputStream m_stream;
-    // private boolean m_containsBM;
-    // private boolean hasELVLData;
-
-    // eLVL ATTR tags... vector of vector of Strings
-    public Vector<Vector<String>> eLvlAttrs = new Vector<>();
-    public static final int DEFAULT_TAG_COUNT = 6;
-
-    // Vector of loaded regions
-    public Vector<Region> regions;
-
-    // unknown ELVL chunks read in on load
-    public Vector<Byte> unknownELVLData = new Vector<>();
-
-    // the actual data we're going to save, as a Vector of Bytes... saved by
-    // makeELvlDataForSaving
-    public Vector<Byte> eLVLData;
-
-    // private String m_type;
-    // private int m_size;
-    // private int m_offset;
-    // private int m_width;
-    // private int m_height;
-    // private int m_bitCount;
-    // private int m_compressionType;
-    // private int m_colorsUsed;
-    protected Image m_tileset;
-    protected Image[] m_tiles;
-    protected short[][] m_map;
-
-    // private final short[][] m_level = new short[1024][1024];
     private AssetManager am;
-    // The levelfile
     public LevelFile m_lvlFile;
 
     @Override
@@ -90,11 +55,6 @@ public class LevelLoader implements AssetLoader {
                 System.out.println("NON eLVL Load sucessful! Previous error: " + errorWithELVL);
             }
 
-            m_tileset = m_lvlFile.getTileSet();
-
-            m_map = m_lvlFile.getMap();
-            m_tiles = m_lvlFile.getTiles();
-
             if (errorWithELVL != null) {
                 System.out.println("Error with eLVL Data!");
             }
@@ -103,10 +63,6 @@ public class LevelLoader implements AssetLoader {
             // Create our lvl file
             bmp = loadDefaultTileset();
             m_lvlFile = new LevelFile(bmp);
-
-            m_tileset = m_lvlFile.getTileSet();
-            m_map = m_lvlFile.getMap();
-            m_tiles = m_lvlFile.getTiles();
         }
 
         return m_lvlFile;

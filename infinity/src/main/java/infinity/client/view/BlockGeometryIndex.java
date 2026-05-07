@@ -359,10 +359,11 @@ public class BlockGeometryIndex {
     assets.registerLoader(LevelLoader.class, "lvl");
     final LevelFile levelFile = (LevelFile) assets.loadAsset(levelPath);
 
+    final infinity.map.BitmapData tileset = levelFile.getTileset();
     return buildPaddedTilesetTexture(
-        levelFile.getTileSetPixels(),
-        levelFile.getTileSetImageWidth(),
-        levelFile.getTileSetImageHeight(),
+        tileset.argb(),
+        tileset.width(),
+        tileset.height(),
         true);
   }
 
