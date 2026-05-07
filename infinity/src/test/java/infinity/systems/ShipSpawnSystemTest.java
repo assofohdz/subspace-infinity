@@ -28,6 +28,7 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyMax;
 import infinity.es.ship.Health;
 import infinity.es.ship.RadarRange;
+import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.Recharge;
 import infinity.es.ship.RechargeMax;
 import infinity.es.ship.Rotation;
@@ -234,6 +235,119 @@ public class ShipSpawnSystemTest {
       assertNotNull(
           "ThorFireDelay must be projected on respawn",
           ed.getComponent(shipId, infinity.es.ship.actions.ThorFireDelay.class));
+    } finally {
+      systems.stop();
+      systems.terminate();
+    }
+  }
+
+  /**
+   * Ship-swap from a no-bombs ship to a bombs-equipped ship via
+   * {@code AvatarSystem.requestShipChange}'s remove+set on {@link ShipType}
+   * coalesces in Zay-ES into a single "changed" event (not added/removed).
+   * Without the {@link ResetLivePool} marker, that surfaces as
+   * {@code resetLivePool=false} in {@code ShipSpawnSystem.update()} and the
+   * gated {@code BombCurrentLevel} (et al.) never get written for the new
+   * ship — the bomb {@code EntitySet} membership filter then excludes the
+   * ship and {@code canAttackBomb} returns false, even though the new
+   * config has a {@code bombs} block.
+   *
+   * <p>This test pins the fix: stamping {@link ResetLivePool} alongside the
+   * {@code ShipType} swap forces the change branch to project with
+   * {@code resetLivePool=true}, and the marker is cleared afterward so a
+   * subsequent in-place tuning event doesn't redundantly reset the live
+   * pools.
+   */
+  @Test
+  public void shipSwap_resetLivePoolMarker_projectsBombCurrentLevelOnTypeChange() {
+    // WARBIRD: no bombs (matches trench's typed config)
+    final ShipConfig warbird =
+        new ShipConfig(
+            Ship.WARBIRD,
+            new ShipStat(200, 300, 20),
+            new ShipStat(16, 24, 2),
+            new ShipStat(2000, 6000, 200),
+            new ShipStat(4000, 8000, 200),
+            new ShipStat(1500, 3000, 100),
+            0.99,
+            2.0,
+            0.3,
+            50.0,
+            null,                                       // bombs (no bombs)
+            new BulletStats(BulletLevel.LEVEL_3, BulletLevel.LEVEL_3, 450, 100L, 5000),
+            null,                                       // mines
+            null, null, null, null, null, null, null, null, null, null, null);
+
+    // JAVELIN: bombs equipped (matches trench's typed config)
+    final ShipConfig javelin =
+        new ShipConfig(
+            Ship.JAVELIN,
+            new ShipStat(200, 200, 0),
+            new ShipStat(13, 24, 0),
+            new ShipStat(1900, 6000, 0),
+            new ShipStat(1500, 1500, 0),
+            new ShipStat(1500, 1500, 0),
+            0.99,
+            2.0,
+            0.3,
+            50.0,
+            new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_1, 1100, 75L, 2250, 400),
+            new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_1, 300, 60L, -900),
+            null,                                       // mines
+            null, null, null, null, null, null, null, null, null, null, null);
+
+    final ConfigRegistry snapshot =
+        ConfigRegistry.builder()
+            .ship(Ship.WARBIRD, warbird)
+            .ship(Ship.JAVELIN, javelin)
+            .build();
+
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    systems.register(EntityData.class, ed);
+    final ConfigRegistrySystem registry =
+        systems.register(ConfigRegistrySystem.class, new ConfigRegistrySystem());
+    systems.register(ShipSpawnSystem.class, new ShipSpawnSystem());
+    systems.initialize();
+    systems.start();
+
+    try {
+      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      registry.replace(arenaId, snapshot);
+
+      // Initial spawn as WARBIRD — surfaces in getAddedEntities,
+      // resetLivePool=true. Warbird has no bombs config → projectBombs
+      // early-returns → no BombCurrentLevel written.
+      final EntityId shipId = ed.createEntity();
+      ed.setComponent(shipId, new ShipType(Ship.WARBIRD));
+      ed.setComponent(shipId, arenaId);
+      systems.update();
+      org.junit.Assert.assertNull(
+          "WARBIRD has no bombs config; BombCurrentLevel not projected",
+          ed.getComponent(shipId, BombCurrentLevel.class));
+
+      // Ship-swap to JAVELIN, mimicking AvatarSystem.requestShipChange:
+      // remove+set on ShipType (Zay-ES coalesces to changed, not
+      // added/removed) AND stamp ResetLivePool to flag respawn semantics.
+      ed.removeComponent(shipId, ShipType.class);
+      ed.setComponent(shipId, new ShipType(Ship.JAVELIN));
+      ed.setComponent(shipId, new ResetLivePool());
+      systems.update();
+
+      // Marker cleared by ShipSpawnSystem after one tick.
+      org.junit.Assert.assertNull(
+          "ResetLivePool marker cleared after respawn projection",
+          ed.getComponent(shipId, ResetLivePool.class));
+
+      // BombCurrentLevel now set to JAVELIN's start (BOMB_1). The bomb
+      // EntitySet filter `(BombCurrentLevel, BombFireDelay, BombCost)`
+      // now matches → canAttackBomb passes its first gate.
+      assertNotNull(
+          "BombCurrentLevel must be projected after ship-swap respawn",
+          ed.getComponent(shipId, BombCurrentLevel.class));
+      assertEquals(
+          BombLevel.BOMB_1,
+          ed.getComponent(shipId, BombCurrentLevel.class).getLevel());
     } finally {
       systems.stop();
       systems.terminate();

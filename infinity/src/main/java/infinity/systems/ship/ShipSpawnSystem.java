@@ -29,6 +29,7 @@ import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
 import infinity.es.ship.Health;
 import infinity.es.ship.RadarRange;
+import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.Recharge;
 import infinity.es.ship.RechargeMax;
 import infinity.es.ship.RechargeUpgrade;
@@ -185,10 +186,13 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   public void update(final SimTime time) {
     ships.applyChanges();
 
-    // Added: ship just gained both ShipType and ArenaId — spawn-into-arena,
-    // re-entry from no-arena void, or ship-swap (AvatarSystem remove+set on
-    // ShipType surfaces here). The ship is conceptually fresh, so reset live
-    // pools (Health/Energy + current Thrust/Speed/Rotation/Recharge).
+    // Added: ship just gained both ShipType and ArenaId — spawn-into-arena
+    // or re-entry from no-arena void. (Ship-swap surfaces in the changed
+    // branch below: AvatarSystem.requestShipChange does remove+set on
+    // ShipType, but Zay-ES coalesces same-tick remove+set on a tracked
+    // field into a single changed event, not added/removed.) The ship is
+    // conceptually fresh, so reset live pools (Health/Energy + current
+    // Thrust/Speed/Rotation/Recharge + weapon `*CurrentLevel` starts).
     for (final Entity spawned : ships.getAddedEntities()) {
       applyConfigTo(spawned, true);
     }
@@ -196,8 +200,19 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     // commonly an ArenaId rewrite from ArenaMembershipSystem when a ship
     // crosses from arena A into arena B without going through void first.
     // Preserve live pools so a damaged ship doesn't get full health back.
+    //
+    // Exception: a ship-swap (AvatarSystem.requestShipChange does
+    // remove+set on ShipType to force re-projection; Zay-ES coalesces to a
+    // changed event, not added) stamps a ResetLivePool marker. Treat that
+    // as a respawn so weapon `*CurrentLevel` starts get re-projected for
+    // the new ship type. Clear the marker after one tick.
     for (final Entity changed : ships.getChangedEntities()) {
-      applyConfigTo(changed, false);
+      final EntityId id = changed.getId();
+      final boolean reset = ed.getComponent(id, ResetLivePool.class) != null;
+      applyConfigTo(changed, reset);
+      if (reset) {
+        ed.removeComponent(id, ResetLivePool.class);
+      }
     }
   }
 

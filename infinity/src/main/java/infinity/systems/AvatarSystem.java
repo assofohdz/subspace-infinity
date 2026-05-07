@@ -19,6 +19,7 @@ import infinity.es.Captain;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.WarpTo;
 import infinity.events.arena.ShipEvent;
@@ -160,12 +161,17 @@ public class AvatarSystem extends AbstractGameSystem {
           break;
       }
 
-      // Re-project ship stats from the arena's ShipConfig (Pattern 4). Remove+set forces
-      // an add event on the ShipType EntitySet so ShipSpawnSystem re-runs even if the
-      // ship type is unchanged — useful for the dev loop where the same key is pressed
-      // after editing ships.groovy to re-apply tuning without a full restart.
+      // Re-project ship stats from the arena's ShipConfig (Pattern 4). Remove+set
+      // surfaces in ShipSpawnSystem.update() — Zay-ES coalesces same-tick
+      // remove+set on a tracked field into a "changed" event (not "added"), so we
+      // also stamp ResetLivePool to flag this projection as a respawn (= reset
+      // Health/Energy and re-stamp *CurrentLevel starts from ShipConfig). Without
+      // the marker, swapping to a weapon-equipped ship from a non-equipped one
+      // leaves the *CurrentLevel components never written and the weapon
+      // EntitySet membership filter excludes the ship → no fire.
       ed.removeComponent(shipEntity, ShipType.class);
       ed.setComponent(shipEntity, new ShipType(Ship.getShip(shipType)));
+      ed.setComponent(shipEntity, new ResetLivePool());
 
       // Teleport to the ship's *current* arena's configured spawn point.
       // ArenaId is maintained by ArenaMembershipSystem (sensor contacts) +
