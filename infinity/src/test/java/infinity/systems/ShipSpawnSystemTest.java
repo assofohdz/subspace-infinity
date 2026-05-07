@@ -91,7 +91,7 @@ public class ShipSpawnSystemTest {
             8.0,                            // turnResponsiveness
             1.0,                            // bounceRestitution
             250.0,                          // radarRange
-            new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, /* speed */ 2000),
+            new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, /* speed */ 2000, /* thrust */ 400),
             new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
             new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L),
             new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000),
@@ -210,6 +210,14 @@ public class ShipSpawnSystemTest {
       assertEquals(
           3000,
           ed.getComponent(shipId, infinity.es.ship.weapons.BurstSpeed.class).getSpeed());
+
+      // Slice S2 — BombStats.thrust projects to BombThrust component.
+      // Stored raw (Subspace velocity units); WeaponsSystem.applyBombRecoil
+      // applies engine-tier scale + cap at fire time, then sio2-mphys
+      // Impulse pushes the ship backward.
+      assertEquals(
+          400,
+          ed.getComponent(shipId, infinity.es.ship.weapons.BombThrust.class).getThrust());
 
       // Weapon fire-delay components carry runtime state (start/delta nanos),
       // so existence is the right assertion here. Slice 2 covers the

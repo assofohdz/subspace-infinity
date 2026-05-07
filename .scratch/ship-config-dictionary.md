@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-31 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp + 3 projectile speeds). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+32 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp + 3 projectile speeds + 1 bomb recoil). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
@@ -53,6 +53,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `AntiWarpEnergy` | `antiwarp energy:` | `antiwarp.energyDrainPer1000Cs()` | `AntiwarpEnergy` | `StatusDrainSystem.update` |
 | `BulletSpeed` | `bullets speed:` | `bullets.speed()` | `BulletSpeed` (raw Subspace velocity units) | `WeaponsSystem.getAttackInfo` (case BULLET) → `effectiveProjectileSpeed(speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` |
 | `BombSpeed` | `bombs speed:` | `bombs.speed()` | `BombSpeed` | `WeaponsSystem.getAttackInfo` (case BOMB) → `effectiveProjectileSpeed(...)` |
+| `BombThrust` | `bombs thrust:` | `bombs.thrust()` | `BombThrust` (raw Subspace velocity units) | `WeaponsSystem.applyBombRecoil` (hooked from `createProjectileBomb` + `createProjectileGravBomb`) → `effectiveProjectileSpeed(...)` → `Impulse` opposite ship forward. Slice S2. |
 | `BurstSpeed` | `bursts speed:` | `bursts.speed()` | `BurstSpeed` | `WeaponsSystem.getAttackInfo` (case BURST — slice 10 latent fix) → `effectiveProjectileSpeed(...)` |
 
 ## Infinity-only Groovy fields (no fragment source)
@@ -70,7 +71,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ## Pending — `shipSection` keys not yet ported to typed `ShipConfig`
 
-61 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
+60 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
 
 ### Weapons — gun / bomb / mine firing
 
@@ -81,7 +82,6 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `BombFireDelay` | Per-shot cooldown for bombs. |
 | `BombFireEnergy` | Energy cost per bomb (level 1 baseline). |
 | `BombFireEnergyUpgrade` | Per-level energy delta for bombs. |
-| `BombThrust` | Recoil thrust applied to the firing ship. |
 | `BombBounceCount` | How many wall-bounces a bomb survives. |
 | `EmpBomb` | Whether the ship's bombs deal EMP damage (boolean). |
 | `LandmineFireDelay` | Per-shot cooldown for mines. |

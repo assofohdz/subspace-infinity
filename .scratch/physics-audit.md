@@ -281,15 +281,50 @@ tier — no Low-tier targets in this batch, so no fix landed (per
   rate) stays as the angular tuning knob.
 
 ### S2 — Wire `BombThrust` (bomb recoil)
-**Effort:** small. **Impact:** medium (canon-faithful gameplay).
+✅ Landed.
 
-Per-ship `BombThrust` ECS component. `WeaponsSystem.canAttackBomb` /
-`createProjectileBomb` hook applies an `Impulse` to the firing ship
-body opposite the bomb-fire direction (uses the F2 path). REFERENCE.md
-canon: `BombThrust 400` for trench warbird (= back-impulse magnitude
-in Subspace velocity units). Slice O1 / engine-tier scale converts.
+`BombStats` extended with `int thrust` field (Subspace velocity units,
+canon `[Ship] BombThrust`). New per-ship `BombThrust` component
+(`api/src/infinity/es/ship/weapons/BombThrust.java`) parallels
+`BombSpeed` exactly. `GroovyShipLoader` `bombs` DSL accepts `thrust:`
+named arg (required). `ShipSpawnSystem.projectBombs` projects to
+component. `WeaponsSystem.applyBombRecoil` hooked into both
+`createProjectileBomb` and `createProjectileGravBomb` (Subspace canon
+share). Mines / bullets / bursts unaffected (canon).
 
-**Risk:** none — canon mechanic, additive.
+**First codebase use of sio2-mphys's `Impulse` ECS pattern (audit F2).**
+`MPhysSystem` watches `EntitySet(ShapeInfo, Mass, Impulse)` and
+applies the impulse via `phys.applyImpulse(id, vec)` before next
+integrate, then auto-removes the component. Ordering caveat: recoil
+applies on the next physics tick (~16 ms latency). Acceptable for
+fire-feel.
+
+Math reuses `effectiveProjectileSpeed(rawThrust, scale, cap)` for
+unit-bridge consistency with `BombSpeed`/`BulletSpeed`/`BurstSpeed` —
+sign-preserving, capped at `maxProjectileSpeedJme`. SVS canon
+`BombThrust 400 × 0.01 = 4.0 jME/sec` backward impulse. Direction =
+opposite of ship's `bodyForward` in world space (Subspace canon
+"back-thrust on fire" — directly behind the ship, regardless of bomb
+velocity inheritance).
+
+Per-ship migration: 14 bomb-carrying ship blocks across
+trench/deva/testconf authored `thrust: 400`. Trackers extended.
+`DEFAULT_BOMBS` (fallback when ships.groovy missing) keeps `thrust 0`
+so the slice doesn't change behavior for missing-config arenas.
+
+Tests: `WeaponsSystemRecoilTest` (7 cases — direction, magnitude,
+sign-preservation, zero pass-through, both axes); `ShipSpawnSystemTest`
+extended (BombThrust projection assertion); `ConfigRegistrySystemLoadTest`
+extended (LEVIATHAN parses `thrust 400`). 149 api+infinity tests
+green (up from 142).
+
+**Out of scope (own follow-up slices):**
+- **S2-cal** — per-ship recalibration if the SVS canon 400 feels
+  wrong in trench/deva. Polish-bag.
+- **S5** — Repel impulse using the same `Impulse` ECS pattern. Now
+  unblocked by S2's first use of the path.
+- **EmpBomb / BBomb / Mine recoil** — out of canon (no recoil for
+  those weapon types per REFERENCE.md).
 
 ### S3 — Wire `BombBounceCount`
 **Effort:** medium. **Impact:** medium (canon-faithful gameplay; opens

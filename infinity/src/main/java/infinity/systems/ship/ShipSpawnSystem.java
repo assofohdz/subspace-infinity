@@ -76,6 +76,7 @@ import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombMaxLevel;
 import infinity.es.ship.weapons.BombSpeed;
+import infinity.es.ship.weapons.BombThrust;
 import infinity.es.ship.weapons.BurstSpeed;
 import infinity.es.ship.weapons.BulletCost;
 import infinity.es.ship.weapons.BulletCurrentLevel;
@@ -383,6 +384,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, new BombCost(bombs.cost()));
     ed.setComponent(shipId, new BombFireDelay(bombs.fireDelayCs()));
     ed.setComponent(shipId, new BombSpeed(bombs.speed()));
+    ed.setComponent(shipId, new BombThrust(bombs.thrust()));
   }
 
   private void projectBullets(

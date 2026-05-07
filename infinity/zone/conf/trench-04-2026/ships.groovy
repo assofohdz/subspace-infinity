@@ -19,7 +19,7 @@
 //       turnResponsiveness  <R>     // 1/sec — angular ease rate; 8.0 ≈ ~95% of target in ~0.4 sec
 //       bounceRestitution   <B>     // 0..1 — wall-bounce energy retention; 1.0 = perfectly elastic
 //       radarRange          <RR>    // world units — radar viewport visible radius around the ship
-//       bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 1100, fireDelay: 75, speed: 2000
+//       bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 1100, fireDelay: 75, speed: 2000, thrust: 400
 //       bullets start: BulletLevel.LEVEL_1, max: BulletLevel.LEVEL_4, cost: 300,  fireDelay: 60, speed: 2000
 //       mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 800,  fireDelay: 20
 //       bursts  start: <I>, max: <M>, speed: 3000   // [Ship] BurstSpeed (Subspace velocity units)
@@ -75,7 +75,7 @@ ship(Ship.JAVELIN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75, speed: 2250
+    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75, speed: 2250, thrust: 400
     // BulletSpeed lifted from legacy ship-javelin.groovy as signed -900
     // (= int16 representation of the legacy unsigned 64636). Backward-
     // firing javelin is Subspace canon for trench. See BulletStats.speed
@@ -113,7 +113,7 @@ ship(Ship.LEVIATHAN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 1100, fireDelay: 75, speed: 4000
+    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 1100, fireDelay: 75, speed: 4000, thrust: 400
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_2, cost: 400,  fireDelay: 60, speed: 1000
     // mines uses default BombLevel start/max; per-ship MaxMines (count cap)
     // not yet represented in typed pipeline — tracked in ship-<name>.groovy.
@@ -188,7 +188,7 @@ ship(Ship.SHARK) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1150, fireDelay: 45, speed: 1
+    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1150, fireDelay: 45, speed: 1, thrust: 400
     // shark has no bullets (MaxGuns 0 in trench/ship-shark.groovy)
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 10
     thors   start: 0, max: 3, fireDelay: 1000

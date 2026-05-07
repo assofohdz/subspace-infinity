@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *     turnResponsiveness  8.0
  *     bounceRestitution   1.0
  *     radarRange          250
- *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25
+ *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25, speed: 2000, thrust: 400
  *     bullets    start: BulletLevel.LEVEL_1,  max: BulletLevel.LEVEL_4,  cost: 10, fireDelay: 25
  *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500
  *     bursts  start: 5,  max: 5
@@ -111,14 +111,15 @@ public final class GroovyShipLoader {
   // Preserves prior behaviour for any preset whose ships.groovy doesn't
   // override these.
 
-  /** Default starting bomb level + max + cost + fire-delay + speed. */
+  /** Default starting bomb level + max + cost + fire-delay + speed + thrust. */
   static final BombStats DEFAULT_BOMBS =
       new BombStats(
           BombLevel.BOMB_1,
           BombLevel.BOMB_4,
           /* cost */ 10,
           /* fireDelayCs */ 25,
-          /* speed */ 2000); // SVS canon BombSpeed=2000 (Subspace velocity units)
+          /* speed */ 2000, // SVS canon BombSpeed=2000 (Subspace velocity units)
+          /* thrust */ 0); // No recoil by default; presets opt in (SVS canon = 400)
 
   /** Default starting bullet level + max + cost + fire-delay + speed. */
   static final BulletStats DEFAULT_GUNS =
@@ -464,12 +465,13 @@ public final class GroovyShipLoader {
 
     /**
      * {@code bombs start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10,
-     *        fireDelay: 25, speed: 2000}
+     *        fireDelay: 25, speed: 2000, thrust: 400}
      *
-     * <p>{@code speed} is in Subspace velocity units (canonical
-     * {@code [Ship] BombSpeed} key range). Fire-time consumer applies
+     * <p>{@code speed} and {@code thrust} are in Subspace velocity units
+     * (canonical {@code [Ship] BombSpeed} / {@code BombThrust} key
+     * ranges). Fire-time consumer applies
      * {@code EngineConfig.subspaceVelocityScale} + cap to land in jME
-     * world units. See slice 10.
+     * world units. See slice 10 (speed) and S2 (thrust / recoil).
      */
     public void bombs(final Map<String, ?> args) {
       this.bombs =
@@ -478,7 +480,8 @@ public final class GroovyShipLoader {
               bombsArg("bombs", args, "max"),
               intArg("bombs", args, "cost"),
               longArg("bombs", args, "fireDelay"),
-              intArg("bombs", args, "speed"));
+              intArg("bombs", args, "speed"),
+              intArg("bombs", args, "thrust"));
     }
 
     /**

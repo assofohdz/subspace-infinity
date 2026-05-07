@@ -13,14 +13,15 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-- **laptop** — Slice S2: bomb recoil (`BombThrust`)
-  ([physics-audit.md](./physics-audit.md)); branch
-  `slice/s2-bombthrust`; status: scanning + grilling
+_Empty — both slices (laptop S2, desktop 9c-JitterTime) landed; pick a slice and add a row before starting next work._
+
 ## Recently landed (last 7 days)
 
 - **2026-05-07 (desktop)** — Slice 9c-JitterTime: bomb-hit screen jitter
   ([settings-pipeline-slices.md](./settings-pipeline-slices.md))
 - **2026-05-07 (laptop)** — Slice S1: drag → mphys native linear damping
+  ([physics-audit.md](./physics-audit.md))
+- **2026-05-07 (laptop)** — Slice S2: bomb recoil (`BombThrust`)
   ([physics-audit.md](./physics-audit.md))
 
 ## Conventions

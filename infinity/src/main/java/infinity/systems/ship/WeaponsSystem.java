@@ -10,6 +10,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
+import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
@@ -47,6 +48,7 @@ import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombSpeed;
+import infinity.es.ship.weapons.BombThrust;
 import infinity.es.ship.weapons.Bounce;
 import infinity.es.ship.weapons.BurstSpeed;
 import infinity.es.ship.weapons.GravityBomb;
@@ -580,6 +582,8 @@ public class WeaponsSystem extends AbstractGameSystem
       final double proxRadius = proximityRadiusForLevel(proxBase, bombLevel);
       ed.setComponent(bombProjectile, new ProximityFuse(proxRadius, fuseMs));
     }
+
+    applyBombRecoil(requester);
   }
 
   private void createProjectileGravBomb(Entity requesterEntity, long time, AttackPosition info) {
@@ -613,6 +617,8 @@ public class WeaponsSystem extends AbstractGameSystem
             CoreViewConstants.EXPLOSION1DECAY,
             cfg.bomb().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
+
+    applyBombRecoil(requester);
   }
 
   private void createProjectileBurst(Entity requesterEntity, long time) {
@@ -1180,6 +1186,73 @@ public class WeaponsSystem extends AbstractGameSystem
       return Math.min(translated, maxJmeAbs);
     }
     return Math.max(translated, -maxJmeAbs);
+  }
+
+  /**
+   * Slice S2 — apply per-ship {@code BombThrust} recoil as an
+   * {@link Impulse} on the firing ship. Direction = opposite the ship's
+   * forward in world space (Subspace canon: "back-thrust on fire" applies
+   * directly behind the ship regardless of the bomb's outgoing velocity,
+   * which would include ship-velocity inheritance).
+   *
+   * <p>Magnitude reuses {@link #effectiveProjectileSpeed} so the engine-tier
+   * {@code subspaceVelocityScale} and {@code maxProjectileSpeedJme} cap
+   * apply uniformly across {@code BombSpeed} / {@code BulletSpeed} /
+   * {@code BurstSpeed} / {@code BombThrust}. Sign-preserving (negative
+   * thrust = forward push).
+   *
+   * <p>Called by both {@link #createProjectileBomb} and
+   * {@link #createProjectileGravBomb} (Subspace canon: gravbombs are
+   * level-3 bombs sharing per-ship knobs). Mines / bullets / bursts skip
+   * the call (no recoil per canon). Auto-no-op when the ship has no
+   * {@code BombThrust} component, the value is 0, or the body isn't yet
+   * bound to the entity (sio2-mphys {@code Impulse} retries until body
+   * binds).
+   */
+  private void applyBombRecoil(final EntityId shipId) {
+    final BombThrust thrust = ed.getComponent(shipId, BombThrust.class);
+    if (thrust == null || thrust.getThrust() == 0) {
+      return;
+    }
+    final RigidBody<?, ?> shipBody =
+        physicsSpace.getBinIndex().getRigidBody(shipId);
+    if (shipBody == null) {
+      return;
+    }
+    final EngineConfig engineCfg = engineConfigSystem.get();
+    final Vec3d impulse =
+        recoilImpulse(
+            thrust.getThrust(),
+            engineCfg.subspaceVelocityScale(),
+            engineCfg.maxProjectileSpeedJme(),
+            new Quatd(shipBody.orientation));
+    ed.setComponent(shipId, new Impulse(impulse));
+  }
+
+  /**
+   * Pure-function recoil impulse computation for {@link #applyBombRecoil}.
+   * Exposed package-private so tests can pin direction + magnitude rules
+   * without bringing up an ECS / physics fixture.
+   *
+   * @param subspaceThrust raw {@code BombThrust} value (Subspace velocity
+   *     units; SVS canon {@code 400} for warbirds)
+   * @param scale {@link EngineConfig#subspaceVelocityScale}
+   * @param maxJmeAbs {@link EngineConfig#maxProjectileSpeedJme} cap
+   * @param shipOrientation ship orientation at fire time
+   * @return impulse vector in jME world units / sec (= velocity delta);
+   *     zero vector when {@code subspaceThrust == 0}
+   */
+  static Vec3d recoilImpulse(
+      final int subspaceThrust,
+      final double scale,
+      final double maxJmeAbs,
+      final Quatd shipOrientation) {
+    if (subspaceThrust == 0) {
+      return new Vec3d();
+    }
+    final double effective = effectiveProjectileSpeed(subspaceThrust, scale, maxJmeAbs);
+    final Vec3d bodyForward = shipOrientation.mult(new Vec3d(0, 0, 1));
+    return bodyForward.mult(-effective);
   }
 
   /**

@@ -147,6 +147,11 @@ public class ConfigRegistrySystemLoadTest {
       assertNotNull("LEVIATHAN has bombs (MaxBombs 3)", leviathan.bombs());
       assertEquals("LEVIATHAN bomb max = BOMB_3",
           infinity.BombLevel.BOMB_3, leviathan.bombs().max());
+      // Slice S2: BombThrust = 400 (SVS canon recoil) on every
+      // bomb-carrying trench ship. WeaponsSystem.applyBombRecoil scales by
+      // EngineConfig.subspaceVelocityScale at fire time.
+      assertEquals("LEVIATHAN BombThrust = 400 (SVS canon)",
+          400, leviathan.bombs().thrust());
       assertNotNull("LEVIATHAN has mines (MaxMines > 0)", leviathan.mines());
       assertEquals("LEVIATHAN mine cost (LandmineFireEnergy 800)",
           800, leviathan.mines().cost());
