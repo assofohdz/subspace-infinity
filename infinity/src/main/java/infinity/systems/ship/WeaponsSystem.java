@@ -583,6 +583,13 @@ public class WeaponsSystem extends AbstractGameSystem
       ed.setComponent(bombProjectile, new ProximityFuse(proxRadius, fuseMs));
     }
 
+    // Slice S5 — opt this bomb into the repel-impulse scan when the firing
+    // arena's BombConfig.repellable is true (Subspace canon: bombs are
+    // repellable, the iconic defensive use case).
+    if (cfg.bomb().repellable()) {
+      ed.setComponent(bombProjectile, new infinity.es.Repellable());
+    }
+
     applyBombRecoil(requester);
   }
 

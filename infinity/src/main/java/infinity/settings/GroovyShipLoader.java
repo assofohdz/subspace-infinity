@@ -106,6 +106,13 @@ public final class GroovyShipLoader {
    */
   static final double DEFAULT_RADAR_RANGE = 250.0;
 
+  /**
+   * Default repellable flag used when a ship script omits {@code repellable}.
+   * Slice S5 — Subspace canon is "repels push every ship," so the absence of
+   * an explicit toggle keeps that behaviour.
+   */
+  static final boolean DEFAULT_REPELLABLE = true;
+
   // --- Defaults for the per-ship weapon / inventory stat groups ---------
   // Match the values previously inlined in GameEntities.createShip.
   // Preserves prior behaviour for any preset whose ships.groovy doesn't
@@ -264,7 +271,8 @@ public final class GroovyShipLoader {
         /* cloak */ null,
         /* stealth */ null,
         /* xradar */ null,
-        /* antiwarp */ null);
+        /* antiwarp */ null,
+        DEFAULT_REPELLABLE);
   }
 
   private final ConfigRegistrySystem configRegistry;
@@ -420,6 +428,7 @@ public final class GroovyShipLoader {
     private StatusStats stealth = null;
     private StatusStats xradar = null;
     private StatusStats antiwarp = null;
+    private boolean repellable = DEFAULT_REPELLABLE;
 
     // Package-private so unit tests in this package can build configs without
     // standing up the full GroovyShell pipeline.
@@ -461,6 +470,16 @@ public final class GroovyShipLoader {
 
     public void radarRange(final Number value) {
       this.radarRange = doubleArg("radarRange", value);
+    }
+
+    /**
+     * Slice S5 — when {@code true} (default), ship-spawn projection stamps
+     * {@link infinity.es.Repellable} on the ship so a repel within range
+     * pushes it away. Subspace canon: every ship is repellable. Set
+     * {@code false} per ship to opt out (e.g. boss / heavy bot variants).
+     */
+    public void repellable(final boolean enabled) {
+      this.repellable = enabled;
     }
 
     /**
@@ -722,7 +741,8 @@ public final class GroovyShipLoader {
           cloak,
           stealth,
           xradar,
-          antiwarp);
+          antiwarp,
+          repellable);
     }
   }
 }

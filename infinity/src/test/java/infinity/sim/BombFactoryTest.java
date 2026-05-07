@@ -36,7 +36,7 @@ public class BombFactoryTest {
     final PhysicsSpace<EntityId, MBlockShape> phys =
         new PhysicsSpace<>(new Grid(TEST_GRID_SPACING));
 
-    final BombConfig cfg = new BombConfig(2650, 60_000L, 5.0, 0, 0L, false, 0L);
+    final BombConfig cfg = new BombConfig(2650, 60_000L, 5.0, 0, 0L, false, 0L, true);
     final long createdTime = 1_000_000_000L;
     final EntityId owner = ed.createEntity();
 

@@ -1098,6 +1098,13 @@ between bigger slices. Each item is 1 row, ~1 hour:
 - Camera-shake mechanism: MVP uses additive camera-location offset
   (slice 9c-JitterTime Q6=a). FilterPostProcessor screen-shake is the
   alternative if visual feel is insufficient.
+- Repel visual animation feels too long. Effect entity carries
+  `Decay(now, now + RepelTime)` — visual lifetime = `[Repel] RepelTime`
+  (canon 2250ms). Investigate whether (a) RepelTime should be retuned
+  shorter per-preset, (b) the visual outlives RepelTime due to a
+  client-side animation hangover, or (c) the visual should be
+  decoupled from RepelTime via a separate `repelVisualMs` knob.
+  Surfaced during slice S5 manual test.
 
 ---
 

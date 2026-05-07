@@ -318,6 +318,20 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectStealth(shipId, cfg.stealth(), resetLivePool);
     projectXRadar(shipId, cfg.xradar(), resetLivePool);
     projectAntiwarp(shipId, cfg.antiwarp(), resetLivePool);
+    projectRepellable(shipId, cfg.repellable());
+  }
+
+  /**
+   * Slice S5 — toggle the {@link infinity.es.Repellable} marker per the
+   * ship's template. Marker presence opts the ship into the repel-impulse
+   * scan in {@code RepelSystem}.
+   */
+  private void projectRepellable(final EntityId shipId, final boolean repellable) {
+    if (repellable) {
+      ed.setComponent(shipId, new infinity.es.Repellable());
+    } else {
+      ed.removeComponent(shipId, infinity.es.Repellable.class);
+    }
   }
 
   // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from

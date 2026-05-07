@@ -73,6 +73,11 @@ import javax.annotation.Nullable;
  *     {@code null} = capability not authored
  * @param antiwarp AntiWarp capability tri-state + energy drain rate;
  *     {@code null} = capability not authored
+ * @param repellable when {@code true}, ship-spawn projection stamps a
+ *     {@link infinity.es.Repellable} marker so {@code RepelSystem} pushes
+ *     this ship when it sits inside a repel's radius. Default {@code true}
+ *     (Subspace canon — repels push every ship). Authors disable per-ship
+ *     by setting {@code repellable false} in the ship section. See slice S5.
  */
 public record ShipConfig(
     Ship type,
@@ -98,4 +103,5 @@ public record ShipConfig(
     @Nullable StatusStats cloak,
     @Nullable StatusStats stealth,
     @Nullable StatusStats xradar,
-    @Nullable StatusStats antiwarp) {}
+    @Nullable StatusStats antiwarp,
+    boolean repellable) {}

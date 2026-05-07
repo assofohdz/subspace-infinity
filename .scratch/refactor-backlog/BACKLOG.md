@@ -16,6 +16,16 @@ Six `*Tester` stubs (`basicTester`, `doorTester`, `lightTester`, `prizeTester`, 
 
 Surface to user before doing any work.
 
+### `AvatarMovementFunctions` keybinding cleanup
+
+[`AvatarMovementFunctions.java:133-147`](../../infinity/src/main/java/infinity/client/AvatarMovementFunctions.java#L133-L147) has four `if (!inputMapper.hasMappings(F_<X>)) { inputMapper.map(F_REPEL, KEY_<Y>); }` blocks where `<X>` is `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` but the body always maps `F_REPEL` (looks like copy-paste rot). Net effect: `F_REPEL` is mapped to F3 + F4 + F5 + F7, while `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` get **no** key bindings at all. Plus a commented-out shift-key mapping at lines 126-128 (original repel binding).
+
+Surfaced during slice S5 manual test (LEVIATHAN repel firing fine via F3/F4/F5/F7, but the action keys for the other features are wrong).
+
+Cleanup pass: walk every `inputMapper.map(F_*, KEY_*)` call site, fix the function-vs-key pairing, settle on canonical bindings (Subspace canon: F3 = repel? F4 = warp? — verify against Continuum defaults), drop the commented-out historical mappings. Plus: consider whether `F_DECOY` / `F_ROCKET` / `F_BRICK` / `F_ATTACH` features still exist or are stale (would explain why nobody noticed they had no keys).
+
+Out of scope for any specific gameplay slice; surface as its own keybinding-cleanup chore when picked up.
+
 ### `MapSystem` 2-job split
 
 The 938-line file culled in commit `5582cfd` (now ~693 lines after dead-code removal) still mixes two responsibilities:

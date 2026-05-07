@@ -134,6 +134,8 @@ public final class GroovyZoneLoader {
     // Defaults to ZoneConfig.EMPTY's value so an omitted directive matches the
     // documented fallback (5-second poll, the historical SCRIPT_POLL_INTERVAL_NANOS).
     private double scriptPollIntervalSeconds = ZoneConfig.EMPTY.scriptPollIntervalSeconds();
+    // Slice S5 — Subspace canon "repels push everyone" maps to true.
+    private boolean repelFriendlies = ZoneConfig.EMPTY.repelFriendlies();
 
     // Package-private so unit tests can build configs without standing up the
     // full GroovyShell pipeline (mirrors GroovyShipLoader.ShipConfigBuilder).
@@ -168,9 +170,23 @@ public final class GroovyZoneLoader {
       this.scriptPollIntervalSeconds = v;
     }
 
+    /**
+     * Slice S5 — when {@code true} (default), repels push every
+     * {@link infinity.es.Repellable} body in radius regardless of team. When
+     * {@code false}, same-frequency ships are skipped (non-frequency-bearing
+     * entities like bombs / mines are always pushed). Infinity-specific ops
+     * knob; not in REFERENCE.md.
+     */
+    public void repelFriendlies(final boolean enabled) {
+      this.repelFriendlies = enabled;
+    }
+
     ZoneConfig build() {
       return new ZoneConfig(
-          List.copyOf(autoLoadArenas), enterSpawnArena, scriptPollIntervalSeconds);
+          List.copyOf(autoLoadArenas),
+          enterSpawnArena,
+          scriptPollIntervalSeconds,
+          repelFriendlies);
     }
   }
 }

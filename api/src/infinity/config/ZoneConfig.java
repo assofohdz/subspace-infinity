@@ -24,11 +24,18 @@ import java.util.List;
  *     production runs that happen to have on-disk script paths reachable.
  *     Read once at server startup; not hot-reloadable (zone.groovy itself
  *     isn't watched).
+ * @param repelFriendlies when {@code true}, repels push every
+ *     {@link infinity.es.Repellable} body in radius regardless of team
+ *     (Subspace canon — repels are a movement effect, not damage). When
+ *     {@code false}, same-frequency ships are skipped. Bombs / mines / other
+ *     non-frequency-bearing entities are always pushed. Infinity-specific
+ *     ops knob; not in REFERENCE.md. See slice S5.
  */
 public record ZoneConfig(
     List<String> autoLoadArenas,
     String enterSpawnArena,
-    double scriptPollIntervalSeconds) {
+    double scriptPollIntervalSeconds,
+    boolean repelFriendlies) {
 
   /**
    * Empty fallback installed if {@code zone.groovy} is missing or fails to
@@ -36,9 +43,10 @@ public record ZoneConfig(
    * world origin" so an unconfigured server still boots. The script-poll
    * default mirrors the historical {@code SCRIPT_POLL_INTERVAL_NANOS} = 5 s
    * Java constant so omitting the directive (or having no zone.groovy at all)
-   * preserves the prior throttle.
+   * preserves the prior throttle. {@code repelFriendlies} defaults to
+   * {@code true} (Subspace canon — repel is a movement effect, no FF gate).
    */
-  public static final ZoneConfig EMPTY = new ZoneConfig(List.of(), "", 5.0);
+  public static final ZoneConfig EMPTY = new ZoneConfig(List.of(), "", 5.0, true);
 
   /** {@link #scriptPollIntervalSeconds} converted to nanoseconds for sim-tick comparisons. */
   public long scriptPollIntervalNanos() {

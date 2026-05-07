@@ -86,6 +86,12 @@ package infinity.config;
  *     {@code [Bomb] JitterTime} in centiseconds; the adapter converts ×10 at
  *     the loader boundary. Value 0 disables jitter on this arena. Flat
  *     across bomb levels — REFERENCE.md does not specify per-level scaling.
+ * @param repellable when {@code true}, the projectile-spawn projection in
+ *     {@code WeaponsSystem.createProjectileBomb} stamps a
+ *     {@link infinity.es.Repellable} marker so in-flight bombs get pushed
+ *     by a repel within range. Default {@code true} (Subspace canon —
+ *     repels reverse incoming bombs, the iconic defensive use case). See
+ *     slice S5.
  */
 public record BombConfig(
     int damage,
@@ -94,7 +100,8 @@ public record BombConfig(
     int proximityDistance,
     long explodeDelayMs,
     boolean bombSafety,
-    long jitterTimeMs) {
+    long jitterTimeMs,
+    boolean repellable) {
 
   /**
    * Subspace-canonical baseline used when no fragment provides a value.
@@ -116,6 +123,10 @@ public record BombConfig(
    * <p>{@code jitterTimeMs} defaults to {@code 0} (disabled): arenas that
    * don't author {@code jitterTimeCs} get no screen jitter. Active arenas
    * opt in via {@code jitterTimeCs} in their {@code bomb.groovy}.
+   *
+   * <p>{@code repellable} defaults to {@code true} (Subspace canon — repels
+   * reverse incoming bombs). Arenas opt out via {@code repellable false}.
    */
-  public static final BombConfig DEFAULTS = new BombConfig(750, 60000L, 5.0, 0, 0L, false, 0L);
+  public static final BombConfig DEFAULTS =
+      new BombConfig(750, 60000L, 5.0, 0, 0L, false, 0L, true);
 }

@@ -105,7 +105,8 @@ public class ShipSpawnSystemTest {
             null,                                       // cloak (not authored)
             null,                                       // stealth (not authored)
             null,                                       // xradar (not authored)
-            null);                                      // antiwarp (not authored)
+            null,                                       // antiwarp (not authored)
+            true);                                      // repellable
 
     final ConfigRegistry snapshot =
         ConfigRegistry.builder().ship(Ship.WARBIRD, warbird).build();
@@ -276,7 +277,8 @@ public class ShipSpawnSystemTest {
             null,                                       // bombs (no bombs)
             new BulletStats(BulletLevel.LEVEL_3, BulletLevel.LEVEL_3, 450, 100L, 5000),
             null,                                       // mines
-            null, null, null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, null,
+            true);                                      // repellable
 
     // JAVELIN: bombs equipped (matches trench's typed config)
     final ShipConfig javelin =
@@ -294,7 +296,8 @@ public class ShipSpawnSystemTest {
             new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_1, 1100, 75L, 2250, 400),
             new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_1, 300, 60L, -900),
             null,                                       // mines
-            null, null, null, null, null, null, null, null, null, null, null);
+            null, null, null, null, null, null, null, null, null, null, null,
+            true);                                      // repellable
 
     final ConfigRegistry snapshot =
         ConfigRegistry.builder()

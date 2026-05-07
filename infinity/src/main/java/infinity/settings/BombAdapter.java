@@ -110,6 +110,7 @@ public final class BombAdapter
     private long explodeDelayMs = BombConfig.DEFAULTS.explodeDelayMs();
     private boolean bombSafety = BombConfig.DEFAULTS.bombSafety();
     private long jitterTimeMs = BombConfig.DEFAULTS.jitterTimeMs();
+    private boolean repellable = BombConfig.DEFAULTS.repellable();
 
     BombBuilder() {}
 
@@ -203,6 +204,17 @@ public final class BombAdapter
       this.jitterTimeMs = centiseconds * 10L;
     }
 
+    /**
+     * Slice S5 — when {@code true} (default), the projectile-spawn projection
+     * stamps {@link infinity.es.Repellable} on this arena's bombs so a repel
+     * within range pushes them away. Subspace canon: bombs are repellable
+     * (the iconic defensive use case). Set {@code false} to opt this arena
+     * out of bomb-repel.
+     */
+    public void repellable(final boolean enabled) {
+      this.repellable = enabled;
+    }
+
     BombConfig build() {
       return new BombConfig(
           damage,
@@ -211,7 +223,8 @@ public final class BombAdapter
           proximityDistance,
           explodeDelayMs,
           bombSafety,
-          jitterTimeMs);
+          jitterTimeMs,
+          repellable);
     }
   }
 }

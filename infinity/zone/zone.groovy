@@ -22,4 +22,9 @@ zone {
     // scriptPollInterval 5.0   // seconds; throttle for the per-arena ships.groovy
                                 // dev-mode reload watcher. 5 s is the documented
                                 // default; uncomment + tune to taste.
+    repelFriendlies true        // Slice S5 — when true (default), repels push
+                                // every Repellable body in radius regardless of
+                                // team (Subspace canon). Set false to skip
+                                // same-frequency ships; bombs / mines always
+                                // pushed. Infinity-specific ops knob.
 }
