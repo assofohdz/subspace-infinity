@@ -700,7 +700,7 @@ Same gap as splash damage's contact-path integration; deferred to the
 spawn-projection harness backlog.
 
 ### Slice 9c-JitterTime — bomb-hit screen jitter
-🔲 `[Bomb] JitterTime` (cs→ms) — server stamps a `Jitter`
+⏳ `[Bomb] JitterTime` (cs→ms) — server stamps a `Jitter`
 deadline component on the victim of a bomb hit (both direct + splash
 paths in `WeaponsSystem.detonateProjectile`); client reads `Jitter`
 on the local avatar's id to camera-shake (ChaseCamera offset

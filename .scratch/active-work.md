@@ -13,7 +13,9 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-_Empty — pick a slice and add a row before starting work._
+- **desktop** — Slice 9c-JitterTime: bomb-hit screen jitter
+  ([settings-pipeline-slices.md](./settings-pipeline-slices.md));
+  branch `slice/9c-jittertime`; status: scanning + grilling scope
 
 ## Recently landed (last 7 days)
 
