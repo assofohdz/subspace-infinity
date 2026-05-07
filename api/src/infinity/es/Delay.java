@@ -2,7 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es;
 
-import java.util.HashSet;
+import java.util.Set;
 
 import com.simsilica.es.EntityComponent;
 
@@ -18,14 +18,14 @@ public class Delay implements EntityComponent {
 
     private final long start;
     private final long delta;
-    private final HashSet<EntityComponent> delayedComponents;
+    private final Set<EntityComponent> delayedComponents;
     private final String type;
 
     public Delay() {
         this(0L, null, null);
     }
 
-    public Delay(final long deltaMillis, final HashSet<EntityComponent> delayedComponents, final String type) {
+    public Delay(final long deltaMillis, final Set<EntityComponent> delayedComponents, final String type) {
         start = System.nanoTime();
         delta = deltaMillis * 1000000;
         this.delayedComponents = delayedComponents;
@@ -37,7 +37,7 @@ public class Delay implements EntityComponent {
         return (double) (time - start) / delta;
     }
 
-    public HashSet<EntityComponent> getDelayedComponents() {
+    public Set<EntityComponent> getDelayedComponents() {
         return delayedComponents;
     }
 

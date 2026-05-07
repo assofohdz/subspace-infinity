@@ -587,7 +587,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
     final ConfigRegistry cfg = weaponsFor(requester);
     EntityId projectile;
-    final HashSet<EntityComponent> delayedComponents = new HashSet<>();
+    final Set<EntityComponent> delayedComponents = new HashSet<>();
     delayedComponents.add(
         new GravityWell(
             5, cfg.gravBomb().wormholeForce(), GravityWell.PULL)); // Suck everything in

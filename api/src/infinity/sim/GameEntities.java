@@ -45,8 +45,8 @@ import infinity.es.ship.actions.BrickSpan;
 import infinity.es.ship.actions.RocketBuff;
 import infinity.es.ship.actions.RocketSnapshot;
 import infinity.es.ship.actions.Thor;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -95,7 +95,7 @@ public class GameEntities {
       final Vec3d linearVelocity,
       final long decayMillis,
       final long scheduledMillis,
-      final HashSet<EntityComponent> delayedComponents,
+      final Set<EntityComponent> delayedComponents,
       final String shapeName) {
 
     final EntityId lastDelayedBomb =
