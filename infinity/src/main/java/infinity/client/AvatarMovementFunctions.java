@@ -162,7 +162,11 @@ public class AvatarMovementFunctions {
     }
 
     if (!inputMapper.hasMappings(F_BOMB)) {
-      inputMapper.map(F_BOMB, KeyInput.KEY_SPACE);
+      // Subspace / Continuum canon: TAB fires bombs. Slice S2 + bomb-recoil
+      // pairing — moving off SPACE also resolves the pre-existing
+      // SPACE-vs-F_STOP key conflict for the bomb-fire path (F_STOP keeps
+      // SPACE).
+      inputMapper.map(F_BOMB, KeyInput.KEY_TAB);
     }
 
     if (!inputMapper.hasMappings(F_BURST)) {
