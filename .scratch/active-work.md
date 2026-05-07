@@ -13,12 +13,11 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-- **desktop** — Slice S5: wire Repel impulse (Slice 1 follow-up)
-  ([physics-audit.md](./physics-audit.md)); branch
-  `slice/s5-repel-impulse`; status: scanning
-
 ## Recently landed (last 7 days)
 
+- **2026-05-07 (desktop)** — Slice S5: wire Repel impulse + Repellable
+  marker (Slice 1 follow-up)
+  ([physics-audit.md](./physics-audit.md))
 - **2026-05-07 (desktop)** — Slice 9c-JitterTime: bomb-hit screen jitter
   ([settings-pipeline-slices.md](./settings-pipeline-slices.md))
 - **2026-05-07 (laptop)** — Slice S1: drag → mphys native linear damping
