@@ -59,7 +59,7 @@ public class MapState extends BaseAppState {
     private LegacyMapImageContainer tileImages;
     private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
     private AssetManager am;
-    private final HashMap<String, LevelFile> levelFiles = new HashMap<>();
+    private final Map<String, LevelFile> levelFiles = new HashMap<>();
     private AWTLoader imgLoader;
     private final HashMap<TileKey, Image> imageMap = new HashMap<>();
 
