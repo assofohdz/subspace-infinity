@@ -18,7 +18,7 @@ engine {
     //
     // Default 0.01 produces SVS canonical 2000 → 20 jME and the existing
     // trench warbird's 5000 → 50 (matches today's hardcoded
-    // addLocal(0,0,50) behaviour for guns).
+    // addLocal(0,0,50) behaviour for bullets).
     subspaceVelocityScale 0.01
 
     // Post-translation absolute cap (jME world-units / sec). Clamps stray

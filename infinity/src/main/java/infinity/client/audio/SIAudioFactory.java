@@ -153,7 +153,7 @@ public class SIAudioFactory implements AudioFactory {
             sound = "Sounds/Subspace/gun4.wa2";
             break;
         default:
-            throw new UnsupportedOperationException("Unknown gun level: " + gunLevel);
+            throw new UnsupportedOperationException("Unknown bullet level: " + gunLevel);
         }
         final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
         setDefaults(an);

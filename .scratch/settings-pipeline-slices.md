@@ -742,51 +742,18 @@ balance tweaks without a rebuild).
 
 ## Slice R1 — Rename `Gun*` → `Bullet*` to match Subspace canon
 
-🔲 Pure rename pass. Today Infinity uses `Gun*` for the bullet-firing
-weapon family (`GunCost`, `GunFireDelay`, `GunCurrentLevel`,
-`GunMaxLevel`, `GunStats`, `WeaponsSystem.GUN` flag, `projectGuns`,
-`guns` DSL, etc.) while Subspace canon authors `[Ship] BulletFireEnergy`,
-`BulletFireDelay`, `BulletSpeed`. Bomb stays Bomb (already canon-aligned).
-
-The two-name split is a small but persistent friction:
-- Slice authors have to translate `BulletSpeed → GunSpeed` mentally
-  every time per-ship bullet knobs come up.
-- New contributors hit a "wait, isn't it called bullet?" speed bump.
-- Component Javadoc carries explicit "Gun maps to Bullet*" notes that
-  exist solely to bridge the rename gap.
-
-**Scope (rename only — no behavior change):**
-- Components: `GunCost`/`GunFireDelay`/`GunCurrentLevel`/`GunMaxLevel`/
-  `GunSpeed` (slice 10) → `BulletCost`/`BulletFireDelay`/etc.
-- Records: `GunStats` → `BulletStats`; `GunLevel` enum → `BulletLevel`.
-- DSL: `guns start: …, max: …, cost: …, fireDelay: …, speed: …` →
-  `bullets start: …, max: …, …`. (One typed-DSL setter per
-  per-arena `ships.groovy`.)
-- WeaponsSystem: constants `GUN` → `BULLET`, methods `canAttackGun`/
-  `setCoolDownGun`/`createProjectileGun`/`projectGuns` →
-  `canAttackBullet`/etc.
-- ShipSpawnSystem: `projectGuns` → `projectBullets`.
-- Prize side: Subspace prize is canonically named `Gun` (= "Gun Upgrade"),
-  so `GunPrizeApplier` stays `GunPrizeApplier` and the prize type stays
-  `Gun`. The rename is for the **projectile-side weapon family**, not
-  the prize. (Document this asymmetry in the slice's class Javadoc.)
-- Tests: ~10-15 test files reference `Gun*` — rename in lockstep.
-- Per-ship `ships.groovy`: rename `guns` block → `bullets` block in 4
-  active arena presets (trench/deva/testconf + base if relevant).
-- Tracker rows: pipeline tracker's `[Bullet]` section + per-ship
-  inventory subsection get cell updates for new component names.
-
-**Sequencing notes:**
-- **Land after Slice 10** so `GunSpeed` is born and dies under the
-  new name in one slice. Doing it before would mean naming the new
-  component `GunSpeed` then renaming it next slice — wasted edit.
-- Burst rename ambiguous? — keep `BurstSpeed` / `BurstStats` as-is.
-  Burst is already canon-aligned (Subspace authors `BurstSpeed`,
-  Infinity authors `BurstSpeed`).
-
-**Risk:** zero behavior risk (pure rename + compile-verifies). Risk
-is purely conflict surface — if landed alongside other refactors
-touching `WeaponsSystem` / `ShipConfig`, merges get noisy.
+✅ Landed. Projectile-side weapon family renamed `Gun*` → `Bullet*` to
+match Subspace canon (`[Ship] BulletSpeed`/`BulletFireDelay`/
+`BulletFireEnergy`). Components (`Bullet{Cost,FireDelay,CurrentLevel,
+MaxLevel,Speed}`), record `BulletStats`, enum `BulletLevel`, client
+visuals `BulletVisuals`, `WeaponsSystem.BULLET` constant, methods
+(`canAttackBullet`/`setCoolDownBullet`/`deductCostOfAttackBullet`/
+`createProjectileBullet`/`projectBullets`), DSL block (`bullets`),
+`ShipConfig.bullets` accessor, audio constants (`FIRE_BULLETS_L*`),
+3 arena presets (trench/deva/testconf), all tests, and pipeline
+trackers updated in lockstep. Prize-side stays unchanged
+(`GunPrizeApplier`, `PrizeTypes.GUN`, `Gun` prize-type identifier =
+"Gun Upgrade") — the rename is the projectile-side family only.
 
 ## Slice P2 — Physics implementation audit
 

@@ -340,7 +340,7 @@ public class AvatarMovementState extends BaseAppState
     } else if (func == AvatarMovementFunctions.F_BURST) {
       session.action(ConsumableSystem.FIREBURST);
     } else if (func == AvatarMovementFunctions.F_SHOOT && !shiftPressed) {
-      session.attack(WeaponsSystem.GUN);
+      session.attack(WeaponsSystem.BULLET);
     }
   }
 }

@@ -55,9 +55,9 @@ import infinity.es.ship.actions.ThorMaxCount;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.GunCost;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BulletCurrentLevel;
+import infinity.es.ship.weapons.BulletMaxLevel;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineMaxLevel;
@@ -229,7 +229,7 @@ public class ChecksSystem extends AbstractGameSystem {
           Thrust.class, ThrustMax.class,
           Speed.class, SpeedMax.class,
           BombCurrentLevel.class, BombMaxLevel.class,
-          GunCurrentLevel.class, GunMaxLevel.class,
+          BulletCurrentLevel.class, BulletMaxLevel.class,
           MineCurrentLevel.class, MineMaxLevel.class,
           BurstMax.class, ThorMaxCount.class);
       missingTotal += missing;
@@ -306,7 +306,7 @@ public class ChecksSystem extends AbstractGameSystem {
 
     sb.append("  weapons:");
     appendWeapon(sb, target, "bomb", BombCurrentLevel.class, BombMaxLevel.class, BombCost.class);
-    appendWeapon(sb, target, "gun", GunCurrentLevel.class, GunMaxLevel.class, GunCost.class);
+    appendWeapon(sb, target, "bullet", BulletCurrentLevel.class, BulletMaxLevel.class, BulletCost.class);
     appendWeapon(sb, target, "mine", MineCurrentLevel.class, MineMaxLevel.class, MineCost.class);
     sb.append('\n');
 
@@ -413,7 +413,7 @@ public class ChecksSystem extends AbstractGameSystem {
     sb.append(weaponLevel(c)).append('/').append(weaponLevel(m));
     if (co instanceof BombCost bc) {
       sb.append("(cost=").append(bc.getCost()).append(')');
-    } else if (co instanceof GunCost gc) {
+    } else if (co instanceof BulletCost gc) {
       sb.append("(cost=").append(gc.getCost()).append(')');
     } else if (co instanceof MineCost mc) {
       sb.append("(cost=").append(mc.getCost()).append(')');
@@ -481,8 +481,8 @@ public class ChecksSystem extends AbstractGameSystem {
     if (c == null) return "?";
     if (c instanceof BombCurrentLevel b) return b.getLevel().name();
     if (c instanceof BombMaxLevel b) return b.getLevel().name();
-    if (c instanceof GunCurrentLevel g) return g.getLevel().name();
-    if (c instanceof GunMaxLevel g) return g.getLevel().name();
+    if (c instanceof BulletCurrentLevel g) return g.getLevel().name();
+    if (c instanceof BulletMaxLevel g) return g.getLevel().name();
     if (c instanceof MineCurrentLevel m) return m.getLevel().name();
     if (c instanceof MineMaxLevel m) return m.getLevel().name();
     return "?";

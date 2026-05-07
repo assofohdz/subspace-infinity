@@ -6,19 +6,19 @@ package infinity.es.ship.weapons;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Component holding the energy cost to fire a gun shot.
+ * Component holding the energy cost to fire a bullet shot.
  *
  * @author Asser Fahrenholz
  */
-public class GunCost implements EntityComponent {
+public class BulletCost implements EntityComponent {
 
     private final int cost;
 
-    public GunCost() {
+    public BulletCost() {
         this(0);
     }
 
-    public GunCost(final int cost) {
+    public BulletCost(final int cost) {
         this.cost = cost;
     }
 

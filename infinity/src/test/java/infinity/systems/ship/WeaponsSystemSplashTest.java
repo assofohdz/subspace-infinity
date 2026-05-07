@@ -235,7 +235,7 @@ public class WeaponsSystemSplashTest {
     // SVS canon BulletSpeed=2000 with default scale 0.01 → 20 jME.
     assertEquals(20.0, WeaponsSystem.effectiveProjectileSpeed(2000, 0.01, 100.0), 1e-9);
     // Trench warbird's BulletSpeed=5000 with default scale 0.01 → 50 jME
-    // (matches today's hardcoded addLocal(0,0,50) for guns, by design).
+    // (matches today's hardcoded addLocal(0,0,50) for bullets, by design).
     assertEquals(50.0, WeaponsSystem.effectiveProjectileSpeed(5000, 0.01, 100.0), 1e-9);
   }
 

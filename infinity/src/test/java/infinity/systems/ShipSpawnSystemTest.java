@@ -10,13 +10,13 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
 import infinity.BombLevel;
-import infinity.GunLevel;
+import infinity.BulletLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
 import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
-import infinity.config.GunStats;
+import infinity.config.BulletStats;
 import infinity.config.MineStats;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
@@ -47,9 +47,9 @@ import infinity.es.ship.actions.ThorMaxCount;
 import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.GunCost;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BulletCurrentLevel;
+import infinity.es.ship.weapons.BulletMaxLevel;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineMaxLevel;
@@ -92,7 +92,7 @@ public class ShipSpawnSystemTest {
             1.0,                            // bounceRestitution
             250.0,                          // radarRange
             new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, /* speed */ 2000),
-            new GunStats(GunLevel.LEVEL_1, GunLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
+            new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
             new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L),
             new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000),
             new CountWithDelayStats(2, 2, 1000L),       // thors
@@ -179,10 +179,10 @@ public class ShipSpawnSystemTest {
       assertEquals(BombLevel.BOMB_4, ed.getComponent(shipId, BombMaxLevel.class).getLevel());
       assertEquals(10, ed.getComponent(shipId, BombCost.class).getCost());
 
-      // GunLevel.
-      assertEquals(GunLevel.LEVEL_1, ed.getComponent(shipId, GunCurrentLevel.class).getLevel());
-      assertEquals(GunLevel.LEVEL_4, ed.getComponent(shipId, GunMaxLevel.class).getLevel());
-      assertEquals(10, ed.getComponent(shipId, GunCost.class).getCost());
+      // BulletLevel.
+      assertEquals(BulletLevel.LEVEL_1, ed.getComponent(shipId, BulletCurrentLevel.class).getLevel());
+      assertEquals(BulletLevel.LEVEL_4, ed.getComponent(shipId, BulletMaxLevel.class).getLevel());
+      assertEquals(10, ed.getComponent(shipId, BulletCost.class).getCost());
 
       // Mines (reuse BombLevel enum).
       assertEquals(BombLevel.BOMB_1, ed.getComponent(shipId, MineCurrentLevel.class).getLevel());
@@ -198,7 +198,7 @@ public class ShipSpawnSystemTest {
       assertEquals(20, ed.getComponent(shipId, RepelMax.class).getCount());
 
       // Slice 10 — projectile speeds project from BombStats.speed /
-      // GunStats.speed / BurstStats.speed onto BombSpeed / GunSpeed /
+      // BulletStats.speed / BurstStats.speed onto BombSpeed / BulletSpeed /
       // BurstSpeed components. Stored raw (Subspace velocity units);
       // WeaponsSystem applies engine-tier scale + cap at fire time.
       assertEquals(
@@ -206,7 +206,7 @@ public class ShipSpawnSystemTest {
           ed.getComponent(shipId, infinity.es.ship.weapons.BombSpeed.class).getSpeed());
       assertEquals(
           2000,
-          ed.getComponent(shipId, infinity.es.ship.weapons.GunSpeed.class).getSpeed());
+          ed.getComponent(shipId, infinity.es.ship.weapons.BulletSpeed.class).getSpeed());
       assertEquals(
           3000,
           ed.getComponent(shipId, infinity.es.ship.weapons.BurstSpeed.class).getSpeed());
@@ -218,8 +218,8 @@ public class ShipSpawnSystemTest {
           "BombFireDelay must be projected on respawn",
           ed.getComponent(shipId, infinity.es.ship.weapons.BombFireDelay.class));
       assertNotNull(
-          "GunFireDelay must be projected on respawn",
-          ed.getComponent(shipId, infinity.es.ship.weapons.GunFireDelay.class));
+          "BulletFireDelay must be projected on respawn",
+          ed.getComponent(shipId, infinity.es.ship.weapons.BulletFireDelay.class));
       assertNotNull(
           "MineFireDelay must be projected on respawn",
           ed.getComponent(shipId, infinity.es.ship.weapons.MineFireDelay.class));

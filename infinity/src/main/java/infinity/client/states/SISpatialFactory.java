@@ -30,7 +30,7 @@ import com.simsilica.mblock.phys.CellArrayPart;
 import com.simsilica.mblock.phys.Group;
 import com.simsilica.mblock.phys.Part;
 import infinity.client.view.BombVisuals;
-import infinity.client.view.GunVisuals;
+import infinity.client.view.BulletVisuals;
 import infinity.client.view.ShipVisuals;
 import infinity.client.view.SpecialBombVisuals;
 import infinity.client.view.BlockGeometryIndex;
@@ -85,13 +85,13 @@ public class SISpatialFactory {
 
     switch (shapeName) {
       case ShapeNames.BULLETL4:
-        return createBullet(GunVisuals.LEVEL_4.viewOffset);
+        return createBullet(BulletVisuals.LEVEL_4.viewOffset);
       case ShapeNames.BULLETL3:
-        return createBullet(GunVisuals.LEVEL_3.viewOffset);
+        return createBullet(BulletVisuals.LEVEL_3.viewOffset);
       case ShapeNames.BULLETL2:
-        return createBullet(GunVisuals.LEVEL_2.viewOffset);
+        return createBullet(BulletVisuals.LEVEL_2.viewOffset);
       case ShapeNames.BULLETL1:
-        return createBullet(GunVisuals.LEVEL_1.viewOffset);
+        return createBullet(BulletVisuals.LEVEL_1.viewOffset);
       case ShapeNames.MINEL1:
       case ShapeNames.BOMBL1:
         return createBomb(BombVisuals.BOMB_1.viewOffset);

@@ -25,7 +25,7 @@ package infinity.config;
  *     Default {@code 0.01} produces SVS canonical {@code 2000 → 20} jME
  *     units / sec, and the existing trench warbird's {@code 5000 → 50}
  *     (matches today's hardcoded {@code addLocal(0,0,50)} behaviour for
- *     guns).
+ *     bullets).
  * @param maxProjectileSpeedJme post-translation cap (jME world-units /
  *     sec). Clamps the absolute projectile speed after multiplication to
  *     prevent physics-breaking values for large per-ship knobs (e.g.
@@ -41,7 +41,7 @@ public record EngineConfig(double subspaceVelocityScale, double maxProjectileSpe
    * Subspace-canonical baseline used when no {@code engine.groovy} is on
    * the classpath. Scale {@code 0.01} matches the implicit factor we
    * inferred from existing inline magic numbers ({@code 5000 * 0.01 = 50}
-   * for guns); cap {@code 100} bounds the worst-case translated value
+   * for bullets); cap {@code 100} bounds the worst-case translated value
    * without restricting today's tuning ranges.
    */
   public static final EngineConfig DEFAULTS = new EngineConfig(0.01, 100.0);

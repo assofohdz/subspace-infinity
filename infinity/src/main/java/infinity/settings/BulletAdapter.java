@@ -89,12 +89,12 @@ public final class BulletAdapter
 
     BulletBuilder() {}
 
-    /** {@code [Bullet] BulletDamageLevel} — base damage at gun level 1. */
+    /** {@code [Bullet] BulletDamageLevel} — base damage at bullet level 1. */
     public void damageLevel(final int value) {
       this.damage = value;
     }
 
-    /** {@code [Bullet] BulletDamageUpgrade} — additional damage per gun level above 1. */
+    /** {@code [Bullet] BulletDamageUpgrade} — additional damage per bullet level above 1. */
     public void damageUpgrade(final int value) {
       this.damageUpgrade = value;
     }

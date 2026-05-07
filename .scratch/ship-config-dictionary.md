@@ -51,7 +51,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `XRadarEnergy` | `xradar energy:` | `xradar.energyDrainPer1000Cs()` | `XRadarEnergy` | `StatusDrainSystem.update` |
 | `AntiWarpStatus` | `antiwarp status:` | `antiwarp.status()` | `AntiwarpStatus` | `AntiWarpPrizeApplier` (tri-state gate); `ShipSpawnSystem.projectAntiwarp` |
 | `AntiWarpEnergy` | `antiwarp energy:` | `antiwarp.energyDrainPer1000Cs()` | `AntiwarpEnergy` | `StatusDrainSystem.update` |
-| `BulletSpeed` | `guns speed:` | `guns.speed()` | `GunSpeed` (raw Subspace velocity units) | `WeaponsSystem.getAttackInfo` (case GUN) → `effectiveProjectileSpeed(speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` |
+| `BulletSpeed` | `bullets speed:` | `bullets.speed()` | `BulletSpeed` (raw Subspace velocity units) | `WeaponsSystem.getAttackInfo` (case BULLET) → `effectiveProjectileSpeed(speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` |
 | `BombSpeed` | `bombs speed:` | `bombs.speed()` | `BombSpeed` | `WeaponsSystem.getAttackInfo` (case BOMB) → `effectiveProjectileSpeed(...)` |
 | `BurstSpeed` | `bursts speed:` | `bursts.speed()` | `BurstSpeed` | `WeaponsSystem.getAttackInfo` (case BURST — slice 10 latent fix) → `effectiveProjectileSpeed(...)` |
 
@@ -76,8 +76,8 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 | `shipSection` key | Notes |
 |---|---|
-| `BulletFireDelay` | Per-shot cooldown for guns. |
-| `BulletFireEnergy` | Energy cost per gun shot. |
+| `BulletFireDelay` | Per-shot cooldown for bullets. |
+| `BulletFireEnergy` | Energy cost per bullet shot. |
 | `BombFireDelay` | Per-shot cooldown for bombs. |
 | `BombFireEnergy` | Energy cost per bomb (level 1 baseline). |
 | `BombFireEnergyUpgrade` | Per-level energy delta for bombs. |
@@ -98,7 +98,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `shipSection` key | Notes |
 |---|---|
 | `InitialBombs` / `MaxBombs` | Bomb-level inventory (already partially handled by `Bombs` enum + `BombCurrentLevel`/`BombMaxLevel` components, but not yet driven by Groovy). |
-| `InitialGuns` / `MaxGuns` | Same for `Guns` / `GunCurrentLevel` / `GunMaxLevel`. |
+| `InitialGuns` / `MaxGuns` | Same for `Guns` / `BulletCurrentLevel` / `BulletMaxLevel`. |
 | `MaxMines` | Mine inventory cap. (No `InitialMines` in the `shipSection` surface.) |
 | `InitialBurst` / `BurstMax` | Burst grenades. `Burst` / `BurstMax` components exist; not Groovy-driven. |
 | `BurstShrapnel` | Shrapnel count per burst. |

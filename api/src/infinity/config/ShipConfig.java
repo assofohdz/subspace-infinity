@@ -17,7 +17,7 @@ import javax.annotation.Nullable;
  * directly — they watch the components, which can diverge from the template
  * via upgrades, damage, or status effects.
  *
- * <p>Weapon and inventory fields ({@code bombs}, {@code guns}, {@code mines},
+ * <p>Weapon and inventory fields ({@code bombs}, {@code bullets}, {@code mines},
  * {@code bursts}, {@code thors}, {@code repels}) are nullable: a {@code null}
  * means "this ship type doesn't carry / can't acquire this weapon at all".
  * {@code ShipSpawnSystem} skips the corresponding projection block on null,
@@ -43,8 +43,8 @@ import javax.annotation.Nullable;
  *     radar viewport displays
  * @param bombs starting + max bomb level, fire cost, fire-delay; {@code null}
  *     = no bombs
- * @param guns starting + max gun level, fire cost, fire-delay; {@code null}
- *     = no guns
+ * @param bullets starting + max bullet level, fire cost, fire-delay; {@code null}
+ *     = no bullets
  * @param mines starting + max mine level (reuses BombLevel enum), drop cost,
  *     drop-delay; {@code null} = no mines
  * @param bursts starting + max burst inventory count + per-projectile speed;
@@ -79,7 +79,7 @@ public record ShipConfig(
     double bounceRestitution,
     double radarRange,
     @Nullable BombStats bombs,
-    @Nullable GunStats guns,
+    @Nullable BulletStats bullets,
     @Nullable MineStats mines,
     @Nullable BurstStats bursts,
     @Nullable CountWithDelayStats thors,

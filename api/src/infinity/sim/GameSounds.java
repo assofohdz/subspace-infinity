@@ -14,7 +14,7 @@ import infinity.es.AudioTypes;
 import infinity.es.Meta;
 import infinity.es.Parent;
 import infinity.BombLevel;
-import infinity.GunLevel;
+import infinity.BulletLevel;
 import javax.annotation.Nonnull;
 
 import java.util.concurrent.TimeUnit;
@@ -109,7 +109,7 @@ public class GameSounds {
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final GunLevel level) {
+      final BulletLevel level) {
     final EntityId result = ed.createEntity();
 
     ed.setComponents(

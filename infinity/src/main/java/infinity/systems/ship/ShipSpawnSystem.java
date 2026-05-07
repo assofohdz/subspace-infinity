@@ -13,7 +13,7 @@ import infinity.config.BombStats;
 import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
-import infinity.config.GunStats;
+import infinity.config.BulletStats;
 import infinity.config.MineStats;
 import infinity.config.RocketStats;
 import javax.annotation.Nullable;
@@ -77,11 +77,11 @@ import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombMaxLevel;
 import infinity.es.ship.weapons.BombSpeed;
 import infinity.es.ship.weapons.BurstSpeed;
-import infinity.es.ship.weapons.GunCost;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.GunMaxLevel;
-import infinity.es.ship.weapons.GunSpeed;
+import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BulletCurrentLevel;
+import infinity.es.ship.weapons.BulletFireDelay;
+import infinity.es.ship.weapons.BulletMaxLevel;
+import infinity.es.ship.weapons.BulletSpeed;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
@@ -289,7 +289,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
     projectBombs(shipId, cfg.bombs(), resetLivePool);
-    projectGuns(shipId, cfg.guns(), resetLivePool);
+    projectBullets(shipId, cfg.bullets(), resetLivePool);
     projectMines(shipId, cfg.mines(), resetLivePool);
     projectBursts(shipId, cfg.bursts(), resetLivePool);
     projectThors(shipId, cfg.thors(), resetLivePool);
@@ -366,7 +366,7 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   // tuning edit takes effect immediately.
 
   // Each weapon/inventory projection block guards against a null stat so a
-  // ShipConfig can express "this ship doesn't carry bombs / guns / mines /
+  // ShipConfig can express "this ship doesn't carry bombs / bullets / mines /
   // bursts / thors / repels" by setting the field to null. The corresponding
   // *Max component is then absent on the ship, which prize appliers
   // interpret as "not allowed" (component-absence as the disallow signal).
@@ -385,18 +385,18 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, new BombSpeed(bombs.speed()));
   }
 
-  private void projectGuns(
-      final EntityId shipId, @Nullable final GunStats guns, final boolean resetLivePool) {
-    if (guns == null) {
+  private void projectBullets(
+      final EntityId shipId, @Nullable final BulletStats bullets, final boolean resetLivePool) {
+    if (bullets == null) {
       return;
     }
     if (resetLivePool) {
-      ed.setComponent(shipId, new GunCurrentLevel(guns.start()));
+      ed.setComponent(shipId, new BulletCurrentLevel(bullets.start()));
     }
-    ed.setComponent(shipId, new GunMaxLevel(guns.max()));
-    ed.setComponent(shipId, new GunCost(guns.cost()));
-    ed.setComponent(shipId, new GunFireDelay(guns.fireDelayCs()));
-    ed.setComponent(shipId, new GunSpeed(guns.speed()));
+    ed.setComponent(shipId, new BulletMaxLevel(bullets.max()));
+    ed.setComponent(shipId, new BulletCost(bullets.cost()));
+    ed.setComponent(shipId, new BulletFireDelay(bullets.fireDelayCs()));
+    ed.setComponent(shipId, new BulletSpeed(bullets.speed()));
   }
 
   private void projectMines(

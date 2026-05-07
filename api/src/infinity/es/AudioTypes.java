@@ -4,7 +4,7 @@ package infinity.es;
 
 import com.simsilica.es.EntityData;
 import infinity.BombLevel;
-import infinity.GunLevel;
+import infinity.BulletLevel;
 
 /**
  * Audio asset identifiers used to look up sound effects.
@@ -82,7 +82,7 @@ public class AudioTypes {
     }
 
     // Bullets
-    public static AudioType fire_bullet(final EntityData ed, final GunLevel level) {
+    public static AudioType fire_bullet(final EntityData ed, final BulletLevel level) {
         switch (level.level) {
         case 1:
             return AudioType.create(FIRE_GUNS_L1, ed);
@@ -93,7 +93,7 @@ public class AudioTypes {
         case 4:
             return AudioType.create(FIRE_GUNS_L4, ed);
         default:
-            throw new UnsupportedOperationException("Unknown gun level: " + level.level);
+            throw new UnsupportedOperationException("Unknown bullet level: " + level.level);
         }
     }
 

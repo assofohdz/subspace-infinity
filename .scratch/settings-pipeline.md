@@ -206,7 +206,7 @@ always-on rule in [`CLAUDE.md`](../CLAUDE.md#always-on-rules).
 
 Fixed for active arenas (trench, deva) in B2-Migration (`cb276025`,
 2026-05-03). Per-ship inventory keys (`Initial*` / `*Max` for bombs,
-guns, mines, bursts, thors, repels, decoys, bricks, rockets, portals)
+bullets, mines, bursts, thors, repels, decoys, bricks, rockets, portals)
 now flow through the typed `ship(Ship.X) { … }` DSL exclusively;
 `ship-<name>.groovy` files in trench/deva no longer carry inventory
 keys (deferred clusters like Status, Speeds, Multifire, etc. remain
@@ -250,9 +250,9 @@ matches `ship-warbird.groovy`'s `RepelMax 0`).
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `BulletDamageLevel` | ✅ bullet.groovy | `BulletAdapter` (typed DSL) | `BulletConfig.damage` | — | `WeaponsSystem.createProjectileGun` (via `damageAtLevel`) | ✅ `ConfigRegistrySystemLoadTest` |
-| ✅ | `BulletDamageUpgrade` | ✅ bullet.groovy | `BulletAdapter` (typed DSL) | `BulletConfig.damageUpgrade` | — | `WeaponsSystem.createProjectileGun` (via `damageAtLevel`) | ❌ |
-| ✅ | `BulletAliveTime` | ✅ bullet.groovy | `BulletAdapter` (cs×10→ms) | `BulletConfig.decayMs` | — | `WeaponsSystem.createProjectileGun` | ❌ |
+| ✅ | `BulletDamageLevel` | ✅ bullet.groovy | `BulletAdapter` (typed DSL) | `BulletConfig.damage` | — | `WeaponsSystem.createProjectileBullet` (via `damageAtLevel`) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `BulletDamageUpgrade` | ✅ bullet.groovy | `BulletAdapter` (typed DSL) | `BulletConfig.damageUpgrade` | — | `WeaponsSystem.createProjectileBullet` (via `damageAtLevel`) | ❌ |
+| ✅ | `BulletAliveTime` | ✅ bullet.groovy | `BulletAdapter` (cs×10→ms) | `BulletConfig.decayMs` | — | `WeaponsSystem.createProjectileBullet` | ❌ |
 | ⚠️ | `ExactDamage` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
 ## [Burst]
@@ -372,7 +372,7 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 | ✅ | `Stealth` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Stealth`/`StealthStatus` | `StealthPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ❌ |
 | ✅ | `Cloak` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Cloak`/`CloakStatus` | `CloakPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ✅ `CloakPrizeApplierTest` |
 | ✅ | `XRadar` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `XRadar`/`XRadarStatus` | `XRadarPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ✅ `XRadarPrizeApplierTest` |
-| ✅ | `Gun` (= "Gun Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `GunCurrentLevel`/`GunMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileGun` | ❌ |
+| ✅ | `Gun` (= "Gun Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `BulletCurrentLevel`/`BulletMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileBullet` | ❌ |
 | ✅ | `Bomb` (= "Bomb Upgrade") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `BombCurrentLevel`/`BombMaxLevel` + `MineCurrentLevel`/`MineMaxLevel` | `CompositePrizeApplier(BombPrizeApplier, MinePrizeApplier)` ✅ | `WeaponsSystem` (bomb + mine) | ❌ |
 | ✅ | `Thrust` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Thrust`/`ThrustMax` | `ThrusterPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
 | ✅ | `Speed` (= "Top Speed") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Speed`/`SpeedMax` | `TopSpeedPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
@@ -502,16 +502,16 @@ is the macro view.
 | ✅ | `InitialThor` / `ThorMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.thors` | `Thor`/`ThorCurrentCount`/`ThorMaxCount` | `ThorPrizeApplier` ✅ | `ConsumableSystem.actOut` (FIRETHOR) | ❌ |
 | ✅ | `InitialDecoy` / `DecoyMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.decoys` | `Decoy`/`DecoyMax` | `DecoyPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
 | ✅ | `InitialPortal` / `PortalMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.portals` | `Portal`/`PortalMax` | `PortalPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
-| ✅ | `InitialGuns` / `MaxGuns` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.guns` (`GunStats`) | `GunCurrentLevel`/`GunMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileGun` | ❌ |
+| ✅ | `InitialGuns` / `MaxGuns` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.bullets` (`BulletStats`) | `BulletCurrentLevel`/`BulletMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileBullet` | ❌ |
 | ✅ | `InitialBombs` / `MaxBombs` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.bombs` (`BombStats`) | `BombCurrentLevel`/`BombMaxLevel` | `BombPrizeApplier` ✅ | `WeaponsSystem.createProjectileBomb` | ❌ |
 
 ### Bullets / Bombs / Mines (per-ship cost & cadence)
 
 | C | Setting | Authored? | Loader | API config | Component | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|---|
-| ✅ | `BulletFireEnergy` | ✅ ships.groovy | `GroovyShipLoader` | `GunStats.fireCost` | `GunCost` | — | `WeaponsSystem.deductCostOfAttackGun` | ❌ |
-| ✅ | `BulletSpeed` | ✅ ships.groovy (`guns ... speed:`) | `GroovyShipLoader.guns` | `GunStats.speed` | `GunSpeed` | — | `WeaponsSystem.getAttackInfo` (case GUN) → `effectiveProjectileSpeed(GunSpeed.speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` | ✅ `WeaponsSystemSplashTest.effectiveProjectileSpeed_*` + `ConfigRegistrySystemLoadTest` (trench warbird `5000`) + `ShipSpawnSystemTest` (projection) |
-| ✅ | `BulletFireDelay` | ✅ ships.groovy | `GroovyShipLoader` | `GunStats.fireDelayMs` | `GunFireDelay` | — | `WeaponsSystem` cooldown | ❌ |
+| ✅ | `BulletFireEnergy` | ✅ ships.groovy | `GroovyShipLoader` | `BulletStats.fireCost` | `BulletCost` | — | `WeaponsSystem.deductCostOfAttackBullet` | ❌ |
+| ✅ | `BulletSpeed` | ✅ ships.groovy (`bullets ... speed:`) | `GroovyShipLoader.bullets` | `BulletStats.speed` | `BulletSpeed` | — | `WeaponsSystem.getAttackInfo` (case BULLET) → `effectiveProjectileSpeed(BulletSpeed.speed, EngineConfig.subspaceVelocityScale, .maxProjectileSpeedJme)` | ✅ `WeaponsSystemSplashTest.effectiveProjectileSpeed_*` + `ConfigRegistrySystemLoadTest` (trench warbird `5000`) + `ShipSpawnSystemTest` (projection) |
+| ✅ | `BulletFireDelay` | ✅ ships.groovy | `GroovyShipLoader` | `BulletStats.fireDelayMs` | `BulletFireDelay` | — | `WeaponsSystem` cooldown | ❌ |
 | ⚠️ | `MultiFireEnergy` / `MultiFireDelay` / `MultiFireAngle` | ✅ ships.groovy | ❌ | ❌ | `Multishot` (toggle exists, fields ❌) | — | ❌ | ❌ |
 | ⚠️ | `DoubleBarrel` | ✅ ships.groovy | ❌ | ❌ | `DoubleBarrel` (component exists) | — | ❌ | ❌ |
 | ✅ | `BombFireEnergy` / `BombFireEnergyUpgrade` | ✅ ships.groovy | `GroovyShipLoader` | `BombStats.fireCost`/`fireCostUpgrade` | `BombCost` | — | `WeaponsSystem.deductCostOfAttackBomb` | ❌ |

@@ -51,10 +51,10 @@ import infinity.es.ship.weapons.BurstSpeed;
 import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
-import infinity.es.ship.weapons.GunCost;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunFireDelay;
-import infinity.es.ship.weapons.GunSpeed;
+import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BulletCurrentLevel;
+import infinity.es.ship.weapons.BulletFireDelay;
+import infinity.es.ship.weapons.BulletSpeed;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
@@ -78,7 +78,7 @@ import org.slf4j.LoggerFactory;
 public class WeaponsSystem extends AbstractGameSystem
     implements ContactListener<EntityId, MBlockShape> {
 
-  public static final byte GUN = 0x0;
+  public static final byte BULLET = 0x0;
   public static final byte BOMB = 0x1;
   public static final byte GRAVBOMB = 0x2;
   public static final byte MINE = 0x3;
@@ -101,7 +101,7 @@ public class WeaponsSystem extends AbstractGameSystem
   private EntitySet gravityBombs;
   private EntitySet bursts;
   private EntitySet bombs;
-  private EntitySet guns;
+  private EntitySet bullets;
   private EntitySet frequencies;
 
   private SimTime time;
@@ -148,7 +148,7 @@ public class WeaponsSystem extends AbstractGameSystem
       throw new InfinityRunTimeException(
           getClass().getName() + " system requires the EngineConfigSystem.");
     }
-    guns = ed.getEntities(GunCurrentLevel.class, GunFireDelay.class, GunCost.class);
+    bullets = ed.getEntities(BulletCurrentLevel.class, BulletFireDelay.class, BulletCost.class);
     bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
     bursts = ed.getEntities(Burst.class);
     gravityBombs =
@@ -165,8 +165,8 @@ public class WeaponsSystem extends AbstractGameSystem
 
   @Override
   protected void terminate() {
-    guns.release();
-    guns = null;
+    bullets.release();
+    bullets = null;
 
     bombs.release();
     bombs = null;
@@ -197,7 +197,7 @@ public class WeaponsSystem extends AbstractGameSystem
     time = tpf;
 
     // Update who has
-    guns.applyChanges();
+    bullets.applyChanges();
     bombs.applyChanges();
     gravityBombs.applyChanges();
     mines.applyChanges();
@@ -226,14 +226,14 @@ public class WeaponsSystem extends AbstractGameSystem
     }
   }
 
-  private boolean canAttackGun(Entity requester) {
+  private boolean canAttackBullet(Entity requester) {
     EntityId requesterId = requester.getId();
-    if (guns.contains(requester)) {
-      final GunFireDelay gfd = ed.getComponent(requesterId, GunFireDelay.class);
+    if (bullets.contains(requester)) {
+      final BulletFireDelay gfd = ed.getComponent(requesterId, BulletFireDelay.class);
       if (gfd.getPercent() < 1) {
         return false;
       }
-      final GunCost gc = ed.getComponent(requesterId, GunCost.class);
+      final BulletCost gc = ed.getComponent(requesterId, BulletCost.class);
       return gc.getCost() <= energySystem.getHealth(requesterId);
     }
     return false;
@@ -358,8 +358,8 @@ public class WeaponsSystem extends AbstractGameSystem
       return false;
     }
     switch (weaponType) {
-      case GUN:
-        return canAttackGun(requester);
+      case BULLET:
+        return canAttackBullet(requester);
       case BOMB:
         return canAttackBomb(requester);
       case GRAVBOMB:
@@ -373,10 +373,10 @@ public class WeaponsSystem extends AbstractGameSystem
     }
   }
 
-  private boolean setCoolDownGun(final Entity requester) {
+  private boolean setCoolDownBullet(final Entity requester) {
     EntityId requesterId = requester.getId();
-    if (guns.contains(requester)) {
-      final GunFireDelay gfd = ed.getComponent(requesterId, GunFireDelay.class);
+    if (bullets.contains(requester)) {
+      final BulletFireDelay gfd = ed.getComponent(requesterId, BulletFireDelay.class);
       ed.setComponent(requesterId, gfd.copy());
       return true;
     }
@@ -418,8 +418,8 @@ public class WeaponsSystem extends AbstractGameSystem
     if (requester == null) {
       return false;
     }
-    if (flag == GUN) {
-      return setCoolDownGun(requester);
+    if (flag == BULLET) {
+      return setCoolDownBullet(requester);
     } else if (flag == BOMB) {
       return setCoolDownBomb(requester);
     } else if (flag == GRAVBOMB) {
@@ -433,10 +433,10 @@ public class WeaponsSystem extends AbstractGameSystem
     return false;
   }
 
-  private boolean deductCostOfAttackGun(final Entity requester) {
+  private boolean deductCostOfAttackBullet(final Entity requester) {
     EntityId requesterId = requester.getId();
-    if (guns.contains(requester)) {
-      final GunCost gc = ed.getComponent(requesterId, GunCost.class);
+    if (bullets.contains(requester)) {
+      final BulletCost gc = ed.getComponent(requesterId, BulletCost.class);
       if (gc.getCost() > energySystem.getHealth(requesterId)) {
         return false;
       }
@@ -489,8 +489,8 @@ public class WeaponsSystem extends AbstractGameSystem
     if (requester == null) {
       return false;
     }
-    if (flag == GUN) {
-      return deductCostOfAttackGun(requester);
+    if (flag == BULLET) {
+      return deductCostOfAttackBullet(requester);
     } else if (flag == BOMB) {
       return deductCostOfAttackBomb(requester);
     } else if (flag == GRAVBOMB) {
@@ -505,12 +505,12 @@ public class WeaponsSystem extends AbstractGameSystem
     return false;
   }
 
-  private void createProjectileGun(Entity requesterEntity, final long time, AttackPosition info) {
+  private void createProjectileBullet(Entity requesterEntity, final long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
 
-    GunCurrentLevel gunCurrentLevel = this.guns.getEntity(requester).get(GunCurrentLevel.class);
+    BulletCurrentLevel bulletCurrentLevel = this.bullets.getEntity(requester).get(BulletCurrentLevel.class);
     final String bulletShape =
-        BULLET_LEVEL_PREFIX + gunCurrentLevel.getLevel().level;
+        BULLET_LEVEL_PREFIX + bulletCurrentLevel.getLevel().level;
 
     final ConfigRegistry cfg = weaponsFor(requester);
     EntityId gunProjectile;
@@ -529,7 +529,7 @@ public class WeaponsSystem extends AbstractGameSystem
         gunProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION0DECAY,
-            cfg.bullet().damageAtLevel(gunCurrentLevel.getLevel().level),
+            cfg.bullet().damageAtLevel(bulletCurrentLevel.getLevel().level),
             ShapeInfo.create(ShapeNames.EXPLODE_0, CoreViewConstants.EXPLOSION0SIZE, ed)));
   }
 
@@ -655,8 +655,8 @@ public class WeaponsSystem extends AbstractGameSystem
   private void createProjectile(
       Entity requesterEntity, final byte flag, long time, AttackPosition info) {
     switch (flag) {
-      case GUN:
-        createProjectileGun(requesterEntity, time, info);
+      case BULLET:
+        createProjectileBullet(requesterEntity, time, info);
         break;
       case BOMB:
         createProjectileBomb(requesterEntity, time, info);
@@ -705,10 +705,10 @@ public class WeaponsSystem extends AbstractGameSystem
   private boolean createSound(Entity requesterEntity, byte flag, long time, AttackPosition info) {
     EntityId requester = requesterEntity.getId();
     switch (flag) {
-      case GUN:
-        GunCurrentLevel gunCurrentLevel = this.guns.getEntity(requester).get(GunCurrentLevel.class);
+      case BULLET:
+        BulletCurrentLevel bulletCurrentLevel = this.bullets.getEntity(requester).get(BulletCurrentLevel.class);
         GameSounds.createBulletSound(
-            ed, requester, physicsSpace, time, info.location, gunCurrentLevel.getLevel());
+            ed, requester, physicsSpace, time, info.location, bulletCurrentLevel.getLevel());
         return true;
       case BOMB:
         BombCurrentLevel bombCurrentLevel =
@@ -771,16 +771,16 @@ public class WeaponsSystem extends AbstractGameSystem
     final RigidBody<?, ?> shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
 
     // Step 1: Scale the projectile velocity. Per-ship knobs come from the
-    // GunSpeed/BombSpeed/BurstSpeed components stamped at spawn (slice 10);
+    // BulletSpeed/BombSpeed/BurstSpeed components stamped at spawn (slice 10);
     // engine-tier knobs (subspaceVelocityScale + maxProjectileSpeedJme)
     // bridge Subspace velocity units → jME world units / sec.
     final EngineConfig engineCfg = engineConfigSystem.get();
     final double scale = engineCfg.subspaceVelocityScale();
     final double maxJme = engineCfg.maxProjectileSpeedJme();
     switch (weaponFlag) {
-      case WeaponsSystem.GUN:
+      case WeaponsSystem.BULLET:
         projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, GunSpeed.class).getSpeed(), scale, maxJme));
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BulletSpeed.class).getSpeed(), scale, maxJme));
         break;
       case WeaponsSystem.BOMB:
         projectileVelocity.addLocal(
@@ -816,9 +816,9 @@ public class WeaponsSystem extends AbstractGameSystem
 
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
     // Offset with the radius of the projectile. Burst projectiles are
-    // bullet-shaped, so they share the GUN-side radius.
+    // bullet-shaped, so they share the BULLET-side radius.
     switch (weaponFlag) {
-      case WeaponsSystem.GUN:
+      case WeaponsSystem.BULLET:
       case WeaponsSystem.BURST:
         projectilePosition.addLocal(0, 0, CorePhysicsConstants.BULLETSIZERADIUS);
         break;
@@ -1122,7 +1122,7 @@ public class WeaponsSystem extends AbstractGameSystem
 
   /**
    * Slice 10 — pure-function projectile-speed translation. Multiplies the
-   * raw Subspace velocity unit value (from {@code GunSpeed}, {@code BombSpeed},
+   * raw Subspace velocity unit value (from {@code BulletSpeed}, {@code BombSpeed},
    * or {@code BurstSpeed} component) by the engine-tier
    * {@code subspaceVelocityScale}, then clamps the absolute value to the
    * engine-tier {@code maxProjectileSpeedJme} cap to prevent legacy outliers

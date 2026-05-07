@@ -6,7 +6,7 @@ package infinity.es.ship.weapons;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Per-ship gun (bullet) launch speed, in <em>Subspace velocity units</em>
+ * Per-ship bullet launch speed, in <em>Subspace velocity units</em>
  * (matches the {@code [Ship] BulletSpeed} key range Subspace authors).
  *
  * <p>Stored raw (pre-scale) — the consumer at fire time
@@ -16,20 +16,18 @@ import com.simsilica.es.EntityComponent;
  * Storing raw lets engine-tier tweaks apply on next fire without
  * re-projection of components.
  *
- * <p>Projected at spawn from {@code GunStats.speed} by
- * {@code ShipSpawnSystem.projectGuns}. See slice 10. Slice R1 will rename
- * the {@code Gun*} component family to {@code Bullet*} for Subspace-canon
- * alignment.
+ * <p>Projected at spawn from {@code BulletStats.speed} by
+ * {@code ShipSpawnSystem.projectBullets}. See slice 10.
  */
-public class GunSpeed implements EntityComponent {
+public class BulletSpeed implements EntityComponent {
 
   private final int speed;
 
-  public GunSpeed() {
+  public BulletSpeed() {
     this(0);
   }
 
-  public GunSpeed(final int speed) {
+  public BulletSpeed(final int speed) {
     this.speed = speed;
   }
 

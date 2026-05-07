@@ -5,7 +5,7 @@ package infinity.config;
 
 /**
  * Per-arena bullet projectile tuning. Read at projectile-creation time by
- * {@code WeaponsSystem.createProjectileGun} via the attacker's
+ * {@code WeaponsSystem.createProjectileBullet} via the attacker's
  * {@code ArenaId} → {@link infinity.settings.ConfigRegistry#weapons()}.
  *
  * <p>Populated from the merged Groovy fragment store at arena-load — see
@@ -19,11 +19,11 @@ package infinity.config;
  *
  * <p>Subspace bullet-damage scaling formula: {@code damageAtLevel(N) =
  * damage + (N - 1) * damageUpgrade}. Set {@code damageUpgrade = 0} for
- * presets that want all gun levels to deal identical damage (e.g.
+ * presets that want all bullet levels to deal identical damage (e.g.
  * {@code svs-pb} where only the visual sprite changes per level).
  *
- * @param damage damage applied at gun level 1
- * @param damageUpgrade additional damage per gun level above 1
+ * @param damage damage applied at bullet level 1
+ * @param damageUpgrade additional damage per bullet level above 1
  * @param decayMs lifetime in milliseconds before the projectile expires
  */
 public record BulletConfig(int damage, int damageUpgrade, long decayMs) {
@@ -37,8 +37,8 @@ public record BulletConfig(int damage, int damageUpgrade, long decayMs) {
   public static final BulletConfig DEFAULTS = new BulletConfig(100, 50, 5500L);
 
   /**
-   * Bullet damage at gun level {@code level} (1-based, matching
-   * {@code GunLevel.LEVEL_1}..{@code LEVEL_4}). Subspace formula:
+   * Bullet damage at bullet level {@code level} (1-based, matching
+   * {@code BulletLevel.LEVEL_1}..{@code LEVEL_4}). Subspace formula:
    * {@code damage + (level - 1) * damageUpgrade}.
    */
   public int damageAtLevel(final int level) {

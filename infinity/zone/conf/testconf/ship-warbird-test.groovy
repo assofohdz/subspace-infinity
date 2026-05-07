@@ -3,7 +3,7 @@
 //
 // Purpose: turn trench into a prize / weapon testbed without touching the
 // canonical SVS-tuned ship-warbird.groovy or the no-upgrades trench
-// ships.groovy. Enables guns, bombs, mines, bursts, decoys, thors, and bumps
+// ships.groovy. Enables bullets, bombs, mines, bursts, decoys, thors, and bumps
 // the relevant prize weights so the spawners in trench/arena.groovy
 // actually drop weapon prizes the ship can use.
 

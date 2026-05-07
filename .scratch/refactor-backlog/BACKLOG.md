@@ -30,7 +30,7 @@ After: `MapSystem` keeps the cohesive "what maps are loaded where" story (load/u
 849-line system mixing the fire pipeline (per-weapon `canAttackX` / `setCoolDownX` / `deductCostOfAttackX` / `createProjectileX` × 5) with contact resolution (`newContact` for projectile-vs-ship + projectile-vs-world). Two splits:
 
 1. Pull `newContact()` and `damageEntities`/`energyEntities` sets into a separate `WeaponContactSystem`. Removes `WeaponsSystem`-as-`ContactListener` shape and ~80 lines.
-2. Collapse the 5 parallel weapon types into a `WeaponHandler` interface with `Gun`/`Bomb`/`GravBomb`/`Mine`/`Burst` impls. `attack()` becomes `handlers.get(flag).fire(...)`. Kills the per-type switch duplication. Sets the polymorphism-collapse template the `PrizeApplier` registry already established.
+2. Collapse the 5 parallel weapon types into a `WeaponHandler` interface with `Bullet`/`Bomb`/`GravBomb`/`Mine`/`Burst` impls. `attack()` becomes `handlers.get(flag).fire(...)`. Kills the per-type switch duplication. Sets the polymorphism-collapse template the `PrizeApplier` registry already established.
 
 ### `ArenaSystem` 3-way split
 

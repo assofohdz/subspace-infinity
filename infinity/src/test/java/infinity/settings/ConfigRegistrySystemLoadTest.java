@@ -94,12 +94,12 @@ public class ConfigRegistrySystemLoadTest {
           warbird.thrust().initial());
 
       // Per-ship inventory (post-B2-Migration): trench/warbird is a
-      // gun-only build — no bombs/mines/repels/bursts/bricks/rockets/portals
-      // (Q6 maps Subspace `*Max 0` to null = disallow). Has guns, thors,
+      // bullet-only build — no bombs/mines/repels/bursts/bricks/rockets/portals
+      // (Q6 maps Subspace `*Max 0` to null = disallow). Has bullets, thors,
       // decoys per ship-warbird.groovy's authored values.
-      assertNotNull("WARBIRD has guns", warbird.guns());
+      assertNotNull("WARBIRD has bullets", warbird.bullets());
       assertEquals("WARBIRD MaxGuns = 3 (LEVEL_3)",
-          infinity.GunLevel.LEVEL_3, warbird.guns().max());
+          infinity.BulletLevel.LEVEL_3, warbird.bullets().max());
       // Slice 10 — per-ship BulletSpeed lifted 1:1 from legacy
       // ship-warbird.groovy (`BulletSpeed 5000` Subspace velocity units).
       // Engine-tier scale 0.01 lands at jME 50 = today's hardcoded
@@ -107,7 +107,7 @@ public class ConfigRegistrySystemLoadTest {
       assertEquals(
           "WARBIRD BulletSpeed = 5000 (lifted from legacy ship-warbird.groovy)",
           5000,
-          warbird.guns().speed());
+          warbird.bullets().speed());
       assertNotNull("WARBIRD has thors", warbird.thors());
       assertEquals("WARBIRD ThorMax = 3", 3, warbird.thors().max());
       assertNotNull("WARBIRD has decoys (B2-activated)", warbird.decoys());
@@ -137,9 +137,9 @@ public class ConfigRegistrySystemLoadTest {
           400L, javelin.rockets().activeTimeCs());
       // Slice 10b — javelin fires bullets backward (signed-scalar contract).
       // Lifted from legacy SVS BulletSpeed 64636 (= int16 -900).
-      assertNotNull("JAVELIN has guns", javelin.guns());
+      assertNotNull("JAVELIN has bullets", javelin.bullets());
       assertEquals("JAVELIN BulletSpeed = -900 (Slice 10b backward-firing lift)",
-          -900, javelin.guns().speed());
+          -900, javelin.bullets().speed());
 
       // trench/leviathan is a heavy build with bombs + mines + portals.
       final var leviathan = snapshot.getShip(Ship.LEVIATHAN);

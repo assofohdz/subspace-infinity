@@ -113,7 +113,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   /**
    * Registry of prize-type-name → applier. Built once in {@link #initialize()}
    * — one entry per Subspace prize type, with composite appliers wired for
-   * {@code BOMB} (bomb+mine) and {@code ALLWEAPONS} (bomb+burst+gun+mine).
+   * {@code BOMB} (bomb+mine) and {@code ALLWEAPONS} (bomb+burst+bullet+mine).
    * Stub appliers throw {@link UnsupportedOperationException}; the dispatch
    * in {@link #handlePrizeAcquisition} catches that and logs a warning so
    * unimplemented prize types degrade to a visible no-op rather than
@@ -156,16 +156,16 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
 
     // Build the prize-applier registry. Composites for BOMB (bomb+mine)
-    // and ALLWEAPONS (bomb+burst+gun+mine) — Subspace tradition.
+    // and ALLWEAPONS (bomb+burst+bullet+mine) — Subspace tradition.
     final EnergySystem energySystem = getSystem(EnergySystem.class);
     final WarpSystem warpSystem = getSystem(WarpSystem.class);
     applierContext = new PrizeApplierContext(ed, energySystem, warpSystem);
     final BombPrizeApplier bomb = new BombPrizeApplier();
     final BurstPrizeApplier burst = new BurstPrizeApplier();
-    final GunPrizeApplier gun = new GunPrizeApplier();
+    final GunPrizeApplier bullet = new GunPrizeApplier();
     final MinePrizeApplier mine = new MinePrizeApplier();
     appliers = new HashMap<>();
-    appliers.put(PrizeTypes.ALLWEAPONS, new CompositePrizeApplier(bomb, burst, gun, mine));
+    appliers.put(PrizeTypes.ALLWEAPONS, new CompositePrizeApplier(bomb, burst, bullet, mine));
     appliers.put(PrizeTypes.ANTIWARP, new AntiWarpPrizeApplier());
     appliers.put(PrizeTypes.BOMB, new CompositePrizeApplier(bomb, mine));
     appliers.put(PrizeTypes.BOUNCINGBULLETS, new BouncingBulletsPrizeApplier());
@@ -176,7 +176,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     appliers.put(PrizeTypes.DUD, new DudPrizeApplier());
     appliers.put(PrizeTypes.ENERGY, new EnergyPrizeApplier());
     appliers.put(PrizeTypes.GLUE, new GluePrizeApplier());
-    appliers.put(PrizeTypes.GUN, gun);
+    appliers.put(PrizeTypes.GUN, bullet);
     appliers.put(PrizeTypes.MULTIFIRE, new MultiFirePrizeApplier());
     appliers.put(PrizeTypes.MULTIPRIZE, new MultiPrizePrizeApplier());
     appliers.put(PrizeTypes.PORTAL, new PortalPrizeApplier());

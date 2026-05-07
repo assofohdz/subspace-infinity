@@ -8,7 +8,7 @@ import com.simsilica.es.EntityId;
 /**
  * Strategy for applying one prize-pickup effect to a ship. One implementation
  * per Subspace prize type (BOMB, GUN, ENERGY, …) plus a {@link
- * CompositePrizeApplier} for compound prizes (ALLWEAPONS = bomb+burst+gun+mine,
+ * CompositePrizeApplier} for compound prizes (ALLWEAPONS = bomb+burst+bullet+mine,
  * BOMB = bomb+mine).
  *
  * <p>Replaces the switch + 10 inline {@code handleAcquireX} methods that

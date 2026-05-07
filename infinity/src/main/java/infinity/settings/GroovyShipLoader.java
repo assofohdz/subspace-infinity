@@ -6,13 +6,13 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.BombLevel;
-import infinity.GunLevel;
+import infinity.BulletLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
 import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
-import infinity.config.GunStats;
+import infinity.config.BulletStats;
 import infinity.config.MineStats;
 import infinity.config.RocketStats;
 import infinity.config.ShipConfig;
@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
  *     bounceRestitution   1.0
  *     radarRange          250
  *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25
- *     guns    start: GunLevel.LEVEL_1,  max: GunLevel.LEVEL_4,  cost: 10, fireDelay: 25
+ *     bullets    start: BulletLevel.LEVEL_1,  max: BulletLevel.LEVEL_4,  cost: 10, fireDelay: 25
  *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500
  *     bursts  start: 5,  max: 5
  *     thors   start: 2,  max: 2,  fireDelay: 1000
@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * }
  * }</pre>
  *
- * <p>The {@code Ship}, {@code BombLevel}, and {@code GunLevel} enums are added as
+ * <p>The {@code Ship}, {@code BombLevel}, and {@code BulletLevel} enums are added as
  * default imports (and whitelisted) by the host. Movement stats omitted in
  * a ship block default to {@code ShipStat(0, 0, 0)}; partial stat blocks
  * (missing {@code initial}/{@code max}/{@code upgrade}) fail with a clear
@@ -66,7 +66,7 @@ import org.slf4j.LoggerFactory;
  * {@code turnResponsiveness}, {@code bounceRestitution}) and
  * {@code radarRange} default to historical / conservative values
  * (0.05 / 8.0 / 1.0 / 250). The weapon / inventory blocks
- * ({@code bombs}, {@code guns}, {@code mines}, {@code bursts}, {@code thors},
+ * ({@code bombs}, {@code bullets}, {@code mines}, {@code bursts}, {@code thors},
  * {@code repels}) default to the values previously inlined in
  * {@code GameEntities.createShip} so existing presets behave identically.
  */
@@ -118,11 +118,11 @@ public final class GroovyShipLoader {
           /* fireDelayCs */ 25,
           /* speed */ 2000); // SVS canon BombSpeed=2000 (Subspace velocity units)
 
-  /** Default starting gun level + max + cost + fire-delay + speed. */
-  static final GunStats DEFAULT_GUNS =
-      new GunStats(
-          GunLevel.LEVEL_1,
-          GunLevel.LEVEL_4,
+  /** Default starting bullet level + max + cost + fire-delay + speed. */
+  static final BulletStats DEFAULT_GUNS =
+      new BulletStats(
+          BulletLevel.LEVEL_1,
+          BulletLevel.LEVEL_4,
           /* cost */ 10,
           /* fireDelayCs */ 25,
           /* speed */ 2000); // SVS canon BulletSpeed=2000
@@ -329,12 +329,12 @@ public final class GroovyShipLoader {
     @Override
     public List<String> allowedImports() {
       // Scripts reference three enums directly: Ship (for the ship() block
-      // arg), BombLevel (for bombs/mines start/max), and GunLevel (for guns
+      // arg), BombLevel (for bombs/mines start/max), and BulletLevel (for bullets
       // start/max). The host adds each as a default import (so
-      // `Ship.WARBIRD` / `BombLevel.BOMB_1` / `GunLevel.LEVEL_1` work without
+      // `Ship.WARBIRD` / `BombLevel.BOMB_1` / `BulletLevel.LEVEL_1` work without
       // explicit `import` lines) AND whitelists them so an explicit import
       // would also be valid.
-      return List.of(Ship.class.getName(), BombLevel.class.getName(), GunLevel.class.getName());
+      return List.of(Ship.class.getName(), BombLevel.class.getName(), BulletLevel.class.getName());
     }
 
     @Override
@@ -404,7 +404,7 @@ public final class GroovyShipLoader {
     // permissive `DEFAULT_*` constants above remain in use only by FALLBACK
     // (the snapshot installed when ships.groovy is missing or fails to parse).
     private BombStats bombs = null;
-    private GunStats guns = null;
+    private BulletStats bullets = null;
     private MineStats mines = null;
     private BurstStats bursts = null;
     private CountWithDelayStats thors = null;
@@ -480,21 +480,21 @@ public final class GroovyShipLoader {
     }
 
     /**
-     * {@code guns start: GunLevel.LEVEL_1, max: GunLevel.LEVEL_4, cost: 10,
+     * {@code bullets start: BulletLevel.LEVEL_1, max: BulletLevel.LEVEL_4, cost: 10,
      *        fireDelay: 25, speed: 2000}
      *
      * <p>{@code speed} is in Subspace velocity units (canonical
      * {@code [Ship] BulletSpeed} key range). Fire-time consumer applies
      * {@code EngineConfig.subspaceVelocityScale} + cap. See slice 10.
      */
-    public void guns(final Map<String, ?> args) {
-      this.guns =
-          new GunStats(
-              gunsArg("guns", args, "start"),
-              gunsArg("guns", args, "max"),
-              intArg("guns", args, "cost"),
-              longArg("guns", args, "fireDelay"),
-              intArg("guns", args, "speed"));
+    public void bullets(final Map<String, ?> args) {
+      this.bullets =
+          new BulletStats(
+              bulletsArg("bullets", args, "start"),
+              bulletsArg("bullets", args, "max"),
+              intArg("bullets", args, "cost"),
+              longArg("bullets", args, "fireDelay"),
+              intArg("bullets", args, "speed"));
     }
 
     /** {@code mines start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500} */
@@ -674,14 +674,14 @@ public final class GroovyShipLoader {
           "Ship stat '" + statName + "' '" + key + "' must be a BombLevel enum value (got " + v + ")");
     }
 
-    private static GunLevel gunsArg(
+    private static BulletLevel bulletsArg(
         final String statName, final Map<String, ?> args, final String key) {
       final Object v = args.get(key);
-      if (v instanceof GunLevel g) {
+      if (v instanceof BulletLevel g) {
         return g;
       }
       throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' '" + key + "' must be a GunLevel enum value (got " + v + ")");
+          "Ship stat '" + statName + "' '" + key + "' must be a BulletLevel enum value (got " + v + ")");
     }
 
     private static double doubleArg(final String fieldName, final Number value) {
@@ -705,7 +705,7 @@ public final class GroovyShipLoader {
           bounceRestitution,
           radarRange,
           bombs,
-          guns,
+          bullets,
           mines,
           bursts,
           thors,

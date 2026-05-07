@@ -1,5 +1,5 @@
 // All ships start full:
-// with their respective maximum: energy, recharge, thruster, speed, rotation, gun level, bomb level
+// with their respective maximum: energy, recharge, thruster, speed, rotation, bullet level, bomb level
 // and with their respective utilities: stealth, x-radar, anti-warp, cloak
 // and with their respective items
 //

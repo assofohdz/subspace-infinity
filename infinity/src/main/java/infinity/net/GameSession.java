@@ -85,7 +85,7 @@ public interface GameSession {
     void action(byte actionInput);
 
     /**
-     * Attack using guns, bombs, mines, gravbombs
+     * Attack using bullets, bombs, mines, gravbombs
      */
     @Asynchronous(reliable = true)
     void attack(byte attackInput);
@@ -132,7 +132,7 @@ public interface GameSession {
 //
 //    //Weapons:
 //    /**
-//     * RMI call to attack with guns
+//     * RMI call to attack with bullets
 //     */
 //    @Asynchronous(reliable = true)
 //    public void attackGuns();

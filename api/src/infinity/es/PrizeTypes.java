@@ -83,7 +83,7 @@ public class PrizeTypes {
         return PrizeType.create(GLUE, ed);
     }
 
-    public static PrizeType gun(final EntityData ed) {
+    public static PrizeType bullet(final EntityData ed) {
         return PrizeType.create(GUN, ed);
     }
 

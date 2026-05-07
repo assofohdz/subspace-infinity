@@ -5,13 +5,13 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.weapons.GunCurrentLevel;
-import infinity.es.ship.weapons.GunMaxLevel;
+import infinity.es.ship.weapons.BulletCurrentLevel;
+import infinity.es.ship.weapons.BulletMaxLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>LEVEL family.</b> Bumps {@link GunCurrentLevel} toward {@link GunMaxLevel}.
+ * <b>LEVEL family.</b> Bumps {@link BulletCurrentLevel} toward {@link BulletMaxLevel}.
  * Pure component read; see {@link BombPrizeApplier} for the rationale on
  * dropping the legacy first-time-acquisition branch.
  */
@@ -22,20 +22,20 @@ public final class GunPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final GunMaxLevel max = ed.getComponent(ship, GunMaxLevel.class);
+    final BulletMaxLevel max = ed.getComponent(ship, BulletMaxLevel.class);
     if (max == null) {
-      return; // ship not allowed guns
+      return; // ship not allowed bullets
     }
-    final GunCurrentLevel curr = ed.getComponent(ship, GunCurrentLevel.class);
+    final BulletCurrentLevel curr = ed.getComponent(ship, BulletCurrentLevel.class);
     if (curr == null) {
       log.warn(
-          "Ship {} has GunMaxLevel but no GunCurrentLevel — spawn projection invariant broken; skipping gun prize",
+          "Ship {} has BulletMaxLevel but no BulletCurrentLevel — spawn projection invariant broken; skipping gun prize",
           ship);
       return;
     }
     if (curr.getLevel().level < max.getLevel().level) {
       log.info("Gun level increased to {}", curr.getLevel().next());
-      ed.setComponent(ship, new GunCurrentLevel(curr.getLevel().next()));
+      ed.setComponent(ship, new BulletCurrentLevel(curr.getLevel().next()));
     }
   }
 }

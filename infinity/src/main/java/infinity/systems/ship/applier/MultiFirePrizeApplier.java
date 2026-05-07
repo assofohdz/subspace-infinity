@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <b>BULLET-MODE family.</b> Toggles the {@link Multishot} capability on
- * the ship — gun fires thereafter shoot multiple bullets at the per-ship
+ * the ship — bullet fires thereafter shoot multiple bullets at the per-ship
  * {@code MultiFireAngle} spread, costing {@code MultiFireEnergy} per shot
  * with {@code MultiFireDelay} cooldown.
  *

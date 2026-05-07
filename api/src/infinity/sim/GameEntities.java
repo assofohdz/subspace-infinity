@@ -441,7 +441,7 @@ public class GameEntities {
 
     // All tunable per-ship stats (Energy/Health/Recharge/Thrust/Speed/Rotation
     // movement triples, drag/turn/bounce feel, radar range, and the
-    // bomb/gun/mine/burst/thor/repel weapon + inventory groups) are projected
+    // bomb/bullet/mine/burst/thor/repel weapon + inventory groups) are projected
     // by ShipSpawnSystem from the per-arena ShipConfig — see Pattern 4 in
     // .claude/rules/config-pattern.md and CONTEXT.md. createShip composes the
     // structural pieces only (Parent, ShipType, ShapeNames, SpawnPosition,

@@ -5,21 +5,21 @@ package infinity.es.ship.weapons;
 import com.simsilica.es.EntityComponent;
 
 /**
- * Component holding the cooldown timer between gun shots.
+ * Component holding the cooldown timer between bullet shots.
  *
  * @author Asser
  */
-public class GunFireDelay implements EntityComponent {
+public class BulletFireDelay implements EntityComponent {
 
     private final long start;
     private final long delta;
 
-    public GunFireDelay() {
+    public BulletFireDelay() {
         start = System.nanoTime();
         delta = 1000000 * 10;
     }
 
-    public GunFireDelay(final long deltaMillis) {
+    public BulletFireDelay(final long deltaMillis) {
         start = System.nanoTime();
         delta = deltaMillis * 1000000;
     }
@@ -34,8 +34,8 @@ public class GunFireDelay implements EntityComponent {
      *
      * @return new BombFireDelay instance
      */
-    public GunFireDelay copy() {
-        return new GunFireDelay(delta / 1000000);
+    public BulletFireDelay copy() {
+        return new BulletFireDelay(delta / 1000000);
     }
 
     @Override

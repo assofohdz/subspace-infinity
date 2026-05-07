@@ -112,7 +112,7 @@ public final class ConfigRegistry {
     return ships.keySet();
   }
 
-  /** Per-arena gun-bullet tuning. Never {@code null} (defaults to {@link BulletConfig#DEFAULTS}). */
+  /** Per-arena bullet-bullet tuning. Never {@code null} (defaults to {@link BulletConfig#DEFAULTS}). */
   public BulletConfig bullet() { return bullet; }
 
   /** Per-arena bomb tuning. Never {@code null} (defaults to {@link BombConfig#DEFAULTS}). */
