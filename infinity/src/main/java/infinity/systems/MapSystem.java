@@ -359,19 +359,25 @@ public class MapSystem extends AbstractGameSystem {
       int type = raw & 0x000fffff;
       if (type != 0) {
         if (shown < 10) {
-          log.warn(
-              "Post-clear: cell still non-zero at " + location
-                  + " type=" + type + " raw=0x" + Integer.toHexString(raw));
+          if (log.isWarnEnabled()) {
+            log.warn(
+                "Post-clear: cell still non-zero at " + location
+                    + " type=" + type + " raw=0x" + Integer.toHexString(raw));
+          }
           shown++;
         }
         lingering++;
       }
     }
     if (lingering > 0) {
-      log.warn("Post-clear verify: " + lingering + " / " + coordinates.size()
-          + " cells still non-zero");
+      if (log.isWarnEnabled()) {
+        log.warn("Post-clear verify: " + lingering + " / " + coordinates.size()
+            + " cells still non-zero");
+      }
     } else {
-      log.info("Post-clear verify: all " + coordinates.size() + " cells are zero");
+      if (log.isInfoEnabled()) {
+        log.info("Post-clear verify: all " + coordinates.size() + " cells are zero");
+      }
     }
   }
 
@@ -473,31 +479,35 @@ public class MapSystem extends AbstractGameSystem {
       }
     }
 
-    log.info(
-        "createBlocksFromLegacyMap: map={} offset={} nonZero={} (visibleCells={} invisibleCells={} leafFailures={})",
-        map.getMapName(),
-        arenaOffset,
-        totalNonZero,
-        cellsVisible,
-        cellsInvisible,
-        cellsFailedLeaf);
-    log.info(
-        "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} over5={} doors={} wormholes={}",
-        turfFlags,
-        asteroidsSmall,
-        asteroidsMedium,
-        over5,
-        doors,
-        wormholes);
-    if (firstWritten != null) {
-      log.info("  first-written cell: {}    last-written cell: {}", firstWritten, lastWritten);
+    if (log.isInfoEnabled()) {
+      log.info(
+          "createBlocksFromLegacyMap: map={} offset={} nonZero={} (visibleCells={} invisibleCells={} leafFailures={})",
+          map.getMapName(),
+          arenaOffset,
+          totalNonZero,
+          cellsVisible,
+          cellsInvisible,
+          cellsFailedLeaf);
+      log.info(
+          "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} over5={} doors={} wormholes={}",
+          turfFlags,
+          asteroidsSmall,
+          asteroidsMedium,
+          over5,
+          doors,
+          wormholes);
+      if (firstWritten != null) {
+        log.info("  first-written cell: {}    last-written cell: {}", firstWritten, lastWritten);
+      }
     }
     if (cellsFailedLeaf > 0) {
-      log.warn(
-          "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
-              + "Usually means the arena offset targets a world region whose leaves are not paged in.",
-          cellsFailedLeaf,
-          cellsVisible + cellsInvisible + cellsFailedLeaf);
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
+                + "Usually means the arena offset targets a world region whose leaves are not paged in.",
+            cellsFailedLeaf,
+            cellsVisible + cellsInvisible + cellsFailedLeaf);
+      }
     }
     if (log.isInfoEnabled()) {
       final StringBuilder sb = new StringBuilder("  tile-id histogram:");

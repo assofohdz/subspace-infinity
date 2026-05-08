@@ -462,7 +462,7 @@ public class GameServer {
     shapeFactory.setDefaultFactory(new BlocksResourceShapeFactory());
   }
 
-  protected void registerSerializers() {
+  protected final void registerSerializers() {
     Serializer.registerClass(SpawnPosition.class, new FieldSerializer());
     Serializer.registerClass(com.simsilica.bpos.BodyPosition.class, new FieldSerializer());
     Serializer.registerClass(ShapeInfo.class, new FieldSerializer());
@@ -556,23 +556,31 @@ public class GameServer {
     final EtherealHost host = server.getServices().getService(EtherealHost.class);
 
     for (final HostedConnection conn : server.getConnections()) {
-      log.info(String.format("Client[%d] address:%s", conn.getId(), conn.getAddress()));
+      if (log.isInfoEnabled()) {
+        log.info(String.format("Client[%d] address:%s", conn.getId(), conn.getAddress()));
+      }
       final NetworkStateListener listener = host.getStateListener(conn);
       if (listener == null) {
-        log.info(String.format("[%d] No stats", conn.getId()));
+        if (log.isInfoEnabled()) {
+          log.info(String.format("[%d] No stats", conn.getId()));
+        }
         continue;
       }
-      log.info(
-          String.format(
-              "[%d] Ping time: %s ms",
-              conn.getId(), listener.getConnectionStats().getAveragePingTime() / 1000000.0));
+      if (log.isInfoEnabled()) {
+        log.info(
+            String.format(
+                "[%d] Ping time: %s ms",
+                conn.getId(), listener.getConnectionStats().getAveragePingTime() / 1000000.0));
+      }
       final String miss =
           String.format("%.02f", Double.valueOf(listener.getConnectionStats().getAckMissPercent()));
-      log.info(String.format("[%d] Ack miss: %s%%", conn.getId(), miss));
-      log.info(
-          String.format(
-              "[%d] Average msg size: %d bytes",
-              conn.getId(), listener.getConnectionStats().getAverageMessageSize()));
+      if (log.isInfoEnabled()) {
+        log.info(String.format("[%d] Ack miss: %s%%", conn.getId(), miss));
+        log.info(
+            String.format(
+                "[%d] Average msg size: %d bytes",
+                conn.getId(), listener.getConnectionStats().getAverageMessageSize()));
+      }
     }
   }
 

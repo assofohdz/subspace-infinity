@@ -285,9 +285,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
     final Path onDisk = GroovySettingsHost.INSTANCE.resolveOnDisk(classpathPath);
     if (onDisk == null) {
-      log.debug(
-          "{} for arena {} not on disk; live reload disabled for this run",
-          classpathPath, arenaId.getArena());
+      if (log.isDebugEnabled()) {
+        log.debug(
+            "{} for arena {} not on disk; live reload disabled for this run",
+            classpathPath, arenaId.getArena());
+      }
       return;
     }
     try {
@@ -295,18 +297,24 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       watchedFiles
           .computeIfAbsent(arenaId.getArena(), k -> new ArrayList<>())
           .add(new WatchedFile(arenaId.getArena(), classpathPath, onDisk, mtime, onChanged));
-      log.info("Watching {} for arena {}", onDisk, arenaId.getArena());
+      if (log.isInfoEnabled()) {
+        log.info("Watching {} for arena {}", onDisk, arenaId.getArena());
+      }
     } catch (final java.io.IOException e) {
-      log.warn(
-          "Could not stat {} to enable live reload for arena {}: {}",
-          onDisk, arenaId.getArena(), e.toString());
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "Could not stat {} to enable live reload for arena {}: {}",
+            onDisk, arenaId.getArena(), e.toString());
+      }
     }
   }
 
   private void unregisterScriptWatch(final String arenaName) {
     final List<WatchedFile> removed = watchedFiles.remove(arenaName);
     if (removed != null && !removed.isEmpty()) {
-      log.debug("Stopped watching {} file(s) for arena {}", removed.size(), arenaName);
+      if (log.isDebugEnabled()) {
+        log.debug("Stopped watching {} file(s) for arena {}", removed.size(), arenaName);
+      }
     }
   }
 
@@ -337,9 +345,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         try {
           w.onChanged.run();
         } catch (final RuntimeException e) {
-          log.warn(
-              "Reload of {} for arena {} failed: {}",
-              w.classpathPath, w.arenaName, e.toString());
+          if (log.isWarnEnabled()) {
+            log.warn(
+                "Reload of {} for arena {} failed: {}",
+                w.classpathPath, w.arenaName, e.toString());
+          }
         }
       }
     }
@@ -620,10 +630,12 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         jarFs.close();
       }
     }
-    log.info(
-        "Discovered {} arena(s): {}",
-        registry.size(),
-        registry.keySet().stream().sorted().collect(Collectors.toList()));
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Discovered {} arena(s): {}",
+          registry.size(),
+          registry.keySet().stream().sorted().collect(Collectors.toList()));
+    }
   }
 
   private static String stripTrailingSlash(final String s) {
@@ -656,7 +668,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     for (final String name : zoneConfig.autoLoadArenas()) {
       setDesired(name, true);
     }
-    log.info("zone.groovy AutoLoad: {}", zoneConfig.autoLoadArenas());
+    if (log.isInfoEnabled()) {
+      log.info("zone.groovy AutoLoad: {}", zoneConfig.autoLoadArenas());
+    }
   }
 
   /**
@@ -726,9 +740,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
           () -> {
             configRegistry.load(arenaId, rec.config);
             final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
-            log.info(
-                "{} changed for arena {}; reprojected {} ship(s)",
-                shipsScript, arenaId.getArena(), reprojected);
+            if (log.isInfoEnabled()) {
+              log.info(
+                  "{} changed for arena {}; reprojected {} ship(s)",
+                  shipsScript, arenaId.getArena(), reprojected);
+            }
           });
       // Watch every Groovy includeFragment so editing a fragment file at
       // runtime triggers a full re-load through ConfigRegistrySystem.
@@ -742,9 +758,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
               fragmentPath,
               () -> {
                 configRegistry.load(arenaId, rec.config);
-                log.info(
-                    "{} changed for arena {}; settings reloaded",
-                    fragmentPath, arenaId.getArena());
+                if (log.isInfoEnabled()) {
+                  log.info(
+                      "{} changed for arena {}; settings reloaded",
+                      fragmentPath, arenaId.getArena());
+                }
               });
         }
       }
@@ -828,9 +846,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
     final ArenaMap map = ed.getComponent(arenaEntity, ArenaMap.class);
     if (map == null) {
-      log.warn(
-          "Arena {} has spawners but no ArenaMap; skipping {} spawner(s)",
-          rec.name, specs.size());
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "Arena {} has spawners but no ArenaMap; skipping {} spawner(s)",
+            rec.name, specs.size());
+      }
       return;
     }
     @SuppressWarnings("rawtypes")
@@ -857,17 +877,19 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
               spec.regenBatch(),
               spec.hidden());
       ed.setComponent(spawnerId, arenaId);
-      log.info(
-          "Arena {} prize spawner {} placed at arena({},{}) world{} radius={} max={} ttlMs={}"
-              + " overrides={}",
-          rec.name,
-          spawnerId,
-          spec.x(), spec.z(),
-          worldPos,
-          spec.radius(),
-          spec.maxCount(),
-          spec.ttlMillis(),
-          spec.weightOverrides().isEmpty() ? "<none>" : spec.weightOverrides());
+      if (log.isInfoEnabled()) {
+        log.info(
+            "Arena {} prize spawner {} placed at arena({},{}) world{} radius={} max={} ttlMs={}"
+                + " overrides={}",
+            rec.name,
+            spawnerId,
+            spec.x(), spec.z(),
+            worldPos,
+            spec.radius(),
+            spec.maxCount(),
+            spec.ttlMillis(),
+            spec.weightOverrides().isEmpty() ? "<none>" : spec.weightOverrides());
+      }
     }
   }
 

@@ -258,10 +258,12 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
             ? globalFallbackSelector
             : RandomSelector.weighted(weights.keySet(), weights::get);
     arenaSelectors.put(arenaName, selector);
-    log.info(
-        "PrizeWeight selector built for arena '{}' with {} non-zero entries",
-        arenaName,
-        weights.size());
+    if (log.isInfoEnabled()) {
+      log.info(
+          "PrizeWeight selector built for arena '{}' with {} non-zero entries",
+          arenaName,
+          weights.size());
+    }
     return selector;
   }
 
@@ -314,12 +316,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
             ? globalFallbackSelector
             : RandomSelector.weighted(merged.keySet(), merged::get);
     spawnerSelectors.put(spawnerId, selector);
-    log.info(
-        "PrizeWeight selector built for spawner {} (arena='{}', override={}, merged={} entries)",
-        spawnerId,
-        arenaName,
-        override.getOverrides(),
-        merged.size());
+    if (log.isInfoEnabled()) {
+      log.info(
+          "PrizeWeight selector built for spawner {} (arena='{}', override={}, merged={} entries)",
+          spawnerId,
+          arenaName,
+          override.getOverrides(),
+          merged.size());
+    }
     return selector;
   }
 
@@ -692,7 +696,9 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       // hasn't landed yet. Degrade to a visible no-op rather than crashing
       // the contact loop. See the corresponding *PrizeApplier class for
       // family + intent.
-      log.warn("Prize type {} not yet implemented: {}", name, e.getMessage());
+      if (log.isWarnEnabled()) {
+        log.warn("Prize type {} not yet implemented: {}", name, e.getMessage());
+      }
     }
   }
   @Override

@@ -484,14 +484,14 @@ public class Region {
     @SuppressWarnings("unused")
     private static String getBinaryStringOfByte(final byte b) {
         int mask = 0x00000080;
-        String rv = "";
+        final StringBuilder rv = new StringBuilder();
 
         for (int x = 0; x < 8; ++x) {
-            rv += ((b & mask) == 0 ? "0" : "1");
+            rv.append((b & mask) == 0 ? "0" : "1");
             mask = mask >> 1;
         }
 
-        return rv;
+        return rv.toString();
     }
 
     /**

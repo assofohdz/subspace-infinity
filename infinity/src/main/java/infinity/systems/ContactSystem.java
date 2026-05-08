@@ -49,7 +49,9 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
     final RigidBody<EntityId, MBlockShape> bodyOne = contact.body1;
     final AbstractBody<EntityId, MBlockShape> bodyTwo = contact.body2;
 
-    log.debug("Contact between: {} and {}", bodyOne.id, bodyTwo != null ? bodyTwo.id : "null");
+    if (log.isDebugEnabled()) {
+      log.debug("Contact between: {} and {}", bodyOne.id, bodyTwo != null ? bodyTwo.id : "null");
+    }
     // Body1 is always a rigidbody
     // If body two is not null, we are dealing with a collision between a rigidbody (body1) and a
     // rigidbody or a staticbody (body2)
@@ -65,27 +67,35 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       final boolean twoSensor = ed.getComponent(two, Sensor.class) != null;
       if (oneSensor || twoSensor) {
         contact.disable();
-        log.debug(
-            "Sensor contact: {} (sensor={}) vs {} (sensor={}) at {}, disabled={}",
-            one, oneSensor, two, twoSensor, contact.contactPoint, !contact.isEnabled());
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "Sensor contact: {} (sensor={}) vs {} (sensor={}) at {}, disabled={}",
+              one, oneSensor, two, twoSensor, contact.contactPoint, !contact.isEnabled());
+        }
         // Fall through to the listener fan-out so ArenaMembershipSystem etc. can observe.
       } else if (!categoryFilterAllowsContact(one, two)) {
         contact.disable();
-        log.debug(
-            "Category filter contact: {} vs {} at {}, disabled={}",
-            one, two, contact.contactPoint, !contact.isEnabled());
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "Category filter contact: {} vs {} at {}, disabled={}",
+              one, two, contact.contactPoint, !contact.isEnabled());
+        }
         return;
       } else if (parentChildContact(one, two)) {
         contact.disable();
-        log.debug(
-            "Parent child contact: {} (sensor={}) vs {} (sensor={}) at {}, disabled={}",
-            one, oneSensor, two, twoSensor, contact.contactPoint, !contact.isEnabled());
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "Parent child contact: {} (sensor={}) vs {} (sensor={}) at {}, disabled={}",
+              one, oneSensor, two, twoSensor, contact.contactPoint, !contact.isEnabled());
+        }
         return;
       } else {
         // Body-vs-body contact with no rejection — proceeds to resolver normally
         // (ship-vs-ship, ship-vs-projectile, etc.). Common case, not an error.
-        log.debug(
-            "Body-vs-body contact: {} vs {} at {}", one, two, contact.contactPoint);
+        if (log.isDebugEnabled()) {
+          log.debug(
+              "Body-vs-body contact: {} vs {} at {}", one, two, contact.contactPoint);
+        }
       }
     } else {
       // Bounce off a static map block. Read the body's own per-ship restitution

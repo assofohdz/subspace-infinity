@@ -254,7 +254,9 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   private void applyConfigTo(final Entity shipEntity, final boolean resetLivePool) {
     final ShipType shipType = shipEntity.get(ShipType.class);
     if (shipType == null || shipType.getType() == null) {
-      log.warn("Ship {} has null ShipType; skipping config projection", shipEntity.getId());
+      if (log.isWarnEnabled()) {
+        log.warn("Ship {} has null ShipType; skipping config projection", shipEntity.getId());
+      }
       return;
     }
 
@@ -268,20 +270,24 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     final ConfigRegistry snapshot = configRegistry.forArena(arena);
     final ShipConfig cfg = snapshot.getShip(shipType.getType());
     if (cfg == null) {
-      log.warn(
-          "No ShipConfig for {} in arena {}; leaving defaults",
-          shipType.getType(),
-          arena.getArena());
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "No ShipConfig for {} in arena {}; leaving defaults",
+            shipType.getType(),
+            arena.getArena());
+      }
       return;
     }
 
     project(shipEntity.getId(), cfg, resetLivePool);
-    log.info(
-        "Projected ShipConfig {} ({}) from arena {} onto ship {}",
-        shipType.getType(),
-        resetLivePool ? "respawn" : "tuning",
-        arena.getArena(),
-        shipEntity.getId());
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Projected ShipConfig {} ({}) from arena {} onto ship {}",
+          shipType.getType(),
+          resetLivePool ? "respawn" : "tuning",
+          arena.getArena(),
+          shipEntity.getId());
+    }
     if (log.isDebugEnabled()) {
       log.debug(
           "  stats: thrust={} speed={} rotation={} recharge={} energy={} linDamp={} turn={} bounce={}",

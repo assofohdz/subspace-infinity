@@ -82,14 +82,15 @@ public class ConnectionState extends CompositeAppState {
         getStateManager().detach(this);
     }
 
-    public boolean join( String userName ) {
+    public boolean join( final String userName ) {
         log.info("join({})", userName);
 
-        if( userName != null ) {
-            userName = userName.trim();
+        String name = userName;
+        if( name != null ) {
+            name = name.trim();
         }
 
-        if( Strings.isNullOrEmpty(userName) ) {
+        if( Strings.isNullOrEmpty(name) ) {
             showError("Join Error", "Please specify a player name for use in game.", null, false);
             return false;
         }
@@ -97,7 +98,7 @@ public class ConnectionState extends CompositeAppState {
         // So here we'd login and then when we get a response from the
         // server that we are logged in then we'd launch the game state and
         // so on... for now we'll just do it directly.
-        client.getService(AccountClientService.class).login(userName);
+        client.getService(AccountClientService.class).login(name);
 
         return true;
     }
@@ -158,12 +159,12 @@ public class ConnectionState extends CompositeAppState {
         if( isRenderThread() ) {
             String m = message;
             if( e != null ) {
+                final StringBuilder sb = new StringBuilder();
                 if( m != null ) {
-                    m += "\n";
-                } else {
-                    m = "";
+                    sb.append(m).append('\n');
                 }
-                m += e.getClass().getSimpleName() + ":" + e.getMessage();
+                sb.append(e.getClass().getSimpleName()).append(':').append(e.getMessage());
+                m = sb.toString();
             }
             getState(OptionPanelState.class).show(title, m, new ExitAction(fatal));
         } else {

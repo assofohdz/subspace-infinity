@@ -106,7 +106,9 @@ public class ArenaRegistryState extends BaseAppState {
       }
       for (final Entity e : arenaEntities.getRemovedEntities()) {
         arenas.remove(e.getId());
-        log.info("Arena entity {} removed from client registry", e.getId());
+        if (log.isInfoEnabled()) {
+          log.info("Arena entity {} removed from client registry", e.getId());
+        }
       }
     }
   }
@@ -121,7 +123,7 @@ public class ArenaRegistryState extends BaseAppState {
         e.getId(),
         new ArenaSnapshot(
             id.getArena(), map.getMapFile(), map.getMin(), map.getMax(), map.getArenaIndex()));
-    if (prev == null) {
+    if (prev == null && log.isInfoEnabled()) {
       log.info(
           "Arena entity {} registered: name={} slot={} map={}",
           e.getId(),

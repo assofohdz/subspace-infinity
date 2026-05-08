@@ -66,8 +66,10 @@ class LargeModelContainer extends EntityContainer<Model> {
 
   @Override
   protected Model addObject(final Entity e) {
-    ModelViewState.log.info(
-        "LargeObject add model for:" + e.getId() + "   at time:" + owner.timeSource.getTime());
+    if (ModelViewState.log.isInfoEnabled()) {
+      ModelViewState.log.info(
+          "LargeObject add model for:{}   at time:{}", e.getId(), owner.timeSource.getTime());
+    }
     final Model object = owner.getModel(e.getId(), true);
     updateObject(object, e);
 
@@ -86,7 +88,9 @@ class LargeModelContainer extends EntityContainer<Model> {
 
   @Override
   protected void removeObject(final Model object, final Entity e) {
-    ModelViewState.log.info("LargeObject remove model for:" + e.getId());
+    if (ModelViewState.log.isInfoEnabled()) {
+      ModelViewState.log.info("LargeObject remove model for:{}", e.getId());
+    }
     owner.releaseModel(e.getId());
   }
 }

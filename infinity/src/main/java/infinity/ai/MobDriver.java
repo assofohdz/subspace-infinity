@@ -136,14 +136,21 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   protected void dumpShape(MBlockShape shape) {
+    if (!log.isInfoEnabled()) {
+      return;
+    }
     log.info("dumpShape({})", shape);
     Part root = shape.getPart();
     if (root instanceof Group) {
       for (Part child : ((Group) root).getChildren()) {
-        log.info("   {}:{}", child.getName(), child.getShapeRelativePosition());
+        if (log.isInfoEnabled()) {
+          log.info("   {}:{}", child.getName(), child.getShapeRelativePosition());
+        }
       }
     } else {
-      log.info(" root:{}:{}", root.getName(), root.getShapeRelativePosition());
+      if (log.isInfoEnabled()) {
+        log.info(" root:{}:{}", root.getName(), root.getShapeRelativePosition());
+      }
     }
   }
 

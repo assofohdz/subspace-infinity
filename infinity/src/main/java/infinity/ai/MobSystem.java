@@ -136,7 +136,9 @@ public class MobSystem extends AbstractGameSystem {
         chicken.airImpulse = 25;
         settingsIndex.put("chicken", chicken);
 
-        log.info("space.getContactDispatcher():" + space.getContactDispatcher());
+        if (log.isInfoEnabled()) {
+            log.info("space.getContactDispatcher():{}", space.getContactDispatcher());
+        }
 
         // There are two ways that a MobDriver can be set on a
         // RigidBody.
@@ -391,7 +393,9 @@ public class MobSystem extends AbstractGameSystem {
             // See if it already has a driver
             MobDriver driver = drivers.getObject(e.getId());
             if( driver != null ) {
-                log.info("Setting existing actor to body for:" + e.getId());
+                if (log.isInfoEnabled()) {
+                    log.info("Setting existing actor to body for:{}", e.getId());
+                }
                 result.setActor(driver);
                 driver.setBrain(result);
                 scheduler.add(result);
@@ -446,7 +450,9 @@ log.info("existing body:{}", body);
             // See if there is already a brain
             Brain brain = brains.getObject(e.getId());
             if( brain != null ) {
-                log.info("Setting created actor on existing brain for:" + e.getId());
+                if (log.isInfoEnabled()) {
+                    log.info("Setting created actor on existing brain for:{}", e.getId());
+                }
                 brain.setActor(result);
                 result.setBrain(brain);
                 scheduler.add(brain);

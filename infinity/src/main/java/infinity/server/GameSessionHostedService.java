@@ -250,7 +250,9 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
       conn.setAttribute(ATTRIBUTE_AVATAR, avatarEntityId.getId());
 
-      log.info("avatarId(" + avatarEntityId.getId() + ")");
+      if (log.isInfoEnabled()) {
+        log.info("avatarId({})", avatarEntityId.getId());
+      }
 
       log.info("createdAvatar:{}", avatarEntityId);
     }

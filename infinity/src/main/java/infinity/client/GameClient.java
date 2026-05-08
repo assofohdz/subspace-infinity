@@ -70,7 +70,7 @@ public class GameClient {
   private final EntityData ed;
 
   public GameClient(final String host, final int port) throws IOException {
-    log.info("Connecting to:" + host + " " + port);
+    log.info("Connecting to:{} {}", host, port);
     client =
         Network.connectToServer(
             InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);

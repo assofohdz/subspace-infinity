@@ -116,15 +116,19 @@ public class Main extends SimpleApplication {
 
     // Set up global uncaught exception handler to log crashes
     Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-      log.error("Uncaught exception in thread " + thread.getName(), throwable);
+      if (log.isErrorEnabled()) {
+        log.error("Uncaught exception in thread {}", thread.getName(), throwable);
+      }
       // Give log4j time to flush
       try { Thread.sleep(100); } catch (InterruptedException ignored) {}
     });
 
     log.info("=== Subspace Infinity Starting ===");
-    log.info("Java version: " + System.getProperty("java.version"));
-    log.info("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
-    log.info("Working directory: " + System.getProperty("user.dir"));
+    if (log.isInfoEnabled()) {
+      log.info("Java version: {}", System.getProperty("java.version"));
+      log.info("OS: {} {}", System.getProperty("os.name"), System.getProperty("os.arch"));
+      log.info("Working directory: {}", System.getProperty("user.dir"));
+    }
 
     // final Application app;
 

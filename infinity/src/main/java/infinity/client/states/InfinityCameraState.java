@@ -61,9 +61,9 @@ public class InfinityCameraState extends CameraState implements AnalogFunctionLi
     EntityData ed = getState(ConnectionState.class).getEntityData();
     session = getState(ConnectionState.class).getService(GameSessionClientService.class);
     self = ed.watchEntity(avatarId, BodyPosition.class);
-    log.info(String.format("self:%s", self));
+    log.info("self:{}", self);
     BodyPosition bodyPos = self.get(BodyPosition.class);
-    log.info(String.format("self pos:%s", bodyPos));
+    log.info("self pos:{}", bodyPos);
     if (bodyPos != null) {
       bodyPos.initialize(avatarId, 12);
     }
@@ -78,7 +78,7 @@ public class InfinityCameraState extends CameraState implements AnalogFunctionLi
     if (self.applyChanges()) {
       log.info("self changes");
       BodyPosition bodyPos = self.get(BodyPosition.class);
-      log.info(String.format("self pos update:%s", bodyPos));
+      log.info("self pos update:{}", bodyPos);
       if (bodyPos != null) {
         bodyPos.initialize(avatarId, 12);
       }
@@ -93,7 +93,7 @@ public class InfinityCameraState extends CameraState implements AnalogFunctionLi
     ChildPositionTransition3d frame = bodyPos.getFrame(t);
     if (frame == null) {
       if (t != 0) {
-        log.warn(String.format("no transition frame for time:%d", t));
+        log.warn("no transition frame for time:{}", t);
       }
       return;
     }

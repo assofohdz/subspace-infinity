@@ -367,7 +367,9 @@ public class InfinityGeometryFactory {
             Geometry geom = new Geometry("mesh:" + mt + ":" + list.primitiveType, mesh);
             Material mat = materials.get(mt.getId());
 
-            log.info("MaterialType getId():"+mt.getId());
+            if (log.isInfoEnabled()) {
+                log.info("MaterialType getId():{}", mt.getId());
+            }
 
             if( mat == null ) {
                 // Try not to crash at least
@@ -375,7 +377,9 @@ public class InfinityGeometryFactory {
                 mat = materials.get(bad.getId());
             }
             if( mat == null ) {
-                log.debug("all keys:" + materials.keySet());
+                if (log.isDebugEnabled()) {
+                    log.debug("all keys:{}", materials.keySet());
+                }
                 throw new IllegalStateException("Materal not found for:" + mt.getId());
             }
             geom.setMaterial(mat);
@@ -490,44 +494,47 @@ public class InfinityGeometryFactory {
             this.lightData = lightData;
         }
 
-        public void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
+        public void appendLight( CellData lights, final int i, final int j, final int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
 
             // If it's on the border facing out (most common case) then we need
             // to move our light sampling point.
+            int li = i;
+            int lj = j;
+            int lk = k;
             switch( dir ) {
                 case North:
                     if( z == 0 ) {
-                        k--;
+                        lk--;
                     }
                     break;
                 case South:
                     if( z == 1 ) {
-                        k++;
+                        lk++;
                     }
                     break;
                 case East:
                     if( x == 1 ) {
-                        i++;
+                        li++;
                     }
                     break;
                 case West:
                     if( x == 0 ) {
-                        i--;
+                        li--;
                     }
                     break;
                 case Up:
                     if( y == 1 ) {
-                        j++;
+                        lj++;
                     }
                     break;
                 case Down:
                     if( y == 0 ) {
-                        j--;
+                        lj--;
                     }
                     break;
             }
 
-            int l = lights.getCell(i,j,k, 0xf000);
+            int l = lights.getCell(li,lj,lk, 0xf000);
 
             int s = (l >> 12) & 0xf;
             int r = (l >> 8) & 0xf;

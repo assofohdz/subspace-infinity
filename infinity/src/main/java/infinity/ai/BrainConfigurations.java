@@ -75,7 +75,9 @@ public class BrainConfigurations {
 
     config.setGoalSelector(
         (brain) -> {
-          log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+          if (log.isInfoEnabled()) {
+            log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+          }
 
           Actor actor = brain.getActor();
 
@@ -105,7 +107,9 @@ public class BrainConfigurations {
           Vec3d home = brain.getProperty("home", null);
           if (home != null) {
             Vec3d v = home.subtract(actor.getPosition());
-            log.info("Distance to home:" + v.length());
+            if (log.isInfoEnabled()) {
+              log.info("Distance to home:{}", v.length());
+            }
             if (v.length() > 5) {
               // Go back to within 2 meters of home
               // Note: without some concept of maximum time to goal, it's
@@ -215,7 +219,9 @@ public class BrainConfigurations {
             .onTouch(
                 Collections.singletonList("corn"),
                 (brain, event) -> {
-                  log.info("touched by corn:{}  corn:{}", brain.getId(), event.getObject());
+                  if (log.isInfoEnabled()) {
+                    log.info("touched by corn:{}  corn:{}", brain.getId(), event.getObject());
+                  }
                   brain.newGoal(new Eat(event.getObject().getId()));
                   return true;
                 })
@@ -273,8 +279,11 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(
-                      goal + " failed for:" + brain + "  failed action:" + goal.getFailedAction());
+                  if (log.isInfoEnabled()) {
+                    log.info(
+                        "{} failed for:{}  failed action:{}",
+                        goal, brain, goal.getFailedAction());
+                  }
                   return new Say("*BACAW*", 1);
                 })
             .onBlocked(
@@ -307,7 +316,9 @@ public class BrainConfigurations {
             .onTouch(
                 Collections.singletonList("corn"),
                 (brain, event) -> {
-                  log.info("touched by corn:{}  corn:{}", brain.getId(), event.getObject());
+                  if (log.isInfoEnabled()) {
+                    log.info("touched by corn:{}  corn:{}", brain.getId(), event.getObject());
+                  }
                   brain.newGoal(new Eat(event.getObject().getId()));
                   return true;
                 })
@@ -338,13 +349,11 @@ public class BrainConfigurations {
               // If LoopAction was more flexible then we could have had
               // a reasonable flee loop... but it's currently TimedGoal specific.
 
-              log.info(
-                  "Flee:"
-                      + pursuer.getPosition()
-                      + "   us:"
-                      + brain.getActor().getPosition()
-                      + "  dir:"
-                      + dir);
+              if (log.isInfoEnabled()) {
+                log.info(
+                    "Flee:{}   us:{}  dir:{}",
+                    pursuer.getPosition(), brain.getActor().getPosition(), dir);
+              }
               return new Sequence(
                   new Say("*BAWK!*", 1, 0),
                   new WalkDir(dir, new Vec3d(0, 0, 1), 1, 0),
@@ -363,14 +372,18 @@ public class BrainConfigurations {
 
     config.setGoalSelector(
         (brain) -> {
-          log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+          if (log.isInfoEnabled()) {
+            log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+          }
 
           Actor actor = brain.getActor();
 
           Vec3d home = brain.getProperty("home", null); // new Vec3d(-17, 64, 19);
           if (home != null) {
             Vec3d v = home.subtract(actor.getPosition());
-            log.info("Distance to home:" + v.length());
+            if (log.isInfoEnabled()) {
+              log.info("Distance to home:{}", v.length());
+            }
             if (v.length() > 10) {
               // Go back to within 5 meters of home
               Goal goHome = new Go(home, 5);
@@ -495,8 +508,11 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(
-                      goal + " failed for:" + brain + "  failed action:" + goal.getFailedAction());
+                  if (log.isInfoEnabled()) {
+                    log.info(
+                        "{} failed for:{}  failed action:{}",
+                        goal, brain, goal.getFailedAction());
+                  }
                   return new Say("*grr*", 1);
                 })
             .onBlocked(
@@ -545,14 +561,18 @@ public class BrainConfigurations {
 
     config.setGoalSelector(
         (brain) -> {
-          log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+          if (log.isInfoEnabled()) {
+            log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+          }
 
           Actor actor = brain.getActor();
 
           Vec3d home = brain.getProperty("home", null); // new Vec3d(-17, 64, 19);
           if (home != null) {
             Vec3d v = home.subtract(actor.getPosition());
-            log.info("Distance to home:" + v.length());
+            if (log.isInfoEnabled()) {
+              log.info("Distance to home:{}", v.length());
+            }
             if (v.length() > 15) {
               // Go back to within 5 meters of home
               Goal goHome = new Go(home, 5);
@@ -677,8 +697,11 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(
-                      goal + " failed for:" + brain + "  failed action:" + goal.getFailedAction());
+                  if (log.isInfoEnabled()) {
+                    log.info(
+                        "{} failed for:{}  failed action:{}",
+                        goal, brain, goal.getFailedAction());
+                  }
                   return new Say("Ugh!", 1);
                 })
             .onBlocked(

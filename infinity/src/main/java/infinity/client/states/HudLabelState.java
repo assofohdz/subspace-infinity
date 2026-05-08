@@ -187,7 +187,7 @@ public class HudLabelState extends BaseAppState {
       }
     }
 
-    protected void updateComponents() {
+    protected final void updateComponents() {
       label.setText(entity.get(Name.class).getName());
 
       if (isPlayerEntity) {

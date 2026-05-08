@@ -293,9 +293,11 @@ public final class GroovyShipLoader {
    */
   public void apply(final ArenaId arenaId, @Nullable final String classpathPath) {
     if (classpathPath == null || classpathPath.isBlank()) {
-      log.warn(
-          "No [Scripts] Ships configured for arena {}; installing fallback defaults",
-          arenaId.getArena());
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "No [Scripts] Ships configured for arena {}; installing fallback defaults",
+            arenaId.getArena());
+      }
       configRegistry.replace(arenaId, FALLBACK);
       return;
     }
@@ -304,32 +306,38 @@ public final class GroovyShipLoader {
     if (snapshot == null) {
       // Missing — host's not-found log is debug-level; surface the fallback
       // install at warn with arena context so unmigrated arenas are visible.
-      log.warn(
-          "ships.groovy for arena {} not found at {}; installing fallback defaults",
-          arenaId.getArena(),
-          classpathPath);
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "ships.groovy for arena {} not found at {}; installing fallback defaults",
+            arenaId.getArena(),
+            classpathPath);
+      }
       configRegistry.replace(arenaId, FALLBACK);
       return;
     }
     if (snapshot == FALLBACK) {
       // Broken — host already logged the exception at warn. Add an arena-
       // context warn so a tail of the log shows which arena got the fallback.
-      log.warn(
-          "ships.groovy for arena {} at {} failed to evaluate; installed fallback defaults",
-          arenaId.getArena(),
-          classpathPath);
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "ships.groovy for arena {} at {} failed to evaluate; installed fallback defaults",
+            arenaId.getArena(),
+            classpathPath);
+      }
       configRegistry.replace(arenaId, FALLBACK);
       return;
     }
 
     configRegistry.replace(arenaId, snapshot);
-    log.info(
-        "Applied {} for arena {} ({} ships configured)",
-        classpathPath,
-        arenaId.getArena(),
-        snapshot.configuredShips().size());
-    for (final Ship ship : snapshot.configuredShips()) {
-      log.info("  parsed config: {} -> {}", ship, snapshot.getShip(ship));
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Applied {} for arena {} ({} ships configured)",
+          classpathPath,
+          arenaId.getArena(),
+          snapshot.configuredShips().size());
+      for (final Ship ship : snapshot.configuredShips()) {
+        log.info("  parsed config: {} -> {}", ship, snapshot.getShip(ship));
+      }
     }
   }
 

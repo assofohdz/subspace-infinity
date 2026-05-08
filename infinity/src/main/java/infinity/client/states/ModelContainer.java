@@ -73,11 +73,15 @@ class ModelContainer extends EntityContainer<Model> {
       // edges stay clean in the container's internal map) but skip the
       // spatial bind + visibility queue. Server still owns collision +
       // pickup; the client just doesn't render.
-      ModelViewState.log.info("skip hidden model for: " + e.getId());
+      if (ModelViewState.log.isInfoEnabled()) {
+        ModelViewState.log.info("skip hidden model for: {}", e.getId());
+      }
       return object;
     }
-    ModelViewState.log.info(
-        "add model for:" + e.getId() + "   at time:" + owner.timeSource.getTime());
+    if (ModelViewState.log.isInfoEnabled()) {
+      ModelViewState.log.info(
+          "add model for:{}   at time:{}", e.getId(), owner.timeSource.getTime());
+    }
     updateObject(object, e);
 
     // Add it to the queue to be made visible at a future time
@@ -104,7 +108,9 @@ class ModelContainer extends EntityContainer<Model> {
 
   @Override
   protected void removeObject(final Model object, final Entity e) {
-    ModelViewState.log.info("remove model for:" + e.getId());
+    if (ModelViewState.log.isInfoEnabled()) {
+      ModelViewState.log.info("remove model for:{}", e.getId());
+    }
     owner.releaseModel(e.getId());
   }
 }

@@ -121,7 +121,7 @@ public class MainMenuState extends BaseAppState {
 
     protected void onClientConnected(final ClientEvent event) {
 
-        log.info("onClientConnected(" + event + ")");
+        log.info("onClientConnected({})", event);
 
         // getStateManager().attach(new ChatState());
         getStateManager().attach(new GameSessionState());

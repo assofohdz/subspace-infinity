@@ -180,18 +180,18 @@ public class LocalViewState extends BaseAppState {
    *
    * @param radius the view radius
    */
-  public void setViewRadius(int radius) {
-    radius = radius - 32;
-    radius = radius / 32;
-    if (radius < 3) {
-      radius = 3;
-    } else if (radius > maxViewRadius.x) {
-      radius = maxViewRadius.x;
+  public void setViewRadius(final int radius) {
+    int r = radius - 32;
+    r = r / 32;
+    if (r < 3) {
+      r = 3;
+    } else if (r > maxViewRadius.x) {
+      r = maxViewRadius.x;
     }
-    if (radius == viewRadius.x) {
+    if (r == viewRadius.x) {
       return;
     }
-    viewRadius.set(radius, radius * 4 / 3, radius);
+    viewRadius.set(r, r * 4 / 3, r);
     yMin = viewRadius.y * 32;
     yMax = maxBuildHeight - (viewRadius.y * 32) - 32; // -32 because cells grow up
 
@@ -281,31 +281,35 @@ public class LocalViewState extends BaseAppState {
   }
 
   protected void logInfo(String indent, Texture tex) {
-    log.info(indent + "key:" + tex.getKey());
-    log.info(indent + "type:" + tex.getType());
-    log.info(
-        indent
-            + "wrap s:"
-            + tex.getWrap(Texture.WrapAxis.S)
-            + " t:"
-            + tex.getWrap(Texture.WrapAxis.T));
-    // + " r:" + tex.getWrap(Texture.WrapAxis.R));
-    log.info(indent + "magFilter:" + tex.getMagFilter());
-    log.info(indent + "minFilter:" + tex.getMinFilter());
-    log.info(indent + "name:" + tex.getName());
-    log.info(indent + "shadowCompareMode:" + tex.getShadowCompareMode());
-    log.info(indent + "anisotropicFilter:" + tex.getAnisotropicFilter());
-    log.info("{}image:", indent);
-    logInfo(indent + "  ", tex.getImage());
+    if (log.isInfoEnabled()) {
+      log.info(indent + "key:" + tex.getKey());
+      log.info(indent + "type:" + tex.getType());
+      log.info(
+          indent
+              + "wrap s:"
+              + tex.getWrap(Texture.WrapAxis.S)
+              + " t:"
+              + tex.getWrap(Texture.WrapAxis.T));
+      // + " r:" + tex.getWrap(Texture.WrapAxis.R));
+      log.info(indent + "magFilter:" + tex.getMagFilter());
+      log.info(indent + "minFilter:" + tex.getMinFilter());
+      log.info(indent + "name:" + tex.getName());
+      log.info(indent + "shadowCompareMode:" + tex.getShadowCompareMode());
+      log.info(indent + "anisotropicFilter:" + tex.getAnisotropicFilter());
+      log.info("{}image:", indent);
+      logInfo(indent + "  ", tex.getImage());
+    }
   }
 
   protected void logInfo(String indent, Image img) {
-    log.info(indent + "format:" + img.getFormat());
-    log.info(indent + "size:" + img.getWidth() + ", " + img.getHeight() + "  x " + img.getDepth());
-    log.info(indent + "hasMips:" + img.hasMipmaps());
-    log.info(indent + "isGenMipsRequired:" + img.isGeneratedMipmapsRequired());
-    log.info(indent + "NPOT:" + img.isNPOT());
-    log.info(indent + "colorSpace:" + img.getColorSpace());
+    if (log.isInfoEnabled()) {
+      log.info(indent + "format:" + img.getFormat());
+      log.info(indent + "size:" + img.getWidth() + ", " + img.getHeight() + "  x " + img.getDepth());
+      log.info(indent + "hasMips:" + img.hasMipmaps());
+      log.info(indent + "isGenMipsRequired:" + img.isGeneratedMipmapsRequired());
+      log.info(indent + "NPOT:" + img.isNPOT());
+      log.info(indent + "colorSpace:" + img.getColorSpace());
+    }
   }
 
   @Override
@@ -475,11 +479,13 @@ public class LocalViewState extends BaseAppState {
     }
 
     if (viewCache.size() != viewArray.length) {
-      log.error(
-          "*** Major data integrity error in view cache, cache size:"
-              + viewCache.size()
-              + "  should be:"
-              + viewArray.length);
+      if (log.isErrorEnabled()) {
+        log.error(
+            "*** Major data integrity error in view cache, cache size:"
+                + viewCache.size()
+                + "  should be:"
+                + viewArray.length);
+      }
     }
   }
 

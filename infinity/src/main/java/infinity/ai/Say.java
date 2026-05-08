@@ -64,7 +64,7 @@ public class Say extends Wait {
 
   @Override
   protected boolean onStart(SimTime time, Brain brain) {
-    log.info("Say.onStart(" + text + ", " + messageDuration + ")");
+    log.info("Say.onStart({}, {})", text, messageDuration);
     Actor actor = brain.getActor();
     actor.say(time.getTime(), time.getFutureTime(messageDuration), text);
     return true;

@@ -6,6 +6,7 @@ import infinity.map.BitMap;
 import infinity.map.LevelFile;
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public final class MapTileSurvey {
 
   private MapTileSurvey() {}
 
-  public static void main(final String[] args) throws Exception {
+  public static void main(final String[] args) throws IOException {
     final List<File> files = new ArrayList<>();
     if (args.length == 0) {
       final File root = resolveDir("infinity/assets/Maps");
@@ -102,7 +103,7 @@ public final class MapTileSurvey {
   /* Per-file tile analysis                                       */
   /* ------------------------------------------------------------ */
 
-  private static MapStats analyzeTiles(final File file) throws Exception {
+  private static MapStats analyzeTiles(final File file) throws IOException {
     final BitMap bmp;
     try (InputStream is = Files.newInputStream(file.toPath());
         BufferedInputStream bis = new BufferedInputStream(is)) {

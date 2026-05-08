@@ -141,7 +141,9 @@ public class EnergySystem extends AbstractGameSystem {
       final Entity target = living.getEntity(entry.getKey());
 
       if (target == null) {
-        log.warn("No target for id: {}", entry.getKey());
+        if (log.isWarnEnabled()) {
+          log.warn("No target for id: {}", entry.getKey());
+        }
         continue;
       }
 
@@ -160,7 +162,9 @@ public class EnergySystem extends AbstractGameSystem {
       target.set(hp);
 
       if (hp.getHealth() <= 0) {
-        log.info("Entity " + target.getId() + " died");
+        if (log.isInfoEnabled()) {
+          log.info("Entity {} died", target.getId());
+        }
         // don't set death if it is already dead.
         if (ed.getComponent(target.getId(), Dead.class) == null) {
           target.set(new Dead(time.getTime()));

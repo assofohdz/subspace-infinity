@@ -62,7 +62,9 @@ class BodyContainer extends EntityContainer<Body> {
 
   @Override
   protected Body addObject(final Entity e) {
-    ModelViewState.log.info("add body for:{}", e.getId());
+    if (ModelViewState.log.isInfoEnabled()) {
+      ModelViewState.log.info("add body for:{}", e.getId());
+    }
     final Body object = new Body(owner, e);
     updateObject(object, e);
     return object;
@@ -76,7 +78,9 @@ class BodyContainer extends EntityContainer<Body> {
 
   @Override
   protected void removeObject(final Body object, final Entity e) {
-    ModelViewState.log.info("remove body for:{}", e.getId());
+    if (ModelViewState.log.isInfoEnabled()) {
+      ModelViewState.log.info("remove body for:{}", e.getId());
+    }
     object.release();
   }
 }

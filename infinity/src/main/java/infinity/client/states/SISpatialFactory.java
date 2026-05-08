@@ -445,7 +445,7 @@ public class SISpatialFactory {
     final Material mat = geom.getMaterial();
     mat.setInt(NUMTILESOFFSETY, ship);
     geom.setMaterial(mat);
-    log.info(String.format("Setting geometry material on spatial:%s; ship:%d", s, ship));
+    log.info("Setting geometry material on spatial:{}; ship:{}", s, ship);
   }
 
   @SuppressWarnings("unused")
