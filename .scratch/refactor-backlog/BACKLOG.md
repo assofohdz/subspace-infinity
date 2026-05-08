@@ -97,16 +97,6 @@ Out of scope until enough U1 in-game time confirms outlines are useful as-is. Pi
 
 [`MapState.java:470, 494`](../../infinity/src/main/java/infinity/client/states/MapState.java) wires left/right mouse click through a raycast and calls `session.map(MapSystem.CREATE / MapSystem.DELETE, vec3)` to mutate world blocks. Two smells: (1) `MapSystem.CREATE` / `DELETE` are loose `static final byte` constants on a server-side system that the client reaches into — they slip past `LayerDependencyTest` only because the Java compiler inlines them at compile time and erases the bytecode dependency. (2) `MapState` mixes rendering with arena-click input handling. Cleanup: promote the action codes to a proper RMI command surface (typed enum or RMI method per intent — `createBlock(Vec3)` / `deleteBlock(Vec3)`), and consider extracting the click-to-block input handling into its own input AppState if the rendering responsibilities of `MapState` keep growing.
 
-## Tooling
-
-### PMD residual cleanup — verify status
-
-PMD wiring (commit `5bb2e71`) surfaced 99 violations on first run; six cleanup batches landed before v1.0.7. Re-run PMD against current `infinity` and confirm whether any of the original three categories still have stragglers:
-
-- **~10 genuine dead-code one-liners** — most likely resolved in batches 1, 2, 3, 6.
-- **~30 chat-command handler false positives** — annotated in batch 4.
-- **3 empty-foreach EntitySet drain idioms** in `AvatarSystem.java:106-112` — possibly addressed by batch 5 (`AvatarSystem.update TODO scaffolding`); verify the idiom is now suppressed or refactored.
-
 ## Library follow-ups
 
 ### `'+'` version pinning audit
