@@ -4,54 +4,33 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
-import com.simsilica.bpos.LargeGridCell;
-import com.simsilica.bpos.LargeObject;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.ext.mphys.Mass;
-import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.mworld.WorldGrids;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.ArenaConfig;
 import infinity.config.SpawnerSpec;
 import infinity.config.SpawnConfig;
-import infinity.config.TeamSpawn;
 import infinity.config.ZoneConfig;
-import infinity.es.Sensor;
-import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.systems.ship.ShipSpawnSystem;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovyZoneLoader;
-import infinity.es.arena.ArenaFootprint;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Player;
 import infinity.sim.ArenaManager;
-import infinity.sim.GameEntities;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -294,11 +273,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   @Nullable
   private Entity findArenaEntity(final Vec3d position) {
     for (final Entity arena : arenaEntities) {
-      final ArenaMap map = arena.get(ArenaMap.class);
-      final Vec3d min = map.getMin();
-      final Vec3d max = map.getMax();
-      if (position.x >= min.x && position.x <= max.x
-          && position.z >= min.z && position.z <= max.z) {
+      if (ArenaLogic.containsXZ(arena.get(ArenaMap.class), position)) {
         return arena;
       }
     }
@@ -361,14 +336,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
     final SpawnConfig spawn =
         configRegistry.forArena(new ArenaId(arenaName, rec.entityId)).spawn();
-    final TeamSpawn team = spawn.forFreq(freq);
-    if (team != null) {
-      final double[] xy = ArenaLogic.sampleTeamSpawn(team);
-      return arenaToWorld(map, xy[0], xy[1]);
-    }
-
-    // Legacy fallback — un-migrated arena (no spawn.groovy authored).
-    return arenaToWorld(map, rec.config.spawnX(), rec.config.spawnZ());
+    return ArenaLogic.resolveArenaSpawn(
+        spawn, freq, map, rec.config.spawnX(), rec.config.spawnZ());
   }
 
   // sampleTeamSpawn moved to ArenaLogic.sampleTeamSpawn.
@@ -462,24 +431,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * stable without coupling ArenaSystem to ArenaCommandsSystem.
    */
   private String describe(final String arenaName) {
-    final ArenaState state = getArenaState(arenaName);
-    if (state == null) {
-      return "Arena " + arenaName + " not in registry";
-    }
-    switch (state) {
-      case LOADED:
-        return "Arena " + arenaName + " loaded";
-      case LOADING:
-        return "Arena " + arenaName + " loading";
-      case UNLOADING:
-        return "Arena " + arenaName + " unloading";
-      case NOT_LOADED:
-        return "Arena " + arenaName + " not loaded";
-      case FAILED:
-        return "Arena " + arenaName + " failed: " + getArenaError(arenaName);
-      default:
-        return "Arena " + arenaName + " state=" + state;
-    }
+    return ArenaLogic.describeArena(
+        getArenaState(arenaName), arenaName, () -> getArenaError(arenaName));
   }
 
   /* ---------------------------------------------------------------- */
@@ -501,31 +454,11 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   /** Scan {@code arenas/&#47;arena.conf} on the classpath and register each folder. */
   private void discoverArenas() throws IOException, URISyntaxException {
-    final URL root = Thread.currentThread().getContextClassLoader().getResource(ARENA_ROOT);
-    if (root == null) {
-      log.warn("No '{}' resource root on classpath; arena discovery skipped", ARENA_ROOT);
-      return;
-    }
-    final URI uri = root.toURI();
-    FileSystem jarFs = null;
-    final Path arenasDir;
-    if ("jar".equals(uri.getScheme())) {
-      jarFs = FileSystems.newFileSystem(uri, Collections.emptyMap());
-      arenasDir = jarFs.getPath("/" + ARENA_ROOT);
-    } else {
-      arenasDir = Paths.get(uri);
-    }
-    try (Stream<Path> entries = Files.list(arenasDir)) {
-      entries
-          .filter(Files::isDirectory)
-          .filter(p -> Files.exists(p.resolve(ARENA_CONF)))
-          .map(p -> ArenaLogic.stripTrailingSlash(p.getFileName().toString()))
-          .forEach(name -> registry.computeIfAbsent(name, ArenaRecord::new));
-    } finally {
-      if (jarFs != null) {
-        jarFs.close();
-      }
-    }
+    ArenaLogic.discoverArenaNames(
+        ARENA_ROOT,
+        ARENA_CONF,
+        name -> registry.computeIfAbsent(name, ArenaRecord::new),
+        log);
     if (log.isInfoEnabled()) {
       log.info(
           "Discovered {} arena(s): {}",
@@ -641,49 +574,17 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         fail(rec, arena, "loadMap returned false for " + mapFile);
         return;
       }
-      final Vec3d maxB = maps.getMapBoundsMax(mapFile);
-      final Vec3d minB = maps.getMapBoundsMin(mapFile);
-      ed.setComponent(arena, new ArenaMap(minB, maxB, mapFile, rec.arenaIndex));
-      // Slice U1 — radar reads ArenaFootprint to draw the arena's footprint as a
-      // closed polygon (interior fill + outline). Geometry is the same min/max
-      // rectangle ArenaMap carries; published as a separate component so the
-      // radar consumes presentation data, not gameplay state.
-      ed.setComponent(arena, ArenaFootprint.rectangle(minB, maxB));
-
+      // Ghost-cube setup: covers the full map bounds (1 TILE_SIZE per arena slot).
+      // Sphere-vs-cube contacts route through ContactSystem; Sensor marker
+      // makes ContactSystem disable the contact so the cube doesn't block ships,
+      // while still fanning out to ArenaMembershipSystem for enter/leave events.
+      // LargeGridCell is set directly to avoid moss's LargeGridIndexSystem
+      // dropping the second arena loaded in the same frame.
+      ArenaLogic.configureGhostCube(
+          ed, arena,
+          maps.getMapBoundsMin(mapFile), maps.getMapBoundsMax(mapFile),
+          rec.arenaIndex, mapFile, rec.name, log);
       rec.entityId = arena;
-
-      // Arena ghost-cube: covers the full map bounds (1 TILE_SIZE per arena slot).
-      // Anchored at the map's min-corner (`minB`); scale `2 × TILE_SIZE` because
-      // MBlockShape.createCube uses cell-scale = extents/2, so passing 2×edge
-      // produces an edge-sized cube. Each arena slot is one TILE_GRID cell, so
-      // every loaded arena gets its own 1024×1024×1024 cube positioned by
-      // `MapSystem.calculateNextOffset`'s spiral layout.
-      //
-      // Sphere-vs-cube contacts route through ContactSystem (verified 2026-04-26 —
-      // the earlier "Type.Blocks bypasses ContactSystem" finding only applied to
-      // Blocks-vs-Blocks). The Sensor marker makes ContactSystem disable the
-      // contact so the cube doesn't block ships, while still fanning out to
-      // ArenaMembershipSystem for enter/leave events.
-      ed.setComponent(arena, new Mass(0));
-      // SpawnPosition keyed to TILE_GRID so the coarse populator's per-bin query
-      // (Filters.fieldEquals(SpawnPosition, "binId", coarseBin.cellId)) matches.
-      ed.setComponent(arena, new SpawnPosition(WorldGrids.TILE_GRID, minB));
-      ed.setComponent(
-          arena, ShapeInfo.create(ShapeNames.ARENA, InfinityConstants.TILE_SIZE * 2.0, ed));
-      ed.setComponent(arena, new Sensor());
-      // Routes the entity to the coarse static-only bin index (1024-tile cells)
-      // so contact-gen sees it from any fine bin within its bounds, not just
-      // the corner LEAF_GRID cell containing the body's center.
-      ed.setComponent(arena, new LargeObject());
-      // Set LargeGridCell explicitly. moss's LargeGridIndexSystem is supposed
-      // to produce this from the SpawnPosition + LargeObject change events,
-      // but its `return` (instead of `continue`) when a duplicate id is polled
-      // means the second arena loaded in the same frame can be skipped.
-      // Setting it directly here is idempotent and avoids the race.
-      ed.setComponent(arena, LargeGridCell.create(WorldGrids.TILE_GRID, minB));
-      log.info(
-          "Arena {} ghost-cube placed: anchor={} edge={} bounds=[{}..{}] (sensor)",
-          rec.name, minB, InfinityConstants.TILE_SIZE, minB, maxB);
 
       materializePrizeSpawners(rec, arena);
 
@@ -710,57 +611,13 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * for the prizes it produces.
    */
   private void materializePrizeSpawners(final ArenaRecord rec, final EntityId arenaEntity) {
-    final List<SpawnerSpec> specs = rec.config.spawners();
-    if (specs == null || specs.isEmpty()) {
-      return;
-    }
-    final ArenaMap map = ed.getComponent(arenaEntity, ArenaMap.class);
-    if (map == null) {
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "Arena {} has spawners but no ArenaMap; skipping {} spawner(s)",
-            rec.name, specs.size());
-      }
-      return;
-    }
     @SuppressWarnings("rawtypes")
     final PhysicsSpace phys = getSystem(PhysicsSpace.class, true);
-    final long now = getSystem(InfinityTimeSystem.class).getTime();
-    final ArenaId arenaId = new ArenaId(rec.name, arenaEntity);
-    for (final SpawnerSpec spec : specs) {
-      final Vec3d worldPos = arenaToWorld(map, spec.x(), spec.z());
-      final EntityId spawnerId =
-          GameEntities.createSpawner(
-              ed,
-              EntityId.NULL_ID,
-              phys,
-              now,
-              worldPos,
-              spec.spawnIntervalMs(),
-              spec.spawnOnRing(),
-              spec.radius(),
-              spec.maxCount(),
-              spec.ttlMillis(),
-              spec.weightOverrides(),
-              spec.countPerPlayer(),
-              spec.radiusPerPlayer(),
-              spec.regenBatch(),
-              spec.hidden());
-      ed.setComponent(spawnerId, arenaId);
-      if (log.isInfoEnabled()) {
-        log.info(
-            "Arena {} prize spawner {} placed at arena({},{}) world{} radius={} max={} ttlMs={}"
-                + " overrides={}",
-            rec.name,
-            spawnerId,
-            spec.x(), spec.z(),
-            worldPos,
-            spec.radius(),
-            spec.maxCount(),
-            spec.ttlMillis(),
-            spec.weightOverrides().isEmpty() ? "<none>" : spec.weightOverrides());
-      }
-    }
+    ArenaLogic.materializeSpawners(
+        ed, phys, getSystem(InfinityTimeSystem.class).getTime(),
+        new ArenaId(rec.name, arenaEntity),
+        ed.getComponent(arenaEntity, ArenaMap.class),
+        rec.name, rec.config.spawners(), log);
   }
 
   private void fail(final ArenaRecord rec, final EntityId arena, final String reason) {
@@ -847,27 +704,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    */
   public String swapArenaMap(final String arenaName, final String newMap) {
     final ArenaRecord rec = registry.get(arenaName);
-    if (rec == null || rec.state != ArenaState.LOADED) {
+    if (rec == null) {
       return "Arena " + arenaName + " is not loaded";
     }
-    final String oldMap = rec.config.mapFile();
-    if (oldMap.equals(newMap)) {
-      return "Arena " + arenaName + " already uses map " + newMap;
+    final ArenaLogic.SwapMapOutcome outcome = ArenaLogic.swapArenaMap(
+        rec.state, rec.config, rec.arenaIndex, arenaName, newMap,
+        () -> getSystem(MapSystem.class).swapMap(rec.config.mapFile(), newMap, rec.arenaIndex));
+    if (outcome.config != null) {
+      rec.config = outcome.config;
     }
-    if (!getSystem(MapSystem.class).swapMap(oldMap, newMap, rec.arenaIndex)) {
-      return "Cannot swap: " + newMap + " has an invalid extension or swap failed";
-    }
-    // Update the typed config — single source of truth for in-memory arena state.
-    rec.config = new ArenaConfig(
-        newMap,
-        rec.config.shipsScript(),
-        rec.config.spawnX(),
-        rec.config.spawnZ(),
-        rec.config.fragmentIncludes(),
-        rec.config.wallFriction(),
-        rec.config.spawners(),
-        rec.config.friendlyFire());
-    return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
+    return outcome.message;
   }
 
   /* ---------------------------------------------------------------- */
