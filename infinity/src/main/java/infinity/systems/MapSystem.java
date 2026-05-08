@@ -158,20 +158,20 @@ public class MapSystem extends AbstractGameSystem {
     Vec3d testMapLoc = testDirection.advance(currentMapLoc);
     // First time we will land here:
     if (!mapCoordinates.containsValue(currentMapLoc)) {
-      log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
+      log.info("Currentmap location is:{}, current direction is:{}", currentMapLoc, direction);
       return currentMapLoc;
     } else if (!mapCoordinates.containsValue(testMapLoc)) {
 
       // Test if we should go new direction
       currentMapLoc = testMapLoc;
       direction = testDirection;
-      log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
+      log.info("Currentmap location is:{}, current direction is:{}", currentMapLoc, direction);
       return currentMapLoc;
     }
 
     // If we have to continue straight ahead in our direction:
     currentMapLoc = direction.advance(currentMapLoc);
-    log.info("Currentmap location is:" + currentMapLoc + ", current direction is:" + direction);
+    log.info("Currentmap location is:{}, current direction is:{}", currentMapLoc, direction);
     return currentMapLoc;
   }
 
@@ -203,14 +203,14 @@ public class MapSystem extends AbstractGameSystem {
    * @return true if loaded, false if the filename is invalid or the tile is occupied
    */
   public boolean loadMap(final String mapName, final TileId tile, final int arenaIndex) {
-    log.info("Loading map: " + mapName + " at " + tile + " (arenaIndex=" + arenaIndex + ")");
+    log.info("Loading map: {} at {} (arenaIndex={})", mapName, tile, arenaIndex);
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
     Vec3i cell = tile.getCell(null);
     Vec3d offset = new Vec3d(cell.x, cell.y, cell.z);
     if (mapCoordinates.containsValue(offset)) {
-      log.warn("Tile " + tile + " already occupied; skipping " + mapName);
+      log.warn("Tile {} already occupied; skipping {}", tile, mapName);
       return false;
     }
     Vec3i corner = tile.getWorld(null);
@@ -238,13 +238,13 @@ public class MapSystem extends AbstractGameSystem {
     completableFuture
         .thenAccept(s -> activeMaps.put(mapName, s))
         .exceptionally(ex -> {
-          log.error("Async block population failed for map " + mapName, ex);
+          log.error("Async block population failed for map {}", mapName, ex);
           return null;
         });
 
     res.setMapName(mapName);
     mapCoordinates.put(mapName, offset);
-    log.info("Queued map: " + mapName + " at grid " + offset + " (world " + worldOffset + ")");
+    log.info("Queued map: {} at grid {} (world {})", mapName, offset, worldOffset);
     return true;
   }
 
@@ -322,7 +322,7 @@ public class MapSystem extends AbstractGameSystem {
 
     LevelFile res = (LevelFile) assetLoader.loadAsset(mapDirectory + "/" + newMapName);
     res.setMapName(newMapName);
-    log.info("Swapping " + oldMapName + " -> " + newMapName + " at " + tile);
+    log.info("Swapping {} -> {} at {}", oldMapName, newMapName, tile);
 
     final int tileBase = arenaTileBase(arenaIndex);
     final long createdTime = time != null ? time.getTime() : 0L;

@@ -68,7 +68,7 @@ public class WalkDir implements Action {
 
     public WalkDir( double facing, Vec3d move, double duration, double checkTime ) {
 
-log.info("WalkDir(" + facing + ", " + move + ", " + duration + ")");
+log.info("WalkDir({}, {}, {})", facing, move, duration);
         this.facing = facing;
         this.move.set(move);
         this.duration = duration;
@@ -91,7 +91,7 @@ log.info("WalkDir(" + facing + ", " + move + ", " + duration + ")");
             double moved = pos.distance(lastPosition);
             double delta = t - lastTime;
             double speed = moved/delta;
-log.info("moved:" + speed);
+log.info("moved:{}", speed);
             // If we're stuck then we've failed
             if( speed < move.length() * 0.35 ) {
 log.info("******************** Aborting moveDir");

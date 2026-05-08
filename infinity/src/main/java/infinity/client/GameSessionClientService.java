@@ -99,7 +99,7 @@ public class GameSessionClientService extends AbstractClientService implements G
         if (delegate == null) {
             // Look it up
             delegate = rmiService.getRemoteObject(GameSession.class);
-            log.debug("delegate:" + delegate);
+            log.debug("delegate:{}", delegate);
             if (delegate == null) {
                 throw new RuntimeException("No game session found");
             }
@@ -122,7 +122,7 @@ public class GameSessionClientService extends AbstractClientService implements G
 
     @Override
     protected void onInitialize(final ClientServiceManager s) {
-        log.info("onInitialize(" + s + ")");
+        log.info("onInitialize({})", s);
         rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
             throw new RuntimeException("GameSessionClientService requires RMI service");
@@ -198,7 +198,7 @@ public class GameSessionClientService extends AbstractClientService implements G
         @Override
         public void setAvatar(final EntityId avatar) {
 
-            log.info("setAvatar(" + avatar + ")");
+            log.info("setAvatar({})", avatar);
             for (final GameSessionListener l : listeners) {
                 l.setAvatar(avatar);
             }

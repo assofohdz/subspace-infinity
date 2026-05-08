@@ -245,7 +245,7 @@ public class MobDebugState extends BaseAppState {
         }
 
         protected Probe addObject( Entity e ) {
-log.info("add probe for:" + e.getId());
+log.info("add probe for:{}", e.getId());
             Probe object = new Probe(e);
             updateObject(object, e);
             return object;
@@ -255,7 +255,7 @@ log.info("add probe for:" + e.getId());
         }
 
         protected void removeObject( Probe object, Entity e ) {
-log.info("remove probe for:" + e.getId());
+log.info("remove probe for:{}", e.getId());
             object.release();
         }
     }

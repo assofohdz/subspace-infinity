@@ -5,8 +5,8 @@ package infinity.map;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,14 +31,14 @@ public class LevelFile {
     }
 
     // eLVL ATTR tags... vector of vector of Strings
-    public List<List<String>> eLvlAttrs = new Vector<>();
+    public List<List<String>> eLvlAttrs = new ArrayList<>();
     public static final int DEFAULT_TAG_COUNT = 6;
 
     // Vector of loaded regions
     public List<Region> loadedRegions;
 
     // unknown ELVL chunks read in on load
-    public List<Byte> unknownELVLData = new Vector<>();
+    public List<Byte> unknownELVLData = new ArrayList<>();
 
     private final short[][] m_level = new short[1024][1024];
 
@@ -79,7 +79,7 @@ public class LevelFile {
      */
     private String readELvlData() {
         String error = null;
-        loadedRegions = new Vector<>();
+        loadedRegions = new ArrayList<>();
 
         if (!available(12)) {
             error = "File ended before we could read the eLVL header.";
@@ -118,7 +118,7 @@ public class LevelFile {
                                 break;
                             }
 
-                            final List<String> row = new Vector<>();
+                            final List<String> row = new ArrayList<>();
                             row.add(keyTag[0]);
                             row.add(keyTag[1]);
                             eLvlAttrs.add(row);

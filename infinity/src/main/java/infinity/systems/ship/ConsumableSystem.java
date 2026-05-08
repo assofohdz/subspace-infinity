@@ -53,8 +53,8 @@ import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentHashMap.KeySetView;
 
 /**
  * This system handles all the actions that can be performed by the player.
@@ -73,7 +73,7 @@ public class ConsumableSystem extends AbstractGameSystem
   public static final byte FIRETHOR = 0x6;
   public static final byte WARP = 0x7;
 
-  private final KeySetView<Action, Boolean> sessionActionCreations = ConcurrentHashMap.newKeySet();
+  private final Set<Action> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
   private EntitySet repelOwners;
   private EntitySet rocketOwners;

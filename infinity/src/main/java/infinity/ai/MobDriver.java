@@ -117,7 +117,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   @Override
   public void initialize(RigidBody<EntityId, MBlockShape> body) {
     super.initialize(body);
-    log.info("initialize(" + body + ")");
+    log.info("initialize({})", body);
     if (body.shape instanceof RigShape) {
       this.rigShape = (RigShape) body.shape;
 
@@ -126,7 +126,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
       animPump.setCurrentAction("Idle", 1);
       rigShape.update();
 
-      log.info("rig shape:" + rigShape);
+      log.info("rig shape:{}", rigShape);
       // dumpShape(rigShape);
       // rigShape.setLayerAction(null, "Idle");
       // rigShape.setTime(null, 1);
@@ -136,14 +136,14 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   protected void dumpShape(MBlockShape shape) {
-    log.info("dumpShape(" + shape + ")");
+    log.info("dumpShape({})", shape);
     Part root = shape.getPart();
     if (root instanceof Group) {
       for (Part child : ((Group) root).getChildren()) {
-        log.info("   " + child.getName() + ":" + child.getShapeRelativePosition());
+        log.info("   {}:{}", child.getName(), child.getShapeRelativePosition());
       }
     } else {
-      log.info(" root:" + root.getName() + ":" + root.getShapeRelativePosition());
+      log.info(" root:{}:{}", root.getName(), root.getShapeRelativePosition());
     }
   }
 
@@ -241,7 +241,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
     List<SeenObject> results = new ArrayList<>();
     for (EntityId id : ed.findEntities(null, SpawnPosition.class, ShapeInfo.class, Mass.class)) {
-      if (id == mob) {
+      if (id.equals(mob)) {
         // We don't see ourselves
         continue;
       }
@@ -328,7 +328,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
       // a gross approximation
       double size = rb.shape.getMass().getRadius();
       double dist = rb.position.distance(getBody().position);
-      log.info("look2(" + id + ") distance:" + dist);
+      log.info("look2({}) distance:{}", id, dist);
       if (dist <= (radius + size)) {
         return new SeenObject(
             id,
@@ -512,7 +512,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
       // with something.
       if (maxPushback > 0.2 && averageVelocity.lengthSq() < (0.001 * 0.001)) {
         // log.info("blocked by:" + mostBlocked);
-        log.info("***   max pushback:" + maxPushback);
+        log.info("***   max pushback:{}", maxPushback);
         brain.blocked(mostBlocked.contactNormal);
       }
     }
@@ -558,7 +558,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
         // animSpeed = (speed / 1.5) * 1.75;
         animSpeed = (speed / 1.5) * 1.8;
       } else {
-        log.info("actual velocity:" + actualVelocity + "  averageVelocity:" + averageVelocity);
+        log.info("actual velocity:{}  averageVelocity:{}", actualVelocity, averageVelocity);
       }
       // log.info("setCurrentAction(" + action + ", " + animSpeed + ") speed:" + speed);
       animPump.setCurrentAction(action, animSpeed);

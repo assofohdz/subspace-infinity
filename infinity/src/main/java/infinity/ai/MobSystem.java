@@ -406,7 +406,7 @@ public class MobSystem extends AbstractGameSystem {
 
         @Override
         protected void removeObject( Brain driver, Entity e ) {
-log.info("removeObject(" + e + ")");
+log.info("removeObject({})", e);
         }
     }
 
@@ -422,7 +422,7 @@ log.info("removeObject(" + e + ")");
 
             String type = e.get(MobType.class).getTypeName(ed);
             MovementSettings ms = settingsIndex.get(type);
-log.info("type:" + type + "  settings:" + ms);
+log.info("type:{}  settings:{}", type, ms);
             if( ms != null ) {
                 result.setMovementSettings(ms);
             }
@@ -438,7 +438,7 @@ log.info("type:" + type + "  settings:" + ms);
 
             // See if the physics engine already has a body for this entity
             RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
-log.info("existing body:" + body);
+log.info("existing body:{}", body);
             if( body != null ) {
                 body.setControlDriver(result);
             }
@@ -461,7 +461,7 @@ log.info("existing body:" + body);
 
         @Override
         protected void removeObject( MobDriver driver, Entity e ) {
-log.info("removeObject(" + e + ")");
+log.info("removeObject({})", e);
             driver.release();
         }
     }
@@ -471,7 +471,7 @@ log.info("removeObject(" + e + ")");
         public Void apply( RigidBody<EntityId, MBlockShape> body ) {
             // See if this is one of the ones we need to add a player driver to
             MobDriver driver = drivers.getObject(body.id);
-log.info("MobBodyInitializer.apply(" + body + ")  driver:" + driver);
+log.info("MobBodyInitializer.apply({})  driver:{}", body, driver);
             if( driver != null ) {
                 body.setControlDriver(driver);
             }

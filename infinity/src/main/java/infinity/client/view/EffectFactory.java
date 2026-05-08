@@ -27,7 +27,6 @@ public class EffectFactory {
     // private final float time = 0;
     // private final int state2 = 0;
     private final Node explosionEffect = new Node("explosionFX");
-    private ParticleEmitter flame, flash, spark, roundspark, smoketrail, debris, shockwave;
 
     private static final int COUNT_FACTOR = 1;
     private static final float COUNT_FACTOR_F = 1f;
@@ -56,7 +55,7 @@ public class EffectFactory {
     }
 
     private void createFlame() {
-        flame = new ParticleEmitter("Flame", EMITTER_TYPE, 32 * COUNT_FACTOR);
+        final ParticleEmitter flame = new ParticleEmitter("Flame", EMITTER_TYPE, 32 * COUNT_FACTOR);
         flame.setSelectRandomImage(true);
         flame.setStartColor(new ColorRGBA(1f, 0.4f, 0.05f, 1f / COUNT_FACTOR_F));
         flame.setEndColor(new ColorRGBA(.4f, .22f, .12f, 0f));
@@ -79,7 +78,7 @@ public class EffectFactory {
     }
 
     private void createFlash() {
-        flash = new ParticleEmitter("Flash", EMITTER_TYPE, 24 * COUNT_FACTOR);
+        final ParticleEmitter flash = new ParticleEmitter("Flash", EMITTER_TYPE, 24 * COUNT_FACTOR);
         flash.setSelectRandomImage(true);
         flash.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, 1f / COUNT_FACTOR_F));
         flash.setEndColor(new ColorRGBA(1f, 0.8f, 0.36f, 0f));
@@ -102,7 +101,7 @@ public class EffectFactory {
     }
 
     private void createRoundSpark() {
-        roundspark = new ParticleEmitter("RoundSpark", EMITTER_TYPE, 20 * COUNT_FACTOR);
+        final ParticleEmitter roundspark = new ParticleEmitter("RoundSpark", EMITTER_TYPE, 20 * COUNT_FACTOR);
         roundspark.setStartColor(new ColorRGBA(1f, 0.29f, 0.34f, (float) (1.0 / COUNT_FACTOR_F)));
         roundspark.setEndColor(new ColorRGBA(0, 0, 0, 0.5f / COUNT_FACTOR_F));
         roundspark.setStartSize(1.2f);
@@ -124,7 +123,7 @@ public class EffectFactory {
     }
 
     private void createSpark() {
-        spark = new ParticleEmitter("Spark", ParticleMesh.Type.Triangle, 30 * COUNT_FACTOR);
+        final ParticleEmitter spark = new ParticleEmitter("Spark", ParticleMesh.Type.Triangle, 30 * COUNT_FACTOR);
         spark.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, 1.0f / COUNT_FACTOR_F));
         spark.setEndColor(new ColorRGBA(1f, 0.8f, 0.36f, 0f));
         spark.setStartSize(.5f);
@@ -145,7 +144,7 @@ public class EffectFactory {
     }
 
     private void createSmokeTrail() {
-        smoketrail = new ParticleEmitter("SmokeTrail", ParticleMesh.Type.Triangle, 22 * COUNT_FACTOR);
+        final ParticleEmitter smoketrail = new ParticleEmitter("SmokeTrail", ParticleMesh.Type.Triangle, 22 * COUNT_FACTOR);
         smoketrail.setStartColor(new ColorRGBA(1f, 0.8f, 0.36f, 1.0f / COUNT_FACTOR_F));
         smoketrail.setEndColor(new ColorRGBA(1f, 0.8f, 0.36f, 0f));
         smoketrail.setStartSize(.2f);
@@ -168,7 +167,7 @@ public class EffectFactory {
     }
 
     private void createDebris() {
-        debris = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 15 * COUNT_FACTOR);
+        final ParticleEmitter debris = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 15 * COUNT_FACTOR);
         debris.setSelectRandomImage(true);
         debris.setRandomAngle(true);
         debris.setRotateSpeed(FastMath.TWO_PI * 4);
@@ -193,7 +192,7 @@ public class EffectFactory {
     }
 
     private void createShockwave() {
-        shockwave = new ParticleEmitter("Shockwave", ParticleMesh.Type.Triangle, 1 * COUNT_FACTOR);
+        final ParticleEmitter shockwave = new ParticleEmitter("Shockwave", ParticleMesh.Type.Triangle, 1 * COUNT_FACTOR);
 //        shockwave.setRandomAngle(true);
         shockwave.setFaceNormal(Vector3f.UNIT_Y);
         shockwave.setStartColor(new ColorRGBA(.48f, 0.17f, 0.01f, .8f / COUNT_FACTOR_F));

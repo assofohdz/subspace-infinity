@@ -73,7 +73,7 @@ public class AnimPump {
     this.time = 0;
     this.action = action;
     if (action != null) {
-      log.info("setLayerAction(" + layer + ", " + action + ") speed:" + speed);
+      log.info("setLayerAction({}, {}) speed:{}", layer, action, speed);
       rig.setLayerAction(layer, action);
       length = rig.getLayerDuration(layer);
     }
@@ -106,7 +106,7 @@ public class AnimPump {
       time = (time + length) % length;
     }
     if (lastTime > time) {
-      log.info("wrap at:" + time);
+      log.info("wrap at:{}", time);
     }
     // log.info("time:" + time);
     rig.setTime(layer, time);

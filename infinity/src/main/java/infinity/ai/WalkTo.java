@@ -96,7 +96,7 @@ public class WalkTo implements Action {
         }
         double d2 = v.length();
         double d = Math.min(d1, d2);
-log.info("d1:" + d1 + "  d2:" + d2 + "    delta:" + v);
+log.info("d1:{}  d2:{}    delta:{}", d1, d2, v);
         if( d <= range ) {
             actor.move(new Vec3d());
             return ActionStatus.DONE;
@@ -117,7 +117,7 @@ log.info("d1:" + d1 + "  d2:" + d2 + "    delta:" + v);
         double sin = target.x - pos.x;
         double cos = target.z - pos.z;
         double facing = Math.atan2(sin, cos);
-log.info("pos:" + pos + "  target:" + target + "   facing:" + Math.toDegrees(facing));
+log.info("pos:{}  target:{}   facing:{}", pos, target, Math.toDegrees(facing));
         //facing = 0; //-Math.PI * 0.25;
         if( facing < 0 ) {
             facing += Math.PI * 2;

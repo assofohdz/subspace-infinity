@@ -127,19 +127,18 @@ public class SpeechViewState extends BaseAppState {
 
     private class SpeechBubble {
         private EntityId speaker;
-        private String text;
         private Decay decay;
 
         private Spatial model;
         private BitmapText spatial;
-        private ColorRGBA color = new ColorRGBA(1, 1, 0, 1);
         private float yOffset;
         private float lineOffset = 0;
 
         public SpeechBubble(Speech speech, Decay decay ) {
             this.decay = decay;
             this.speaker = speech.getSpeaker();
-            this.text = speech.getText();
+            final String text = speech.getText();
+            final ColorRGBA color = new ColorRGBA(1, 1, 0, 1);
 
             this.spatial = new BitmapText(font);
 
@@ -210,7 +209,7 @@ public class SpeechViewState extends BaseAppState {
         protected SpeechBubble addObject( Entity e ) {
             Speech speech = e.get(Speech.class);
             Decay decay = e.get(Decay.class);
-log.info("New speech:" + speech);
+log.info("New speech:{}", speech);
             return new SpeechBubble(speech, decay);
         }
 

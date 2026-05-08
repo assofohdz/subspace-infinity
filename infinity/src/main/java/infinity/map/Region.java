@@ -6,7 +6,6 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * This class represents a region defined by several things: name - rNam isBase
@@ -44,7 +43,7 @@ public class Region {
     public String arena = "";
 
     public List<Rectangle> rects = new ArrayList<>();
-    public List<Byte> unknownBytes = new Vector<>(); // region bytes loaded... but unknown or unused by the program
+    public List<Byte> unknownBytes = new ArrayList<>(); // region bytes loaded... but unknown or unused by the program
 
     public Region() {
         name = "@THIS_IS_A_BUG->ERROR"; // the user should never see this
@@ -62,7 +61,7 @@ public class Region {
      * @return a Vector of Bytes representing this region
      */
     public List<Byte> getEncodedRegion() {
-        final List<Byte> encoding = new Vector<>();
+        final List<Byte> encoding = new ArrayList<>();
         // encode isBase
         if (isBase) {
             encoding.add(Byte.valueOf((byte) 'r'));
@@ -232,7 +231,7 @@ public class Region {
      * @return the vector of bytes representing the encoding of this tiledata
      */
     private List<Byte> getCompressedRGN() {
-        final List<Byte> bytes = new Vector<>();
+        final List<Byte> bytes = new ArrayList<>();
 
         final boolean rgn[][] = new boolean[1024][1024];
 
@@ -299,7 +298,7 @@ public class Region {
             }
 
             // we have to encode a single row
-            final List<Byte> encodedRow = new Vector<>();
+            final List<Byte> encodedRow = new ArrayList<>();
             curY = 0;
             while (curY < 1024) {
                 final boolean encodingTiles = rgn[curRow][curY];
@@ -369,7 +368,7 @@ public class Region {
          * rows of all empty
          */
 
-        final List<Byte> code = new Vector<>();
+        final List<Byte> code = new ArrayList<>();
 
         int i = count;
         if (i <= 32) {
@@ -407,7 +406,7 @@ public class Region {
          * 0110 00nn nnnn nnnn - n+1 (1-1024) present tiles in a row
          */
 
-        final List<Byte> code = new Vector<>();
+        final List<Byte> code = new ArrayList<>();
         int i = count;
 
         if (i <= 32) {
@@ -459,7 +458,7 @@ public class Region {
          * last row n+1 (1-1024) times
          */
 
-        final List<Byte> code = new Vector<>();
+        final List<Byte> code = new ArrayList<>();
         int i = count;
         if (i <= 32) {
             i--; // cause it's 1-32 not 0-31

@@ -417,7 +417,7 @@ public class GameServer {
         } else if ("stats".equals(line)) {
           gs.logStats();
         } else {
-          log.error(String.format("Unknown command:%s", line));
+          log.error("Unknown command:{}", line);
         }
       }
       gs.close();
@@ -522,7 +522,7 @@ public class GameServer {
    * terminates them. The GameServer is not restartable at this point.
    */
   public void close(final String kickMessage) {
-    log.info(String.format("Stopping game server...%s", kickMessage));
+    log.info("Stopping game server...{}", kickMessage);
     loop.stop();
 
     if (kickMessage != null) {
@@ -607,7 +607,7 @@ public class GameServer {
     public void connectionAdded(final Server server, final HostedConnection hc) {
       // Just in case
       super.connectionAdded(server, hc);
-      log.debug(String.format("DelayService.connectionAdded(%s)", hc));
+      log.debug("DelayService.connectionAdded({})", hc);
       safeSleep(500);
       log.debug("DelayService.delay done");
     }

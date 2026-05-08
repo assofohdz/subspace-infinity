@@ -66,7 +66,7 @@ public class AccountClientService extends AbstractClientService
 
   @Override
   protected void onInitialize( ClientServiceManager s ) {
-    log.debug("onInitialize(" + s + ")");
+    log.debug("onInitialize({})", s);
     this.rmiService = getService(RmiClientService.class);
     if( rmiService == null ) {
       throw new RuntimeException("AccountClientService requires RMI service");
@@ -84,7 +84,7 @@ public class AccountClientService extends AbstractClientService
     log.debug("start()");
     super.start();
     this.delegate = rmiService.getRemoteObject(AccountSession.class);
-    log.debug("delegate:" + delegate);
+    log.debug("delegate:{}", delegate);
     if( delegate == null ) {
       throw new RuntimeException("No account session found during connection setup");
     }
@@ -98,7 +98,7 @@ public class AccountClientService extends AbstractClientService
 
     @Override
     public void notifyLoginStatus( boolean loggedIn ) {
-      log.trace("notifyLoginStatus(" + loggedIn + ")");
+      log.trace("notifyLoginStatus({})", loggedIn);
       for( AccountSessionListener l : listeners ) {
         l.notifyLoginStatus(loggedIn);
       }

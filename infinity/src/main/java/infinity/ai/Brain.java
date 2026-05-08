@@ -108,7 +108,7 @@ public class Brain {
   }
 
   public void setActor(Actor actor) {
-    log.info("setActor(" + actor + ")");
+    log.info("setActor({})", actor);
     this.actor = actor;
   }
 
@@ -213,12 +213,12 @@ public class Brain {
   }
 
   protected Strategy<Goal> selectStrategy(Goal goal) {
-    log.info("selectStrategy(" + goal + ")");
+    log.info("selectStrategy({})", goal);
     // Stored Strategy<G> is keyed on the runtime goal class — bridging into
     // Strategy<Goal> here so currentGoal can flow through plan/done/failed.
     @SuppressWarnings({"rawtypes", "unchecked"})
     Strategy<Goal> result = (Strategy<Goal>) (Strategy) config.getStrategy(goal.getClass());
-    log.info(" found:" + result);
+    log.info(" found:{}", result);
     if (result == null) {
       log.error("No strategy found to support goal:" + goal);
       // We can't use a default strategy because some strategies
@@ -236,7 +236,7 @@ public class Brain {
 
   /** Overrides the existing goal with a new higher priority goal. */
   public void newGoal(Goal goal) {
-    log.info("newGoal(" + goal + ")");
+    log.info("newGoal({})", goal);
     // We should just be able to abort the current action
     // set the current goal and clear the current strategy+action.
     if (action != null) {
@@ -287,7 +287,7 @@ public class Brain {
   }
 
   public void think(SimTime time) {
-    log.info("think():" + actor);
+    log.info("think():{}", actor);
 
     if (!pendingTouches.isEmpty()) {
       deliverTouches(pendingTouches);

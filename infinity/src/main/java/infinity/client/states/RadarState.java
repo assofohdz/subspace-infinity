@@ -140,8 +140,6 @@ public class RadarState extends BaseAppState {
 
     private Camera radarCam;
     private ViewPort radarViewport;
-    private FrameBuffer radarFrameBuffer;
-    private Texture2D radarTex;
 
     private Geometry radarQuad;
     private Node guiNode;
@@ -232,11 +230,11 @@ public class RadarState extends BaseAppState {
         radarViewport.setBackgroundColor(theme.voidTintColor());
         radarViewport.attachScene(radarRoot);
 
-        radarTex = new Texture2D(theme.pixelSize(), theme.pixelSize(), Image.Format.RGBA8);
+        final Texture2D radarTex = new Texture2D(theme.pixelSize(), theme.pixelSize(), Image.Format.RGBA8);
         radarTex.setMinFilter(Texture.MinFilter.Trilinear);
         radarTex.setMagFilter(Texture.MagFilter.Bilinear);
 
-        radarFrameBuffer = new FrameBuffer(theme.pixelSize(), theme.pixelSize(), 1);
+        final FrameBuffer radarFrameBuffer = new FrameBuffer(theme.pixelSize(), theme.pixelSize(), 1);
         radarFrameBuffer.setDepthTarget(FrameBuffer.FrameBufferTarget.newTarget(Image.Format.Depth));
         radarFrameBuffer.addColorTarget(FrameBuffer.FrameBufferTarget.newTarget(radarTex));
         radarViewport.setOutputFrameBuffer(radarFrameBuffer);

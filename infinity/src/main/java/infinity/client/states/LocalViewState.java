@@ -530,7 +530,6 @@ public class LocalViewState extends BaseAppState {
     private final Node leafNode;
     private final Geometry testGeom;
 
-    private LeafData leafData;
     // Reserved for per-leaf lighting — see commented-out neighborhood-lighting code below.
     @SuppressWarnings("PMD.UnusedPrivateField")
     private LightData lightData;
@@ -577,7 +576,7 @@ public class LocalViewState extends BaseAppState {
       // requeue it.
       queued = false;
 
-      this.leafData = world.getLeaf(leafId);
+      final LeafData leafData = world.getLeaf(leafId);
       // log.info(String.format("Leaf change: empty cells in changed leaf: %d",
       // leafData.getEmptyCellCount()));
 

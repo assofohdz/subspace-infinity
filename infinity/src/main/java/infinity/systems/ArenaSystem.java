@@ -804,7 +804,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       log.info("Arena {} loaded with map {} at slot {}", rec.name, mapFile, rec.arenaIndex);
     } catch (final Exception e) {
       fail(rec, arena, e.toString());
-      log.error("Arena " + rec.name + " load failed", e);
+      log.error("Arena {} load failed", rec.name, e);
     }
   }
 
@@ -896,7 +896,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     } catch (final Exception e) {
       rec.state = ArenaState.FAILED;
       rec.lastError = e.toString();
-      log.error("Arena " + rec.name + " unload failed", e);
+      log.error("Arena {} unload failed", rec.name, e);
     }
   }
 

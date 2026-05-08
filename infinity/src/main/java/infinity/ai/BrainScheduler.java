@@ -84,7 +84,7 @@ public class BrainScheduler {
      *  its next heartbeat time has changed.
      */
     public void reschedule( Brain brain ) {
-        log.info("reschedule(" + brain + ")");
+        log.info("reschedule({})", brain);
         reschedule.add(brain);
     }
 
@@ -120,7 +120,7 @@ public class BrainScheduler {
     }
 
     protected void schedule( Brain brain ) {
-        log.info("schedule(" + brain + ")");
+        log.info("schedule({})", brain);
 
         if( schedule.isEmpty() ) {
             schedule.add(brain);
@@ -163,8 +163,8 @@ public class BrainScheduler {
 
             // Sanity check the heartbeat
             if( brain.getNextHeartbeat() <= t ) {
-                log.warn("possible endless loop caused by non-advancing time for:" + brain
-                            + " next heartbeat:" + brain.getNextHeartbeat() + " t:" + t);
+                log.warn("possible endless loop caused by non-advancing time for:{} next heartbeat:{} t:{}",
+                            brain, brain.getNextHeartbeat(), t);
             }
             schedule(brain);
         }

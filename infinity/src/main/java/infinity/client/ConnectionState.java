@@ -47,7 +47,6 @@ public class ConnectionState extends CompositeAppState {
 
     private GameClient client;
     private ConnectionObserver connectionObserver = new ConnectionObserver();
-    private Connector connector;
     private Thread renderThread;
 
     private OptionPanel connectingPanel;
@@ -84,7 +83,7 @@ public class ConnectionState extends CompositeAppState {
     }
 
     public boolean join( String userName ) {
-        log.info("join(" + userName + ")");
+        log.info("join({})", userName);
 
         if( userName != null ) {
             userName = userName.trim();
@@ -115,7 +114,7 @@ public class ConnectionState extends CompositeAppState {
         getState(OptionPanelState.class).show(connectingPanel);
 
         this.renderThread = Thread.currentThread();
-        connector = new Connector();
+        final Connector connector = new Connector();
         connector.start();
     }
 
@@ -178,7 +177,7 @@ public class ConnectionState extends CompositeAppState {
     }
 
     protected void setClient( final GameClient client ) {
-        log.info("Connection established:" + client);
+        log.info("Connection established:{}", client);
         if( isRenderThread() ) {
             this.client = client;
         } else {
@@ -202,13 +201,13 @@ public class ConnectionState extends CompositeAppState {
 
         String serverInfo = client.getService(AccountClientService.class).getServerInfo();
 
-        log.debug("Server info:" + serverInfo);
+        log.debug("Server info:{}", serverInfo);
 
         getStateManager().attach(new LoginState(serverInfo));
     }
 
     protected void onDisconnected( DisconnectInfo info ) {
-        log.info("onDisconnected(" + info + ")");
+        log.info("onDisconnected({})", info);
         closeConnectingPanel();
         if( closing ) {
             return;
@@ -241,7 +240,7 @@ public class ConnectionState extends CompositeAppState {
 
     private class ConnectionObserver implements ClientStateListener, ErrorListener<Client> {
         public void clientConnected( final Client c ) {
-            log.info("clientConnected(" + c + ")");
+            log.info("clientConnected({})", c);
             getApplication().enqueue(new Callable<Object>() {
                 public Object call() {
                     onConnected();
@@ -251,7 +250,7 @@ public class ConnectionState extends CompositeAppState {
         }
 
         public void clientDisconnected( final Client c, final DisconnectInfo info ) {
-            log.info("clientDisconnected(" + c + ", " + info + ")");
+            log.info("clientDisconnected({}, {})", c, info);
             getApplication().enqueue(new Callable<Object>() {
                 public Object call() {
                     onDisconnected(info);
@@ -286,7 +285,7 @@ public class ConnectionState extends CompositeAppState {
         public void run() {
 
             try {
-                log.info("Creating game client for:" + host + " " + port);
+                log.info("Creating game client for:{} {}", host, port);
                 GameClient client = new GameClient(host, port);
                 if( closing ) {
                     return;

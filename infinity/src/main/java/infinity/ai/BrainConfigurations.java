@@ -75,7 +75,7 @@ public class BrainConfigurations {
 
     config.setGoalSelector(
         (brain) -> {
-          log.info("selectGoal() failed goals:" + brain.getFailedGoals());
+          log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
 
           Actor actor = brain.getActor();
 
@@ -94,7 +94,7 @@ public class BrainConfigurations {
               min = d;
             }
           }
-          log.info("Closest food:" + nearest + "  distance:" + min);
+          log.info("Closest food:{}  distance:{}", nearest, min);
           if (min < 1.5) {
             Goal eat = new Eat(nearest.getId());
             if (!brain.isFailedGoal(eat)) {
@@ -204,7 +204,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -215,13 +215,13 @@ public class BrainConfigurations {
             .onTouch(
                 Collections.singletonList("corn"),
                 (brain, event) -> {
-                  log.info("touched by corn:" + brain.getId() + "  corn:" + event.getObject());
+                  log.info("touched by corn:{}  corn:{}", brain.getId(), event.getObject());
                   brain.newGoal(new Eat(event.getObject().getId()));
                   return true;
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -268,7 +268,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -279,7 +279,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -296,7 +296,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -307,13 +307,13 @@ public class BrainConfigurations {
             .onTouch(
                 Collections.singletonList("corn"),
                 (brain, event) -> {
-                  log.info("touched by corn:" + brain.getId() + "  corn:" + event.getObject());
+                  log.info("touched by corn:{}  corn:{}", brain.getId(), event.getObject());
                   brain.newGoal(new Eat(event.getObject().getId()));
                   return true;
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -363,7 +363,7 @@ public class BrainConfigurations {
 
     config.setGoalSelector(
         (brain) -> {
-          log.info("selectGoal() failed goals:" + brain.getFailedGoals());
+          log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
 
           Actor actor = brain.getActor();
 
@@ -432,7 +432,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -442,7 +442,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -490,7 +490,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -501,7 +501,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -518,7 +518,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -528,7 +528,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -545,7 +545,7 @@ public class BrainConfigurations {
 
     config.setGoalSelector(
         (brain) -> {
-          log.info("selectGoal() failed goals:" + brain.getFailedGoals());
+          log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
 
           Actor actor = brain.getActor();
 
@@ -614,7 +614,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -624,7 +624,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -672,7 +672,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -683,7 +683,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -700,7 +700,7 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info(goal + " succeeded for:" + brain);
+                  log.info("{} succeeded for:{}", goal, brain);
                   return null;
                 })
             .onFailed(
@@ -710,7 +710,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:" + blocker);
+                  log.info("blocked by:{}", blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());

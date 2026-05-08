@@ -14,17 +14,12 @@ public class BitMap {
 
     private final BufferedInputStream m_stream;
 
-    private byte[] fileHeader;
-    private byte[] infoHeader;
-
     // private String fh_type;
     private int m_size;
     // private int m_offset;
     private int m_width;
     private int m_height;
     private int m_bitCount;
-    private int m_compressionType;
-    private int m_colorsUsed;
 
     private int[] m_colorTable;
     private int[] m_image;
@@ -40,7 +35,7 @@ public class BitMap {
 
     public void readBitMap(final boolean trans) {
         // Read 14 bytes for file header
-        fileHeader = readIn(14);
+        final byte[] fileHeader = readIn(14);
         ByteBuffer array = LvlBinUtil.wrapLE(fileHeader);
 
         if (LvlBinUtil.readString(array, 0, 2).equals("BM")) {
@@ -68,13 +63,13 @@ public class BitMap {
         }
 
         // Read 40 bytes for info header
-        infoHeader = readIn(40);
+        final byte[] infoHeader = readIn(40);
         array = LvlBinUtil.wrapLE(infoHeader);
         m_width = array.getInt(4);
         m_height = array.getInt(8);
         m_bitCount = array.getShort(14);
-        m_compressionType = array.getInt(16);
-        m_colorsUsed = array.getInt(20);
+        final int m_compressionType = array.getInt(16);
+        int m_colorsUsed = array.getInt(20);
 
         // Create our image container
         m_image = new int[m_width * m_height];
