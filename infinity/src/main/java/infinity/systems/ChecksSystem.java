@@ -68,6 +68,7 @@ import infinity.sim.CommandTriFunction;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.ToIntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -442,63 +443,49 @@ public class ChecksSystem extends AbstractGameSystem {
     }
   }
 
+  /**
+   * Map-dispatch for the {@code label=current/max} formatter. Covers the entire
+   * inventory family ({@code Repel/Burst/Thor/Brick/Decoy/Rocket/Portal} ×
+   * {@code Current+Max}) plus the engine-stat scalars
+   * ({@code Energy/Thrust/Speed} × {@code current+max}). Replaces a 17-arm
+   * instanceof chain previously split across four sub-helpers.
+   */
+  private static final Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> INT_GETTERS = buildIntGetters();
+
+  private static Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> buildIntGetters() {
+    final Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> m = new HashMap<>();
+    // Active-use inventory: Repel / Burst / Thor (current + max each).
+    m.put(Repel.class, c -> ((Repel) c).getCount());
+    m.put(RepelMax.class, c -> ((RepelMax) c).getCount());
+    m.put(Burst.class, c -> ((Burst) c).getCount());
+    m.put(BurstMax.class, c -> ((BurstMax) c).getCount());
+    m.put(ThorCurrentCount.class, c -> ((ThorCurrentCount) c).getCount());
+    m.put(ThorMaxCount.class, c -> ((ThorMaxCount) c).getCount());
+    // Buildable inventory: Brick / Decoy (current + max each).
+    m.put(Brick.class, c -> ((Brick) c).getCount());
+    m.put(BrickMax.class, c -> ((BrickMax) c).getCount());
+    m.put(Decoy.class, c -> ((Decoy) c).getCount());
+    m.put(DecoyMax.class, c -> ((DecoyMax) c).getCount());
+    // Mobility inventory: Rocket / Portal (current + max each).
+    m.put(Rocket.class, c -> ((Rocket) c).getCount());
+    m.put(RocketMax.class, c -> ((RocketMax) c).getCount());
+    m.put(Portal.class, c -> ((Portal) c).getCount());
+    m.put(PortalMax.class, c -> ((PortalMax) c).getCount());
+    // Ship-stat scalars (Energy/Thrust/Speed × current+max).
+    m.put(Energy.class, c -> ((Energy) c).getEnergy());
+    m.put(EnergyMax.class, c -> ((EnergyMax) c).getMaxEnergy());
+    m.put(Thrust.class, c -> ((Thrust) c).getThrust());
+    m.put(ThrustMax.class, c -> ((ThrustMax) c).getThrustMax());
+    m.put(Speed.class, c -> ((Speed) c).getSpeed());
+    m.put(SpeedMax.class, c -> ((SpeedMax) c).getSpeedMax());
+    return Map.copyOf(m);
+  }
+
   /** Read getCount() across the whole inventory family + Energy/etc. as a flat int. */
   private static String intValue(final EntityComponent c) {
     if (c == null) return "?";
-    final String inv = inventoryCount(c);
-    if (inv != null) return inv;
-    final String stat = shipStatValue(c);
-    if (stat != null) return stat;
-    return "?";
-  }
-
-  /** Inventory-family components: dispatcher across active-use, buildable, mobile groups. */
-  private static String inventoryCount(final EntityComponent c) {
-    final String active = inventoryCountActive(c);
-    if (active != null) return active;
-    final String buildable = inventoryCountBuildable(c);
-    if (buildable != null) return buildable;
-    return inventoryCountMobile(c);
-  }
-
-  /** Active-use inventory: Repel / Burst / Thor (current + max each). */
-  private static String inventoryCountActive(final EntityComponent c) {
-    if (c instanceof Repel r) return Integer.toString(r.getCount());
-    if (c instanceof RepelMax r) return Integer.toString(r.getCount());
-    if (c instanceof Burst b) return Integer.toString(b.getCount());
-    if (c instanceof BurstMax b) return Integer.toString(b.getCount());
-    if (c instanceof ThorCurrentCount t) return Integer.toString(t.getCount());
-    if (c instanceof ThorMaxCount t) return Integer.toString(t.getCount());
-    return null;
-  }
-
-  /** Buildable inventory: Brick / Decoy (current + max each). */
-  private static String inventoryCountBuildable(final EntityComponent c) {
-    if (c instanceof Brick b) return Integer.toString(b.getCount());
-    if (c instanceof BrickMax b) return Integer.toString(b.getCount());
-    if (c instanceof Decoy d) return Integer.toString(d.getCount());
-    if (c instanceof DecoyMax d) return Integer.toString(d.getCount());
-    return null;
-  }
-
-  /** Mobility inventory: Rocket / Portal (current + max each). */
-  private static String inventoryCountMobile(final EntityComponent c) {
-    if (c instanceof Rocket r) return Integer.toString(r.getCount());
-    if (c instanceof RocketMax r) return Integer.toString(r.getCount());
-    if (c instanceof Portal p) return Integer.toString(p.getCount());
-    if (c instanceof PortalMax p) return Integer.toString(p.getCount());
-    return null;
-  }
-
-  /** Ship-stat scalars (Energy/Thrust/Speed × current+max). */
-  private static String shipStatValue(final EntityComponent c) {
-    if (c instanceof Energy e) return Integer.toString(e.getEnergy());
-    if (c instanceof EnergyMax e) return Integer.toString(e.getMaxEnergy());
-    if (c instanceof Thrust t) return Integer.toString(t.getThrust());
-    if (c instanceof ThrustMax t) return Integer.toString(t.getThrustMax());
-    if (c instanceof Speed s) return Integer.toString(s.getSpeed());
-    if (c instanceof SpeedMax s) return Integer.toString(s.getSpeedMax());
-    return null;
+    final ToIntFunction<EntityComponent> fn = INT_GETTERS.get(c.getClass());
+    return fn == null ? "?" : Integer.toString(fn.applyAsInt(c));
   }
 
   private static String doubleValue(final EntityComponent c) {

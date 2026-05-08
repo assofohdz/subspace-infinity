@@ -694,6 +694,16 @@ public class ConsumableSystem extends AbstractGameSystem
    * @param attackerEntity requesting entity
    * @param weaponFlag the weapon type
    */
+  /**
+   * Weapon flags whose ActionPosition is just the ship's own position with
+   * zero velocity — used by mechanics that don't fire a projectile (REPEL is
+   * a radial pulse; FIREROCKET is a self-buff; PLACEBRICK/PLACEDECOY/
+   * PLACEPORTAL are plumbing-only markers whose position info is dropped by
+   * the corresponding {@code create*} method).
+   */
+  private static final Set<Byte> CENTERED_NO_PROJECTILE =
+      Set.of(REPEL, FIREROCKET, PLACEBRICK, PLACEDECOY, PLACEPORTAL);
+
   private ActionPosition getActionPosition(final Entity attackerEntity, final byte weaponFlag) {
     EntityId attacker = attackerEntity.getId();
     // Default vector for projectiles (z=forward):
@@ -701,34 +711,9 @@ public class ConsumableSystem extends AbstractGameSystem
 
     final RigidBody<?, ?> shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
 
-    // Repel is centered on the ship and does not project a velocity (no
-    // forward offset, no inheriting ship velocity), so short-circuit before
-    // the projectile-shaped math below.
-    if (weaponFlag == REPEL) {
-      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
-    }
-    // Rocket is a buff on the ship itself — no projectile to position. The
-    // ActionPosition is dropped by createRocketBuff; the short-circuit just
-    // avoids the projectile-shaped math.
-    if (weaponFlag == FIREROCKET) {
-      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
-    }
-    // Brick (plumbing-only): no projectile shape today — the marker entity
-    // carries the span and ConsumableSystem.createBrick drops the position
-    // info entirely. Short-circuit to skip projectile math.
-    if (weaponFlag == PLACEBRICK) {
-      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
-    }
-    // Decoy (plumbing-only): no projectile shape today — the marker entity
-    // carries only Parent + Decay and ConsumableSystem.createDecoy drops
-    // the position info entirely. Short-circuit to skip projectile math.
-    if (weaponFlag == PLACEDECOY) {
-      return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
-    }
-    // Portal (plumbing-only): no projectile shape today — the marker entity
-    // carries only Parent + Decay and ConsumableSystem.createPortal drops
-    // the position info entirely. Short-circuit to skip projectile math.
-    if (weaponFlag == PLACEPORTAL) {
+    // Mechanics that don't fire a projectile short-circuit to ship-center
+    // with zero velocity — see CENTERED_NO_PROJECTILE Javadoc for which.
+    if (CENTERED_NO_PROJECTILE.contains(weaponFlag)) {
       return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
     }
 

@@ -95,7 +95,20 @@ public class EnergySystem extends AbstractGameSystem {
     capped.applyChanges();
     changes.applyChanges();
 
-    // Collect all of the relevant health updates
+    collectBuffChanges(time);
+    applyRecharges(time);
+    applyAccumulatedChanges(time);
+
+    // Clear our health book-keeping map.
+    health.clear();
+  }
+
+  /**
+   * Drain the {@link #changes} buff queue: for each buff whose start time has
+   * arrived, accumulate its {@link HealthChange#getDelta()} into {@link #health}
+   * (keyed by target) and delete the buff entity.
+   */
+  private void collectBuffChanges(final SimTime time) {
     for (final Entity e : changes) {
       final Buff b = e.get(Buff.class);
 
@@ -116,27 +129,33 @@ public class EnergySystem extends AbstractGameSystem {
       // Delete the buff entity
       ed.removeEntity(e.getId());
     }
+  }
 
-    // Perform recharges
+  /**
+   * For every entity with a {@link Recharge}, queue a positive
+   * {@link #damage(EntityId, int)} delta proportional to {@code tpf} —
+   * skipping entities already at their effective cap.
+   */
+  private void applyRecharges(final SimTime time) {
     recharges.applyChanges();
     for (final Entity e : recharges) {
-
-      if (capped.containsId(e.getId())) {
-        if (getHealth(e.getId()) < getCap(e.getId())) {
-          final double tpf = time.getTpf();
-          final Recharge recharge = e.get(Recharge.class);
-          final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-          damage(e.getId(), charge);
-        }
-      } else {
-        final double tpf = time.getTpf();
-        final Recharge recharge = e.get(Recharge.class);
-        final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-        damage(e.getId(), charge);
+      if (capped.containsId(e.getId()) && getHealth(e.getId()) >= getCap(e.getId())) {
+        // Already at cap — nothing to recharge.
+        continue;
       }
+      final double tpf = time.getTpf();
+      final Recharge recharge = e.get(Recharge.class);
+      final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
+      damage(e.getId(), charge);
     }
+  }
 
-    // Now apply all accumulated adjustments
+  /**
+   * Apply every accumulated delta in {@link #health} to the matching live
+   * entity, clamping at the cap if one exists, and triggering the death
+   * branch when the post-delta pool reaches zero.
+   */
+  private void applyAccumulatedChanges(final SimTime time) {
     for (final Map.Entry<EntityId, Integer> entry : health.entrySet()) {
       final Entity target = living.getEntity(entry.getKey());
 
@@ -162,37 +181,43 @@ public class EnergySystem extends AbstractGameSystem {
       target.set(hp);
 
       if (hp.getHealth() <= 0) {
-        if (log.isInfoEnabled()) {
-          log.info("Entity {} died", target.getId());
-        }
-        // don't set death if it is already dead.
-        if (ed.getComponent(target.getId(), Dead.class) == null) {
-          target.set(new Dead(time.getTime()));
-          // Slice 8b: drop one weighted prize at the death point for player
-          // ships. Filter for Player so non-ship dying entities (any
-          // future Health-bearing thing) don't trigger a prize. BodyPosition
-          // is the current world coord — captured synchronously while it's
-          // still valid (the Decay reaper can sweep the entity later).
-          // PrizeSystem handles the no-op when the arena's
-          // PrizeConfig.deathPrizeTimeMs == 0 (death-drops disabled).
-          if (ed.getComponent(target.getId(), Player.class) != null) {
-            final BodyPosition bp = ed.getComponent(target.getId(), BodyPosition.class);
-            if (bp != null) {
-              if (prizeSystem == null) {
-                prizeSystem = getSystem(PrizeSystem.class);
-              }
-              if (prizeSystem != null) {
-                prizeSystem.spawnDeathPrize(
-                    target.getId(), bp.getLastLocation(), time.getTime());
-              }
-            }
-          }
-        }
+        handleDeath(target, time);
       }
     }
+  }
 
-    // Clear our health book-keeping map.
-    health.clear();
+  /**
+   * Mark {@code target} dead (idempotent — no-op if already {@link Dead}) and
+   * spawn a death prize at the body's last known location for player ships.
+   * Slice 8b: filter for {@link Player} so non-ship dying entities (any future
+   * Health-bearing thing) don't trigger a prize. {@code BodyPosition} is the
+   * current world coord — captured synchronously while it's still valid (the
+   * Decay reaper can sweep the entity later). {@link PrizeSystem} handles the
+   * no-op when the arena's {@code PrizeConfig.deathPrizeTimeMs == 0}
+   * (death-drops disabled).
+   */
+  private void handleDeath(final Entity target, final SimTime time) {
+    if (log.isInfoEnabled()) {
+      log.info("Entity {} died", target.getId());
+    }
+    // don't set death if it is already dead.
+    if (ed.getComponent(target.getId(), Dead.class) != null) {
+      return;
+    }
+    target.set(new Dead(time.getTime()));
+    if (ed.getComponent(target.getId(), Player.class) == null) {
+      return;
+    }
+    final BodyPosition bp = ed.getComponent(target.getId(), BodyPosition.class);
+    if (bp == null) {
+      return;
+    }
+    if (prizeSystem == null) {
+      prizeSystem = getSystem(PrizeSystem.class);
+    }
+    if (prizeSystem != null) {
+      prizeSystem.spawnDeathPrize(target.getId(), bp.getLastLocation(), time.getTime());
+    }
   }
 
   /**

@@ -148,19 +148,7 @@ public class PositionHudState extends BaseAppState {
    * InfinityCameraState for the same).
    */
   private void updateArenaLabel(final Vec3d world) {
-    if (avatarEntityId == null) {
-      final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-      if (id != null && !EntityId.NULL_ID.equals(id)) {
-        avatarEntityId = id;
-      }
-    }
-    if (avatarWatch == null && avatarEntityId != null) {
-      avatarWatch = ed.watchEntity(avatarEntityId, ArenaId.class);
-    }
-    if (avatarWatch != null) {
-      avatarWatch.applyChanges();
-    }
-    final ArenaId arenaId = avatarWatch != null ? avatarWatch.get(ArenaId.class) : null;
+    final ArenaId arenaId = resolveArenaId();
     if (arenaId == null || arenaRegistry == null) {
       arenaLabel.setText("arena: (no-arena void)");
       return;
@@ -175,5 +163,27 @@ public class PositionHudState extends BaseAppState {
     final double localZ = snap.max.z - world.z;
     arenaLabel.setText(
         String.format("arena:  %s  (%.0f, %.0f)", snap.arenaName, localX, localZ));
+  }
+
+  /**
+   * Lazy-resolve the avatar entity id and bind a one-component watch on its
+   * {@link ArenaId}. Returns the latest known {@link ArenaId} (possibly null
+   * if the avatar is not yet observable or hasn't been placed in any arena).
+   */
+  private ArenaId resolveArenaId() {
+    if (avatarEntityId == null) {
+      final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
+      if (id != null && !EntityId.NULL_ID.equals(id)) {
+        avatarEntityId = id;
+      }
+    }
+    if (avatarWatch == null && avatarEntityId != null) {
+      avatarWatch = ed.watchEntity(avatarEntityId, ArenaId.class);
+    }
+    if (avatarWatch == null) {
+      return null;
+    }
+    avatarWatch.applyChanges();
+    return avatarWatch.get(ArenaId.class);
   }
 }

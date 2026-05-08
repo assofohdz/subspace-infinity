@@ -108,23 +108,58 @@ public final class MapAnalyzer {
     return r;
   }
 
-  private static String categorize(short s) {
-    if (s >= MapTypes.vieNormalStart && s <= MapTypes.vieNormalEnd) {
-      if (s == MapTypes.vieBorder) return "border(20)";
-      return "normal[1..161]";
+  /**
+   * Lookup table from tile-id (short) to category label. Built once at class
+   * load via {@link #buildCategoryLookup()}; replaces the prior if/else chain
+   * (NPath = 82944) with an O(1) array index.
+   *
+   * <p>Index is the tile-id treated as an unsigned byte (0..255). Null means
+   * "no canonical category for this id" → caller falls through to the
+   * dynamic {@code "other(N)"} label.
+   */
+  private static final String[] CATEGORIES = buildCategoryLookup();
+
+  private static String[] buildCategoryLookup() {
+    final String[] arr = new String[256];
+    // Normal tiles (covers border too; border is overwritten below).
+    for (int i = MapTypes.vieNormalStart; i <= MapTypes.vieNormalEnd; i++) {
+      arr[i] = "normal[1..161]";
     }
-    if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieVDoorEnd) return "door-vertical[162..165]";
-    if (s >= MapTypes.vieHDoorStart && s <= MapTypes.vieHDoorEnd) return "door-horizontal[166..169]";
-    if (s == MapTypes.vieTurfFlag) return "turfFlag(170)";
-    if (s == MapTypes.vieSafeZone) return "safeZone(171)";
-    if (s == MapTypes.vieGoalArea) return "goalArea(172)";
-    if (s >= MapTypes.vieFlyOverStart && s <= MapTypes.vieFlyOverEnd) return "flyOver[173..175]";
-    if (s >= MapTypes.vieFlyUnderStart && s <= MapTypes.vieFlyUnderEnd) return "flyUnder[176..190]";
-    if (s == MapTypes.vieAsteroidSmall) return "asteroidSmall(216)";
-    if (s == MapTypes.vieAsteroidMedium) return "asteroidMedium(217)";
-    if (s == MapTypes.vieAsteroidEnd) return "asteroidEnd(218)";
-    if (s == MapTypes.vieStation) return "station(219)";
-    if (s == MapTypes.vieWormhole) return "wormhole(220)";
+    arr[MapTypes.vieBorder] = "border(20)";
+    // Doors.
+    for (int i = MapTypes.vieVDoorStart; i <= MapTypes.vieVDoorEnd; i++) {
+      arr[i] = "door-vertical[162..165]";
+    }
+    for (int i = MapTypes.vieHDoorStart; i <= MapTypes.vieHDoorEnd; i++) {
+      arr[i] = "door-horizontal[166..169]";
+    }
+    // Singletons.
+    arr[MapTypes.vieTurfFlag] = "turfFlag(170)";
+    arr[MapTypes.vieSafeZone] = "safeZone(171)";
+    arr[MapTypes.vieGoalArea] = "goalArea(172)";
+    // Fly zones.
+    for (int i = MapTypes.vieFlyOverStart; i <= MapTypes.vieFlyOverEnd; i++) {
+      arr[i] = "flyOver[173..175]";
+    }
+    for (int i = MapTypes.vieFlyUnderStart; i <= MapTypes.vieFlyUnderEnd; i++) {
+      arr[i] = "flyUnder[176..190]";
+    }
+    // Asteroid family + station + wormhole.
+    arr[MapTypes.vieAsteroidSmall] = "asteroidSmall(216)";
+    arr[MapTypes.vieAsteroidMedium] = "asteroidMedium(217)";
+    arr[MapTypes.vieAsteroidEnd] = "asteroidEnd(218)";
+    arr[MapTypes.vieStation] = "station(219)";
+    arr[MapTypes.vieWormhole] = "wormhole(220)";
+    return arr;
+  }
+
+  private static String categorize(short s) {
+    if (s >= 0 && s < CATEGORIES.length) {
+      final String label = CATEGORIES[s];
+      if (label != null) {
+        return label;
+      }
+    }
     return "other(" + s + ")";
   }
 

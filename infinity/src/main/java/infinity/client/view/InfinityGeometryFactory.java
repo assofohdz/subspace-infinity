@@ -222,192 +222,249 @@ public class InfinityGeometryFactory {
             if( list.list.isEmpty() ) {
                 continue;
             }
-            MaterialType mt = list.materialType;
-
-            // We know we have simplified geometry so our mesh generation
-            // can also be simplified
-            int vertCount = list.vertCount;
-            ScaledBuffer pos;
-            if( mt.requires(GeomReq.LoResPositions) ) {
-                pos = ScaledBuffer.createScaledBuffer(vertCount * 3, 0, 32);
-            } else {
-                pos = ScaledBuffer.createUnscaledBuffer(vertCount * 3);
-            }
-            ScaledBuffer texes;
-            if( mt.requires(GeomReq.LoResTexCoords) ) {
-                texes = ScaledBuffer.createScaledBuffer(vertCount * 2, 0, 1);
-            } else {
-                texes = ScaledBuffer.createUnscaledBuffer(vertCount * 2);
-            }
-            // The 3-vertex assumption may not hold for point-sprite parts
-            // The 'vertCount' part is weird here... it's just informational to do
-            // some bounds checking, I think.
-            IndexBuffer indexes = IndexBuffer.createIndexBuffer(vertCount, list.triCount * 3);
-
-            // We'll use the color buffer for lighting like Mythruna-proper did
-            // but some of Mythruna's materials also used color for other things
-            // so it might be less confusing to pick an unused tex coord.
-            // Or for the old Mythruna things that used color, we can pick something
-            // else like an unused TexCoord#.  Though their usage of "color" probably
-            // really is 'color'.
-            FloatBuffer colors = BufferUtils.createFloatBuffer(vertCount * 4);  // for lighting
-
-            ScaledBuffer nb = null;
-            ScaledBuffer tb = null;
-            ByteBuffer dirB = null;
-            if( mt.requires(GeomReq.IndexedNormals) ) {
-                dirB = BufferUtils.createByteBuffer(vertCount);
-            } else {
-                // It may require other buffers
-                if( mt.requires(GeomReq.Normals) ) {
-                    if( mt.requires(GeomReq.LoResNormals) ) {
-                        nb = ScaledBuffer.createScaledBuffer(vertCount * 3, -1, 1);
-                    } else {
-                        nb = ScaledBuffer.createUnscaledBuffer(vertCount * 3);
-                    }
-                }
-                if( mt.requires(GeomReq.Tangents) ) {
-                    if( mt.requires(GeomReq.LoResTangents) ) {
-                        tb = ScaledBuffer.createScaledBuffer(vertCount * 3, -1, 1);
-                    } else {
-                        tb = ScaledBuffer.createUnscaledBuffer(vertCount * 3);
-                    }
-                }
-            }
-
+            final MaterialType mt = list.materialType;
+            final MeshBuffers buffers = buildMeshBuffers(mt, list.vertCount, list.triCount);
             int baseIndex = 0;
             for( DefaultPartBuffer.PartEntry entry : list.list ) {
-
-                int i = entry.i;
-                int j = entry.j;
-                int k = entry.k;
-                GeomPart part = entry.part;
-
-                byte dir = (byte)part.getDirectionIndex();
-                if( dirB != null && dir < 0 ) {
-                    throw new IllegalStateException("Entry for material:" + mt + " has invalid dir:" + dir);
-                }
-                Direction dirEnum = dir >= 0 ? Direction.values()[dir] : null;
-                int size = part.getVertexCount();
-                float[] verts = part.getCoords();
-                float[] norms = part.getNormals();
-                float[] tangents = part.getTangents();
-
-                int vIndex = 0;
-                for( int v = 0; v < size; v++ ) {
-                    float x = verts[vIndex++];
-                    float y = verts[vIndex++];
-                    float z = verts[vIndex++];
-                    pos.put(i + x);
-                    pos.put(j + y);
-                    pos.put(k + z);
-
-                    if( dirB != null ) {
-                        dirB.put(dir);
-                    }
-
-                    // Apply lighting data to this face as required
-                    // Note: original Mythruna-new did this too for its lighting
-                    // implementation (more or less).  It's interesting that we
-                    // don't check the material or anything considering that a comment
-                    // above indicates that some block types use color for different
-                    // things.  This line seems to indicate that 'colors' is the standard
-                    // buffer for lighting data and nothing can 'opt out'.
-                    gradient.appendLight(lightData, i, j, k, x, y, z, dirEnum, colors);
-                }
-
-                if( nb != null && norms != null ) {
-                    nb.put(norms);
-                }
-                if( tb != null && tangents != null ) {
-                    tb.put(tangents);
-                }
-
-                float[] texArray = part.getTexCoords();
-                for( int t = 0; t < texArray.length; t++ ) {
-                    // I don't know why I put this check in because
-                    // there could be valid reasons for wanting shifted
-                    // coordinates. 2020-12-24
-                    //if( texArray[t] < 0 || texArray[t] > 1 ) {
-                    //    throw new RuntimeException("Entry has out of bounds texcoord:" + texArray[t]
-                    //                                + " type:" + part.getMaterialType());
-                    //}
-                    // Removing the above because sometimes we want wrapping
-                    // like for cylinders.  Not sure how it could work otherwise
-                    // without a lot of repeated vertexes
-                    texes.put(texArray[t]);
-                }
-
-                // The indexes need to be offset also
-                for( short s : part.getIndexes() ) {
-                    indexes.put(baseIndex + s);
-                }
-                baseIndex += size;
+                baseIndex = emitPart(buffers, mt, entry, gradient, lightData, baseIndex);
             }
-
-            // Use a mesh with no collision
-            Mesh mesh = new ColliderlessMesh("block", allowCollisions);
-            pos.applyToMesh(mesh, VertexBuffer.Type.Position, 3);
-            texes.applyToMesh(mesh, VertexBuffer.Type.TexCoord, 2);
-
-            // Just an otherwise convenient class to have to do this BS
-            switch( indexes.getFormat() ) {
-                case UnsignedInt:
-                    mesh.setBuffer(VertexBuffer.Type.Index, 3, (IntBuffer)indexes.getBuffer());
-                    break;
-                case UnsignedShort:
-                    mesh.setBuffer(VertexBuffer.Type.Index, 3, (ShortBuffer)indexes.getBuffer());
-                    break;
-                case UnsignedByte:
-                    mesh.setBuffer(VertexBuffer.Type.Index, 3, (ByteBuffer)indexes.getBuffer());
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected: " + indexes.getFormat());
-            }
-            if( dirB != null && dirB.position() != 0 ) {
-                mesh.setBuffer(VertexBuffer.Type.Size, 1, dirB);
-            }
-            if( nb != null && nb.position() != 0 ) {
-                nb.applyToMesh(mesh, VertexBuffer.Type.Normal, 3);
-            }
-            if( tb != null && tb.position() != 0 ) {
-                tb.applyToMesh(mesh, VertexBuffer.Type.Tangent, 3);
-            }
-            mesh.setBuffer(VertexBuffer.Type.Color, 4, colors);
-            mesh.setStatic();
-
-            // FIXME: we do not need to calculate a bound because we could have
-            // collected that information above.
-            mesh.updateBound();
-
-            Geometry geom = new Geometry("mesh:" + mt + ":" + list.primitiveType, mesh);
-            Material mat = materials.get(mt.getId());
-
-            if (log.isInfoEnabled()) {
-                log.info("MaterialType getId():{}", mt.getId());
-            }
-
-            if( mat == null ) {
-                // Try not to crash at least
-                MaterialType bad = new MaterialType("bad", mt.getGeomReqs());
-                mat = materials.get(bad.getId());
-            }
-            if( mat == null ) {
-                if (log.isDebugEnabled()) {
-                    log.debug("all keys:{}", materials.keySet());
-                }
-                throw new IllegalStateException("Materal not found for:" + mt.getId());
-            }
-            geom.setMaterial(mat);
-
-            // This is kind of a hack... not sure what the better way is. FIXME: Bucket.Transparent
-            if( geom.getMaterial().getAdditionalRenderState().getBlendMode() == BlendMode.Alpha ) {
-                log.debug("Putting in transparent bucket:{}", geom);
-                geom.setQueueBucket(Bucket.Transparent);
-            }
-            target.attachChild(geom);
+            final Mesh mesh = assembleMesh(buffers);
+            attachGeometryToTarget(target, mt, list, mesh);
         }
+    }
 
+    /**
+     * Allocate the per-MaterialType vertex / texcoord / index / color / normal /
+     * tangent / direction buffers required by {@code mt}'s {@link GeomReq} set
+     * and pack them into a {@link MeshBuffers} struct. Hi-res vs lo-res scaling
+     * is selected per-buffer by the matching {@code LoRes*} requirement.
+     */
+    private static MeshBuffers buildMeshBuffers(final MaterialType mt, final int vertCount, final int triCount) {
+        final ScaledBuffer pos = mt.requires(GeomReq.LoResPositions)
+                ? ScaledBuffer.createScaledBuffer(vertCount * 3, 0, 32)
+                : ScaledBuffer.createUnscaledBuffer(vertCount * 3);
+        final ScaledBuffer texes = mt.requires(GeomReq.LoResTexCoords)
+                ? ScaledBuffer.createScaledBuffer(vertCount * 2, 0, 1)
+                : ScaledBuffer.createUnscaledBuffer(vertCount * 2);
+        // The 3-vertex assumption may not hold for point-sprite parts
+        // The 'vertCount' part is weird here... it's just informational to do
+        // some bounds checking, I think.
+        final IndexBuffer indexes = IndexBuffer.createIndexBuffer(vertCount, triCount * 3);
+        // We'll use the color buffer for lighting like Mythruna-proper did
+        // but some of Mythruna's materials also used color for other things
+        // so it might be less confusing to pick an unused tex coord.
+        final FloatBuffer colors = BufferUtils.createFloatBuffer(vertCount * 4);
+        ScaledBuffer nb = null;
+        ScaledBuffer tb = null;
+        ByteBuffer dirB = null;
+        if (mt.requires(GeomReq.IndexedNormals)) {
+            dirB = BufferUtils.createByteBuffer(vertCount);
+        } else {
+            if (mt.requires(GeomReq.Normals)) {
+                nb = mt.requires(GeomReq.LoResNormals)
+                        ? ScaledBuffer.createScaledBuffer(vertCount * 3, -1, 1)
+                        : ScaledBuffer.createUnscaledBuffer(vertCount * 3);
+            }
+            if (mt.requires(GeomReq.Tangents)) {
+                tb = mt.requires(GeomReq.LoResTangents)
+                        ? ScaledBuffer.createScaledBuffer(vertCount * 3, -1, 1)
+                        : ScaledBuffer.createUnscaledBuffer(vertCount * 3);
+            }
+        }
+        return new MeshBuffers(pos, texes, indexes, colors, nb, tb, dirB);
+    }
+
+    /**
+     * Append one {@link DefaultPartBuffer.PartEntry}'s vertex / lighting /
+     * texcoord / index data into {@code buffers}. Returns the next baseIndex
+     * (callers chain a running offset across the part list).
+     *
+     * <p>Throws if {@code dirB} is requested by the material but the entry's
+     * part has no valid direction — the caller (per-MaterialType list) is the
+     * one that promised to supply only directional parts.
+     */
+    private static int emitPart(
+            final MeshBuffers buffers,
+            final MaterialType mt,
+            final DefaultPartBuffer.PartEntry entry,
+            final LightGradient gradient,
+            final CellData lightData,
+            final int baseIndex) {
+        final GeomPart part = entry.part;
+        final byte dir = (byte) part.getDirectionIndex();
+        if (buffers.dirB != null && dir < 0) {
+            throw new IllegalStateException("Entry for material:" + mt + " has invalid dir:" + dir);
+        }
+        final Direction dirEnum = dir >= 0 ? Direction.values()[dir] : null;
+        final int size = part.getVertexCount();
+        emitVertices(buffers, entry.i, entry.j, entry.k, dir, dirEnum, part.getCoords(), size, gradient, lightData);
+        copyAuxBuffers(buffers, part);
+        for (final short s : part.getIndexes()) {
+            buffers.indexes.put(baseIndex + s);
+        }
+        return baseIndex + size;
+    }
+
+    /**
+     * Per-vertex inner loop: emit position (offset by entry origin), the per-vertex
+     * direction byte if the material requires it, and forward the lighting query
+     * to {@code gradient}. {@code gradient} writes into {@link MeshBuffers#colors}
+     * directly — every face contributes lighting (no opt-out).
+     */
+    private static void emitVertices(
+            final MeshBuffers buffers,
+            final int i, final int j, final int k,
+            final byte dir, final Direction dirEnum,
+            final float[] verts, final int size,
+            final LightGradient gradient, final CellData lightData) {
+        int vIndex = 0;
+        for (int v = 0; v < size; v++) {
+            final float x = verts[vIndex++];
+            final float y = verts[vIndex++];
+            final float z = verts[vIndex++];
+            buffers.pos.put(i + x);
+            buffers.pos.put(j + y);
+            buffers.pos.put(k + z);
+            if (buffers.dirB != null) {
+                buffers.dirB.put(dir);
+            }
+            gradient.appendLight(lightData, i, j, k, x, y, z, dirEnum, buffers.colors);
+        }
+    }
+
+    /**
+     * Copy this part's normal / tangent / texcoord arrays into the matching
+     * mesh buffers. Each is gated by the buffer being non-null (material
+     * required it) AND the part actually having data (normals / tangents may
+     * be absent on point-sprite parts; texcoords always present).
+     * Out-of-bounds-texcoord check intentionally removed (2020-12-24): wrapping
+     * coordinates (cylinders, etc.) are valid.
+     */
+    private static void copyAuxBuffers(final MeshBuffers buffers, final GeomPart part) {
+        final float[] norms = part.getNormals();
+        if (buffers.nb != null && norms != null) {
+            buffers.nb.put(norms);
+        }
+        final float[] tangents = part.getTangents();
+        if (buffers.tb != null && tangents != null) {
+            buffers.tb.put(tangents);
+        }
+        for (final float t : part.getTexCoords()) {
+            buffers.texes.put(t);
+        }
+    }
+
+    /**
+     * Stamp every populated buffer in {@code buffers} into a fresh
+     * {@link ColliderlessMesh} and return it. Index format is dispatched on
+     * the {@link IndexBuffer.Format} discriminator (Int / Short / Byte); the
+     * direction / normal / tangent buffers are skipped if they're either
+     * absent (null) or never written to (position == 0).
+     */
+    private Mesh assembleMesh(final MeshBuffers buffers) {
+        final Mesh mesh = new ColliderlessMesh("block", allowCollisions);
+        buffers.pos.applyToMesh(mesh, VertexBuffer.Type.Position, 3);
+        buffers.texes.applyToMesh(mesh, VertexBuffer.Type.TexCoord, 2);
+        attachIndexBuffer(mesh, buffers.indexes);
+        if (buffers.dirB != null && buffers.dirB.position() != 0) {
+            mesh.setBuffer(VertexBuffer.Type.Size, 1, buffers.dirB);
+        }
+        if (buffers.nb != null && buffers.nb.position() != 0) {
+            buffers.nb.applyToMesh(mesh, VertexBuffer.Type.Normal, 3);
+        }
+        if (buffers.tb != null && buffers.tb.position() != 0) {
+            buffers.tb.applyToMesh(mesh, VertexBuffer.Type.Tangent, 3);
+        }
+        mesh.setBuffer(VertexBuffer.Type.Color, 4, buffers.colors);
+        mesh.setStatic();
+        // FIXME: we do not need to calculate a bound because we could have
+        // collected that information above.
+        mesh.updateBound();
+        return mesh;
+    }
+
+    /**
+     * Bind {@code indexes} to {@code mesh} as the {@link VertexBuffer.Type#Index}
+     * buffer, dispatching on the {@link IndexBuffer.Format} discriminator
+     * (Int / Short / Byte). Throws {@link IllegalStateException} for any other
+     * format — extracted so {@link #assembleMesh} stays under the cyclomatic
+     * threshold; behaviour preserved exactly.
+     */
+    private static void attachIndexBuffer(final Mesh mesh, final IndexBuffer indexes) {
+        switch (indexes.getFormat()) {
+            case UnsignedInt:
+                mesh.setBuffer(VertexBuffer.Type.Index, 3, (IntBuffer) indexes.getBuffer());
+                break;
+            case UnsignedShort:
+                mesh.setBuffer(VertexBuffer.Type.Index, 3, (ShortBuffer) indexes.getBuffer());
+                break;
+            case UnsignedByte:
+                mesh.setBuffer(VertexBuffer.Type.Index, 3, (ByteBuffer) indexes.getBuffer());
+                break;
+            default:
+                throw new IllegalStateException("Unexpected: " + indexes.getFormat());
+        }
+    }
+
+    /**
+     * Wrap {@code mesh} in a {@link Geometry}, look up the matching
+     * {@link Material} (falling back to a "bad" placeholder if missing),
+     * route alpha-blending materials to {@link Bucket#Transparent}, and
+     * attach to {@code target}. Throws if no fallback material exists either.
+     */
+    private void attachGeometryToTarget(
+            final Node target, final MaterialType mt, final DefaultPartBuffer.PartList list, final Mesh mesh) {
+        final Geometry geom = new Geometry("mesh:" + mt + ":" + list.primitiveType, mesh);
+        Material mat = materials.get(mt.getId());
+        if (log.isInfoEnabled()) {
+            log.info("MaterialType getId():{}", mt.getId());
+        }
+        if (mat == null) {
+            // Try not to crash at least
+            final MaterialType bad = new MaterialType("bad", mt.getGeomReqs());
+            mat = materials.get(bad.getId());
+        }
+        if (mat == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("all keys:{}", materials.keySet());
+            }
+            throw new IllegalStateException("Materal not found for:" + mt.getId());
+        }
+        geom.setMaterial(mat);
+        // FIXME: Bucket.Transparent — kind of a hack; not sure what the better way is.
+        if (geom.getMaterial().getAdditionalRenderState().getBlendMode() == BlendMode.Alpha) {
+            log.debug("Putting in transparent bucket:{}", geom);
+            geom.setQueueBucket(Bucket.Transparent);
+        }
+        target.attachChild(geom);
+    }
+
+    /**
+     * Per-MaterialType buffer bundle threaded through {@link #buildMeshBuffers},
+     * {@link #emitPart}, and {@link #assembleMesh}. Fields are nullable when
+     * the originating {@link GeomReq} set didn't request them.
+     */
+    private static final class MeshBuffers {
+        final ScaledBuffer pos;
+        final ScaledBuffer texes;
+        final IndexBuffer indexes;
+        final FloatBuffer colors;
+        final ScaledBuffer nb;
+        final ScaledBuffer tb;
+        final ByteBuffer dirB;
+
+        MeshBuffers(
+                final ScaledBuffer pos, final ScaledBuffer texes,
+                final IndexBuffer indexes, final FloatBuffer colors,
+                final ScaledBuffer nb, final ScaledBuffer tb, final ByteBuffer dirB) {
+            this.pos = pos;
+            this.texes = texes;
+            this.indexes = indexes;
+            this.colors = colors;
+            this.nb = nb;
+            this.tb = tb;
+            this.dirB = dirB;
+        }
     }
 
 

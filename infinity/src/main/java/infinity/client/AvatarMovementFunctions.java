@@ -3,6 +3,8 @@
 package infinity.client;
 
 import com.jme3.input.KeyInput;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
@@ -183,31 +185,29 @@ public class AvatarMovementFunctions {
     }
   }
 
+  /** Ship selection keys: F_WARBIRD..F_SHARK → KEY_1..KEY_8. */
+  private static final Map<FunctionId, Integer> SHIP_SELECTION_KEYS = buildShipSelectionKeys();
+
+  private static Map<FunctionId, Integer> buildShipSelectionKeys() {
+    // LinkedHashMap preserves the canonical 1..8 order for diagnostics.
+    final Map<FunctionId, Integer> m = new LinkedHashMap<>();
+    m.put(F_WARBIRD, KeyInput.KEY_1);
+    m.put(F_JAVELIN, KeyInput.KEY_2);
+    m.put(F_SPIDER, KeyInput.KEY_3);
+    m.put(F_LEVI, KeyInput.KEY_4);
+    m.put(F_TERRIER, KeyInput.KEY_5);
+    m.put(F_WEASEL, KeyInput.KEY_6);
+    m.put(F_LANC, KeyInput.KEY_7);
+    m.put(F_SHARK, KeyInput.KEY_8);
+    return Map.copyOf(m);
+  }
+
   /** Ship selection keys */
   private static void mapShipSelection(final InputMapper inputMapper) {
-    if (!inputMapper.hasMappings(F_WARBIRD)) {
-      inputMapper.map(F_WARBIRD, KeyInput.KEY_1);
-    }
-    if (!inputMapper.hasMappings(F_JAVELIN)) {
-      inputMapper.map(F_JAVELIN, KeyInput.KEY_2);
-    }
-    if (!inputMapper.hasMappings(F_SPIDER)) {
-      inputMapper.map(F_SPIDER, KeyInput.KEY_3);
-    }
-    if (!inputMapper.hasMappings(F_LEVI)) {
-      inputMapper.map(F_LEVI, KeyInput.KEY_4);
-    }
-    if (!inputMapper.hasMappings(F_TERRIER)) {
-      inputMapper.map(F_TERRIER, KeyInput.KEY_5);
-    }
-    if (!inputMapper.hasMappings(F_WEASEL)) {
-      inputMapper.map(F_WEASEL, KeyInput.KEY_6);
-    }
-    if (!inputMapper.hasMappings(F_LANC)) {
-      inputMapper.map(F_LANC, KeyInput.KEY_7);
-    }
-    if (!inputMapper.hasMappings(F_SHARK)) {
-      inputMapper.map(F_SHARK, KeyInput.KEY_8);
-    }
+    SHIP_SELECTION_KEYS.forEach((func, key) -> {
+      if (!inputMapper.hasMappings(func)) {
+        inputMapper.map(func, key);
+      }
+    });
   }
 }

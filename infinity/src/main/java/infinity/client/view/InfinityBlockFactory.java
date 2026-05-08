@@ -119,23 +119,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
         if (dirParts != null) {
             for (final Direction dir : Direction.values()) {
-                final PartFactory face = dirParts[dir.ordinal()];
-                if (face == null) {
-                    continue;
-                }
-                min.minLocal(face.getMin());
-                max.maxLocal(face.getMax());
-                final BoundaryShape shape = face.getBoundaryShape();
-                final double area = shape.getArea();
-                if (area >= 1) {
-                    solid[dir.ordinal()] = true;
-                }
-
-                if (newTrans != null) {
-                    final double t = Math.max(0, 1 - area);
-                    final int a = dir.getAxis().ordinal();
-                    newTrans[a] = Math.min(newTrans[a], t);
-                }
+                accumulateFaceContribution(dirParts[dir.ordinal()], dir, solid, min, max, newTrans);
             }
         }
 
@@ -152,6 +136,37 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
         return new InfinityBlockFactory(dirParts, internalParts, solid, newTrans != null ? newTrans : transparency,
                 volume, min, max);
+    }
+
+    /**
+     * Per-direction contribution to the block's bounds, solid-faces flag, and
+     * per-axis transparency. Extracted from {@link #create} so the outer
+     * builder method stays under the cyclomatic-complexity threshold; behaviour
+     * preserved exactly (null-face fast-out, area-based solid flag, axis-min
+     * accumulation into {@code newTrans} when present).
+     */
+    private static void accumulateFaceContribution(
+            final PartFactory face,
+            final Direction dir,
+            final boolean[] solid,
+            final Vec3d min,
+            final Vec3d max,
+            final double[] newTrans) {
+        if (face == null) {
+            return;
+        }
+        min.minLocal(face.getMin());
+        max.maxLocal(face.getMax());
+        final BoundaryShape shape = face.getBoundaryShape();
+        final double area = shape.getArea();
+        if (area >= 1) {
+            solid[dir.ordinal()] = true;
+        }
+        if (newTrans != null) {
+            final double t = Math.max(0, 1 - area);
+            final int a = dir.getAxis().ordinal();
+            newTrans[a] = Math.min(newTrans[a], t);
+        }
     }
 
     public PartFactory[] getDirParts() {

@@ -48,26 +48,7 @@ public final class MapTileSurvey {
   private MapTileSurvey() {}
 
   public static void main(final String[] args) throws IOException {
-    final List<File> files = new ArrayList<>();
-    if (args.length == 0) {
-      final File root = resolveDir("infinity/assets/Maps");
-      if (root == null) {
-        System.err.println("No Maps directory found and no paths given.");
-        System.exit(1);
-      }
-      collectLvls(root, files);
-    } else {
-      for (final String arg : args) {
-        final File f = resolveArg(arg);
-        if (f == null) {
-          System.err.println("Skipping (not found): " + arg);
-          continue;
-        }
-        if (f.isDirectory()) collectLvls(f, files);
-        else files.add(f);
-      }
-    }
-
+    final List<File> files = collectFiles(args);
     if (files.isEmpty()) {
       System.err.println("No .lvl files found.");
       System.exit(1);
@@ -76,14 +57,7 @@ public final class MapTileSurvey {
     final Survey survey = new Survey();
     System.out.printf("Surveying %d .lvl file(s)%n%n", files.size());
 
-    for (final File file : files) {
-      try {
-        survey.ingest(analyzeTiles(file));
-      } catch (final Exception e) {
-        System.err.printf("  FAIL  %-48s  %s%n", file.getName(), e.getMessage());
-        survey.failures.add(file.getName() + ": " + e.getMessage());
-      }
-    }
+    surveyFiles(files, survey);
 
     printPerMapTable(survey);
     System.out.println();
@@ -96,6 +70,55 @@ public final class MapTileSurvey {
       System.out.println();
       System.out.println("=== Failures (" + survey.failures.size() + ") ===");
       survey.failures.forEach(s -> System.out.println("  " + s));
+    }
+  }
+
+  /**
+   * Resolve the input arguments into the list of {@code .lvl} files to
+   * survey. With no args, walks {@code infinity/assets/Maps} (exits if
+   * missing). With args, each arg is resolved as a file or directory; missing
+   * entries print "Skipping" and continue. Extracted from {@link #main} as a
+   * complexity ratchet.
+   */
+  private static List<File> collectFiles(final String[] args) {
+    final List<File> files = new ArrayList<>();
+    if (args.length == 0) {
+      final File root = resolveDir("infinity/assets/Maps");
+      if (root == null) {
+        System.err.println("No Maps directory found and no paths given.");
+        System.exit(1);
+      }
+      collectLvls(root, files);
+      return files;
+    }
+    for (final String arg : args) {
+      final File f = resolveArg(arg);
+      if (f == null) {
+        System.err.println("Skipping (not found): " + arg);
+        continue;
+      }
+      if (f.isDirectory()) {
+        collectLvls(f, files);
+      } else {
+        files.add(f);
+      }
+    }
+    return files;
+  }
+
+  /**
+   * Run {@link #analyzeTiles} on each file and ingest the result; failures
+   * are logged to stderr and added to {@code survey.failures}. Extracted from
+   * {@link #main} as a complexity ratchet.
+   */
+  private static void surveyFiles(final List<File> files, final Survey survey) {
+    for (final File file : files) {
+      try {
+        survey.ingest(analyzeTiles(file));
+      } catch (final Exception e) {
+        System.err.printf("  FAIL  %-48s  %s%n", file.getName(), e.getMessage());
+        survey.failures.add(file.getName() + ": " + e.getMessage());
+      }
     }
   }
 

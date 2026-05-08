@@ -143,38 +143,55 @@ public class ProximityFuseSystem extends AbstractGameSystem {
     if (projectileBody == null) {
       return;
     }
-    final Vec3d projectilePos = projectileBody.position;
     final EntityId ownerId = projectile.get(Parent.class).getParentEntityId();
-    final Frequency ownerFreq =
-        ownerId == null ? null : ed.getComponent(ownerId, Frequency.class);
-    final Integer ownerFreqValue = ownerFreq == null ? null : ownerFreq.getFrequency();
+    final Integer ownerFreqValue = freqValueOf(ownerId);
     final double radiusSq = radius * radius;
 
     for (final Entity victim : potentialVictims) {
-      final EntityId victimId = victim.getId();
-      if (victimId.equals(ownerId)) {
-        continue; // never arm on the firing ship
+      if (victimWouldArm(victim, ownerId, ownerFreqValue, projectileBody.position, radiusSq)) {
+        ed.setComponent(projectileId, new ProximityArmed(nowSimNanos));
+        return;
       }
-      final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
-      final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
-      if (!shouldArmOn(ownerFreqValue, victimFreqValue)) {
-        continue; // canonical: same-team ships don't arm proximity bombs
-      }
-      final RigidBody<EntityId, MBlockShape> victimBody =
-          physicsSpace.getBinIndex().getRigidBody(victimId);
-      if (victimBody == null) {
-        continue;
-      }
-      final Vec3d vp = victimBody.position;
-      final double dx = vp.x - projectilePos.x;
-      final double dy = vp.y - projectilePos.y;
-      final double dz = vp.z - projectilePos.z;
-      if (dx * dx + dy * dy + dz * dz > radiusSq) {
-        continue;
-      }
-      ed.setComponent(projectileId, new ProximityArmed(nowSimNanos));
-      return;
     }
+  }
+
+  /**
+   * Per-victim arming check: same-team / self / out-of-radius / no-physics-body
+   * are all skip cases. Returns {@code true} only when {@code victim} is a
+   * valid enemy inside {@code radiusSq} of {@code projectilePos}.
+   */
+  private boolean victimWouldArm(
+      final Entity victim,
+      final EntityId ownerId,
+      final Integer ownerFreqValue,
+      final Vec3d projectilePos,
+      final double radiusSq) {
+    final EntityId victimId = victim.getId();
+    if (victimId.equals(ownerId)) {
+      return false; // never arm on the firing ship
+    }
+    if (!shouldArmOn(ownerFreqValue, freqValueOf(victimId))) {
+      return false; // canonical: same-team ships don't arm proximity bombs
+    }
+    final RigidBody<EntityId, MBlockShape> victimBody =
+        physicsSpace.getBinIndex().getRigidBody(victimId);
+    if (victimBody == null) {
+      return false;
+    }
+    final Vec3d vp = victimBody.position;
+    final double dx = vp.x - projectilePos.x;
+    final double dy = vp.y - projectilePos.y;
+    final double dz = vp.z - projectilePos.z;
+    return dx * dx + dy * dy + dz * dz <= radiusSq;
+  }
+
+  /** Read the {@link Frequency} value for {@code id}, treating null/missing as {@code null}. */
+  private Integer freqValueOf(final EntityId id) {
+    if (id == null) {
+      return null;
+    }
+    final Frequency f = ed.getComponent(id, Frequency.class);
+    return f == null ? null : f.getFrequency();
   }
 
   /**

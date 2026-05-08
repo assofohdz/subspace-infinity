@@ -28,6 +28,8 @@ import infinity.net.GameSession;
 import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ship.WeaponsSystem;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -290,17 +292,26 @@ public class AvatarMovementState extends BaseAppState
     }
   }
 
+  /** Ship-selection key → {@code AvatarSystem.*} byte. {@link #shipForFunction} returns -1 on miss. */
+  private static final Map<FunctionId, Byte> SHIP_KEYS = buildShipKeys();
+
+  private static Map<FunctionId, Byte> buildShipKeys() {
+    final Map<FunctionId, Byte> m = new HashMap<>();
+    m.put(AvatarMovementFunctions.F_WARBIRD, AvatarSystem.WARBIRD);
+    m.put(AvatarMovementFunctions.F_JAVELIN, AvatarSystem.JAVELIN);
+    m.put(AvatarMovementFunctions.F_SPIDER, AvatarSystem.SPIDER);
+    m.put(AvatarMovementFunctions.F_LEVI, AvatarSystem.LEVI);
+    m.put(AvatarMovementFunctions.F_TERRIER, AvatarSystem.TERRIER);
+    m.put(AvatarMovementFunctions.F_WEASEL, AvatarSystem.WEASEL);
+    m.put(AvatarMovementFunctions.F_LANC, AvatarSystem.LANCASTER);
+    m.put(AvatarMovementFunctions.F_SHARK, AvatarSystem.SHARK);
+    return Map.copyOf(m);
+  }
+
   /** Map a ship-selection function key to its {@code AvatarSystem.*} byte, or {@code -1} if none. */
   private static byte shipForFunction(final FunctionId func) {
-    if (func == AvatarMovementFunctions.F_WARBIRD) return AvatarSystem.WARBIRD;
-    if (func == AvatarMovementFunctions.F_JAVELIN) return AvatarSystem.JAVELIN;
-    if (func == AvatarMovementFunctions.F_SPIDER) return AvatarSystem.SPIDER;
-    if (func == AvatarMovementFunctions.F_LEVI) return AvatarSystem.LEVI;
-    if (func == AvatarMovementFunctions.F_TERRIER) return AvatarSystem.TERRIER;
-    if (func == AvatarMovementFunctions.F_WEASEL) return AvatarSystem.WEASEL;
-    if (func == AvatarMovementFunctions.F_LANC) return AvatarSystem.LANCASTER;
-    if (func == AvatarMovementFunctions.F_SHARK) return AvatarSystem.SHARK;
-    return -1;
+    final Byte b = SHIP_KEYS.get(func);
+    return b == null ? -1 : b;
   }
 
   protected Vec3d updateShipLocation(Vec3d loc) {
@@ -346,20 +357,31 @@ public class AvatarMovementState extends BaseAppState
 
   /** Continuous fire while held — bombs/mines/thor/repel/burst/bullets. */
   private void dispatchHeldWeapon(FunctionId func) {
+    if (func == AvatarMovementFunctions.F_BOMB) {
+      // Shift+TAB swaps bomb→mine; bare TAB stays bomb.
+      session.attack(shiftPressed ? WeaponsSystem.MINE : WeaponsSystem.BOMB);
+      return;
+    }
+    if (func == AvatarMovementFunctions.F_SHOOT) {
+      // Shift suppresses primary fire (reserved for future toggles).
+      if (!shiftPressed) {
+        session.attack(WeaponsSystem.BULLET);
+      }
+      return;
+    }
+    dispatchSimpleWeapon(func);
+  }
+
+  /** Plain func → session.attack/action with no shift modifier. */
+  private void dispatchSimpleWeapon(FunctionId func) {
     if (func == AvatarMovementFunctions.F_GRAVBOMB) {
       session.attack(WeaponsSystem.GRAVBOMB);
-    } else if (func == AvatarMovementFunctions.F_BOMB && !shiftPressed) {
-      session.attack(WeaponsSystem.BOMB);
-    } else if (func == AvatarMovementFunctions.F_BOMB && shiftPressed) {
-      session.attack(WeaponsSystem.MINE);
     } else if (func == AvatarMovementFunctions.F_THOR) {
       session.action(ConsumableSystem.FIRETHOR);
     } else if (func == AvatarMovementFunctions.F_REPEL) {
       session.action(ConsumableSystem.REPEL);
     } else if (func == AvatarMovementFunctions.F_BURST) {
       session.action(ConsumableSystem.FIREBURST);
-    } else if (func == AvatarMovementFunctions.F_SHOOT && !shiftPressed) {
-      session.attack(WeaponsSystem.BULLET);
     }
   }
 }

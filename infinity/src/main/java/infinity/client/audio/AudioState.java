@@ -22,6 +22,7 @@ import infinity.es.Parent;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,34 @@ public class AudioState extends BaseAppState {
   private AudioContainer sounds;
   private Map<EntityId, AudioNode> soundIndex = new HashMap<>();
   private Node soundRoot;
+
+  /**
+   * Lookup table mapping {@link AudioTypes} string ids to the factory method
+   * that builds the matching {@link AudioNode}. Replaces a 19-case switch in
+   * {@link #createAudio} (the four per-level FIRE_BOMBS / FIRE_GUNS /
+   * FIRE_MINE entries point at the same factory each). Bound to {@code this}
+   * because every factory uses the {@link #factory} instance field.
+   */
+  private final Map<String, Function<Entity, AudioNode>> factories = Map.ofEntries(
+      Map.entry(AudioTypes.FIRE_THOR, this::createFireThor),
+      Map.entry(AudioTypes.PICKUP_PRIZE, this::createPickUpPrize),
+      Map.entry(AudioTypes.FIRE_BOMBS_L1, this::createFireBombs),
+      Map.entry(AudioTypes.FIRE_BOMBS_L2, this::createFireBombs),
+      Map.entry(AudioTypes.FIRE_BOMBS_L3, this::createFireBombs),
+      Map.entry(AudioTypes.FIRE_BOMBS_L4, this::createFireBombs),
+      Map.entry(AudioTypes.FIRE_GRAVBOMB, this::createFireGravBomb),
+      Map.entry(AudioTypes.FIRE_GUNS_L1, this::createFireGuns),
+      Map.entry(AudioTypes.FIRE_GUNS_L2, this::createFireGuns),
+      Map.entry(AudioTypes.FIRE_GUNS_L3, this::createFireGuns),
+      Map.entry(AudioTypes.FIRE_GUNS_L4, this::createFireGuns),
+      Map.entry(AudioTypes.EXPLOSION2, this::createExplosion2),
+      Map.entry(AudioTypes.BURST, this::createBurst),
+      Map.entry(AudioTypes.REPEL, this::createRepel),
+      Map.entry(AudioTypes.FLAG, this::createFlag),
+      Map.entry(AudioTypes.FIRE_MINE_L1, this::createMine),
+      Map.entry(AudioTypes.FIRE_MINE_L2, this::createMine),
+      Map.entry(AudioTypes.FIRE_MINE_L3, this::createMine),
+      Map.entry(AudioTypes.FIRE_MINE_L4, this::createMine));
 
   public AudioState(final SIAudioFactory factory) {
     this.factory = factory;
@@ -117,49 +146,11 @@ public class AudioState extends BaseAppState {
     // Else figure out what type to create...
     final AudioType type = entity.get(AudioType.class);
     final String typeName = type.getTypeName(ed);
-    switch (typeName) {
-      case AudioTypes.FIRE_THOR:
-        result = createFireThor(entity);
-        break;
-      case AudioTypes.PICKUP_PRIZE:
-        result = createPickUpPrize(entity);
-        break;
-      case AudioTypes.FIRE_BOMBS_L1:
-      case AudioTypes.FIRE_BOMBS_L2:
-      case AudioTypes.FIRE_BOMBS_L3:
-      case AudioTypes.FIRE_BOMBS_L4:
-        result = createFireBombs(entity);
-        break;
-      case AudioTypes.FIRE_GRAVBOMB:
-        result = createFireGravBomb(entity);
-        break;
-      case AudioTypes.FIRE_GUNS_L1:
-      case AudioTypes.FIRE_GUNS_L2:
-      case AudioTypes.FIRE_GUNS_L3:
-      case AudioTypes.FIRE_GUNS_L4:
-        result = createFireGuns(entity);
-        break;
-      case AudioTypes.EXPLOSION2:
-        result = createExplosion2(entity);
-        break;
-      case AudioTypes.BURST:
-        result = createBurst(entity);
-        break;
-      case AudioTypes.REPEL:
-        result = createRepel(entity);
-        break;
-      case AudioTypes.FLAG:
-        result = createFlag(entity);
-        break;
-      case AudioTypes.FIRE_MINE_L1:
-      case AudioTypes.FIRE_MINE_L2:
-      case AudioTypes.FIRE_MINE_L3:
-      case AudioTypes.FIRE_MINE_L4:
-        result = createMine(entity);
-        break;
-      default:
-        throw new InfinityRunTimeException("Unknown audio type:" + typeName);
+    final Function<Entity, AudioNode> factoryFn = factories.get(typeName);
+    if (factoryFn == null) {
+      throw new InfinityRunTimeException("Unknown audio type:" + typeName);
     }
+    result = factoryFn.apply(entity);
 
     // Add it to the index
     soundIndex.put(entity.getId(), result);

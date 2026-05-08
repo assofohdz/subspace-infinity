@@ -12,12 +12,44 @@ import com.simsilica.es.EntityData;
 import infinity.client.ConnectionState;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  *
  * @author Asser
  */
 public class SIAudioFactory implements AudioFactory {
+
+    /**
+     * Audio-type name → factory dispatch table. Replaces the long switch in
+     * {@link #createAudio} with O(1) lookup. Each factory is an instance method
+     * (it needs {@link #assets}), so entries are {@code Function<SIAudioFactory, AudioNode>}
+     * called against {@code this} at dispatch time. Behaviour preserved: same
+     * factory invoked for each {@link AudioTypes} key, same exception type and
+     * message for unknown keys.
+     */
+    private static final Map<String, Function<SIAudioFactory, AudioNode>> FACTORIES =
+        Map.ofEntries(
+            Map.entry(AudioTypes.FIRE_THOR,       SIAudioFactory::fireThor),
+            Map.entry(AudioTypes.PICKUP_PRIZE,    SIAudioFactory::pickupPrize),
+            Map.entry(AudioTypes.FIRE_BOMBS_L1,   f -> f.fireBomb(1)),
+            Map.entry(AudioTypes.FIRE_BOMBS_L2,   f -> f.fireBomb(2)),
+            Map.entry(AudioTypes.FIRE_BOMBS_L3,   f -> f.fireBomb(3)),
+            Map.entry(AudioTypes.FIRE_BOMBS_L4,   f -> f.fireBomb(4)),
+            Map.entry(AudioTypes.FIRE_GUNS_L1,    f -> f.fireBullet(1)),
+            Map.entry(AudioTypes.FIRE_GUNS_L2,    f -> f.fireBullet(2)),
+            Map.entry(AudioTypes.FIRE_GUNS_L3,    f -> f.fireBullet(3)),
+            Map.entry(AudioTypes.FIRE_GUNS_L4,    f -> f.fireBullet(4)),
+            Map.entry(AudioTypes.FIRE_GRAVBOMB,   SIAudioFactory::fireGravBomb),
+            Map.entry(AudioTypes.EXPLOSION2,      SIAudioFactory::explode),
+            Map.entry(AudioTypes.BURST,           SIAudioFactory::fireBurst),
+            Map.entry(AudioTypes.REPEL,           SIAudioFactory::createREPEL),
+            Map.entry(AudioTypes.FLAG,            SIAudioFactory::pickupFlag),
+            Map.entry(AudioTypes.FIRE_MINE_L1,    f -> f.placeMine(1)),
+            Map.entry(AudioTypes.FIRE_MINE_L2,    f -> f.placeMine(2)),
+            Map.entry(AudioTypes.FIRE_MINE_L3,    f -> f.placeMine(3)),
+            Map.entry(AudioTypes.FIRE_MINE_L4,    f -> f.placeMine(4)));
 
     private EntityData ed;
     private AssetManager assets;
@@ -32,50 +64,12 @@ public class SIAudioFactory implements AudioFactory {
     @Override
     public AudioNode createAudio(final Entity e) {
         final AudioType type = e.get(AudioType.class);
-
-        switch (type.getTypeName(ed)) {
-        case AudioTypes.FIRE_THOR:
-            return fireThor();
-        case AudioTypes.PICKUP_PRIZE:
-            return pickupPrize();
-        case AudioTypes.FIRE_BOMBS_L1:
-            return fireBomb(1);
-        case AudioTypes.FIRE_BOMBS_L2:
-            return fireBomb(2);
-        case AudioTypes.FIRE_BOMBS_L3:
-            return fireBomb(3);
-        case AudioTypes.FIRE_BOMBS_L4:
-            return fireBomb(4);
-        case AudioTypes.FIRE_GUNS_L1:
-            return fireBullet(1);
-        case AudioTypes.FIRE_GUNS_L2:
-            return fireBullet(2);
-        case AudioTypes.FIRE_GUNS_L3:
-            return fireBullet(3);
-        case AudioTypes.FIRE_GUNS_L4:
-            return fireBullet(4);
-        case AudioTypes.FIRE_GRAVBOMB:
-            return fireGravBomb();
-        case AudioTypes.EXPLOSION2:
-            return explode();
-        case AudioTypes.BURST:
-            return fireBurst();
-        case AudioTypes.REPEL:
-            return createREPEL();
-        case AudioTypes.FLAG:
-            return pickupFlag();
-        case AudioTypes.FIRE_MINE_L1:
-            return placeMine(1);
-        case AudioTypes.FIRE_MINE_L2:
-            return placeMine(2);
-        case AudioTypes.FIRE_MINE_L3:
-            return placeMine(3);
-        case AudioTypes.FIRE_MINE_L4:
-            return placeMine(4);
-        default:
-            throw new UnsupportedOperationException("Unknown audio type:" + type.getTypeName(ed));
+        final String typeName = type.getTypeName(ed);
+        final Function<SIAudioFactory, AudioNode> factory = FACTORIES.get(typeName);
+        if (factory == null) {
+            throw new UnsupportedOperationException("Unknown audio type:" + typeName);
         }
-
+        return factory.apply(this);
     }
 
     private AudioNode placeMine(int i) {
