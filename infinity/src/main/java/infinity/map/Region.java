@@ -5,6 +5,7 @@ package infinity.map;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -42,7 +43,7 @@ public class Region {
     public int x = 512, y = 512;
     public String arena = "";
 
-    public ArrayList<Rectangle> rects = new ArrayList<>();
+    public List<Rectangle> rects = new ArrayList<>();
     public Vector<Byte> unknownBytes = new Vector<>(); // region bytes loaded... but unknown or unused by the program
 
     public Region() {

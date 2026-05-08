@@ -16,6 +16,7 @@ import infinity.es.arena.ArenaMap;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +64,7 @@ public class ArenaRegistryState extends BaseAppState {
     }
   }
 
-  private final ConcurrentHashMap<EntityId, ArenaSnapshot> arenas = new ConcurrentHashMap<>();
+  private final ConcurrentMap<EntityId, ArenaSnapshot> arenas = new ConcurrentHashMap<>();
   private EntityData ed;
   private EntitySet arenaEntities;
 

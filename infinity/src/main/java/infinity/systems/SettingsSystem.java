@@ -9,6 +9,7 @@ import infinity.es.arena.ArenaId;
 import infinity.settings.GroovyFragmentLoader;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class SettingsSystem extends AbstractGameSystem {
 
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
-  private final HashMap<String, Ini> arenaSettingsMap = new HashMap<>();
+  private final Map<String, Ini> arenaSettingsMap = new HashMap<>();
   private final GroovyFragmentLoader groovyFragmentLoader = new GroovyFragmentLoader();
 
   @Override

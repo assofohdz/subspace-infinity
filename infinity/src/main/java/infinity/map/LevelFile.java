@@ -5,6 +5,7 @@ package infinity.map;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Vector;
 
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class LevelFile {
     }
 
     // eLVL ATTR tags... vector of vector of Strings
-    public Vector<Vector<String>> eLvlAttrs = new Vector<>();
+    public List<List<String>> eLvlAttrs = new Vector<>();
     public static final int DEFAULT_TAG_COUNT = 6;
 
     // Vector of loaded regions

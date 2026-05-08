@@ -16,6 +16,7 @@ import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.RigidBody;
 import infinity.es.ShapeNames;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class is a factory for creating entity bodies. It is used by the MPhysSystem to create the
@@ -29,7 +30,7 @@ public class InfinityEntityBodyFactory
 
   EntityData ed;
 
-  HashMap<EntityId, RigidBody<EntityId, MBlockShape>> bodies = new HashMap<>();
+  Map<EntityId, RigidBody<EntityId, MBlockShape>> bodies = new HashMap<>();
 
   public InfinityEntityBodyFactory(
       final EntityData ed,

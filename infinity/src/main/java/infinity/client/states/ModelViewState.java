@@ -81,6 +81,7 @@ import infinity.es.ShapeNames;
 import infinity.es.ship.Player;
 import infinity.sim.CubeFactory;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -113,7 +114,7 @@ public class ModelViewState extends BaseAppState {
   // from 64 to 65 and be sitting on the ground.
   private final List<Vector4f> testCoords = new ArrayList<>();
   private final List<Spatial> tests = new ArrayList<>();
-  final LinkedList<MarkVisible> markerQueue = new LinkedList<>();
+  final Deque<MarkVisible> markerQueue = new LinkedList<>();
   // Physics grid is 32x32 but SimEthereal's grid is 64x64... which
   // means the maximum we'll see updates for is 128< away.  So for
   // a 32 grid we'd need a radius of 3... but then sometimes we'd

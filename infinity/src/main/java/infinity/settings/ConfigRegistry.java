@@ -63,7 +63,7 @@ public final class ConfigRegistry {
   private final SpawnConfig spawn;
 
   private ConfigRegistry(
-      final EnumMap<Ship, ShipConfig> shipsSource,
+      final Map<Ship, ShipConfig> shipsSource,
       final BulletConfig bullet,
       final BombConfig bomb,
       final GravBombConfig gravBomb,

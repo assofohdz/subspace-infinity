@@ -40,6 +40,7 @@ import com.google.common.base.MoreObjects;
 import com.simsilica.es.EntityId;
 import com.simsilica.sim.SimTime;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -69,7 +70,7 @@ public class Brain {
   private Goal currentGoal;
   private Strategy<Goal> currentStrategy;
 
-  private final LinkedList<Goal> failedGoals = new LinkedList<>();
+  private final Deque<Goal> failedGoals = new LinkedList<>();
 
   private final Set<TouchEvent> pendingTouches = new HashSet<>();
 

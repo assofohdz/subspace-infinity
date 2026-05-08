@@ -45,7 +45,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * This Hashmap contains all the operators Key: Name of the operator [lowercase]
      * Value: level id (0-9)
      */
-    private static HashMap<EntityId, AccessLevel> operators;
+    private static Map<EntityId, AccessLevel> operators;
 
     private static final String ATTRIBUTE_SESSION = "account.session";
     private static final String ATTRIBUTE_PLAYER_NAME = "account.playerName";

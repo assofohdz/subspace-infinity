@@ -83,6 +83,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
@@ -117,7 +118,7 @@ public class LocalViewState extends BaseAppState {
   private final ColorRGBA filledColor = new ColorRGBA(1, 1, 0, 0.5f);
   private final Map<LeafId, LeafView> viewCache = new HashMap<>();
   private final LeafObserver leafObserver = new LeafObserver();
-  private final ConcurrentLinkedQueue<LeafId> updatedLeafIds = new ConcurrentLinkedQueue<>();
+  private final Queue<LeafId> updatedLeafIds = new ConcurrentLinkedQueue<>();
   private Node viewRoot;
   private JobState workers;
   private JobState priorityWorkers;

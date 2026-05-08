@@ -18,6 +18,7 @@ import infinity.Main;
 import infinity.client.ConnectionState;
 import infinity.es.PointLightComponent;
 import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class LightState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LightState.class);
-  private final HashMap<EntityId, PointLight> pointLightMap = new HashMap<>();
+  private final Map<EntityId, PointLight> pointLightMap = new HashMap<>();
   private EntityData ed;
   private EntitySet movingPointLights;
   private EntitySet decayingPointLights;

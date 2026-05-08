@@ -3,6 +3,7 @@
 package infinity.systems;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.jme3.network.service.HostedServiceManager;
 
@@ -34,7 +35,7 @@ public class ResourceSystem extends AbstractGameSystem {
     private EntityData ed;
     private EntitySet ships;
     private double time_since_last_update;
-    private final HashMap<EntityId, Integer> goldMap = new HashMap<>();
+    private final Map<EntityId, Integer> goldMap = new HashMap<>();
     // private final HostedServiceManager serviceManager;
 
     public ResourceSystem(@SuppressWarnings("unused") final HostedServiceManager serviceManager) {

@@ -58,7 +58,7 @@ public class BrainScheduler {
 
     // Something simple for now... until we need things like
     // rescheduling and stuff.
-    private LinkedList<Brain> schedule = new LinkedList<>();
+    private List<Brain> schedule = new LinkedList<>();
 
     // Queued up brains that may need rescheduling
     private Set<Brain> reschedule = new HashSet<>();

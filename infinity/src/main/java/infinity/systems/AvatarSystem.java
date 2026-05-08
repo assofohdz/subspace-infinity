@@ -25,6 +25,7 @@ import infinity.es.ship.actions.WarpTo;
 import infinity.events.arena.ShipEvent;
 import infinity.sim.CorePhysicsConstants;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This system is responsible for managing the avatar entities. It is responsible
@@ -47,7 +48,7 @@ public class AvatarSystem extends AbstractGameSystem {
   private EntityData ed;
   private EntitySet frequencies;
   /** The number of allowed players in each ship on this team. */
-  private HashMap<Integer, ShipRestrictor> teamRestrictions;
+  private Map<Integer, ShipRestrictor> teamRestrictions;
 
   private EntitySet captains;
 

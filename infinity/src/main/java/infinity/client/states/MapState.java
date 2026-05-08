@@ -61,7 +61,7 @@ public class MapState extends BaseAppState {
     private AssetManager am;
     private final Map<String, LevelFile> levelFiles = new HashMap<>();
     private AWTLoader imgLoader;
-    private final HashMap<TileKey, Image> imageMap = new HashMap<>();
+    private final Map<TileKey, Image> imageMap = new HashMap<>();
 
     private final HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     // private float tpfTime;

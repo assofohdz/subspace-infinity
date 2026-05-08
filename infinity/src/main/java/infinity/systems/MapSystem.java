@@ -26,6 +26,7 @@ import infinity.sim.GameEntities;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +77,7 @@ public class MapSystem extends AbstractGameSystem {
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "Maps";
   // Map that holds all block coordinates for a given map:
-  private final HashMap<String, HashSet<Vec3d>> activeMaps = new HashMap<>();
+  private final Map<String, HashSet<Vec3d>> activeMaps = new HashMap<>();
   // Map that holds the offset coordinates of each map:
   private final LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);

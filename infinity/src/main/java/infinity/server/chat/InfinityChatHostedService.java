@@ -57,6 +57,7 @@ import infinity.sim.util.InfinityRunTimeException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiFunction;
@@ -83,7 +84,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   private final int channel;
   private final List<ChatSessionImpl> players = new CopyOnWriteArrayList<>();
   // TriConsumers need the player entityId and the avatar entityId
-  private final ConcurrentHashMap<Pattern, CommandTriFunction<EntityId, EntityId, Matcher, String>>
+  private final Map<Pattern, CommandTriFunction<EntityId, EntityId, Matcher, String>>
       patternTriConsumer;
   // BiConsumers only need the player entityId
   private final ConcurrentHashMap<Pattern, CommandBiFunction<EntityId, Matcher, String>>

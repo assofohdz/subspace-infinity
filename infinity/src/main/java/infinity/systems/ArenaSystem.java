@@ -693,7 +693,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   private void doLoad(final ArenaRecord rec) {
     rec.state = ArenaState.LOADING;
-    final SettingsSystem settings = getSystem(SettingsSystem.class);
     final MapSystem maps = getSystem(MapSystem.class);
     EntityId arena = null;
     try {

@@ -285,7 +285,7 @@ public class HelpState extends BaseAppState {
                 final StringBuilder sb = new StringBuilder(primary);
                 for (final Object mod : m.getModifiers()) {
                     if (mod instanceof Integer) {
-                        sb.append("+");
+                        sb.append('+');
                         sb.append(KeyNames.getName(((Integer) mod).intValue()));
                     }
                 }

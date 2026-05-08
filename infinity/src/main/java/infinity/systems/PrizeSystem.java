@@ -69,7 +69,9 @@ import infinity.systems.ship.applier.XRadarPrizeApplier;
 import infinity.util.RandomSelector;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +84,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
   private final PhysicsSpace<EntityId, MBlockShape> phys;
-  private final HashMap<EntityId, HashSet<EntityId>> spawnerBounties = new HashMap<>();
+  private final Map<EntityId, Set<EntityId>> spawnerBounties = new HashMap<>();
   private final HashMap<EntityId, Double> spawnerLastSpawned = new HashMap<>();
   /**
    * Last-resort selector built from the hardcoded {@link #FALLBACK_WEIGHTS}.
@@ -346,7 +348,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     for (Entity bountyRemoved : prizes.getRemovedEntities()) {
       EntityId idBounty = bountyRemoved.getId();
       for (Entity entitySpawner : prizeSpawners) {
-        HashSet<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
+        Set<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
         spawnerBountySet.remove(idBounty);
         spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
       }
@@ -386,7 +388,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       final double effectiveRadius =
           computeEffectiveRadius(c.getRadius(), s.getRadiusPerPlayer(), playersInArena);
 
-      HashSet<EntityId> spawnerBountySet = spawnerBounties.get(spawnerId);
+      Set<EntityId> spawnerBountySet = spawnerBounties.get(spawnerId);
       if (spawnerBountySet == null) {
         // First time we see this spawner: prime with one prize.
         spawnerBountySet = new HashSet<>();
