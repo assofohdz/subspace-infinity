@@ -126,7 +126,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
    * This causes the player to 'enter' the chat room and will then be able to send/receive messages.
    */
   public void startHostingOnConnection(final HostedConnection conn, final String playerName) {
-    log.debug("startHostingOnConnection(" + conn + ")");
+    log.debug("startHostingOnConnection({})", conn);
 
     final ChatSessionImpl session = new ChatSessionImpl(conn, playerName);
     conn.setAttribute(ATTRIBUTE_SESSION, session);
@@ -145,7 +145,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       }
       chatter.playerJoined(conn.getId(), playerName);
     }
-    log.info(PREPEND_CHAT + playerName + " joined.");
+    log.info("{}{} joined.", PREPEND_CHAT, playerName);
   }
 
   /** Starts hosting the chat services on the specified connection using a generated player name. */
@@ -156,7 +156,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
 
   @Override
   public void stopHostingOnConnection(final HostedConnection conn) {
-    log.debug("stopHostingOnConnection(" + conn + ")");
+    log.debug("stopHostingOnConnection({})", conn);
     final ChatSessionImpl player = getChatSession(conn);
     if (player != null) {
 
@@ -177,7 +177,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
         }
         chatter.playerLeft(player.conn.getId(), player.name);
       }
-      log.info(PREPEND_CHAT + player.name + " left.");
+      log.info("{}{} left.", PREPEND_CHAT, player.name);
     }
   }
 
@@ -226,7 +226,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
       return;
     }
 
-    log.info(PREPEND_CHAT + from.name + " said:" + message);
+    log.info("{}{} said:{}", PREPEND_CHAT, from.name, message);
     for (final ChatSessionImpl chatter : players) {
       chatter.newMessage(from.conn.getId(), from.name, message);
     }
@@ -236,7 +236,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
 
   @Override
   public void postPublicMessage(final String from, final int messageType, final String message) {
-    log.info(PREPEND_CHAT + from + " said:" + message);
+    log.info("{}{} said:{}", PREPEND_CHAT, from, message);
     for (final ChatSessionImpl chatter : players) {
       chatter.newMessage(0, from, message);
     }

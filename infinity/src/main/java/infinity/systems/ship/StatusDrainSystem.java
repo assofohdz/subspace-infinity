@@ -47,7 +47,6 @@ import infinity.sim.util.InfinityRunTimeException;
  */
 public class StatusDrainSystem extends AbstractGameSystem {
 
-  private EntityData ed;
   private EnergySystem energySystem;
   private EntitySet cloakDrainers;
   private EntitySet stealthDrainers;
@@ -56,7 +55,7 @@ public class StatusDrainSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
+    final EntityData ed = getSystem(EntityData.class);
     if (ed == null) {
       throw new InfinityRunTimeException(
           getClass().getName() + " system requires an EntityData object.");

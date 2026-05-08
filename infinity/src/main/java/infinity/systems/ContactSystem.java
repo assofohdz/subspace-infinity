@@ -42,7 +42,6 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       new DynArray<>(new TypeToken<ContactListener<K, S>>() {});
   EntitySet categoryFilters;
   private EntityData ed;
-  private MPhysSystem<?> physics;
   private ArenaSystem arenaSystem;
 
   @Override
@@ -165,7 +164,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
           categoryFilters.getEntity(two).get(CollisionCategory.class).getFilter();
       if (!filterTwo.isAllowed(filterOne)) {
         log.debug(
-            "Disabling contact because of category filters:" + filterOne + " and: " + filterTwo);
+            "Disabling contact because of category filters:{} and: {}", filterOne, filterTwo);
       }
       return filterTwo.isAllowed(filterOne);
     }
@@ -193,7 +192,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
     }
 
     if (res) {
-      log.debug("Disabling contact because of parent child relationship: " + one + " and: " + two);
+      log.debug("Disabling contact because of parent child relationship: {} and: {}", one, two);
     }
 
     return res;
@@ -213,7 +212,7 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
       throw new InfinityRunTimeException(
           getClass().getName() + " system requires an EntityData object.");
     }
-    physics = getSystem(MPhysSystem.class);
+    final MPhysSystem<?> physics = getSystem(MPhysSystem.class);
     if (physics == null) {
       throw new InfinityRunTimeException(
           getClass().getName() + " system requires the MPhysSystem system.");

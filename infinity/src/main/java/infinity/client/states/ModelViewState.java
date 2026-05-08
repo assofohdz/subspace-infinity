@@ -140,8 +140,6 @@ public class ModelViewState extends BaseAppState {
   private BodyContainer bodies;
   private ModelContainer models;
   private LargeModelContainer largeModels;
-  private ComponentFilter[][] gridFilters;
-  private ComponentFilter[][] largeGridFilters;
   private VersionedHolder<String> bodyCount;
   private VersionedHolder<String> modelCount;
   private VersionedHolder<String> largeModelCount;
@@ -412,7 +410,7 @@ public class ModelViewState extends BaseAppState {
 
   protected void resetModelFilter() {
     int size = gridRadius * 2 + 1;
-    gridFilters = new ComponentFilter[size][size];
+    final ComponentFilter[][] gridFilters = new ComponentFilter[size][size];
     ComponentFilter[] filters = new ComponentFilter[size * size];
 
     int xOffset = centerWorld.x - gridRadius;
@@ -434,7 +432,7 @@ public class ModelViewState extends BaseAppState {
     // Update the large objects filter also... we'll use the same
     // radius/size for now
     int size = gridRadius * 2 + 1;
-    largeGridFilters = new ComponentFilter[size][size];
+    final ComponentFilter[][] largeGridFilters = new ComponentFilter[size][size];
     ComponentFilter[] filters = new ComponentFilter[size * size];
 
     int xOffset = largeModelCenter.x - gridRadius;

@@ -74,10 +74,6 @@ public class MobDebugState extends BaseAppState {
     static Logger log = LoggerFactory.getLogger(MobDebugState.class);
     private final HostState host;
 
-    private GameSystemManager systems;
-
-    private EntityData ed;
-    private MobSystem mobs;
     private MobStats stats;
     private PhysicsSpace space;
 
@@ -140,12 +136,12 @@ public class MobDebugState extends BaseAppState {
 
     @Override
     protected void initialize( Application app ) {
-        this.systems = host.getSystems();
-        this.mobs = systems.get(MobSystem.class);
+        final GameSystemManager systems = host.getSystems();
+        final MobSystem mobs = systems.get(MobSystem.class);
         this.stats = mobs.getStats();
         this.space = systems.get(PhysicsSpace.class);
 
-        this.ed = systems.get(EntityData.class);
+        final EntityData ed = systems.get(EntityData.class);
         this.probeRoot = new Node("probeRoot");
         this.probes = new ProbeContainer(ed);
 

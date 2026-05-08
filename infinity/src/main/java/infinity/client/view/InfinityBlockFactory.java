@@ -178,7 +178,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
                     continue;
                 }
                 if (debug) {
-                    log.info("add part for:" + dir);
+                    log.info("add part for:{}", dir);
                 }
                 count += part.addParts(buffer, i, j, k, xWorld, yWorld, zWorld, type, dir);
             }

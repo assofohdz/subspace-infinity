@@ -107,7 +107,7 @@ class Model {
     if (!dynamic) {
       if (pos == null) {
         // We are not a static model and we are probably being removed
-        ModelViewState.log.info("dynamic=false, pos=null, useCount=" + useCount);
+        ModelViewState.log.info("dynamic=false, pos=null, useCount={}", useCount);
       } else {
         final Vector3f loc = pos.getLocation().toVector3f();
 
@@ -115,7 +115,7 @@ class Model {
         loc.subtractLocal(owner.centerWorld.toVector3f());
 
         spatial.setLocalTranslation(loc);
-        ModelViewState.log.info("updateRelPos(" + entityId + "):" + loc);
+        ModelViewState.log.info("updateRelPos({}):{}", entityId, loc);
         spatial.setLocalRotation(pos.getOrientation().toQuaternion());
       }
     }
@@ -142,17 +142,17 @@ class Model {
   }
 
   void resetVisibility() {
-    ModelViewState.log.info("resetVisibility():" + visibleCount);
+    ModelViewState.log.info("resetVisibility():{}", visibleCount);
     if (visibleCount > 0) {
       // Spatials marked "arena" opt out of frustum culling — the wireframe
       // cube extends y=0..1024 but the camera sits ~75 above the avatar,
       // so most of the bounding box is behind the camera and JME's frustum
       // test would otherwise drop the spatial when alongside.
       final boolean noCull = spatial.getUserData("arena") != null;
-      ModelViewState.log.info("visible:" + entityId);
+      ModelViewState.log.info("visible:{}", entityId);
       spatial.setCullHint(noCull ? Spatial.CullHint.Never : Spatial.CullHint.Inherit);
     } else {
-      ModelViewState.log.info("invisible:" + entityId);
+      ModelViewState.log.info("invisible:{}", entityId);
       spatial.setCullHint(Spatial.CullHint.Always);
     }
   }

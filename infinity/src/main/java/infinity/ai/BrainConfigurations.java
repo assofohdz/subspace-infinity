@@ -183,7 +183,7 @@ public class BrainConfigurations {
         Wander.class,
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
-                  log.info("---------- Create loop:" + goal);
+                  log.info("---------- Create loop:{}", goal);
                   LoopAction<TimedGoal> result =
                       new LoopAction<>(
                           goal,
@@ -209,7 +209,7 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(goal + " failed for:" + brain);
+                  log.info("{} failed for:{}", goal, brain);
                   return new Say("*bawk*", 1);
                 })
             .onTouch(
@@ -301,7 +301,7 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(goal + " failed for:" + brain);
+                  log.info("{} failed for:{}", goal, brain);
                   return new Say("??", 1);
                 })
             .onTouch(
@@ -412,7 +412,7 @@ public class BrainConfigurations {
         Wander.class,
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
-                  log.info("---------- Create loop:" + goal);
+                  log.info("---------- Create loop:{}", goal);
                   LoopAction<TimedGoal> result =
                       new LoopAction<>(
                           goal,
@@ -437,7 +437,7 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(goal + " failed for:" + brain);
+                  log.info("{} failed for:{}", goal, brain);
                   return new Say("*ruff*", 1);
                 })
             .onBlocked(
@@ -523,7 +523,7 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(goal + " failed for:" + brain);
+                  log.info("{} failed for:{}", goal, brain);
                   return new Say("??", 1);
                 })
             .onBlocked(
@@ -594,7 +594,7 @@ public class BrainConfigurations {
         Wander.class,
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
-                  log.info("---------- Create loop:" + goal);
+                  log.info("---------- Create loop:{}", goal);
                   LoopAction<TimedGoal> result =
                       new LoopAction<>(
                           goal,
@@ -619,7 +619,7 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(goal + " failed for:" + brain);
+                  log.info("{} failed for:{}", goal, brain);
                   return new Say("Hmph!", 1);
                 })
             .onBlocked(
@@ -705,7 +705,7 @@ public class BrainConfigurations {
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info(goal + " failed for:" + brain);
+                  log.info("{} failed for:{}", goal, brain);
                   return new Say("??", 1);
                 })
             .onBlocked(

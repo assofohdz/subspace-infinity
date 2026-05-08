@@ -29,15 +29,13 @@ public class GravitySystem extends AbstractGameSystem implements ContactListener
 
   private EntityData ed;
   private EntitySet gravityWells;
-  // A set to map from the pulling gravity wells to a pushing gravity well
-  private ContactSystem contactSystem;
 
   protected void initialize() {
     this.ed = getSystem(EntityData.class);
 
-    this.contactSystem = getSystem(ContactSystem.class);
+    final ContactSystem contactSystem = getSystem(ContactSystem.class);
 
-    this.contactSystem.addListener(this);
+    contactSystem.addListener(this);
 
     gravityWells = ed.getEntities(GravityWell.class, BodyPosition.class);
   }

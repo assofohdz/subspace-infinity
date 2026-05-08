@@ -143,7 +143,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
   @Override
   public void startHostingOnConnection(final HostedConnection conn) {
 
-    log.debug("startHostingOnConnection(" + conn + ")");
+    log.debug("startHostingOnConnection({})", conn);
 
     final GameSessionImpl session = new GameSessionImpl(conn);
     conn.setAttribute(ATTRIBUTE_SESSION, session);
@@ -162,7 +162,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
   @Override
   public void stopHostingOnConnection(final HostedConnection conn) {
-    log.debug("stopHostingOnConnection(" + conn + ")");
+    log.debug("stopHostingOnConnection({})", conn);
 
     final GameSessionImpl session = getGameSession(conn);
     if (session != null) {
@@ -252,7 +252,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
 
       log.info("avatarId(" + avatarEntityId.getId() + ")");
 
-      log.info("createdAvatar:" + avatarEntityId);
+      log.info("createdAvatar:{}", avatarEntityId);
     }
 
     /**
@@ -328,7 +328,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     }
 
     public void close() {
-      log.debug("Closing game session for:" + conn);
+      log.debug("Closing game session for:{}", conn);
       // Remove our physics body
       //// physics.removeBody(shipEntity);
       // Physics body is now removed as a side-effect of the entity
@@ -387,7 +387,7 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         callback = rmi.getRemoteObject(GameSessionListener.class);
         if (callback == null) {
           if (failFast) {
-            throw new RuntimeException("Unable to locate client callback for GameSessionListener");
+            throw new IllegalStateException("Unable to locate client callback for GameSessionListener");
           }
           log.warn("Unable to locate client callback for GameSessionListener");
         }
@@ -412,6 +412,8 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
         case ConsumableSystem.REPEL:
           actionSys.sessionAct(avatarEntityId, ConsumableSystem.REPEL);
           return;
+        default:
+          throw new IllegalStateException("Unexpected: " + actionInput);
       }
     }
 

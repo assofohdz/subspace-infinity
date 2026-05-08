@@ -295,7 +295,7 @@ public class LocalViewState extends BaseAppState {
     log.info(indent + "name:" + tex.getName());
     log.info(indent + "shadowCompareMode:" + tex.getShadowCompareMode());
     log.info(indent + "anisotropicFilter:" + tex.getAnisotropicFilter());
-    log.info(indent + "image:");
+    log.info("{}image:", indent);
     logInfo(indent + "  ", tex.getImage());
   }
 
@@ -404,7 +404,7 @@ public class LocalViewState extends BaseAppState {
 
     viewMask.setCenterWorld(centerWorld);
 
-    log.info("Refreshing local view, centerWorld:" + centerWorld + "   pos:" + pos);
+    log.info("Refreshing local view, centerWorld:{}   pos:{}", centerWorld, pos);
 
     Set<LeafId> toRemove = new HashSet<>(viewCache.keySet());
 
@@ -415,7 +415,7 @@ public class LocalViewState extends BaseAppState {
 
       // If this leaf is below the world then we don't need to worry about it
       if (world.y < 0) {
-        log.info("Skipping entry below the world:" + world);
+        log.info("Skipping entry below the world:{}", world);
         continue;
       }
 
@@ -466,7 +466,7 @@ public class LocalViewState extends BaseAppState {
         if (view.queued) {
           // And cancel it if possible
           if (!workers.cancel(view)) {
-            log.info("View job not canceled for:" + view.leafId);
+            log.info("View job not canceled for:{}", view.leafId);
           } else {
             view.queued = false;
           }

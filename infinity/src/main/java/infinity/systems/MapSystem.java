@@ -83,7 +83,6 @@ public class MapSystem extends AbstractGameSystem {
   private final Map<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private EntityData ed;
-  private MPhysSystem<MBlockShape> physics;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private SimTime time;
   // private EntitySet tileTypes;
@@ -109,16 +108,16 @@ public class MapSystem extends AbstractGameSystem {
   protected void initialize() {
     ed = getSystem(EntityData.class);
     if (ed == null) {
-      throw new RuntimeException(getClass().getName() + " system requires an EntityData object.");
+      throw new IllegalStateException(getClass().getName() + " system requires an EntityData object.");
     }
-    physics = getPhysicsSystem();
+    final MPhysSystem<MBlockShape> physics = getPhysicsSystem();
     if (physics == null) {
-      throw new RuntimeException(getClass().getName() + " system requires the MPhysSystem system.");
+      throw new IllegalStateException(getClass().getName() + " system requires the MPhysSystem system.");
     }
     world = super.getManager().get(World.class);
     // world = getSystem(DefaultLeafWorld.class);
     if (world == null) {
-      throw new RuntimeException(getClass().getName() + " system requires the World system.");
+      throw new IllegalStateException(getClass().getName() + " system requires the World system.");
     }
     this.assetLoader = getSystem(AssetLoaderService.class);
 
@@ -505,7 +504,8 @@ public class MapSystem extends AbstractGameSystem {
       int shown = 0;
       for (final java.util.Map.Entry<Integer, Integer> e : idHistogram.entrySet()) {
         sb.append(' ').append(e.getKey()).append('=').append(e.getValue());
-        if (++shown >= 40) {
+        shown++;
+        if (shown >= 40) {
           sb.append(" ...(").append(idHistogram.size() - shown).append(" more)");
           break;
         }

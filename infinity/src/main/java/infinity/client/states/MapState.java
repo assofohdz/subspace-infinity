@@ -92,14 +92,14 @@ public class MapState extends BaseAppState {
 
     public float getWangBlobRotations(final int indexNumber) {
         if (!wangBlobIndexMap.containsKey(Integer.valueOf(indexNumber))) {
-            throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
+            throw new IllegalArgumentException("WangBlobMap does not contain index number: " + indexNumber);
         }
         return wangBlobIndexMap.get(Integer.valueOf(indexNumber)).getRotation();
     }
 
     public int getWangBlobTileNumber(final int indexNumber) {
         if (!wangBlobIndexMap.containsKey(Integer.valueOf(indexNumber))) {
-            throw new NullPointerException("WangBlobMap does not contain index number: " + indexNumber);
+            throw new IllegalArgumentException("WangBlobMap does not contain index number: " + indexNumber);
         }
         return wangBlobIndexMap.get(Integer.valueOf(indexNumber)).getTileNumber();
     }
@@ -440,7 +440,7 @@ public class MapState extends BaseAppState {
                     final GameSession session = getState(ConnectionState.class)
                             .getService(GameSessionClientService.class);
                     if (session == null) {
-                        throw new RuntimeException("ModelViewState requires an active game session.");
+                        throw new IllegalStateException("ModelViewState requires an active game session.");
                     }
 
                     final Vector2f click2d = new Vector2f(event.getX(), event.getY());
@@ -464,7 +464,7 @@ public class MapState extends BaseAppState {
                     final GameSession session = getState(ConnectionState.class)
                             .getService(GameSessionClientService.class);
                     if (session == null) {
-                        throw new RuntimeException("ModelViewState requires an active game session.");
+                        throw new IllegalStateException("ModelViewState requires an active game session.");
                     }
 
                     final Vector2f click2d = new Vector2f(event.getX(), event.getY());

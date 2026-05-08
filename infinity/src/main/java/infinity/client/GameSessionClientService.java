@@ -101,7 +101,7 @@ public class GameSessionClientService extends AbstractClientService implements G
             delegate = rmiService.getRemoteObject(GameSession.class);
             log.debug("delegate:{}", delegate);
             if (delegate == null) {
-                throw new RuntimeException("No game session found");
+                throw new IllegalStateException("No game session found");
             }
         }
         return delegate;
@@ -125,7 +125,7 @@ public class GameSessionClientService extends AbstractClientService implements G
         log.info("onInitialize({})", s);
         rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
-            throw new RuntimeException("GameSessionClientService requires RMI service");
+            throw new IllegalStateException("GameSessionClientService requires RMI service");
         }
 
         // Register the session right away even though the 'state' of the connection

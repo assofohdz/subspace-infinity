@@ -65,12 +65,11 @@ public class ArenaRegistryState extends BaseAppState {
   }
 
   private final ConcurrentMap<EntityId, ArenaSnapshot> arenas = new ConcurrentHashMap<>();
-  private EntityData ed;
   private EntitySet arenaEntities;
 
   @Override
   protected void initialize(final Application app) {
-    ed = getState(ConnectionState.class).getEntityData();
+    final EntityData ed = getState(ConnectionState.class).getEntityData();
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
   }
 

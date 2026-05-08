@@ -8,8 +8,9 @@ import infinity.map.MapTypes;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,7 +32,7 @@ public final class MapAnalyzer {
 
   private MapAnalyzer() {}
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws IOException {
     if (args.length < 1) {
       System.err.println("Usage: MapAnalyzer <map1.lvl> [map2.lvl]");
       System.err.println("Paths can be absolute, or filenames resolved under infinity/assets/Maps/");
@@ -67,16 +68,16 @@ public final class MapAnalyzer {
         "Cannot find map file: " + pathArg + " (cwd=" + System.getProperty("user.dir") + ")");
   }
 
-  private static MapReport analyze(File file) throws Exception {
+  private static MapReport analyze(File file) throws IOException {
     BitMap bmp;
-    try (InputStream is = new FileInputStream(file);
+    try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
       bmp = new BitMap(bis);
       bmp.readBitMap(false);
     }
 
     LevelFile lvl;
-    try (InputStream is = new FileInputStream(file);
+    try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
       if (bmp.isBitMap()) {
         lvl = new LevelFile(bis, bmp, true, bmp.hasELVL, file.getName());
@@ -85,7 +86,7 @@ public final class MapAnalyzer {
       }
       String err = lvl.readLevel();
       if (err != null) {
-        throw new RuntimeException("readLevel failed for " + file + ": " + err);
+        throw new IllegalStateException("readLevel failed for " + file + ": " + err);
       }
     }
 

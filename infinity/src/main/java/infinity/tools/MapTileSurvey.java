@@ -6,8 +6,8 @@ import infinity.map.BitMap;
 import infinity.map.LevelFile;
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -104,18 +104,18 @@ public final class MapTileSurvey {
 
   private static MapStats analyzeTiles(final File file) throws Exception {
     final BitMap bmp;
-    try (InputStream is = new FileInputStream(file);
+    try (InputStream is = Files.newInputStream(file.toPath());
         BufferedInputStream bis = new BufferedInputStream(is)) {
       bmp = new BitMap(bis);
       bmp.readBitMap(false);
     }
     final LevelFile lvl;
-    try (InputStream is = new FileInputStream(file);
+    try (InputStream is = Files.newInputStream(file.toPath());
         BufferedInputStream bis = new BufferedInputStream(is)) {
       lvl = new LevelFile(bis, bmp, bmp.isBitMap(), bmp.hasELVL, file.getName());
       final String err = lvl.readLevel();
       if (err != null) {
-        throw new RuntimeException("readLevel failed: " + err);
+        throw new IllegalStateException("readLevel failed: " + err);
       }
     }
 

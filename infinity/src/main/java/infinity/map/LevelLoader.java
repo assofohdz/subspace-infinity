@@ -16,7 +16,6 @@ import com.jme3.asset.AssetManager;
  */
 public class LevelLoader implements AssetLoader {
 
-    private String m_file;
     private AssetManager am;
     public LevelFile m_lvlFile;
 
@@ -24,7 +23,7 @@ public class LevelLoader implements AssetLoader {
     public LevelFile load(final AssetInfo assetInfo) throws IOException {
 
         am = assetInfo.getManager();
-        m_file = assetInfo.getKey().getName();
+        final String m_file = assetInfo.getKey().getName();
 
         String errorWithELVL;
         BitMap bmp;

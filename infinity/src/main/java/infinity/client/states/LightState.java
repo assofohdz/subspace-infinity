@@ -37,7 +37,6 @@ public class LightState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LightState.class);
   private final Map<EntityId, PointLight> pointLightMap = new HashMap<>();
-  private EntityData ed;
   private EntitySet movingPointLights;
   private EntitySet decayingPointLights;
   private Node rootNode;
@@ -49,7 +48,7 @@ public class LightState extends BaseAppState {
 
   @Override
   protected void initialize(final Application app) {
-    ed = getState(ConnectionState.class).getEntityData();
+    final EntityData ed = getState(ConnectionState.class).getEntityData();
     movingPointLights = ed.getEntities(PointLightComponent.class, BodyPosition.class);
     decayingPointLights = ed.getEntities(PointLightComponent.class, Decay.class);
     timeState = getState(TimeState.class);

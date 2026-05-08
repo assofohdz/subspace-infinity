@@ -220,7 +220,7 @@ public class Brain {
     Strategy<Goal> result = (Strategy<Goal>) (Strategy) config.getStrategy(goal.getClass());
     log.info(" found:{}", result);
     if (result == null) {
-      log.error("No strategy found to support goal:" + goal);
+      log.error("No strategy found to support goal:{}", goal);
       // We can't use a default strategy because some strategies
       // only work with certain goal types.  Something to maybe
       // address in the future.  Or make sure that default strategies
@@ -230,7 +230,7 @@ public class Brain {
   }
 
   protected Action makePlan(Strategy<Goal> strategy, Goal goal) {
-    log.info("makePlan(" + strategy + ", " + goal + ")");
+    log.info("makePlan({}, {})", strategy, goal);
     return strategy.plan(this, goal);
   }
 
@@ -305,7 +305,7 @@ public class Brain {
         try {
           action = makePlan(currentStrategy, currentGoal);
         } catch (RuntimeException e) {
-          log.error("Error making plan for:" + currentGoal + ", strategy:" + currentStrategy, e);
+          log.error("Error making plan for:{}, strategy:{}", currentGoal, currentStrategy, e);
           nextHeartbeat = time.getFutureTime(0.001);
           currentGoal = null;
           return;
@@ -328,7 +328,7 @@ public class Brain {
       // get stuck if the actions return a bad time.  So we'll
       // check, warn, and adjust
       if (next <= 0) {
-        log.warn("Bad heartbeat value from:" + action + "  heartbeat:" + next);
+        log.warn("Bad heartbeat value from:{}  heartbeat:{}", action, next);
         next = 0.001;
       }
 

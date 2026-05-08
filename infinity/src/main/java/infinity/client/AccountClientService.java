@@ -69,7 +69,7 @@ public class AccountClientService extends AbstractClientService
     log.debug("onInitialize({})", s);
     this.rmiService = getService(RmiClientService.class);
     if( rmiService == null ) {
-      throw new RuntimeException("AccountClientService requires RMI service");
+      throw new IllegalStateException("AccountClientService requires RMI service");
     }
     log.debug("Sharing session callback.");
     rmiService.share(sessionCallback, AccountSessionListener.class);
@@ -86,7 +86,7 @@ public class AccountClientService extends AbstractClientService
     this.delegate = rmiService.getRemoteObject(AccountSession.class);
     log.debug("delegate:{}", delegate);
     if( delegate == null ) {
-      throw new RuntimeException("No account session found during connection setup");
+      throw new IllegalStateException("No account session found during connection setup");
     }
   }
 

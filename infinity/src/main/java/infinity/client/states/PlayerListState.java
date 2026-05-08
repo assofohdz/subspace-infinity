@@ -37,7 +37,6 @@ import infinity.es.ship.Player;
  */
 public class PlayerListState extends BaseAppState {
 
-  private EntityData ed;
   private Container playerWindow;
   private Container playerRows;
   private PlayerContainer players;
@@ -53,7 +52,7 @@ public class PlayerListState extends BaseAppState {
 
   @Override
   protected void initialize(final Application app) {
-    ed = getState(ConnectionState.class).getEntityData();
+    final EntityData ed = getState(ConnectionState.class).getEntityData();
 
     playerWindow = new Container();
     final Label title = playerWindow.addChild(new Label("Players", new ElementId("title")));

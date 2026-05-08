@@ -269,7 +269,7 @@ public class InfinityGeometryFactory {
 
                 byte dir = (byte)part.getDirectionIndex();
                 if( dirB != null && dir < 0 ) {
-                    throw new RuntimeException("Entry for material:" + mt + " has invalid dir:" + dir);
+                    throw new IllegalStateException("Entry for material:" + mt + " has invalid dir:" + dir);
                 }
                 Direction dirEnum = dir >= 0 ? Direction.values()[dir] : null;
                 int size = part.getVertexCount();
@@ -345,6 +345,8 @@ public class InfinityGeometryFactory {
                 case UnsignedByte:
                     mesh.setBuffer(VertexBuffer.Type.Index, 3, (ByteBuffer)indexes.getBuffer());
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected: " + indexes.getFormat());
             }
             if( dirB != null && dirB.position() != 0 ) {
                 mesh.setBuffer(VertexBuffer.Type.Size, 1, dirB);
@@ -374,13 +376,13 @@ public class InfinityGeometryFactory {
             }
             if( mat == null ) {
                 log.debug("all keys:" + materials.keySet());
-                throw new RuntimeException("Materal not found for:" + mt.getId());
+                throw new IllegalStateException("Materal not found for:" + mt.getId());
             }
             geom.setMaterial(mat);
 
             // This is kind of a hack... not sure what the better way is. FIXME: Bucket.Transparent
             if( geom.getMaterial().getAdditionalRenderState().getBlendMode() == BlendMode.Alpha ) {
-                log.debug("Putting in transparent bucket:" + geom);
+                log.debug("Putting in transparent bucket:{}", geom);
                 geom.setQueueBucket(Bucket.Transparent);
             }
             target.attachChild(geom);

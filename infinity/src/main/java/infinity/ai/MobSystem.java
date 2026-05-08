@@ -108,7 +108,7 @@ public class MobSystem extends AbstractGameSystem {
         if( name != null ) {
             return name;
         }
-        log.info("getType(" + body.shape + ")");
+        log.info("getType({})", body.shape);
         return "temp";
     }
 

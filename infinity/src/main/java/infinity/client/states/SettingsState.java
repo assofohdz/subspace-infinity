@@ -60,7 +60,6 @@ public class SettingsState extends BaseAppState {
     public static final FunctionId F_SETTINGS = new FunctionId("Show Settings");
 
     private Container mainWindow;
-    private Container mainContents;
 
     private TabbedPanel tabs;
 
@@ -91,7 +90,7 @@ public class SettingsState extends BaseAppState {
                 BorderLayout.Position.North);
         mainWindow.setLocalTranslation(10, app.getCamera().getHeight() - 10, 0);
 
-        mainContents = mainWindow.addChild(
+        final Container mainContents = mainWindow.addChild(
                 new Container(mainWindow.getElementId().child("contents.container"), "glass"),
                 BorderLayout.Position.Center);
 

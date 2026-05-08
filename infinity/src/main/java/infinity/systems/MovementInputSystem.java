@@ -166,13 +166,13 @@ public class MovementInputSystem extends AbstractGameSystem {
 
     @Override
     protected PlayerDriver addObject(Entity e) {
-      log.info("addObject(" + e + ")");
+      log.info("addObject({})", e);
 
       PlayerDriver result = new PlayerDriver(e.getId(), ed, engineConfigSystem);
 
       // See if the physics engine already has a body for this entity
       RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
-      log.info("existing body:" + body);
+      log.info("existing body:{}", body);
       if (body != null) {
         body.setControlDriver(result);
       }
@@ -191,7 +191,7 @@ public class MovementInputSystem extends AbstractGameSystem {
 
     @Override
     protected void removeObject(PlayerDriver driver, Entity e) {
-      log.info("removeObject(" + e + ")");
+      log.info("removeObject({})", e);
       driver.release();
     }
   }
@@ -214,7 +214,7 @@ public class MovementInputSystem extends AbstractGameSystem {
 
       // See if the physics engine already has a body for this entity
       RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
-      log.info("existing body:" + body);
+      log.info("existing body:{}", body);
       if (body != null) {
         body.setControlDriver(result);
       }
@@ -231,7 +231,7 @@ public class MovementInputSystem extends AbstractGameSystem {
 
     @Override
     protected void removeObject(UprightDriver driver, Entity e) {
-      log.info("removeObject(" + e + ")");
+      log.info("removeObject({})", e);
     }
   }
 

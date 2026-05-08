@@ -80,7 +80,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
         // Grab the RMI service so we can easily use it later
         rmiService = getService(RmiHostedService.class);
         if (rmiService == null) {
-            throw new RuntimeException("AccountHostedService requires an RMI service.");
+            throw new IllegalStateException("AccountHostedService requires an RMI service.");
         }
     }
 
@@ -88,7 +88,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     public void start() {
         final EntityDataHostedService eds = getService(EntityDataHostedService.class);
         if (eds == null) {
-            throw new RuntimeException("AccountHostedService requires an EntityDataHostedService");
+            throw new IllegalStateException("AccountHostedService requires an EntityDataHostedService");
         }
         ed = eds.getEntityData();
     }
@@ -99,7 +99,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
         // Add default access
         operators.put(conn.getAttribute(AccountHostedService.ATTRIBUTE_PLAYER_ENTITYID), AccessLevel.PLAYER_LEVEL);
 
-        log.debug("startHostingOnConnection(" + conn + ")");
+        log.debug("startHostingOnConnection({})", conn);
 
         final AccountSessionImpl session = new AccountSessionImpl(conn);
         conn.setAttribute(ATTRIBUTE_SESSION, session);
@@ -111,11 +111,11 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     @Override
     public void stopHostingOnConnection(final HostedConnection conn) {
-        log.debug("stopHostingOnConnection(" + conn + ")");
+        log.debug("stopHostingOnConnection({})", conn);
         final AccountSessionImpl account = conn.getAttribute(ATTRIBUTE_SESSION);
         if (account != null) {
             final String playerName = getPlayerName(conn);
-            log.debug("publishing playerLoggedOff event for:" + conn);
+            log.debug("publishing playerLoggedOff event for:{}", conn);
             // Was really logged on before
             EventBus.publish(AccountEvent.playerLoggedOff, new AccountEvent(conn, playerName, account.player));
 
@@ -175,7 +175,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
                 final RmiRegistry rmi = rmiService.getRmiRegistry(conn);
                 callback = rmi.getRemoteObject(AccountSessionListener.class);
                 if (callback == null) {
-                    throw new RuntimeException("Unable to locate client callback for AccountSessionListener");
+                    throw new IllegalStateException("Unable to locate client callback for AccountSessionListener");
                 }
             }
             return callback;
@@ -188,21 +188,21 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
         @Override
         public void login(final String playerName) {
-            log.info("login(" + playerName + ")");
+            log.info("login({})", playerName);
             conn.setAttribute(ATTRIBUTE_PLAYER_NAME, playerName);
 
             // Create the player entity
             player = ed.createEntity();
             conn.setAttribute(ATTRIBUTE_PLAYER_ENTITYID, player.getId());
             ed.setComponents(player, new Name(playerName));
-            log.info("Created player entity:" + player + " for:" + playerName);
+            log.info("Created player entity:{} for:{}", player, playerName);
 
             playerConnectionMap.put(player, conn);
 
             // And let them know they were successful
             getCallback().notifyLoginStatus(true);
 
-            log.debug("publishing playerLoggedOn event for:" + conn);
+            log.debug("publishing playerLoggedOn event for:{}", conn);
             // Notify 'logged in' only after we've told the player themselves
             EventBus.publish(AccountEvent.playerLoggedOn, new AccountEvent(conn, playerName, player));
         }

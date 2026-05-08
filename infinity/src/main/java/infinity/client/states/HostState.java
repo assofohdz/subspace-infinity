@@ -43,8 +43,6 @@ public class HostState extends BaseAppState {
     private VersionedHolder<String> hostingState;
     private VersionedHolder<String> connectionCount;
 
-    private ConnectionListener connectionListener = new ConnectionObserver();
-
     private Container hostWindow;
     private GameSystemManager systems;
 
@@ -53,9 +51,10 @@ public class HostState extends BaseAppState {
             this.port = port;
             this.gameServer = new GameServer(port, description);
             systems = gameServer.getSystems();
+            final ConnectionListener connectionListener = new ConnectionObserver();
             gameServer.getServer().addConnectionListener(connectionListener);
         } catch( IOException e ) {
-            throw new RuntimeException("Error creating server", e);
+            throw new IllegalStateException("Error creating server", e);
         }
     }
 

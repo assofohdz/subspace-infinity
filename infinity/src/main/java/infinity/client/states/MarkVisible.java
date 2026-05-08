@@ -55,7 +55,7 @@ class MarkVisible {
 
   public void update() {
     ModelViewState.log.info(
-        "MarkVisible.update() useCount:" + model.useCount + "  dynamic:" + model.dynamic);
+        "MarkVisible.update() useCount:{}  dynamic:{}", model.useCount, model.dynamic);
     // If the model is still static in some way then
     // we'll mark for static visibility
     if (model.useCount == 1 && model.dynamic) {
@@ -69,7 +69,7 @@ class MarkVisible {
       return;
     }
 
-    ModelViewState.log.info("Marking static object visible:" + model.entityId);
+    ModelViewState.log.info("Marking static object visible:{}", model.entityId);
     // Should be safe to add our static visibility marker
     model.markVisible();
   }

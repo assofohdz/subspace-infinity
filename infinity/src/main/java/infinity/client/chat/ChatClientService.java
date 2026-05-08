@@ -112,7 +112,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         log.debug("onInitialize({})", s);
         rmiService = getService(RmiClientService.class);
         if (rmiService == null) {
-            throw new RuntimeException("ChatClientService requires RMI service");
+            throw new IllegalStateException("ChatClientService requires RMI service");
         }
         log.debug("Sharing session callback.");
         rmiService.share((byte) channel, sessionCallback, ChatSessionListener.class);
@@ -139,7 +139,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
             delegate = rmiService.getRemoteObject(ChatSession.class);
             log.debug("delegate:{}", delegate);
             if (delegate == null) {
-                throw new RuntimeException("No chat session found");
+                throw new IllegalStateException("No chat session found");
             }
         }
         return delegate;

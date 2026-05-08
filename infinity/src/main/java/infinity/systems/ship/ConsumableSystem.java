@@ -80,7 +80,6 @@ public class ConsumableSystem extends AbstractGameSystem
   private EntitySet brickOwners;
   private EntitySet decoyOwners;
   private EntitySet portalOwners;
-  private SimTime time;
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private MPhysSystem<MBlockShape> physics;
@@ -231,7 +230,7 @@ public class ConsumableSystem extends AbstractGameSystem
 
   @Override
   public void update(final SimTime tpf) {
-    time = tpf;
+    final SimTime time = tpf;
 
     thorOwners.applyChanges();
     thorProjectiles.applyChanges();

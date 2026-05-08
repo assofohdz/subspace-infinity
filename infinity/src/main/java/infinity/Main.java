@@ -210,7 +210,7 @@ public class Main extends SimpleApplication {
   @Override
   public void simpleUpdate(final float tpf) {
     if( tpf > 0.1 ) {
-      log.warn("Long tpf:" + tpf);
+      log.warn("Long tpf:{}", tpf);
     }
   }
 }

@@ -40,6 +40,7 @@ import com.simsilica.mworld.db.AbstractColumnDb;
 import com.simsilica.mworld.db.ParentIdFileFunction;
 import com.simsilica.mworld.db.SpoolingObjectDb;
 import java.io.*;
+import java.nio.file.Files;
 import java.util.function.*;
 import java.util.zip.*;
 
@@ -131,10 +132,10 @@ public class DefaultColumnDb extends AbstractColumnDb {
   }
 
   protected ColumnData readColumn( File f ) {
-    try( BufferedInputStream in = new BufferedInputStream(new GZIPInputStream(new FileInputStream(f))) ) {
+    try( BufferedInputStream in = new BufferedInputStream(new GZIPInputStream(Files.newInputStream(f.toPath()))) ) {
       return protocol.read(in);
     } catch( IOException e ) {
-      throw new RuntimeException("Error reading column:" + f, e);
+      throw new IllegalStateException("Error reading column:" + f, e);
     }
   }
 
@@ -151,13 +152,13 @@ public class DefaultColumnDb extends AbstractColumnDb {
 
   protected void writeColumn( File f, ColumnData col ) {
     long start = System.nanoTime();
-    try( BufferedOutputStream out = new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(f))) ) {
+    try( BufferedOutputStream out = new BufferedOutputStream(new GZIPOutputStream(Files.newOutputStream(f.toPath()))) ) {
       protocol.write(col, out);
     } catch( IOException e ) {
-      throw new RuntimeException("Error writing column:" + f, e);
+      throw new IllegalStateException("Error writing column:" + f, e);
     }
     long end = System.nanoTime();
-    log.info("Wrote column [" + col + "] in " + ((end - start)/1000000.0) + " ms");
+    log.info("Wrote column [{}] in {} ms", col, (end - start) / 1000000.0);
   }
 
 
