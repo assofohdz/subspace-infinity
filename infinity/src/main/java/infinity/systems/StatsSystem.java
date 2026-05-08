@@ -41,7 +41,9 @@ public class StatsSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
-        return;
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     @Override

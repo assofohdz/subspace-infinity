@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 public class wangTester extends BaseGameModule {
 
   private final Pattern prizeTesterCommand = Pattern.compile("\\~wangTester\\s(\\w+)");
-  private EntityData ed;
 
   public wangTester(
       final ChatHostedPoster chp,
@@ -40,7 +39,7 @@ public class wangTester extends BaseGameModule {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
+    final EntityData ed = getSystem(EntityData.class);
 
     GameEntities.createSpawner(
         ed,

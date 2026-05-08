@@ -81,7 +81,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser Fahrenholz
  */
-public class GameSessionHostedService extends AbstractHostedConnectionService {
+public final class GameSessionHostedService extends AbstractHostedConnectionService {
 
   private static final String ATTRIBUTE_SESSION = "game.session";
   private static final String ATTRIBUTE_AVATAR = "game.avatarEntity";
@@ -212,13 +212,12 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
     // private final MPhysSystem mphys;
     private boolean spawned;
     // private final Vec3d relativeLoc = null;
-    private PhysicsSpace<?, ?> phys;
     // private MapSystem mapSystem;
 
     public GameSessionImpl(final HostedConnection conn) {
       this.conn = conn;
 
-      phys = gameSystems.get(PhysicsSpace.class, true);
+      final PhysicsSpace<?, ?> phys = gameSystems.get(PhysicsSpace.class, true);
       // mphys = gameSystems.get(MPhysSystem.class, true);
       weaponsSystem = gameSystems.get(WeaponsSystem.class, true);
       // this.mapSystem = gameSystems.get(MapSystem.class, true);
@@ -319,8 +318,6 @@ public class GameSessionHostedService extends AbstractHostedConnectionService {
       // hed.registerEntityVisibility(new
       // BodyVisibility(ethereal.getStateListener(conn)));
       hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
-
-      this.phys = gameSystems.get(PhysicsSpace.class, true);
 
       log.info("GameSessionImpl.initialized()");
 

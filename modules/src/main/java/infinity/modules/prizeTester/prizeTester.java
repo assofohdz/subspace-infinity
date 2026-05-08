@@ -29,7 +29,6 @@ public class prizeTester extends BaseGameModule {
 
   static Logger log = LoggerFactory.getLogger(prizeTester.class);
   private final Pattern prizeTesterCommand = Pattern.compile("\\~prizeTester\\s(\\w+)");
-  private EntityData ed;
 
   public prizeTester(
       final ChatHostedPoster chp,
@@ -42,7 +41,7 @@ public class prizeTester extends BaseGameModule {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
+    final EntityData ed = getSystem(EntityData.class);
 
     GameEntities.createSpawner(
         ed,
@@ -87,7 +86,7 @@ public class prizeTester extends BaseGameModule {
    * @param m  The message to handle
    */
   public String messageHandler(final EntityId id, EntityId id2, final Matcher m) {
-    log.info("Received command" + m);
+    log.info("Received command{}", m);
     return "Received command" + m;
   }
 }
