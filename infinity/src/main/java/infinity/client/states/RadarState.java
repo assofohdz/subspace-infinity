@@ -321,6 +321,7 @@ public class RadarState extends BaseAppState {
      * currently paging the changed leaf, requeue its job at top priority so the
      * silhouette refreshes promptly (e.g. a wall got built or destroyed server-side).
      */
+    @SuppressWarnings("PMD.AssignmentInOperand") // canonical `while ((leafId = poll()) != null)` drain
     private void drainLeafUpdates() {
         LeafId leafId;
         while ((leafId = radarUpdatedLeafIds.poll()) != null) {

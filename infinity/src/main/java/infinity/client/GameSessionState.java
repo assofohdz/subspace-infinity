@@ -79,7 +79,7 @@ import infinity.client.view.SkyState;
  *
  * @author Asser Fahrenholz
  */
-public class GameSessionState extends CompositeAppState {
+public final class GameSessionState extends CompositeAppState {
 
   private EntityId avatarEntityId;
 

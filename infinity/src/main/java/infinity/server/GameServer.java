@@ -379,6 +379,9 @@ public class GameServer {
    * something more advanced, then we should break it into a separate class with a proper shell and
    * so on.
    */
+  // Canonical Java entry point + canonical `while ((line = readLine()) != null)`
+  // — both PMD-flagged but neither is sensibly refactorable.
+  @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "PMD.AssignmentInOperand"})
   public static void main(final String... args) throws Exception {
 
     final StringWriter sOut = new StringWriter();

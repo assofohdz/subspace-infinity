@@ -336,6 +336,7 @@ public class LocalViewState extends BaseAppState {
   }
 
   @Override
+  @SuppressWarnings("PMD.AssignmentInOperand") // canonical `while ((leafId = poll()) != null)` drain
   public void update(float tpf) {
     final ArenaRegistryState registry = getState(ArenaRegistryState.class);
     if (registry != null) {

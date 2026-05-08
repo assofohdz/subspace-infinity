@@ -73,7 +73,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class InfinityChatHostedService extends AbstractHostedConnectionService
+public final class InfinityChatHostedService extends AbstractHostedConnectionService
     implements ChatHostedPoster {
 
   private static final String PREPEND_CHAT = "chat> ";
