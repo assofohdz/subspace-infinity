@@ -119,6 +119,7 @@ import infinity.systems.ship.RepelSystem;
 import infinity.systems.ship.RocketBuffSystem;
 import infinity.systems.ship.StatusDrainSystem;
 import infinity.systems.ArenaMembershipSystem;
+import infinity.systems.ArenaCommandsSystem;
 import infinity.systems.ArenaSystem;
 import infinity.systems.ChecksShipsSystem;
 import infinity.systems.ChecksWorldSystem;
@@ -334,6 +335,9 @@ public class GameServer {
     // repel effect's radius (added-set scan; uses sio2-mphys Impulse).
     systems.register(RepelSystem.class, new RepelSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
+    // ArenaCommandsSystem must register AFTER ArenaSystem — its initialize()
+    // looks up ArenaSystem.class via getSystem(...) and throws if absent.
+    systems.register(ArenaCommandsSystem.class, new ArenaCommandsSystem());
     systems.register(ArenaMembershipSystem.class, new ArenaMembershipSystem());
     systems.register(RegionSystem.class, new RegionSystem());
     systems.register(ChecksShipsSystem.class, new ChecksShipsSystem());

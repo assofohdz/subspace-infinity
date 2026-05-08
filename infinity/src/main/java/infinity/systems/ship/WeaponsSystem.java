@@ -10,7 +10,6 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
-import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
@@ -24,15 +23,11 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.systems.ContactSystem;
-import infinity.config.ArenaConfig;
-import infinity.config.BombConfig;
 import infinity.config.EngineConfig;
 import infinity.settings.EngineConfigSystem;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.GravityWell;
-import infinity.es.Jitter;
-import infinity.es.Parent;
 import infinity.es.ProximityArmed;
 import infinity.es.ProximityFuse;
 import infinity.es.ShapeNames;
@@ -48,7 +43,6 @@ import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombSpeed;
-import infinity.es.ship.weapons.BombThrust;
 import infinity.es.ship.weapons.Bounce;
 import infinity.es.ship.weapons.BurstSpeed;
 import infinity.es.ship.weapons.GravityBomb;
@@ -284,53 +278,10 @@ public class WeaponsSystem extends AbstractGameSystem
    * the safety scan either. Result: friendlies hugging you don't block
    * fire.
    */
+  /** Delegates to {@link WeaponsDamageLogic#bombSafetyClear} — see that helper for behaviour. */
   private boolean bombSafetyClear(final EntityId requesterId) {
-    final RigidBody<EntityId, MBlockShape> ownerBody =
-        physicsSpace.getBinIndex().getRigidBody(requesterId);
-    if (ownerBody == null) {
-      return true;
-    }
-    final double radius = effectiveBombSafetyRadius(requesterId);
-    if (radius <= 0.0) {
-      return true;
-    }
-    final Frequency ownerFreq = ed.getComponent(requesterId, Frequency.class);
-    final Integer ownerFreqValue = ownerFreq == null ? null : ownerFreq.getFrequency();
-    final Vec3d ownerPos = ownerBody.position;
-    for (final Entity victim : energyEntities) {
-      final EntityId victimId = victim.getId();
-      if (victimId.equals(requesterId)) {
-        continue;
-      }
-      final RigidBody<EntityId, MBlockShape> victimBody =
-          physicsSpace.getBinIndex().getRigidBody(victimId);
-      if (victimBody == null) {
-        continue;
-      }
-      final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
-      final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
-      if (WeaponsLogic.victimBlocksBombFire(
-          ownerFreqValue, victimFreqValue, ownerPos, victimBody.position, radius)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Returns the bomb-safety scan radius for {@code requesterId} after applying the
-   * arena's BombConfig safety toggle and the per-bomb-level proximity scaling. Returns
-   * {@code 0.0} when safety is off (clear-fire short-circuit) so callers can early-out.
-   */
-  private double effectiveBombSafetyRadius(final EntityId requesterId) {
-    final ConfigRegistry cfg = weaponsFor(requesterId);
-    final BombConfig bombCfg = cfg.bomb();
-    if (!bombCfg.bombSafety() || bombCfg.proximityDistance() <= 0) {
-      return 0.0;
-    }
-    final BombCurrentLevel bombLevel =
-        this.bombs.getEntity(requesterId).get(BombCurrentLevel.class);
-    return WeaponsLogic.proximityRadiusForLevel(bombCfg.proximityDistance(), bombLevel.getLevel().level);
+    return WeaponsDamageLogic.bombSafetyClear(
+        ed, configRegistry, physicsSpace, bombs, energyEntities, requesterId);
   }
 
   private boolean canAttackGravityBomb(Entity requester) {
@@ -1020,192 +971,32 @@ public class WeaponsSystem extends AbstractGameSystem
     ed.setComponent(damageEntityId, Decay.duration(nowSimNanos, 0));
   }
 
-  /**
-   * Direct-hit (non-splash) damage path. Subject to the arena's friendly-fire
-   * mode: only mode 2 ("all friendly fire") allows same-team damage; modes 0
-   * and 1 swallow the damage but the projectile still detonates (for visual
-   * feedback / consumption).
-   */
+  /** Delegates to {@link WeaponsDamageLogic#applyDirectHitDamage} — see that helper for behaviour. */
   private void applyDirectHitDamage(
       final EntityId damageEntityId,
       final Damage damage,
       final EntityId victimId,
       final long nowSimNanos) {
-    if (!shouldDamageVictim(damageEntityId, victimId, false)) {
-      return;
-    }
-    energySystem.damage(victimId, damage.getIntendedDamage());
-    stampJitter(damageEntityId, victimId, nowSimNanos);
+    WeaponsDamageLogic.applyDirectHitDamage(
+        ed, arenaSystem, configRegistry, energySystem,
+        damageEntityId, damage, victimId, nowSimNanos);
   }
 
-  /**
-   * Splash (AoE) damage path. Iterates all known {@link Health}-bearing
-   * entities, retains those within {@code splash.radiusWorldUnits} of the
-   * detonation point, and applies {@code damage.intendedDamage} to each
-   * (subject to the friendly-fire gate — splash uses the relaxed "mode &gt;= 1"
-   * rule). Does not yet attenuate damage with distance — that's a polish-bag
-   * follow-up.
-   */
+  /** Delegates to {@link WeaponsDamageLogic#applySplashDamage} — see that helper for behaviour. */
   private void applySplashDamage(
       final EntityId damageEntityId,
       final Damage damage,
       final SplashDamage splash,
       final Vec3d explosionPoint,
       final long nowSimNanos) {
-    final double radius = splash.getRadiusWorldUnits();
-    if (radius <= 0.0) {
-      return;
-    }
-    final double radiusSq = radius * radius;
-    for (final Entity victim : energyEntities) {
-      final EntityId victimId = victim.getId();
-      final RigidBody<EntityId, MBlockShape> body =
-          physicsSpace.getBinIndex().getRigidBody(victimId);
-      if (body == null) {
-        continue;
-      }
-      final Vec3d vp = body.position;
-      final double dx = vp.x - explosionPoint.x;
-      final double dy = vp.y - explosionPoint.y;
-      final double dz = vp.z - explosionPoint.z;
-      if (dx * dx + dy * dy + dz * dz > radiusSq) {
-        continue;
-      }
-      if (!shouldDamageVictim(damageEntityId, victimId, true)) {
-        continue;
-      }
-      energySystem.damage(victimId, damage.getIntendedDamage());
-      stampJitter(damageEntityId, victimId, nowSimNanos);
-    }
+    WeaponsDamageLogic.applySplashDamage(
+        ed, energyEntities, physicsSpace, arenaSystem, configRegistry, energySystem,
+        damageEntityId, damage, splash, explosionPoint, nowSimNanos);
   }
 
-  /**
-   * Stamps a {@link Jitter} component on a bomb-damage victim after the FF
-   * gate has passed. Resolves the firing arena's
-   * {@link infinity.config.BombConfig#jitterTimeMs} from the bomb's
-   * {@link Parent}; no-ops if the value is 0 (arena disabled), if the bomb
-   * has no parent (no attacker context), or if the existing {@code Jitter}
-   * already runs longer than what this hit would extend to (Q4=a:
-   * max(existing, new), never shorten an in-flight shake).
-   */
-  private void stampJitter(
-      final EntityId damageEntityId, final EntityId victimId, final long nowSimNanos) {
-    final Parent parent = ed.getComponent(damageEntityId, Parent.class);
-    if (parent == null) {
-      return;
-    }
-    final EntityId attackerShipId = parent.getParentEntityId();
-    if (attackerShipId == null) {
-      return;
-    }
-    final long jitterMs = weaponsFor(attackerShipId).bomb().jitterTimeMs();
-    if (jitterMs <= 0L) {
-      return;
-    }
-    final long newEnd = nowSimNanos + jitterMs * 1_000_000L;
-    final Jitter existing = ed.getComponent(victimId, Jitter.class);
-    if (existing == null || newEnd > existing.getEndTime()) {
-      ed.setComponent(victimId, new Jitter(nowSimNanos, newEnd));
-    }
-  }
-
-  /**
-   * Friendly-fire gate. Returns {@code true} if the damage-bearing entity
-   * should be allowed to damage {@code victimId}, given the arena's
-   * {@code friendlyFire} mode and whether this is a splash (AoE) hit.
-   *
-   * <ul>
-   *   <li>If attacker or victim has no {@link Frequency} (NPC, prize, debris),
-   *       no FF gate applies and damage goes through.
-   *   <li>If teams differ, damage goes through (true enemy hit).
-   *   <li>If teams match: mode 0 swallows; mode 1 allows splash but not direct
-   *       hits; mode 2 allows everything.
-   * </ul>
-   */
-  private boolean shouldDamageVictim(
-      final EntityId damageEntityId, final EntityId victimId, final boolean isSplash) {
-    final Parent parent = ed.getComponent(damageEntityId, Parent.class);
-    if (parent == null) {
-      return true;
-    }
-    final EntityId attackerShipId = parent.getParentEntityId();
-    if (attackerShipId == null) {
-      return true;
-    }
-    if (attackerShipId.equals(victimId)) {
-      // Self-damage already filtered by ContactSystem.parentChildContact;
-      // guard here is a defence-in-depth no-op for the splash scan.
-      return false;
-    }
-    final Frequency attackerFreq = ed.getComponent(attackerShipId, Frequency.class);
-    final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
-    final Integer attackerFreqValue =
-        attackerFreq == null ? null : attackerFreq.getFrequency();
-    final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
-    final int ffMode = friendlyFireModeFor(attackerShipId);
-    return WeaponsLogic.shouldDamageVictim(attackerFreqValue, victimFreqValue, ffMode, isSplash);
-  }
-
-
-  /**
-   * Slice S2 — apply per-ship {@code BombThrust} recoil as an
-   * {@link Impulse} on the firing ship. Direction = opposite the ship's
-   * forward in world space (Subspace canon: "back-thrust on fire" applies
-   * directly behind the ship regardless of the bomb's outgoing velocity,
-   * which would include ship-velocity inheritance).
-   *
-   * <p>Magnitude reuses {@link WeaponsLogic#effectiveProjectileSpeed} so the engine-tier
-   * {@code subspaceVelocityScale} and {@code maxProjectileSpeedJme} cap
-   * apply uniformly across {@code BombSpeed} / {@code BulletSpeed} /
-   * {@code BurstSpeed} / {@code BombThrust}. Sign-preserving (negative
-   * thrust = forward push).
-   *
-   * <p>Called by both {@link #createProjectileBomb} and
-   * {@link #createProjectileGravBomb} (Subspace canon: gravbombs are
-   * level-3 bombs sharing per-ship knobs). Mines / bullets / bursts skip
-   * the call (no recoil per canon). Auto-no-op when the ship has no
-   * {@code BombThrust} component, the value is 0, or the body isn't yet
-   * bound to the entity (sio2-mphys {@code Impulse} retries until body
-   * binds).
-   */
+  /** Delegates to {@link WeaponsDamageLogic#applyBombRecoil} — see that helper for behaviour. */
   private void applyBombRecoil(final EntityId shipId) {
-    final BombThrust thrust = ed.getComponent(shipId, BombThrust.class);
-    if (thrust == null || thrust.getThrust() == 0) {
-      return;
-    }
-    final RigidBody<?, ?> shipBody =
-        physicsSpace.getBinIndex().getRigidBody(shipId);
-    if (shipBody == null) {
-      return;
-    }
-    final EngineConfig engineCfg = engineConfigSystem.get();
-    // Slice S2-cal — recoil uses its own engine-tier `bombThrustScale`,
-    // distinct from `subspaceVelocityScale` used by projectile-speed
-    // paths. The projectile fit (400 × 0.01 = 4.0) felt too pushy in
-    // S2 playtest. Default `bombThrustScale 0.0005` lands SVS canon
-    // BombThrust 400 at 0.2 jME/sec backward impulse — a subtle nudge
-    // (~1% of ship max-speed). Cap reuses `maxProjectileSpeedJme` for
-    // physics-safety.
-    final Vec3d impulse =
-        WeaponsLogic.recoilImpulse(
-            thrust.getThrust(),
-            engineCfg.bombThrustScale(),
-            engineCfg.maxProjectileSpeedJme(),
-            new Quatd(shipBody.orientation));
-    ed.setComponent(shipId, new Impulse(impulse));
-  }
-
-  /**
-   * Resolve the friendly-fire mode for the arena that owns {@code attackerShipId}.
-   * Falls back to {@link ArenaConfig#EMPTY}'s default ({@code 0} = off) when
-   * the attacker has no {@link ArenaId} (no-arena void / spawner-fired).
-   */
-  private int friendlyFireModeFor(final EntityId attackerShipId) {
-    final ArenaId arenaId = ed.getComponent(attackerShipId, ArenaId.class);
-    if (arenaId == null) {
-      return ArenaConfig.EMPTY.friendlyFire();
-    }
-    return arenaSystem.getArenaConfig(arenaId.getArena()).friendlyFire();
+    WeaponsDamageLogic.applyBombRecoil(ed, physicsSpace, engineConfigSystem, shipId);
   }
 
   /** A class that holds the position information needed to create an attack. */

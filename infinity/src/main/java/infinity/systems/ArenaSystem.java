@@ -35,11 +35,7 @@ import infinity.settings.GroovyZoneLoader;
 import infinity.es.arena.ArenaFootprint;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Player;
-import infinity.server.chat.InfinityChatHostedService;
-import infinity.sim.AccessLevel;
 import infinity.sim.ArenaManager;
-import infinity.sim.ChatHostedPoster;
-import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import java.io.IOException;
 import java.net.URI;
@@ -56,8 +52,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -187,47 +181,17 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   // WatchedFile inner class moved to ArenaLogic to keep this class's
   // cyclomatic-complexity sum lower under PMD's class threshold.
 
-  private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
-  private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
-  private final Pattern swapMap =
-      Pattern.compile("\\~swapMap\\s([\\w()\\-]+)\\s+(\\w+\\.(?:lvl|lvz))");
-  private final Pattern loadArenaByName = Pattern.compile("\\~loadArena\\s([\\w()\\-]+)");
-  private final Pattern listArenas = Pattern.compile("\\~arenas");
+  // Chat command patterns + handlers moved to ArenaCommandsSystem in
+  // round 23 (class-level CC split mirroring ChecksShipsSystem). This
+  // class now exposes the desired-state mutators + lookup accessors that
+  // ArenaCommandsSystem needs; the chat-binding glue lives there.
 
   @Override
   protected void initialize() {
-    final ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
     ed = getSystem(EntityData.class);
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
-
-    chat.registerPatternTriConsumer(
-        loadMap,
-        "The command to load a new map is ~loadMap <mapName>, where <mapName> is the name "
-            + "of the map you want to load",
-        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::loadArenaByMapCommand));
-    chat.registerPatternTriConsumer(
-        unloadMap,
-        "The command to unload a new map is ~unloadMap <mapName>, where <mapName> is the "
-            + "name of the map you want to unload",
-        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::unloadArenaByMapCommand));
-    chat.registerPatternTriConsumer(
-        swapMap,
-        "Swap the map of a loaded arena: ~swapMap <arenaName> <newMap>. The arena's identity and "
-            + "settings stay the same; only the underlying map is replaced.",
-        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::swapArenaCommand));
-    chat.registerPatternTriConsumer(
-        loadArenaByName,
-        "The command to load an arena by name is ~loadArena <arenaName>. Reads "
-            + "arenas/<arenaName>/arena.conf, loads the map declared by its [General] Map= key "
-            + "(falling back to <arenaName>.lvl), and attaches the settings.",
-        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::loadArenaByNameCommand));
-    chat.registerPatternTriConsumer(
-        listArenas,
-        "~arenas lists every loaded arena with its world bounds + centre. Marks the "
-            + "arena containing your avatar with [you].",
-        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::listArenasCommand));
   }
 
   @Override
@@ -579,6 +543,34 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     return describe(arenaName);
   }
 
+  /**
+   * Render a one-line state description for {@code arenaName}. Used by
+   * {@link #loadArena} and (via the public {@link #getArenaState} / {@link
+   * #getArenaError} accessors) by {@link ArenaCommandsSystem}'s identical
+   * helper. Inline here to keep {@code loadArena}'s public-facing string
+   * stable without coupling ArenaSystem to ArenaCommandsSystem.
+   */
+  private String describe(final String arenaName) {
+    final ArenaState state = getArenaState(arenaName);
+    if (state == null) {
+      return "Arena " + arenaName + " not in registry";
+    }
+    switch (state) {
+      case LOADED:
+        return "Arena " + arenaName + " loaded";
+      case LOADING:
+        return "Arena " + arenaName + " loading";
+      case UNLOADING:
+        return "Arena " + arenaName + " unloading";
+      case NOT_LOADED:
+        return "Arena " + arenaName + " not loaded";
+      case FAILED:
+        return "Arena " + arenaName + " failed: " + getArenaError(arenaName);
+      default:
+        return "Arena " + arenaName + " state=" + state;
+    }
+  }
+
   /* ---------------------------------------------------------------- */
   /* Bootstrap: discovery + zone.conf                                 */
   /* ---------------------------------------------------------------- */
@@ -683,7 +675,15 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
   }
 
-  private void reconcile(final String arenaName) {
+  /**
+   * Drive one arena's state toward its declared {@code desired} bit. Called
+   * each tick by {@link #reconcileAll} and synchronously by {@link #loadArena}
+   * + {@link ArenaCommandsSystem}'s {@code ~unloadMap} so chat handlers can
+   * return an accurate post-action status string. Package-private so
+   * {@link ArenaCommandsSystem} (same package) can reach it without exposing
+   * it on the public API.
+   */
+  void reconcile(final String arenaName) {
     final ArenaRecord rec = registry.get(arenaName);
     if (rec == null) {
       return;
@@ -899,130 +899,45 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     rec.arenaIndex = -1;
   }
 
-  private String describe(final String arenaName) {
+  /* ---------------------------------------------------------------- */
+  /* Public accessors for ArenaCommandsSystem                         */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * Lifecycle state of the named arena, or {@code null} if the arena is not
+   * in the registry. Exposed for {@link ArenaCommandsSystem}'s {@code describe}
+   * helper so command handlers can render state-aware status strings without
+   * reaching into the private registry.
+   */
+  @Nullable
+  public ArenaState getArenaState(final String arenaName) {
     final ArenaRecord rec = registry.get(arenaName);
-    if (rec == null) {
-      return "Arena " + arenaName + " not in registry";
-    }
-    switch (rec.state) {
-      case LOADED:
-        return "Arena " + arenaName + " loaded";
-      case LOADING:
-        return "Arena " + arenaName + " loading";
-      case UNLOADING:
-        return "Arena " + arenaName + " unloading";
-      case NOT_LOADED:
-        return "Arena " + arenaName + " not loaded";
-      case FAILED:
-        return "Arena " + arenaName + " failed: " + rec.lastError;
-      default:
-        return "Arena " + arenaName + " state=" + rec.state;
-    }
-  }
-
-  /* ---------------------------------------------------------------- */
-  /* Chat command handlers — imperative face over declarative core    */
-  /* ---------------------------------------------------------------- */
-
-  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String loadArenaByNameCommand(
-      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
-    return loadArena(matcher.group(1));
+    return rec == null ? null : rec.state;
   }
 
   /**
-   * {@code ~arenas} — list every loaded arena with its world bounds + centre,
-   * marking the arena that contains the player's avatar with {@code [you]}.
-   * Helps operators navigate a multi-arena zone (e.g. {@code testarena} +
-   * {@code trench} + {@code deva} all autoLoaded).
+   * Last error message recorded for an arena in {@link ArenaState#FAILED}
+   * state, or {@code null} if no error / arena absent. Companion to
+   * {@link #getArenaState} for the FAILED branch of the state-render helper.
    */
-  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String listArenasCommand(
-      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
-    arenaEntities.applyChanges();
-    if (arenaEntities.isEmpty()) {
-      return "No arenas loaded.";
-    }
-
-    Vec3d avatarPos = null;
-    if (avatarEntityId != null) {
-      final BodyPosition bp = ed.getComponent(avatarEntityId, BodyPosition.class);
-      if (bp != null) {
-        avatarPos = bp.getLastLocation();
-      }
-    }
-
-    final StringBuilder out = new StringBuilder();
-    out.append("Loaded arenas (").append(arenaEntities.size()).append("):\n");
-    for (final Entity arena : arenaEntities) {
-      final ArenaId arenaId = arena.get(ArenaId.class);
-      final ArenaMap map = arena.get(ArenaMap.class);
-      final Vec3d min = map.getMin();
-      final Vec3d max = map.getMax();
-      final boolean youAreHere =
-          avatarPos != null
-              && avatarPos.x >= min.x
-              && avatarPos.x < max.x
-              && avatarPos.z >= min.z
-              && avatarPos.z < max.z;
-      out.append("  ")
-          .append(arenaId.getArena())
-          .append(" — bounds=(")
-          .append((int) min.x).append(',').append((int) min.z)
-          .append(")..(")
-          .append((int) max.x).append(',').append((int) max.z)
-          .append(") centre=(")
-          .append((int) ((min.x + max.x) / 2)).append(',').append((int) ((min.z + max.z) / 2))
-          .append(')');
-      if (youAreHere) {
-        out.append(" [you]");
-      }
-      out.append('\n');
-    }
-    return out.toString().trim();
+  @Nullable
+  public String getArenaError(final String arenaName) {
+    final ArenaRecord rec = registry.get(arenaName);
+    return rec == null ? null : rec.lastError;
   }
 
   /**
-   * {@code ~loadMap <mapFile>} — the map's base name is used as the arena name, per current
-   * convention.
+   * In-place map swap for a loaded arena. Returns a human-readable status
+   * string (rendered by {@code ~swapMap} chat command). The arena entity,
+   * name, and settings are preserved; only the underlying map cells change
+   * via {@link MapSystem#swapMap}, and {@link ArenaRecord#config} is
+   * rebuilt with the new map name.
    */
-  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String loadArenaByMapCommand(
-      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
-    final String mapFile = matcher.group(1);
-    final String arenaName = mapFile.substring(0, mapFile.lastIndexOf('.'));
-    return loadArena(arenaName);
-  }
-
-  /** {@code ~unloadMap <mapFile>} — resolves to its owning arena and flips desired=false. */
-  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String unloadArenaByMapCommand(
-      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
-    final String mapFile = matcher.group(1);
-    final String arenaName = findArenaByMap(mapFile);
-    if (arenaName == null) {
-      return "No arena currently loaded with map " + mapFile;
-    }
-    setDesired(arenaName, false);
-    reconcile(arenaName);
-    return describe(arenaName);
-  }
-
-  /**
-   * {@code ~swapMap <arenaName> <newMap>} — replace the map of a loaded arena in place. The arena
-   * entity, name, and settings are preserved; only the underlying map cells change.
-   */
-  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String swapArenaCommand(
-      final EntityId id, final EntityId avatarEntityId, final Matcher matcher) {
-    final String arenaName = matcher.group(1);
-    final String newMap = matcher.group(2);
-
+  public String swapArenaMap(final String arenaName, final String newMap) {
     final ArenaRecord rec = registry.get(arenaName);
     if (rec == null || rec.state != ArenaState.LOADED) {
       return "Arena " + arenaName + " is not loaded";
     }
-
     final String oldMap = rec.config.mapFile();
     if (oldMap.equals(newMap)) {
       return "Arena " + arenaName + " already uses map " + newMap;
@@ -1041,19 +956,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         rec.config.spawners(),
         rec.config.friendlyFire());
     return "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap;
-  }
-
-  /** Scan open arenas for one whose current map file equals {@code mapFile}. */
-  private String findArenaByMap(final String mapFile) {
-    for (final ArenaRecord rec : registry.values()) {
-      if (rec.state != ArenaState.LOADED) {
-        continue;
-      }
-      if (mapFile.equals(rec.config.mapFile())) {
-        return rec.name;
-      }
-    }
-    return null;
   }
 
   /* ---------------------------------------------------------------- */

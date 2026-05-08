@@ -9,17 +9,8 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.config.BombStats;
-import infinity.config.BurstStats;
-import infinity.config.CountStats;
-import infinity.config.CountWithDelayStats;
-import infinity.config.BulletStats;
-import infinity.config.MineStats;
-import infinity.config.RocketStats;
-import javax.annotation.Nullable;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
-import infinity.config.StatusStats;
 import infinity.es.RadarShapeInfo;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
@@ -44,50 +35,6 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
-import infinity.es.ship.actions.Brick;
-import infinity.es.ship.actions.BrickMax;
-import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
-import infinity.es.ship.actions.Decoy;
-import infinity.es.ship.actions.DecoyMax;
-import infinity.es.ship.actions.Portal;
-import infinity.es.ship.actions.PortalMax;
-import infinity.es.ship.actions.Repel;
-import infinity.es.ship.actions.RepelMax;
-import infinity.es.ship.actions.Rocket;
-import infinity.es.ship.actions.RocketMax;
-import infinity.es.ship.actions.RocketTime;
-import infinity.es.ship.actions.ThorCurrentCount;
-import infinity.es.ship.actions.ThorFireDelay;
-import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.toggles.Antiwarp;
-import infinity.es.ship.toggles.AntiwarpEnergy;
-import infinity.es.ship.toggles.AntiwarpStatus;
-import infinity.es.ship.toggles.Cloak;
-import infinity.es.ship.toggles.CloakEnergy;
-import infinity.es.ship.toggles.CloakStatus;
-import infinity.es.ship.toggles.Stealth;
-import infinity.es.ship.toggles.StealthEnergy;
-import infinity.es.ship.toggles.StealthStatus;
-import infinity.es.ship.toggles.XRadar;
-import infinity.es.ship.toggles.XRadarEnergy;
-import infinity.es.ship.toggles.XRadarStatus;
-import infinity.es.ship.weapons.BombCost;
-import infinity.es.ship.weapons.BombCurrentLevel;
-import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.BombSpeed;
-import infinity.es.ship.weapons.BombThrust;
-import infinity.es.ship.weapons.BurstSpeed;
-import infinity.es.ship.weapons.BulletCost;
-import infinity.es.ship.weapons.BulletCurrentLevel;
-import infinity.es.ship.weapons.BulletFireDelay;
-import infinity.es.ship.weapons.BulletMaxLevel;
-import infinity.es.ship.weapons.BulletSpeed;
-import infinity.es.ship.weapons.MineCost;
-import infinity.es.ship.weapons.MineCurrentLevel;
-import infinity.es.ship.weapons.MineFireDelay;
-import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.settings.ConfigRegistrySystem;
 
 import org.slf4j.Logger;
@@ -321,20 +268,23 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     projectEnergy(shipId, cfg.energy(), resetLivePool);
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
-    projectBombs(shipId, cfg.bombs(), resetLivePool);
-    projectBullets(shipId, cfg.bullets(), resetLivePool);
-    projectMines(shipId, cfg.mines(), resetLivePool);
-    projectBursts(shipId, cfg.bursts(), resetLivePool);
-    projectThors(shipId, cfg.thors(), resetLivePool);
-    projectRepels(shipId, cfg.repels(), resetLivePool);
-    projectDecoys(shipId, cfg.decoys(), resetLivePool);
-    projectBricks(shipId, cfg.bricks(), resetLivePool);
-    projectRockets(shipId, cfg.rockets(), resetLivePool);
-    projectPortals(shipId, cfg.portals(), resetLivePool);
-    projectCloak(shipId, cfg.cloak(), resetLivePool);
-    projectStealth(shipId, cfg.stealth(), resetLivePool);
-    projectXRadar(shipId, cfg.xradar(), resetLivePool);
-    projectAntiwarp(shipId, cfg.antiwarp(), resetLivePool);
+    // Weapon / inventory projections — delegated to ShipWeaponsProjector to
+    // keep the spawn system's class-level cyclomatic complexity bounded.
+    ShipWeaponsProjector.projectBombs(ed, shipId, cfg.bombs(), resetLivePool);
+    ShipWeaponsProjector.projectBullets(ed, shipId, cfg.bullets(), resetLivePool);
+    ShipWeaponsProjector.projectMines(ed, shipId, cfg.mines(), resetLivePool);
+    ShipWeaponsProjector.projectBursts(ed, shipId, cfg.bursts(), resetLivePool);
+    ShipWeaponsProjector.projectThors(ed, shipId, cfg.thors(), resetLivePool);
+    ShipWeaponsProjector.projectRepels(ed, shipId, cfg.repels(), resetLivePool);
+    ShipWeaponsProjector.projectDecoys(ed, shipId, cfg.decoys(), resetLivePool);
+    ShipWeaponsProjector.projectBricks(ed, shipId, cfg.bricks(), resetLivePool);
+    ShipWeaponsProjector.projectRockets(ed, shipId, cfg.rockets(), resetLivePool);
+    ShipWeaponsProjector.projectPortals(ed, shipId, cfg.portals(), resetLivePool);
+    // Status-family capabilities — delegated to ShipStatusProjector.
+    ShipStatusProjector.projectCloak(ed, shipId, cfg.cloak(), resetLivePool);
+    ShipStatusProjector.projectStealth(ed, shipId, cfg.stealth(), resetLivePool);
+    ShipStatusProjector.projectXRadar(ed, shipId, cfg.xradar(), resetLivePool);
+    ShipStatusProjector.projectAntiwarp(ed, shipId, cfg.antiwarp(), resetLivePool);
     projectRepellable(shipId, cfg.repellable());
   }
 
@@ -406,226 +356,9 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     ed.setComponent(shipId, RadarShapeInfo.create(cfg.type().getName() + "_blip", ed));
   }
 
-  // Weapon / inventory projections — same Pattern-4 split as Energy:
-  // the live "current count / level" component resets only on respawn so a
-  // mid-fight Groovy reload doesn't refill ammo or revoke earned upgrades;
-  // capability components (max, cost, fire-delay) always re-project so a
-  // tuning edit takes effect immediately.
-
-  // Each weapon/inventory projection block guards against a null stat so a
-  // ShipConfig can express "this ship doesn't carry bombs / bullets / mines /
-  // bursts / thors / repels" by setting the field to null. The corresponding
-  // *Max component is then absent on the ship, which prize appliers
-  // interpret as "not allowed" (component-absence as the disallow signal).
-
-  private void projectBombs(
-      final EntityId shipId, @Nullable final BombStats bombs, final boolean resetLivePool) {
-    if (bombs == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new BombCurrentLevel(bombs.start()));
-    }
-    ed.setComponent(shipId, new BombMaxLevel(bombs.max()));
-    ed.setComponent(shipId, new BombCost(bombs.cost()));
-    ed.setComponent(shipId, new BombFireDelay(bombs.fireDelayCs()));
-    ed.setComponent(shipId, new BombSpeed(bombs.speed()));
-    ed.setComponent(shipId, new BombThrust(bombs.thrust()));
-  }
-
-  private void projectBullets(
-      final EntityId shipId, @Nullable final BulletStats bullets, final boolean resetLivePool) {
-    if (bullets == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new BulletCurrentLevel(bullets.start()));
-    }
-    ed.setComponent(shipId, new BulletMaxLevel(bullets.max()));
-    ed.setComponent(shipId, new BulletCost(bullets.cost()));
-    ed.setComponent(shipId, new BulletFireDelay(bullets.fireDelayCs()));
-    ed.setComponent(shipId, new BulletSpeed(bullets.speed()));
-  }
-
-  private void projectMines(
-      final EntityId shipId, @Nullable final MineStats mines, final boolean resetLivePool) {
-    if (mines == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new MineCurrentLevel(mines.start()));
-    }
-    ed.setComponent(shipId, new MineMaxLevel(mines.max()));
-    ed.setComponent(shipId, new MineCost(mines.cost()));
-    ed.setComponent(shipId, new MineFireDelay(mines.fireDelayCs()));
-  }
-
-  private void projectBursts(
-      final EntityId shipId, @Nullable final BurstStats bursts, final boolean resetLivePool) {
-    if (bursts == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Burst(bursts.start()));
-    }
-    ed.setComponent(shipId, new BurstMax(bursts.max()));
-    ed.setComponent(shipId, new BurstSpeed(bursts.speed()));
-  }
-
-  private void projectThors(
-      final EntityId shipId,
-      @Nullable final CountWithDelayStats thors,
-      final boolean resetLivePool) {
-    if (thors == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new ThorCurrentCount(thors.start()));
-    }
-    ed.setComponent(shipId, new ThorMaxCount(thors.max()));
-    ed.setComponent(shipId, new ThorFireDelay(thors.fireDelayCs()));
-  }
-
-  private void projectRepels(
-      final EntityId shipId, @Nullable final CountStats repels, final boolean resetLivePool) {
-    if (repels == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Repel(repels.start()));
-    }
-    ed.setComponent(shipId, new RepelMax(repels.max()));
-  }
-
-  private void projectDecoys(
-      final EntityId shipId, @Nullable final CountStats decoys, final boolean resetLivePool) {
-    if (decoys == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Decoy(decoys.start()));
-    }
-    ed.setComponent(shipId, new DecoyMax(decoys.max()));
-  }
-
-  private void projectBricks(
-      final EntityId shipId, @Nullable final CountStats bricks, final boolean resetLivePool) {
-    if (bricks == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Brick(bricks.start()));
-    }
-    ed.setComponent(shipId, new BrickMax(bricks.max()));
-  }
-
-  private void projectRockets(
-      final EntityId shipId, @Nullable final RocketStats rockets, final boolean resetLivePool) {
-    if (rockets == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Rocket(rockets.start()));
-    }
-    ed.setComponent(shipId, new RocketMax(rockets.max()));
-    // Per-ship buff lifetime (Subspace [Ship] RocketTime, centiseconds → ms).
-    // Read at fire-time by ConsumableSystem to compute the buff entity's
-    // Decay deadline.
-    ed.setComponent(shipId, new RocketTime(rockets.activeTimeCs() * 10L));
-  }
-
-  private void projectPortals(
-      final EntityId shipId, @Nullable final CountStats portals, final boolean resetLivePool) {
-    if (portals == null) {
-      return;
-    }
-    if (resetLivePool) {
-      ed.setComponent(shipId, new Portal(portals.start()));
-    }
-    ed.setComponent(shipId, new PortalMax(portals.max()));
-  }
-
-  /**
-   * Pattern 4 spawn projection for the Cloak Status-family capability.
-   * Always sets {@link CloakStatus} so the {@code CloakPrizeApplier} +
-   * {@code StatusDrainSystem} can read the tri-state without a null
-   * check; only sets {@link CloakEnergy} when the capability is at
-   * least acquirable ({@code status >= 1}); seeds the {@link Cloak}
-   * toggle component as {@code true} when {@code status == 2} (start
-   * active per Subspace canon) and {@code false} when {@code status == 1}.
-   *
-   * <p>{@code resetLivePool == false} (e.g. swap-ships, mid-arena
-   * reload) preserves the live toggle state — the player keeps cloak
-   * on/off across the swap. Only the cap-style components ({@code
-   * CloakStatus}, {@code CloakEnergy}) re-project unconditionally so
-   * Groovy edits to the per-ship knobs propagate.
-   */
-  private void projectCloak(
-      final EntityId shipId, @Nullable final StatusStats cloak, final boolean resetLivePool) {
-    if (cloak == null) {
-      return;
-    }
-    ed.setComponent(shipId, new CloakStatus(cloak.status()));
-    if (cloak.status() >= 1) {
-      ed.setComponent(shipId, new CloakEnergy(cloak.energyDrainPer1000Cs()));
-    }
-    if (resetLivePool) {
-      // status == 0 (forbidden) → no toggle component; status == 1 → off;
-      // status == 2 → start active (Subspace canon).
-      if (cloak.status() >= 1) {
-        ed.setComponent(shipId, new Cloak(cloak.status() == 2));
-      }
-    }
-  }
-
-  /** Same shape as {@link #projectCloak} for Stealth. */
-  private void projectStealth(
-      final EntityId shipId, @Nullable final StatusStats stealth, final boolean resetLivePool) {
-    if (stealth == null) {
-      return;
-    }
-    ed.setComponent(shipId, new StealthStatus(stealth.status()));
-    if (stealth.status() >= 1) {
-      ed.setComponent(shipId, new StealthEnergy(stealth.energyDrainPer1000Cs()));
-    }
-    if (resetLivePool) {
-      if (stealth.status() >= 1) {
-        ed.setComponent(shipId, new Stealth(stealth.status() == 2));
-      }
-    }
-  }
-
-  /** Same shape as {@link #projectCloak} for XRadar. */
-  private void projectXRadar(
-      final EntityId shipId, @Nullable final StatusStats xradar, final boolean resetLivePool) {
-    if (xradar == null) {
-      return;
-    }
-    ed.setComponent(shipId, new XRadarStatus(xradar.status()));
-    if (xradar.status() >= 1) {
-      ed.setComponent(shipId, new XRadarEnergy(xradar.energyDrainPer1000Cs()));
-    }
-    if (resetLivePool) {
-      if (xradar.status() >= 1) {
-        ed.setComponent(shipId, new XRadar(xradar.status() == 2));
-      }
-    }
-  }
-
-  /** Same shape as {@link #projectCloak} for AntiWarp. */
-  private void projectAntiwarp(
-      final EntityId shipId, @Nullable final StatusStats antiwarp, final boolean resetLivePool) {
-    if (antiwarp == null) {
-      return;
-    }
-    ed.setComponent(shipId, new AntiwarpStatus(antiwarp.status()));
-    if (antiwarp.status() >= 1) {
-      ed.setComponent(shipId, new AntiwarpEnergy(antiwarp.energyDrainPer1000Cs()));
-    }
-    if (resetLivePool) {
-      if (antiwarp.status() >= 1) {
-        ed.setComponent(shipId, new Antiwarp(antiwarp.status() == 2));
-      }
-    }
-  }
+  // Pattern-4 weapon/inventory and status-family projections live in
+  // ShipWeaponsProjector / ShipStatusProjector — see {@link #project} for
+  // the dispatch. Both projector classes are pure-static helpers in this
+  // package; the boundary discipline (template→component projection happens
+  // here, called only from this system) is preserved.
 }
