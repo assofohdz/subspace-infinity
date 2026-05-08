@@ -10,8 +10,10 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -147,11 +149,11 @@ public final class MapAnalyzer {
   }
 
   private static void printDiff(MapReport a, MapReport b) {
-    java.util.HashSet<Long> onlyA = new java.util.HashSet<>(a.occupied);
+    Set<Long> onlyA = new HashSet<>(a.occupied);
     onlyA.removeAll(b.occupied);
-    java.util.HashSet<Long> onlyB = new java.util.HashSet<>(b.occupied);
+    Set<Long> onlyB = new HashSet<>(b.occupied);
     onlyB.removeAll(a.occupied);
-    java.util.HashSet<Long> both = new java.util.HashSet<>(a.occupied);
+    Set<Long> both = new HashSet<>(a.occupied);
     both.retainAll(b.occupied);
 
     System.out.println("=== Diff: " + a.name + " vs " + b.name + " ===");
@@ -168,7 +170,7 @@ public final class MapAnalyzer {
     int total;
     final Map<Integer, Integer> tileTypeCounts = new LinkedHashMap<>();
     final Map<String, Integer> categoryCounts = new LinkedHashMap<>();
-    final java.util.HashSet<Long> occupied = new java.util.HashSet<>();
+    final Set<Long> occupied = new HashSet<>();
 
     MapReport(String name) {
       this.name = name;

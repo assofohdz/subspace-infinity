@@ -56,7 +56,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     private final String serverInfo;
     private EntityData ed;
 
-    private final HashMap<EntityId, HostedConnection> playerConnectionMap = new HashMap<>();
+    private final Map<EntityId, HostedConnection> playerConnectionMap = new HashMap<>();
 
     public AccountHostedService(final String serverInfo) {
         this.serverInfo = serverInfo;
@@ -528,12 +528,12 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      * @param accessLevel A number corresponding to the OperatorList access standard
      * @return HashSet of all players of that access level.
      */
-    public HashSet<EntityId> getAllOfAccessLevel(final AccessLevel accessLevel) {
+    public Set<EntityId> getAllOfAccessLevel(final AccessLevel accessLevel) {
         if (accessLevel.level < AccessLevel.PLAYER_LEVEL.level || accessLevel.level > AccessLevel.OWNER_LEVEL.level) {
             return null;
         }
 
-        final HashSet<EntityId> gathered = new HashSet<>();
+        final Set<EntityId> gathered = new HashSet<>();
 
         for (final Entry<EntityId, AccessLevel> operator : operators.entrySet()) {
             if (operator.getValue() == accessLevel) {

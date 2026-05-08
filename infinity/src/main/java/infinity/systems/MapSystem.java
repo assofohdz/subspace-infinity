@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,9 +78,9 @@ public class MapSystem extends AbstractGameSystem {
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "Maps";
   // Map that holds all block coordinates for a given map:
-  private final Map<String, HashSet<Vec3d>> activeMaps = new HashMap<>();
+  private final Map<String, Set<Vec3d>> activeMaps = new HashMap<>();
   // Map that holds the offset coordinates of each map:
-  private final LinkedHashMap<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
+  private final Map<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private EntityData ed;
   private MPhysSystem<MBlockShape> physics;
@@ -231,7 +232,7 @@ public class MapSystem extends AbstractGameSystem {
     // Attach an exceptionally handler so any throw inside createBlocksFromLegacyMap
     // is logged instead of silently swallowed by the future (which would otherwise
     // leave the arena visible-cube up but no blocks rendered, with zero log evidence).
-    CompletableFuture<HashSet<Vec3d>> completableFuture =
+    CompletableFuture<Set<Vec3d>> completableFuture =
         CompletableFuture.supplyAsync(
             () -> this.createBlocksFromLegacyMap(res, worldOffset, tileBase, createdTime));
     completableFuture
@@ -284,7 +285,7 @@ public class MapSystem extends AbstractGameSystem {
     if (!activeMaps.containsKey(mapName)) {
       return false;
     }
-    HashSet<Vec3d> coordinates = activeMaps.get(mapName);
+    Set<Vec3d> coordinates = activeMaps.get(mapName);
     CompletableFuture<Boolean> completableFuture =
         CompletableFuture.supplyAsync(() -> this.removeBlocksFromLegacyMap(coordinates));
     completableFuture.thenAccept(s -> activeMaps.remove(mapName));
@@ -315,7 +316,7 @@ public class MapSystem extends AbstractGameSystem {
     Vec3i corner = tile.getWorld(null);
     Vec3d worldOffset = new Vec3d(corner.x, corner.y, corner.z);
 
-    HashSet<Vec3d> oldCoordinates = activeMaps.remove(oldMapName);
+    Set<Vec3d> oldCoordinates = activeMaps.remove(oldMapName);
     mapCoordinates.remove(oldMapName);
     mapCoordinates.put(newMapName, offset);
 
@@ -337,7 +338,7 @@ public class MapSystem extends AbstractGameSystem {
     return activeMaps.containsKey(mapName);
   }
 
-  private boolean removeBlocksFromLegacyMap(HashSet<Vec3d> coordinates) {
+  private boolean removeBlocksFromLegacyMap(Set<Vec3d> coordinates) {
     for (Vec3d location : coordinates) {
       world.setWorldCell(location, 0);
     }
@@ -351,7 +352,7 @@ public class MapSystem extends AbstractGameSystem {
    * readback means either our tracked set didn't cover a cell we wrote, or
    * another system re-filled the cell between clear and read.
    */
-  private void verifyCleared(HashSet<Vec3d> coordinates) {
+  private void verifyCleared(Set<Vec3d> coordinates) {
     int lingering = 0;
     int shown = 0;
     for (Vec3d location : coordinates) {
@@ -385,12 +386,12 @@ public class MapSystem extends AbstractGameSystem {
    * See {@code .claude/skills/lvl-format.md} for the tile-ID → semantic mapping
    * and {@link MapTypes} for the numeric constants.
    */
-  public HashSet<Vec3d> createBlocksFromLegacyMap(
+  public Set<Vec3d> createBlocksFromLegacyMap(
       final LevelFile map,
       final Vec3d arenaOffset,
       final int arenaTileBase,
       final long createdTime) {
-    final HashSet<Vec3d> coordinates = new HashSet<>();
+    final Set<Vec3d> coordinates = new HashSet<>();
     final short[][] tiles = map.getMap();
 
     // --- Diagnostics: disposition counters ---
@@ -404,7 +405,7 @@ public class MapSystem extends AbstractGameSystem {
     int cellsVisible = 0;
     int cellsInvisible = 0;
     int cellsFailedLeaf = 0;
-    final java.util.TreeMap<Integer, Integer> idHistogram = new java.util.TreeMap<>();
+    final java.util.SortedMap<Integer, Integer> idHistogram = new java.util.TreeMap<>();
     Vec3d firstWritten = null;
     Vec3d lastWritten = null;
 
@@ -503,7 +504,7 @@ public class MapSystem extends AbstractGameSystem {
       final StringBuilder sb = new StringBuilder("  tile-id histogram:");
       int shown = 0;
       for (final java.util.Map.Entry<Integer, Integer> e : idHistogram.entrySet()) {
-        sb.append(" ").append(e.getKey()).append("=").append(e.getValue());
+        sb.append(' ').append(e.getKey()).append('=').append(e.getValue());
         if (++shown >= 40) {
           sb.append(" ...(").append(idHistogram.size() - shown).append(" more)");
           break;
@@ -529,7 +530,7 @@ public class MapSystem extends AbstractGameSystem {
    * axis is measured.
    */
   private void spawnWallRunLights(final short[][] tiles, final Vec3d arenaOffset,
-      final HashSet<Vec3d> coordinates) {
+      final Set<Vec3d> coordinates) {
     final int sx = tiles.length;
     final int sz = tiles[0].length;
     final boolean[][] wall = new boolean[sx][sz];

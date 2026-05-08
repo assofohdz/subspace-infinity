@@ -87,7 +87,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   private final Map<Pattern, CommandTriFunction<EntityId, EntityId, Matcher, String>>
       patternTriConsumer;
   // BiConsumers only need the player entityId
-  private final ConcurrentHashMap<Pattern, CommandBiFunction<EntityId, Matcher, String>>
+  private final Map<Pattern, CommandBiFunction<EntityId, Matcher, String>>
       patternBiConsumer;
   private RmiHostedService rmiService;
 

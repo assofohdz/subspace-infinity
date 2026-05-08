@@ -63,7 +63,7 @@ public class MapState extends BaseAppState {
     private AWTLoader imgLoader;
     private final Map<TileKey, Image> imageMap = new HashMap<>();
 
-    private final HashMap<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
+    private final Map<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
     // private float tpfTime;
     private Camera camera;
 

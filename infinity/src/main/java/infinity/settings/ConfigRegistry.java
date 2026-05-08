@@ -78,7 +78,7 @@ public final class ConfigRegistry {
       final PrizeConfig prize,
       final PrizeWeightsConfig prizeWeights,
       final SpawnConfig spawn) {
-    final EnumMap<Ship, ShipConfig> copy = new EnumMap<>(Ship.class);
+    final Map<Ship, ShipConfig> copy = new EnumMap<>(Ship.class);
     copy.putAll(shipsSource);
     this.ships = Collections.unmodifiableMap(copy);
     this.bullet = bullet;
@@ -278,7 +278,7 @@ public final class ConfigRegistry {
       final PrizeConfig prize,
       final PrizeWeightsConfig prizeWeights,
       final SpawnConfig spawn) {
-    final EnumMap<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
+    final Map<Ship, ShipConfig> source = new EnumMap<>(Ship.class);
     source.putAll(this.ships);
     return new ConfigRegistry(
         source, bullet, bomb, gravBomb, mine, burst, repel, rocket, brick, decoy, portal, thor, prize, prizeWeights, spawn);
@@ -292,7 +292,7 @@ public final class ConfigRegistry {
    */
   public static final class Builder {
 
-    private final EnumMap<Ship, ShipConfig> ships = new EnumMap<>(Ship.class);
+    private final Map<Ship, ShipConfig> ships = new EnumMap<>(Ship.class);
     private BulletConfig bullet = BulletConfig.DEFAULTS;
     private BombConfig bomb = BombConfig.DEFAULTS;
     private GravBombConfig gravBomb = GravBombConfig.DEFAULTS;

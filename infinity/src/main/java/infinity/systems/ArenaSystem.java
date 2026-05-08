@@ -988,16 +988,16 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       out.append("  ")
           .append(arenaId.getArena())
           .append(" — bounds=(")
-          .append((int) min.x).append(",").append((int) min.z)
+          .append((int) min.x).append(',').append((int) min.z)
           .append(")..(")
-          .append((int) max.x).append(",").append((int) max.z)
+          .append((int) max.x).append(',').append((int) max.z)
           .append(") centre=(")
-          .append((int) ((min.x + max.x) / 2)).append(",").append((int) ((min.z + max.z) / 2))
-          .append(")");
+          .append((int) ((min.x + max.x) / 2)).append(',').append((int) ((min.z + max.z) / 2))
+          .append(')');
       if (youAreHere) {
         out.append(" [you]");
       }
-      out.append("\n");
+      out.append('\n');
     }
     return out.toString().trim();
   }

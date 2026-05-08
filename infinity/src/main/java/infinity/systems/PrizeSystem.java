@@ -85,7 +85,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
   private final PhysicsSpace<EntityId, MBlockShape> phys;
   private final Map<EntityId, Set<EntityId>> spawnerBounties = new HashMap<>();
-  private final HashMap<EntityId, Double> spawnerLastSpawned = new HashMap<>();
+  private final Map<EntityId, Double> spawnerLastSpawned = new HashMap<>();
   /**
    * Last-resort selector built from the hardcoded {@link #FALLBACK_WEIGHTS}.
    * Used only for spawners with no {@link ArenaId} (the legacy
@@ -99,7 +99,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
    * {@code ConfigRegistrySystem.forArena(arenaId).prizeWeights()} (typed
    * via {@code PrizeWeightsAdapter}). One entry per arena seen so far.
    */
-  private final HashMap<String, RandomSelector<String>> arenaSelectors = new HashMap<>();
+  private final Map<String, RandomSelector<String>> arenaSelectors = new HashMap<>();
 
   /**
    * Cached per-spawner selector built lazily for spawners carrying a
@@ -107,7 +107,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
    * arena defaults with the spawner-specific overrides at construction time;
    * dropped on spawner removal in {@link #update}.
    */
-  private final HashMap<EntityId, RandomSelector<String>> spawnerSelectors = new HashMap<>();
+  private final Map<EntityId, RandomSelector<String>> spawnerSelectors = new HashMap<>();
 
   Random random;
   private EntityData ed;

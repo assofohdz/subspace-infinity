@@ -35,10 +35,10 @@ public class LevelFile {
     public static final int DEFAULT_TAG_COUNT = 6;
 
     // Vector of loaded regions
-    public Vector<Region> loadedRegions;
+    public List<Region> loadedRegions;
 
     // unknown ELVL chunks read in on load
-    public Vector<Byte> unknownELVLData = new Vector<>();
+    public List<Byte> unknownELVLData = new Vector<>();
 
     private final short[][] m_level = new short[1024][1024];
 
@@ -118,7 +118,7 @@ public class LevelFile {
                                 break;
                             }
 
-                            final Vector<String> row = new Vector<>();
+                            final List<String> row = new Vector<>();
                             row.add(keyTag[0]);
                             row.add(keyTag[1]);
                             eLvlAttrs.add(row);
