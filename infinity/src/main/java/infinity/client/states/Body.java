@@ -85,6 +85,7 @@ class Body {
     this.buffer = pos.getBuffer();
   }
 
+  @SuppressWarnings("PMD.CompareObjectsWithEquals") // scene-graph identity: parent Spatial reference
   public void update(final long time) {
     // Look back in the brief history that we've kept and
     // pull an interpolated value.  To do this, we grab the

@@ -133,6 +133,7 @@ public class ConnectionState extends CompositeAppState {
         parent.setEnabled(true);
     }
 
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // OptionPanel identity: only close if it's still our panel
     protected void closeConnectingPanel() {
         if( getState(OptionPanelState.class).getCurrent() == connectingPanel ) {
             getState(OptionPanelState.class).close();
@@ -147,6 +148,7 @@ public class ConnectionState extends CompositeAppState {
     protected void onDisable() {
     }
 
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // canonical Thread identity check
     protected boolean isRenderThread() {
         return Thread.currentThread() == renderThread;
     }

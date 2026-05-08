@@ -125,6 +125,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
    * Starts hosting the chat services on the specified connection using a specified player name.
    * This causes the player to 'enter' the chat room and will then be able to send/receive messages.
    */
+  @SuppressWarnings("PMD.CompareObjectsWithEquals") // ChatSessionImpl identity: skip-self in player loop
   public void startHostingOnConnection(final HostedConnection conn, final String playerName) {
     log.debug("startHostingOnConnection({})", conn);
 
@@ -155,6 +156,7 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   }
 
   @Override
+  @SuppressWarnings("PMD.CompareObjectsWithEquals") // ChatSessionImpl identity: skip-self in player loop
   public void stopHostingOnConnection(final HostedConnection conn) {
     log.debug("stopHostingOnConnection({})", conn);
     final ChatSessionImpl player = getChatSession(conn);

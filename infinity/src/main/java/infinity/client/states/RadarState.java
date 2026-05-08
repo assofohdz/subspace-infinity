@@ -360,6 +360,7 @@ public class RadarState extends BaseAppState {
         }
     }
 
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // BodyPosition reference uniqueness check
     private void applyAvatarFreqChanges() {
         if (avatarWatch == null) {
             return;

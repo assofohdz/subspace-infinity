@@ -119,6 +119,7 @@ public class BrainScheduler {
         think(time);
     }
 
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // Brain identity check: abort if we find ourselves
     protected void schedule( Brain brain ) {
         log.info("schedule({})", brain);
 

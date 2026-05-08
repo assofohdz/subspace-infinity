@@ -60,6 +60,11 @@ import com.simsilica.ext.mphys.*;
  *
  * @author Paul Speed
  */
+// Identity-by-design `==`: physics RigidBody references are unique-per-body
+// in dyn4j; getControlDriver()==this is the canonical "is THIS body's driver"
+// check; setter no-op short-circuit on identity. None of the flagged sites
+// are value-equality bugs.
+@SuppressWarnings("PMD.CompareObjectsWithEquals")
 public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> implements Actor {
   private static final double TWO_PI = Math.PI * 2;
   static Logger log = LoggerFactory.getLogger(MobDriver.class);
