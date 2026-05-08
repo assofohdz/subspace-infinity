@@ -79,6 +79,7 @@ public class PostProcessingState extends BaseAppState {
     }
 
     @Override
+    @SuppressWarnings("PMD.LooseCoupling") // jME AppSettings: framework-typed read
     protected void initialize(final Application app) {
 
         final AssetManager assets = app.getAssetManager();

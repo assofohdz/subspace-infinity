@@ -109,6 +109,9 @@ public class Main extends SimpleApplication {
         new ScreenshotAppState("", System.currentTimeMillis()));
   }
 
+  // Canonical Java entry point + jME AppSettings (framework-typed) — both
+  // PMD-flagged but neither narrowable without compromising the standard shape.
+  @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "PMD.LooseCoupling"})
   public static void main(final String... args) throws Exception {
 
     // Create logs directory if it doesn't exist

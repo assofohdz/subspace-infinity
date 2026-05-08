@@ -8,7 +8,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
 import infinity.events.arena.ShipEvent;
-import infinity.modules.prizeTester.prizeTester;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 import infinity.sim.ArenaManager;
@@ -18,12 +17,8 @@ import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.ini4j.Ini;
 
 /**
  * This is a test module for the light system. It creates 4 lights in the corners
@@ -33,10 +28,6 @@ import org.ini4j.Ini;
 public class lightTester extends BaseGameModule {
 
   private final Pattern lightCommand = Pattern.compile("\\~lightTester\\s(\\w+)");
-  private EntityData ed;
-
-  @SuppressWarnings("unused")
-  private Ini settings;
 
   public lightTester(
       final ChatHostedPoster chp,
@@ -50,16 +41,7 @@ public class lightTester extends BaseGameModule {
   @Override
   protected void initialize() {
 
-    ed = getSystem(EntityData.class);
-
-    settings = new Ini();
-    try {
-      InputStream is =
-          prizeTester.class.getResourceAsStream(this.getClass().getSimpleName() + ".ini");
-      settings = new Ini(is);
-    } catch (final IOException ex) {
-      java.util.logging.Logger.getLogger(prizeTester.class.getName()).log(Level.SEVERE, null, ex);
-    }
+    final EntityData ed = getSystem(EntityData.class);
 
     GameEntities.createLight(
         ed,
