@@ -181,7 +181,7 @@ public class RepelSystem extends AbstractGameSystem {
     final double radiusWorldUnits =
         effect.get(RepelDistance.class).getPixels() / PIXELS_PER_TILE;
     final double magnitudeJme =
-        WeaponsSystem.effectiveProjectileSpeed(
+        WeaponsLogic.effectiveProjectileSpeed(
             effect.get(RepelSpeed.class).getSpeed(), scale, maxJme);
     if (radiusWorldUnits <= 0.0 || magnitudeJme == 0.0) {
       return;

@@ -28,7 +28,6 @@ import infinity.config.ThorConfig;
 import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.ShapeNames;
-import infinity.es.arena.ArenaId;
 import infinity.es.ship.Speed;
 import infinity.es.ship.Thrust;
 import infinity.es.ship.actions.Brick;
@@ -86,83 +85,9 @@ public class ConsumableSystem extends AbstractGameSystem
   private EntitySet thorProjectiles;
   private ConfigRegistrySystem configRegistry;
 
-  /**
-   * Per-arena Thor tuning. Keyed by attacker's {@link ArenaId}; arenas
-   * without a config (or attackers in no-arena void) fall back to
-   * {@link ThorConfig#DEFAULTS}.
-   */
-  private ThorConfig thorConfigFor(final EntityId attacker) {
-    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-    if (arenaId == null) {
-      return ThorConfig.DEFAULTS;
-    }
-    return configRegistry.forArena(arenaId).thor();
-  }
-
-  /**
-   * Per-arena Repel tuning. Keyed by attacker's {@link ArenaId}; arenas
-   * without a config (or attackers in no-arena void) fall back to
-   * {@link RepelConfig#DEFAULTS}.
-   */
-  private RepelConfig repelConfigFor(final EntityId attacker) {
-    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-    if (arenaId == null) {
-      return RepelConfig.DEFAULTS;
-    }
-    return configRegistry.forArena(arenaId).repel();
-  }
-
-  /**
-   * Per-arena Rocket tuning. Keyed by attacker's {@link ArenaId}; arenas
-   * without a config (or attackers in no-arena void) fall back to
-   * {@link RocketConfig#DEFAULTS}.
-   */
-  private RocketConfig rocketConfigFor(final EntityId attacker) {
-    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-    if (arenaId == null) {
-      return RocketConfig.DEFAULTS;
-    }
-    return configRegistry.forArena(arenaId).rocket();
-  }
-
-  /**
-   * Per-arena Brick tuning. Keyed by attacker's {@link ArenaId}; arenas
-   * without a config (or attackers in no-arena void) fall back to
-   * {@link BrickConfig#DEFAULTS}.
-   */
-  private BrickConfig brickConfigFor(final EntityId attacker) {
-    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-    if (arenaId == null) {
-      return BrickConfig.DEFAULTS;
-    }
-    return configRegistry.forArena(arenaId).brick();
-  }
-
-  /**
-   * Per-arena Decoy tuning. Keyed by attacker's {@link ArenaId}; arenas
-   * without a config (or attackers in no-arena void) fall back to
-   * {@link DecoyConfig#DEFAULTS}.
-   */
-  private DecoyConfig decoyConfigFor(final EntityId attacker) {
-    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-    if (arenaId == null) {
-      return DecoyConfig.DEFAULTS;
-    }
-    return configRegistry.forArena(arenaId).decoy();
-  }
-
-  /**
-   * Per-arena Portal tuning. Keyed by attacker's {@link ArenaId}; arenas
-   * without a config (or attackers in no-arena void) fall back to
-   * {@link PortalConfig#DEFAULTS}.
-   */
-  private PortalConfig portalConfigFor(final EntityId attacker) {
-    final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-    if (arenaId == null) {
-      return PortalConfig.DEFAULTS;
-    }
-    return configRegistry.forArena(arenaId).portal();
-  }
+  // Per-family config lookups + gate checks live in ConsumableLogic to keep
+  // this class's cyclomatic-complexity sum under PMD's class threshold without
+  // fragmenting Pattern-4 spawn projection.
 
   @Override
   protected void initialize() {
@@ -305,7 +230,7 @@ public class ConsumableSystem extends AbstractGameSystem
 
   private void createThor(Entity requesterEntity, final long time, ActionPosition info) {
     EntityId requester = requesterEntity.getId();
-    final ThorConfig cfg = thorConfigFor(requester);
+    final ThorConfig cfg = ConsumableLogic.thorConfigFor(ed, configRegistry, requester);
 
     EntityId gunProjectile;
     gunProjectile =
@@ -338,7 +263,7 @@ public class ConsumableSystem extends AbstractGameSystem
    */
   private void createRepel(Entity requesterEntity, final long time, ActionPosition info) {
     EntityId requester = requesterEntity.getId();
-    final RepelConfig cfg = repelConfigFor(requester);
+    final RepelConfig cfg = ConsumableLogic.repelConfigFor(ed, configRegistry, requester);
 
     final EntityId repelEffect =
         GameEntities.createRepel(ed, requester, physicsSpace, time, info.location, cfg.timeMs());
@@ -367,7 +292,7 @@ public class ConsumableSystem extends AbstractGameSystem
    */
   private void createBrick(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
-    final BrickConfig cfg = brickConfigFor(ship);
+    final BrickConfig cfg = ConsumableLogic.brickConfigFor(ed, configRegistry, ship);
     GameEntities.createBrick(ed, ship, time, cfg.spanTiles(), cfg.timeMs());
   }
 
@@ -381,7 +306,7 @@ public class ConsumableSystem extends AbstractGameSystem
    */
   private void createDecoy(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
-    final DecoyConfig cfg = decoyConfigFor(ship);
+    final DecoyConfig cfg = ConsumableLogic.decoyConfigFor(ed, configRegistry, ship);
     GameEntities.createDecoy(ed, ship, time, cfg.aliveTimeMs());
   }
 
@@ -395,13 +320,13 @@ public class ConsumableSystem extends AbstractGameSystem
    */
   private void createPortal(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
-    final PortalConfig cfg = portalConfigFor(ship);
+    final PortalConfig cfg = ConsumableLogic.portalConfigFor(ed, configRegistry, ship);
     GameEntities.createPortal(ed, ship, time, cfg.activeTimeMs());
   }
 
   private void createRocketBuff(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
-    final RocketConfig cfg = rocketConfigFor(ship);
+    final RocketConfig cfg = ConsumableLogic.rocketConfigFor(ed, configRegistry, ship);
     final RocketTime rocketTime = ed.getComponent(ship, RocketTime.class);
     if (rocketTime == null) {
       // Defensive — canAct already gated on rocketOwners (which requires
@@ -529,121 +454,24 @@ public class ConsumableSystem extends AbstractGameSystem
       return false;
     }
     if (actionType == FIRETHOR) {
-      return canFireThor(requester);
+      return ConsumableLogic.canFireThor(ed, thorOwners, requester);
     }
     if (actionType == REPEL) {
-      return canFireRepel(requester);
+      return ConsumableLogic.canFireRepel(ed, repelOwners, requester);
     }
     if (actionType == FIREROCKET) {
-      return canFireRocket(requester);
+      return ConsumableLogic.canFireRocket(ed, rocketOwners, requester);
     }
     if (actionType == PLACEBRICK) {
-      return canPlaceBrick(requester);
+      return ConsumableLogic.canPlaceBrick(ed, brickOwners, requester);
     }
     if (actionType == PLACEDECOY) {
-      return canPlaceDecoy(requester);
+      return ConsumableLogic.canPlaceDecoy(ed, decoyOwners, requester);
     }
     if (actionType == PLACEPORTAL) {
-      return canPlacePortal(requester);
+      return ConsumableLogic.canPlacePortal(ed, portalOwners, requester);
     }
     return false;
-  }
-
-  /**
-   * Checks if an entity can fire a thor. For now the only check is to make sure the entity has a
-   * ThorCurrentCount component with count > 0.
-   *
-   * @param requester The entity that is requesting to fire a thor
-   * @return true if the entity can fire a thor, false otherwise
-   */
-  private boolean canFireThor(Entity requester) {
-    EntityId requesterId = requester.getId();
-
-    if (thorOwners.containsId(requesterId)) {
-      ThorCurrentCount tcc = ed.getComponent(requesterId, ThorCurrentCount.class);
-      ThorFireDelay tfd = ed.getComponent(requesterId, ThorFireDelay.class);
-      return tcc.getCount() > 0 && tfd.getPercent() >= 1;
-    }
-
-    return false;
-  }
-
-  /**
-   * Repel firing gate: ship must own a {@link Repel} inventory component
-   * (per-ship {@code RepelMax > 0}) with at least one charge remaining.
-   * No fire-delay component today — Subspace {@code [Repel]} has no
-   * canonical fire-delay knob.
-   */
-  private boolean canFireRepel(Entity requester) {
-    EntityId requesterId = requester.getId();
-
-    if (!repelOwners.containsId(requesterId)) {
-      return false;
-    }
-    final Repel curr = ed.getComponent(requesterId, Repel.class);
-    return curr != null && curr.getCount() > 0;
-  }
-
-  /**
-   * Rocket firing gate: ship must own {@link Rocket} +
-   * {@link RocketMax} + {@link RocketTime} (all projected together at
-   * spawn from {@link infinity.config.RocketStats}) with at least one
-   * inventory charge. No fire-delay component today — Subspace
-   * {@code [Rocket]} has no canonical fire-delay knob.
-   */
-  private boolean canFireRocket(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    if (!rocketOwners.containsId(requesterId)) {
-      return false;
-    }
-    final Rocket curr = ed.getComponent(requesterId, Rocket.class);
-    return curr != null && curr.getCount() > 0;
-  }
-
-  /**
-   * Brick placement gate: ship must own {@link Brick} + {@link BrickMax}
-   * (per-ship {@code BrickMax > 0}) with at least one inventory charge.
-   * No fire-delay component today — Subspace {@code [Brick]} has no
-   * canonical fire-delay knob.
-   */
-  private boolean canPlaceBrick(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    if (!brickOwners.containsId(requesterId)) {
-      return false;
-    }
-    final Brick curr = ed.getComponent(requesterId, Brick.class);
-    return curr != null && curr.getCount() > 0;
-  }
-
-  /**
-   * Decoy placement gate: ship must own {@link Decoy} + {@link DecoyMax}
-   * (per-ship {@code DecoyMax > 0}) with at least one inventory charge.
-   * No fire-delay component today — Subspace {@code [Misc] DecoyAliveTime}
-   * is the only canonical decoy-tuning knob.
-   */
-  private boolean canPlaceDecoy(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    if (!decoyOwners.containsId(requesterId)) {
-      return false;
-    }
-    final Decoy curr = ed.getComponent(requesterId, Decoy.class);
-    return curr != null && curr.getCount() > 0;
-  }
-
-  /**
-   * Portal placement gate: ship must own {@link Portal} + {@link PortalMax}
-   * (per-ship {@code PortalMax > 0}) with at least one inventory charge.
-   * No fire-delay component today — Subspace {@code [Misc] WarpPointDelay}
-   * (portal lifetime) and {@code WarpRadiusLimit} (use distance) are the
-   * canonical portal-tuning knobs.
-   */
-  private boolean canPlacePortal(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    if (!portalOwners.containsId(requesterId)) {
-      return false;
-    }
-    final Portal curr = ed.getComponent(requesterId, Portal.class);
-    return curr != null && curr.getCount() > 0;
   }
 
   private boolean setCoolDown(final Entity requester, final byte flag) {

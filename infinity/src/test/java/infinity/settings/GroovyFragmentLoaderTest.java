@@ -8,7 +8,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import org.ini4j.Ini;
+import org.ini4j.Profile;
 import org.ini4j.Profile.Section;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class GroovyFragmentLoaderTest {
             + "    BombAliveTime 6000\n"
             + "}\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:section_storesEachKeyAsString");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:section_storesEachKeyAsString");
 
     final Section bomb = ini.get("Bomb");
     assertNotNull("Bomb section must exist", bomb);
@@ -49,7 +49,7 @@ public class GroovyFragmentLoaderTest {
             + "    \"Team0-Y\"(-480)\n"
             + "}\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:hyphenatedKeys");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:hyphenatedKeys");
 
     final Section spawn = ini.get("Spawn");
     assertEquals("96", spawn.get("Team0-Radius"));
@@ -63,7 +63,7 @@ public class GroovyFragmentLoaderTest {
         "section('Bullet') { BulletDamageLevel 100 }\n"
             + "section('Mine') { MineAliveTime 12000; TeamMaxMines 12 }\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:multipleSections");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:multipleSections");
 
     assertEquals("100", ini.get("Bullet").get("BulletDamageLevel"));
     assertEquals("12000", ini.get("Mine").get("MineAliveTime"));
@@ -79,7 +79,7 @@ public class GroovyFragmentLoaderTest {
             + "    BulletFireEnergy 20\n"
             + "}\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:shipSection_valid");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:shipSection_valid");
 
     assertEquals("6000", ini.get("Warbird").get("SuperTime"));
     assertEquals("20", ini.get("Warbird").get("BulletFireEnergy"));
@@ -112,7 +112,7 @@ public class GroovyFragmentLoaderTest {
             + "    InitialDecoy 2\n"
             + "}\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:shipSections_splat");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:shipSections_splat");
 
     for (final String name : new String[] {"Warbird", "Javelin", "Spider"}) {
       final Section sec = ini.get(name);
@@ -149,7 +149,7 @@ public class GroovyFragmentLoaderTest {
     // Confirm the loader handles non-numeric values too.
     final String src = "section('Misc') { SheepMessage 'Baaah' }\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:stringValue");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:stringValue");
 
     assertEquals("Baaah", ini.get("Misc").get("SheepMessage"));
   }
@@ -160,7 +160,7 @@ public class GroovyFragmentLoaderTest {
     // expected section + key shape. Sanity-check a handful of keys from the
     // canonical-SVS [PrizeWeight] table so a wholesale regression in the
     // loader (eval, section binding, key capture) shows up.
-    final Ini ini = new GroovyFragmentLoader().load("/conf/svs/prizeweights.groovy");
+    final Profile ini = new GroovyFragmentLoader().load("/conf/svs/prizeweights.groovy");
 
     assertNotNull("prizeweights.groovy should load from the classpath", ini);
     final Section pw = ini.get("PrizeWeight");
@@ -173,7 +173,7 @@ public class GroovyFragmentLoaderTest {
 
   @Test
   public void load_missingPath_returnsNull() {
-    final Ini ini = new GroovyFragmentLoader().load("/does-not-exist.groovy");
+    final Profile ini = new GroovyFragmentLoader().load("/does-not-exist.groovy");
     assertNull(ini);
   }
 
@@ -186,7 +186,7 @@ public class GroovyFragmentLoaderTest {
         "include '/conf/svs/prizeweights.groovy'\n"
             + "section('Bomb') { BombDamageLevel 1234 }\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:include_basic");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:include_basic");
 
     // Included file contributes [PrizeWeight]
     assertNotNull("PrizeWeight section from included file", ini.get("PrizeWeight"));
@@ -204,7 +204,7 @@ public class GroovyFragmentLoaderTest {
         "include '/conf/svs/prizeweights.groovy'\n"
             + "section('PrizeWeight') { QuickCharge 999 }\n";
 
-    final Ini ini = new GroovyFragmentLoader().evaluate(src, "test:include_override");
+    final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:include_override");
 
     assertEquals(
         "Outer's later write should win over the included file's earlier 80",
@@ -219,7 +219,7 @@ public class GroovyFragmentLoaderTest {
     // Asserts a representative sample of keys from each layer so a
     // structural regression (e.g. include not reaching, shipSections not
     // splatting, override not winning) shows up clearly.
-    final Ini ini = new GroovyFragmentLoader().load("/conf/svs-league/svs-league.groovy");
+    final Profile ini = new GroovyFragmentLoader().load("/conf/svs-league/svs-league.groovy");
 
     assertNotNull("svs-league.groovy should load", ini);
 
@@ -255,7 +255,7 @@ public class GroovyFragmentLoaderTest {
     // svs-pb/ships.groovy uses a single shipSections block to apply the
     // same stat block to all 8 ships. Verify each ship section exists and
     // carries identical values.
-    final Ini ini = new GroovyFragmentLoader().load("/conf/svs-pb/ships.groovy");
+    final Profile ini = new GroovyFragmentLoader().load("/conf/svs-pb/ships.groovy");
 
     assertNotNull("svs-pb/ships.groovy should load", ini);
     for (final String name :

@@ -61,7 +61,6 @@ import infinity.es.ship.weapons.BulletSpeed;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
-import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
@@ -275,7 +274,7 @@ public class WeaponsSystem extends AbstractGameSystem
    * </ul>
    *
    * <p>Effective radius mirrors slice 9b's
-   * {@link #proximityRadiusForLevel(int, int)} per-level additive scaling
+   * {@link WeaponsLogic#proximityRadiusForLevel(int, int)} per-level additive scaling
    * so a Warbird firing an L4 bomb has a strictly larger safety bubble
    * than the same Warbird firing L1 — captures the real-game meaning of
    * "would my bomb arm immediately on a hugging enemy?"
@@ -310,7 +309,7 @@ public class WeaponsSystem extends AbstractGameSystem
       }
       final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
       final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
-      if (victimBlocksBombFire(
+      if (WeaponsLogic.victimBlocksBombFire(
           ownerFreqValue, victimFreqValue, ownerPos, victimBody.position, radius)) {
         return false;
       }
@@ -331,7 +330,7 @@ public class WeaponsSystem extends AbstractGameSystem
     }
     final BombCurrentLevel bombLevel =
         this.bombs.getEntity(requesterId).get(BombCurrentLevel.class);
-    return proximityRadiusForLevel(bombCfg.proximityDistance(), bombLevel.getLevel().level);
+    return WeaponsLogic.proximityRadiusForLevel(bombCfg.proximityDistance(), bombLevel.getLevel().level);
   }
 
   private boolean canAttackGravityBomb(Entity requester) {
@@ -573,7 +572,7 @@ public class WeaponsSystem extends AbstractGameSystem
     // using the firing ship's bomb level: L1=1×, L2=2×, L3=3×, L4=4× per
     // REFERENCE.md ## Bomb. BombConfig.explodeRadius is already in tiles /
     // world units (Infinity-native; no pixel conversion at the consumer).
-    final double splashRadius = splashRadiusForLevel(cfg.bomb().explodeRadius(), bombLevel);
+    final double splashRadius = WeaponsLogic.splashRadiusForLevel(cfg.bomb().explodeRadius(), bombLevel);
     if (splashRadius > 0.0) {
       ed.setComponent(bombProjectile, new SplashDamage(splashRadius));
     }
@@ -587,7 +586,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final int proxBase = cfg.bomb().proximityDistance();
     final long fuseMs = cfg.bomb().explodeDelayMs();
     if (proxBase > 0 && fuseMs > 0L) {
-      final double proxRadius = proximityRadiusForLevel(proxBase, bombLevel);
+      final double proxRadius = WeaponsLogic.proximityRadiusForLevel(proxBase, bombLevel);
       ed.setComponent(bombProjectile, new ProximityFuse(proxRadius, fuseMs));
     }
 
@@ -817,7 +816,7 @@ public class WeaponsSystem extends AbstractGameSystem
     final Vec3d shipPosition = new Vec3d(shipBody.position);
 
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
-    applyProjectileRadiusOffset(projectilePosition, weaponFlag);
+    WeaponsLogic.applyProjectileRadiusOffset(projectilePosition, weaponFlag);
     // Rotate the projectile position just as the ship is rotated
     projectilePosition = shipRotation.mult(projectilePosition);
     // Translate by ship position
@@ -840,15 +839,15 @@ public class WeaponsSystem extends AbstractGameSystem
     switch (weaponFlag) {
       case WeaponsSystem.BULLET:
         projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BulletSpeed.class).getSpeed(), scale, maxJme));
+            0, 0, WeaponsLogic.effectiveProjectileSpeed(ed.getComponent(attacker, BulletSpeed.class).getSpeed(), scale, maxJme));
         break;
       case WeaponsSystem.BOMB:
         projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BombSpeed.class).getSpeed(), scale, maxJme));
+            0, 0, WeaponsLogic.effectiveProjectileSpeed(ed.getComponent(attacker, BombSpeed.class).getSpeed(), scale, maxJme));
         break;
       case WeaponsSystem.BURST:
         projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
+            0, 0, WeaponsLogic.effectiveProjectileSpeed(ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
         break;
       case WeaponsSystem.GRAVBOMB:
       case WeaponsSystem.MINE:
@@ -858,24 +857,6 @@ public class WeaponsSystem extends AbstractGameSystem
     }
   }
 
-  /** Step 4 of the attack-info pipeline: nudge the projectile spawn point off the ship by
-   * the projectile's own collision radius so it doesn't immediately re-collide with us. */
-  private static void applyProjectileRadiusOffset(
-      final Vec3d projectilePosition, final byte weaponFlag) {
-    switch (weaponFlag) {
-      case WeaponsSystem.BULLET:
-      case WeaponsSystem.BURST:
-        projectilePosition.addLocal(0, 0, CorePhysicsConstants.BULLETSIZERADIUS);
-        break;
-      case WeaponsSystem.BOMB:
-      case WeaponsSystem.GRAVBOMB:
-      case WeaponsSystem.MINE:
-        projectilePosition.addLocal(0, 0, CorePhysicsConstants.BOMBSIZERADIUS);
-        break;
-      default:
-        throw new AssertionError();
-    }
-  }
 
   /**
    * This method is called from the gamesession and acts as a queue entry.
@@ -1162,78 +1143,9 @@ public class WeaponsSystem extends AbstractGameSystem
         attackerFreq == null ? null : attackerFreq.getFrequency();
     final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
     final int ffMode = friendlyFireModeFor(attackerShipId);
-    return shouldDamageVictim(attackerFreqValue, victimFreqValue, ffMode, isSplash);
+    return WeaponsLogic.shouldDamageVictim(attackerFreqValue, victimFreqValue, ffMode, isSplash);
   }
 
-  /**
-   * Pure-function friendly-fire decision — exposed package-private so unit
-   * tests can pin the tri-state behaviour without bringing up an ECS / arena
-   * system fixture. {@code null} freq means "no team" (NPC, prize, debris) →
-   * always damage.
-   */
-  static boolean shouldDamageVictim(
-      final Integer attackerFreq,
-      final Integer victimFreq,
-      final int friendlyFireMode,
-      final boolean isSplash) {
-    if (attackerFreq == null || victimFreq == null) {
-      return true;
-    }
-    if (!attackerFreq.equals(victimFreq)) {
-      return true;
-    }
-    if (isSplash) {
-      return friendlyFireMode >= 1;
-    }
-    return friendlyFireMode >= 2;
-  }
-
-  /**
-   * Pure-function projection of {@code BombConfig.explodeRadius} (tiles /
-   * world units) onto a per-bomb splash radius. Subspace canon scaling:
-   * L1 base, L2×2, L3×3, L4×4. Exposed package-private so unit tests can
-   * pin per-level scaling without bringing up the spawn pipeline.
-   */
-  static double splashRadiusForLevel(final double baseRadius, final int level) {
-    return baseRadius * level;
-  }
-
-  /**
-   * Pure-function projection of {@code BombConfig.proximityDistance} (tiles)
-   * onto a per-bomb proximity-arm radius. Subspace canon scaling: each level
-   * <em>adds</em> 1 tile (L1=base, L2=base+1, L3=base+2, L4=base+3) — REFERENCE.md
-   * ## Bomb {@code "Each level adds 1"}. Distinct from the multiplicative
-   * scaling on {@link #splashRadiusForLevel}. Exposed package-private so unit
-   * tests can pin per-level scaling without bringing up the spawn pipeline.
-   */
-  static double proximityRadiusForLevel(final int baseTiles, final int level) {
-    return baseTiles + (level - 1);
-  }
-
-  /**
-   * Slice 10 — pure-function projectile-speed translation. Multiplies the
-   * raw Subspace velocity unit value (from {@code BulletSpeed}, {@code BombSpeed},
-   * or {@code BurstSpeed} component) by the engine-tier
-   * {@code subspaceVelocityScale}, then clamps the absolute value to the
-   * engine-tier {@code maxProjectileSpeedJme} cap to prevent legacy outliers
-   * (e.g. trench javelin's {@code BulletSpeed 64636}) from producing
-   * physics-breaking velocities.
-   *
-   * <p>Negative inputs preserve sign so backward-firing presets (e.g.
-   * trench javelin's {@code bulletSpeed: -900} per slice 10b) work
-   * without consumer-side special-casing.
-   *
-   * <p>Exposed package-private so unit tests can pin scale + cap behaviour
-   * without bringing up an ECS / arena fixture.
-   */
-  static double effectiveProjectileSpeed(
-      final int subspaceValue, final double scale, final double maxJmeAbs) {
-    final double translated = subspaceValue * scale;
-    if (translated >= 0.0) {
-      return Math.min(translated, maxJmeAbs);
-    }
-    return Math.max(translated, -maxJmeAbs);
-  }
 
   /**
    * Slice S2 — apply per-ship {@code BombThrust} recoil as an
@@ -1242,7 +1154,7 @@ public class WeaponsSystem extends AbstractGameSystem
    * directly behind the ship regardless of the bomb's outgoing velocity,
    * which would include ship-velocity inheritance).
    *
-   * <p>Magnitude reuses {@link #effectiveProjectileSpeed} so the engine-tier
+   * <p>Magnitude reuses {@link WeaponsLogic#effectiveProjectileSpeed} so the engine-tier
    * {@code subspaceVelocityScale} and {@code maxProjectileSpeedJme} cap
    * apply uniformly across {@code BombSpeed} / {@code BulletSpeed} /
    * {@code BurstSpeed} / {@code BombThrust}. Sign-preserving (negative
@@ -1275,75 +1187,12 @@ public class WeaponsSystem extends AbstractGameSystem
     // (~1% of ship max-speed). Cap reuses `maxProjectileSpeedJme` for
     // physics-safety.
     final Vec3d impulse =
-        recoilImpulse(
+        WeaponsLogic.recoilImpulse(
             thrust.getThrust(),
             engineCfg.bombThrustScale(),
             engineCfg.maxProjectileSpeedJme(),
             new Quatd(shipBody.orientation));
     ed.setComponent(shipId, new Impulse(impulse));
-  }
-
-  /**
-   * Pure-function recoil impulse computation for {@link #applyBombRecoil}.
-   * Exposed package-private so tests can pin direction + magnitude rules
-   * without bringing up an ECS / physics fixture.
-   *
-   * @param subspaceThrust raw {@code BombThrust} value (Subspace velocity
-   *     units; SVS canon {@code 400} for warbirds)
-   * @param scale {@link EngineConfig#subspaceVelocityScale}
-   * @param maxJmeAbs {@link EngineConfig#maxProjectileSpeedJme} cap
-   * @param shipOrientation ship orientation at fire time
-   * @return impulse vector in jME world units / sec (= velocity delta);
-   *     zero vector when {@code subspaceThrust == 0}
-   */
-  static Vec3d recoilImpulse(
-      final int subspaceThrust,
-      final double scale,
-      final double maxJmeAbs,
-      final Quatd shipOrientation) {
-    if (subspaceThrust == 0) {
-      return new Vec3d();
-    }
-    final double effective = effectiveProjectileSpeed(subspaceThrust, scale, maxJmeAbs);
-    final Vec3d bodyForward = shipOrientation.mult(new Vec3d(0, 0, 1));
-    return bodyForward.mult(-effective);
-  }
-
-  /**
-   * Per-victim slice 9c-BombSafety decision: true iff this single victim
-   * blocks bomb fire — i.e., it's an enemy (per
-   * {@link ProximityFuseSystem#shouldArmOn}) sitting within {@code radius}
-   * of the firing ship.
-   *
-   * <p>Pure function — no ECS / physics deps. The instance-side scan
-   * (private {@code bombSafetyClear}) walks the {@code energyEntities}
-   * EntitySet, resolves each victim's {@link Frequency} +
-   * {@link RigidBody#position}, and calls this helper. Mirrors how
-   * {@link #shouldDamageVictim} splits a private ED-aware overload from a
-   * static pure overload so the FF tri-state is unit-testable.
-   *
-   * @param ownerFreq firing ship's freq; {@code null} = no team
-   * @param victimFreq victim's freq; {@code null} = no team
-   * @param ownerPos firing ship's body position
-   * @param victimPos victim's body position
-   * @param radius effective proximity-arm radius (per-level scaled)
-   */
-  static boolean victimBlocksBombFire(
-      final Integer ownerFreq,
-      final Integer victimFreq,
-      final Vec3d ownerPos,
-      final Vec3d victimPos,
-      final double radius) {
-    if (radius <= 0.0) {
-      return false;
-    }
-    if (!ProximityFuseSystem.shouldArmOn(ownerFreq, victimFreq)) {
-      return false;
-    }
-    final double dx = victimPos.x - ownerPos.x;
-    final double dy = victimPos.y - ownerPos.y;
-    final double dz = victimPos.z - ownerPos.z;
-    return dx * dx + dy * dy + dz * dz <= radius * radius;
   }
 
   /**

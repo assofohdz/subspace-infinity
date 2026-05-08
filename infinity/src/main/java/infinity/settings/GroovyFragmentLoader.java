@@ -84,8 +84,8 @@ public final class GroovyFragmentLoader {
    * @return the parsed fragment as an {@link Ini}, or {@code null} on miss/failure
    */
   @Nullable
-  public Ini load(final String classpathPath) {
-    final Ini ini = new Ini();
+  public Profile load(final String classpathPath) {
+    final Profile ini = new Ini();
     final Deque<String> stack = new ArrayDeque<>();
     if (!loadInto(ini, classpathPath, stack)) {
       return null;
@@ -202,8 +202,8 @@ public final class GroovyFragmentLoader {
    * the same path is treated as a 1-step cycle, matching production
    * semantics.
    */
-  Ini evaluate(final String source, final String path) {
-    final Ini ini = new Ini();
+  Profile evaluate(final String source, final String path) {
+    final Profile ini = new Ini();
     final Deque<String> stack = new ArrayDeque<>();
     stack.push(path);
     try {
