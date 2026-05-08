@@ -398,9 +398,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
     // Kill any non-yaw orientation
     body.orientation.toAngles(angles);
-    if (angles[0] != 0 || angles[2] != 0) {
-      angles[0] = 0;
-      angles[2] = 0;
+    if (MobDriverLogic.killNonYawAngles(angles)) {
       body.orientation.fromAngles(angles);
     }
 
@@ -482,32 +480,9 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   private void stepFacingTowardsTarget(double step) {
     // Need to deal with the cases where facing is like 5 degrees
     // and targetFacing is 355 degrees.  Need to know to just turn
-    // 10 degrees instead of going all the way around.
-    if (facing > targetFacing && facing - targetFacing < Math.PI) {
-      // Better to turn negative... covers the simple case where
-      // facing and target are in the same domain and facing is more than
-      // target
-      facing = Math.max(targetFacing, facing - step * settings.turnSpeed);
-    } else if (targetFacing > facing && targetFacing - facing < Math.PI) {
-      // Better to turn positive... covers the simple case where
-      // facing and target are in the same domain and facing is less than
-      // target
-      facing = Math.min(targetFacing, facing + step * settings.turnSpeed);
-    } else {
-      // We must have wrapped around 0
-      if (facing > targetFacing) {
-        double t = targetFacing + TWO_PI;
-        facing = Math.min(t, facing + step * settings.turnSpeed);
-      } else {
-        double f = facing + TWO_PI;
-        facing = Math.max(targetFacing, f - step * settings.turnSpeed);
-      }
-    }
-    if (facing < 0) {
-      facing += TWO_PI;
-    } else if (facing > TWO_PI) {
-      facing -= TWO_PI;
-    }
+    // 10 degrees instead of going all the way around. The math kernel
+    // returns a value already wrapped into [0, 2π).
+    facing = MobDriverLogic.shortestArcFacing(facing, targetFacing, step, settings.turnSpeed);
     // log.info("facing:" + facing);
     orientation.fromAngles(0, facing, 0);
   }
@@ -532,23 +507,13 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // v.set(probe.closest.contactPoint).subtractLocal(body.position);
     // Vec3d dir = body.orientation.mult(Vec3d.UNIT_Z);
     // Vec3d left = body.orientation.mult(Vec3d.UNIT_X);
-    double turn = probe.turn; // left.dot(v);
     // log.info("******* turn:" + turn + "  fwd:" + probe.forward); // + "   offset:" + v + "   left:" +
     // left);
 
     // When left is positive, we want to turn right and when
     // left is negative we want to turn left... but I'm pretty sure
     // the x,z plane is backwards from what one might think.
-    double delta = 0.05; // 0.2;
-    if (turn < 0) {
-      targetFacing += delta;
-      // facing = targetFacing;
-      // orientation.fromAngles(0, facing, 0);
-    } else if (turn > 0) {
-      targetFacing -= delta;
-      // facing = targetFacing;
-      // orientation.fromAngles(0, facing, 0);
-    }
+    targetFacing += MobDriverLogic.probeTurnDelta(probe.turn);
   }
 
   /** Convert {@link #desiredVelocity} into a body force, and notify {@link #brain} on hard pushback. */
@@ -586,18 +551,13 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   /** Pick Idle vs Walk anim and tick the rig. Caller must guarantee {@code animPump != null && step > 0}. */
   private void updateAnimation(double step) {
     // See which animation we should be using.
-    double speed = averageVelocity.length() / step;
-    String action = "Idle";
-    double animSpeed = 1.0;
-    if (Math.abs(speed) > 0.001) {
-      action = "Walk";
-      // animSpeed = (speed / 1.5) * 1.75;
-      animSpeed = (speed / 1.5) * 1.8;
-    } else {
+    final double speed = averageVelocity.length() / step;
+    final MobDriverLogic.AnimChoice choice = MobDriverLogic.pickAnimAction(speed);
+    if ("Idle".equals(choice.action)) {
       log.info("actual velocity:{}  averageVelocity:{}", actualVelocity, averageVelocity);
     }
     // log.info("setCurrentAction(" + action + ", " + animSpeed + ") speed:" + speed);
-    animPump.setCurrentAction(action, animSpeed);
+    animPump.setCurrentAction(choice.action, choice.animSpeed);
 
     animPump.update(step);
     rigShape.update();

@@ -88,7 +88,6 @@ import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineMaxLevel;
-import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 
 import org.slf4j.Logger;
@@ -252,35 +251,35 @@ public class ShipSpawnSystem extends AbstractGameSystem {
   }
 
   private void applyConfigTo(final Entity shipEntity, final boolean resetLivePool) {
+    // EntitySet filter guarantees ShipType + ArenaId presence on update()
+    // entities, and reprojectAll filters on the same — defensive null
+    // checks consolidated into a single short-circuit.
     final ShipType shipType = shipEntity.get(ShipType.class);
-    if (shipType == null || shipType.getType() == null) {
-      if (log.isWarnEnabled()) {
-        log.warn("Ship {} has null ShipType; skipping config projection", shipEntity.getId());
-      }
-      return;
-    }
-
-    // Read the ship's own ArenaId — the EntitySet filter guarantees presence
-    // for entities surfaced via update(), and reprojectAll filters on it too.
     final ArenaId arena = shipEntity.get(ArenaId.class);
-    if (arena == null) {
+    if (shipType == null || shipType.getType() == null || arena == null) {
       return;
     }
-
-    final ConfigRegistry snapshot = configRegistry.forArena(arena);
-    final ShipConfig cfg = snapshot.getShip(shipType.getType());
+    final ShipConfig cfg = configRegistry.forArena(arena).getShip(shipType.getType());
     if (cfg == null) {
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "No ShipConfig for {} in arena {}; leaving defaults",
-            shipType.getType(),
-            arena.getArena());
-      }
+      warnMissingShipConfig(shipType, arena);
       return;
     }
-
     project(shipEntity.getId(), cfg, resetLivePool);
     logProjectionApplied(shipEntity, shipType, arena, cfg, resetLivePool);
+  }
+
+  /**
+   * Diagnostic warn for the "ship type not configured for this arena" case.
+   * Pulled out of {@link #applyConfigTo} to keep the dispatcher under the
+   * cyclomatic threshold while preserving the operator-facing warn.
+   */
+  private static void warnMissingShipConfig(final ShipType shipType, final ArenaId arena) {
+    if (log.isWarnEnabled()) {
+      log.warn(
+          "No ShipConfig for {} in arena {}; leaving defaults",
+          shipType.getType(),
+          arena.getArena());
+    }
   }
 
   /**

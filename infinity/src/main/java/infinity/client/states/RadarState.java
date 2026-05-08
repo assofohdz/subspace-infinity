@@ -6,17 +6,13 @@ import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState.FaceCullMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
-import com.jme3.util.BufferUtils;
 import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
@@ -578,16 +574,7 @@ public class RadarState extends BaseAppState {
     }
 
     private ColorRGBA colorFor(final EntityId id, final Integer entityFreq) {
-        if (id.equals(avatarEntityId)) {
-            return theme.selfColor();
-        }
-        if (entityFreq == null) {
-            return theme.neutralColor();
-        }
-        if (currentAvatarFreq != null && entityFreq.intValue() == currentAvatarFreq.intValue()) {
-            return theme.friendlyColor();
-        }
-        return theme.enemyColor();
+        return RadarStateLogic.colorFor(id, entityFreq, avatarEntityId, currentAvatarFreq, theme);
     }
 
     private void applyColor(final Blip blip) {
@@ -772,77 +759,22 @@ public class RadarState extends BaseAppState {
         }
     }
 
-    /**
-     * Builds a triangulated interior fill mesh for a closed convex polygon
-     * via fan triangulation from {@code verts[0]}. Convex-only — adequate for
-     * arena bounds rectangles and any future convex shape; concave polygons
-     * would need ear-clipping (not in scope today).
-     */
+    /** Thin delegate to {@link RadarStateLogic#buildFootprintFill}. */
     private Geometry buildFootprintFill(final Vec3d[] verts) {
-        final int n = verts.length;
-        final Vector3f[] positions = new Vector3f[n];
-        for (int i = 0; i < n; i++) {
-            positions[i] = new Vector3f(
-                (float) verts[i].x,
-                ArenaFootprintContainer.FILL_Y,
-                (float) verts[i].z);
-        }
-        final int[] indices = new int[(n - 2) * 3];
-        for (int i = 0; i < n - 2; i++) {
-            indices[i * 3] = 0;
-            indices[i * 3 + 1] = i + 1;
-            indices[i * 3 + 2] = i + 2;
-        }
-        final Mesh mesh = new Mesh();
-        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(positions));
-        mesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createIntBuffer(indices));
-        mesh.updateBound();
-
-        final Geometry geom = new Geometry("ArenaFootprintFill", mesh);
-        final Material mat = new Material(
+        return RadarStateLogic.buildFootprintFill(
+            verts,
+            theme.arenaTintColor(),
             getApplication().getAssetManager(),
-            "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", theme.arenaTintColor());
-        // Top-down ortho camera could see either face depending on winding —
-        // disable culling so the fill always renders regardless of vertex order.
-        mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
-        geom.setMaterial(mat);
-        return geom;
+            ArenaFootprintContainer.FILL_Y);
     }
 
-    /**
-     * Builds a closed line-loop outline for a polygon using {@code Mesh.Mode.Lines}
-     * with index pairs forming each edge — last edge connects {@code verts[n-1]}
-     * back to {@code verts[0]}. Width is GL-default (1 pixel); upgrading to a
-     * thicker outline would replace this with a quad strip.
-     */
+    /** Thin delegate to {@link RadarStateLogic#buildFootprintOutline}. */
     private Geometry buildFootprintOutline(final Vec3d[] verts) {
-        final int n = verts.length;
-        final Vector3f[] positions = new Vector3f[n];
-        for (int i = 0; i < n; i++) {
-            positions[i] = new Vector3f(
-                (float) verts[i].x,
-                ArenaFootprintContainer.OUTLINE_Y,
-                (float) verts[i].z);
-        }
-        final int[] indices = new int[n * 2];
-        for (int i = 0; i < n; i++) {
-            indices[i * 2] = i;
-            indices[i * 2 + 1] = (i + 1) % n;
-        }
-        final Mesh mesh = new Mesh();
-        mesh.setMode(Mesh.Mode.Lines);
-        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(positions));
-        mesh.setBuffer(VertexBuffer.Type.Index, 2, BufferUtils.createIntBuffer(indices));
-        mesh.updateBound();
-
-        final Geometry geom = new Geometry("ArenaFootprintOutline", mesh);
-        final Material mat = new Material(
+        return RadarStateLogic.buildFootprintOutline(
+            verts,
+            theme.arenaOutlineColor(),
             getApplication().getAssetManager(),
-            "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", theme.arenaOutlineColor());
-        geom.setMaterial(mat);
-        return geom;
+            ArenaFootprintContainer.OUTLINE_Y);
     }
 
     /** Pre-computed paging entry: leaf-cell offset from the avatar's leaf. */

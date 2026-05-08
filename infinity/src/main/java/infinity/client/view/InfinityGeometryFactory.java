@@ -36,12 +36,6 @@
 
 package infinity.client.view;
 
-import java.nio.*;
-import java.util.Map;
-
-import com.simsilica.mblock.geom.*;
-import org.slf4j.*;
-
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -49,15 +43,27 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
-import com.jme3.scene.mesh.IndexBuffer;
-import com.jme3.util.BufferUtils;
-
-import com.simsilica.mblock.*;
-
+import com.simsilica.mblock.CellArray;
+import com.simsilica.mblock.CellData;
+import com.simsilica.mblock.Direction;
+import com.simsilica.mblock.LightUtils;
+import com.simsilica.mblock.geom.ColliderlessMesh;
+import com.simsilica.mblock.geom.DefaultPartBuffer;
+import com.simsilica.mblock.geom.MaterialType;
+import java.nio.FloatBuffer;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  Creates JME geometry for a block array using the configured
  *  material registry and global block type index.
+ *
+ *  <p>Pure-function helpers (population, buffer building, light-axis
+ *  sampling) live in {@link BlockMeshBuilder}. The factory keeps the
+ *  instance state ({@code materials}, {@code allowCollisions}) and the
+ *  methods that need it ({@code generateBlocks}, {@code generateFluid},
+ *  {@code renderBuffer}, {@code assembleMesh}, {@code attachGeometryToTarget}).
  *
  *  @author    Paul Speed
  */
@@ -85,24 +91,16 @@ public class InfinityGeometryFactory {
      *  in the final Node child list.
      */
     public Node generateBlocks( Node target, CellArray cells, CellData lightData, boolean smoothLighting ) {
-        // For now we'll still choose lighting implementation internally
         log.info("Generating blocks");
         long start = System.nanoTime();
         Node result = target;
         result.detachAllChildren();
 
-        // Collect the visible GeomParts by type
         DefaultPartBuffer buffer = new DefaultPartBuffer();
-        populateBlockBuffer(buffer, cells);
+        BlockMeshBuilder.populateBlockBuffer(buffer, cells);
 
-        // Resolve a light gradient implementation based on the
-        // smooth lighting flag.  Ultimately, if we ever have more than
-        // two implementations or can think of reasons why this should be
-        // customized then we should break it out as a parameter.  Might also
-        // consider supporting pregenerated part buffers though I have no
-        // strong reason why today.  2020-11-22
         LightGradient gradient =
-                smoothLighting ? calculateLightGradient(cells, lightData) : new NoLightGradient(lightData);
+                smoothLighting ? calculateLightGradient(cells, lightData) : new NoLightGradient();
         renderBuffer(result, buffer, gradient, lightData);
 
         long end = System.nanoTime();
@@ -111,37 +109,6 @@ public class InfinityGeometryFactory {
         }
         return result;
     }
-
-    /**
-     * Triple-loops over every cell in {@code cells} and asks each cell's
-     * {@link BlockType} factory to push its visible geometry parts into
-     * {@code buffer}. Cells with type 0 (empty) and unknown types are skipped.
-     */
-    private static void populateBlockBuffer(final DefaultPartBuffer buffer, final CellArray cells) {
-        final int xSize = cells.getSizeX();
-        final int ySize = cells.getSizeY();
-        final int zSize = cells.getSizeZ();
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    int val = cells.getCell(x, y, z);
-                    int type = MaskUtils.getType(val);
-                    if (type == 0) {
-                        continue;
-                    }
-                    BlockType blockType = BlockTypeIndex.get(type);
-                    if (blockType == null) {
-                        continue;
-                    }
-                    int sideMask = MaskUtils.getSideMask(val);
-                    blockType.getFactory().addGeometryToBuffer(buffer, x, y, z, x, y, z,
-                            sideMask, cells, blockType);
-                }
-            }
-        }
-    }
-
-
 
     /**
      *  Generates Geometry objects for the specified fluid, cells, and lightData cell arrays.
@@ -151,7 +118,6 @@ public class InfinityGeometryFactory {
      *  in the final Node child list.
      */
     public Node generateFluid( Node target, CellArray fluid, CellArray cells, CellData lightData, boolean smoothLighting ) {
-        // For now we'll still choose lighting implementation internally
         if( fluid == null ) {
             return target;
         }
@@ -160,18 +126,11 @@ public class InfinityGeometryFactory {
         Node result = target;
         result.detachAllChildren();
 
-        // Collect the visible GeomParts by type
         DefaultPartBuffer buffer = new DefaultPartBuffer();
-        populateFluidBuffer(buffer, fluid, cells);
+        BlockMeshBuilder.populateFluidBuffer(buffer, fluid, cells);
 
-        // Resolve a light gradient implementation based on the
-        // smooth lighting flag.  Ultimately, if we ever have more than
-        // two implementations or can think of reasons why this should be
-        // customized then we should break it out as a parameter.  Might also
-        // consider supporting pregenerated part buffers though I have no
-        // strong reason why today.  2020-11-22
         LightGradient gradient =
-                smoothLighting ? calculateLightGradient(fluid, lightData) : new NoLightGradient(lightData);
+                smoothLighting ? calculateLightGradient(fluid, lightData) : new NoLightGradient();
         renderBuffer(result, buffer, gradient, lightData);
 
         long end = System.nanoTime();
@@ -181,52 +140,19 @@ public class InfinityGeometryFactory {
         return result;
     }
 
-    /**
-     * Triple-loops over every cell in {@code fluid}, looks up the matching
-     * {@link FluidType}, and pushes its geometry parts into {@code buffer}. The
-     * neighbouring solid {@code cells} array is forwarded to the factory so
-     * fluid faces can be culled against adjacent walls. Empty/unknown types skipped.
-     */
-    private static void populateFluidBuffer(
-            final DefaultPartBuffer buffer, final CellArray fluid, final CellArray cells) {
-        final int xSize = fluid.getSizeX();
-        final int ySize = fluid.getSizeY();
-        final int zSize = fluid.getSizeZ();
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    int val = fluid.getCell(x, y, z);
-                    int type = FluidUtils.getType(val);
-                    if (type == 0) {
-                        continue;
-                    }
-                    FluidType fluidType = FluidTypeIndex.get(type);
-                    if (fluidType == null) {
-                        continue;
-                    }
-                    int level = FluidUtils.getLevel(val);
-                    int sideMask = FluidUtils.getSideMask(val);
-                    fluidType.getFactory().addGeometryToBuffer(buffer, x, y, z, x, y, z,
-                            sideMask, level,
-                            cells, fluid, fluidType);
-                }
-            }
-        }
-    }
-
     protected void renderBuffer( Node target, DefaultPartBuffer buffer,
                                  LightGradient gradient, CellData lightData) {
-
         // Resolve the GeomParts into actual JME mesh data
         for( DefaultPartBuffer.PartList list : buffer.getPartLists() ) {
             if( list.list.isEmpty() ) {
                 continue;
             }
             final MaterialType mt = list.materialType;
-            final MeshBuffers buffers = buildMeshBuffers(mt, list.vertCount, list.triCount);
+            final BlockMeshBuilder.MeshBuffers buffers =
+                    BlockMeshBuilder.buildMeshBuffers(mt, list.vertCount, list.triCount);
             int baseIndex = 0;
             for( DefaultPartBuffer.PartEntry entry : list.list ) {
-                baseIndex = emitPart(buffers, mt, entry, gradient, lightData, baseIndex);
+                baseIndex = BlockMeshBuilder.emitPart(buffers, mt, entry, gradient, lightData, baseIndex);
             }
             final Mesh mesh = assembleMesh(buffers);
             attachGeometryToTarget(target, mt, list, mesh);
@@ -234,138 +160,17 @@ public class InfinityGeometryFactory {
     }
 
     /**
-     * Allocate the per-MaterialType vertex / texcoord / index / color / normal /
-     * tangent / direction buffers required by {@code mt}'s {@link GeomReq} set
-     * and pack them into a {@link MeshBuffers} struct. Hi-res vs lo-res scaling
-     * is selected per-buffer by the matching {@code LoRes*} requirement.
-     */
-    private static MeshBuffers buildMeshBuffers(final MaterialType mt, final int vertCount, final int triCount) {
-        final ScaledBuffer pos = mt.requires(GeomReq.LoResPositions)
-                ? ScaledBuffer.createScaledBuffer(vertCount * 3, 0, 32)
-                : ScaledBuffer.createUnscaledBuffer(vertCount * 3);
-        final ScaledBuffer texes = mt.requires(GeomReq.LoResTexCoords)
-                ? ScaledBuffer.createScaledBuffer(vertCount * 2, 0, 1)
-                : ScaledBuffer.createUnscaledBuffer(vertCount * 2);
-        // The 3-vertex assumption may not hold for point-sprite parts
-        // The 'vertCount' part is weird here... it's just informational to do
-        // some bounds checking, I think.
-        final IndexBuffer indexes = IndexBuffer.createIndexBuffer(vertCount, triCount * 3);
-        // We'll use the color buffer for lighting like Mythruna-proper did
-        // but some of Mythruna's materials also used color for other things
-        // so it might be less confusing to pick an unused tex coord.
-        final FloatBuffer colors = BufferUtils.createFloatBuffer(vertCount * 4);
-        ScaledBuffer nb = null;
-        ScaledBuffer tb = null;
-        ByteBuffer dirB = null;
-        if (mt.requires(GeomReq.IndexedNormals)) {
-            dirB = BufferUtils.createByteBuffer(vertCount);
-        } else {
-            if (mt.requires(GeomReq.Normals)) {
-                nb = mt.requires(GeomReq.LoResNormals)
-                        ? ScaledBuffer.createScaledBuffer(vertCount * 3, -1, 1)
-                        : ScaledBuffer.createUnscaledBuffer(vertCount * 3);
-            }
-            if (mt.requires(GeomReq.Tangents)) {
-                tb = mt.requires(GeomReq.LoResTangents)
-                        ? ScaledBuffer.createScaledBuffer(vertCount * 3, -1, 1)
-                        : ScaledBuffer.createUnscaledBuffer(vertCount * 3);
-            }
-        }
-        return new MeshBuffers(pos, texes, indexes, colors, nb, tb, dirB);
-    }
-
-    /**
-     * Append one {@link DefaultPartBuffer.PartEntry}'s vertex / lighting /
-     * texcoord / index data into {@code buffers}. Returns the next baseIndex
-     * (callers chain a running offset across the part list).
-     *
-     * <p>Throws if {@code dirB} is requested by the material but the entry's
-     * part has no valid direction — the caller (per-MaterialType list) is the
-     * one that promised to supply only directional parts.
-     */
-    private static int emitPart(
-            final MeshBuffers buffers,
-            final MaterialType mt,
-            final DefaultPartBuffer.PartEntry entry,
-            final LightGradient gradient,
-            final CellData lightData,
-            final int baseIndex) {
-        final GeomPart part = entry.part;
-        final byte dir = (byte) part.getDirectionIndex();
-        if (buffers.dirB != null && dir < 0) {
-            throw new IllegalStateException("Entry for material:" + mt + " has invalid dir:" + dir);
-        }
-        final Direction dirEnum = dir >= 0 ? Direction.values()[dir] : null;
-        final int size = part.getVertexCount();
-        emitVertices(buffers, entry.i, entry.j, entry.k, dir, dirEnum, part.getCoords(), size, gradient, lightData);
-        copyAuxBuffers(buffers, part);
-        for (final short s : part.getIndexes()) {
-            buffers.indexes.put(baseIndex + s);
-        }
-        return baseIndex + size;
-    }
-
-    /**
-     * Per-vertex inner loop: emit position (offset by entry origin), the per-vertex
-     * direction byte if the material requires it, and forward the lighting query
-     * to {@code gradient}. {@code gradient} writes into {@link MeshBuffers#colors}
-     * directly — every face contributes lighting (no opt-out).
-     */
-    private static void emitVertices(
-            final MeshBuffers buffers,
-            final int i, final int j, final int k,
-            final byte dir, final Direction dirEnum,
-            final float[] verts, final int size,
-            final LightGradient gradient, final CellData lightData) {
-        int vIndex = 0;
-        for (int v = 0; v < size; v++) {
-            final float x = verts[vIndex++];
-            final float y = verts[vIndex++];
-            final float z = verts[vIndex++];
-            buffers.pos.put(i + x);
-            buffers.pos.put(j + y);
-            buffers.pos.put(k + z);
-            if (buffers.dirB != null) {
-                buffers.dirB.put(dir);
-            }
-            gradient.appendLight(lightData, i, j, k, x, y, z, dirEnum, buffers.colors);
-        }
-    }
-
-    /**
-     * Copy this part's normal / tangent / texcoord arrays into the matching
-     * mesh buffers. Each is gated by the buffer being non-null (material
-     * required it) AND the part actually having data (normals / tangents may
-     * be absent on point-sprite parts; texcoords always present).
-     * Out-of-bounds-texcoord check intentionally removed (2020-12-24): wrapping
-     * coordinates (cylinders, etc.) are valid.
-     */
-    private static void copyAuxBuffers(final MeshBuffers buffers, final GeomPart part) {
-        final float[] norms = part.getNormals();
-        if (buffers.nb != null && norms != null) {
-            buffers.nb.put(norms);
-        }
-        final float[] tangents = part.getTangents();
-        if (buffers.tb != null && tangents != null) {
-            buffers.tb.put(tangents);
-        }
-        for (final float t : part.getTexCoords()) {
-            buffers.texes.put(t);
-        }
-    }
-
-    /**
      * Stamp every populated buffer in {@code buffers} into a fresh
-     * {@link ColliderlessMesh} and return it. Index format is dispatched on
-     * the {@link IndexBuffer.Format} discriminator (Int / Short / Byte); the
-     * direction / normal / tangent buffers are skipped if they're either
-     * absent (null) or never written to (position == 0).
+     * {@link ColliderlessMesh} and return it. Index format is dispatched
+     * via {@link BlockMeshBuilder#attachIndexBuffer}; the direction / normal /
+     * tangent buffers are skipped if absent (null) or never written
+     * (position == 0).
      */
-    private Mesh assembleMesh(final MeshBuffers buffers) {
+    private Mesh assembleMesh(final BlockMeshBuilder.MeshBuffers buffers) {
         final Mesh mesh = new ColliderlessMesh("block", allowCollisions);
         buffers.pos.applyToMesh(mesh, VertexBuffer.Type.Position, 3);
         buffers.texes.applyToMesh(mesh, VertexBuffer.Type.TexCoord, 2);
-        attachIndexBuffer(mesh, buffers.indexes);
+        BlockMeshBuilder.attachIndexBuffer(mesh, buffers.indexes);
         if (buffers.dirB != null && buffers.dirB.position() != 0) {
             mesh.setBuffer(VertexBuffer.Type.Size, 1, buffers.dirB);
         }
@@ -381,29 +186,6 @@ public class InfinityGeometryFactory {
         // collected that information above.
         mesh.updateBound();
         return mesh;
-    }
-
-    /**
-     * Bind {@code indexes} to {@code mesh} as the {@link VertexBuffer.Type#Index}
-     * buffer, dispatching on the {@link IndexBuffer.Format} discriminator
-     * (Int / Short / Byte). Throws {@link IllegalStateException} for any other
-     * format — extracted so {@link #assembleMesh} stays under the cyclomatic
-     * threshold; behaviour preserved exactly.
-     */
-    private static void attachIndexBuffer(final Mesh mesh, final IndexBuffer indexes) {
-        switch (indexes.getFormat()) {
-            case UnsignedInt:
-                mesh.setBuffer(VertexBuffer.Type.Index, 3, (IntBuffer) indexes.getBuffer());
-                break;
-            case UnsignedShort:
-                mesh.setBuffer(VertexBuffer.Type.Index, 3, (ShortBuffer) indexes.getBuffer());
-                break;
-            case UnsignedByte:
-                mesh.setBuffer(VertexBuffer.Type.Index, 3, (ByteBuffer) indexes.getBuffer());
-                break;
-            default:
-                throw new IllegalStateException("Unexpected: " + indexes.getFormat());
-        }
     }
 
     /**
@@ -439,36 +221,6 @@ public class InfinityGeometryFactory {
         target.attachChild(geom);
     }
 
-    /**
-     * Per-MaterialType buffer bundle threaded through {@link #buildMeshBuffers},
-     * {@link #emitPart}, and {@link #assembleMesh}. Fields are nullable when
-     * the originating {@link GeomReq} set didn't request them.
-     */
-    private static final class MeshBuffers {
-        final ScaledBuffer pos;
-        final ScaledBuffer texes;
-        final IndexBuffer indexes;
-        final FloatBuffer colors;
-        final ScaledBuffer nb;
-        final ScaledBuffer tb;
-        final ByteBuffer dirB;
-
-        MeshBuffers(
-                final ScaledBuffer pos, final ScaledBuffer texes,
-                final IndexBuffer indexes, final FloatBuffer colors,
-                final ScaledBuffer nb, final ScaledBuffer tb, final ByteBuffer dirB) {
-            this.pos = pos;
-            this.texes = texes;
-            this.indexes = indexes;
-            this.colors = colors;
-            this.nb = nb;
-            this.tb = tb;
-            this.dirB = dirB;
-        }
-    }
-
-
-
     // These are lighting specific methods and classes that could be moved
     // out of this class into separate gradient classes.
     //----------------------------------------------------------------------
@@ -477,7 +229,7 @@ public class InfinityGeometryFactory {
      *  Calculates the average r,g,b,sun value over all of the specified
      *  light bits values.
      */
-    private int average( int... lights ) {
+    private static int average( int... lights ) {
         int s = 0;
         int r = 0;
         int g = 0;
@@ -512,33 +264,6 @@ public class InfinityGeometryFactory {
         for( int x = 0; x <= xSize; x++ ) {
             for( int y = 0; y <= ySize; y++ ) {
                 for( int z = 0; z <= zSize; z++ ) {
-                    // Rereading this today, I think there is a mismatch between
-                    // how I'm building the corners array and how I'm using the
-                    // corners array.  I also half-remember that there might be a
-                    // clever collapsing that happens here that makes it work.
-                    // ...because it does seem to be working.
-                    // TODO: refigure out what's going on here and document it.
-                    //
-                    // Ok, thinking about this again, I think it's a matter of
-                    // remembering what the grid coordinate means versus the cell
-                    // coordinate.
-                    //
-                    // aa --- ba --- ca --- da
-                    // |      |      |      |
-                    // |  AA  |  BA  |  CA  |
-                    // |      |      |      |
-                    // ab --- bb --- cb --- db
-                    // |      |      |      |
-                    // |  AB  |  BB  |  CB  |
-                    // |      |      |      |
-                    // ac --- bc --- cc --- dc
-                    //
-                    // We are averaging cell values into the shared corners.
-                    // So for corner 'bb' we need to sample AA, BA, AB, BB (in 3d)
-                    // which is what the code below is doing. x,y,z in 'cell space'
-                    // means something slightly different than in 'corner space'.
-                    //
-
                     int l1 = lightData.getCell(x-1, y-1, z-1);
                     int l2 = lightData.getCell(x, y-1, z-1);
                     int l3 = lightData.getCell(x, y, z-1);
@@ -556,61 +281,28 @@ public class InfinityGeometryFactory {
         return new SmoothLightGradient(corners);
     }
 
-    private interface LightGradient {
-        public void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors );
+    /**
+     * Lighting strategy interface — package-private so {@link BlockMeshBuilder}
+     * can reference it from the extracted helpers.
+     */
+    interface LightGradient {
+        void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors );
     }
 
-    /** Per-axis cell-offset for outward-facing border vertices: East/West affect X. */
-    private static int xOffset(final Direction dir, final float x) {
-        if (dir == Direction.East && x == 1) {
-            return 1;
-        }
-        if (dir == Direction.West && x == 0) {
-            return -1;
-        }
-        return 0;
-    }
+    private static class NoLightGradient implements LightGradient {
 
-    /** Per-axis cell-offset for outward-facing border vertices: Up/Down affect Y. */
-    private static int yOffset(final Direction dir, final float y) {
-        if (dir == Direction.Up && y == 1) {
-            return 1;
-        }
-        if (dir == Direction.Down && y == 0) {
-            return -1;
-        }
-        return 0;
-    }
+        NoLightGradient() {}
 
-    /** Per-axis cell-offset for outward-facing border vertices: South/North affect Z. */
-    private static int zOffset(final Direction dir, final float z) {
-        if (dir == Direction.South && z == 1) {
-            return 1;
-        }
-        if (dir == Direction.North && z == 0) {
-            return -1;
-        }
-        return 0;
-    }
-
-    private class NoLightGradient implements LightGradient {
-        CellData lightData;
-
-        public NoLightGradient( CellData lightData ) {
-            this.lightData = lightData;
-        }
-
+        @Override
         public void appendLight( CellData lights, final int i, final int j, final int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
-
             // If the vertex sits on the border facing outward (most common case),
             // the sample point steps one cell along that axis to the cell behind
-            // the visible face. Each axis is independent, so we can compute its
-            // delta in isolation.
-            final int li = i + xOffset(dir, x);
-            final int lj = j + yOffset(dir, y);
-            final int lk = k + zOffset(dir, z);
+            // the visible face. Each axis is independent — see BlockMeshBuilder.{x,y,z}Offset.
+            final int li = i + BlockMeshBuilder.xOffset(dir, x);
+            final int lj = j + BlockMeshBuilder.yOffset(dir, y);
+            final int lk = k + BlockMeshBuilder.zOffset(dir, z);
 
-            int l = lights.getCell(li,lj,lk, 0xf000);
+            int l = lights.getCell(li, lj, lk, 0xf000);
 
             int s = (l >> 12) & 0xf;
             int r = (l >> 8) & 0xf;
@@ -621,24 +313,24 @@ public class InfinityGeometryFactory {
         }
     }
 
-    private class SmoothLightGradient implements LightGradient {
-        CellArray corners;
+    private static class SmoothLightGradient implements LightGradient {
+        private final CellArray corners;
 
-        public SmoothLightGradient( CellArray corners ) {
+        SmoothLightGradient( CellArray corners ) {
             this.corners = corners;
         }
 
-        private float interp( float x, float x1, float x2 ) {
+        private static float interp( float x, float x1, float x2 ) {
             return x1 + (x2 - x1) * x;
         }
 
-        private float bilinearInterp( float x, float y, float nw, float ne, float se, float sw ) {
+        private static float bilinearInterp( float x, float y, float nw, float ne, float se, float sw ) {
             float n = interp(x, nw, ne);
             float s = interp(x, sw, se);
             return interp(y, n, s);
         }
 
-        private float trilinearInterp( float x, float y, float z,
+        private static float trilinearInterp( float x, float y, float z,
                                        float dnw, float dne, float dse, float dsw,
                                        float unw, float une, float use, float usw ) {
             float d = bilinearInterp(x, y, dnw, dne, dse, dsw);
@@ -646,28 +338,28 @@ public class InfinityGeometryFactory {
             return interp(z, d, u);
         }
 
-        private float accumToFloat( int accum ) {
+        private static float accumToFloat( int accum ) {
             // The accumulator is x 8, so divide by 8 to average it
             int result = accum; // >> 3;
             // Then make it from 0..1
             return result/15f;
         }
 
-        private float accToRed( int spread ) {
+        private static float accToRed( int spread ) {
             return accumToFloat(LightUtils.red(spread));
         }
-        private float accToGreen( int spread ) {
+        private static float accToGreen( int spread ) {
             return accumToFloat(LightUtils.green(spread));
         }
-        private float accToBlue( int spread ) {
+        private static float accToBlue( int spread ) {
             return accumToFloat(LightUtils.blue(spread));
         }
-        private float accToSun( int spread ) {
+        private static float accToSun( int spread ) {
             return accumToFloat(LightUtils.sun(spread));
         }
 
+        @Override
         public void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
-
             int dnw = corners.getCell(i, j, k);
             int dne = corners.getCell(i + 1, j, k);
             int dse = corners.getCell(i + 1, j + 1, k);
@@ -693,5 +385,4 @@ public class InfinityGeometryFactory {
             colors.put(red).put(green).put(blue).put(sun);
         }
     }
-
 }

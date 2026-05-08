@@ -167,7 +167,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * name. Production / classpath-only deployments are not watched (no
    * entries — the on-disk path is unresolvable).
    */
-  private final Map<String, List<WatchedFile>> watchedFiles = new ConcurrentHashMap<>();
+  private final Map<String, List<ArenaLogic.WatchedFile>> watchedFiles = new ConcurrentHashMap<>();
 
   /**
    * Throttle deadline for {@link #pollScriptWatches()} — stat() once per arena
@@ -184,26 +184,8 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * it asks {@link SettingsSystem#reloadFragments} to rebuild the merged
    * settings store. Consumers re-read on next consumption; no event fires.
    */
-  private static final class WatchedFile {
-    final String arenaName;
-    final String classpathPath;
-    final Path onDisk;
-    FileTime lastModified;
-    final Runnable onChanged;
-
-    WatchedFile(
-        final String arenaName,
-        final String classpathPath,
-        final Path onDisk,
-        final FileTime lastModified,
-        final Runnable onChanged) {
-      this.arenaName = arenaName;
-      this.classpathPath = classpathPath;
-      this.onDisk = onDisk;
-      this.lastModified = lastModified;
-      this.onChanged = onChanged;
-    }
-  }
+  // WatchedFile inner class moved to ArenaLogic to keep this class's
+  // cyclomatic-complexity sum lower under PMD's class threshold.
 
   private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
@@ -298,7 +280,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final FileTime mtime = Files.getLastModifiedTime(onDisk);
       watchedFiles
           .computeIfAbsent(arenaId.getArena(), k -> new ArrayList<>())
-          .add(new WatchedFile(arenaId.getArena(), classpathPath, onDisk, mtime, onChanged));
+          .add(new ArenaLogic.WatchedFile(arenaId.getArena(), classpathPath, onDisk, mtime, onChanged));
       if (log.isInfoEnabled()) {
         log.info("Watching {} for arena {}", onDisk, arenaId.getArena());
       }
@@ -354,7 +336,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   private void unregisterScriptWatch(final String arenaName) {
-    final List<WatchedFile> removed = watchedFiles.remove(arenaName);
+    final List<ArenaLogic.WatchedFile> removed = watchedFiles.remove(arenaName);
     if (removed != null && !removed.isEmpty()) {
       if (log.isDebugEnabled()) {
         log.debug("Stopped watching {} file(s) for arena {}", removed.size(), arenaName);
@@ -373,36 +355,14 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     if (watchedFiles.isEmpty()) {
       return;
     }
-    for (final List<WatchedFile> arenaWatches : watchedFiles.values()) {
-      for (final WatchedFile w : arenaWatches) {
-        pollSingleWatch(w);
+    for (final List<ArenaLogic.WatchedFile> arenaWatches : watchedFiles.values()) {
+      for (final ArenaLogic.WatchedFile w : arenaWatches) {
+        ArenaLogic.pollSingleWatch(log, w);
       }
     }
   }
 
-  /** Stat one watched file; if the mtime changed, run its reload callback (logged + contained). */
-  private void pollSingleWatch(final WatchedFile w) {
-    final FileTime mtime;
-    try {
-      mtime = Files.getLastModifiedTime(w.onDisk);
-    } catch (final java.io.IOException e) {
-      log.debug("Stat failed for {} (arena {}); skipping reload tick", w.onDisk, w.arenaName);
-      return;
-    }
-    if (mtime.equals(w.lastModified)) {
-      return;
-    }
-    w.lastModified = mtime;
-    try {
-      w.onChanged.run();
-    } catch (final RuntimeException e) {
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "Reload of {} for arena {} failed: {}",
-            w.classpathPath, w.arenaName, e.toString());
-      }
-    }
-  }
+  // pollSingleWatch moved to ArenaLogic.pollSingleWatch(Logger, WatchedFile).
 
   @Override
   public void start() {
@@ -516,7 +476,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
         configRegistry.forArena(new ArenaId(arenaName, rec.entityId)).spawn();
     final TeamSpawn team = spawn.forFreq(freq);
     if (team != null) {
-      final double[] xy = sampleTeamSpawn(team);
+      final double[] xy = ArenaLogic.sampleTeamSpawn(team);
       return arenaToWorld(map, xy[0], xy[1]);
     }
 
@@ -524,23 +484,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     return arenaToWorld(map, rec.config.spawnX(), rec.config.spawnZ());
   }
 
-  /**
-   * Uniform-disc sample around a team's spawn centre. Returns the
-   * exact centre when {@link TeamSpawn#radiusTiles()} is {@code 0}
-   * (point spawn) so authors get deterministic behaviour without
-   * needing to seed an RNG.
-   */
-  private static double[] sampleTeamSpawn(final TeamSpawn team) {
-    final int radius = team.radiusTiles();
-    if (radius <= 0) {
-      return new double[] {team.x(), team.y()};
-    }
-    // sqrt(rand) gives a uniform area distribution over the disc;
-    // omitting the sqrt would cluster samples toward the centre.
-    final double r = radius * Math.sqrt(Math.random());
-    final double theta = Math.random() * 2.0 * Math.PI;
-    return new double[] {team.x() + r * Math.cos(theta), team.y() + r * Math.sin(theta)};
-  }
+  // sampleTeamSpawn moved to ArenaLogic.sampleTeamSpawn.
 
   /**
    * Convert arena-local {@code (x, z)} to a world-space {@link Vec3d} on the gameplay
@@ -672,7 +616,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       entries
           .filter(Files::isDirectory)
           .filter(p -> Files.exists(p.resolve(ARENA_CONF)))
-          .map(p -> stripTrailingSlash(p.getFileName().toString()))
+          .map(p -> ArenaLogic.stripTrailingSlash(p.getFileName().toString()))
           .forEach(name -> registry.computeIfAbsent(name, ArenaRecord::new));
     } finally {
       if (jarFs != null) {
@@ -687,9 +631,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
   }
 
-  private static String stripTrailingSlash(final String s) {
-    return s.endsWith("/") ? s.substring(0, s.length() - 1) : s;
-  }
+  // stripTrailingSlash moved to ArenaLogic.stripTrailingSlash.
 
   /**
    * Resolve the arena's typed config from {@code arenas/<arenaName>/arena.groovy}.

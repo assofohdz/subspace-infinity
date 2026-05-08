@@ -74,7 +74,6 @@ public class MapSystem extends AbstractGameSystem {
    */
   public static final int LIGHT_EMITTER_BLOCK_TYPE = 12;
 
-  private static final int HALF = MAP_SIZE / 2;
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "Maps";
   // Map that holds all block coordinates for a given map:
@@ -88,7 +87,7 @@ public class MapSystem extends AbstractGameSystem {
   // private EntitySet tileTypes;
   private AssetLoaderService assetLoader;
   private World world;
-  private Direction direction = Direction.S;
+  private MapSystemLogic.Direction direction = MapSystemLogic.Direction.S;
 
   public MapSystem() {}
 
@@ -143,17 +142,11 @@ public class MapSystem extends AbstractGameSystem {
    * @return the Vec3d center coordinate
    */
   public Vec3d getCenterOfArena(final double currentxCoord, final double currentzCoord) {
-    final double xArenaCoord = Math.floor(currentxCoord / MAP_SIZE);
-    final double zArenaCoord = Math.floor(currentzCoord / MAP_SIZE);
-
-    final double centerOfArenaX = currentxCoord < 0 ? xArenaCoord - HALF : xArenaCoord + HALF;
-    final double centerOfArenaZ = currentzCoord < 0 ? zArenaCoord - HALF : zArenaCoord + HALF;
-
-    return new Vec3d(centerOfArenaX, 1, centerOfArenaZ);
+    return MapSystemLogic.getCenterOfArena(currentxCoord, currentzCoord, MAP_SIZE);
   }
 
   private Vec3d calculateNextOffset() {
-    Direction testDirection = direction.next();
+    MapSystemLogic.Direction testDirection = direction.next();
     Vec3d testMapLoc = testDirection.advance(currentMapLoc);
     // First time we will land here:
     if (!mapCoordinates.containsValue(currentMapLoc)) {
@@ -369,25 +362,7 @@ public class MapSystem extends AbstractGameSystem {
         lingering++;
       }
     }
-    logVerifyClearedSummary(lingering, coordinates.size());
-  }
-
-  /**
-   * Final summary line for {@link #verifyCleared} — split out so the per-cell
-   * loop and the post-loop verdict don't compound nesting depth in the parent
-   * method. Behaviour preserved: warn-level when any lingering cells, info-level
-   * when fully cleared.
-   */
-  private void logVerifyClearedSummary(final int lingering, final int total) {
-    if (lingering > 0) {
-      if (log.isWarnEnabled()) {
-        log.warn("Post-clear verify: " + lingering + " / " + total + " cells still non-zero");
-      }
-    } else {
-      if (log.isInfoEnabled()) {
-        log.info("Post-clear verify: all " + total + " cells are zero");
-      }
-    }
+    MapSystemLogic.logVerifyClearedSummary(log, lingering, coordinates.size());
   }
 
   /**
@@ -407,7 +382,7 @@ public class MapSystem extends AbstractGameSystem {
       final long createdTime) {
     final Set<Vec3d> coordinates = new HashSet<>();
     final short[][] tiles = map.getMap();
-    final MapBuildStats stats = new MapBuildStats();
+    final MapSystemLogic.MapBuildStats stats = new MapSystemLogic.MapBuildStats();
 
     for (int xpos = 0; xpos < tiles.length; xpos++) {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
@@ -425,7 +400,7 @@ public class MapSystem extends AbstractGameSystem {
       }
     }
 
-    logMapBuildSummary(map, arenaOffset, stats);
+    MapSystemLogic.logMapBuildSummary(log, map, arenaOffset, stats);
     spawnWallRunLights(tiles, arenaOffset, coordinates);
     return coordinates;
   }
@@ -438,7 +413,7 @@ public class MapSystem extends AbstractGameSystem {
    * step), {@code false} if the tile id needs the cell-write fallback.
    */
   private boolean spawnTileEntity(
-      final short s, final Vec3d location, final long createdTime, final MapBuildStats stats) {
+      final short s, final Vec3d location, final long createdTime, final MapSystemLogic.MapBuildStats stats) {
     if (s == MapTypes.vieTurfFlag) {
       GameEntities.createTurfStationaryFlag(
           ed, EntityId.NULL_ID, physicsSpace, createdTime, location);
@@ -481,7 +456,7 @@ public class MapSystem extends AbstractGameSystem {
    * written as {@link #INVISIBLE_BLOCK_TYPE}. Updates {@code stats} counters.
    */
   private void writeTileCell(
-      final short s, final Vec3d location, final int arenaTileBase, final MapBuildStats stats) {
+      final short s, final Vec3d location, final int arenaTileBase, final MapSystemLogic.MapBuildStats stats) {
     final int tileId = Short.toUnsignedInt(s);
     final int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
         ? arenaTileBase + tileId - 1
@@ -500,74 +475,10 @@ public class MapSystem extends AbstractGameSystem {
     stats.lastWritten = location;
   }
 
-  /** Emit the diagnostic summary that follows a map build (entity counts, leaf failures, histogram). */
-  private void logMapBuildSummary(
-      final LevelFile map, final Vec3d arenaOffset, final MapBuildStats stats) {
-    if (log.isInfoEnabled()) {
-      log.info(
-          "createBlocksFromLegacyMap: map={} offset={} nonZero={} (visibleCells={} invisibleCells={} leafFailures={})",
-          map.getMapName(),
-          arenaOffset,
-          stats.totalNonZero,
-          stats.cellsVisible,
-          stats.cellsInvisible,
-          stats.cellsFailedLeaf);
-      log.info(
-          "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} over5={} doors={} wormholes={}",
-          stats.turfFlags,
-          stats.asteroidsSmall,
-          stats.asteroidsMedium,
-          stats.over5,
-          stats.doors,
-          stats.wormholes);
-      if (stats.firstWritten != null) {
-        log.info("  first-written cell: {}    last-written cell: {}",
-            stats.firstWritten, stats.lastWritten);
-      }
-    }
-    if (stats.cellsFailedLeaf > 0 && log.isWarnEnabled()) {
-      log.warn(
-          "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
-              + "Usually means the arena offset targets a world region whose leaves are not paged in.",
-          stats.cellsFailedLeaf,
-          stats.cellsVisible + stats.cellsInvisible + stats.cellsFailedLeaf);
-    }
-    if (log.isInfoEnabled()) {
-      log.info(formatTileIdHistogram(stats.idHistogram));
-    }
-  }
-
-  /** Format the first 40 entries of {@code idHistogram} into a single log line. */
-  private static String formatTileIdHistogram(final java.util.SortedMap<Integer, Integer> idHistogram) {
-    final StringBuilder sb = new StringBuilder("  tile-id histogram:");
-    int shown = 0;
-    for (final java.util.Map.Entry<Integer, Integer> e : idHistogram.entrySet()) {
-      sb.append(' ').append(e.getKey()).append('=').append(e.getValue());
-      shown++;
-      if (shown >= 40) {
-        sb.append(" ...(").append(idHistogram.size() - shown).append(" more)");
-        break;
-      }
-    }
-    return sb.toString();
-  }
-
-  /** Mutable accumulator for {@link #createBlocksFromLegacyMap} disposition counters + diagnostic state. */
-  private static final class MapBuildStats {
-    int totalNonZero;
-    int turfFlags;
-    int asteroidsSmall;
-    int asteroidsMedium;
-    int over5;
-    int doors;
-    int wormholes;
-    int cellsVisible;
-    int cellsInvisible;
-    int cellsFailedLeaf;
-    final java.util.SortedMap<Integer, Integer> idHistogram = new java.util.TreeMap<>();
-    Vec3d firstWritten;
-    Vec3d lastWritten;
-  }
+  // logMapBuildSummary, formatTileIdHistogram, MapBuildStats moved to
+  // MapSystemLogic to keep this class's cyclomatic-complexity sum under
+  // PMD's class threshold. Behaviour preserved (logger passed in so log
+  // messages keep this class's logger name).
 
   /**
    * Scans the map for straight wall runs of at least {@link CoreViewConstants#WALL_LIGHT_MIN_RUN}
@@ -660,10 +571,10 @@ public class MapSystem extends AbstractGameSystem {
       final int minRun, final int spacing, final int lightY,
       final Vec3d arenaOffset, final Set<Vec3d> coordinates,
       final int[] runStats) {
-    if (!isRunStart(wall, horizontal, outer, inner)) {
+    if (!MapSystemLogic.isRunStart(wall, horizontal, outer, inner)) {
       return inner + 1;
     }
-    final int len = measureWallRun(wall, horizontal, outer, inner, innerLimit);
+    final int len = MapSystemLogic.measureWallRun(wall, horizontal, outer, inner, innerLimit);
     if (len > runStats[0]) {
       runStats[0] = len;
     }
@@ -674,26 +585,7 @@ public class MapSystem extends AbstractGameSystem {
     return inner + Math.max(len, 1);
   }
 
-  /** Returns true if {@code (inner, outer)} is the start of a wall run on the given axis. */
-  private static boolean isRunStart(
-      final boolean[][] wall, final boolean horizontal, final int outer, final int inner) {
-    if (horizontal) {
-      return wall[inner][outer] && (inner == 0 || !wall[inner - 1][outer]);
-    }
-    return wall[outer][inner] && (inner == 0 || !wall[outer][inner - 1]);
-  }
-
-  /** Measure how many contiguous wall cells extend from {@code inner} along the given axis. */
-  private static int measureWallRun(
-      final boolean[][] wall, final boolean horizontal,
-      final int outer, final int inner, final int innerLimit) {
-    int len = 0;
-    while (inner + len < innerLimit
-        && (horizontal ? wall[inner + len][outer] : wall[outer][inner + len])) {
-      len++;
-    }
-    return len;
-  }
+  // isRunStart and measureWallRun moved to MapSystemLogic.
 
   /** Emit light-emitter cells along the run; returns how many lights were placed. */
   private int emitLightsAlongRun(
@@ -729,40 +621,5 @@ public class MapSystem extends AbstractGameSystem {
   public void stop() {}
 
 
-  private enum Direction {
-    E(1, 0) {
-      Direction next() {
-        return N;
-      }
-    },
-    N(0, 1) {
-      Direction next() {
-        return W;
-      }
-    },
-    W(-1, 0) {
-      Direction next() {
-        return S;
-      }
-    },
-    S(0, -1) {
-      Direction next() {
-        return E;
-      }
-    };
-    private final int dx;
-    private final int dz;
-
-    Direction(int dx, int dz) {
-      this.dx = dx;
-      this.dz = dz;
-    }
-
-    Vec3d advance(Vec3d point) {
-      return new Vec3d(point.x + dx, 0, point.z + dz);
-    }
-
-    abstract Direction next();
-  }
-
+  // Direction enum moved to MapSystemLogic.Direction.
 }
