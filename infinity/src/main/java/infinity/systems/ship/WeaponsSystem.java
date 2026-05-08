@@ -222,248 +222,28 @@ public class WeaponsSystem extends AbstractGameSystem
     }
   }
 
-  private boolean canAttackBullet(Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (bullets.contains(requester)) {
-      final BulletFireDelay gfd = ed.getComponent(requesterId, BulletFireDelay.class);
-      if (gfd.getPercent() < 1) {
-        return false;
-      }
-      final BulletCost gc = ed.getComponent(requesterId, BulletCost.class);
-      return gc.getCost() <= energySystem.getHealth(requesterId);
-    }
-    return false;
-  }
-
-  private boolean canAttackBomb(Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (bombs.contains(requester)) {
-      final BombFireDelay bfd = ed.getComponent(requesterId, BombFireDelay.class);
-      if (bfd.getPercent() < 1) {
-        return false;
-      }
-      final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-      if (bc.getCost() > energySystem.getHealth(requesterId)) {
-        return false;
-      }
-      return bombSafetyClear(requesterId);
-    }
-    return false;
-  }
-
   /**
-   * Slice 9c-BombSafety — fire-time gate that rejects bomb fire when an
-   * enemy {@link Health}-bearer sits inside the firing ship's effective
-   * proximity-arm radius. Auto-no-ops when:
-   *
-   * <ul>
-   *   <li>The arena's {@code BombConfig.bombSafety} is {@code false}
-   *       (operator opt-in).
-   *   <li>The arena's {@code BombConfig.proximityDistance} is {@code 0} —
-   *       proximity disabled means the ship's bomb wouldn't proximity-arm
-   *       on anything anyway, so "inside the arming radius" has no
-   *       meaning.
-   *   <li>The firing ship has no rigid body in the physics space (mid-spawn
-   *       / dead).
-   * </ul>
-   *
-   * <p>Effective radius mirrors slice 9b's
-   * {@link WeaponsLogic#proximityRadiusForLevel(int, int)} per-level additive scaling
-   * so a Warbird firing an L4 bomb has a strictly larger safety bubble
-   * than the same Warbird firing L1 — captures the real-game meaning of
-   * "would my bomb arm immediately on a hugging enemy?"
-   *
-   * <p>FF gate reused from {@link ProximityFuseSystem#shouldArmOn} —
-   * same-team ships never arm proximity bombs, so they don't count for
-   * the safety scan either. Result: friendlies hugging you don't block
-   * fire.
+   * Pre-fire eligibility — see {@link WeaponsEligibility#canAttack} and
+   * its per-weapon helpers. WeaponsSystem captures the local field set
+   * (EntitySets + services) and forwards.
    */
-  /** Delegates to {@link WeaponsDamageLogic#bombSafetyClear} — see that helper for behaviour. */
-  private boolean bombSafetyClear(final EntityId requesterId) {
-    return WeaponsDamageLogic.bombSafetyClear(
-        ed, configRegistry, physicsSpace, bombs, energyEntities, requesterId);
-  }
-
-  private boolean canAttackGravityBomb(Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (gravityBombs.contains(requester)) {
-      final GravityBombFireDelay bfd = ed.getComponent(requesterId, GravityBombFireDelay.class);
-      if (bfd.getPercent() < 1) {
-        return false;
-      }
-      final GravityBombCost bc = ed.getComponent(requesterId, GravityBombCost.class);
-      return bc.getCost() <= energySystem.getHealth(requesterId);
-    }
-    return false;
-  }
-
-  private boolean canAttackMine(Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (mines.contains(requester)) {
-      final MineFireDelay bfd = ed.getComponent(requesterId, MineFireDelay.class);
-      if (bfd.getPercent() < 1) {
-        return false;
-      }
-      final MineCost bc = ed.getComponent(requesterId, MineCost.class);
-      return bc.getCost() <= energySystem.getHealth(requesterId);
-    }
-    return false;
-  }
-
-  private boolean canAttackBurst(Entity requester) {
-    return bursts.contains(requester);
-  }
-
   private boolean canAttack(Entity requester, byte weaponType) {
-    if (requester == null) {
-      return false;
-    }
-    switch (weaponType) {
-      case BULLET:
-        return canAttackBullet(requester);
-      case BOMB:
-        return canAttackBomb(requester);
-      case GRAVBOMB:
-        return canAttackGravityBomb(requester);
-      case MINE:
-        return canAttackMine(requester);
-      case BURST:
-        return canAttackBurst(requester);
-      default:
-        return false;
-    }
+    return WeaponsEligibility.canAttack(
+        ed, configRegistry, physicsSpace, energySystem,
+        bullets, bombs, gravityBombs, mines, bursts, energyEntities,
+        requester, weaponType);
   }
 
-  private boolean setCoolDownBullet(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (bullets.contains(requester)) {
-      final BulletFireDelay gfd = ed.getComponent(requesterId, BulletFireDelay.class);
-      ed.setComponent(requesterId, gfd.copy());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean setCoolDownBomb(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (bombs.contains(requester)) {
-      final BombFireDelay bfd = ed.getComponent(requesterId, BombFireDelay.class);
-      ed.setComponent(requesterId, bfd.copy());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean setCoolDownGravityBomb(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (gravityBombs.contains(requester)) {
-      final GravityBombFireDelay bfd = ed.getComponent(requesterId, GravityBombFireDelay.class);
-      ed.setComponent(requesterId, bfd.copy());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean setCoolDownMine(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (mines.contains(requester)) {
-      final MineFireDelay bfd = ed.getComponent(requesterId, MineFireDelay.class);
-      ed.setComponent(requesterId, bfd.copy());
-      return true;
-    }
-    return false;
-  }
-
+  /** Stamps the matching FireDelay component — see {@link WeaponsEligibility#setCoolDown}. */
   private boolean setCoolDown(final Entity requester, final byte flag) {
-
-    if (requester == null) {
-      return false;
-    }
-    if (flag == BULLET) {
-      return setCoolDownBullet(requester);
-    } else if (flag == BOMB) {
-      return setCoolDownBomb(requester);
-    } else if (flag == GRAVBOMB) {
-      return setCoolDownGravityBomb(requester);
-    } else if (flag == MINE) {
-      return setCoolDownMine(requester);
-    } else if (flag == BURST) {
-      // No delay on this for now
-      return bursts.contains(requester);
-    }
-    return false;
+    return WeaponsEligibility.setCoolDown(
+        ed, bullets, bombs, gravityBombs, mines, bursts, requester, flag);
   }
 
-  private boolean deductCostOfAttackBullet(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (bullets.contains(requester)) {
-      final BulletCost gc = ed.getComponent(requesterId, BulletCost.class);
-      if (gc.getCost() > energySystem.getHealth(requesterId)) {
-        return false;
-      }
-      energySystem.damage(requesterId, gc.getCost());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean deductCostOfAttackBomb(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (bombs.contains(requester)) {
-      final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-      if (bc.getCost() > energySystem.getHealth(requesterId)) {
-        return false;
-      }
-      energySystem.damage(requesterId, bc.getCost());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean deductCostOfAttackGravityBomb(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (gravityBombs.contains(requester)) {
-      final GravityBombCost bc = ed.getComponent(requesterId, GravityBombCost.class);
-      if (bc.getCost() > energySystem.getHealth(requesterId)) {
-        return false;
-      }
-      energySystem.damage(requesterId, bc.getCost());
-      return true;
-    }
-    return false;
-  }
-
-  private boolean deductCostOfAttackMine(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    if (mines.contains(requester)) {
-      final MineCost bc = ed.getComponent(requesterId, MineCost.class);
-      if (bc.getCost() > energySystem.getHealth(requesterId)) {
-        return false;
-      }
-      energySystem.damage(requesterId, bc.getCost());
-      return true;
-    }
-    return false;
-  }
-
+  /** Debits the matching Cost from Health — see {@link WeaponsEligibility#deductCostOfAttack}. */
   private boolean deductCostOfAttack(final Entity requester, final byte flag) {
-    if (requester == null) {
-      return false;
-    }
-    if (flag == BULLET) {
-      return deductCostOfAttackBullet(requester);
-    } else if (flag == BOMB) {
-      return deductCostOfAttackBomb(requester);
-    } else if (flag == GRAVBOMB) {
-      return deductCostOfAttackGravityBomb(requester);
-    } else if (flag == MINE) {
-      return deductCostOfAttackMine(requester);
-    } else if (flag == BURST) {
-      // No cost on this for now
-      // TODO: Add cost to burst
-      return bursts.contains(requester);
-    }
-    return false;
+    return WeaponsEligibility.deductCostOfAttack(
+        ed, energySystem, bullets, bombs, gravityBombs, mines, bursts, requester, flag);
   }
 
   private void createProjectileBullet(Entity requesterEntity, final long time, AttackPosition info) {

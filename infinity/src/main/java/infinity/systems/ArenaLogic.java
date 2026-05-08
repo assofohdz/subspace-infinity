@@ -3,7 +3,9 @@
 
 package infinity.systems;
 
+import com.simsilica.mathd.Vec3d;
 import infinity.config.TeamSpawn;
+import infinity.es.arena.ArenaMap;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -46,6 +48,37 @@ public final class ArenaLogic {
   /** Drop a trailing path separator if present. */
   public static String stripTrailingSlash(final String s) {
     return s.endsWith("/") ? s.substring(0, s.length() - 1) : s;
+  }
+
+  /**
+   * Pure 2D bounds-check on the gameplay plane (X/Z; Y is ignored since
+   * gameplay is flat per {@code InfinityConstants.GAMEPLAY_Y}). True when
+   * {@code position} sits inside (or on the boundary of) {@code [min, max]}.
+   * Extracted from {@link ArenaSystem#findArenaEntity} so the iteration
+   * body in the host is a single boolean call rather than a 4-AND chain.
+   */
+  public static boolean containsXZ(final ArenaMap map, final Vec3d position) {
+    final Vec3d min = map.getMin();
+    final Vec3d max = map.getMax();
+    return position.x >= min.x
+        && position.x <= max.x
+        && position.z >= min.z
+        && position.z <= max.z;
+  }
+
+  /**
+   * Inverse of {@link ArenaSystem#arenaToWorld}: project a world-space coord
+   * to its arena-local equivalent within {@code map}, or {@code null} if the
+   * world point sits outside the arena's bounds. Pure math + bounds gate.
+   * Used by {@link ArenaSystem#worldToArena} so the host method is a thin
+   * wrapper around the registry lookup + this kernel.
+   */
+  public static Vec3d worldToArenaLocal(final ArenaMap map, final Vec3d world) {
+    if (!containsXZ(map, world)) {
+      return null;
+    }
+    final Vec3d max = map.getMax();
+    return new Vec3d(max.x - world.x, world.y, max.z - world.z);
   }
 
   /**

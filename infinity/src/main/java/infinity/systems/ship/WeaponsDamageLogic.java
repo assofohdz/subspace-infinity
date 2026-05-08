@@ -14,7 +14,6 @@ import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import infinity.config.ArenaConfig;
-import infinity.config.BombConfig;
 import infinity.config.EngineConfig;
 import infinity.es.Damage;
 import infinity.es.Frequency;
@@ -22,7 +21,6 @@ import infinity.es.Jitter;
 import infinity.es.Parent;
 import infinity.es.SplashDamage;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombThrust;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
@@ -262,87 +260,6 @@ final class WeaponsDamageLogic {
             return ArenaConfig.EMPTY.friendlyFire();
         }
         return arenaSys.getArenaConfig(arenaId.getArena()).friendlyFire();
-    }
-
-    /**
-     * Slice 9c-BombSafety — fire-time gate that rejects bomb fire when an
-     * enemy {@link infinity.es.ship.Health}-bearer sits inside the firing
-     * ship's effective proximity-arm radius. Auto-no-ops when:
-     *
-     * <ul>
-     *   <li>The arena's {@code BombConfig.bombSafety} is {@code false}
-     *       (operator opt-in).
-     *   <li>The arena's {@code BombConfig.proximityDistance} is {@code 0} —
-     *       proximity disabled means the ship's bomb wouldn't proximity-arm
-     *       on anything anyway, so "inside the arming radius" has no
-     *       meaning.
-     *   <li>The firing ship has no rigid body in the physics space (mid-spawn
-     *       / dead).
-     * </ul>
-     *
-     * <p>FF gate reused from {@link WeaponsLogic#victimBlocksBombFire} —
-     * same-team ships never arm proximity bombs, so they don't count for
-     * the safety scan either. Friendlies hugging you don't block fire.
-     */
-    static boolean bombSafetyClear(
-            final EntityData ed,
-            final ConfigRegistrySystem cr,
-            final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
-            final EntitySet bombs,
-            final EntitySet energyEntities,
-            final EntityId requesterId) {
-        final RigidBody<EntityId, MBlockShape> ownerBody =
-                physicsSpace.getBinIndex().getRigidBody(requesterId);
-        if (ownerBody == null) {
-            return true;
-        }
-        final double radius = effectiveBombSafetyRadius(ed, cr, bombs, requesterId);
-        if (radius <= 0.0) {
-            return true;
-        }
-        final Frequency ownerFreq = ed.getComponent(requesterId, Frequency.class);
-        final Integer ownerFreqValue = ownerFreq == null ? null : ownerFreq.getFrequency();
-        final Vec3d ownerPos = ownerBody.position;
-        for (final Entity victim : energyEntities) {
-            final EntityId victimId = victim.getId();
-            if (victimId.equals(requesterId)) {
-                continue;
-            }
-            final RigidBody<EntityId, MBlockShape> victimBody =
-                    physicsSpace.getBinIndex().getRigidBody(victimId);
-            if (victimBody == null) {
-                continue;
-            }
-            final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
-            final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
-            if (WeaponsLogic.victimBlocksBombFire(
-                    ownerFreqValue, victimFreqValue, ownerPos, victimBody.position, radius)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns the bomb-safety scan radius for {@code requesterId} after applying
-     * the arena's BombConfig safety toggle and the per-bomb-level proximity
-     * scaling. Returns {@code 0.0} when safety is off (clear-fire short-circuit)
-     * so callers can early-out.
-     */
-    static double effectiveBombSafetyRadius(
-            final EntityData ed,
-            final ConfigRegistrySystem cr,
-            final EntitySet bombs,
-            final EntityId requesterId) {
-        final ConfigRegistry cfg = weaponsFor(ed, cr, requesterId);
-        final BombConfig bombCfg = cfg.bomb();
-        if (!bombCfg.bombSafety() || bombCfg.proximityDistance() <= 0) {
-            return 0.0;
-        }
-        final BombCurrentLevel bombLevel =
-                bombs.getEntity(requesterId).get(BombCurrentLevel.class);
-        return WeaponsLogic.proximityRadiusForLevel(
-                bombCfg.proximityDistance(), bombLevel.getLevel().level);
     }
 
     /**
