@@ -355,24 +355,8 @@ public class RadarState extends BaseAppState {
         if (avatarWatch == null) {
             return;
         }
-        final RadarRange range = avatarWatch.get(RadarRange.class);
-        final double r = (range != null && range.getRange() > 0)
-                ? range.getRange()
-                : DEFAULT_RANGE_WORLD_UNITS;
-        if (r != currentRange) {
-            applyRange(r);
-            // Range change → paging radius derived from RadarRange must be re-evaluated.
-            // updateLeafPaging() picks up the new currentRange below.
-        }
-        if (avatarBodyPos == null || timeSource == null) {
-            return;
-        }
-        final long t = timeSource.getTime();
-        final ChildPositionTransition3d frame = avatarBodyPos.getFrame(t);
-        if (frame == null) {
-            return;
-        }
-        final Vec3d pos = frame.getPosition(t, true);
+        applyAvatarRange();
+        final Vec3d pos = resolveAvatarWorldPosition();
         if (pos == null) {
             return;
         }
@@ -381,6 +365,28 @@ public class RadarState extends BaseAppState {
         if (pager != null) {
             pager.updateLeafPaging(pos, currentRange);
         }
+    }
+
+    private void applyAvatarRange() {
+        final RadarRange range = avatarWatch.get(RadarRange.class);
+        final double r = (range != null && range.getRange() > 0)
+                ? range.getRange()
+                : DEFAULT_RANGE_WORLD_UNITS;
+        if (r != currentRange) {
+            applyRange(r);
+        }
+    }
+
+    private Vec3d resolveAvatarWorldPosition() {
+        if (avatarBodyPos == null || timeSource == null) {
+            return null;
+        }
+        final long t = timeSource.getTime();
+        final ChildPositionTransition3d frame = avatarBodyPos.getFrame(t);
+        if (frame == null) {
+            return null;
+        }
+        return frame.getPosition(t, true);
     }
 
     private void applyFrequencyChanges() {
