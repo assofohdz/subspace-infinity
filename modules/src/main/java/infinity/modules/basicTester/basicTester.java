@@ -17,6 +17,7 @@ import infinity.sim.GameEntities;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,7 @@ import java.util.regex.Pattern;
 public class basicTester extends BaseGameModule {
 
   private final Pattern basicCommand = Pattern.compile("\\~basictest\\s(\\w+)");
-  private final HashSet<EntityId> createdEntities = new HashSet<>();
+  private final Set<EntityId> createdEntities = new HashSet<>();
   private EntityData ed;
 
   public basicTester(
