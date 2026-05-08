@@ -282,62 +282,70 @@ public class MobSystem extends AbstractGameSystem {
                 // and brain2 is not then only one gets the notification.  Or if brain1
                 // cannot see brain2 because perception checks, etc..  The brain->brain
                 // loop is not so simple.
+                notifyBrainsOfMovingBody(body);
+            }
+        }
+    }
 
-                // Is it really moving, though
-                double vSq = body.getLinearVelocity().lengthSq();
-                // We'll limit all perception to 1 mm/sec.  Particular actors may
-                // further limit that if they just don't notice details.
-                double minVelocity = 0.001;
-                if( vSq < minVelocity * minVelocity ) {
-                    continue;
-                }
+    /**
+     * Per-active-body inner loop body of {@link #detectEvents()}: skip-if-not-moving,
+     * then for every brain that isn't this body's own, run a sphere-radius perception
+     * check and call {@link Brain#objectMoved} (rescheduling the brain on a true return).
+     */
+    private void notifyBrainsOfMovingBody(final RigidBody<EntityId, MBlockShape> body) {
+        // Is it really moving, though
+        double vSq = body.getLinearVelocity().lengthSq();
+        // We'll limit all perception to 1 mm/sec.  Particular actors may
+        // further limit that if they just don't notice details.
+        double minVelocity = 0.001;
+        if( vSq < minVelocity * minVelocity ) {
+            return;
+        }
 
-                // We'll base things purely on bounding sphere for now... even
-                // when we don't that would be our broadphase check anyway
-                double radius = body.shape.getMass().getRadius();
+        // We'll base things purely on bounding sphere for now... even
+        // when we don't that would be our broadphase check anyway
+        double radius = body.shape.getMass().getRadius();
 
-                // Brute-force, no special spatial indexes.  FIXME: use a bin system or something
-                for( Brain brain : brains.getArray() ) {
+        // Brute-force, no special spatial indexes.  FIXME: use a bin system or something
+        for( Brain brain : brains.getArray() ) {
 
-                    // Don't deliver our own events
-                    if( brain.getId().getId() == body.id.getId() ) {
-                        continue;
-                    }
+            // Don't deliver our own events
+            if( brain.getId().getId() == body.id.getId() ) {
+                continue;
+            }
 
-                    // Really need to define our own sphere primitive
-                    Vec3d pos = brain.getActor().getPosition();
-                    double perc = 2; // just hard-code something for now... should be the same
-                                     // as the distance in Actor.look(), though.
-                                     // The fact that we have two different places in the
-                                     // code is a problem.  FIXME: consolidate perception checks
+            // Really need to define our own sphere primitive
+            Vec3d pos = brain.getActor().getPosition();
+            double perc = 2; // just hard-code something for now... should be the same
+                             // as the distance in Actor.look(), though.
+                             // The fact that we have two different places in the
+                             // code is a problem.  FIXME: consolidate perception checks
 
-                    // Everything at the moment is a chicken and we'll limit
-                    // chickens to movement of 5 cm/sec or more
-                    if( vSq < 0.05 * 0.05 ) {
-                        continue;
-                    }
-                    // Calculating perception out here means we don't
-                    // create lots of SeenObjects that will never actually be
-                    // seen.  It also makes the AI code simpler in general.
-                    // However, there is a good argument to be made that the 'brain'
-                    // would already have the information to filter this out and
-                    // might want to do something even more complicated.
-                    // I think in the end, doing some broad perception checks out here
-                    // is best.
+            // Everything at the moment is a chicken and we'll limit
+            // chickens to movement of 5 cm/sec or more
+            if( vSq < 0.05 * 0.05 ) {
+                continue;
+            }
+            // Calculating perception out here means we don't
+            // create lots of SeenObjects that will never actually be
+            // seen.  It also makes the AI code simpler in general.
+            // However, there is a good argument to be made that the 'brain'
+            // would already have the information to filter this out and
+            // might want to do something even more complicated.
+            // I think in the end, doing some broad perception checks out here
+            // is best.
 
-                    double d = body.position.distanceSq(pos);
-                    double thresh = radius + perc;
-                    if( d < thresh * thresh ) {
-                        //log.info("Can see movement:" + body.id);
-                        SeenObject seen = new SeenObject(body.id, body.position,
-                                                         body.orientation, body.getLinearVelocity(),
-                                                         body.shape, getType(body), Math.sqrt(d));
+            double d = body.position.distanceSq(pos);
+            double thresh = radius + perc;
+            if( d < thresh * thresh ) {
+                //log.info("Can see movement:" + body.id);
+                SeenObject seen = new SeenObject(body.id, body.position,
+                                                 body.orientation, body.getLinearVelocity(),
+                                                 body.shape, getType(body), Math.sqrt(d));
 
-                        if( brain.objectMoved(seen) ) {
-                            //reschedule.add(brain);
-                            scheduler.reschedule(brain);
-                        }
-                    }
+                if( brain.objectMoved(seen) ) {
+                    //reschedule.add(brain);
+                    scheduler.reschedule(brain);
                 }
             }
         }

@@ -280,6 +280,18 @@ public class ShipSpawnSystem extends AbstractGameSystem {
     }
 
     project(shipEntity.getId(), cfg, resetLivePool);
+    logProjectionApplied(shipEntity, shipType, arena, cfg, resetLivePool);
+  }
+
+  /**
+   * Trailing log emit for {@link #applyConfigTo}. Pulled out so the validation
+   * + project flow stays under the cyclomatic threshold; behaviour preserved
+   * (info on every successful projection, debug stats line when debug enabled).
+   * No fields read or projected here — purely diagnostic.
+   */
+  private void logProjectionApplied(
+      final Entity shipEntity, final ShipType shipType, final ArenaId arena,
+      final ShipConfig cfg, final boolean resetLivePool) {
     if (log.isInfoEnabled()) {
       log.info(
           "Projected ShipConfig {} ({}) from arena {} onto ship {}",

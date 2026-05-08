@@ -468,9 +468,9 @@ public class Region {
      * @return the error String, or null
      */
     public String decodeRegion(final java.nio.ByteBuffer encoding) {
-        String error = null;
         final int superChunkLen = encoding.limit();
         int cur = 0;
+        String error = null;
         while (cur < superChunkLen) {
             if (superChunkLen - cur < 8) {
                 error = "Not enogh bytes to make a subchunk header in REGN superchunk.";
@@ -480,21 +480,11 @@ public class Region {
             cur += 4;
             final int len = encoding.getInt(cur);
             cur += 4;
-            if (markFlagChunkIfRecognised(type, len)) {
-                continue;
-            }
-            if (type.equals("rAWP")) {
-                cur = parseAwpChunk(encoding, cur, len);
-            } else if (type.equals("rNAM")) {
-                cur = parseNameChunk(encoding, cur, len);
-            } else if (type.equals("rTIL")) {
-                error = decodeTiles(encoding.array(), cur, len);
-                if (error != null) {
-                    break;
-                }
-                cur += len + alignmentPad(len);
-            } else {
-                cur = appendUnknownChunk(type, len, encoding, cur);
+            final ChunkOutcome outcome = dispatchSubChunk(type, len, encoding, cur);
+            cur = outcome.newCur;
+            if (outcome.error != null) {
+                error = outcome.error;
+                break;
             }
         }
         if (error == null && cur != superChunkLen) {
@@ -502,6 +492,45 @@ public class Region {
                     + superChunkLen;
         }
         return error;
+    }
+
+    /**
+     * Dispatch one already-read REGN sub-chunk header to the right parser
+     * (flag / rAWP / rNAM / rTIL / unknown) and return the cursor advance plus
+     * any tile-decode error. The flag-chunk path is no-op on cursor (the
+     * 4+4 header is the entire payload). Only rTIL can produce an error;
+     * other branches always return {@code error == null}.
+     */
+    private ChunkOutcome dispatchSubChunk(
+            final String type, final int len, final java.nio.ByteBuffer encoding, final int cur) {
+        if (markFlagChunkIfRecognised(type, len)) {
+            return new ChunkOutcome(cur, null);
+        }
+        if (type.equals("rAWP")) {
+            return new ChunkOutcome(parseAwpChunk(encoding, cur, len), null);
+        }
+        if (type.equals("rNAM")) {
+            return new ChunkOutcome(parseNameChunk(encoding, cur, len), null);
+        }
+        if (type.equals("rTIL")) {
+            final String err = decodeTiles(encoding.array(), cur, len);
+            if (err != null) {
+                return new ChunkOutcome(cur, err);
+            }
+            return new ChunkOutcome(cur + len + alignmentPad(len), null);
+        }
+        return new ChunkOutcome(appendUnknownChunk(type, len, encoding, cur), null);
+    }
+
+    /** Result of {@link #dispatchSubChunk}: the advanced cursor and (rTIL only) error. */
+    private static final class ChunkOutcome {
+        final int newCur;
+        final String error;
+
+        ChunkOutcome(final int newCur, final String error) {
+            this.newCur = newCur;
+            this.error = error;
+        }
     }
 
     /**
@@ -739,7 +768,8 @@ public class Region {
                 final Rectangle r = carveRectangleAt(rgn, curX, curY);
                 rects.add(r);
             }
-            if (++curX == 1024) {
+            curX++;
+            if (curX == 1024) {
                 curX = 0;
                 ++curY;
             }

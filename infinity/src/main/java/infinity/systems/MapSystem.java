@@ -369,14 +369,23 @@ public class MapSystem extends AbstractGameSystem {
         lingering++;
       }
     }
+    logVerifyClearedSummary(lingering, coordinates.size());
+  }
+
+  /**
+   * Final summary line for {@link #verifyCleared} — split out so the per-cell
+   * loop and the post-loop verdict don't compound nesting depth in the parent
+   * method. Behaviour preserved: warn-level when any lingering cells, info-level
+   * when fully cleared.
+   */
+  private void logVerifyClearedSummary(final int lingering, final int total) {
     if (lingering > 0) {
       if (log.isWarnEnabled()) {
-        log.warn("Post-clear verify: " + lingering + " / " + coordinates.size()
-            + " cells still non-zero");
+        log.warn("Post-clear verify: " + lingering + " / " + total + " cells still non-zero");
       }
     } else {
       if (log.isInfoEnabled()) {
-        log.info("Post-clear verify: all " + coordinates.size() + " cells are zero");
+        log.info("Post-clear verify: all " + total + " cells are zero");
       }
     }
   }
@@ -620,29 +629,49 @@ public class MapSystem extends AbstractGameSystem {
       final boolean[][] wall, final int sx, final int sz, final boolean horizontal,
       final int minRun, final int spacing, final int lightY,
       final Vec3d arenaOffset, final Set<Vec3d> coordinates) {
-    int lights = 0;
-    int longestRun = 0;
+    // Mutable accumulator so the inner-loop helper can update both stats:
+    // [0] = longestRun, [1] = lightsEmitted. Mapped to the documented
+    // {lights, longestRun} return order at exit.
+    final int[] runStats = {0, 0};
     final int outerLimit = horizontal ? sz : sx;
     final int innerLimit = horizontal ? sx : sz;
     for (int outer = 0; outer < outerLimit; outer++) {
       int inner = 0;
       while (inner < innerLimit) {
-        if (isRunStart(wall, horizontal, outer, inner)) {
-          final int len = measureWallRun(wall, horizontal, outer, inner, innerLimit);
-          if (len > longestRun) {
-            longestRun = len;
-          }
-          if (len >= minRun) {
-            lights += emitLightsAlongRun(
-                horizontal, outer, inner, len, spacing, lightY, arenaOffset, coordinates);
-          }
-          inner += Math.max(len, 1);
-        } else {
-          inner++;
-        }
+        inner = processRunAt(wall, horizontal, outer, inner, innerLimit,
+            minRun, spacing, lightY, arenaOffset, coordinates, runStats);
       }
     }
-    return new int[] {lights, longestRun};
+    return new int[] {runStats[1], runStats[0]};
+  }
+
+  /**
+   * Inner step of {@link #scanWallRunsAxis}: if a wall run starts at
+   * {@code (outer, inner)}, measure it, update {@code runStats}, optionally
+   * emit lights, and return the next {@code inner} position past the run.
+   * If no run starts here, just advance {@code inner} by one.
+   *
+   * @param runStats {@code [0]} = longest-run-length so far (mutated);
+   *     {@code [1]} = lights-emitted so far (mutated).
+   */
+  private int processRunAt(
+      final boolean[][] wall, final boolean horizontal,
+      final int outer, final int inner, final int innerLimit,
+      final int minRun, final int spacing, final int lightY,
+      final Vec3d arenaOffset, final Set<Vec3d> coordinates,
+      final int[] runStats) {
+    if (!isRunStart(wall, horizontal, outer, inner)) {
+      return inner + 1;
+    }
+    final int len = measureWallRun(wall, horizontal, outer, inner, innerLimit);
+    if (len > runStats[0]) {
+      runStats[0] = len;
+    }
+    if (len >= minRun) {
+      runStats[1] += emitLightsAlongRun(
+          horizontal, outer, inner, len, spacing, lightY, arenaOffset, coordinates);
+    }
+    return inner + Math.max(len, 1);
   }
 
   /** Returns true if {@code (inner, outer)} is the start of a wall run on the given axis. */

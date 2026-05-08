@@ -91,8 +91,7 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
         final LinearDamping damping = shipStats.get(LinearDamping.class);
         final TurnResponsiveness turn = shipStats.get(TurnResponsiveness.class);
 
-        if (thrust == null || speed == null || rotation == null
-                || damping == null || turn == null) {
+        if (anyShipStatNull(thrust, speed, rotation, damping, turn)) {
             // Not yet configured — ShipSpawnSystem hasn't projected stats onto this entity
             // (e.g. no arena config loaded, no fallback installed). Leave ship idle.
             return;
@@ -109,68 +108,124 @@ public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
             body.setDamping(damping.getDamping(), 1.0);
         }
 
-        // Slice S1-cal — multiply the raw Subspace velocity-units `Speed`
-        // value by the engine-tier shipMaxSpeedScale to land in jME world
-        // units / sec. Distinct from the projectile subspaceVelocityScale
-        // (which fits 5000→50 for bullets) because the same fit on ship
-        // max-speed felt too fast once LinearDamping 0.99 landed in S1.
-        // Default `shipMaxSpeedScale 0.01` maps trench warbird's
-        // Speed 2000 → 20 jME/sec cap (~40% of bullet velocity). Falls
-        // back to EngineConfig.DEFAULTS when no EngineConfigSystem is
-        // available (test harnesses).
-        final EngineConfig engineCfg =
-            (engineConfigSystem != null) ? engineConfigSystem.get() : EngineConfig.DEFAULTS;
-        final double shipScale = engineCfg.shipMaxSpeedScale();
+        final double shipScale = resolveShipMaxSpeedScale();
         final double accelRate = thrust.getThrust();
         final double maxSpeed = speed.getSpeed() * shipScale;
         final double rotSpeed = rotation.getRadSec();
         final double turnResponsiveness = turn.getRate();
 
         final Vec3d intent = movementForces.clone();
-
-        // Safety cap — if an external impulse (explosion, bounce) left velocity above
-        // maxSpeed, scale back. Only affects magnitude, so a wall-bounce direction survives.
-        // In normal thrusting the car-curve below will have already gated the force to zero
-        // before we reach maxSpeed, so this branch rarely fires.
         final Vec3d currentVel = body.getLinearVelocity();
+        clampSpeedToCap(body, currentVel, maxSpeed);
+
+        applyForwardThrust(body, intent, currentVel, accelRate, maxSpeed);
+        applyRotationEase(body, intent, rotSpeed, turnResponsiveness, step);
+        clampToGameplayPlane(body);
+    }
+
+    /**
+     * Returns true if any of the five required per-ship stat components is
+     * {@code null} — the "not yet configured" signal that
+     * {@link #update(long, double)} uses to leave the ship idle until
+     * {@code ShipSpawnSystem} projects the stats onto this entity.
+     */
+    private static boolean anyShipStatNull(
+            final Thrust thrust, final Speed speed, final Rotation rotation,
+            final LinearDamping damping, final TurnResponsiveness turn) {
+        return thrust == null || speed == null || rotation == null
+                || damping == null || turn == null;
+    }
+
+    /**
+     * Slice S1-cal — multiply the raw Subspace velocity-units {@code Speed}
+     * value by the engine-tier {@code shipMaxSpeedScale} to land in jME world
+     * units / sec. Distinct from the projectile {@code subspaceVelocityScale}
+     * (which fits 5000→50 for bullets) because the same fit on ship max-speed
+     * felt too fast once LinearDamping 0.99 landed in S1. Default
+     * {@code shipMaxSpeedScale 0.01} maps trench warbird's {@code Speed 2000}
+     * → 20 jME/sec cap (~40% of bullet velocity). Falls back to
+     * {@link EngineConfig#DEFAULTS} when no {@link EngineConfigSystem} is
+     * available (test harnesses).
+     */
+    private double resolveShipMaxSpeedScale() {
+        final EngineConfig engineCfg =
+            (engineConfigSystem != null) ? engineConfigSystem.get() : EngineConfig.DEFAULTS;
+        return engineCfg.shipMaxSpeedScale();
+    }
+
+    /**
+     * Safety cap — if an external impulse (explosion, bounce) left velocity above
+     * {@code maxSpeed}, scale back. Only affects magnitude, so a wall-bounce
+     * direction survives. In normal thrusting {@link #applyForwardThrust}'s
+     * car-curve gates force to zero before {@code maxSpeed}, so this rarely fires.
+     */
+    private static void clampSpeedToCap(
+            final RigidBody<EntityId, MBlockShape> body,
+            final Vec3d currentVel,
+            final double maxSpeed) {
         final double currentSpeed = currentVel.length();
         if (currentSpeed > maxSpeed) {
             body.setLinearVelocity(currentVel.mult(maxSpeed / currentSpeed));
         }
+    }
 
-        // Thrust as force — MOSS integrates and handles collision response. Coast
-        // decay comes from mphys's linear damping (set above); no force-based drag
-        // term here. The car-curve gates thrust to zero as the ship approaches
-        // maxSpeed, so steady-state under thrust lands slightly below maxSpeed
-        // (always-on damping eats a few percent of the cap; documented on
-        // ShipConfig.linearDamping).
-        if (intent.z != 0) {
-            // Car-style diminishing acceleration: full force at rest, zero force when
-            // velocity-along-thrust reaches maxSpeed, linear in between. When velocity is
-            // against the thrust direction (e.g. after a bounce, or braking from full
-            // speed), factor stays at 1 so we get full acceleration in the new direction.
-            final Vec3d bodyForward = body.orientation.mult(new Vec3d(0, 0, 1));
-            final double velAlongForward = currentVel.dot(bodyForward);
-            final double progressTowardLimit =
-                Math.max(0.0, velAlongForward * Math.signum(intent.z)) / maxSpeed;
-            final double factor = Math.max(0.0, 1.0 - progressTowardLimit);
-            body.addForce(bodyForward.mult(accelRate * intent.z * factor));
+    /**
+     * Apply this tick's forward-thrust force to {@code body}. Thrust as force —
+     * MOSS integrates and handles collision response. Coast decay comes from
+     * mphys's linear damping (set on the body upstream); no force-based drag
+     * term here.
+     *
+     * <p>Car-style diminishing acceleration: full force at rest, zero force when
+     * velocity-along-thrust reaches {@code maxSpeed}, linear in between. When
+     * velocity is against the thrust direction (e.g. after a bounce, or braking
+     * from full speed), the factor stays at 1 so we get full acceleration in the
+     * new direction. The car-curve gates thrust to zero as the ship approaches
+     * {@code maxSpeed}, so steady-state under thrust lands slightly below the
+     * cap (always-on damping eats a few percent; see ShipConfig.linearDamping).
+     */
+    private static void applyForwardThrust(
+            final RigidBody<EntityId, MBlockShape> body,
+            final Vec3d intent,
+            final Vec3d currentVel,
+            final double accelRate,
+            final double maxSpeed) {
+        if (intent.z == 0) {
+            return;
         }
+        final Vec3d bodyForward = body.orientation.mult(new Vec3d(0, 0, 1));
+        final double velAlongForward = currentVel.dot(bodyForward);
+        final double progressTowardLimit =
+            Math.max(0.0, velAlongForward * Math.signum(intent.z)) / maxSpeed;
+        final double factor = Math.max(0.0, 1.0 - progressTowardLimit);
+        body.addForce(bodyForward.mult(accelRate * intent.z * factor));
+    }
 
-        // Rotation: ease current angular velocity toward target rather than snapping to
-        // it. Gives the ship a sense of mass — small lag entering and exiting turns.
-        // Exponential approach is frame-rate independent: t ∈ [0, 1] is the fraction of
-        // the gap to close this tick.
+    /**
+     * Ease current angular velocity toward target rather than snapping. Gives the
+     * ship a sense of mass — small lag entering and exiting turns. Exponential
+     * approach is frame-rate independent: {@code t ∈ [0, 1]} is the fraction of
+     * the gap to close this tick.
+     */
+    private static void applyRotationEase(
+            final RigidBody<EntityId, MBlockShape> body,
+            final Vec3d intent,
+            final double rotSpeed,
+            final double turnResponsiveness,
+            final double step) {
         final double currentAng = body.getRotationalVelocity().y;
         final double targetAng = intent.x * rotSpeed;
         final double t = 1.0 - Math.exp(-turnResponsiveness * step);
         final double newAng = currentAng + (targetAng - currentAng) * t;
         body.setRotationalVelocity(0, newAng, 0);
+    }
 
-        // Gameplay is 2D on the X/Z plane — prevent collision resolution (e.g. teleporting
-        // onto a wall, or grazing a block at an oblique angle) from drifting the ship off the
-        // gameplay plane. Snap Y back each tick and zero any Y-component that accumulated in
-        // linear velocity.
+    /**
+     * Snap the body back onto the X/Z gameplay plane. Gameplay is 2D — prevent
+     * collision resolution (e.g. teleporting onto a wall, or grazing a block
+     * at an oblique angle) from drifting the ship off the plane. Snap Y back
+     * each tick and zero any Y-component that accumulated in linear velocity.
+     */
+    private static void clampToGameplayPlane(final RigidBody<EntityId, MBlockShape> body) {
         if (body.position.y != InfinityConstants.GAMEPLAY_Y) {
             body.position.y = InfinityConstants.GAMEPLAY_Y;
         }

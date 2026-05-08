@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import javax.annotation.Nullable;
 import org.ini4j.Ini;
+import org.ini4j.Profile;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +107,18 @@ public final class GroovyFragmentLoader {
    *     soft "skip and continue" conditions.
    */
   private boolean loadInto(
-      final Ini ini, final String classpathPath, final Deque<String> stack) {
+      final Profile ini, final String classpathPath, final Deque<String> stack) {
+    assertNoCycleOrDepth(classpathPath, stack);
+    final String source = readFragmentSource(classpathPath);
+    if (source == null) {
+      return false;
+    }
+    return evaluateInStack(ini, classpathPath, stack, source);
+  }
+
+  /** Throw {@link IllegalStateException} on either an include cycle or a depth-exceeded violation. */
+  private static void assertNoCycleOrDepth(
+      final String classpathPath, final Deque<String> stack) {
     if (stack.contains(classpathPath)) {
       throw new IllegalStateException(
           "include cycle detected: " + describeChain(stack, classpathPath));
@@ -121,17 +133,37 @@ public final class GroovyFragmentLoader {
               + describeChain(stack, classpathPath)
               + ")");
     }
-    final String source;
+  }
+
+  /**
+   * Read the fragment's Groovy source from disk/classpath. Returns the source
+   * string on success, or {@code null} if the file is missing or unreadable —
+   * either case is logged as a warning and the caller treats as a soft skip.
+   */
+  private String readFragmentSource(final String classpathPath) {
     try {
-      source = GroovySettingsHost.INSTANCE.readSource(classpathPath);
+      final String source = GroovySettingsHost.INSTANCE.readSource(classpathPath);
+      if (source == null) {
+        log.warn("Fragment {} not found on filesystem or classpath", classpathPath);
+      }
+      return source;
     } catch (final IOException e) {
       log.warn("Fragment {} failed to read", classpathPath, e);
-      return false;
+      return null;
     }
-    if (source == null) {
-      log.warn("Fragment {} not found on filesystem or classpath", classpathPath);
-      return false;
-    }
+  }
+
+  /**
+   * Push the path onto {@code stack}, evaluate {@code source} with a fresh
+   * {@link FragmentAdapter}, then pop. Cycle/depth violations propagate so
+   * the outermost {@code load()} surfaces them; arbitrary script exceptions
+   * are logged + soft-skipped.
+   */
+  private boolean evaluateInStack(
+      final Profile ini,
+      final String classpathPath,
+      final Deque<String> stack,
+      final String source) {
     stack.push(classpathPath);
     try {
       final FragmentAdapter adapter = new FragmentAdapter(this, ini, stack);
@@ -189,7 +221,7 @@ public final class GroovyFragmentLoader {
    * re-entry), carrying the shared accumulator {@link Ini} and the
    * cycle-detection {@code stack}.
    */
-  private static final class FragmentAdapter implements GroovySettingsAdapter<Ini, Ini> {
+  private static final class FragmentAdapter implements GroovySettingsAdapter<Profile, Profile> {
 
     /**
      * Sentinel returned by {@link #empty} when an outer caller hits the
@@ -198,13 +230,13 @@ public final class GroovyFragmentLoader {
      * via {@link GroovySettingsHost#evaluateOrThrow} so it can do its own
      * exception classification.
      */
-    private static final Ini SENTINEL_BROKEN = new Ini();
+    private static final Profile SENTINEL_BROKEN = new Ini();
 
     private final GroovyFragmentLoader loader;
-    private final Ini ini;
+    private final Profile ini;
     private final Deque<String> stack;
 
-    FragmentAdapter(final GroovyFragmentLoader loader, final Ini ini, final Deque<String> stack) {
+    FragmentAdapter(final GroovyFragmentLoader loader, final Profile ini, final Deque<String> stack) {
       this.loader = loader;
       this.ini = ini;
       this.stack = stack;
@@ -217,7 +249,7 @@ public final class GroovyFragmentLoader {
     }
 
     @Override
-    public Ini bind(final Binding binding) {
+    public Profile bind(final Binding binding) {
       binding.setVariable("section", new SectionClosure(ini, /* validateAsShip */ false));
       binding.setVariable("shipSection", new SectionClosure(ini, /* validateAsShip */ true));
       binding.setVariable("shipSections", new ShipSectionsClosure(ini));
@@ -226,12 +258,12 @@ public final class GroovyFragmentLoader {
     }
 
     @Override
-    public Ini extract(final Ini accumulator) {
+    public Profile extract(final Profile accumulator) {
       return accumulator;
     }
 
     @Override
-    public Ini empty() {
+    public Profile empty() {
       return SENTINEL_BROKEN;
     }
   }
@@ -245,10 +277,10 @@ public final class GroovyFragmentLoader {
   private static final class SectionClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final Ini ini;
+    private final Profile ini;
     private final boolean validateAsShip;
 
-    SectionClosure(final Ini ini, final boolean validateAsShip) {
+    SectionClosure(final Profile ini, final boolean validateAsShip) {
       super(null);
       this.ini = ini;
       this.validateAsShip = validateAsShip;
@@ -274,15 +306,34 @@ public final class GroovyFragmentLoader {
   private static final class ShipSectionsClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final Ini ini;
+    private final Profile ini;
 
-    ShipSectionsClosure(final Ini ini) {
+    ShipSectionsClosure(final Profile ini) {
       super(null);
       this.ini = ini;
     }
 
     @SuppressWarnings("unused") // invoked via Groovy dispatch
     public Void doCall(final Object... args) {
+      final Closure<?> body = validateShipSectionsArgs(args);
+      // Validate every ship name first so a typo in arg 5 of 8 still fails before
+      // any sections are mutated — partial application would be confusing.
+      for (int i = 0; i < args.length - 1; i++) {
+        validateShipName((String) args[i]);
+      }
+      for (int i = 0; i < args.length - 1; i++) {
+        applySection(ini, (String) args[i], body);
+      }
+      return null;
+    }
+
+    /**
+     * Validate that {@code args} is the {@code (name, name, ..., closure)} shape
+     * documented for {@code shipSections}. Throws {@link IllegalArgumentException}
+     * on any structural mismatch; on success returns the trailing configuring
+     * closure for the caller to drive per-section.
+     */
+    private static Closure<?> validateShipSectionsArgs(final Object... args) {
       if (args == null || args.length < 2) {
         throw new IllegalArgumentException(
             "shipSections requires at least one ship name and a configuring closure");
@@ -292,19 +343,13 @@ public final class GroovyFragmentLoader {
         throw new IllegalArgumentException(
             "shipSections last argument must be a configuring closure (got " + last + ")");
       }
-      // Validate every ship name first so a typo in arg 5 of 8 still fails before
-      // any sections are mutated — partial application would be confusing.
       for (int i = 0; i < args.length - 1; i++) {
-        if (!(args[i] instanceof String name)) {
+        if (!(args[i] instanceof String)) {
           throw new IllegalArgumentException(
               "shipSections ship-name args must be strings (got " + args[i] + " at index " + i + ")");
         }
-        validateShipName(name);
       }
-      for (int i = 0; i < args.length - 1; i++) {
-        applySection(ini, (String) args[i], body);
-      }
-      return null;
+      return body;
     }
   }
 
@@ -319,11 +364,11 @@ public final class GroovyFragmentLoader {
     private static final long serialVersionUID = 1L;
 
     private final GroovyFragmentLoader loader;
-    private final Ini ini;
+    private final Profile ini;
     private final Deque<String> stack;
 
     IncludeClosure(
-        final GroovyFragmentLoader loader, final Ini ini, final Deque<String> stack) {
+        final GroovyFragmentLoader loader, final Profile ini, final Deque<String> stack) {
       super(null);
       this.loader = loader;
       this.ini = ini;
@@ -340,7 +385,7 @@ public final class GroovyFragmentLoader {
     }
   }
 
-  private static void applySection(final Ini ini, final String name, final Closure<?> body) {
+  private static void applySection(final Profile ini, final String name, final Closure<?> body) {
     Section sec = ini.get(name);
     if (sec == null) {
       sec = ini.add(name);

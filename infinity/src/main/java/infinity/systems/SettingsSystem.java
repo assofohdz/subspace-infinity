@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.ini4j.Ini;
+import org.ini4j.Profile;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class SettingsSystem extends AbstractGameSystem {
 
   static Logger log = LoggerFactory.getLogger(SettingsSystem.class);
-  private final Map<String, Ini> arenaSettingsMap = new HashMap<>();
+  private final Map<String, Profile> arenaSettingsMap = new HashMap<>();
   private final GroovyFragmentLoader groovyFragmentLoader = new GroovyFragmentLoader();
 
   @Override
@@ -71,10 +72,10 @@ public class SettingsSystem extends AbstractGameSystem {
    *     {@code include}'s semantics)
    */
   public void loadFragments(final String arenaName, final List<String> classpathPaths) {
-    final Ini merged = new Ini();
+    final Profile merged = new Ini();
     if (classpathPaths != null) {
       for (final String path : classpathPaths) {
-        final Ini fragment = loadFragmentIni(path);
+        final Profile fragment = loadFragmentIni(path);
         if (fragment == null) {
           log.warn("Fragment {} not loadable for arena {}", path, arenaName);
           continue;
@@ -100,7 +101,7 @@ public class SettingsSystem extends AbstractGameSystem {
     loadFragments(arenaId.getArena(), classpathPaths);
   }
 
-  private Ini loadFragmentIni(final String classpathPath) {
+  private Profile loadFragmentIni(final String classpathPath) {
     if (classpathPath == null || classpathPath.isBlank()) {
       return null;
     }
@@ -113,7 +114,7 @@ public class SettingsSystem extends AbstractGameSystem {
     return groovyFragmentLoader.load(classpathPath);
   }
 
-  private static void mergeInto(final Ini target, final Ini source) {
+  private static void mergeInto(final Profile target, final Profile source) {
     for (final String sectionName : source.keySet()) {
       final Section src = source.get(sectionName);
       Section dst = target.get(sectionName);
@@ -128,7 +129,7 @@ public class SettingsSystem extends AbstractGameSystem {
     }
   }
 
-  public Ini getIni(final String arenaName) {
+  public Profile getIni(final String arenaName) {
     return arenaSettingsMap.get(arenaName);
   }
 
@@ -202,7 +203,7 @@ public class SettingsSystem extends AbstractGameSystem {
   }
 
   private String rawValue(final String arenaBaseName, final String section, final String key) {
-    final Ini ini = arenaSettingsMap.get(arenaBaseName);
+    final Profile ini = arenaSettingsMap.get(arenaBaseName);
     if (ini == null) {
       return null;
     }

@@ -560,6 +560,39 @@ public class InfinityGeometryFactory {
         public void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors );
     }
 
+    /** Per-axis cell-offset for outward-facing border vertices: East/West affect X. */
+    private static int xOffset(final Direction dir, final float x) {
+        if (dir == Direction.East && x == 1) {
+            return 1;
+        }
+        if (dir == Direction.West && x == 0) {
+            return -1;
+        }
+        return 0;
+    }
+
+    /** Per-axis cell-offset for outward-facing border vertices: Up/Down affect Y. */
+    private static int yOffset(final Direction dir, final float y) {
+        if (dir == Direction.Up && y == 1) {
+            return 1;
+        }
+        if (dir == Direction.Down && y == 0) {
+            return -1;
+        }
+        return 0;
+    }
+
+    /** Per-axis cell-offset for outward-facing border vertices: South/North affect Z. */
+    private static int zOffset(final Direction dir, final float z) {
+        if (dir == Direction.South && z == 1) {
+            return 1;
+        }
+        if (dir == Direction.North && z == 0) {
+            return -1;
+        }
+        return 0;
+    }
+
     private class NoLightGradient implements LightGradient {
         CellData lightData;
 
@@ -569,43 +602,13 @@ public class InfinityGeometryFactory {
 
         public void appendLight( CellData lights, final int i, final int j, final int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
 
-            // If it's on the border facing out (most common case) then we need
-            // to move our light sampling point.
-            int li = i;
-            int lj = j;
-            int lk = k;
-            switch( dir ) {
-                case North:
-                    if( z == 0 ) {
-                        lk--;
-                    }
-                    break;
-                case South:
-                    if( z == 1 ) {
-                        lk++;
-                    }
-                    break;
-                case East:
-                    if( x == 1 ) {
-                        li++;
-                    }
-                    break;
-                case West:
-                    if( x == 0 ) {
-                        li--;
-                    }
-                    break;
-                case Up:
-                    if( y == 1 ) {
-                        lj++;
-                    }
-                    break;
-                case Down:
-                    if( y == 0 ) {
-                        lj--;
-                    }
-                    break;
-            }
+            // If the vertex sits on the border facing outward (most common case),
+            // the sample point steps one cell along that axis to the cell behind
+            // the visible face. Each axis is independent, so we can compute its
+            // delta in isolation.
+            final int li = i + xOffset(dir, x);
+            final int lj = j + yOffset(dir, y);
+            final int lk = k + zOffset(dir, z);
 
             int l = lights.getCell(li,lj,lk, 0xf000);
 

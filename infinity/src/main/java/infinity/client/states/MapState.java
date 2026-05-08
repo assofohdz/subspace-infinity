@@ -437,53 +437,55 @@ public class MapState extends BaseAppState {
             @Override
             public void mouseMoved(final MouseMotionEvent event, final Spatial target, final Spatial capture) {
                 if (isPressed && keyIndex == MouseInput.BUTTON_LEFT) {
-                    final GameSession session = getState(ConnectionState.class)
-                            .getService(GameSessionClientService.class);
-                    if (session == null) {
-                        throw new IllegalStateException("ModelViewState requires an active game session.");
-                    }
-
-                    final Vector2f click2d = new Vector2f(event.getX(), event.getY());
-
-                    final Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    final Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
-                            .normalizeLocal();
-
-                    final Ray ray = new Ray(click3d, dir);
-                    final CollisionResults results = new CollisionResults();
-                    target.collideWith(ray, results);
-                    if (results.size() != 1) {
-                        log.error("There should only be one collision with the arena when the user clicks it");
-                    }
-                    final Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                    final GameSession session = requireGameSession();
+                    final Vector3f contactPoint = rayCastClickToArena(event, target);
                     session.map(MapSystem.CREATE, new Vec3d(contactPoint.x, 0, contactPoint.z));
                     // session.createTile("", contactPoint.x, contactPoint.y);
                 }
 
                 if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
-                    final GameSession session = getState(ConnectionState.class)
-                            .getService(GameSessionClientService.class);
-                    if (session == null) {
-                        throw new IllegalStateException("ModelViewState requires an active game session.");
-                    }
-
-                    final Vector2f click2d = new Vector2f(event.getX(), event.getY());
-
-                    final Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
-                    final Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
-                            .normalizeLocal();
-
-                    final Ray ray = new Ray(click3d, dir);
-                    final CollisionResults results = new CollisionResults();
-                    target.collideWith(ray, results);
-                    if (results.size() != 1) {
-                        log.error("There should only be one collision with the arena when the user clicks it");
-                    }
-                    final Vector3f contactPoint = results.getCollision(0).getContactPoint();
+                    final GameSession session = requireGameSession();
+                    final Vector3f contactPoint = rayCastClickToArena(event, target);
                     session.map(MapSystem.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.y));
                     // session.removeTile(contactPoint.x, contactPoint.y);
                 }
             }
         });
+    }
+
+    /**
+     * Resolves the active {@link GameSession} from the client services, or
+     * throws if no session is hosted. Extracted so the per-mouse-button branches
+     * in the {@code addArenaMouseListeners} listener don't each need their own
+     * lookup-and-null-check pair.
+     */
+    private GameSession requireGameSession() {
+        final GameSession session = getState(ConnectionState.class)
+                .getService(GameSessionClientService.class);
+        if (session == null) {
+            throw new IllegalStateException("ModelViewState requires an active game session.");
+        }
+        return session;
+    }
+
+    /**
+     * Casts a screen-space click ray onto {@code target}'s collision geometry
+     * and returns the first collision point. Logs (but does not throw) when the
+     * ray hits the arena more than once. Extracted from the {@code mouseMoved}
+     * branches in {@code addArenaMouseListeners} so each branch only carries
+     * its own button-specific {@code session.map(...)} dispatch.
+     */
+    private Vector3f rayCastClickToArena(final MouseMotionEvent event, final Spatial target) {
+        final Vector2f click2d = new Vector2f(event.getX(), event.getY());
+        final Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();
+        final Vector3f dir = camera.getWorldCoordinates(click2d.clone(), 1f).subtractLocal(click3d)
+                .normalizeLocal();
+        final Ray ray = new Ray(click3d, dir);
+        final CollisionResults results = new CollisionResults();
+        target.collideWith(ray, results);
+        if (results.size() != 1) {
+            log.error("There should only be one collision with the arena when the user clicks it");
+        }
+        return results.getCollision(0).getContactPoint();
     }
 }

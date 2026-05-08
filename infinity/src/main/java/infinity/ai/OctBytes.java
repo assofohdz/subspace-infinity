@@ -237,15 +237,19 @@ public class OctBytes {
     // we supply the octad coordinates externally
     private int recurseChildrenSet(int xo, int yo, int zo, int size, Vec3i min, Vec3i max, byte value) {
       int count = 0;
-      int split = size >> 1;
-      if (children[0].set(xo, yo, zo, split, min, max, value)) count++;
-      if (children[1].set(xo + split, yo, zo, split, min, max, value)) count++;
-      if (children[2].set(xo, yo + split, zo, split, min, max, value)) count++;
-      if (children[3].set(xo + split, yo + split, zo, split, min, max, value)) count++;
-      if (children[4].set(xo, yo, zo + split, split, min, max, value)) count++;
-      if (children[5].set(xo + split, yo, zo + split, split, min, max, value)) count++;
-      if (children[6].set(xo, yo + split, zo + split, split, min, max, value)) count++;
-      if (children[7].set(xo + split, yo + split, zo + split, split, min, max, value)) count++;
+      final int split = size >> 1;
+      // Octant index encodes per-axis half-step in bits: bit0=x, bit1=y, bit2=z.
+      // Iterating 0..7 preserves the original unrolled chain's ordering exactly:
+      //   0:(0,0,0)  1:(s,0,0)  2:(0,s,0)  3:(s,s,0)
+      //   4:(0,0,s)  5:(s,0,s)  6:(0,s,s)  7:(s,s,s)
+      for (int i = 0; i < 8; i++) {
+        final int dx = (i & 1) * split;
+        final int dy = ((i >> 1) & 1) * split;
+        final int dz = ((i >> 2) & 1) * split;
+        if (children[i].set(xo + dx, yo + dy, zo + dz, split, min, max, value)) {
+          count++;
+        }
+      }
       return count;
     }
   }

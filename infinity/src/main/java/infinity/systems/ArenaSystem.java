@@ -41,7 +41,9 @@ import infinity.sim.ArenaManager;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
 import infinity.sim.GameEntities;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -651,7 +653,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   }
 
   /** Scan {@code arenas/&#47;arena.conf} on the classpath and register each folder. */
-  private void discoverArenas() throws Exception {
+  private void discoverArenas() throws IOException, URISyntaxException {
     final URL root = Thread.currentThread().getContextClassLoader().getResource(ARENA_ROOT);
     if (root == null) {
       log.warn("No '{}' resource root on classpath; arena discovery skipped", ARENA_ROOT);

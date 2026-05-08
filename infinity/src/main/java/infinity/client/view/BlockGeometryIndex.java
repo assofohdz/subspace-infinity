@@ -417,11 +417,7 @@ public class BlockGeometryIndex {
     final int rows = FlatTileBlockFactory.TILESET_ROWS;
     final int tileW = srcW / cols;
     final int tileH = srcH / rows;
-    if (tileW * cols != srcW || tileH * rows != srcH) {
-      throw new InfinityRunTimeException(
-          "Tileset dimensions " + srcW + "x" + srcH + " not divisible by atlas grid " + cols + "x"
-              + rows);
-    }
+    validateTilesetDimensions(srcW, srcH, cols, rows, tileW, tileH);
     final int gutter = FlatTileBlockFactory.GUTTER_PIXELS;
     final int cellW = tileW + 2 * gutter;
     final int cellH = tileH + 2 * gutter;
@@ -444,16 +440,7 @@ public class BlockGeometryIndex {
         final int srcY = row * tileH + tileY;
         final int srcX = col * tileW + tileX;
         final int argb = srcPixels[srcY * srcW + srcX];
-        final int r = (argb >> 16) & 0xFF;
-        final int g = (argb >> 8) & 0xFF;
-        final int b = argb & 0xFF;
-        final int a;
-        if (applyBlackTransparency && r == 0 && g == 0 && b == 0) {
-          a = 0;
-        } else {
-          a = (argb >> 24) & 0xFF;
-        }
-        buf.put((byte) r).put((byte) g).put((byte) b).put((byte) a);
+        writePixel(buf, argb, applyBlackTransparency);
       }
     }
     buf.flip();
@@ -471,6 +458,42 @@ public class BlockGeometryIndex {
 
   private static int clamp(final int v, final int lo, final int hi) {
     return v < lo ? lo : (v > hi ? hi : v);
+  }
+
+  /**
+   * Verify the source tileset's pixel dimensions divide evenly into the
+   * declared {@code cols × rows} atlas grid. Throws if not — the per-tile
+   * width / height arithmetic in {@link #buildPaddedTilesetTexture} relies
+   * on integer division being exact.
+   */
+  private static void validateTilesetDimensions(
+      final int srcW, final int srcH, final int cols, final int rows,
+      final int tileW, final int tileH) {
+    if (tileW * cols != srcW || tileH * rows != srcH) {
+      throw new InfinityRunTimeException(
+          "Tileset dimensions " + srcW + "x" + srcH + " not divisible by atlas grid " + cols + "x"
+              + rows);
+    }
+  }
+
+  /**
+   * Convert one source ARGB pixel into RGBA byte order and append to {@code buf}.
+   * If {@code applyBlackTransparency} is true and the pixel is pure black
+   * (Subspace BMP convention), alpha is forced to 0 — otherwise the source's
+   * alpha channel is preserved.
+   */
+  private static void writePixel(
+      final ByteBuffer buf, final int argb, final boolean applyBlackTransparency) {
+    final int r = (argb >> 16) & 0xFF;
+    final int g = (argb >> 8) & 0xFF;
+    final int b = argb & 0xFF;
+    final int a;
+    if (applyBlackTransparency && r == 0 && g == 0 && b == 0) {
+      a = 0;
+    } else {
+      a = (argb >> 24) & 0xFF;
+    }
+    buf.put((byte) r).put((byte) g).put((byte) b).put((byte) a);
   }
 
   /**

@@ -40,6 +40,8 @@ import infinity.es.ShapeNames;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.util.InfinityRunTimeException;
 import java.nio.FloatBuffer;
+import java.util.Map;
+import java.util.function.DoubleFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,80 +84,59 @@ public class SISpatialFactory {
    * @return The spatial
    */
   public Spatial createModel(EntityId id, String shapeName, Mass mass, double scale) {
-
-    switch (shapeName) {
-      case ShapeNames.BULLETL4:
-        return createBullet(BulletVisuals.LEVEL_4.viewOffset);
-      case ShapeNames.BULLETL3:
-        return createBullet(BulletVisuals.LEVEL_3.viewOffset);
-      case ShapeNames.BULLETL2:
-        return createBullet(BulletVisuals.LEVEL_2.viewOffset);
-      case ShapeNames.BULLETL1:
-        return createBullet(BulletVisuals.LEVEL_1.viewOffset);
-      case ShapeNames.MINEL1:
-      case ShapeNames.BOMBL1:
-        return createBomb(BombVisuals.BOMB_1.viewOffset);
-      case ShapeNames.MINEL2:
-      case ShapeNames.BOMBL2:
-        return createBomb(BombVisuals.BOMB_2.viewOffset);
-      case ShapeNames.MINEL3:
-      case ShapeNames.BOMBL3:
-        return createBomb(BombVisuals.BOMB_3.viewOffset);
-      case ShapeNames.MINEL4:
-      case ShapeNames.BOMBL4:
-        return createBomb(BombVisuals.BOMB_4.viewOffset);
-      case ShapeNames.THOR:
-        return createBomb(SpecialBombVisuals.THOR.viewOffset);
-      case ShapeNames.BURST:
-        return createBurst();
-      case ShapeNames.EXPLOSION:
-        return createExplosion();
-      case ShapeNames.PRIZE:
-        return createBounty();
-      case ShapeNames.ARENA:
-        return createArena(scale);
-      case ShapeNames.EXPLODE_0:
-        return createExplosion0();
-      case ShapeNames.EXPLODE_1:
-        return createExplosion1();
-      case ShapeNames.EXPLODE_2:
-        return createExplosion2();
-      case ShapeNames.OVER5:
-        return createOver5();
-      case ShapeNames.WORMHOLE:
-        return createWormhole();
-      case ShapeNames.OVER1:
-        return createOver1();
-      case ShapeNames.WARP:
-        return createWarp();
-      case ShapeNames.REPEL:
-        return createRepel();
-      case ShapeNames.OVER2:
-        return createOver2();
-      case ShapeNames.SHIP_WARBIRD:
-        return createShip(ShipVisuals.WARBIRD.visualOffset);
-      case ShapeNames.SHIP_JAVELIN:
-        return createShip(ShipVisuals.JAVELIN.visualOffset);
-      case ShapeNames.SHIP_SPIDER:
-        return createShip(ShipVisuals.SPIDER.visualOffset);
-      case ShapeNames.SHIP_LEVI:
-        return createShip(ShipVisuals.LEVIATHAN.visualOffset);
-      case ShapeNames.SHIP_TERRIER:
-        return createShip(ShipVisuals.TERRIER.visualOffset);
-      case ShapeNames.SHIP_WEASEL:
-        return createShip(ShipVisuals.WEASEL.visualOffset);
-      case ShapeNames.SHIP_LANCASTER:
-        return createShip(ShipVisuals.LANCASTER.visualOffset);
-      case ShapeNames.SHIP_SHARK:
-        return createShip(ShipVisuals.SHARK.visualOffset);
-      case ShapeNames.FLAG:
-        return createFlag(Flag.FLAG_THEIRS);
-      case ShapeNames.DOOR:
-        return createDoor();
-      default:
-        throw new InfinityRunTimeException("Unknown shape name: " + shapeName);
+    final DoubleFunction<Spatial> factory = shapeFactories.get(shapeName);
+    if (factory == null) {
+      throw new InfinityRunTimeException("Unknown shape name: " + shapeName);
     }
+    return factory.apply(scale);
   }
+
+  /**
+   * Lookup table mapping {@link ShapeNames} ids to the {@code createX} helper
+   * that builds the matching spatial. Replaces a 33-case switch in
+   * {@link #createModel}; entries that share a factory (mine / bomb levels,
+   * ship variants) point at the same per-variant lambda. Most factories
+   * ignore the {@code scale} argument; only {@link #createArena(double)} reads
+   * it (server-cube ghost wireframe). Bound to {@code this} because every
+   * factory uses instance state ({@code assets}, {@code geomIndex}, {@code ef}).
+   */
+  private final Map<String, DoubleFunction<Spatial>> shapeFactories = Map.ofEntries(
+      Map.entry(ShapeNames.BULLETL4, scale -> createBullet(BulletVisuals.LEVEL_4.viewOffset)),
+      Map.entry(ShapeNames.BULLETL3, scale -> createBullet(BulletVisuals.LEVEL_3.viewOffset)),
+      Map.entry(ShapeNames.BULLETL2, scale -> createBullet(BulletVisuals.LEVEL_2.viewOffset)),
+      Map.entry(ShapeNames.BULLETL1, scale -> createBullet(BulletVisuals.LEVEL_1.viewOffset)),
+      Map.entry(ShapeNames.MINEL1, scale -> createBomb(BombVisuals.BOMB_1.viewOffset)),
+      Map.entry(ShapeNames.BOMBL1, scale -> createBomb(BombVisuals.BOMB_1.viewOffset)),
+      Map.entry(ShapeNames.MINEL2, scale -> createBomb(BombVisuals.BOMB_2.viewOffset)),
+      Map.entry(ShapeNames.BOMBL2, scale -> createBomb(BombVisuals.BOMB_2.viewOffset)),
+      Map.entry(ShapeNames.MINEL3, scale -> createBomb(BombVisuals.BOMB_3.viewOffset)),
+      Map.entry(ShapeNames.BOMBL3, scale -> createBomb(BombVisuals.BOMB_3.viewOffset)),
+      Map.entry(ShapeNames.MINEL4, scale -> createBomb(BombVisuals.BOMB_4.viewOffset)),
+      Map.entry(ShapeNames.BOMBL4, scale -> createBomb(BombVisuals.BOMB_4.viewOffset)),
+      Map.entry(ShapeNames.THOR, scale -> createBomb(SpecialBombVisuals.THOR.viewOffset)),
+      Map.entry(ShapeNames.BURST, scale -> createBurst()),
+      Map.entry(ShapeNames.EXPLOSION, scale -> createExplosion()),
+      Map.entry(ShapeNames.PRIZE, scale -> createBounty()),
+      Map.entry(ShapeNames.ARENA, this::createArena),
+      Map.entry(ShapeNames.EXPLODE_0, scale -> createExplosion0()),
+      Map.entry(ShapeNames.EXPLODE_1, scale -> createExplosion1()),
+      Map.entry(ShapeNames.EXPLODE_2, scale -> createExplosion2()),
+      Map.entry(ShapeNames.OVER5, scale -> createOver5()),
+      Map.entry(ShapeNames.WORMHOLE, scale -> createWormhole()),
+      Map.entry(ShapeNames.OVER1, scale -> createOver1()),
+      Map.entry(ShapeNames.WARP, scale -> createWarp()),
+      Map.entry(ShapeNames.REPEL, scale -> createRepel()),
+      Map.entry(ShapeNames.OVER2, scale -> createOver2()),
+      Map.entry(ShapeNames.SHIP_WARBIRD, scale -> createShip(ShipVisuals.WARBIRD.visualOffset)),
+      Map.entry(ShapeNames.SHIP_JAVELIN, scale -> createShip(ShipVisuals.JAVELIN.visualOffset)),
+      Map.entry(ShapeNames.SHIP_SPIDER, scale -> createShip(ShipVisuals.SPIDER.visualOffset)),
+      Map.entry(ShapeNames.SHIP_LEVI, scale -> createShip(ShipVisuals.LEVIATHAN.visualOffset)),
+      Map.entry(ShapeNames.SHIP_TERRIER, scale -> createShip(ShipVisuals.TERRIER.visualOffset)),
+      Map.entry(ShapeNames.SHIP_WEASEL, scale -> createShip(ShipVisuals.WEASEL.visualOffset)),
+      Map.entry(ShapeNames.SHIP_LANCASTER, scale -> createShip(ShipVisuals.LANCASTER.visualOffset)),
+      Map.entry(ShapeNames.SHIP_SHARK, scale -> createShip(ShipVisuals.SHARK.visualOffset)),
+      Map.entry(ShapeNames.FLAG, scale -> createFlag(Flag.FLAG_THEIRS)),
+      Map.entry(ShapeNames.DOOR, scale -> createDoor()));
 
   protected Geometry createBox(float size, ColorRGBA color) {
     Box box = new Box(size, size, size);
