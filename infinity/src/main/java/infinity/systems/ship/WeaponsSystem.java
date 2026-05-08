@@ -286,20 +286,12 @@ public class WeaponsSystem extends AbstractGameSystem
    * fire.
    */
   private boolean bombSafetyClear(final EntityId requesterId) {
-    final ConfigRegistry cfg = weaponsFor(requesterId);
-    final BombConfig bombCfg = cfg.bomb();
-    if (!bombCfg.bombSafety() || bombCfg.proximityDistance() <= 0) {
-      return true;
-    }
     final RigidBody<EntityId, MBlockShape> ownerBody =
         physicsSpace.getBinIndex().getRigidBody(requesterId);
     if (ownerBody == null) {
       return true;
     }
-    final BombCurrentLevel bombLevel =
-        this.bombs.getEntity(requesterId).get(BombCurrentLevel.class);
-    final double radius =
-        proximityRadiusForLevel(bombCfg.proximityDistance(), bombLevel.getLevel().level);
+    final double radius = effectiveBombSafetyRadius(requesterId);
     if (radius <= 0.0) {
       return true;
     }
@@ -324,6 +316,22 @@ public class WeaponsSystem extends AbstractGameSystem
       }
     }
     return true;
+  }
+
+  /**
+   * Returns the bomb-safety scan radius for {@code requesterId} after applying the
+   * arena's BombConfig safety toggle and the per-bomb-level proximity scaling. Returns
+   * {@code 0.0} when safety is off (clear-fire short-circuit) so callers can early-out.
+   */
+  private double effectiveBombSafetyRadius(final EntityId requesterId) {
+    final ConfigRegistry cfg = weaponsFor(requesterId);
+    final BombConfig bombCfg = cfg.bomb();
+    if (!bombCfg.bombSafety() || bombCfg.proximityDistance() <= 0) {
+      return 0.0;
+    }
+    final BombCurrentLevel bombLevel =
+        this.bombs.getEntity(requesterId).get(BombCurrentLevel.class);
+    return proximityRadiusForLevel(bombCfg.proximityDistance(), bombLevel.getLevel().level);
   }
 
   private boolean canAttackGravityBomb(Entity requester) {
@@ -789,28 +797,8 @@ public class WeaponsSystem extends AbstractGameSystem
     // engine-tier knobs (subspaceVelocityScale + maxProjectileSpeedJme)
     // bridge Subspace velocity units → jME world units / sec.
     final EngineConfig engineCfg = engineConfigSystem.get();
-    final double scale = engineCfg.subspaceVelocityScale();
-    final double maxJme = engineCfg.maxProjectileSpeedJme();
-    switch (weaponFlag) {
-      case WeaponsSystem.BULLET:
-        projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BulletSpeed.class).getSpeed(), scale, maxJme));
-        break;
-      case WeaponsSystem.BOMB:
-        projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BombSpeed.class).getSpeed(), scale, maxJme));
-        break;
-      case WeaponsSystem.BURST:
-        projectileVelocity.addLocal(
-            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
-        break;
-      case WeaponsSystem.GRAVBOMB:
-        break;
-      case WeaponsSystem.MINE:
-        break;
-      default:
-        throw new AssertionError("Flag :" + weaponFlag + " not recognized");
-    }
+    applyWeaponSpeedScale(projectileVelocity, attacker, weaponFlag,
+        engineCfg.subspaceVelocityScale(), engineCfg.maxProjectileSpeedJme());
 
     // Step 2: Rotate the scaled velocity
     final Quatd shipRotation = new Quatd(shipBody.orientation);
@@ -829,8 +817,51 @@ public class WeaponsSystem extends AbstractGameSystem
     final Vec3d shipPosition = new Vec3d(shipBody.position);
 
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
-    // Offset with the radius of the projectile. Burst projectiles are
-    // bullet-shaped, so they share the BULLET-side radius.
+    applyProjectileRadiusOffset(projectilePosition, weaponFlag);
+    // Rotate the projectile position just as the ship is rotated
+    projectilePosition = shipRotation.mult(projectilePosition);
+    // Translate by ship position
+    projectilePosition = projectilePosition.add(shipPosition);
+
+    return new AttackPosition(projectilePosition, projectileVelocity);
+  }
+
+  /**
+   * Step 1 of the attack-info pipeline: add the per-weapon speed component (BulletSpeed,
+   * BombSpeed, BurstSpeed) scaled through the engine's subspace→jME bridge into the
+   * projectile velocity's z. GRAVBOMB and MINE start from rest.
+   */
+  private void applyWeaponSpeedScale(
+      final Vec3d projectileVelocity,
+      final EntityId attacker,
+      final byte weaponFlag,
+      final double scale,
+      final double maxJme) {
+    switch (weaponFlag) {
+      case WeaponsSystem.BULLET:
+        projectileVelocity.addLocal(
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BulletSpeed.class).getSpeed(), scale, maxJme));
+        break;
+      case WeaponsSystem.BOMB:
+        projectileVelocity.addLocal(
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BombSpeed.class).getSpeed(), scale, maxJme));
+        break;
+      case WeaponsSystem.BURST:
+        projectileVelocity.addLocal(
+            0, 0, effectiveProjectileSpeed(ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
+        break;
+      case WeaponsSystem.GRAVBOMB:
+      case WeaponsSystem.MINE:
+        break;
+      default:
+        throw new AssertionError("Flag :" + weaponFlag + " not recognized");
+    }
+  }
+
+  /** Step 4 of the attack-info pipeline: nudge the projectile spawn point off the ship by
+   * the projectile's own collision radius so it doesn't immediately re-collide with us. */
+  private static void applyProjectileRadiusOffset(
+      final Vec3d projectilePosition, final byte weaponFlag) {
     switch (weaponFlag) {
       case WeaponsSystem.BULLET:
       case WeaponsSystem.BURST:
@@ -844,12 +875,6 @@ public class WeaponsSystem extends AbstractGameSystem
       default:
         throw new AssertionError();
     }
-    // Rotate the projectile position just as the ship is rotated
-    projectilePosition = shipRotation.mult(projectilePosition);
-    // Translate by ship position
-    projectilePosition = projectilePosition.add(shipPosition);
-
-    return new AttackPosition(projectilePosition, projectileVelocity);
   }
 
   /**
@@ -888,70 +913,85 @@ public class WeaponsSystem extends AbstractGameSystem
     Entity entity1 = ed.getEntity(idOne, Damage.class, Bounce.class, Thor.class, Health.class);
 
     if (body2 instanceof RigidBody) {
-      EntityId idTwo = body2.id;
-      Entity entity2 = ed.getEntity(idTwo, Damage.class, Health.class);
-
-      log.debug("WeaponsSystem contact detected between: {} and {}", body1.id, body2.id);
-
-      Entity damageEntity;
-      Entity energyEntity;
-      if (entity1.get(Damage.class) != null && entity2.get(Health.class) != null) {
-        damageEntity = entity1;
-        energyEntity = entity2;
-      } else if (entity2.get(Damage.class) != null && entity1.get(Health.class) != null) {
-        damageEntity = entity2;
-        energyEntity = entity1;
-      } else {
-        return;
-      }
-
-      // Slice 9b — proximity-fuse bombs that haven't yet armed must NOT detonate
-      // on direct body contact with a ship; arming + fuse + detonation flow
-      // through ProximityFuseSystem instead. Disabling the contact here means
-      // the projectile glides past the ship until the per-tick proximity scan
-      // fires. Wall hits + contacts on already-armed bombs fall through to the
-      // standard detonation path below.
-      final ProximityFuse fuse = ed.getComponent(damageEntity.getId(), ProximityFuse.class);
-      final boolean alreadyArmed =
-          fuse != null && ed.getComponent(damageEntity.getId(), ProximityArmed.class) != null;
-      if (fuse != null && !alreadyArmed) {
-        contact.disable();
-        return;
-      }
-
-      final Damage damage = damageEntity.get(Damage.class);
-      detonateProjectile(
-          damageEntity.getId(),
-          damage,
-          contact.contactPoint,
-          energyEntity.getId(),
-          time.getTime());
-      contact.disable();
+      handleProjectileVsBody(contact, body1, (RigidBody<EntityId, MBlockShape>) body2, entity1);
     } else if (body2 == null
         && entity1.get(Damage.class) != null
         && entity1.get(Thor.class) == null) {
-      // body2 = null means that body1 is hitting the world
-      // thors are handled in the action system
-      Damage damage = entity1.get(Damage.class);
+      handleProjectileVsWorld(contact, idOne, entity1);
+    }
+  }
 
-      Bounce bounce = ed.getComponent(idOne, Bounce.class);
-      if (bounce != null) {
-        // Retain all energy in the contact
-        contact.restitution = 1;
-        // Remove all friction so ingoing angle and outgoing angle are the same
-        contact.friction = 0;
-        if (bounce.getBounces() == 1) {
-          ed.removeComponent(idOne, Bounce.class);
-        } else {
-          ed.setComponent(idOne, bounce.decreaseBounces());
-        }
+  /** Body-vs-body branch: pair damage+health entities, gate on proximity fuse, detonate. */
+  private void handleProjectileVsBody(
+      final Contact contact,
+      final RigidBody<EntityId, MBlockShape> body1,
+      final RigidBody<EntityId, MBlockShape> body2,
+      final Entity entity1) {
+    EntityId idTwo = body2.id;
+    Entity entity2 = ed.getEntity(idTwo, Damage.class, Health.class);
+
+    log.debug("WeaponsSystem contact detected between: {} and {}", body1.id, body2.id);
+
+    Entity damageEntity;
+    Entity energyEntity;
+    if (entity1.get(Damage.class) != null && entity2.get(Health.class) != null) {
+      damageEntity = entity1;
+      energyEntity = entity2;
+    } else if (entity2.get(Damage.class) != null && entity1.get(Health.class) != null) {
+      damageEntity = entity2;
+      energyEntity = entity1;
+    } else {
+      return;
+    }
+
+    // Slice 9b — proximity-fuse bombs that haven't yet armed must NOT detonate
+    // on direct body contact with a ship; arming + fuse + detonation flow
+    // through ProximityFuseSystem instead. Disabling the contact here means
+    // the projectile glides past the ship until the per-tick proximity scan
+    // fires. Wall hits + contacts on already-armed bombs fall through to the
+    // standard detonation path below.
+    final ProximityFuse fuse = ed.getComponent(damageEntity.getId(), ProximityFuse.class);
+    final boolean alreadyArmed =
+        fuse != null && ed.getComponent(damageEntity.getId(), ProximityArmed.class) != null;
+    if (fuse != null && !alreadyArmed) {
+      contact.disable();
+      return;
+    }
+
+    final Damage damage = damageEntity.get(Damage.class);
+    detonateProjectile(
+        damageEntity.getId(),
+        damage,
+        contact.contactPoint,
+        energyEntity.getId(),
+        time.getTime());
+    contact.disable();
+  }
+
+  /** body2==null branch: projectile hit the world. Bounce if marked, else detonate. */
+  private void handleProjectileVsWorld(
+      final Contact contact, final EntityId idOne, final Entity entity1) {
+    // body2 = null means that body1 is hitting the world
+    // thors are handled in the action system
+    Damage damage = entity1.get(Damage.class);
+
+    Bounce bounce = ed.getComponent(idOne, Bounce.class);
+    if (bounce != null) {
+      // Retain all energy in the contact
+      contact.restitution = 1;
+      // Remove all friction so ingoing angle and outgoing angle are the same
+      contact.friction = 0;
+      if (bounce.getBounces() == 1) {
+        ed.removeComponent(idOne, Bounce.class);
       } else {
-        // Wall-hit detonation: walls bypass the proximity-fuse gate (canonical
-        // Subspace — bombs detonate immediately on wall contact regardless of
-        // arm state) and fall straight through to the splash / direct path.
-        detonateProjectile(idOne, damage, contact.contactPoint, null, time.getTime());
-        contact.disable();
+        ed.setComponent(idOne, bounce.decreaseBounces());
       }
+    } else {
+      // Wall-hit detonation: walls bypass the proximity-fuse gate (canonical
+      // Subspace — bombs detonate immediately on wall contact regardless of
+      // arm state) and fall straight through to the splash / direct path.
+      detonateProjectile(idOne, damage, contact.contactPoint, null, time.getTime());
+      contact.disable();
     }
   }
 

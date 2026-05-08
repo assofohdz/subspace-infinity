@@ -252,40 +252,52 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
         // We don't see ourselves
         continue;
       }
-      RigidBody<EntityId, MBlockShape> rb =
-          physics.getPhysicsSpace().getBinIndex().getRigidBody(id);
-      if (rb != null) {
-        String type = MobSystem.getType(rb);
-        if (!filter.apply(type)) {
-          continue;
-        }
-        // for now, dumb distance that ignores object size
-        double dist = rb.position.distance(getBody().position);
-        if (dist <= radius) {
-          results.add(
-              new SeenObject(
-                  id, rb.position, rb.orientation, rb.getLinearVelocity(), rb.shape, type, dist));
-          continue;
-        }
+      SeenObject seen = trySeeRigidBody(id, radius, filter);
+      if (seen == null) {
+        seen = trySeeStaticBody(id, radius, filter);
       }
-
-      StaticBody<EntityId, MBlockShape> sb =
-          physics.getPhysicsSpace().getBinIndex().getStaticBody(id);
-      if (sb != null) {
-        String type = MobSystem.getType(sb);
-        if (!filter.apply(type)) {
-          continue;
-        }
-        double dist = sb.position.distance(getBody().position);
-        if (dist <= radius) {
-          results.add(
-              new SeenObject(id, sb.position, sb.orientation, Vec3d.ZERO, sb.shape, type, dist));
-          continue;
-        }
+      if (seen != null) {
+        results.add(seen);
       }
     }
 
     return results;
+  }
+
+  private SeenObject trySeeRigidBody(EntityId id, double radius, Predicate<? super String> filter) {
+    RigidBody<EntityId, MBlockShape> rb =
+        physics.getPhysicsSpace().getBinIndex().getRigidBody(id);
+    if (rb == null) {
+      return null;
+    }
+    String type = MobSystem.getType(rb);
+    if (!filter.apply(type)) {
+      return null;
+    }
+    // for now, dumb distance that ignores object size
+    double dist = rb.position.distance(getBody().position);
+    if (dist > radius) {
+      return null;
+    }
+    return new SeenObject(
+        id, rb.position, rb.orientation, rb.getLinearVelocity(), rb.shape, type, dist);
+  }
+
+  private SeenObject trySeeStaticBody(EntityId id, double radius, Predicate<? super String> filter) {
+    StaticBody<EntityId, MBlockShape> sb =
+        physics.getPhysicsSpace().getBinIndex().getStaticBody(id);
+    if (sb == null) {
+      return null;
+    }
+    String type = MobSystem.getType(sb);
+    if (!filter.apply(type)) {
+      return null;
+    }
+    double dist = sb.position.distance(getBody().position);
+    if (dist > radius) {
+      return null;
+    }
+    return new SeenObject(id, sb.position, sb.orientation, Vec3d.ZERO, sb.shape, type, dist);
   }
 
   @Override
@@ -414,114 +426,15 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // Here we could early out when we get a handle on what 'no input' means
 
     if (facing != targetFacing) {
-      // Need to deal with the cases where facing is like 5 degrees
-      // and targetFacing is 355 degrees.  Need to know to just turn
-      // 10 degrees instead of going all the way around.
-      if (facing > targetFacing && facing - targetFacing < Math.PI) {
-        // Better to turn negative... covers the simple case where
-        // facing and target are in the same domain and facing is more than
-        // target
-        facing = Math.max(targetFacing, facing - step * settings.turnSpeed);
-      } else if (targetFacing > facing && targetFacing - facing < Math.PI) {
-        // Better to turn positive... covers the simple case where
-        // facing and target are in the same domain and facing is less than
-        // target
-        facing = Math.min(targetFacing, facing + step * settings.turnSpeed);
-      } else {
-        // We must have wrapped around 0
-        if (facing > targetFacing) {
-          double t = targetFacing + TWO_PI;
-          facing = Math.min(t, facing + step * settings.turnSpeed);
-        } else {
-          double f = facing + TWO_PI;
-          facing = Math.max(targetFacing, f - step * settings.turnSpeed);
-        }
-      }
-      if (facing < 0) {
-        facing += TWO_PI;
-      } else if (facing > TWO_PI) {
-        facing -= TWO_PI;
-      }
-      // log.info("facing:" + facing);
-      orientation.fromAngles(0, facing, 0);
+      stepFacingTowardsTarget(step);
     } else if (probe != null) {
-      // If we are already heading in our intended direction then
-      // see if there is anything in the way.  Trying to strike a balance
-      // between making sure the mob heads the way the AI is telling it
-      // while also elastically walking around simple obstacles.
-      // Vec3d v = body.localToWorld(probeOffset, null);
-      probe.reset();
-      physics
-          .getPhysicsSpace()
-          .queryContacts(probe.position, probe.orientation, probe.shape, probe.filter, probe);
-      // log.info("body pos:" + body.position + "  prob pos:" + probe.position);
-      if (probe.closest != null) {
-        // log.info("closest:" + probe.closest);
-        // v.set(probe.closest.contactPoint).subtractLocal(body.position);
-        // Vec3d dir = body.orientation.mult(Vec3d.UNIT_Z);
-        // Vec3d left = body.orientation.mult(Vec3d.UNIT_X);
-        double turn = probe.turn; // left.dot(v);
-        // log.info("******* turn:" + turn + "  fwd:" + probe.forward); // + "   offset:" + v + "   left:" +
-        // left);
-
-        // When left is positive, we want to turn right and when
-        // left is negative we want to turn left... but I'm pretty sure
-        // the x,z plane is backwards from what one might think.
-        double delta = 0.05; // 0.2;
-        if (turn < 0) {
-          targetFacing += delta;
-          // facing = targetFacing;
-          // orientation.fromAngles(0, facing, 0);
-        } else if (turn > 0) {
-          targetFacing -= delta;
-          // facing = targetFacing;
-          // orientation.fromAngles(0, facing, 0);
-        }
-      }
+      adjustTargetFacingFromProbe();
     }
 
     orientation.mult(move, desiredVelocity);
 
     if (desiredVelocity.lengthSq() > 0) {
-
-      // Calculate how much our velocity has to change to reach
-      // the desired velocity
-      force.set(desiredVelocity).subtractLocal(body.getLinearVelocity());
-
-      if (desiredVelocity.y < 0.0001) {
-        // Don't kill our gravity unless we are using vertical thrust
-        force.y = 0;
-      }
-
-      // Vec3d v1 = new Vec3d(desiredVelocity.x, 0, desiredVelocity.z);
-      //// Vec3d v2 = new Vec3d(body.getLinearVelocity().x, 0, body.getLinearVelocity().z);
-      //// Vec3d v3 = body.position.subtract(lastPosition);  v3.y = 0;
-      //// log.info("desired:" + v1.length() + "  body:" + v2.length() + "  actual:" +
-      // (v3.length()/step));
-      //// log.info("desired:" + v1.length() + "  body:" + v2.length() + "  actual:" +
-      // (v3.length()));
-      // log.info("desired:" + v1.length() + "  actual:" + actualVelocity.length() + "  average:" +
-      // averageVelocity.length());
-
-      // We could kill vertical velocity here based on contacts, in water, etc.
-
-      // Right now, we'll treat everything as ground contact
-      force.multLocal(settings.groundImpulse * (1.0 / body.getInverseMass()));
-
-      // body.addForce(force);
-      body.addForceAtPoint(force, 0.1, body.position);
-
-      // If our average velocity is low and we have pushback in the direction
-      // we want to go then send and event to the brain and let it figure out
-      // what to do.
-      // Questionable but we filter out low values of max push back to avoid
-      // auto-blocking when a mob is moving and already in glancing contact
-      // with something.
-      if (maxPushback > 0.2 && averageVelocity.lengthSq() < (0.001 * 0.001)) {
-        // log.info("blocked by:" + mostBlocked);
-        log.info("***   max pushback:{}", maxPushback);
-        brain.blocked(mostBlocked.contactNormal);
-      }
+      applyDesiredVelocityForce(body);
     }
 
     // Always enforce orientation, I guess.  Otherwise the mobs will just
@@ -556,23 +469,133 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     maxPushback = 0;
 
     if (animPump != null && step > 0) {
-      // See which animation we should be using.
-      double speed = averageVelocity.length() / step;
-      String action = "Idle";
-      double animSpeed = 1.0;
-      if (Math.abs(speed) > 0.001) {
-        action = "Walk";
-        // animSpeed = (speed / 1.5) * 1.75;
-        animSpeed = (speed / 1.5) * 1.8;
-      } else {
-        log.info("actual velocity:{}  averageVelocity:{}", actualVelocity, averageVelocity);
-      }
-      // log.info("setCurrentAction(" + action + ", " + animSpeed + ") speed:" + speed);
-      animPump.setCurrentAction(action, animSpeed);
-
-      animPump.update(step);
-      rigShape.update();
+      updateAnimation(step);
     }
+  }
+
+  /** Move {@code facing} towards {@code targetFacing} by one step's worth, taking the short way around. */
+  private void stepFacingTowardsTarget(double step) {
+    // Need to deal with the cases where facing is like 5 degrees
+    // and targetFacing is 355 degrees.  Need to know to just turn
+    // 10 degrees instead of going all the way around.
+    if (facing > targetFacing && facing - targetFacing < Math.PI) {
+      // Better to turn negative... covers the simple case where
+      // facing and target are in the same domain and facing is more than
+      // target
+      facing = Math.max(targetFacing, facing - step * settings.turnSpeed);
+    } else if (targetFacing > facing && targetFacing - facing < Math.PI) {
+      // Better to turn positive... covers the simple case where
+      // facing and target are in the same domain and facing is less than
+      // target
+      facing = Math.min(targetFacing, facing + step * settings.turnSpeed);
+    } else {
+      // We must have wrapped around 0
+      if (facing > targetFacing) {
+        double t = targetFacing + TWO_PI;
+        facing = Math.min(t, facing + step * settings.turnSpeed);
+      } else {
+        double f = facing + TWO_PI;
+        facing = Math.max(targetFacing, f - step * settings.turnSpeed);
+      }
+    }
+    if (facing < 0) {
+      facing += TWO_PI;
+    } else if (facing > TWO_PI) {
+      facing -= TWO_PI;
+    }
+    // log.info("facing:" + facing);
+    orientation.fromAngles(0, facing, 0);
+  }
+
+  /**
+   * If we are already heading in our intended direction, query the probe and nudge
+   * {@code targetFacing} away from any imminent obstacle. Strikes a balance between
+   * making sure the mob heads where the AI is telling it while also elastically
+   * walking around simple obstacles.
+   */
+  private void adjustTargetFacingFromProbe() {
+    // Vec3d v = body.localToWorld(probeOffset, null);
+    probe.reset();
+    physics
+        .getPhysicsSpace()
+        .queryContacts(probe.position, probe.orientation, probe.shape, probe.filter, probe);
+    // log.info("body pos:" + body.position + "  prob pos:" + probe.position);
+    if (probe.closest == null) {
+      return;
+    }
+    // log.info("closest:" + probe.closest);
+    // v.set(probe.closest.contactPoint).subtractLocal(body.position);
+    // Vec3d dir = body.orientation.mult(Vec3d.UNIT_Z);
+    // Vec3d left = body.orientation.mult(Vec3d.UNIT_X);
+    double turn = probe.turn; // left.dot(v);
+    // log.info("******* turn:" + turn + "  fwd:" + probe.forward); // + "   offset:" + v + "   left:" +
+    // left);
+
+    // When left is positive, we want to turn right and when
+    // left is negative we want to turn left... but I'm pretty sure
+    // the x,z plane is backwards from what one might think.
+    double delta = 0.05; // 0.2;
+    if (turn < 0) {
+      targetFacing += delta;
+      // facing = targetFacing;
+      // orientation.fromAngles(0, facing, 0);
+    } else if (turn > 0) {
+      targetFacing -= delta;
+      // facing = targetFacing;
+      // orientation.fromAngles(0, facing, 0);
+    }
+  }
+
+  /** Convert {@link #desiredVelocity} into a body force, and notify {@link #brain} on hard pushback. */
+  private void applyDesiredVelocityForce(RigidBody<EntityId, MBlockShape> body) {
+    // Calculate how much our velocity has to change to reach
+    // the desired velocity
+    force.set(desiredVelocity).subtractLocal(body.getLinearVelocity());
+
+    if (desiredVelocity.y < 0.0001) {
+      // Don't kill our gravity unless we are using vertical thrust
+      force.y = 0;
+    }
+
+    // We could kill vertical velocity here based on contacts, in water, etc.
+
+    // Right now, we'll treat everything as ground contact
+    force.multLocal(settings.groundImpulse * (1.0 / body.getInverseMass()));
+
+    // body.addForce(force);
+    body.addForceAtPoint(force, 0.1, body.position);
+
+    // If our average velocity is low and we have pushback in the direction
+    // we want to go then send and event to the brain and let it figure out
+    // what to do.
+    // Questionable but we filter out low values of max push back to avoid
+    // auto-blocking when a mob is moving and already in glancing contact
+    // with something.
+    if (maxPushback > 0.2 && averageVelocity.lengthSq() < (0.001 * 0.001)) {
+      // log.info("blocked by:" + mostBlocked);
+      log.info("***   max pushback:{}", maxPushback);
+      brain.blocked(mostBlocked.contactNormal);
+    }
+  }
+
+  /** Pick Idle vs Walk anim and tick the rig. Caller must guarantee {@code animPump != null && step > 0}. */
+  private void updateAnimation(double step) {
+    // See which animation we should be using.
+    double speed = averageVelocity.length() / step;
+    String action = "Idle";
+    double animSpeed = 1.0;
+    if (Math.abs(speed) > 0.001) {
+      action = "Walk";
+      // animSpeed = (speed / 1.5) * 1.75;
+      animSpeed = (speed / 1.5) * 1.8;
+    } else {
+      log.info("actual velocity:{}  averageVelocity:{}", actualVelocity, averageVelocity);
+    }
+    // log.info("setCurrentAction(" + action + ", " + animSpeed + ") speed:" + speed);
+    animPump.setCurrentAction(action, animSpeed);
+
+    animPump.update(step);
+    rigShape.update();
   }
 
   @Override

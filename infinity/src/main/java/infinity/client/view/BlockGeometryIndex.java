@@ -503,13 +503,15 @@ public class BlockGeometryIndex {
         BlockTypeIndex.override(typeIndex, new BlockType(name, factory));
       }
     }
-    log.info(
-        "Registered {} tile block types ({} arenas × {} tiles) indices {}..{}",
-        InfinityConstants.MAX_ARENAS * InfinityConstants.TILE_COUNT,
-        InfinityConstants.MAX_ARENAS,
-        InfinityConstants.TILE_COUNT,
-        InfinityConstants.TILE_TYPE_BASE,
-        InfinityConstants.BLOCK_TYPE_INDEX_SIZE - 1);
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Registered {} tile block types ({} arenas × {} tiles) indices {}..{}",
+          InfinityConstants.MAX_ARENAS * InfinityConstants.TILE_COUNT,
+          InfinityConstants.MAX_ARENAS,
+          InfinityConstants.TILE_COUNT,
+          InfinityConstants.TILE_TYPE_BASE,
+          InfinityConstants.BLOCK_TYPE_INDEX_SIZE - 1);
+    }
   }
 
   public Node generateBlocks(final Node target, final CellArray cells) {

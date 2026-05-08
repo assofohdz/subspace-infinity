@@ -386,105 +386,98 @@ public class LocalViewState extends BaseAppState {
   }
 
   protected void updateView(Vec3d pos, boolean forceUpdate) {
-
-    // Need to account for sea level... a mistake in the whole approach, really.
-    // Vec3d realWorld = pos.add(0, 64, 0);
-    // 2021-11-06 - finally trying to remove that mistake
-    Vec3d realWorld = pos.add(0, 0, 0);
-
-    // And then clamp it
+    final Vec3d realWorld = pos.add(0, 0, 0);
     if (realWorld.y < yMin) {
       realWorld.y = yMin;
     } else if (realWorld.y > yMax) {
       realWorld.y = yMax;
     }
 
-    Vec3i newCenter = leafGrid.worldToCell(realWorld);
+    final Vec3i newCenter = leafGrid.worldToCell(realWorld);
     if (!forceUpdate && newCenter.equals(centerCell)) {
       return;
     }
     centerCell.set(newCenter);
     centerWorld = leafGrid.cellToWorld(centerCell);
-
     viewMask.setCenterWorld(centerWorld);
 
     log.info("Refreshing local view, centerWorld:{}   pos:{}", centerWorld, pos);
 
-    Set<LeafId> toRemove = new HashSet<>(viewCache.keySet());
-
-    Vec3d world = new Vec3d();
-    for (ViewEntry e : viewArray) {
-
+    final Set<LeafId> toRemove = new HashSet<>(viewCache.keySet());
+    final Vec3d world = new Vec3d();
+    for (final ViewEntry e : viewArray) {
       world.set(centerWorld).addLocal(e.worldOffset);
-
-      // If this leaf is below the world then we don't need to worry about it
       if (world.y < 0) {
         log.info("Skipping entry below the world:{}", world);
         continue;
       }
+      bindOrCreateLeafView(e, world, toRemove);
+    }
 
-      // GridCell leafId = leafGrid.getContainingCell(world);
-      LeafId leafId = LeafId.fromWorld(world);
+    releaseStaleLeafViews(toRemove);
 
-      // We're using this so remove it from the cleanup set.
-      toRemove.remove(leafId);
+    if (viewCache.size() != viewArray.length && log.isErrorEnabled()) {
+      log.error(
+          "*** Major data integrity error in view cache, cache size:"
+              + viewCache.size()
+              + "  should be:"
+              + viewArray.length);
+    }
+  }
 
-      LeafView view = viewCache.get(leafId);
+  /**
+   * For one {@link ViewEntry}, look up (or create) the {@link LeafView}
+   * covering its world position and bind it to the entry. New views are
+   * queued on {@code workers}; existing views may be re-queued if smooth
+   * lighting changed, otherwise their current rendered-state is republished
+   * to {@code viewMask}.
+   *
+   * <p>Mutates: {@link #viewCache}, {@link #viewMask}, {@link #workers},
+   * {@link ViewEntry#leafView}, and removes the resolved leaf id from
+   * {@code toRemove} so the caller's cleanup pass leaves it in place.
+   */
+  private void bindOrCreateLeafView(final ViewEntry e, final Vec3d world, final Set<LeafId> toRemove) {
+    final LeafId leafId = LeafId.fromWorld(world);
+    toRemove.remove(leafId);
+    LeafView view = viewCache.get(leafId);
+    if (view == null) {
+      viewMask.setRendered(e.viewLoc, false);
+      view = new LeafView(leafId);
+      view.setSmoothLighting(smoothLighting);
+      viewCache.put(leafId, view);
+      view.queued = true;
+      workers.execute(view, e.priority);
+    } else if (view.setSmoothLighting(smoothLighting)) {
+      view.queued = true;
+      workers.execute(view, e.priority);
+    } else {
+      // There is already a view created but it might not be rendered yet
+      viewMask.setRendered(e.viewLoc, view.rendered);
+    }
+    view.updateOffset(e.worldOffset);
+    e.leafView = view;
+  }
+
+  /**
+   * Remove every {@link LeafId} in {@code toRemove} from {@link #viewCache},
+   * release the view, and cancel any pending worker job. The book-keeping
+   * skip on {@code !queued} avoids an O(workers.size) scan when there's
+   * nothing to cancel.
+   */
+  private void releaseStaleLeafViews(final Set<LeafId> toRemove) {
+    for (final LeafId remove : toRemove) {
+      final LeafView view = viewCache.remove(remove);
       if (view == null) {
-        viewMask.setRendered(e.viewLoc, false);
-
-        view = new LeafView(leafId);
-        view.setSmoothLighting(smoothLighting);
-        viewCache.put(leafId, view);
-
-        view.queued = true;
-        workers.execute(view, e.priority);
-        // log.info("WorkerPool size:" + workers.getQueuedCount());
+        continue;
+      }
+      view.release();
+      if (!view.queued) {
+        continue;
+      }
+      if (workers.cancel(view)) {
+        view.queued = false;
       } else {
-        if (view.setSmoothLighting(smoothLighting)) {
-          // viewMask.setRendered(e.viewLoc, view.rendered);
-          // If there is already one there then we don't need to unmask
-          // it but it's nice to see things actually blink when testing.
-          // viewMask.setRendered(e.viewLoc, false);
-          // viewMask.setRendered(e.viewLoc, view.rendered);
-          view.queued = true;
-          workers.execute(view, e.priority);
-        } else {
-          // There is already a view created but it might not be rendered yet
-          viewMask.setRendered(e.viewLoc, view.rendered);
-        }
-      }
-      view.updateOffset(e.worldOffset);
-
-      e.leafView = view;
-    }
-
-    for (LeafId remove : toRemove) {
-      LeafView view = viewCache.remove(remove);
-      if (view != null) {
-        view.release();
-
-        // By checking if it's already queued we should avoid
-        // book-keeping overhead trying to remove something that
-        // isn't even submitted.
-        if (view.queued) {
-          // And cancel it if possible
-          if (!workers.cancel(view)) {
-            log.info("View job not canceled for:{}", view.leafId);
-          } else {
-            view.queued = false;
-          }
-        }
-      }
-    }
-
-    if (viewCache.size() != viewArray.length) {
-      if (log.isErrorEnabled()) {
-        log.error(
-            "*** Major data integrity error in view cache, cache size:"
-                + viewCache.size()
-                + "  should be:"
-                + viewArray.length);
+        log.info("View job not canceled for:{}", view.leafId);
       }
     }
   }

@@ -233,9 +233,11 @@ public class ArenaMembershipSystem extends AbstractGameSystem
     // re-project the ship's ShipConfig from the resulting add/change event — no direct
     // call needed from here.
     ed.setComponent(shipId, arenaIdComp);
-    log.info(
-        "Ship {} entered arena {} (entity {}, frame {})",
-        shipId, arenaIdComp.getArena(), arenaEntityId, currentFrame);
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Ship {} entered arena {} (entity {}, frame {})",
+          shipId, arenaIdComp.getArena(), arenaEntityId, currentFrame);
+    }
   }
 
   private void fireLeftArena(final EntityId shipId, final EntityId arenaEntityId) {

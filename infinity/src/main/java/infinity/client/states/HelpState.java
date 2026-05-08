@@ -140,25 +140,33 @@ public class HelpState extends BaseAppState {
         // helpWindow.addChild(new ActionButton(new CallMethodAction("Done", this,
         // "close")));
 
+        dumpInputMappings(inputMapper);
+    }
+
+    private static void dumpInputMappings(final InputMapper inputMapper) {
         System.out.println("All InputMapper function mappings:");
         for (final FunctionId id : inputMapper.getFunctionIds()) {
             System.out.println(id);
             System.out.println("  mappings:");
             for (final Mapping m : inputMapper.getMappings(id)) {
-                System.out.println("    " + m);
-                final Object o = m.getPrimaryActivator();
-                if (o instanceof Integer) {
-                    final Integer keyCode = (Integer) o;
-                    System.out.println("      primary:" + KeyNames.getName(keyCode.intValue()));
-                } else {
-                    System.out.println("      primary:" + o);
-                }
-                for (final Object mod : m.getModifiers()) {
-                    if (mod instanceof Integer) {
-                        final Integer keyCode = (Integer) mod;
-                        System.out.println("      modifier:" + KeyNames.getName(keyCode.intValue()));
-                    }
-                }
+                dumpMapping(m);
+            }
+        }
+    }
+
+    private static void dumpMapping(final Mapping m) {
+        System.out.println("    " + m);
+        final Object o = m.getPrimaryActivator();
+        if (o instanceof Integer) {
+            final Integer keyCode = (Integer) o;
+            System.out.println("      primary:" + KeyNames.getName(keyCode.intValue()));
+        } else {
+            System.out.println("      primary:" + o);
+        }
+        for (final Object mod : m.getModifiers()) {
+            if (mod instanceof Integer) {
+                final Integer keyCode = (Integer) mod;
+                System.out.println("      modifier:" + KeyNames.getName(keyCode.intValue()));
             }
         }
     }
@@ -215,70 +223,74 @@ public class HelpState extends BaseAppState {
             }
 
             final List<String> names = new ArrayList<>();
+            captureKeyMappings(inputMapper, names);
+            captureAxisAndButtonMappings(inputMapper, names);
+            keyNames = new String[names.size()];
+            keyNames = names.toArray(keyNames);
+        }
 
-            // Capture all of the keys first
+        private void captureKeyMappings(final InputMapper inputMapper, final List<String> names) {
             for (final Mapping m : inputMapper.getMappings(function)) {
                 final Object o = m.getPrimaryActivator();
-
-                String primary;
-                if (o instanceof Button) {
-                    continue;
-                } else if (o instanceof Axis) {
-                    continue;
-                } else if (o instanceof Integer) {
-                    final Integer i = (Integer) o;
-                    primary = KeyNames.getName(i.intValue());
-                } else {
-                    // Not a mapping we can deal with
+                if (!(o instanceof Integer)) {
+                    // Buttons / Axes / unknown — handled in the second pass.
                     continue;
                 }
+                final String primary = KeyNames.getName(((Integer) o).intValue());
+                processIntegerMapping(m, primary, names);
+            }
+        }
 
-                // Keep track of the mirrored form and combined forms
-                // in case we want to swap out an older mirrored form
-                // for the combined form. For example, Left Shift + F4
-                // and Right Shift + F4 combined to Shift + F4.
-                final StringBuilder alt = new StringBuilder(primary);
-                final StringBuilder comb = new StringBuilder(primary);
-
-                final StringBuilder sb = new StringBuilder(primary);
-                for (final Object mod : m.getModifiers()) {
-                    if (mod instanceof Integer) {
-                        final int iMod = ((Integer) mod).intValue();
-                        if (iMod == KeyInput.KEY_LSHIFT) {
-                            alt.insert(0, KeyNames.getName(KeyInput.KEY_RSHIFT) + "+");
-                            comb.insert(0, "Shift+");
-                        } else if (iMod == KeyInput.KEY_RSHIFT) {
-                            alt.insert(0, KeyNames.getName(KeyInput.KEY_LSHIFT) + "+");
-                            comb.insert(0, "Shift+");
-                        } else if (iMod == KeyInput.KEY_LCONTROL) {
-                            alt.insert(0, KeyNames.getName(KeyInput.KEY_RCONTROL) + "+");
-                            comb.insert(0, "Ctrl+");
-                        } else if (iMod == KeyInput.KEY_RCONTROL) {
-                            alt.insert(0, KeyNames.getName(KeyInput.KEY_LCONTROL) + "+");
-                            comb.insert(0, "Ctrl+");
-                        }
-                        sb.insert(0, KeyNames.getName(((Integer) mod).intValue()) + "+");
-                    }
-                }
-                System.out.println(function + " normal:" + sb + "  alt:" + alt + "  comb:" + comb);
-                if (names.remove(alt.toString())) {
-                    names.add(comb.toString());
-                } else {
-                    names.add(sb.toString());
+        private void processIntegerMapping(final Mapping m, final String primary, final List<String> names) {
+            // Keep track of the mirrored form and combined forms
+            // in case we want to swap out an older mirrored form
+            // for the combined form. For example, Left Shift + F4
+            // and Right Shift + F4 combined to Shift + F4.
+            final StringBuilder alt = new StringBuilder(primary);
+            final StringBuilder comb = new StringBuilder(primary);
+            final StringBuilder sb = new StringBuilder(primary);
+            for (final Object mod : m.getModifiers()) {
+                if (mod instanceof Integer) {
+                    applyModifierToBuilders((Integer) mod, alt, comb, sb);
                 }
             }
+            System.out.println(function + " normal:" + sb + "  alt:" + alt + "  comb:" + comb);
+            if (names.remove(alt.toString())) {
+                names.add(comb.toString());
+            } else {
+                names.add(sb.toString());
+            }
+        }
 
-            // Then capture axis and buttons
+        private static void applyModifierToBuilders(final Integer mod, final StringBuilder alt,
+                final StringBuilder comb, final StringBuilder sb) {
+            final int iMod = mod.intValue();
+            if (iMod == KeyInput.KEY_LSHIFT) {
+                alt.insert(0, KeyNames.getName(KeyInput.KEY_RSHIFT) + "+");
+                comb.insert(0, "Shift+");
+            } else if (iMod == KeyInput.KEY_RSHIFT) {
+                alt.insert(0, KeyNames.getName(KeyInput.KEY_LSHIFT) + "+");
+                comb.insert(0, "Shift+");
+            } else if (iMod == KeyInput.KEY_LCONTROL) {
+                alt.insert(0, KeyNames.getName(KeyInput.KEY_RCONTROL) + "+");
+                comb.insert(0, "Ctrl+");
+            } else if (iMod == KeyInput.KEY_RCONTROL) {
+                alt.insert(0, KeyNames.getName(KeyInput.KEY_LCONTROL) + "+");
+                comb.insert(0, "Ctrl+");
+            }
+            sb.insert(0, KeyNames.getName(iMod) + "+");
+        }
+
+        private void captureAxisAndButtonMappings(final InputMapper inputMapper, final List<String> names) {
             for (final Mapping m : inputMapper.getMappings(function)) {
                 final Object o = m.getPrimaryActivator();
-
-                String primary;
+                final String primary;
                 if (o instanceof Button) {
                     primary = ((Button) o).getName();
                 } else if (o instanceof Axis) {
                     primary = ((Axis) o).getName();
                 } else {
-                    // Not a mapping we can deal with
+                    // Not a mapping we can deal with — handled in the first pass.
                     continue;
                 }
 
@@ -291,8 +303,6 @@ public class HelpState extends BaseAppState {
                 }
                 names.add(sb.toString());
             }
-            keyNames = new String[names.size()];
-            keyNames = names.toArray(keyNames);
         }
     }
 }

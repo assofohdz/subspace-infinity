@@ -294,69 +294,17 @@ public class Brain {
       pendingTouches.clear();
     }
 
-    if (action == null) {
-      if (currentGoal == null) {
-        currentGoal = selectGoal();
-        actor.say(time.getTime(), time.getFutureTime(1.0), String.valueOf(currentGoal));
-        currentStrategy = null;
-      }
-      if (currentStrategy == null) {
-        currentStrategy = selectStrategy(currentGoal);
-        try {
-          action = makePlan(currentStrategy, currentGoal);
-        } catch (RuntimeException e) {
-          log.error("Error making plan for:{}, strategy:{}", currentGoal, currentStrategy, e);
-          nextHeartbeat = time.getFutureTime(0.001);
-          currentGoal = null;
-          return;
-        }
-      }
-    }
-
-    ActionStatus status;
-    if (forcedStatus != null) {
-      status = forcedStatus;
-      forcedStatus = null;
-    } else {
-      status = action.run(time, this);
-    }
-    if (status == ActionStatus.RUNNING) {
-      // See how long to wait
-      double next = action.getHeartbeat(time);
-
-      // Next should always be a little more than 0 but we
-      // get stuck if the actions return a bad time.  So we'll
-      // check, warn, and adjust
-      if (next <= 0) {
-        log.warn("Bad heartbeat value from:{}  heartbeat:{}", action, next);
-        next = 0.001;
-      }
-
-      nextHeartbeat = time.getFutureTime(next);
+    if (!ensureGoalAndAction(time)) {
       return;
     }
 
-    if (currentStrategy == null) {
-      // This was a tail action from a finished strategy... so clear
-      // it and get ready for the next goal
-      action = null;
-    } else {
-      // See how we faired
-        if (Objects.requireNonNull(status) == ActionStatus.DONE) {
-            action = currentStrategy.done(this, currentGoal);
-
-            // Clear our memory of failed goals
-            failedGoals.clear();
-        } else if (status == ActionStatus.FAILED) {
-            if (currentGoal != null) {
-                currentGoal.setFailedAction(action.getLastAction());
-                addFailedGoal(currentGoal);
-            }
-            action = currentStrategy.failed(this, currentGoal);
-        }
-      // That particular strategy is done either way
-      currentStrategy = null;
+    final ActionStatus status = runCurrentAction(time);
+    if (status == ActionStatus.RUNNING) {
+      scheduleNextRunHeartbeat(time);
+      return;
     }
+
+    finishStrategy(status);
 
     // If there is no follow-on action then we're ready
     // for a new goal
@@ -366,6 +314,84 @@ public class Brain {
 
     // Come back soon
     nextHeartbeat = time.getFutureTime(0.001);
+  }
+
+  /**
+   * Pick the next goal/strategy/action if needed. Returns {@code false} when the
+   * planning step threw and {@code think()} should bail (heartbeat already set).
+   */
+  private boolean ensureGoalAndAction(SimTime time) {
+    if (action != null) {
+      return true;
+    }
+    if (currentGoal == null) {
+      currentGoal = selectGoal();
+      actor.say(time.getTime(), time.getFutureTime(1.0), String.valueOf(currentGoal));
+      currentStrategy = null;
+    }
+    if (currentStrategy == null) {
+      currentStrategy = selectStrategy(currentGoal);
+      try {
+        action = makePlan(currentStrategy, currentGoal);
+      } catch (RuntimeException e) {
+        log.error("Error making plan for:{}, strategy:{}", currentGoal, currentStrategy, e);
+        nextHeartbeat = time.getFutureTime(0.001);
+        currentGoal = null;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Honour any forced status, otherwise step the current action. */
+  private ActionStatus runCurrentAction(SimTime time) {
+    if (forcedStatus != null) {
+      final ActionStatus status = forcedStatus;
+      forcedStatus = null;
+      return status;
+    }
+    return action.run(time, this);
+  }
+
+  /** Compute the next heartbeat for an action that is still RUNNING. */
+  private void scheduleNextRunHeartbeat(SimTime time) {
+    // See how long to wait
+    double next = action.getHeartbeat(time);
+
+    // Next should always be a little more than 0 but we
+    // get stuck if the actions return a bad time.  So we'll
+    // check, warn, and adjust
+    if (next <= 0) {
+      log.warn("Bad heartbeat value from:{}  heartbeat:{}", action, next);
+      next = 0.001;
+    }
+
+    nextHeartbeat = time.getFutureTime(next);
+  }
+
+  /** Drive DONE / FAILED outcomes through the strategy and clear it. */
+  private void finishStrategy(ActionStatus status) {
+    if (currentStrategy == null) {
+      // This was a tail action from a finished strategy... so clear
+      // it and get ready for the next goal
+      action = null;
+      return;
+    }
+    // See how we faired
+    if (Objects.requireNonNull(status) == ActionStatus.DONE) {
+      action = currentStrategy.done(this, currentGoal);
+
+      // Clear our memory of failed goals
+      failedGoals.clear();
+    } else if (status == ActionStatus.FAILED) {
+      if (currentGoal != null) {
+        currentGoal.setFailedAction(action.getLastAction());
+        addFailedGoal(currentGoal);
+      }
+      action = currentStrategy.failed(this, currentGoal);
+    }
+    // That particular strategy is done either way
+    currentStrategy = null;
   }
 
   @Override

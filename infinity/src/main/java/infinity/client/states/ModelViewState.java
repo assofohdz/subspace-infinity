@@ -316,17 +316,7 @@ public class ModelViewState extends BaseAppState {
       }
     }
 
-    if (!avatarInitialized
-            && (getState(GameSessionState.class).getAvatarEntityId() != EntityId.NULL_ID
-        || getState(GameSessionState.class).getAvatarEntityId() != null)) {
-      this.avatarEntity =
-          ed.watchEntity(
-              getState(GameSessionState.class).getAvatarEntityId(), Player.class, Frequency.class);
-      if (avatarEntity != null) {
-        avatarInitialized = true;
-        avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
-      }
-    }
+    tryInitializeAvatar();
 
     // updateCenter(worldView.getViewLocation());
     bodies.update();
@@ -336,16 +326,7 @@ public class ModelViewState extends BaseAppState {
     for (Body body : bodies.getArray()) {
       body.update(time);
     }
-    while (!markerQueue.isEmpty()) {
-      // Update static model visibility
-      MarkVisible marker = markerQueue.peek();
-      if (marker.visibleTime > time) {
-        // The earliest item in the queue is not ready yet
-        break;
-      }
-      marker = markerQueue.poll();
-      marker.update();
-    }
+    drainMarkerQueue(time);
 
     if (bodyCount != null) {
       bodyCount.setObject(String.valueOf(bodies.size()));
@@ -364,6 +345,33 @@ public class ModelViewState extends BaseAppState {
     // only updating the ones that changed)
     if (flags.applyChanges()) {
       updateFlagMaterials(avatarFrequency);
+    }
+  }
+
+  private void tryInitializeAvatar() {
+    if (avatarInitialized) {
+      return;
+    }
+    final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
+    // Note: the original guard was `id != NULL_ID || id != null` which is
+    // a tautology (always true) — behaviour preserved by always proceeding.
+    this.avatarEntity = ed.watchEntity(id, Player.class, Frequency.class);
+    if (avatarEntity != null) {
+      avatarInitialized = true;
+      avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
+    }
+  }
+
+  private void drainMarkerQueue(final long time) {
+    while (!markerQueue.isEmpty()) {
+      // Update static model visibility
+      MarkVisible marker = markerQueue.peek();
+      if (marker.visibleTime > time) {
+        // The earliest item in the queue is not ready yet
+        return;
+      }
+      marker = markerQueue.poll();
+      marker.update();
     }
   }
 

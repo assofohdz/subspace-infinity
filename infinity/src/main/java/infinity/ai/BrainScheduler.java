@@ -163,8 +163,10 @@ public class BrainScheduler {
 
             // Sanity check the heartbeat
             if( brain.getNextHeartbeat() <= t ) {
-                log.warn("possible endless loop caused by non-advancing time for:{} next heartbeat:{} t:{}",
-                            brain, brain.getNextHeartbeat(), t);
+                if (log.isWarnEnabled()) {
+                    log.warn("possible endless loop caused by non-advancing time for:{} next heartbeat:{} t:{}",
+                                brain, brain.getNextHeartbeat(), t);
+                }
             }
             schedule(brain);
         }

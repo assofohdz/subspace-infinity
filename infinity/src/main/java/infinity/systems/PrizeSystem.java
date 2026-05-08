@@ -348,25 +348,11 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     prizes.applyChanges();
     ships.applyChanges();
 
-    // Updated count if prizes are removed
-    for (Entity bountyRemoved : prizes.getRemovedEntities()) {
-      EntityId idBounty = bountyRemoved.getId();
-      for (Entity entitySpawner : prizeSpawners) {
-        Set<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
-        spawnerBountySet.remove(idBounty);
-        spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
-      }
-    }
+    pruneRemovedPrizes();
 
     prizeSpawners.applyChanges();
 
-    // Drop cached selectors for spawners that left the set (arena unload,
-    // explicit despawn) so next-time-around builds reflect current settings.
-    for (Entity removedSpawner : prizeSpawners.getRemovedEntities()) {
-      spawnerSelectors.remove(removedSpawner.getId());
-      spawnerBounties.remove(removedSpawner.getId());
-      spawnerLastSpawned.remove(removedSpawner.getId());
-    }
+    pruneRemovedSpawners();
 
     // Hoist ship-id collection above the spawner loop — every spawner in the
     // arena needs the same per-arena player count, so paying the EntitySet
@@ -416,6 +402,35 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
       }
 
       spawnerLastSpawned.put(spawnerId, spawnerLastSpawned.get(spawnerId) + 1000 * time.getTpf());
+    }
+  }
+
+  /**
+   * For each prize that left the {@code prizes} set this tick, drop its id
+   * from every spawner's bounty set so the per-spawner count stays accurate.
+   * Extracted from {@link #update} as a complexity ratchet.
+   */
+  private void pruneRemovedPrizes() {
+    for (Entity bountyRemoved : prizes.getRemovedEntities()) {
+      EntityId idBounty = bountyRemoved.getId();
+      for (Entity entitySpawner : prizeSpawners) {
+        Set<EntityId> spawnerBountySet = spawnerBounties.get(entitySpawner.getId());
+        spawnerBountySet.remove(idBounty);
+        spawnerBounties.put(entitySpawner.getId(), spawnerBountySet);
+      }
+    }
+  }
+
+  /**
+   * Drop cached selectors / bounty sets / last-spawned timestamps for spawners
+   * that left {@code prizeSpawners} this tick (arena unload, explicit despawn).
+   * Extracted from {@link #update} as a complexity ratchet.
+   */
+  private void pruneRemovedSpawners() {
+    for (Entity removedSpawner : prizeSpawners.getRemovedEntities()) {
+      spawnerSelectors.remove(removedSpawner.getId());
+      spawnerBounties.remove(removedSpawner.getId());
+      spawnerLastSpawned.remove(removedSpawner.getId());
     }
   }
 

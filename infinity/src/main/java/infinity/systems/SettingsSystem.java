@@ -212,21 +212,31 @@ public class SettingsSystem extends AbstractGameSystem {
 
   private static Boolean parseBoolAlias(final String raw) {
     final String v = raw.trim();
-    if (v.equalsIgnoreCase("y")
-        || v.equalsIgnoreCase("yes")
-        || v.equalsIgnoreCase("true")
-        || v.equalsIgnoreCase("on")
-        || v.equals("1")) {
+    if (isTrueAlias(v)) {
       return Boolean.TRUE;
     }
-    if (v.equalsIgnoreCase("n")
-        || v.equalsIgnoreCase("no")
-        || v.equalsIgnoreCase("false")
-        || v.equalsIgnoreCase("off")
-        || v.equals("0")) {
+    if (isFalseAlias(v)) {
       return Boolean.FALSE;
     }
     return null;
+  }
+
+  /** True iff {@code v} is one of the truthy boolean aliases (y/yes/true/on/1). */
+  private static boolean isTrueAlias(final String v) {
+    return v.equalsIgnoreCase("y")
+        || v.equalsIgnoreCase("yes")
+        || v.equalsIgnoreCase("true")
+        || v.equalsIgnoreCase("on")
+        || v.equals("1");
+  }
+
+  /** True iff {@code v} is one of the falsy boolean aliases (n/no/false/off/0). */
+  private static boolean isFalseAlias(final String v) {
+    return v.equalsIgnoreCase("n")
+        || v.equalsIgnoreCase("no")
+        || v.equalsIgnoreCase("false")
+        || v.equalsIgnoreCase("off")
+        || v.equals("0");
   }
 
 }

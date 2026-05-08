@@ -80,9 +80,15 @@ public class AvatarMovementFunctions {
   public static final FunctionId F_SHIFT = new FunctionId(G_ALTERNATIVE, "Shift");
 
   public static void initializeDefaultMappings(final InputMapper inputMapper) {
+    mapMovement(inputMapper);
+    mapMouse(inputMapper);
+    mapActions(inputMapper);
+    mapWeapons(inputMapper);
+    mapTower(inputMapper);
+    mapShipSelection(inputMapper);
+  }
 
-    // Default key mappings
-    // Movement:--->>
+  private static void mapMovement(final InputMapper inputMapper) {
     if (!inputMapper.hasMappings(F_SHIFT)) {
       inputMapper.map(F_SHIFT, KeyInput.KEY_LSHIFT);
     }
@@ -100,11 +106,9 @@ public class AvatarMovementFunctions {
     if (!inputMapper.hasMappings(F_STOP)) {
       inputMapper.map(F_STOP, KeyInput.KEY_SPACE);
     }
-    // <---
+  }
 
-    /*
-     * Mouse
-     */
+  private static void mapMouse(final InputMapper inputMapper) {
     if (!inputMapper.hasMappings(F_MOUSE1)) {
       inputMapper.map(F_MOUSE1, Button.MOUSE_BUTTON1);
     }
@@ -116,9 +120,9 @@ public class AvatarMovementFunctions {
     if (!inputMapper.hasMappings(F_MOUSE3)) {
       inputMapper.map(F_MOUSE3, Button.MOUSE_BUTTON3);
     }
-    /*
-     * Actions
-     */
+  }
+
+  private static void mapActions(final InputMapper inputMapper) {
     if (!inputMapper.hasMappings(F_WARP)) {
       inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
     }
@@ -145,10 +149,9 @@ public class AvatarMovementFunctions {
     if (!inputMapper.hasMappings(F_ATTACH)) {
       inputMapper.map(F_REPEL, KeyInput.KEY_F7);
     }
+  }
 
-    /*
-     * Weapons
-     */
+  private static void mapWeapons(final InputMapper inputMapper) {
     if (!inputMapper.hasMappings(F_THOR)) {
       inputMapper.map(F_THOR, KeyInput.KEY_F12);
     }
@@ -172,15 +175,16 @@ public class AvatarMovementFunctions {
     if (!inputMapper.hasMappings(F_BURST)) {
       inputMapper.map(F_BURST, KeyInput.KEY_DELETE);
     }
+  }
 
-    /*
-     * Tower defense
-     */
+  private static void mapTower(final InputMapper inputMapper) {
     if (!inputMapper.hasMappings(F_TOWER)) {
       inputMapper.map(F_TOWER, KeyInput.KEY_T);
     }
+  }
 
-    /** Ship selection keys */
+  /** Ship selection keys */
+  private static void mapShipSelection(final InputMapper inputMapper) {
     if (!inputMapper.hasMappings(F_WARBIRD)) {
       inputMapper.map(F_WARBIRD, KeyInput.KEY_1);
     }

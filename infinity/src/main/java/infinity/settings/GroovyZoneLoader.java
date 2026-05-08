@@ -61,7 +61,7 @@ public final class GroovyZoneLoader {
     // zone treats missing the same as broken — both fall through to EMPTY.
     final ZoneConfig raw = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
     final ZoneConfig cfg = raw == null ? ZoneConfig.EMPTY : raw;
-    if (cfg != ZoneConfig.EMPTY) {
+    if (cfg != ZoneConfig.EMPTY && log.isInfoEnabled()) {
       log.info(
           "Applied {}: autoLoad={}, enterSpawn='{}'",
           classpathPath,

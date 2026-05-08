@@ -43,8 +43,10 @@ public final class BombPrizeApplier implements PrizeApplier {
       return;
     }
     if (curr.getLevel().level < max.getLevel().level) {
-      log.info(
-          "Ship {} picked up bomb prize and now has {} bombs", ship, curr.getLevel().next());
+      if (log.isInfoEnabled()) {
+        log.info(
+            "Ship {} picked up bomb prize and now has {} bombs", ship, curr.getLevel().next());
+      }
       ed.setComponent(ship, new BombCurrentLevel(curr.getLevel().next()));
     }
   }

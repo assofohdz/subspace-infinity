@@ -94,7 +94,27 @@ public class SpaceGridState extends BaseAppState {
     // I have in mind a grid where the lines fade out
     // as the inverse square or something.  I think if it's
     // gradual enough it will look ok even though it's stationary.
+    final List<Segment> segs = buildFadingGridSegments();
+    final Mesh mesh = segmentsToLineMesh(segs);
 
+    grid = new Geometry("SpaceGrid", mesh);
+    Material mat = GuiGlobals.getInstance().createMaterial(gridColor, false).getMaterial();
+    mat.setBoolean("VertexColor", true);
+    mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+    grid.setMaterial(mat);
+    grid.setQueueBucket(Bucket.Transparent);
+
+    // Asser: Try to displace grid by half the cell size to make the playing field in the center of
+    // the grid
+    grid.setLocalTranslation(0, InfinityConstants.GRID_CELL_SIZE / (float) 2, 0);
+  }
+
+  /**
+   * Walk the 3D grid and emit a Segment between each adjacent voxel pair, with a
+   * fade weight from the distance-cubed falloff. Connects each cell to its
+   * −y / −x / −z neighbour so the resulting mesh is a 3D line lattice.
+   */
+  private List<Segment> buildFadingGridSegments() {
     // Keep track of the values in two layers then connect them
     int size = gridRadius * 10 + 1;
     float[][] last = new float[size][size];
@@ -117,42 +137,9 @@ public class SpaceGridState extends BaseAppState {
         float x = -(gridRadius * cellSize) + (float) i * cellSize;
         for (int k = 0; k < size; k++) {
           float z = -(gridRadius * cellSize) + (float) k * cellSize;
-          float dx = x - xCenter;
-          float dy = y - yCenter;
-          float dz = z - zCenter;
-          float dSquared = dx * dx + dy * dy + dz * dz;
-          float d = (float) Math.sqrt(dSquared);
-
-          float value = (maxDist - d) / maxDist;
-          if (value > 0) {
-            value = value * value * value;
-          }
-
+          float value = falloffAt(x, y, z, xCenter, yCenter, zCenter, maxDist);
           current[i][k] = value;
-          if (j > 0) {
-            // May need to draw a line to the previous layer
-            float neighbor = last[i][k];
-            if (value >= 0 && neighbor >= 0) {
-              // Then we can emit a span
-              segs.add(new Segment(x, y, z, value, x, y - cellSize, z, neighbor));
-            }
-          }
-          if (i > 0) {
-            // May need to draw a line to the west (-x)
-            float neighbor = current[i - 1][k];
-            if (value >= 0 && neighbor >= 0) {
-              // Then we can emit a span
-              segs.add(new Segment(x, y, z, value, x - cellSize, y, z, neighbor));
-            }
-          }
-          if (k > 0) {
-            // May need to draw a line to north (-z)
-            float neighbor = current[i][k - 1];
-            if (value >= 0 && neighbor >= 0) {
-              // Then we can emit a span
-              segs.add(new Segment(x, y, z, value, x, y, z - cellSize, neighbor));
-            }
-          }
+          emitNeighborSegments(segs, j, i, k, x, y, z, value, current, last);
         }
       }
 
@@ -161,8 +148,55 @@ public class SpaceGridState extends BaseAppState {
       current = last;
       last = temp;
     }
+    return segs;
+  }
 
-    // Now make a mesh
+  /** Inverse-cube falloff weight at {@code (x,y,z)} relative to the cell centre. */
+  private static float falloffAt(
+      float x, float y, float z, float xCenter, float yCenter, float zCenter, float maxDist) {
+    float dx = x - xCenter;
+    float dy = y - yCenter;
+    float dz = z - zCenter;
+    float d = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
+    float value = (maxDist - d) / maxDist;
+    if (value > 0) {
+      value = value * value * value;
+    }
+    return value;
+  }
+
+  /**
+   * Emit the −y / −x / −z connection segments from the cell at index {@code (j,i,k)}
+   * provided the corresponding neighbour exists and has a non-negative falloff value.
+   */
+  private void emitNeighborSegments(
+      List<Segment> segs, int j, int i, int k,
+      float x, float y, float z, float value,
+      float[][] current, float[][] last) {
+    if (j > 0) {
+      maybeAddSpan(segs, value, last[i][k], x, y, z, x, y - cellSize, z);
+    }
+    if (i > 0) {
+      maybeAddSpan(segs, value, current[i - 1][k], x, y, z, x - cellSize, y, z);
+    }
+    if (k > 0) {
+      maybeAddSpan(segs, value, current[i][k - 1], x, y, z, x, y, z - cellSize);
+    }
+  }
+
+  /** Add a span segment between two cells iff both endpoints have non-negative falloff. */
+  private void maybeAddSpan(
+      List<Segment> segs,
+      float value, float neighbor,
+      float x1, float y1, float z1,
+      float x2, float y2, float z2) {
+    if (value >= 0 && neighbor >= 0) {
+      segs.add(new Segment(x1, y1, z1, value, x2, y2, z2, neighbor));
+    }
+  }
+
+  /** Pack a list of {@link Segment}s into a JME line {@link Mesh} (positions + per-vertex colour). */
+  private static Mesh segmentsToLineMesh(final List<Segment> segs) {
     float[] pos = new float[segs.size() * 2 * 3];
     float[] color = new float[segs.size() * 2 * 4];
     int posIndex = 0;
@@ -190,17 +224,7 @@ public class SpaceGridState extends BaseAppState {
     mesh.setBuffer(VertexBuffer.Type.Position, 3, pos);
     mesh.setBuffer(VertexBuffer.Type.Color, 4, color);
     mesh.updateBound();
-
-    grid = new Geometry("SpaceGrid", mesh);
-    Material mat = GuiGlobals.getInstance().createMaterial(gridColor, false).getMaterial();
-    mat.setBoolean("VertexColor", true);
-    mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-    grid.setMaterial(mat);
-    grid.setQueueBucket(Bucket.Transparent);
-
-    // Asser: Try to displace grid by half the cell size to make the playing field in the center of
-    // the grid
-    grid.setLocalTranslation(0, InfinityConstants.GRID_CELL_SIZE / (float) 2, 0);
+    return mesh;
   }
 
   @Override

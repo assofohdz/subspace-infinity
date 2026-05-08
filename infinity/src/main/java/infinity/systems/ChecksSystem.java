@@ -445,27 +445,60 @@ public class ChecksSystem extends AbstractGameSystem {
   /** Read getCount() across the whole inventory family + Energy/etc. as a flat int. */
   private static String intValue(final EntityComponent c) {
     if (c == null) return "?";
+    final String inv = inventoryCount(c);
+    if (inv != null) return inv;
+    final String stat = shipStatValue(c);
+    if (stat != null) return stat;
+    return "?";
+  }
+
+  /** Inventory-family components: dispatcher across active-use, buildable, mobile groups. */
+  private static String inventoryCount(final EntityComponent c) {
+    final String active = inventoryCountActive(c);
+    if (active != null) return active;
+    final String buildable = inventoryCountBuildable(c);
+    if (buildable != null) return buildable;
+    return inventoryCountMobile(c);
+  }
+
+  /** Active-use inventory: Repel / Burst / Thor (current + max each). */
+  private static String inventoryCountActive(final EntityComponent c) {
     if (c instanceof Repel r) return Integer.toString(r.getCount());
     if (c instanceof RepelMax r) return Integer.toString(r.getCount());
     if (c instanceof Burst b) return Integer.toString(b.getCount());
     if (c instanceof BurstMax b) return Integer.toString(b.getCount());
     if (c instanceof ThorCurrentCount t) return Integer.toString(t.getCount());
     if (c instanceof ThorMaxCount t) return Integer.toString(t.getCount());
+    return null;
+  }
+
+  /** Buildable inventory: Brick / Decoy (current + max each). */
+  private static String inventoryCountBuildable(final EntityComponent c) {
     if (c instanceof Brick b) return Integer.toString(b.getCount());
     if (c instanceof BrickMax b) return Integer.toString(b.getCount());
     if (c instanceof Decoy d) return Integer.toString(d.getCount());
     if (c instanceof DecoyMax d) return Integer.toString(d.getCount());
+    return null;
+  }
+
+  /** Mobility inventory: Rocket / Portal (current + max each). */
+  private static String inventoryCountMobile(final EntityComponent c) {
     if (c instanceof Rocket r) return Integer.toString(r.getCount());
     if (c instanceof RocketMax r) return Integer.toString(r.getCount());
     if (c instanceof Portal p) return Integer.toString(p.getCount());
     if (c instanceof PortalMax p) return Integer.toString(p.getCount());
+    return null;
+  }
+
+  /** Ship-stat scalars (Energy/Thrust/Speed × current+max). */
+  private static String shipStatValue(final EntityComponent c) {
     if (c instanceof Energy e) return Integer.toString(e.getEnergy());
     if (c instanceof EnergyMax e) return Integer.toString(e.getMaxEnergy());
     if (c instanceof Thrust t) return Integer.toString(t.getThrust());
     if (c instanceof ThrustMax t) return Integer.toString(t.getThrustMax());
     if (c instanceof Speed s) return Integer.toString(s.getSpeed());
     if (c instanceof SpeedMax s) return Integer.toString(s.getSpeedMax());
-    return "?";
+    return null;
   }
 
   private static String doubleValue(final EntityComponent c) {
@@ -527,7 +560,13 @@ public class ChecksSystem extends AbstractGameSystem {
         .append(prizeSpawners.size()).append(" spawner(s), ")
         .append(prizes.size()).append(" prize(s) alive\n");
 
-    // Per-spawner audit
+    appendSpawnerAudit(sb);
+    appendPrizeDecayStats(sb);
+    return sb.toString();
+  }
+
+  /** Append one bullet per prize spawner: arena, caps, TTL, override status. */
+  private void appendSpawnerAudit(final StringBuilder sb) {
     for (final Entity spawner : prizeSpawners) {
       final EntityId sid = spawner.getId();
       final Spawner s = spawner.get(Spawner.class);
@@ -543,8 +582,10 @@ public class ChecksSystem extends AbstractGameSystem {
               : "override(" + override.getOverrides().size() + " keys)")
           .append('\n');
     }
+  }
 
-    // Decay sanity on every alive prize
+  /** Walk live prizes, summarise their Decay stats, and append PASS/FAIL verdict. */
+  private void appendPrizeDecayStats(final StringBuilder sb) {
     final long now = timeSystem.getTime();
     int prizesWithoutDecay = 0;
     int prizesExpired = 0;
@@ -580,7 +621,6 @@ public class ChecksSystem extends AbstractGameSystem {
     final boolean ok = prizesWithoutDecay == 0 && prizesExpired == 0;
     sb.append(ok ? "PASS" : "FAIL (")
         .append(ok ? "" : prizesWithoutDecay + " no-Decay, " + prizesExpired + " expired)");
-    return sb.toString();
   }
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature

@@ -97,6 +97,20 @@ public class PositionHudState extends BaseAppState {
 
   @Override
   public void update(final float tpf) {
+    final Vec3d world = resolveAvatarWorld();
+    if (world == null) {
+      return;
+    }
+    worldLabel.setText(String.format("world:  %.0f, %.0f", world.x, world.z));
+    updateArenaLabel(world);
+  }
+
+  /**
+   * Lazy-bind the position reference and return the avatar's current world position,
+   * or {@code null} if the avatar is not yet observable. Updates the world/arena
+   * placeholder labels as a side-effect for the not-ready states.
+   */
+  private Vec3d resolveAvatarWorld() {
     // Lazy-bind the position reference: AvatarMovementState publishes the avatar's
     // smoothed world position to BlackboardState["position"] in its initialize(), but
     // by the time it arrives depends on AppState ordering and on the avatar entity
@@ -113,23 +127,27 @@ public class PositionHudState extends BaseAppState {
     if (posRef == null) {
       worldLabel.setText("world: (waiting for avatar)");
       arenaLabel.setText("arena: -");
-      return;
+      return null;
     }
     posRef.update();
     final Vec3d world = posRef.get();
     if (world == null) {
       worldLabel.setText("world: (loading)");
       arenaLabel.setText("arena: -");
-      return;
+      return null;
     }
-    worldLabel.setText(String.format("world:  %.0f, %.0f", world.x, world.z));
+    return world;
+  }
 
-    // Lazy-resolve the avatar entity id (GameSessionState fetches via RMI; may not
-    // have arrived yet at this state's initialize), then lazy-bind the watch.
-    // ed.getComponent on the client-side network proxy is unreliable for "not
-    // currently observed" component values — ed.watchEntity is the canonical pattern
-    // used elsewhere in the client (see AvatarMovementState for BodyPosition,
-    // InfinityCameraState for the same).
+  /**
+   * Lazy-resolve the avatar entity id (GameSessionState fetches via RMI; may not
+   * have arrived yet at this state's initialize), then lazy-bind the watch.
+   * ed.getComponent on the client-side network proxy is unreliable for "not
+   * currently observed" component values — ed.watchEntity is the canonical pattern
+   * used elsewhere in the client (see AvatarMovementState for BodyPosition,
+   * InfinityCameraState for the same).
+   */
+  private void updateArenaLabel(final Vec3d world) {
     if (avatarEntityId == null) {
       final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
       if (id != null && !EntityId.NULL_ID.equals(id)) {

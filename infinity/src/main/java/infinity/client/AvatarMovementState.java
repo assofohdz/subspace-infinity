@@ -218,23 +218,9 @@ public class AvatarMovementState extends BaseAppState
       return null;
     }
     if (avatarWatch == null) {
-      EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-      if (id == null || EntityId.NULL_ID.equals(id)) {
-        return null;
-      }
-      avatarId = id;
-      avatarWatch = ed.watchEntity(id, BodyPosition.class);
-      BodyPosition bp = avatarWatch.get(BodyPosition.class);
-      if (bp != null) {
-        bp.initialize(id, 12);
-        avatarBodyPos = bp;
-      }
+      lazyBindAvatarWatch();
     } else if (avatarWatch.applyChanges()) {
-      BodyPosition bp = avatarWatch.get(BodyPosition.class);
-      if (bp != null) {
-        bp.initialize(avatarId, 12);
-        avatarBodyPos = bp;
-      }
+      refreshAvatarBodyPos();
     }
     if (avatarBodyPos == null) {
       return null;
@@ -247,16 +233,36 @@ public class AvatarMovementState extends BaseAppState
     return frame.getPosition(t, true);
   }
 
+  /** Resolve the avatar entity id and start a watch + initial BodyPosition bind. */
+  private void lazyBindAvatarWatch() {
+    EntityId id = getState(GameSessionState.class).getAvatarEntityId();
+    if (id == null || EntityId.NULL_ID.equals(id)) {
+      return;
+    }
+    avatarId = id;
+    avatarWatch = ed.watchEntity(id, BodyPosition.class);
+    BodyPosition bp = avatarWatch.get(BodyPosition.class);
+    if (bp != null) {
+      bp.initialize(id, 12);
+      avatarBodyPos = bp;
+    }
+  }
+
+  /** Re-bind the latest BodyPosition after the watch reported a change. */
+  private void refreshAvatarBodyPos() {
+    BodyPosition bp = avatarWatch.get(BodyPosition.class);
+    if (bp != null) {
+      bp.initialize(avatarId, 12);
+      avatarBodyPos = bp;
+    }
+  }
+
   @Override
   public void valueChanged(final FunctionId func, final InputState value, final double tpf) {
     final boolean b = value == InputState.Positive;
 
     if (func == AvatarMovementFunctions.F_RUN) {
-      if (b) {
-        speed = 2;
-      } else {
-        speed = 1;
-      }
+      speed = b ? 2 : 1;
     }
 
     if (value == InputState.Positive) {
@@ -266,29 +272,35 @@ public class AvatarMovementState extends BaseAppState
     }
 
     if (value == InputState.Off) {
-      // Ship selection triggers on key release
-      if (func == AvatarMovementFunctions.F_WARBIRD) {
-        session.avatar(AvatarSystem.WARBIRD);
-      } else if (func == AvatarMovementFunctions.F_JAVELIN) {
-        session.avatar(AvatarSystem.JAVELIN);
-      } else if (func == AvatarMovementFunctions.F_SPIDER) {
-        session.avatar(AvatarSystem.SPIDER);
-      } else if (func == AvatarMovementFunctions.F_LEVI) {
-        session.avatar(AvatarSystem.LEVI);
-      } else if (func == AvatarMovementFunctions.F_TERRIER) {
-        session.avatar(AvatarSystem.TERRIER);
-      } else if (func == AvatarMovementFunctions.F_WEASEL) {
-        session.avatar(AvatarSystem.WEASEL);
-      } else if (func == AvatarMovementFunctions.F_LANC) {
-        session.avatar(AvatarSystem.LANCASTER);
-      } else if (func == AvatarMovementFunctions.F_SHARK) {
-        session.avatar(AvatarSystem.SHARK);
-      } else if (func == AvatarMovementFunctions.F_WARP) {
-        session.action(ConsumableSystem.WARP);
-      } else if (func == AvatarMovementFunctions.F_SHIFT){
-        this.shiftPressed = false;
-      }
+      handleKeyReleased(func);
     }
+  }
+
+  /** Ship selection + warp + shift-release dispatch on key release. */
+  private void handleKeyReleased(final FunctionId func) {
+    final byte ship = shipForFunction(func);
+    if (ship >= 0) {
+      session.avatar(ship);
+      return;
+    }
+    if (func == AvatarMovementFunctions.F_WARP) {
+      session.action(ConsumableSystem.WARP);
+    } else if (func == AvatarMovementFunctions.F_SHIFT) {
+      this.shiftPressed = false;
+    }
+  }
+
+  /** Map a ship-selection function key to its {@code AvatarSystem.*} byte, or {@code -1} if none. */
+  private static byte shipForFunction(final FunctionId func) {
+    if (func == AvatarMovementFunctions.F_WARBIRD) return AvatarSystem.WARBIRD;
+    if (func == AvatarMovementFunctions.F_JAVELIN) return AvatarSystem.JAVELIN;
+    if (func == AvatarMovementFunctions.F_SPIDER) return AvatarSystem.SPIDER;
+    if (func == AvatarMovementFunctions.F_LEVI) return AvatarSystem.LEVI;
+    if (func == AvatarMovementFunctions.F_TERRIER) return AvatarSystem.TERRIER;
+    if (func == AvatarMovementFunctions.F_WEASEL) return AvatarSystem.WEASEL;
+    if (func == AvatarMovementFunctions.F_LANC) return AvatarSystem.LANCASTER;
+    if (func == AvatarMovementFunctions.F_SHARK) return AvatarSystem.SHARK;
+    return -1;
   }
 
   protected Vec3d updateShipLocation(Vec3d loc) {
@@ -323,11 +335,18 @@ public class AvatarMovementState extends BaseAppState
     // Movement - valueActive is called every frame while input is active
     if (func == AvatarMovementFunctions.F_TURN) {
       currentRotation = value;
-    } else if (func == AvatarMovementFunctions.F_THRUST) {
-      currentThrust = value;
+      return;
     }
-    // Weapons - continuous fire while held
-    else if (func == AvatarMovementFunctions.F_GRAVBOMB) {
+    if (func == AvatarMovementFunctions.F_THRUST) {
+      currentThrust = value;
+      return;
+    }
+    dispatchHeldWeapon(func);
+  }
+
+  /** Continuous fire while held — bombs/mines/thor/repel/burst/bullets. */
+  private void dispatchHeldWeapon(FunctionId func) {
+    if (func == AvatarMovementFunctions.F_GRAVBOMB) {
       session.attack(WeaponsSystem.GRAVBOMB);
     } else if (func == AvatarMovementFunctions.F_BOMB && !shiftPressed) {
       session.attack(WeaponsSystem.BOMB);

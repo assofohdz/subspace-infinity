@@ -136,13 +136,15 @@ public final class BlockTypeExpander {
         }
       }
     }
-    log.info(
-        "Installed {} solid tile colliders across {} arena slots ({}-{} minus flyover/flyunder); array size {}",
-        installed,
-        InfinityConstants.MAX_ARENAS,
-        InfinityConstants.TILE_TYPE_BASE,
-        InfinityConstants.BLOCK_TYPE_INDEX_SIZE - 1,
-        expanded.length);
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Installed {} solid tile colliders across {} arena slots ({}-{} minus flyover/flyunder); array size {}",
+          installed,
+          InfinityConstants.MAX_ARENAS,
+          InfinityConstants.TILE_TYPE_BASE,
+          InfinityConstants.BLOCK_TYPE_INDEX_SIZE - 1,
+          expanded.length);
+    }
     return expanded;
   }
 }

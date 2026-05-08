@@ -93,29 +93,7 @@ public class InfinityGeometryFactory {
 
         // Collect the visible GeomParts by type
         DefaultPartBuffer buffer = new DefaultPartBuffer();
-
-        int xSize = cells.getSizeX();
-        int ySize = cells.getSizeY();
-        int zSize = cells.getSizeZ();
-
-        for( int x = 0; x < xSize; x++ ) {
-            for( int y = 0; y < ySize; y++ ) {
-                for( int z = 0; z < zSize; z++ ) {
-                    int val = cells.getCell(x, y, z);
-                    int type = MaskUtils.getType(val);
-                    if( type == 0 ) {
-                        continue;
-                    }
-                    BlockType blockType = BlockTypeIndex.get(type);
-                    if( blockType == null ) {
-                        continue;
-                    }
-                    int sideMask = MaskUtils.getSideMask(val);
-                    blockType.getFactory().addGeometryToBuffer(buffer, x, y, z, x, y, z,
-                            sideMask, cells, blockType);
-                }
-            }
-        }
+        populateBlockBuffer(buffer, cells);
 
         // Resolve a light gradient implementation based on the
         // smooth lighting flag.  Ultimately, if we ever have more than
@@ -132,6 +110,35 @@ public class InfinityGeometryFactory {
             log.trace("Generated in:" + ((end - start)/1000000.0) + " ms");
         }
         return result;
+    }
+
+    /**
+     * Triple-loops over every cell in {@code cells} and asks each cell's
+     * {@link BlockType} factory to push its visible geometry parts into
+     * {@code buffer}. Cells with type 0 (empty) and unknown types are skipped.
+     */
+    private static void populateBlockBuffer(final DefaultPartBuffer buffer, final CellArray cells) {
+        final int xSize = cells.getSizeX();
+        final int ySize = cells.getSizeY();
+        final int zSize = cells.getSizeZ();
+        for (int x = 0; x < xSize; x++) {
+            for (int y = 0; y < ySize; y++) {
+                for (int z = 0; z < zSize; z++) {
+                    int val = cells.getCell(x, y, z);
+                    int type = MaskUtils.getType(val);
+                    if (type == 0) {
+                        continue;
+                    }
+                    BlockType blockType = BlockTypeIndex.get(type);
+                    if (blockType == null) {
+                        continue;
+                    }
+                    int sideMask = MaskUtils.getSideMask(val);
+                    blockType.getFactory().addGeometryToBuffer(buffer, x, y, z, x, y, z,
+                            sideMask, cells, blockType);
+                }
+            }
+        }
     }
 
 
@@ -155,31 +162,7 @@ public class InfinityGeometryFactory {
 
         // Collect the visible GeomParts by type
         DefaultPartBuffer buffer = new DefaultPartBuffer();
-
-        int xSize = fluid.getSizeX();
-        int ySize = fluid.getSizeY();
-        int zSize = fluid.getSizeZ();
-
-        for( int x = 0; x < xSize; x++ ) {
-            for( int y = 0; y < ySize; y++ ) {
-                for( int z = 0; z < zSize; z++ ) {
-                    int val = fluid.getCell(x, y, z);
-                    int type = FluidUtils.getType(val);
-                    if( type == 0 ) {
-                        continue;
-                    }
-                    FluidType fluidType = FluidTypeIndex.get(type);
-                    if( fluidType == null ) {
-                        continue;
-                    }
-                    int level = FluidUtils.getLevel(val);
-                    int sideMask = FluidUtils.getSideMask(val);
-                    fluidType.getFactory().addGeometryToBuffer(buffer, x, y, z, x, y, z,
-                            sideMask, level,
-                            cells, fluid, fluidType);
-                }
-            }
-        }
+        populateFluidBuffer(buffer, fluid, cells);
 
         // Resolve a light gradient implementation based on the
         // smooth lighting flag.  Ultimately, if we ever have more than
@@ -196,6 +179,39 @@ public class InfinityGeometryFactory {
             log.trace("Generated in:" + ((end - start)/1000000.0) + " ms");
         }
         return result;
+    }
+
+    /**
+     * Triple-loops over every cell in {@code fluid}, looks up the matching
+     * {@link FluidType}, and pushes its geometry parts into {@code buffer}. The
+     * neighbouring solid {@code cells} array is forwarded to the factory so
+     * fluid faces can be culled against adjacent walls. Empty/unknown types skipped.
+     */
+    private static void populateFluidBuffer(
+            final DefaultPartBuffer buffer, final CellArray fluid, final CellArray cells) {
+        final int xSize = fluid.getSizeX();
+        final int ySize = fluid.getSizeY();
+        final int zSize = fluid.getSizeZ();
+        for (int x = 0; x < xSize; x++) {
+            for (int y = 0; y < ySize; y++) {
+                for (int z = 0; z < zSize; z++) {
+                    int val = fluid.getCell(x, y, z);
+                    int type = FluidUtils.getType(val);
+                    if (type == 0) {
+                        continue;
+                    }
+                    FluidType fluidType = FluidTypeIndex.get(type);
+                    if (fluidType == null) {
+                        continue;
+                    }
+                    int level = FluidUtils.getLevel(val);
+                    int sideMask = FluidUtils.getSideMask(val);
+                    fluidType.getFactory().addGeometryToBuffer(buffer, x, y, z, x, y, z,
+                            sideMask, level,
+                            cells, fluid, fluidType);
+                }
+            }
+        }
     }
 
     protected void renderBuffer( Node target, DefaultPartBuffer buffer,

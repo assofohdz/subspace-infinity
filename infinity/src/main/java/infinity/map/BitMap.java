@@ -34,22 +34,51 @@ public class BitMap {
     }
 
     public void readBitMap(final boolean trans) {
-        // Read 14 bytes for file header
-        final byte[] fileHeader = readIn(14);
-        ByteBuffer array = LvlBinUtil.wrapLE(fileHeader);
+        if (!readFileHeader()) {
+            return; // Not a valid BMP — readFileHeader sets hasELVL/ELvlOffset on bare-eLVL files.
+        }
+        // Read 40 bytes for info header
+        final byte[] infoHeader = readIn(40);
+        final ByteBuffer array = LvlBinUtil.wrapLE(infoHeader);
+        m_width = array.getInt(4);
+        m_height = array.getInt(8);
+        m_bitCount = array.getShort(14);
+        final int m_compressionType = array.getInt(16);
 
-        if (LvlBinUtil.readString(array, 0, 2).equals("BM")) {
-            m_validBMP = true;
-        } else {
+        m_image = new int[m_width * m_height];
+
+        if (m_bitCount <= 8) {
+            readColorTable(trans);
+        }
+
+        if (m_compressionType == BI_RGB && m_bitCount <= 8) {
+            readInRGB();
+        } else if (m_compressionType == BI_RLE8 && m_bitCount == 8) {
+            readInRLE8();
+        } else if (m_compressionType == BI_RGB && m_bitCount == 24) {
+            readInRGB24(trans);
+        }
+    }
+
+    /**
+     * Read the 14-byte BMP file header. Returns {@code true} if a valid BMP
+     * was detected (and {@link #m_size} / {@link #ELvlOffset} are populated),
+     * {@code false} if the header is missing the "BM" magic — in the latter
+     * case {@link #hasELVL} / {@link #ELvlOffset} may still be set if the file
+     * is bare eLVL (no BMP wrapper).
+     */
+    private boolean readFileHeader() {
+        final byte[] fileHeader = readIn(14);
+        final ByteBuffer array = LvlBinUtil.wrapLE(fileHeader);
+        if (!LvlBinUtil.readString(array, 0, 2).equals("BM")) {
             if (LvlBinUtil.readString(array, 0, 4).equals("elvl")) {
                 hasELVL = true;
                 ELvlOffset = 0;
             }
-
-            return;
+            return false;
         }
+        m_validBMP = true;
         m_size = array.getInt(2);
-
         // The Subspace convention stores the eLVL section's offset in the BMP's 4-byte `reserved`
         // field (fileHeader[6..9]). Reference: SubspaceServer/src/Core/Map/BitmapHeader.cs — `Reserved`
         // is a uint. The old code read only 2 bytes and checked against the hardcoded 49720, which
@@ -61,43 +90,25 @@ public class BitMap {
             ELvlOffset = reservedOffset;
             hasELVL = true;
         }
+        return true;
+    }
 
-        // Read 40 bytes for info header
-        final byte[] infoHeader = readIn(40);
-        array = LvlBinUtil.wrapLE(infoHeader);
-        m_width = array.getInt(4);
-        m_height = array.getInt(8);
-        m_bitCount = array.getShort(14);
-        final int m_compressionType = array.getInt(16);
-        int m_colorsUsed = array.getInt(20);
-
-        // Create our image container
-        m_image = new int[m_width * m_height];
-
-        // If it is 8 bits or less it has a color table
-        if (m_bitCount <= 8) {
-            // Define our color tables/colors used
-            m_colorTable = new int[(int) Math.pow(2, m_bitCount)];
-            m_colorsUsed = (int) Math.pow(2, m_bitCount);
-            // Read in the color table
-            for (int i = 0; i < m_colorsUsed; i++) {
-                final byte c[] = readIn(4);
-                array = LvlBinUtil.wrapLE(c);
-                m_colorTable[i] = (array.getInt(0) & 0xffffff) + 0xff000000;
-
-                // Make black transparent. SS specific need, will adjust to be dynamic
-                if (m_colorTable[i] == 0xff000000 && trans) {
-                    m_colorTable[i] = m_colorTable[i] & 0x00000000;
-                }
+    /**
+     * Read the 4-byte palette entries from the stream into {@link #m_colorTable}
+     * (paletted-BMP path only; {@code m_bitCount &le; 8}). Each entry is
+     * promoted to 0xff___ARGB; when {@code trans} is true, pure-black entries
+     * are mapped to fully transparent (Subspace convention).
+     */
+    private void readColorTable(final boolean trans) {
+        m_colorTable = new int[(int) Math.pow(2, m_bitCount)];
+        final int colorsUsed = (int) Math.pow(2, m_bitCount);
+        for (int i = 0; i < colorsUsed; i++) {
+            final byte[] c = readIn(4);
+            final ByteBuffer array = LvlBinUtil.wrapLE(c);
+            m_colorTable[i] = (array.getInt(0) & 0xffffff) + 0xff000000;
+            if (m_colorTable[i] == 0xff000000 && trans) {
+                m_colorTable[i] = m_colorTable[i] & 0x00000000;
             }
-        }
-
-        if (m_compressionType == BI_RGB && m_bitCount <= 8) {
-            readInRGB();
-        } else if (m_compressionType == BI_RLE8 && m_bitCount == 8) {
-            readInRLE8();
-        } else if (m_compressionType == BI_RGB && m_bitCount == 24) {
-            readInRGB24(trans);
         }
     }
 
@@ -149,39 +160,57 @@ public class BitMap {
      * Reads RLE 8 bit bitmaps
      */
     public void readInRLE8() {
-
         int y = m_height - 1;
         int x = 0;
-
         int a = readByte();
         int b = readByte();
-        while (((a != 0) || (b != 1))) {
-
+        while (a != 0 || b != 1) {
             if (a == 0) {
-                if (b == 0) {
-                    y--;
-                    x = 0;
-                } else if (b == 2) {
-                    x += readByte();
-                    y -= readByte();
-                } else if (b >= 3) {
-                    for (int i = 0; i < b; i++) {
-                        m_image[y * m_width + x] = m_colorTable[readByte()];
-                        x++;
-                    }
-                    if (Math.round(b / 2.0) != b / 2.0) {
-                        readByte();
-                    }
-                }
+                final int[] rowAndCol = decodeRleEscape(b, y, x);
+                y = rowAndCol[0];
+                x = rowAndCol[1];
             } else {
+                final int paletteIndex = b;
                 for (int i = 0; i < a; i++) {
-                    m_image[y * m_width + x] = m_colorTable[b];
+                    m_image[y * m_width + x] = m_colorTable[paletteIndex];
                     x++;
                 }
             }
             a = readByte();
             b = readByte();
         }
+    }
+
+    /**
+     * Decode a BMP RLE-8 escape (encoded byte {@code 0x00 b}). Mutates
+     * {@link #m_image} for absolute-run escapes ({@code b >= 3}) and returns
+     * the new {@code (y, x)} cursor in {@code [0]}/{@code [1]}.
+     *
+     * <ul>
+     *   <li>{@code b == 0} — end of line: y--, x=0.</li>
+     *   <li>{@code b == 2} — delta: read two bytes, advance x and reverse-y.</li>
+     *   <li>{@code b >= 3} — absolute run of {@code b} pixels with optional pad.</li>
+     * </ul>
+     */
+    private int[] decodeRleEscape(final int b, final int yIn, final int xIn) {
+        int y = yIn;
+        int x = xIn;
+        if (b == 0) {
+            y--;
+            x = 0;
+        } else if (b == 2) {
+            x += readByte();
+            y -= readByte();
+        } else if (b >= 3) {
+            for (int i = 0; i < b; i++) {
+                m_image[y * m_width + x] = m_colorTable[readByte()];
+                x++;
+            }
+            if (Math.round(b / 2.0) != b / 2.0) {
+                readByte();
+            }
+        }
+        return new int[] {y, x};
     }
 
     /**

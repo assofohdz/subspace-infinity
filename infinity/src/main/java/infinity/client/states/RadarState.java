@@ -451,7 +451,19 @@ public class RadarState extends BaseAppState {
         final Vec3i centerWorld = WorldGrids.LEAF_GRID.cellToWorld(newCenter);
 
         final Set<LeafId> toRemove = new HashSet<>(radarLeafCache.keySet());
+        scheduleVisibleLeaves(centerWorld, leafSpacing, toRemove);
+        evictStaleLeaves(toRemove);
+    }
 
+    /**
+     * Walk the {@link #radarViewArray} disc relative to {@code centerWorld} and
+     * ensure each visible leaf has a queued {@link RadarLeafView}. Leaves still
+     * present after this call are removed from {@code toRemove}.
+     */
+    private void scheduleVisibleLeaves(
+            final Vec3i centerWorld,
+            final Vec3i leafSpacing,
+            final Set<LeafId> toRemove) {
         final Vec3d entryWorld = new Vec3d();
         for (final RadarViewEntry e : radarViewArray) {
             entryWorld.set(
@@ -469,7 +481,10 @@ public class RadarState extends BaseAppState {
                 workers.execute(view, e.priority);
             }
         }
+    }
 
+    /** Release + cancel any leaves that left the visible disc this tick. */
+    private void evictStaleLeaves(final Set<LeafId> toRemove) {
         for (final LeafId remove : toRemove) {
             final RadarLeafView view = radarLeafCache.remove(remove);
             if (view == null) {

@@ -54,9 +54,20 @@ public class InfinityEntityBodyFactory
       final Gravity gravity) {
     final RigidBody<EntityId, MBlockShape> result =
         super.createRigidBody(id, pos, info, mass, gravity);
+    applyShapeSpecificTuning(result, info.getShapeName(ed));
+    bodies.put(id, result);
+    return result;
+  }
 
-    // Do whatever we want to the body depending on the ShapeInfo
-    switch (info.getShapeName(ed)) {
+  /**
+   * Per-shape post-create body tweaks (damping, rotation lock, static-body
+   * velocity zeroing). Extracted from {@link #createRigidBody} so the
+   * dispatcher itself stays readable; callers should not need to invoke this
+   * directly.
+   */
+  private static void applyShapeSpecificTuning(
+      final RigidBody<EntityId, MBlockShape> result, final String shapeName) {
+    switch (shapeName) {
       // Remove dampening from projectiles
       case ShapeNames.BULLETL1:
       case ShapeNames.BULLETL2:
@@ -96,7 +107,5 @@ public class InfinityEntityBodyFactory
       default:
         break;
     }
-    bodies.put(id, result);
-    return result;
   }
 }

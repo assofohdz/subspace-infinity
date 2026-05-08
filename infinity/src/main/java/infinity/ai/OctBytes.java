@@ -211,29 +211,32 @@ public class OctBytes {
         if (size == 1) {
           // We cannot split further and are somehow still partially
           // in the box.
-          log.error(
-              "Not outside. Not inside. Split is 0. origin:"
-                  + xo
-                  + ", "
-                  + yo
-                  + ", "
-                  + zo
-                  + "  size:"
-                  + size
-                  + "  min:"
-                  + min
-                  + ", max:"
-                  + max);
+          if (log.isErrorEnabled()) {
+            log.error(
+                "Not outside. Not inside. Split is 0. origin:{}, {}, {}  size:{}  min:{}, max:{}",
+                xo, yo, zo, size, min, max);
+          }
           return false;
         }
         // Else we need to split
         split();
       }
       // We will always have children by this point
-      int count = 0;
+      final int count = recurseChildrenSet(xo, yo, zo, size, min, max, value);
 
-      // Order has to be consistent in all of these types of blocks since
-      // we supply the octad coordinates externally
+      if (count == 8) {
+        // Then we don't need children
+        children = null;
+        this.value = value;
+        return true;
+      }
+      return false;
+    }
+
+    // Order has to be consistent in all of these types of blocks since
+    // we supply the octad coordinates externally
+    private int recurseChildrenSet(int xo, int yo, int zo, int size, Vec3i min, Vec3i max, byte value) {
+      int count = 0;
       int split = size >> 1;
       if (children[0].set(xo, yo, zo, split, min, max, value)) count++;
       if (children[1].set(xo + split, yo, zo, split, min, max, value)) count++;
@@ -243,14 +246,7 @@ public class OctBytes {
       if (children[5].set(xo + split, yo, zo + split, split, min, max, value)) count++;
       if (children[6].set(xo, yo + split, zo + split, split, min, max, value)) count++;
       if (children[7].set(xo + split, yo + split, zo + split, split, min, max, value)) count++;
-
-      if (count == 8) {
-        // Then we don't need children
-        children = null;
-        this.value = value;
-        return true;
-      }
-      return false;
+      return count;
     }
   }
 

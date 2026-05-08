@@ -34,8 +34,10 @@ public final class ThorPrizeApplier implements PrizeApplier {
     }
     if (thorCurrentCount != null && thorCurrentCount.getCount() < thorMaxCount.getCount()) {
       final ThorCurrentCount thorNextCount = thorCurrentCount.add(1);
-      log.info(
-          "Ship {} picked up thor prize and now has {} thor", ship, thorNextCount.getCount());
+      if (log.isInfoEnabled()) {
+        log.info(
+            "Ship {} picked up thor prize and now has {} thor", ship, thorNextCount.getCount());
+      }
       ed.setComponent(ship, thorNextCount);
     } else if (thorCurrentCount == null) {
       log.info("Ship {} picked up thor prize", ship);

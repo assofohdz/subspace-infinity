@@ -32,7 +32,9 @@ public final class EnergyPrizeApplier implements PrizeApplier {
     }
     final int next = Math.min(current.getEnergy() + up.getEnergyUpgrade(), max.getMaxEnergy());
     if (next > current.getEnergy()) {
-      log.info("Ship {} energy upgrade: cap {} -> {}", ship, current.getEnergy(), next);
+      if (log.isInfoEnabled()) {
+        log.info("Ship {} energy upgrade: cap {} -> {}", ship, current.getEnergy(), next);
+      }
       ed.setComponent(ship, new Energy(next));
     }
   }

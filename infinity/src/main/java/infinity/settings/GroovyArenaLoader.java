@@ -81,7 +81,7 @@ public final class GroovyArenaLoader {
       log.debug("{} not found for arena {}; null signals fail-fast", classpathPath, arenaName);
       return null;
     }
-    if (cfg != ArenaConfig.EMPTY) {
+    if (cfg != ArenaConfig.EMPTY && log.isInfoEnabled()) {
       log.info(
           "Applied {} for arena {}: map='{}', ships='{}', spawn=({},{}), wallFriction={},"
               + " friendlyFire={}, fragments={}",

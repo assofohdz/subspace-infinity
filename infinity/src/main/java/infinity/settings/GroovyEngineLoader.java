@@ -55,7 +55,7 @@ public final class GroovyEngineLoader {
   public EngineConfig load(final String classpathPath) {
     final EngineConfig raw = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
     final EngineConfig cfg = raw == null ? EngineConfig.DEFAULTS : raw;
-    if (cfg != EngineConfig.DEFAULTS) {
+    if (cfg != EngineConfig.DEFAULTS && log.isInfoEnabled()) {
       log.info(
           "Applied {}: subspaceVelocityScale={}, maxProjectileSpeedJme={}",
           classpathPath,

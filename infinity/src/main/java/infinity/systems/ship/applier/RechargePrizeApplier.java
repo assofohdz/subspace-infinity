@@ -34,11 +34,13 @@ public final class RechargePrizeApplier implements PrizeApplier {
             current.getRechargePerSecond() + up.getRechargePerSecondUpgrade(),
             max.getMaxRechargePerSecond());
     if (next > current.getRechargePerSecond()) {
-      log.info(
-          "Ship {} recharge upgrade: energy/sec {} -> {}",
-          ship,
-          current.getRechargePerSecond(),
-          next);
+      if (log.isInfoEnabled()) {
+        log.info(
+            "Ship {} recharge upgrade: energy/sec {} -> {}",
+            ship,
+            current.getRechargePerSecond(),
+            next);
+      }
       ed.setComponent(ship, new Recharge(next));
     }
   }

@@ -92,48 +92,52 @@ public class StatusDrainSystem extends AbstractGameSystem {
 
     final double tpf = time.getTpf();
 
+    drainCloak(tpf);
+    drainStealth(tpf);
+    drainXRadar(tpf);
+    drainAntiwarp(tpf);
+  }
+
+  private void drainCloak(final double tpf) {
     for (final Entity e : cloakDrainers) {
       if (!e.get(Cloak.class).isEnabled()) {
         continue;
       }
-      final int rate = e.get(CloakEnergy.class).getEnergy();
-      final int drain = perTickDrain(rate, tpf);
-      if (drain > 0) {
-        energySystem.damage(e.getId(), -drain);
-      }
+      applyDrain(e, e.get(CloakEnergy.class).getEnergy(), tpf);
     }
+  }
 
+  private void drainStealth(final double tpf) {
     for (final Entity e : stealthDrainers) {
       if (!e.get(Stealth.class).isEnabled()) {
         continue;
       }
-      final int rate = e.get(StealthEnergy.class).getEnergy();
-      final int drain = perTickDrain(rate, tpf);
-      if (drain > 0) {
-        energySystem.damage(e.getId(), -drain);
-      }
+      applyDrain(e, e.get(StealthEnergy.class).getEnergy(), tpf);
     }
+  }
 
+  private void drainXRadar(final double tpf) {
     for (final Entity e : xradarDrainers) {
       if (!e.get(XRadar.class).isEnabled()) {
         continue;
       }
-      final int rate = e.get(XRadarEnergy.class).getEnergy();
-      final int drain = perTickDrain(rate, tpf);
-      if (drain > 0) {
-        energySystem.damage(e.getId(), -drain);
-      }
+      applyDrain(e, e.get(XRadarEnergy.class).getEnergy(), tpf);
     }
+  }
 
+  private void drainAntiwarp(final double tpf) {
     for (final Entity e : antiwarpDrainers) {
       if (!e.get(Antiwarp.class).isEnabled()) {
         continue;
       }
-      final int rate = e.get(AntiwarpEnergy.class).getEnergy();
-      final int drain = perTickDrain(rate, tpf);
-      if (drain > 0) {
-        energySystem.damage(e.getId(), -drain);
-      }
+      applyDrain(e, e.get(AntiwarpEnergy.class).getEnergy(), tpf);
+    }
+  }
+
+  private void applyDrain(final Entity e, final int rate, final double tpf) {
+    final int drain = perTickDrain(rate, tpf);
+    if (drain > 0) {
+      energySystem.damage(e.getId(), -drain);
     }
   }
 

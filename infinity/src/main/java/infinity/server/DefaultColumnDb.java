@@ -158,7 +158,9 @@ public class DefaultColumnDb extends AbstractColumnDb {
       throw new IllegalStateException("Error writing column:" + f, e);
     }
     long end = System.nanoTime();
-    log.info("Wrote column [{}] in {} ms", col, (end - start) / 1000000.0);
+    if (log.isInfoEnabled()) {
+      log.info("Wrote column [{}] in {} ms", col, (end - start) / 1000000.0);
+    }
   }
 
 

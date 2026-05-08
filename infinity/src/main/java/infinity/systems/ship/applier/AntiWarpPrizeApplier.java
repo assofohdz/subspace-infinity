@@ -37,8 +37,10 @@ public final class AntiWarpPrizeApplier implements PrizeApplier {
     if (status == null || status.getStatus() == 0) {
       return;
     }
-    log.info("Ship {} picked up antiwarp prize (status={}); enabling Antiwarp toggle",
-        ship, status.getStatus());
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up antiwarp prize (status={}); enabling Antiwarp toggle",
+          ship, status.getStatus());
+    }
     ed.setComponent(ship, new Antiwarp(true));
   }
 }

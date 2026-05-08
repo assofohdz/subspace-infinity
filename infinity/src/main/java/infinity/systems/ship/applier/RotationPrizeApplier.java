@@ -32,7 +32,9 @@ public final class RotationPrizeApplier implements PrizeApplier {
     final double next =
         Math.min(current.getRadSec() + up.getRadSecUpgrade(), max.getRadSecMax());
     if (next > current.getRadSec()) {
-      log.info("Ship {} rotation upgrade: rad/sec {} -> {}", ship, current.getRadSec(), next);
+      if (log.isInfoEnabled()) {
+        log.info("Ship {} rotation upgrade: rad/sec {} -> {}", ship, current.getRadSec(), next);
+      }
       ed.setComponent(ship, new Rotation(next));
     }
   }

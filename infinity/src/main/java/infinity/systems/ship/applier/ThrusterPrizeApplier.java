@@ -32,7 +32,9 @@ public final class ThrusterPrizeApplier implements PrizeApplier {
     }
     final int next = Math.min(current.getThrust() + up.getThrustUpgrade(), max.getThrustMax());
     if (next > current.getThrust()) {
-      log.info("Ship {} thruster upgrade: thrust {} -> {}", ship, current.getThrust(), next);
+      if (log.isInfoEnabled()) {
+        log.info("Ship {} thruster upgrade: thrust {} -> {}", ship, current.getThrust(), next);
+      }
       ed.setComponent(ship, new Thrust(next));
     }
   }

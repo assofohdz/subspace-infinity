@@ -39,8 +39,10 @@ public final class MinePrizeApplier implements PrizeApplier {
       return;
     }
     if (curr.getLevel().level < max.getLevel().level) {
-      log.info(
-          "Ship {} picked up mine prize and now has {} mines", ship, curr.getLevel().next());
+      if (log.isInfoEnabled()) {
+        log.info(
+            "Ship {} picked up mine prize and now has {} mines", ship, curr.getLevel().next());
+      }
       ed.setComponent(ship, new MineCurrentLevel(curr.getLevel().next()));
     }
   }

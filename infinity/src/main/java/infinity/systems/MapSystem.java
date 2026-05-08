@@ -398,21 +398,7 @@ public class MapSystem extends AbstractGameSystem {
       final long createdTime) {
     final Set<Vec3d> coordinates = new HashSet<>();
     final short[][] tiles = map.getMap();
-
-    // --- Diagnostics: disposition counters ---
-    int totalNonZero = 0;
-    int turfFlags = 0;
-    int asteroidsSmall = 0;
-    int asteroidsMedium = 0;
-    int over5 = 0;
-    int doors = 0;
-    int wormholes = 0;
-    int cellsVisible = 0;
-    int cellsInvisible = 0;
-    int cellsFailedLeaf = 0;
-    final java.util.SortedMap<Integer, Integer> idHistogram = new java.util.TreeMap<>();
-    Vec3d firstWritten = null;
-    Vec3d lastWritten = null;
+    final MapBuildStats stats = new MapBuildStats();
 
     for (int xpos = 0; xpos < tiles.length; xpos++) {
       for (int zpos = 0; zpos < tiles[xpos].length; zpos++) {
@@ -420,112 +406,158 @@ public class MapSystem extends AbstractGameSystem {
         if (s == 0) {
           continue;
         }
-        totalNonZero++;
-        idHistogram.merge(Short.toUnsignedInt(s), 1, Integer::sum);
-
+        stats.totalNonZero++;
+        stats.idHistogram.merge(Short.toUnsignedInt(s), 1, Integer::sum);
         final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
         coordinates.add(location);
-
-        if (s == MapTypes.vieTurfFlag) {
-          GameEntities.createTurfStationaryFlag(
-              ed, EntityId.NULL_ID, physicsSpace, createdTime, location);
-          turfFlags++;
-          continue;
+        if (!spawnTileEntity(s, location, createdTime, stats)) {
+          writeTileCell(s, location, arenaTileBase, stats);
         }
-        if (s == MapTypes.vieAsteroidSmall) {
-          GameEntities.createAsteroidSmall(ed, null, physicsSpace, createdTime, location, 0);
-          asteroidsSmall++;
-          continue;
-        }
-        if (s == MapTypes.vieAsteroidMedium) {
-          GameEntities.createAsteroidMedium(ed, null, physicsSpace, createdTime, location, 0);
-          asteroidsMedium++;
-          continue;
-        }
-        if (s == MapTypes.vieAsteroidEnd) {
-          GameEntities.createOver5(ed, null, physicsSpace, createdTime, location);
-          over5++;
-          continue;
-        }
-        if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
-          GameEntities.createDoor(ed, null, physicsSpace, createdTime, 5000, location);
-          doors++;
-          continue;
-        }
-        if (s == MapTypes.vieWormhole) {
-          GameEntities.createWormhole(
-              ed, null, physicsSpace, createdTime, location,
-              5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
-          wormholes++;
-          continue;
-        }
-
-        final int tileId = Short.toUnsignedInt(s);
-        final int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
-            ? arenaTileBase + tileId - 1
-            : INVISIBLE_BLOCK_TYPE;
-        final int result = world.setWorldCell(location, blockType);
-        if (result == -1) {
-          cellsFailedLeaf++;
-        } else if (blockType == INVISIBLE_BLOCK_TYPE) {
-          cellsInvisible++;
-        } else {
-          cellsVisible++;
-        }
-        if (firstWritten == null) {
-          firstWritten = location;
-        }
-        lastWritten = location;
       }
     }
 
+    logMapBuildSummary(map, arenaOffset, stats);
+    spawnWallRunLights(tiles, arenaOffset, coordinates);
+    return coordinates;
+  }
+
+  /**
+   * Per-tile dispatch for entity-backed map cells (turf flags, asteroids,
+   * doors, wormholes). Spawns the matching {@link GameEntities} entity for
+   * recognised tile ids and bumps the matching counter on {@code stats};
+   * returns {@code true} if an entity was spawned (caller skips the cell-write
+   * step), {@code false} if the tile id needs the cell-write fallback.
+   */
+  private boolean spawnTileEntity(
+      final short s, final Vec3d location, final long createdTime, final MapBuildStats stats) {
+    if (s == MapTypes.vieTurfFlag) {
+      GameEntities.createTurfStationaryFlag(
+          ed, EntityId.NULL_ID, physicsSpace, createdTime, location);
+      stats.turfFlags++;
+      return true;
+    }
+    if (s == MapTypes.vieAsteroidSmall) {
+      GameEntities.createAsteroidSmall(ed, null, physicsSpace, createdTime, location, 0);
+      stats.asteroidsSmall++;
+      return true;
+    }
+    if (s == MapTypes.vieAsteroidMedium) {
+      GameEntities.createAsteroidMedium(ed, null, physicsSpace, createdTime, location, 0);
+      stats.asteroidsMedium++;
+      return true;
+    }
+    if (s == MapTypes.vieAsteroidEnd) {
+      GameEntities.createOver5(ed, null, physicsSpace, createdTime, location);
+      stats.over5++;
+      return true;
+    }
+    if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
+      GameEntities.createDoor(ed, null, physicsSpace, createdTime, 5000, location);
+      stats.doors++;
+      return true;
+    }
+    if (s == MapTypes.vieWormhole) {
+      GameEntities.createWormhole(
+          ed, null, physicsSpace, createdTime, location,
+          5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
+      stats.wormholes++;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Cell-write path for non-entity tile ids: 1..{@link #MAX_VISIBLE_TILE} get
+   * the arena's visible-tile range; everything else (incl. invalid ids) is
+   * written as {@link #INVISIBLE_BLOCK_TYPE}. Updates {@code stats} counters.
+   */
+  private void writeTileCell(
+      final short s, final Vec3d location, final int arenaTileBase, final MapBuildStats stats) {
+    final int tileId = Short.toUnsignedInt(s);
+    final int blockType = (tileId >= 1 && tileId <= MAX_VISIBLE_TILE)
+        ? arenaTileBase + tileId - 1
+        : INVISIBLE_BLOCK_TYPE;
+    final int result = world.setWorldCell(location, blockType);
+    if (result == -1) {
+      stats.cellsFailedLeaf++;
+    } else if (blockType == INVISIBLE_BLOCK_TYPE) {
+      stats.cellsInvisible++;
+    } else {
+      stats.cellsVisible++;
+    }
+    if (stats.firstWritten == null) {
+      stats.firstWritten = location;
+    }
+    stats.lastWritten = location;
+  }
+
+  /** Emit the diagnostic summary that follows a map build (entity counts, leaf failures, histogram). */
+  private void logMapBuildSummary(
+      final LevelFile map, final Vec3d arenaOffset, final MapBuildStats stats) {
     if (log.isInfoEnabled()) {
       log.info(
           "createBlocksFromLegacyMap: map={} offset={} nonZero={} (visibleCells={} invisibleCells={} leafFailures={})",
           map.getMapName(),
           arenaOffset,
-          totalNonZero,
-          cellsVisible,
-          cellsInvisible,
-          cellsFailedLeaf);
+          stats.totalNonZero,
+          stats.cellsVisible,
+          stats.cellsInvisible,
+          stats.cellsFailedLeaf);
       log.info(
           "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} over5={} doors={} wormholes={}",
-          turfFlags,
-          asteroidsSmall,
-          asteroidsMedium,
-          over5,
-          doors,
-          wormholes);
-      if (firstWritten != null) {
-        log.info("  first-written cell: {}    last-written cell: {}", firstWritten, lastWritten);
+          stats.turfFlags,
+          stats.asteroidsSmall,
+          stats.asteroidsMedium,
+          stats.over5,
+          stats.doors,
+          stats.wormholes);
+      if (stats.firstWritten != null) {
+        log.info("  first-written cell: {}    last-written cell: {}",
+            stats.firstWritten, stats.lastWritten);
       }
     }
-    if (cellsFailedLeaf > 0) {
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
-                + "Usually means the arena offset targets a world region whose leaves are not paged in.",
-            cellsFailedLeaf,
-            cellsVisible + cellsInvisible + cellsFailedLeaf);
-      }
+    if (stats.cellsFailedLeaf > 0 && log.isWarnEnabled()) {
+      log.warn(
+          "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
+              + "Usually means the arena offset targets a world region whose leaves are not paged in.",
+          stats.cellsFailedLeaf,
+          stats.cellsVisible + stats.cellsInvisible + stats.cellsFailedLeaf);
     }
     if (log.isInfoEnabled()) {
-      final StringBuilder sb = new StringBuilder("  tile-id histogram:");
-      int shown = 0;
-      for (final java.util.Map.Entry<Integer, Integer> e : idHistogram.entrySet()) {
-        sb.append(' ').append(e.getKey()).append('=').append(e.getValue());
-        shown++;
-        if (shown >= 40) {
-          sb.append(" ...(").append(idHistogram.size() - shown).append(" more)");
-          break;
-        }
-      }
-      log.info(sb.toString());
+      log.info(formatTileIdHistogram(stats.idHistogram));
     }
+  }
 
-    spawnWallRunLights(tiles, arenaOffset, coordinates);
+  /** Format the first 40 entries of {@code idHistogram} into a single log line. */
+  private static String formatTileIdHistogram(final java.util.SortedMap<Integer, Integer> idHistogram) {
+    final StringBuilder sb = new StringBuilder("  tile-id histogram:");
+    int shown = 0;
+    for (final java.util.Map.Entry<Integer, Integer> e : idHistogram.entrySet()) {
+      sb.append(' ').append(e.getKey()).append('=').append(e.getValue());
+      shown++;
+      if (shown >= 40) {
+        sb.append(" ...(").append(idHistogram.size() - shown).append(" more)");
+        break;
+      }
+    }
+    return sb.toString();
+  }
 
-    return coordinates;
+  /** Mutable accumulator for {@link #createBlocksFromLegacyMap} disposition counters + diagnostic state. */
+  private static final class MapBuildStats {
+    int totalNonZero;
+    int turfFlags;
+    int asteroidsSmall;
+    int asteroidsMedium;
+    int over5;
+    int doors;
+    int wormholes;
+    int cellsVisible;
+    int cellsInvisible;
+    int cellsFailedLeaf;
+    final java.util.SortedMap<Integer, Integer> idHistogram = new java.util.TreeMap<>();
+    Vec3d firstWritten;
+    Vec3d lastWritten;
   }
 
   /**
@@ -559,71 +591,95 @@ public class MapSystem extends AbstractGameSystem {
     final int spacing = Math.max(1, CoreViewConstants.WALL_LIGHT_SPACING);
     final int lightY = (int) Math.round(CoreViewConstants.WALL_LIGHT_PLANE_Y);
 
-    int horizontalLights = 0;
-    int verticalLights = 0;
-    int longestHorizontal = 0;
-    int longestVertical = 0;
+    final int[] horizontalCounters = scanWallRunsAxis(
+        wall, sx, sz, true, minRun, spacing, lightY, arenaOffset, coordinates);
+    final int horizontalLights = horizontalCounters[0];
+    final int longestHorizontal = horizontalCounters[1];
 
-    for (int z = 0; z < sz; z++) {
-      int x = 0;
-      while (x < sx) {
-        if (wall[x][z] && (x == 0 || !wall[x - 1][z])) {
-          int len = 0;
-          while (x + len < sx && wall[x + len][z]) {
-            len++;
-          }
-          if (len > longestHorizontal) {
-            longestHorizontal = len;
-          }
-          if (len >= minRun) {
-            final int count = Math.max(1, (int) Math.round((double) len / spacing));
-            for (int i = 0; i < count; i++) {
-              final int lightX = x + (int) Math.floor((i + 0.5) * len / count);
-              final Vec3d pos = new Vec3d(lightX, lightY, z).add(arenaOffset);
-              world.setWorldCell(pos, LIGHT_EMITTER_BLOCK_TYPE);
-              coordinates.add(pos);
-              horizontalLights++;
-            }
-          }
-          x += Math.max(len, 1);
-        } else {
-          x++;
-        }
-      }
-    }
-
-    for (int x = 0; x < sx; x++) {
-      int z = 0;
-      while (z < sz) {
-        if (wall[x][z] && (z == 0 || !wall[x][z - 1])) {
-          int len = 0;
-          while (z + len < sz && wall[x][z + len]) {
-            len++;
-          }
-          if (len > longestVertical) {
-            longestVertical = len;
-          }
-          if (len >= minRun) {
-            final int count = Math.max(1, (int) Math.round((double) len / spacing));
-            for (int i = 0; i < count; i++) {
-              final int lightZ = z + (int) Math.floor((i + 0.5) * len / count);
-              final Vec3d pos = new Vec3d(x, lightY, lightZ).add(arenaOffset);
-              world.setWorldCell(pos, LIGHT_EMITTER_BLOCK_TYPE);
-              coordinates.add(pos);
-              verticalLights++;
-            }
-          }
-          z += Math.max(len, 1);
-        } else {
-          z++;
-        }
-      }
-    }
+    final int[] verticalCounters = scanWallRunsAxis(
+        wall, sx, sz, false, minRun, spacing, lightY, arenaOffset, coordinates);
+    final int verticalLights = verticalCounters[0];
+    final int longestVertical = verticalCounters[1];
 
     log.info("Wall-run light emitters: wallTiles={} horiz={} vert={} (min run {}); "
             + "longest horiz={} longest vert={} at offset={}",
         wallTiles, horizontalLights, verticalLights, minRun,
         longestHorizontal, longestVertical, arenaOffset);
+  }
+
+  /**
+   * Scan one axis of {@code wall} for runs of contiguous true cells and emit
+   * a light-emitter block above each run that meets {@code minRun}. Lights
+   * are spaced approximately {@code spacing} tiles apart along the run.
+   *
+   * @param horizontal when {@code true}, scan rows (constant z, varying x);
+   *                   when {@code false}, scan columns (constant x, varying z)
+   * @return a 2-element array {@code [lightCount, longestRunLength]}
+   */
+  private int[] scanWallRunsAxis(
+      final boolean[][] wall, final int sx, final int sz, final boolean horizontal,
+      final int minRun, final int spacing, final int lightY,
+      final Vec3d arenaOffset, final Set<Vec3d> coordinates) {
+    int lights = 0;
+    int longestRun = 0;
+    final int outerLimit = horizontal ? sz : sx;
+    final int innerLimit = horizontal ? sx : sz;
+    for (int outer = 0; outer < outerLimit; outer++) {
+      int inner = 0;
+      while (inner < innerLimit) {
+        if (isRunStart(wall, horizontal, outer, inner)) {
+          final int len = measureWallRun(wall, horizontal, outer, inner, innerLimit);
+          if (len > longestRun) {
+            longestRun = len;
+          }
+          if (len >= minRun) {
+            lights += emitLightsAlongRun(
+                horizontal, outer, inner, len, spacing, lightY, arenaOffset, coordinates);
+          }
+          inner += Math.max(len, 1);
+        } else {
+          inner++;
+        }
+      }
+    }
+    return new int[] {lights, longestRun};
+  }
+
+  /** Returns true if {@code (inner, outer)} is the start of a wall run on the given axis. */
+  private static boolean isRunStart(
+      final boolean[][] wall, final boolean horizontal, final int outer, final int inner) {
+    if (horizontal) {
+      return wall[inner][outer] && (inner == 0 || !wall[inner - 1][outer]);
+    }
+    return wall[outer][inner] && (inner == 0 || !wall[outer][inner - 1]);
+  }
+
+  /** Measure how many contiguous wall cells extend from {@code inner} along the given axis. */
+  private static int measureWallRun(
+      final boolean[][] wall, final boolean horizontal,
+      final int outer, final int inner, final int innerLimit) {
+    int len = 0;
+    while (inner + len < innerLimit
+        && (horizontal ? wall[inner + len][outer] : wall[outer][inner + len])) {
+      len++;
+    }
+    return len;
+  }
+
+  /** Emit light-emitter cells along the run; returns how many lights were placed. */
+  private int emitLightsAlongRun(
+      final boolean horizontal, final int outer, final int inner, final int len,
+      final int spacing, final int lightY, final Vec3d arenaOffset, final Set<Vec3d> coordinates) {
+    final int count = Math.max(1, (int) Math.round((double) len / spacing));
+    for (int i = 0; i < count; i++) {
+      final int along = inner + (int) Math.floor((i + 0.5) * len / count);
+      final Vec3d pos = horizontal
+          ? new Vec3d(along, lightY, outer).add(arenaOffset)
+          : new Vec3d(outer, lightY, along).add(arenaOffset);
+      world.setWorldCell(pos, LIGHT_EMITTER_BLOCK_TYPE);
+      coordinates.add(pos);
+    }
+    return count;
   }
 
 

@@ -117,49 +117,11 @@ public class AvatarSystem extends AbstractGameSystem {
     // Allow ship change if no restrictions on frequency, or if restrictions allow it.
     if (restrictor == null || restrictor.canSwitch(shipEntity, shipType, freq)) {
 
-      switch (shipType) {
-        case 1:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 2:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 3:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 4:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 5:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 6:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 7:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        case 8:
-          ed.setComponent(
-              shipEntity,
-              ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed));
-          break;
-        default:
-          break;
+      final String shapeName = shapeNameForShipType(shipType);
+      if (shapeName != null) {
+        ed.setComponent(
+            shipEntity,
+            ShapeInfo.create(shapeName, CorePhysicsConstants.SHIPSIZERADIUS, ed));
       }
 
       // Re-project ship stats from the arena's ShipConfig (Pattern 4). Remove+set
@@ -192,6 +154,35 @@ public class AvatarSystem extends AbstractGameSystem {
       }
 
       EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
+    }
+  }
+
+  /**
+   * Map a {@code shipType} byte (constants on this class) to the canonical
+   * {@code ShapeNames} string. Returns {@code null} for unknown / SPEC types,
+   * matching the prior switch's {@code default: break} behaviour.
+   */
+  @javax.annotation.Nullable
+  private static String shapeNameForShipType(final byte shipType) {
+    switch (shipType) {
+      case 1:
+        return ShapeNames.SHIP_WARBIRD;
+      case 2:
+        return ShapeNames.SHIP_JAVELIN;
+      case 3:
+        return ShapeNames.SHIP_SPIDER;
+      case 4:
+        return ShapeNames.SHIP_LEVI;
+      case 5:
+        return ShapeNames.SHIP_TERRIER;
+      case 6:
+        return ShapeNames.SHIP_WEASEL;
+      case 7:
+        return ShapeNames.SHIP_LANCASTER;
+      case 8:
+        return ShapeNames.SHIP_SHARK;
+      default:
+        return null;
     }
   }
 

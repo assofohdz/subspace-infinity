@@ -35,8 +35,10 @@ public final class CloakPrizeApplier implements PrizeApplier {
       // Capability forbidden for this ship type — Subspace canonical no-op.
       return;
     }
-    log.info("Ship {} picked up cloak prize (status={}); enabling Cloak toggle",
-        ship, status.getStatus());
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up cloak prize (status={}); enabling Cloak toggle",
+          ship, status.getStatus());
+    }
     ed.setComponent(ship, new Cloak(true));
   }
 }

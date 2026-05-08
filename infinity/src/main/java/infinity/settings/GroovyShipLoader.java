@@ -293,12 +293,10 @@ public final class GroovyShipLoader {
    */
   public void apply(final ArenaId arenaId, @Nullable final String classpathPath) {
     if (classpathPath == null || classpathPath.isBlank()) {
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "No [Scripts] Ships configured for arena {}; installing fallback defaults",
-            arenaId.getArena());
-      }
-      configRegistry.replace(arenaId, FALLBACK);
+      installFallback(
+          arenaId,
+          "No [Scripts] Ships configured for arena {}; installing fallback defaults",
+          arenaId.getArena());
       return;
     }
 
@@ -306,29 +304,46 @@ public final class GroovyShipLoader {
     if (snapshot == null) {
       // Missing — host's not-found log is debug-level; surface the fallback
       // install at warn with arena context so unmigrated arenas are visible.
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "ships.groovy for arena {} not found at {}; installing fallback defaults",
-            arenaId.getArena(),
-            classpathPath);
-      }
-      configRegistry.replace(arenaId, FALLBACK);
+      installFallback(
+          arenaId,
+          "ships.groovy for arena {} not found at {}; installing fallback defaults",
+          arenaId.getArena(),
+          classpathPath);
       return;
     }
     if (snapshot == FALLBACK) {
       // Broken — host already logged the exception at warn. Add an arena-
       // context warn so a tail of the log shows which arena got the fallback.
-      if (log.isWarnEnabled()) {
-        log.warn(
-            "ships.groovy for arena {} at {} failed to evaluate; installed fallback defaults",
-            arenaId.getArena(),
-            classpathPath);
-      }
-      configRegistry.replace(arenaId, FALLBACK);
+      installFallback(
+          arenaId,
+          "ships.groovy for arena {} at {} failed to evaluate; installed fallback defaults",
+          arenaId.getArena(),
+          classpathPath);
       return;
     }
 
     configRegistry.replace(arenaId, snapshot);
+    logSuccess(classpathPath, arenaId, snapshot);
+  }
+
+  /**
+   * Common "log warn + install FALLBACK" path for the three fallback branches
+   * of {@link #apply}. Extracted to keep apply's flow readable and to centralise
+   * the warn-guard discipline.
+   */
+  private void installFallback(final ArenaId arenaId, final String fmt, final Object... args) {
+    if (log.isWarnEnabled()) {
+      log.warn(fmt, args);
+    }
+    configRegistry.replace(arenaId, FALLBACK);
+  }
+
+  /**
+   * Logs a successful ships.groovy load: one INFO header and one INFO line per
+   * configured ship. Guarded so we don't pay the iteration when info is off.
+   */
+  private static void logSuccess(
+      final String classpathPath, final ArenaId arenaId, final ConfigRegistry snapshot) {
     if (log.isInfoEnabled()) {
       log.info(
           "Applied {} for arena {} ({} ships configured)",

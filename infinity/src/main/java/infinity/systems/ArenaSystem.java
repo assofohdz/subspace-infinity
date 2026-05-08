@@ -309,6 +309,48 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
   }
 
+  /**
+   * Register the per-arena reload watches: the {@code shipsScript} (re-projects
+   * all ships on edit) plus every fragment in {@code fragmentIncludes()}
+   * (forces a {@link com.simsilica.es.EntityData}-visible config reload on
+   * edit). Filters non-Groovy fragments as defence in depth against a stale
+   * arena.groovy — the loader only handles {@code .groovy}.
+   */
+  private void registerArenaReloadWatches(final ArenaId arenaId, final ArenaRecord rec) {
+    final String shipsScript =
+        rec.config.shipsScript().isBlank() ? null : rec.config.shipsScript();
+    registerFileWatch(
+        arenaId,
+        shipsScript,
+        () -> {
+          configRegistry.load(arenaId, rec.config);
+          final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
+          if (log.isInfoEnabled()) {
+            log.info(
+                "{} changed for arena {}; reprojected {} ship(s)",
+                shipsScript, arenaId.getArena(), reprojected);
+          }
+        });
+    // Watch every Groovy includeFragment so editing a fragment file at
+    // runtime triggers a full re-load through ConfigRegistrySystem.
+    // Consumers re-read on next consumption — no event/callback fires.
+    for (final String fragmentPath : rec.config.fragmentIncludes()) {
+      if (fragmentPath != null && fragmentPath.endsWith(".groovy")) {
+        registerFileWatch(
+            arenaId,
+            fragmentPath,
+            () -> {
+              configRegistry.load(arenaId, rec.config);
+              if (log.isInfoEnabled()) {
+                log.info(
+                    "{} changed for arena {}; settings reloaded",
+                    fragmentPath, arenaId.getArena());
+              }
+            });
+      }
+    }
+  }
+
   private void unregisterScriptWatch(final String arenaName) {
     final List<WatchedFile> removed = watchedFiles.remove(arenaName);
     if (removed != null && !removed.isEmpty()) {
@@ -331,26 +373,31 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
     for (final List<WatchedFile> arenaWatches : watchedFiles.values()) {
       for (final WatchedFile w : arenaWatches) {
-        final FileTime mtime;
-        try {
-          mtime = Files.getLastModifiedTime(w.onDisk);
-        } catch (final java.io.IOException e) {
-          log.debug("Stat failed for {} (arena {}); skipping reload tick", w.onDisk, w.arenaName);
-          continue;
-        }
-        if (mtime.equals(w.lastModified)) {
-          continue;
-        }
-        w.lastModified = mtime;
-        try {
-          w.onChanged.run();
-        } catch (final RuntimeException e) {
-          if (log.isWarnEnabled()) {
-            log.warn(
-                "Reload of {} for arena {} failed: {}",
-                w.classpathPath, w.arenaName, e.toString());
-          }
-        }
+        pollSingleWatch(w);
+      }
+    }
+  }
+
+  /** Stat one watched file; if the mtime changed, run its reload callback (logged + contained). */
+  private void pollSingleWatch(final WatchedFile w) {
+    final FileTime mtime;
+    try {
+      mtime = Files.getLastModifiedTime(w.onDisk);
+    } catch (final java.io.IOException e) {
+      log.debug("Stat failed for {} (arena {}); skipping reload tick", w.onDisk, w.arenaName);
+      return;
+    }
+    if (mtime.equals(w.lastModified)) {
+      return;
+    }
+    w.lastModified = mtime;
+    try {
+      w.onChanged.run();
+    } catch (final RuntimeException e) {
+      if (log.isWarnEnabled()) {
+        log.warn(
+            "Reload of {} for arena {} failed: {}",
+            w.classpathPath, w.arenaName, e.toString());
       }
     }
   }
@@ -732,40 +779,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       final ArenaId arenaId = new ArenaId(rec.name, EntityId.NULL_ID);
       ed.setComponent(arena, arenaId);
       configRegistry.load(arenaId, rec.config);
-      final String shipsScript =
-          rec.config.shipsScript().isBlank() ? null : rec.config.shipsScript();
-      registerFileWatch(
-          arenaId,
-          shipsScript,
-          () -> {
-            configRegistry.load(arenaId, rec.config);
-            final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
-            if (log.isInfoEnabled()) {
-              log.info(
-                  "{} changed for arena {}; reprojected {} ship(s)",
-                  shipsScript, arenaId.getArena(), reprojected);
-            }
-          });
-      // Watch every Groovy includeFragment so editing a fragment file at
-      // runtime triggers a full re-load through ConfigRegistrySystem.
-      // Consumers re-read on next consumption — no event/callback fires.
-      // Non-Groovy fragments aren't supported by the loader anymore, so the
-      // filter is just defence in depth against a stale arena.groovy.
-      for (final String fragmentPath : rec.config.fragmentIncludes()) {
-        if (fragmentPath != null && fragmentPath.endsWith(".groovy")) {
-          registerFileWatch(
-              arenaId,
-              fragmentPath,
-              () -> {
-                configRegistry.load(arenaId, rec.config);
-                if (log.isInfoEnabled()) {
-                  log.info(
-                      "{} changed for arena {}; settings reloaded",
-                      fragmentPath, arenaId.getArena());
-                }
-              });
-        }
-      }
+      registerArenaReloadWatches(arenaId, rec);
 
       if (!maps.loadMap(mapFile, rec.arenaIndex)) {
         fail(rec, arena, "loadMap returned false for " + mapFile);

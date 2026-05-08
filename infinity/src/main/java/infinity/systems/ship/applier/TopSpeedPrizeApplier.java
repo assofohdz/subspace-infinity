@@ -30,7 +30,9 @@ public final class TopSpeedPrizeApplier implements PrizeApplier {
     }
     final int next = Math.min(current.getSpeed() + up.getSpeedUpgrade(), max.getSpeedMax());
     if (next > current.getSpeed()) {
-      log.info("Ship {} topspeed upgrade: speed {} -> {}", ship, current.getSpeed(), next);
+      if (log.isInfoEnabled()) {
+        log.info("Ship {} topspeed upgrade: speed {} -> {}", ship, current.getSpeed(), next);
+      }
       ed.setComponent(ship, new Speed(next));
     }
   }

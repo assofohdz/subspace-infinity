@@ -28,7 +28,9 @@ public final class BurstPrizeApplier implements PrizeApplier {
       return; // ship not allowed bursts
     }
     if (burst != null && burst.getCount() < burstMax.getCount()) {
-      log.info("Ship {} picked up burst prize and now has {} bursts", ship, burst.getCount() + 1);
+      if (log.isInfoEnabled()) {
+        log.info("Ship {} picked up burst prize and now has {} bursts", ship, burst.getCount() + 1);
+      }
       ed.setComponent(ship, new Burst(burst.getCount() + 1));
     } else if (burst == null) {
       log.info("Ship {} picked up burst prize", ship);

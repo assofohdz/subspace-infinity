@@ -117,7 +117,9 @@ log.info("d1:{}  d2:{}    delta:{}", d1, d2, v);
         double sin = target.x - pos.x;
         double cos = target.z - pos.z;
         double facing = Math.atan2(sin, cos);
-log.info("pos:{}  target:{}   facing:{}", pos, target, Math.toDegrees(facing));
+if (log.isInfoEnabled()) {
+  log.info("pos:{}  target:{}   facing:{}", pos, target, Math.toDegrees(facing));
+}
         //facing = 0; //-Math.PI * 0.25;
         if( facing < 0 ) {
             facing += Math.PI * 2;

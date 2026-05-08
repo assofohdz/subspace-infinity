@@ -78,110 +78,120 @@ public class LevelFile {
      * @return null if no error or the error string
      */
     private String readELvlData() {
-        String error = null;
         loadedRegions = new ArrayList<>();
-
         if (!available(12)) {
-            error = "File ended before we could read the eLVL header.";
-        } else {
-            // read header
-            final byte[] header = readIn(12);
-            final ByteBuffer headerArray = LvlBinUtil.wrapLE(header);
-            ByteBuffer curData;
-
-            if (!LvlBinUtil.readString(headerArray, 0, 4).equals("elvl")) {
-                error = "The elvl header tag was not detected at the start of " + " the eLVL data section.";
-            } else {
-                final int size = headerArray.getInt(4); // total size of the metadata section
-                int current = 12; // current number of bytes read
-
-                while (current < size && error == null) {
-                    if (available(8)) {
-                        curData = LvlBinUtil.wrapLE(readIn(8));
-                        current += 8;
-                        final String type = LvlBinUtil.readString(curData, 0, 4);
-                        final int chunkLength = curData.getInt(4);
-
-                        if (!available(chunkLength)) {
-                            error = "EOF while reading in a eLVL chunk of type " + type;
-
-                            break;
-                        }
-
-                        if (type.equals("ATTR")) { // attribute chunk
-                            current += chunkLength;
-                            curData = LvlBinUtil.wrapLE(readIn(chunkLength));
-                            final String attr = LvlBinUtil.readString(curData, 0, chunkLength);
-                            final String[] keyTag = attr.split("=");
-                            if (keyTag.length != 2) {
-                                error = "ATTR tag does not contain exactly " + "one '=' sign: " + attr;
-                                break;
-                            }
-
-                            final List<String> row = new ArrayList<>();
-                            row.add(keyTag[0]);
-                            row.add(keyTag[1]);
-                            eLvlAttrs.add(row);
-                        } else if (type.equals("REGN")) { // region chunk
-                            curData = LvlBinUtil.wrapLE(readIn(chunkLength));
-                            current += chunkLength;
-
-                            final Region r = new Region();
-                            final String rv = r.decodeRegion(curData);
-
-                            if (rv != null) {
-                                error = rv;
-                                break;
-                            }
-
-                            loadedRegions.add(r);
-                        } else // unknown chunk
-                        {
-                            // System.out.println("unknown chunk: " + type);
-                            curData = LvlBinUtil.wrapLE(readIn(chunkLength));
-                            current += chunkLength;
-
-                            // encode header
-                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(0)));
-                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(1)));
-                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(2)));
-                            unknownELVLData.add(Byte.valueOf((byte) type.charAt(3)));
-                            final byte[] dword = BitmapSaving.toDWORD(chunkLength);
-                            for (int c = 0; c < 4; ++c) {
-                                unknownELVLData.add(Byte.valueOf(dword[c]));
-                            }
-
-                            // encode data
-                            for (int c = 0; c < chunkLength; ++c) {
-                                final byte b = curData.get(c);
-                                unknownELVLData.add(Byte.valueOf(b));
-                            }
-
-                            // encode padding
-                            final int padding = 4 - chunkLength % 4;
-                            if (padding != 4) {
-                                unknownELVLData.add(Byte.valueOf((byte) 0));
-                            }
-                        }
-
-                        // read in padding up to 4 byte boundry
-                        final int padding = 4 - (chunkLength % 4);
-                        if (padding != 4) {
-                            if (available(padding)) {
-                                readIn(padding);
-                                current += padding;
-                            } else {
-                                log.warn("EOF while reading eLVL chunk padding (file={}).", m_file);
-                            }
-                        }
-                    } else {
-                        error = "File ended while expecting a generic chunk header.";
-                    }
-                }
-            }
+            return "File ended before we could read the eLVL header.";
         }
-
+        final byte[] header = readIn(12);
+        final ByteBuffer headerArray = LvlBinUtil.wrapLE(header);
+        if (!LvlBinUtil.readString(headerArray, 0, 4).equals("elvl")) {
+            return "The elvl header tag was not detected at the start of " + " the eLVL data section.";
+        }
+        final int size = headerArray.getInt(4);
+        int current = 12;
+        String error = null;
+        while (current < size && error == null) {
+            if (!available(8)) {
+                error = "File ended while expecting a generic chunk header.";
+                break;
+            }
+            final ByteBuffer headerBuf = LvlBinUtil.wrapLE(readIn(8));
+            current += 8;
+            final String type = LvlBinUtil.readString(headerBuf, 0, 4);
+            final int chunkLength = headerBuf.getInt(4);
+            if (!available(chunkLength)) {
+                error = "EOF while reading in a eLVL chunk of type " + type;
+                break;
+            }
+            final ByteBuffer curData = LvlBinUtil.wrapLE(readIn(chunkLength));
+            current += chunkLength;
+            error = dispatchELvlChunk(type, chunkLength, curData);
+            if (error != null) {
+                break;
+            }
+            current = consumeChunkPadding(chunkLength, current);
+        }
         return error;
+    }
+
+    /**
+     * Dispatch one eLVL sub-chunk by type. Recognised types ({@code ATTR},
+     * {@code REGN}) are parsed in place and the decoded data appended to the
+     * matching field; unknown types are buffered verbatim into
+     * {@link #unknownELVLData} so the file can be re-emitted byte-for-byte.
+     * Returns an error string to abort the eLVL read, or {@code null} on success.
+     */
+    private String dispatchELvlChunk(final String type, final int chunkLength, final ByteBuffer curData) {
+        if (type.equals("ATTR")) {
+            return parseAttrChunk(curData, chunkLength);
+        }
+        if (type.equals("REGN")) {
+            return parseRegnChunk(curData);
+        }
+        appendUnknownELvlChunk(type, chunkLength, curData);
+        return null;
+    }
+
+    /** Parse an ATTR sub-chunk's "key=value" payload and append to {@link #eLvlAttrs}. */
+    private String parseAttrChunk(final ByteBuffer curData, final int chunkLength) {
+        final String attr = LvlBinUtil.readString(curData, 0, chunkLength);
+        final String[] keyTag = attr.split("=");
+        if (keyTag.length != 2) {
+            return "ATTR tag does not contain exactly " + "one '=' sign: " + attr;
+        }
+        final List<String> row = new ArrayList<>();
+        row.add(keyTag[0]);
+        row.add(keyTag[1]);
+        eLvlAttrs.add(row);
+        return null;
+    }
+
+    /** Parse a REGN sub-chunk into a fresh {@link Region} and append to {@link #loadedRegions}. */
+    private String parseRegnChunk(final ByteBuffer curData) {
+        final Region r = new Region();
+        final String rv = r.decodeRegion(curData);
+        if (rv != null) {
+            return rv;
+        }
+        loadedRegions.add(r);
+        return null;
+    }
+
+    /**
+     * Buffer an unrecognised eLVL sub-chunk into {@link #unknownELVLData} —
+     * 4-char type, 4-byte length, payload bytes, and 4-byte alignment padding —
+     * so {@link #readELvlData} can round-trip the file byte-for-byte.
+     */
+    private void appendUnknownELvlChunk(final String type, final int chunkLength, final ByteBuffer curData) {
+        unknownELVLData.add(Byte.valueOf((byte) type.charAt(0)));
+        unknownELVLData.add(Byte.valueOf((byte) type.charAt(1)));
+        unknownELVLData.add(Byte.valueOf((byte) type.charAt(2)));
+        unknownELVLData.add(Byte.valueOf((byte) type.charAt(3)));
+        final byte[] dword = BitmapSaving.toDWORD(chunkLength);
+        for (int c = 0; c < 4; ++c) {
+            unknownELVLData.add(Byte.valueOf(dword[c]));
+        }
+        for (int c = 0; c < chunkLength; ++c) {
+            unknownELVLData.add(Byte.valueOf(curData.get(c)));
+        }
+        final int padding = 4 - chunkLength % 4;
+        if (padding != 4) {
+            unknownELVLData.add(Byte.valueOf((byte) 0));
+        }
+    }
+
+    /** Skip the 4-byte alignment padding after an eLVL chunk; returns the advanced cursor. */
+    private int consumeChunkPadding(final int chunkLength, final int current) {
+        final int padding = 4 - (chunkLength % 4);
+        if (padding == 4) {
+            return current;
+        }
+        if (available(padding)) {
+            readIn(padding);
+            return current + padding;
+        }
+        log.warn("EOF while reading eLVL chunk padding (file={}).", m_file);
+        return current;
     }
 
     /**

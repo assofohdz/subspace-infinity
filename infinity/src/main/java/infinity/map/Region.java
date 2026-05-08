@@ -62,167 +62,126 @@ public class Region {
      */
     public List<Byte> getEncodedRegion() {
         final List<Byte> encoding = new ArrayList<>();
-        // encode isBase
         if (isBase) {
-            encoding.add(Byte.valueOf((byte) 'r'));
-            encoding.add(Byte.valueOf((byte) 'B'));
-            encoding.add(Byte.valueOf((byte) 'S'));
-            encoding.add(Byte.valueOf((byte) 'E'));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
+            appendFlagHeader(encoding, 'r', 'B', 'S', 'E');
         }
-        // encode noFlags
         if (isNoFlags) {
-            encoding.add(Byte.valueOf((byte) 'r'));
-            encoding.add(Byte.valueOf((byte) 'N'));
-            encoding.add(Byte.valueOf((byte) 'F'));
-            encoding.add(Byte.valueOf((byte) 'L'));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
+            appendFlagHeader(encoding, 'r', 'N', 'F', 'L');
         }
-        // encode noWeps
         if (isNoWeps) {
-            encoding.add(Byte.valueOf((byte) 'r'));
-            encoding.add(Byte.valueOf((byte) 'N'));
-            encoding.add(Byte.valueOf((byte) 'W'));
-            encoding.add(Byte.valueOf((byte) 'P'));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
+            appendFlagHeader(encoding, 'r', 'N', 'W', 'P');
         }
-        // encode noAnti
         if (isNoAnti) {
-            encoding.add(Byte.valueOf((byte) 'r'));
-            encoding.add(Byte.valueOf((byte) 'N'));
-            encoding.add(Byte.valueOf((byte) 'A'));
-            encoding.add(Byte.valueOf((byte) 'W'));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
-            encoding.add(Byte.valueOf((byte) 0));
+            appendFlagHeader(encoding, 'r', 'N', 'A', 'W');
         }
-        // encode isAutoWArp
         if (isAutoWarp) {
-            encoding.add(Byte.valueOf((byte) 'r'));
-            encoding.add(Byte.valueOf((byte) 'A'));
-            encoding.add(Byte.valueOf((byte) 'W'));
-            encoding.add(Byte.valueOf((byte) 'P'));
-            if (!arena.equals("")) { // encode with arena, size = 20
-                final byte[] dword = BitmapSaving.toDWORD(20);
-                for (int c = 0; c < 4; ++c) {
-                    encoding.add(Byte.valueOf(dword[c]));
-                }
-
-                // save x
-                byte[] word = BitmapSaving.toWORD(x);
-
-                for (int c = 0; c < 2; ++c) {
-                    encoding.add(Byte.valueOf(word[c]));
-                }
-
-                // save y
-                word = BitmapSaving.toWORD(y);
-
-                for (int c = 0; c < 2; ++c) {
-                    encoding.add(Byte.valueOf(word[c]));
-                }
-
-                // save arena
-                if (arena.length() > 15) {
-                    arena = arena.substring(15);
-                }
-
-                final int len = arena.length();
-                for (int c = 0; c < len; ++c) {
-                    encoding.add(Byte.valueOf((byte) arena.charAt(c)));
-                }
-
-                for (int c = len; c < 16; ++c) {
-                    encoding.add(Byte.valueOf((byte) 0));
-                }
-
-            } else { // no arena, size = 4
-                final byte[] dword = BitmapSaving.toDWORD(4);
-                for (int c = 0; c < 4; ++c) {
-                    encoding.add(Byte.valueOf(dword[c]));
-                }
-
-                // save x
-                byte[] word = BitmapSaving.toWORD(x);
-
-                for (int c = 0; c < 2; ++c) {
-                    encoding.add(Byte.valueOf(word[c]));
-                }
-
-                // save y
-                word = BitmapSaving.toWORD(y);
-
-                for (int c = 0; c < 2; ++c) {
-                    encoding.add(Byte.valueOf(word[c]));
-                }
-            }
+            appendAutoWarpSection(encoding);
         }
         // encode unknown bytes
         for (final Byte unknownByte : unknownBytes) {
             encoding.add(unknownByte);
         }
-        // encoded name
+        appendNameSection(encoding);
+        appendTileSection(encoding);
+        return encoding;
+    }
+
+    /**
+     * Append a 4-char flag chunk header (e.g. "rBSE") followed by a 4-byte zero
+     * length field. Used by the no-payload region flags (isBase, isNoFlags,
+     * isNoWeps, isNoAnti) which all share the same on-wire shape.
+     */
+    private static void appendFlagHeader(
+            final List<Byte> encoding, final char a, final char b, final char c, final char d) {
+        encoding.add(Byte.valueOf((byte) a));
+        encoding.add(Byte.valueOf((byte) b));
+        encoding.add(Byte.valueOf((byte) c));
+        encoding.add(Byte.valueOf((byte) d));
+        encoding.add(Byte.valueOf((byte) 0));
+        encoding.add(Byte.valueOf((byte) 0));
+        encoding.add(Byte.valueOf((byte) 0));
+        encoding.add(Byte.valueOf((byte) 0));
+    }
+
+    /**
+     * Append the rAWP (auto-warp) chunk. Two payload shapes — with arena
+     * (size=20: x, y, arena[16]) and without arena (size=4: x, y) — both
+     * branches share the rAWP header and the x/y encoding.
+     */
+    private void appendAutoWarpSection(final List<Byte> encoding) {
+        encoding.add(Byte.valueOf((byte) 'r'));
+        encoding.add(Byte.valueOf((byte) 'A'));
+        encoding.add(Byte.valueOf((byte) 'W'));
+        encoding.add(Byte.valueOf((byte) 'P'));
+        final boolean withArena = !arena.equals("");
+        final byte[] dword = BitmapSaving.toDWORD(withArena ? 20 : 4);
+        for (int c = 0; c < 4; ++c) {
+            encoding.add(Byte.valueOf(dword[c]));
+        }
+        byte[] word = BitmapSaving.toWORD(x);
+        for (int c = 0; c < 2; ++c) {
+            encoding.add(Byte.valueOf(word[c]));
+        }
+        word = BitmapSaving.toWORD(y);
+        for (int c = 0; c < 2; ++c) {
+            encoding.add(Byte.valueOf(word[c]));
+        }
+        if (withArena) {
+            if (arena.length() > 15) {
+                arena = arena.substring(15);
+            }
+            final int len = arena.length();
+            for (int c = 0; c < len; ++c) {
+                encoding.add(Byte.valueOf((byte) arena.charAt(c)));
+            }
+            for (int c = len; c < 16; ++c) {
+                encoding.add(Byte.valueOf((byte) 0));
+            }
+        }
+    }
+
+    /** Append the rNAM chunk: header + length + name bytes + 4-byte alignment padding. */
+    private void appendNameSection(final List<Byte> encoding) {
         encoding.add(Byte.valueOf((byte) 'r'));
         encoding.add(Byte.valueOf((byte) 'N'));
         encoding.add(Byte.valueOf((byte) 'A'));
         encoding.add(Byte.valueOf((byte) 'M'));
-
         final int len = name.length();
-        byte[] dword = BitmapSaving.toDWORD(len);
+        final byte[] dword = BitmapSaving.toDWORD(len);
         for (int c = 0; c < 4; ++c) {
             encoding.add(Byte.valueOf(dword[c]));
         }
-
         for (int c = 0; c < len; ++c) {
             encoding.add(Byte.valueOf((byte) name.charAt(c)));
         }
-
-        // pad it
-        int padding = 4 - len % 4;
+        final int padding = 4 - len % 4;
         if (padding != 4) {
             for (int c = 0; c < padding; ++c) {
                 encoding.add(Byte.valueOf((byte) 0));
             }
         }
+    }
 
-        // encode tiles
+    /** Append the rTIL chunk: header + length + RLE-compressed tile data + 4-byte alignment padding. */
+    private void appendTileSection(final List<Byte> encoding) {
         encoding.add(Byte.valueOf((byte) 'r'));
         encoding.add(Byte.valueOf((byte) 'T'));
         encoding.add(Byte.valueOf((byte) 'I'));
         encoding.add(Byte.valueOf((byte) 'L'));
-
-        // we now need the length! yuck! ok let's make another vector containing just
-        // the encoding
         final List<Byte> tileData = getCompressedRGN();
-
-        dword = BitmapSaving.toDWORD(tileData.size());
+        final byte[] dword = BitmapSaving.toDWORD(tileData.size());
         for (int c = 0; c < 4; ++c) {
             encoding.add(Byte.valueOf(dword[c]));
         }
-
         for (final Byte element : tileData) {
             encoding.add(element);
         }
-
-        // pad it
-        padding = 4 - tileData.size() % 4;
+        final int padding = 4 - tileData.size() % 4;
         if (padding != 4) {
             for (int c = 0; c < padding; ++c) {
                 encoding.add(Byte.valueOf((byte) 0));
             }
         }
-
-        return encoding;
     }
 
     /**
@@ -232,126 +191,134 @@ public class Region {
      */
     private List<Byte> getCompressedRGN() {
         final List<Byte> bytes = new ArrayList<>();
+        final boolean[][] rgn = new boolean[1024][1024];
+        paintRectanglesIntoGrid(rgn);
 
-        final boolean rgn[][] = new boolean[1024][1024];
-
-        // start empty
-        for (int yPos = 0; yPos < 1024; ++yPos) {
-            for (int xPos = 0; xPos < 1024; ++xPos) {
-                rgn[yPos][xPos] = false;
+        final RleEncoderState state = new RleEncoderState();
+        for (int curRow = 0; curRow < 1024; ++curRow) {
+            if (isRowEmpty(rgn, curRow)) {
+                processEmptyRow(state, bytes, curRow);
+            } else {
+                processNonEmptyRow(state, bytes, rgn, curRow);
             }
         }
+        return bytes;
+    }
 
-        // add rectangles
-        for (final Object rect : rects) {
-            final Rectangle r = (Rectangle) rect;
+    /**
+     * Empty-row branch of the RLE row loop. Bumps the empty-row run counter,
+     * flushes any pending repeat-last-row marker (since an empty row breaks
+     * the same-row sequence), and on the final row flushes the empty-row run
+     * itself.
+     */
+    private static void processEmptyRow(
+            final RleEncoderState state, final List<Byte> bytes, final int curRow) {
+        state.emptyRowCount++;
+        if (state.lastRowSameCount > 0) {
+            bytes.addAll(encodeRepeatLastRow(state.lastRowSameCount));
+        }
+        state.lastRow = null;
+        state.lastRowSameCount = 0;
+        if (curRow == 1023) {
+            bytes.addAll(encodeEmptyRows(state.emptyRowCount));
+        }
+    }
 
+    /**
+     * Non-empty-row branch: flush any pending empty-row run, encode this row's
+     * RLE bytes, and either count it as a repeat of the previous row or emit
+     * it fresh (flushing the prior repeat counter first).
+     */
+    private static void processNonEmptyRow(
+            final RleEncoderState state,
+            final List<Byte> bytes,
+            final boolean[][] rgn,
+            final int curRow) {
+        if (state.emptyRowCount > 0) {
+            bytes.addAll(encodeEmptyRows(state.emptyRowCount));
+            state.emptyRowCount = 0;
+        }
+        final List<Byte> encodedRow = encodeRowRleRuns(rgn, curRow);
+        if (rowsEqual(state.lastRow, encodedRow)) {
+            state.lastRowSameCount++;
+            if (curRow == 1023) {
+                bytes.addAll(encodeRepeatLastRow(state.lastRowSameCount));
+            }
+        } else {
+            if (state.lastRowSameCount != 0) {
+                bytes.addAll(encodeRepeatLastRow(state.lastRowSameCount));
+                state.lastRowSameCount = 0;
+            }
+            bytes.addAll(encodedRow);
+            state.lastRow = encodedRow;
+        }
+    }
+
+    /** Cross-iteration state for {@link #getCompressedRGN}'s row-by-row RLE encoder. */
+    private static final class RleEncoderState {
+        List<Byte> lastRow;
+        int lastRowSameCount;
+        int emptyRowCount;
+    }
+
+    /** Paint each {@link Rectangle} in {@link #rects} as {@code true} cells in {@code rgn}. */
+    private void paintRectanglesIntoGrid(final boolean[][] rgn) {
+        for (final Rectangle r : rects) {
             final int endX = r.x + r.width;
             final int endY = r.y + r.height;
-
             for (int yPos = r.y; yPos < endY; ++yPos) {
                 for (int xPos = r.x; xPos < endX; ++xPos) {
                     rgn[yPos][xPos] = true;
                 }
             }
         }
+    }
 
-        List<Byte> lastRow = null;
-        int lastRowSameCount = 0;
-        int emptyRowCount = 0;
+    /** Returns true if every cell in {@code rgn[curRow]} is {@code false}. */
+    private static boolean isRowEmpty(final boolean[][] rgn, final int curRow) {
+        for (int curY = 0; curY < 1024; ++curY) {
+            if (rgn[curRow][curY]) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        // okay now we actually have to do the encoding... row by row
-        for (int curRow = 0; curRow < 1024; ++curRow) {
-            int curY = 0;
-
-            boolean emptyRow = true;
-            for (; curY < 1024; ++curY) // check for empty row
-            {
-                if (rgn[curRow][curY]) {
-                    emptyRow = false;
+    /**
+     * RLE-encode one row of {@code rgn} into a fresh byte list — each maximal
+     * run of like-tiles becomes one {@link #encodeRun} payload.
+     */
+    private static List<Byte> encodeRowRleRuns(final boolean[][] rgn, final int curRow) {
+        final List<Byte> encodedRow = new ArrayList<>();
+        int curY = 0;
+        while (curY < 1024) {
+            final boolean encodingTiles = rgn[curRow][curY];
+            int count = 0;
+            for (; curY < 1024; ++count, ++curY) {
+                if (rgn[curRow][curY] != encodingTiles) {
                     break;
                 }
             }
-
-            if (emptyRow) {
-                emptyRowCount++;
-
-                if (lastRowSameCount > 0) {
-                    bytes.addAll(encodeRepeatLastRow(lastRowSameCount));
-                }
-
-                lastRow = null;
-                lastRowSameCount = 0;
-
-                if (curRow == 1023) // end, encode it
-                {
-                    bytes.addAll(encodeEmptyRows(emptyRowCount));
-                }
-
-                continue;
-            }
-
-            if (emptyRowCount > 0) { // encode a number of empty rows
-                bytes.addAll(encodeEmptyRows(emptyRowCount));
-
-                emptyRowCount = 0;
-            }
-
-            // we have to encode a single row
-            final List<Byte> encodedRow = new ArrayList<>();
-            curY = 0;
-            while (curY < 1024) {
-                final boolean encodingTiles = rgn[curRow][curY];
-
-                int count = 0;
-
-                for (; curY < 1024; ++count, ++curY) {
-                    if (rgn[curRow][curY] != encodingTiles) {
-                        break;
-                    }
-                }
-
-                // encode count tiles of type encodingTiles
-                encodedRow.addAll(encodeRun(count, encodingTiles));
-            }
-
-            boolean sameAsLastRow = true;
-
-            if (lastRow == null) {
-                sameAsLastRow = false;
-            } else if (lastRow.size() != encodedRow.size()) {
-                sameAsLastRow = false;
-            } else {
-                for (int v = 0; v < lastRow.size(); ++v) {
-                    if (!lastRow.get(v).equals(encodedRow.get(v))) {
-                        sameAsLastRow = false;
-                        break;
-                    }
-                }
-            }
-
-            if (sameAsLastRow) {
-                lastRowSameCount++;
-
-                if (curRow == 1023) {
-                    // save same as Last Row #
-                    bytes.addAll(encodeRepeatLastRow(lastRowSameCount));
-                }
-            } else {
-                if (lastRowSameCount != 0) {
-                    // save same as Last Row #
-                    bytes.addAll(encodeRepeatLastRow(lastRowSameCount));
-
-                    lastRowSameCount = 0;
-                }
-
-                bytes.addAll(encodedRow);
-                lastRow = encodedRow;
-            }
-
+            encodedRow.addAll(encodeRun(count, encodingTiles));
         }
+        return encodedRow;
+    }
 
-        return bytes;
+    /**
+     * Return true if both row encodings have the same byte sequence. {@code null}
+     * {@code lastRow} (no previous row tracked) compares as not-equal so the
+     * caller emits the row fresh rather than emitting a repeat-last-row marker.
+     */
+    private static boolean rowsEqual(final List<Byte> lastRow, final List<Byte> encodedRow) {
+        if (lastRow == null || lastRow.size() != encodedRow.size()) {
+            return false;
+        }
+        for (int v = 0; v < lastRow.size(); ++v) {
+            if (!lastRow.get(v).equals(encodedRow.get(v))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -504,10 +471,8 @@ public class Region {
         String error = null;
         final int superChunkLen = encoding.limit();
         int cur = 0;
-
         while (cur < superChunkLen) {
-            if (superChunkLen - cur < 8) // not enough room for subchunk header
-            {
+            if (superChunkLen - cur < 8) {
                 error = "Not enogh bytes to make a subchunk header in REGN superchunk.";
                 break;
             }
@@ -515,89 +480,117 @@ public class Region {
             cur += 4;
             final int len = encoding.getInt(cur);
             cur += 4;
-
-            // "rBSE" - whether the region represents a base in a flag game
-            if (type.equals("rBSE") && len == 0) {
-                isBase = true;
-            } // "rNAW" - no antiwarp
-            else if (type.equals("rNAW") && len == 0) {
-                isNoAnti = true;
-            } // "rNWP" - no weapons
-            else if (type.equals("rNWP") && len == 0) {
-                isNoWeps = true;
-            } // "rNFL" - no flag drops
-            else if (type.equals("rNFL") && len == 0) {
-                isNoFlags = true;
-            } // "rAWP" - auto-warp
-            else if (type.equals("rAWP")) {
-                isAutoWarp = true;
-                x = encoding.getShort(cur);
-                cur += 2;
-                y = encoding.getShort(cur);
-                cur += 2;
-                if (len == 20) // we also have an arena
-                {
-                    arena = LvlBinUtil.readNullTerminatedString(encoding, cur);
-                    cur += 16;
-                }
-            } // "rNAM" - a descriptive name for the region
-            else if (type.equals("rNAM")) {
-                name = LvlBinUtil.readString(encoding, cur, len);
-                cur += len;
-
-                final int padding = 4 - len % 4;
-                if (padding != 4) {
-                    cur += padding;
-                }
-            } // "rTIL" - tile data, the definition of the region
-            else if (type.equals("rTIL")) {
+            if (markFlagChunkIfRecognised(type, len)) {
+                continue;
+            }
+            if (type.equals("rAWP")) {
+                cur = parseAwpChunk(encoding, cur, len);
+            } else if (type.equals("rNAM")) {
+                cur = parseNameChunk(encoding, cur, len);
+            } else if (type.equals("rTIL")) {
                 error = decodeTiles(encoding.array(), cur, len);
-
                 if (error != null) {
                     break;
                 }
-
-                cur += len;
-
-                final int padding = 4 - len % 4;
-                if (padding != 4) {
-                    cur += padding;
-                }
-            } // other - unknown tiles, or maybe that python stuff
-            else {
-                // encode header
-                unknownBytes.add(Byte.valueOf((byte) type.charAt(0)));
-                unknownBytes.add(Byte.valueOf((byte) type.charAt(1)));
-                unknownBytes.add(Byte.valueOf((byte) type.charAt(2)));
-                unknownBytes.add(Byte.valueOf((byte) type.charAt(3)));
-                final byte[] dword = BitmapSaving.toDWORD(len);
-                for (int c = 0; c < 4; ++c) {
-                    unknownBytes.add(Byte.valueOf(dword[c]));
-                }
-
-                // encode data
-                final int endIndex = cur + len;
-                for (int c = cur; c < endIndex; ++c) {
-                    final byte b = encoding.get(c);
-                    unknownBytes.add(Byte.valueOf(b));
-                }
-                cur += len;
-
-                // encode padding
-                final int padding = 4 - len % 4;
-                if (padding != 4) {
-                    unknownBytes.add(Byte.valueOf((byte) 0));
-                    cur += padding;
-                }
+                cur += len + alignmentPad(len);
+            } else {
+                cur = appendUnknownChunk(type, len, encoding, cur);
             }
         }
-
         if (error == null && cur != superChunkLen) {
             error = "REGN chunk eLVL data went past encoded length, cur = " + cur + ", superChunkLength = "
                     + superChunkLen;
         }
-
         return error;
+    }
+
+    /**
+     * Recognise the no-payload region flag chunks (rBSE / rNAW / rNWP / rNFL),
+     * flip the matching {@code is*} field, and tell the caller to skip the
+     * larger-chunk dispatch. Returns {@code true} iff this chunk was a flag.
+     */
+    private boolean markFlagChunkIfRecognised(final String type, final int len) {
+        if (len != 0) {
+            return false;
+        }
+        if (type.equals("rBSE")) {
+            isBase = true;
+            return true;
+        }
+        if (type.equals("rNAW")) {
+            isNoAnti = true;
+            return true;
+        }
+        if (type.equals("rNWP")) {
+            isNoWeps = true;
+            return true;
+        }
+        if (type.equals("rNFL")) {
+            isNoFlags = true;
+            return true;
+        }
+        return false;
+    }
+
+    /** Parse the rAWP (auto-warp) chunk body: x, y, optional 16-byte arena. Returns advanced cursor. */
+    private int parseAwpChunk(final java.nio.ByteBuffer encoding, final int cur, final int len) {
+        isAutoWarp = true;
+        int newCur = cur;
+        x = encoding.getShort(newCur);
+        newCur += 2;
+        y = encoding.getShort(newCur);
+        newCur += 2;
+        if (len == 20) {
+            arena = LvlBinUtil.readNullTerminatedString(encoding, newCur);
+            newCur += 16;
+        }
+        return newCur;
+    }
+
+    /** Parse the rNAM (region name) chunk body and step past the 4-byte alignment padding. */
+    private int parseNameChunk(final java.nio.ByteBuffer encoding, final int cur, final int len) {
+        name = LvlBinUtil.readString(encoding, cur, len);
+        return cur + len + alignmentPad(len);
+    }
+
+    /** Bytes of zero padding to align an N-byte payload to a 4-byte boundary, or 0 if aligned. */
+    private static int alignmentPad(final int len) {
+        final int padding = 4 - len % 4;
+        return padding == 4 ? 0 : padding;
+    }
+
+    /**
+     * Round-trip an unrecognised eLVL sub-chunk through {@link #unknownBytes} so
+     * {@link #getEncodedRegion()} can re-emit it verbatim. Reads {@code len}
+     * payload bytes starting at {@code cur} from {@code encoding}, copies them
+     * (with header + 4-byte alignment padding) into {@code unknownBytes}, and
+     * returns the new cursor position.
+     */
+    private int appendUnknownChunk(
+            final String type, final int len, final java.nio.ByteBuffer encoding, final int cur) {
+        // encode header
+        unknownBytes.add(Byte.valueOf((byte) type.charAt(0)));
+        unknownBytes.add(Byte.valueOf((byte) type.charAt(1)));
+        unknownBytes.add(Byte.valueOf((byte) type.charAt(2)));
+        unknownBytes.add(Byte.valueOf((byte) type.charAt(3)));
+        final byte[] dword = BitmapSaving.toDWORD(len);
+        for (int c = 0; c < 4; ++c) {
+            unknownBytes.add(Byte.valueOf(dword[c]));
+        }
+        // encode data
+        int newCur = cur;
+        final int endIndex = newCur + len;
+        for (int c = newCur; c < endIndex; ++c) {
+            unknownBytes.add(Byte.valueOf(encoding.get(c)));
+        }
+        newCur += len;
+        // encode padding
+        final int padding = 4 - len % 4;
+        if (padding != 4) {
+            unknownBytes.add(Byte.valueOf((byte) 0));
+            newCur += padding;
+        }
+        return newCur;
     }
 
     /**
@@ -609,156 +602,200 @@ public class Region {
      * @return the error String
      */
     private String decodeTiles(final byte[] data, final int offset, final int size) {
-        String error = null;
+        final boolean[][] rgn = new boolean[1024][1024];
+        // (Default-initialised — Java new boolean[][] is all false; explicit reset removed.)
+        final TileDecodeCursor cursor = new TileDecodeCursor();
+        String error = decodeRleIntoGrid(data, offset, size, rgn, cursor);
+        if (error == null && cursor.curY != 1024) {
+            error = "Encoded rTIL does NOT contain 1024 rows... it has " + cursor.curY;
+        }
+        if (error == null) {
+            extractRectanglesFromGrid(rgn);
+        }
+        return error;
+    }
+
+    /**
+     * Phase-1 of rTIL decode: walk the RLE byte stream from {@code offset} for
+     * {@code size} bytes, painting set/repeat instructions into {@code rgn}
+     * via {@link #applyRleInstruction}. Returns null on success or a
+     * descriptive error string when the stream goes out of range.
+     * On success {@link TileDecodeCursor#curY} reaches 1024.
+     */
+    private String decodeRleIntoGrid(
+            final byte[] data, final int offset, final int size,
+            final boolean[][] rgn, final TileDecodeCursor cursor) {
         int o = offset;
         final int endByte = o + size;
-        final boolean[][] rgn = new boolean[1024][1024];
-
-        // region starts empty
-        for (int xPos = 0; xPos < 1024; ++xPos) {
-            for (int yPos = 0; yPos < 1024; ++yPos) {
-                rgn[xPos][yPos] = false;
-            }
-        }
-
-        int curX = 0;
-        int curY = 0;
-
         while (o < endByte) {
             final byte typeByte = data[o];
-
             final int type = getEncodedType(typeByte);
             final int len = getEncodedLength(data, o, type);
-
-            if (type == SMALL_EMPTY_RUN || type == LONG_EMPTY_RUN) {
-                if (len + curX > 1024) {
-                    error = "empty run extends past end";
-                    break;
-                }
-
-                curX += len;
-            } else if (type == SMALL_PRESENT_RUN || type == LONG_PRESENT_RUN) {
-                if (len + curX > 1024) {
-                    error = "present run extends past end";
-                    break;
-                }
-
-                final int stopX = curX + len;
-
-                for (int xPos = curX; xPos < stopX; ++xPos) {
-                    rgn[curY][xPos] = true;
-                }
-
-                curX += len;
-            } else if (type == SMALL_EMPTY_ROWS || type == LONG_EMPTY_ROWS) {
-                if (curX != 0) {
-                    error = "empty row occured before a run was over, curX = " + curX;
-                    break;
-                }
-
-                curY += len;
-            } else if (type == SMALL_REPEAT || type == LONG_REPEAT) {
-                if (curX != 0) {
-                    error = "repeat occured before a run was over.";
-                    break;
-                }
-                if (curY == 0) {
-                    error = "repeat occured in the first row.";
-                    break;
-                }
-
-                final int stopY = curY + len;
-                final int copyY = curY - 1;
-
-                for (int xPos = 0; xPos < 1024; ++xPos) {
-                    for (int yPos = curY; yPos < stopY; ++yPos) {
-                        rgn[yPos][xPos] = rgn[copyY][xPos];
-                    }
-                }
-
-                curY += len;
+            final String error = applyRleInstruction(rgn, cursor, type, len);
+            if (error != null) {
+                return error;
             }
+            if (cursor.curX == 1024) {
+                ++cursor.curY;
+                cursor.curX = 0;
+            }
+            o += (type % 2 == 0) ? 1 : 2;
+        }
+        return null;
+    }
 
-            if (curX == 1024) {
-                ++curY;
+    /**
+     * Apply one decoded RLE instruction (type+length) to the grid + cursor.
+     * Each branch handles one of the four instruction families
+     * (empty-run, present-run, empty-rows, repeat). Returns an error string
+     * if the instruction would advance past the grid bounds, otherwise null.
+     */
+    private static String applyRleInstruction(
+            final boolean[][] rgn, final TileDecodeCursor cursor, final int type, final int len) {
+        if (type == SMALL_EMPTY_RUN || type == LONG_EMPTY_RUN) {
+            return applyEmptyRun(cursor, len);
+        }
+        if (type == SMALL_PRESENT_RUN || type == LONG_PRESENT_RUN) {
+            return applyPresentRun(rgn, cursor, len);
+        }
+        if (type == SMALL_EMPTY_ROWS || type == LONG_EMPTY_ROWS) {
+            return applyEmptyRows(cursor, len);
+        }
+        if (type == SMALL_REPEAT || type == LONG_REPEAT) {
+            return applyRepeat(rgn, cursor, len);
+        }
+        return null;
+    }
+
+    /** Skip {@code len} cells along the current row; bounds-check first. */
+    private static String applyEmptyRun(final TileDecodeCursor cursor, final int len) {
+        if (len + cursor.curX > 1024) {
+            return "empty run extends past end";
+        }
+        cursor.curX += len;
+        return null;
+    }
+
+    /** Set {@code len} contiguous cells starting at the cursor; bounds-check first. */
+    private static String applyPresentRun(
+            final boolean[][] rgn, final TileDecodeCursor cursor, final int len) {
+        if (len + cursor.curX > 1024) {
+            return "present run extends past end";
+        }
+        final int stopX = cursor.curX + len;
+        for (int xPos = cursor.curX; xPos < stopX; ++xPos) {
+            rgn[cursor.curY][xPos] = true;
+        }
+        cursor.curX += len;
+        return null;
+    }
+
+    /** Skip {@code len} fully-empty rows; the cursor must be at column 0. */
+    private static String applyEmptyRows(final TileDecodeCursor cursor, final int len) {
+        if (cursor.curX != 0) {
+            return "empty row occured before a run was over, curX = " + cursor.curX;
+        }
+        cursor.curY += len;
+        return null;
+    }
+
+    /** Copy the previous row across the next {@code len} rows; cursor must be at column 0 and not row 0. */
+    private static String applyRepeat(
+            final boolean[][] rgn, final TileDecodeCursor cursor, final int len) {
+        if (cursor.curX != 0) {
+            return "repeat occured before a run was over.";
+        }
+        if (cursor.curY == 0) {
+            return "repeat occured in the first row.";
+        }
+        final int stopY = cursor.curY + len;
+        final int copyY = cursor.curY - 1;
+        for (int xPos = 0; xPos < 1024; ++xPos) {
+            for (int yPos = cursor.curY; yPos < stopY; ++yPos) {
+                rgn[yPos][xPos] = rgn[copyY][xPos];
+            }
+        }
+        cursor.curY += len;
+        return null;
+    }
+
+    /** Mutable {@code (curX, curY)} cursor threaded through {@link #decodeRleIntoGrid}. */
+    private static final class TileDecodeCursor {
+        int curX;
+        int curY;
+    }
+
+    /**
+     * Phase-2 of rTIL decode: scan {@code rgn} cell-by-cell, and for each
+     * still-set cell carve out the largest axis-aligned rectangle of
+     * contiguous set cells, append it to {@link #rects}, and clear the
+     * carved region. Iteration continues until every cell is processed.
+     */
+    private void extractRectanglesFromGrid(final boolean[][] rgn) {
+        int curX = 0;
+        int curY = 0;
+        while (curY < 1024) {
+            if (rgn[curY][curX]) {
+                final Rectangle r = carveRectangleAt(rgn, curX, curY);
+                rects.add(r);
+            }
+            if (++curX == 1024) {
                 curX = 0;
-            }
-
-            if (type % 2 == 0) // short
-            {
-                ++o;
-            } else // long
-            {
-                o += 2;
+                ++curY;
             }
         }
+    }
 
-        if (error == null && curY != 1024) {
-            error = "Encoded rTIL does NOT contain 1024 rows... it has " + curY;
+    /**
+     * Carve the largest axis-aligned rectangle anchored at {@code (curX, curY)}
+     * inside {@code rgn} (greedy width-first, then height extending down only
+     * while every cell in the row matches), clear it from the grid, and return
+     * it.
+     */
+    private static Rectangle carveRectangleAt(final boolean[][] rgn, final int curX, final int curY) {
+        final Rectangle r = new Rectangle();
+        r.x = curX;
+        r.y = curY;
+        int w = 1;
+        for (int xPos = curX + 1; xPos < 1024; ++xPos) {
+            if (!rgn[curY][xPos]) {
+                break;
+            }
+            ++w;
         }
+        r.width = w;
+        int h = 1;
+        for (int yPos = r.y + 1; yPos < 1024; ++yPos) {
+            if (!isRowFullyMatching(rgn, yPos, r.x, r.x + r.width)) {
+                break;
+            }
+            ++h;
+        }
+        r.height = h;
+        clearRectangleInGrid(rgn, r);
+        return r;
+    }
 
-        if (error == null) {
-            // at this point we're all encoded, make the rectangles
-            curX = curY = 0;
-
-            while (curY < 1024) {
-                if (rgn[curY][curX] == true) {
-                    final Rectangle r = new Rectangle();
-                    r.x = curX;
-                    r.y = curY;
-
-                    int w = 1;
-                    for (int XPos = curX + 1; XPos < 1024; ++XPos) {
-                        if (rgn[curY][XPos] == false) {
-                            break;
-                        }
-
-                        ++w;
-                    }
-
-                    r.width = w;
-
-                    int h = 1;
-                    for (int yPos = r.y + 1; yPos < 1024; ++yPos) {
-                        final int endX = r.x + r.width;
-                        boolean sameRow = true;
-                        for (int xPos = r.x; xPos < endX; ++xPos) {
-                            if (rgn[yPos][xPos] == false) {
-                                sameRow = false;
-                                break;
-                            }
-                        }
-
-                        if (sameRow == false) {
-                            break;
-                        }
-
-                        ++h;
-                    }
-
-                    r.height = h;
-
-                    final int endX = r.x + r.width;
-                    final int endY = r.y + r.height;
-
-                    for (int yPos = r.y; yPos < endY; ++yPos) {
-                        for (int xPos = r.x; xPos < endX; ++xPos) {
-                            rgn[yPos][xPos] = false; // this part has been proccessed
-                        }
-                    }
-
-                    rects.add(r);
-                }
-
-                // increment
-                if (++curX == 1024) {
-                    curX = 0;
-                    ++curY;
-                }
+    /** Returns true if every cell in {@code rgn[yPos][startX..endX)} is set. */
+    private static boolean isRowFullyMatching(
+            final boolean[][] rgn, final int yPos, final int startX, final int endX) {
+        for (int xPos = startX; xPos < endX; ++xPos) {
+            if (!rgn[yPos][xPos]) {
+                return false;
             }
         }
+        return true;
+    }
 
-        return error;
+    /** Mark every cell inside {@code r} as {@code false} (this part has been processed). */
+    private static void clearRectangleInGrid(final boolean[][] rgn, final Rectangle r) {
+        final int endX = r.x + r.width;
+        final int endY = r.y + r.height;
+        for (int yPos = r.y; yPos < endY; ++yPos) {
+            for (int xPos = r.x; xPos < endX; ++xPos) {
+                rgn[yPos][xPos] = false;
+            }
+        }
     }
 
     /**

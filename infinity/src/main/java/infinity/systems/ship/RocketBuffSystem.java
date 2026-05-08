@@ -113,11 +113,13 @@ public final class RocketBuffSystem extends AbstractGameSystem {
     // stamps RocketActive as a denormalized "ship is currently rocketing"
     // marker for hot-path consumers (HUD, AI, etc.).
     ed.setComponent(shipId, new RocketActive());
-    log.info(
-        "Rocket buff active on ship {} (snapshot pre-buff thrust={}, speed={})",
-        shipId,
-        snapshot.getOriginalThrust(),
-        snapshot.getOriginalSpeed());
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Rocket buff active on ship {} (snapshot pre-buff thrust={}, speed={})",
+          shipId,
+          snapshot.getOriginalThrust(),
+          snapshot.getOriginalSpeed());
+    }
   }
 
   private void onBuffRemoved(final EntityId buffId) {

@@ -34,7 +34,9 @@ public final class GunPrizeApplier implements PrizeApplier {
       return;
     }
     if (curr.getLevel().level < max.getLevel().level) {
-      log.info("Gun level increased to {}", curr.getLevel().next());
+      if (log.isInfoEnabled()) {
+        log.info("Gun level increased to {}", curr.getLevel().next());
+      }
       ed.setComponent(ship, new BulletCurrentLevel(curr.getLevel().next()));
     }
   }
