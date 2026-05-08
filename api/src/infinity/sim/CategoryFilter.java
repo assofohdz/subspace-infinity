@@ -216,7 +216,7 @@ public class CategoryFilter implements Filter {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("CategoryFilter[Category=").append(category).append("|Mask=").append(mask).append("]");
+        sb.append("CategoryFilter[Category=").append(category).append("|Mask=").append(mask).append(']');
         return sb.toString();
     }
 

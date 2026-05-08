@@ -33,7 +33,7 @@ public class AIEntities {
     byte flags = 0x0;
     ed.setComponent(mob, new CharacterInput(new Vec3d(), new Quatd(), flags));
     ed.setComponent(mob, MobType.create("Mob", ed));
-    ed.setComponent(mob, new Name("Mob-"+String.valueOf(mob.getId())));
+    ed.setComponent(mob, new Name("Mob-"+mob.getId()));
     ed.setComponent(mob, new ProbeInfo(new Vec3d(0, 0.1, 0.4), 0.3));
     ed.setComponent(mob, new Frequency(1));
 
