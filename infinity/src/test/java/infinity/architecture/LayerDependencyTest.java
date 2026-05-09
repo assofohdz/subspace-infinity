@@ -17,12 +17,16 @@ import org.junit.runner.RunWith;
     importOptions = ImportOption.DoNotIncludeTests.class)
 public class LayerDependencyTest {
 
-  /** api/ (components + events) must not leak into server/client/modules/ai. */
+  /** api/ (components + events + sim factories + config records) must not leak into server/client/modules/ai. */
   @ArchTest
   static final ArchRule api_must_not_depend_on_server_client_or_modules =
       noClasses()
           .that()
-          .resideInAnyPackage("infinity.es..", "infinity.events..")
+          .resideInAnyPackage(
+              "infinity.es..",
+              "infinity.events..",
+              "infinity.sim..",
+              "infinity.config..")
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(
@@ -64,9 +68,9 @@ public class LayerDependencyTest {
           .that()
           .resideInAPackage("infinity.client..")
           .and()
-          .doNotHaveSimpleName("MobDebugState")
+          .doNotHaveFullyQualifiedName("infinity.client.states.MobDebugState")
           .and()
-          .doNotHaveSimpleName("HostState")
+          .doNotHaveFullyQualifiedName("infinity.client.states.HostState")
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(

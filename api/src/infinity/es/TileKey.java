@@ -13,13 +13,13 @@ public class TileKey {
     public static final String LEGACY = "legacy"; // Legacy SS Map Tileset
     public static final String WANGBLOB = "wangblob"; // Wang Blob Tileset
 
-    private String tileType;
-    private String tileSet;
-    private short tileIndex;
+    private final String tileType;
+    private final String tileSet;
+    private final short tileIndex;
 
     // For serialization
     public TileKey() {
-
+        this(null, null, (short) 0);
     }
 
     public TileKey(final String tileType, final String tileSet, final short tileIndex) {

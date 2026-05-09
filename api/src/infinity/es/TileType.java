@@ -12,9 +12,9 @@ import com.simsilica.es.EntityData;
  */
 public class TileType implements EntityComponent {
 
-    private int type;
-    private String tileSet;
-    private short tileIndex;
+    private final int type;
+    private final String tileSet;
+    private final short tileIndex;
 
     public TileType(final int type, final String tileSet, final short tileIndex) {
         this.type = type;
@@ -23,6 +23,7 @@ public class TileType implements EntityComponent {
     }
 
     protected TileType() {
+        this(0, null, (short) 0);
     }
 
     public static TileType create(final String typeName, final String tileSet, final short tileIndex,

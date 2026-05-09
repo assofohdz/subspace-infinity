@@ -318,18 +318,18 @@ public class AvatarSystem extends AbstractGameSystem {
 
     final ComponentFilter<Frequency> freqFilter =
         FieldFilter.create(Frequency.class, "freq", Integer.valueOf(team));
+    // try/finally so the short-lived EntitySet is always released — see
+    // .claude/rules/entity-sets.md (arch-review TD-1).
     final EntitySet freq = ed.getEntities(freqFilter, Frequency.class, ShapeInfo.class);
-
-    int count = 0;
-
-    // Sum up the entities with the right type
-    count =
-        freq.stream()
-            .filter(e -> (e.get(ShapeInfo.class).getShapeName(ed).equals(type.getShapeName(ed))))
-            .map(_item -> Integer.valueOf(1))
-            .reduce(Integer.valueOf(count), Integer::sum)
-            .intValue();
-
-    return count;
+    try {
+      // Sum up the entities with the right type
+      return freq.stream()
+          .filter(e -> (e.get(ShapeInfo.class).getShapeName(ed).equals(type.getShapeName(ed))))
+          .map(_item -> Integer.valueOf(1))
+          .reduce(Integer.valueOf(0), Integer::sum)
+          .intValue();
+    } finally {
+      freq.release();
+    }
   }
 }
