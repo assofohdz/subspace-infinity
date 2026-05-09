@@ -5,7 +5,6 @@ package infinity.es;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.ext.mphys.ShapeInfo;
-import infinity.sim.CorePhysicsConstants;
 import infinity.sim.util.InfinityRunTimeException;
 
 /**
@@ -67,28 +66,36 @@ public class ShapeNames {
   /**
    * Creates a ship shape based on the ship type.
    *
+   * <p>The collision radius flows in from the caller — server-side spawn paths
+   * read {@code engineConfigSystem.get().shipRadius()} (slice s6-ship-radius);
+   * api-internal callers ({@code GameEntities.createShip}) thread the value in
+   * via the {@link infinity.config.EngineConfig#DEFAULTS} backward-compat
+   * overload. Mirrors the projectile-radius slice's threading shape.
+   *
    * @param ship the ship type
    * @param ed the entity data
+   * @param radius the collision-shape radius (jME world units) to bake into
+   *     {@link ShapeInfo}
    * @return the shape info
    */
-  public static ShapeInfo createShip(byte ship, EntityData ed) {
+  public static ShapeInfo createShip(final byte ship, final EntityData ed, final double radius) {
     switch (ship) {
       case 0x1:
-        return ShapeInfo.create(ShapeNames.SHIP_WARBIRD, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_WARBIRD, radius, ed);
       case 0x2:
-        return ShapeInfo.create(ShapeNames.SHIP_JAVELIN, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_JAVELIN, radius, ed);
       case 0x3:
-        return ShapeInfo.create(ShapeNames.SHIP_SPIDER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_SPIDER, radius, ed);
       case 0x4:
-        return ShapeInfo.create(ShapeNames.SHIP_LEVI, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_LEVI, radius, ed);
       case 0x5:
-        return ShapeInfo.create(ShapeNames.SHIP_TERRIER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_TERRIER, radius, ed);
       case 0x6:
-        return ShapeInfo.create(ShapeNames.SHIP_LANCASTER, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_LANCASTER, radius, ed);
       case 0x7:
-        return ShapeInfo.create(ShapeNames.SHIP_WEASEL, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_WEASEL, radius, ed);
       case 0x8:
-        return ShapeInfo.create(ShapeNames.SHIP_SHARK, CorePhysicsConstants.SHIPSIZERADIUS, ed);
+        return ShapeInfo.create(ShapeNames.SHIP_SHARK, radius, ed);
       default:
         throw new InfinityRunTimeException("Unknown ship type: " + ship);
     }

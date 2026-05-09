@@ -23,7 +23,8 @@ import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.WarpTo;
 import infinity.events.arena.ShipEvent;
-import infinity.sim.CorePhysicsConstants;
+import infinity.settings.EngineConfigSystem;
+import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class AvatarSystem extends AbstractGameSystem {
   public static final byte WEASEL = 0x7;
   public static final byte SHARK = 0x8;
   private EntityData ed;
+  private EngineConfigSystem engineConfigSystem;
   private EntitySet frequencies;
   /** The number of allowed players in each ship on this team. */
   private Map<Integer, ShipRestrictor> teamRestrictions;
@@ -59,6 +61,12 @@ public class AvatarSystem extends AbstractGameSystem {
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
+
+    engineConfigSystem = getSystem(EngineConfigSystem.class);
+    if (engineConfigSystem == null) {
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires the EngineConfigSystem.");
+    }
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
@@ -121,7 +129,7 @@ public class AvatarSystem extends AbstractGameSystem {
       if (shapeName != null) {
         ed.setComponent(
             shipEntity,
-            ShapeInfo.create(shapeName, CorePhysicsConstants.SHIPSIZERADIUS, ed));
+            ShapeInfo.create(shapeName, engineConfigSystem.get().shipRadius(), ed));
       }
 
       // Re-project ship stats from the arena's ShipConfig (Pattern 4). Remove+set

@@ -56,11 +56,13 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.GameSystemManager;
 import infinity.InfinityConstants;
+import infinity.config.EngineConfig;
 import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
+import infinity.settings.EngineConfigSystem;
 import infinity.sim.GameEntities;
 import infinity.systems.ArenaSystem;
 import infinity.sim.util.InfinityRunTimeException;
@@ -224,6 +226,11 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
       // binIndex = phys.getBinIndex();
 
+      // Engine-tier ship collision radius — slice s6-ship-radius lifted this
+      // out of the retired CorePhysicsConstants.SHIPSIZERADIUS (mirrors the
+      // projectile-radius slice's threading shape).
+      final EngineConfig engineCfg = gameSystems.get(EngineConfigSystem.class, true).get();
+
       this.spawnLoc = resolveInitialSpawn();
 
       playerEntityId = ed.createEntity();
@@ -235,7 +242,8 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       ed.setComponent(playerEntityId, new Name(playerName));
 
       avatarEntityId =
-          GameEntities.createPlayerShip(spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD);
+          GameEntities.createPlayerShip(
+              spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD, engineCfg.shipRadius());
 
       // Resolve initial arena from the spawn coord. Null is tolerated — ship spawns
       // in no-arena void (no ShipConfig projection until it crosses into an arena).

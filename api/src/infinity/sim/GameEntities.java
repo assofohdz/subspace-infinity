@@ -470,19 +470,38 @@ public class GameEntities {
     return lastLight;
   }
 
+  /**
+   * Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
+   * Module callers (and {@code AIEntities.createMobShip}) use this form;
+   * production server code threads {@code engineConfigSystem.get().shipRadius()}
+   * through the explicit-radius overload below.
+   */
   public static EntityId createShip(
       final Vec3d spawnLoc,
       final EntityData ed,
       final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
-      byte ship) {
+      final byte ship) {
+    return createShip(
+        spawnLoc, ed, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius());
+  }
+
+  /** Ship with explicit collision radius — see backward-compat overload above. */
+  public static EntityId createShip(
+      final Vec3d spawnLoc,
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final byte ship,
+      final double radius) {
     final EntityId result = ed.createEntity();
 
     ed.setComponent(result, new Parent(owner));
     ed.setComponent(result, new ShipType(Ship.getShip(ship)));
 
-    ed.setComponent(result, ShapeNames.createShip(ship, ed));
+    ed.setComponent(result, ShapeNames.createShip(ship, ed, radius));
 
     SpawnPosition sp = new SpawnPosition(phys.getGrid(), spawnLoc);
     ed.setComponent(result, sp);
@@ -517,15 +536,34 @@ public class GameEntities {
     return result;
   }
 
+  /**
+   * Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
+   * Module callers use this form; production server code threads
+   * {@code engineConfigSystem.get().shipRadius()} through the explicit-radius
+   * overload below.
+   */
   public static EntityId createPlayerShip(
       final Vec3d spawnLoc,
       final EntityData ed,
       final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
-      byte ship) {
+      final byte ship) {
+    return createPlayerShip(
+        spawnLoc, ed, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius());
+  }
 
-    EntityId result = createShip(spawnLoc, ed, owner, phys, createdTime, ship);
+  /** Player ship with explicit collision radius — see backward-compat overload above. */
+  public static EntityId createPlayerShip(
+      final Vec3d spawnLoc,
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final byte ship,
+      final double radius) {
+
+    final EntityId result = createShip(spawnLoc, ed, owner, phys, createdTime, ship, radius);
 
     ed.setComponent(result, new Player());
     ed.setComponent(result, new Name("player"));
