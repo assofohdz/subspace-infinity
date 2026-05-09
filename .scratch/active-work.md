@@ -13,7 +13,10 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-(none)
+- **desktop** — Slice S6 (engine-tier shipRadius; CorePhysicsConstants deletion)
+  ([physics-audit.md](./physics-audit.md) lines 419-429);
+  branch `slice/s6-ship-radius` (stacked on `slice/projectile-radius-pattern4`);
+  status: phase 0 in flight
 
 ## Recently landed (last 7 days)
 
