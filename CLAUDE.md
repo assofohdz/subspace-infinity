@@ -29,7 +29,8 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 Path-scoped rules live in `.claude/rules/` and load automatically when relevant files are read:
 - [`components.md`](.claude/rules/components.md) — immutability + no-arg constructor (`api/src/infinity/es/**`)
 - [`entity-sets.md`](.claude/rules/entity-sets.md) — release in `terminate()` (`infinity/` + `modules/` Java)
-- [`systems.md`](.claude/rules/systems.md) — logic-in-systems, no duplicate component producers (`systems/**` + `modules/`)
+- [`systems.md`](.claude/rules/systems.md) — logic-in-systems; component-write discipline pointer (`systems/**` + `modules/`)
+- [`replacement-as-mutation.md`](.claude/rules/replacement-as-mutation.md) — RaM: one canonical writer per component; other systems emit intents drained by the writer; phased tick (`systems/**`, `modules/`, `api/src/infinity/sim/**`)
 - [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity/` + `modules/` Java)
 - [`api-contracts.md`](.claude/rules/api-contracts.md) — api/ is data + interfaces only; no deps on server/client/modules (`api/src/**`)
 - [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`client/**` + loose `*AppState`)
