@@ -55,6 +55,7 @@ import infinity.es.ship.weapons.BulletSpeed;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
+import infinity.es.ship.weapons.MineSpeed;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
@@ -79,6 +80,12 @@ public class WeaponsSystem extends AbstractGameSystem
   public static final byte GRAVBOMB = 0x2;
   public static final byte MINE = 0x3;
   public static final byte BURST = 0x4;
+
+  /**
+   * Weapon flags whose projectiles do NOT inherit the firing ship's velocity at fire time —
+   * they "lay down" rather than "tag along". Subspace canon: mines drop in place.
+   */
+  private static final Set<Byte> INERT_DROPS = Set.of(MINE);
 
   // Bomb / bullet / mine spatial-name prefixes — combined with the
   // current-level int produces the ShapeNames the client maps to spatials.
@@ -540,12 +547,9 @@ public class WeaponsSystem extends AbstractGameSystem
     final Vec3d shipVelocity = shipBody.getLinearVelocity();
     projectileVelocity = shipRotation.mult(projectileVelocity);
 
-    // Step 3: Add ship velocity:
-    projectileVelocity.addLocal(shipVelocity);
-
-    // Step 4: Correct mines:
-    if (weaponFlag == WeaponsSystem.MINE) {
-      projectileVelocity.set(0, 0, 0);
+    // Step 3: Add ship velocity (inert drops lay down — no inheritance).
+    if (!INERT_DROPS.contains(weaponFlag)) {
+      projectileVelocity.addLocal(shipVelocity);
     }
 
     // Step 4: Find the translation
@@ -564,8 +568,10 @@ public class WeaponsSystem extends AbstractGameSystem
 
   /**
    * Step 1 of the attack-info pipeline: add the per-weapon speed component (BulletSpeed,
-   * BombSpeed, BurstSpeed) scaled through the engine's subspace→jME bridge into the
-   * projectile velocity's z. GRAVBOMB and MINE start from rest.
+   * BombSpeed, BurstSpeed, MineSpeed) scaled through the engine's subspace→jME bridge
+   * into the projectile velocity's z. GRAVBOMB starts from rest. MINE reads
+   * {@link MineSpeed}; if absent (older spawn paths) it stays at zero, preserving the
+   * pre-S7 inert-drop behaviour.
    */
   private void applyWeaponSpeedScale(
       final Vec3d projectileVelocity,
@@ -586,8 +592,15 @@ public class WeaponsSystem extends AbstractGameSystem
         projectileVelocity.addLocal(
             0, 0, WeaponsLogic.effectiveProjectileSpeed(ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
         break;
-      case WeaponsSystem.GRAVBOMB:
       case WeaponsSystem.MINE:
+        final MineSpeed mineSpeed = ed.getComponent(attacker, MineSpeed.class);
+        if (mineSpeed != null) {
+          projectileVelocity.addLocal(
+              0, 0, WeaponsLogic.effectiveProjectileSpeed(
+                  mineSpeed.getSpeed(), scale, maxJme));
+        }
+        break;
+      case WeaponsSystem.GRAVBOMB:
         break;
       default:
         throw new AssertionError("Flag :" + weaponFlag + " not recognized");

@@ -44,6 +44,7 @@ import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineMaxLevel;
+import infinity.es.ship.weapons.MineSpeed;
 import javax.annotation.Nullable;
 
 /**
@@ -128,6 +129,7 @@ final class ShipWeaponsProjector {
     ed.setComponent(shipId, new MineMaxLevel(mines.max()));
     ed.setComponent(shipId, new MineCost(mines.cost()));
     ed.setComponent(shipId, new MineFireDelay(mines.fireDelayCs()));
+    ed.setComponent(shipId, new MineSpeed(mines.speed()));
   }
 
   static void projectBursts(
