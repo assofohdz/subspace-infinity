@@ -279,10 +279,23 @@ public class ModelViewState extends BaseAppState {
     if (debug != null) {
       debug.removeDebugValue("Bodies");
       debug.removeDebugValue("Statics");
+      debug.removeDebugValue("Lobs");
       debug.removeDebugValue("Spatials");
     }
+    // Defensive container stops — BaseAppState contract permits cleanup()
+    // while disabled, in which case onDisable() didn't run. Container
+    // stop() is idempotent, so calling it after onDisable already did is
+    // safe.
+    bodies.stop();
+    models.stop();
+    largeModels.stop();
     flags.release();
     flags = null;
+    if (avatarEntity != null) {
+      avatarEntity.release();
+      avatarEntity = null;
+    }
+    posRef = null;
   }
 
   @Override
