@@ -117,7 +117,7 @@ ship(Ship.LEVIATHAN) {
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_2, cost: 400,  fireDelay: 60, speed: 1000
     // mines uses default BombLevel start/max; per-ship MaxMines (count cap)
     // not yet represented in typed pipeline — tracked in ship-<name>.groovy.
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 800, fireDelay: 20
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 800, fireDelay: 20, speed: 0
     repels  start: 4, max: 4
     decoys  start: 0, max: 3
     portals start: 1, max: 1
@@ -190,7 +190,7 @@ ship(Ship.SHARK) {
     radarRange          50
     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1150, fireDelay: 45, speed: 1, thrust: 400
     // shark has no bullets (MaxGuns 0 in trench/ship-shark.groovy)
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 10
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 10, speed: 0
     thors   start: 0, max: 3, fireDelay: 1000
     repels  start: 3, max: 3
     decoys  start: 0, max: 1

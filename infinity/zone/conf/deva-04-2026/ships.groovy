@@ -36,7 +36,7 @@ ship(Ship.WARBIRD) {
     radarRange          50
     bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 325, fireDelay: 175, speed: 4300, thrust: 400
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_3, cost: 28,  fireDelay: 6, speed: 4100
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 460, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 460, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
@@ -56,7 +56,7 @@ ship(Ship.JAVELIN) {
     radarRange          50
     bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 510, fireDelay: 25, speed: 4300, thrust: 400
     bullets start: BulletLevel.LEVEL_3, max: BulletLevel.LEVEL_3, cost: 27,  fireDelay: 6, speed: 3300
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 1, max: 3
@@ -75,7 +75,7 @@ ship(Ship.SPIDER) {
     radarRange          50
     bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 300, fireDelay: 200, speed: 4300, thrust: 400
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_3, cost: 25,  fireDelay: 8, speed: 4100
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
@@ -96,7 +96,7 @@ ship(Ship.LEVIATHAN) {
     radarRange          50
     bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 45, speed: 5000, thrust: 400
     bullets start: BulletLevel.LEVEL_3, max: BulletLevel.LEVEL_3, cost: 30,  fireDelay: 6, speed: 4000
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 625, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 625, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 3
     decoys  start: 0, max: 3
@@ -116,7 +116,7 @@ ship(Ship.TERRIER) {
     radarRange          50
     bombs   start: BombLevel.BOMB_2, max: BombLevel.BOMB_3, cost: 600, fireDelay: 207, speed: 4300, thrust: 400
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_3, cost: 30,  fireDelay: 10, speed: 3200
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 400, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 400, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 0, max: 2
@@ -136,7 +136,7 @@ ship(Ship.WEASEL) {
     radarRange          50
     bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 400, fireDelay: 175, speed: 4850, thrust: 400
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_3, cost: 27,  fireDelay: 5, speed: 3600
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 250, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 250, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 1
     decoys  start: 0, max: 2
@@ -156,7 +156,7 @@ ship(Ship.LANCASTER) {
     radarRange          50
     bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 600, fireDelay: 25, speed: 2500, thrust: 400
     bullets start: BulletLevel.LEVEL_3, max: BulletLevel.LEVEL_3, cost: 30,  fireDelay: 6, speed: 3600
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 36, speed: 0
     bursts  start: 0, max: 2, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 1, max: 2
@@ -176,7 +176,7 @@ ship(Ship.SHARK) {
     radarRange          50
     bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 320, fireDelay: 180, speed: 4900, thrust: 400
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_3, cost: 29,  fireDelay: 8, speed: 3000
-    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36
+    mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 500, fireDelay: 36, speed: 0
     bursts  start: 0, max: 3, speed: 8000
     repels  start: 0, max: 2
     decoys  start: 0, max: 2

@@ -94,7 +94,7 @@ public class ShipSpawnSystemTest {
             250.0,                          // radarRange
             new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, /* speed */ 2000, /* thrust */ 400),
             new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
-            new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L),
+            new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L, /* speed */ 0),
             new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000),
             new CountWithDelayStats(2, 2, 1000L),       // thors
             new CountStats(10, 20),                     // repels

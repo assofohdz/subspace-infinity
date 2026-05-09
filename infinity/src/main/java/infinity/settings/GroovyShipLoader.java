@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  *     radarRange          250
  *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25, speed: 2000, thrust: 400
  *     bullets    start: BulletLevel.LEVEL_1,  max: BulletLevel.LEVEL_4,  cost: 10, fireDelay: 25
- *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500
+ *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500, speed: 0
  *     bursts  start: 5,  max: 5
  *     thors   start: 2,  max: 2,  fireDelay: 1000
  *     repels  start: 10, max: 20
@@ -137,9 +137,14 @@ public final class GroovyShipLoader {
           /* fireDelayCs */ 25,
           /* speed */ 2000); // SVS canon BulletSpeed=2000
 
-  /** Default starting mine level + max + cost + fire-delay. */
+  /** Default starting mine level + max + cost + fire-delay + speed. */
   static final MineStats DEFAULT_MINES =
-      new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, /* cost */ 50, /* fireDelayCs */ 500);
+      new MineStats(
+          BombLevel.BOMB_1,
+          BombLevel.BOMB_4,
+          /* cost */ 50,
+          /* fireDelayCs */ 500,
+          /* speed */ 0); // Inert drop — slice s7-mine-speed; arenas opt in to kicker mines
 
   /** Default starting + max burst inventory count + per-projectile speed. */
   static final BurstStats DEFAULT_BURSTS =
@@ -544,14 +549,27 @@ public final class GroovyShipLoader {
               intArg("bullets", args, "speed"));
     }
 
-    /** {@code mines start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500} */
+    /**
+     * {@code mines start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50,
+     *        fireDelay: 500, speed: 0}
+     *
+     * <p>{@code speed} is in Subspace velocity units. Default {@code 0} =
+     * inert drop (mine drops dead-still, does not inherit ship velocity).
+     * Fire-time consumer applies {@code EngineConfig.subspaceVelocityScale}
+     * + cap to land in jME world units. Slice s7-mine-speed.
+     *
+     * <p>Infinity extension — see {@link MineStats#speed} for the
+     * canon-divergence rationale (Subspace's {@code ## Mine} section does
+     * not define a per-ship {@code MineSpeed} knob).
+     */
     public void mines(final Map<String, ?> args) {
       this.mines =
           new MineStats(
               bombsArg("mines", args, "start"),
               bombsArg("mines", args, "max"),
               intArg("mines", args, "cost"),
-              longArg("mines", args, "fireDelay"));
+              longArg("mines", args, "fireDelay"),
+              intArg("mines", args, "speed"));
     }
 
     /**
