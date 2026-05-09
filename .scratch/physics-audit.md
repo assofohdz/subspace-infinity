@@ -29,7 +29,7 @@ Physics-touching code, by file:
 |---|---|---|
 | `infinity.sim.PlayerDriver` | per-ship `AbstractControlDriver` | car-curve thrust, mphys-native linear damping (`setDamping`, S1), exponential angular ease, hand-coded vMax cap (`setLinearVelocity`), Y-snap |
 | `infinity.systems.ContactSystem` | global `ContactListener` | reads `BounceRestitution` per-body; reimplements wall friction via custom tangential damping (sets `contact.friction = 0`) |
-| `infinity.systems.ship.WeaponsSystem.getAttackInfo` | projectile spawn | reads `BulletSpeed` / `BombSpeed` / `BurstSpeed` × `EngineConfig.subspaceVelocityScale`, capped at `maxProjectileSpeedJme`; mines force `velocity = (0,0,0)` |
+| `infinity.systems.ship.WeaponsSystem.getAttackInfo` | projectile spawn | reads `BulletSpeed` / `BombSpeed` / `BurstSpeed` / `MineSpeed` × `EngineConfig.subspaceVelocityScale`, capped at `maxProjectileSpeedJme`; ship-velocity inheritance gated on `INERT_DROPS` |
 | `infinity.systems.ship.ConsumableSystem.getActionPosition` | thor / repel / brick / decoy / portal / rocket spawn | thors hardcoded `addLocal(0, 0, 50)`; repel/brick/decoy/portal are no-velocity markers; rocket is a buff |
 | `infinity.systems.ship.ProximityFuseSystem` | per-tick proximity arming | manually walks `EntitySet(Health.class)` for every in-flight bomb |
 | `infinity.systems.ship.WeaponsSystem.applySplashDamage` | bomb detonation | manually walks `EntitySet(Health.class)` for every detonation |
@@ -62,31 +62,6 @@ spatial-query swap is one of the lower-risk moves to make since the
 ECS-side filtering (FF gate, arena membership, victim type) stays
 unchanged.
 
-### F4 — Wall friction is reimplemented to dodge unwanted torque
-
-ContactSystem.105-124:
-
-```java
-// By keeping contact.friction = 0 we get a pure normal impulse
-// (r ∥ n on a sphere → zero torque), and we separately scale the
-// body's tangential velocity component here.
-```
-
-This is correct — for arcade ship physics the player owns heading,
-and the resolver's friction-as-torque is wrong-shaped. The audit's
-question is whether mphys offers a primitive that says "no friction
-torque" (it doesn't, per the survey: `Contact.friction` and
-`restitution` are scalar, no rotation lock).
-
-**Conclusion:** the workaround is justified. Recommend documenting
-it on `ContactSystem.newContact` Javadoc (already partially there in
-the inline comment) and flagging it as a deliberate framework
-divergence rather than a candidate for refactor.
-
-The same pattern shows up in `PlayerDriver.145-151` (Y-axis snap to
-keep gameplay in 2D) — also justified, also a framework-divergence
-to document not refactor.
-
 ### F5 — Subspace canon physics knobs unwired
 
 `svsSettings.cfg` contains canonical Subspace per-ship knobs that no
@@ -104,24 +79,6 @@ typed Infinity consumer reads:
 Each row is a candidate for the settings-pipeline tracker. Bomb bounces
 is the highest-gameplay-impact remaining knob; afterburner is a
 self-contained mechanic; gravity is an arena-wide consequence.
-
-### F6 — Mines are velocity-zeroed in a special-case branch
-
-`WeaponsSystem.getAttackInfo` lines 547-549:
-
-```java
-if (weaponFlag == WeaponsSystem.MINE) {
-    projectileVelocity.set(0, 0, 0);
-}
-```
-
-This survives because mines reuse the bomb-spawn pipeline but want
-zero velocity. The Pattern 4 / Slice 10 fix is to introduce a
-`MineSpeed` component (defaults to 0) projected from `ShipConfig`,
-and remove the special-case. Mirrors the bullet/bomb/burst slot
-shape exactly.
-
-Tiny slice; obvious follow-up.
 
 ### F8 — Engine-tier config has natural room to grow
 
@@ -174,16 +131,6 @@ in application code. Sits naturally inside Slice P1 (already queued).
 
 **Risk:** behavioural deltas if `queryBounds` returns bodies the
 EntitySet walks were missing (sleeping bodies?) — verify in test.
-
-### S7 — Wire `MineSpeed` (eliminate the mine special-case)
-**Effort:** small. **Impact:** small (cleanup; consistency with Slice
-10).
-
-Per-ship `MineSpeed` component (default 0). Slot it into the bomb-
-spawn pipeline. Delete the `if (weaponFlag == MINE) { … set(0,0,0); }`
-branch.
-
-**Risk:** none.
 
 ### S9 (deferred / open) — Wormhole `Gravity` per-ship
 **Effort:** medium. **Impact:** medium (canon-faithful wormholes).
@@ -347,7 +294,6 @@ to revisit `mblock-physb` and the unscanned `mphys` files first.
 
 Slice P2 deliverable lands here. Direct outcomes:
 
-- Two follow-up slices remaining (S4 — promote scans to mphys spatial
-  queries; S7 — wire MineSpeed). Three deferred slices (S9 wormhole
-  gravity, S10 afterburner, plus S3 bomb bounce as an open design
-  question).
+- One follow-up slice remaining (S4 — promote scans to mphys spatial
+  queries). Three deferred slices (S9 wormhole gravity, S10
+  afterburner, plus S3 bomb bounce as an open design question).
