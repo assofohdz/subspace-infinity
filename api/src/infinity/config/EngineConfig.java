@@ -62,12 +62,65 @@ package infinity.config;
  *     once recoil landed in slice S2. Cap reuses
  *     {@link #maxProjectileSpeedJme} for physics-safety on absurd
  *     authored values.
+ * @param bulletRadius bullet collision-shape radius in jME world units
+ *     (1 unit ≈ 1 tile per moss-world-grid). Default {@code 0.125} matches
+ *     the retired {@code CorePhysicsConstants.BULLETSIZERADIUS}. Subspace
+ *     canon does not author per-projectile collision radius — this is a
+ *     Moss/Infinity concept driven by {@link com.simsilica.mphys.ShapeInfo}.
+ *     Slice projectile-radius-pattern4 lifted these radii into engine-tier
+ *     because they are physics-engine facts identical across every arena
+ *     in the build, not gameplay tuning that arena authors should override.
+ * @param bombRadius bomb collision-shape radius (jME world units). Default
+ *     {@code 0.5} matches retired {@code BOMBSIZERADIUS}. See
+ *     {@link #bulletRadius} for the divergence rationale.
+ * @param mineRadius mine collision-shape radius (jME world units). Default
+ *     {@code 0.5} matches retired {@code MINESIZERADIUS}. See
+ *     {@link #bulletRadius} for the divergence rationale.
+ * @param thorRadius thor collision-shape radius (jME world units). Default
+ *     {@code 0.5} matches retired {@code THORSIZERADIUS}. See
+ *     {@link #bulletRadius} for the divergence rationale.
+ * @param prizeRadius prize collision-shape radius (jME world units).
+ *     Default {@code 0.5} matches retired {@code PRIZESIZERADIUS}. See
+ *     {@link #bulletRadius} for the divergence rationale.
+ * @param burstRadius burst projectile collision-shape radius (jME world
+ *     units). Default {@code 0.125} matches retired
+ *     {@code BURSTSIZERADIUS}. See {@link #bulletRadius} for the
+ *     divergence rationale.
+ * @param repelRadius repel collision-shape radius (jME world units).
+ *     Default {@code 0.125} matches retired {@code REPELRADIUS}. See
+ *     {@link #bulletRadius} for the divergence rationale.
+ * @param over1Radius generic decoration "Over1" collision-shape radius
+ *     (jME world units). Default {@code 0.5} matches retired
+ *     {@code OVER1SIZERADIUS}. See {@link #bulletRadius} for the
+ *     divergence rationale.
+ * @param over2Radius generic decoration "Over2" collision-shape radius
+ *     (jME world units). Default {@code 1.0} matches retired
+ *     {@code OVER2SIZERADIUS}. See {@link #bulletRadius} for the
+ *     divergence rationale.
+ * @param over5Radius generic decoration "Over5" collision-shape radius
+ *     (jME world units). Default {@code 0.1} matches retired
+ *     {@code OVER5SIZERADIUS}. See {@link #bulletRadius} for the
+ *     divergence rationale.
+ * @param flagRadius flag collision-shape radius (jME world units).
+ *     Default {@code 0.5} matches retired {@code FLAGSIZERADIUS}. See
+ *     {@link #bulletRadius} for the divergence rationale.
  */
 public record EngineConfig(
     double subspaceVelocityScale,
     double maxProjectileSpeedJme,
     double shipMaxSpeedScale,
-    double bombThrustScale) {
+    double bombThrustScale,
+    double bulletRadius,
+    double bombRadius,
+    double mineRadius,
+    double thorRadius,
+    double prizeRadius,
+    double burstRadius,
+    double repelRadius,
+    double over1Radius,
+    double over2Radius,
+    double over5Radius,
+    double flagRadius) {
 
   /**
    * Subspace-canonical baseline used when no {@code engine.groovy} is on
@@ -78,7 +131,12 @@ public record EngineConfig(
    * {@code shipMaxSpeedScale 0.01} + {@code bombThrustScale 0.0005}
    * land trench feel at ~40% of bullet velocity for ship max and a
    * subtle (~1% of max-speed) recoil — values dialed in via S1-cal /
-   * S2-cal playtest.
+   * S2-cal playtest. Collision radii match the retired
+   * {@code CorePhysicsConstants.*SIZERADIUS} family — slice
+   * projectile-radius-pattern4.
    */
-  public static final EngineConfig DEFAULTS = new EngineConfig(0.01, 100.0, 0.01, 0.0005);
+  public static final EngineConfig DEFAULTS =
+      new EngineConfig(
+          0.01, 100.0, 0.01, 0.0005,
+          0.125, 0.5, 0.5, 0.5, 0.5, 0.125, 0.125, 0.5, 1.0, 0.1, 0.5);
 }

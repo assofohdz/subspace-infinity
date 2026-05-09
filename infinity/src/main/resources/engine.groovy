@@ -48,4 +48,25 @@ engine {
     // 400 → 0.2 jME/sec backward impulse — a subtle nudge (~1% of ship
     // max-speed) rather than a strong shove.
     bombThrustScale 0.0005
+
+    // ---- Per-projectile / map-decoration collision radii ----------------
+    // Slice projectile-radius-pattern4 — promoted from the retired
+    // CorePhysicsConstants.*SIZERADIUS family. Authored in jME world units
+    // (1 unit ≈ 1 tile per moss-world-grid). These are physics-engine
+    // facts about how projectiles and decoration entities collide; they
+    // are not Subspace-canon authored knobs and would not sensibly differ
+    // between two arenas in the same build, which is why they live here
+    // in engine-tier rather than per-arena *Config.
+
+    bulletRadius 0.125
+    bombRadius 0.5
+    mineRadius 0.5
+    thorRadius 0.5
+    prizeRadius 0.5
+    burstRadius 0.125
+    repelRadius 0.125
+    over1Radius 0.5
+    over2Radius 1.0
+    over5Radius 0.1
+    flagRadius 0.5
 }

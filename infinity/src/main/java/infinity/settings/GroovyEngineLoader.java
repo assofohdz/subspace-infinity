@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
  * engine {
  *     subspaceVelocityScale 0.01
  *     maxProjectileSpeedJme 100
+ *     bulletRadius 0.125
  * }
  * }</pre>
  */
@@ -119,6 +120,17 @@ public final class GroovyEngineLoader {
     private double maxProjectileSpeedJme = EngineConfig.DEFAULTS.maxProjectileSpeedJme();
     private double shipMaxSpeedScale = EngineConfig.DEFAULTS.shipMaxSpeedScale();
     private double bombThrustScale = EngineConfig.DEFAULTS.bombThrustScale();
+    private double bulletRadius = EngineConfig.DEFAULTS.bulletRadius();
+    private double bombRadius = EngineConfig.DEFAULTS.bombRadius();
+    private double mineRadius = EngineConfig.DEFAULTS.mineRadius();
+    private double thorRadius = EngineConfig.DEFAULTS.thorRadius();
+    private double prizeRadius = EngineConfig.DEFAULTS.prizeRadius();
+    private double burstRadius = EngineConfig.DEFAULTS.burstRadius();
+    private double repelRadius = EngineConfig.DEFAULTS.repelRadius();
+    private double over1Radius = EngineConfig.DEFAULTS.over1Radius();
+    private double over2Radius = EngineConfig.DEFAULTS.over2Radius();
+    private double over5Radius = EngineConfig.DEFAULTS.over5Radius();
+    private double flagRadius = EngineConfig.DEFAULTS.flagRadius();
 
     // Package-private so unit tests can build configs without standing up
     // the full GroovyShell pipeline.
@@ -196,9 +208,199 @@ public final class GroovyEngineLoader {
       this.bombThrustScale = v;
     }
 
+    /**
+     * {@code bulletRadius 0.125} — bullet collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void bulletRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "bulletRadius must be a finite value > 0; got " + value);
+      }
+      this.bulletRadius = v;
+    }
+
+    /**
+     * {@code bombRadius 0.5} — bomb collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void bombRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "bombRadius must be a finite value > 0; got " + value);
+      }
+      this.bombRadius = v;
+    }
+
+    /**
+     * {@code mineRadius 0.5} — mine collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void mineRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "mineRadius must be a finite value > 0; got " + value);
+      }
+      this.mineRadius = v;
+    }
+
+    /**
+     * {@code thorRadius 0.5} — thor collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void thorRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "thorRadius must be a finite value > 0; got " + value);
+      }
+      this.thorRadius = v;
+    }
+
+    /**
+     * {@code prizeRadius 0.5} — prize collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void prizeRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "prizeRadius must be a finite value > 0; got " + value);
+      }
+      this.prizeRadius = v;
+    }
+
+    /**
+     * {@code burstRadius 0.125} — burst projectile collision radius in jME
+     * world units. Slice projectile-radius-pattern4.
+     */
+    public void burstRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "burstRadius must be a finite value > 0; got " + value);
+      }
+      this.burstRadius = v;
+    }
+
+    /**
+     * {@code repelRadius 0.125} — repel collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void repelRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "repelRadius must be a finite value > 0; got " + value);
+      }
+      this.repelRadius = v;
+    }
+
+    /**
+     * {@code over1Radius 0.5} — generic decoration "Over1" collision radius
+     * in jME world units. Slice projectile-radius-pattern4.
+     */
+    public void over1Radius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "over1Radius must be a finite value > 0; got " + value);
+      }
+      this.over1Radius = v;
+    }
+
+    /**
+     * {@code over2Radius 1.0} — generic decoration "Over2" collision radius
+     * in jME world units. Slice projectile-radius-pattern4.
+     */
+    public void over2Radius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "over2Radius must be a finite value > 0; got " + value);
+      }
+      this.over2Radius = v;
+    }
+
+    /**
+     * {@code over5Radius 0.1} — generic decoration "Over5" collision radius
+     * in jME world units. Slice projectile-radius-pattern4.
+     */
+    public void over5Radius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "over5Radius must be a finite value > 0; got " + value);
+      }
+      this.over5Radius = v;
+    }
+
+    /**
+     * {@code flagRadius 0.5} — flag collision radius in jME world units.
+     * Slice projectile-radius-pattern4.
+     */
+    public void flagRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "flagRadius must be a finite value > 0; got " + value);
+      }
+      this.flagRadius = v;
+    }
+
     EngineConfig build() {
       return new EngineConfig(
-          subspaceVelocityScale, maxProjectileSpeedJme, shipMaxSpeedScale, bombThrustScale);
+          subspaceVelocityScale,
+          maxProjectileSpeedJme,
+          shipMaxSpeedScale,
+          bombThrustScale,
+          bulletRadius,
+          bombRadius,
+          mineRadius,
+          thorRadius,
+          prizeRadius,
+          burstRadius,
+          repelRadius,
+          over1Radius,
+          over2Radius,
+          over5Radius,
+          flagRadius);
     }
   }
 }

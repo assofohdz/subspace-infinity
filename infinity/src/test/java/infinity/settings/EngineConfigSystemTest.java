@@ -67,4 +67,24 @@ public class EngineConfigSystemTest {
     // than null — guarantees consumers can read at any time without NPE.
     assertSame(EngineConfig.DEFAULTS, sys.get());
   }
+
+  @Test
+  public void engineGroovyAuthorsCollisionRadii() {
+    // Slice projectile-radius-pattern4 — the 11 *SIZERADIUS values lifted
+    // from CorePhysicsConstants must surface unchanged through the loader.
+    // Pins both the engine.groovy authored values AND the parser plumbing
+    // for each new DSL setter at once.
+    final EngineConfig cfg = new GroovyEngineLoader().load();
+    assertEquals(0.125, cfg.bulletRadius(), 0.0);
+    assertEquals(0.5, cfg.bombRadius(), 0.0);
+    assertEquals(0.5, cfg.mineRadius(), 0.0);
+    assertEquals(0.5, cfg.thorRadius(), 0.0);
+    assertEquals(0.5, cfg.prizeRadius(), 0.0);
+    assertEquals(0.125, cfg.burstRadius(), 0.0);
+    assertEquals(0.125, cfg.repelRadius(), 0.0);
+    assertEquals(0.5, cfg.over1Radius(), 0.0);
+    assertEquals(1.0, cfg.over2Radius(), 0.0);
+    assertEquals(0.1, cfg.over5Radius(), 0.0);
+    assertEquals(0.5, cfg.flagRadius(), 0.0);
+  }
 }
