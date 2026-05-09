@@ -13,6 +13,10 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
+- **desktop** — Per-projectile *SIZERADIUS Pattern 4
+  (settings-pipeline-slices.md polish bag);
+  branch `slice/projectile-radius-pattern4`; status: phase 1 in flight
+
 ## Recently landed (last 7 days)
 
 - **2026-05-07 (desktop)** — Slice S5: wire Repel impulse + Repellable
