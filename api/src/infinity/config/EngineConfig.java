@@ -104,6 +104,17 @@ package infinity.config;
  * @param flagRadius flag collision-shape radius (jME world units).
  *     Default {@code 0.5} matches retired {@code FLAGSIZERADIUS}. See
  *     {@link #bulletRadius} for the divergence rationale.
+ * @param shipRadius ship collision-shape radius (jME world units). Default
+ *     {@code 1.0} matches the retired {@code CorePhysicsConstants.SHIPSIZERADIUS}.
+ *     Subspace canon authors a per-ship {@code Radius} (e.g. {@code 14} px,
+ *     {@code [Misc]} REFERENCE.md) — Infinity diverges by treating ship
+ *     collision radius as an engine-tier global rather than a per-ship
+ *     gameplay knob, because at the moss/jME physics layer the body shape
+ *     is a fact about how ships collide that is identical across every
+ *     arena in the build, not balance tuning that arena authors should
+ *     override. Slice s6-ship-radius lifted this radius out of
+ *     {@code CorePhysicsConstants} for the same reasoning the projectile
+ *     radii were lifted in slice projectile-radius-pattern4.
  */
 public record EngineConfig(
     double subspaceVelocityScale,
@@ -120,7 +131,8 @@ public record EngineConfig(
     double over1Radius,
     double over2Radius,
     double over5Radius,
-    double flagRadius) {
+    double flagRadius,
+    double shipRadius) {
 
   /**
    * Subspace-canonical baseline used when no {@code engine.groovy} is on
@@ -138,5 +150,5 @@ public record EngineConfig(
   public static final EngineConfig DEFAULTS =
       new EngineConfig(
           0.01, 100.0, 0.01, 0.0005,
-          0.125, 0.5, 0.5, 0.5, 0.5, 0.125, 0.125, 0.5, 1.0, 0.1, 0.5);
+          0.125, 0.5, 0.5, 0.5, 0.5, 0.125, 0.125, 0.5, 1.0, 0.1, 0.5, 1.0);
 }

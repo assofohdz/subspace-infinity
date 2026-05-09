@@ -131,6 +131,7 @@ public final class GroovyEngineLoader {
     private double over2Radius = EngineConfig.DEFAULTS.over2Radius();
     private double over5Radius = EngineConfig.DEFAULTS.over5Radius();
     private double flagRadius = EngineConfig.DEFAULTS.flagRadius();
+    private double shipRadius = EngineConfig.DEFAULTS.shipRadius();
 
     // Package-private so unit tests can build configs without standing up
     // the full GroovyShell pipeline.
@@ -384,6 +385,22 @@ public final class GroovyEngineLoader {
       this.flagRadius = v;
     }
 
+    /**
+     * {@code shipRadius 1.0} — ship collision radius in jME world units.
+     * Slice s6-ship-radius.
+     */
+    public void shipRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(
+            "shipRadius must be a finite value > 0; got " + value);
+      }
+      this.shipRadius = v;
+    }
+
     EngineConfig build() {
       return new EngineConfig(
           subspaceVelocityScale,
@@ -400,7 +417,8 @@ public final class GroovyEngineLoader {
           over1Radius,
           over2Radius,
           over5Radius,
-          flagRadius);
+          flagRadius,
+          shipRadius);
     }
   }
 }

@@ -49,14 +49,16 @@ engine {
     // max-speed) rather than a strong shove.
     bombThrustScale 0.0005
 
-    // ---- Per-projectile / map-decoration collision radii ----------------
-    // Slice projectile-radius-pattern4 — promoted from the retired
-    // CorePhysicsConstants.*SIZERADIUS family. Authored in jME world units
-    // (1 unit ≈ 1 tile per moss-world-grid). These are physics-engine
-    // facts about how projectiles and decoration entities collide; they
-    // are not Subspace-canon authored knobs and would not sensibly differ
-    // between two arenas in the same build, which is why they live here
-    // in engine-tier rather than per-arena *Config.
+    // ---- Per-projectile / map-decoration / ship collision radii --------
+    // Slice projectile-radius-pattern4 + slice s6-ship-radius — promoted
+    // from the retired CorePhysicsConstants.*SIZERADIUS family. Authored
+    // in jME world units (1 unit ≈ 1 tile per moss-world-grid). These are
+    // physics-engine facts about how projectiles, decoration entities,
+    // and ships collide; they are not Subspace-canon authored knobs and
+    // would not sensibly differ between two arenas in the same build,
+    // which is why they live here in engine-tier rather than per-arena
+    // *Config. Subspace's per-ship `Radius` is intentionally collapsed to
+    // a single engine-tier `shipRadius` for the same reason.
 
     bulletRadius 0.125
     bombRadius 0.5
@@ -69,4 +71,5 @@ engine {
     over2Radius 1.0
     over5Radius 0.1
     flagRadius 0.5
+    shipRadius 1.0
 }

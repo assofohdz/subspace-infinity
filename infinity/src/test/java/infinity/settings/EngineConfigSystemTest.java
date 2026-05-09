@@ -86,5 +86,6 @@ public class EngineConfigSystemTest {
     assertEquals(1.0, cfg.over2Radius(), 0.0);
     assertEquals(0.1, cfg.over5Radius(), 0.0);
     assertEquals(0.5, cfg.flagRadius(), 0.0);
+    assertEquals(1.0, cfg.shipRadius(), 0.0);
   }
 }
