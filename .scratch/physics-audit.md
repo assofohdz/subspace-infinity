@@ -36,8 +36,7 @@ Physics-touching code, by file:
 | `infinity.systems.ship.WarpSystem` | teleport / spawn | uses `physicsSpace.teleport`; explicitly zeros velocity / acceleration / accumulators |
 | `infinity.systems.MapSystem` | wormhole + door creation | hardcoded gravity-well force `5000`, `GravityWell.PULL` |
 | `api.infinity.sim.GameEntities.createShip` | ship body composition | `Mass(1)`, `Gravity.ZERO`; tunable physics knobs deferred to `ShipSpawnSystem` projection |
-| `api.infinity.sim.CorePhysicsConstants` | ship radius | only `SHIPSIZERADIUS = 1f` remains; the per-projectile / map-decoration `*SIZERADIUS` family + `SHIPMASS`/`SHIPTHRUST`/`PHYSICS_SCALE` were retired (S8 + projectile-radius-pattern4) |
-| `api.infinity.config.EngineConfig` | engine-tier physics knobs | Subspace→jME velocity scale + cap, ship/bomb scale calibrations (S1-cal/S2-cal), and 11 collision radii (bullet/bomb/mine/thor/prize/burst/repel/over1/over2/over5/flag — projectile-radius-pattern4) |
+| `api.infinity.config.EngineConfig` | engine-tier physics knobs | Subspace→jME velocity scale + cap, ship/bomb scale calibrations (S1-cal/S2-cal), and 12 collision radii (bullet/bomb/mine/thor/prize/burst/repel/over1/over2/over5/flag/ship — projectile-radius-pattern4 + S6) |
 | `api.infinity.config.ArenaConfig.wallFriction` | per-arena friction | divergence from canon (canon = frictionless), documented |
 
 ## Findings
@@ -154,7 +153,7 @@ typed Infinity consumer reads:
 | `SoccerBallFriction` | Soccer ball deceleration | Authored in cfg, no consumer; soccer mechanic absent |
 | `Gravity` (per-ship) | Wormhole pull radius `R = 1.325 × g^0.507` | Wormholes exist (`GravityWell`), but pull is hardcoded `5000` in MapSystem.451 — no per-ship `Gravity` read |
 | `GravityTopSpeed` | Extra speed allowed under wormhole pull | Not wired |
-| `Radius` (per-ship) | Ship collision radius (px, default 14) | `CorePhysicsConstants.SHIPSIZERADIUS = 1f` (jME world units) — single global value |
+| `Radius` (per-ship) | Ship collision radius (px, default 14) | Infinity divergence — engine-tier `EngineConfig.shipRadius`; single global value preserved from `SHIPSIZERADIUS = 1` (jME world units). Polish-bag follow-up if per-ship recalibration ever needs to land. |
 | `BounceFactor` | Wall bounciness (0..16, 16=no speed loss) | Per-ship `BounceRestitution` (0..1 double) — divergent type/scope; conversion empirical |
 
 Each row is a candidate for the settings-pipeline tracker. Bomb recoil
@@ -416,18 +415,6 @@ the F2 (sio2-mphys `Impulse` component) path.
 
 **Risk:** small. Canonical, additive.
 
-### S6 — Promote ship `Radius` to per-ship typed config
-**Effort:** small. **Impact:** small (consistency with Pattern 4).
-
-Replace `CorePhysicsConstants.SHIPSIZERADIUS = 1` with a per-ship
-`shipRadius` field on `ShipConfig`, projected to the ship's body shape
-at spawn. Subspace canon: 14 px (= 14/16 = 0.875 jME tiles by today's
-conversion). Engine-tier conversion factor (F8) is the natural home
-for the px↔jME translation.
-
-**Risk:** trivial — value is the same on every ship in current
-fragments.
-
 ### S7 — Wire `MineSpeed` (eliminate the mine special-case)
 **Effort:** small. **Impact:** small (cleanup; consistency with Slice
 10).
@@ -605,7 +592,7 @@ contain primitives that change the picture.
   `MBlockShape` for mphys (Infinity's `RigidBody<EntityId,
   MBlockShape>` typing already touches this). Could host static-body
   shape primitives (door / wormhole / brick markers) that shape
-  S6 (per-ship Radius config) and a future bricks-as-walls slice.
+  a future bricks-as-walls slice.
 - `sio2-mblock` — SiO2 + mblock bindings. Likely peripheral to
   physics; mostly map / rendering. Lower priority.
 - `mblock` itself — chunked block world. Map system territory, not

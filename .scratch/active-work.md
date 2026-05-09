@@ -13,13 +13,14 @@ source files are the **what is the work** layer.
 
 ## Active claims
 
-- **desktop** — Slice S6 (engine-tier shipRadius; CorePhysicsConstants deletion)
-  ([physics-audit.md](./physics-audit.md) lines 419-429);
-  branch `slice/s6-ship-radius` (stacked on `slice/projectile-radius-pattern4`);
-  status: phase 0 in flight
+(none)
 
 ## Recently landed (last 7 days)
 
+- **2026-05-09 (desktop)** — Slice S6: engine-tier `shipRadius` +
+  `CorePhysicsConstants.java` deletion (final retirement of the
+  legacy radii family)
+  ([physics-audit.md](./physics-audit.md))
 - **2026-05-09 (desktop)** — Slice projectile-radius-pattern4: 11
   per-projectile / map-decoration collision radii promoted from
   `CorePhysicsConstants.*SIZERADIUS` into engine-tier `EngineConfig` +

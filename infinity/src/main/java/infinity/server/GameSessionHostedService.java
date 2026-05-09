@@ -227,8 +227,8 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       // binIndex = phys.getBinIndex();
 
       // Engine-tier ship collision radius — slice s6-ship-radius lifted this
-      // out of the retired CorePhysicsConstants.SHIPSIZERADIUS (mirrors the
-      // projectile-radius slice's threading shape).
+      // out of a legacy hardcoded constant (mirrors the projectile-radius
+      // slice's threading shape).
       final EngineConfig engineCfg = gameSystems.get(EngineConfigSystem.class, true).get();
 
       this.spawnLoc = resolveInitialSpawn();

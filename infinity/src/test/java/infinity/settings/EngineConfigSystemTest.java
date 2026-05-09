@@ -70,10 +70,10 @@ public class EngineConfigSystemTest {
 
   @Test
   public void engineGroovyAuthorsCollisionRadii() {
-    // Slice projectile-radius-pattern4 — the 11 *SIZERADIUS values lifted
-    // from CorePhysicsConstants must surface unchanged through the loader.
-    // Pins both the engine.groovy authored values AND the parser plumbing
-    // for each new DSL setter at once.
+    // Slices projectile-radius-pattern4 + S6 — the 12 collision-radius
+    // values (originally hardcoded constants) must surface unchanged
+    // through the loader. Pins both the engine.groovy authored values AND
+    // the parser plumbing for each new DSL setter at once.
     final EngineConfig cfg = new GroovyEngineLoader().load();
     assertEquals(0.125, cfg.bulletRadius(), 0.0);
     assertEquals(0.5, cfg.bombRadius(), 0.0);

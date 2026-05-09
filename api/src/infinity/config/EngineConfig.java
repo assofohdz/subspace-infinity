@@ -63,58 +63,53 @@ package infinity.config;
  *     {@link #maxProjectileSpeedJme} for physics-safety on absurd
  *     authored values.
  * @param bulletRadius bullet collision-shape radius in jME world units
- *     (1 unit ≈ 1 tile per moss-world-grid). Default {@code 0.125} matches
- *     the retired {@code CorePhysicsConstants.BULLETSIZERADIUS}. Subspace
- *     canon does not author per-projectile collision radius — this is a
- *     Moss/Infinity concept driven by {@link com.simsilica.mphys.ShapeInfo}.
- *     Slice projectile-radius-pattern4 lifted these radii into engine-tier
- *     because they are physics-engine facts identical across every arena
- *     in the build, not gameplay tuning that arena authors should override.
- * @param bombRadius bomb collision-shape radius (jME world units). Default
- *     {@code 0.5} matches retired {@code BOMBSIZERADIUS}. See
- *     {@link #bulletRadius} for the divergence rationale.
- * @param mineRadius mine collision-shape radius (jME world units). Default
- *     {@code 0.5} matches retired {@code MINESIZERADIUS}. See
- *     {@link #bulletRadius} for the divergence rationale.
- * @param thorRadius thor collision-shape radius (jME world units). Default
- *     {@code 0.5} matches retired {@code THORSIZERADIUS}. See
- *     {@link #bulletRadius} for the divergence rationale.
+ *     (1 unit ≈ 1 tile per moss-world-grid). Default {@code 0.125}.
+ *     Subspace canon does not author per-projectile collision radius —
+ *     this is a Moss/Infinity concept driven by
+ *     {@link com.simsilica.mphys.ShapeInfo}. Slice projectile-radius-pattern4
+ *     lifted these radii into engine-tier because they are physics-engine
+ *     facts identical across every arena in the build, not gameplay tuning
+ *     that arena authors should override.
+ * @param bombRadius bomb collision-shape radius (jME world units).
+ *     Default {@code 0.5}. See {@link #bulletRadius} for the divergence
+ *     rationale.
+ * @param mineRadius mine collision-shape radius (jME world units).
+ *     Default {@code 0.5}. See {@link #bulletRadius} for the divergence
+ *     rationale.
+ * @param thorRadius thor collision-shape radius (jME world units).
+ *     Default {@code 0.5}. See {@link #bulletRadius} for the divergence
+ *     rationale.
  * @param prizeRadius prize collision-shape radius (jME world units).
- *     Default {@code 0.5} matches retired {@code PRIZESIZERADIUS}. See
- *     {@link #bulletRadius} for the divergence rationale.
+ *     Default {@code 0.5}. See {@link #bulletRadius} for the divergence
+ *     rationale.
  * @param burstRadius burst projectile collision-shape radius (jME world
- *     units). Default {@code 0.125} matches retired
- *     {@code BURSTSIZERADIUS}. See {@link #bulletRadius} for the
+ *     units). Default {@code 0.125}. See {@link #bulletRadius} for the
  *     divergence rationale.
  * @param repelRadius repel collision-shape radius (jME world units).
- *     Default {@code 0.125} matches retired {@code REPELRADIUS}. See
- *     {@link #bulletRadius} for the divergence rationale.
+ *     Default {@code 0.125}. See {@link #bulletRadius} for the
+ *     divergence rationale.
  * @param over1Radius generic decoration "Over1" collision-shape radius
- *     (jME world units). Default {@code 0.5} matches retired
- *     {@code OVER1SIZERADIUS}. See {@link #bulletRadius} for the
- *     divergence rationale.
+ *     (jME world units). Default {@code 0.5}. See {@link #bulletRadius}
+ *     for the divergence rationale.
  * @param over2Radius generic decoration "Over2" collision-shape radius
- *     (jME world units). Default {@code 1.0} matches retired
- *     {@code OVER2SIZERADIUS}. See {@link #bulletRadius} for the
- *     divergence rationale.
+ *     (jME world units). Default {@code 1.0}. See {@link #bulletRadius}
+ *     for the divergence rationale.
  * @param over5Radius generic decoration "Over5" collision-shape radius
- *     (jME world units). Default {@code 0.1} matches retired
- *     {@code OVER5SIZERADIUS}. See {@link #bulletRadius} for the
- *     divergence rationale.
+ *     (jME world units). Default {@code 0.1}. See {@link #bulletRadius}
+ *     for the divergence rationale.
  * @param flagRadius flag collision-shape radius (jME world units).
- *     Default {@code 0.5} matches retired {@code FLAGSIZERADIUS}. See
- *     {@link #bulletRadius} for the divergence rationale.
+ *     Default {@code 0.5}. See {@link #bulletRadius} for the divergence
+ *     rationale.
  * @param shipRadius ship collision-shape radius (jME world units). Default
- *     {@code 1.0} matches the retired {@code CorePhysicsConstants.SHIPSIZERADIUS}.
- *     Subspace canon authors a per-ship {@code Radius} (e.g. {@code 14} px,
- *     {@code [Misc]} REFERENCE.md) — Infinity diverges by treating ship
- *     collision radius as an engine-tier global rather than a per-ship
- *     gameplay knob, because at the moss/jME physics layer the body shape
- *     is a fact about how ships collide that is identical across every
- *     arena in the build, not balance tuning that arena authors should
- *     override. Slice s6-ship-radius lifted this radius out of
- *     {@code CorePhysicsConstants} for the same reasoning the projectile
- *     radii were lifted in slice projectile-radius-pattern4.
+ *     {@code 1.0}. Subspace canon authors a per-ship {@code Radius} (e.g.
+ *     {@code 14} px, {@code [Misc]} REFERENCE.md) — Infinity diverges by
+ *     treating ship collision radius as an engine-tier global rather than
+ *     a per-ship gameplay knob, because at the moss/jME physics layer the
+ *     body shape is a fact about how ships collide that is identical
+ *     across every arena in the build, not balance tuning that arena
+ *     authors should override. Slice s6-ship-radius lifted this radius
+ *     into engine-tier for the same reasoning the projectile radii were
+ *     lifted in slice projectile-radius-pattern4.
  */
 public record EngineConfig(
     double subspaceVelocityScale,
@@ -143,9 +138,8 @@ public record EngineConfig(
    * {@code shipMaxSpeedScale 0.01} + {@code bombThrustScale 0.0005}
    * land trench feel at ~40% of bullet velocity for ship max and a
    * subtle (~1% of max-speed) recoil — values dialed in via S1-cal /
-   * S2-cal playtest. Collision radii match the retired
-   * {@code CorePhysicsConstants.*SIZERADIUS} family — slice
-   * projectile-radius-pattern4.
+   * S2-cal playtest. Collision radii were lifted out of legacy hardcoded
+   * constants by slices projectile-radius-pattern4 + s6-ship-radius.
    */
   public static final EngineConfig DEFAULTS =
       new EngineConfig(

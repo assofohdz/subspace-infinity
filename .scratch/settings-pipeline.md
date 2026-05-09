@@ -538,7 +538,7 @@ is the macro view.
 | ⚠️ | `AttachBounty` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `AfterburnerEnergy` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ❌ | `DisableFastShooting` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `Radius` | ✅ ships.groovy | ❌ | ❌ | — | ❌ (physics path) | ❌ |
+| 🔀 | `Radius` | ❌ (diverged) | (n/a) | (n/a) | — | Infinity divergence — engine-tier `EngineConfig.shipRadius` instead of per-ship; collision radius is identical across all ships in the build (S6) | (n/a) |
 | ⚠️ | `DamageFactor` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `PrizeShareLimit` | ✅ ships.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SuperTime` | ✅ ships.groovy | ❌ | ❌ | (used by `SuperPrizeApplier`) | ❌ | ❌ |
