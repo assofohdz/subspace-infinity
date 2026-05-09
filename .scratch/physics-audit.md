@@ -27,7 +27,7 @@ Physics-touching code, by file:
 
 | File | Role | Notes |
 |---|---|---|
-| `infinity.sim.PlayerDriver` | per-ship `AbstractControlDriver` | car-curve thrust, custom drag-as-force, exponential angular ease, hand-coded vMax cap, Y-snap |
+| `infinity.sim.PlayerDriver` | per-ship `AbstractControlDriver` | car-curve thrust, mphys-native linear damping (`setDamping`, S1), exponential angular ease, hand-coded vMax cap (`setLinearVelocity`), Y-snap |
 | `infinity.systems.ContactSystem` | global `ContactListener` | reads `BounceRestitution` per-body; reimplements wall friction via custom tangential damping (sets `contact.friction = 0`) |
 | `infinity.systems.ship.WeaponsSystem.getAttackInfo` | projectile spawn | reads `BulletSpeed` / `BombSpeed` / `BurstSpeed` × `EngineConfig.subspaceVelocityScale`, capped at `maxProjectileSpeedJme`; mines force `velocity = (0,0,0)` |
 | `infinity.systems.ship.ConsumableSystem.getActionPosition` | thor / repel / brick / decoy / portal / rocket spawn | thors hardcoded `addLocal(0, 0, 50)`; repel/brick/decoy/portal are no-velocity markers; rocket is a buff |
@@ -40,59 +40,6 @@ Physics-touching code, by file:
 | `api.infinity.config.ArenaConfig.wallFriction` | per-arena friction | divergence from canon (canon = frictionless), documented |
 
 ## Findings
-
-### F1 — Drag is reimplemented, not delegated to mphys
-
-PlayerDriver lines 125-129:
-
-```java
-// Drag: force opposite to current motion, magnitude = accelRate × dragFactor.
-final Vec3d dragDir = currentVel.mult(-1.0 / currentSpeed);
-body.addForce(dragDir.mult(accelRate * dragFactor));
-```
-
-mphys `RigidBody` ships with built-in linear and angular damping —
-`setDamping(double linear, double angular)` — applied per-frame as
-`velocity *= pow(damping, t)`. Default 0.9 / 0.8.
-
-**`grep -r "setDamping" infinity/src api/src` → zero hits.**
-
-The custom drag is force-coupled to `accelRate` (a pun: the same
-constant that scales the player's intent also scales the drag). The
-mphys-native approach would be a per-body damping coefficient
-projected from `ShipConfig` at spawn time (Pattern 4 split: template
-→ component → applied at spawn via `body.setDamping(linear, angular)`
-in a small post-spawn hook).
-
-**Risk if changed:** existing `dragFactor` values are hand-tuned
-against the force-coupled formula. A naive swap will change ship
-feel. Migration would need a calibration pass per ship.
-
-**Why this matters:** the force-based drag is what creates the
-"unit confusion" the slice description called out. `dragFactor` reads
-like a 0..1 scalar (fraction-of-thrust subtracted as drag) but it's
-actually `force = accelRate × dragFactor` — a coupling that's
-invisible at the call site. Native damping decouples those.
-
-### F2 — `applyImpulse` / sio2-mphys `Impulse` component unused
-
-`grep -r "applyImpulse" infinity/src api/src` → zero hits. sio2-mphys
-exposes an `Impulse` ECS component that the `MPhysSystem` reads and
-applies before integration each frame — the framework-native way to
-do one-shot velocity deltas (knockback, repel push, network
-correction).
-
-Today every velocity-change site uses `body.setLinearVelocity(...)`
-directly (WarpSystem.150, PlayerDriver.110-111 safety cap,
-ContactSystem.118-122 wall friction). That bypasses the integrator's
-ordering guarantees and is fragile around contact resolution.
-
-**Slice 1's open follow-up** ("Repel still fires a visual/audio
-effect only. The plumbing is canonical and ready; the impulse system
-is the next gate.") is exactly the kind of thing `applyImpulse`
-exists for. Implementing repel impulses by reading `RepelSpeed` /
-`RepelDistance` and pushing each victim via `applyImpulse` is the
-idiomatic path.
 
 ### F3 — Spatial queries done by manual EntitySet walks
 
@@ -147,23 +94,20 @@ typed Infinity consumer reads:
 
 | Subspace key | REFERENCE.md role | Infinity status |
 |---|---|---|
-| `BombThrust` | Back-thrust on bomb fire (recoil) | Authored in cfg, no consumer |
 | `BombBounceCount` | Bombs bounce N times before impact-explode | Authored in cfg, no consumer |
 | `AfterburnerEnergy` | Afterburner activation cost | Authored in cfg, no consumer |
 | `SoccerBallFriction` | Soccer ball deceleration | Authored in cfg, no consumer; soccer mechanic absent |
 | `Gravity` (per-ship) | Wormhole pull radius `R = 1.325 × g^0.507` | Wormholes exist (`GravityWell`), but pull is hardcoded `5000` in MapSystem.451 — no per-ship `Gravity` read |
 | `GravityTopSpeed` | Extra speed allowed under wormhole pull | Not wired |
-| `Radius` (per-ship) | Ship collision radius (px, default 14) | Infinity divergence — engine-tier `EngineConfig.shipRadius`; single global value preserved from `SHIPSIZERADIUS = 1` (jME world units). Polish-bag follow-up if per-ship recalibration ever needs to land. |
 | `BounceFactor` | Wall bounciness (0..16, 16=no speed loss) | Per-ship `BounceRestitution` (0..1 double) — divergent type/scope; conversion empirical |
 
-Each row is a candidate for the settings-pipeline tracker. Bomb recoil
-and bomb bounces are the two with the largest gameplay-feel impact;
-afterburner is a self-contained mechanic; gravity and radius are
-arena-wide consequences.
+Each row is a candidate for the settings-pipeline tracker. Bomb bounces
+is the highest-gameplay-impact remaining knob; afterburner is a
+self-contained mechanic; gravity is an arena-wide consequence.
 
 ### F6 — Mines are velocity-zeroed in a special-case branch
 
-`WeaponsSystem.getAttackInfo` line 810:
+`WeaponsSystem.getAttackInfo` lines 547-549:
 
 ```java
 if (weaponFlag == WeaponsSystem.MINE) {
@@ -179,25 +123,6 @@ shape exactly.
 
 Tiny slice; obvious follow-up.
 
-### F7 — Stale magic numbers in CorePhysicsConstants
-
-Several constants in `api.infinity.sim.CorePhysicsConstants` are
-stale or misplaced:
-
-- `SHIPMASS = 50` — `GameEntities.createShip` uses `Mass(1)`.
-  Constant is dead.
-- `SHIPTHRUST = 10` — no consumer (`grep` returns only the
-  declaration). Dead.
-- `ARENAWIDTH = 1024` — Subspace canon (16-bit tile coord), but
-  belongs in `InfinityConstants` (world-coord rule), not in a
-  physics constants file.
-- `PHYSICS_SCALE = 1` — placeholder; no consumer. Dead.
-- Several `*MASS` values (`OVER1MASS`, `OVER2MASS`, `OVER5MASS`)
-  may also be dead — needs a per-constant `grep` pass.
-
-Cleanup-bag candidate. Low risk; pure deletion + one constant
-relocation. Could land alongside any other physics-touching slice.
-
 ### F8 — Engine-tier config has natural room to grow
 
 `engine.groovy` today is two fields (`subspaceVelocityScale`,
@@ -208,14 +133,11 @@ candidates:
   fallback values (mphys's 0.9 / 0.8) deserve to live here, not in
   per-ship config, since they apply to every dynamic body the ship
   itself doesn't override.
-- **Subspace → jME world-unit conversion** for ship-side stats
-  (`Speed`, `Thrust`) — currently each value flows through
-  `PlayerDriver` without an explicit boundary. If migration to
-  Subspace-canonical authoring (REFERENCE.md units) happens, it
-  needs the same scale-and-cap pattern as projectiles.
-- **Ship `Radius` resolution** — Subspace's per-ship radius is in
-  pixels; Infinity's is in jME world units. The conversion factor
-  belongs here.
+- **Subspace → jME world-unit conversion** for ship-side `Thrust`.
+  (`Speed` already wired via engine-tier `shipMaxSpeedScale`, slice
+  S1-cal — `PlayerDriver.java:113` reads `speed.getSpeed() *
+  shipScale`.) `Thrust` still flows through `PlayerDriver` without
+  an engine-tier scale.
 
 ### F9 — Subspace canon vs Infinity divergence ledger
 
@@ -228,171 +150,19 @@ candidates:
 | Wormhole gravity | Per-ship `Gravity` formula | Hardcoded 5000 in MapSystem | ⚠ Canon partially wired (well exists, knob doesn't) |
 | Velocity inheritance (projectile) | Yes | Yes (WeaponsSystem step 3) | ✅ Faithful |
 | Velocity cap | `MaxSpeed` per ship | `Speed` component + cap in PlayerDriver | ✅ Faithful |
-| Bomb recoil | `BombThrust` | Not wired | ❌ Missing canon mechanic |
+| Bomb recoil | `BombThrust` | Wired (slices S2 + S2-cal) | ✅ Faithful |
 | Bomb bounce | `BombBounceCount` | Not wired (bombs detonate or decay) | ❌ Missing canon mechanic |
 | Afterburner | `AfterburnerEnergy` | Not wired | ❌ Missing canon mechanic |
 | Soccer ball physics | `SoccerBallFriction` etc. | Soccer mechanic absent | ❌ Whole mechanic missing |
 
 Most divergences are extensions or unwired-canon, not wrong-feel.
-The **bomb recoil + bomb bounce** pair is the largest faithfulness
-gap with concrete gameplay impact — a Subspace player will notice
-their bomb-fire doesn't push them backward, and that wall-glance
-bombs don't bounce.
+**Bomb bounce** is now the largest concrete-gameplay faithfulness
+gap — a Subspace player will notice that wall-glance bombs don't
+bounce. (Bomb recoil wired in slices S2 + S2-cal.)
 
 ## Recommended follow-up slices
 
 Ordered by impact ÷ effort. Each is independently shippable.
-
-### S1 — Migrate ship drag from force-coupled to mphys native damping
-✅ Landed.
-
-`DragFactor` component → `LinearDamping`; `ShipConfig.dragFactor` →
-`linearDamping`; `GroovyShipLoader.DEFAULT_DRAG_FACTOR 0.05` →
-`DEFAULT_LINEAR_DAMPING 0.99`. Per-ship migration across
-trench/deva/testconf (24 ship blocks). `PlayerDriver` deletes the
-force-based drag branch and instead pokes `body.setDamping(linear,
-1.0)` when `applyChanges()` returns true — angular damping=1.0
-because PlayerDriver hard-sets rotational velocity each tick from
-`turnResponsiveness` ease.
-
-**Drag gate dropped** — damping now applies during thrust too;
-steady-state under thrust lands ~5% below `MaxSpeed`
-(`v_steady = accelRate / (1 - damping + accelRate/maxSpeed)` ≈ 47.6
-for trench warbird's 50). Math fit criterion: preserve coast-decay
-rate at typical speed (50 jME/sec × 0.01 = 0.5 jME/sec² loss,
-matches today's `accelRate × dragFactor 0.5`).
-
-Tests: `ShipSpawnSystemTest` updated (assert
-`LinearDamping.getDamping() == 0.99` after projection). All 142 api +
-infinity tests green. PMD ratchet: 17 violations across the 4 touched
-infinity files, all Medium (`GuardLogStatement`) or High (complexity)
-tier — no Low-tier targets in this batch, so no fix landed (per
-`pmd-on-touched-files.md` "skip the fix step and say so").
-
-**Out of scope (own follow-up slices):**
-- **S1-cal** ✅ Landed via the engine-tier scale calibration
-  polish-bag — see the dedicated section below.
-- **NPC damping** — non-player ships still use mphys defaults
-  (0.9 / 0.8). If any NPC ship type wants the new linear damping,
-  `projectFeel` already writes the component but no system on the
-  body. Out of scope.
-- **Angular damping consolidation** — `turnResponsiveness` (ease
-  rate) stays as the angular tuning knob.
-
-### S2 — Wire `BombThrust` (bomb recoil)
-✅ Landed.
-
-`BombStats` extended with `int thrust` field (Subspace velocity units,
-canon `[Ship] BombThrust`). New per-ship `BombThrust` component
-(`api/src/infinity/es/ship/weapons/BombThrust.java`) parallels
-`BombSpeed` exactly. `GroovyShipLoader` `bombs` DSL accepts `thrust:`
-named arg (required). `ShipSpawnSystem.projectBombs` projects to
-component. `WeaponsSystem.applyBombRecoil` hooked into both
-`createProjectileBomb` and `createProjectileGravBomb` (Subspace canon
-share). Mines / bullets / bursts unaffected (canon).
-
-**First codebase use of sio2-mphys's `Impulse` ECS pattern (audit F2).**
-`MPhysSystem` watches `EntitySet(ShapeInfo, Mass, Impulse)` and
-applies the impulse via `phys.applyImpulse(id, vec)` before next
-integrate, then auto-removes the component. Ordering caveat: recoil
-applies on the next physics tick (~16 ms latency). Acceptable for
-fire-feel.
-
-Math reuses `effectiveProjectileSpeed(rawThrust, scale, cap)` for
-unit-bridge consistency with `BombSpeed`/`BulletSpeed`/`BurstSpeed` —
-sign-preserving, capped at `maxProjectileSpeedJme`. SVS canon
-`BombThrust 400 × 0.01 = 4.0 jME/sec` backward impulse. Direction =
-opposite of ship's `bodyForward` in world space (Subspace canon
-"back-thrust on fire" — directly behind the ship, regardless of bomb
-velocity inheritance).
-
-Per-ship migration: 14 bomb-carrying ship blocks across
-trench/deva/testconf authored `thrust: 400`. Trackers extended.
-`DEFAULT_BOMBS` (fallback when ships.groovy missing) keeps `thrust 0`
-so the slice doesn't change behavior for missing-config arenas.
-
-Tests: `WeaponsSystemRecoilTest` (7 cases — direction, magnitude,
-sign-preservation, zero pass-through, both axes); `ShipSpawnSystemTest`
-extended (BombThrust projection assertion); `ConfigRegistrySystemLoadTest`
-extended (LEVIATHAN parses `thrust 400`). 149 api+infinity tests
-green (up from 142).
-
-**Out of scope (own follow-up slices):**
-- **S2-cal** ✅ Landed via the engine-tier scale calibration
-  polish-bag — see the dedicated section below.
-- **S5** — Repel impulse using the same `Impulse` ECS pattern. Now
-  unblocked by S2's first use of the path.
-- **EmpBomb / BBomb / Mine recoil** — out of canon (no recoil for
-  those weapon types per REFERENCE.md).
-- **Ship-swap respawn projection bug fix** — landed alongside S2 as
-  `ac8d5c6b` (own commit on the slice branch); affects every
-  `*CurrentLevel` projection, not just bombs. Generic fix; future
-  death/respawn flows reuse the `ResetLivePool` marker.
-
-### S1-cal + S2-cal — engine-tier scale calibration (polish-bag)
-✅ Landed.
-
-Two new fields on `EngineConfig`, distinct from
-`subspaceVelocityScale` (which stays scoped to projectile speeds —
-`BulletSpeed` / `BombSpeed` / `BurstSpeed` fire paths):
-
-- **`shipMaxSpeedScale`** (default `0.01` — playtest-tuned) — applied
-  in `PlayerDriver.update` to convert the ship's raw Subspace
-  velocity-units `Speed` value to a jME max-speed cap. Trench
-  warbird's `Speed 2000 × 0.01 = 20 jME/sec` (steady-state ~19.75
-  under `LinearDamping 0.99`), putting ship max at ~40% of bullet
-  velocity (`5000 × subspaceVelocityScale 0.01 = 50`). Resolves the
-  "max-speed too high" S1 playtest verdict (post-S1 reached ~889
-  jME/sec under `LinearDamping 0.99`).
-- **`bombThrustScale`** (default `0.0005` — playtest-tuned) —
-  replaces `subspaceVelocityScale` in
-  `WeaponsSystem.applyBombRecoil`. SVS canon `BombThrust 400 ×
-  0.0005 = 0.2 jME/sec` backward impulse (down from S2's initial
-  `4.0`, which felt too pushy). Subtle nudge (~1% of ship
-  max-speed) rather than a strong shove.
-
-Both share the existing `maxProjectileSpeedJme 100` cap for
-physics-safety on absurd authored values.
-
-Architecture: engine-tier knob over per-preset recalibration
-(operator-tunable in one place; preserves Subspace-canonical
-authoring across `ships.groovy` and the Subspace upstream port).
-Two scales over a single unified knob (different mechanics; future
-afterburner / rocket-boost fits the same pattern as a third scale
-without breaking ship vs recoil tuning).
-
-`PlayerDriver` constructor now takes an `EngineConfigSystem` (passed
-through `MovementInputSystem.PlayerContainer.addObject`); reads the
-config per-tick (cheap record getter). Falls back to
-`EngineConfig.DEFAULTS` when the system is null (test harnesses).
-
-Tests: `EngineConfigSystemTest` extended (asserts both new field
-defaults parse from the packaged `engine.groovy` and match the
-record's `DEFAULTS`). `WeaponsSystemRecoilTest` extended with a
-post-S2-cal calibration test (`recoilImpulse(400, 0.005, 100, ...)
-= 2.0`). 151 api+infinity tests green.
-
-**Out of scope (own follow-up slices):**
-- **S1-cal-thrust** — Should ship `Thrust` also be scaled? Currently
-  PlayerDriver passes `thrust.getThrust()` raw (= jME force/sec).
-  Acceleration "reach is good" per S1 playtest, so deferred —
-  trench warbird at `Thrust 16` reaching new cap 50 in ~3s feels
-  acceptable. Revisit if calibration drifts.
-- **Per-mechanic scale calibration** — afterburner, rocket boost,
-  repel impulse may want their own scales rather than reusing
-  these. Decide per-mechanic when wiring (S5 Repel will probably
-  introduce `repelImpulseScale`).
-**Effort:** medium. **Impact:** medium (canon-faithful gameplay; opens
-a bomb-physics design surface).
-
-Per-projectile `BombBouncesRemaining(int)` ECS component. ContactSystem
-on bomb-vs-static hit decrements; if `> 0`, applies bounce (existing
-`BounceRestitution` path) instead of detonating. When `== 0`,
-detonates as today.
-
-**Risk:** small. Need to decide whether bomb-vs-bomb / bomb-vs-ship
-counts as a bounce (canon: probably not — only walls). Fixed by the
-`body2 == null` (static) branch already in ContactSystem.
 
 ### S4 — Promote scans to mphys spatial queries
 **Effort:** medium. **Impact:** large at high arena counts.
@@ -405,16 +175,6 @@ in application code. Sits naturally inside Slice P1 (already queued).
 **Risk:** behavioural deltas if `queryBounds` returns bodies the
 EntitySet walks were missing (sleeping bodies?) — verify in test.
 
-### S5 — Wire `Repel` impulse (Slice 1 follow-up)
-**Effort:** small. **Impact:** medium (completes Slice 1).
-
-New `RepelSystem` (parallels `ProximityFuseSystem`) reads new repel
-effect entities, queries bodies within `RepelDistance`, applies
-`Impulse` away from the centre with magnitude `RepelSpeed`. Uses
-the F2 (sio2-mphys `Impulse` component) path.
-
-**Risk:** small. Canonical, additive.
-
 ### S7 — Wire `MineSpeed` (eliminate the mine special-case)
 **Effort:** small. **Impact:** small (cleanup; consistency with Slice
 10).
@@ -424,16 +184,6 @@ spawn pipeline. Delete the `if (weaponFlag == MINE) { … set(0,0,0); }`
 branch.
 
 **Risk:** none.
-
-### S8 — CorePhysicsConstants cleanup
-**Effort:** trivial. **Impact:** small (cleanup).
-
-Delete dead constants (`SHIPMASS`, `SHIPTHRUST`, `PHYSICS_SCALE`,
-likely some of the `OVER*MASS`). Move `ARENAWIDTH` to
-`InfinityConstants` per the world-coordinates rule. Pure deletion +
-one move.
-
-**Risk:** none — verified dead via grep.
 
 ### S9 (deferred / open) — Wormhole `Gravity` per-ship
 **Effort:** medium. **Impact:** medium (canon-faithful wormholes).
@@ -459,20 +209,12 @@ firing modes) in the per-ship-input-mechanic queue.
 
 ## Open questions deferred to slice grilling
 
-- **F1 calibration**: do we recalibrate trench/deva ship feel under
-  native damping during S1, or land S1 with a behaviour-preserving
-  conversion (`linear = pow(0.5, dragFactor / accelRate)` or similar
-  fit)? Math fit is the safer first move; calibration is a polish-bag
-  follow-up.
 - **F5 BounceFactor unification**: do we accept the
   Subspace-canon-int-vs-Infinity-double divergence permanently, or
   add a Subspace-flavour adapter so operators can author `bounceFactor
   16` and the loader translates? Probably the latter once any other
   per-ship Subspace knob comes through (operators are already
   authoring `cloak status: 2`).
-- **F9 priority**: bomb recoil (S2) vs bomb bounce (S3) — which one
-  hurts the canon-faithfulness story more? Probably recoil; bounce is
-  rare in modern Subspace play.
 
 ## Survey scope — what mphys / sio2-mphys files were NOT scanned
 
@@ -605,16 +347,7 @@ to revisit `mblock-physb` and the unscanned `mphys` files first.
 
 Slice P2 deliverable lands here. Direct outcomes:
 
-- Eight follow-up slices (S1–S8) sized and ordered for the kanban.
-- Two deferred slices (S9–S10) noted for future scoping.
-- Three canon-divergence comments to add as documentation:
-  - `ContactSystem.newContact` — wall-friction-as-tangential-damping
-    rationale (already partially inline; promote to Javadoc).
-  - `PlayerDriver.update` — Y-snap rationale (already inline).
-  - `ArenaConfig.wallFriction` — frictionless-canon divergence
-    (already documented in field Javadoc).
-
-Recommend picking S1 (drag → native damping) or S2 (bomb recoil) as
-the immediate follow-up, depending on whether the appetite is for
-implementation-cleanup-with-ship-feel-risk (S1) or
-canon-faithful-additive-feature (S2).
+- Two follow-up slices remaining (S4 — promote scans to mphys spatial
+  queries; S7 — wire MineSpeed). Three deferred slices (S9 wormhole
+  gravity, S10 afterburner, plus S3 bomb bounce as an open design
+  question).
