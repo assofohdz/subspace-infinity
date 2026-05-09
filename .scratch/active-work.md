@@ -17,6 +17,11 @@ source files are the **what is the work** layer.
 
 ## Recently landed (last 7 days)
 
+- **2026-05-09 (desktop)** — Slice projectile-radius-pattern4: 11
+  per-projectile / map-decoration collision radii promoted from
+  `CorePhysicsConstants.*SIZERADIUS` into engine-tier `EngineConfig` +
+  `engine.groovy`
+  ([settings-pipeline-slices.md](./settings-pipeline-slices.md) polish bag)
 - **2026-05-07 (desktop)** — Slice S5: wire Repel impulse + Repellable
   marker (Slice 1 follow-up)
   ([physics-audit.md](./physics-audit.md))

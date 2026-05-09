@@ -36,8 +36,8 @@ Physics-touching code, by file:
 | `infinity.systems.ship.WarpSystem` | teleport / spawn | uses `physicsSpace.teleport`; explicitly zeros velocity / acceleration / accumulators |
 | `infinity.systems.MapSystem` | wormhole + door creation | hardcoded gravity-well force `5000`, `GravityWell.PULL` |
 | `api.infinity.sim.GameEntities.createShip` | ship body composition | `Mass(1)`, `Gravity.ZERO`; tunable physics knobs deferred to `ShipSpawnSystem` projection |
-| `api.infinity.sim.CorePhysicsConstants` | radii / masses | `BULLETSIZERADIUS = 0.125`, `BOMBSIZERADIUS = 0.5`, `SHIPMASS = 50` (stale — `createShip` uses `1`), `SHIPTHRUST = 10` (unused) |
-| `api.infinity.config.EngineConfig` | engine-tier velocity bridge | only Subspace→jME projectile-speed scale + cap today |
+| `api.infinity.sim.CorePhysicsConstants` | ship radius | only `SHIPSIZERADIUS = 1f` remains; the per-projectile / map-decoration `*SIZERADIUS` family + `SHIPMASS`/`SHIPTHRUST`/`PHYSICS_SCALE` were retired (S8 + projectile-radius-pattern4) |
+| `api.infinity.config.EngineConfig` | engine-tier physics knobs | Subspace→jME velocity scale + cap, ship/bomb scale calibrations (S1-cal/S2-cal), and 11 collision radii (bullet/bomb/mine/thor/prize/burst/repel/over1/over2/over5/flag — projectile-radius-pattern4) |
 | `api.infinity.config.ArenaConfig.wallFriction` | per-arena friction | divergence from canon (canon = frictionless), documented |
 
 ## Findings
