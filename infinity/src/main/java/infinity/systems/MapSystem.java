@@ -15,12 +15,14 @@ import com.simsilica.mworld.World;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
+import infinity.config.EngineConfig;
 import infinity.es.GravityWell;
 import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.MapTypes;
 import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
+import infinity.settings.EngineConfigSystem;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import java.util.HashMap;
@@ -87,6 +89,7 @@ public class MapSystem extends AbstractGameSystem {
   // private EntitySet tileTypes;
   private AssetLoaderService assetLoader;
   private World world;
+  private EngineConfigSystem engineConfigSystem;
   private MapSystemLogic.Direction direction = MapSystemLogic.Direction.S;
 
   public MapSystem() {}
@@ -119,6 +122,7 @@ public class MapSystem extends AbstractGameSystem {
       throw new IllegalStateException(getClass().getName() + " system requires the World system.");
     }
     this.assetLoader = getSystem(AssetLoaderService.class);
+    this.engineConfigSystem = getSystem(EngineConfigSystem.class);
 
     physicsSpace = physics.getPhysicsSpace();
     assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
@@ -414,24 +418,29 @@ public class MapSystem extends AbstractGameSystem {
    */
   private boolean spawnTileEntity(
       final short s, final Vec3d location, final long createdTime, final MapSystemLogic.MapBuildStats stats) {
+    final EngineConfig engineCfg =
+        engineConfigSystem == null ? EngineConfig.DEFAULTS : engineConfigSystem.get();
     if (s == MapTypes.vieTurfFlag) {
       GameEntities.createTurfStationaryFlag(
-          ed, EntityId.NULL_ID, physicsSpace, createdTime, location);
+          ed, EntityId.NULL_ID, physicsSpace, createdTime, location, engineCfg.flagRadius());
       stats.turfFlags++;
       return true;
     }
     if (s == MapTypes.vieAsteroidSmall) {
-      GameEntities.createAsteroidSmall(ed, null, physicsSpace, createdTime, location, 0);
+      GameEntities.createAsteroidSmall(
+          ed, null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius());
       stats.asteroidsSmall++;
       return true;
     }
     if (s == MapTypes.vieAsteroidMedium) {
-      GameEntities.createAsteroidMedium(ed, null, physicsSpace, createdTime, location, 0);
+      GameEntities.createAsteroidMedium(
+          ed, null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius());
       stats.asteroidsMedium++;
       return true;
     }
     if (s == MapTypes.vieAsteroidEnd) {
-      GameEntities.createOver5(ed, null, physicsSpace, createdTime, location);
+      GameEntities.createOver5(
+          ed, null, physicsSpace, createdTime, location, engineCfg.over5Radius());
       stats.over5++;
       return true;
     }

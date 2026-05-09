@@ -13,6 +13,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import infinity.config.BombConfig;
+import infinity.config.EngineConfig;
 import infinity.es.Parent;
 import infinity.es.ShapeNames;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,8 @@ public class BombFactoryTest {
             new Vec3d(0, 0, 0),
             new Vec3d(0, 0, 25),
             cfg.decayMs(),
-            ShapeNames.BOMBL1);
+            ShapeNames.BOMBL1,
+            EngineConfig.DEFAULTS.bombRadius());
 
     final Decay decay = ed.getComponent(bomb, Decay.class);
     assertNotNull("Bomb must carry a Decay TTL projection", decay);

@@ -14,6 +14,7 @@ import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.config.EngineConfig;
 import infinity.es.Hidden;
 import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
@@ -87,7 +88,14 @@ public class SpawnerProjectionTest {
 
     final EntityId prizeId =
         GameEntities.createPrize(
-            ed, phys, 0L, new Vec3d(0, 0, 0), PrizeTypes.GUN, 5000L, true);
+            ed,
+            phys,
+            0L,
+            new Vec3d(0, 0, 0),
+            PrizeTypes.GUN,
+            5000L,
+            true,
+            EngineConfig.DEFAULTS.prizeRadius());
 
     assertNotNull(
         "createPrize(hidden=true) must stamp a Hidden marker",
@@ -101,7 +109,14 @@ public class SpawnerProjectionTest {
 
     final EntityId prizeId =
         GameEntities.createPrize(
-            ed, phys, 0L, new Vec3d(0, 0, 0), PrizeTypes.GUN, 5000L, false);
+            ed,
+            phys,
+            0L,
+            new Vec3d(0, 0, 0),
+            PrizeTypes.GUN,
+            5000L,
+            false,
+            EngineConfig.DEFAULTS.prizeRadius());
 
     assertNull(
         "createPrize(hidden=false) must not stamp a Hidden marker",
@@ -113,10 +128,17 @@ public class SpawnerProjectionTest {
     final DefaultEntityData ed = new DefaultEntityData();
     final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
 
-    // The pre-Slice-8d 6-arg overload preserves visible-by-default behaviour
-    // for the 4 prod callsites + 3 module testers that don't opt into hidden.
+    // The pre-Slice-8d 7-arg overload (now plus radius) preserves
+    // visible-by-default behaviour for prod callsites that don't opt into hidden.
     final EntityId prizeId =
-        GameEntities.createPrize(ed, phys, 0L, new Vec3d(0, 0, 0), PrizeTypes.GUN, 5000L);
+        GameEntities.createPrize(
+            ed,
+            phys,
+            0L,
+            new Vec3d(0, 0, 0),
+            PrizeTypes.GUN,
+            5000L,
+            EngineConfig.DEFAULTS.prizeRadius());
 
     assertNull(ed.getComponent(prizeId, Hidden.class));
   }

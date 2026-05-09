@@ -28,6 +28,7 @@ import infinity.es.SphereShape;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.Player;
 import infinity.settings.ConfigRegistrySystem;
+import infinity.settings.EngineConfigSystem;
 import infinity.sim.CollisionFilters;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
@@ -112,6 +113,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   Random random;
   private EntityData ed;
   private ConfigRegistrySystem configRegistry;
+  private EngineConfigSystem engineConfigSystem;
   /**
    * Registry of prize-type-name → applier. Built once in {@link #initialize()}
    * — one entry per Subspace prize type, with composite appliers wired for
@@ -136,6 +138,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
   protected void initialize() {
     ed = getSystem(EntityData.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
+    engineConfigSystem = getSystem(EngineConfigSystem.class);
 
     ComponentFilter<?> prizeSpawnerFilter =
         FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
@@ -540,7 +543,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
         prizeSpawnLocation,
         prizeType,
         decayMs,
-        spawner.isHidden());
+        spawner.isHidden(),
+        engineConfigSystem.get().prizeRadius());
   }
 
   /**
@@ -669,7 +673,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
             ? globalFallbackSelector.next(random)
             : arenaSelector(arenaName).next(random);
     final String prizeType = maybeRollNegative(selected, prize);
-    GameEntities.createPrize(ed, phys, timeNs, deathPosition, prizeType, deathPrizeTimeMs);
+    GameEntities.createPrize(
+        ed,
+        phys,
+        timeNs,
+        deathPosition,
+        prizeType,
+        deathPrizeTimeMs,
+        engineConfigSystem.get().prizeRadius());
     log.info(
         "Death-drop: ship {} died in arena '{}' at {} → spawned {} (lifetime={} ms)",
         shipId,

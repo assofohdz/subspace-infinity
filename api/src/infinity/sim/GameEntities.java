@@ -18,6 +18,7 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import infinity.Ship;
+import infinity.config.EngineConfig;
 import infinity.es.AudioTypes;
 import infinity.es.Bounty;
 import infinity.es.CollisionCategory;
@@ -96,11 +97,12 @@ public class GameEntities {
       final long decayMillis,
       final long scheduledMillis,
       final Set<EntityComponent> delayedComponents,
-      final String shapeName) {
+      final String shapeName,
+      final double radius) {
 
     final EntityId lastDelayedBomb =
         GameEntities.createBomb(
-            ed, owner, phys, createdTime, pos, linearVelocity, decayMillis, shapeName);
+            ed, owner, phys, createdTime, pos, linearVelocity, decayMillis, shapeName, radius);
 
     ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
     ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
@@ -116,12 +118,13 @@ public class GameEntities {
       final Vec3d pos,
       final Vec3d linearVelocity,
       final long decayMillis,
-      final String shapeName) {
+      final String shapeName,
+      final double radius) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
-        ShapeInfo.create(shapeName, CorePhysicsConstants.BOMBSIZERADIUS, ed),
+        ShapeInfo.create(shapeName, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(5),
         new Decay(
@@ -144,12 +147,13 @@ public class GameEntities {
       final Vec3d pos,
       final Vec3d linearVelocity,
       final long decayMillis,
-      final String shapeName) {
+      final String shapeName,
+      final double radius) {
     final EntityId lastBullet = ed.createEntity();
 
     ed.setComponents(
         lastBullet,
-        ShapeInfo.create(shapeName, CorePhysicsConstants.BULLETSIZERADIUS, ed),
+        ShapeInfo.create(shapeName, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(1),
         new Decay(
@@ -260,18 +264,35 @@ public class GameEntities {
    * OVER5 visual overlay entity at a position. Distinct from {@link #createWormhole} —
    * no gravity, no warp behavior, just a sized animation overlay. Pairs with
    * {@code SISpatialFactory.createOver5} on the client side.
+   *
+   * <p>Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
+   * Module callers use this form; production server code threads
+   * {@code engineConfigSystem.get().over5Radius()} through the explicit-radius
+   * overload below.
    */
+  public static EntityId createOver5(
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos) {
+    return createOver5(
+        ed, owner, phys, createdTime, pos, EngineConfig.DEFAULTS.over5Radius());
+  }
+
+  /** OVER5 visual overlay entity with explicit radius — see backward-compat overload above. */
   public static EntityId createOver5(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
-      final Vec3d pos) {
+      final Vec3d pos,
+      final double radius) {
     final EntityId lastOver5 = ed.createEntity();
 
     ed.setComponents(
         lastOver5,
-        ShapeInfo.create(ShapeNames.OVER5, CorePhysicsConstants.OVER5SIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.OVER5, radius, ed),
         new SpawnPosition(phys.getGrid(), pos));
     ed.setComponent(lastOver5, new Meta(createdTime));
 
@@ -281,21 +302,39 @@ public class GameEntities {
   /**
    * Small asteroid with animation.
    *
+   * <p>Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
+   * Module callers use this form; production server code threads
+   * {@code engineConfigSystem.get().over1Radius()} through the explicit-radius
+   * overload below.
+   *
    * @param ed the entitydata set to create the entity in
    * @return the entityid of the created entity
    */
+  public static EntityId createAsteroidSmall(
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos,
+      final double mass) {
+    return createAsteroidSmall(
+        ed, owner, phys, createdTime, pos, mass, EngineConfig.DEFAULTS.over1Radius());
+  }
+
+  /** Small asteroid with explicit radius — see backward-compat overload above. */
   public static EntityId createAsteroidSmall(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final double mass) {
+      final double mass,
+      final double radius) {
     final EntityId lastOver1 = ed.createEntity();
 
     ed.setComponents(
         lastOver1,
-        ShapeInfo.create(ShapeNames.OVER1, CorePhysicsConstants.OVER1SIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.OVER1, radius, ed),
         new Mass(mass),
         new SpawnPosition(phys.getGrid(), pos));
     ed.setComponent(lastOver1, new Meta(createdTime));
@@ -306,21 +345,39 @@ public class GameEntities {
   /**
    * Medium asteroid with animation.
    *
+   * <p>Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
+   * Module callers use this form; production server code threads
+   * {@code engineConfigSystem.get().over2Radius()} through the explicit-radius
+   * overload below.
+   *
    * @param ed the entitydata set to create the entity in
    * @return the entityid of the created entity
    */
+  public static EntityId createAsteroidMedium(
+      final EntityData ed,
+      final EntityId owner,
+      final PhysicsSpace<?, ?> phys,
+      final long createdTime,
+      final Vec3d pos,
+      final double mass) {
+    return createAsteroidMedium(
+        ed, owner, phys, createdTime, pos, mass, EngineConfig.DEFAULTS.over2Radius());
+  }
+
+  /** Medium asteroid with explicit radius — see backward-compat overload above. */
   public static EntityId createAsteroidMedium(
       final EntityData ed,
       @SuppressWarnings("unused") final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final double mass) {
+      final double mass,
+      final double radius) {
     final EntityId lastOver2 = ed.createEntity();
 
     ed.setComponents(
         lastOver2,
-        ShapeInfo.create(ShapeNames.OVER2, CorePhysicsConstants.OVER2SIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.OVER2, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(mass));
     ed.setComponent(lastOver2, new Meta(createdTime));
@@ -370,12 +427,13 @@ public class GameEntities {
       final EntityId parent,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
-      final Vec3d pos) {
+      final Vec3d pos,
+      final double radius) {
     final EntityId lastFlag = ed.createEntity();
 
     ed.setComponents(
         lastFlag,
-        ShapeInfo.create(ShapeNames.FLAG, CorePhysicsConstants.FLAGSIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.FLAG, radius, ed),
         new SpawnPosition(phys.getGrid(), pos.add(0.5, 0, 0.5)),
         new Flag());
     ed.setComponent(lastFlag, new Meta(createdTime));
@@ -503,8 +561,9 @@ public class GameEntities {
       final long createdTime,
       final Vec3d pos,
       final String prizeType,
-      final long decayMillis) {
-    return createPrize(ed, phys, createdTime, pos, prizeType, decayMillis, false);
+      final long decayMillis,
+      final double radius) {
+    return createPrize(ed, phys, createdTime, pos, prizeType, decayMillis, false, radius);
   }
 
   /**
@@ -523,13 +582,14 @@ public class GameEntities {
       final Vec3d pos,
       final String prizeType,
       final long decayMillis,
-      final boolean hidden) {
+      final boolean hidden,
+      final double radius) {
     final EntityId result = ed.createEntity();
 
     final long effectiveDecay = decayMillis > 0L ? decayMillis : PRIZE_DEFAULT_DECAY_MS;
     ed.setComponents(
         result,
-        ShapeInfo.create(ShapeNames.PRIZE, CorePhysicsConstants.PRIZESIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.PRIZE, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Bounty(BOUNTY_VALUE),
         PrizeType.create(prizeType, ed),
@@ -655,13 +715,14 @@ public class GameEntities {
       final long createdTime,
       final Vec3d pos,
       @SuppressWarnings("unused") final Vec3d linearVelocity,
-      final long decayMillis) {
+      final long decayMillis,
+      final double radius) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
         // ViewTypes.burst(ed),
-        ShapeInfo.create(ShapeNames.BURST, CorePhysicsConstants.BURSTSIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.BURST, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         // new PhysicsVelocity(new Vec3d(linearVelocity.x, linearVelocity.y)),
         new Decay(
@@ -683,12 +744,13 @@ public class GameEntities {
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final Vec3d pos,
-      final long decayMs) {
+      final long decayMs,
+      final double radius) {
     final EntityId lastWarpTo = ed.createEntity();
 
     ed.setComponents(
         lastWarpTo,
-        ShapeInfo.create(ShapeNames.REPEL, CorePhysicsConstants.REPELRADIUS, ed),
+        ShapeInfo.create(ShapeNames.REPEL, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Decay(
             createdTime,
@@ -839,12 +901,13 @@ public class GameEntities {
       final long createdTime,
       final Vec3d pos,
       @SuppressWarnings("unused") final Vec3d attackVelocity,
-      final long thorDecay) {
+      final long thorDecay,
+      final double radius) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
-        ShapeInfo.create(ShapeNames.THOR, CorePhysicsConstants.THORSIZERADIUS, ed),
+        ShapeInfo.create(ShapeNames.THOR, radius, ed),
         new SpawnPosition(phys.getGrid(), pos),
         new Mass(5),
         new Decay(
@@ -861,10 +924,10 @@ public class GameEntities {
     return lastBomb;
   }
 
-  public static EntityId createMine(EntityData ed, EntityId requester, PhysicsSpace physicsSpace, long time, Vec3d location, long minedecay, String mineShape) {
+  public static EntityId createMine(EntityData ed, EntityId requester, PhysicsSpace physicsSpace, long time, Vec3d location, long minedecay, String mineShape, double radius) {
     EntityId lastMine = ed.createEntity();
     ed.setComponents(lastMine,
-        ShapeInfo.create(mineShape, CorePhysicsConstants.MINESIZERADIUS, ed),
+        ShapeInfo.create(mineShape, radius, ed),
         new SpawnPosition(physicsSpace.getGrid(), location),
         Decay.duration(time, TimeUnit.NANOSECONDS.convert(minedecay, TimeUnit.MILLISECONDS)),
         WeaponTypes.mine(ed),

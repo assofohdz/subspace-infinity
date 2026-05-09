@@ -264,7 +264,8 @@ public class WeaponsSystem extends AbstractGameSystem
             info.location,
             info.attackVelocity,
             cfg.bullet().decayMs(),
-            bulletShape);
+            bulletShape,
+            engineConfigSystem.get().bulletRadius());
 
     ed.setComponent(
         gunProjectile,
@@ -291,7 +292,8 @@ public class WeaponsSystem extends AbstractGameSystem
             info.getLocation(),
             info.getAttackVelocity(),
             cfg.bomb().decayMs(),
-            bombShape);
+            bombShape,
+            engineConfigSystem.get().bombRadius());
     ed.setComponent(
         bombProjectile,
         new Damage(
@@ -354,7 +356,8 @@ public class WeaponsSystem extends AbstractGameSystem
             cfg.bomb().decayMs(),
             cfg.gravBomb().delayMs(),
             delayedComponents,
-            BOMB_LEVEL_PREFIX + gravityBomb.getLevel());
+            BOMB_LEVEL_PREFIX + gravityBomb.getLevel(),
+            engineConfigSystem.get().bombRadius());
 
     ed.setComponent(
         projectile,
@@ -394,7 +397,8 @@ public class WeaponsSystem extends AbstractGameSystem
               time,
               info.getLocation(),
               info.getAttackVelocity(),
-              cfg.burst().decayMs());
+              cfg.burst().decayMs(),
+              engineConfigSystem.get().burstRadius());
       ed.setComponent(
           projectile,
           new Damage(
@@ -444,7 +448,8 @@ public class WeaponsSystem extends AbstractGameSystem
             time,
             info.getLocation(),
             cfg.mine().decayMs(),
-            mineShape);
+            mineShape,
+            engineConfigSystem.get().mineRadius());
     ed.setComponent(
         mineProjectile,
         new Damage(
@@ -547,7 +552,8 @@ public class WeaponsSystem extends AbstractGameSystem
     final Vec3d shipPosition = new Vec3d(shipBody.position);
 
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
-    WeaponsLogic.applyProjectileRadiusOffset(projectilePosition, weaponFlag);
+    WeaponsLogic.applyProjectileRadiusOffset(
+        projectilePosition, weaponFlag, engineCfg.bulletRadius(), engineCfg.bombRadius());
     // Rotate the projectile position just as the ship is rotated
     projectilePosition = shipRotation.mult(projectilePosition);
     // Translate by ship position

@@ -5,7 +5,6 @@ package infinity.systems.ship;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.sim.CorePhysicsConstants;
 
 /**
  * Pure-function helpers extracted from {@link WeaponsSystem} so the giant
@@ -172,19 +171,25 @@ final class WeaponsLogic {
      * Step 4 of the attack-info pipeline: nudge the projectile spawn point off
      * the ship by the projectile's own collision radius so it doesn't
      * immediately re-collide with us. Bullets / bursts use the bullet radius;
-     * bombs / grav-bombs / mines use the (larger) bomb radius.
+     * bombs / grav-bombs / mines use the (larger) bomb radius. Both come from
+     * engine-tier {@code EngineConfig} (slice projectile-radius-pattern4) so
+     * arena-level overrides aren't a thing for collision radii — they're
+     * physics-engine facts identical across every arena.
      */
     static void applyProjectileRadiusOffset(
-            final Vec3d projectilePosition, final byte weaponFlag) {
+            final Vec3d projectilePosition,
+            final byte weaponFlag,
+            final double bulletRadius,
+            final double bombRadius) {
         switch (weaponFlag) {
             case WeaponsSystem.BULLET:
             case WeaponsSystem.BURST:
-                projectilePosition.addLocal(0, 0, CorePhysicsConstants.BULLETSIZERADIUS);
+                projectilePosition.addLocal(0, 0, bulletRadius);
                 break;
             case WeaponsSystem.BOMB:
             case WeaponsSystem.GRAVBOMB:
             case WeaponsSystem.MINE:
-                projectilePosition.addLocal(0, 0, CorePhysicsConstants.BOMBSIZERADIUS);
+                projectilePosition.addLocal(0, 0, bombRadius);
                 break;
             default:
                 throw new AssertionError();

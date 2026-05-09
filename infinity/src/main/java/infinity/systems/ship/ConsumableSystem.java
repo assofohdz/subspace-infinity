@@ -44,9 +44,9 @@ import infinity.es.ship.actions.RocketMax;
 import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.Thor;
 import infinity.settings.ConfigRegistrySystem;
+import infinity.settings.EngineConfigSystem;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
-import infinity.sim.CorePhysicsConstants;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.GameEntities;
 import infinity.sim.GameSounds;
@@ -84,6 +84,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private MPhysSystem<MBlockShape> physics;
   private EntitySet thorProjectiles;
   private ConfigRegistrySystem configRegistry;
+  private EngineConfigSystem engineConfigSystem;
 
   // Per-family config lookups + gate checks live in ConsumableLogic to keep
   // this class's cyclomatic-complexity sum under PMD's class threshold without
@@ -104,6 +105,11 @@ public class ConsumableSystem extends AbstractGameSystem
 
     physicsSpace = physics.getPhysicsSpace();
     configRegistry = getSystem(ConfigRegistrySystem.class);
+    engineConfigSystem = getSystem(EngineConfigSystem.class);
+    if (engineConfigSystem == null) {
+      throw new InfinityRunTimeException(
+          getClass().getName() + " system requires the EngineConfigSystem.");
+    }
     // Here we find the ships that have a thor weapon
     thorOwners = ed.getEntities(ThorCurrentCount.class);
     thorProjectiles = ed.getEntities(Thor.class);
@@ -241,7 +247,8 @@ public class ConsumableSystem extends AbstractGameSystem
             time,
             info.location,
             info.attackVelocity,
-            cfg.decayMs());
+            cfg.decayMs(),
+            engineConfigSystem.get().thorRadius());
 
     ed.setComponent(
         gunProjectile,
@@ -266,7 +273,14 @@ public class ConsumableSystem extends AbstractGameSystem
     final RepelConfig cfg = ConsumableLogic.repelConfigFor(ed, configRegistry, requester);
 
     final EntityId repelEffect =
-        GameEntities.createRepel(ed, requester, physicsSpace, time, info.location, cfg.timeMs());
+        GameEntities.createRepel(
+            ed,
+            requester,
+            physicsSpace,
+            time,
+            info.location,
+            cfg.timeMs(),
+            engineConfigSystem.get().repelRadius());
 
     ed.setComponent(repelEffect, new RepelSpeed(cfg.speed()));
     ed.setComponent(repelEffect, new RepelDistance(cfg.distancePixels()));
@@ -567,7 +581,7 @@ public class ConsumableSystem extends AbstractGameSystem
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
     // Offset with the radius of the projectile
     if (weaponFlag == FIRETHOR) {
-      projectilePosition.addLocal(0, 0, CorePhysicsConstants.THORSIZERADIUS);
+      projectilePosition.addLocal(0, 0, engineConfigSystem.get().thorRadius());
     } else {
       throw new AssertionError();
     }

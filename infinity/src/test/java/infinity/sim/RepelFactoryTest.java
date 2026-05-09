@@ -12,6 +12,7 @@ import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.config.EngineConfig;
 import infinity.config.RepelConfig;
 import infinity.es.Parent;
 import infinity.es.ship.actions.RepelDistance;
@@ -48,7 +49,14 @@ public class RepelFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId repel =
-        GameEntities.createRepel(ed, owner, phys, createdTime, new Vec3d(0, 0, 0), cfg.timeMs());
+        GameEntities.createRepel(
+            ed,
+            owner,
+            phys,
+            createdTime,
+            new Vec3d(0, 0, 0),
+            cfg.timeMs(),
+            EngineConfig.DEFAULTS.repelRadius());
 
     final Decay decay = ed.getComponent(repel, Decay.class);
     assertNotNull("Repel must carry a Decay TTL projection", decay);
@@ -68,7 +76,14 @@ public class RepelFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId repel =
-        GameEntities.createRepel(ed, owner, phys, 0L, new Vec3d(0, 0, 0), cfg.timeMs());
+        GameEntities.createRepel(
+            ed,
+            owner,
+            phys,
+            0L,
+            new Vec3d(0, 0, 0),
+            cfg.timeMs(),
+            EngineConfig.DEFAULTS.repelRadius());
     // Mirrors the production projection in ConsumableSystem.createRepel:
     // GameEntities.createRepel handles the Decay projection; speed and
     // distance are stamped by the caller from the same RepelConfig.
@@ -88,7 +103,13 @@ public class RepelFactoryTest {
     final EntityId owner = ed.createEntity();
     final EntityId repel =
         GameEntities.createRepel(
-            ed, owner, phys, 0L, new Vec3d(0, 0, 0), RepelConfig.DEFAULTS.timeMs());
+            ed,
+            owner,
+            phys,
+            0L,
+            new Vec3d(0, 0, 0),
+            RepelConfig.DEFAULTS.timeMs(),
+            EngineConfig.DEFAULTS.repelRadius());
 
     final Parent parent = ed.getComponent(repel, Parent.class);
     assertNotNull("Repel effect must carry Parent ownership pointing back at the firing ship", parent);
