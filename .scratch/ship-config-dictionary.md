@@ -4,7 +4,7 @@ Tracks the per-ship tuning surface and which keys have been promoted to the type
 
 **Scope:** the 84 keys per ship that appear in every `ship-<name>.groovy` fragment under `infinity/zone/conf/trench-04-2026/` (verified to be the same set across all 8 ships). The same key set holds for the SVS preset family. (These keys came from the original Subspace `shipSection` surface; the conf-fragments-to-groovy migration ported the bag verbatim into `shipSection` blocks — the names and values are unchanged.)
 
-**Why this file exists:** Always-on rule #5 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". All 84 keys are in Groovy now, but only 15 are *typed* — the rest sit in untyped `shipSection` blocks (read by `SettingsSystem.getInt/getString` if read at all). This dictionary is the running ledger of which knobs are typed (Pattern 4 — projected to ECS components at spawn) vs. which still flow through the untyped flat-bag accessors. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
+**Why this file exists:** Always-on rule #3 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". All 84 keys are in Groovy now, but only 15 are *typed* — the rest sit in untyped `shipSection` blocks (read by `SettingsSystem.getInt/getString` if read at all). This dictionary is the running ledger of which knobs are typed (Pattern 4 — projected to ECS components at spawn) vs. which still flow through the untyped flat-bag accessors. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
 
 ## How to use
 
@@ -13,7 +13,7 @@ Tracks the per-ship tuning surface and which keys have been promoted to the type
 - **Extending the per-ship key surface** (a new `shipSection` key appears) → add a row in "Pending" with status `Pending — not yet read by any consumer`.
 - **Removing a typed field** → either move the row back to "Pending" (if the `shipSection` key still exists) or delete it (if both are gone).
 
-Update this file in the same change that adds/moves/removes a typed config field. See always-on rule #6 in [CLAUDE.md](../CLAUDE.md).
+Update this file in the same change that adds/moves/removes a typed config field. See always-on rule #4 in [CLAUDE.md](../CLAUDE.md).
 
 ---
 
@@ -65,13 +65,13 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 | `linearDamping` | `linearDamping()` | `LinearDamping` | `PlayerDriver.update()` → `RigidBody.setDamping(linear, 1.0)` | `0.99` | Slice S1. Per-second velocity-retention multiplier (mphys-native). `0.99` = 1% loss/sec at typical speed; math fit against historical `dragFactor 0.05` coast-decay rate. Always-on (max-speed reach lands ~5% short). Continuum has no drag — Infinity extension. |
 | `turnResponsiveness` | `turnResponsiveness()` | `TurnResponsiveness` | `PlayerDriver.update()` | `8.0` | Angular-velocity ease rate (1/sec). Continuum has no equivalent. |
 | `bounceRestitution` | `bounceRestitution()` | `BounceRestitution` | `ContactSystem.newContact()` | `1.0` | Wall-bounce energy retention. Continuum walls are perfectly elastic by construction. |
-| `radarRange` | `radarRange()` | `RadarRange` | `RadarState` (TBD, issue radar-viewport/02) | `250.0` | World-unit radius the client radar viewport displays around the ship. Spawn also projects `RadarShapeInfo` (server-side, not from a `ShipConfig` field) — the blip name is derived from `cfg.type().getName() + "_blip"`. |
+| `radarRange` | `radarRange()` | `RadarRange` | `RadarState` | `250.0` | World-unit radius the client radar viewport displays around the ship. Spawn also projects `RadarShapeInfo` (server-side, not from a `ShipConfig` field) — the blip name is derived from `cfg.type().getName() + "_blip"`. |
 
 ---
 
 ## Pending — `shipSection` keys not yet ported to typed `ShipConfig`
 
-60 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config — see [`config-consumers.md`](config-consumers.md)).
+60 keys, grouped by purpose. None are read through a typed `ShipConfig` field today; some are read via the untyped `SettingsSystem.getInt/getString` accessors against the per-arena merged fragment store, others have no consumer at all (orphan config).
 
 ### Weapons — gun / bomb / mine firing
 
@@ -164,5 +164,4 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 - **Add fields incrementally.** Don't try to port all 69 in one pass — port the subset a feature actually needs, wire its consumers (per Pattern 4: typed `*Config` field → projection → component → consumer), then update this file.
 - **Group related keys into nested config records.** `BulletFireDelay` / `BulletFireEnergy` / `BulletSpeed` likely become a `BulletConfig` record nested in `ShipConfig` rather than 3 flat fields. Same for `BombConfig`, `BurstConfig`, etc. Keep the Groovy DSL ergonomic — flat top-level setters per cluster, like the existing `rotation initial: ..., max: ..., upgrade: ...`.
 - **Cap-style stats follow the Pattern 4 triple shape** (`initial / max / upgrade`); see [`config-pattern.md`](rules/config-pattern.md). Pure config with no upgrade axis (e.g. `BombSpeed`) is just a single field.
-- **Don't port "orphan" keys** — those without any consumer in the Java code today. Adding them to Groovy creates orphan config (declared, never read), which makes [`config-consumers.md`](config-consumers.md) noisier without delivering value. Wire the consumer first or skip.
-- **Update [`config-consumers.md`](config-consumers.md)** when you wire the new field's consumer (always-on rule #4).
+- **Don't port "orphan" keys** — those without any consumer in the Java code today. Adding them to Groovy creates orphan config (declared, never read) without delivering value. Wire the consumer first or skip.

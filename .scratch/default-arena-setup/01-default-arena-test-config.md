@@ -67,7 +67,7 @@ The trench testbed introduces:
 
 ## Related
 
-- [BACKLOG.md](../refactor-backlog/BACKLOG.md) — the spawner-test-harness
+- [BACKLOG.md](../BACKLOG.md) — the spawner-test-harness
   entry covers programmatic verification of these spawn flows.
 - [hardcoded-values.md](../hardcoded-values.md) — the BasicEnvironment
   spawner coord should be logged here once we touch it.

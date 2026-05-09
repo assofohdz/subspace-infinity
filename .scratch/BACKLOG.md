@@ -1,18 +1,18 @@
 # Refactor backlog
 
-Open follow-ups from the multi-day cleanup arc through commits c2209c2 → 31d2de6 (eighteen-commit session that landed `GroovySettingsHost`, the component immutability sweep, big-file culls, ByteArray → ByteBuffer migration, PMD wiring, and Pattern-4 ship-tuning promotion).
+Bag of non-settings cleanup items — architecture splits, library audits, naming notes. Pull from this file when "what's next?" comes up for cleanup work that doesn't belong in the settings pipeline.
 
 **Subspace-settings wiring lives in the pipeline tracker + work queue, not here:**
-- [`settings-pipeline.md`](../settings-pipeline.md) — what's wired, gate-by-gate
-- [`settings-pipeline-slices.md`](../settings-pipeline-slices.md) — what to work on next
+- [`settings-pipeline.md`](settings-pipeline.md) — what's wired, gate-by-gate
+- [`settings-pipeline-slices.md`](settings-pipeline-slices.md) — what to work on next
 
-Pull from this file when "what's next?" comes up for **non-settings** cleanup (architecture splits, libraries, tooling). Some items still need a design call before any work happens.
+Some items still need a design call before any work happens.
 
 ## Architecture refactors
 
 ### `modules/` directory — design call
 
-Six `*Tester` stubs (`basicTester`, `doorTester`, `lightTester`, `prizeTester`, `wangTester`, `warpTester`) exist with no runtime instantiator after `AdaptiveLoader` retirement (commit `b0e7911`). Decision pending: delete them (the [`groovy-module-loader/PRD.md`](../groovy-module-loader/PRD.md) preserves the gameplay intent), or keep them as scaffolding that the future Groovy module loader will attach to.
+Six `*Tester` stubs (`basicTester`, `doorTester`, `lightTester`, `prizeTester`, `wangTester`, `warpTester`) exist with no runtime instantiator after `AdaptiveLoader` retirement (commit `b0e7911`). Decision pending: delete them (the [`groovy-module-loader/PRD.md`](groovy-module-loader/PRD.md) preserves the gameplay intent), or keep them as scaffolding that the future Groovy module loader will attach to.
 
 Surface to user before doing any work.
 
@@ -21,9 +21,9 @@ Surface to user before doing any work.
 The simulation layer naturally speaks in world units (1 unit ≈ 1 tile). Subspace canon authors several knobs in pixels at the canonical 16 px/tile rate, and a few of those still carry the pixel value through Infinity's internal types instead of converting at the operator boundary.
 
 Today's pixel-flavored gameplay types (audit as of slice S5):
-- [`RepelConfig.distancePixels`](../../api/src/infinity/config/RepelConfig.java) — `int` in pixels.
-- [`RepelDistance`](../../api/src/infinity/es/ship/actions/RepelDistance.java) component — `int getPixels()`.
-- [`BombConfig.explodeRadius`](../../api/src/infinity/config/BombConfig.java) Javadoc — already migrated to tiles for the field itself, but Javadoc still references pixels for SVS-port operators.
+- [`RepelConfig.distancePixels`](../api/src/infinity/config/RepelConfig.java) — `int` in pixels.
+- [`RepelDistance`](../api/src/infinity/es/ship/actions/RepelDistance.java) component — `int getPixels()`.
+- [`BombConfig.explodeRadius`](../api/src/infinity/config/BombConfig.java) Javadoc — already migrated to tiles for the field itself, but Javadoc still references pixels for SVS-port operators.
 
 Already-clean precedent: `BombConfig.explodeRadius` was migrated tile-units-only in slice 9a and operators porting from SVS divide by 16 themselves. Same shape applies to repel:
 - Rename `distancePixels` → `distance` (or `distanceWorldUnits`); store `double` in tiles.
@@ -42,7 +42,7 @@ Surfaced during slice S5 manual test (RepelSystem's `/ 16` conversion was the tr
 
 ### `AvatarMovementFunctions` keybinding cleanup
 
-[`AvatarMovementFunctions.java:133-147`](../../infinity/src/main/java/infinity/client/AvatarMovementFunctions.java#L133-L147) has four `if (!inputMapper.hasMappings(F_<X>)) { inputMapper.map(F_REPEL, KEY_<Y>); }` blocks where `<X>` is `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` but the body always maps `F_REPEL` (looks like copy-paste rot). Net effect: `F_REPEL` is mapped to F3 + F4 + F5 + F7, while `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` get **no** key bindings at all. Plus a commented-out shift-key mapping at lines 126-128 (original repel binding).
+[`AvatarMovementFunctions.java`](../infinity/src/main/java/infinity/client/AvatarMovementFunctions.java) `mapActions()` has four `if (!inputMapper.hasMappings(F_<X>)) { inputMapper.map(F_REPEL, KEY_<Y>); }` blocks where `<X>` is `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` but the body always maps `F_REPEL` (looks like copy-paste rot). Net effect: `F_REPEL` is mapped to F3 + F4 + F5 + F7, while `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` get **no** key bindings at all. Plus a commented-out shift-key mapping (original repel binding).
 
 Surfaced during slice S5 manual test (LEVIATHAN repel firing fine via F3/F4/F5/F7, but the action keys for the other features are wrong).
 
@@ -52,31 +52,33 @@ Out of scope for any specific gameplay slice; surface as its own keybinding-clea
 
 ### `MapSystem` 2-job split
 
-The 938-line file culled in commit `5582cfd` (now ~693 lines after dead-code removal) still mixes two responsibilities:
+The 634-line file still mixes two responsibilities:
 
-- **`LegacyMapProjector`** — pure-function lvl-decode → world cell writes (lines ~421-561 of pre-cull). Extract as standalone class taking `(LevelFile, Vec3d offset, int tileBase, long createdTime, World, EntityData, PhysicsSpace) → HashSet<Vec3d>`.
-- **`WallLightDecorator`** — wall-run light emitter generator (lines ~563-659 of pre-cull). Extract as standalone strategy taking `(short[][] tiles, Vec3d offset, World, HashSet<Vec3d>)`.
+- **`LegacyMapProjector`** — pure-function lvl-decode → world cell writes. Extract as standalone class taking `(LevelFile, Vec3d offset, int tileBase, long createdTime, World, EntityData, PhysicsSpace) → HashSet<Vec3d>`.
+- **`WallLightDecorator`** — wall-run light emitter generator. Extract as standalone strategy taking `(short[][] tiles, Vec3d offset, World, HashSet<Vec3d>)`.
 
 After: `MapSystem` keeps the cohesive "what maps are loaded where" story (load/unload/swap, spiral placement, async orchestration). The projector and decorator become independently testable — the projector via fixture `.lvl` files, asserting cells + entities. Block constants (`INVISIBLE_BLOCK_TYPE`, `LIGHT_EMITTER_BLOCK_TYPE`) hoisted to `InfinityConstants`.
 
 ### `WeaponsSystem` strong split
 
-849-line system mixing the fire pipeline (per-weapon `canAttackX` / `setCoolDownX` / `deductCostOfAttackX` / `createProjectileX` × 5) with contact resolution (`newContact` for projectile-vs-ship + projectile-vs-world). Two splits:
+841-line system mixing the fire pipeline (per-weapon `canAttackX` / `setCoolDownX` / `deductCostOfAttackX` / `createProjectileX` × 5) with contact resolution (`newContact` for projectile-vs-ship + projectile-vs-world). Two splits:
 
 1. Pull `newContact()` and `damageEntities`/`energyEntities` sets into a separate `WeaponContactSystem`. Removes `WeaponsSystem`-as-`ContactListener` shape and ~80 lines.
 2. Collapse the 5 parallel weapon types into a `WeaponHandler` interface with `Bullet`/`Bomb`/`GravBomb`/`Mine`/`Burst` impls. `attack()` becomes `handlers.get(flag).fire(...)`. Kills the per-type switch duplication. Sets the polymorphism-collapse template the `PrizeApplier` registry already established.
 
-### `ArenaSystem` 3-way split
+### `ArenaSystem` spatial-index extraction
 
-950 lines. `ArenaSystem` keeps lifecycle (reconcile/load/unload/slot allocation/bootstrap); extract `ArenaSpatialIndex` (`findArenaAt`, `findArenaEntityAt`, `arenaToWorld`, `worldToArena`, `getArenaSpawn`, `getArenaMap`) for spatial queries; extract `ArenaScriptWatcher` (`registerScriptWatch`, `unregisterScriptWatch`, `pollScriptWatches`) for hot-reload. Chat command handlers (`loadArenaByNameCommand` etc.) optionally move to a `ArenaCommandHandler` if they grow further.
+735 lines. Two of the three originally-proposed extractions already landed: chat command handlers live in [`ArenaCommandsSystem`](../infinity/src/main/java/infinity/systems/ArenaCommandsSystem.java) and hot-reload polling lives in [`ArenaReloadWatcher`](../infinity/src/main/java/infinity/systems/ArenaReloadWatcher.java).
+
+What remains: extract `ArenaSpatialIndex` for spatial queries — `findArenaAt`, `findArenaEntityAt`, `arenaToWorld`, `worldToArena`, `getArenaSpawn`, `getArenaMap`. After this `ArenaSystem` keeps lifecycle only (reconcile/load/unload/slot allocation/bootstrap).
 
 ### `SISpatialFactory` 2-way split
 
-811 lines. Gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see "Library follow-ups" below.
+792 lines. Gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see "Library follow-ups" below.
 
 ### `GameEntities` split + parameter records
 
-The audit's "split GameEntities into themed files" recommendation was deferred when Asser pointed out the file is the **module ABI**. The location is correct, but the file is still 690 lines (post commit `d87adf1`) with mixed concerns. Two improvements still open:
+The audit's "split GameEntities into themed files" recommendation was deferred when Asser pointed out the file is the **module ABI**. The location is correct, but the file has grown to 976 lines (up from ~690 when the entry was first written) with mixed concerns. Two improvements still open:
 
 1. **Themed sub-files within `api/sim/`** — `WeaponEntities.java`, `WorldEntities.java`, `EffectEntities.java`. Module authors still find them via the package; navigation gets cleaner. Top-level `GameEntities` becomes a thin re-exporter or pure-aggregate.
 2. **Parameter records** — `createMine(EntityData, EntityId, PhysicsSpace, long, Vec3d, long, String)` is 7 positional args. Builder or parameter records would help. ABI-breaking, so coordinate with module authors before doing it.
@@ -95,13 +97,13 @@ Out of scope until enough U1 in-game time confirms outlines are useful as-is. Pi
 
 ### `MapState` block create/delete interaction
 
-[`MapState.java:470, 494`](../../infinity/src/main/java/infinity/client/states/MapState.java) wires left/right mouse click through a raycast and calls `session.map(MapSystem.CREATE / MapSystem.DELETE, vec3)` to mutate world blocks. Two smells: (1) `MapSystem.CREATE` / `DELETE` are loose `static final byte` constants on a server-side system that the client reaches into — they slip past `LayerDependencyTest` only because the Java compiler inlines them at compile time and erases the bytecode dependency. (2) `MapState` mixes rendering with arena-click input handling. Cleanup: promote the action codes to a proper RMI command surface (typed enum or RMI method per intent — `createBlock(Vec3)` / `deleteBlock(Vec3)`), and consider extracting the click-to-block input handling into its own input AppState if the rendering responsibilities of `MapState` keep growing.
+[`MapState.java:442, 449`](../infinity/src/main/java/infinity/client/states/MapState.java) wires left/right mouse click through a raycast and calls `session.map(MapSystem.CREATE / MapSystem.DELETE, vec3)` to mutate world blocks. Two smells: (1) `MapSystem.CREATE` / `DELETE` are loose `static final byte` constants on a server-side system that the client reaches into — they slip past `LayerDependencyTest` only because the Java compiler inlines them at compile time and erases the bytecode dependency. (2) `MapState` mixes rendering with arena-click input handling. Cleanup: promote the action codes to a proper RMI command surface (typed enum or RMI method per intent — `createBlock(Vec3)` / `deleteBlock(Vec3)`), and consider extracting the click-to-block input handling into its own input AppState if the rendering responsibilities of `MapState` keep growing.
 
 ## Library follow-ups
 
 ### `'+'` version pinning audit
 
-Most non-Simsilica deps in [`build.gradle:8-23`](../../build.gradle) use `'+'` (latest). Pinned exceptions are JME (`3.9.0-stable`), log4j (`2.25.4`), slf4j (`2.0.17`), pager/sim-fx (`1.0.1-SNAPSHOT`), and ini4j (`0.5.4`). The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
+Most non-Simsilica deps in [`build.gradle`](../build.gradle) `subprojects` block use `'+'` (latest). Pinned exceptions are JME (`3.9.0-stable`), gson (`2.11.0`), log4j (`2.25.4`), and slf4j (`2.0.17`). Pager and sim-fx are on `1.0.1-SNAPSHOT`. The `dependency-scout` agent tracks Simsilica drift; the rest deserve a one-pass review before a Maven Central cache flush moves the build under us.
 
 ## Naming / convention notes (kept for reference)
 

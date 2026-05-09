@@ -7,7 +7,7 @@ End-to-end ECS flows have zero automated coverage today. Every Pattern 4 / spawn
 ## Why
 
 - The conf-fragments-to-groovy work just shipped a hot-reload path that touches `SettingListener` events and the merged `Ini` store; no automated test exercises it. The gate before commit was a manual launch.
-- Every Pattern 4 cluster still on the [refactor backlog](../refactor-backlog/BACKLOG.md) (damage / projectile speeds / decays / cooldowns / health / etc.) follows the same shape: template → spawn-time projection → ECS component. Each of those is a candidate for the same kind of programmatic round-trip test.
+- Every Pattern 4 cluster still on the [backlog](../BACKLOG.md) (damage / projectile speeds / decays / cooldowns / health / etc.) follows the same shape: template → spawn-time projection → ECS component. Each of those is a candidate for the same kind of programmatic round-trip test.
 - The cost of "manual launch is the only verification" compounds — slows iteration, makes refactors riskier, makes regressions invisible until somebody loads the right arena.
 
 ## Out of scope

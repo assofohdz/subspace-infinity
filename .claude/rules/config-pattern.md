@@ -46,7 +46,6 @@ Hot-path consumers must not import from `infinity.config`. Spawn systems are the
 2. Confirm (or add) the per-entity component in `api/src/infinity/es/...`.
 3. Have the spawn system project template → component.
 4. Consumer reads the component (never the template).
-5. Log the `(field, consumer, path)` row in [`.scratch/config-consumers.md`](../../.scratch/config-consumers.md).
 
 ## Reference
 

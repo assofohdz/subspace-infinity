@@ -852,7 +852,7 @@ way via `ArenaFootprint.rectangle(min, max)` or the raw `Vec3d[]
 vertices` constructor.
 
 Current-vs-neighbor styling deferred to backlog
-(`refactor-backlog/BACKLOG.md` "Radar `ArenaFootprint` — current-vs-
+(`BACKLOG.md` "Radar `ArenaFootprint` — current-vs-
 neighbor styling") — picked up if uniform styling feels noisy in
 extended play.
 
@@ -1089,7 +1089,7 @@ between bigger slices. Each item is 1 row, ~1 hour:
   DamageFactor, PrizeShareLimit, EmpBomb, SeeBombLevel, SeeMines,
   BurstSpeed, BurstShrapnel
 - `JitterState.MAX_OFFSET = 0.5f` hardcoded → engine.groovy
-  `cameraShakeMaxOffset` per CLAUDE.md rule #4. Surfaced during slice
+  `cameraShakeMaxOffset` per CLAUDE.md rule #3. Surfaced during slice
   9c-JitterTime.
 - Camera-shake mechanism: MVP uses additive camera-location offset
   (slice 9c-JitterTime Q6=a). FilterPostProcessor screen-shake is the
