@@ -3,7 +3,6 @@
 
 package infinity.systems.ship;
 
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -11,8 +10,11 @@ import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.SphereVolume;
 import infinity.config.ArenaConfig;
 import infinity.config.EngineConfig;
 import infinity.es.Damage;
@@ -78,11 +80,17 @@ final class WeaponsDamageLogic {
     }
 
     /**
-     * Splash (AoE) damage path. Iterates {@code energyEntities}, retains those
-     * within {@code splash.radiusWorldUnits} of the detonation point, and
-     * applies {@code damage.intendedDamage} to each (subject to the
-     * friendly-fire gate — splash uses the relaxed "mode &gt;= 1" rule). Does
-     * not yet attenuate damage with distance — that's a polish-bag follow-up.
+     * Splash (AoE) damage path. Spatial pre-filter via
+     * {@code mphys.PhysicsSpace#queryBounds} (arch-review TD-3 — replaces the
+     * per-tick O(N) walk over every Health-bearer) returns rigid bodies whose
+     * bounds intersect the splash sphere. The post-query loop retains those
+     * within the strict {@code splash.radiusWorldUnits} of the detonation
+     * point, gates them against the {@code energyEntities} EntitySet (only
+     * Health-bearers count for damage; queryBounds also returns projectiles,
+     * prizes, doors etc.), and applies {@code damage.intendedDamage} subject
+     * to the friendly-fire gate (splash uses the relaxed "mode &gt;= 1" rule).
+     * Does not yet attenuate damage with distance — that's a polish-bag
+     * follow-up.
      */
     static void applySplashDamage(
             final EntityData ed,
@@ -101,18 +109,24 @@ final class WeaponsDamageLogic {
             return;
         }
         final double radiusSq = radius * radius;
-        for (final Entity victim : energyEntities) {
-            final EntityId victimId = victim.getId();
-            final RigidBody<EntityId, MBlockShape> body =
-                    physicsSpace.getBinIndex().getRigidBody(victimId);
-            if (body == null) {
-                continue;
+        final SphereVolume sphere = new SphereVolume(explosionPoint, radius);
+        final QueryFilter<EntityId, MBlockShape> filter =
+                new QueryFilter<>(
+                        QueryFilter.TYPE_ACTIVE | QueryFilter.TYPE_INACTIVE,
+                        body -> true,
+                        body -> true);
+        for (final AbstractBody<EntityId, MBlockShape> body : physicsSpace.queryBounds(sphere, filter)) {
+            final EntityId victimId = body.id;
+            if (!energyEntities.containsId(victimId)) {
+                continue; // not a Health-bearer (projectile, prize, door, …)
             }
             final Vec3d vp = body.position;
             final double dx = vp.x - explosionPoint.x;
             final double dy = vp.y - explosionPoint.y;
             final double dz = vp.z - explosionPoint.z;
             if (dx * dx + dy * dy + dz * dz > radiusSq) {
+                // Strict point-distance check; queryBounds inflates by
+                // body.boundsRadius so it's a coarse pre-filter only.
                 continue;
             }
             if (!shouldDamageVictim(ed, arenaSys, damageEntityId, victimId, true)) {

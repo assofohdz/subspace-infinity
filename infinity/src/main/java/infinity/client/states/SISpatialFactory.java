@@ -4,8 +4,6 @@
 package infinity.client.states;
 
 import com.jme3.asset.AssetManager;
-import com.jme3.effect.ParticleEmitter;
-import com.jme3.effect.ParticleMesh;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
@@ -54,7 +52,6 @@ public class SISpatialFactory {
 
   // Use to flip between using the lights and using unshaded textures
   private static final boolean UNSHADED = false;
-  private static final boolean DEBUG_COG = false;
   private static final String NUMTILESOFFSETY = "numTilesOffsetY";
   private static final String STARTTIME = "StartTime";
   static Logger log = LoggerFactory.getLogger(SISpatialFactory.class);
@@ -149,9 +146,6 @@ public class SISpatialFactory {
   /** Creates a root-level spatial for the specified root group. */
   protected Spatial createPartSpatial(EntityId id, Group group, Mass mass) {
     Node node = new Node(objectString + id);
-    if (DEBUG_COG) {
-      node.attachChild(createBox(0.1f, ColorRGBA.Orange));
-    }
 
     // The root level will need to be positioned relative to the rigid body
     // which is positioned at CoG relative to model space.  So we need to offset
@@ -234,19 +228,6 @@ public class SISpatialFactory {
 
     geomIndex.generateBlocks(parts, part.getCells());
 
-    // If we are the root level then we'll need a cog shift
-    // to match with the rigid body
-    if (isRoot && DEBUG_COG) {
-      // The position of the object is its CoG... which means
-      // we need to offset our model's origin by it.  It should
-      // already be scaled and everything... just need to negate it.
-
-      // We need to sort out what the center should be.  Directly out of generateBlocks()
-      // the geometry is all relative to the corner.   See cog-offset.txt
-
-      node.attachChild(createBox(0.1f, ColorRGBA.Red));
-    }
-
     parts.setLocalScale((float) part.getScale());
     parts.setShadowMode(ShadowMode.CastAndReceive);
 
@@ -284,63 +265,6 @@ public class SISpatialFactory {
     }
     // set the cube's material
     geom.setMaterial(mat);
-    return geom;
-  }
-
-  @SuppressWarnings("unused")
-  private Spatial createBase() {
-    final Quad quad = new Quad(CoreViewConstants.BASESIZE, CoreViewConstants.BASESIZE);
-    final float halfSize = CoreViewConstants.BASESIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Base", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/BaseMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/BaseMaterialLight.j3m"));
-    }
-
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  @SuppressWarnings("unused")
-  private Spatial createMob() {
-    final Quad quad = new Quad(CoreViewConstants.MOBSIZE, CoreViewConstants.MOBSIZE);
-    final float halfSize = CoreViewConstants.MOBSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Mob", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/MobMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/MobMaterialLight.j3m"));
-    }
-
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  @SuppressWarnings("unused")
-  private Spatial createTower() {
-    final Quad quad = new Quad(CoreViewConstants.TOWERSIZE, CoreViewConstants.TOWERSIZE);
-    final float halfSize = CoreViewConstants.TOWERSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Tower", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/TowerMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/TowerMaterialLight.j3m"));
-    }
-
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
     return geom;
   }
 
@@ -427,37 +351,6 @@ public class SISpatialFactory {
     mat.setInt(NUMTILESOFFSETY, ship);
     geom.setMaterial(mat);
     log.info("Setting geometry material on spatial:{}; ship:{}", s, ship);
-  }
-
-  @SuppressWarnings("unused")
-  private Spatial createParticleEmitter(final EntityId entityId, final String shapeName) {
-    final Spatial result;
-
-    // Create a thrust ParticleEmitter
-    if (shapeName.equals("thrust")) {
-      result = createThrustEmitter();
-    } else {
-      result = null;
-    }
-    return result;
-  }
-
-  private Spatial createThrustEmitter() {
-    final Material smokeMat = new Material(assets, "Common/MatDefs/Misc/Particle.j3md");
-    smokeMat.setTexture("Texture", assets.loadTexture("Effects/Smoke/Smoke.png"));
-    final ParticleEmitter result = new ParticleEmitter("Emitter", ParticleMesh.Type.Triangle, 250);
-    result.setGravity(0, 0, 0);
-    result.setMaterial(smokeMat);
-    result.setImagesX(15);
-    result.setImagesY(1); // 2x
-    result.setEndColor(ColorRGBA.Black);
-    result.setStartColor(ColorRGBA.Orange);
-    result.setStartSize(0.1f);
-    result.setEndSize(0f);
-    result.setHighLife(0.25f); // Fits the decay
-    result.setLowLife(0.1f);
-    result.setNumParticles(1);
-    return result;
   }
 
   private Spatial createBomb(int viewOffset) {

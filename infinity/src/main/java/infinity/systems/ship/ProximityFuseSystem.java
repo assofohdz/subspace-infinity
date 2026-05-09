@@ -10,8 +10,11 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.SphereVolume;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
@@ -130,6 +133,16 @@ public class ProximityFuseSystem extends AbstractGameSystem {
    * tick's detonation phase fires after {@code fuseMs} elapses. The
    * projectile's owner ({@link Parent}) is excluded so it never arms on
    * its own firer.
+   *
+   * <p>Spatial pre-filter via {@code mphys.PhysicsSpace#queryBounds}
+   * (arch-review TD-3 — replaces the per-tick O(N) walk over every
+   * Health-bearer with a bin-local active+inactive rigid-body scan).
+   * The {@link #potentialVictims} EntitySet is preserved as the
+   * Health-bearer gate (queryBounds returns ALL bodies — projectiles,
+   * prizes, doors — which we filter to ships via {@code containsId}).
+   * The strict point-distance check post-query preserves bit-exact
+   * radius semantics (queryBounds inflates by {@code body.boundsRadius}
+   * so it's a coarse pre-filter, not the final accept).
    */
   private void tryArm(final Entity projectile, final long nowSimNanos) {
     final EntityId projectileId = projectile.getId();
@@ -147,8 +160,16 @@ public class ProximityFuseSystem extends AbstractGameSystem {
     final Integer ownerFreqValue = freqValueOf(ownerId);
     final double radiusSq = radius * radius;
 
-    for (final Entity victim : potentialVictims) {
-      if (victimWouldArm(victim, ownerId, ownerFreqValue, projectileBody.position, radiusSq)) {
+    final SphereVolume sphere = new SphereVolume(projectileBody.position, radius);
+    final QueryFilter<EntityId, MBlockShape> filter =
+        new QueryFilter<>(
+            QueryFilter.TYPE_ACTIVE | QueryFilter.TYPE_INACTIVE,
+            body -> !body.id.equals(ownerId),
+            body -> true);
+
+    for (final AbstractBody<EntityId, MBlockShape> body : physicsSpace.queryBounds(sphere, filter)) {
+      if (victimWouldArm(body.id, ownerId, ownerFreqValue, projectileBody.position,
+          body.position, radiusSq)) {
         ed.setComponent(projectileId, new ProximityArmed(nowSimNanos));
         return;
       }
@@ -156,32 +177,31 @@ public class ProximityFuseSystem extends AbstractGameSystem {
   }
 
   /**
-   * Per-victim arming check: same-team / self / out-of-radius / no-physics-body
-   * are all skip cases. Returns {@code true} only when {@code victim} is a
-   * valid enemy inside {@code radiusSq} of {@code projectilePos}.
+   * Per-victim arming check: same-team / self / out-of-radius / non-Health
+   * are all skip cases. Returns {@code true} only when {@code victimId} is a
+   * Health-bearing enemy inside {@code radiusSq} of {@code projectilePos}.
+   * The body-position lookup happens at the call site (post-queryBounds);
+   * this helper does the freq + strict distance gate only.
    */
   private boolean victimWouldArm(
-      final Entity victim,
+      final EntityId victimId,
       final EntityId ownerId,
       final Integer ownerFreqValue,
       final Vec3d projectilePos,
+      final Vec3d victimPos,
       final double radiusSq) {
-    final EntityId victimId = victim.getId();
     if (victimId.equals(ownerId)) {
-      return false; // never arm on the firing ship
+      return false; // never arm on the firing ship (defense-in-depth; queryBounds filter also excludes)
+    }
+    if (!potentialVictims.containsId(victimId)) {
+      return false; // not a Health-bearer (projectile, prize, door, …)
     }
     if (!shouldArmOn(ownerFreqValue, freqValueOf(victimId))) {
       return false; // canonical: same-team ships don't arm proximity bombs
     }
-    final RigidBody<EntityId, MBlockShape> victimBody =
-        physicsSpace.getBinIndex().getRigidBody(victimId);
-    if (victimBody == null) {
-      return false;
-    }
-    final Vec3d vp = victimBody.position;
-    final double dx = vp.x - projectilePos.x;
-    final double dy = vp.y - projectilePos.y;
-    final double dz = vp.z - projectilePos.z;
+    final double dx = victimPos.x - projectilePos.x;
+    final double dy = victimPos.y - projectilePos.y;
+    final double dz = victimPos.z - projectilePos.z;
     return dx * dx + dy * dy + dz * dz <= radiusSq;
   }
 

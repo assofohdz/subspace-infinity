@@ -82,8 +82,6 @@ public class Main extends SimpleApplication {
 
   static Logger log = LoggerFactory.getLogger(Main.class);
 
-  // private static Grid grid = new Grid(32, 0, 32);
-
   public Main() {
     super(
         new JobState("regularWorkers", 4, 1),
@@ -91,21 +89,12 @@ public class Main extends SimpleApplication {
         new StatsAppState(),
         new DebugKeysAppState(),
         new BasicProfilerState(false),
-        // new FlyCamAppState(),
-        // new CameraMovementState(),
         new OptionPanelState(), // from Lemur
-        // new HelpState(),
         new DebugHudState(),
         new MemoryDebugState(),
         new MainMenuState(),
         new MessageState(),
         new CommandConsoleState(),
-        // new LightingState(),
-        // new SkyState(),
-        // new SkySettingsState(),
-        // new PostProcessingState(),
-        // new GridState(grid),
-        //new SettingsState(),
         new ScreenshotAppState("", System.currentTimeMillis()));
   }
 
@@ -174,8 +163,6 @@ public class Main extends SimpleApplication {
     final GuiGlobals globals = GuiGlobals.getInstance();
 
     MainGameFunctions.initializeDefaultMappings(globals.getInputMapper());
-    // CameraMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
-    //SettingsState.initializeDefaultMappings(globals.getInputMapper());
     DebugFunctions.initializeDefaultMappings(globals.getInputMapper());
     ToolFunctions.initializeDefaultMappings(globals.getInputMapper());
     HelpState.initializeDefaultMappings(globals.getInputMapper());

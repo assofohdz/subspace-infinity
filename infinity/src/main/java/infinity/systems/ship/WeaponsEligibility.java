@@ -9,8 +9,11 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.SphereVolume;
 import infinity.config.BombConfig;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
@@ -201,6 +204,14 @@ final class WeaponsEligibility {
      * <p>FF gate reused from {@link WeaponsLogic#victimBlocksBombFire} —
      * same-team ships never arm proximity bombs, so they don't count for
      * the safety scan either.
+     *
+     * <p>Spatial pre-filter via {@code mphys.PhysicsSpace#queryBounds}
+     * (arch-review TD-3 — replaces the per-tick O(N) walk over every
+     * Health-bearer with a bin-local active+inactive rigid-body scan).
+     * The {@code energyEntities} set is preserved as the Health-bearer gate
+     * post-query; the strict point-distance check inside
+     * {@link WeaponsLogic#victimBlocksBombFire} preserves bit-exact radius
+     * semantics (queryBounds inflates by {@code body.boundsRadius}).
      */
     static boolean bombSafetyClear(
             final EntityData ed,
@@ -221,20 +232,21 @@ final class WeaponsEligibility {
         final Frequency ownerFreq = ed.getComponent(requesterId, Frequency.class);
         final Integer ownerFreqValue = ownerFreq == null ? null : ownerFreq.getFrequency();
         final Vec3d ownerPos = ownerBody.position;
-        for (final Entity victim : energyEntities) {
-            final EntityId victimId = victim.getId();
-            if (victimId.equals(requesterId)) {
-                continue;
-            }
-            final RigidBody<EntityId, MBlockShape> victimBody =
-                    physicsSpace.getBinIndex().getRigidBody(victimId);
-            if (victimBody == null) {
-                continue;
+        final SphereVolume sphere = new SphereVolume(ownerPos, radius);
+        final QueryFilter<EntityId, MBlockShape> filter =
+                new QueryFilter<>(
+                        QueryFilter.TYPE_ACTIVE | QueryFilter.TYPE_INACTIVE,
+                        body -> !body.id.equals(requesterId),
+                        body -> true);
+        for (final AbstractBody<EntityId, MBlockShape> body : physicsSpace.queryBounds(sphere, filter)) {
+            final EntityId victimId = body.id;
+            if (!energyEntities.containsId(victimId)) {
+                continue; // not a Health-bearer (projectile, prize, door, …)
             }
             final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
             final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
             if (WeaponsLogic.victimBlocksBombFire(
-                    ownerFreqValue, victimFreqValue, ownerPos, victimBody.position, radius)) {
+                    ownerFreqValue, victimFreqValue, ownerPos, body.position, radius)) {
                 return false;
             }
         }

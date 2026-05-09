@@ -153,6 +153,81 @@ tasks.register('pmdPath', Pmd) {
 }
 
 // =============================================================================
+// Static-analysis ceilings — strict pin per-tool per-module.
+//
+// Each tool above runs warn-only at task level (`ignoreFailures = true`).
+// That preserves the per-touched-file ratchet (per
+// `.claude/rules/pmd-on-touched-files.md`) and per-batch refactor work —
+// neither breaks every commit on existing baseline violations. The
+// ceilings below are the gate: anything ABOVE the captured baseline
+// (stored in `gradle.properties`) fails the build with a message naming
+// the tool, count, and ceiling.
+//
+// To ratchet down: after a cleanup batch reduces the real count, capture
+// the new count, lower the matching property in `gradle.properties`,
+// commit. Bumping a ceiling is an explicit property edit — never silent.
+//
+// Property naming: `max<ProjectName>Checkstyle[Test]Violations` /
+// `max<ProjectName>Pmd[Test]Violations`. Missing property = no ceiling
+// (skipped) — useful for tasks like `pmdPath` that don't write XML.
+//
+// Out of scope: Error Prone + NullAway warnings flow through javac
+// stdout, not separate report files; ratcheting them needs a different
+// mechanism (parse javac output / wrap javac) and is deferred.
+// =============================================================================
+tasks.withType(Checkstyle).configureEach { task ->
+    def variant = task.name.substring('checkstyle'.length())  // 'Main' or 'Test'
+    def variantSuffix = (variant == 'Main') ? '' : variant
+    def ceilingKey = "max${project.name.capitalize()}Checkstyle${variantSuffix}Violations"
+    def rawCeiling = project.findProperty(ceilingKey)
+
+    // Register the ceiling value as a task input so property changes
+    // invalidate the cache and force the doLast check to re-run.
+    task.inputs.property("ceiling.${ceilingKey}", rawCeiling ?: 'absent')
+
+    task.doLast {
+        def reportFile = task.reports.xml.outputLocation.asFile.get()
+        if (!reportFile.exists() || rawCeiling == null) {
+            return  // no report or no ceiling configured for this variant
+        }
+        def ceiling = rawCeiling.toString().toInteger()
+        def count = (reportFile.text =~ /<error /).size()
+        if (count > ceiling) {
+            throw new GradleException(
+                "Checkstyle (${task.name}): ${count} violations in ${project.name} " +
+                "exceeds ceiling ${ceiling} (${ceilingKey} in gradle.properties). " +
+                "Either fix the new violations or — only after net cleanup — " +
+                "lower the ceiling.")
+        }
+    }
+}
+
+tasks.withType(Pmd).configureEach { task ->
+    def variant = task.name.substring('pmd'.length())  // 'Main', 'Test', 'Path'
+    def variantSuffix = (variant == 'Main') ? '' : variant
+    def ceilingKey = "max${project.name.capitalize()}Pmd${variantSuffix}Violations"
+    def rawCeiling = project.findProperty(ceilingKey)
+
+    task.inputs.property("ceiling.${ceilingKey}", rawCeiling ?: 'absent')
+
+    task.doLast {
+        def reportFile = task.reports.xml.outputLocation.asFile.get()
+        if (!reportFile.exists() || rawCeiling == null) {
+            return  // e.g. pmdPath disables XML; pmdTest is disabled
+        }
+        def ceiling = rawCeiling.toString().toInteger()
+        def count = (reportFile.text =~ /<violation /).size()
+        if (count > ceiling) {
+            throw new GradleException(
+                "PMD (${task.name}): ${count} violations in ${project.name} " +
+                "exceeds ceiling ${ceiling} (${ceilingKey} in gradle.properties). " +
+                "Either fix the new violations or — only after net cleanup — " +
+                "lower the ceiling.")
+        }
+    }
+}
+
+// =============================================================================
 // Error Prone + NullAway — compile-time bug detection.
 // Starts as warnings-only; tighten by removing `allErrorsAsWarnings` and
 // promoting NullAway to error once the code is annotated.
