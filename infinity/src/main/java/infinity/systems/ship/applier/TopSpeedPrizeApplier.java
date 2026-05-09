@@ -14,6 +14,16 @@ import org.slf4j.LoggerFactory;
 /**
  * <b>CAPABILITY family.</b> Bumps {@link Speed} by {@link SpeedUpgrade},
  * clamped at {@link SpeedMax}.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialSpeed} / {@code MaximumSpeed}
+ * (REFERENCE.md line 354) plus {@code UpgradeSpeed} per-pickup increment;
+ * see REFERENCE.md {@code ## PrizeWeight} line 240 ({@code TopSpeed}) for
+ * the prize-name registration.
+ *
+ * <p>Note: Infinity components ({@link Speed} / {@link SpeedMax} /
+ * {@link SpeedUpgrade}) are named after the prize ("TopSpeed") rather
+ * than the canonical knob names ({@code InitialSpeed} / {@code MaximumSpeed} /
+ * {@code UpgradeSpeed}). Same value pipeline; cosmetic naming divergence.
  */
 public final class TopSpeedPrizeApplier implements PrizeApplier {
 

@@ -11,11 +11,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Bumps {@link Brick} inventory by one toward
+ * <b>INVENTORY family.</b> Bumps {@link Brick} inventory by one toward
  * {@link BrickMax}. No-op when the ship lacks {@link BrickMax} (= disallowed)
- * or is at the cap. {@code BrickTime} / {@code BrickSpan} (Subspace
- * canonical {@code [Brick]} keys) are consumed at fire-time by
- * {@code ConsumableSystem}, not here.
+ * or is at the cap.
+ *
+ * <p>Subspace canonical knobs (REFERENCE.md {@code ## Brick} line 41):
+ * <ul>
+ *   <li>{@code BrickTime} — how long bricks last (centiseconds)
+ *   <li>{@code BrickSpan} — how many tiles bricks span
+ * </ul>
+ * Per-ship inventory caps: {@code [Ship] InitialBrick} / {@code BrickMax}
+ * (REFERENCE.md "Inventory caps and starts" line 372/374).
+ * See {@code ## PrizeWeight} line 242.
+ *
+ * <p>Inventory bump only — the {@code [Brick]} knobs above are consumed
+ * at fire-time by {@code ConsumableSystem}, not here.
  */
 public final class BrickPrizeApplier implements PrizeApplier {
 

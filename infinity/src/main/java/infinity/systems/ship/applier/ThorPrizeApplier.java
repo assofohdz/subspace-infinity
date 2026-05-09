@@ -12,13 +12,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Increments {@link ThorCurrentCount} by 1 if under
+ * <b>INVENTORY family.</b> Increments {@link ThorCurrentCount} by 1 if under
  * {@link ThorMaxCount}. Allowed iff {@code ThorMaxCount > 0 && current < max}.
- * First-time acquisition seeds count=1 and a fallback {@code ThorFireDelay(1000)}
- * — note the hardcoded delay is a pre-existing carryover from
- * {@code handleAcquireThor}; properly it should come from {@code ShipConfig.thors.fireDelayCs}
- * (which {@code ShipSpawnSystem} already projects), but the original code
- * overwrites it on first acquisition. Preserved bit-for-bit.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialThor} / {@code ThorMax}
+ * inventory caps (REFERENCE.md "Inventory caps and starts" line 372/374).
+ * REFERENCE.md has no dedicated {@code ## Thor} section — fire-time behaviour
+ * inherits Subspace's bomb-like trajectory model from {@code [Bomb]}.
+ * See {@code ## PrizeWeight} line 242.
+ *
+ * <p>First-time acquisition seeds count=1 and a fallback
+ * {@code ThorFireDelay(1000)} — note the hardcoded delay is a pre-existing
+ * carryover from {@code handleAcquireThor}; properly it should come from
+ * {@code ShipConfig.thors.fireDelayCs} (which {@code ShipSpawnSystem} already
+ * projects), but the original code overwrites it on first acquisition.
+ * Preserved bit-for-bit.
+ *
+ * <p>Note: divergence — Subspace canon does not stamp a fallback
+ * {@code ThorFireDelay} on prize acquisition; the per-ship value projected
+ * at spawn is authoritative. Infinity's hardcoded {@code 1000} cs is a
+ * legacy artifact and a candidate for cleanup.
  */
 public final class ThorPrizeApplier implements PrizeApplier {
 

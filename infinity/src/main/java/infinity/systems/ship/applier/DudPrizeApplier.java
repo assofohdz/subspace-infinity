@@ -12,6 +12,13 @@ import org.slf4j.LoggerFactory;
  * nothing. Implemented as an explicit no-op (rather than a registry miss)
  * so the ship's pickup is logged distinctly from "prize type not yet
  * implemented".
+ *
+ * <p>Infinity extension: no Subspace canon counterpart in REFERENCE.md.
+ * The "Dud" name is Infinity-specific shorthand for an authored-no-op
+ * prize slot — used as a placeholder so unimplemented prize entries in a
+ * weight table can stamp a logged pickup rather than fall through to the
+ * registry-miss path. Distinct from a STUB applier: Dud's no-op is
+ * intentional and permanent.
  */
 public final class DudPrizeApplier implements PrizeApplier {
 

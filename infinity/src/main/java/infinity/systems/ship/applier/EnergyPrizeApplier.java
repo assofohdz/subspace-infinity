@@ -16,6 +16,11 @@ import org.slf4j.LoggerFactory;
  * {@link EnergyUpgrade}, clamped at {@link EnergyMax}. Does <em>not</em> touch
  * the live pool — that's {@code QuickChargePrizeApplier}'s job (refills
  * {@code Health} to {@code Energy}).
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialEnergy} /
+ * {@code MaximumEnergy} bound the cap; per-prize bump amount is
+ * {@code [Ship] UpgradeEnergy}. Prize-weight entry: REFERENCE.md
+ * {@code ## PrizeWeight} line 237 ({@code Energy (= "Energy Upgrade")}).
  */
 public final class EnergyPrizeApplier implements PrizeApplier {
 

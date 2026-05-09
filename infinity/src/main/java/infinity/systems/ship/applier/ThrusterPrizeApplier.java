@@ -16,6 +16,11 @@ import org.slf4j.LoggerFactory;
  * clamped at {@link ThrustMax}. No-op when at the cap, when the upgrade
  * increment is zero (per-arena "no upgrades" design), or when any of the
  * three components is missing (spawn projection hasn't run yet).
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialThrust} /
+ * {@code MaximumThrust} (REFERENCE.md line 353) plus {@code UpgradeThrust}
+ * per-pickup increment; see REFERENCE.md {@code ## PrizeWeight} line 240
+ * ({@code Thruster}) for the prize-name registration.
  */
 public final class ThrusterPrizeApplier implements PrizeApplier {
 

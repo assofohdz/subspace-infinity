@@ -16,6 +16,10 @@ import org.slf4j.LoggerFactory;
  * already at the cap or has no {@code BombMaxLevel} component (= ship not
  * allowed to carry bombs).
  *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialBombs} / {@code MaxBombs}
+ * bound the cap; see REFERENCE.md {@code ## PrizeWeight} line 239
+ * ({@code Bomb (= "Bomb Upgrade")}).
+ *
  * <p>Pure component read — no {@link infinity.config.ShipConfig} access on
  * the hot path. The earlier handler had a "first-time acquisition" branch
  * that reached into the template when {@code BombMaxLevel} was projected

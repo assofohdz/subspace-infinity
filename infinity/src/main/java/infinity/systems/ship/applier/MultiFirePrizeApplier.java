@@ -15,13 +15,24 @@ import org.slf4j.LoggerFactory;
  * {@code MultiFireAngle} spread, costing {@code MultiFireEnergy} per shot
  * with {@code MultiFireDelay} cooldown.
  *
- * <p>Unlike Cloak / Stealth / XRadar / AntiWarp, MultiFire has no
- * per-ship {@code *Status} tri-state in Subspace canon (REFERENCE.md
- * "Bullets" section). Every ship is eligible; the per-ship
- * {@code MultiFireEnergy} value gates whether multifire is actually
- * useful (energy=0 → effectively dead). Apply unconditionally stamps
- * {@code Multishot(true)} — the firing-mode consumer (WeaponsSystem,
- * deferred) reads the toggle plus the per-ship MultiFire knobs.
+ * <p>Subspace canonical knobs (REFERENCE.md per-ship lines 382-384):
+ * <ul>
+ *   <li>{@code MultiFireEnergy} — energy cost per multifire L1 shot.
+ *   <li>{@code MultiFireDelay} — cooldown after a multifire shot
+ *       (centiseconds; ×10 → ms at the loader boundary).
+ *   <li>{@code MultiFireAngle} — spread between multifire bullets and
+ *       forward, encoded as 111 = 1° / 1000 = 1 ship-rotation-point.
+ * </ul>
+ * See REFERENCE.md {@code ## PrizeWeight} line 240 ({@code MultiFire}) for
+ * the prize-name registration.
+ *
+ * <p>Note: divergence — unlike Cloak / Stealth / XRadar / AntiWarp,
+ * MultiFire has no per-ship {@code *Status} tri-state in Subspace canon.
+ * Every ship is eligible; the per-ship {@code MultiFireEnergy} value gates
+ * whether multifire is actually useful (energy=0 → effectively dead).
+ * Apply unconditionally stamps {@code Multishot(true)} — the firing-mode
+ * consumer (WeaponsSystem, deferred) reads the toggle plus the per-ship
+ * MultiFire knobs.
  *
  * <p>Slice 6c ships the applier flip only. Per-ship
  * {@code MultiFireEnergy} / {@code MultiFireDelay} / {@code MultiFireAngle}

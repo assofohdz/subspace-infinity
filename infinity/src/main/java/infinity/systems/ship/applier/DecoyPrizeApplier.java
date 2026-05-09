@@ -11,10 +11,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Bumps {@link Decoy} inventory by one toward
- * {@link DecoyMax}. No-op when the ship lacks {@link DecoyMax} (= disallowed)
- * or is at the cap. {@code DecoyAliveTime} is consumed at fire-time by
- * {@code ConsumableSystem}, not here.
+ * <b>INVENTORY family.</b> Bumps {@link Decoy} inventory by one toward
+ * {@link DecoyMax}.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialDecoy} / {@code DecoyMax}
+ * inventory caps (REFERENCE.md "Inventory caps and starts" line 372/374).
+ * {@code [Misc] DecoyAliveTime} drives the dropped decoy's {@code Decay}
+ * lifetime (REFERENCE.md {@code ## Misc} line 164) and is consumed at
+ * fire-time by {@code ConsumableSystem}, not here.
+ * See {@code ## PrizeWeight} line 242.
  */
 public final class DecoyPrizeApplier implements PrizeApplier {
 

@@ -16,6 +16,15 @@ import com.simsilica.es.EntityId;
  * registry built in {@code PrizeSystem.initialize()}; missing keys are
  * logged-and-skipped so unimplemented prize types stay visible (one missing
  * map entry per type) without growing the dispatch ladder.
+ *
+ * <p><strong>Implementation contract:</strong> implementations must cite
+ * REFERENCE.md per {@code .claude/rules/prize-applier.md} — the lead-paragraph
+ * Javadoc names the relevant section ({@code ## Prize}, {@code ## PrizeWeight},
+ * {@code ## Bomb}, {@code ## Repel}, per-ship section, etc.) and identifies
+ * the canonical Subspace knobs that drive behaviour. Knob-driven prizes get
+ * rich anchors (knob list + units + encoding); stat-bump prizes get minimal
+ * anchors (one-line section cite). Divergences from canon are flagged inline
+ * as {@code <p>Note: ...} paragraphs.
  */
 @FunctionalInterface
 public interface PrizeApplier {

@@ -17,6 +17,13 @@ import org.slf4j.LoggerFactory;
  * {@code ALLWEAPONS} composites (a bomb prize bumps both bomb level <em>and</em>
  * mine level — Subspace tradition).
  *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialMines} / {@code MaxMines}
+ * bound the cap; the {@code ## Mine} section owns the arena-global mine
+ * tunables (e.g. {@code MineAliveTime}, {@code TeamMaxMines}). REFERENCE.md
+ * {@code ## PrizeWeight} does not list {@code Mine} as a standalone weight
+ * — confirms the "leaf-of-Bomb" composite wiring rather than a dedicated
+ * prize type.
+ *
  * <p>Pure component read; see {@link BombPrizeApplier} for the rationale on
  * dropping the legacy first-time-acquisition branch.
  */

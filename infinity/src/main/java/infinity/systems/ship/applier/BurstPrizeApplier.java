@@ -14,6 +14,13 @@ import org.slf4j.LoggerFactory;
  * <b>COUNT family.</b> Increments {@link Burst} by 1 if under {@link BurstMax}.
  * Allowed iff {@code BurstMax > 0 && Burst < BurstMax}. First-time acquisition
  * (no {@code Burst} component) seeds {@code Burst(1)}.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialBurst} / {@code BurstMax}
+ * bound the count; the {@code ## Burst} section in REFERENCE.md owns the
+ * per-projectile knobs ({@code BurstSpeed}, {@code BurstDamageLevel},
+ * {@code BurstShrapnel}, {@code BurstAliveTime}, {@code BurstHits}) — those
+ * are consumed at fire time, not on prize pickup. Prize-weight entry:
+ * {@code ## PrizeWeight} ({@code Burst}).
  */
 public final class BurstPrizeApplier implements PrizeApplier {
 

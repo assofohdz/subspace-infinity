@@ -11,11 +11,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Bumps {@link Rocket} inventory by one toward
+ * <b>INVENTORY family.</b> Bumps {@link Rocket} inventory by one toward
  * {@link RocketMax}. No-op when the ship lacks {@link RocketMax} (=
- * disallowed) or is at the cap. {@code RocketThrust} / {@code RocketSpeed}
- * / {@code RocketTime} (Subspace canonical {@code [Rocket]} keys) drive
- * the active-rocket buff at fire-time and live in {@code ConsumableSystem}.
+ * disallowed) or is at the cap.
+ *
+ * <p>Subspace canonical knobs (REFERENCE.md {@code ## Rocket} line 256):
+ * <ul>
+ *   <li>{@code RocketThrust} — thrust override while rocket buff active
+ *   <li>{@code RocketSpeed} — speed override while rocket buff active
+ *   <li>{@code RocketTime} — buff lifetime (centiseconds, per-ship at
+ *       REFERENCE.md "Turret / misc" line 418)
+ * </ul>
+ * Per-ship inventory caps: {@code [Ship] InitialRocket} / {@code RocketMax}
+ * (REFERENCE.md "Inventory caps and starts" line 372/374).
+ * See {@code ## PrizeWeight} line 242. Typed configs:
+ * {@link infinity.config.RocketStats} (per-ship) and
+ * {@link infinity.config.RocketConfig} (per-arena).
+ *
+ * <p>Inventory bump only — the canon knobs drive the active-rocket buff
+ * at fire-time and live in {@code ConsumableSystem}, not here.
  */
 public final class RocketPrizeApplier implements PrizeApplier {
 

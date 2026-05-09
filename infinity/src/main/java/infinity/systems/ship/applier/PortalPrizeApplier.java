@@ -11,11 +11,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Bumps {@link Portal} inventory by one toward
- * {@link PortalMax}. No-op when the ship lacks {@link PortalMax} (=
- * disallowed) or is at the cap. {@code WarpPointDelay} (Subspace
- * canonical {@code [Misc]} key for portal active duration) is consumed
- * by {@code ConsumableSystem} when the portal is dropped, not here.
+ * <b>INVENTORY family.</b> Bumps {@link Portal} inventory by one toward
+ * {@link PortalMax}.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialPortal} /
+ * {@code PortalMax} inventory caps (REFERENCE.md "Inventory caps and
+ * starts" line 372/374). {@code [Misc] WarpPointDelay} is the dropped
+ * portal's active duration (REFERENCE.md {@code ## Misc} line 163 — the
+ * "WarpPoint" name is the legacy alias for portal; see
+ * {@code .claude/rules/settings-pipeline.md}). Consumed by
+ * {@code ConsumableSystem} when the portal is dropped, not here.
+ * See {@code ## PrizeWeight} line 242.
  */
 public final class PortalPrizeApplier implements PrizeApplier {
 

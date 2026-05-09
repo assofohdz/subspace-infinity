@@ -14,6 +14,12 @@ import org.slf4j.LoggerFactory;
  * <b>LEVEL family.</b> Bumps {@link BulletCurrentLevel} toward {@link BulletMaxLevel}.
  * Pure component read; see {@link BombPrizeApplier} for the rationale on
  * dropping the legacy first-time-acquisition branch.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialGuns} / {@code MaxGuns}
+ * bound the cap; see REFERENCE.md {@code ## PrizeWeight} line 239
+ * ({@code Gun (= "Gun Upgrade")}). The "Gun" prize-weight name is
+ * Subspace-canonical; Infinity's {@code Bullet*} component naming follows
+ * the post-slice-R1 rename ({@code Gun} → {@code Bullet}) for clarity.
  */
 public final class GunPrizeApplier implements PrizeApplier {
 

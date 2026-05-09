@@ -15,6 +15,12 @@ import org.slf4j.LoggerFactory;
  * <b>CAPABILITY family.</b> Bumps {@link Rotation} by {@link RotationUpgrade},
  * clamped at {@link RotationMax}. Values are in rad/sec — the Subspace integer
  * rotation units are converted by {@code ShipSpawnSystem} at spawn.
+ *
+ * <p>Subspace canon: per-ship {@code [Ship] InitialRotation} /
+ * {@code MaximumRotation} (raw integer rotation units; see REFERENCE.md per-ship
+ * section) seed the cap. Per-prize bump amount is {@code [Ship] UpgradeRotation}.
+ * Prize-weight entry: REFERENCE.md {@code ## PrizeWeight} line 238
+ * ({@code Rotation}).
  */
 public final class RotationPrizeApplier implements PrizeApplier {
 

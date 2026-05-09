@@ -11,15 +11,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Bumps the ship's {@link Repel} count by one toward
+ * <b>INVENTORY family.</b> Bumps the ship's {@link Repel} count by one toward
  * {@link RepelMax}. No-op when the ship has no {@link RepelMax} component
  * (= ship not allowed repels) or is already at the cap.
  *
+ * <p>Subspace canonical knobs (REFERENCE.md {@code ## Repel} line 250):
+ * <ul>
+ *   <li>{@code RepelSpeed} — repulsion speed (Subspace velocity units)
+ *   <li>{@code RepelTime} — affected duration (centiseconds)
+ *   <li>{@code RepelDistance} — affected radius (pixels)
+ * </ul>
+ * Per-ship inventory caps: {@code [Ship] InitialRepel} / {@code RepelMax}
+ * (REFERENCE.md "Inventory caps and starts" line 372/374).
+ * See {@code ## PrizeWeight} line 242.
+ *
  * <p>Pure component read/write — no {@link infinity.config.ShipConfig}
- * access on the hot path. Applier only adjusts inventory; {@code RepelTime},
- * {@code RepelDistance}, {@code RepelSpeed} (Subspace canonical
- * {@code [Repel]} keys) describe what happens when the repel is fired and
- * belong to {@code ConsumableSystem}, not here.
+ * access on the hot path. Applier only adjusts inventory; the canon knobs
+ * above describe what happens when the repel is fired and belong to
+ * {@code ConsumableSystem}, not here.
  */
 public final class RepelPrizeApplier implements PrizeApplier {
 
