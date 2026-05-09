@@ -58,3 +58,6 @@ infinity/world.db/
 # MemPalace per-project files (issue #185)
 mempalace.yaml
 entities.json
+
+# Claude Code transient state
+.claude/scheduled_tasks.lock
