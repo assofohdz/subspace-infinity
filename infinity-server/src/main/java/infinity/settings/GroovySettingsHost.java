@@ -120,16 +120,16 @@ public final class GroovySettingsHost {
 
 
   /**
-   * Resolve {@code classpathPath} to an on-disk file when a dev-mode source
-   * exists, or {@code null} when only the classpath copy is reachable.
+   * Resolve {@code classpathPath} to an on-disk file when a working-dir-relative
+   * source exists, or {@code null} when only the classpath copy is reachable.
    * Public so file watchers (e.g. arena ships.groovy reload) can stat / poll
    * the same file the loader actually reads from.
    *
-   * <p>Dev-mode rationale: Gradle's {@code :infinity:run} sets the JVM
-   * working directory to the {@code infinity/} subproject and {@code zone/}
-   * is the resource root, so {@code /x.groovy} on the classpath maps to
-   * {@code zone/x.groovy} on disk. The {@code infinity/zone} candidate
-   * covers running from the project root.
+   * <p>Working-dir convention (post arch-review-megasplit): {@code zone/} lives at
+   * the project root in dev (run/test set {@code workingDir = rootProject.projectDir})
+   * and at the dist root in production (the gradle application dist places
+   * {@code zone/} alongside {@code bin/} and {@code lib/}). Both resolve via
+   * {@code Paths.get("zone", relative)}.
    */
   @Nullable
   public Path resolveOnDisk(final String classpathPath) {
@@ -138,11 +138,9 @@ public final class GroovySettingsHost {
     }
     final String relative =
         classpathPath.startsWith("/") ? classpathPath.substring(1) : classpathPath;
-    final Path[] candidates = {Paths.get("zone", relative), Paths.get("infinity/zone", relative)};
-    for (final Path p : candidates) {
-      if (Files.isReadable(p)) {
-        return p;
-      }
+    final Path candidate = Paths.get("zone", relative);
+    if (Files.isReadable(candidate)) {
+      return candidate;
     }
     return null;
   }

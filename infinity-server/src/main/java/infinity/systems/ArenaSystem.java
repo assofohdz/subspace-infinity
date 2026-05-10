@@ -107,11 +107,24 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   private final Map<String, ArenaRecord> registry = new ConcurrentHashMap<>();
   /**
-   * Cached zone config, loaded once at startup. Other systems reach this via
-   * {@link #getZoneConfig()} so consumers stay decoupled from the Groovy
-   * loader and from the zone.groovy path.
+   * Cached zone config, loaded at startup and hot-reloaded by the per-tick
+   * mtime watcher (see {@link #pollZoneGroovyReload}). Volatile because the
+   * watcher writes from {@link #update} while consumers may read from
+   * different threads (chat command handlers, network sessions). Other
+   * systems reach this via {@link #getZoneConfig()} so consumers stay
+   * decoupled from the Groovy loader and from the zone.groovy path.
    */
-  private ZoneConfig zoneConfig = ZoneConfig.EMPTY;
+  private volatile ZoneConfig zoneConfig = ZoneConfig.EMPTY;
+
+  /**
+   * Hot-reload state for {@code zone/zone.groovy}. Mirrors the
+   * {@link infinity.settings.EngineConfigSystem} pattern (single-file
+   * watcher, no per-arena map). Resolved at bootstrap; {@code null} when
+   * the file isn't on disk (production / classpath-only deployments —
+   * live reload is silently disabled).
+   */
+  @Nullable private java.nio.file.Path zoneGroovyPath;
+  @Nullable private java.nio.file.attribute.FileTime zoneGroovyMtime;
 
   /**
    * Slot allocator for arena indices. Each {@code true} entry means the slot is in use by a
@@ -173,6 +186,41 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     arenaEntities.applyChanges();
     reconcileAll();
     reloadWatcher.pollIfDue(tpf.getTime(), zoneConfig.scriptPollIntervalNanos());
+    pollZoneGroovyReload();
+  }
+
+  /**
+   * Re-reads {@code zone/zone.groovy} when its mtime changes and atomically
+   * replaces the held {@link #zoneConfig} snapshot. Per-tick poll cadence
+   * (rate-limited via {@link infinity.systems.ArenaReloadWatcher#pollIfDue}'s
+   * mechanism is not reused here because that watcher's queue is per-arena;
+   * the zone-tier file is single-instance and rarely changes, so a stat()
+   * per tick is cheap enough).
+   *
+   * <p>Reload semantics: only the in-memory {@link ZoneConfig} snapshot is
+   * replaced. {@code autoLoad} is NOT re-applied (autoLoad is a
+   * startup-only intent — already-loaded arenas don't get unloaded if the
+   * list shrinks). Hot-reloadable knobs are the ones consumers re-read
+   * each call (repelFriendlies, scriptPollIntervalSeconds, enterSpawn).
+   */
+  private void pollZoneGroovyReload() {
+    if (zoneGroovyPath == null) {
+      return;
+    }
+    final java.nio.file.attribute.FileTime current;
+    try {
+      current = java.nio.file.Files.getLastModifiedTime(zoneGroovyPath);
+    } catch (final java.io.IOException e) {
+      log.debug("stat() on {} failed: {}", zoneGroovyPath, e.toString());
+      return;
+    }
+    if (current.equals(zoneGroovyMtime)) {
+      return;
+    }
+    zoneGroovyMtime = current;
+    final ZoneConfig refreshed = new GroovyZoneLoader().load();
+    zoneConfig = refreshed;
+    log.info("zone.groovy reloaded (autoLoad list NOT re-applied; only the in-memory ZoneConfig snapshot is updated)");
   }
 
   /**
@@ -486,9 +534,27 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   /**
    * Load {@code zone.groovy} into {@link #zoneConfig} and set desired=true for each
    * arena in {@code autoLoad}. Idempotent — safe to call once at startup.
+   *
+   * <p>Also resolves {@code zone/zone.groovy} on disk and stores its initial
+   * mtime so {@link #pollZoneGroovyReload} can detect subsequent edits.
+   * Resolution falls back to {@code null} when the file is classpath-only
+   * (production deployments without a dist install of {@code zone/}); live
+   * reload is silently disabled in that case.
    */
   private void applyZoneStartupConfig() {
     zoneConfig = new GroovyZoneLoader().load();
+    zoneGroovyPath = infinity.settings.GroovySettingsHost.INSTANCE.resolveOnDisk(GroovyZoneLoader.DEFAULT_PATH);
+    if (zoneGroovyPath != null) {
+      try {
+        zoneGroovyMtime = java.nio.file.Files.getLastModifiedTime(zoneGroovyPath);
+        log.info("Watching {} for zone-tier hot-reload", zoneGroovyPath);
+      } catch (final java.io.IOException e) {
+        log.debug("Initial stat() on {} failed: {}; live reload disabled", zoneGroovyPath, e.toString());
+        zoneGroovyPath = null;
+      }
+    } else {
+      log.debug("{} not on disk; zone-tier live reload disabled for this run", GroovyZoneLoader.DEFAULT_PATH);
+    }
     if (zoneConfig.autoLoadArenas().isEmpty()) {
       return;
     }

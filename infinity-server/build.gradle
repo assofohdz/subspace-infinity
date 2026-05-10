@@ -88,8 +88,14 @@ dependencies {
     // Groovy for settings/preset loaders + arena scripts
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 
-    // jMonkeyEngine — only the headless-friendly modules (no rendering / lwjgl3)
+    // jMonkeyEngine — only the headless-friendly modules (no rendering / lwjgl3).
+    // jme3-desktop is required for the JmeSystem delegate (AssetLoaderService
+    // boots an AssetManager via JmeSystem.newAssetManager which needs a
+    // platform delegate registered). It does NOT pull in lwjgl3 / actual
+    // rendering — desktop just provides the AWT-based AssetManager
+    // factory + native-resource locator metadata.
     implementation "org.jmonkeyengine:jme3-core:$jmeVersion"
+    implementation "org.jmonkeyengine:jme3-desktop:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-networking:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-plugins:$jmeVersion"
 
