@@ -6,6 +6,21 @@ sourceSets {
 	main {
 		java {
 			srcDirs = ["src"]
+			// Main java srcDir is `src` (legacy override of the standard
+			// Gradle layout). Nested `src/test/java` is the *test* sourceset
+			// — exclude it here so Gradle doesn't sweep test files into
+			// main compilation.
+			exclude 'test/**'
+		}
+	}
+	// API tests live under the standard Gradle layout (src/test/java) even
+	// though main java uses the legacy `src` srcDir override. The test
+	// sourceset was added per arch-review.md finding #12 so api-side factory
+	// tests (GameEntities.create*) don't drag the full server-side
+	// dependency graph onto the api-test runtime.
+	test {
+		java {
+			srcDirs = ["src/test/java"]
 		}
 	}
 }
@@ -24,4 +39,12 @@ dependencies {
 	implementation "com.simsilica:sio2-mphys:$mossVersion"
 
     implementation "com.google.code.findbugs:jsr305:3.0.2"
+
+    // Test-only — JUnit 4 matches the existing project test style
+    // (MapSwapReproducerTest, infinity-side factory tests) per
+    // .scratch/spawn-projection-test-harness/PRD.md. The api-side factory
+    // tests parametrize PhysicsSpace<EntityId, MBlockShape>, so
+    // mblock-physb is on the test classpath only — main api code uses
+    // PhysicsSpace<?, ?> and stays mblock-free.
+    testImplementation "com.simsilica:mblock-physb:$mossVersion"
 }

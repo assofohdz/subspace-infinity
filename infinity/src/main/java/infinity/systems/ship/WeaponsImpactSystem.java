@@ -11,7 +11,6 @@ import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.ProximityArmed;
@@ -19,7 +18,7 @@ import infinity.es.ProximityFuse;
 import infinity.es.ship.Health;
 import infinity.es.ship.actions.Thor;
 import infinity.es.ship.weapons.Bounce;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ContactSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +56,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author AFahrenholz
  */
-public class WeaponsImpactSystem extends AbstractGameSystem
+public class WeaponsImpactSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   static final Logger log = LoggerFactory.getLogger(WeaponsImpactSystem.class);
@@ -67,22 +66,11 @@ public class WeaponsImpactSystem extends AbstractGameSystem
   private long lastTickNanos;
 
   @Override
+  @SuppressWarnings("unchecked")
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    reaper = getSystem(WeaponsReaperSystem.class);
-    if (reaper == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the WeaponsReaperSystem.");
-    }
-    final ContactSystem<EntityId, MBlockShape> contactSystem = getSystem(ContactSystem.class);
-    if (contactSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the ContactSystem.");
-    }
+    ed = requireSystem(EntityData.class);
+    reaper = requireSystem(WeaponsReaperSystem.class);
+    final ContactSystem<EntityId, MBlockShape> contactSystem = requireSystem(ContactSystem.class);
     contactSystem.addListener(this);
   }
 

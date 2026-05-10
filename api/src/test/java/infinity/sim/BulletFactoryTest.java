@@ -22,12 +22,12 @@ import org.junit.Test;
 
 /**
  * Projectile-spawn pillar of the spawn-projection test harness — proves the
- * harness extends to the {@code GameEntities.create*} factory layer that
+ * harness extends to the {@code WeaponFactory.create*} factory layer that
  * stamps the per-arena {@link BulletConfig} (decay, damage tier) onto a
  * fresh projectile entity.
  *
  * <p>Stays scoped to the api-side factory contract:
- * {@link GameEntities#createBullet} composes structural components on a
+ * {@link WeaponFactory#createBullet} composes structural components on a
  * synthetic {@link DefaultEntityData}; a real {@link PhysicsSpace} backed
  * by a single-cell {@link Grid} provides the {@code getGrid()} call the
  * factory needs for {@link SpawnPosition}. No {@code WeaponsSystem}, no
@@ -52,7 +52,7 @@ public class BulletFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId bullet =
-        GameEntities.createBullet(
+        WeaponFactory.createBullet(
             ed,
             owner,
             phys,
@@ -95,7 +95,7 @@ public class BulletFactoryTest {
 
     final EntityId owner = ed.createEntity();
     final EntityId bullet =
-        GameEntities.createBullet(
+        WeaponFactory.createBullet(
             ed,
             owner,
             phys,

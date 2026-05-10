@@ -29,7 +29,7 @@ public class AIEntities {
       final long createdTime,
       byte ship) {
 
-    EntityId mob = GameEntities.createShip(spawnLoc, ed, owner, phys, createdTime, ship);
+    EntityId mob = ShipFactory.createShip(spawnLoc, ed, owner, phys, createdTime, ship);
     byte flags = 0x0;
     ed.setComponent(mob, new CharacterInput(new Vec3d(), new Quatd(), flags));
     ed.setComponent(mob, MobType.create("Mob", ed));

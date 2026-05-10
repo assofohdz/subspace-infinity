@@ -7,7 +7,7 @@ import com.simsilica.es.EntityComponent;
 
 /**
  * Wall length (in tiles) of a placed brick marker entity. Stamped on the
- * marker by {@code GameEntities.createBrick} from the per-arena
+ * marker by {@code MapFactory.createBrick} from the per-arena
  * {@link infinity.config.BrickConfig#spanTiles}.
  *
  * <p>Today the consumer of this value is the (deferred) brick-geometry

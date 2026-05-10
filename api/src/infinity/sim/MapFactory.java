@@ -4,29 +4,20 @@
 package infinity.sim;
 
 import com.jme3.math.ColorRGBA;
-import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.Name;
 import com.simsilica.es.common.Decay;
 import com.simsilica.ext.mphys.Gravity;
-import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
-import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import infinity.Ship;
 import infinity.config.EngineConfig;
-import infinity.es.AudioTypes;
 import infinity.es.Bounty;
 import infinity.es.CollisionCategory;
-import infinity.es.Delay;
 import infinity.es.Door;
 import infinity.es.Flag;
-import infinity.es.Frequency;
-import infinity.es.Gold;
 import infinity.es.GravityWell;
 import infinity.es.Meta;
 import infinity.es.Parent;
@@ -37,27 +28,28 @@ import infinity.es.ShapeNames;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.WarpTouch;
-import infinity.es.WeaponTypes;
-import infinity.es.input.MovementInput;
-import infinity.es.ship.CollidesWithLargeStatics;
-import infinity.es.ship.Player;
-import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.BrickSpan;
-import infinity.es.ship.actions.RocketBuff;
-import infinity.es.ship.actions.RocketSnapshot;
-import infinity.es.ship.actions.Thor;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Utility methods for creating the common game entities used by the simulation. In cases where a
- * game entity may have multiple specific components or dependencies used to create it, it can be
- * more convenient to have a centralized factory method. Especially if those objects are widely
- * used. For entities with only a few components or that are created by one system and only consumed
- * by one other, then this is not necessarily true.
+ * Factory methods for map decoration (doors, wormholes, asteroids, flags,
+ * lights, warp effects), prize/spawner entities, and ship-deployed map
+ * structures (bricks, decoys, portals — placed by ships but living on
+ * the map). Carved out of the legacy {@code GameEntities} grab-bag
+ * (arch-review tier 3 finding #9).
+ *
+ * <p>The "backward-compat overload" idiom — primary takes new param,
+ * no-arg form forwards via {@link EngineConfig#DEFAULTS} — is preserved
+ * at the per-method level. Module callers use the no-arg form;
+ * production server code threads
+ * {@code engineConfigSystem.get().*Radius()} through the explicit-radius
+ * overload.
+ *
+ * @see ShipFactory
+ * @see WeaponFactory
  */
-public class GameEntities {
+public final class MapFactory {
 
   /**
    * Default lifetime for prizes when a spawner doesn't specify its own.
@@ -82,128 +74,7 @@ public class GameEntities {
    */
   public static final int BOUNTY_VALUE = 10;
 
-  private GameEntities() {}
-
-  // TODO: All constants should come through the parameters - for now, they come from the constants
-  // TODO: All parameters should be dumb types and should be the basis of the complex types used in
-  // the backend
-  public static EntityId createDelayedBomb(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final Vec3d linearVelocity,
-      final long decayMillis,
-      final long scheduledMillis,
-      final Set<EntityComponent> delayedComponents,
-      final String shapeName,
-      final double radius) {
-
-    final EntityId lastDelayedBomb =
-        GameEntities.createBomb(
-            ed, owner, phys, createdTime, pos, linearVelocity, decayMillis, shapeName, radius);
-
-    ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
-    ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
-
-    return lastDelayedBomb;
-  }
-
-  public static EntityId createBomb(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final Vec3d linearVelocity,
-      final long decayMillis,
-      final String shapeName,
-      final double radius) {
-    final EntityId lastBomb = ed.createEntity();
-
-    ed.setComponents(
-        lastBomb,
-        ShapeInfo.create(shapeName, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
-        new Mass(5),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
-        WeaponTypes.bomb(ed),
-        new Impulse(linearVelocity),
-        new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
-        new Parent(owner));
-
-    ed.setComponent(lastBomb, new Meta(createdTime));
-    return lastBomb;
-  }
-
-  public static EntityId createBullet(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final Vec3d linearVelocity,
-      final long decayMillis,
-      final String shapeName,
-      final double radius) {
-    final EntityId lastBullet = ed.createEntity();
-
-    ed.setComponents(
-        lastBullet,
-        ShapeInfo.create(shapeName, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
-        new Mass(1),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
-        WeaponTypes.bullet(ed),
-        new Impulse(linearVelocity),
-        new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
-        new Parent(owner));
-
-    ed.setComponent(lastBullet, new Meta(createdTime));
-
-    return lastBullet;
-  }
-
-  /*
-   * public static EntityId createMapTile(String tileSet, short tileIndex, Vec3d
-   * pos, Convex c, double invMass, String tileType, EntityData ed, Ini settings,
-   * long createdTime, PhysicsSpace phys) { EntityId lastTileInfo =
-   * ed.createEntity();
-   *
-   * ed.setComponents(lastTileInfo, TileType.create(tileType, tileSet, tileIndex,
-   * ed), ViewTypes.mapTile(ed), new SpawnPosition(phys.getGrid(), pos),
-   * PhysicsMassTypes.infinite(ed), PhysicsShapes.mapTile(c));
-   * ed.setComponent(lastTileInfo, new Meta(createdTime));
-   *
-   * return lastTileInfo; }
-   */
-  // Explosion is for now only visual, so only object type and position
-  public static EntityId createExplosion(
-      final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final long decayMillis,
-      final ShapeInfo shapeInfo){
-    final EntityId lastExplosion = ed.createEntity();
-
-    // Explosion is a ghost
-    ed.setComponents(
-        lastExplosion,shapeInfo,
-        new SpawnPosition(phys.getGrid(), pos),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)));
-    ed.setComponent(lastExplosion, new Meta(createdTime));
-
-    return lastExplosion;
-  }
+  private MapFactory() {}
 
   public static EntityId createWormhole(
       final EntityData ed,
@@ -243,7 +114,7 @@ public class GameEntities {
 
   public static EntityId createDoor(
       final EntityData ed,
-      EntityId owner,
+      final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
       final long intervalTime,
@@ -471,120 +342,6 @@ public class GameEntities {
   }
 
   /**
-   * Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
-   * Module callers (and {@code AIEntities.createMobShip}) use this form;
-   * production server code threads {@code engineConfigSystem.get().shipRadius()}
-   * through the explicit-radius overload below.
-   */
-  public static EntityId createShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship) {
-    return createShip(
-        spawnLoc, ed, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius());
-  }
-
-  /** Ship with explicit collision radius — see backward-compat overload above. */
-  public static EntityId createShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship,
-      final double radius) {
-    final EntityId result = ed.createEntity();
-
-    ed.setComponent(result, new Parent(owner));
-    ed.setComponent(result, new ShipType(Ship.getShip(ship)));
-
-    ed.setComponent(result, ShapeNames.createShip(ship, ed, radius));
-
-    SpawnPosition sp = new SpawnPosition(phys.getGrid(), spawnLoc);
-    ed.setComponent(result, sp);
-
-    Mass m = new Mass(1);
-    ed.setComponent(result, m);
-
-    Gravity g = Gravity.ZERO;
-    ed.setComponent(result, g);
-
-    ed.setComponent(result, new Gold(0));
-
-    // All tunable per-ship stats (Energy/Health/Recharge/Thrust/Speed/Rotation
-    // movement triples, drag/turn/bounce feel, radar range, and the
-    // bomb/bullet/mine/burst/thor/repel weapon + inventory groups) are projected
-    // by ShipSpawnSystem from the per-arena ShipConfig — see Pattern 4 in
-    // .claude/rules/config-pattern.md and CONTEXT.md. createShip composes the
-    // structural pieces only (Parent, ShipType, ShapeNames, SpawnPosition,
-    // Mass, Gravity, Gold, CollisionCategory, CollidesWithLargeStatics, Meta);
-    // the spawn system writes the tunable components on the next tick when
-    // the ship enters its arena.
-
-    ed.setComponent(
-        result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
-
-    // Opt in to the coarse large-static contact pass — ships are the only dynamic
-    // bodies whose pairs ArenaMembershipSystem actually cares about. Other
-    // dynamics (projectiles, sensor probes) deliberately stay opted out.
-    ed.setComponent(result, new CollidesWithLargeStatics());
-
-    ed.setComponent(result, new Meta(createdTime));
-    return result;
-  }
-
-  /**
-   * Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
-   * Module callers use this form; production server code threads
-   * {@code engineConfigSystem.get().shipRadius()} through the explicit-radius
-   * overload below.
-   */
-  public static EntityId createPlayerShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship) {
-    return createPlayerShip(
-        spawnLoc, ed, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius());
-  }
-
-  /** Player ship with explicit collision radius — see backward-compat overload above. */
-  public static EntityId createPlayerShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship,
-      final double radius) {
-
-    final EntityId result = createShip(spawnLoc, ed, owner, phys, createdTime, ship, radius);
-
-    ed.setComponent(result, new Player());
-    ed.setComponent(result, new Name("player"));
-
-    ed.setComponent(result, new Frequency(1));
-
-    ed.setComponent(
-        result,
-        new PointLightComponent(
-            new ColorRGBA(3.5f, 3.5f, 3.5f, 1.0f),
-            CoreViewConstants.SHIPLIGHTRADIUS,
-            CoreViewConstants.SHIPLIGHTOFFSET));
-
-    byte flags = 0x0;
-    ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(), flags));
-
-    return result;
-
-  }
-
-  /**
    * Create a prize entity at {@code pos}. Called by {@code PrizeSystem} from
    * {@code spawnBounty}; prize-type weighting and per-spawner TTL selection
    * happen there.
@@ -606,7 +363,7 @@ public class GameEntities {
 
   /**
    * Like {@link #createPrize(EntityData, PhysicsSpace, long, Vec3d, String,
-   * long)} but with an explicit {@code hidden} flag. When {@code true} the
+   * long, double)} but with an explicit {@code hidden} flag. When {@code true} the
    * spawned prize gets an {@link infinity.es.Hidden} marker so the client
    * filters it out of rendering; server-side state (collision, pickup,
    * applier dispatch, decay) is unaffected. Used by {@code PrizeSystem} when
@@ -746,74 +503,6 @@ public class GameEntities {
     return result;
   }
 
-  public static EntityId createBurst(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      @SuppressWarnings("unused") final Vec3d linearVelocity,
-      final long decayMillis,
-      final double radius) {
-    final EntityId lastBomb = ed.createEntity();
-
-    ed.setComponents(
-        lastBomb,
-        // ViewTypes.burst(ed),
-        ShapeInfo.create(ShapeNames.BURST, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
-        // new PhysicsVelocity(new Vec3d(linearVelocity.x, linearVelocity.y)),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
-        WeaponTypes.burst(ed),
-        // PhysicsMassTypes.normal_bullet(ed),
-        // PhysicsShapes.burst(),
-        new Parent(owner)
-        // new PointLightComponent(level.lightColor, level.lightRadius));
-        );
-    ed.setComponent(lastBomb, new Meta(createdTime));
-    return lastBomb;
-  }
-
-  public static EntityId createRepel(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final long decayMs,
-      final double radius) {
-    final EntityId lastWarpTo = ed.createEntity();
-
-    ed.setComponents(
-        lastWarpTo,
-        ShapeInfo.create(ShapeNames.REPEL, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMs, TimeUnit.MILLISECONDS)),
-        new Parent(owner),
-        AudioTypes.repel(ed));
-
-    ed.setComponent(lastWarpTo, new Meta(createdTime));
-    return lastWarpTo;
-  }
-
-  /**
-   * Compose the buff entity that drives a rocket activation. Lifecycle is
-   * owned by {@link Decay}: when the deadline passes, the canonical decay
-   * reaper deletes this entity, and {@code RocketBuffSystem} reacts to
-   * the removal by reverting the parent ship's {@code Thrust} / {@code Speed}
-   * from the {@link RocketSnapshot} carried here.
-   *
-   * @param ship parent ship being buffed (revert target)
-   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
-   * @param activeTimeMs buff lifetime in ms
-   * @param originalThrust ship's {@code Thrust} value before the buff
-   *     (snapshotted by the caller; restored on buff expiry)
-   * @param originalSpeed ship's {@code Speed} value before the buff
-   */
   /**
    * Compose the marker entity for a placed brick. Lifecycle is owned by
    * {@link Decay}: when the deadline passes, the canonical decay reaper
@@ -910,67 +599,5 @@ public class GameEntities {
             createdTime + TimeUnit.NANOSECONDS.convert(activeTimeMs, TimeUnit.MILLISECONDS)),
         new Meta(createdTime));
     return portal;
-  }
-
-  public static EntityId createRocketBuff(
-      final EntityData ed,
-      final EntityId ship,
-      final long createdTime,
-      final long activeTimeMs,
-      final int originalThrust,
-      final int originalSpeed) {
-    final EntityId buff = ed.createEntity();
-    ed.setComponents(
-        buff,
-        new RocketBuff(),
-        new Parent(ship),
-        new RocketSnapshot(originalThrust, originalSpeed),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(activeTimeMs, TimeUnit.MILLISECONDS)),
-        new Meta(createdTime));
-    return buff;
-  }
-
-  public static EntityId createThor(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      @SuppressWarnings("unused") final Vec3d attackVelocity,
-      final long thorDecay,
-      final double radius) {
-    final EntityId lastBomb = ed.createEntity();
-
-    ed.setComponents(
-        lastBomb,
-        ShapeInfo.create(ShapeNames.THOR, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
-        new Mass(5),
-        new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(thorDecay, TimeUnit.MILLISECONDS)),
-        WeaponTypes.thor(ed),
-        new Impulse(attackVelocity),
-        new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
-        new Parent(owner),
-        new Thor());
-
-    ed.setComponent(lastBomb, new Meta(createdTime));
-
-    return lastBomb;
-  }
-
-  public static EntityId createMine(EntityData ed, EntityId requester, PhysicsSpace physicsSpace, long time, Vec3d location, long minedecay, String mineShape, double radius) {
-    EntityId lastMine = ed.createEntity();
-    ed.setComponents(lastMine,
-        ShapeInfo.create(mineShape, radius, ed),
-        new SpawnPosition(physicsSpace.getGrid(), location),
-        Decay.duration(time, TimeUnit.NANOSECONDS.convert(minedecay, TimeUnit.MILLISECONDS)),
-        WeaponTypes.mine(ed),
-        new Parent(requester));
-    ed.setComponent(lastMine, new Meta(time));
-    return lastMine;
   }
 }

@@ -23,7 +23,7 @@ import org.junit.Test;
 
 /**
  * Factory pillar of the spawn-projection test harness for Slice 8d (C2).
- * Exercises the {@code GameEntities.createSpawner} + {@code createPrize}
+ * Exercises the {@code MapFactory.createSpawner} + {@code createPrize}
  * factories at the api-side seam: a synthetic {@link DefaultEntityData} +
  * single-cell {@link PhysicsSpace} suffice; no system manager, no physics
  * step.
@@ -49,7 +49,7 @@ public class SpawnerProjectionTest {
     final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
 
     final EntityId spawnerId =
-        GameEntities.createSpawner(
+        MapFactory.createSpawner(
             ed, EntityId.NULL_ID, phys, 0L, new Vec3d(0, 0, 0),
             5000.0, false, 100.0);
 
@@ -67,7 +67,7 @@ public class SpawnerProjectionTest {
     final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
 
     final EntityId spawnerId =
-        GameEntities.createSpawner(
+        MapFactory.createSpawner(
             ed, EntityId.NULL_ID, phys, 0L, new Vec3d(0, 0, 0),
             1500.0, false, 400.0,
             5, 10000L, Map.of(),
@@ -87,7 +87,7 @@ public class SpawnerProjectionTest {
     final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
 
     final EntityId prizeId =
-        GameEntities.createPrize(
+        MapFactory.createPrize(
             ed,
             phys,
             0L,
@@ -108,7 +108,7 @@ public class SpawnerProjectionTest {
     final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
 
     final EntityId prizeId =
-        GameEntities.createPrize(
+        MapFactory.createPrize(
             ed,
             phys,
             0L,
@@ -131,7 +131,7 @@ public class SpawnerProjectionTest {
     // The pre-Slice-8d 7-arg overload (now plus radius) preserves
     // visible-by-default behaviour for prod callsites that don't opt into hidden.
     final EntityId prizeId =
-        GameEntities.createPrize(
+        MapFactory.createPrize(
             ed,
             phys,
             0L,

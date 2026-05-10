@@ -63,7 +63,7 @@ import infinity.es.ship.Player;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.settings.EngineConfigSystem;
-import infinity.sim.GameEntities;
+import infinity.sim.ShipFactory;
 import infinity.systems.ArenaSystem;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ship.ConsumableSystem;
@@ -242,7 +242,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       ed.setComponent(playerEntityId, new Name(playerName));
 
       avatarEntityId =
-          GameEntities.createPlayerShip(
+          ShipFactory.createPlayerShip(
               spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD, engineCfg.shipRadius());
 
       // Resolve initial arena from the spawn coord. Null is tolerated — ship spawns

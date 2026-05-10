@@ -16,11 +16,11 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.WarpTouch;
 import infinity.systems.ArenaMembershipSystem;
 import infinity.systems.ArenaSystem;
+import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.WorldSystem;
@@ -33,9 +33,8 @@ import infinity.InfinityConstants;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandTriFunction;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.sim.InfinityEntityBodyFactory;
-import infinity.sim.util.InfinityRunTimeException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class WarpSystem extends AbstractGameSystem
+public class WarpSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(WarpSystem.class);
@@ -65,13 +64,8 @@ public class WarpSystem extends AbstractGameSystem
 
   @Override
   protected void initialize() {
-    this.ed = getSystem(EntityData.class);
-
-    if (getSystem(MPhysSystem.class) == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
-    physicsSpace = getSystem(MPhysSystem.class).getPhysicsSpace();
+    this.ed = requireSystem(EntityData.class);
+    physicsSpace = requireSystem(MPhysSystem.class).getPhysicsSpace();
 
     bodyFactory = getSystem(InfinityEntityBodyFactory.class);
 
@@ -140,9 +134,9 @@ public class WarpSystem extends AbstractGameSystem
         // This is the new method to teleport units
         physicsSpace.teleport(e.getId(), targetLocation, bodyPos.getLastOrientation());
 
-        GameEntities.createWarpEffect(
+        MapFactory.createWarpEffect(
             ed, e.getId(), physicsSpace, tpf.getTime(), originalLocation, 1000);
-        GameEntities.createWarpEffect(
+        MapFactory.createWarpEffect(
             ed, e.getId(), physicsSpace, tpf.getTime(), targetLocation, 1000);
 
         //         Ensure that the unit is not moving after the warp

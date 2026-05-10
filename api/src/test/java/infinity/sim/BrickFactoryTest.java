@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Brick spawn-projection test — Slice 3 closes {@code [Brick] BrickSpan}
  * / {@code BrickTime} end-to-end (plumbing only).
- * {@link GameEntities#createBrick} composes a marker entity carrying
+ * {@link MapFactory#createBrick} composes a marker entity carrying
  * {@link BrickConfig#spanTiles()} on a {@link BrickSpan} component plus
  * {@link BrickConfig#timeMs()} as a {@link Decay} deadline. The caller
  * (production: {@code ConsumableSystem.createBrick}) decrements the
@@ -41,7 +41,7 @@ public class BrickFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId brick =
-        GameEntities.createBrick(ed, owner, createdTime, cfg.spanTiles(), cfg.timeMs());
+        MapFactory.createBrick(ed, owner, createdTime, cfg.spanTiles(), cfg.timeMs());
 
     assertNotNull("createBrick must return a real entity", brick);
 

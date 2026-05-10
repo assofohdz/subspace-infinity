@@ -21,7 +21,7 @@ import org.junit.Test;
 
 /**
  * Projectile-spawn pillar of the spawn-projection test harness for bombs.
- * Exercises the api-side {@link GameEntities#createBomb} factory contract
+ * Exercises the api-side {@link WeaponFactory#createBomb} factory contract
  * (decay TTL projection, parent ownership). The slice-9a per-level splash
  * radius arithmetic and FF gate are package-private helpers on
  * {@code WeaponsSystem}, so their tests live in
@@ -42,7 +42,7 @@ public class BombFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId bomb =
-        GameEntities.createBomb(
+        WeaponFactory.createBomb(
             ed,
             owner,
             phys,

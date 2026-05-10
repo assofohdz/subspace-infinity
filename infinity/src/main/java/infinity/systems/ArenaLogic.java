@@ -21,7 +21,7 @@ import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaFootprint;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.systems.ArenaSystem.ArenaState;
 import java.io.IOException;
 import java.net.URI;
@@ -175,7 +175,7 @@ public final class ArenaLogic {
    * Translate each {@link SpawnerSpec} from the arena's typed config into a
    * real spawner entity inside the loaded arena. Arena-local {@code (x, z)}
    * is mapped to world coords via {@code arenaToWorld}, then handed to
-   * {@link GameEntities#createSpawner}. Each spawner is tagged with the
+   * {@link MapFactory#createSpawner}. Each spawner is tagged with the
    * arena's {@link ArenaId} so prize-system membership lookups keep working
    * for the prizes it produces.
    *
@@ -205,7 +205,7 @@ public final class ArenaLogic {
     for (final SpawnerSpec spec : specs) {
       final Vec3d worldPos = ArenaSystem.arenaToWorld(map, spec.x(), spec.z());
       final EntityId spawnerId =
-          GameEntities.createSpawner(
+          MapFactory.createSpawner(
               ed,
               EntityId.NULL_ID,
               phys,

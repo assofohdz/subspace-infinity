@@ -7,7 +7,9 @@ import static org.junit.Assert.assertNotNull;
 
 import infinity.Ship;
 import infinity.config.ShipConfig;
-import infinity.settings.GroovyShipLoader.ShipConfigBuilder;
+// Same package — ShipConfigBuilder resolves without an explicit import after
+// the arch-review #10 extraction (was nested in GroovyShipLoader; now a
+// top-level package-private class in infinity.settings).
 import org.junit.Test;
 
 /**

@@ -30,7 +30,7 @@ import infinity.es.ship.Player;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.CollisionFilters;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.sim.GameSounds;
 import infinity.systems.ship.EnergySystem;
 import infinity.systems.ship.WarpSystem;
@@ -516,8 +516,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
    * </ol>
    *
    * <p>Always passes a non-zero {@code decayMillis} to
-   * {@link GameEntities#createPrize} so the api-side fallback constant
-   * {@code GameEntities.PRIZE_DEFAULT_DECAY_MS} is reserved for direct
+   * {@link MapFactory#createPrize} so the api-side fallback constant
+   * {@code MapFactory.PRIZE_DEFAULT_DECAY_MS} is reserved for direct
    * module-author calls without server context.
    *
    * <p>Prize-type weighting goes through {@link #getPrizeType(EntityId)}
@@ -536,7 +536,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     Vec3d prizeSpawnLocation =
         this.getSpawnLocation(spawnerLocation, radius, spawner.spawnOnRing());
     final long decayMs = resolveDecayMs(spawnerId, spawner);
-    return GameEntities.createPrize(
+    return MapFactory.createPrize(
         ed,
         phys,
         ourTime.getTime(),
@@ -673,7 +673,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
             ? globalFallbackSelector.next(random)
             : arenaSelector(arenaName).next(random);
     final String prizeType = maybeRollNegative(selected, prize);
-    GameEntities.createPrize(
+    MapFactory.createPrize(
         ed,
         phys,
         timeNs,

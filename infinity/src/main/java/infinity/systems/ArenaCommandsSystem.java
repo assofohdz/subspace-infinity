@@ -9,7 +9,6 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.ArenaConfig;
 import infinity.es.arena.ArenaId;
@@ -55,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser Fahrenholz
  */
-public class ArenaCommandsSystem extends AbstractGameSystem {
+public class ArenaCommandsSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(ArenaCommandsSystem.class);
 
@@ -72,12 +71,8 @@ public class ArenaCommandsSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    arenaSystem = getSystem(ArenaSystem.class);
-    if (arenaSystem == null) {
-      throw new IllegalStateException(
-          "ArenaCommandsSystem requires ArenaSystem to be registered first");
-    }
+    ed = requireSystem(EntityData.class);
+    arenaSystem = requireSystem(ArenaSystem.class);
     // Per-system EntitySet — avoids reaching into ArenaSystem's private
     // arenaEntities and lets this system update independently.
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);

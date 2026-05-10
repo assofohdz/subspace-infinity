@@ -16,7 +16,6 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.EngineConfig;
 import infinity.es.Damage;
@@ -47,9 +46,9 @@ import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.CoreViewConstants;
-import infinity.sim.GameEntities;
+import infinity.sim.WeaponFactory;
 import infinity.sim.GameSounds;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.systems.BaseInfinitySystem;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -99,7 +98,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author AFahrenholz
  */
-public class WeaponsFireSystem extends AbstractGameSystem {
+public class WeaponsFireSystem extends BaseInfinitySystem {
 
   /**
    * Weapon flags whose projectiles do NOT inherit the firing ship's velocity at
@@ -150,24 +149,12 @@ public class WeaponsFireSystem extends AbstractGameSystem {
   @Override
   @SuppressWarnings("unchecked")
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    physics = getSystem(MPhysSystem.class);
-    if (physics == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
+    ed = requireSystem(EntityData.class);
+    physics = requireSystem(MPhysSystem.class);
     physicsSpace = physics.getPhysicsSpace();
-    energySystem = getSystem(EnergySystem.class);
-    configRegistry = getSystem(ConfigRegistrySystem.class);
-    engineConfigSystem = getSystem(EngineConfigSystem.class);
-    if (engineConfigSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the EngineConfigSystem.");
-    }
+    energySystem = requireSystem(EnergySystem.class);
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
+    engineConfigSystem = requireSystem(EngineConfigSystem.class);
 
     bullets = ed.getEntities(BulletCurrentLevel.class, BulletFireDelay.class, BulletCost.class);
     bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
@@ -283,7 +270,7 @@ public class WeaponsFireSystem extends AbstractGameSystem {
 
     final ConfigRegistry cfg = weaponsFor(requester);
     final EntityId gunProjectile =
-        GameEntities.createBullet(
+        WeaponFactory.createBullet(
             ed,
             requester,
             physicsSpace,
@@ -312,7 +299,7 @@ public class WeaponsFireSystem extends AbstractGameSystem {
 
     final ConfigRegistry cfg = weaponsFor(requester);
     final EntityId bombProjectile =
-        GameEntities.createBomb(
+        WeaponFactory.createBomb(
             ed,
             requester,
             physicsSpace,
@@ -364,7 +351,7 @@ public class WeaponsFireSystem extends AbstractGameSystem {
         new GravityWell(5, cfg.gravBomb().wormholeForce(), GravityWell.PULL));
 
     final EntityId projectile =
-        GameEntities.createDelayedBomb(
+        WeaponFactory.createDelayedBomb(
             ed,
             requester,
             physicsSpace,
@@ -404,7 +391,7 @@ public class WeaponsFireSystem extends AbstractGameSystem {
       info.setAttackVelocity(newVelocity);
 
       final EntityId projectile =
-          GameEntities.createBurst(
+          WeaponFactory.createBurst(
               ed,
               requesterEntity.getId(),
               physicsSpace,
@@ -433,7 +420,7 @@ public class WeaponsFireSystem extends AbstractGameSystem {
 
     final ConfigRegistry cfg = weaponsFor(requester);
     final EntityId mineProjectile =
-        GameEntities.createMine(
+        WeaponFactory.createMine(
             ed,
             requester,
             physicsSpace,

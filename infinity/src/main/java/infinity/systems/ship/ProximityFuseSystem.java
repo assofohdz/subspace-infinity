@@ -15,7 +15,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.SphereVolume;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.Frequency;
@@ -23,7 +22,7 @@ import infinity.es.Parent;
 import infinity.es.ProximityArmed;
 import infinity.es.ProximityFuse;
 import infinity.es.ship.Health;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.systems.BaseInfinitySystem;
 
 /**
  * Slice 9b — proximity arming + fuse for projectiles carrying
@@ -64,7 +63,7 @@ import infinity.sim.util.InfinityRunTimeException;
  * fuse to completion regardless. Operator-noticeable on near-miss
  * fly-throughs only — polish-bag.
  */
-public class ProximityFuseSystem extends AbstractGameSystem {
+public class ProximityFuseSystem extends BaseInfinitySystem {
 
   private EntityData ed;
   private WeaponsReaperSystem weaponsReaperSystem;
@@ -74,22 +73,10 @@ public class ProximityFuseSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    weaponsReaperSystem = getSystem(WeaponsReaperSystem.class);
-    if (weaponsReaperSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the WeaponsReaperSystem.");
-    }
+    ed = requireSystem(EntityData.class);
+    weaponsReaperSystem = requireSystem(WeaponsReaperSystem.class);
     @SuppressWarnings("unchecked")
-    final MPhysSystem<MBlockShape> phys = getSystem(MPhysSystem.class);
-    if (phys == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
+    final MPhysSystem<MBlockShape> phys = requireSystem(MPhysSystem.class);
     physicsSpace = phys.getPhysicsSpace();
 
     fuseProjectiles =

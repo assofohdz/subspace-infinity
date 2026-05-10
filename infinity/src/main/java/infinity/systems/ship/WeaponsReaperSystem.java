@@ -11,15 +11,14 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.SplashDamage;
 import infinity.es.ship.Health;
 import infinity.settings.ConfigRegistrySystem;
-import infinity.sim.GameEntities;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.sim.WeaponFactory;
 import infinity.systems.ArenaSystem;
+import infinity.systems.BaseInfinitySystem;
 
 /**
  * Replacement-as-Mutation pilot — reaper-side carve from the legacy
@@ -37,7 +36,7 @@ import infinity.systems.ArenaSystem;
  *       of that contract for projectiles.
  *   <li><b>Spawn-time projection of explosion entities</b> (RaM-OK): each
  *       detonation creates a fresh visual / audio explosion entity via
- *       {@link GameEntities#createExplosion}.
+ *       {@link WeaponFactory#createExplosion}.
  *   <li><b>Damage intent emission</b> (RaM-correct, drained by
  *       {@link EnergySystem}): direct-hit and splash damage paths route
  *       through {@link WeaponsDamageLogic#applyDirectHitDamage} /
@@ -62,7 +61,7 @@ import infinity.systems.ArenaSystem;
  *
  * @author AFahrenholz
  */
-public class WeaponsReaperSystem extends AbstractGameSystem {
+public class WeaponsReaperSystem extends BaseInfinitySystem {
 
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -81,20 +80,12 @@ public class WeaponsReaperSystem extends AbstractGameSystem {
   @Override
   @SuppressWarnings("unchecked")
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    final MPhysSystem<MBlockShape> physics = getSystem(MPhysSystem.class);
-    if (physics == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
+    ed = requireSystem(EntityData.class);
+    final MPhysSystem<MBlockShape> physics = requireSystem(MPhysSystem.class);
     physicsSpace = physics.getPhysicsSpace();
-    configRegistry = getSystem(ConfigRegistrySystem.class);
-    arenaSystem = getSystem(ArenaSystem.class);
-    energySystem = getSystem(EnergySystem.class);
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
+    arenaSystem = requireSystem(ArenaSystem.class);
+    energySystem = requireSystem(EnergySystem.class);
 
     healthBearers = ed.getEntities(Health.class);
   }
@@ -164,7 +155,7 @@ public class WeaponsReaperSystem extends AbstractGameSystem {
           directVictimId,
           nowSimNanos);
     }
-    GameEntities.createExplosion(
+    WeaponFactory.createExplosion(
         ed,
         EntityId.NULL_ID,
         physicsSpace,

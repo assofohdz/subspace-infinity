@@ -46,13 +46,11 @@ import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.UprightDriver;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.input.CharacterInput;
 import infinity.es.input.MovementInput;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.PlayerDriver;
-import infinity.sim.util.InfinityRunTimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +60,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class MovementInputSystem extends AbstractGameSystem {
+public class MovementInputSystem extends BaseInfinitySystem {
 
   static Logger log = LoggerFactory.getLogger(MovementInputSystem.class);
 
@@ -84,14 +82,8 @@ public class MovementInputSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    this.ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(getClass().getName() + " system requires an EntityData object.");
-    }
-    MPhysSystem physics = getSystem(MPhysSystem.class);
-    if (physics == null) {
-      throw new InfinityRunTimeException(getClass().getName() + " system requires the MPhysSystem system.");
-    }
+    this.ed = requireSystem(EntityData.class);
+    final MPhysSystem physics = requireSystem(MPhysSystem.class);
 
     this.space = physics.getPhysicsSpace();
     physics.getBodyFactory().addDynamicInitializer(initializer);

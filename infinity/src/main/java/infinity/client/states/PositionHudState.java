@@ -73,7 +73,14 @@ public class PositionHudState extends BaseAppState {
 
   @Override
   protected void cleanup(final Application app) {
-    // No-op: GUI children are torn down with the parent on disable.
+    // Release the WatchedEntity acquired (lazily) in update(). Per the
+    // entity-sets.md convention: WatchedEntity is acquired once per state
+    // lifetime, so its release is symmetric with initialize/cleanup, not
+    // with onEnable/onDisable.
+    if (avatarWatch != null) {
+      avatarWatch.release();
+      avatarWatch = null;
+    }
   }
 
   @Override
@@ -88,11 +95,10 @@ public class PositionHudState extends BaseAppState {
   @Override
   protected void onDisable() {
     hud.removeFromParent();
+    // posRef is cleared so the next enable cycle re-binds against the
+    // current blackboard publisher (defensive — the published
+    // VersionedObject may be replaced while we're disabled).
     posRef = null;
-    if (avatarWatch != null) {
-      avatarWatch.release();
-      avatarWatch = null;
-    }
   }
 
   @Override

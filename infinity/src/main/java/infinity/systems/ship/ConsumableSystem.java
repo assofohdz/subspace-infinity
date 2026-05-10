@@ -17,7 +17,6 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.BrickConfig;
 import infinity.config.DecoyConfig;
@@ -25,6 +24,7 @@ import infinity.config.PortalConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ThorConfig;
+import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ContactSystem;
 import infinity.es.Damage;
 import infinity.es.ShapeNames;
@@ -48,9 +48,10 @@ import infinity.settings.EngineConfigSystem;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.sim.CoreViewConstants;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
+import infinity.sim.ShipFactory;
+import infinity.sim.WeaponFactory;
 import infinity.sim.GameSounds;
-import infinity.sim.util.InfinityRunTimeException;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +61,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author AFahrenholz
  */
-public class ConsumableSystem extends AbstractGameSystem
+public class ConsumableSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   public static final byte PLACEBRICK = 0x0;
@@ -92,24 +93,11 @@ public class ConsumableSystem extends AbstractGameSystem
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    physics = getSystem(MPhysSystem.class);
-    if (physics == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
-
+    ed = requireSystem(EntityData.class);
+    physics = requireSystem(MPhysSystem.class);
     physicsSpace = physics.getPhysicsSpace();
-    configRegistry = getSystem(ConfigRegistrySystem.class);
-    engineConfigSystem = getSystem(EngineConfigSystem.class);
-    if (engineConfigSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the EngineConfigSystem.");
-    }
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
+    engineConfigSystem = requireSystem(EngineConfigSystem.class);
     // Here we find the ships that have a thor weapon
     thorOwners = ed.getEntities(ThorCurrentCount.class);
     thorProjectiles = ed.getEntities(Thor.class);
@@ -240,7 +228,7 @@ public class ConsumableSystem extends AbstractGameSystem
 
     EntityId gunProjectile;
     gunProjectile =
-        GameEntities.createThor(
+        WeaponFactory.createThor(
             ed,
             requester,
             physicsSpace,
@@ -261,7 +249,7 @@ public class ConsumableSystem extends AbstractGameSystem
   /**
    * Pattern 4 spawn projection: read per-arena {@link RepelConfig}, project
    * {@code timeMs} into {@link com.simsilica.es.common.Decay} via
-   * {@link GameEntities#createRepel}, and stamp {@code speed} /
+   * {@link WeaponFactory#createRepel}, and stamp {@code speed} /
    * {@code distancePixels} as {@link RepelSpeed} / {@link RepelDistance}
    * components on the spawned effect entity. The future repel-impulse
    * system reads those components — never the {@link RepelConfig} template
@@ -273,7 +261,7 @@ public class ConsumableSystem extends AbstractGameSystem
     final RepelConfig cfg = ConsumableLogic.repelConfigFor(ed, configRegistry, requester);
 
     final EntityId repelEffect =
-        GameEntities.createRepel(
+        WeaponFactory.createRepel(
             ed,
             requester,
             physicsSpace,
@@ -307,7 +295,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private void createBrick(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final BrickConfig cfg = ConsumableLogic.brickConfigFor(ed, configRegistry, ship);
-    GameEntities.createBrick(ed, ship, time, cfg.spanTiles(), cfg.timeMs());
+    MapFactory.createBrick(ed, ship, time, cfg.spanTiles(), cfg.timeMs());
   }
 
   /**
@@ -321,7 +309,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private void createDecoy(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final DecoyConfig cfg = ConsumableLogic.decoyConfigFor(ed, configRegistry, ship);
-    GameEntities.createDecoy(ed, ship, time, cfg.aliveTimeMs());
+    MapFactory.createDecoy(ed, ship, time, cfg.aliveTimeMs());
   }
 
   /**
@@ -335,7 +323,7 @@ public class ConsumableSystem extends AbstractGameSystem
   private void createPortal(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final PortalConfig cfg = ConsumableLogic.portalConfigFor(ed, configRegistry, ship);
-    GameEntities.createPortal(ed, ship, time, cfg.activeTimeMs());
+    MapFactory.createPortal(ed, ship, time, cfg.activeTimeMs());
   }
 
   private void createRocketBuff(final Entity requesterEntity, final long time) {
@@ -358,7 +346,7 @@ public class ConsumableSystem extends AbstractGameSystem
     ed.setComponent(ship, new Thrust(cfg.thrust()));
     ed.setComponent(ship, new Speed(cfg.speed()));
 
-    GameEntities.createRocketBuff(
+    ShipFactory.createRocketBuff(
         ed, ship, time, rocketTime.getActiveTimeMs(), originalThrust, originalSpeed);
   }
 
@@ -369,7 +357,7 @@ public class ConsumableSystem extends AbstractGameSystem
       return true;
     }
     if (flag == REPEL) {
-      // Repel audio is composed onto the effect entity by GameEntities.createRepel
+      // Repel audio is composed onto the effect entity by WeaponFactory.createRepel
       // via AudioTypes.repel(ed) — no separate sound entity needed here.
       return true;
     }

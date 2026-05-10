@@ -14,7 +14,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.util.regex.Matcher;
@@ -43,25 +43,25 @@ public class lightTester extends BaseGameModule {
 
     final EntityData ed = getSystem(EntityData.class);
 
-    GameEntities.createLight(
+    MapFactory.createLight(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
         new Vec3d(10, 0, 10));
-    GameEntities.createLight(
+    MapFactory.createLight(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
         new Vec3d(10, 0, -10));
-    GameEntities.createLight(
+    MapFactory.createLight(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
         new Vec3d(-10, 0, 10));
-    GameEntities.createLight(
+    MapFactory.createLight(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),

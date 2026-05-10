@@ -13,7 +13,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.util.HashSet;
@@ -47,7 +47,7 @@ public class basicTester extends BaseGameModule {
 
     // Test the smallest asteroids
     createdEntities.add(
-        GameEntities.createAsteroidSmall(
+        MapFactory.createAsteroidSmall(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -55,7 +55,7 @@ public class basicTester extends BaseGameModule {
             new Vec3d(10, 0, 10),
             1));
     createdEntities.add(
-        GameEntities.createAsteroidSmall(
+        MapFactory.createAsteroidSmall(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -63,7 +63,7 @@ public class basicTester extends BaseGameModule {
             new Vec3d(10, 0, -10),
             1));
     createdEntities.add(
-        GameEntities.createAsteroidSmall(
+        MapFactory.createAsteroidSmall(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -71,7 +71,7 @@ public class basicTester extends BaseGameModule {
             new Vec3d(-10, 0, 10),
             1));
     createdEntities.add(
-        GameEntities.createAsteroidSmall(
+        MapFactory.createAsteroidSmall(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -81,7 +81,7 @@ public class basicTester extends BaseGameModule {
 
     // Test the medium asteroids
     createdEntities.add(
-        GameEntities.createAsteroidMedium(
+        MapFactory.createAsteroidMedium(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -89,7 +89,7 @@ public class basicTester extends BaseGameModule {
             new Vec3d(20, 0, 20),
             1));
     createdEntities.add(
-        GameEntities.createAsteroidMedium(
+        MapFactory.createAsteroidMedium(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -97,7 +97,7 @@ public class basicTester extends BaseGameModule {
             new Vec3d(20, 0, -20),
             1));
     createdEntities.add(
-        GameEntities.createAsteroidMedium(
+        MapFactory.createAsteroidMedium(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),
@@ -105,7 +105,7 @@ public class basicTester extends BaseGameModule {
             new Vec3d(-20, 0, 20),
             1));
     createdEntities.add(
-        GameEntities.createAsteroidMedium(
+        MapFactory.createAsteroidMedium(
             ed,
             EntityId.NULL_ID,
             getPhysicsManager().getPhysics(),

@@ -13,7 +13,6 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.EngineConfig;
 import infinity.config.ZoneConfig;
@@ -23,8 +22,8 @@ import infinity.es.Repellable;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
 import infinity.settings.EngineConfigSystem;
-import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ArenaSystem;
+import infinity.systems.BaseInfinitySystem;
 import java.util.Set;
 
 /**
@@ -79,7 +78,7 @@ import java.util.Set;
  *
  * @author Asser
  */
-public class RepelSystem extends AbstractGameSystem {
+public class RepelSystem extends BaseInfinitySystem {
 
   /**
    * Subspace pixels-per-tile rate (canonical 16 px/tile). Local constant
@@ -98,28 +97,12 @@ public class RepelSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
+    ed = requireSystem(EntityData.class);
     @SuppressWarnings("unchecked")
-    final MPhysSystem<MBlockShape> phys = getSystem(MPhysSystem.class);
-    if (phys == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
+    final MPhysSystem<MBlockShape> phys = requireSystem(MPhysSystem.class);
     physicsSpace = phys.getPhysicsSpace();
-    arenaSystem = getSystem(ArenaSystem.class);
-    if (arenaSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the ArenaSystem (zone config).");
-    }
-    engineConfigSystem = getSystem(EngineConfigSystem.class);
-    if (engineConfigSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the EngineConfigSystem.");
-    }
+    arenaSystem = requireSystem(ArenaSystem.class);
+    engineConfigSystem = requireSystem(EngineConfigSystem.class);
     repelEffects =
         ed.getEntities(RepelSpeed.class, RepelDistance.class, Parent.class);
     repellables = ed.getEntities(Repellable.class);

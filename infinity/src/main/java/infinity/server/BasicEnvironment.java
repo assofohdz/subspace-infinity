@@ -42,7 +42,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.systems.InfinityTimeSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +120,7 @@ public class BasicEnvironment extends AbstractGameSystem {
 //            new Vec3d(40, 1, 16),
 //            20);
 //
-        GameEntities.createSpawner(
+        MapFactory.createSpawner(
             ed,
             EntityId.NULL_ID,
             phys,

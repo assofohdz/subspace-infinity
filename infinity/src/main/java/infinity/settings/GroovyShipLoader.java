@@ -8,19 +8,9 @@ import groovy.lang.Closure;
 import infinity.BombLevel;
 import infinity.BulletLevel;
 import infinity.Ship;
-import infinity.config.BombStats;
-import infinity.config.BurstStats;
-import infinity.config.CountStats;
-import infinity.config.CountWithDelayStats;
-import infinity.config.BulletStats;
-import infinity.config.MineStats;
-import infinity.config.RocketStats;
 import infinity.config.ShipConfig;
-import infinity.config.ShipStat;
-import infinity.config.StatusStats;
 import infinity.es.arena.ArenaId;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +19,15 @@ import org.slf4j.LoggerFactory;
  * Evaluates an arena's Groovy ship config and installs the result into
  * {@link ConfigRegistrySystem}. Thin facade over {@link GroovySettingsHost} —
  * the host owns I/O, hardening and error handling; this class supplies the
- * {@code ship(Ship.X) { … }} DSL and composes the result with
- * {@code ConfigRegistrySystem.replace}.
+ * {@code ship(Ship.X) { … }} DSL via {@link ShipConfigBuilder} and composes
+ * the result with {@code ConfigRegistrySystem.replace}.
  *
  * <p>Failure handling — any failure (no path configured, missing file, parse
- * error, eval error) logs a warning and installs the built-in {@link #FALLBACK}
+ * error, eval error) logs a warning and installs the {@link ShipFallback#FALLBACK}
  * snapshot so the arena stays playable. Callers never see an exception.
  *
- * <p>Script DSL:
+ * <p>Script DSL — see {@link ShipConfigBuilder} for per-block stat / weapon /
+ * inventory / status methods. Example shape:
  *
  * <pre>{@code
  * ship(Ship.WARBIRD) {
@@ -50,25 +41,18 @@ import org.slf4j.LoggerFactory;
  *     bounceRestitution   1.0
  *     radarRange          250
  *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25, speed: 2000, thrust: 400
- *     bullets    start: BulletLevel.LEVEL_1,  max: BulletLevel.LEVEL_4,  cost: 10, fireDelay: 25
+ *     bullets start: BulletLevel.LEVEL_1, max: BulletLevel.LEVEL_4, cost: 10, fireDelay: 25
  *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500, speed: 0
- *     bursts  start: 5,  max: 5
- *     thors   start: 2,  max: 2,  fireDelay: 1000
+ *     bursts  start: 5, max: 5
+ *     thors   start: 2, max: 2, fireDelay: 1000
  *     repels  start: 10, max: 20
  * }
  * }</pre>
  *
- * <p>The {@code Ship}, {@code BombLevel}, and {@code BulletLevel} enums are added as
- * default imports (and whitelisted) by the host. Movement stats omitted in
- * a ship block default to {@code ShipStat(0, 0, 0)}; partial stat blocks
- * (missing {@code initial}/{@code max}/{@code upgrade}) fail with a clear
- * error message. Physics-feel knobs ({@code linearDamping},
- * {@code turnResponsiveness}, {@code bounceRestitution}) and
- * {@code radarRange} default to historical / conservative values
- * (0.99 / 8.0 / 1.0 / 250). The weapon / inventory blocks
- * ({@code bombs}, {@code bullets}, {@code mines}, {@code bursts}, {@code thors},
- * {@code repels}) default to the values previously inlined in
- * {@code GameEntities.createShip} so existing presets behave identically.
+ * <p>The {@code Ship}, {@code BombLevel}, and {@code BulletLevel} enums are
+ * added as default imports (and whitelisted) by the host. See
+ * {@link ShipConfigBuilder} Javadoc for default-handling rules and the
+ * canonical-Subspace mapping of each block.
  */
 public final class GroovyShipLoader {
 
@@ -76,209 +60,22 @@ public final class GroovyShipLoader {
   private static final ShipAdapter ADAPTER = new ShipAdapter();
 
   /**
-   * Default per-second linear-damping coefficient used when a ship script
-   * omits {@code linearDamping}. {@code 0.99} = 1% velocity loss per second
-   * at typical operating speed (math fit against the historical
-   * {@code dragFactor 0.05} coast-decay rate; see Slice S1 in
-   * {@code .scratch/physics-audit.md}).
+   * Re-export of {@link ShipConfigBuilder#DEFAULT_RADAR_RANGE} so the
+   * {@code GroovyShipLoaderRadarTest} contract — checking that the FALLBACK
+   * radar range matches the documented default — keeps a stable
+   * fully-qualified reference. Other defaults live on
+   * {@link ShipConfigBuilder} (movement / feel) or {@link ShipFallback}
+   * (weapon / inventory).
    */
-  static final double DEFAULT_LINEAR_DAMPING = 0.99;
+  static final double DEFAULT_RADAR_RANGE = ShipConfigBuilder.DEFAULT_RADAR_RANGE;
 
   /**
-   * Default angular-velocity ease rate (1/sec) used when a ship script omits
-   * {@code turnResponsiveness}. Matches the historical
-   * {@code PlayerDriver.TURN_RESPONSIVENESS} global.
+   * Re-export of {@link ShipFallback#FALLBACK} for callers that historically
+   * referenced {@code GroovyShipLoader.FALLBACK}. Public surface — kept as a
+   * stable lookup for arena-bootstrap code, doc references in
+   * {@link infinity.config.ArenaConfig}, and the radar test contract.
    */
-  static final double DEFAULT_TURN_RESPONSIVENESS = 8.0;
-
-  /**
-   * Default wall-bounce restitution used when a ship script omits
-   * {@code bounceRestitution}. Matches the historical perfectly-elastic
-   * default in {@code ContactSystem.newContact}.
-   */
-  static final double DEFAULT_BOUNCE_RESTITUTION = 1.0;
-
-  /**
-   * Default radar radius (world units) used when a ship script omits
-   * {@code radarRange}. Sized larger than {@code LocalViewState.viewRadius}
-   * (5 leaves × 32 cells = 160 world units) so the radar reveals more than
-   * the rendered world view.
-   */
-  static final double DEFAULT_RADAR_RANGE = 250.0;
-
-  /**
-   * Default repellable flag used when a ship script omits {@code repellable}.
-   * Slice S5 — Subspace canon is "repels push every ship," so the absence of
-   * an explicit toggle keeps that behaviour.
-   */
-  static final boolean DEFAULT_REPELLABLE = true;
-
-  // --- Defaults for the per-ship weapon / inventory stat groups ---------
-  // Match the values previously inlined in GameEntities.createShip.
-  // Preserves prior behaviour for any preset whose ships.groovy doesn't
-  // override these.
-
-  /** Default starting bomb level + max + cost + fire-delay + speed + thrust. */
-  static final BombStats DEFAULT_BOMBS =
-      new BombStats(
-          BombLevel.BOMB_1,
-          BombLevel.BOMB_4,
-          /* cost */ 10,
-          /* fireDelayCs */ 25,
-          /* speed */ 2000, // SVS canon BombSpeed=2000 (Subspace velocity units)
-          /* thrust */ 0); // No recoil by default; presets opt in (SVS canon = 400)
-
-  /** Default starting bullet level + max + cost + fire-delay + speed. */
-  static final BulletStats DEFAULT_GUNS =
-      new BulletStats(
-          BulletLevel.LEVEL_1,
-          BulletLevel.LEVEL_4,
-          /* cost */ 10,
-          /* fireDelayCs */ 25,
-          /* speed */ 2000); // SVS canon BulletSpeed=2000
-
-  /** Default starting mine level + max + cost + fire-delay + speed. */
-  static final MineStats DEFAULT_MINES =
-      new MineStats(
-          BombLevel.BOMB_1,
-          BombLevel.BOMB_4,
-          /* cost */ 50,
-          /* fireDelayCs */ 500,
-          /* speed */ 0); // Inert drop — slice s7-mine-speed; arenas opt in to kicker mines
-
-  /** Default starting + max burst inventory count + per-projectile speed. */
-  static final BurstStats DEFAULT_BURSTS =
-      new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000); // SVS canon BurstSpeed=3000
-
-  /** Default starting + max thor inventory count + per-fire delay. */
-  static final CountWithDelayStats DEFAULT_THORS =
-      new CountWithDelayStats(/* start */ 2, /* max */ 2, /* fireDelayCs */ 1000);
-
-  /** Default starting + max repel inventory count. */
-  static final CountStats DEFAULT_REPELS = new CountStats(/* start */ 10, /* max */ 20);
-
-  /**
-   * Default decoy/brick/rocket/portal inventory: {@code null} = "ship doesn't
-   * carry / can't acquire this item." Per the B2 grilled-through plan
-   * (see {@code .scratch/settings-pipeline-slices.md}), the typed pipeline
-   * treats {@code null} as the disallow signal — the corresponding
-   * {@code *Max} component isn't projected, and the prize applier no-ops.
-   * Presets that want decoys/bricks/rockets/portals must declare them
-   * explicitly in {@code ships.groovy}.
-   */
-  static final CountStats DEFAULT_DECOYS = null;
-
-  /** See {@link #DEFAULT_DECOYS}. */
-  static final CountStats DEFAULT_BRICKS = null;
-
-  /** See {@link #DEFAULT_DECOYS}. */
-  static final RocketStats DEFAULT_ROCKETS = null;
-
-  /** See {@link #DEFAULT_DECOYS}. */
-  static final CountStats DEFAULT_PORTALS = null;
-
-  /**
-   * Built-in fallback snapshot installed when an arena's {@code ships.groovy}
-   * is missing or fails to evaluate. Covers all 8 ships with SVS-canonical
-   * tuning (matches the {@code conf/svs/ship-*} INI fragments) so picking any
-   * ship in an unconfigured arena spawns a working ship rather than an inert
-   * zero-stat one. Feel knobs (drag / turn / bounce) use the {@code DEFAULT_*}
-   * constants above, which match the historical Java globals.
-   */
-  public static final ConfigRegistry FALLBACK =
-      ConfigRegistry.builder()
-          .ship(Ship.WARBIRD, fallbackShip(
-              Ship.WARBIRD,
-              /* rotation */ new ShipStat(210, 300, 40),
-              /* thrust */   new ShipStat(16,  19,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.JAVELIN, fallbackShip(
-              Ship.JAVELIN,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2200, 3750, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.SPIDER, fallbackShip(
-              Ship.SPIDER,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(500, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.LEVIATHAN, fallbackShip(
-              Ship.LEVIATHAN,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.TERRIER, fallbackShip(
-              Ship.TERRIER,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.WEASEL, fallbackShip(
-              Ship.WEASEL,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.LANCASTER, fallbackShip(
-              Ship.LANCASTER,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1700, 100)))
-          .ship(Ship.SHARK, fallbackShip(
-              Ship.SHARK,
-              /* rotation */ new ShipStat(200, 230, 40),
-              /* thrust */   new ShipStat(15,  17,  2),
-              /* speed */    new ShipStat(2010, 3250, 250),
-              /* recharge */ new ShipStat(400, 1150, 166),
-              /* energy */   new ShipStat(1000, 1750, 100)))
-          .build();
-
-  private static ShipConfig fallbackShip(
-      final Ship type,
-      final ShipStat rotation,
-      final ShipStat thrust,
-      final ShipStat speed,
-      final ShipStat recharge,
-      final ShipStat energy) {
-    return new ShipConfig(
-        type,
-        rotation,
-        thrust,
-        speed,
-        recharge,
-        energy,
-        DEFAULT_LINEAR_DAMPING,
-        DEFAULT_TURN_RESPONSIVENESS,
-        DEFAULT_BOUNCE_RESTITUTION,
-        DEFAULT_RADAR_RANGE,
-        DEFAULT_BOMBS,
-        DEFAULT_GUNS,
-        DEFAULT_MINES,
-        DEFAULT_BURSTS,
-        DEFAULT_THORS,
-        DEFAULT_REPELS,
-        DEFAULT_DECOYS,
-        DEFAULT_BRICKS,
-        DEFAULT_ROCKETS,
-        DEFAULT_PORTALS,
-        /* cloak */ null,
-        /* stealth */ null,
-        /* xradar */ null,
-        /* antiwarp */ null,
-        DEFAULT_REPELLABLE);
-  }
+  public static final ConfigRegistry FALLBACK = ShipFallback.FALLBACK;
 
   private final ConfigRegistrySystem configRegistry;
 
@@ -417,373 +214,6 @@ public final class GroovyShipLoader {
       body.call();
       registryBuilder.ship(type, shipBuilder.build());
       return null;
-    }
-  }
-
-  /**
-   * Delegate for a {@code ship(Ship.X) { ... }} block. Each stat method
-   * accepts a Groovy named-argument map and stores a {@link ShipStat}.
-   * Stats not called stay at {@code (0, 0, 0)}.
-   */
-  public static final class ShipConfigBuilder {
-
-    private final Ship type;
-    private ShipStat rotation = new ShipStat(0, 0, 0);
-    private ShipStat thrust = new ShipStat(0, 0, 0);
-    private ShipStat speed = new ShipStat(0, 0, 0);
-    private ShipStat recharge = new ShipStat(0, 0, 0);
-    private ShipStat energy = new ShipStat(0, 0, 0);
-    private double linearDamping = DEFAULT_LINEAR_DAMPING;
-    private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
-    private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
-    private double radarRange = DEFAULT_RADAR_RANGE;
-    // Inventory fields default to null per the Q6 grilled-through decision
-    // (.scratch/settings-pipeline-slices.md): an explicit `ship(Ship.X) { … }`
-    // block disallows any inventory type whose block isn't declared. The
-    // permissive `DEFAULT_*` constants above remain in use only by FALLBACK
-    // (the snapshot installed when ships.groovy is missing or fails to parse).
-    private BombStats bombs = null;
-    private BulletStats bullets = null;
-    private MineStats mines = null;
-    private BurstStats bursts = null;
-    private CountWithDelayStats thors = null;
-    private CountStats repels = null;
-    private CountStats decoys = null;
-    private CountStats bricks = null;
-    private RocketStats rockets = null;
-    private CountStats portals = null;
-    private StatusStats cloak = null;
-    private StatusStats stealth = null;
-    private StatusStats xradar = null;
-    private StatusStats antiwarp = null;
-    private boolean repellable = DEFAULT_REPELLABLE;
-
-    // Package-private so unit tests in this package can build configs without
-    // standing up the full GroovyShell pipeline.
-    ShipConfigBuilder(final Ship type) {
-      this.type = type;
-    }
-
-    public void rotation(final Map<String, ?> args) {
-      this.rotation = toStat("rotation", args);
-    }
-
-    public void thrust(final Map<String, ?> args) {
-      this.thrust = toStat("thrust", args);
-    }
-
-    public void speed(final Map<String, ?> args) {
-      this.speed = toStat("speed", args);
-    }
-
-    public void recharge(final Map<String, ?> args) {
-      this.recharge = toStat("recharge", args);
-    }
-
-    public void energy(final Map<String, ?> args) {
-      this.energy = toStat("energy", args);
-    }
-
-    public void linearDamping(final Number value) {
-      this.linearDamping = doubleArg("linearDamping", value);
-    }
-
-    public void turnResponsiveness(final Number value) {
-      this.turnResponsiveness = doubleArg("turnResponsiveness", value);
-    }
-
-    public void bounceRestitution(final Number value) {
-      this.bounceRestitution = doubleArg("bounceRestitution", value);
-    }
-
-    public void radarRange(final Number value) {
-      this.radarRange = doubleArg("radarRange", value);
-    }
-
-    /**
-     * Slice S5 — when {@code true} (default), ship-spawn projection stamps
-     * {@link infinity.es.Repellable} on the ship so a repel within range
-     * pushes it away. Subspace canon: every ship is repellable. Set
-     * {@code false} per ship to opt out (e.g. boss / heavy bot variants).
-     */
-    public void repellable(final boolean enabled) {
-      this.repellable = enabled;
-    }
-
-    /**
-     * {@code bombs start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10,
-     *        fireDelay: 25, speed: 2000, thrust: 400}
-     *
-     * <p>{@code speed} and {@code thrust} are in Subspace velocity units
-     * (canonical {@code [Ship] BombSpeed} / {@code BombThrust} key
-     * ranges). Fire-time consumer applies
-     * {@code EngineConfig.subspaceVelocityScale} + cap to land in jME
-     * world units. See slice 10 (speed) and S2 (thrust / recoil).
-     */
-    public void bombs(final Map<String, ?> args) {
-      this.bombs =
-          new BombStats(
-              bombsArg("bombs", args, "start"),
-              bombsArg("bombs", args, "max"),
-              intArg("bombs", args, "cost"),
-              longArg("bombs", args, "fireDelay"),
-              intArg("bombs", args, "speed"),
-              intArg("bombs", args, "thrust"));
-    }
-
-    /**
-     * {@code bullets start: BulletLevel.LEVEL_1, max: BulletLevel.LEVEL_4, cost: 10,
-     *        fireDelay: 25, speed: 2000}
-     *
-     * <p>{@code speed} is in Subspace velocity units (canonical
-     * {@code [Ship] BulletSpeed} key range). Fire-time consumer applies
-     * {@code EngineConfig.subspaceVelocityScale} + cap. See slice 10.
-     */
-    public void bullets(final Map<String, ?> args) {
-      this.bullets =
-          new BulletStats(
-              bulletsArg("bullets", args, "start"),
-              bulletsArg("bullets", args, "max"),
-              intArg("bullets", args, "cost"),
-              longArg("bullets", args, "fireDelay"),
-              intArg("bullets", args, "speed"));
-    }
-
-    /**
-     * {@code mines start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50,
-     *        fireDelay: 500, speed: 0}
-     *
-     * <p>{@code speed} is in Subspace velocity units. Default {@code 0} =
-     * inert drop (mine drops dead-still, does not inherit ship velocity).
-     * Fire-time consumer applies {@code EngineConfig.subspaceVelocityScale}
-     * + cap to land in jME world units. Slice s7-mine-speed.
-     *
-     * <p>Infinity extension — see {@link MineStats#speed} for the
-     * canon-divergence rationale (Subspace's {@code ## Mine} section does
-     * not define a per-ship {@code MineSpeed} knob).
-     */
-    public void mines(final Map<String, ?> args) {
-      this.mines =
-          new MineStats(
-              bombsArg("mines", args, "start"),
-              bombsArg("mines", args, "max"),
-              intArg("mines", args, "cost"),
-              longArg("mines", args, "fireDelay"),
-              intArg("mines", args, "speed"));
-    }
-
-    /**
-     * {@code bursts start: 5, max: 5, speed: 3000}
-     *
-     * <p>{@code speed} is in Subspace velocity units (canonical
-     * {@code [Ship] BurstSpeed} key range). Fire-time consumer applies
-     * {@code EngineConfig.subspaceVelocityScale} + cap to land each
-     * fan-projectile's launch speed in jME world units. See slice 10.
-     */
-    public void bursts(final Map<String, ?> args) {
-      this.bursts =
-          new BurstStats(
-              intArg("bursts", args, "start"),
-              intArg("bursts", args, "max"),
-              intArg("bursts", args, "speed"));
-    }
-
-    /** {@code thors start: 2, max: 2, fireDelay: 1000} */
-    public void thors(final Map<String, ?> args) {
-      this.thors =
-          new CountWithDelayStats(
-              intArg("thors", args, "start"),
-              intArg("thors", args, "max"),
-              longArg("thors", args, "fireDelay"));
-    }
-
-    /** {@code repels start: 10, max: 20} */
-    public void repels(final Map<String, ?> args) {
-      this.repels =
-          new CountStats(intArg("repels", args, "start"), intArg("repels", args, "max"));
-    }
-
-    /** {@code decoys start: 0, max: 1} */
-    public void decoys(final Map<String, ?> args) {
-      this.decoys =
-          new CountStats(intArg("decoys", args, "start"), intArg("decoys", args, "max"));
-    }
-
-    /** {@code bricks start: 0, max: 1} */
-    public void bricks(final Map<String, ?> args) {
-      this.bricks =
-          new CountStats(intArg("bricks", args, "start"), intArg("bricks", args, "max"));
-    }
-
-    /**
-     * {@code rockets start: 0, max: 3, activeTimeCs: 100}
-     *
-     * <p>The third arg is Subspace per-ship {@code RocketTime} in
-     * centiseconds — buff lifetime once the player fires a rocket. Stored
-     * raw on {@link RocketStats}; {@code ShipSpawnSystem} converts to ms
-     * when projecting onto the ship's {@code RocketTime} component.
-     */
-    public void rockets(final Map<String, ?> args) {
-      this.rockets =
-          new RocketStats(
-              intArg("rockets", args, "start"),
-              intArg("rockets", args, "max"),
-              longArg("rockets", args, "activeTimeCs"));
-    }
-
-    /** {@code portals start: 0, max: 2} */
-    public void portals(final Map<String, ?> args) {
-      this.portals =
-          new CountStats(intArg("portals", args, "start"), intArg("portals", args, "max"));
-    }
-
-    /**
-     * {@code cloak status: 1, energy: 100}
-     *
-     * <p>Subspace per-ship Cloak capability — {@code status} tri-state
-     * ({@code 0..2}) and {@code energy} drain rate ({@code 0..32000},
-     * 1000ths-per-centisecond per REFERENCE.md). Stored raw on
-     * {@link StatusStats}; {@code ShipSpawnSystem} projects to
-     * {@link infinity.es.ship.toggles.CloakStatus} +
-     * {@link infinity.es.ship.toggles.CloakEnergy} +
-     * {@link infinity.es.ship.toggles.Cloak} components per the Status-
-     * family applier rule.
-     */
-    public void cloak(final Map<String, ?> args) {
-      this.cloak =
-          new StatusStats(
-              intArg("cloak", args, "status"), intArg("cloak", args, "energy"));
-    }
-
-    /**
-     * {@code stealth status: 1, energy: 100}
-     *
-     * <p>Same shape as {@link #cloak}. Projects to
-     * {@link infinity.es.ship.toggles.StealthStatus} +
-     * {@link infinity.es.ship.toggles.StealthEnergy} +
-     * {@link infinity.es.ship.toggles.Stealth}.
-     */
-    public void stealth(final Map<String, ?> args) {
-      this.stealth =
-          new StatusStats(
-              intArg("stealth", args, "status"), intArg("stealth", args, "energy"));
-    }
-
-    /**
-     * {@code xradar status: 1, energy: 100}
-     *
-     * <p>Same shape as {@link #cloak}. Projects to
-     * {@link infinity.es.ship.toggles.XRadarStatus} +
-     * {@link infinity.es.ship.toggles.XRadarEnergy} +
-     * {@link infinity.es.ship.toggles.XRadar}.
-     */
-    public void xradar(final Map<String, ?> args) {
-      this.xradar =
-          new StatusStats(
-              intArg("xradar", args, "status"), intArg("xradar", args, "energy"));
-    }
-
-    /**
-     * {@code antiwarp status: 1, energy: 100}
-     *
-     * <p>Same shape as {@link #cloak}. Projects to
-     * {@link infinity.es.ship.toggles.AntiwarpStatus} +
-     * {@link infinity.es.ship.toggles.AntiwarpEnergy} +
-     * {@link infinity.es.ship.toggles.Antiwarp}.
-     *
-     * <p>Note: arena-global {@code [Toggle] AntiWarpPixels} (range) and
-     * {@code [Misc] AntiWarpSettleDelay} are separate concerns —
-     * deferred to their own slices (polish-bag), not part of 6b's
-     * per-ship Status-family scope.
-     */
-    public void antiwarp(final Map<String, ?> args) {
-      this.antiwarp =
-          new StatusStats(
-              intArg("antiwarp", args, "status"), intArg("antiwarp", args, "energy"));
-    }
-
-    private static ShipStat toStat(final String statName, final Map<String, ?> args) {
-      return new ShipStat(
-          intArg(statName, args, "initial"),
-          intArg(statName, args, "max"),
-          intArg(statName, args, "upgrade"));
-    }
-
-    private static int intArg(
-        final String statName, final Map<String, ?> args, final String key) {
-      final Object v = args.get(key);
-      if (v instanceof Number n) {
-        return n.intValue();
-      }
-      throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
-    }
-
-    private static long longArg(
-        final String statName, final Map<String, ?> args, final String key) {
-      final Object v = args.get(key);
-      if (v instanceof Number n) {
-        return n.longValue();
-      }
-      throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
-    }
-
-    private static BombLevel bombsArg(
-        final String statName, final Map<String, ?> args, final String key) {
-      final Object v = args.get(key);
-      if (v instanceof BombLevel b) {
-        return b;
-      }
-      throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' '" + key + "' must be a BombLevel enum value (got " + v + ")");
-    }
-
-    private static BulletLevel bulletsArg(
-        final String statName, final Map<String, ?> args, final String key) {
-      final Object v = args.get(key);
-      if (v instanceof BulletLevel g) {
-        return g;
-      }
-      throw new IllegalArgumentException(
-          "Ship stat '" + statName + "' '" + key + "' must be a BulletLevel enum value (got " + v + ")");
-    }
-
-    private static double doubleArg(final String fieldName, final Number value) {
-      if (value == null) {
-        throw new IllegalArgumentException(
-            "Ship feel '" + fieldName + "' requires a numeric value (got null)");
-      }
-      return value.doubleValue();
-    }
-
-    ShipConfig build() {
-      return new ShipConfig(
-          type,
-          rotation,
-          thrust,
-          speed,
-          recharge,
-          energy,
-          linearDamping,
-          turnResponsiveness,
-          bounceRestitution,
-          radarRange,
-          bombs,
-          bullets,
-          mines,
-          bursts,
-          thors,
-          repels,
-          decoys,
-          bricks,
-          rockets,
-          portals,
-          cloak,
-          stealth,
-          xradar,
-          antiwarp,
-          repellable);
     }
   }
 }

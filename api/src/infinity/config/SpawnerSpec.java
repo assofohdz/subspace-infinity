@@ -10,7 +10,7 @@ import java.util.Map;
  * {@code spawners { spawn x:..., z:..., ... }} block. Materialized at
  * arena-load time into a real spawner entity by {@code ArenaSystem.doLoad},
  * which translates arena-local {@code (x, z)} into world coords via
- * {@code arenaToWorld} and calls {@code GameEntities.createSpawner}.
+ * {@code arenaToWorld} and calls {@code MapFactory.createSpawner}.
  *
  * <h2>Subspace canon divergence</h2>
  *
@@ -58,7 +58,7 @@ import java.util.Map;
  *     first prize lands; {@code 0} means "respawn as soon as room opens"
  * @param ttlMillis how long each prize lives before its {@code Decay}
  *     component expires; {@code 0} or negative falls back to
- *     {@link infinity.sim.GameEntities#PRIZE_DEFAULT_DECAY_MS}
+ *     {@link infinity.sim.MapFactory#PRIZE_DEFAULT_DECAY_MS}
  * @param spawnOnRing {@code true} = prizes appear on the ring at exactly
  *     the effective radius; {@code false} = uniformly within the disc
  * @param weightOverrides per-spawner weight overrides on top of the arena's

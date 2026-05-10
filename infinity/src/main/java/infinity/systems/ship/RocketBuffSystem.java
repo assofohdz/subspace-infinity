@@ -7,7 +7,6 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Parent;
 import infinity.es.ship.Speed;
@@ -15,7 +14,7 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.actions.RocketActive;
 import infinity.es.ship.actions.RocketBuff;
 import infinity.es.ship.actions.RocketSnapshot;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.systems.BaseInfinitySystem;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * else removes the buff entity (admin command, ship despawn, etc.)
  * the same revert path runs — there is exactly one removal seam.
  */
-public final class RocketBuffSystem extends AbstractGameSystem {
+public final class RocketBuffSystem extends BaseInfinitySystem {
 
   private static final Logger log = LoggerFactory.getLogger(RocketBuffSystem.class);
 
@@ -65,11 +64,7 @@ public final class RocketBuffSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
+    ed = requireSystem(EntityData.class);
     buffs = ed.getEntities(RocketBuff.class, Parent.class, RocketSnapshot.class);
   }
 

@@ -601,9 +601,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    * Translate each {@link SpawnerSpec} from the arena's typed config into
    * a real spawner entity inside the loaded arena. Arena-local {@code (x, z)}
    * is mapped to world coords via {@link #arenaToWorld}, then handed to
-   * {@link GameEntities#createSpawner(EntityData, EntityId,
+   * {@link infinity.sim.MapFactory#createSpawner(EntityData, EntityId,
    * PhysicsSpace, long, Vec3d, double, boolean, double, int, long,
-   * java.util.Map)} so the
+   * java.util.Map, int, double, int, boolean)} so the
    * resulting spawner carries the per-spawner {@code maxCount} and (optional)
    * {@code PrizeDecayMillis}. The spawner is tagged with the arena's
    * {@link ArenaId} so {@code PrizeSystem}'s membership-aware lookups (e.g.

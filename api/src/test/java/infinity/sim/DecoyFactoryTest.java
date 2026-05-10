@@ -16,7 +16,7 @@ import org.junit.Test;
 /**
  * Decoy spawn-projection test — Slice 4 closes
  * {@code [Misc] DecoyAliveTime} end-to-end (plumbing only).
- * {@link GameEntities#createDecoy} composes a marker entity carrying
+ * {@link MapFactory#createDecoy} composes a marker entity carrying
  * {@link DecoyConfig#aliveTimeMs()} as a {@link Decay} deadline. The
  * caller (production: {@code ConsumableSystem.createDecoy}) decrements
  * the ship's {@code Decoy} inventory before invoking the factory; this
@@ -39,7 +39,7 @@ public class DecoyFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId decoy =
-        GameEntities.createDecoy(ed, owner, createdTime, cfg.aliveTimeMs());
+        MapFactory.createDecoy(ed, owner, createdTime, cfg.aliveTimeMs());
 
     assertNotNull("createDecoy must return a real entity", decoy);
 

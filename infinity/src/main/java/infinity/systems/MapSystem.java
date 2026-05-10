@@ -12,7 +12,6 @@ import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.TileId;
 import com.simsilica.mworld.World;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.EngineConfig;
@@ -24,7 +23,7 @@ import infinity.map.LevelLoader;
 import infinity.server.AssetLoaderService;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.CoreViewConstants;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -40,7 +39,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class MapSystem extends AbstractGameSystem {
+public class MapSystem extends BaseInfinitySystem {
 
   public static final byte CREATE = 0x0;
   public static final byte READ = 0x1;
@@ -108,21 +107,17 @@ public class MapSystem extends AbstractGameSystem {
   // int[][] multD = new int[5][];
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new IllegalStateException(getClass().getName() + " system requires an EntityData object.");
-    }
+    ed = requireSystem(EntityData.class);
     final MPhysSystem<MBlockShape> physics = getPhysicsSystem();
     if (physics == null) {
-      throw new IllegalStateException(getClass().getName() + " system requires the MPhysSystem system.");
+      throw new IllegalStateException(getClass().getName() + " system requires the MPhysSystem.");
     }
     world = super.getManager().get(World.class);
-    // world = getSystem(DefaultLeafWorld.class);
     if (world == null) {
-      throw new IllegalStateException(getClass().getName() + " system requires the World system.");
+      throw new IllegalStateException(getClass().getName() + " system requires the World.");
     }
-    this.assetLoader = getSystem(AssetLoaderService.class);
-    this.engineConfigSystem = getSystem(EngineConfigSystem.class);
+    this.assetLoader = requireSystem(AssetLoaderService.class);
+    this.engineConfigSystem = requireSystem(EngineConfigSystem.class);
 
     physicsSpace = physics.getPhysicsSpace();
     assetLoader.registerLoader(LevelLoader.class, "lvl", "lvz");
@@ -411,7 +406,7 @@ public class MapSystem extends AbstractGameSystem {
 
   /**
    * Per-tile dispatch for entity-backed map cells (turf flags, asteroids,
-   * doors, wormholes). Spawns the matching {@link GameEntities} entity for
+   * doors, wormholes). Spawns the matching {@link MapFactory} entity for
    * recognised tile ids and bumps the matching counter on {@code stats};
    * returns {@code true} if an entity was spawned (caller skips the cell-write
    * step), {@code false} if the tile id needs the cell-write fallback.
@@ -421,36 +416,36 @@ public class MapSystem extends AbstractGameSystem {
     final EngineConfig engineCfg =
         engineConfigSystem == null ? EngineConfig.DEFAULTS : engineConfigSystem.get();
     if (s == MapTypes.vieTurfFlag) {
-      GameEntities.createTurfStationaryFlag(
+      MapFactory.createTurfStationaryFlag(
           ed, EntityId.NULL_ID, physicsSpace, createdTime, location, engineCfg.flagRadius());
       stats.turfFlags++;
       return true;
     }
     if (s == MapTypes.vieAsteroidSmall) {
-      GameEntities.createAsteroidSmall(
+      MapFactory.createAsteroidSmall(
           ed, null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius());
       stats.asteroidsSmall++;
       return true;
     }
     if (s == MapTypes.vieAsteroidMedium) {
-      GameEntities.createAsteroidMedium(
+      MapFactory.createAsteroidMedium(
           ed, null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius());
       stats.asteroidsMedium++;
       return true;
     }
     if (s == MapTypes.vieAsteroidEnd) {
-      GameEntities.createOver5(
+      MapFactory.createOver5(
           ed, null, physicsSpace, createdTime, location, engineCfg.over5Radius());
       stats.over5++;
       return true;
     }
     if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
-      GameEntities.createDoor(ed, null, physicsSpace, createdTime, 5000, location);
+      MapFactory.createDoor(ed, null, physicsSpace, createdTime, 5000, location);
       stats.doors++;
       return true;
     }
     if (s == MapTypes.vieWormhole) {
-      GameEntities.createWormhole(
+      MapFactory.createWormhole(
           ed, null, physicsSpace, createdTime, location,
           5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
       stats.wormholes++;

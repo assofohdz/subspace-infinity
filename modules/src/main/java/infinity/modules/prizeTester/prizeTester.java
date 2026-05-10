@@ -12,7 +12,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.util.regex.Matcher;
@@ -43,7 +43,7 @@ public class prizeTester extends BaseGameModule {
   protected void initialize() {
     final EntityData ed = getSystem(EntityData.class);
 
-    GameEntities.createSpawner(
+    MapFactory.createSpawner(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),

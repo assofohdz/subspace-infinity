@@ -20,7 +20,7 @@ import org.junit.Test;
  * distance limit from arena center" per REFERENCE.md) and belongs with
  * Slice 7 (Spawn-point selection), not here.
  *
- * <p>{@link GameEntities#createPortal} composes a marker entity carrying
+ * <p>{@link MapFactory#createPortal} composes a marker entity carrying
  * {@link PortalConfig#activeTimeMs()} as a {@link Decay} deadline. The
  * caller (production: {@code ConsumableSystem.createPortal}) decrements
  * the ship's {@code Portal} inventory before invoking the factory; this
@@ -41,7 +41,7 @@ public class PortalFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId portal =
-        GameEntities.createPortal(ed, owner, createdTime, cfg.activeTimeMs());
+        MapFactory.createPortal(ed, owner, createdTime, cfg.activeTimeMs());
 
     assertNotNull("createPortal must return a real entity", portal);
 

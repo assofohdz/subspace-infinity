@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Repel-effect spawn-projection test — Slice 1 closes
  * {@code [Repel] RepelSpeed} / {@code RepelTime} / {@code RepelDistance}
- * end-to-end. {@link GameEntities#createRepel} carries
+ * end-to-end. {@link WeaponFactory#createRepel} carries
  * {@link RepelConfig#timeMs()} into the {@link Decay} deadline; the caller
  * (production code: {@code ConsumableSystem.createRepel}) stamps
  * {@link RepelSpeed} / {@link RepelDistance} components from the same
@@ -49,7 +49,7 @@ public class RepelFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId repel =
-        GameEntities.createRepel(
+        WeaponFactory.createRepel(
             ed,
             owner,
             phys,
@@ -76,7 +76,7 @@ public class RepelFactoryTest {
     final EntityId owner = ed.createEntity();
 
     final EntityId repel =
-        GameEntities.createRepel(
+        WeaponFactory.createRepel(
             ed,
             owner,
             phys,
@@ -85,7 +85,7 @@ public class RepelFactoryTest {
             cfg.timeMs(),
             EngineConfig.DEFAULTS.repelRadius());
     // Mirrors the production projection in ConsumableSystem.createRepel:
-    // GameEntities.createRepel handles the Decay projection; speed and
+    // WeaponFactory.createRepel handles the Decay projection; speed and
     // distance are stamped by the caller from the same RepelConfig.
     ed.setComponent(repel, new RepelSpeed(cfg.speed()));
     ed.setComponent(repel, new RepelDistance(cfg.distancePixels()));
@@ -102,7 +102,7 @@ public class RepelFactoryTest {
 
     final EntityId owner = ed.createEntity();
     final EntityId repel =
-        GameEntities.createRepel(
+        WeaponFactory.createRepel(
             ed,
             owner,
             phys,

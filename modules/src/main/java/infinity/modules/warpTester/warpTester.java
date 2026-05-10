@@ -13,7 +13,7 @@ import infinity.sim.ArenaManager;
 import infinity.sim.BaseGameModule;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.CommandTriFunction;
-import infinity.sim.GameEntities;
+import infinity.sim.MapFactory;
 import infinity.sim.PhysicsManager;
 import infinity.sim.TimeManager;
 import java.util.regex.Matcher;
@@ -44,7 +44,7 @@ public class warpTester extends BaseGameModule {
   protected void initialize() {
     final EntityData ed = getSystem(EntityData.class);
 
-    GameEntities.createSpawner(
+    MapFactory.createSpawner(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
@@ -54,7 +54,7 @@ public class warpTester extends BaseGameModule {
         true,
         20);
 
-    GameEntities.createWormhole(
+    MapFactory.createWormhole(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
@@ -64,7 +64,7 @@ public class warpTester extends BaseGameModule {
         GravityWell.PULL,
         new Vec3d(0, 1, 0),
         10);
-    GameEntities.createWormhole(
+    MapFactory.createWormhole(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
@@ -75,13 +75,13 @@ public class warpTester extends BaseGameModule {
         new Vec3d(0, 1, 0),
         10);
 
-    GameEntities.createOver5(
+    MapFactory.createOver5(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),
         getTimeManager().getTime(),
         new Vec3d(0, 1, -10));
-    GameEntities.createOver5(
+    MapFactory.createOver5(
         ed,
         EntityId.NULL_ID,
         getPhysicsManager().getPhysics(),

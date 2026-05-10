@@ -10,7 +10,6 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.event.EventBus;
 import com.simsilica.ext.mphys.ShapeInfo;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import com.simsilica.mathd.Vec3d;
 import infinity.Ship;
@@ -24,7 +23,6 @@ import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.WarpTo;
 import infinity.events.arena.ShipEvent;
 import infinity.settings.EngineConfigSystem;
-import infinity.sim.util.InfinityRunTimeException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +33,7 @@ import java.util.Map;
  *
  * @author Asser
  */
-public class AvatarSystem extends AbstractGameSystem {
+public class AvatarSystem extends BaseInfinitySystem {
 
   public static final byte SPEC = 0x0;
   public static final byte WARBIRD = 0x1;
@@ -60,13 +58,8 @@ public class AvatarSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-
-    engineConfigSystem = getSystem(EngineConfigSystem.class);
-    if (engineConfigSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the EngineConfigSystem.");
-    }
+    ed = requireSystem(EntityData.class);
+    engineConfigSystem = requireSystem(EngineConfigSystem.class);
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);

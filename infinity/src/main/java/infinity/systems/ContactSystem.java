@@ -16,7 +16,6 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.DynArray;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.ArenaConfig;
 import infinity.es.CollisionCategory;
@@ -25,7 +24,6 @@ import infinity.es.Sensor;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
 import infinity.sim.CategoryFilter;
-import infinity.sim.util.InfinityRunTimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +32,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author AFahrenholz
  */
-public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSystem
+public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(ContactSystem.class);
@@ -260,21 +258,9 @@ public class ContactSystem<K, S extends AbstractShape> extends AbstractGameSyste
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    final MPhysSystem<?> physics = getSystem(MPhysSystem.class);
-    if (physics == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the MPhysSystem system.");
-    }
-    arenaSystem = getSystem(ArenaSystem.class);
-    if (arenaSystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the ArenaSystem system.");
-    }
+    ed = requireSystem(EntityData.class);
+    requireSystem(MPhysSystem.class);
+    arenaSystem = requireSystem(ArenaSystem.class);
 
     categoryFilters = ed.getEntities(CollisionCategory.class);
   }

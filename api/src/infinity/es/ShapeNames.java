@@ -68,7 +68,7 @@ public class ShapeNames {
    *
    * <p>The collision radius flows in from the caller — server-side spawn paths
    * read {@code engineConfigSystem.get().shipRadius()} (slice s6-ship-radius);
-   * api-internal callers ({@code GameEntities.createShip}) thread the value in
+   * api-internal callers ({@code ShipFactory.createShip}) thread the value in
    * via the {@link infinity.config.EngineConfig#DEFAULTS} backward-compat
    * overload. Mirrors the projectile-radius slice's threading shape.
    *

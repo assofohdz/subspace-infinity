@@ -6,7 +6,6 @@ package infinity.systems.ship;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.ship.Health;
 import infinity.es.ship.toggles.Antiwarp;
@@ -17,7 +16,7 @@ import infinity.es.ship.toggles.Stealth;
 import infinity.es.ship.toggles.StealthEnergy;
 import infinity.es.ship.toggles.XRadar;
 import infinity.es.ship.toggles.XRadarEnergy;
-import infinity.sim.util.InfinityRunTimeException;
+import infinity.systems.BaseInfinitySystem;
 
 /**
  * Drains Health from ships with active Status-family toggles
@@ -45,7 +44,7 @@ import infinity.sim.util.InfinityRunTimeException;
  *       weapon-fire cost, and contact damage in the same tick.
  * </ul>
  */
-public class StatusDrainSystem extends AbstractGameSystem {
+public class StatusDrainSystem extends BaseInfinitySystem {
 
   private EnergySystem energySystem;
   private EntitySet cloakDrainers;
@@ -55,16 +54,8 @@ public class StatusDrainSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    final EntityData ed = getSystem(EntityData.class);
-    if (ed == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires an EntityData object.");
-    }
-    energySystem = getSystem(EnergySystem.class);
-    if (energySystem == null) {
-      throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the EnergySystem.");
-    }
+    final EntityData ed = requireSystem(EntityData.class);
+    energySystem = requireSystem(EnergySystem.class);
     cloakDrainers = ed.getEntities(Cloak.class, CloakEnergy.class, Health.class);
     stealthDrainers = ed.getEntities(Stealth.class, StealthEnergy.class, Health.class);
     xradarDrainers = ed.getEntities(XRadar.class, XRadarEnergy.class, Health.class);

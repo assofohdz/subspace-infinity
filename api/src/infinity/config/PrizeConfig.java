@@ -6,7 +6,7 @@ package infinity.config;
 /**
  * Per-arena prize-spawn defaults. Read by {@code PrizeSystem} (and by
  * arena-load logic when materialising prize-spawner specs) and forwarded to
- * the {@code GameEntities} factories — those factories keep matching
+ * the {@code MapFactory} factories — those factories keep matching
  * constants ({@code PRIZE_DEFAULT_DECAY_MS} / {@code PRIZE_DEFAULT_MAX_COUNT}
  * / {@code BOUNTY_VALUE}) as last-resort fallbacks so module authors using
  * the api can call them without a config lookup, but the per-arena values

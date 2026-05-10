@@ -285,7 +285,7 @@ public final class GroovyArenaLoader {
      * <p>Required: {@code x}, {@code z}, {@code radius}, {@code maxCount},
      * {@code intervalMs}.
      * Optional with defaults: {@code ttlMs} (0 = use the global
-     * {@code GameEntities.PRIZE_DEFAULT_DECAY_MS}); {@code onRing} (false = uniform
+     * {@code MapFactory.PRIZE_DEFAULT_DECAY_MS}); {@code onRing} (false = uniform
      * within disc); {@code weights} (empty map = use arena {@code [PrizeWeight]}
      * defaults); {@code countPerPlayer} (0 = no count scaling);
      * {@code radiusPerPlayer} (0 = no radius scaling); {@code regenBatch} (1 = one

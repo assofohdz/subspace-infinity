@@ -53,7 +53,7 @@ public class RocketBuffActivationTest {
       ed.setComponent(ship, new Thrust(/* rocket-active override */ 100));
       ed.setComponent(ship, new Speed(/* rocket-active override */ 3000));
 
-      // Create the buff entity (mirror of GameEntities.createRocketBuff). The
+      // Create the buff entity (mirror of ShipFactory.createRocketBuff). The
       // snapshot carries the ship's PRE-buff Thrust/Speed for revert.
       final long createdNs = 0L;
       final long deadlineNs = 100_000_000L; // 100 ms from epoch — irrelevant
