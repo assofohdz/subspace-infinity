@@ -2,18 +2,12 @@
 
 Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices). Branch: `slice/s7-mine-speed` HEAD `9c1abec4`. Date: 2026-05-09.
 
-1 active tech-debt finding remaining. (Tier 1 closed in `arch-review-tier1-bundle`; Tier 2's 6 items closed in `arch-review-tier2-bundle` — commit `7eb8b2b8`; Tier 3 #7–#10, #12–#13 closed in `arch-review-tier3-bundle` — commit `2578dd6c`.) Findings are sourced from five parallel reviews:
+All findings closed. (Tier 1 closed in `arch-review-tier1-bundle`; Tier 2's 6 items closed in `arch-review-tier2-bundle` — commit `7eb8b2b8`; Tier 3 #7–#10, #12–#13 closed in `arch-review-tier3-bundle` — commit `2578dd6c`; #11 closed in `arch-review-megasplit-bundle` — commit `3cf92a86`.) Findings are sourced from five parallel reviews:
 - **planner** — module boundaries, api-contracts, cross-module layering
 - **config-2** — config + settings pipeline (Pattern 4, Groovy adapters, prize-appliers)
 - **spawn** — ECS architecture + server-side systems + EntitySet lifecycle
 - **cleanup** — tests + tooling + dev workflow
 - **client** (temporary 5th teammate, shut down post-review) — client / UI / rendering / input
-
-## Tier 3 — Smaller wins or longer-term
-
-| # | Finding | Where | Notes |
-|---|---|---|---|
-| 11 | **`infinity/` mega-module** — 243 files, server+client+systems+ai+sim+settings+net co-located. ArchUnit-test enforcement at boot vs compile-time enforcement via Gradle modules. Long-term cost of past iteration speed. | `infinity/src/main/java/infinity/**` | **L/L** — multi-week. Not a now-task. |
 
 ## Patterns the team flagged as working well
 
@@ -35,11 +29,10 @@ Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices).
 
 ## Open questions surfaced by the review
 
-- TD-11's mega-module split — is there a file/LOC threshold to defend, or is "split when something hurts" the policy?
 - TD-6 hot-reload — is engine-tier tuning expected to continue, or has it settled? Determines whether the watcher is worth the effort.
 - TD-1 extraction direction — `WeaponsFireSystem` vs `WeaponsReaperSystem` vs `WeaponsImpactSystem` — three-way carve identified during the grilling for the spatial-query slice. Producer-audit + RaM pilot will resolve canonical writers as part of the slice.
 - Are `PostProcessingState` / `BloomPostState` / `SkyState` / `GridState` / `SettingsState` intended for restoration, or are they dead? They occupy ~1.5K LOC and aren't wired to `Main`. (Their commented-out instantiation in Main.java has been removed; the .java files are still on disk.)
 
 ## Recommendations — biggest wins
 
-Tier 1 (same-day-fix bundle: Main.java graveyard, SISpatialFactory dead code, spatial-query promotion, static-analysis ceilings), Tier 2 (#1–6: WeaponsSystem RaM split, ConfigRegistry slot-store + adapter dedup, client/server/net seed tests, spawn-projection RaM pillar, engine-tier hot-reload), and Tier 3 (#7–#10, #12–#13: requireSystem helper, WatchedEntity lifecycle, GameEntities split, GroovyShipLoader extraction, api/ test sourceset, Main.java SPDX) have all landed. Remaining item (#11) is the multi-week infinity/ mega-module split.
+All tiers fully closed. Tier 1 (same-day-fix bundle: Main.java graveyard, SISpatialFactory dead code, spatial-query promotion, static-analysis ceilings), Tier 2 (#1–6: WeaponsSystem RaM split, ConfigRegistry slot-store + adapter dedup, client/server/net seed tests, spawn-projection RaM pillar, engine-tier hot-reload), and Tier 3 (#7–#10, #12–#13: requireSystem helper, WatchedEntity lifecycle, GameEntities split, GroovyShipLoader extraction, api/ test sourceset, Main.java SPDX; #11: infinity/ mega-module split into infinity-server + infinity-client) have all landed.

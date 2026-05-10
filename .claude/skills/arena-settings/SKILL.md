@@ -62,7 +62,7 @@ arena {
 
 `zone/` is added as a resource source dir by [buildSrc/.../infinity.app-with-assets.gradle:16](../../../buildSrc/src/main/groovy/infinity.app-with-assets.gradle#L16), so JME's `AssetManager` and Groovy-classpath reads see everything under `zone/` on the classpath. Asset keys are relative to that root: `arenas/{name}/arena.groovy`, `conf/svs/cost.groovy`.
 
-Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity/src/main/java/infinity/settings/):
+Supporting Java in [infinity-server/src/main/java/infinity/settings/](../../../infinity-server/src/main/java/infinity/settings/):
 
 | File | Purpose |
 |---|---|
@@ -76,7 +76,7 @@ Supporting Java in [infinity/src/main/java/infinity/settings/](../../../infinity
 | `ConfigRegistry` | Immutable per-arena snapshot of typed `*Config` records. Direct slots: `ShipConfig` map (via `GroovyShipLoader`), plus per-section `BulletConfig`, `BombConfig`, `GravBombConfig`, `MineConfig`, `BurstFireConfig`, `RepelConfig`, `ThorConfig`, `PrizeConfig`, `SpawnConfig` (each populated by its typed adapter). Per-slot `with*` updaters return a new immutable copy. |
 | `ConfigRegistrySystem` | Holds one `ConfigRegistry` per arena. Owns load orchestration via `load(arenaId, arenaConfig)`: two-phase sequence — legacy fragment `Ini` load (still needed for unmigrated polish-bag sections) → typed dispatch (ship + six weapon/prize adapters via `DISPATCH`). Single entry point for both initial arena load and hot-reload. Atomic-swap installs ensure readers see either the old or new snapshot, never a torn state. |
 
-Runtime entry point: [infinity/src/main/java/infinity/systems/SettingsSystem.java](../../../infinity/src/main/java/infinity/systems/SettingsSystem.java).
+Runtime entry point: [infinity-server/src/main/java/infinity/systems/SettingsSystem.java](../../../infinity-server/src/main/java/infinity/systems/SettingsSystem.java).
 
 ## Identity rule
 
@@ -203,7 +203,7 @@ Canonical Subspace key list per section: [`.scratch/subspace-ini-reference/serve
 
 ## Loading an arena's settings
 
-Arena-load flow in [ArenaSystem.doLoad](../../../infinity/src/main/java/infinity/systems/ArenaSystem.java):
+Arena-load flow in [ArenaSystem.doLoad](../../../infinity-server/src/main/java/infinity/systems/ArenaSystem.java):
 
 1. `GroovyArenaLoader.load(arenaName)` reads `arenas/{arenaName}/arena.groovy`.
 2. Parsed `ArenaConfig` is cached on the per-arena `ArenaRecord` (single source of truth for in-memory arena state — `getArenaSpawn`, `swapMap`, etc. all read from it).

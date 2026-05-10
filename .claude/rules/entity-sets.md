@@ -1,6 +1,7 @@
 ---
 paths:
-  - "infinity/src/main/java/**/*.java"
+  - "infinity-server/src/main/java/**/*.java"
+  - "infinity-client/src/main/java/**/*.java"
   - "modules/src/main/java/**/*.java"
 ---
 # EntitySet Lifecycle

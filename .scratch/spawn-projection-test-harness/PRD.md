@@ -62,7 +62,7 @@ Each slice adds one independently-testable flow. Land them as separate PRs so ea
 1. **One file per system under test.** `ShipSpawnSystemTest.java` for slice 1; future spawn systems (PrizeSpawnerSystem, projectile spawns when those land) get their own files. Avoids one giant "harness" class that grows unbounded.
 2. **Fixtures inline, not shared.** Each test builds its own `ShipConfig` so the assertions are local. If duplication gets painful, factor a `ShipConfigFixtures` helper later — not preemptively.
 3. **`DefaultEntityData` is the ECS backend.** Same class `GameServer` uses in production. No mock entity data — that drift would be the bug the harness should catch, not the bug the harness introduces.
-4. **No `@Before` / `@After` factory methods until repetition justifies it.** Each test stands up its own `GameSystemManager`, calls `terminate()` in a `try/finally`. JUnit 4 still — matches `MapSwapReproducerTest` (`infinity/src/test/`) and the Groovy loader tests there; the factory tests themselves live in `api/src/test/java/infinity/sim/`.
+4. **No `@Before` / `@After` factory methods until repetition justifies it.** Each test stands up its own `GameSystemManager`, calls `terminate()` in a `try/finally`. JUnit 4 still — matches `MapSwapReproducerTest` (`infinity-server/src/test/`) and the Groovy loader tests there; the factory tests themselves live in `api/src/test/java/infinity/sim/`.
 5. **Live-tune fields are not magic.** Memory says only `ShipSpawnSystem` writes the `*Max` components. The harness preserves that — tests only mutate components the production code mutates.
 
 ## Comments

@@ -10,7 +10,7 @@ list of legacy INI fragments. It has:
 - no `spawn` directive — players spawn at the arena's centre tile (512, 512)
 - no `prizeSpawners` — there is nothing producing prizes inside the arena
   (the only prize spawner today is the hardcoded one at world coord
-  `(-512, 1, -512)` in [`BasicEnvironment.java`](../../infinity/src/main/java/infinity/server/BasicEnvironment.java),
+  `(-512, 1, -512)` in [`BasicEnvironment.java`](../../infinity-server/src/main/java/infinity/server/BasicEnvironment.java),
   which sits inside the trench arena, not the default).
 
 For now we use **trench** as the testing playground. This issue tracks the

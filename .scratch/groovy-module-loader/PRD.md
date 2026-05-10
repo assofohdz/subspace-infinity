@@ -67,7 +67,7 @@ Decision is downstream of question #1. **Keep them in the codebase until the loa
 
 1. Pick the simplest of the 6 `*Tester` modules as the prototype (`doorTester` is the smallest at 111 lines and entirely stub-shaped, so it's the lowest-stakes target).
 2. Decide question #1 above based on what that module actually needs.
-3. Add `GroovyModuleLoader` parallel to [`GroovyShipLoader`](../../infinity/src/main/java/infinity/settings/GroovyShipLoader.java): typed DSL for the chosen module shape, a per-arena registry, mtime-based live reload via `ArenaSystem.pollScriptWatches`.
+3. Add `GroovyModuleLoader` parallel to [`GroovyShipLoader`](../../infinity-server/src/main/java/infinity/settings/GroovyShipLoader.java): typed DSL for the chosen module shape, a per-arena registry, mtime-based live reload via `ArenaSystem.pollScriptWatches`.
 4. Re-express the prototype tester as a Groovy script under `infinity/zone/conf/<preset>/modules/` (or `infinity/zone/arenas/<name>/modules/` if per-arena scope wins). Delete the Java tester directory only after the Groovy version is verified working.
 5. Port the remaining 5 testers one at a time, each removing its Java directory in the same change.
 6. Once no `*Tester` remains, decide #5 above (keep or retire `BaseGameModule` / `BaseGameService`).

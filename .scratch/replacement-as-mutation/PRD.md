@@ -15,9 +15,9 @@ mutation" is gone, and reactors (VFX, network sync, AI) can't
 trust `getChangedEntities()` to mean a single coherent thing.
 
 This PRD codifies the existing single-writer practice in
-[`EnergySystem`](../../infinity/src/main/java/infinity/systems/ship/EnergySystem.java)
+[`EnergySystem`](../../infinity-server/src/main/java/infinity/systems/ship/EnergySystem.java)
 (the `HealthChange + Buff` intent pattern is already RaM-shaped) and
-[`mphys` integrator](../../infinity/src/main/java/infinity/sim/InfinityEntityBodyFactory.java)
+[`mphys` integrator](../../infinity-server/src/main/java/infinity/sim/InfinityEntityBodyFactory.java)
 (`Impulse` ECS component drained by the integrator), names it as a
 project rule, and stages a migration of the remaining direct-mutation
 sites.
@@ -25,7 +25,7 @@ sites.
 ## Why
 
 - **`WeaponsDamageLogic.applySplashDamage`** (motivating example,
-  `infinity/src/main/java/infinity/systems/ship/WeaponsDamageLogic.java`
+  `infinity-server/src/main/java/infinity/systems/ship/WeaponsDamageLogic.java`
   lines 87-124) iterates the live `Health` EntitySet, computes
   per-victim damage, and **already routes through the intent shape**:
   it calls `energy.damage(victimId, deltaHitPoints)`, which creates a
@@ -34,7 +34,7 @@ sites.
   rule and the same shape isn't applied for `Energy`,
   `Jitter`, `BombCurrentLevel`, `BulletCurrentLevel`, etc.
 - **30 prize appliers** under
-  `infinity/src/main/java/infinity/systems/ship/applier/` mostly do
+  `infinity-server/src/main/java/infinity/systems/ship/applier/` mostly do
   `ed.getComponent(ship, T.class)` → compute → `ed.setComponent(ship,
   newT)` directly. When two prize pickups land in the same tick (rare
   but possible — the spawner can drop multiple), the order in which
@@ -178,7 +178,7 @@ Ordered by impact-per-effort. Each item is a future slice.
 
 1. **PrizeSystem applier chain → CapBumpIntent / RegenIntent.** The
    30 appliers in
-   `infinity/src/main/java/infinity/systems/ship/applier/`. Most do
+   `infinity-server/src/main/java/infinity/systems/ship/applier/`. Most do
    `ed.setComponent(ship, new Energy(next))` /
    `new Speed(next)` / `new Thrust(next)` / etc. Goal: a single
    `EnergyCapBumpIntent`, `SpeedCapBumpIntent`, etc. emitted by the
@@ -306,7 +306,7 @@ Pilot slice (DamageIntent / DamageSource extraction) landed in
   intent-drain round-trip.
 
 Long-term acceptance (slices 1-5 cumulative):
-- `git grep -rln "setComponent" infinity/src/main/java/infinity/systems/ship/applier/`
+- `git grep -rln "setComponent" infinity-server/src/main/java/infinity/systems/ship/applier/`
   returns zero hits — every applier emits intent, no applier writes
   directly.
 - A reactor querying `(Energy.class).getChangedEntities()` after the

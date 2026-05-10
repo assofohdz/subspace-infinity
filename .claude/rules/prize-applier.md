@@ -1,7 +1,7 @@
 # Prize Applier Implementation
 
 Before implementing or modifying a prize applier in
-`infinity/src/main/java/infinity/systems/ship/applier/`, **look up the
+`infinity-server/src/main/java/infinity/systems/ship/applier/`, **look up the
 prize in [`REFERENCE.md`](../../.scratch/subspace-ini-reference/REFERENCE.md)
 to find the canonical Subspace logic.** REFERENCE.md is the
 Subspace VIE / Continuum settings spec; it is the source of truth for

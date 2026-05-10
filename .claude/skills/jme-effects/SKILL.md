@@ -17,8 +17,8 @@ For materials/shaders used by effects, see the `jme-materials` and `jme-shaders`
 
 ## Where This Lives in Infinity
 
-- Post-processing pipeline: [PostProcessingState.java](infinity/src/main/java/infinity/PostProcessingState.java) — central `FilterPostProcessor` owner; add new filters here, not in individual states
-- Particle presets: [EffectFactory.java](infinity/src/main/java/infinity/client/view/EffectFactory.java) — pre-built explosion (flame/flash/spark/roundspark/smoketrail/debris/shockwave) templates; `deepClone()` per instance
+- Post-processing pipeline: [PostProcessingState.java](infinity-client/src/main/java/infinity/client/states/PostProcessingState.java) — central `FilterPostProcessor` owner; add new filters here, not in individual states
+- Particle presets: [EffectFactory.java](infinity-client/src/main/java/infinity/client/view/EffectFactory.java) — pre-built explosion (flame/flash/spark/roundspark/smoketrail/debris/shockwave) templates; `deepClone()` per instance
 - Effect textures: `infinity/assets/Effects/` (use built-in `Effects/Explosion/*.png` when possible — flame, flash, spark, roundspark, smoketrail, Debris, shockwave)
 
 ## Particle Emitters
@@ -105,7 +105,7 @@ Texture blends additively by default — good for flames, flashes, sparks; stack
 
 ### Setup (once per viewport)
 
-Infinity already owns a `FilterPostProcessor` in [PostProcessingState.java](infinity/src/main/java/infinity/PostProcessingState.java). Add the filter there, not in a new FPP:
+Infinity already owns a `FilterPostProcessor` in [PostProcessingState.java](infinity-client/src/main/java/infinity/client/states/PostProcessingState.java). Add the filter there, not in a new FPP:
 
 ```java
 // Inside PostProcessingState.initialize()

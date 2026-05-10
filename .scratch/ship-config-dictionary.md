@@ -19,7 +19,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Ported — `shipSection` keys with a typed `ShipConfig` binding
 
-32 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp + 3 projectile speeds + 1 bomb recoil). All projected at spawn by [`ShipSpawnSystem`](../infinity/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
+32 keys (5 stat triples + 3 rocket inventory/lifetime + 2 brick inventory + 2 cloak + 2 stealth + 2 xradar + 2 antiwarp + 3 projectile speeds + 1 bomb recoil). All projected at spawn by [`ShipSpawnSystem`](../infinity-server/src/main/java/infinity/systems/ship/ShipSpawnSystem.java) into per-entity ECS components.
 
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|

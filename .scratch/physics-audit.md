@@ -54,7 +54,7 @@ three scans above is a textbook `queryBounds` use case ("give me
 bodies within radius R of point P"); the bin index is already keeping
 the index they'd consume.
 
-`grep -r "queryBounds\|queryHits\|queryContacts" infinity/src` → zero
+`grep -r "queryBounds\|queryHits\|queryContacts" infinity-server/src infinity-client/src` → zero
 hits.
 
 **Slice P1** (already queued) is the right home for this. The

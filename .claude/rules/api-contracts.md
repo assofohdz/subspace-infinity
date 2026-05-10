@@ -9,7 +9,7 @@ The `api/` module is the shared contract layer — data and interfaces only. Bot
 - **Data + interfaces only.** No business logic, no system implementations, no state mutation logic. Exception: see "Module-facing entity-construction ABI" below.
 - **Components live in `infinity.es.*`** and must be immutable (see [components.md](./components.md)).
 - **Events and shared contracts** go in `infinity.events.*` / `infinity.sim.*`.
-- **Do not depend on** `infinity.systems.*`, `infinity.server.*`, `infinity.client.*`, or `infinity.modules.*`. Enforced by [`LayerDependencyTest`](../../infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
+- **Do not depend on** `infinity.systems.*`, `infinity.server.*`, `infinity.client.*`, or `infinity.modules.*`. Enforced by [`LayerDependencyTest`](../../infinity-client/src/test/java/infinity/architecture/LayerDependencyTest.java).
 - **Keep rendering/UI types out of public contracts.** jME math types (`Vector3f`, `Quaternion`) are fine; Lemur UI types are not.
 
 ## Module-facing entity-construction ABI

@@ -72,7 +72,7 @@ Bridges leaf ↔ tile. Useful API: `ColumnId.getTileId()`, `LeafId.getColumnId()
 
 ## How cells reach disk
 
-`world.setWorldCell(Vec3d, int type)` ([infinity/src/main/java/infinity/sim/InfinityDefaultLeafWorld.java:153](../../../infinity/src/main/java/infinity/sim/InfinityDefaultLeafWorld.java#L153)):
+`world.setWorldCell(Vec3d, int type)` ([infinity-server/src/main/java/infinity/sim/InfinityDefaultLeafWorld.java:153](../../../infinity-server/src/main/java/infinity/sim/InfinityDefaultLeafWorld.java#L153)):
 
 1. `LeafId.fromWorld(world)` — hash into the owning leaf
 2. `getLeaf(id)` — pull from `DefaultColumnDb` cache (backed by `SpoolingObjectDb` async I/O)
@@ -87,7 +87,7 @@ Bridges leaf ↔ tile. Useful API: `ColumnId.getTileId()`, `LeafId.getColumnId()
 ## Subspace Infinity configuration
 
 - `MapSystem.MAP_SIZE = 1024` matches `WorldGrids.TILE_SIZE = 1024` by design — each `.lvl` is exactly one `TileId`.
-- World instance: `InfinityDefaultLeafWorld(leafDb, yMax=10)` created in [GameServer.java:221-228](../../../infinity/src/main/java/infinity/server/GameServer.java#L221-L228).
+- World instance: `InfinityDefaultLeafWorld(leafDb, yMax=10)` created in [GameServer.java:221-228](../../../infinity-server/src/main/java/infinity/server/GameServer.java#L221-L228).
 - Persistence: `DefaultColumnDb(new File("world.db"))` → per-leaf `.col` files at `infinity/world.db/0/-1/-1/*.col`.
 
 ## Common patterns

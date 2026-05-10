@@ -19,12 +19,16 @@ description: Overview of Subspace Infinity project structure, tech stack, and co
 api/src/infinity/            # Shared components, interfaces
   es/                        # ECS components (ArenaId, ArenaMap, ArenaSettings, ...)
   sim/                       # Base classes (BaseGameModule)
-infinity/src/main/java/infinity/
+  net/                       # Network contracts
+  util/                      # Shared utilities
+infinity-server/src/main/java/infinity/
   systems/                   # Server-side game systems (ArenaSystem, SettingsSystem, ...)
   server/                    # Server networking (GameServer, BasicEnvironment)
   ai/                        # AI/mob systems
   settings/                  # GroovySettingsHost + per-tier Groovy*Loader (zone/arena/ship/fragment), ConfigRegistry, SettingListener
-  *.java                     # Client app states
+infinity-client/src/main/java/infinity/
+  client/                    # Client app states, view factories
+  Main.java                  # Entry point (fat-client + embedded server)
 infinity/assets/             # JME asset root: Maps/*.lvl, textures, sounds
 infinity/zone/               # Second asset root for runtime config
   zone.groovy                # zone-wide config (autoLoad, enterSpawn)
@@ -42,19 +46,19 @@ Arena identity is by **folder name** under `arenas/`, not by map filename. An ar
 
 ## Key Conventions
 - SPDX-only `BSD-3-Clause` license header on all source files (Copyright Asser Fahrenholz)
-- Components: immutable, in `infinity.es` package
-- Systems: extend `AbstractGameSystem`, in `infinity.systems`
-- App States: extend `BaseAppState`, in `infinity` package
+- Components: immutable, in `infinity.es` package (`api/`)
+- Systems: extend `AbstractGameSystem`, in `infinity.systems` (`infinity-server/`)
+- App States: extend `BaseAppState`, in `infinity` package (`infinity-client/`)
 - Use `final` for method parameters
 - **Always release EntitySets in terminate()**
 
 ## Build Commands
 ```bash
-./gradlew build              # Build all
-./gradlew :infinity:run      # Run game
-./gradlew :infinity:runX11   # Run with X11 backend (Wayland fix)
-./gradlew clean              # Clean
-./gradlew :infinity:jpackageImage  # Build native app with bundled JRE
+./gradlew build                         # Build all
+./gradlew :infinity-client:run          # Run game
+./gradlew :infinity-client:runX11       # Run with X11 backend (Wayland fix)
+./gradlew clean                         # Clean
+./gradlew :infinity-client:jpackageImage  # Build native app with bundled JRE
 ```
 
 ## Release Process

@@ -14,7 +14,7 @@ without dedicated cleanup slices.
 ## How to apply
 
 1. **Run PMD.** Group touched paths by their owning Gradle module
-   (`api` / `infinity` / `modules`) — `pmdPath` is per-module and the
+   (`api` / `infinity-server` / `infinity-client` / `modules`) — `pmdPath` is per-module and the
    path is relative to the module root.
    ```bash
    ./gradlew :<module>:pmdPath -PpmdPath=<comma,separated,relative,paths>

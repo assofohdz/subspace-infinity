@@ -8,7 +8,7 @@ description: Create client-side application states using jME3 BaseAppState. Use 
 Client-side states manage UI, rendering, and input using jME3's state system.
 
 ## Location
-`infinity/src/main/java/infinity/`
+`infinity-client/src/main/java/infinity/`
 
 ## Requirements
 1. Extend `com.jme3.app.state.BaseAppState`

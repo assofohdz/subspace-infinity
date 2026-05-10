@@ -42,7 +42,7 @@ Surfaced during slice S5 manual test (RepelSystem's `/ 16` conversion was the tr
 
 ### `AvatarMovementFunctions` keybinding cleanup
 
-[`AvatarMovementFunctions.java`](../infinity/src/main/java/infinity/client/AvatarMovementFunctions.java) `mapActions()` has four `if (!inputMapper.hasMappings(F_<X>)) { inputMapper.map(F_REPEL, KEY_<Y>); }` blocks where `<X>` is `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` but the body always maps `F_REPEL` (looks like copy-paste rot). Net effect: `F_REPEL` is mapped to F3 + F4 + F5 + F7, while `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` get **no** key bindings at all. Plus a commented-out shift-key mapping (original repel binding).
+[`AvatarMovementFunctions.java`](../infinity-client/src/main/java/infinity/client/AvatarMovementFunctions.java) `mapActions()` has four `if (!inputMapper.hasMappings(F_<X>)) { inputMapper.map(F_REPEL, KEY_<Y>); }` blocks where `<X>` is `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` but the body always maps `F_REPEL` (looks like copy-paste rot). Net effect: `F_REPEL` is mapped to F3 + F4 + F5 + F7, while `F_DECOY`/`F_ROCKET`/`F_BRICK`/`F_ATTACH` get **no** key bindings at all. Plus a commented-out shift-key mapping (original repel binding).
 
 Surfaced during slice S5 manual test (LEVIATHAN repel firing fine via F3/F4/F5/F7, but the action keys for the other features are wrong).
 
@@ -68,7 +68,7 @@ After: `MapSystem` keeps the cohesive "what maps are loaded where" story (load/u
 
 ### `ArenaSystem` spatial-index extraction
 
-735 lines. Two of the three originally-proposed extractions already landed: chat command handlers live in [`ArenaCommandsSystem`](../infinity/src/main/java/infinity/systems/ArenaCommandsSystem.java) and hot-reload polling lives in [`ArenaReloadWatcher`](../infinity/src/main/java/infinity/systems/ArenaReloadWatcher.java).
+735 lines. Two of the three originally-proposed extractions already landed: chat command handlers live in [`ArenaCommandsSystem`](../infinity-server/src/main/java/infinity/systems/ArenaCommandsSystem.java) and hot-reload polling lives in [`ArenaReloadWatcher`](../infinity-server/src/main/java/infinity/systems/ArenaReloadWatcher.java).
 
 What remains: extract `ArenaSpatialIndex` for spatial queries — `findArenaAt`, `findArenaEntityAt`, `arenaToWorld`, `worldToArena`, `getArenaSpawn`, `getArenaMap`. After this `ArenaSystem` keeps lifecycle only (reconcile/load/unload/slot allocation/bootstrap).
 
@@ -94,7 +94,7 @@ Out of scope until enough U1 in-game time confirms outlines are useful as-is. Pi
 
 ### `MapState` block create/delete interaction
 
-[`MapState.java:442, 449`](../infinity/src/main/java/infinity/client/states/MapState.java) wires left/right mouse click through a raycast and calls `session.map(MapSystem.CREATE / MapSystem.DELETE, vec3)` to mutate world blocks. Two smells: (1) `MapSystem.CREATE` / `DELETE` are loose `static final byte` constants on a server-side system that the client reaches into — they slip past `LayerDependencyTest` only because the Java compiler inlines them at compile time and erases the bytecode dependency. (2) `MapState` mixes rendering with arena-click input handling. Cleanup: promote the action codes to a proper RMI command surface (typed enum or RMI method per intent — `createBlock(Vec3)` / `deleteBlock(Vec3)`), and consider extracting the click-to-block input handling into its own input AppState if the rendering responsibilities of `MapState` keep growing.
+[`MapState.java:442, 449`](../infinity-client/src/main/java/infinity/client/states/MapState.java) wires left/right mouse click through a raycast and calls `session.map(MapSystem.CREATE / MapSystem.DELETE, vec3)` to mutate world blocks. Two smells: (1) `MapSystem.CREATE` / `DELETE` are loose `static final byte` constants on a server-side system that the client reaches into — they slip past `LayerDependencyTest` only because the Java compiler inlines them at compile time and erases the bytecode dependency. (2) `MapState` mixes rendering with arena-click input handling. Cleanup: promote the action codes to a proper RMI command surface (typed enum or RMI method per intent — `createBlock(Vec3)` / `deleteBlock(Vec3)`), and consider extracting the click-to-block input handling into its own input AppState if the rendering responsibilities of `MapState` keep growing.
 
 ## Library follow-ups
 

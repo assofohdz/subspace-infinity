@@ -5,7 +5,7 @@ description: Subspace/Continuum .lvl map file format — binary layout, embedded
 
 # Subspace .lvl File Format
 
-Source of truth: `infinity/src/main/java/infinity/map/` — `BitMap.java`, `LevelFile.java`, `LevelLoader.java`.
+Source of truth: `infinity-server/src/main/java/infinity/map/` — `BitMap.java`, `LevelFile.java`, `LevelLoader.java`.
 
 ## File Layout (in order)
 
@@ -137,7 +137,7 @@ See `BlockGeometryIndex.registerTileMaterialFromLevel()` for the live implementa
 
 ## Tile ID Categories
 
-Constants live in [`infinity.map.MapTypes`](../../infinity/src/main/java/infinity/map/MapTypes.java). Each category is handled in `MapSystem.createBlocksFromLegacyMap`.
+Constants live in [`infinity.map.MapTypes`](../../infinity-server/src/main/java/infinity/map/MapTypes.java). Each category is handled in `MapSystem.createBlocksFromLegacyMap`.
 
 | IDs | Category | How it's placed |
 |-----|----------|-----------------|

@@ -99,13 +99,13 @@ Names matter because zone operators inherit community expectations: `svs-anythin
 
 | Constant | Where | Meaning |
 |---|---|---|
-| `InfinityConstants.GRID_CELL_SIZE` | [InfinityConstants.java](../../../infinity/src/main/java/infinity/InfinityConstants.java) | Leaf cell size for this project (default: `WorldGrids.LEAF_SIZE` = 32) |
-| `InfinityConstants.TILE_SIZE` | [InfinityConstants.java](../../../infinity/src/main/java/infinity/InfinityConstants.java) | Tile / map footprint for this project (default: `WorldGrids.TILE_SIZE` = 1024) |
-| `MapSystem.MAP_SIZE` | [MapSystem.java](../../../infinity/src/main/java/infinity/systems/MapSystem.java) | Alias of `InfinityConstants.TILE_SIZE` kept for existing call sites |
+| `InfinityConstants.GRID_CELL_SIZE` | [InfinityConstants.java](../../../api/src/infinity/InfinityConstants.java) | Leaf cell size for this project (default: `WorldGrids.LEAF_SIZE` = 32) |
+| `InfinityConstants.TILE_SIZE` | [InfinityConstants.java](../../../api/src/infinity/InfinityConstants.java) | Tile / map footprint for this project (default: `WorldGrids.TILE_SIZE` = 1024) |
+| `MapSystem.MAP_SIZE` | [MapSystem.java](../../../infinity-server/src/main/java/infinity/systems/MapSystem.java) | Alias of `InfinityConstants.TILE_SIZE` kept for existing call sites |
 | `WorldGrids.LEAF_SIZE` / `TILE_SIZE` | MOSS | **Defaults only.** Do not read from in-project code — go through `InfinityConstants`. |
 | `LeafInfo.SIZE`, `Coordinates.LEAF_SIZE`/`NODE_SIZE` | MOSS | Deep-MOSS constants. Not configurable from Infinity. |
 
-Rule of thumb: **in-project code reads `InfinityConstants.*`**. Referencing `WorldGrids.*` sizes from `infinity/` is a bypass of the override point. (Referencing `WorldGrids.TILE_GRID` / `LEAF_GRID` as `Grid` objects is fine — those are structural, not sizing.)
+Rule of thumb: **in-project code reads `InfinityConstants.*`**. Referencing `WorldGrids.*` sizes from server/client code is a bypass of the override point. (Referencing `WorldGrids.TILE_GRID` / `LEAF_GRID` as `Grid` objects is fine — those are structural, not sizing.)
 
 ## File extensions
 

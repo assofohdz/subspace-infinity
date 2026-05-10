@@ -21,7 +21,7 @@ The user supplies one of:
 ## Procedure
 
 1. Read the target `arena.conf`. Resolve `#include` directives recursively by reading each fragment under `conf/`. Build a flat map of effective `[Section] Key = Value`.
-2. Locate all typed accessors in `SettingsSystem` (and any `*Settings*.java` classes under `infinity/src/main/java/infinity/systems/`). Build the set of `(section, key)` pairs the code reads.
+2. Locate all typed accessors in `SettingsSystem` (and any `*Settings*.java` classes under `infinity-server/src/main/java/infinity/systems/`). Build the set of `(section, key)` pairs the code reads.
 3. Cross-reference:
    - Keys in config **not read** by code → "unused key" (possibly typo or dead setting)
    - Keys read by code **not present** in effective config → "missing key" (would fall back to default — may be intentional)

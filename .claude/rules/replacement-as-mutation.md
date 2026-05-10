@@ -1,6 +1,7 @@
 ---
 paths:
-  - "infinity/src/main/java/infinity/**/*.java"
+  - "infinity-server/src/main/java/infinity/**/*.java"
+  - "infinity-client/src/main/java/infinity/**/*.java"
   - "modules/src/main/java/**/*.java"
   - "api/src/infinity/sim/**/*.java"
 ---

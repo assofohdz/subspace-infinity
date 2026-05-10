@@ -7,8 +7,8 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 | Task | Location | Base Class |
 |------|----------|------------|
 | Component | `api/src/infinity/es/` | `EntityComponent` |
-| System | `infinity/src/main/java/infinity/systems/` | `AbstractGameSystem` |
-| App State | `infinity/src/main/java/infinity/` | `BaseAppState` |
+| System | `infinity-server/src/main/java/infinity/systems/` | `AbstractGameSystem` |
+| App State | `infinity-client/src/main/java/infinity/` | `BaseAppState` |
 | Module | `modules/src/main/java/infinity/modules/` | `BaseGameModule` |
 
 ## Always-on Rules
@@ -28,28 +28,28 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 
 Path-scoped rules live in `.claude/rules/` and load automatically when relevant files are read:
 - [`components.md`](.claude/rules/components.md) — immutability + no-arg constructor (`api/src/infinity/es/**`)
-- [`entity-sets.md`](.claude/rules/entity-sets.md) — release in `terminate()` (`infinity/` + `modules/` Java)
-- [`systems.md`](.claude/rules/systems.md) — logic-in-systems; component-write discipline pointer (`systems/**` + `modules/`)
-- [`replacement-as-mutation.md`](.claude/rules/replacement-as-mutation.md) — RaM: one canonical writer per component; other systems emit intents drained by the writer; phased tick (`systems/**`, `modules/`, `api/src/infinity/sim/**`)
-- [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity/` + `modules/` Java)
+- [`entity-sets.md`](.claude/rules/entity-sets.md) — release in `terminate()` (`infinity-server/` + `infinity-client/` + `modules/` Java)
+- [`systems.md`](.claude/rules/systems.md) — logic-in-systems; component-write discipline pointer (`infinity-server/src/main/java/infinity/systems/**` + `modules/`)
+- [`replacement-as-mutation.md`](.claude/rules/replacement-as-mutation.md) — RaM: one canonical writer per component; other systems emit intents drained by the writer; phased tick (`infinity-server/src/main/java/infinity/systems/**`, `modules/`, `api/src/infinity/sim/**`)
+- [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity-server/` + `infinity-client/` + `modules/` Java)
 - [`api-contracts.md`](.claude/rules/api-contracts.md) — api/ is data + interfaces only; no deps on server/client/modules (`api/src/**`)
-- [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`client/**` + loose `*AppState`)
+- [`client-read-only.md`](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI; `BodyPosition` not polling (`infinity-client/src/main/java/infinity/client/**` + loose `*AppState`)
 - [`config-pattern.md`](.claude/rules/config-pattern.md) — template (`*Config` records) vs instance (components); spawn systems project template → component; hot-path consumers read components only (`api/src/infinity/config/**` + `api/src/infinity/es/ship/**`)
-- [`decay-ttl.md`](.claude/rules/decay-ttl.md) — `Decay` is the only TTL mechanism; templates carry duration, spawn systems project to `Decay`; no parallel `*Decay`/`*Ttl` components (`api/src/infinity/es/**`, `systems/**`, `modules/`)
-- [`player-scaling.md`](.claude/rules/player-scaling.md) — consider whether spawn / balance / threshold knobs should scale with active player count; default to additive `base + perPlayer × N`; per-arena, not global (`infinity/` + `modules/` Java systems)
-- [`prize-applier.md`](.claude/rules/prize-applier.md) — look up prize logic + canonical Subspace tunables in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before implementing or modifying a prize applier (`infinity/src/main/java/infinity/systems/ship/applier/**`)
-- [`settings-pipeline.md`](.claude/rules/settings-pipeline.md) — look up Subspace canon in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before authoring/modifying any typed adapter, `*Config`, or settings consumer; section headers (e.g. `[Misc]`) don't tell you which mechanic owns a key (`infinity/src/main/java/infinity/settings/**` + `api/src/infinity/config/**`)
-- [`pmd-on-touched-files.md`](.claude/rules/pmd-on-touched-files.md) — after editing any `*.java`, run `:<module>:pmdPath -PpmdPath=<paths>` on touched files, surface violations, and fix one lowest-effort violation per batch as a ratchet (`api/src/**`, `infinity/src/main/java/**`, `modules/src/main/java/**`)
+- [`decay-ttl.md`](.claude/rules/decay-ttl.md) — `Decay` is the only TTL mechanism; templates carry duration, spawn systems project to `Decay`; no parallel `*Decay`/`*Ttl` components (`api/src/infinity/es/**`, `infinity-server/src/main/java/infinity/systems/**`, `modules/`)
+- [`player-scaling.md`](.claude/rules/player-scaling.md) — consider whether spawn / balance / threshold knobs should scale with active player count; default to additive `base + perPlayer × N`; per-arena, not global (`infinity-server/` + `modules/` Java systems)
+- [`prize-applier.md`](.claude/rules/prize-applier.md) — look up prize logic + canonical Subspace tunables in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before implementing or modifying a prize applier (`infinity-server/src/main/java/infinity/systems/ship/applier/**`)
+- [`settings-pipeline.md`](.claude/rules/settings-pipeline.md) — look up Subspace canon in [`REFERENCE.md`](.scratch/subspace-ini-reference/REFERENCE.md) before authoring/modifying any typed adapter, `*Config`, or settings consumer; section headers (e.g. `[Misc]`) don't tell you which mechanic owns a key (`infinity-server/src/main/java/infinity/settings/**` + `api/src/infinity/config/**`)
+- [`pmd-on-touched-files.md`](.claude/rules/pmd-on-touched-files.md) — after editing any `*.java`, run `:<module>:pmdPath -PpmdPath=<paths>` on touched files, surface violations, and fix one lowest-effort violation per batch as a ratchet (`api/src/**`, `infinity-server/src/main/java/**`, `infinity-client/src/main/java/**`, `modules/src/main/java/**`)
 
-Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity/src/test/java/infinity/architecture/LayerDependencyTest.java).
+Layer boundaries are also enforced as tests — see [`LayerDependencyTest`](infinity-client/src/test/java/infinity/architecture/LayerDependencyTest.java).
 
 ## Build & Run
 
 ```bash
-./gradlew build             # Build all
-./gradlew :infinity:run     # Run game
-./gradlew :infinity:runX11  # Run on Linux/Wayland (X11 backend)
-./gradlew :infinity:runMac  # Run on macOS (-XstartOnFirstThread)
+./gradlew build                    # Build all
+./gradlew :infinity-client:run     # Run game
+./gradlew :infinity-client:runX11  # Run on Linux/Wayland (X11 backend)
+./gradlew :infinity-client:runMac  # Run on macOS (-XstartOnFirstThread)
 ```
 
 ## Release Process

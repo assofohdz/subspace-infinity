@@ -17,7 +17,7 @@ Find two bug classes project-wide:
 ## Procedure
 
 1. **Leaks:**
-   - Grep `(private|protected).*EntitySet` under `infinity/src/main/java/**/*.java` + `modules/src/main/java/**/*.java`.
+   - Grep `(private|protected).*EntitySet` under `infinity-server/src/main/java/**/*.java` + `infinity-client/src/main/java/**/*.java` + `modules/src/main/java/**/*.java`.
    - For each match, open the file; check for `terminate()` or `cleanup()` that calls `release()` on every declared EntitySet field.
    - Flag any field that isn't released.
 2. **Immutability:**

@@ -917,7 +917,7 @@ authored in Subspace canon velocity units, translated to jME world
 units at fire time via a new engine-tier conversion + cap.
 
 **Engine-tier config introduction (new pattern — first of its kind):**
-- `infinity/src/main/resources/engine.groovy` — game-wide developer-tunable
+- `infinity-server/src/main/resources/engine.groovy` — game-wide developer-tunable
   knobs, packaged in jar. Distinct from per-arena/per-zone configs
   (operator-tunable, intended to externalize per Slice O1).
 - `EngineConfig(double subspaceVelocityScale, double maxProjectileSpeedJme)`
@@ -1275,7 +1275,7 @@ still required because:
 B4 lands when those queues are empty. **Realistically: many slices
 out, after the gameplay queue catches up.**
 
-- Delete `infinity/src/main/java/infinity/systems/SettingsSystem.java`
+- Delete `infinity-server/src/main/java/infinity/systems/SettingsSystem.java`
   (~352 lines).
 - Delete the `section` / `shipSection` / `shipSections` Groovy
   builders from `GroovyFragmentLoader`. Keep `include` directive —
@@ -1293,7 +1293,7 @@ out, after the gameplay queue catches up.**
 - Update any docs referencing `SettingsSystem` or `Ini` to point at
   `ConfigRegistrySystem` instead.
 
-Tests: `:infinity:test` green; manual smoke `~loadArena trench` +
+Tests: `:infinity-server:test` green; manual smoke `~loadArena trench` +
 `~loadArena svs-league`; edit `bomb.groovy` and confirm hot-reload
 fires within ~5s without errors.
 

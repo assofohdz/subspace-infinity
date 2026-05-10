@@ -8,7 +8,7 @@ description: Create server-side game systems using SiO2 AbstractGameSystem. Use 
 Server-side systems process entities each frame using the SiO2 framework.
 
 ## Location
-`infinity/src/main/java/infinity/systems/`
+`infinity-server/src/main/java/infinity/systems/`
 
 ## Official Zay-ES Rules of Thumb
 From the wiki:

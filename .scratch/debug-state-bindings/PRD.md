@@ -214,11 +214,11 @@ Each slice is independently mergeable; manual smoke-test confirms behaviour beca
 
 End-to-end manual + targeted unit-test acceptance:
 
-- **Group partition (slice 2):** `git grep -n 'new FunctionId(' infinity/src/main` shows every FunctionId in one of the 5 canonical groups (Game.* / Debug.* / System / Camera.* / Tool). No FunctionId carries a group string outside that taxonomy.
-- **`DebugState` boot state:** Cold launch into trench-04 — `:infinity:run`. State manager queried via `app.getStateManager().getState(DebugState.class)` returns null. F1 (Help) shows Game-side bindings. F3-F4 trigger Game functions (Rocket / Brick), not debug overlays.
+- **Group partition (slice 2):** `git grep -n 'new FunctionId(' infinity-client/src/main` shows every FunctionId in one of the 5 canonical groups (Game.* / Debug.* / System / Camera.* / Tool). No FunctionId carries a group string outside that taxonomy.
+- **`DebugState` boot state:** Cold launch into trench-04 — `:infinity-client:run`. State manager queried via `app.getStateManager().getState(DebugState.class)` returns null. F1 (Help) shows Game-side bindings. F3-F4 trigger Game functions (Rocket / Brick), not debug overlays.
 - **F12 toggle on:** Press F12 — `getStateManager().getState(DebugState.class)` returns non-null + `isEnabled()` true. F1 now shows Debug bindings. F3 now triggers `F_BIN_DEBUG` (overlay appears), not `F_ROCKET`. Avatar movement (UP/DOWN/LEFT/RIGHT) unchanged — those are System or remained Game-active per design choice (likely System, since debugging often wants to drive around).
 - **F12 toggle off:** Press F12 again — DebugState detached. F3 triggers Rocket again. Movement unchanged.
-- **Bug-fix assertion (slice 1):** `git grep -n 'F_REPEL' infinity/src/main/java/infinity/client/AvatarMovementFunctions.java` returns exactly **one** mapping line (the LSHIFT mapping, slice 3) — not four.
+- **Bug-fix assertion (slice 1):** `git grep -n 'F_REPEL' infinity-client/src/main/java/infinity/client/AvatarMovementFunctions.java` returns exactly **one** mapping line (the LSHIFT mapping, slice 3) — not four.
 - **Mapping diagnostics:** `HelpState.dumpInputMappings(inputMapper)` printed at boot has zero "function declared but not mapped" entries for active groups; the previous 6+ unmapped declarations are all wired. Adding `assert inputMapper.hasMappings(F_X)` in a unit test for a sentinel set of expected functions provides a regression hook.
 - **Continuum-fidelity test:** A cold-launch player using stock Continuum muscle memory can complete the canonical action-cycle (thrust → fire bullet → fire bomb → drop mine → repel) without consulting docs.
 - **PMD baseline:** No new violations on touched files; ratchet one lowest-effort fix per slice.

@@ -2,7 +2,7 @@
 
 The canonical reference for Subspace zone INI fields, preserved here from the
 570-line comment block previously living at the bottom of
-`infinity/src/main/java/infinity/systems/SettingsSystem.java`. The format
+`infinity-server/src/main/java/infinity/systems/SettingsSystem.java`. The format
 originated from the in-game `?settings` command and is attributed to
 "Mine GO BOOM ... Version 1.34.14, http://www.shanky.com/server/".
 

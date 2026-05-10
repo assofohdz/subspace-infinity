@@ -1,14 +1,14 @@
 # Logging Policy — Console vs File
 
-Where each log message ends up depends on its level and on the per-logger config in [`infinity/src/main/resources/log4j2.xml`](../infinity/src/main/resources/log4j2.xml). This file is the rulebook so you know which appender to look at when chasing a bug.
+Where each log message ends up depends on its level and on the per-logger config in [`infinity-server/src/main/resources/log4j2.xml`](../infinity-server/src/main/resources/log4j2.xml). This file is the rulebook so you know which appender to look at when chasing a bug.
 
 ## The three appenders
 
 | Appender | File | Purpose | Audience |
 |---|---|---|---|
 | **Console** | stdout | Live signal while running the dev loop. Watch in your terminal as you play. | You, right now. |
-| **File** | [`infinity/logs/infinity.log`](../infinity/logs/infinity.log) | Persistent, rolling (10 MB × 5). Captures more detail than console for post-mortem. | You, after a bug already happened. |
-| **ErrorFile** | [`infinity/logs/infinity-errors.log`](../infinity/logs/infinity-errors.log) | Crash diagnosis only — ERROR threshold filter. Rolling (5 MB × 3). | You, when the server died unexpectedly. |
+| **File** | [`infinity-server/logs/infinity.log`](../infinity-server/logs/infinity.log) | Persistent, rolling (10 MB × 5). Captures more detail than console for post-mortem. | You, after a bug already happened. |
+| **ErrorFile** | [`infinity-server/logs/infinity-errors.log`](../infinity-server/logs/infinity-errors.log) | Crash diagnosis only — ERROR threshold filter. Rolling (5 MB × 3). | You, when the server died unexpectedly. |
 
 ## Level-routing intent
 
@@ -36,7 +36,7 @@ Where each log message ends up depends on its level and on the per-logger config
 
 ## Per-logger overrides (when to add one)
 
-The default level for `infinity.*` packages is set per-package in [`log4j2.xml`](../infinity/src/main/resources/log4j2.xml#L26). Add a per-class entry only when:
+The default level for `infinity.*` packages is set per-package in [`log4j2.xml`](../infinity-server/src/main/resources/log4j2.xml#L26). Add a per-class entry only when:
 
 - **Silencing noise** — a system logs INFO so often it drowns the console (then set the logger to WARN, e.g. `infinity.systems.ContactSystem` and `infinity.server.DefaultColumnDb`).
 - **Active investigation** — temporarily promote a logger to `DEBUG` to capture verbose detail in the console (mark the change with a TODO comment so it's demoted later, e.g. the multi-arena `ContactSystem` debug bumps used during Phase 2.3 / 3.2).
@@ -62,10 +62,10 @@ For one-off investigation without editing the XML:
 
 ```bash
 # JVM arg to override at startup (works alongside log4j2.xml):
-./gradlew :infinity:run -Dinfinity.systems.ContactSystem.level=DEBUG
+./gradlew :infinity-client:run -Dinfinity.systems.ContactSystem.level=DEBUG
 ```
 
-Or edit [`log4j2.xml`](../infinity/src/main/resources/log4j2.xml), restart, and add a comment marking the override as temporary so a future session knows to demote.
+Or edit [`log4j2.xml`](../infinity-server/src/main/resources/log4j2.xml), restart, and add a comment marking the override as temporary so a future session knows to demote.
 
 ## Common patterns to match
 
