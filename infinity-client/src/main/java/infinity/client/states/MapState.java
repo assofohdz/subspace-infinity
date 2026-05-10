@@ -39,11 +39,11 @@ import com.simsilica.mathd.Vec3d;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
 import infinity.es.TileType;
+import infinity.events.MapAction;
 import infinity.map.BitmapData;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.net.GameSession;
-import infinity.systems.MapSystem;
 
 /**
  * State
@@ -439,14 +439,14 @@ public class MapState extends BaseAppState {
                 if (isPressed && keyIndex == MouseInput.BUTTON_LEFT) {
                     final GameSession session = requireGameSession();
                     final Vector3f contactPoint = rayCastClickToArena(event, target);
-                    session.map(MapSystem.CREATE, new Vec3d(contactPoint.x, 0, contactPoint.z));
+                    session.map(MapAction.CREATE, new Vec3d(contactPoint.x, 0, contactPoint.z));
                     // session.createTile("", contactPoint.x, contactPoint.y);
                 }
 
                 if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
                     final GameSession session = requireGameSession();
                     final Vector3f contactPoint = rayCastClickToArena(event, target);
-                    session.map(MapSystem.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.y));
+                    session.map(MapAction.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.y));
                     // session.removeTile(contactPoint.x, contactPoint.y);
                 }
             }

@@ -128,28 +128,34 @@ public class AvatarMovementFunctions {
     if (!inputMapper.hasMappings(F_WARP)) {
       inputMapper.map(F_WARP, KeyInput.KEY_INSERT);
     }
-    /*
-     * if (!inputMapper.hasMappings(F_REPEL)) { inputMapper.map(F_REPEL,
-     * KeyInput.KEY_LSHIFT); }
-     */
-    /*
-     * if (!inputMapper.hasMappings(F_PORTAL)) { inputMapper.map(F_REPEL,
-     * KeyInput.KEY_LSHIFT, KeyInput.KEY_INSERT); }
-     */
+
+    // Subspace canon: shift = repel. F_SHIFT (alt-modifier for shift+TAB→mine,
+    // tracked in AvatarMovementState.shiftPressed) is bound to LSHIFT, so bind
+    // repel on RSHIFT to avoid firing a repel every frame while the alt-modifier
+    // is held.
+    if (!inputMapper.hasMappings(F_REPEL)) {
+      inputMapper.map(F_REPEL, KeyInput.KEY_RSHIFT);
+    }
+
+    // F_DECOY / F_ROCKET / F_BRICK / F_ATTACH currently have no consumer in
+    // AvatarMovementState (no analog or state listener dispatches them).
+    // Default key slots are reserved here so a future consumable lands with a
+    // canonical binding (F_ATTACH = F7 matches Subspace canon); pressing these
+    // today is a no-op until a handler is added.
     if (!inputMapper.hasMappings(F_DECOY)) {
-      inputMapper.map(F_REPEL, KeyInput.KEY_F5);
+      inputMapper.map(F_DECOY, KeyInput.KEY_F5);
     }
 
     if (!inputMapper.hasMappings(F_ROCKET)) {
-      inputMapper.map(F_REPEL, KeyInput.KEY_F3);
+      inputMapper.map(F_ROCKET, KeyInput.KEY_F3);
     }
 
     if (!inputMapper.hasMappings(F_BRICK)) {
-      inputMapper.map(F_REPEL, KeyInput.KEY_F4);
+      inputMapper.map(F_BRICK, KeyInput.KEY_F4);
     }
 
     if (!inputMapper.hasMappings(F_ATTACH)) {
-      inputMapper.map(F_REPEL, KeyInput.KEY_F7);
+      inputMapper.map(F_ATTACH, KeyInput.KEY_F7);
     }
   }
 

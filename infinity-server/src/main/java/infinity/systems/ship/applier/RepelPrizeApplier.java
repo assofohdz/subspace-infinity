@@ -19,7 +19,10 @@ import org.slf4j.LoggerFactory;
  * <ul>
  *   <li>{@code RepelSpeed} — repulsion speed (Subspace velocity units)
  *   <li>{@code RepelTime} — affected duration (centiseconds)
- *   <li>{@code RepelDistance} — affected radius (pixels)
+ *   <li>{@code RepelDistance} — affected radius. Subspace canon authors
+ *       in pixels at 16 px/tile; Infinity stores in tiles / world units
+ *       on the typed {@code RepelConfig} (operators porting from SVS
+ *       divide by 16).
  * </ul>
  * Per-ship inventory caps: {@code [Ship] InitialRepel} / {@code RepelMax}
  * (REFERENCE.md "Inventory caps and starts" line 372/374).

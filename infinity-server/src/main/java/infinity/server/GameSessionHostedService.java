@@ -60,6 +60,7 @@ import infinity.config.EngineConfig;
 import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
+import infinity.events.MapAction;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 import infinity.settings.EngineConfigSystem;
@@ -68,7 +69,6 @@ import infinity.systems.ArenaSystem;
 import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
-import infinity.systems.MapSystem;
 import infinity.systems.ship.WarpSystem;
 import infinity.systems.ship.WeaponsFireSystem;
 import java.util.List;
@@ -440,20 +440,27 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     }
 
     @Override
-    public void map(final byte mapInput, final Vec3d coords) {
+    public void map(final MapAction mapInput, final Vec3d coords) {
+      // Live block-edit wiring is currently a no-op stub on both arms.
+      // MapSystem exposes only the bulk legacy-load lifecycle (loadMap /
+      // swapMap / unloadMap) plus a thin setCell(Vec3d, int) pass-through to
+      // World#setWorldCell(...) — no live single-cell session edits today.
+      // The natural next step is a pair of public createBlock(Vec3d) /
+      // deleteBlock(Vec3d) methods on MapSystem itself (not on
+      // LegacyMapProjector — that one is bulk-only by design); internally
+      // they would just delegate to world.setWorldCell(pos, blockType) for
+      // create and world.setWorldCell(pos, 0) for delete (matching the
+      // pattern in MapSystem#removeBlocksFromLegacyMap). Wiring those is a
+      // separate slice from the RMI typing one.
       switch (mapInput) {
-        case MapSystem.CREATE:
-          // mapSystem.sessionCreateTile(coords.x, coords.z);
+        case CREATE:
+          // mapSystem.createBlock(coords);
           break;
-        case MapSystem.DELETE:
-          // mapSystem.sessionRemoveTile(coords.x, coords.z);
-          break;
-        case MapSystem.READ:
-          break;
-        case MapSystem.UPDATE:
+        case DELETE:
+          // mapSystem.deleteBlock(coords);
           break;
         default:
-          throw new AssertionError();
+          throw new IllegalStateException("Unexpected MapAction: " + mapInput);
       }
     }
   }

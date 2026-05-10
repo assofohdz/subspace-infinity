@@ -142,9 +142,9 @@ public final class MapSystemLogic {
   }
 
   /**
-   * Mutable accumulator for {@code MapSystem.createBlocksFromLegacyMap}
-   * disposition counters + diagnostic state. Package-private mutable fields
-   * because the build pipeline writes them per-tile from inside MapSystem.
+   * Mutable accumulator for {@code LegacyMapProjector.project} disposition
+   * counters + diagnostic state. Package-private mutable fields because the
+   * build pipeline writes them per-tile from inside the projector.
    */
   public static final class MapBuildStats {
     public int totalNonZero;

@@ -56,8 +56,10 @@ import java.util.Set;
  *
  * <p><b>Unit conversions:</b>
  * <ul>
- *   <li>{@link RepelDistance} — Subspace pixels; converted ÷ 16 to world
- *       units (canonical 16 px/tile rate) at scan time.
+ *   <li>{@link RepelDistance} — tiles / world units (Infinity-native).
+ *       Pixel→tile conversion happens at the operator boundary
+ *       ({@link infinity.settings.RepelAdapter}); this system reads the
+ *       radius directly off the spawned effect entity.
  *   <li>{@link RepelSpeed} — Subspace velocity units; converted via the
  *       package-private
  *       {@link WeaponsSystem#effectiveProjectileSpeed} helper for unit-
@@ -79,14 +81,6 @@ import java.util.Set;
  * @author Asser
  */
 public class RepelSystem extends BaseInfinitySystem {
-
-  /**
-   * Subspace pixels-per-tile rate (canonical 16 px/tile). Local constant
-   * because no shared engine-tier {@code px/tile} value exists yet —
-   * polish-bag candidate to centralize when the second consumer of this
-   * conversion appears.
-   */
-  private static final double PIXELS_PER_TILE = 16.0;
 
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
@@ -139,8 +133,10 @@ public class RepelSystem extends BaseInfinitySystem {
   /**
    * One-shot scan for a single repel effect entity. Reads the effect's
    * world position via {@link PhysicsSpace}, walks all {@link Repellable}
-   * bodies, distance-filters by {@code RepelDistance / 16}, applies an
-   * {@link Impulse} away from the effect center to those in range. Skips
+   * bodies, distance-filters by {@link RepelDistance#getRadiusWorldUnits()}
+   * (already in world units; pixel→tile conversion happened at the loader
+   * boundary), applies an {@link Impulse} away from the effect center to
+   * those in range. Skips
    * the firing ship (identified by {@link Parent} on the effect) and —
    * when zone-level {@code repelFriendlies} is false — same-frequency
    * ships.
@@ -162,7 +158,7 @@ public class RepelSystem extends BaseInfinitySystem {
       return; // body not yet bound; can't compute direction
     }
     final double radiusWorldUnits =
-        effect.get(RepelDistance.class).getPixels() / PIXELS_PER_TILE;
+        effect.get(RepelDistance.class).getRadiusWorldUnits();
     final double magnitudeJme =
         WeaponsLogic.effectiveProjectileSpeed(
             effect.get(RepelSpeed.class).getSpeed(), scale, maxJme);

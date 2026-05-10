@@ -20,7 +20,7 @@ import java.util.TreeMap;
  * Batch tile-ID survey across many {@code .lvl} files. Unlike {@link MapAnalyzer} (which
  * drills into one or two maps), this tool answers zone-wide questions: which tile IDs
  * are actually used in real-world maps, how common are they, and which IDs fall outside
- * the ranges {@code MapSystem.createBlocksFromLegacyMap} currently handles.
+ * the ranges {@code LegacyMapProjector.project} currently handles.
  *
  * <p>Usage: {@code ./gradlew :infinity:surveyMaps --args "[paths/dirs]"}
  *
@@ -33,7 +33,7 @@ public final class MapTileSurvey {
   private static final int SIZE = 1024;
   private static final int MAX_TILE_ID = 256;
 
-  /** Ranges our current {@code MapSystem.createBlocksFromLegacyMap} handles meaningfully. */
+  /** Ranges our current {@code LegacyMapProjector.project} handles meaningfully. */
   private static final boolean[] HANDLED = new boolean[MAX_TILE_ID];
 
   static {
@@ -206,7 +206,7 @@ public final class MapTileSurvey {
   }
 
   private static void printGapAnalysis(final Survey s) {
-    System.out.println("=== Gap analysis — IDs not handled by MapSystem.createBlocksFromLegacyMap ===");
+    System.out.println("=== Gap analysis — IDs not handled by LegacyMapProjector.project ===");
     final List<Map.Entry<Integer, Long>> gaps = new ArrayList<>();
     for (final Map.Entry<Integer, Long> e : s.globalCounts.entrySet()) {
       if (!HANDLED[e.getKey()]) gaps.add(e);

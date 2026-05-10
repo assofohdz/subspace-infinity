@@ -4,7 +4,6 @@
 package infinity.systems;
 
 import com.simsilica.bpos.BodyPosition;
-import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -73,8 +72,15 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     FAILED
   }
 
-  /** One registry row per known arena. Mutated only on the sim thread. */
-  private static final class ArenaRecord {
+  /**
+   * One registry row per known arena. Mutated only on the sim thread.
+   *
+   * <p>Package-private so {@link ArenaSpatialIndex} can read the
+   * {@code entityId} + {@code config} fields directly when resolving
+   * spatial queries (round 25 extraction). External code goes through
+   * the public accessors on {@link ArenaSystem}.
+   */
+  static final class ArenaRecord {
     final String name;
     boolean desired;
     ArenaState state = ArenaState.NOT_LOADED;
@@ -135,7 +141,6 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   private final boolean[] arenaSlots = new boolean[InfinityConstants.MAX_ARENAS];
 
   private EntityData ed;
-  private EntitySet arenaEntities;
   private EntitySet playerEntities;
   private ConfigRegistrySystem configRegistry;
   private final GroovyArenaLoader arenaLoader = new GroovyArenaLoader();
@@ -152,6 +157,19 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    */
   private final ArenaReloadWatcher reloadWatcher = new ArenaReloadWatcher(this);
 
+  /**
+   * Spatial-query index for world↔arena lookups + per-arena spawn
+   * resolution. Round 25 split: the {@code (ArenaId + ArenaMap)}
+   * EntitySet, {@code findArenaAt}/{@code findArenaEntityAt},
+   * {@code getArenaSpawn}, {@code getArenaMap}, {@code worldToArena} +
+   * the static {@code arenaToWorld} all moved to
+   * {@link ArenaSpatialIndex}. Public methods on this class remain as
+   * thin forwarders so existing callers don't churn (mirrors the
+   * {@link ArenaReloadWatcher} precedent — internal plumbing, public
+   * face stable).
+   */
+  private final ArenaSpatialIndex spatialIndex = new ArenaSpatialIndex(this);
+
   // Chat command patterns + handlers moved to ArenaCommandsSystem in
   // round 23 (class-level CC split mirroring ChecksShipsSystem). This
   // class now exposes the desired-state mutators + lookup accessors that
@@ -160,15 +178,14 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
   @Override
   protected void initialize() {
     ed = getSystem(EntityData.class);
-    arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
+    spatialIndex.initialize(ed);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
     configRegistry = getSystem(ConfigRegistrySystem.class);
   }
 
   @Override
   protected void terminate() {
-    arenaEntities.release();
-    arenaEntities = null;
+    spatialIndex.terminate();
 
     playerEntities.release();
     playerEntities = null;
@@ -183,7 +200,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       bootstrapped = true;
     }
     playerEntities.applyChanges();
-    arenaEntities.applyChanges();
+    spatialIndex.applyChanges();
     reconcileAll();
     reloadWatcher.pollIfDue(tpf.getTime(), zoneConfig.scriptPollIntervalNanos());
     pollZoneGroovyReload();
@@ -288,121 +305,33 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     // No-op.
   }
 
-  /**
-   * Resolve a world-space position to the {@link ArenaId} of the loaded arena whose
-   * {@link ArenaMap} bounds contain the point on the gameplay plane (X/Z; Y is ignored
-   * since gameplay is flat per {@code InfinityConstants.GAMEPLAY_Y}). Returns
-   * {@code null} when the point sits outside every loaded arena — by design ships
-   * are allowed to roam in no-arena void space.
-   *
-   * <p>Reads the EntitySet without re-applying changes (relies on {@link #update}
-   * having done so this tick); arenas don't move within a tick so a one-tick stale
-   * read is harmless. First match wins — adjacent arenas share only a 2-cell gutter,
-   * so any overlap is intentional and either pick is correct.
-   */
+  /* ---------------------------------------------------------------- */
+  /* Spatial queries — thin forwarders to {@link ArenaSpatialIndex}.  */
+  /* The implementations live there (round 25 class-CC slice); these  */
+  /* delegates keep existing callers' call shape stable.              */
+  /* ---------------------------------------------------------------- */
+
+  /** See {@link ArenaSpatialIndex#findArenaAt}. */
   @Nullable
   public ArenaId findArenaAt(final Vec3d position) {
-    final Entity arena = findArenaEntity(position);
-    return arena == null ? null : arena.get(ArenaId.class);
+    return spatialIndex.findArenaAt(position);
   }
 
-  /**
-   * Sibling of {@link #findArenaAt} that returns the arena entity's id rather than its
-   * {@link ArenaId} component. Used by warp-driven membership reconciliation
-   * ({@code ArenaMembershipSystem.markEntered}) which needs the entity reference to
-   * mirror what a contact-driven enter would have produced.
-   */
+  /** See {@link ArenaSpatialIndex#findArenaEntityAt}. */
   @Nullable
   public EntityId findArenaEntityAt(final Vec3d position) {
-    final Entity arena = findArenaEntity(position);
-    return arena == null ? null : arena.getId();
+    return spatialIndex.findArenaEntityAt(position);
   }
 
-  @Nullable
-  private Entity findArenaEntity(final Vec3d position) {
-    for (final Entity arena : arenaEntities) {
-      if (ArenaLogic.containsXZ(arena.get(ArenaMap.class), position)) {
-        return arena;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Resolve the world-space spawn coordinate for the named arena and a
-   * given player frequency. Single source of truth for both the
-   * connect-time spawn (called from
-   * {@code GameSessionHostedService.resolveInitialSpawn} via the
-   * {@code zone.groovy enterSpawn} arena pointer) and in-arena
-   * ship-change / respawns (called from
-   * {@code AvatarSystem.requestShipChange} with the ship's own
-   * {@code ArenaId} and {@link infinity.es.ship.Frequency}).
-   *
-   * <p>Two-tier lookup:
-   * <ol>
-   *   <li><b>Typed Pattern 4 first.</b> Read the arena's
-   *       {@link SpawnConfig} from {@link ConfigRegistrySystem}. If
-   *       {@link SpawnConfig#teams()} is non-empty, look up the team
-   *       via {@link SpawnConfig#forFreq(int)} (Subspace canonical
-   *       wraparound: {@code freq % teams.size()}). When the team's
-   *       {@code radiusTiles > 0}, sample uniformly inside the disc;
-   *       {@code radiusTiles == 0} means exact-point spawn.
-   *   <li><b>Legacy fallback.</b> No typed {@code spawn.groovy}
-   *       authored → fall back to {@link ArenaConfig#spawnX()} /
-   *       {@link ArenaConfig#spawnZ()} (the single-spawn-point
-   *       directive in {@code arena.groovy}). Preserves behaviour for
-   *       arenas not yet migrated to typed spawn data — most notably
-   *       the {@code (default)} arena and the SVS-family presets.
-   * </ol>
-   *
-   * <p>Coordinates are arena-local <em>tiles</em> (REFERENCE.md
-   * {@code ## Spawn}); {@link #arenaToWorld} translates to world space.
-   *
-   * @param arenaName arena registry key (folder name under
-   *     {@code zone/arenas/})
-   * @param freq player frequency; wraps via
-   *     {@link Math#floorMod(int, int)} so any non-negative or
-   *     negative value resolves to a valid team index when typed
-   *     spawn data is present
-   * @return world-space {@link Vec3d} on the gameplay plane, or
-   *     {@code null} if the arena isn't loaded (no entity / no
-   *     {@code ArenaMap}). Callers fall back as they see fit
-   *     (typically world origin).
-   */
+  /** See {@link ArenaSpatialIndex#getArenaSpawn}. */
   @Nullable
   public Vec3d getArenaSpawn(final String arenaName, final int freq) {
-    final ArenaRecord rec = registry.get(arenaName);
-    if (rec == null || rec.entityId == null) {
-      log.warn("getArenaSpawn: arena '{}' not loaded", arenaName);
-      return null;
-    }
-    final ArenaMap map = ed.getComponent(rec.entityId, ArenaMap.class);
-    if (map == null) {
-      log.warn("getArenaSpawn: arena '{}' has no ArenaMap component", arenaName);
-      return null;
-    }
-
-    final SpawnConfig spawn =
-        configRegistry.forArena(new ArenaId(arenaName, rec.entityId)).spawn();
-    return ArenaLogic.resolveArenaSpawn(
-        spawn, freq, map, rec.config.spawnX(), rec.config.spawnZ());
+    return spatialIndex.getArenaSpawn(arenaName, freq);
   }
 
-  // sampleTeamSpawn moved to ArenaLogic.sampleTeamSpawn.
-
-  /**
-   * Convert arena-local {@code (x, z)} to a world-space {@link Vec3d} on the gameplay
-   * plane. Arena-local convention: {@code (0, 0) = NW corner}, {@code (TILE_SIZE,
-   * TILE_SIZE) = SE corner}. The render flips world {@code (max-X, max-Z)} onto the
-   * NW screen corner (camera looks down {@code -Y} with both axes inverted vs jME's
-   * default), so we anchor arena coords at {@link ArenaMap#getMax() ArenaMap.max}
-   * and decrement.
-   */
+  /** See {@link ArenaSpatialIndex#arenaToWorld}. */
   public static Vec3d arenaToWorld(final ArenaMap map, final double localX, final double localZ) {
-    return new Vec3d(
-        map.getMax().x - localX,
-        InfinityConstants.GAMEPLAY_Y,
-        map.getMax().z - localZ);
+    return ArenaSpatialIndex.arenaToWorld(map, localX, localZ);
   }
 
   /**
@@ -423,30 +352,42 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     return rec.config;
   }
 
-  /**
-   * Look up the {@link ArenaMap} component for the named arena, or {@code null} if the arena
-   * isn't loaded. Convenience accessor for callers that need the arena's world bounds without
-   * walking {@code arenaEntities} themselves.
-   */
+  /** See {@link ArenaSpatialIndex#getArenaMap}. */
   @Nullable
   public ArenaMap getArenaMap(final String arenaName) {
-    final ArenaRecord rec = registry.get(arenaName);
-    if (rec == null || rec.entityId == null) {
-      return null;
-    }
-    return ed.getComponent(rec.entityId, ArenaMap.class);
+    return spatialIndex.getArenaMap(arenaName);
+  }
+
+  /** See {@link ArenaSpatialIndex#worldToArena}. */
+  @Nullable
+  public Vec3d worldToArena(final String arenaName, final Vec3d world) {
+    return spatialIndex.worldToArena(arenaName, world);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Package-private accessors for {@link ArenaSpatialIndex}          */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * Look up the registry record for {@code arenaName}, or {@code null}
+   * if the arena hasn't been registered. Exposed for
+   * {@link ArenaSpatialIndex} so its query methods can read
+   * {@link ArenaRecord#entityId} + {@link ArenaRecord#config} without
+   * each lookup going through three accessors.
+   */
+  @Nullable
+  ArenaRecord lookupRecord(final String arenaName) {
+    return registry.get(arenaName);
   }
 
   /**
-   * Inverse of {@link #arenaToWorld}: project a world-space coordinate to its
-   * arena-local equivalent within the named arena. Returns {@code null} if the arena
-   * isn't loaded or the world coord is outside the arena's bounds. Used by the client
-   * HUD to show "you are at arena (X, Z)" alongside the world coord.
+   * The shared {@link ConfigRegistrySystem} reference resolved at
+   * {@link #initialize()} time. Exposed for {@link ArenaSpatialIndex}'s
+   * {@code getArenaSpawn} which needs to read each arena's typed
+   * {@link SpawnConfig}.
    */
-  @Nullable
-  public Vec3d worldToArena(final String arenaName, final Vec3d world) {
-    final ArenaMap map = getArenaMap(arenaName);
-    return map == null ? null : ArenaLogic.worldToArenaLocal(map, world);
+  ConfigRegistrySystem getConfigRegistry() {
+    return configRegistry;
   }
 
   /* ---------------------------------------------------------------- */

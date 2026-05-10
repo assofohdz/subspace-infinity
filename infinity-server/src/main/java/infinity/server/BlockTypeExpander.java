@@ -8,9 +8,8 @@ import com.simsilica.mblock.BlockTypeIndex;
 import com.simsilica.mblock.phys.Collider;
 import com.simsilica.mblock.phys.collision.CubeCollider;
 import infinity.InfinityConstants;
-import infinity.sim.util.InfinityRunTimeException;
-import infinity.systems.MapSystem;
 import infinity.map.MapTypes;
+import infinity.sim.util.InfinityRunTimeException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import org.slf4j.Logger;
@@ -66,10 +65,10 @@ public final class BlockTypeExpander {
 
       final BlockType[] expandedTypes =
           Arrays.copyOf(currentTypes, InfinityConstants.BLOCK_TYPE_INDEX_SIZE);
-      final BlockType solidStandin = BlockTypeIndex.get(MapSystem.INVISIBLE_BLOCK_TYPE);
+      final BlockType solidStandin = BlockTypeIndex.get(InfinityConstants.INVISIBLE_BLOCK_TYPE);
       if (solidStandin == null) {
         throw new InfinityRunTimeException(
-            "INVISIBLE_BLOCK_TYPE (" + MapSystem.INVISIBLE_BLOCK_TYPE
+            "INVISIBLE_BLOCK_TYPE (" + InfinityConstants.INVISIBLE_BLOCK_TYPE
                 + ") has no registered BlockType; cannot set up tile masks");
       }
       for (int i = InfinityConstants.TILE_TYPE_BASE;

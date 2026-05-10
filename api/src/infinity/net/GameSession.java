@@ -42,6 +42,7 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 
 import infinity.es.input.MovementInput;
+import infinity.events.MapAction;
 
 /**
  *
@@ -103,12 +104,13 @@ public interface GameSession {
     void toggle(byte toggleInput);
 
     /**
-     * Edit the map
+     * Edit the map at the supplied world coordinate.
      *
-     * @param mapInput
+     * @param mapInput action selector — see {@link MapAction}
+     * @param coords   world-space coordinate the action applies to
      */
     @Asynchronous(reliable = true)
-    void map(byte mapInput, Vec3d coords);
+    void map(MapAction mapInput, Vec3d coords);
 
 //
 //    /**

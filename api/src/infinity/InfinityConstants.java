@@ -119,6 +119,37 @@ public class InfinityConstants {
   public static final int BLOCK_TYPE_INDEX_SIZE = TILE_TYPE_BASE + MAX_ARENAS * TILE_COUNT;
 
   /**
+   * Block-type index for invisible physics blocks. These cells have collision but no visible
+   * geometry — used as a fallback for unrecognised lvl tile ids and as the solid stand-in
+   * for the per-arena tile-block range. Must match
+   * {@code BlockGeometryIndex.INVISIBLE_BLOCK_TYPE_INDEX} on the client.
+   */
+  public static final int INVISIBLE_BLOCK_TYPE = 11;
+
+  /**
+   * Block-type index for light-emitter cells. Non-solid, transparent, invisible; the
+   * {@code BlockType}'s emission is picked up by {@code LightUtils.recalculateLighting}'s
+   * flood fill. Must match {@code BlockGeometryIndex.LIGHT_EMITTER_BLOCK_TYPE_INDEX} on
+   * the client.
+   */
+  public static final int LIGHT_EMITTER_BLOCK_TYPE = 12;
+
+  /** Maximum tile ID for visible (BMP-rendered) Subspace tiles — IDs 1..190 are visible. */
+  public static final int MAX_VISIBLE_TILE = 190;
+
+  /**
+   * Compute the block-type base index for a given arena slot. Tile slots run for
+   * {@link #TILE_COUNT} contiguous entries starting at the returned base, within the
+   * {@link #BLOCK_TYPE_INDEX_SIZE} range.
+   *
+   * @param arenaIndex zero-based arena slot
+   * @return {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}
+   */
+  public static int arenaTileBase(final int arenaIndex) {
+    return TILE_TYPE_BASE + arenaIndex * TILE_COUNT;
+  }
+
+  /**
    * Bin neighbor radius for the fine physics index ({@code LEAF_GRID}, 32-unit cells). A radius of
    * (1, 1, 1) means contact-gen scans the body's own bin plus the 3×3×3 of cells around it. This
    * is the historical default; passing {@code null} to {@code MPhysSystem} resolves to the same.

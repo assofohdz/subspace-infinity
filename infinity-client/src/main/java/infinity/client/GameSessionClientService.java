@@ -50,6 +50,7 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 
 import infinity.es.input.MovementInput;
+import infinity.events.MapAction;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 
@@ -185,7 +186,7 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
-    public void map(final byte mapInput, final Vec3d coords) {
+    public void map(final MapAction mapInput, final Vec3d coords) {
         getDelegate().map(mapInput, coords);
     }
 

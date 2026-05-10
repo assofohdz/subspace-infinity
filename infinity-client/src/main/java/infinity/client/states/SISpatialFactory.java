@@ -32,11 +32,9 @@ import infinity.client.view.BulletVisuals;
 import infinity.client.view.ShipVisuals;
 import infinity.client.view.SpecialBombVisuals;
 import infinity.client.view.BlockGeometryIndex;
-import infinity.client.view.EffectFactory;
 import infinity.es.Flag;
 import infinity.es.ShapeNames;
 import infinity.sim.CoreViewConstants;
-import infinity.sim.util.InfinityRunTimeException;
 import java.nio.FloatBuffer;
 import java.util.Map;
 import java.util.function.DoubleFunction;
@@ -44,7 +42,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is responsible for creating the spatial representation of the game.
+ * Builds gameplay-entity spatials — ships, flags, doors, bombs, bullets,
+ * bounty prizes, and the arena ghost-cube wireframe — plus shared part-based
+ * spatials ({@link #createSphere}, {@link #createPartSpatial}). Effect
+ * spatials (explosions, over-layers, warp/repel/burst, wormhole) are owned by
+ * {@link EffectSpatialFactory}; this class delegates to it whenever
+ * {@link #createModel} sees a shape name it doesn't recognise locally.
  *
  * @author Asser
  */
@@ -58,16 +61,18 @@ public class SISpatialFactory {
   private final AssetManager assets;
   private final Timer timer;
   private final BlockGeometryIndex geomIndex;
-  private EffectFactory ef;
+  private final EffectSpatialFactory effects;
   private String objectString = "Object:";
 
   SISpatialFactory(
       final AssetManager assets,
       final Timer timer,
-      BlockGeometryIndex geomIndex) {
+      final BlockGeometryIndex geomIndex,
+      final EffectSpatialFactory effects) {
     this.assets = assets;
     this.timer = timer;
     this.geomIndex = geomIndex;
+    this.effects = effects;
   }
 
   /**
@@ -82,20 +87,25 @@ public class SISpatialFactory {
    */
   public Spatial createModel(EntityId id, String shapeName, Mass mass, double scale) {
     final DoubleFunction<Spatial> factory = shapeFactories.get(shapeName);
-    if (factory == null) {
-      throw new InfinityRunTimeException("Unknown shape name: " + shapeName);
+    if (factory != null) {
+      return factory.apply(scale);
     }
-    return factory.apply(scale);
+    // Unknown shape — defer to the effect factory, which throws if it also
+    // doesn't recognise the name. Single source of the "Unknown shape name"
+    // exception keeps the failure mode unchanged from the pre-split factory.
+    return effects.createEffect(shapeName, scale);
   }
 
   /**
    * Lookup table mapping {@link ShapeNames} ids to the {@code createX} helper
-   * that builds the matching spatial. Replaces a 33-case switch in
-   * {@link #createModel}; entries that share a factory (mine / bomb levels,
-   * ship variants) point at the same per-variant lambda. Most factories
-   * ignore the {@code scale} argument; only {@link #createArena(double)} reads
-   * it (server-cube ghost wireframe). Bound to {@code this} because every
-   * factory uses instance state ({@code assets}, {@code geomIndex}, {@code ef}).
+   * that builds the matching gameplay-entity spatial. Replaces a 33-case
+   * switch in {@link #createModel}; entries that share a factory (mine / bomb
+   * levels, ship variants) point at the same per-variant lambda. Most
+   * factories ignore the {@code scale} argument; only {@link #createArena(double)}
+   * reads it (server-cube ghost wireframe). Bound to {@code this} because every
+   * factory uses instance state ({@code assets}, {@code geomIndex}). Effect
+   * shapes (explosions, over-layers, warp/repel/burst, wormhole) live in
+   * {@link EffectSpatialFactory}.
    */
   private final Map<String, DoubleFunction<Spatial>> shapeFactories = Map.ofEntries(
       Map.entry(ShapeNames.BULLETL4, scale -> createBullet(BulletVisuals.LEVEL_4.viewOffset)),
@@ -111,19 +121,8 @@ public class SISpatialFactory {
       Map.entry(ShapeNames.MINEL4, scale -> createBomb(BombVisuals.BOMB_4.viewOffset)),
       Map.entry(ShapeNames.BOMBL4, scale -> createBomb(BombVisuals.BOMB_4.viewOffset)),
       Map.entry(ShapeNames.THOR, scale -> createBomb(SpecialBombVisuals.THOR.viewOffset)),
-      Map.entry(ShapeNames.BURST, scale -> createBurst()),
-      Map.entry(ShapeNames.EXPLOSION, scale -> createExplosion()),
       Map.entry(ShapeNames.PRIZE, scale -> createBounty()),
       Map.entry(ShapeNames.ARENA, this::createArena),
-      Map.entry(ShapeNames.EXPLODE_0, scale -> createExplosion0()),
-      Map.entry(ShapeNames.EXPLODE_1, scale -> createExplosion1()),
-      Map.entry(ShapeNames.EXPLODE_2, scale -> createExplosion2()),
-      Map.entry(ShapeNames.OVER5, scale -> createOver5()),
-      Map.entry(ShapeNames.WORMHOLE, scale -> createWormhole()),
-      Map.entry(ShapeNames.OVER1, scale -> createOver1()),
-      Map.entry(ShapeNames.WARP, scale -> createWarp()),
-      Map.entry(ShapeNames.REPEL, scale -> createRepel()),
-      Map.entry(ShapeNames.OVER2, scale -> createOver2()),
       Map.entry(ShapeNames.SHIP_WARBIRD, scale -> createShip(ShipVisuals.WARBIRD.visualOffset)),
       Map.entry(ShapeNames.SHIP_JAVELIN, scale -> createShip(ShipVisuals.JAVELIN.visualOffset)),
       Map.entry(ShapeNames.SHIP_SPIDER, scale -> createShip(ShipVisuals.SPIDER.visualOffset)),
@@ -277,8 +276,8 @@ public class SISpatialFactory {
   private Spatial createFlag(final int flag) {
     final Quad quad = new Quad(CoreViewConstants.FLAGSIZE, CoreViewConstants.FLAGSIZE);
     final float halfSize = CoreViewConstants.FLAGSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, QuadMeshes.verticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(QuadMeshes.normalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Flag", quad);
 
@@ -316,8 +315,8 @@ public class SISpatialFactory {
     final Quad quad = new Quad(CoreViewConstants.SHIPSIZE, CoreViewConstants.SHIPSIZE);
     final float halfSize = CoreViewConstants.SHIPSIZE * 0.5f;
     quad.setBuffer(
-        VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(getVerticesQuad(halfSize)));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+        VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(QuadMeshes.verticesQuad(halfSize)));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(QuadMeshes.normalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Ship", quad);
 
@@ -356,8 +355,8 @@ public class SISpatialFactory {
   private Spatial createBomb(int viewOffset) {
     final Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
     final float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, QuadMeshes.verticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(QuadMeshes.normalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bomb", quad);
 
@@ -375,8 +374,8 @@ public class SISpatialFactory {
   private Spatial createBullet(final int offSet) {
     final Quad quad = new Quad(CoreViewConstants.BULLETSIZE, CoreViewConstants.BULLETSIZE);
     final float halfSize = CoreViewConstants.BULLETSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, QuadMeshes.verticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(QuadMeshes.normalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bullet", quad);
 
@@ -391,15 +390,11 @@ public class SISpatialFactory {
     return geom;
   }
 
-  private Spatial createExplosion() {
-    return ef.createExplosion();
-  }
-
   private Spatial createBounty() {
     final Quad quad = new Quad(CoreViewConstants.PRIZESIZE, CoreViewConstants.PRIZESIZE);
     final float halfSize = CoreViewConstants.PRIZESIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
+    quad.setBuffer(VertexBuffer.Type.Position, 3, QuadMeshes.verticesQuad(halfSize));
+    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(QuadMeshes.normalsQuad()));
     quad.updateBound();
     final Geometry geom = new Geometry("Bounty", quad);
 
@@ -439,226 +434,6 @@ public class SISpatialFactory {
     geom.setUserData("arena", Boolean.TRUE);
 
     return geom;
-  }
-  private Spatial createExplosion1() {
-    final Quad quad = new Quad(CoreViewConstants.EXPLOSION1SIZE, CoreViewConstants.EXPLOSION1SIZE);
-    final float halfSize = CoreViewConstants.EXPLOSION1SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Bomb", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/Explode1MaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/Explode1MaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-
-  private Spatial createExplosion0() {
-    final Quad quad = new Quad(CoreViewConstants.EXPLOSION0SIZE, CoreViewConstants.EXPLOSION0SIZE);
-    final float halfSize = CoreViewConstants.EXPLOSION0SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Bomb", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/Explode0MaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/Explode0MaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createExplosion2() {
-    final Quad quad = new Quad(CoreViewConstants.EXPLOSION2SIZE, CoreViewConstants.EXPLOSION2SIZE);
-    final float halfSize = CoreViewConstants.EXPLOSION2SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Bomb", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/Explode2MaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/Explode2MaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createOver5() {
-    final Quad quadOver5 = new Quad(CoreViewConstants.OVER5SIZE, CoreViewConstants.OVER5SIZE);
-    final float halfSizeOver5 = CoreViewConstants.OVER5SIZE * 0.5f;
-    quadOver5.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSizeOver5));
-    quadOver5.setBuffer(
-        VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quadOver5.updateBound();
-    final Geometry geomOver5 = new Geometry("Wormhole", quadOver5);
-
-    if (UNSHADED) {
-      geomOver5.setMaterial(assets.loadMaterial("Materials/Over5MaterialUnshaded.j3m"));
-    } else {
-      geomOver5.setMaterial(assets.loadMaterial("Materials/Over5MaterialLight.j3m"));
-    }
-
-    geomOver5.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geomOver5.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geomOver5;
-  }
-
-  private Spatial createWormhole() {
-    final Quad quad = new Quad(CoreViewConstants.WORMHOLESIZE, CoreViewConstants.WORMHOLESIZE);
-    // <-- Move into the material?
-    final float halfSize = CoreViewConstants.WORMHOLESIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    // -->
-    quad.updateBound();
-    final Geometry geom = new Geometry("Wormhole", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/WormholeMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/WormholeMaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createOver1() {
-    final Quad quad = new Quad(CoreViewConstants.OVER1SIZE, CoreViewConstants.OVER1SIZE);
-    final float halfSize = CoreViewConstants.OVER1SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Over1", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/Over1MaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/Over1MaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createOver2() {
-    final Quad quad = new Quad(CoreViewConstants.OVER2SIZE, CoreViewConstants.OVER2SIZE);
-    final float halfSize = CoreViewConstants.OVER2SIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Over2", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/Over2MaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/Over2MaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createWarp() {
-    final Quad quad = new Quad(CoreViewConstants.WARPSIZE, CoreViewConstants.WARPSIZE);
-    final float halfSize = CoreViewConstants.WARPSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Warp", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/WarpMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/WarpMaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createRepel() {
-    final Quad quad = new Quad(CoreViewConstants.REPELSIZE, CoreViewConstants.REPELSIZE);
-    final float halfSize = CoreViewConstants.REPELSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Repel", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/RepelMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/RepelMaterialLight.j3m"));
-    }
-
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  private Spatial createBurst() {
-    final Quad quad = new Quad(CoreViewConstants.BURSTSIZE, CoreViewConstants.BURSTSIZE);
-    final float halfSize = CoreViewConstants.BURSTSIZE * 0.5f;
-    quad.setBuffer(VertexBuffer.Type.Position, 3, getVerticesQuad(halfSize));
-    quad.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(getNormalsQuad()));
-    quad.updateBound();
-    final Geometry geom = new Geometry("Burst", quad);
-
-    if (UNSHADED) {
-      geom.setMaterial(assets.loadMaterial("Materials/BurstMaterialUnshaded.j3m"));
-    } else {
-      geom.setMaterial(assets.loadMaterial("Materials/BurstMaterialLight.j3m"));
-    }
-    geom.getMaterial().setFloat(STARTTIME, timer.getTimeInSeconds());
-    geom.setQueueBucket(RenderQueue.Bucket.Transparent);
-    return geom;
-  }
-
-  /**
-   * This array is used to define the quad bounds in the right order. Its important relative to
-   * where the camera is and what facing the camera has
-   *
-   * @param halfSize the half size of the quad
-   * @return array
-   */
-  private float[] getVerticesQuad(final float halfSize) {
-    return new float[] {
-      halfSize, 0, -halfSize, -halfSize, 0, -halfSize, -halfSize, 0, halfSize, halfSize, 0, halfSize
-    };
-  }
-
-  /**
-   * This will create the normals that is point in the z unit vector direction. This is used in
-   * relation to the lighting on the quad (towards camera)
-   *
-   * @return float array containing the right normals
-   */
-  private float[] getNormalsQuad() {
-    float[] normals;
-    normals = new float[] {0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
-    return normals;
   }
 
   private static void translateMesh(final Mesh mesh, final Vector3f offset) {

@@ -250,10 +250,10 @@ public class ConsumableSystem extends BaseInfinitySystem
    * Pattern 4 spawn projection: read per-arena {@link RepelConfig}, project
    * {@code timeMs} into {@link com.simsilica.es.common.Decay} via
    * {@link WeaponFactory#createRepel}, and stamp {@code speed} /
-   * {@code distancePixels} as {@link RepelSpeed} / {@link RepelDistance}
-   * components on the spawned effect entity. The future repel-impulse
-   * system reads those components — never the {@link RepelConfig} template
-   * — per the hot-path-consumer rule in
+   * {@code distanceTiles} as {@link RepelSpeed} / {@link RepelDistance}
+   * components on the spawned effect entity. The repel-impulse system
+   * reads those components — never the {@link RepelConfig} template —
+   * per the hot-path-consumer rule in
    * {@code .claude/rules/config-pattern.md}.
    */
   private void createRepel(Entity requesterEntity, final long time, ActionPosition info) {
@@ -271,7 +271,7 @@ public class ConsumableSystem extends BaseInfinitySystem
             engineConfigSystem.get().repelRadius());
 
     ed.setComponent(repelEffect, new RepelSpeed(cfg.speed()));
-    ed.setComponent(repelEffect, new RepelDistance(cfg.distancePixels()));
+    ed.setComponent(repelEffect, new RepelDistance(cfg.distanceTiles()));
   }
 
   /**

@@ -44,7 +44,7 @@ public class RepelFactoryTest {
     final PhysicsSpace<EntityId, MBlockShape> phys =
         new PhysicsSpace<>(new Grid(TEST_GRID_SPACING));
 
-    final RepelConfig cfg = new RepelConfig(5000, 2250L, 512);
+    final RepelConfig cfg = new RepelConfig(5000, 2250L, 32.0);
     final long createdTime = 2_000_000_000L;
     final EntityId owner = ed.createEntity();
 
@@ -72,7 +72,7 @@ public class RepelFactoryTest {
     final PhysicsSpace<EntityId, MBlockShape> phys =
         new PhysicsSpace<>(new Grid(TEST_GRID_SPACING));
 
-    final RepelConfig cfg = new RepelConfig(5000, 2250L, 512);
+    final RepelConfig cfg = new RepelConfig(5000, 2250L, 32.0);
     final EntityId owner = ed.createEntity();
 
     final EntityId repel =
@@ -88,10 +88,13 @@ public class RepelFactoryTest {
     // WeaponFactory.createRepel handles the Decay projection; speed and
     // distance are stamped by the caller from the same RepelConfig.
     ed.setComponent(repel, new RepelSpeed(cfg.speed()));
-    ed.setComponent(repel, new RepelDistance(cfg.distancePixels()));
+    ed.setComponent(repel, new RepelDistance(cfg.distanceTiles()));
 
     assertEquals(5000, ed.getComponent(repel, RepelSpeed.class).getSpeed());
-    assertEquals(512, ed.getComponent(repel, RepelDistance.class).getPixels());
+    assertEquals(
+        32.0,
+        ed.getComponent(repel, RepelDistance.class).getRadiusWorldUnits(),
+        0.0001);
   }
 
   @Test

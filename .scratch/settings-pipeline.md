@@ -409,7 +409,7 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 |---|---|---|---|---|---|---|---|
 | ✅ | `RepelSpeed` | ✅ repel.groovy | ✅ `RepelAdapter` (typed DSL) | ✅ `RepelConfig.speed` | — | ✅ `ConsumableSystem.createRepel` → `RepelSpeed` component | ✅ `RepelFactoryTest` |
 | ✅ | `RepelTime` | ✅ repel.groovy | ✅ `RepelAdapter` (cs×10→ms) | ✅ `RepelConfig.timeMs` | — | ✅ `ConsumableSystem.createRepel` → `Decay` | ✅ `RepelFactoryTest` |
-| ✅ | `RepelDistance` | ✅ repel.groovy | ✅ `RepelAdapter` (typed DSL) | ✅ `RepelConfig.distancePixels` | — | ✅ `ConsumableSystem.createRepel` → `RepelDistance` component | ✅ `RepelFactoryTest` |
+| ✅ | `RepelDistance` | ✅ repel.groovy | ✅ `RepelAdapter` (typed DSL; tile-units) | ✅ `RepelConfig.distanceTiles` | — | ✅ `ConsumableSystem.createRepel` → `RepelDistance` (world-units) component | ✅ `RepelFactoryTest` |
 
 ## [Rocket]
 

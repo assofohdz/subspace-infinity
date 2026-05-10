@@ -16,7 +16,8 @@ import infinity.config.RepelConfig;
  * repel {
  *     speed     5000    // [Repel] RepelSpeed (raw Subspace velocity units)
  *     time      225     // [Repel] RepelTime (centiseconds → ms ×10)
- *     distance  512     // [Repel] RepelDistance (Subspace pixels)
+ *     distance  32      // [Repel] RepelDistance expressed in tiles / world units
+ *                       // (Subspace canon authors pixels at 16 px/tile, e.g. 512 px = 32 tiles)
  * }
  * }</pre>
  */
@@ -45,7 +46,7 @@ public final class RepelAdapter
 
     private int speed = RepelConfig.DEFAULTS.speed();
     private long timeMs = RepelConfig.DEFAULTS.timeMs();
-    private int distancePixels = RepelConfig.DEFAULTS.distancePixels();
+    private double distanceTiles = RepelConfig.DEFAULTS.distanceTiles();
 
     RepelBuilder() {}
 
@@ -62,13 +63,21 @@ public final class RepelAdapter
       this.timeMs = Validators.centisecondsToMs("repel.time", centiseconds);
     }
 
-    /** {@code [Repel] RepelDistance} — effect radius in Subspace pixels. */
-    public void distance(final int value) {
-      this.distancePixels = value;
+    /**
+     * {@code [Repel] RepelDistance} expressed in <em>tiles / world units</em>
+     * (Infinity-native; the simulation layer doesn't speak in pixels).
+     * Effect radius applied to {@link infinity.es.Repellable} bodies in
+     * range. Subspace canon authors {@code RepelDistance} in pixels
+     * (512 px = 32 tiles at the 16 px/tile rate); operators porting an SVS
+     * server.cfg divide by 16. Mirrors the {@code BombConfig.explodeRadius}
+     * precedent (slice 9a).
+     */
+    public void distance(final Number value) {
+      this.distanceTiles = Validators.finiteNonNegativeDouble("repel.distance", value);
     }
 
     RepelConfig build() {
-      return new RepelConfig(speed, timeMs, distancePixels);
+      return new RepelConfig(speed, timeMs, distanceTiles);
     }
   }
 }

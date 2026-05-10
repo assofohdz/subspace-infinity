@@ -212,11 +212,14 @@ public class ModelViewState extends BaseAppState {
     // to the common ancestor of *both* ModelViewState's objectRoot AND
     // LocalViewState's ViewRoot. jME lights are inherited downward only, so
     // a light on viewRoot wouldn't reach the world tiles at all.
+    final EffectSpatialFactory effectFactory =
+        new EffectSpatialFactory(app.getAssetManager(), this.getApplication().getTimer());
     this.SImodelFactory =
         new SISpatialFactory(
             app.getAssetManager(),
             this.getApplication().getTimer(),
-            localView.getGeomIndex());
+            localView.getGeomIndex(),
+            effectFactory);
 
     DebugHudState debug = getState(DebugHudState.class);
     if (debug != null) {

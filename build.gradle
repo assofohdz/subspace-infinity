@@ -2,28 +2,30 @@ subprojects {
 
     version='1.0.16'
 
-    //For now we want the latest version of everything except JMonkeyEngine
-    //Could also specify major versions like 4.+
+    //Pinned to the versions Gradle currently resolves; bump deliberately
+    //rather than tracking '+'. Simsilica/Moss SNAPSHOTs are vendored under
+    //libs/m2 — pinning here makes the manifest explicit so a new vendored
+    //artifact does not silently move the build.
     ext.jmeVersion = '3.9.0-stable'
-    ext.lemurVersion = '+'
-    ext.lemurProtoVersion = '+'
-    ext.lemurPropsVersion = '+'
-    ext.simMathVersion = '+'
-    ext.sio2Version = '+'
-    ext.simEtherealVersion = '+'
-    ext.zayEsVersion = '+'
-    ext.zayEsNetVersion = '+'
+    ext.lemurVersion = '1.17.0-SNAPSHOT'
+    ext.lemurProtoVersion = '1.14.0-SNAPSHOT'
+    ext.lemurPropsVersion = '1.2.0'
+    ext.simMathVersion = '1.6.1-SNAPSHOT'
+    ext.sio2Version = '1.9.0-SNAPSHOT'
+    ext.simEtherealVersion = '1.8.1-SNAPSHOT'
+    ext.zayEsVersion = '1.7.0-SNAPSHOT'
+    ext.zayEsNetVersion = '1.7.0-SNAPSHOT'
 
-    ext.groovyVersion = '+'
+    ext.groovyVersion = '3.0.25'
     ext.gsonVersion = '2.11.0'  // pinned to stable release
     ext.log4jVersion = '2.25.4'  // pinned to stable release
     ext.slf4jVersion = '2.0.17'  // pinned to stable release
-    ext.guavaVersion = '+'
+    ext.guavaVersion = '33.6.0-jre'
 
-    ext.mossVersion = "+"
+    ext.mossVersion = '1.0.0-SNAPSHOT'
 
     ext.pagerVersion = '1.0.1-SNAPSHOT'
     ext.simFxVersion = '1.0.1-SNAPSHOT'
 
-    ext.junitVersion = '+'
+    ext.junitVersion = '4.13.2'
 }
