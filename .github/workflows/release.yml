@@ -1,5 +1,13 @@
-# Build native installers and publish to GitHub Releases and itch.io
+# Build native installers + distZips and publish to GitHub Releases and itch.io
 # Triggered on version tags (v1.0.0, v1.2.3, etc.) or manual dispatch
+#
+# Post-megasplit (commit 3cf92a86): the legacy `:infinity:` Gradle module no
+# longer exists. This workflow now targets:
+#   - `:infinity-client:` for native installers (jpackage produces the desktop
+#     app — client only, server is headless).
+#   - `:infinity-client:distZip` and `:infinity-server:distZip` for the two
+#     cross-platform distribution zips (built once on Linux; same artifact
+#     across all OS targets).
 
 name: Release
 
@@ -19,7 +27,59 @@ env:
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
-  # Build native packages for each OS
+  # Build cross-platform dist zips (server + client). Built once on Linux —
+  # the zip contents are platform-independent (JVM-based), so producing them
+  # in the per-OS matrix would just be N copies of the same artifact.
+  build-dists:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: ${{ github.event_name != 'push' }}
+
+      - name: Get version from tag
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update version in build.gradle
+        shell: bash
+        run: |
+          # Root build.gradle holds the canonical version in `subprojects { version='X.Y.Z' }`.
+          # Single quotes, no spaces around '=' — match the existing format.
+          sed -i.bak "s/version='[^']*'/version='${{ steps.version.outputs.VERSION }}'/" build.gradle
+          grep "version=" build.gradle | head -1
+
+      - name: Build distZips (server + client)
+        run: ./gradlew :infinity-server:distZip :infinity-client:distZip --build-cache
+
+      - name: Upload distZips
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-zips
+          path: |
+            infinity-server/build/distributions/*.zip
+            infinity-client/build/distributions/*.zip
+          retention-days: 7
+
+  # Build native packages for each OS (client only; server is headless).
   build-native:
     strategy:
       matrix:
@@ -65,32 +125,33 @@ jobs:
       - name: Update version in build.gradle
         shell: bash
         run: |
-          sed -i.bak 's/version = ".*"/version = "${{ steps.version.outputs.VERSION }}"/' infinity/build.gradle
+          sed -i.bak "s/version='[^']*'/version='${{ steps.version.outputs.VERSION }}'/" build.gradle
+          grep "version=" build.gradle | head -1
 
-      - name: Build, app image, and installer
-        run: ./gradlew :infinity:build :infinity:jpackageImage :infinity:jpackage --build-cache
+      - name: Build, app image, and installer (client)
+        run: ./gradlew :infinity-client:build :infinity-client:jpackageImage :infinity-client:jpackage --build-cache
 
       - name: Upload app image for itch.io
         uses: actions/upload-artifact@v7
         with:
           name: app-${{ matrix.platform }}
-          path: infinity/build/jpackage-image/*
+          path: infinity-client/build/jpackage-image/*
           retention-days: 7
 
       - name: Upload installer for GitHub releases
         uses: actions/upload-artifact@v7
         with:
           name: installer-${{ matrix.platform }}
-          path: infinity/build/jpackage/*
+          path: infinity-client/build/jpackage/*
           retention-days: 7
 
-  # Create GitHub Release
+  # Create GitHub Release with both distZips + per-OS native installers.
   create-release:
-    needs: build-native
+    needs: [build-dists, build-native]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Get version from tag
         id: version
@@ -101,15 +162,25 @@ jobs:
             echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Download all artifacts
+      - name: Download dist zips
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-zips
+          path: dist-zips
+
+      - name: Download native installers
         uses: actions/download-artifact@v8
         with:
           path: installers
           pattern: installer-*
           merge-multiple: true
 
-      - name: List installers
-        run: ls -la installers/
+      - name: List release assets
+        run: |
+          echo "=== distZips ==="
+          ls -la dist-zips/
+          echo "=== native installers ==="
+          ls -la installers/
 
       - name: Create Release
         uses: softprops/action-gh-release@v3
@@ -117,12 +188,15 @@ jobs:
           name: Subspace-Infinity v${{ steps.version.outputs.VERSION }}
           draft: false
           prerelease: false
-          files: installers/*
+          files: |
+            dist-zips/**/*.zip
+            installers/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # Push to itch.io
+  # Push to itch.io (client app images only; itch.io serves the player-facing
+  # bundle, not the headless server).
   publish-itchio:
     needs: build-native
     runs-on: ubuntu-latest
