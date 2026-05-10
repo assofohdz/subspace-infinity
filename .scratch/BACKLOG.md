@@ -52,29 +52,22 @@ Out of scope for any specific gameplay slice; surface as its own keybinding-clea
 
 ### `MapSystem` 2-job split
 
-The 634-line file still mixes two responsibilities:
+The 629-line file still mixes two responsibilities:
 
 - **`LegacyMapProjector`** — pure-function lvl-decode → world cell writes. Extract as standalone class taking `(LevelFile, Vec3d offset, int tileBase, long createdTime, World, EntityData, PhysicsSpace) → HashSet<Vec3d>`.
 - **`WallLightDecorator`** — wall-run light emitter generator. Extract as standalone strategy taking `(short[][] tiles, Vec3d offset, World, HashSet<Vec3d>)`.
 
 After: `MapSystem` keeps the cohesive "what maps are loaded where" story (load/unload/swap, spiral placement, async orchestration). The projector and decorator become independently testable — the projector via fixture `.lvl` files, asserting cells + entities. Block constants (`INVISIBLE_BLOCK_TYPE`, `LIGHT_EMITTER_BLOCK_TYPE`) hoisted to `InfinityConstants`.
 
-### `WeaponsSystem` strong split
-
-841-line system mixing the fire pipeline (per-weapon `canAttackX` / `setCoolDownX` / `deductCostOfAttackX` / `createProjectileX` × 5) with contact resolution (`newContact` for projectile-vs-ship + projectile-vs-world). Two splits:
-
-1. Pull `newContact()` and `damageEntities`/`energyEntities` sets into a separate `WeaponContactSystem`. Removes `WeaponsSystem`-as-`ContactListener` shape and ~80 lines.
-2. Collapse the 5 parallel weapon types into a `WeaponHandler` interface with `Bullet`/`Bomb`/`GravBomb`/`Mine`/`Burst` impls. `attack()` becomes `handlers.get(flag).fire(...)`. Kills the per-type switch duplication. Sets the polymorphism-collapse template the `PrizeApplier` registry already established.
-
 ### `ArenaSystem` spatial-index extraction
 
-735 lines. Two of the three originally-proposed extractions already landed: chat command handlers live in [`ArenaCommandsSystem`](../infinity-server/src/main/java/infinity/systems/ArenaCommandsSystem.java) and hot-reload polling lives in [`ArenaReloadWatcher`](../infinity-server/src/main/java/infinity/systems/ArenaReloadWatcher.java).
+801 lines. Two of the three originally-proposed extractions already landed: chat command handlers live in [`ArenaCommandsSystem`](../infinity-server/src/main/java/infinity/systems/ArenaCommandsSystem.java) and hot-reload polling lives in [`ArenaReloadWatcher`](../infinity-server/src/main/java/infinity/systems/ArenaReloadWatcher.java).
 
 What remains: extract `ArenaSpatialIndex` for spatial queries — `findArenaAt`, `findArenaEntityAt`, `arenaToWorld`, `worldToArena`, `getArenaSpawn`, `getArenaMap`. After this `ArenaSystem` keeps lifecycle only (reconcile/load/unload/slot allocation/bootstrap).
 
 ### `SISpatialFactory` 2-way split
 
-792 lines. Gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see "Library follow-ups" below.
+685 lines. Gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see "Library follow-ups" below.
 
 ### Factory parameter records
 
@@ -104,7 +97,7 @@ Most non-Simsilica deps in [`build.gradle`](../build.gradle) `subprojects` block
 
 ## Naming / convention notes (kept for reference)
 
-- **Spatial-name prefixes** — `WeaponsSystem.{BOMB,BULLET,MINE}_LEVEL_PREFIX` form `ShapeNames` strings the client maps to spatials. Framework convention; not a Pattern 4 candidate.
+- **Spatial-name prefixes** — `WeaponsFireSystem.{BOMB,BULLET,MINE}_LEVEL_PREFIX` form `ShapeNames` strings the client maps to spatials. Framework convention; not a Pattern 4 candidate.
 - **Default arena id** — `ArenaSystem.DEFAULT_ARENA_ID = "default"`. Framework convention.
 
 ## How to use this list
@@ -112,3 +105,36 @@ Most non-Simsilica deps in [`build.gradle`](../build.gradle) `subprojects` block
 When the user asks "what's next?" or starts a new session asking about cleanup / refactoring opportunities, surface relevant items from this file. For Subspace-settings wiring, defer to the pipeline tracker + slices file.
 
 **Keep this file in sync** — when an item lands, **delete** it from this file in the same commit. Do not strikethrough; crossed-out content is context-window clutter for future sessions.
+
+## Recommended next steps
+
+Ranked by impact ÷ effort given the post-arch-review state. Items in the same band are roughly interchangeable; pick what's freshest in your head.
+
+### Pick first — small, focused, low-risk
+
+1. **`AvatarMovementFunctions` keybinding cleanup** (S/S). Real bug surfaced during S5 manual test — F_REPEL is mapped four times, F_DECOY/F_ROCKET/F_BRICK/F_ATTACH have no bindings. One file, one cleanup pass, immediate player-facing fix. Also a natural moment to verify whether the unbound features are still real or stale.
+2. **Library `'+'` version pinning audit** (S/S). Cheap insurance against an upstream Maven cache flush silently moving the build under us. One pass through the root `build.gradle`'s `subprojects` block; pin everything to a specific version.
+
+### After that — medium-effort focused slices
+
+3. **Eliminate Subspace pixels from gameplay types** (S-M/M). `RepelConfig.distancePixels` + `RepelDistance` component — one cohesive slice. Already mapped step-by-step in this file. Sets the precedent for the broader "world units only in simulation types" pattern; shrinks the cognitive overhead for anyone tracing a pixel-flavored value.
+4. **`MapState` block create/delete RMI cleanup** (M/M). Removes a real client→server-system layering smell (the `MapSystem.CREATE`/`DELETE` byte constants). Optional: extract click-to-block input handling out of `MapState` if/when its rendering responsibilities grow further.
+
+### After that — bigger refactors with clearer ROI
+
+5. **`MapSystem` 2-job split** (M/M). Extract `LegacyMapProjector` + `WallLightDecorator`. Real testability win: each pure function gets fixture-based tests. Block constants hoist to `InfinityConstants` as a side benefit.
+6. **`ArenaSystem` spatial-index extraction** (M/M). The last of the three originally-proposed extractions; the other two already shipped. After this `ArenaSystem` is lifecycle-only.
+7. **`SISpatialFactory` 2-way split** (M/M). Effect spatials move out; gameplay spatials stay. No urgent driver — pick this when a follow-on effect-spatial slice naturally touches the file.
+
+### Needs design call BEFORE work
+
+8. **`modules/` directory** — six `*Tester` stubs with no runtime instantiator after `AdaptiveLoader` retirement. Decision pending: delete (the [`groovy-module-loader/PRD.md`](groovy-module-loader/PRD.md) preserves the intent), OR keep as scaffolding for the future Groovy module loader. **Surface to user before touching.**
+9. **`Factory` parameter records** — ABI-breaking; coordinate with module authors before doing it.
+
+### Hold for now
+
+10. **Radar `ArenaFootprint` muted styling** — wait until enough U1 in-game time confirms the uniform styling actually feels noisy. Don't pre-build the muted variant.
+
+---
+
+**Not in this file** — Subspace-settings wiring lives in [`settings-pipeline.md`](settings-pipeline.md) + [`settings-pipeline-slices.md`](settings-pipeline-slices.md); pick from the queue file when settings work is the focus. RaM-pattern follow-ons live in [`replacement-as-mutation/PRD.md`](replacement-as-mutation/PRD.md). Spawn-projection harness expansion lives in [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md).
