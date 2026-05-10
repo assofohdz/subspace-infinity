@@ -108,8 +108,8 @@ A preset only authors files for sections it overrides; the rest fall
 back to the matching `*Config.DEFAULTS` constant in `api/src/infinity/config/`.
 
 ```
-infinity/zone/arenas/<arena>/arena.groovy           ← arena.groovy entry point
-infinity/zone/conf/<preset>/
+zone/arenas/<arena>/arena.groovy           ← arena.groovy entry point
+zone/conf/<preset>/
 ├── ships.groovy           ← ship(WARBIRD) { ... } per Ship enum
 ├── bullet.groovy          ← bullet { damageLevel … }
 ├── bomb.groovy            ← bomb { damageLevel …; aliveTime … }

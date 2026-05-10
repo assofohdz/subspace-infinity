@@ -1,8 +1,8 @@
 # Ship Config Dictionary — typed `ShipConfig` port status
 
-Tracks the per-ship tuning surface and which keys have been promoted to the typed Groovy `ShipConfig` template (Pattern 4 — `ship(Ship.X) { … }` blocks in `ships.groovy`) vs. which still live as untyped `shipSection 'X' { Key value }` blocks in the per-preset Groovy fragments under `infinity/zone/conf/<preset>/ship-<name>.groovy`.
+Tracks the per-ship tuning surface and which keys have been promoted to the typed Groovy `ShipConfig` template (Pattern 4 — `ship(Ship.X) { … }` blocks in `ships.groovy`) vs. which still live as untyped `shipSection 'X' { Key value }` blocks in the per-preset Groovy fragments under `zone/conf/<preset>/ship-<name>.groovy`.
 
-**Scope:** the 84 keys per ship that appear in every `ship-<name>.groovy` fragment under `infinity/zone/conf/trench-04-2026/` (verified to be the same set across all 8 ships). The same key set holds for the SVS preset family. (These keys came from the original Subspace `shipSection` surface; the conf-fragments-to-groovy migration ported the bag verbatim into `shipSection` blocks — the names and values are unchanged.)
+**Scope:** the 84 keys per ship that appear in every `ship-<name>.groovy` fragment under `zone/conf/trench-04-2026/` (verified to be the same set across all 8 ships). The same key set holds for the SVS preset family. (These keys came from the original Subspace `shipSection` surface; the conf-fragments-to-groovy migration ported the bag verbatim into `shipSection` blocks — the names and values are unchanged.)
 
 **Why this file exists:** Always-on rule #3 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". All 84 keys are in Groovy now, but only 15 are *typed* — the rest sit in untyped `shipSection` blocks (read by `SettingsSystem.getInt/getString` if read at all). This dictionary is the running ledger of which knobs are typed (Pattern 4 — projected to ECS components at spawn) vs. which still flow through the untyped flat-bag accessors. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
 

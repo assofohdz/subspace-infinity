@@ -163,4 +163,4 @@ Constants live in [`infinity.map.MapTypes`](../../infinity-server/src/main/java/
 
 ## Maps Location
 
-`infinity/assets/Maps/` — maps are on the JME3 asset path, loadable by both server (`AssetLoaderService`) and client (`app.getAssetManager()`).
+`assets/Maps/` — maps are on the JME3 asset path, loadable by both server (`AssetLoaderService`) and client (`app.getAssetManager()`).

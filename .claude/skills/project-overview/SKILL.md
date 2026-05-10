@@ -29,8 +29,8 @@ infinity-server/src/main/java/infinity/
 infinity-client/src/main/java/infinity/
   client/                    # Client app states, view factories
   Main.java                  # Entry point (fat-client + embedded server)
-infinity/assets/             # JME asset root: Maps/*.lvl, textures, sounds
-infinity/zone/               # Second asset root for runtime config
+assets/                      # JME asset root: Maps/*.lvl, textures, sounds
+zone/                        # Second asset root for runtime config
   zone.groovy                # zone-wide config (autoLoad, enterSpawn)
   arenas/<name>/arena.groovy # per-arena config (map, shipsScript, spawn, includeFragment)
   conf/base/                 # project baseline tuning (current default, 7 ships) — Groovy

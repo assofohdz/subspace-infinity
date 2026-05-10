@@ -18,7 +18,7 @@ were either Subspace defaults or arena-specific copies of those defaults;
 they were not driving any gameplay. If a section is later promoted back
 into scope, look the canonical defaults up in
 [`subspace-ini-reference/REFERENCE.md`](subspace-ini-reference/REFERENCE.md)
-or recover the prior values from `git log -- infinity/zone/conf/`.
+or recover the prior values from `git log -- zone/conf/`.
 
 ## Whole sections
 

@@ -1,6 +1,6 @@
 ---
 name: arena-settings
-description: Work with Subspace Infinity arena settings — the per-arena `arena.groovy` files under `infinity/zone/arenas/`, the Groovy `conf/` preset fragment library (section/shipSection/shipSections DSL), the recursive `include` directive, the `SettingsSystem` typed accessors, and the `~loadArena`/`~swapMap` commands. Use when adding or reading settings, creating a new arena, or splitting settings fragments.
+description: Work with Subspace Infinity arena settings — the per-arena `arena.groovy` files under `zone/arenas/`, the Groovy `conf/` preset fragment library (section/shipSection/shipSections DSL), the recursive `include` directive, the `SettingsSystem` typed accessors, and the `~loadArena`/`~swapMap` commands. Use when adding or reading settings, creating a new arena, or splitting settings fragments.
 ---
 
 # Arena Settings
@@ -10,7 +10,7 @@ A **Zone** (server) contains many **Arenas**. An Arena = one **Map** (`.lvl`) + 
 ## Where things live
 
 ```
-infinity/zone/
+zone/
 ├── zone.groovy                       # zone-wide config (autoLoad, enterSpawn) — see GroovyZoneLoader
 ├── arenas/
 │   ├── (default)/arena.groovy        # thin: includeFragment list + map
@@ -262,7 +262,7 @@ The arena-scope core (map / shipsScript / spawn / wallFriction) lives on the typ
 
 ### Create a new arena
 
-1. `mkdir infinity/zone/arenas/{arenaName}/` — folder name = arena identity (not necessarily a map basename).
+1. `mkdir zone/arenas/{arenaName}/` — folder name = arena identity (not necessarily a map basename).
 2. Create `arena.groovy`:
    ```groovy
    arena {
@@ -275,7 +275,7 @@ The arena-scope core (map / shipsScript / spawn / wallFriction) lives on the typ
        includeFragment '/conf/base/misc.groovy'
    }
    ```
-3. Put the `.lvl` in `infinity/assets/Maps/`.
+3. Put the `.lvl` in `assets/Maps/`.
 4. Add to `zone.groovy`'s `autoLoad` if it should boot automatically, or `~loadArena {arenaName}` at runtime.
 
 ### Override a fragment value for one arena
@@ -305,7 +305,7 @@ Two shapes — pick whichever is cleaner.
 **A. Per-section split** (the shape `svs/`, `trench-04-2026/`, etc. use today). One file per section / per ship; arenas list each one under `includeFragment`.
 
 ```
-infinity/zone/conf/svs-arcade/
+zone/conf/svs-arcade/
 ├── ship-warbird.groovy
 ├── ship-javelin.groovy
 ├── …
