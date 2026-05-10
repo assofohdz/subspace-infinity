@@ -3,229 +3,234 @@
 Latest release only. Earlier history lives in git tags + commit log
 (`git log v<previous>..v<this>`).
 
-## v1.0.15 — 2026-05-09
+## v1.0.16 — 2026-05-10
 
-Re-architecting wave: collision radii moved from hardcoded Java
-constants into engine-tier config, the last `CorePhysicsConstants.java`
-file is deleted, the manual O(N) per-tick spatial scans are replaced
-with `mphys.queryBounds`, and a new architectural rule
-(Replacement-as-Mutation — single-writer-per-component) is codified.
-Player-visible: F1 help no longer lies, mine drops are clean,
-long-running servers don't leak. 22 commits across 5 slices.
+Major restructure release. The single `:infinity:` module has been
+split into `:infinity-server:` (headless-capable) and `:infinity-client:`
+(fat client + local-host). Two distribution targets now ship from one
+build: a headless dedicated-server zip and a client zip that can host
+its own server in-process. Game data (`assets/`, `zone/`) moved to the
+project root and the runtime registers external `FileLocator`s so
+`zone/engine.groovy` and per-arena Groovy presets hot-reload from a
+*dist install* — edit the file in your unzipped distribution, observe
+the reload within seconds, no rebuild. Plus the post-`v1.0.15`
+architectural review is fully cleared (all 13 findings landed across 4
+bundle commits + a 5-teammate post-refactor review identified 28 new
+items — see `.scratch/BACKLOG.md`). 31 commits since v1.0.15.
 
 ### For players
 
-**Bug fixes that you'll notice:**
+**Two ways to play, finally as separate downloads.**
 
-- **F1 help screen used to lie.** The hardcoded keybinding list omitted
-  thrust, turn, bomb, bullet, mine, burst, ship-select, and repel —
-  most of the actual game keys. Now auto-derived from the active input
-  mappings, grouped by category, with `(unbound)` placeholders for
-  declared-but-unmapped functions so dev-builds also surface gaps.
+- **Fat client (`infinity-1.0.16.zip`)** — 618 MB. Includes everything;
+  can host its own server (the same "host a game" flow as before).
+  Double-click `bin/infinity-client` (or `infinity-client.bat` on
+  Windows). On Linux/Wayland, use `bin/infinity-client` with
+  `WAYLAND_DISPLAY=` cleared, or run with the `runX11` script if
+  you've cloned the repo.
+- **Headless dedicated server (`infinity-server-1.0.16.zip`)** —
+  324 MB. No rendering; no Lemur UI deps. Run from terminal via
+  `bin/infinity-server`. For people who want to run a persistent
+  game arena from a server box without spinning up the GUI.
 
-- **Mines drop cleanly.** The "mine velocity = (0,0,0)" hack is gone;
-  mines now use a real per-ship `MineSpeed` knob (default 0 = inert
-  drop, matches Subspace canon). Visible behaviour unchanged on
-  default-tuning arenas.
+**Radar shows your current arena differently.** When you have multiple
+arenas loaded, the one your avatar is in renders at full saturation
+(today's behaviour) and other loaded arenas mute to ~50% saturation.
+The radar's polygon outlines all looked identical before; now there's
+a hierarchy at a glance.
 
-- **Long-running connections used to leak entity tracking on every
-  player-count query.** Closed.
-
-**Performance:**
-
-- Bomb splash, proximity-arming, and bomb-safety-spawn scans now use
-  the physics engine's spatial-query API instead of walking every
-  ship/projectile every tick. Higher-playerload arenas (32+ ships) get
-  measurably better tail latency on bomb hits.
+**Keybinding fix.** `F_REPEL` was accidentally bound to four keys
+(F3 + F4 + F5 + F7) at the same time, while `F_DECOY` / `F_ROCKET` /
+`F_BRICK` / `F_ATTACH` had no bindings at all. Repel now lives on its
+canonical key only; the others are intentionally unbound until their
+client-side handler ships.
 
 ### For authors (zones, arenas, ship presets)
 
-**`engine.groovy` gained 12 collision-radius knobs.** Promoted from
-hardcoded Java to operator-editable engine-tier:
+**Game data moved to project root.** Your edits go to:
 
 ```
-shipRadius      1.0
-bulletRadius    0.125
-bombRadius      0.5
-mineRadius      0.5
-thorRadius      0.5
-prizeRadius     0.5
-burstRadius     0.125
-repelRadius     0.125
-over1Radius     0.5
-over2Radius     1.0
-over5Radius     0.1
-flagRadius      0.5
+assets/        (was infinity/assets/)
+zone/          (was infinity/zone/)
+zone/engine.groovy   (was infinity-server/src/main/resources/engine.groovy)
 ```
 
-These are physics-engine facts identical across every arena in a build,
-which is why they live engine-tier rather than per-arena. Default
-values match the previously-hardcoded constants — no behaviour change
-unless you tune them.
+The same paths sit at the dist-zip root — extract a release, edit
+`zone/conf/<preset>/ships.groovy` or `zone/engine.groovy`, save, and
+the running server picks up the change within ~5 seconds via the
+mtime watcher. Per-arena `ships.groovy` reload was already wired;
+zone-tier `engine.groovy` and `zone.groovy` reload are new in this
+release.
 
-**`ships.groovy` per-ship knob added: `mines.speed`.** Default 0
-(inert drop). Set non-zero in any ship's `mines:` block to author
-kicker-mines that launch forward without inheriting the firing ship's
-velocity. Subspace canon doesn't define this — Infinity extension.
+**Repel `distance` now in tiles, not Subspace pixels.** If you author
+SVS-canon `distance: 512`, that's 512 pixels — divide by 16 to get
+tile units. Default in `zone/conf/<preset>/repel.groovy` is now
+`distance: 32` (the 512-px equivalent). `BombConfig.explodeRadius`
+already shipped tile-only in v1.0.15; Repel matches the pattern now.
 
-**Prize-applier Javadocs now cite REFERENCE.md.** Each prize applier
-under `infinity/src/main/java/infinity/systems/ship/applier/` documents
-its Subspace canon section, the canonical knob names, units, and any
-inline divergences (e.g. the VIE↔UI "Recharge"/"QuickCharge" naming
-inversion). Useful when reasoning about per-ship prize tables or
-debugging an apply path.
+**`zone/conf/svs*` presets** (`svs`, `svs-league`, `svs-pb`, `svs-tce`,
+`svs-turf`) are NOT referenced by any active arena. They're authoring
+templates for the original SVS canon — historical reference. The
+`base`/`trench-04-2026`/`deva-04-2026`/`testconf` presets are the
+actively-used ones.
 
-**`physics-audit.md` pruned to current state only.** Completed findings
-removed; git history preserves the resolution path.
+**Historical config dump moved.** The 1998-1999 `.CFG` / `.INI`
+reference files (Trench Wars, ASWZ, etc.) moved from `infinity/configs/`
+to `.scratch/historical-configs/` — out of the build path, still
+available for git-archaeology.
 
 ### For contributors (to this repo)
 
-**New architectural rule: Replacement-as-Mutation (RaM).** Each
-component type has exactly one canonical writer; every other system
-that wants to influence the value emits an intent (request component
-or event) into a queue the canonical writer drains each tick.
-
-- Rule: [`replacement-as-mutation.md`](.claude/rules/replacement-as-mutation.md)
-- PRD: [`replacement-as-mutation/PRD.md`](.scratch/replacement-as-mutation/PRD.md)
-  (9-item migration backlog, ordered by impact-per-effort)
-- Existing canonical examples documented: `EnergySystem` for
-  `HealthChange + Buff` intents; mphys integrator for `Impulse`;
-  `ShipSpawnSystem` for spawn-time projection; central decay reaper
-  for `Decay`.
-- Pilot migration slice: `WeaponsSystem` god-class extraction
-  (Fire / Reaper / Impact split with intent-emit for Health/Energy).
-
-**`CorePhysicsConstants.java` deleted entirely.** Was the last
-general-purpose constants holder; values either belonged engine-tier
-(12 collision radii → `EngineConfig`) or were dead. Future code: put
-operator-editable physics tunables in `engine.groovy`; put
-developer-tier physics constants in `EngineConfig.DEFAULTS` (or, if
-they're per-arena gameplay knobs, in `*Config` records under
-`api/src/infinity/config/`).
-
-**Mine special-case removed.** `if (weaponFlag == MINE)
-projectileVelocity.set(0,0,0)` replaced with `INERT_DROPS = Set.of(MINE)`
-constant + Step-3 ship-velocity-inheritance gate. Mirrors the existing
-`CENTERED_NO_PROJECTILE` Set idiom in `ConsumableSystem`.
-`applyWeaponSpeedScale` gained a real MINE branch reading the new
-`MineSpeed` component.
-
-**Spatial queries.** `ProximityFuseSystem.tryArm`,
-`WeaponsDamageLogic.applySplashDamage`, and
-`WeaponsEligibility.bombSafetyClear` use
-`physicsSpace.queryBounds(SphereVolume, QueryFilter)`. Health-bearer
-EntitySets preserved post-query as the ECS-state gate; strict
-point-distance math preserved for bit-exact radius semantics
-(`SphereVolume` inflates by body bounds radius).
-
-**Discipline-ratchet bundle:**
-
-- `LayerDependencyTest` archunit now enforces `infinity.sim..` +
-  `infinity.config..` (was only `infinity.es..` + `infinity.events..`).
-- Archunit exemptions changed from `doNotHaveSimpleName(...)` to FQN
-  match — no more silent collisions on a class-name reused elsewhere.
-- `TileType` + `TileKey` fields are now `final` (closes
-  `components.md` immutability gap).
-- `AvatarSystem.getShipCount` EntitySet leak closed (`try/finally`
-  with `release()`).
-- `Main.java` graveyard cleaned: 11 commented-out AppState
-  instantiations + 2 dead mapper-init calls removed (the AppStates
-  attached connection-scoped via `GameSessionState` continue to work).
-- `SISpatialFactory.java` dead code removed: `DEBUG_COG = false`
-  branches + 4 `@SuppressWarnings("unused")` private factory methods
-  + cascaded `createThrustEmitter` (-107 LOC, 2 jME imports dropped).
-
-**Static-analysis ceilings.** Per-tool, per-module strict pin in
-`gradle.properties`:
+**Module split (arch-review #11).** `:infinity:` is gone. New layout:
 
 ```
-maxApiCheckstyleViolations=37
-maxApiPmdViolations=0
-maxInfinityCheckstyleViolations=921
-maxInfinityCheckstyleTestViolations=16
-maxInfinityPmdViolations=3
-maxModulesCheckstyleViolations=12
-maxModulesPmdViolations=0
+api/                  ← shared contract layer (gained net/, util/, InfinityConstants)
+infinity-server/      ← headless server (~169 files: ai/, map/, server/, settings/, sim/, systems/, tools/)
+infinity-client/      ← fat client + HostState bridge (~73 files: Main.java + client/)
+modules/              ← Gradle subproject; *Tester stubs deleted (BaseGameModule abstraction stays in api/)
 ```
 
-Build fails if any tool's count exceeds the ceiling, with a clear
-remediation message. To ratchet down: capture new count, lower the
-property, commit. Error Prone + NullAway out of scope (need
-stdout-parsing — they emit via `javac` stdout, not separate XML
-reports).
+Build commands updated (`CLAUDE.md` already reflects):
 
-**HelpState architecture.** Hardcoded `keyHelp[]` array replaced with
-iteration over `InputMapper.getFunctionIds()`. Hybrid description-
-override map seeded with the friendly text from the deleted array;
-falls back to `FunctionId.getName()`. Grouped by
-`FunctionId.getGroup()`. `(unbound)` placeholder for unmapped
-FunctionIds turns F1 into a self-debugging tool for binding-table
-drift.
+```
+./gradlew :infinity-client:run        (was :infinity:run)
+./gradlew :infinity-client:runX11     (Linux/Wayland)
+./gradlew :infinity-client:runMac     (-XstartOnFirstThread)
+./gradlew :infinity-server:run        (NEW — headless dedicated server)
+```
 
-**`ModelViewState.cleanup` leaks closed.** Released the `avatarEntity`
-WatchedEntity (with null-guard), removed the previously-missing "Lobs"
-debug-value removal, nulled `posRef`, added defensive
-`bodies/models/largeModels.stop()` for the cleanup-while-disabled
-edge in jME's `BaseAppState` lifecycle contract.
+`distZip` now produces both artifacts. `infinity-server/build.gradle`
+includes `jme3-desktop` (no rendering — just the AWT-based AssetManager
+factory needed for the platform delegate at headless boot).
 
-**`GameEntities.create*` factories gained `radius` parameters** with
-backward-compat overloads using `EngineConfig.DEFAULTS.<radius>()` so
-module callers (`basicTester`, `warpTester`, etc.) compile unchanged.
-Same shape across all 12 affected factories.
+**13 of 13 arch-review findings closed across 4 bundles.**
 
-**New PRDs:**
+- `arch-review-tier2-bundle` (5 items) — `WeaponsSystem` god-class
+  split into `WeaponsFireSystem` + `WeaponsImpactSystem` +
+  `WeaponsReaperSystem` (RaM pilot — emits `DamageSource` intent
+  alongside the existing `HealthChange + Buff`); `ConfigRegistry`
+  slot-store + abstract `SingleClosureAdapter`/`Validators` across 12
+  fragment loaders; client/server/net seed tests; `EnergySystemIntentTest`
+  harness pillar; `EngineConfigSystem` mtime watcher.
+- `arch-review-tier3-bundle` (6 items) — `BaseInfinitySystem.requireSystem`
+  helper retrofitted across 14 systems; `WatchedEntity` lifecycle
+  convention pinned (release in `cleanup()`); `GameEntities` (976 LOC)
+  split into `ShipFactory` + `WeaponFactory` + `MapFactory`; `GroovyShipLoader`
+  789 → 219 LOC (extracted `ShipFallback` + `ShipConfigBuilder`);
+  api/test sourceset + 7 factory tests moved to `api/`; `Main.java`
+  Simsilica boilerplate → project SPDX header.
+- `arch-review-megasplit-bundle` — the module split itself.
+- `backlog-cleanup-bundle` (7 items) — typed `MapAction` enum (closes
+  the byte-constant layer leak); `MapSystem` split into
+  `LegacyMapProjector` + `WallLightDecorator`; `ArenaSpatialIndex`
+  extracted from `ArenaSystem`; `SISpatialFactory` split into
+  `EffectSpatialFactory` + `QuadMeshes`; Repel pixels → tiles;
+  AvatarMovementFunctions keybinding fix; library `'+'` versions
+  pinned to currently-resolved.
+- `backlog-final` — `modules/` *Tester stubs deleted; 18 `*Spec`
+  records introduced for factories with >5 args; radar muted styling.
 
-- `.scratch/debug-state-bindings/PRD.md` — F12 toggle to swap between
-  Game-mode and Debug-mode key bindings; canonical Subspace key
-  layout. Multi-slice plan; not started.
-- `.scratch/arch-review.md` — Read-only architectural review (13
-  active findings ranked by impact ÷ effort). Tier 1 fully cleared
-  this release; Tier 2 #1 (`WeaponsSystem` extraction as RaM pilot)
-  is the natural next slice.
+**Hot-reload from dist install** (slice/hot-reload-from-dist).
+`AssetLoaderService` (server) and `Main.simpleInitApp` (client) both
+register `FileLocator` against `./assets/` and `./zone/` working-dir-
+relative — project root in dev (`run.workingDir = rootProject.projectDir`),
+dist root in production. `GroovySettingsHost.resolveOnDisk` reads
+filesystem-first, falls back to classpath. `engine.groovy` moved out
+of module resources to `zone/engine.groovy` so the existing
+`EngineConfigSystem` watcher activates from a dist install. New
+zone-tier watcher (`ArenaSystem.pollZoneGroovyReload`) covers
+`zone/zone.groovy`.
 
-**Deleted scratch + workflow files** (no replacement; git log carries
-the history):
+**Replacement-as-Mutation (RaM) pilot landed.** `WeaponsSystem`
+extraction was the proving ground. `DamageSource(EntityId source,
+byte weaponFlag)` is the new attribution component, layered as an
+optional sibling on `HealthChange + Buff` so existing reactors still
+work; `HitFeedback`-style reactors that need to fork on intent now
+have something to fork on. Migration backlog (cap-bump intents,
+inventory decrements, etc.) lives in `.scratch/replacement-as-mutation/PRD.md`.
 
-- `.scratch/active-work.md` (per-machine claims tracker, no longer
-  needed)
-- `.scratch/config-consumers.md` (Infinity-only config registry —
-  coverage moved to per-rule documentation)
-- `.claude/rules/multi-machine-workflow.md` (workflow no longer
-  enforced)
-- `.scratch/guns/PRD.md`, `.scratch/radar-viewport/*` (landed features)
+**Architectural review v2.** Post-refactor 5-lens review (planner /
+config-2 / spawn / cleanup / client) identified 28 fresh findings —
+mostly small wins from the recent refactoring's surface area. Highest-
+value Tier 1 items: `MapState.java:449` DELETE-uses-wrong-axis bug,
+`WeaponsImpactSystem.lastTickNanos` non-volatile cross-thread,
+`EffectSpatialFactory.ef` NPE landmine. Tier 4 items: continuing the
+RaM migration to inventory + status families (the largest live
+multi-writer cluster). Full ranking in `.scratch/BACKLOG.md`.
 
-**Tooling:**
+**`physics-audit.md` aggressively trimmed.** 299 → 120 LOC. Stale
+slice claims (S4 spatial-query promotion was actually landed) corrected;
+landed slices removed; deferred slices (S3 bomb-bounce, S9 wormhole-
+Gravity, S10 afterburner) relocated to BACKLOG.md.
 
-- `.gitignore` extended with `.claude/scheduled_tasks.lock` (transient
-  scheduler artefact from Claude Code's experimental agent-team
-  feature).
+**New rules + skill updates:**
+
+- `.claude/rules/entity-sets.md` extended with the post-pilot
+  "release in `cleanup()`" client-side convention.
+- `.claude/skills/infinity-architecture/SKILL.md`,
+  `.claude/skills/project-overview/SKILL.md`,
+  `.claude/skills/lvl-format/SKILL.md`,
+  `.claude/skills/arena-settings/SKILL.md`,
+  `.claude/skills/jme-appstate/SKILL.md`,
+  `.claude/skills/sio2-system/SKILL.md`,
+  `.claude/skills/jme-effects/SKILL.md`,
+  `.claude/skills/moss-world-grid/SKILL.md`,
+  `.claude/skills/subspace-moss-terminology/SKILL.md`
+  all updated to post-megasplit module names + paths.
 
 ### Breaking changes
 
-- **`CorePhysicsConstants.java` is deleted.** Any external module that
-  imported it no longer compiles. All values either moved to
-  `EngineConfig` or were dead.
-- **`EngineConfig` constructor extended** from 4 to 16 parameters
-  (added 12 collision radii). Test fixtures updated; presets
-  without explicit radii fall through to `EngineConfig.DEFAULTS`.
-- **`ShipConfig`'s nested `MineStats` gained `speed`** (Subspace
-  velocity units, default 0). All `ships.groovy` fragments updated.
-- **`GameEntities.create*` factories** (Ship, PlayerShip, Bomb,
-  Bullet, Mine, Burst, Repel, Over5, AsteroidSmall, AsteroidMedium,
-  TurfStationaryFlag, Prize, Thor) all gained a `double radius`
-  parameter. Backward-compat overloads forward via
-  `EngineConfig.DEFAULTS` for ABI safety.
-- **`ShapeNames.createShip(byte, EntityData)` →
-  `ShapeNames.createShip(byte, EntityData, double radius)`.**
-- **`WeaponsLogic.applyProjectileRadiusOffset`** signature gained
-  `bulletRadius` + `bombRadius` parameters.
+- **`:infinity:` Gradle module no longer exists.** External callers /
+  custom build scripts that target it must switch to `:infinity-server:`
+  or `:infinity-client:` depending on what they want.
+- **`GameEntities.java` deleted.** Use `ShipFactory.create*`,
+  `WeaponFactory.create*`, or `MapFactory.create*` (per-domain
+  factories). No facade preserved; the `GameEntities`-as-grab-bag
+  growth was the calcification problem the split closed.
+- **`WeaponsSystem.java` deleted.** Logic split into
+  `WeaponsFireSystem`, `WeaponsReaperSystem`, `WeaponsImpactSystem`.
+  Any external module that referenced `WeaponsSystem.{BOMB,BULLET,MINE}_LEVEL_PREFIX`
+  finds them now on `WeaponsFireSystem`. Detonation triggers go through
+  `WeaponsReaperSystem.detonate(...)`.
+- **`MapSystem.CREATE` / `MapSystem.DELETE` byte constants removed.**
+  Use the new `infinity.events.MapAction` enum (`CREATE`, `DELETE`).
+  The RMI signature changed too: `GameSession.map(byte, Vec3d)` →
+  `GameSession.map(MapAction, Vec3d)`.
+- **`assets/` and `zone/` moved to project root.** Build files using
+  `rootProject.file('infinity/assets/...')` need updating to
+  `rootProject.file('assets/...')`.
+- **`engine.groovy` moved.** From `infinity-server/src/main/resources/`
+  to `zone/engine.groovy`. Hot-reload now works from dist installs.
+- **`RepelConfig.distancePixels` → `RepelConfig.distanceTiles`**
+  (`int` → `double`). `RepelDistance` component component
+  `getPixels()` → `getRadiusWorldUnits()`. `RepelAdapter`'s
+  `distance` key now consumes tiles (divide your SVS-canon
+  pixel value by 16 in your `repel.groovy`).
+- **18 factory methods (>5 args) take `*Spec` records** instead of
+  positional args. Affected: `createShip`, `createPlayerShip`,
+  `createRocketBuff`, all `WeaponFactory.create*` (Bomb, DelayedBomb,
+  Bullet, Explosion, Burst, Repel, Thor, Mine), `MapFactory.create*`
+  for Wormhole / Door / Over5 / Asteroid{Small,Medium} /
+  WarpEffect / TurfStationaryFlag / Prize / Spawner. Below-threshold
+  factories (`createLight`, `createBrick`, `createDecoy`,
+  `createPortal`) keep positional args.
+- **`infinity-server/build.gradle` adds `jme3-desktop`** for the
+  headless platform delegate. No rendering — just the AWT-based
+  AssetManager factory. Ship size is unaffected (`jme3-lwjgl3` still
+  excluded).
+- **Modules `*Tester` stubs deleted** (`basicTester`, `doorTester`,
+  `lightTester`, `prizeTester`, `wangTester`, `warpTester`).
+  `BaseGameModule` + `BaseGameService` abstractions remain in `api/`.
 
 ### Acceptance + smoke-test
 
-- `./gradlew :api:test :infinity:test :modules:test` — green.
-- Static-analysis ceilings — green at baseline; synthetic-violation
-  smoke verified failure-with-clear-message.
-- Manual smoke (recommended): load trench arena, fire bullets / bombs
-  / bursts / mines, confirm physics feel unchanged. F1 should now
-  show every binding grouped by category. Mine drops should remain
-  in place (no drift).
+- `./gradlew build` — BUILD SUCCESSFUL; `:api:test :infinity-server:test
+  :infinity-client:test :modules:test` all green.
+- `:infinity-client:distZip` and `:infinity-server:distZip` produce
+  the two distribution artifacts (618 MB + 324 MB respectively).
+- `:infinity-client:runX11` smoke-tested by user across multiple
+  bundle merges in this session (Tier 2, Tier 3, megasplit, layout,
+  hot-reload-from-dist, backlog-cleanup, backlog-final).
+- Hot-reload from dist verified end-to-end: `unzip` server dist,
+  `sed`-modify `zone/zone.groovy`, observe `zone.groovy reloaded`
+  log within polling window.
