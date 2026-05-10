@@ -1,0 +1,117 @@
+plugins {
+    id 'infinity.java-conventions'
+    id 'application'
+}
+
+// =============================================================================
+// Headless server module — no jME rendering, no Lemur UI.
+// Carries: ai/, map/, server/, settings/, sim/, systems/, tools/
+// Depends on: api/ (compile), modules/ (runtime — module discovery).
+// Consumed by: infinity-client (which adds the rendering/UI shell on top).
+// =============================================================================
+
+mainClassName = "infinity.server.Main"  // placeholder — no headless main today; surfaced when one is authored
+
+// Redirect JVM fatal-error logs (hs_err_pid*.log) to build/crash-logs/ so they
+// don't clutter the repo root. Swept by `./gradlew clean`.
+def crashLogDir = layout.buildDirectory.dir("crash-logs").get().asFile
+crashLogDir.mkdirs()
+applicationDefaultJvmArgs = [
+    "-Xmx1024m", "-Xms512m", "-XX:MaxDirectMemorySize=1024m",
+    "--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED",
+    "-XX:ErrorFile=${crashLogDir}/hs_err_pid%p.log",
+    "-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager"
+]
+
+// Map inspection tool: ./gradlew :infinity-server:analyzeMaps --args "trench.lvl trench2.lvl"
+tasks.register('analyzeMaps', JavaExec) {
+    group = 'diagnostics'
+    description = 'Analyze one or two .lvl maps (counts, categories, position diff)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'infinity.tools.MapAnalyzer'
+    standardOutput = System.out
+    errorOutput = System.err
+}
+
+// Batch tile-ID survey: ./gradlew :infinity-server:surveyMaps
+tasks.register('surveyMaps', JavaExec) {
+    group = 'diagnostics'
+    description = 'Batch tile-ID survey across .lvl files (histogram + gap analysis)'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'infinity.tools.MapTileSurvey'
+    standardOutput = System.out
+    errorOutput = System.err
+}
+
+// GameServer writes a persistent block-world cache to world.db/ relative to the
+// JVM working dir. It lives outside build/ because it's runtime state, not a
+// build artifact — so `clean` doesn't sweep it by default. Wipe it here so
+// `./gradlew clean` gives a fully fresh world on the next run.
+clean {
+    delete 'world.db'
+}
+
+// Pull in zone/ as a resource root so server-only runs find arena/preset
+// configs without needing the client module on the classpath. Mirrors the
+// `infinity.app-with-assets` plugin's zone/ wiring without dragging in the
+// asset directory (which is render-only).
+sourceSets {
+    main {
+        resources {
+            srcDirs += [rootProject.file('infinity/zone')]
+        }
+    }
+}
+
+dependencies {
+    // logging
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+    runtimeOnly "org.apache.logging.log4j:log4j-jul:$log4jVersion"
+
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
+
+    // Ini4j to parse settings files (legacy arena.conf path; phasing out per conf-fragments-to-groovy PRD)
+    implementation "org.ini4j:ini4j:0.5.4"
+
+    // Groovy for settings/preset loaders + arena scripts
+    implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
+
+    // jMonkeyEngine — only the headless-friendly modules (no rendering / lwjgl3)
+    implementation "org.jmonkeyengine:jme3-core:$jmeVersion"
+    implementation "org.jmonkeyengine:jme3-networking:$jmeVersion"
+    implementation "org.jmonkeyengine:jme3-plugins:$jmeVersion"
+
+    // Simsilica — server-side stack (no Lemur UI here)
+    implementation "com.simsilica:pager:$pagerVersion"
+    implementation "com.simsilica:sim-ethereal:$simEtherealVersion"
+    implementation "com.simsilica:sim-math:$simMathVersion"
+    implementation "com.simsilica:sio2:$sio2Version"
+    implementation "com.simsilica:zay-es:$zayEsVersion"
+    implementation "com.simsilica:zay-es-net:$zayEsNetVersion"
+
+    // Simsilica MOSS
+    implementation "com.simsilica:mblock:$mossVersion"
+    implementation "com.simsilica:mblock-physb:$mossVersion"
+    implementation "com.simsilica:mworld:$mossVersion"
+    implementation "com.simsilica:sio2-mblock:$mossVersion"
+    implementation "com.simsilica:sio2-mphys:$mossVersion"
+    implementation "com.simsilica:bpos:$mossVersion"
+    implementation "com.simsilica:crig:$mossVersion"
+
+    // Local dependencies
+    implementation project(":api")
+    runtimeOnly project(":modules")
+
+    // Test-only — architecture boundary enforcement
+    testImplementation "com.tngtech.archunit:archunit-junit4:1.4.2"
+    testImplementation project(":modules")
+}
+
+distributions {
+    main {
+        distributionBaseName = "infinity-server"
+    }
+}

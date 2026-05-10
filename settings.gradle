@@ -1,4 +1,9 @@
-include 'infinity'
+// infinity/ retains assets/ and zone/ as data directories (consumed by
+// infinity-server + infinity-client via rootProject.file(...) resource roots),
+// but is no longer a Gradle module after the arch-review #11 split.
+//include 'infinity'
 //include 'infinity:assets'
+include 'infinity-server'
+include 'infinity-client'
 include 'api'
 include 'modules'

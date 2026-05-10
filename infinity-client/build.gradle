@@ -3,9 +3,15 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.51.0'
 }
 
-mainClassName = "infinity.Main"
+// =============================================================================
+// Fat client — jME rendering + Lemur UI + can co-host a local GameServer via
+// HostState. Carries: client/, Main.java.
+// Depends on: api/ (compile), infinity-server/ (compile — the HostState bridge
+// + constants referenced from client states), modules/ (runtime, transitively
+// from infinity-server).
+// =============================================================================
 
-// version is inherited from the root build.gradle subprojects block
+mainClassName = "infinity.Main"
 
 // Redirect JVM fatal-error logs (hs_err_pid*.log) to build/crash-logs/ so they
 // don't clutter the repo root. Swept by `./gradlew clean`.
@@ -41,33 +47,29 @@ tasks.register('runMac', JavaExec) {
     jvmArgs = applicationDefaultJvmArgs + ['-XstartOnFirstThread']
 }
 
-// Map inspection tool: ./gradlew :infinity:analyzeMaps --args "trench.lvl trench2.lvl"
-tasks.register('analyzeMaps', JavaExec) {
-    group = 'diagnostics'
-    description = 'Analyze one or two .lvl maps (counts, categories, position diff)'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'infinity.tools.MapAnalyzer'
-    standardOutput = System.out
-    errorOutput = System.err
-}
-
-// Batch tile-ID survey: ./gradlew :infinity:surveyMaps            (scans assets/Maps/)
-//                       ./gradlew :infinity:surveyMaps --args "some.lvl another.lvl"
-tasks.register('surveyMaps', JavaExec) {
-    group = 'diagnostics'
-    description = 'Batch tile-ID survey across .lvl files (histogram + gap analysis)'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'infinity.tools.MapTileSurvey'
-    standardOutput = System.out
-    errorOutput = System.err
-}
-
-// GameServer writes a persistent block-world cache to infinity/world.db/ (relative
-// to the JVM working dir). It lives outside build/ because it's runtime state, not
-// a build artifact — so `clean` doesn't sweep it by default. Wipe it here so
-// `./gradlew clean` gives a fully fresh world on the next run.
+// GameServer writes a persistent block-world cache to world.db/ (relative to
+// the JVM working dir). Wipe on `clean`.
 clean {
     delete 'world.db'
+}
+
+// The legacy infinity.app-with-assets convention plugin sweeps assets/ and
+// zone/ from the *current module's* root. Since assets and zone still live
+// under infinity/, redirect resource roots here.
+sourceSets {
+    main {
+        resources {
+            srcDirs = [
+                rootProject.file('infinity/assets'),
+                rootProject.file('infinity/zone')
+            ]
+            excludes += [
+                "**/*.psd",
+                "**/*.glb",
+                "**/*.gltf"
+            ]
+        }
+    }
 }
 
 dependencies {
@@ -76,29 +78,24 @@ dependencies {
     implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
     implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
-    // Bridge java.util.logging → log4j2 so JME's render-thread errors and
-    // any other JUL output land in infinity.log instead of disappearing
-    // into stderr (which itch.io's launcher discards). Activated by the
-    // -Djava.util.logging.manager=... JVM arg below.
     runtimeOnly "org.apache.logging.log4j:log4j-jul:$log4jVersion"
 
-    //https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305
     implementation "com.google.code.findbugs:jsr305:3.0.2"
 
-    // Ini4j to parse settings files (legacy arena.conf path; phasing out per conf-fragments-to-groovy PRD)
+    // Ini4j (legacy arena.conf path; phasing out)
     implementation "org.ini4j:ini4j:0.5.4"
 
     // For Lemur styles
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 
-    // jMonkeyEngines
+    // jMonkeyEngines — full rendering stack
     implementation "org.jmonkeyengine:jme3-core:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-desktop:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-effects:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-lwjgl3:$jmeVersion"
     implementation "org.jmonkeyengine:jme3-plugins:$jmeVersion"
 
-    // Simsilica
+    // Simsilica — full client stack incl. Lemur UI
     implementation "com.simsilica:lemur:$lemurVersion"
     implementation "com.simsilica:lemur-proto:$lemurProtoVersion"
     implementation "com.simsilica:lemur-props:$lemurPropsVersion"
@@ -119,24 +116,16 @@ dependencies {
     implementation "com.simsilica:bpos:$mossVersion"
     implementation "com.simsilica:crig:$mossVersion"
 
-    // Local dependencies
+    // Local dependencies — HostState bridges into GameServer (server module)
     implementation project(":api")
+    implementation project(":infinity-server")
     runtimeOnly project(":modules")
 
-    // Test-only — architecture boundary enforcement
+    // Test-only — architecture boundary enforcement (LayerDependencyTest needs
+    // both client and server bytecode on the test classpath)
     testImplementation "com.tngtech.archunit:archunit-junit4:1.4.2"
-    // Put modules on the test compile classpath so ArchUnit can analyse them
     testImplementation project(":modules")
 }
-
-//checkstyle {
-//    sourceSets = []
-//}
-
-//jar {
-//    archiveBaseName = "subspace-infinity"
-//}
-
 
 distributions {
     main {
@@ -146,17 +135,8 @@ distributions {
 
 // =============================================================================
 // jpackage - Native application bundling (replacement for parcl)
-// =============================================================================
-// Requires JDK 14+ to run jpackage. Creates native installers with bundled JRE.
-//
-// Usage:
-//   ./gradlew jpackage          - Creates native package for current OS
-//   ./gradlew jpackageImage     - Creates app image (no installer)
-//
-// The tasks detect your OS and create the appropriate format:
-//   - Windows: .exe installer (or .msi with WiX toolset)
-//   - macOS: .dmg or .pkg
-//   - Linux: .deb or .rpm
+// Identical to the previous infinity/build.gradle wiring; this is now the
+// fat-client distribution target.
 // =============================================================================
 
 def jpackageOutputDir = layout.buildDirectory.dir("jpackage")
@@ -166,14 +146,14 @@ tasks.register('jpackageImage', Exec) {
     group = 'distribution'
     description = 'Creates a native application image using jpackage (no installer)'
     dependsOn installDist
-    
+
     def installDir = tasks.installDist.destinationDir
     def os = org.gradle.internal.os.OperatingSystem.current()
-    
+
     doFirst {
         jpackageImageDir.get().asFile.mkdirs()
     }
-    
+
     executable = 'jpackage'
     args = [
         '--type', 'app-image',
@@ -183,23 +163,19 @@ tasks.register('jpackageImage', Exec) {
         '--copyright', 'Copyright 2024 Asser Fahrenholz',
         '--description', 'A Subspace/Continuum-inspired space shooter',
         '--input', "${installDir}/lib",
-        '--main-jar', "infinity-${version}.jar",
+        '--main-jar', "infinity-client-${version}.jar",
         '--main-class', mainClassName,
         '--dest', jpackageImageDir.get().asFile.absolutePath,
         '--java-options', '-Xmx1024m',
         '--java-options', '-Xms512m',
         '--java-options', '-XX:MaxDirectMemorySize=1024m',
         '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED',
-        // Route JME's java.util.logging output through log4j so render-thread
-        // exceptions land in infinity.log on packaged builds (itch.io's
-        // launcher discards stderr otherwise).
         '--java-options', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager'
     ]
-    
-    // Add icon if it exists
-    def iconFile = os.isWindows() ? file('src/main/resources/icon.ico') :
-                   os.isMacOsX() ? file('src/main/resources/icon.icns') :
-                   file('src/main/resources/icon.png')
+
+    def iconFile = os.isWindows() ? rootProject.file('infinity/src/main/resources/icon.ico') :
+                   os.isMacOsX() ? rootProject.file('infinity/src/main/resources/icon.icns') :
+                   rootProject.file('infinity/src/main/resources/icon.png')
     if (iconFile.exists()) {
         args += ['--icon', iconFile.absolutePath]
     }
@@ -209,14 +185,14 @@ tasks.register('jpackage', Exec) {
     group = 'distribution'
     description = 'Creates a native installer using jpackage'
     dependsOn installDist
-    
+
     def installDir = tasks.installDist.destinationDir
     def os = org.gradle.internal.os.OperatingSystem.current()
-    
+
     doFirst {
         jpackageOutputDir.get().asFile.mkdirs()
     }
-    
+
     executable = 'jpackage'
     args = [
         '--name', 'Subspace-Infinity',
@@ -225,31 +201,27 @@ tasks.register('jpackage', Exec) {
         '--copyright', 'Copyright 2024 Asser Fahrenholz',
         '--description', 'A Subspace/Continuum-inspired space shooter',
         '--input', "${installDir}/lib",
-        '--main-jar', "infinity-${version}.jar",
+        '--main-jar', "infinity-client-${version}.jar",
         '--main-class', mainClassName,
         '--dest', jpackageOutputDir.get().asFile.absolutePath,
         '--java-options', '-Xmx1024m',
         '--java-options', '-Xms512m',
         '--java-options', '-XX:MaxDirectMemorySize=1024m',
         '--java-options', '--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED',
-        // Route JME's java.util.logging output through log4j so render-thread
-        // exceptions land in infinity.log on packaged builds.
         '--java-options', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager'
     ]
-    
-    // OS-specific installer type
+
     if (os.isWindows()) {
         args += ['--type', 'exe', '--win-shortcut', '--win-menu', '--win-dir-chooser']
     } else if (os.isMacOsX()) {
         args += ['--type', 'dmg']
     } else {
-        args += ['--type', 'deb']  // or 'rpm' for Red Hat-based
+        args += ['--type', 'deb']
     }
-    
-    // Add icon if it exists
-    def iconFile = os.isWindows() ? file('src/main/resources/icon.ico') :
-                   os.isMacOsX() ? file('src/main/resources/icon.icns') :
-                   file('src/main/resources/icon.png')
+
+    def iconFile = os.isWindows() ? rootProject.file('infinity/src/main/resources/icon.ico') :
+                   os.isMacOsX() ? rootProject.file('infinity/src/main/resources/icon.icns') :
+                   rootProject.file('infinity/src/main/resources/icon.png')
     if (iconFile.exists()) {
         args += ['--icon', iconFile.absolutePath]
     }
