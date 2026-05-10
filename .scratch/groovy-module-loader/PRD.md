@@ -1,15 +1,15 @@
-# Groovy module loader — host the `*Tester` modules (and successors) at runtime
+# Groovy module loader — Groovy-scripted game modules at runtime
 
 Status: ready-for-human
 Cross-ref: follows [`deprecate-adaptive-loader`](../../.scratch-archive/deprecate-adaptive-loader/PRD.md)
 
-The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was removed. The 6 stub `*Tester` modules under [`modules/src/main/java/infinity/modules/`](../../modules/src/main/java/infinity/modules/) and the [`BaseGameModule`](../../api/src/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/infinity/sim/BaseGameService.java) abstractions are kept, but currently have no runtime instantiator. This PRD captures the design space for filling that gap.
+The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was removed. The [`BaseGameModule`](../../api/src/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/infinity/sim/BaseGameService.java) abstractions are kept, but currently have no runtime instantiator. (The 6 `*Tester` stubs were deleted in commit `8e7c3833` as YAGNI; bring them back fresh when a module wants to ship.) This PRD captures the design space for filling that gap.
 
 ## Why a hot-module surface at all
 
 - Some gameplay features genuinely want script-tier authoring (mode rules, periodic events, arena-specific quirks) that don't fit the `*Config` template-vs-component pattern, which is for tuning numbers, not behaviour.
 - Live reload of behaviour (without a server restart) is the same productivity win that `GroovyShipLoader` already delivers for ships — and the loader infrastructure is already paid for.
-- A Groovy module surface is the natural home for things that are currently sketched as `*Tester` Java classes (basic / door / light / prize / wang / warp testers).
+- A Groovy module surface is the natural home for things that were previously sketched as `*Tester` Java stubs (basic / door / light / prize / wang / warp — deleted in `8e7c3833`).
 
 ## Why this is `ready-for-human`, not `ready-for-agent`
 
@@ -58,19 +58,17 @@ Cross-cutting concern: limit what scripts can call. The legacy loader was unsand
 
 Two paths:
 
-- **Keep them and have the loader produce instances.** Smallest behavioural-change diff. Each Groovy script compiles to / wraps a `BaseGameModule` subclass. Existing `*Tester` Java files port one at a time by being re-expressed as Groovy on top of the same base.
+- **Keep them and have the loader produce instances.** Smallest behavioural-change diff. Each Groovy script compiles to / wraps a `BaseGameModule` subclass.
 - **Retire them.** If we go with shape (a) above, `BaseGameModule` doesn't actually buy us anything that a thinner script-runner adapter wouldn't. Delete after the loader stabilises.
 
 Decision is downstream of question #1. **Keep them in the codebase until the loader's shape is settled** — they're cheap to keep and removing now would force the design.
 
 ## Approach (sketch — only when there's a real consumer)
 
-1. Pick the simplest of the 6 `*Tester` modules as the prototype (`doorTester` is the smallest at 111 lines and entirely stub-shaped, so it's the lowest-stakes target).
-2. Decide question #1 above based on what that module actually needs.
-3. Add `GroovyModuleLoader` parallel to [`GroovyShipLoader`](../../infinity-server/src/main/java/infinity/settings/GroovyShipLoader.java): typed DSL for the chosen module shape, a per-arena registry, mtime-based live reload via `ArenaSystem.pollScriptWatches`.
-4. Re-express the prototype tester as a Groovy script under `infinity/zone/conf/<preset>/modules/` (or `infinity/zone/arenas/<name>/modules/` if per-arena scope wins). Delete the Java tester directory only after the Groovy version is verified working.
-5. Port the remaining 5 testers one at a time, each removing its Java directory in the same change.
-6. Once no `*Tester` remains, decide #5 above (keep or retire `BaseGameModule` / `BaseGameService`).
+1. Decide question #1 above based on what the real module actually needs.
+2. Add `GroovyModuleLoader` parallel to [`GroovyShipLoader`](../../infinity-server/src/main/java/infinity/settings/GroovyShipLoader.java): typed DSL for the chosen module shape, a per-arena registry, mtime-based live reload via `ArenaSystem.pollScriptWatches`.
+3. Author the first Groovy module under `infinity/zone/conf/<preset>/modules/` (or `infinity/zone/arenas/<name>/modules/` if per-arena scope wins) and verify it working.
+4. Once the loader is stable, decide #5 above (keep or retire `BaseGameModule` / `BaseGameService`).
 
 ## Out of scope
 
