@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.PrizeConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code prize.groovy} fragments. Parses a
@@ -47,53 +44,23 @@ import java.util.List;
  * have a typed config + active consumer.
  */
 public final class PrizeAdapter
-    implements GroovySettingsAdapter<PrizeConfig, PrizeAdapter.PrizeBuilder> {
+    extends SingleClosureAdapter<PrizeConfig, PrizeAdapter.PrizeBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final PrizeAdapter INSTANCE = new PrizeAdapter();
 
-  private PrizeAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private PrizeAdapter() {
+    super("prize", PrizeConfig.DEFAULTS);
   }
 
   @Override
-  public PrizeBuilder bind(final Binding binding) {
-    final PrizeBuilder builder = new PrizeBuilder();
-    binding.setVariable("prize", new PrizeClosure(builder));
-    return builder;
+  protected PrizeBuilder newBuilder() {
+    return new PrizeBuilder();
   }
 
   @Override
   public PrizeConfig extract(final PrizeBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public PrizeConfig empty() {
-    return PrizeConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code prize} variable in the script. */
-  private static final class PrizeClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final PrizeBuilder builder;
-
-    PrizeClosure(final PrizeBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code prize { ... }} block. */
@@ -111,7 +78,7 @@ public final class PrizeAdapter
      * multiplies by 10 to store milliseconds (Subspace VIE convention).
      */
     public void maxExist(final int centiseconds) {
-      this.defaultDecayMs = centiseconds * 10L;
+      this.defaultDecayMs = Validators.centisecondsToMs("prize.maxExist", centiseconds);
     }
 
     /**
@@ -120,7 +87,7 @@ public final class PrizeAdapter
      * equal to {@code maxExist} (no random-lifetime variation).
      */
     public void minExist(final int centiseconds) {
-      this.defaultMinDecayMs = centiseconds * 10L;
+      this.defaultMinDecayMs = Validators.centisecondsToMs("prize.minExist", centiseconds);
     }
 
     /**
@@ -129,7 +96,7 @@ public final class PrizeAdapter
      * {@code 0} (death-drops disabled).
      */
     public void deathPrizeTime(final int centiseconds) {
-      this.deathPrizeTimeMs = centiseconds * 10L;
+      this.deathPrizeTimeMs = Validators.centisecondsToMs("prize.deathPrizeTime", centiseconds);
     }
 
     /**

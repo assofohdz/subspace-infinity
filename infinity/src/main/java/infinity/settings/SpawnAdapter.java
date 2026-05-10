@@ -3,8 +3,6 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.SpawnConfig;
 import infinity.config.TeamSpawn;
 import java.util.ArrayList;
@@ -40,53 +38,23 @@ import java.util.Map;
  * world via {@code arenaToWorld}.
  */
 public final class SpawnAdapter
-    implements GroovySettingsAdapter<SpawnConfig, SpawnAdapter.SpawnBuilder> {
+    extends SingleClosureAdapter<SpawnConfig, SpawnAdapter.SpawnBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final SpawnAdapter INSTANCE = new SpawnAdapter();
 
-  private SpawnAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private SpawnAdapter() {
+    super("spawn", SpawnConfig.DEFAULTS);
   }
 
   @Override
-  public SpawnBuilder bind(final Binding binding) {
-    final SpawnBuilder builder = new SpawnBuilder();
-    binding.setVariable("spawn", new SpawnClosure(builder));
-    return builder;
+  protected SpawnBuilder newBuilder() {
+    return new SpawnBuilder();
   }
 
   @Override
   public SpawnConfig extract(final SpawnBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public SpawnConfig empty() {
-    return SpawnConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code spawn} variable in the script. */
-  private static final class SpawnClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final SpawnBuilder builder;
-
-    SpawnClosure(final SpawnBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code spawn { ... }} block. */

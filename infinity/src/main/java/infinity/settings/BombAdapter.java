@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.BombConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code bomb.groovy} fragments. Parses a
@@ -50,54 +47,23 @@ import java.util.List;
  * today — they belong to future EMP / bouncing-bomb work. The adapter only
  * exposes fields that have a typed config + active consumer.
  */
-public final class BombAdapter
-    implements GroovySettingsAdapter<BombConfig, BombAdapter.BombBuilder> {
+public final class BombAdapter extends SingleClosureAdapter<BombConfig, BombAdapter.BombBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final BombAdapter INSTANCE = new BombAdapter();
 
-  private BombAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private BombAdapter() {
+    super("bomb", BombConfig.DEFAULTS);
   }
 
   @Override
-  public BombBuilder bind(final Binding binding) {
-    final BombBuilder builder = new BombBuilder();
-    binding.setVariable("bomb", new BombClosure(builder));
-    return builder;
+  protected BombBuilder newBuilder() {
+    return new BombBuilder();
   }
 
   @Override
   public BombConfig extract(final BombBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public BombConfig empty() {
-    return BombConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code bomb} variable in the script. */
-  private static final class BombClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final BombBuilder builder;
-
-    BombClosure(final BombBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code bomb { ... }} block. */
@@ -126,7 +92,7 @@ public final class BombAdapter
      * explicit at the call site.
      */
     public void aliveTimeCs(final int centiseconds) {
-      this.decayMs = centiseconds * 10L;
+      this.decayMs = Validators.centisecondsToMs("bomb.aliveTimeCs", centiseconds);
     }
 
     /**
@@ -139,15 +105,7 @@ public final class BombAdapter
      * 16 px/tile rate); operators porting an SVS server.cfg divide by 16.
      */
     public void explodeRadius(final Number value) {
-      if (value == null) {
-        throw new IllegalArgumentException("explodeRadius requires a number");
-      }
-      final double v = value.doubleValue();
-      if (Double.isNaN(v) || Double.isInfinite(v) || v < 0.0) {
-        throw new IllegalArgumentException(
-            "explodeRadius must be a finite value >= 0; got " + value);
-      }
-      this.explodeRadius = v;
+      this.explodeRadius = Validators.finiteNonNegativeDouble("explodeRadius", value);
     }
 
     /**
@@ -157,11 +115,7 @@ public final class BombAdapter
      * arena (bombs fall back to direct-contact detonation).
      */
     public void proximityDistance(final int tiles) {
-      if (tiles < 0) {
-        throw new IllegalArgumentException(
-            "proximityDistance must be >= 0; got " + tiles);
-      }
-      this.proximityDistance = tiles;
+      this.proximityDistance = Validators.nonNegativeInt("proximityDistance", tiles);
     }
 
     /**
@@ -171,11 +125,7 @@ public final class BombAdapter
      * arming (must be paired with {@code proximityDistance 0}).
      */
     public void explodeDelayCs(final int centiseconds) {
-      if (centiseconds < 0) {
-        throw new IllegalArgumentException(
-            "explodeDelayCs must be >= 0; got " + centiseconds);
-      }
-      this.explodeDelayMs = centiseconds * 10L;
+      this.explodeDelayMs = Validators.centisecondsToMs("explodeDelayCs", centiseconds);
     }
 
     /**
@@ -197,11 +147,7 @@ public final class BombAdapter
      * REFERENCE.md does not specify per-level scaling.
      */
     public void jitterTimeCs(final int centiseconds) {
-      if (centiseconds < 0) {
-        throw new IllegalArgumentException(
-            "jitterTimeCs must be >= 0; got " + centiseconds);
-      }
-      this.jitterTimeMs = centiseconds * 10L;
+      this.jitterTimeMs = Validators.centisecondsToMs("jitterTimeCs", centiseconds);
     }
 
     /**

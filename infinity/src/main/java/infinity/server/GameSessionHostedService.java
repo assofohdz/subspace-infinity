@@ -70,7 +70,7 @@ import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.ship.WarpSystem;
-import infinity.systems.ship.WeaponsSystem;
+import infinity.systems.ship.WeaponsFireSystem;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
@@ -206,7 +206,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     // private final EntityId fireMain = null;
     // private final EntityId fireAlt = null;
     // private final BinIndex binIndex;
-    private final WeaponsSystem weaponsSystem;
+    private final WeaponsFireSystem weaponsFireSystem;
     private WarpSystem warpSys;
     private ConsumableSystem actionSys;
     private AvatarSystem avatarSys;
@@ -221,7 +221,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
       final PhysicsSpace<?, ?> phys = gameSystems.get(PhysicsSpace.class, true);
       // mphys = gameSystems.get(MPhysSystem.class, true);
-      weaponsSystem = gameSystems.get(WeaponsSystem.class, true);
+      weaponsFireSystem = gameSystems.get(WeaponsFireSystem.class, true);
       // this.mapSystem = gameSystems.get(MapSystem.class, true);
 
       // binIndex = phys.getBinIndex();
@@ -426,7 +426,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public void attack(final byte attackInput) {
-      weaponsSystem.sessionAttack(avatarEntityId, attackInput);
+      weaponsFireSystem.sessionAttack(avatarEntityId, attackInput);
     }
 
     @Override

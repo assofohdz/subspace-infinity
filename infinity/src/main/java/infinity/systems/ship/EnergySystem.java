@@ -11,9 +11,11 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Buff;
+import infinity.es.DamageSource;
 import infinity.es.Dead;
 import infinity.es.HealthChange;
 import infinity.es.ship.Energy;
+import infinity.es.ship.weapons.WeaponType;
 import infinity.es.ship.Health;
 import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
@@ -257,12 +259,50 @@ public class EnergySystem extends AbstractGameSystem {
    * Creates a health change for the specified entity. The health change will be applied at the next
    * update.
    *
+   * <p>Unattributed: no {@link DamageSource} sibling is stamped on the intent.
+   * Reactors that fork on intent type (e.g. hit-feedback) treat absence of
+   * {@link DamageSource} as "regen / unsourced." Use
+   * {@link #damage(EntityId, int, EntityId, byte)} when the originator
+   * (attacker / firing ship / world hazard) is known.
+   *
    * @param entityId the entity to create a health change for
    * @param deltaHitPoints the change in hitpoints (can be both positive an negative)
    */
   public void damage(final EntityId entityId, final int deltaHitPoints) {
     final EntityId healthChange = ed.createEntity();
     ed.setComponents(healthChange, new Buff(entityId, 0), new HealthChange(deltaHitPoints));
+  }
+
+  /**
+   * Attributed overload of {@link #damage(EntityId, int)} — emits the same
+   * {@code HealthChange + Buff} intent plus a {@link DamageSource} sibling
+   * carrying the originating entity and weapon family.
+   *
+   * <p>Replacement-as-Mutation slice 1 (.scratch/replacement-as-mutation/PRD.md):
+   * the existing intent shape is wire-stable and stays the same; the new
+   * {@link DamageSource} component lets reactors fork on intent type without
+   * losing the legacy contract. Pass {@link EntityId#NULL_ID} +
+   * {@link WeaponType#NONE} for unattributed paths (in which case prefer
+   * {@link #damage(EntityId, int)} — same effect, less ceremony).
+   *
+   * @param entityId the entity whose Health pool should change
+   * @param deltaHitPoints the delta (negative = damage, positive = heal)
+   * @param source the originating entity (attacker for enemy hits; firing
+   *     ship for self-cost-deduction; world / null for environmental)
+   * @param weaponFlag one of the {@link WeaponType} byte constants;
+   *     {@link WeaponType#NONE} for non-weapon paths
+   */
+  public void damage(
+      final EntityId entityId,
+      final int deltaHitPoints,
+      final EntityId source,
+      final byte weaponFlag) {
+    final EntityId healthChange = ed.createEntity();
+    ed.setComponents(
+        healthChange,
+        new Buff(entityId, 0),
+        new HealthChange(deltaHitPoints),
+        new DamageSource(source, weaponFlag));
   }
 
   /**

@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.BurstFireConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code burst.groovy} fragments. Parses a
@@ -27,53 +24,23 @@ import java.util.List;
  * a future slice surfaces them through this DSL.
  */
 public final class BurstAdapter
-    implements GroovySettingsAdapter<BurstFireConfig, BurstAdapter.BurstBuilder> {
+    extends SingleClosureAdapter<BurstFireConfig, BurstAdapter.BurstBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final BurstAdapter INSTANCE = new BurstAdapter();
 
-  private BurstAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private BurstAdapter() {
+    super("burst", BurstFireConfig.DEFAULTS);
   }
 
   @Override
-  public BurstBuilder bind(final Binding binding) {
-    final BurstBuilder builder = new BurstBuilder();
-    binding.setVariable("burst", new BurstClosure(builder));
-    return builder;
+  protected BurstBuilder newBuilder() {
+    return new BurstBuilder();
   }
 
   @Override
   public BurstFireConfig extract(final BurstBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public BurstFireConfig empty() {
-    return BurstFireConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code burst} variable in the script. */
-  private static final class BurstClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final BurstBuilder builder;
-
-    BurstClosure(final BurstBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code burst { ... }} block. */

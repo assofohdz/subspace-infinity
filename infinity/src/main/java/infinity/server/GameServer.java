@@ -139,7 +139,9 @@ import infinity.settings.GroovyShipLoader;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ship.ShipSpawnSystem;
 import infinity.systems.ship.WarpSystem;
-import infinity.systems.ship.WeaponsSystem;
+import infinity.systems.ship.WeaponsFireSystem;
+import infinity.systems.ship.WeaponsImpactSystem;
+import infinity.systems.ship.WeaponsReaperSystem;
 import infinity.systems.WorldSystem;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -326,7 +328,15 @@ public class GameServer {
     systems.register(AvatarSystem.class, new AvatarSystem());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());
-    systems.register(WeaponsSystem.class, new WeaponsSystem());
+    // RaM pilot — WeaponsSystem split into Fire (queue + spawn projection +
+    // cooldowns + cost), Reaper (detonation + Decay + explosion + damage
+    // emission), and Impact (ContactListener + Bounce decrement). The reaper
+    // must register BEFORE the impact system because Impact.initialize() looks
+    // it up via getSystem(...). The fire system has no inter-trio
+    // dependency. See .scratch/replacement-as-mutation/PRD.md slice 1.
+    systems.register(WeaponsFireSystem.class, new WeaponsFireSystem());
+    systems.register(WeaponsReaperSystem.class, new WeaponsReaperSystem());
+    systems.register(WeaponsImpactSystem.class, new WeaponsImpactSystem());
     systems.register(ConsumableSystem.class, new ConsumableSystem());
     systems.register(RocketBuffSystem.class, new RocketBuffSystem());
     systems.register(StatusDrainSystem.class, new StatusDrainSystem());

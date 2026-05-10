@@ -5,6 +5,7 @@ package infinity.systems.ship;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
+import infinity.es.ship.weapons.WeaponType;
 
 /**
  * Pure-function helpers extracted from {@link WeaponsSystem} so the giant
@@ -182,13 +183,13 @@ final class WeaponsLogic {
             final double bulletRadius,
             final double bombRadius) {
         switch (weaponFlag) {
-            case WeaponsSystem.BULLET:
-            case WeaponsSystem.BURST:
+            case WeaponType.BULLET:
+            case WeaponType.BURST:
                 projectilePosition.addLocal(0, 0, bulletRadius);
                 break;
-            case WeaponsSystem.BOMB:
-            case WeaponsSystem.GRAVBOMB:
-            case WeaponsSystem.MINE:
+            case WeaponType.BOMB:
+            case WeaponType.GRAVBOMB:
+            case WeaponType.MINE:
                 projectilePosition.addLocal(0, 0, bombRadius);
                 break;
             default:

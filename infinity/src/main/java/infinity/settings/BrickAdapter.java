@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.BrickConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code brick.groovy} fragments. Parses a
@@ -22,53 +19,23 @@ import java.util.List;
  * }</pre>
  */
 public final class BrickAdapter
-    implements GroovySettingsAdapter<BrickConfig, BrickAdapter.BrickBuilder> {
+    extends SingleClosureAdapter<BrickConfig, BrickAdapter.BrickBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final BrickAdapter INSTANCE = new BrickAdapter();
 
-  private BrickAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private BrickAdapter() {
+    super("brick", BrickConfig.DEFAULTS);
   }
 
   @Override
-  public BrickBuilder bind(final Binding binding) {
-    final BrickBuilder builder = new BrickBuilder();
-    binding.setVariable("brick", new BrickClosure(builder));
-    return builder;
+  protected BrickBuilder newBuilder() {
+    return new BrickBuilder();
   }
 
   @Override
   public BrickConfig extract(final BrickBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public BrickConfig empty() {
-    return BrickConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code brick} variable in the script. */
-  private static final class BrickClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final BrickBuilder builder;
-
-    BrickClosure(final BrickBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code brick { ... }} block. */
@@ -89,7 +56,7 @@ public final class BrickAdapter
      * multiplies by 10 to store milliseconds (Subspace VIE convention).
      */
     public void time(final int centiseconds) {
-      this.timeMs = centiseconds * 10L;
+      this.timeMs = Validators.centisecondsToMs("brick.time", centiseconds);
     }
 
     BrickConfig build() {

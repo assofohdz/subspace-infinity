@@ -3,12 +3,9 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import infinity.config.PrizeWeightsConfig;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,25 +34,24 @@ import java.util.Map;
  * {@code invokeMethod} (mirrors the legacy {@code SectionDelegate} pattern).
  * Keys are stored verbatim so downstream {@code PrizeSystem} keying logic is
  * unchanged from the pre-B3 INI path.
+ *
+ * <p>The DSL body delegates to {@link WeightsDelegate} (a {@code
+ * GroovyObjectSupport}) rather than the builder itself — overrides
+ * {@link #delegateFor} on {@link SingleClosureAdapter} to redirect.
  */
 public final class PrizeWeightsAdapter
-    implements GroovySettingsAdapter<PrizeWeightsConfig, PrizeWeightsAdapter.WeightsBuilder> {
+    extends SingleClosureAdapter<PrizeWeightsConfig, PrizeWeightsAdapter.WeightsBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final PrizeWeightsAdapter INSTANCE = new PrizeWeightsAdapter();
 
-  private PrizeWeightsAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private PrizeWeightsAdapter() {
+    super("prizeWeights", PrizeWeightsConfig.DEFAULTS);
   }
 
   @Override
-  public WeightsBuilder bind(final Binding binding) {
-    final WeightsBuilder builder = new WeightsBuilder();
-    binding.setVariable("prizeWeights", new WeightsClosure(builder));
-    return builder;
+  protected WeightsBuilder newBuilder() {
+    return new WeightsBuilder();
   }
 
   @Override
@@ -64,28 +60,8 @@ public final class PrizeWeightsAdapter
   }
 
   @Override
-  public PrizeWeightsConfig empty() {
-    return PrizeWeightsConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code prizeWeights} variable in the script. */
-  private static final class WeightsClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final WeightsBuilder builder;
-
-    WeightsClosure(final WeightsBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(new WeightsDelegate(builder));
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
+  protected Object delegateFor(final WeightsBuilder builder) {
+    return new WeightsDelegate(builder);
   }
 
   /**

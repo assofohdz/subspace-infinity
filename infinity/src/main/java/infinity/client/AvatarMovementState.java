@@ -27,7 +27,7 @@ import infinity.es.input.MovementInput;
 import infinity.net.GameSession;
 import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
-import infinity.systems.ship.WeaponsSystem;
+import infinity.es.ship.weapons.WeaponType;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -359,13 +359,13 @@ public class AvatarMovementState extends BaseAppState
   private void dispatchHeldWeapon(FunctionId func) {
     if (func == AvatarMovementFunctions.F_BOMB) {
       // Shift+TAB swaps bomb→mine; bare TAB stays bomb.
-      session.attack(shiftPressed ? WeaponsSystem.MINE : WeaponsSystem.BOMB);
+      session.attack(shiftPressed ? WeaponType.MINE : WeaponType.BOMB);
       return;
     }
     if (func == AvatarMovementFunctions.F_SHOOT) {
       // Shift suppresses primary fire (reserved for future toggles).
       if (!shiftPressed) {
-        session.attack(WeaponsSystem.BULLET);
+        session.attack(WeaponType.BULLET);
       }
       return;
     }
@@ -375,7 +375,7 @@ public class AvatarMovementState extends BaseAppState
   /** Plain func → session.attack/action with no shift modifier. */
   private void dispatchSimpleWeapon(FunctionId func) {
     if (func == AvatarMovementFunctions.F_GRAVBOMB) {
-      session.attack(WeaponsSystem.GRAVBOMB);
+      session.attack(WeaponType.GRAVBOMB);
     } else if (func == AvatarMovementFunctions.F_THOR) {
       session.action(ConsumableSystem.FIRETHOR);
     } else if (func == AvatarMovementFunctions.F_REPEL) {

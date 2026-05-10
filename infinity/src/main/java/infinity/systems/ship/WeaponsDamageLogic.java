@@ -24,6 +24,7 @@ import infinity.es.Parent;
 import infinity.es.SplashDamage;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.weapons.BombThrust;
+import infinity.es.ship.weapons.WeaponType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
@@ -62,6 +63,14 @@ final class WeaponsDamageLogic {
      * mode: only mode 2 ("all friendly fire") allows same-team damage; modes 0
      * and 1 swallow the damage but the projectile still detonates (for visual
      * feedback / consumption).
+     *
+     * <p>Replacement-as-Mutation slice 1: the {@code energy.damage} call now
+     * uses the attributed overload, threading the attacker's ship id (resolved
+     * via {@code Parent} on {@code damageEntityId}, with {@link EntityId#NULL_ID}
+     * fallback for orphan projectiles) onto a {@link infinity.es.DamageSource}
+     * sibling on the intent entity. Per-weapon-family attribution is a
+     * follow-up slice — today's damage path passes {@link WeaponType#NONE}.
+     * See the deferred-TODO note in the system file.
      */
     static void applyDirectHitDamage(
             final EntityData ed,
@@ -75,7 +84,8 @@ final class WeaponsDamageLogic {
         if (!shouldDamageVictim(ed, arenaSys, damageEntityId, victimId, false)) {
             return;
         }
-        energy.damage(victimId, damage.getIntendedDamage());
+        final EntityId attackerShipId = attackerShipIdOf(ed, damageEntityId);
+        energy.damage(victimId, damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
         stampJitter(ed, cr, damageEntityId, victimId, nowSimNanos);
     }
 
@@ -109,6 +119,7 @@ final class WeaponsDamageLogic {
             return;
         }
         final double radiusSq = radius * radius;
+        final EntityId attackerShipId = attackerShipIdOf(ed, damageEntityId);
         final SphereVolume sphere = new SphereVolume(explosionPoint, radius);
         final QueryFilter<EntityId, MBlockShape> filter =
                 new QueryFilter<>(
@@ -132,7 +143,7 @@ final class WeaponsDamageLogic {
             if (!shouldDamageVictim(ed, arenaSys, damageEntityId, victimId, true)) {
                 continue;
             }
-            energy.damage(victimId, damage.getIntendedDamage());
+            energy.damage(victimId, damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
             stampJitter(ed, cr, damageEntityId, victimId, nowSimNanos);
         }
     }
@@ -277,8 +288,8 @@ final class WeaponsDamageLogic {
     }
 
     /**
-     * Per-arena config lookup mirroring {@code WeaponsSystem.weaponsFor}: the
-     * attacker's {@link ArenaId} keys into {@link ConfigRegistrySystem};
+     * Per-arena config lookup mirroring {@code WeaponsFireSystem.weaponsFor}:
+     * the attacker's {@link ArenaId} keys into {@link ConfigRegistrySystem};
      * arenas with no config get {@link ConfigRegistry#EMPTY}. Falls back to
      * {@code EMPTY} when the attacker has no {@code ArenaId} (no-arena void).
      */
@@ -289,5 +300,21 @@ final class WeaponsDamageLogic {
             return ConfigRegistry.EMPTY;
         }
         return cr.forArena(arenaId);
+    }
+
+    /**
+     * Resolve the firing ship's {@link EntityId} from a projectile/damage entity
+     * via its {@link Parent}. Returns {@link EntityId#NULL_ID} when the projectile
+     * has no parent (orphan / wall-hit / synthetic detonation entity) so the
+     * attributed {@code energy.damage(...)} call always has a non-null
+     * {@code source} value to record on {@link infinity.es.DamageSource}.
+     */
+    static EntityId attackerShipIdOf(final EntityData ed, final EntityId damageEntityId) {
+        final Parent parent = ed.getComponent(damageEntityId, Parent.class);
+        if (parent == null) {
+            return EntityId.NULL_ID;
+        }
+        final EntityId attackerShipId = parent.getParentEntityId();
+        return attackerShipId == null ? EntityId.NULL_ID : attackerShipId;
     }
 }

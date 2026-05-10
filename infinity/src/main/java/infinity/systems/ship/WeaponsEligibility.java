@@ -26,6 +26,7 @@ import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineFireDelay;
+import infinity.es.ship.weapons.WeaponType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 
@@ -88,15 +89,15 @@ final class WeaponsEligibility {
             return false;
         }
         switch (weaponType) {
-            case WeaponsSystem.BULLET:
+            case WeaponType.BULLET:
                 return canAttackBullet(ed, bullets, energy, requester);
-            case WeaponsSystem.BOMB:
+            case WeaponType.BOMB:
                 return canAttackBomb(ed, cr, physicsSpace, energy, bombs, energyEntities, requester);
-            case WeaponsSystem.GRAVBOMB:
+            case WeaponType.GRAVBOMB:
                 return canAttackGravityBomb(ed, gravityBombs, energy, requester);
-            case WeaponsSystem.MINE:
+            case WeaponType.MINE:
                 return canAttackMine(ed, mines, energy, requester);
-            case WeaponsSystem.BURST:
+            case WeaponType.BURST:
                 return canAttackBurst(bursts, requester);
             default:
                 return false;
@@ -313,19 +314,19 @@ final class WeaponsEligibility {
         if (requester == null) {
             return false;
         }
-        if (flag == WeaponsSystem.BULLET) {
+        if (flag == WeaponType.BULLET) {
             return setCoolDownBullet(ed, bullets, requester);
         }
-        if (flag == WeaponsSystem.BOMB) {
+        if (flag == WeaponType.BOMB) {
             return setCoolDownBomb(ed, bombs, requester);
         }
-        if (flag == WeaponsSystem.GRAVBOMB) {
+        if (flag == WeaponType.GRAVBOMB) {
             return setCoolDownGravityBomb(ed, gravityBombs, requester);
         }
-        if (flag == WeaponsSystem.MINE) {
+        if (flag == WeaponType.MINE) {
             return setCoolDownMine(ed, mines, requester);
         }
-        if (flag == WeaponsSystem.BURST) {
+        if (flag == WeaponType.BURST) {
             // No delay on this for now
             return bursts.contains(requester);
         }
@@ -404,26 +405,30 @@ final class WeaponsEligibility {
         if (requester == null) {
             return false;
         }
-        if (flag == WeaponsSystem.BULLET) {
+        if (flag == WeaponType.BULLET) {
             return deductCostOfAttackBullet(ed, energy, bullets, requester);
         }
-        if (flag == WeaponsSystem.BOMB) {
+        if (flag == WeaponType.BOMB) {
             return deductCostOfAttackBomb(ed, energy, bombs, requester);
         }
-        if (flag == WeaponsSystem.GRAVBOMB) {
+        if (flag == WeaponType.GRAVBOMB) {
             return deductCostOfAttackGravityBomb(ed, energy, gravityBombs, requester);
         }
-        if (flag == WeaponsSystem.MINE) {
+        if (flag == WeaponType.MINE) {
             return deductCostOfAttackMine(ed, energy, mines, requester);
         }
-        if (flag == WeaponsSystem.BURST) {
+        if (flag == WeaponType.BURST) {
             // No cost on this for now — TODO: Add cost to burst
             return bursts.contains(requester);
         }
         return false;
     }
 
-    /** Debit {@code BulletCost} from {@code requester}'s Health. */
+    /**
+     * Debit {@code BulletCost} from {@code requester}'s Health. Cost emits an
+     * attributed {@code DamageSource(requesterId, BULLET)} on the intent so
+     * reactors can distinguish self-cost from hostile damage.
+     */
     static boolean deductCostOfAttackBullet(
             final EntityData ed, final EnergySystem energy,
             final EntitySet bullets, final Entity requester) {
@@ -435,11 +440,14 @@ final class WeaponsEligibility {
         if (gc.getCost() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, gc.getCost());
+        energy.damage(requesterId, gc.getCost(), requesterId, WeaponType.BULLET);
         return true;
     }
 
-    /** Debit {@code BombCost} from {@code requester}'s Health. */
+    /**
+     * Debit {@code BombCost} from {@code requester}'s Health. Cost emits an
+     * attributed {@code DamageSource(requesterId, BOMB)} on the intent.
+     */
     static boolean deductCostOfAttackBomb(
             final EntityData ed, final EnergySystem energy,
             final EntitySet bombs, final Entity requester) {
@@ -451,11 +459,14 @@ final class WeaponsEligibility {
         if (bc.getCost() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, bc.getCost());
+        energy.damage(requesterId, bc.getCost(), requesterId, WeaponType.BOMB);
         return true;
     }
 
-    /** Debit {@code GravityBombCost} from {@code requester}'s Health. */
+    /**
+     * Debit {@code GravityBombCost} from {@code requester}'s Health. Cost emits
+     * an attributed {@code DamageSource(requesterId, GRAVBOMB)} on the intent.
+     */
     static boolean deductCostOfAttackGravityBomb(
             final EntityData ed, final EnergySystem energy,
             final EntitySet gravityBombs, final Entity requester) {
@@ -467,11 +478,14 @@ final class WeaponsEligibility {
         if (bc.getCost() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, bc.getCost());
+        energy.damage(requesterId, bc.getCost(), requesterId, WeaponType.GRAVBOMB);
         return true;
     }
 
-    /** Debit {@code MineCost} from {@code requester}'s Health. */
+    /**
+     * Debit {@code MineCost} from {@code requester}'s Health. Cost emits an
+     * attributed {@code DamageSource(requesterId, MINE)} on the intent.
+     */
     static boolean deductCostOfAttackMine(
             final EntityData ed, final EnergySystem energy,
             final EntitySet mines, final Entity requester) {
@@ -483,7 +497,7 @@ final class WeaponsEligibility {
         if (bc.getCost() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, bc.getCost());
+        energy.damage(requesterId, bc.getCost(), requesterId, WeaponType.MINE);
         return true;
     }
 }

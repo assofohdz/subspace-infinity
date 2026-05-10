@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.RepelConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code repel.groovy} fragments. Parses a
@@ -24,53 +21,23 @@ import java.util.List;
  * }</pre>
  */
 public final class RepelAdapter
-    implements GroovySettingsAdapter<RepelConfig, RepelAdapter.RepelBuilder> {
+    extends SingleClosureAdapter<RepelConfig, RepelAdapter.RepelBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final RepelAdapter INSTANCE = new RepelAdapter();
 
-  private RepelAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private RepelAdapter() {
+    super("repel", RepelConfig.DEFAULTS);
   }
 
   @Override
-  public RepelBuilder bind(final Binding binding) {
-    final RepelBuilder builder = new RepelBuilder();
-    binding.setVariable("repel", new RepelClosure(builder));
-    return builder;
+  protected RepelBuilder newBuilder() {
+    return new RepelBuilder();
   }
 
   @Override
   public RepelConfig extract(final RepelBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public RepelConfig empty() {
-    return RepelConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code repel} variable in the script. */
-  private static final class RepelClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final RepelBuilder builder;
-
-    RepelClosure(final RepelBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code repel { ... }} block. */
@@ -92,7 +59,7 @@ public final class RepelAdapter
      * multiplies by 10 to store milliseconds (Subspace VIE convention).
      */
     public void time(final int centiseconds) {
-      this.timeMs = centiseconds * 10L;
+      this.timeMs = Validators.centisecondsToMs("repel.time", centiseconds);
     }
 
     /** {@code [Repel] RepelDistance} — effect radius in Subspace pixels. */

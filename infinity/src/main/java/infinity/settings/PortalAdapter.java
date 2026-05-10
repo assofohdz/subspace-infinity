@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.PortalConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code portal.groovy} fragments. Parses a
@@ -21,53 +18,23 @@ import java.util.List;
  * }</pre>
  */
 public final class PortalAdapter
-    implements GroovySettingsAdapter<PortalConfig, PortalAdapter.PortalBuilder> {
+    extends SingleClosureAdapter<PortalConfig, PortalAdapter.PortalBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final PortalAdapter INSTANCE = new PortalAdapter();
 
-  private PortalAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    return List.of();
+  private PortalAdapter() {
+    super("portal", PortalConfig.DEFAULTS);
   }
 
   @Override
-  public PortalBuilder bind(final Binding binding) {
-    final PortalBuilder builder = new PortalBuilder();
-    binding.setVariable("portal", new PortalClosure(builder));
-    return builder;
+  protected PortalBuilder newBuilder() {
+    return new PortalBuilder();
   }
 
   @Override
   public PortalConfig extract(final PortalBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public PortalConfig empty() {
-    return PortalConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code portal} variable in the script. */
-  private static final class PortalClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final PortalBuilder builder;
-
-    PortalClosure(final PortalBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code portal { ... }} block. */
@@ -82,7 +49,7 @@ public final class PortalAdapter
      * multiplies by 10 to store milliseconds (Subspace VIE convention).
      */
     public void activeTime(final int centiseconds) {
-      this.activeTimeMs = centiseconds * 10L;
+      this.activeTimeMs = Validators.centisecondsToMs("portal.activeTime", centiseconds);
     }
 
     PortalConfig build() {

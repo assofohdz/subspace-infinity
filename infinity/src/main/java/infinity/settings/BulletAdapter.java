@@ -3,10 +3,7 @@
 
 package infinity.settings;
 
-import groovy.lang.Binding;
-import groovy.lang.Closure;
 import infinity.config.BulletConfig;
-import java.util.List;
 
 /**
  * Typed Groovy adapter for {@code bullet.groovy} fragments. Parses a
@@ -30,54 +27,23 @@ import java.util.List;
  * source-path context.
  */
 public final class BulletAdapter
-    implements GroovySettingsAdapter<BulletConfig, BulletAdapter.BulletBuilder> {
+    extends SingleClosureAdapter<BulletConfig, BulletAdapter.BulletBuilder> {
 
   /** Stateless; safe to share across calls. */
   public static final BulletAdapter INSTANCE = new BulletAdapter();
 
-  private BulletAdapter() {}
-
-  @Override
-  public List<String> allowedImports() {
-    // The bullet DSL takes only primitives; no class references in scripts.
-    return List.of();
+  private BulletAdapter() {
+    super("bullet", BulletConfig.DEFAULTS);
   }
 
   @Override
-  public BulletBuilder bind(final Binding binding) {
-    final BulletBuilder builder = new BulletBuilder();
-    binding.setVariable("bullet", new BulletClosure(builder));
-    return builder;
+  protected BulletBuilder newBuilder() {
+    return new BulletBuilder();
   }
 
   @Override
   public BulletConfig extract(final BulletBuilder accumulator) {
     return accumulator.build();
-  }
-
-  @Override
-  public BulletConfig empty() {
-    return BulletConfig.DEFAULTS;
-  }
-
-  /** Bound to the {@code bullet} variable in the script. */
-  private static final class BulletClosure extends Closure<Void> {
-    private static final long serialVersionUID = 1L;
-
-    private final BulletBuilder builder;
-
-    BulletClosure(final BulletBuilder builder) {
-      super(null);
-      this.builder = builder;
-    }
-
-    @SuppressWarnings("unused") // invoked via Groovy dispatch
-    public Void doCall(final Closure<?> body) {
-      body.setDelegate(builder);
-      body.setResolveStrategy(DELEGATE_FIRST);
-      body.call();
-      return null;
-    }
   }
 
   /** Delegate for the {@code bullet { ... }} block. */
@@ -104,7 +70,7 @@ public final class BulletAdapter
      * multiplies by 10 to store milliseconds (Subspace VIE convention).
      */
     public void aliveTime(final int centiseconds) {
-      this.decayMs = centiseconds * 10L;
+      this.decayMs = Validators.centisecondsToMs("bullet.aliveTime", centiseconds);
     }
 
     BulletConfig build() {

@@ -41,9 +41,11 @@ import infinity.sim.util.InfinityRunTimeException;
  *       doesn't arm on its firer.
  *   <li><b>Detonation</b> — for projectiles with {@link ProximityArmed},
  *       once {@code now − armedAt ≥ fuseMs}, delegate detonation to
- *       {@link WeaponsSystem#detonateProjectile} (shared with the
- *       contact-path detonation in slice 9a). The projectile's body
- *       position at the time of fuse-end becomes the explosion centre.
+ *       {@link WeaponsReaperSystem#detonate} (shared with the
+ *       contact-path detonation in slice 9a; canonical writer for the
+ *       projectile end-of-life {@link com.simsilica.es.common.Decay} stamp).
+ *       The projectile's body position at the time of fuse-end becomes the
+ *       explosion centre.
  * </ol>
  *
  * <p><b>FF gate (canonical Subspace VIE):</b> only enemies trigger
@@ -53,7 +55,7 @@ import infinity.sim.util.InfinityRunTimeException;
  * polish-bag follow-up.
  *
  * <p><b>Wall hits bypass this system.</b> The contact-path detonation in
- * {@code WeaponsSystem.newContact} catches {@code body2 == null} (world
+ * {@code WeaponsImpactSystem.newContact} catches {@code body2 == null} (world
  * collision) and detonates immediately regardless of arm state, matching
  * Subspace canon (bombs explode on wall touch even when un-armed).
  *
@@ -65,7 +67,7 @@ import infinity.sim.util.InfinityRunTimeException;
 public class ProximityFuseSystem extends AbstractGameSystem {
 
   private EntityData ed;
-  private WeaponsSystem weaponsSystem;
+  private WeaponsReaperSystem weaponsReaperSystem;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
   private EntitySet fuseProjectiles;
   private EntitySet potentialVictims;
@@ -77,10 +79,10 @@ public class ProximityFuseSystem extends AbstractGameSystem {
       throw new InfinityRunTimeException(
           getClass().getName() + " system requires an EntityData object.");
     }
-    weaponsSystem = getSystem(WeaponsSystem.class);
-    if (weaponsSystem == null) {
+    weaponsReaperSystem = getSystem(WeaponsReaperSystem.class);
+    if (weaponsReaperSystem == null) {
       throw new InfinityRunTimeException(
-          getClass().getName() + " system requires the WeaponsSystem.");
+          getClass().getName() + " system requires the WeaponsReaperSystem.");
     }
     @SuppressWarnings("unchecked")
     final MPhysSystem<MBlockShape> phys = getSystem(MPhysSystem.class);
@@ -216,7 +218,7 @@ public class ProximityFuseSystem extends AbstractGameSystem {
 
   /**
    * Fuse expired — read the projectile's current body position and delegate
-   * the splash + explosion + cleanup to {@link WeaponsSystem#detonateProjectile}
+   * the splash + explosion + cleanup to {@link WeaponsReaperSystem#detonate}
    * (shared with the contact-path detonation seam from slice 9a).
    */
   private void detonate(final Entity projectile, final long nowSimNanos) {
@@ -228,7 +230,7 @@ public class ProximityFuseSystem extends AbstractGameSystem {
       // Canonical Decay reaper handled cleanup; nothing to do.
       return;
     }
-    weaponsSystem.detonateProjectile(
+    weaponsReaperSystem.detonate(
         projectileId, projectile.get(Damage.class), body.position, null, nowSimNanos);
   }
 
@@ -242,7 +244,7 @@ public class ProximityFuseSystem extends AbstractGameSystem {
    *
    * <p>Exposed package-private so unit tests can pin the arming-gate
    * tri-state without bringing up an ECS fixture (mirrors
-   * {@link WeaponsSystem#shouldDamageVictim} which does the same for the
+   * {@link WeaponsLogic#shouldDamageVictim} which does the same for the
    * damage gate).
    */
   static boolean shouldArmOn(final Integer ownerFreq, final Integer victimFreq) {

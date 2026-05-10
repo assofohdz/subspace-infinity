@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  * }
  * }</pre>
  */
-public final class GroovyEngineLoader {
+public class GroovyEngineLoader {
 
   /** Default classpath path for the engine config. */
   public static final String DEFAULT_PATH = "/engine.groovy";
