@@ -2,23 +2,12 @@
 
 Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices). Branch: `slice/s7-mine-speed` HEAD `9c1abec4`. Date: 2026-05-09.
 
-13 active tech-debt findings ranked below by **impact ÷ effort**. Findings are sourced from five parallel reviews:
+7 active tech-debt findings ranked below by **impact ÷ effort**. (Tier 1 closed earlier in `arch-review-tier1-bundle`; Tier 2's 6 items closed in `arch-review-tier2-bundle` — commit `7eb8b2b8`.) Findings are sourced from five parallel reviews:
 - **planner** — module boundaries, api-contracts, cross-module layering
 - **config-2** — config + settings pipeline (Pattern 4, Groovy adapters, prize-appliers)
 - **spawn** — ECS architecture + server-side systems + EntitySet lifecycle
 - **cleanup** — tests + tooling + dev workflow
 - **client** (temporary 5th teammate, shut down post-review) — client / UI / rendering / input
-
-## Tier 2 — High-impact, medium-effort
-
-| # | Finding | Where | Notes |
-|---|---|---|---|
-| 1 | **`WeaponsSystem` god-class** at 854 lines, 8 EntitySets, fire dispatch + 5-projectile reaping all co-located. Three helper extractions exist (`WeaponsLogic`, `WeaponsDamageLogic`, `WeaponsEligibility`) but the class itself hasn't shrunk. | `infinity/src/main/java/infinity/systems/ship/WeaponsSystem.java` | **M/M** — `WeaponsFireSystem` + `WeaponsReaperSystem` + `WeaponsImpactSystem` are clean cuts along existing seams. **Pilot for the Replacement-as-Mutation pattern** ([rule](../.claude/rules/replacement-as-mutation.md), [PRD](./replacement-as-mutation/PRD.md)) — Impact emits damage/energy intents, canonical writers drain. |
-| 2 | **`ConfigRegistry` wither + DISPATCH boilerplate** — adding a new `*Config` slot touches 4 files. ~140 lines of pass-through. Adding `ShrapnelConfig` etc. (planned per tracker) means touching every existing wither. | `infinity/src/main/java/infinity/settings/ConfigRegistry.java:183-285`, `ConfigRegistrySystem.java:65-151` | **M/M** — replace with `Map<Class<?>, Object>` slot store or `ConfigSlot<T>` enum. |
-| 3 | **Adapter scaffolding duplication** across 12 fragment loaders + 16 NaN/Inf validation guards. ~600 LOC of pattern-not-info. | `infinity/src/main/java/infinity/settings/{Bomb,Bullet,Burst,Decoy,Mine,Portal,Prize,PrizeWeights,Repel,Rocket,Spawn,Brick}Adapter.java` | **M/M** — abstract `SingleClosureAdapter<C,B>` + `Validators` helper. Care with per-adapter Javadoc DSL blocks. |
-| 4 | **Zero tests in `infinity.{client,server,net}` packages** — 27 test files cover api factories + settings + 8 systems; client AppStates / RMI / network glue have zero coverage. Manual launch is the only verification. | `infinity/src/test/java/infinity/{client,server,net}/` (don't exist) | **M/L** — full coverage is multi-slice. Seeding cost is small (one AppState-lifecycle smoke test). |
-| 5 | **Spawn-projection test harness PRD started, slices stalled** — `SpawnerProjectionTest` itself notes "behavioural coverage sits behind the broader spawn-projection harness backlog (full PrizeSystem fixture is heavy — 4–5 dependent systems)." Memory `project_spawn_projection_test_gap.md` flags as recurring blocker. | `.scratch/spawn-projection-test-harness/PRD.md`, `infinity/src/test/java/infinity/sim/SpawnerProjectionTest.java:31` | **M/M** — template exists; each follow-on slice is small. |
-| 6 | **Engine-tier hot-reload gap** — arena-scope tunables hot-reload via `ConfigRegistrySystem.replace()`; engine-tier (12 collision radii + scale knobs) requires server restart. Exactly the surface where iteration speed matters during physics tuning. | `api/src/infinity/config/EngineConfig.java:11`, `infinity/src/main/java/infinity/settings/GroovyEngineLoader.java:23` | **M/M** — extend `EngineConfigSystem` with watcher mirroring `ConfigRegistrySystem`. Single-file source — simpler than per-arena. |
 
 ## Tier 3 — Smaller wins or longer-term
 
@@ -62,8 +51,6 @@ Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices).
 
 ## Recommendations — biggest wins
 
-The Tier 1 same-day-fix and Tier 2 high-impact items (Main.java graveyard, SISpatialFactory dead code, spatial-query promotion, static-analysis ceilings) have all landed. Remaining items skew toward larger refactors and longer-term debts.
-
-If you want the **next pilot for the Replacement-as-Mutation pattern**: Tier 2 #1 (`WeaponsSystem` god-class) — the three-way Fire/Reaper/Impact split is the natural first migration under the new rule.
+Tier 1 (same-day-fix bundle: Main.java graveyard, SISpatialFactory dead code, spatial-query promotion, static-analysis ceilings) and Tier 2 (#1–6: WeaponsSystem RaM split, ConfigRegistry slot-store + adapter dedup, client/server/net seed tests, spawn-projection RaM pillar, engine-tier hot-reload) have both landed. Remaining items skew toward larger refactors and longer-term debts.
 
 If you want **lower-risk smaller-effort wins**: Tier 3 #7 (`requireSystem` helper, retrofit via touched-files ratchet) or #13 (`Main.java` SPDX header — one file, one judgement).

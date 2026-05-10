@@ -176,17 +176,7 @@ multiplex across writers.
 
 Ordered by impact-per-effort. Each item is a future slice.
 
-1. **WeaponsSystem extraction → DamageIntent / EnergyIntent (pilot
-   slice).** `WeaponsDamageLogic` already calls
-   `energy.damage(victimId, delta)` which creates a HealthChange
-   intent — formalize: rename the intent to `DamageIntent` for
-   readability, add `DamageSource(attackerId, weaponFlag)` to enable
-   reactor forks (hit-sound vs regen). Document the existing pattern
-   in the canonical-writer file's Javadoc. Files:
-   `WeaponsDamageLogic`, `EnergySystem`, new `DamageIntent`,
-   new `DamageSource`. Acceptance: after-tick reactor can distinguish
-   damage from regen.
-2. **PrizeSystem applier chain → CapBumpIntent / RegenIntent.** The
+1. **PrizeSystem applier chain → CapBumpIntent / RegenIntent.** The
    30 appliers in
    `infinity/src/main/java/infinity/systems/ship/applier/`. Most do
    `ed.setComponent(ship, new Energy(next))` /
@@ -194,36 +184,36 @@ Ordered by impact-per-effort. Each item is a future slice.
    `EnergyCapBumpIntent`, `SpeedCapBumpIntent`, etc. emitted by the
    applier; canonical writer (`ShipSpawnSystem` or a successor cap
    writer — see open Q) drains. Multi-applier slice; ~3-5 commits.
-3. **ConsumableSystem (thor / repel / brick / decoy / portal /
+2. **ConsumableSystem (thor / repel / brick / decoy / portal /
    rocket).** Today: emits `Impulse` for repel (already correct
    shape), spawns projectiles via `GameEntities.create*` (clean —
    spawn-time projection is RaM-OK). The bag of `*CurrentCount`
    decrements (rocket / brick / etc.) is the work — convert to
    per-inventory-type `InventoryDecrementIntent`.
-4. **ContactSystem / RepelSystem standardization.** `RepelSystem`
+3. **ContactSystem / RepelSystem standardization.** `RepelSystem`
    already emits `Impulse` (RaM-correct). `ContactSystem` writes
    tangential damping directly to body velocity — outside Zay-ES
    so the rule doesn't formally apply, but document the divergence
    so future contact-friction work doesn't drift.
-5. **ShipSpawnSystem cleanup pass.** Already a clean single-writer
+4. **ShipSpawnSystem cleanup pass.** Already a clean single-writer
    for ~12 components. Just document in the canonical-writer list
    (rule file) — no code change, just adds it to the official ledger.
-6. **AvatarSystem ship-swap path.** Currently
+5. **AvatarSystem ship-swap path.** Currently
    `requestShipChange` does `removeComponent(ShipType) +
    setComponent(ShipType) + setComponent(ResetLivePool)`. The
    ShapeInfo write moves to ShipSpawnSystem post-S6. After S6: the
    only direct write here is `ShipType` itself + the marker — both
    single-writer-clean.
-7. **EnergySystem cleanup of `refillHealth`.** Direct-mutation path
+6. **EnergySystem cleanup of `refillHealth`.** Direct-mutation path
    (`e.set(refilled)`) on QUICKCHARGE prize. Should also route
    through `HealthChange` intent (delta = `cap - current`) so the
    prize applier emits intent + EnergySystem drains next tick.
    Tiny slice.
-8. **MapSystem wormhole + door.** `setComponent` on `Door`,
+7. **MapSystem wormhole + door.** `setComponent` on `Door`,
    `GravityWell`, etc. — these are spawn-time projections (system
    reads map data → emits per-tile entities); RaM-clean as long as
    no other system writes those types.
-9. **Status-family appliers.** AntiWarp / Cloak / Stealth / XRadar
+8. **Status-family appliers.** AntiWarp / Cloak / Stealth / XRadar
    already follow Pattern 4 + spawn projection; the runtime toggle
    path (input-driven) needs a `StatusToggleIntent` design once the
    key-bindings PRD lands a wired toggle key.
@@ -237,12 +227,11 @@ per slice).
 | # | Slice | Files | Acceptance |
 |---|---|---|---|
 | **0** | **Codify the rule** (this PRD + rule file). No code change. | `.claude/rules/replacement-as-mutation.md`, `.scratch/replacement-as-mutation/PRD.md`, `.claude/rules/systems.md` (patch) | Rule + PRD on disk; `systems.md` cites RaM. Build green. |
-| **1** | **Pilot — DamageIntent / DamageSource extraction.** Rename `HealthChange` to `DamageIntent` (or layer on top — see open Q3); add `DamageSource(attackerId, weaponFlag)`. | `EnergySystem.damage`, `WeaponsDamageLogic`, new `DamageSource`, possibly rename or alias `HealthChange` → `DamageIntent` | A reactor (e.g. a new `HitFeedbackSystem`) can fork on `DamageSource` to distinguish damage from regen. Existing energy-system tests pass. |
-| **2** | **Cap-bump intent family.** Introduce `EnergyCapBumpIntent`, `SpeedCapBumpIntent`, `ThrustCapBumpIntent`, `RotationCapBumpIntent`, `RechargeCapBumpIntent`. Migrate `EnergyPrizeApplier`, `TopSpeedPrizeApplier`, `ThrusterPrizeApplier`, `RotationPrizeApplier`, `RechargePrizeApplier`. Canonical writer: extension of `ShipSpawnSystem` or new `CapWriterSystem`. | `infinity/systems/ship/applier/*.java` (5 appliers), new intent classes, canonical writer | Multi-prize same-tick collision: applying 2× Energy prizes accumulates correctly. Tests pin idempotence + ordering. |
-| **3** | **QuickCharge intent.** `QuickChargePrizeApplier` calls `EnergySystem.refillHealth` directly. Convert to `HealthChange(delta = cap - current)` intent emission. | `QuickChargePrizeApplier`, `EnergySystem.refillHealth` (deprecate or keep as helper that emits intent) | QuickCharge applies via the same path as damage; reactor ordering deterministic. |
-| **4** | **Inventory decrement family.** Each weapon/consumable fire decrements its respective `*CurrentCount` component. Convert to `InventoryDecrementIntent(type, delta)`; canonical writer (per-type or unified). | `WeaponsSystem`, `ConsumableSystem`, applier classes | Inventory decrements drain through one writer per type; same-tick double-decrement (rare but possible on lag-compensated re-fire) collapses correctly. |
-| **5** | **Status toggle intent (post-DebugState slice).** Once the canonical Continuum LSHIFT+S/C/X/A bindings land, the toggle handlers emit `StatusToggleIntent(type, on/off)`; canonical writer (`StatusSystem`?) drains. | new `StatusToggleIntent`, `StatusSystem`, key-binding consumers | Toggling Cloak fires one Cloak component change per tick regardless of how many input events arrived. |
-| **6** | **Documentation pass — list every canonical writer in the rule file's "live snapshot" section.** Audit-grade. | `.claude/rules/replacement-as-mutation.md` | Every component type with a writer in the codebase listed. PMD-style ratchet on the rule file going forward. |
+| **1** | **Cap-bump intent family.** Introduce `EnergyCapBumpIntent`, `SpeedCapBumpIntent`, `ThrustCapBumpIntent`, `RotationCapBumpIntent`, `RechargeCapBumpIntent`. Migrate `EnergyPrizeApplier`, `TopSpeedPrizeApplier`, `ThrusterPrizeApplier`, `RotationPrizeApplier`, `RechargePrizeApplier`. Canonical writer: extension of `ShipSpawnSystem` or new `CapWriterSystem`. | `infinity/systems/ship/applier/*.java` (5 appliers), new intent classes, canonical writer | Multi-prize same-tick collision: applying 2× Energy prizes accumulates correctly. Tests pin idempotence + ordering. |
+| **2** | **QuickCharge intent.** `QuickChargePrizeApplier` calls `EnergySystem.refillHealth` directly. Convert to `HealthChange(delta = cap - current)` intent emission. | `QuickChargePrizeApplier`, `EnergySystem.refillHealth` (deprecate or keep as helper that emits intent) | QuickCharge applies via the same path as damage; reactor ordering deterministic. |
+| **3** | **Inventory decrement family.** Each weapon/consumable fire decrements its respective `*CurrentCount` component. Convert to `InventoryDecrementIntent(type, delta)`; canonical writer (per-type or unified). | `WeaponsFireSystem`, `ConsumableSystem`, applier classes | Inventory decrements drain through one writer per type; same-tick double-decrement (rare but possible on lag-compensated re-fire) collapses correctly. |
+| **4** | **Status toggle intent (post-DebugState slice).** Once the canonical Continuum LSHIFT+S/C/X/A bindings land, the toggle handlers emit `StatusToggleIntent(type, on/off)`; canonical writer (`StatusSystem`?) drains. | new `StatusToggleIntent`, `StatusSystem`, key-binding consumers | Toggling Cloak fires one Cloak component change per tick regardless of how many input events arrived. |
+| **5** | **Documentation pass — list every canonical writer in the rule file's "live snapshot" section.** Audit-grade. | `.claude/rules/replacement-as-mutation.md` | Every component type with a writer in the codebase listed. PMD-style ratchet on the rule file going forward. |
 
 ## Open questions
 
@@ -288,11 +277,9 @@ per slice).
    `GameSystemManager + DefaultEntityData` fixture.
 
 6. **Migration dependencies / sequencing with other PRDs.**
-   - Slice 1 (DamageIntent extraction) is independent of S6 / F6/S7 /
-     DebugState bindings — can land standalone.
-   - Slice 2 (cap-bump family) prefers config-pattern.md to be stable
+   - Slice 1 (cap-bump family) prefers config-pattern.md to be stable
      (it is).
-   - Slice 5 (StatusToggleIntent) waits on DebugState + key-bindings
+   - Slice 4 (StatusToggleIntent) waits on DebugState + key-bindings
      PRD.
 
 ## Acceptance
@@ -306,13 +293,19 @@ Slice 0 (this PRD + rule):
   rule. The "logic in systems, not components" rule stays.
 - `./gradlew build` green.
 
-Slice 1 acceptance lives in slice 1's commit:
-- A `DamageSource` reactor distinguishes damage from regen.
-- `git grep -n "ed.setComponent.*new Health" infinity/src/main` returns
-  only `EnergySystem` + `ShipSpawnSystem`.
-- Existing `EnergySystem` / `ShipSpawnSystem` / weapon tests pass.
+Pilot slice (DamageIntent / DamageSource extraction) landed in
+`arch-review-tier2-bundle` commit `7eb8b2b8`:
+- `DamageSource` is on disk in `api/src/infinity/es/`.
+- `WeaponsImpactSystem` / `WeaponsReaperSystem` / cost-deduct paths in
+  `WeaponsEligibility` emit `(Buff + HealthChange + DamageSource)` via
+  `EnergySystem.damage(target, delta, source, weaponFlag)`.
+- `WeaponsSystem.java` is deleted; the 854-LOC god-class is split
+  into Fire / Reaper / Impact, each documented as a single canonical
+  writer for its component types.
+- `EnergySystemDamageSourceTest` + `EnergySystemIntentTest` pin the
+  intent-drain round-trip.
 
-Long-term acceptance (slices 2-6 cumulative):
+Long-term acceptance (slices 1-5 cumulative):
 - `git grep -rln "setComponent" infinity/src/main/java/infinity/systems/ship/applier/`
   returns zero hits — every applier emits intent, no applier writes
   directly.
