@@ -74,7 +74,7 @@ phase 3 — reactors
 |---|---|---|
 | Apply 5 damage to a ship | `ed.setComponent(shipId, new Health(hp - 5))` from any system | Call `EnergySystem.damage(shipId, -5)` (which creates a `HealthChange` intent entity); EnergySystem drains it next tick. |
 | Bump Energy cap by upgrade | `ed.setComponent(shipId, new Energy(next))` from `EnergyPrizeApplier` | Emit an `EnergyUpgradeIntent(shipId, delta)`; canonical writer (EnergySystem or successor) folds. |
-| Stamp `Decay` on a new entity | At the spawn site (`GameEntities.create*` or a spawn system) | OK — spawn-time projection is the single-writer; reactors observe the new entity. |
+| Stamp `Decay` on a new entity | At the spawn site (`ShipFactory`/`WeaponFactory`/`MapFactory` or a spawn system) | OK — spawn-time projection is the single-writer; reactors observe the new entity. |
 | Apply impulse to a body | `body.setLinearVelocity(...)` directly | Emit `Impulse` component; sio2-mphys integrator drains. |
 | Re-project ship stats on Groovy reload | `ShipSpawnSystem.reprojectAll()` only | OK — `ShipSpawnSystem` is the canonical writer for the ~12 ship-stat components. |
 

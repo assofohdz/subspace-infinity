@@ -2,7 +2,7 @@
 
 Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices). Branch: `slice/s7-mine-speed` HEAD `9c1abec4`. Date: 2026-05-09.
 
-7 active tech-debt findings ranked below by **impact ÷ effort**. (Tier 1 closed earlier in `arch-review-tier1-bundle`; Tier 2's 6 items closed in `arch-review-tier2-bundle` — commit `7eb8b2b8`.) Findings are sourced from five parallel reviews:
+1 active tech-debt finding remaining. (Tier 1 closed in `arch-review-tier1-bundle`; Tier 2's 6 items closed in `arch-review-tier2-bundle` — commit `7eb8b2b8`; Tier 3 #7–#10, #12–#13 closed in `arch-review-tier3-bundle` — commit `2578dd6c`.) Findings are sourced from five parallel reviews:
 - **planner** — module boundaries, api-contracts, cross-module layering
 - **config-2** — config + settings pipeline (Pattern 4, Groovy adapters, prize-appliers)
 - **spawn** — ECS architecture + server-side systems + EntitySet lifecycle
@@ -13,13 +13,7 @@ Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices).
 
 | # | Finding | Where | Notes |
 |---|---|---|---|
-| 7 | **`getSystem + null-check + throw` boilerplate** ×7+ for `EngineConfigSystem` alone (more for `EntityData` / `MPhysSystem` / `ConfigRegistrySystem` / `ArenaSystem`). | 7 systems incl. `RepelSystem`, `WeaponsSystem`, `ConsumableSystem`, `MovementInputSystem`, `AvatarSystem` | **S/S** — `BaseInfinitySystem.requireSystem(Class<T>)` helper, retrofit incrementally via touched-files ratchet. |
-| 8 | **`WatchedEntity` release lifecycle inconsistency** — `PositionHudState` releases in `onDisable`, others in `cleanup`. Detach-while-disabled may double-release or never-release depending on jME order. | `JitterState.java:67`, `PositionHudState.java:92`, `RadarState.java:250`, `AvatarMovementState.java:153`, `ModelViewState.java:284` | **S-M/S** — pin convention in `entity-sets.md`. |
-| 9 | **`GameEntities` ABI churn** — 35 public-static methods, 13 commits in last 50, growing backward-compat-overload count. Works today; will calcify. | `api/src/infinity/sim/GameEntities.java` (976 LOC) | **M/M** — split into `ShipFactory`/`WeaponFactory`/`MapFactory` or introduce per-factory builders. |
-| 10 | **`GroovyShipLoader` monolith** at 789 LOC owns FALLBACK 8-ship preset + `ShipConfigBuilder` + adapter. In-source 8-ship default has drift risk vs `*-04-2026/ships.groovy`. | `infinity/src/main/java/infinity/settings/GroovyShipLoader.java` | **M/M** — extract `ShipFallback`, `ShipConfigBuilder`. Defer until next ship-config field-add slice naturally touches the file. |
 | 11 | **`infinity/` mega-module** — 243 files, server+client+systems+ai+sim+settings+net co-located. ArchUnit-test enforcement at boot vs compile-time enforcement via Gradle modules. Long-term cost of past iteration speed. | `infinity/src/main/java/infinity/**` | **L/L** — multi-week. Not a now-task. |
-| 12 | **`api/` has no test sourceset** — 7 api-side factory tests (`BombFactoryTest`, `BulletFactoryTest`, etc.) live in `infinity/src/test/java/infinity/sim/`, coupling api-test runtime to full server-side dependency graph. | `api/src/` (no `test/`); tests live in `infinity/src/test/java/infinity/sim/` | **S-M/M** — add Gradle `test` configuration to `api/build.gradle`; move 7 factory-test files; ensure they don't reach into infinity-only types. Open Q: keep tests with fixtures, or split for stricter api isolation? |
-| 13 | **`Main.java` carries upstream Simsilica copyright, not project SPDX** — CLAUDE.md rule #2 mandates SPDX BSD-3 + project copyright on all `*.java`. Spotless `licenseHeaderFile` is intentionally not configured (silent-relicense risk on upstream code is the right judgement) — but `Main.java` is unambiguously a project file. | `infinity/src/main/java/infinity/Main.java:1-35` | **S/S** — one file, one judgement call. |
 
 ## Patterns the team flagged as working well
 
@@ -41,16 +35,11 @@ Read-only review by team `s6-ship-radius` (5 reviewers across 5 concern slices).
 
 ## Open questions surfaced by the review
 
-- `com.jme3.math.ColorRGBA` in `GameEntities.java` — api-contracts.md says jME math types are OK, but `ColorRGBA` is rendering-adjacent. Borderline call.
 - TD-11's mega-module split — is there a file/LOC threshold to defend, or is "split when something hurts" the policy?
-- Should `api/` get its own test sourceset (TD-12), or do api-side factory tests stay in `infinity/test` because that's where the fixtures live?
 - TD-6 hot-reload — is engine-tier tuning expected to continue, or has it settled? Determines whether the watcher is worth the effort.
 - TD-1 extraction direction — `WeaponsFireSystem` vs `WeaponsReaperSystem` vs `WeaponsImpactSystem` — three-way carve identified during the grilling for the spatial-query slice. Producer-audit + RaM pilot will resolve canonical writers as part of the slice.
-- Settle on **one** project rule for `WatchedEntity` / `EntitySet` release lifecycle (`cleanup()` vs `onDisable()`) — extend `entity-sets.md`.
 - Are `PostProcessingState` / `BloomPostState` / `SkyState` / `GridState` / `SettingsState` intended for restoration, or are they dead? They occupy ~1.5K LOC and aren't wired to `Main`. (Their commented-out instantiation in Main.java has been removed; the .java files are still on disk.)
 
 ## Recommendations — biggest wins
 
-Tier 1 (same-day-fix bundle: Main.java graveyard, SISpatialFactory dead code, spatial-query promotion, static-analysis ceilings) and Tier 2 (#1–6: WeaponsSystem RaM split, ConfigRegistry slot-store + adapter dedup, client/server/net seed tests, spawn-projection RaM pillar, engine-tier hot-reload) have both landed. Remaining items skew toward larger refactors and longer-term debts.
-
-If you want **lower-risk smaller-effort wins**: Tier 3 #7 (`requireSystem` helper, retrofit via touched-files ratchet) or #13 (`Main.java` SPDX header — one file, one judgement).
+Tier 1 (same-day-fix bundle: Main.java graveyard, SISpatialFactory dead code, spatial-query promotion, static-analysis ceilings), Tier 2 (#1–6: WeaponsSystem RaM split, ConfigRegistry slot-store + adapter dedup, client/server/net seed tests, spawn-projection RaM pillar, engine-tier hot-reload), and Tier 3 (#7–#10, #12–#13: requireSystem helper, WatchedEntity lifecycle, GameEntities split, GroovyShipLoader extraction, api/ test sourceset, Main.java SPDX) have all landed. Remaining item (#11) is the multi-week infinity/ mega-module split.

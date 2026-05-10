@@ -66,7 +66,7 @@ including the Test column) before starting the next.
   `EnergySystem` stub.
 - **Projectile spawn** — `BulletFactoryTest` constructs a real
   `PhysicsSpace` from a single-cell `Grid` and asserts
-  `GameEntities.createBullet` projects `BulletConfig.decayMs()` into a
+  `WeaponFactory.createBullet` projects `BulletConfig.decayMs()` into a
   `Decay` deadline plus the per-level damage formula on `BulletConfig`.
 
 Later slices' Test column can now honestly flip to ✅.
@@ -83,7 +83,7 @@ worst today.
 conversion on `RepelTime`), `WeaponsConfig.repel` field, server-side
 firing path through `GameSessionHostedService` → `ConsumableSystem`
 REPEL branch (canAct / setCoolDown / deductCost / act / getActionPosition
-/ createSound), `GameEntities.createRepel` extended to take `decayMs`,
+/ createSound), `WeaponFactory.createRepel` extended to take `decayMs`,
 spawned effect entity carries `Decay` + `RepelSpeed` + `RepelDistance`.
 `CoreViewConstants.REPELDECAY = 400` placeholder removed. Test:
 `RepelFactoryTest`.
@@ -105,7 +105,7 @@ onto the ship.
 Fire path: `ConsumableSystem.actOut FIREROCKET` decrements `Rocket`,
 snapshots ship's `Thrust`/`Speed`, swaps to `RocketConfig` overrides,
 creates a buff entity (`Parent`+`RocketBuff`+`RocketSnapshot`+`Decay`)
-via `GameEntities.createRocketBuff`. New `RocketBuffSystem` watches the
+via `ShipFactory.createRocketBuff`. New `RocketBuffSystem` watches the
 buff EntitySet — on add it stamps `RocketActive` on the ship + caches
 the snapshot keyed by buff id (Zay-ES `getRemovedEntities` doesn't
 preserve component values); on the canonical Decay reaper deleting the
@@ -127,7 +127,7 @@ wired end-to-end. Typed `brick.groovy` adapter (`BrickAdapter`) →
 `BrickConfig` → `ConfigRegistry.brick()` slot.
 
 Fire path: `ConsumableSystem.actOut PLACEBRICK` decrements `Brick`,
-calls `GameEntities.createBrick` which composes a marker entity
+calls `MapFactory.createBrick` which composes a marker entity
 (`Parent(ship) + BrickSpan(N) + Decay(BrickTime ms)`). The canonical
 Decay reaper deletes the marker at deadline — no separate system
 needed.
@@ -149,7 +149,7 @@ end-to-end. Typed `decoy.groovy` adapter (`DecoyAdapter`, cs×10→ms) →
 `DecoyConfig` → `ConfigRegistry.decoy()` slot.
 
 Place path: `ConsumableSystem.actOut PLACEDECOY` decrements `Decoy`,
-calls `GameEntities.createDecoy` which composes a marker entity
+calls `MapFactory.createDecoy` which composes a marker entity
 (`Parent(ship) + Decay(DecoyAliveTime ms) + Meta`). The canonical
 Decay reaper deletes the marker at deadline — no separate system
 needed.
@@ -175,7 +175,7 @@ end-to-end. Typed `portal.groovy` adapter (`PortalAdapter`, cs×10→ms) →
 crossed `Map.of`'s 10-entry ceiling; converted to `Map.ofEntries`.
 
 Place path: `ConsumableSystem.actOut PLACEPORTAL` decrements `Portal`,
-calls `GameEntities.createPortal` which composes a marker entity
+calls `MapFactory.createPortal` which composes a marker entity
 (`Parent(ship) + Decay(WarpPointDelay ms) + Meta`). The canonical
 Decay reaper deletes the marker at deadline — no separate system
 needed.
@@ -443,7 +443,7 @@ documented per-key in `SpawnerSpec` Javadoc.
 - `GroovyArenaLoader.SpawnersBlock.spawn` DSL accepts the 4 new fields
   with no-op defaults (`countPerPlayer: 0`, `radiusPerPlayer: 0.0`,
   `regenBatch: 1`, `hidden: false`).
-- `GameEntities.createSpawner` (15-arg overload) + `createPrize` (7-arg
+- `MapFactory.createSpawner` (15-arg overload) + `createPrize` (7-arg
   overload accepting `boolean hidden`) — original signatures preserved
   via delegating overloads for ABI stability.
 - `ArenaSystem.materializePrizeSpawners` forwards the 4 new fields.

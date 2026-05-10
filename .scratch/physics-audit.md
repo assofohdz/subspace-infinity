@@ -35,7 +35,7 @@ Physics-touching code, by file:
 | `infinity.systems.ship.WeaponsSystem.applySplashDamage` | bomb detonation | manually walks `EntitySet(Health.class)` for every detonation |
 | `infinity.systems.ship.WarpSystem` | teleport / spawn | uses `physicsSpace.teleport`; explicitly zeros velocity / acceleration / accumulators |
 | `infinity.systems.MapSystem` | wormhole + door creation | hardcoded gravity-well force `5000`, `GravityWell.PULL` |
-| `api.infinity.sim.GameEntities.createShip` | ship body composition | `Mass(1)`, `Gravity.ZERO`; tunable physics knobs deferred to `ShipSpawnSystem` projection |
+| `api.infinity.sim.ShipFactory.createShip` | ship body composition | `Mass(1)`, `Gravity.ZERO`; tunable physics knobs deferred to `ShipSpawnSystem` projection |
 | `api.infinity.config.EngineConfig` | engine-tier physics knobs | Subspace→jME velocity scale + cap, ship/bomb scale calibrations (S1-cal/S2-cal), and 12 collision radii (bullet/bomb/mine/thor/prize/burst/repel/over1/over2/over5/flag/ship — projectile-radius-pattern4 + S6) |
 | `api.infinity.config.ArenaConfig.wallFriction` | per-arena friction | divergence from canon (canon = frictionless), documented |
 

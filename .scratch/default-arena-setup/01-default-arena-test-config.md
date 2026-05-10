@@ -25,8 +25,8 @@ The trench testbed introduces:
   `arena.groovy`, materialized at arena-load time by `ArenaSystem`
 - new optional ECS component `PrizeDecayMillis` so per-spawner TTL flows
   through to each prize
-- non-breaking `GameEntities.createWeightedPrizeSpawner` /
-  `GameEntities.createPrize` overloads that accept `maxCount` /
+- non-breaking `MapFactory.createWeightedPrizeSpawner` /
+  `MapFactory.createPrize` overloads that accept `maxCount` /
   `prizeDecayMillis`; existing callers keep the old signatures
 - trench testbed: two `prizeSpawners` (centre + NE corner), warbird upgrades
   enabled in `ships.groovy`, override fragment loaded after the base

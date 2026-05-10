@@ -186,7 +186,7 @@ Ordered by impact-per-effort. Each item is a future slice.
    writer — see open Q) drains. Multi-applier slice; ~3-5 commits.
 2. **ConsumableSystem (thor / repel / brick / decoy / portal /
    rocket).** Today: emits `Impulse` for repel (already correct
-   shape), spawns projectiles via `GameEntities.create*` (clean —
+   shape), spawns projectiles via `WeaponFactory`/`MapFactory` (clean —
    spawn-time projection is RaM-OK). The bag of `*CurrentCount`
    decrements (rocket / brick / etc.) is the work — convert to
    per-inventory-type `InventoryDecrementIntent`.

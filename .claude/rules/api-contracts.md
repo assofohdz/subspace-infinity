@@ -14,7 +14,7 @@ The `api/` module is the shared contract layer — data and interfaces only. Bot
 
 ## Module-facing entity-construction ABI
 
-External modules (under `infinity/modules/**`) need to construct standard game entities — bombs, ships, prizes, doors, asteroids, effects — without depending on `infinity.systems.*` (forbidden by the rule above). The api-side factory methods that compose those entities on `EntityData` are part of that ABI and are an **interface for purposes of "data + interfaces only."** They live in `infinity.sim.*` (e.g. [`GameEntities`](../../api/src/infinity/sim/GameEntities.java)) and may freely call `EntityData.createEntity()` + `setComponent(...)`.
+External modules (under `infinity/modules/**`) need to construct standard game entities — bombs, ships, prizes, doors, asteroids, effects — without depending on `infinity.systems.*` (forbidden by the rule above). The api-side factory methods that compose those entities on `EntityData` are part of that ABI and are an **interface for purposes of "data + interfaces only."** They live in `infinity.sim.*` ([`ShipFactory`](../../api/src/infinity/sim/ShipFactory.java), [`WeaponFactory`](../../api/src/infinity/sim/WeaponFactory.java), [`MapFactory`](../../api/src/infinity/sim/MapFactory.java)) and may freely call `EntityData.createEntity()` + `setComponent(...)`.
 
 Constraints on those factories:
 

@@ -18,7 +18,7 @@ trusts `Decay` as the single source of truth.
 
 - **Per-instance lifetime** (this prize / projectile / effect dies in N ms):
   set a `Decay` component at creation time. Look at how
-  `GameEntities.createPrize`, `createBurst`, `createMine`, etc. compute the
+  `MapFactory.createPrize`, `WeaponFactory.createBurst`, `WeaponFactory.createMine`, etc. compute the
   duration and use `Decay.duration(...)` or
   `new Decay(now, now + TimeUnit.NANOSECONDS.convert(ms, MILLISECONDS))`.
 

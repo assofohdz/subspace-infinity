@@ -76,12 +76,9 @@ What remains: extract `ArenaSpatialIndex` for spatial queries — `findArenaAt`,
 
 792 lines. Gameplay-entity spatials (ship/flag/door/base/mob/tower/bomb/bullet/bounty) stay in the main factory; effect spatials (explosion variants, over1/2/5, particle emitters, warp/repel/burst) move to `EffectSpatialFactory`. Also flagged: only one usage of `jme3utilities.MyMesh` lives here — see "Library follow-ups" below.
 
-### `GameEntities` split + parameter records
+### Factory parameter records
 
-The audit's "split GameEntities into themed files" recommendation was deferred when Asser pointed out the file is the **module ABI**. The location is correct, but the file has grown to 976 lines (up from ~690 when the entry was first written) with mixed concerns. Two improvements still open:
-
-1. **Themed sub-files within `api/sim/`** — `WeaponEntities.java`, `WorldEntities.java`, `EffectEntities.java`. Module authors still find them via the package; navigation gets cleaner. Top-level `GameEntities` becomes a thin re-exporter or pure-aggregate.
-2. **Parameter records** — `createMine(EntityData, EntityId, PhysicsSpace, long, Vec3d, long, String)` is 7 positional args. Builder or parameter records would help. ABI-breaking, so coordinate with module authors before doing it.
+`WeaponFactory.createMine(EntityData, EntityId, PhysicsSpace, long, Vec3d, long, String, double)` is 8 positional args. Builder or parameter records would help. ABI-breaking — coordinate with module authors before doing it.
 
 ### Radar `ArenaFootprint` — current-vs-neighbor styling
 

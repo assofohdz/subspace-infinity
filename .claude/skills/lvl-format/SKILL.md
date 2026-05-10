@@ -144,18 +144,18 @@ Constants live in [`infinity.map.MapTypes`](../../infinity/src/main/java/infinit
 | 0 | empty | skipped |
 | 1–161 (except 20) | normal visible tile | cell: `TILE_TYPE_BASE + id - 1`, solid |
 | 20 | border | same cell treatment as normal tiles (rarely present in .lvl data) |
-| 162–165 | vertical door | entity: `GameEntities.createDoor` |
-| 166–169 | horizontal door | entity: `GameEntities.createDoor` |
-| 170 | turf flag | entity: `GameEntities.createTurfStationaryFlag` |
+| 162–165 | vertical door | entity: `MapFactory.createDoor` |
+| 166–169 | horizontal door | entity: `MapFactory.createDoor` |
+| 170 | turf flag | entity: `MapFactory.createTurfStationaryFlag` |
 | 171 | safe zone | cell, visible, solid |
 | 172 | goal area | cell, visible, solid |
 | 173–175 | flyover | cell, visible, passthrough (null collider) |
 | 176–190 | flyunder | cell, visible, passthrough (null collider) |
-| 216 | small asteroid | entity: `GameEntities.createAsteroidSmall` |
-| 217 | medium asteroid | entity: `GameEntities.createAsteroidMedium` |
-| 218 | asteroid end / wormhole2 | entity: `GameEntities.createWormhole2` |
+| 216 | small asteroid | entity: `MapFactory.createAsteroidSmall` |
+| 217 | medium asteroid | entity: `MapFactory.createAsteroidMedium` |
+| 218 | asteroid end / wormhole2 | entity: `MapFactory.createWormhole2` |
 | 219 | space station | cell, visible, solid |
-| 220 | wormhole | entity: `GameEntities.createWormhole` |
+| 220 | wormhole | entity: `MapFactory.createWormhole` |
 | 221–228 | team/enemy bricks, goals, flags, prizes | SSB runtime-only — not in .lvl data |
 | 240–255 | invisible / special behavior tiles | cell: `INVISIBLE_BLOCK_TYPE`, collidable but no visuals |
 

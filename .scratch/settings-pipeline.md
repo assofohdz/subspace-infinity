@@ -243,7 +243,7 @@ matches `ship-warbird.groovy`'s `RepelMax 0`).
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
-| ✅ | `BrickTime` | ✅ brick.groovy | `BrickAdapter` (cs×10→ms) | `BrickConfig.timeMs` | — | `ConsumableSystem.createBrick` → `GameEntities.createBrick` (marker entity Decay deadline) | ✅ `BrickFactoryTest` + `ConfigRegistrySystemLoadTest` |
+| ✅ | `BrickTime` | ✅ brick.groovy | `BrickAdapter` (cs×10→ms) | `BrickConfig.timeMs` | — | `ConsumableSystem.createBrick` → `MapFactory.createBrick` (marker entity Decay deadline) | ✅ `BrickFactoryTest` + `ConfigRegistrySystemLoadTest` |
 | ✅ | `BrickSpan` | ✅ brick.groovy | `BrickAdapter` (typed DSL) | `BrickConfig.spanTiles` | — | `ConsumableSystem.createBrick` → `BrickSpan` component on marker entity | ✅ `BrickFactoryTest` + `ConfigRegistrySystemLoadTest` |
 
 ## [Bullet]
@@ -298,8 +298,8 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|
 | ❌ | `FrequencyShipTypes` | ❌ | ❌ | ❌ | — | ❌ | ❌ |
-| ✅ | `WarpPointDelay` | ✅ portal.groovy | `PortalAdapter` (cs×10→ms) | `PortalConfig.activeTimeMs` | — | `ConsumableSystem.createPortal` → `GameEntities.createPortal` (marker entity Decay deadline) | ✅ `PortalFactoryTest` + `ConfigRegistrySystemLoadTest` |
-| ✅ | `DecoyAliveTime` | ✅ decoy.groovy | `DecoyAdapter` (cs×10→ms) | `DecoyConfig.aliveTimeMs` | — | `ConsumableSystem.createDecoy` → `GameEntities.createDecoy` (marker entity Decay deadline) | ✅ `DecoyFactoryTest` + `ConfigRegistrySystemLoadTest` |
+| ✅ | `WarpPointDelay` | ✅ portal.groovy | `PortalAdapter` (cs×10→ms) | `PortalConfig.activeTimeMs` | — | `ConsumableSystem.createPortal` → `MapFactory.createPortal` (marker entity Decay deadline) | ✅ `PortalFactoryTest` + `ConfigRegistrySystemLoadTest` |
+| ✅ | `DecoyAliveTime` | ✅ decoy.groovy | `DecoyAdapter` (cs×10→ms) | `DecoyConfig.aliveTimeMs` | — | `ConsumableSystem.createDecoy` → `MapFactory.createDecoy` (marker entity Decay deadline) | ✅ `DecoyFactoryTest` + `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `BounceFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SafetyLimit` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `TickerDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
