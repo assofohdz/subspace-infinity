@@ -272,14 +272,15 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     final EntityId gunProjectile =
         WeaponFactory.createBullet(
             ed,
-            requester,
-            physicsSpace,
-            now,
-            info.location,
-            info.attackVelocity,
-            cfg.bullet().decayMs(),
-            bulletShape,
-            engineConfigSystem.get().bulletRadius());
+            new infinity.sim.specs.BulletSpec(
+                requester,
+                physicsSpace,
+                now,
+                info.location,
+                info.attackVelocity,
+                cfg.bullet().decayMs(),
+                bulletShape,
+                engineConfigSystem.get().bulletRadius()));
 
     ed.setComponent(
         gunProjectile,
@@ -301,14 +302,15 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     final EntityId bombProjectile =
         WeaponFactory.createBomb(
             ed,
-            requester,
-            physicsSpace,
-            now,
-            info.getLocation(),
-            info.getAttackVelocity(),
-            cfg.bomb().decayMs(),
-            bombShape,
-            engineConfigSystem.get().bombRadius());
+            new infinity.sim.specs.BombSpec(
+                requester,
+                physicsSpace,
+                now,
+                info.getLocation(),
+                info.getAttackVelocity(),
+                cfg.bomb().decayMs(),
+                bombShape,
+                engineConfigSystem.get().bombRadius()));
     ed.setComponent(
         bombProjectile,
         new Damage(
@@ -353,16 +355,17 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     final EntityId projectile =
         WeaponFactory.createDelayedBomb(
             ed,
-            requester,
-            physicsSpace,
-            now,
-            info.getLocation(),
-            info.getAttackVelocity(),
-            cfg.bomb().decayMs(),
-            cfg.gravBomb().delayMs(),
-            delayedComponents,
-            BOMB_LEVEL_PREFIX + gravityBomb.getLevel(),
-            engineConfigSystem.get().bombRadius());
+            new infinity.sim.specs.DelayedBombSpec(
+                requester,
+                physicsSpace,
+                now,
+                info.getLocation(),
+                info.getAttackVelocity(),
+                cfg.bomb().decayMs(),
+                cfg.gravBomb().delayMs(),
+                delayedComponents,
+                BOMB_LEVEL_PREFIX + gravityBomb.getLevel(),
+                engineConfigSystem.get().bombRadius()));
 
     ed.setComponent(
         projectile,
@@ -393,13 +396,14 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
       final EntityId projectile =
           WeaponFactory.createBurst(
               ed,
-              requesterEntity.getId(),
-              physicsSpace,
-              now,
-              info.getLocation(),
-              info.getAttackVelocity(),
-              cfg.burst().decayMs(),
-              engineConfigSystem.get().burstRadius());
+              new infinity.sim.specs.BurstSpec(
+                  requesterEntity.getId(),
+                  physicsSpace,
+                  now,
+                  info.getLocation(),
+                  info.getAttackVelocity(),
+                  cfg.burst().decayMs(),
+                  engineConfigSystem.get().burstRadius()));
       ed.setComponent(
           projectile,
           new Damage(
@@ -422,13 +426,14 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     final EntityId mineProjectile =
         WeaponFactory.createMine(
             ed,
-            requester,
-            physicsSpace,
-            now,
-            info.getLocation(),
-            cfg.mine().decayMs(),
-            mineShape,
-            engineConfigSystem.get().mineRadius());
+            new infinity.sim.specs.MineSpec(
+                requester,
+                physicsSpace,
+                now,
+                info.getLocation(),
+                cfg.mine().decayMs(),
+                mineShape,
+                engineConfigSystem.get().mineRadius()));
     ed.setComponent(
         mineProjectile,
         new Damage(

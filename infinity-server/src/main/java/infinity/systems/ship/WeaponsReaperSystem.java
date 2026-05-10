@@ -157,12 +157,13 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
     }
     WeaponFactory.createExplosion(
         ed,
-        EntityId.NULL_ID,
-        physicsSpace,
-        nowSimNanos,
-        explosionPoint,
-        damage.getExplosionDecay(),
-        damage.getExplosionShape());
+        new infinity.sim.specs.ExplosionSpec(
+            EntityId.NULL_ID,
+            physicsSpace,
+            nowSimNanos,
+            explosionPoint,
+            damage.getExplosionDecay(),
+            damage.getExplosionShape()));
     ed.setComponent(damageEntityId, Decay.duration(nowSimNanos, 0));
   }
 }

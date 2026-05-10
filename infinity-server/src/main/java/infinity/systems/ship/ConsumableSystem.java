@@ -230,13 +230,14 @@ public class ConsumableSystem extends BaseInfinitySystem
     gunProjectile =
         WeaponFactory.createThor(
             ed,
-            requester,
-            physicsSpace,
-            time,
-            info.location,
-            info.attackVelocity,
-            cfg.decayMs(),
-            engineConfigSystem.get().thorRadius());
+            new infinity.sim.specs.ThorSpec(
+                requester,
+                physicsSpace,
+                time,
+                info.location,
+                info.attackVelocity,
+                cfg.decayMs(),
+                engineConfigSystem.get().thorRadius()));
 
     ed.setComponent(
         gunProjectile,
@@ -263,12 +264,13 @@ public class ConsumableSystem extends BaseInfinitySystem
     final EntityId repelEffect =
         WeaponFactory.createRepel(
             ed,
-            requester,
-            physicsSpace,
-            time,
-            info.location,
-            cfg.timeMs(),
-            engineConfigSystem.get().repelRadius());
+            new infinity.sim.specs.RepelSpec(
+                requester,
+                physicsSpace,
+                time,
+                info.location,
+                cfg.timeMs(),
+                engineConfigSystem.get().repelRadius()));
 
     ed.setComponent(repelEffect, new RepelSpeed(cfg.speed()));
     ed.setComponent(repelEffect, new RepelDistance(cfg.distanceTiles()));
@@ -347,7 +349,9 @@ public class ConsumableSystem extends BaseInfinitySystem
     ed.setComponent(ship, new Speed(cfg.speed()));
 
     ShipFactory.createRocketBuff(
-        ed, ship, time, rocketTime.getActiveTimeMs(), originalThrust, originalSpeed);
+        ed,
+        new infinity.sim.specs.RocketBuffSpec(
+            ship, time, rocketTime.getActiveTimeMs(), originalThrust, originalSpeed));
   }
 
   private boolean createSound(Entity requesterEntity, byte flag, long time, ActionPosition info) {

@@ -243,7 +243,14 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
       avatarEntityId =
           ShipFactory.createPlayerShip(
-              spawnLoc, ed, playerEntityId, phys, 0, AvatarSystem.WARBIRD, engineCfg.shipRadius());
+              ed,
+              new infinity.sim.specs.ShipSpec(
+                  spawnLoc,
+                  playerEntityId,
+                  phys,
+                  0,
+                  AvatarSystem.WARBIRD,
+                  engineCfg.shipRadius()));
 
       // Resolve initial arena from the spawn coord. Null is tolerated — ship spawns
       // in no-arena void (no ShipConfig projection until it crosses into an arena).

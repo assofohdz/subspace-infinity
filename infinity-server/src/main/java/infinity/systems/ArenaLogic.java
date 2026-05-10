@@ -207,20 +207,21 @@ public final class ArenaLogic {
       final EntityId spawnerId =
           MapFactory.createSpawner(
               ed,
-              EntityId.NULL_ID,
-              phys,
-              now,
-              worldPos,
-              spec.spawnIntervalMs(),
-              spec.spawnOnRing(),
-              spec.radius(),
-              spec.maxCount(),
-              spec.ttlMillis(),
-              spec.weightOverrides(),
-              spec.countPerPlayer(),
-              spec.radiusPerPlayer(),
-              spec.regenBatch(),
-              spec.hidden());
+              new infinity.sim.specs.SpawnerCreateSpec(
+                  EntityId.NULL_ID,
+                  phys,
+                  now,
+                  worldPos,
+                  spec.spawnIntervalMs(),
+                  spec.spawnOnRing(),
+                  spec.radius(),
+                  spec.maxCount(),
+                  spec.ttlMillis(),
+                  spec.weightOverrides(),
+                  spec.countPerPlayer(),
+                  spec.radiusPerPlayer(),
+                  spec.regenBatch(),
+                  spec.hidden()));
       ed.setComponent(spawnerId, arenaId);
       if (log.isInfoEnabled()) {
         log.info(

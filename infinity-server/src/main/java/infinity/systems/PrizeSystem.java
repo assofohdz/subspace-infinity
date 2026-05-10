@@ -538,13 +538,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     final long decayMs = resolveDecayMs(spawnerId, spawner);
     return MapFactory.createPrize(
         ed,
-        phys,
-        ourTime.getTime(),
-        prizeSpawnLocation,
-        prizeType,
-        decayMs,
-        spawner.isHidden(),
-        engineConfigSystem.get().prizeRadius());
+        new infinity.sim.specs.PrizeSpec(
+            phys,
+            ourTime.getTime(),
+            prizeSpawnLocation,
+            prizeType,
+            decayMs,
+            spawner.isHidden(),
+            engineConfigSystem.get().prizeRadius()));
   }
 
   /**
@@ -675,12 +676,14 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     final String prizeType = maybeRollNegative(selected, prize);
     MapFactory.createPrize(
         ed,
-        phys,
-        timeNs,
-        deathPosition,
-        prizeType,
-        deathPrizeTimeMs,
-        engineConfigSystem.get().prizeRadius());
+        new infinity.sim.specs.PrizeSpec(
+            phys,
+            timeNs,
+            deathPosition,
+            prizeType,
+            deathPrizeTimeMs,
+            false,
+            engineConfigSystem.get().prizeRadius()));
     log.info(
         "Death-drop: ship {} died in arena '{}' at {} → spawned {} (lifetime={} ms)",
         shipId,

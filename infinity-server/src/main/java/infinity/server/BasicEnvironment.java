@@ -122,13 +122,21 @@ public class BasicEnvironment extends AbstractGameSystem {
 //
         MapFactory.createSpawner(
             ed,
-            EntityId.NULL_ID,
-            phys,
-            time,
-            new Vec3d(-512, 1, -512),
-            500,
-            false,
-            50);
+            new infinity.sim.specs.SpawnerCreateSpec(
+                EntityId.NULL_ID,
+                phys,
+                time,
+                new Vec3d(-512, 1, -512),
+                500,
+                false,
+                50,
+                MapFactory.PRIZE_DEFAULT_MAX_COUNT,
+                0L,
+                java.util.Map.of(),
+                0,
+                0.0,
+                1,
+                false));
 
 
     //GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, sysTime, new Vec3d(0, 1, 0));

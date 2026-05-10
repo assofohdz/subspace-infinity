@@ -287,6 +287,7 @@ public class RadarState extends BaseAppState {
         bodies.update();
         statics.update();
         footprints.update();
+        applyArenaFootprintMute();
         applyFrequencyChanges();
         updateBodyBlipPositions();
 
@@ -604,8 +605,33 @@ public class RadarState extends BaseAppState {
      * change while an ArenaFootprint exists, so updateObject is a no-op. If
      * a future entity replaces its ArenaFootprint with new vertices,
      * removeObject + addObject will rebuild.
+     *
+     * <p>Mute styling: each {@link Footprint} retains the polygon vertices
+     * + the two child {@link Material} references so {@link #applyArenaFootprintMute()}
+     * can rebind the {@code Color} parameter per frame against the
+     * {@code arenaTintColor} / {@code arenaOutlineColor} (current arena) or
+     * the muted variants (other arenas) without rebuilding the meshes.
      */
-    private final class ArenaFootprintContainer extends EntityContainer<Node> {
+    private static final class Footprint {
+        final Node node;
+        final Vec3d[] vertices;
+        // Null when the footprint had < 3 vertices — no geometry was built.
+        final Material fillMat;
+        final Material outlineMat;
+
+        Footprint(
+                final Node node,
+                final Vec3d[] vertices,
+                final Material fillMat,
+                final Material outlineMat) {
+            this.node = node;
+            this.vertices = vertices;
+            this.fillMat = fillMat;
+            this.outlineMat = outlineMat;
+        }
+    }
+
+    private final class ArenaFootprintContainer extends EntityContainer<Footprint> {
         // Y-offsets layer geometries within the radar's top-down view: blips
         // sit at Y=0, so outlines (-1) and fills (-2) render behind them with
         // the orthographic camera looking down -Y from Y=1000.
@@ -618,26 +644,85 @@ public class RadarState extends BaseAppState {
         }
 
         @Override
-        protected Node addObject(final Entity e) {
-            final ArenaFootprint footprint = e.get(ArenaFootprint.class);
-            final Vec3d[] verts = footprint.getVertices();
-            final Node node = new Node("ArenaFootprint-" + e.getId());
-            if (verts != null && verts.length >= 3) {
-                node.attachChild(buildFootprintFill(verts));
-                node.attachChild(buildFootprintOutline(verts));
-            }
-            footprintRoot.attachChild(node);
-            return node;
+        public Footprint[] getArray() {
+            return super.getArray();
         }
 
         @Override
-        protected void updateObject(final Node node, final Entity e) {
+        protected Footprint addObject(final Entity e) {
+            final ArenaFootprint footprint = e.get(ArenaFootprint.class);
+            final Vec3d[] verts = footprint.getVertices();
+            final Node node = new Node("ArenaFootprint-" + e.getId());
+            Material fillMat = null;
+            Material outlineMat = null;
+            if (verts != null && verts.length >= 3) {
+                final Geometry fill = buildFootprintFill(verts);
+                final Geometry outline = buildFootprintOutline(verts);
+                fillMat = fill.getMaterial();
+                outlineMat = outline.getMaterial();
+                node.attachChild(fill);
+                node.attachChild(outline);
+            }
+            footprintRoot.attachChild(node);
+            return new Footprint(node, verts, fillMat, outlineMat);
+        }
+
+        @Override
+        protected void updateObject(final Footprint footprint, final Entity e) {
             // ArenaFootprint vertices are immutable; no-op.
         }
 
         @Override
-        protected void removeObject(final Node node, final Entity e) {
-            node.removeFromParent();
+        protected void removeObject(final Footprint footprint, final Entity e) {
+            footprint.node.removeFromParent();
+        }
+    }
+
+    /**
+     * Per-frame "is the avatar inside this arena?" pass. The first footprint
+     * whose polygon contains the avatar's interpolated world position renders
+     * with full-strength {@code arenaTintColor} / {@code arenaOutlineColor};
+     * every other footprint (and every footprint when the avatar is outside
+     * all of them, or its position hasn't resolved yet) renders with the
+     * muted theme variants.
+     *
+     * <p>Cheap by construction — a handful of point-in-polygon tests per
+     * frame, each O(vertices) (4 for an arena rectangle). No caching across
+     * frames; if profiling later shows hot spots, an "avatar still in same
+     * arena as last frame?" short-circuit is the obvious first
+     * optimisation. Per task #3 spec: per-frame is fine.
+     *
+     * <p>"First match wins" relies on {@link EntityContainer#getArray()}
+     * preserving insertion order within a frame (it does — backed by a
+     * {@code LinkedHashMap}-style map and rebuilt only on add/remove).
+     * Overlapping arena footprints would resolve to whichever the server
+     * reported first.
+     */
+    @SuppressWarnings("PMD.CompareObjectsWithEquals") // Footprint identity comparison is intentional.
+    private void applyArenaFootprintMute() {
+        final Footprint[] arr = footprints.getArray();
+        if (arr.length == 0) {
+            return;
+        }
+        final Vec3d pos = resolveAvatarWorldPosition();
+        Footprint current = null;
+        if (pos != null) {
+            for (final Footprint f : arr) {
+                if (RadarStateLogic.pointInPolygon(pos.x, pos.z, f.vertices)) {
+                    current = f;
+                    break;
+                }
+            }
+        }
+        for (final Footprint f : arr) {
+            if (f.fillMat == null) {
+                continue;
+            }
+            final boolean isCurrent = f == current;
+            f.fillMat.setColor("Color",
+                    isCurrent ? theme.arenaTintColor() : theme.arenaTintColorMuted());
+            f.outlineMat.setColor("Color",
+                    isCurrent ? theme.arenaOutlineColor() : theme.arenaOutlineColorMuted());
         }
     }
 

@@ -13,9 +13,7 @@ import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import com.simsilica.mphys.PhysicsSpace;
 import infinity.Ship;
-import infinity.config.EngineConfig;
 import infinity.es.CollisionCategory;
 import infinity.es.Frequency;
 import infinity.es.Gold;
@@ -29,6 +27,8 @@ import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.RocketBuff;
 import infinity.es.ship.actions.RocketSnapshot;
+import infinity.sim.specs.RocketBuffSpec;
+import infinity.sim.specs.ShipSpec;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,11 +46,11 @@ import java.util.concurrent.TimeUnit;
  * {@code ShipConfig} per Pattern 4 (see
  * {@code .claude/rules/config-pattern.md}).
  *
- * <p>The "backward-compat overload" idiom — primary method takes new param,
- * no-arg form forwards via {@link EngineConfig#DEFAULTS} — is preserved at
- * the per-method level. Module callers use the no-arg form; production
- * server code threads {@code engineConfigSystem.get().*Radius()} through
- * the explicit-radius overload.
+ * <p>Per-call inputs flow through {@link ShipSpec} / {@link RocketBuffSpec}
+ * parameter records (BACKLOG #2 — too many positional args). Production
+ * server code threads {@code engineConfigSystem.get().shipRadius()} into
+ * the spec; module / test callers can use {@code
+ * EngineConfig.DEFAULTS.shipRadius()}.
  *
  * @see WeaponFactory
  * @see MapFactory
@@ -59,40 +59,16 @@ public final class ShipFactory {
 
   private ShipFactory() {}
 
-  /**
-   * Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
-   * Module callers (and {@code AIEntities.createMobShip}) use this form;
-   * production server code threads {@code engineConfigSystem.get().shipRadius()}
-   * through the explicit-radius overload below.
-   */
-  public static EntityId createShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship) {
-    return createShip(
-        spawnLoc, ed, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius());
-  }
-
-  /** Ship with explicit collision radius — see backward-compat overload above. */
-  public static EntityId createShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship,
-      final double radius) {
+  /** Create a basic ship entity (no player-specific components). */
+  public static EntityId createShip(final EntityData ed, final ShipSpec spec) {
     final EntityId result = ed.createEntity();
 
-    ed.setComponent(result, new Parent(owner));
-    ed.setComponent(result, new ShipType(Ship.getShip(ship)));
+    ed.setComponent(result, new Parent(spec.owner()));
+    ed.setComponent(result, new ShipType(Ship.getShip(spec.ship())));
 
-    ed.setComponent(result, ShapeNames.createShip(ship, ed, radius));
+    ed.setComponent(result, ShapeNames.createShip(spec.ship(), ed, spec.radius()));
 
-    SpawnPosition sp = new SpawnPosition(phys.getGrid(), spawnLoc);
+    SpawnPosition sp = new SpawnPosition(spec.phys().getGrid(), spec.spawnLoc());
     ed.setComponent(result, sp);
 
     Mass m = new Mass(1);
@@ -121,38 +97,14 @@ public final class ShipFactory {
     // dynamics (projectiles, sensor probes) deliberately stay opted out.
     ed.setComponent(result, new CollidesWithLargeStatics());
 
-    ed.setComponent(result, new Meta(createdTime));
+    ed.setComponent(result, new Meta(spec.createdTime()));
     return result;
   }
 
-  /**
-   * Backward-compat overload — uses {@link EngineConfig#DEFAULTS} radius.
-   * Module callers use this form; production server code threads
-   * {@code engineConfigSystem.get().shipRadius()} through the explicit-radius
-   * overload below.
-   */
-  public static EntityId createPlayerShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship) {
-    return createPlayerShip(
-        spawnLoc, ed, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius());
-  }
+  /** Create a ship entity with player-specific components stamped on top of {@link #createShip}. */
+  public static EntityId createPlayerShip(final EntityData ed, final ShipSpec spec) {
 
-  /** Player ship with explicit collision radius — see backward-compat overload above. */
-  public static EntityId createPlayerShip(
-      final Vec3d spawnLoc,
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final byte ship,
-      final double radius) {
-
-    final EntityId result = createShip(spawnLoc, ed, owner, phys, createdTime, ship, radius);
+    final EntityId result = createShip(ed, spec);
 
     ed.setComponent(result, new Player());
     ed.setComponent(result, new Name("player"));
@@ -178,31 +130,19 @@ public final class ShipFactory {
    * reaper deletes this entity, and {@code RocketBuffSystem} reacts to
    * the removal by reverting the parent ship's {@code Thrust} / {@code Speed}
    * from the {@link RocketSnapshot} carried here.
-   *
-   * @param ship parent ship being buffed (revert target)
-   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
-   * @param activeTimeMs buff lifetime in ms
-   * @param originalThrust ship's {@code Thrust} value before the buff
-   *     (snapshotted by the caller; restored on buff expiry)
-   * @param originalSpeed ship's {@code Speed} value before the buff
    */
-  public static EntityId createRocketBuff(
-      final EntityData ed,
-      final EntityId ship,
-      final long createdTime,
-      final long activeTimeMs,
-      final int originalThrust,
-      final int originalSpeed) {
+  public static EntityId createRocketBuff(final EntityData ed, final RocketBuffSpec spec) {
     final EntityId buff = ed.createEntity();
     ed.setComponents(
         buff,
         new RocketBuff(),
-        new Parent(ship),
-        new RocketSnapshot(originalThrust, originalSpeed),
+        new Parent(spec.ship()),
+        new RocketSnapshot(spec.originalThrust(), spec.originalSpeed()),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(activeTimeMs, TimeUnit.MILLISECONDS)),
-        new Meta(createdTime));
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.activeTimeMs(), TimeUnit.MILLISECONDS)),
+        new Meta(spec.createdTime()));
     return buff;
   }
 }

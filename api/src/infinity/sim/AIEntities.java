@@ -9,11 +9,13 @@ import com.simsilica.es.Name;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
+import infinity.config.EngineConfig;
 import infinity.es.Frequency;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import infinity.es.input.CharacterInput;
 import infinity.es.ship.Player;
+import infinity.sim.specs.ShipSpec;
 
 public class AIEntities {
 
@@ -29,7 +31,11 @@ public class AIEntities {
       final long createdTime,
       byte ship) {
 
-    EntityId mob = ShipFactory.createShip(spawnLoc, ed, owner, phys, createdTime, ship);
+    EntityId mob =
+        ShipFactory.createShip(
+            ed,
+            new ShipSpec(
+                spawnLoc, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius()));
     byte flags = 0x0;
     ed.setComponent(mob, new CharacterInput(new Vec3d(), new Quatd(), flags));
     ed.setComponent(mob, MobType.create("Mob", ed));

@@ -32,10 +32,6 @@ Two new theme entries; one extra branch in `ArenaFootprintContainer.addObject` (
 
 Out of scope until enough U1 in-game time confirms outlines are useful as-is. Picked up if uniformity feels noisy.
 
-### `MapState` click-to-block input extraction
-
-[`MapState`](../infinity-client/src/main/java/infinity/client/states/MapState.java) still mixes rendering with arena-click input handling. The `MapAction` enum + typed `GameSession.map(MapAction, Vec3d)` RMI landed in the backlog cleanup bundle; what remains is extracting the click-to-block input handling into its own input `AppState` if/when `MapState`'s rendering responsibilities grow further. Low urgency — defer until `MapState` size or mixed-concerns becomes a real maintenance pain.
-
 ## Naming / convention notes (kept for reference)
 
 - **Spatial-name prefixes** — `WeaponsFireSystem.{BOMB,BULLET,MINE}_LEVEL_PREFIX` form `ShapeNames` strings the client maps to spatials. Framework convention; not a Pattern 4 candidate.

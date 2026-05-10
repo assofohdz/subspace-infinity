@@ -16,6 +16,7 @@ import infinity.config.BombConfig;
 import infinity.config.EngineConfig;
 import infinity.es.Parent;
 import infinity.es.ShapeNames;
+import infinity.sim.specs.BombSpec;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
@@ -44,14 +45,15 @@ public class BombFactoryTest {
     final EntityId bomb =
         WeaponFactory.createBomb(
             ed,
-            owner,
-            phys,
-            createdTime,
-            new Vec3d(0, 0, 0),
-            new Vec3d(0, 0, 25),
-            cfg.decayMs(),
-            ShapeNames.BOMBL1,
-            EngineConfig.DEFAULTS.bombRadius());
+            new BombSpec(
+                owner,
+                phys,
+                createdTime,
+                new Vec3d(0, 0, 0),
+                new Vec3d(0, 0, 25),
+                cfg.decayMs(),
+                ShapeNames.BOMBL1,
+                EngineConfig.DEFAULTS.bombRadius()));
 
     final Decay decay = ed.getComponent(bomb, Decay.class);
     assertNotNull("Bomb must carry a Decay TTL projection", decay);

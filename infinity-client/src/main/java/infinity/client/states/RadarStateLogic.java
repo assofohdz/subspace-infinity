@@ -147,4 +147,44 @@ final class RadarStateLogic {
         }
         return theme.enemyColor();
     }
+
+    /**
+     * Standard ray-casting point-in-polygon test in the X-Z plane (radar is
+     * a top-down view, Y is ignored). Generic for any closed polygon —
+     * convex or concave — so the helper stays valid if non-rectangular
+     * eLVL regions ever stamp {@link infinity.es.arena.ArenaFootprint}.
+     * Today every footprint is an arena bounds rectangle, where the test
+     * collapses to a cheap point-in-rect check.
+     *
+     * <p>Boundary cases (point exactly on an edge / vertex) are not
+     * stabilised — the result depends on floating-point comparison order.
+     * Since the radar runs the test per-frame, a point sitting precisely
+     * on the boundary will flicker at most a few frames before the avatar
+     * moves off the edge; that's acceptable for a presentation hint.
+     *
+     * @param x point's world X
+     * @param z point's world Z
+     * @param verts polygon vertices in ring order; null or fewer than 3
+     *     vertices return {@code false}
+     * @return {@code true} iff (x, z) lies inside the polygon
+     */
+    static boolean pointInPolygon(final double x, final double z, final Vec3d[] verts) {
+        if (verts == null || verts.length < 3) {
+            return false;
+        }
+        boolean inside = false;
+        final int n = verts.length;
+        for (int i = 0, j = n - 1; i < n; j = i++) {
+            final double xi = verts[i].x;
+            final double zi = verts[i].z;
+            final double xj = verts[j].x;
+            final double zj = verts[j].z;
+            final boolean rayCrosses = (zi > z) != (zj > z)
+                    && x < (xj - xi) * (z - zi) / (zj - zi) + xi;
+            if (rayCrosses) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
 }

@@ -138,37 +138,55 @@ public final class LegacyMapProjector {
     final EngineConfig engineCfg = engineConfigProvider.get();
     if (s == MapTypes.vieTurfFlag) {
       MapFactory.createTurfStationaryFlag(
-          ed, EntityId.NULL_ID, physicsSpace, createdTime, location, engineCfg.flagRadius());
+          ed,
+          new infinity.sim.specs.TurfStationaryFlagSpec(
+              EntityId.NULL_ID, physicsSpace, createdTime, location, engineCfg.flagRadius()));
       stats.turfFlags++;
       return true;
     }
     if (s == MapTypes.vieAsteroidSmall) {
       MapFactory.createAsteroidSmall(
-          ed, null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius());
+          ed,
+          new infinity.sim.specs.AsteroidSpec(
+              null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius()));
       stats.asteroidsSmall++;
       return true;
     }
     if (s == MapTypes.vieAsteroidMedium) {
       MapFactory.createAsteroidMedium(
-          ed, null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius());
+          ed,
+          new infinity.sim.specs.AsteroidSpec(
+              null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius()));
       stats.asteroidsMedium++;
       return true;
     }
     if (s == MapTypes.vieAsteroidEnd) {
       MapFactory.createOver5(
-          ed, null, physicsSpace, createdTime, location, engineCfg.over5Radius());
+          ed,
+          new infinity.sim.specs.Over5Spec(
+              null, physicsSpace, createdTime, location, engineCfg.over5Radius()));
       stats.over5++;
       return true;
     }
     if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
-      MapFactory.createDoor(ed, null, physicsSpace, createdTime, 5000, location);
+      MapFactory.createDoor(
+          ed,
+          new infinity.sim.specs.DoorSpec(null, physicsSpace, createdTime, 5000, location));
       stats.doors++;
       return true;
     }
     if (s == MapTypes.vieWormhole) {
       MapFactory.createWormhole(
-          ed, null, physicsSpace, createdTime, location,
-          5000, GravityWell.PULL, new Vec3d(0, 0, 0), 1);
+          ed,
+          new infinity.sim.specs.WormholeSpec(
+              null,
+              physicsSpace,
+              createdTime,
+              location,
+              5000,
+              GravityWell.PULL,
+              new Vec3d(0, 0, 0),
+              1));
       stats.wormholes++;
       return true;
     }

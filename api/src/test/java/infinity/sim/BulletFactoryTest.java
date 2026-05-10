@@ -17,6 +17,7 @@ import infinity.config.BulletConfig;
 import infinity.config.EngineConfig;
 import infinity.es.Parent;
 import infinity.es.ShapeNames;
+import infinity.sim.specs.BulletSpec;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
@@ -54,14 +55,15 @@ public class BulletFactoryTest {
     final EntityId bullet =
         WeaponFactory.createBullet(
             ed,
-            owner,
-            phys,
-            createdTime,
-            new Vec3d(0, 0, 0),
-            new Vec3d(0, 0, 50),
-            cfg.decayMs(),
-            ShapeNames.BULLETL1,
-            EngineConfig.DEFAULTS.bulletRadius());
+            new BulletSpec(
+                owner,
+                phys,
+                createdTime,
+                new Vec3d(0, 0, 0),
+                new Vec3d(0, 0, 50),
+                cfg.decayMs(),
+                ShapeNames.BULLETL1,
+                EngineConfig.DEFAULTS.bulletRadius()));
 
     final Decay decay = ed.getComponent(bullet, Decay.class);
     assertNotNull("Bullet must carry a Decay TTL projection", decay);
@@ -97,14 +99,15 @@ public class BulletFactoryTest {
     final EntityId bullet =
         WeaponFactory.createBullet(
             ed,
-            owner,
-            phys,
-            0L,
-            new Vec3d(0, 0, 0),
-            new Vec3d(0, 0, 50),
-            5500L,
-            ShapeNames.BULLETL1,
-            EngineConfig.DEFAULTS.bulletRadius());
+            new BulletSpec(
+                owner,
+                phys,
+                0L,
+                new Vec3d(0, 0, 0),
+                new Vec3d(0, 0, 50),
+                5500L,
+                ShapeNames.BULLETL1,
+                EngineConfig.DEFAULTS.bulletRadius()));
 
     final Parent parent = ed.getComponent(bullet, Parent.class);
     assertNotNull("Bullet must carry Parent ownership pointing back at the firing ship", parent);

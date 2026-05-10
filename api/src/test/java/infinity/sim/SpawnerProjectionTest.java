@@ -18,6 +18,8 @@ import infinity.config.EngineConfig;
 import infinity.es.Hidden;
 import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
+import infinity.sim.specs.PrizeSpec;
+import infinity.sim.specs.SpawnerCreateSpec;
 import java.util.Map;
 import org.junit.Test;
 
@@ -48,10 +50,26 @@ public class SpawnerProjectionTest {
     final DefaultEntityData ed = new DefaultEntityData();
     final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
 
+    // Defaults match the pre-spec convenience overload: PRIZE_DEFAULT_MAX_COUNT,
+    // no per-spawner ttl, no weight overrides, zero per-player scaling, regen=1, visible.
     final EntityId spawnerId =
         MapFactory.createSpawner(
-            ed, EntityId.NULL_ID, phys, 0L, new Vec3d(0, 0, 0),
-            5000.0, false, 100.0);
+            ed,
+            new SpawnerCreateSpec(
+                EntityId.NULL_ID,
+                phys,
+                0L,
+                new Vec3d(0, 0, 0),
+                5000.0,
+                false,
+                100.0,
+                MapFactory.PRIZE_DEFAULT_MAX_COUNT,
+                0L,
+                Map.of(),
+                0,
+                0.0,
+                1,
+                false));
 
     final Spawner s = ed.getComponent(spawnerId, Spawner.class);
     assertNotNull("createSpawner must stamp a Spawner component", s);
@@ -68,10 +86,22 @@ public class SpawnerProjectionTest {
 
     final EntityId spawnerId =
         MapFactory.createSpawner(
-            ed, EntityId.NULL_ID, phys, 0L, new Vec3d(0, 0, 0),
-            1500.0, false, 400.0,
-            5, 10000L, Map.of(),
-            2, 50.0, 3, true);
+            ed,
+            new SpawnerCreateSpec(
+                EntityId.NULL_ID,
+                phys,
+                0L,
+                new Vec3d(0, 0, 0),
+                1500.0,
+                false,
+                400.0,
+                5,
+                10000L,
+                Map.of(),
+                2,
+                50.0,
+                3,
+                true));
 
     final Spawner s = ed.getComponent(spawnerId, Spawner.class);
     assertNotNull(s);
@@ -89,13 +119,14 @@ public class SpawnerProjectionTest {
     final EntityId prizeId =
         MapFactory.createPrize(
             ed,
-            phys,
-            0L,
-            new Vec3d(0, 0, 0),
-            PrizeTypes.GUN,
-            5000L,
-            true,
-            EngineConfig.DEFAULTS.prizeRadius());
+            new PrizeSpec(
+                phys,
+                0L,
+                new Vec3d(0, 0, 0),
+                PrizeTypes.GUN,
+                5000L,
+                true,
+                EngineConfig.DEFAULTS.prizeRadius()));
 
     assertNotNull(
         "createPrize(hidden=true) must stamp a Hidden marker",
@@ -110,36 +141,17 @@ public class SpawnerProjectionTest {
     final EntityId prizeId =
         MapFactory.createPrize(
             ed,
-            phys,
-            0L,
-            new Vec3d(0, 0, 0),
-            PrizeTypes.GUN,
-            5000L,
-            false,
-            EngineConfig.DEFAULTS.prizeRadius());
+            new PrizeSpec(
+                phys,
+                0L,
+                new Vec3d(0, 0, 0),
+                PrizeTypes.GUN,
+                5000L,
+                false,
+                EngineConfig.DEFAULTS.prizeRadius()));
 
     assertNull(
         "createPrize(hidden=false) must not stamp a Hidden marker",
         ed.getComponent(prizeId, Hidden.class));
-  }
-
-  @Test
-  public void createPrize_legacyOverload_defaultsToVisible() {
-    final DefaultEntityData ed = new DefaultEntityData();
-    final PhysicsSpace<EntityId, MBlockShape> phys = newPhys();
-
-    // The pre-Slice-8d 7-arg overload (now plus radius) preserves
-    // visible-by-default behaviour for prod callsites that don't opt into hidden.
-    final EntityId prizeId =
-        MapFactory.createPrize(
-            ed,
-            phys,
-            0L,
-            new Vec3d(0, 0, 0),
-            PrizeTypes.GUN,
-            5000L,
-            EngineConfig.DEFAULTS.prizeRadius());
-
-    assertNull(ed.getComponent(prizeId, Hidden.class));
   }
 }

@@ -3,7 +3,6 @@
 
 package infinity.sim;
 
-import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.common.Decay;
@@ -11,8 +10,6 @@ import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
-import com.simsilica.mathd.Vec3d;
-import com.simsilica.mphys.PhysicsSpace;
 import infinity.es.AudioTypes;
 import infinity.es.CollisionCategory;
 import infinity.es.Delay;
@@ -20,7 +17,14 @@ import infinity.es.Meta;
 import infinity.es.Parent;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.actions.Thor;
-import java.util.Set;
+import infinity.sim.specs.BombSpec;
+import infinity.sim.specs.BulletSpec;
+import infinity.sim.specs.BurstSpec;
+import infinity.sim.specs.DelayedBombSpec;
+import infinity.sim.specs.ExplosionSpec;
+import infinity.sim.specs.MineSpec;
+import infinity.sim.specs.RepelSpec;
+import infinity.sim.specs.ThorSpec;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * finding #9).
  *
  * <p>Tuning numbers (decay millis, weapon shape names, radii) flow in via
- * parameters — typically threaded by {@code WeaponsFireSystem} from the
+ * spec records — typically threaded by {@code WeaponsFireSystem} from the
  * per-arena ship/weapon {@code *Config} per Pattern 4. This factory
  * composes structural pieces only (ShapeInfo, SpawnPosition, Mass, Decay,
  * WeaponTypes, Impulse, CollisionCategory, Parent, Meta).
@@ -42,215 +46,163 @@ public final class WeaponFactory {
 
   private WeaponFactory() {}
 
-  // TODO: All constants should come through the parameters - for now, they come from the constants
-  // TODO: All parameters should be dumb types and should be the basis of the complex types used in
-  // the backend
-  public static EntityId createDelayedBomb(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final Vec3d linearVelocity,
-      final long decayMillis,
-      final long scheduledMillis,
-      final Set<EntityComponent> delayedComponents,
-      final String shapeName,
-      final double radius) {
-
+  public static EntityId createDelayedBomb(final EntityData ed, final DelayedBombSpec spec) {
     final EntityId lastDelayedBomb =
         WeaponFactory.createBomb(
-            ed, owner, phys, createdTime, pos, linearVelocity, decayMillis, shapeName, radius);
+            ed,
+            new BombSpec(
+                spec.owner(),
+                spec.phys(),
+                spec.createdTime(),
+                spec.position(),
+                spec.linearVelocity(),
+                spec.decayMillis(),
+                spec.shapeName(),
+                spec.radius()));
 
-    ed.setComponents(lastDelayedBomb, new Delay(scheduledMillis, delayedComponents, Delay.SET));
+    ed.setComponents(
+        lastDelayedBomb, new Delay(spec.scheduledMillis(), spec.delayedComponents(), Delay.SET));
     ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
 
     return lastDelayedBomb;
   }
 
-  public static EntityId createBomb(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final Vec3d linearVelocity,
-      final long decayMillis,
-      final String shapeName,
-      final double radius) {
+  public static EntityId createBomb(final EntityData ed, final BombSpec spec) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
-        ShapeInfo.create(shapeName, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
+        ShapeInfo.create(spec.shapeName(), spec.radius(), ed),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
         new Mass(5),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponTypes.bomb(ed),
-        new Impulse(linearVelocity),
+        new Impulse(spec.linearVelocity()),
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
-        new Parent(owner));
+        new Parent(spec.owner()));
 
-    ed.setComponent(lastBomb, new Meta(createdTime));
+    ed.setComponent(lastBomb, new Meta(spec.createdTime()));
     return lastBomb;
   }
 
-  public static EntityId createBullet(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final Vec3d linearVelocity,
-      final long decayMillis,
-      final String shapeName,
-      final double radius) {
+  public static EntityId createBullet(final EntityData ed, final BulletSpec spec) {
     final EntityId lastBullet = ed.createEntity();
 
     ed.setComponents(
         lastBullet,
-        ShapeInfo.create(shapeName, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
+        ShapeInfo.create(spec.shapeName(), spec.radius(), ed),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
         new Mass(1),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponTypes.bullet(ed),
-        new Impulse(linearVelocity),
+        new Impulse(spec.linearVelocity()),
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
-        new Parent(owner));
+        new Parent(spec.owner()));
 
-    ed.setComponent(lastBullet, new Meta(createdTime));
+    ed.setComponent(lastBullet, new Meta(spec.createdTime()));
 
     return lastBullet;
   }
 
   // Explosion is for now only visual, so only object type and position
-  public static EntityId createExplosion(
-      final EntityData ed,
-      @SuppressWarnings("unused") final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final long decayMillis,
-      final ShapeInfo shapeInfo) {
+  public static EntityId createExplosion(final EntityData ed, final ExplosionSpec spec) {
     final EntityId lastExplosion = ed.createEntity();
 
     // Explosion is a ghost
     ed.setComponents(
-        lastExplosion, shapeInfo,
-        new SpawnPosition(phys.getGrid(), pos),
+        lastExplosion,
+        spec.shapeInfo(),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)));
-    ed.setComponent(lastExplosion, new Meta(createdTime));
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)));
+    ed.setComponent(lastExplosion, new Meta(spec.createdTime()));
 
     return lastExplosion;
   }
 
-  public static EntityId createBurst(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      @SuppressWarnings("unused") final Vec3d linearVelocity,
-      final long decayMillis,
-      final double radius) {
+  public static EntityId createBurst(final EntityData ed, final BurstSpec spec) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
         // ViewTypes.burst(ed),
-        ShapeInfo.create(infinity.es.ShapeNames.BURST, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
+        ShapeInfo.create(infinity.es.ShapeNames.BURST, spec.radius(), ed),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
         // new PhysicsVelocity(new Vec3d(linearVelocity.x, linearVelocity.y)),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMillis, TimeUnit.MILLISECONDS)),
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponTypes.burst(ed),
         // PhysicsMassTypes.normal_bullet(ed),
         // PhysicsShapes.burst(),
-        new Parent(owner)
+        new Parent(spec.owner())
         // new PointLightComponent(level.lightColor, level.lightRadius));
         );
-    ed.setComponent(lastBomb, new Meta(createdTime));
+    ed.setComponent(lastBomb, new Meta(spec.createdTime()));
     return lastBomb;
   }
 
-  public static EntityId createRepel(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      final long decayMs,
-      final double radius) {
+  public static EntityId createRepel(final EntityData ed, final RepelSpec spec) {
     final EntityId lastWarpTo = ed.createEntity();
 
     ed.setComponents(
         lastWarpTo,
-        ShapeInfo.create(infinity.es.ShapeNames.REPEL, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
+        ShapeInfo.create(infinity.es.ShapeNames.REPEL, spec.radius(), ed),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(decayMs, TimeUnit.MILLISECONDS)),
-        new Parent(owner),
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
+        new Parent(spec.owner()),
         AudioTypes.repel(ed));
 
-    ed.setComponent(lastWarpTo, new Meta(createdTime));
+    ed.setComponent(lastWarpTo, new Meta(spec.createdTime()));
     return lastWarpTo;
   }
 
-  public static EntityId createThor(
-      final EntityData ed,
-      final EntityId owner,
-      final PhysicsSpace<?, ?> phys,
-      final long createdTime,
-      final Vec3d pos,
-      @SuppressWarnings("unused") final Vec3d attackVelocity,
-      final long thorDecay,
-      final double radius) {
+  public static EntityId createThor(final EntityData ed, final ThorSpec spec) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
         lastBomb,
-        ShapeInfo.create(infinity.es.ShapeNames.THOR, radius, ed),
-        new SpawnPosition(phys.getGrid(), pos),
+        ShapeInfo.create(infinity.es.ShapeNames.THOR, spec.radius(), ed),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
         new Mass(5),
         new Decay(
-            createdTime,
-            createdTime + TimeUnit.NANOSECONDS.convert(thorDecay, TimeUnit.MILLISECONDS)),
+            spec.createdTime(),
+            spec.createdTime()
+                + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponTypes.thor(ed),
-        new Impulse(attackVelocity),
+        new Impulse(spec.attackVelocity()),
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
-        new Parent(owner),
+        new Parent(spec.owner()),
         new Thor());
 
-    ed.setComponent(lastBomb, new Meta(createdTime));
+    ed.setComponent(lastBomb, new Meta(spec.createdTime()));
 
     return lastBomb;
   }
 
-  public static EntityId createMine(
-      final EntityData ed,
-      final EntityId requester,
-      final PhysicsSpace physicsSpace,
-      final long time,
-      final Vec3d location,
-      final long minedecay,
-      final String mineShape,
-      final double radius) {
+  public static EntityId createMine(final EntityData ed, final MineSpec spec) {
     EntityId lastMine = ed.createEntity();
-    ed.setComponents(lastMine,
-        ShapeInfo.create(mineShape, radius, ed),
-        new SpawnPosition(physicsSpace.getGrid(), location),
-        Decay.duration(time, TimeUnit.NANOSECONDS.convert(minedecay, TimeUnit.MILLISECONDS)),
+    ed.setComponents(
+        lastMine,
+        ShapeInfo.create(spec.shapeName(), spec.radius(), ed),
+        new SpawnPosition(spec.phys().getGrid(), spec.position()),
+        Decay.duration(
+            spec.createdTime(), TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponTypes.mine(ed),
-        new Parent(requester));
-    ed.setComponent(lastMine, new Meta(time));
+        new Parent(spec.owner()));
+    ed.setComponent(lastMine, new Meta(spec.createdTime()));
     return lastMine;
   }
 }

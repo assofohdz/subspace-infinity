@@ -135,9 +135,13 @@ public class WarpSystem extends BaseInfinitySystem
         physicsSpace.teleport(e.getId(), targetLocation, bodyPos.getLastOrientation());
 
         MapFactory.createWarpEffect(
-            ed, e.getId(), physicsSpace, tpf.getTime(), originalLocation, 1000);
+            ed,
+            new infinity.sim.specs.WarpEffectSpec(
+                e.getId(), physicsSpace, tpf.getTime(), originalLocation, 1000));
         MapFactory.createWarpEffect(
-            ed, e.getId(), physicsSpace, tpf.getTime(), targetLocation, 1000);
+            ed,
+            new infinity.sim.specs.WarpEffectSpec(
+                e.getId(), physicsSpace, tpf.getTime(), targetLocation, 1000));
 
         //         Ensure that the unit is not moving after the warp
         RigidBody<EntityId, MBlockShape> body = bodyFactory.getBody(e.getId());
