@@ -47,9 +47,9 @@ Note: `infinity.sim` is split — interfaces in `api`, implementations in `infin
 
 | Thing | Module / package |
 |---|---|
-| New `EntityComponent` | `api/src/infinity/es/` (must be immutable, no-arg ctor) |
-| New event/message type | `api/src/infinity/events/` |
-| New RMI interface (client ↔ server contract) | `api/src/infinity/sim/` |
+| New `EntityComponent` | `api/src/main/java/infinity/es/` (must be immutable, no-arg ctor) |
+| New event/message type | `api/src/main/java/infinity/events/` |
+| New RMI interface (client ↔ server contract) | `api/src/main/java/infinity/sim/` |
 | Server-side logic (`AbstractGameSystem`) | `infinity-server/src/main/java/infinity/systems/` |
 | Server-only helpers (chat, net dispatch) | `infinity-server/src/main/java/infinity/server/` |
 | New game mode (`BaseGameModule`) | `modules/src/main/java/infinity/modules/` |

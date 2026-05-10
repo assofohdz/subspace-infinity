@@ -2,7 +2,7 @@
 
 Before authoring or modifying anything in the typed settings pipeline —
 a Groovy `*Adapter` in `infinity.settings.*`, a `*Config` record in
-`api/src/infinity/config/**`, or a runtime consumer that reads from
+`api/src/main/java/infinity/config/**`, or a runtime consumer that reads from
 `ConfigRegistry` — **look up the Subspace key in
 [`REFERENCE.md`](../../.scratch/subspace-ini-reference/REFERENCE.md)
 first.** REFERENCE.md is the Subspace VIE / Continuum settings spec; it

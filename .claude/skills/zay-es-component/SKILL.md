@@ -8,7 +8,7 @@ description: Create Zay-ES EntityComponent classes for the ECS architecture. Use
 Components are immutable data containers for the Entity-Component-System.
 
 ## Location
-`api/src/infinity/es/`
+`api/src/main/java/infinity/es/`
 
 ## Official Zay-ES Rules of Thumb
 From the official wiki:

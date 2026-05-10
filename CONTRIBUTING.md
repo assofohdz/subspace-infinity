@@ -75,13 +75,13 @@ When you touch the corresponding directory, the rules below apply. The full text
 
 | If you touch… | Rule |
 |---|---|
-| `api/src/infinity/es/**` | [components.md](.claude/rules/components.md) — immutable, no-arg constructor, register cross-wire components |
+| `api/src/main/java/infinity/es/**` | [components.md](.claude/rules/components.md) — immutable, no-arg constructor, register cross-wire components |
 | `api/src/**` | [api-contracts.md](.claude/rules/api-contracts.md) — data + interfaces only; no deps on server/client/modules |
 | `client/**` and `*AppState` files | [client-read-only.md](.claude/rules/client-read-only.md) — client observes, server owns; writes via RMI |
 | `infinity/systems/**`, `modules/**` | [systems.md](.claude/rules/systems.md) — logic-in-systems; no duplicate component producers |
 | `infinity/**`, `modules/**` (Java) | [entity-sets.md](.claude/rules/entity-sets.md) — release `EntitySet` in `terminate()` |
 | `infinity/**`, `modules/**` (Java) | [world-coordinates.md](.claude/rules/world-coordinates.md) — use `TileId` APIs, not `* 1024` |
-| `api/src/infinity/config/**`, `api/src/infinity/es/ship/**` | [config-pattern.md](.claude/rules/config-pattern.md) — template (`*Config`) vs instance (components); spawn projects template → component |
+| `api/src/main/java/infinity/config/**`, `api/src/main/java/infinity/es/ship/**` | [config-pattern.md](.claude/rules/config-pattern.md) — template (`*Config`) vs instance (components); spawn projects template → component |
 | `infinity/systems/ship/applier/**` | [prize-applier.md](.claude/rules/prize-applier.md) — match canonical Subspace prize semantics from REFERENCE.md |
 | Any TTL/decay code | [decay-ttl.md](.claude/rules/decay-ttl.md) — `Decay` is the only TTL mechanism |
 

@@ -1,3 +1,41 @@
+// =============================================================================
+// SonarQube / SonarCloud — local pre-push static analysis matching CI.
+//
+// Plugin lives at the root so it aggregates analysis across all subprojects.
+//
+// IMPORTANT: this scan targets the *preview* SonarCloud project
+// (`assofohdz_subspace-infinity-preview`), NOT the main one. The main project
+// (`assofohdz_subspace-infinity`) keeps Automatic Analysis on — running the
+// gradle scanner against it would conflict ("manual analysis while Automatic
+// Analysis is enabled"). The preview project is dedicated to local /
+// pre-push manual scans.
+//
+// projectKey + organization are public identifiers (visible on the SonarCloud
+// project page) and committed here for convenience. The TOKEN is the secret
+// — pass it via env (SONAR_TOKEN) or user-global ~/.gradle/gradle.properties:
+//
+//   SONAR_TOKEN=xxx ./gradlew sonar
+//
+// Or in ~/.gradle/gradle.properties (never the project's gradle.properties):
+//   systemProp.sonar.token=xxx
+//
+// `sonar` depends on compile + test; it analyses real bytecode + test
+// reports, matching what CI's automatic analysis does.
+// =============================================================================
+plugins {
+    id 'org.sonarqube' version '6.0.1.5171'
+}
+
+sonar {
+    properties {
+        property 'sonar.host.url', System.getenv('SONAR_HOST_URL') ?: 'https://sonarcloud.io'
+        property 'sonar.organization', 'assofohdz'
+        property 'sonar.projectKey', 'assofohdz_subspace-infinity-preview'
+        // Skip vendored maven layout + scratch dirs from analysis.
+        property 'sonar.exclusions', 'libs/m2/**,.scratch/**,.claude/**,pages/**,docs/**'
+    }
+}
+
 subprojects {
 
     version='1.0.17'

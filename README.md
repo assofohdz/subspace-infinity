@@ -3,6 +3,7 @@
 A cross-platform [Subspace Continuum](https://store.steampowered.com/app/352700/Subspace_Continuum/) client and server reimagined in Java — built for extensibility, modularity, and modern multiplayer infrastructure.
 
 [![Build](https://github.com/assofohdz/Subspace-Infinity/actions/workflows/gradle.yml/badge.svg)](https://github.com/assofohdz/Subspace-Infinity/actions/workflows/gradle.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=assofohdz_subspace-infinity&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=assofohdz_subspace-infinity)
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE.md)
 [![Latest Release](https://img.shields.io/github/v/release/assofohdz/Subspace-Infinity)](https://github.com/assofohdz/Subspace-Infinity/releases)
 

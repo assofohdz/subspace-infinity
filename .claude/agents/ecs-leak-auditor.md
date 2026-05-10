@@ -12,7 +12,7 @@ You are an ECS leak auditor for Subspace Infinity (Zay-ES).
 Find two bug classes project-wide:
 
 1. **EntitySet leaks** — an `EntitySet` field declared in a class that does not `release()` it in its lifecycle method (`terminate()` for `AbstractGameSystem`/`BaseGameModule`, `cleanup()` for `BaseAppState`).
-2. **Immutability violations** — components under `api/src/infinity/es/` with non-final fields, missing no-arg constructor, or setter methods.
+2. **Immutability violations** — components under `api/src/main/java/infinity/es/` with non-final fields, missing no-arg constructor, or setter methods.
 
 ## Procedure
 
@@ -21,7 +21,7 @@ Find two bug classes project-wide:
    - For each match, open the file; check for `terminate()` or `cleanup()` that calls `release()` on every declared EntitySet field.
    - Flag any field that isn't released.
 2. **Immutability:**
-   - Walk `api/src/infinity/es/*.java`.
+   - Walk `api/src/main/java/infinity/es/*.java`.
    - For each component class: verify all non-static fields are `final`, no `set*(` methods exist, a no-arg constructor is present.
    - Flag violations.
 

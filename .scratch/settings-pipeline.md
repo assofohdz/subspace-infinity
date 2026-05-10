@@ -105,7 +105,7 @@ Soccer keys.
 ### Per-arena fragment file inventory (post-migration)
 
 A preset only authors files for sections it overrides; the rest fall
-back to the matching `*Config.DEFAULTS` constant in `api/src/infinity/config/`.
+back to the matching `*Config.DEFAULTS` constant in `api/src/main/java/infinity/config/`.
 
 ```
 zone/arenas/<arena>/arena.groovy           ← arena.groovy entry point

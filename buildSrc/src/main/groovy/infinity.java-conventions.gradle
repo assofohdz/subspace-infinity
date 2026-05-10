@@ -94,7 +94,7 @@ checkstyle {
 // break the build; ratchet to failing once the codebase is clean. Test
 // sources are skipped — too noisy for early adoption.
 //
-// ECS components in api/src/infinity/es/** carry no-arg constructors that
+// ECS components in api/src/main/java/infinity/es/** carry no-arg constructors that
 // PMD sees as unused: they're invoked via reflection by Zay-ES's
 // FieldSerializer. Suppress that path explicitly so we don't drown in
 // false positives there. Same shape as a Lombok-generated-code exclusion.

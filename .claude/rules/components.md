@@ -1,6 +1,6 @@
 ---
 paths:
-  - "api/src/infinity/es/**/*.java"
+  - "api/src/main/java/infinity/es/**/*.java"
   - "infinity-server/src/main/java/infinity/server/GameServer.java"
 ---
 # ECS Component Rules

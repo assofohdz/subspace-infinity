@@ -25,7 +25,7 @@ A class extending `AbstractGameSystem` (server) or `BaseAppState` (client) — o
 _Avoid_: "service", "manager", "controller".
 
 **Component**:
-An immutable `EntityComponent` in `api/src/infinity/es/...` — pure data attached to an entity. Final fields, no-arg constructor, no setters.
+An immutable `EntityComponent` in `api/src/main/java/infinity/es/...` — pure data attached to an entity. Final fields, no-arg constructor, no setters.
 _Avoid_: "model", "data class".
 
 **Spawn system**:
@@ -51,7 +51,7 @@ A small Groovy file under `infinity/zone/conf/<preset>/` that contributes one or
 _Avoid_: "preset file", "settings snippet".
 
 **Pattern 4**:
-The template-vs-instance split: `*Config` records in `api/src/infinity/config/` are templates (one per type, immutable, server-only), projected to per-entity components by spawn systems. Hot-path code reads components only.
+The template-vs-instance split: `*Config` records in `api/src/main/java/infinity/config/` are templates (one per type, immutable, server-only), projected to per-entity components by spawn systems. Hot-path code reads components only.
 _Avoid_: confusing this with the **Settings layer** — they overlap (Groovy populates the templates) but the *pattern* is about who reads what at runtime.
 
 ### Events

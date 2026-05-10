@@ -434,7 +434,7 @@ documented per-key in `SpawnerSpec` Javadoc.
   prod callsites + 3 module testers + ArenaConfig field rename.
 
 **C2 (player scaling + hidden mode + regen batch) — in progress.**
-- `Hidden` empty-marker component (`api/src/infinity/es/`),
+- `Hidden` empty-marker component (`api/src/main/java/infinity/es/`),
   registered in `GameServer.registerSerializers`.
 - `Spawner` ECS component gained `countPerPlayer`, `radiusPerPlayer`,
   `regenBatch`, `hidden` (10-arg ctor; getters).
@@ -933,7 +933,7 @@ units at fire time via a new engine-tier conversion + cap.
 - New `BurstStats(start, max, speed)` — replaces `CountStats` for
   bursts only (decoys/bricks/portals stay on `CountStats`).
 - `ShipConfig.bursts` field type: `CountStats` → `BurstStats`.
-- New components in `api/src/infinity/es/ship/weapons/`:
+- New components in `api/src/main/java/infinity/es/ship/weapons/`:
   `GunSpeed(int)`, `BombSpeed(int)`, `BurstSpeed(int)`. Server-only
   (no client-side reference); skip serializer registration per
   `components.md`.

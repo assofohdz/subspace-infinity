@@ -35,7 +35,7 @@ in the long tail of arena populations.
 ## Reference
 
 - Slice 8d (Spawner scaling) is the canonical example —
-  [`SpawnerSpec`](../../api/src/infinity/config/SpawnerSpec.java)'s
+  [`SpawnerSpec`](../../api/src/main/java/infinity/config/SpawnerSpec.java)'s
   `countPerPlayer` and `radiusPerPlayer` apply additive scaling per active
   ship in the spawner's arena. See
   [`PrizeSystem.update`](../../infinity-server/src/main/java/infinity/systems/PrizeSystem.java)

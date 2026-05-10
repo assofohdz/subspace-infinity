@@ -286,7 +286,7 @@ per slice).
 
 Slice 0 (this PRD + rule):
 - `.claude/rules/replacement-as-mutation.md` on disk; path-scoped to
-  `infinity/**.java` + `modules/**.java` + `api/src/infinity/sim/**.java`.
+  `infinity/**.java` + `modules/**.java` + `api/src/main/java/infinity/sim/**.java`.
 - `.scratch/replacement-as-mutation/PRD.md` on disk.
 - `.claude/rules/systems.md` patched: replaces "no two systems
   produce the same component type" with a 1-line pointer to the new
@@ -295,7 +295,7 @@ Slice 0 (this PRD + rule):
 
 Pilot slice (DamageIntent / DamageSource extraction) landed in
 `arch-review-tier2-bundle` commit `7eb8b2b8`:
-- `DamageSource` is on disk in `api/src/infinity/es/`.
+- `DamageSource` is on disk in `api/src/main/java/infinity/es/`.
 - `WeaponsImpactSystem` / `WeaponsReaperSystem` / cost-deduct paths in
   `WeaponsEligibility` emit `(Buff + HealthChange + DamageSource)` via
   `EnergySystem.damage(target, delta, source, weaponFlag)`.

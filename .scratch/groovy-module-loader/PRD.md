@@ -3,7 +3,7 @@
 Status: ready-for-human
 Cross-ref: follows [`deprecate-adaptive-loader`](../../.scratch-archive/deprecate-adaptive-loader/PRD.md)
 
-The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was removed. The [`BaseGameModule`](../../api/src/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/infinity/sim/BaseGameService.java) abstractions are kept, but currently have no runtime instantiator. (The 6 `*Tester` stubs were deleted in commit `8e7c3833` as YAGNI; bring them back fresh when a module wants to ship.) This PRD captures the design space for filling that gap.
+The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was removed. The [`BaseGameModule`](../../api/src/main/java/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/main/java/infinity/sim/BaseGameService.java) abstractions are kept, but currently have no runtime instantiator. (The 6 `*Tester` stubs were deleted in commit `8e7c3833` as YAGNI; bring them back fresh when a module wants to ship.) This PRD captures the design space for filling that gap.
 
 ## Why a hot-module surface at all
 

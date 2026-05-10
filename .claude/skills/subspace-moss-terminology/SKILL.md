@@ -99,8 +99,8 @@ Names matter because zone operators inherit community expectations: `svs-anythin
 
 | Constant | Where | Meaning |
 |---|---|---|
-| `InfinityConstants.GRID_CELL_SIZE` | [InfinityConstants.java](../../../api/src/infinity/InfinityConstants.java) | Leaf cell size for this project (default: `WorldGrids.LEAF_SIZE` = 32) |
-| `InfinityConstants.TILE_SIZE` | [InfinityConstants.java](../../../api/src/infinity/InfinityConstants.java) | Tile / map footprint for this project (default: `WorldGrids.TILE_SIZE` = 1024) |
+| `InfinityConstants.GRID_CELL_SIZE` | [InfinityConstants.java](../../../api/src/main/java/infinity/InfinityConstants.java) | Leaf cell size for this project (default: `WorldGrids.LEAF_SIZE` = 32) |
+| `InfinityConstants.TILE_SIZE` | [InfinityConstants.java](../../../api/src/main/java/infinity/InfinityConstants.java) | Tile / map footprint for this project (default: `WorldGrids.TILE_SIZE` = 1024) |
 | `MapSystem.MAP_SIZE` | [MapSystem.java](../../../infinity-server/src/main/java/infinity/systems/MapSystem.java) | Alias of `InfinityConstants.TILE_SIZE` kept for existing call sites |
 | `WorldGrids.LEAF_SIZE` / `TILE_SIZE` | MOSS | **Defaults only.** Do not read from in-project code — go through `InfinityConstants`. |
 | `LeafInfo.SIZE`, `Coordinates.LEAF_SIZE`/`NODE_SIZE` | MOSS | Deep-MOSS constants. Not configurable from Infinity. |

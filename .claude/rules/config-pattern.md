@@ -4,13 +4,13 @@ Gameplay tuning (ship stats, weapon parameters, etc.) splits into two tiers. Kee
 
 ## The two tiers
 
-**Template** — `api/src/infinity/config/*Config`
+**Template** — `api/src/main/java/infinity/config/*Config`
 - Immutable Java records, **one per type** (e.g. one `ShipConfig` per entry in `Ships` enum).
 - Produced by the config layer (Groovy script today, possibly INI import later).
 - Stored in a per-arena `ConfigRegistry`.
 - Never read on the hot path.
 
-**Instance** — components in `api/src/infinity/es/...`
+**Instance** — components in `api/src/main/java/infinity/es/...`
 - Zay-ES components, **one per entity**, mutable across the entity's lifetime.
 - Seeded from the template at ship spawn.
 - Mutated by gameplay: upgrades raise `Thrust`, damage drops `Energy`, power-ups can raise `ThrustMax`, etc.
@@ -42,11 +42,11 @@ Hot-path consumers must not import from `infinity.config`. Spawn systems are the
 
 ## Adding a new config field — checklist
 
-1. Add the field to the appropriate `*Config` record in `api/src/infinity/config/`.
-2. Confirm (or add) the per-entity component in `api/src/infinity/es/...`.
+1. Add the field to the appropriate `*Config` record in `api/src/main/java/infinity/config/`.
+2. Confirm (or add) the per-entity component in `api/src/main/java/infinity/es/...`.
 3. Have the spawn system project template → component.
 4. Consumer reads the component (never the template).
 
 ## Reference
 
-See `ShipConfig` / `ShipStat` in `api/src/infinity/config/` for the canonical shape, and the Pattern 4 discussion in project history for the rationale this page summarizes.
+See `ShipConfig` / `ShipStat` in `api/src/main/java/infinity/config/` for the canonical shape, and the Pattern 4 discussion in project history for the rationale this page summarizes.
