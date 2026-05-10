@@ -1,6 +1,6 @@
 subprojects {
 
-    version='1.0.16'
+    version='1.0.17'
 
     //Pinned to the versions Gradle currently resolves; bump deliberately
     //rather than tracking '+'. Simsilica/Moss SNAPSHOTs are vendored under
