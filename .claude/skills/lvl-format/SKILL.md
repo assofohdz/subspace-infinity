@@ -137,7 +137,7 @@ See `BlockGeometryIndex.registerTileMaterialFromLevel()` for the live implementa
 
 ## Tile ID Categories
 
-Constants live in [`infinity.map.MapTypes`](../../infinity-server/src/main/java/infinity/map/MapTypes.java). Each category is handled in `MapSystem.createBlocksFromLegacyMap`.
+Constants live in [`infinity.map.MapTypes`](../../infinity-server/src/main/java/infinity/map/MapTypes.java). Each category is handled in `LegacyMapProjector` (extracted from `MapSystem` in the backlog cleanup bundle).
 
 | IDs | Category | How it's placed |
 |-----|----------|-----------------|

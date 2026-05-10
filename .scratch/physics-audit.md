@@ -34,7 +34,7 @@ Physics-touching code, by file:
 | `infinity.systems.ship.ProximityFuseSystem` | per-tick proximity arming | manually walks `EntitySet(Health.class)` for every in-flight bomb |
 | `infinity.systems.ship.WeaponsSystem.applySplashDamage` | bomb detonation | manually walks `EntitySet(Health.class)` for every detonation |
 | `infinity.systems.ship.WarpSystem` | teleport / spawn | uses `physicsSpace.teleport`; explicitly zeros velocity / acceleration / accumulators |
-| `infinity.systems.MapSystem` | wormhole + door creation | hardcoded gravity-well force `5000`, `GravityWell.PULL` |
+| `infinity.systems.LegacyMapProjector` | wormhole + door creation | hardcoded gravity-well force `5000`, `GravityWell.PULL` |
 | `api.infinity.sim.ShipFactory.createShip` | ship body composition | `Mass(1)`, `Gravity.ZERO`; tunable physics knobs deferred to `ShipSpawnSystem` projection |
 | `api.infinity.config.EngineConfig` | engine-tier physics knobs | Subspace→jME velocity scale + cap, ship/bomb scale calibrations (S1-cal/S2-cal), and 12 collision radii (bullet/bomb/mine/thor/prize/burst/repel/over1/over2/over5/flag/ship — projectile-radius-pattern4 + S6) |
 | `api.infinity.config.ArenaConfig.wallFriction` | per-arena friction | divergence from canon (canon = frictionless), documented |
@@ -72,7 +72,7 @@ typed Infinity consumer reads:
 | `BombBounceCount` | Bombs bounce N times before impact-explode | Authored in cfg, no consumer |
 | `AfterburnerEnergy` | Afterburner activation cost | Authored in cfg, no consumer |
 | `SoccerBallFriction` | Soccer ball deceleration | Authored in cfg, no consumer; soccer mechanic absent |
-| `Gravity` (per-ship) | Wormhole pull radius `R = 1.325 × g^0.507` | Wormholes exist (`GravityWell`), but pull is hardcoded `5000` in MapSystem.451 — no per-ship `Gravity` read |
+| `Gravity` (per-ship) | Wormhole pull radius `R = 1.325 × g^0.507` | Wormholes exist (`GravityWell`), but pull is hardcoded `5000` in `LegacyMapProjector` — no per-ship `Gravity` read |
 | `GravityTopSpeed` | Extra speed allowed under wormhole pull | Not wired |
 | `BounceFactor` | Wall bounciness (0..16, 16=no speed loss) | Per-ship `BounceRestitution` (0..1 double) — divergent type/scope; conversion empirical |
 
@@ -104,7 +104,7 @@ candidates:
 | Newton thrust + drag | Yes | car-curve + force-drag | ✅ Faithful in feel; F1 is about implementation idiom |
 | Wall bounce | `BounceFactor` (0..16) | `BounceRestitution` (0..1) | ⚠ Divergent type; conversion empirical (slice symptom #3) |
 | Wall friction | Frictionless | Per-arena `wallFriction` (0..1) | ⚠ Documented divergence — extension not deviation |
-| Wormhole gravity | Per-ship `Gravity` formula | Hardcoded 5000 in MapSystem | ⚠ Canon partially wired (well exists, knob doesn't) |
+| Wormhole gravity | Per-ship `Gravity` formula | Hardcoded 5000 in `LegacyMapProjector` | ⚠ Canon partially wired (well exists, knob doesn't) |
 | Velocity inheritance (projectile) | Yes | Yes (WeaponsSystem step 3) | ✅ Faithful |
 | Velocity cap | `MaxSpeed` per ship | `Speed` component + cap in PlayerDriver | ✅ Faithful |
 | Bomb recoil | `BombThrust` | Wired (slices S2 + S2-cal) | ✅ Faithful |
@@ -138,7 +138,7 @@ EntitySet walks were missing (sleeping bodies?) — verify in test.
 Per-ship `Gravity(int)` and `GravityTopSpeed` components projected
 from `ShipConfig`. `GravityWellSystem` reads each ship's per-ship
 gravity to compute pull radius `R = 1.325 × g^0.507`. Replace the
-hardcoded `5000` in `MapSystem.451` with a per-wormhole value
+hardcoded `5000` in `LegacyMapProjector` with a per-wormhole value
 (probably zone-tier).
 
 **Risk:** medium. Subspace's gravity is per-ship-experiences-pull,
