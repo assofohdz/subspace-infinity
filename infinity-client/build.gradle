@@ -27,6 +27,16 @@ applicationDefaultJvmArgs = [
     "-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager"
 ]
 
+// Run + test set workingDir = rootProject.projectDir so external assets/
+// and zone/ resolve at the same relative path in dev as in production
+// (where they sit at dist-zip root alongside bin/ + lib/).
+run {
+    workingDir = rootProject.projectDir
+}
+test {
+    workingDir = rootProject.projectDir
+}
+
 // Force X11 mode for LWJGL3 on Wayland systems (fixes EGL window creation issues)
 tasks.register('runX11', JavaExec) {
     group = 'application'
@@ -34,6 +44,7 @@ tasks.register('runX11', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = mainClassName
     jvmArgs = applicationDefaultJvmArgs
+    workingDir = rootProject.projectDir
     environment 'WAYLAND_DISPLAY', ''
 }
 
@@ -45,31 +56,13 @@ tasks.register('runMac', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = mainClassName
     jvmArgs = applicationDefaultJvmArgs + ['-XstartOnFirstThread']
+    workingDir = rootProject.projectDir
 }
 
 // GameServer writes a persistent block-world cache to world.db/ (relative to
 // the JVM working dir). Wipe on `clean`.
 clean {
     delete 'world.db'
-}
-
-// The legacy infinity.app-with-assets convention plugin sweeps assets/ and
-// zone/ from the *current module's* root. Since assets and zone still live
-// under infinity/, redirect resource roots here.
-sourceSets {
-    main {
-        resources {
-            srcDirs = [
-                rootProject.file('infinity/assets'),
-                rootProject.file('infinity/zone')
-            ]
-            excludes += [
-                "**/*.psd",
-                "**/*.glb",
-                "**/*.gltf"
-            ]
-        }
-    }
 }
 
 dependencies {
@@ -130,6 +123,13 @@ dependencies {
 distributions {
     main {
         distributionBaseName = "infinity"
+        // Copy game data (assets/, zone/) into the dist-zip root so players
+        // get a self-contained launcher and authors can edit zone/ presets
+        // for hot-reload without rebuilding.
+        contents {
+            from(rootProject.file('assets')) { into 'assets' }
+            from(rootProject.file('zone'))   { into 'zone' }
+        }
     }
 }
 
@@ -173,9 +173,9 @@ tasks.register('jpackageImage', Exec) {
         '--java-options', '-Djava.util.logging.manager=org.apache.logging.log4j.jul.LogManager'
     ]
 
-    def iconFile = os.isWindows() ? rootProject.file('infinity/src/main/resources/icon.ico') :
-                   os.isMacOsX() ? rootProject.file('infinity/src/main/resources/icon.icns') :
-                   rootProject.file('infinity/src/main/resources/icon.png')
+    def iconFile = os.isWindows() ? project.file('src/main/resources/icon.ico') :
+                   os.isMacOsX() ? project.file('src/main/resources/icon.icns') :
+                   project.file('src/main/resources/icon.png')
     if (iconFile.exists()) {
         args += ['--icon', iconFile.absolutePath]
     }
@@ -219,9 +219,9 @@ tasks.register('jpackage', Exec) {
         args += ['--type', 'deb']
     }
 
-    def iconFile = os.isWindows() ? rootProject.file('infinity/src/main/resources/icon.ico') :
-                   os.isMacOsX() ? rootProject.file('infinity/src/main/resources/icon.icns') :
-                   rootProject.file('infinity/src/main/resources/icon.png')
+    def iconFile = os.isWindows() ? project.file('src/main/resources/icon.ico') :
+                   os.isMacOsX() ? project.file('src/main/resources/icon.icns') :
+                   project.file('src/main/resources/icon.png')
     if (iconFile.exists()) {
         args += ['--icon', iconFile.absolutePath]
     }

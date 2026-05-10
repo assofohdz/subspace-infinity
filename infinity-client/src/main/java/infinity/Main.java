@@ -123,6 +123,21 @@ public class Main extends SimpleApplication {
     setDisplayFps(false);
     setDisplayStatView(false);
 
+    // Register external assets/ + zone/ (working-dir relative — project root
+    // in dev, dist root in production). External path wins over classpath so
+    // operator-edited zone Groovy presets pick up via hot-reload without a
+    // rebuild. See infinity-client/build.gradle dist contents block.
+    final java.io.File assetsDir = new java.io.File("assets");
+    if (assetsDir.isDirectory()) {
+      getAssetManager().registerLocator(
+          assetsDir.getAbsolutePath(), com.jme3.asset.plugins.FileLocator.class);
+    }
+    final java.io.File zoneDir = new java.io.File("zone");
+    if (zoneDir.isDirectory()) {
+      getAssetManager().registerLocator(
+          zoneDir.getAbsolutePath(), com.jme3.asset.plugins.FileLocator.class);
+    }
+
     GuiGlobals.initialize(this);
 
     GuiGlobals.getInstance().setCursorEventsEnabled(false);

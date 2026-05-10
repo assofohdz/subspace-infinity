@@ -3,17 +3,26 @@ plugins {
     id 'application'
 }
 
-// This is not quite as good as a separate assets.jar but it a lot
-// easier to configure.  Having a separate assets project was a little
-// of a pain, too, and ultimately not supported well in the latest gradle.
-// I think the "right way" is to have a separate assets configuration
-// and then setup jar tasks, etc. for that.  I'm going to punt on that
-// for the moment since it so far doesn't help me... Mythruna itself already
-// has a separate project for its jarrable assets.
+// Game data (assets/, zone/) lives at the *project root*. Two consumption
+// shapes are wired:
+//
+// 1. In-JAR via srcDirs — keeps classpath-based loaders (GroovyFragmentLoader,
+//    AssetManager classpath fallback) working. Files end up in build/resources/
+//    main/ and inside the module JAR.
+//
+// 2. External (filesystem) via distributions.main.contents — places assets/
+//    and zone/ at the dist-zip root alongside bin/ and lib/, where players
+//    can find and authors can edit. Each consuming module additionally
+//    registers a FileLocator at runtime so AssetManager-routed loads see
+//    the external (editable) copy first.
+//
+// Run tasks (run/runX11/runMac/test) set workingDir = rootProject.projectDir
+// so dev mode finds the external copies at the same relative path as in
+// production.
 sourceSets {
     main {
         resources {
-            srcDirs += ['assets', 'zone']
+            srcDirs += [rootProject.file('assets'), rootProject.file('zone')]
             excludes += [
                 "**/*.psd",
                 "**/*.glb",

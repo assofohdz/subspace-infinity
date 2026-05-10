@@ -1,8 +1,10 @@
-// infinity/ retains assets/ and zone/ as data directories (consumed by
-// infinity-server + infinity-client via rootProject.file(...) resource roots),
-// but is no longer a Gradle module after the arch-review #11 split.
-//include 'infinity'
-//include 'infinity:assets'
+// Game data lives at the project root (top-level assets/ and zone/), not as
+// a Gradle module. Both modules' build.gradle copies these into the dist
+// via distributions.main.contents { from(rootProject.file('assets'/'zone')) }
+// and the runtime registers FileLocators against ./assets and ./zone
+// (relative to the JVM working dir = project root in dev, dist root in
+// production). This keeps zone/ Groovy presets editable on disk for
+// hot-reload without rebuilding any JAR.
 include 'infinity-server'
 include 'infinity-client'
 include 'api'

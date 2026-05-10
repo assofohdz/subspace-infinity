@@ -6,13 +6,23 @@ package infinity.server;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.plugins.FileLocator;
 import com.jme3.network.service.AbstractHostedService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.system.JmeSystem;
+import java.io.File;
 
 /**
  * Centralized server asset system. Used to loads settings files and resources
- * (like maps) that the server needs to create the game
+ * (like maps) that the server needs to create the game.
+ *
+ * <p>Asset locator strategy: registers {@link FileLocator}s pointing at
+ * {@code ./assets/} and {@code ./zone/} relative to the JVM working dir
+ * (= project root in dev with {@code workingDir = rootProject.projectDir},
+ * = dist root in production where the gradle application dist places these
+ * dirs alongside {@code bin/} and {@code lib/}). External-path locators win
+ * over the classpath fallback so operator-edited zone Groovy presets pick
+ * up via hot-reload without rebuilding.
  *
  * @author Asser Fahrenholz
  */
@@ -26,6 +36,24 @@ public class AssetLoaderService extends AbstractHostedService {
         // there's no jMonkeyEngine running
         am = JmeSystem.newAssetManager(
                 Thread.currentThread().getContextClassLoader().getResource("com/jme3/asset/Desktop.cfg"));
+        registerExternalLocators(am);
+    }
+
+    /**
+     * Register file-system locators for the external {@code assets/} and
+     * {@code zone/} dirs (working-dir relative). Skipped silently when the
+     * dirs aren't present — falls back to classpath only (e.g. unit tests
+     * that don't unpack a dist).
+     */
+    private static void registerExternalLocators(final AssetManager mgr) {
+        final File assetsDir = new File("assets");
+        if (assetsDir.isDirectory()) {
+            mgr.registerLocator(assetsDir.getAbsolutePath(), FileLocator.class);
+        }
+        final File zoneDir = new File("zone");
+        if (zoneDir.isDirectory()) {
+            mgr.registerLocator(zoneDir.getAbsolutePath(), FileLocator.class);
+        }
     }
 
     @Override

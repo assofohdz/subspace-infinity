@@ -10,7 +10,7 @@ plugins {
 // Consumed by: infinity-client (which adds the rendering/UI shell on top).
 // =============================================================================
 
-mainClassName = "infinity.server.Main"  // placeholder — no headless main today; surfaced when one is authored
+mainClassName = "infinity.server.GameServer"  // GameServer.main() is the headless dedicated-server entry point
 
 // Redirect JVM fatal-error logs (hs_err_pid*.log) to build/crash-logs/ so they
 // don't clutter the repo root. Swept by `./gradlew clean`.
@@ -52,15 +52,24 @@ clean {
 }
 
 // Pull in zone/ as a resource root so server-only runs find arena/preset
-// configs without needing the client module on the classpath. Mirrors the
-// `infinity.app-with-assets` plugin's zone/ wiring without dragging in the
-// asset directory (which is render-only).
+// configs via classpath (GroovyFragmentLoader uses getResourceAsStream
+// directly, doesn't go through AssetManager). Distribution also copies
+// to dist root for editability — see distributions block below.
 sourceSets {
     main {
         resources {
-            srcDirs += [rootProject.file('infinity/zone')]
+            srcDirs += [rootProject.file('zone')]
         }
     }
+}
+
+// Run + test set workingDir = rootProject.projectDir so external assets/
+// and zone/ resolve at the same relative path in dev as in production.
+run {
+    workingDir = rootProject.projectDir
+}
+test {
+    workingDir = rootProject.projectDir
 }
 
 dependencies {
@@ -113,5 +122,16 @@ dependencies {
 distributions {
     main {
         distributionBaseName = "infinity-server"
+        // Copy game data (assets/, zone/) into the dist-zip root.
+        // - zone/ : Groovy presets/arenas/ships configs — operator-editable
+        //           for hot-reload.
+        // - assets/ : .lvl maps + tilesets are server-needed for parsing.
+        //             The Sounds/Textures/MatDefs subtrees are client-only
+        //             but they're harmless ballast for the headless server
+        //             (and pruning by subdir would be fragile).
+        contents {
+            from(rootProject.file('assets')) { into 'assets' }
+            from(rootProject.file('zone'))   { into 'zone' }
+        }
     }
 }
