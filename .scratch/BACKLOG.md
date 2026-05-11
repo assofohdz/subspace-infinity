@@ -38,9 +38,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 ### RaM single-writer violations
 
-#### C1 — `Thrust` + `Speed` now have THREE writers post-pilot (RocketBuff race)
-**M/L.** Rule pins `ShipSpawnSystem` as sole writer, but `ConsumableSystem.createRocketBuff:348-349` (fire-time override) and `RocketBuffSystem.onBuffRemoved:125-126` (revert from `RocketSnapshot`) both call `setComponent` directly. Same-tick reproject + buff-revert race produces order-dependent values. **Pilot extracted DamageSource for Health but left RocketBuff as a direct-mutation hole.** Funnel through `RocketBuffIntent` drained inside `ShipSpawnSystem.update`. [spawn #1]
-
 #### C2 — Inventory + status component families have unresolved multi-writer collisions
 **L/L.** ~15 prize appliers (`{Brick,Burst,Decoy,Portal,Rocket,Repel,AntiWarp,Cloak,Stealth,XRadar,MultiFire,Energy,Rotation,Thruster,TopSpeed,Recharge}PrizeApplier.java`) write components that `ShipSpawnSystem`/`ShipWeaponsProjector`/`ShipStatusProjector` also write. Pickup two `RepelPrizeApplier` + fire one repel in same tick → final `Repel` count is ordering-dependent. RaM PRD migration backlog #1 is the canonical fix; ready to land now that pilot proved the shape. [spawn #2 + config-2 #1]
 
@@ -59,8 +56,7 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 
 ### Tier 4 — bigger refactors (M/L)
 
-2. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
-3. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster. Audit (C4, landed) surfaced 3 fresh multi-writer violations not in this BACKLOG: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Consider folding into C2's scope.
+2. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster. Audit (C4, landed) surfaced 3 fresh multi-writer violations not in this BACKLOG: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Consider folding into C2's scope.
 
 ### Physics canon gaps (separate pile, see top of section)
 
