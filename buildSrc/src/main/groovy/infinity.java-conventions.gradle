@@ -9,6 +9,7 @@ plugins {
     id 'pmd'
     id 'com.diffplug.spotless'
     id 'net.ltgt.errorprone'
+    id 'com.github.ben-manes.versions'
 }
 
 // Projects should use Maven Central for external dependencies.
