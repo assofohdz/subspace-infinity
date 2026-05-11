@@ -60,9 +60,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### D2 — `SpawnConfig.warpRadiusLimit` fully wired but has zero runtime consumer
 **S/M.** Authored ✅ + Loader ✅ + Config ✅ + Subsystem ❌. Operator authoring `warpRadiusLimit 256` sees no behaviour change. **Either land the consumer (`WarpPrizeApplier` randomization within radius via `ArenaSpatialIndex`) or strip the field+parser until it does.** Half-wired knobs are a maintenance trap. [config-2 #3]
 
-#### D3 — Dead SVS preset directories (`zone/conf/{svs,svs-league,svs-pb,svs-tce,svs-turf,base}/`)
-**S/M.** None referenced from active `arena.groovy` files. Author keys with no loader, no config slot, no consumer — patterns future contributors may copy assuming they work. **Either delete the unreferenced presets OR wire one as a CI fixture asserting every authored key resolves.** [config-2 #6]
-
 ### Tests / tooling debt
 
 #### E1 — `LegacyMapProjector` + `WallLightDecorator` extracted "as testable" — zero tests written
@@ -71,42 +68,30 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### E2 — Spawn-projection harness slices 2-5 stale; `hot-reload-from-dist` shipped without slice-3 coverage
 **M/M.** Slice 3 ("Hot-reload diff event surface") is *exactly* the seam the conf-fragments hot-reload depends on. The hot-reload-from-dist commit was verified by manual `sed`-and-watch-the-log; nothing automated guards regression. The `EnergySystemIntentTest` fixture from slice 1d makes slice 3 nearly mechanical. [cleanup #2]
 
-#### E4 — `pmdTest` hard-disabled across all modules
-**S/M.** `infinity.java-conventions.gradle:118-120` says "too noisy for early adoption" — stale rationale. Test count has grown to 34 java files with no PMD discipline. **Drop the disable, capture a `max<Project>PmdTestViolations` baseline, let the existing ratchet apply.** [cleanup #4]
-
 ### Naming / convention
 
 #### F1 — `*Spec` namespace overlap forces `SpawnerCreateSpec` rename
 **M/M.** `api.config.SpawnerSpec` (template tier, arena DSL declaration) collides with `api.sim.specs.SpawnerCreateSpec` (factory-call argument). The 18-record namespace introduced in `backlog-final` overloaded the `Spec` suffix that `*Config` already used. **Rename `*Spec` → `*Args` in `api/sim/specs/`** while it's recent (18 records, mechanical import updates). [config-2 #5]
 
-#### F2 — `requireSystem` retrofit incomplete — canonical writers + hot-path systems still on `getSystem`
-**S/M.** 14 systems extend `BaseInfinitySystem`, but `EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, `WorldSystem`, `ChecksWorldSystem`, `RegionSystem`, `GravitySystem`, `MovementInputSystem` still use raw `getSystem(...)`. The retrofit's value (uniform throw + greppable message) is undermined for the systems most likely to throw at boot. **Mechanical base-class swap + 1-line per `getSystem` site.** [spawn #3]
-
 ## Recommended next work
 
 Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in the same band are roughly interchangeable.
 
-### Tier 2 — small wins (S/S–S/M)
-
-1. **F2** — Complete `requireSystem` retrofit on the 10 holdout systems (`EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, …).
-
 ### Tier 3 — focused slices (S–M / M)
 
-2. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
-3. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
-4. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
-5. **E4** — Re-enable `pmdTest` + capture per-module test baselines.
-6. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
-7. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
-8. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
-9. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
-10. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
-11. **D3** — Dead SVS preset directories — delete OR wire as CI fixture.
+1. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
+2. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
+3. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
+4. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
+5. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
+6. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
+7. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
+8. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
 
 ### Tier 4 — bigger refactors (M/L)
 
-12. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
-13. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
+9. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
+10. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
 
 ### Physics canon gaps (separate pile, see top of section)
 
