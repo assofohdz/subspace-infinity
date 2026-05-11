@@ -53,6 +53,7 @@ public class AvatarMovementFunctions {
   public static final FunctionId F_REPEL = new FunctionId(G_ACTION, ActionTypes.REPEL);
   public static final FunctionId F_WARP = new FunctionId(G_ACTION, ActionTypes.WARP);
   public static final FunctionId F_PORTAL = new FunctionId(G_ACTION, ActionTypes.PORTAL);
+  public static final FunctionId F_ROCKET = new FunctionId(G_ACTION, ActionTypes.ROCKET);
   // Toggles
   public static final FunctionId F_MULTI = new FunctionId(G_TOGGLE, ToggleTypes.MULTI);
   public static final FunctionId F_ANTI = new FunctionId(G_TOGGLE, ToggleTypes.ANTI);
@@ -131,6 +132,14 @@ public class AvatarMovementFunctions {
     // is held.
     if (!inputMapper.hasMappings(F_REPEL)) {
       inputMapper.map(F_REPEL, KeyInput.KEY_RSHIFT);
+    }
+
+    // F_ROCKET on KEY_R for Mac users (KEY_END requires Fn+Right on Mac
+    // laptops). KEY_END kept as a second binding for canonical hardware
+    // keyboards where End is a dedicated key.
+    if (!inputMapper.hasMappings(F_ROCKET)) {
+      inputMapper.map(F_ROCKET, KeyInput.KEY_R);
+      inputMapper.map(F_ROCKET, KeyInput.KEY_END);
     }
   }
 

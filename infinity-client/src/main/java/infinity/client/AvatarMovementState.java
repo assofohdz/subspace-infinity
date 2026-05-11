@@ -98,7 +98,8 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_SHOOT,
         AvatarMovementFunctions.F_GRAVBOMB,
         AvatarMovementFunctions.F_MINE,
-        AvatarMovementFunctions.F_REPEL);
+        AvatarMovementFunctions.F_REPEL,
+        AvatarMovementFunctions.F_ROCKET);
 
     // State listeners for non-continuous actions
     inputMapper.addStateListener(
@@ -133,7 +134,8 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_SHOOT,
         AvatarMovementFunctions.F_GRAVBOMB,
         AvatarMovementFunctions.F_MINE,
-        AvatarMovementFunctions.F_REPEL);
+        AvatarMovementFunctions.F_REPEL,
+        AvatarMovementFunctions.F_ROCKET);
 
     // Remove state listeners
     inputMapper.removeStateListener(
@@ -382,6 +384,8 @@ public class AvatarMovementState extends BaseAppState
       session.action(ConsumableTypeId.REPEL.wireId());
     } else if (func == AvatarMovementFunctions.F_BURST) {
       session.action(ConsumableTypeId.FIREBURST.wireId());
+    } else if (func == AvatarMovementFunctions.F_ROCKET) {
+      session.action(ConsumableTypeId.FIREROCKET.wireId());
     }
   }
 }

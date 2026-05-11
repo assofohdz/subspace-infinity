@@ -63,6 +63,11 @@ ship(Ship.WARBIRD) {
     bullets start: BulletLevel.LEVEL_3, max: BulletLevel.LEVEL_3, cost: 450, fireDelay: 100, speed: 2000
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
+    // Smoke-test ready: Warbird starts with a rocket so the BACKLOG C1
+    // RocketBuff intent path can be exercised by pressing END immediately
+    // after spawn — no prize pickup required. Per-arena buff stats live in
+    // testconf/rocket.groovy (thrust 100, speed 4000).
+    rockets start: 1, max: 3, activeTimeCs: 400
 }
 
 ship(Ship.JAVELIN) {

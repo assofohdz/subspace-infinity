@@ -18,7 +18,7 @@
 
 zone {
     autoLoad 'trench', 'deva', 'testarena'
-    enterSpawn 'trench'
+    enterSpawn 'testarena'
     // scriptPollInterval 5.0   // seconds; throttle for the per-arena ships.groovy
                                 // dev-mode reload watcher. 5 s is the documented
                                 // default; uncomment + tune to taste.

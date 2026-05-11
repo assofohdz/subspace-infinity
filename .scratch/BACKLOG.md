@@ -24,6 +24,9 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 ### Physics canon gaps
 
+#### S11 — Rocket canon feel (velocity-lock override during `RocketActive`)
+**M/M. Real gap surfaced by C1 smoke-test (batch-4 R2a).** Current rocket implementation: `RocketBuffIntent` swaps `Thrust` + `Speed` *caps* (per-arena `rocket.groovy thrust/speed`) for the buff duration. That's a "raise the cap" semantic — player still has to press UP to feel anything; if they don't, the rocket has no observable effect. **Subspace canon is different:** when rocket fires, ship velocity is **locked** to `RocketSpeed × shipFacing` for the buff duration; thrust/reverse input is **ignored**; only turn input has effect. Constant motion, not raised caps. **Implementation shape:** per-tick override in `PlayerDriver` (or equivalent movement system): when entity has `RocketActive`, set linear velocity to `rocketSpeed × shipFacingVector`; suppress thrust/reverse input; permit turn input. Once implemented, delete the cap-swap path in `RocketBuffIntent` drain — the intent component stays as a marker but no longer needs to carry thrust/speed (RocketConfig is read directly by the override). The C1 RaM race fix still holds for any future cap-affecting buffs; the intent shape is reusable. See REFERENCE.md `## Rocket` for canon knobs. [from C1 smoke-test, batch-4 R2a]
+
 #### S3 — Bomb bounce mechanic (`BombBounceCount`)
 **M/L. Open design question.** Per-ship `BombBounceCount` (already authored in `ships.groovy`) needs a consumer. Bombs would survive wall contact for N bounces before impact-explode, instead of detonating or decaying on first contact. Open: where does the bounce decrement live — `ContactSystem`, a new `BombBounceSystem`, or via a `Bounces(int)` component? Subspace players notice immediately when wall-glance bombs don't bounce. See REFERENCE.md `## Bomb`.
 
@@ -61,4 +64,4 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 
 ### Physics canon gaps (separate pile, see top of section)
 
-S3 (bomb bounce), S9 (wormhole gravity), S10 (afterburner) — gameplay-faithfulness work, not architecture cleanup. Pick when you want to close a player-noticed canon gap rather than a contributor-noticed code smell.
+S3 (bomb bounce), S9 (wormhole gravity), S10 (afterburner), S11 (rocket canon feel) — gameplay-faithfulness work, not architecture cleanup. Pick when you want to close a player-noticed canon gap rather than a contributor-noticed code smell.
