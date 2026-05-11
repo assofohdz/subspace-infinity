@@ -92,8 +92,9 @@ checkstyle {
 // config/pmd/ruleset.xml.
 //
 // Starts as warnings-only (ignoreFailures = true) so existing flags don't
-// break the build; ratchet to failing once the codebase is clean. Test
-// sources are skipped — too noisy for early adoption.
+// break the build; ratchet to failing once the codebase is clean.
+// Test sources run through the same pipeline — the ceiling mechanism
+// captures their baseline separately (`max<Project>PmdTestViolations`).
 //
 // ECS components in api/src/main/java/infinity/es/** carry no-arg constructors that
 // PMD sees as unused: they're invoked via reflection by Zay-ES's
@@ -112,12 +113,6 @@ tasks.withType(Pmd).configureEach {
     // Skip ECS components — no-arg ctors and final fields are reflection-
     // accessed and look "unused" to static analysis.
     exclude '**/infinity/es/**'
-}
-
-// Skip PMD for test sources — same rationale as Error Prone: too noisy
-// for early adoption.
-tasks.named('pmdTest').configure {
-    enabled = false
 }
 
 // Ad-hoc per-file / per-path PMD task — useful for scoping the report to
@@ -214,7 +209,7 @@ tasks.withType(Pmd).configureEach { task ->
     task.doLast {
         def reportFile = task.reports.xml.outputLocation.asFile.get()
         if (!reportFile.exists() || rawCeiling == null) {
-            return  // e.g. pmdPath disables XML; pmdTest is disabled
+            return  // e.g. pmdPath disables XML; or no ceiling configured
         }
         def ceiling = rawCeiling.toString().toInteger()
         def count = (reportFile.text =~ /<violation /).size()
