@@ -425,6 +425,11 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
           return;
         case FIRETHOR:
         case REPEL:
+        case FIREBURST:
+        case FIREROCKET:
+        case PLACEBRICK:
+        case PLACEDECOY:
+        case PLACEPORTAL:
           actionSys.sessionAct(avatarEntityId, action.wireId());
           return;
         default:
