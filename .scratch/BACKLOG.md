@@ -38,8 +38,14 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 ### RaM single-writer violations
 
-#### C2 — Inventory + status component families have unresolved multi-writer collisions
-**L/L.** ~15 prize appliers (`{Brick,Burst,Decoy,Portal,Rocket,Repel,AntiWarp,Cloak,Stealth,XRadar,MultiFire,Energy,Rotation,Thruster,TopSpeed,Recharge}PrizeApplier.java`) write components that `ShipSpawnSystem`/`ShipWeaponsProjector`/`ShipStatusProjector` also write. Pickup two `RepelPrizeApplier` + fire one repel in same tick → final `Repel` count is ordering-dependent. RaM PRD migration backlog #1 is the canonical fix; ready to land now that pilot proved the shape. [spawn #2 + config-2 #1]
+#### C2 — Inventory + status + weapon-level + fresh-find multi-writer collisions (cap-bump subset closed)
+**L/L (residual).** Original scope was ~15 prize appliers; **C2a (cap-bump body stats) landed batch-4 R2b** (commit 1fb108d4) via the universal `Intent` wrapper + 5 `*CapBump` payload records — Energy/Recharge/Rotation/Thruster/TopSpeed prize appliers now emit intents drained by `ShipSpawnSystem`. **Remaining sub-slices:**
+- **C2b — status family** (4 appliers: `{AntiWarp,Cloak,Stealth,XRadar}PrizeApplier` write status markers also written by `ShipStatusProjector`)
+- **C2c — weapon-level upgrades** (4 appliers: Bomb/Bullet/Mine/Burst prize appliers write `*CurrentLevel` components also written by `ShipWeaponsProjector`)
+- **C2d — inventory caps** (~6 appliers: Brick/Decoy/Portal/Repel/Rocket/Thor prize appliers write inventory components also written by `ShipWeaponsProjector` + ConsumableSystem decrement)
+- **C2e — fresh finds from C4 audit** (not in original C2): `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value)
+
+All four sub-slices will use the universal `Intent` wrapper pattern established in C2a. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
 
 ### Naming / convention
 
