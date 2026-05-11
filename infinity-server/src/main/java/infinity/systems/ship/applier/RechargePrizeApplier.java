@@ -6,22 +6,23 @@ package infinity.systems.ship.applier;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import infinity.es.ship.RechargeUpgrade;
+import infinity.es.ship.actions.CapBump;
+import infinity.es.ship.actions.CapField;
 import infinity.es.ship.actions.Intent;
-import infinity.es.ship.actions.RechargeCapBump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link RechargeCapBump} payload carrying the ship's per-prize
- * {@link RechargeUpgrade} delta (energy/sec — already converted from
- * Subspace raw units at spawn projection); the canonical writer
- * ({@code ShipSpawnSystem}) drains the intent to fold the delta into
- * {@code Recharge} (clamped at {@code RechargeMax}).
+ * {@link CapBump} payload tagged {@link CapField#RECHARGE} carrying
+ * the ship's per-prize {@link RechargeUpgrade} delta (energy/sec —
+ * already converted from Subspace raw units at spawn projection); the
+ * canonical writer ({@code ShipSpawnSystem}) drains the intent to fold
+ * the delta into {@code Recharge} (clamped at {@code RechargeMax}).
  *
  * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
  * {@code Recharge} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link RechargeCapBump} class Javadoc. Closes the
+ * additively per {@link CapBump} class Javadoc. Closes the
  * {@code ShipSpawnSystem} / {@code RechargePrizeApplier} multi-writer
  * violation on the {@code Recharge} component (BACKLOG C2a ship-body).
  *
@@ -61,6 +62,6 @@ public final class RechargePrizeApplier implements PrizeApplier {
       log.info("Ship {} recharge upgrade: emitting cap-bump intent delta={}", ship, delta);
     }
     final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(new RechargeCapBump(ship, delta)));
+    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.RECHARGE, delta)));
   }
 }

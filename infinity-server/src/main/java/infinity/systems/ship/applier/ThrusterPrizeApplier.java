@@ -6,15 +6,16 @@ package infinity.systems.ship.applier;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import infinity.es.ship.ThrustUpgrade;
+import infinity.es.ship.actions.CapBump;
+import infinity.es.ship.actions.CapField;
 import infinity.es.ship.actions.Intent;
-import infinity.es.ship.actions.ThrustCapBump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link ThrustCapBump} payload carrying the ship's per-prize
- * {@link ThrustUpgrade} delta; the canonical writer
+ * {@link CapBump} payload tagged {@link CapField#THRUST} carrying the
+ * ship's per-prize {@link ThrustUpgrade} delta; the canonical writer
  * ({@code ShipSpawnSystem}) drains the intent to fold the delta into
  * {@code Thrust} (clamped at {@code ThrustMax}). No-op when the upgrade
  * increment is zero (per-arena "no upgrades" design) or when
@@ -22,7 +23,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
  * {@code Thrust} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link ThrustCapBump} class Javadoc. Closes the
+ * additively per {@link CapBump} class Javadoc. Closes the
  * {@code ShipSpawnSystem} (spawn + rocket-buff drain) /
  * {@code ThrusterPrizeApplier} multi-writer violation on the
  * {@code Thrust} component (BACKLOG C2a ship-body).
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * so a thruster prize picked up during an active rocket buff bumps the
  * *buffed* {@code Thrust} value; the buff's revert intent then restores
  * the cached pre-buff snapshot and the prize bump is lost. Same
- * behaviour as before C2a. See {@link ThrustCapBump} class Javadoc.
+ * behaviour as before C2a. See {@code RocketSnapshot} class Javadoc.
  *
  * <p>Subspace canon: per-ship {@code [Ship] InitialThrust} /
  * {@code MaximumThrust} (REFERENCE.md line 353) plus
@@ -59,6 +60,6 @@ public final class ThrusterPrizeApplier implements PrizeApplier {
       log.info("Ship {} thruster upgrade: emitting cap-bump intent delta={}", ship, delta);
     }
     final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(new ThrustCapBump(ship, delta)));
+    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.THRUST, delta)));
   }
 }

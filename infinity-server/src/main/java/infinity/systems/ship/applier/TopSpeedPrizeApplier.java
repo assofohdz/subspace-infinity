@@ -6,21 +6,22 @@ package infinity.systems.ship.applier;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import infinity.es.ship.SpeedUpgrade;
+import infinity.es.ship.actions.CapBump;
+import infinity.es.ship.actions.CapField;
 import infinity.es.ship.actions.Intent;
-import infinity.es.ship.actions.SpeedCapBump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link SpeedCapBump} payload carrying the ship's per-prize
- * {@link SpeedUpgrade} delta; the canonical writer
+ * {@link CapBump} payload tagged {@link CapField#SPEED} carrying the
+ * ship's per-prize {@link SpeedUpgrade} delta; the canonical writer
  * ({@code ShipSpawnSystem}) drains the intent to fold the delta into
  * {@code Speed} (clamped at {@code SpeedMax}).
  *
  * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
  * {@code Speed} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link SpeedCapBump} class Javadoc. Closes the
+ * additively per {@link CapBump} class Javadoc. Closes the
  * {@code ShipSpawnSystem} (spawn + rocket-buff drain) /
  * {@code TopSpeedPrizeApplier} multi-writer violation on the
  * {@code Speed} component (BACKLOG C2a ship-body).
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * <p><b>Rocket-buff interaction (preserved limitation).</b> Same shape
  * as {@link ThrusterPrizeApplier} — a topspeed prize picked up during
  * an active rocket buff is lost when the buff reverts. See
- * {@link SpeedCapBump} class Javadoc.
+ * {@code RocketSnapshot} class Javadoc.
  *
  * <p>Subspace canon: per-ship {@code [Ship] InitialSpeed} /
  * {@code MaximumSpeed} (REFERENCE.md line 354) plus {@code UpgradeSpeed}
@@ -60,6 +61,6 @@ public final class TopSpeedPrizeApplier implements PrizeApplier {
       log.info("Ship {} topspeed upgrade: emitting cap-bump intent delta={}", ship, delta);
     }
     final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(new SpeedCapBump(ship, delta)));
+    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.SPEED, delta)));
   }
 }

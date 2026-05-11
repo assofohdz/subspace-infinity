@@ -6,15 +6,16 @@ package infinity.systems.ship.applier;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import infinity.es.ship.EnergyUpgrade;
-import infinity.es.ship.actions.EnergyCapBump;
+import infinity.es.ship.actions.CapBump;
+import infinity.es.ship.actions.CapField;
 import infinity.es.ship.actions.Intent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link EnergyCapBump} payload carrying the ship's per-prize
- * {@link EnergyUpgrade} delta; the canonical writer
+ * {@link CapBump} payload tagged {@link CapField#ENERGY} carrying the
+ * ship's per-prize {@link EnergyUpgrade} delta; the canonical writer
  * ({@code ShipSpawnSystem}) drains the intent next tick to fold the
  * delta into {@code Energy} (clamped at {@code EnergyMax}). Does
  * <em>not</em> touch the live pool — that's
@@ -23,7 +24,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
  * {@code Energy} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link EnergyCapBump} class Javadoc. Closes the
+ * additively per {@link CapBump} class Javadoc. Closes the
  * {@code ShipSpawnSystem} / {@code EnergyPrizeApplier} multi-writer
  * violation on the {@code Energy} component (BACKLOG C2a ship-body).
  *
@@ -51,6 +52,6 @@ public final class EnergyPrizeApplier implements PrizeApplier {
       log.info("Ship {} energy upgrade: emitting cap-bump intent delta={}", ship, delta);
     }
     final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(new EnergyCapBump(ship, delta)));
+    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.ENERGY, delta)));
   }
 }

@@ -36,13 +36,10 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
-import infinity.es.ship.actions.EnergyCapBump;
+import infinity.es.ship.actions.CapBump;
+import infinity.es.ship.actions.CapField;
 import infinity.es.ship.actions.Intent;
-import infinity.es.ship.actions.RechargeCapBump;
 import infinity.es.ship.actions.RocketBuffIntent;
-import infinity.es.ship.actions.RotationCapBump;
-import infinity.es.ship.actions.SpeedCapBump;
-import infinity.es.ship.actions.ThrustCapBump;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.systems.BaseInfinitySystem;
 import java.util.LinkedHashMap;
@@ -130,33 +127,30 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
    */
   private EntitySet rocketIntents;
   /**
-   * Pending cap-bump {@link Intent} entities — emitted by the five
-   * upgrade-prize appliers ({@code EnergyPrizeApplier},
+   * Pending universal-{@link Intent} cap-bump entities — emitted by the
+   * five upgrade-prize appliers ({@code EnergyPrizeApplier},
    * {@code RechargePrizeApplier}, {@code RotationPrizeApplier},
    * {@code ThrusterPrizeApplier}, {@code TopSpeedPrizeApplier}) wrapped
-   * via {@link Intent#of(com.simsilica.es.EntityComponent)} and drained
-   * here. Single-writer entry-point for upgrade-driven ship-stat
-   * writes; see {@code .claude/rules/replacement-as-mutation.md}
-   * (BACKLOG C2a ship-body group).
+   * via {@link Intent#of(EntityId, com.simsilica.es.EntityComponent)} with
+   * a {@link CapBump} payload and drained here. Single-writer entry-point
+   * for upgrade-driven ship-stat writes; see
+   * {@code .claude/rules/replacement-as-mutation.md} (BACKLOG C2a
+   * ship-body group).
    *
-   * <p>Each EntitySet narrows on {@code Intent.kind} via
+   * <p>The EntitySet narrows on {@code Intent.kind == CapBump.class} via
    * {@link FieldFilter} so the drain only sees intents whose payload is
-   * the matching {@code *CapBump} record. This is the project's
-   * canonical narrowing pattern (see {@code PrizeSystem.initialize} for
-   * the {@code FieldFilter.create(CollisionCategory.class, "filter",
-   * …)} precedent).
+   * a {@code CapBump} — the project's canonical narrowing pattern (see
+   * {@code PrizeSystem.initialize} for the {@code FieldFilter.create(
+   * CollisionCategory.class, "filter", …)} precedent). Per-field
+   * dispatch is on {@link CapBump#field()} via the {@link CapField}
+   * enum, collapsing five EntitySets and five drain methods into one.
    *
    * <p>Drain order: rocket-buff intents first (override the current
    * value), then cap-bumps (accumulate on top). The cap-bump drain
-   * folds same-tick multiple prize pickups additively by design — see
-   * {@link EnergyCapBump} class Javadoc.
+   * folds same-tick deltas additively keyed by {@code (target,
+   * CapField)} — see {@link CapBump} class Javadoc.
    */
-  private EntitySet energyCapIntents;
-
-  private EntitySet rechargeCapIntents;
-  private EntitySet rotationCapIntents;
-  private EntitySet thrustCapIntents;
-  private EntitySet speedCapIntents;
+  private EntitySet capBumpIntents;
 
   @Override
   protected void initialize() {
@@ -168,27 +162,13 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     // as soon as ArenaMembershipSystem assigns an ArenaId on entry.
     ships = ed.getEntities(ShipType.class, ArenaId.class);
     rocketIntents = ed.getEntities(RocketBuffIntent.class);
-    // FieldFilter-narrowed views of Intent.class — one EntitySet per
-    // payload type. The drain methods cast Intent.payload() back to the
-    // matching record. See PrizeSystem.initialize for the same
-    // narrowing pattern on CollisionCategory.filter.
-    energyCapIntents = newIntentSet(EnergyCapBump.class);
-    rechargeCapIntents = newIntentSet(RechargeCapBump.class);
-    rotationCapIntents = newIntentSet(RotationCapBump.class);
-    thrustCapIntents = newIntentSet(ThrustCapBump.class);
-    speedCapIntents = newIntentSet(SpeedCapBump.class);
-  }
-
-  /**
-   * Build a {@link FieldFilter}-narrowed {@link EntitySet} on
-   * {@link Intent} so the drain only iterates intents whose payload is
-   * an instance of {@code payloadType}. Centralizes the boilerplate
-   * five drains share.
-   */
-  private EntitySet newIntentSet(final Class<? extends com.simsilica.es.EntityComponent> payloadType) {
-    final ComponentFilter<Intent> filter =
-        FieldFilter.create(Intent.class, "kind", payloadType);
-    return ed.getEntities(filter, Intent.class);
+    // FieldFilter-narrowed view of Intent.class — one EntitySet for the
+    // unified CapBump payload (per-field dispatch happens inside the
+    // drain via the CapField enum). See PrizeSystem.initialize for the
+    // same narrowing pattern on CollisionCategory.filter.
+    final ComponentFilter<Intent> capBumpFilter =
+        FieldFilter.create(Intent.class, "kind", CapBump.class);
+    capBumpIntents = ed.getEntities(capBumpFilter, Intent.class);
   }
 
   @Override
@@ -197,16 +177,8 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     ships = null;
     rocketIntents.release();
     rocketIntents = null;
-    energyCapIntents.release();
-    energyCapIntents = null;
-    rechargeCapIntents.release();
-    rechargeCapIntents = null;
-    rotationCapIntents.release();
-    rotationCapIntents = null;
-    thrustCapIntents.release();
-    thrustCapIntents = null;
-    speedCapIntents.release();
-    speedCapIntents = null;
+    capBumpIntents.release();
+    capBumpIntents = null;
   }
 
   @Override
@@ -250,15 +222,11 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
 
     // RaM canonical drain for upgrade-prize cap bumps (BACKLOG C2 ship-body).
     // Runs AFTER the rocket-buff drain so cap-bumps accumulate on top of
-    // any rocket-buff override active this tick. Each drain folds deltas
-    // per target ship additively (same-tick multi-prize pickup
+    // any rocket-buff override active this tick. Folds deltas per
+    // (target ship, CapField) additively (same-tick multi-prize pickup
     // accumulates), clamps at the relevant *Max, and skips no-op writes
-    // per RaM rule #6.
-    drainEnergyCapBumpIntents();
-    drainRechargeCapBumpIntents();
-    drainRotationCapBumpIntents();
-    drainThrustCapBumpIntents();
-    drainSpeedCapBumpIntents();
+    // per RaM rule #6 — all delegated to CapField.apply().
+    drainCapBumpIntents();
   }
 
   /**
@@ -300,262 +268,65 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
   }
 
   /**
-   * Drain {@code Intent}-wrapped {@link EnergyCapBump} payloads. Folds
-   * deltas per target ship additively (same-tick multi-prize
-   * accumulation per {@link EnergyCapBump} class Javadoc), clamps at
-   * {@link EnergyMax}, and skips no-op writes (RaM rule #6 — already
-   * at max → no {@code changed} event for reactors).
-   */
-  private void drainEnergyCapBumpIntents() {
-    drainIntCapBumps(
-        energyCapIntents,
-        EnergyCapBump.class,
-        EnergyCapBump::target,
-        EnergyCapBump::delta,
-        Energy.class,
-        EnergyMax.class,
-        Energy::getEnergy,
-        EnergyMax::getMaxEnergy,
-        Energy::new);
-  }
-
-  /**
-   * Drain {@code Intent}-wrapped {@link RechargeCapBump} payloads. Same
-   * shape as {@link #drainEnergyCapBumpIntents()} — additive fold,
-   * clamp at {@link RechargeMax}, skip no-ops. Delta is in energy/sec
-   * (already converted from Subspace raw units at spawn projection).
-   */
-  private void drainRechargeCapBumpIntents() {
-    drainDoubleCapBumps(
-        rechargeCapIntents,
-        RechargeCapBump.class,
-        RechargeCapBump::target,
-        RechargeCapBump::delta,
-        Recharge.class,
-        RechargeMax.class,
-        Recharge::getRechargePerSecond,
-        RechargeMax::getMaxRechargePerSecond,
-        Recharge::new);
-  }
-
-  /**
-   * Drain {@code Intent}-wrapped {@link RotationCapBump} payloads. Same
-   * shape as {@link #drainEnergyCapBumpIntents()} — additive fold,
-   * clamp at {@link RotationMax}, skip no-ops. Delta is in rad/sec
-   * (already converted from Subspace raw units at spawn projection).
-   */
-  private void drainRotationCapBumpIntents() {
-    drainDoubleCapBumps(
-        rotationCapIntents,
-        RotationCapBump.class,
-        RotationCapBump::target,
-        RotationCapBump::delta,
-        Rotation.class,
-        RotationMax.class,
-        Rotation::getRadSec,
-        RotationMax::getRadSecMax,
-        Rotation::new);
-  }
-
-  /**
-   * Drain {@code Intent}-wrapped {@link ThrustCapBump} payloads. Same
-   * shape as {@link #drainEnergyCapBumpIntents()} — additive fold,
-   * clamp at {@link ThrustMax}, skip no-ops.
+   * Drain {@link Intent}-wrapped {@link CapBump} payloads. Folds deltas
+   * per {@code (target, CapField)} tuple additively (same-tick multi-
+   * prize accumulation per {@link CapBump} class Javadoc), then defers
+   * to {@link CapField#apply} for the per-field read/clamp/skip-no-op/
+   * write. Per-field dispatch happens inside the enum so this drain
+   * stays single-loop regardless of how many cap fields exist.
    *
-   * <p>Runs after {@link #drainRocketBuffIntents()} so a thruster prize
-   * picked up during an active rocket buff bumps the *buffed* value;
-   * see {@link ThrustCapBump} class Javadoc for the known limitation on
-   * revert (prize bump lost when the buff expires).
+   * <p>Runs AFTER {@link #drainRocketBuffIntents()} so cap-bumps
+   * accumulate on top of any rocket-buff override active this tick.
+   * Same rocket-buff interaction caveat for Thrust/Speed as before —
+   * see {@code RocketSnapshot} class Javadoc.
    */
-  private void drainThrustCapBumpIntents() {
-    drainIntCapBumps(
-        thrustCapIntents,
-        ThrustCapBump.class,
-        ThrustCapBump::target,
-        ThrustCapBump::delta,
-        Thrust.class,
-        ThrustMax.class,
-        Thrust::getThrust,
-        ThrustMax::getThrustMax,
-        Thrust::new);
-  }
-
-  /**
-   * Drain {@code Intent}-wrapped {@link SpeedCapBump} payloads. Same
-   * shape as {@link #drainEnergyCapBumpIntents()} — additive fold,
-   * clamp at {@link SpeedMax}, skip no-ops. Same rocket-buff
-   * interaction caveat as {@link #drainThrustCapBumpIntents()}.
-   */
-  private void drainSpeedCapBumpIntents() {
-    drainIntCapBumps(
-        speedCapIntents,
-        SpeedCapBump.class,
-        SpeedCapBump::target,
-        SpeedCapBump::delta,
-        Speed.class,
-        SpeedMax.class,
-        Speed::getSpeed,
-        SpeedMax::getSpeedMax,
-        Speed::new);
-  }
-
-  /**
-   * Generic int-delta cap-bump drain — folds {@code Intent}-wrapped
-   * payloads of type {@code P} per target, applies {@code current +
-   * sum(deltas)} clamped at {@code max}, skips no-op writes, and
-   * consumes intent entities. Used by the {@link Energy} / {@link Thrust}
-   * / {@link Speed} drains.
-   *
-   * @param <P>           payload record type (e.g. {@code EnergyCapBump})
-   * @param <C>           the ship's current cap component (e.g. {@code Energy})
-   * @param <M>           the cap-limit component (e.g. {@code EnergyMax})
-   * @param intents       FieldFilter-narrowed EntitySet on {@code Intent} for the matching payload
-   * @param payloadType   the concrete payload class (for {@code instanceof}-safe cast)
-   * @param targetOf      payload accessor returning the target ship's {@link EntityId}
-   * @param deltaOf       payload accessor returning the int delta
-   * @param currentType   class token for the current-cap component
-   * @param maxType       class token for the max-cap component
-   * @param currentValue  accessor returning the int field on the current-cap component
-   * @param maxValue      accessor returning the int field on the max-cap component
-   * @param replacementOf factory producing a new current-cap component from the post-clamp int
-   */
-  private <P, C extends com.simsilica.es.EntityComponent, M extends com.simsilica.es.EntityComponent>
-      void drainIntCapBumps(
-          final EntitySet intents,
-          final Class<P> payloadType,
-          final java.util.function.Function<P, EntityId> targetOf,
-          final java.util.function.ToIntFunction<P> deltaOf,
-          final Class<C> currentType,
-          final Class<M> maxType,
-          final java.util.function.ToIntFunction<C> currentValue,
-          final java.util.function.ToIntFunction<M> maxValue,
-          final java.util.function.IntFunction<C> replacementOf) {
-    intents.applyChanges();
-    if (intents.isEmpty()) {
+  private void drainCapBumpIntents() {
+    capBumpIntents.applyChanges();
+    if (capBumpIntents.isEmpty()) {
       return;
     }
-    final Map<EntityId, Integer> deltasByTarget = foldIntDeltas(intents, payloadType, targetOf, deltaOf);
-    for (final Map.Entry<EntityId, Integer> entry : deltasByTarget.entrySet()) {
-      applyIntCapBump(entry.getKey(), entry.getValue(),
-          currentType, maxType, currentValue, maxValue, replacementOf);
+    final Map<CapBumpKey, Double> deltasByKey = foldCapBumpDeltas(capBumpIntents);
+    for (final Map.Entry<CapBumpKey, Double> entry : deltasByKey.entrySet()) {
+      final CapBumpKey key = entry.getKey();
+      key.field().apply(ed, key.target(), entry.getValue());
     }
-    consumeIntents(intents);
-  }
-
-  /** Group + sum int deltas keyed by target ship. */
-  private <P> Map<EntityId, Integer> foldIntDeltas(
-      final EntitySet intents,
-      final Class<P> payloadType,
-      final java.util.function.Function<P, EntityId> targetOf,
-      final java.util.function.ToIntFunction<P> deltaOf) {
-    final Map<EntityId, Integer> deltasByTarget = new LinkedHashMap<>();
-    for (final Entity intentEntity : intents) {
-      final P payload = payloadType.cast(intentEntity.get(Intent.class).payload());
-      final EntityId target = targetOf.apply(payload);
-      if (target == null) {
-        continue;
-      }
-      deltasByTarget.merge(target, deltaOf.applyAsInt(payload), Integer::sum);
-    }
-    return deltasByTarget;
-  }
-
-  /** Single-target int cap-bump apply: read, fold, clamp, skip no-op, write. */
-  private <C extends com.simsilica.es.EntityComponent, M extends com.simsilica.es.EntityComponent>
-      void applyIntCapBump(
-          final EntityId target,
-          final int totalDelta,
-          final Class<C> currentType,
-          final Class<M> maxType,
-          final java.util.function.ToIntFunction<C> currentValue,
-          final java.util.function.ToIntFunction<M> maxValue,
-          final java.util.function.IntFunction<C> replacementOf) {
-    final C current = ed.getComponent(target, currentType);
-    final M max = ed.getComponent(target, maxType);
-    if (current == null || max == null) {
-      return;
-    }
-    final int currentInt = currentValue.applyAsInt(current);
-    final int next = Math.min(currentInt + totalDelta, maxValue.applyAsInt(max));
-    if (next != currentInt) {
-      ed.setComponent(target, replacementOf.apply(next));
-    }
-  }
-
-  /**
-   * Generic double-delta cap-bump drain — sibling of
-   * {@link #drainIntCapBumps} for the rad/sec / energy-per-sec
-   * components ({@link Recharge}, {@link Rotation}).
-   */
-  private <P, C extends com.simsilica.es.EntityComponent, M extends com.simsilica.es.EntityComponent>
-      void drainDoubleCapBumps(
-          final EntitySet intents,
-          final Class<P> payloadType,
-          final java.util.function.Function<P, EntityId> targetOf,
-          final java.util.function.ToDoubleFunction<P> deltaOf,
-          final Class<C> currentType,
-          final Class<M> maxType,
-          final java.util.function.ToDoubleFunction<C> currentValue,
-          final java.util.function.ToDoubleFunction<M> maxValue,
-          final java.util.function.DoubleFunction<C> replacementOf) {
-    intents.applyChanges();
-    if (intents.isEmpty()) {
-      return;
-    }
-    final Map<EntityId, Double> deltasByTarget = foldDoubleDeltas(intents, payloadType, targetOf, deltaOf);
-    for (final Map.Entry<EntityId, Double> entry : deltasByTarget.entrySet()) {
-      applyDoubleCapBump(entry.getKey(), entry.getValue(),
-          currentType, maxType, currentValue, maxValue, replacementOf);
-    }
-    consumeIntents(intents);
-  }
-
-  /** Group + sum double deltas keyed by target ship. */
-  private <P> Map<EntityId, Double> foldDoubleDeltas(
-      final EntitySet intents,
-      final Class<P> payloadType,
-      final java.util.function.Function<P, EntityId> targetOf,
-      final java.util.function.ToDoubleFunction<P> deltaOf) {
-    final Map<EntityId, Double> deltasByTarget = new LinkedHashMap<>();
-    for (final Entity intentEntity : intents) {
-      final P payload = payloadType.cast(intentEntity.get(Intent.class).payload());
-      final EntityId target = targetOf.apply(payload);
-      if (target == null) {
-        continue;
-      }
-      deltasByTarget.merge(target, deltaOf.applyAsDouble(payload), Double::sum);
-    }
-    return deltasByTarget;
-  }
-
-  /** Single-target double cap-bump apply: read, fold, clamp, skip no-op, write. */
-  private <C extends com.simsilica.es.EntityComponent, M extends com.simsilica.es.EntityComponent>
-      void applyDoubleCapBump(
-          final EntityId target,
-          final double totalDelta,
-          final Class<C> currentType,
-          final Class<M> maxType,
-          final java.util.function.ToDoubleFunction<C> currentValue,
-          final java.util.function.ToDoubleFunction<M> maxValue,
-          final java.util.function.DoubleFunction<C> replacementOf) {
-    final C current = ed.getComponent(target, currentType);
-    final M max = ed.getComponent(target, maxType);
-    if (current == null || max == null) {
-      return;
-    }
-    final double currentDouble = currentValue.applyAsDouble(current);
-    final double next = Math.min(currentDouble + totalDelta, maxValue.applyAsDouble(max));
-    if (Double.compare(next, currentDouble) != 0) {
-      ed.setComponent(target, replacementOf.apply(next));
-    }
-  }
-
-  /** Reap intent entities — fire-and-forget shape; mirrors C1's drain. */
-  private void consumeIntents(final EntitySet intents) {
-    for (final Entity intentEntity : intents) {
+    for (final Entity intentEntity : capBumpIntents) {
       ed.removeEntity(intentEntity.getId());
     }
   }
+
+  /**
+   * Group + sum cap-bump deltas keyed by {@code (target, field)} —
+   * same-tick multi-prize pickups against the same ship + same
+   * capability accumulate; cross-field bumps fold independently per
+   * field. Iteration order is insertion order ({@link LinkedHashMap})
+   * for deterministic per-tick apply order, derived from Zay-ES's
+   * monotonically-increasing {@link EntityId} iteration on
+   * {@link EntitySet}.
+   */
+  private static Map<CapBumpKey, Double> foldCapBumpDeltas(final EntitySet intents) {
+    final Map<CapBumpKey, Double> deltasByKey = new LinkedHashMap<>();
+    for (final Entity intentEntity : intents) {
+      final Intent intent = intentEntity.get(Intent.class);
+      if (intent == null || intent.target() == null) {
+        continue;
+      }
+      final CapBump payload = (CapBump) intent.payload();
+      if (payload == null || payload.field() == null) {
+        continue;
+      }
+      deltasByKey.merge(
+          new CapBumpKey(intent.target(), payload.field()), payload.delta(), Double::sum);
+    }
+    return deltasByKey;
+  }
+
+  /**
+   * Tuple key for per-tick cap-bump fold. Records are sufficient here —
+   * stable {@link #hashCode()} / {@link #equals(Object)} are inherited
+   * from the record contract, and the fields are immutable.
+   */
+  private record CapBumpKey(EntityId target, CapField field) {}
 
   /**
    * Re-projects {@link ShipConfig} stats onto every ship currently in scope by
