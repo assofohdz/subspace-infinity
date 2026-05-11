@@ -29,12 +29,12 @@ import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.Rotation;
-import infinity.es.ship.RotationMax;
+import infinity.es.ship.RotationStats;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.Speed;
-import infinity.es.ship.SpeedMax;
+import infinity.es.ship.SpeedStats;
 import infinity.es.ship.Thrust;
-import infinity.es.ship.ThrustMax;
+import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstMax;
@@ -134,21 +134,25 @@ public class ShipSpawnSystemTest {
       // projects the config in respawn mode (live pools reset).
       systems.update();
 
-      // Capability stat triples — direct passthrough.
+      // Capability stat split (post-ADR-0001): live Continuous value +
+      // bundled Stats record carrying max + upgrade.
       assertEquals(16, ed.getComponent(shipId, Thrust.class).getThrust());
-      assertEquals(19, ed.getComponent(shipId, ThrustMax.class).getThrustMax());
+      final ThrustStats thrustStats = ed.getComponent(shipId, ThrustStats.class);
+      assertEquals(19, thrustStats.max());
+      assertEquals(2, thrustStats.upgrade());
       assertEquals(2010, ed.getComponent(shipId, Speed.class).getSpeed());
-      assertEquals(3250, ed.getComponent(shipId, SpeedMax.class).getSpeedMax());
+      final SpeedStats speedStats = ed.getComponent(shipId, SpeedStats.class);
+      assertEquals(3250, speedStats.max());
+      assertEquals(250, speedStats.upgrade());
 
       // Rotation is in rad/sec (Subspace `400 = one rotation/sec` convention).
       assertEquals(
           210 * ROTATION_UNITS_TO_RAD_SEC,
           ed.getComponent(shipId, Rotation.class).getRadSec(),
           EPSILON);
-      assertEquals(
-          300 * ROTATION_UNITS_TO_RAD_SEC,
-          ed.getComponent(shipId, RotationMax.class).getRadSecMax(),
-          EPSILON);
+      final RotationStats rotationStats = ed.getComponent(shipId, RotationStats.class);
+      assertEquals(300 * ROTATION_UNITS_TO_RAD_SEC, rotationStats.max(), EPSILON);
+      assertEquals(40 * ROTATION_UNITS_TO_RAD_SEC, rotationStats.upgrade(), EPSILON);
 
       // Energy live pool (was Health pre-ADR) + EnergyStats bundle.
       // EnergyStats.max + hardMax: replaces Energy + EnergyMax.

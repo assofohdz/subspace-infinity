@@ -3,12 +3,10 @@
 
 package infinity.systems.ship;
 
-import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.sim.SimTime;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
@@ -21,24 +19,15 @@ import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.Rotation;
-import infinity.es.ship.RotationMax;
-import infinity.es.ship.RotationUpgrade;
+import infinity.es.ship.RotationStats;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.Speed;
-import infinity.es.ship.SpeedMax;
-import infinity.es.ship.SpeedUpgrade;
+import infinity.es.ship.SpeedStats;
 import infinity.es.ship.Thrust;
-import infinity.es.ship.ThrustMax;
-import infinity.es.ship.ThrustUpgrade;
+import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
-import infinity.es.ship.actions.CapBump;
-import infinity.es.ship.actions.CapField;
-import infinity.es.ship.actions.Intent;
-import infinity.es.ship.actions.RocketBuffIntent;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.systems.BaseInfinitySystem;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,23 +60,29 @@ import org.slf4j.LoggerFactory;
  * they cross into an arena.
  *
  * <p><b>Two projection modes</b> — distinguished by whether the depleting
- * resource pools ({@link Health} and {@link Energy}) are reset to
- * {@code stat.initial()}:
+ * resource pools ({@link Energy} pool + Continuous Thrust/Speed/Rotation)
+ * are reset to {@code stat.initial()}:
  * <ul>
  *   <li><b>Respawn projection</b> (everything resets) — fires on
  *       {@code getAddedEntities}: spawn-into-arena, re-entry from void, and
  *       ship-swap (AvatarSystem remove+set on ShipType surfaces here). The
  *       ship is conceptually "fresh", so a full reset is correct.
- *   <li><b>Tuning projection</b> (everything except Health/Energy resets) —
+ *   <li><b>Tuning projection</b> (everything except live pools resets) —
  *       fires on {@code getChangedEntities} (arena cross while alive) and on
- *       {@link #reprojectAll} (Groovy hot-reload). Capability stats (Thrust,
- *       Speed, Rotation, Recharge), their {@code *Max} / {@code *Upgrade}
- *       caps, and the feel knobs all pick up the new config — those stats
- *       don't deplete from gameplay so the user expects a Groovy edit to
- *       take effect immediately. Health and Energy are deliberately
- *       preserved so a damaged ship doesn't free-heal on arena cross or
- *       Groovy hot-reload.
+ *       {@link #reprojectAll} (Groovy hot-reload). Stats records pick up the
+ *       new template values; the live {@link Energy} pool and the live
+ *       Thrust/Speed/Rotation values are preserved so a damaged or
+ *       cap-upgraded ship doesn't lose state on tuning reload.
  * </ul>
+ *
+ * <p><b>ADR 0001 Continuous + Stats split.</b> Post-Energy-pilot the ship
+ * stats follow the canonical quadruple: {@code <Aspect>} (live, Continuous)
+ * + {@code <Aspect>Stats} (max/upgrade bundle) + {@code <Aspect>Change}
+ * (Continuous delta) + {@code <Aspect>StatsChange} (Stats delta). Runtime
+ * mutation flows through Change holder entities drained by the per-aspect
+ * canonical writer ({@code EnergySystem}, {@code RotationSystem},
+ * {@code SpeedSystem}, {@code ThrustSystem}); this spawn system writes
+ * Continuous + Stats at projection time only.
  */
 public class ShipSpawnSystem extends BaseInfinitySystem {
 
@@ -113,39 +108,6 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
   private ConfigRegistrySystem configRegistry;
 
   private EntitySet ships;
-  /**
-   * Pending {@link RocketBuffIntent} entities — emitted by
-   * {@code ConsumableSystem} (activate) and {@code RocketBuffSystem}
-   * (revert) and drained here. Single-writer entry-point for
-   * rocket-buff-driven {@link Thrust} / {@link Speed} writes; see
-   * {@code .claude/rules/replacement-as-mutation.md} (BACKLOG C1).
-   */
-  private EntitySet rocketIntents;
-  /**
-   * Pending universal-{@link Intent} cap-bump entities — emitted by the
-   * five upgrade-prize appliers ({@code EnergyPrizeApplier},
-   * {@code RechargePrizeApplier}, {@code RotationPrizeApplier},
-   * {@code ThrusterPrizeApplier}, {@code TopSpeedPrizeApplier}) wrapped
-   * via {@link Intent#of(EntityId, com.simsilica.es.EntityComponent)} with
-   * a {@link CapBump} payload and drained here. Single-writer entry-point
-   * for upgrade-driven ship-stat writes; see
-   * {@code .claude/rules/replacement-as-mutation.md} (BACKLOG C2a
-   * ship-body group).
-   *
-   * <p>The EntitySet narrows on {@code Intent.kind == CapBump.class} via
-   * {@link FieldFilter} so the drain only sees intents whose payload is
-   * a {@code CapBump} — the project's canonical narrowing pattern (see
-   * {@code PrizeSystem.initialize} for the {@code FieldFilter.create(
-   * CollisionCategory.class, "filter", …)} precedent). Per-field
-   * dispatch is on {@link CapBump#field()} via the {@link CapField}
-   * enum, collapsing five EntitySets and five drain methods into one.
-   *
-   * <p>Drain order: rocket-buff intents first (override the current
-   * value), then cap-bumps (accumulate on top). The cap-bump drain
-   * folds same-tick deltas additively keyed by {@code (target,
-   * CapField)} — see {@link CapBump} class Javadoc.
-   */
-  private EntitySet capBumpIntents;
 
   @Override
   protected void initialize() {
@@ -156,24 +118,12 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     // (no-arena void) are intentionally not in the set; they get reprojected
     // as soon as ArenaMembershipSystem assigns an ArenaId on entry.
     ships = ed.getEntities(ShipType.class, ArenaId.class);
-    rocketIntents = ed.getEntities(RocketBuffIntent.class);
-    // FieldFilter-narrowed view of Intent.class — one EntitySet for the
-    // unified CapBump payload (per-field dispatch happens inside the
-    // drain via the CapField enum). See PrizeSystem.initialize for the
-    // same narrowing pattern on CollisionCategory.filter.
-    final ComponentFilter<Intent> capBumpFilter =
-        FieldFilter.create(Intent.class, "kind", CapBump.class);
-    capBumpIntents = ed.getEntities(capBumpFilter, Intent.class);
   }
 
   @Override
   protected void terminate() {
     ships.release();
     ships = null;
-    rocketIntents.release();
-    rocketIntents = null;
-    capBumpIntents.release();
-    capBumpIntents = null;
   }
 
   @Override
@@ -185,8 +135,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     // branch below: AvatarSystem.requestShipChange does remove+set on
     // ShipType, but Zay-ES coalesces same-tick remove+set on a tracked
     // field into a single changed event, not added/removed.) The ship is
-    // conceptually fresh, so reset live pools (Health/Energy + current
-    // Thrust/Speed/Rotation/Recharge + weapon `*CurrentLevel` starts).
+    // conceptually fresh, so reset live pools.
     for (final Entity spawned : ships.getAddedEntities()) {
       applyConfigTo(spawned, true);
     }
@@ -208,120 +157,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
         ed.removeComponent(id, ResetLivePool.class);
       }
     }
-
-    // RaM canonical drain for rocket-buff Thrust/Speed writes (BACKLOG C1).
-    // Runs AFTER the template-projection branches so the drain wins on
-    // same-tick reproject + buff race — deterministic outcome:
-    // intent-wins. See .claude/rules/replacement-as-mutation.md.
-    drainRocketBuffIntents();
-
-    // RaM canonical drain for upgrade-prize cap bumps (BACKLOG C2 ship-body).
-    // Runs AFTER the rocket-buff drain so cap-bumps accumulate on top of
-    // any rocket-buff override active this tick. Folds deltas per
-    // (target ship, CapField) additively (same-tick multi-prize pickup
-    // accumulates), clamps at the relevant *Max, and skips no-op writes
-    // per RaM rule #6 — all delegated to CapField.apply().
-    drainCapBumpIntents();
   }
-
-  /**
-   * Drain pending {@link RocketBuffIntent} entities — fold per target
-   * ship (last-by-entity-id wins per RaM rule #7), write the resulting
-   * {@link Thrust} / {@link Speed}, and consume each intent entity.
-   *
-   * <p>Zay-ES iterates an {@link EntitySet} in monotonically-increasing
-   * {@link EntityId} order, so inserting into a {@link LinkedHashMap}
-   * keyed by target gives last-wins folding naturally: the
-   * later-emitted intent (higher EntityId) overwrites the earlier one
-   * for the same target. This is the deterministic resolution for the
-   * rare same-tick activate + revert race.
-   */
-  private void drainRocketBuffIntents() {
-    rocketIntents.applyChanges();
-    if (rocketIntents.isEmpty()) {
-      return;
-    }
-    final Map<EntityId, RocketBuffIntent> foldedByTarget = new LinkedHashMap<>();
-    for (final Entity intentEntity : rocketIntents) {
-      final RocketBuffIntent intent = intentEntity.get(RocketBuffIntent.class);
-      if (intent == null || intent.getTarget() == null) {
-        continue;
-      }
-      foldedByTarget.put(intent.getTarget(), intent);
-    }
-    for (final Map.Entry<EntityId, RocketBuffIntent> entry : foldedByTarget.entrySet()) {
-      final EntityId target = entry.getKey();
-      final RocketBuffIntent intent = entry.getValue();
-      ed.setComponent(target, new Thrust(intent.getThrust()));
-      ed.setComponent(target, new Speed(intent.getSpeed()));
-    }
-    // Consume intent entities — fire-and-forget shape mirrors
-    // EnergySystem's HealthChange drain (Buff entity deleted after fold).
-    for (final Entity intentEntity : rocketIntents) {
-      ed.removeEntity(intentEntity.getId());
-    }
-  }
-
-  /**
-   * Drain {@link Intent}-wrapped {@link CapBump} payloads. Folds deltas
-   * per {@code (target, CapField)} tuple additively (same-tick multi-
-   * prize accumulation per {@link CapBump} class Javadoc), then defers
-   * to {@link CapField#apply} for the per-field read/clamp/skip-no-op/
-   * write. Per-field dispatch happens inside the enum so this drain
-   * stays single-loop regardless of how many cap fields exist.
-   *
-   * <p>Runs AFTER {@link #drainRocketBuffIntents()} so cap-bumps
-   * accumulate on top of any rocket-buff override active this tick.
-   * Same rocket-buff interaction caveat for Thrust/Speed as before —
-   * see {@code RocketSnapshot} class Javadoc.
-   */
-  private void drainCapBumpIntents() {
-    capBumpIntents.applyChanges();
-    if (capBumpIntents.isEmpty()) {
-      return;
-    }
-    final Map<CapBumpKey, Double> deltasByKey = foldCapBumpDeltas(capBumpIntents);
-    for (final Map.Entry<CapBumpKey, Double> entry : deltasByKey.entrySet()) {
-      final CapBumpKey key = entry.getKey();
-      key.field().apply(ed, key.target(), entry.getValue());
-    }
-    for (final Entity intentEntity : capBumpIntents) {
-      ed.removeEntity(intentEntity.getId());
-    }
-  }
-
-  /**
-   * Group + sum cap-bump deltas keyed by {@code (target, field)} —
-   * same-tick multi-prize pickups against the same ship + same
-   * capability accumulate; cross-field bumps fold independently per
-   * field. Iteration order is insertion order ({@link LinkedHashMap})
-   * for deterministic per-tick apply order, derived from Zay-ES's
-   * monotonically-increasing {@link EntityId} iteration on
-   * {@link EntitySet}.
-   */
-  private static Map<CapBumpKey, Double> foldCapBumpDeltas(final EntitySet intents) {
-    final Map<CapBumpKey, Double> deltasByKey = new LinkedHashMap<>();
-    for (final Entity intentEntity : intents) {
-      final Intent intent = intentEntity.get(Intent.class);
-      if (intent == null || intent.target() == null) {
-        continue;
-      }
-      final CapBump payload = (CapBump) intent.payload();
-      if (payload == null || payload.field() == null) {
-        continue;
-      }
-      deltasByKey.merge(
-          new CapBumpKey(intent.target(), payload.field()), payload.delta(), Double::sum);
-    }
-    return deltasByKey;
-  }
-
-  /**
-   * Tuple key for per-tick cap-bump fold. Records are sufficient here —
-   * stable {@link #hashCode()} / {@link #equals(Object)} are inherited
-   * from the record contract, and the fields are immutable.
-   */
-  private record CapBumpKey(EntityId target, CapField field) {}
 
   /**
    * Re-projects {@link ShipConfig} stats onto every ship currently in scope by
@@ -330,7 +166,8 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
    * whoever triggered the reload.
    *
    * <p>Live pools are preserved — this is a tuning reload, not a respawn, so a
-   * mid-fight reload doesn't refill everyone's Health/Energy.
+   * mid-fight reload doesn't refill everyone's Energy or reset their
+   * accumulated Thrust/Speed/Rotation cap upgrades.
    *
    * <p>Thread-safe to call from any thread (RMI, chat, sim) — this only
    * mutates ECS components via {@link EntityData#setComponent}, which is
@@ -422,9 +259,9 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
   }
 
   private void project(final EntityId shipId, final ShipConfig cfg, final boolean resetLivePool) {
-    projectThrust(shipId, cfg.thrust());
-    projectSpeed(shipId, cfg.speed());
-    projectRotation(shipId, cfg.rotation());
+    projectThrust(shipId, cfg.thrust(), resetLivePool);
+    projectSpeed(shipId, cfg.speed(), resetLivePool);
+    projectRotation(shipId, cfg.rotation(), resetLivePool);
     projectEnergyStats(shipId, cfg.energy(), cfg.recharge(), resetLivePool);
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
@@ -461,27 +298,33 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     }
   }
 
-  // Capability stats — Thrust/Speed/Rotation/Recharge — always re-project from
-  // the current config. They don't deplete from gameplay (PrizeSystem can lift
-  // them via upgrades, but there's no "drain" path), so a Groovy edit is the
-  // user's expected channel for changing them and should always take effect.
-
-  private void projectThrust(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Thrust(stat.initial()));
-    ed.setComponent(shipId, new ThrustMax(stat.max()));
-    ed.setComponent(shipId, new ThrustUpgrade(stat.upgrade()));
+  /** Project Thrust: reset live value on respawn only; Stats always re-project (mirrors Energy pattern). */
+  private void projectThrust(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Thrust(stat.initial()));
+    }
+    ed.setComponent(shipId, new ThrustStats(stat.max(), stat.upgrade()));
   }
 
-  private void projectSpeed(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Speed(stat.initial()));
-    ed.setComponent(shipId, new SpeedMax(stat.max()));
-    ed.setComponent(shipId, new SpeedUpgrade(stat.upgrade()));
+  private void projectSpeed(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Speed(stat.initial()));
+    }
+    ed.setComponent(shipId, new SpeedStats(stat.max(), stat.upgrade()));
   }
 
-  private void projectRotation(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Rotation(stat.initial() * ROTATION_UNITS_TO_RAD_SEC));
-    ed.setComponent(shipId, new RotationMax(stat.max() * ROTATION_UNITS_TO_RAD_SEC));
-    ed.setComponent(shipId, new RotationUpgrade(stat.upgrade() * ROTATION_UNITS_TO_RAD_SEC));
+  private void projectRotation(
+      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
+    if (resetLivePool) {
+      ed.setComponent(shipId, new Rotation(stat.initial() * ROTATION_UNITS_TO_RAD_SEC));
+    }
+    ed.setComponent(
+        shipId,
+        new RotationStats(
+            stat.max() * ROTATION_UNITS_TO_RAD_SEC,
+            stat.upgrade() * ROTATION_UNITS_TO_RAD_SEC));
   }
 
   /**
@@ -501,11 +344,9 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
    * reload ({@code resetLivePool=false}, fires on Groovy hot-reload
    * and arena cross), the {@code max} field (current effective cap)
    * is preserved so a player's accumulated cap upgrades survive the
-   * reload — every other field re-projects from template, mirroring
-   * the pre-ADR behaviour where the {@code Energy} cap component was
-   * guarded by {@code resetLivePool} but the {@code Recharge} family
-   * always re-projected. The live {@link Energy} pool is also
-   * preserved on tuning so a damaged ship doesn't free-heal.
+   * reload — every other field re-projects from template. The live
+   * {@link Energy} pool is also preserved on tuning so a damaged ship
+   * doesn't free-heal.
    */
   private void projectEnergyStats(
       final EntityId shipId,

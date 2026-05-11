@@ -5,43 +5,13 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.SpeedUpgrade;
-import infinity.es.ship.actions.CapBump;
-import infinity.es.ship.actions.CapField;
-import infinity.es.ship.actions.Intent;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.SpeedChange;
+import infinity.es.ship.SpeedStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link CapBump} payload tagged {@link CapField#SPEED} carrying the
- * ship's per-prize {@link SpeedUpgrade} delta; the canonical writer
- * ({@code ShipSpawnSystem}) drains the intent to fold the delta into
- * {@code Speed} (clamped at {@code SpeedMax}).
- *
- * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
- * {@code Speed} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link CapBump} class Javadoc. Closes the
- * {@code ShipSpawnSystem} (spawn + rocket-buff drain) /
- * {@code TopSpeedPrizeApplier} multi-writer violation on the
- * {@code Speed} component (BACKLOG C2a ship-body).
- *
- * <p><b>Rocket-buff interaction (preserved limitation).</b> Same shape
- * as {@link ThrusterPrizeApplier} — a topspeed prize picked up during
- * an active rocket buff is lost when the buff reverts. See
- * {@code RocketSnapshot} class Javadoc.
- *
- * <p>Subspace canon: per-ship {@code [Ship] InitialSpeed} /
- * {@code MaximumSpeed} (REFERENCE.md line 354) plus {@code UpgradeSpeed}
- * per-pickup increment; see REFERENCE.md {@code ## PrizeWeight} line 240
- * ({@code TopSpeed}) for the prize-name registration.
- *
- * <p>Note: Infinity components ({@link infinity.es.ship.Speed} /
- * {@link infinity.es.ship.SpeedMax} / {@link SpeedUpgrade}) are named
- * after the prize ("TopSpeed") rather than the canonical knob names
- * ({@code InitialSpeed} / {@code MaximumSpeed} / {@code UpgradeSpeed}).
- * Same value pipeline; cosmetic naming divergence.
- */
+/** TopSpeed prize — emits a {@link SpeedChange} delta (live cap bump). Drained by {@code SpeedSystem}; clamped at {@link SpeedStats#max()}. */
 public final class TopSpeedPrizeApplier implements PrizeApplier {
 
   private static final Logger log = LoggerFactory.getLogger(TopSpeedPrizeApplier.class);
@@ -49,18 +19,18 @@ public final class TopSpeedPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final SpeedUpgrade up = ed.getComponent(ship, SpeedUpgrade.class);
-    if (up == null) {
+    final SpeedStats stats = ed.getComponent(ship, SpeedStats.class);
+    if (stats == null) {
       return;
     }
-    final int delta = up.getSpeedUpgrade();
+    final int delta = stats.upgrade();
     if (delta == 0) {
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Ship {} topspeed upgrade: emitting cap-bump intent delta={}", ship, delta);
+      log.info("Ship {} topspeed upgrade: emitting SpeedChange delta={}", ship, delta);
     }
-    final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.SPEED, delta)));
+    final EntityId changeId = ed.createEntity();
+    ed.setComponents(changeId, ChangeTarget.self(ship), new SpeedChange(delta));
   }
 }

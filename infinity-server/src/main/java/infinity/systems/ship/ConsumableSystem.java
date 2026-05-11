@@ -7,6 +7,7 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.es.common.Decay;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Quatd;
@@ -27,10 +28,13 @@ import infinity.config.ThorConfig;
 import infinity.net.ConsumableTypeId;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ContactSystem;
+import infinity.es.ChangeTarget;
 import infinity.es.Damage;
 import infinity.es.ShapeNames;
 import infinity.es.ship.Speed;
+import infinity.es.ship.SpeedChange;
 import infinity.es.ship.Thrust;
+import infinity.es.ship.ThrustChange;
 import infinity.es.ship.actions.Brick;
 import infinity.es.ship.actions.BrickMax;
 import infinity.es.ship.actions.Decoy;
@@ -41,7 +45,6 @@ import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
 import infinity.es.ship.actions.Rocket;
-import infinity.es.ship.actions.RocketBuffIntent;
 import infinity.es.ship.actions.RocketMax;
 import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.Thor;
@@ -58,6 +61,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This system handles all the actions that can be performed by the player.
@@ -289,20 +293,6 @@ public class ConsumableSystem extends BaseInfinitySystem
   }
 
   /**
-   * Pattern 4 fire-time projection for the rocket buff: snapshot the
-   * ship's pre-buff {@link Thrust} / {@link Speed}, emit a
-   * {@link RocketBuffIntent} carrying the arena's {@link RocketConfig}
-   * override values, and create the lifecycle-owning buff entity.
-   *
-   * <p>The intent is drained by {@code ShipSpawnSystem.update} (the
-   * canonical writer for {@link Thrust} / {@link Speed} per
-   * {@code .claude/rules/replacement-as-mutation.md}). {@code
-   * RocketBuffSystem} reacts to the buff entity's add/remove to
-   * maintain {@code RocketActive} on the ship and emit a revert
-   * {@link RocketBuffIntent} when the buff entity expires (via
-   * {@link com.simsilica.es.common.Decay}).
-   */
-  /**
    * Plumbing-only brick placement: decrement {@link Brick} inventory and
    * compose a marker entity that owns the brick lifetime via
    * {@link com.simsilica.es.common.Decay}. The (deferred) brick-geometry
@@ -345,33 +335,44 @@ public class ConsumableSystem extends BaseInfinitySystem
     MapFactory.createPortal(ed, ship, time, cfg.activeTimeMs());
   }
 
+  /** Fire-time rocket buff: emit Decay-bound Thrust/Speed deltas (writers apply on add, reverse on Decay-driven removal). */
   private void createRocketBuff(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final RocketConfig cfg = ConsumableLogic.rocketConfigFor(ed, configRegistry, ship);
     final RocketTime rocketTime = ed.getComponent(ship, RocketTime.class);
     if (rocketTime == null) {
-      // Defensive — canAct already gated on rocketOwners (which requires
-      // RocketTime). Belt-and-suspenders for ship-swap races.
+      // canAct already gates on rocketOwners (requires RocketTime); belt-and-suspenders for ship-swap races.
       return;
     }
 
-    // Snapshot pre-buff Thrust/Speed onto the buff entity for revert.
-    // Read NOW (before emitting the activate intent) so the snapshot
-    // reflects the ship's pre-buff values — the intent drain hasn't
-    // run yet, so the current components still hold the pre-buff state.
     final Thrust currentThrust = ed.getComponent(ship, Thrust.class);
     final Speed currentSpeed = ed.getComponent(ship, Speed.class);
     final int originalThrust = currentThrust != null ? currentThrust.getThrust() : 0;
     final int originalSpeed = currentSpeed != null ? currentSpeed.getSpeed() : 0;
 
-    // Emit RocketBuffIntent carrying the rocket-active override values.
-    // ShipSpawnSystem drains the intent and writes Thrust/Speed once per
-    // tick (RaM canonical-writer pattern) — see
-    // .claude/rules/replacement-as-mutation.md and RocketBuffIntent's
-    // class Javadoc for the design rationale.
-    final EntityId intent = ed.createEntity();
-    ed.setComponent(intent, new RocketBuffIntent(ship, cfg.thrust(), cfg.speed()));
+    final int deltaThrust = cfg.thrust() - originalThrust;
+    final int deltaSpeed = cfg.speed() - originalSpeed;
+    final long activeNs =
+        TimeUnit.NANOSECONDS.convert(rocketTime.getActiveTimeMs(), TimeUnit.MILLISECONDS);
 
+    if (deltaThrust != 0) {
+      final EntityId thrustHolder = ed.createEntity();
+      ed.setComponents(
+          thrustHolder,
+          ChangeTarget.self(ship),
+          new ThrustChange(deltaThrust),
+          new Decay(time, time + activeNs));
+    }
+    if (deltaSpeed != 0) {
+      final EntityId speedHolder = ed.createEntity();
+      ed.setComponents(
+          speedHolder,
+          ChangeTarget.self(ship),
+          new SpeedChange(deltaSpeed),
+          new Decay(time, time + activeNs));
+    }
+
+    // RocketActive lifecycle owned by the buff entity's Decay; RocketBuffSystem mirrors add/remove.
     ShipFactory.createRocketBuff(
         ed,
         new infinity.sim.specs.RocketBuffSpec(

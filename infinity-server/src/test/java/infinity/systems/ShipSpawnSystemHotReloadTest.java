@@ -22,9 +22,9 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.Speed;
-import infinity.es.ship.SpeedMax;
+import infinity.es.ship.SpeedStats;
 import infinity.es.ship.Thrust;
-import infinity.es.ship.ThrustMax;
+import infinity.es.ship.ThrustStats;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.systems.ship.ShipSpawnSystem;
@@ -84,10 +84,12 @@ public class ShipSpawnSystemHotReloadTest {
   // ──────────────────────────────────────────────────────────────────
 
   /**
-   * Base hot-reload round-trip: snapshot A's capability stats project on
-   * spawn, snapshot B replaces A, {@code reprojectAll} pushes B's values
-   * onto every live ship. The minimal guarantee every Groovy hot-reload
-   * relies on.
+   * Base hot-reload round-trip: snapshot A's stats project on spawn,
+   * snapshot B replaces A, {@code reprojectAll} pushes B's Stats
+   * values onto every live ship while preserving the live Continuous
+   * values (player retains accumulated cap upgrades through Groovy
+   * reload, mirroring the Energy pilot's preserve-live-pool-on-tuning
+   * semantics — see ADR 0001).
    */
   @Test
   public void replaceSnapshot_thenReprojectAll_pushesNewCapabilityStatsOntoLiveShips() {
@@ -100,7 +102,7 @@ public class ShipSpawnSystemHotReloadTest {
       f.ed.setComponent(ship, new ShipType(Ship.WARBIRD));
       f.ed.setComponent(ship, arenaId);
 
-      // Tick 1: respawn projection (added entity).
+      // Tick 1: respawn projection (added entity) — live values seeded.
       f.systems.update();
       assertEquals(16, f.ed.getComponent(ship, Thrust.class).getThrust());
       assertEquals(2000, f.ed.getComponent(ship, Speed.class).getSpeed());
@@ -110,23 +112,26 @@ public class ShipSpawnSystemHotReloadTest {
       final int reprojected = f.spawnSystem.reprojectAll();
 
       assertEquals("reprojectAll touched the only live ship", 1, reprojected);
+      // Live Continuous values are PRESERVED on tuning reload (player
+      // keeps whatever they had — same Energy-pilot pattern).
       assertEquals(
-          "Thrust picks up snapshot B's value after reproject",
-          24,
+          "Live Thrust preserved on tuning reload",
+          16,
           f.ed.getComponent(ship, Thrust.class).getThrust());
       assertEquals(
-          "Speed picks up snapshot B's value after reproject",
-          2500,
+          "Live Speed preserved on tuning reload",
+          2000,
           f.ed.getComponent(ship, Speed.class).getSpeed());
-      // *Max values also update — they're capability stats, not live pools.
+      // Stats records DO update — they carry the new hard cap +
+      // upgrade values from snapshot B.
       assertEquals(
-          "ThrustMax picks up snapshot B's cap after reproject",
+          "ThrustStats.max picks up snapshot B's cap after reproject",
           30,
-          f.ed.getComponent(ship, ThrustMax.class).getThrustMax());
+          f.ed.getComponent(ship, ThrustStats.class).max());
       assertEquals(
-          "SpeedMax picks up snapshot B's cap after reproject",
+          "SpeedStats.max picks up snapshot B's cap after reproject",
           5000,
-          f.ed.getComponent(ship, SpeedMax.class).getSpeedMax());
+          f.ed.getComponent(ship, SpeedStats.class).max());
     } finally {
       f.shutdown();
     }
@@ -218,7 +223,11 @@ public class ShipSpawnSystemHotReloadTest {
       // projection lands as an "added" event. Drain that, leaving the set
       // in a stable post-spawn state; the next applyChanges() should
       // surface anything reprojectAll() writes as a *change*.
-      final EntitySet observer = f.ed.getEntities(Thrust.class, ArenaId.class);
+      //
+      // Watch ThrustStats (not Thrust) — under the ADR-0001 model the
+      // tuning reproject preserves live Thrust and re-writes the Stats
+      // bundle. The Stats record carries the player-observable hard cap.
+      final EntitySet observer = f.ed.getEntities(ThrustStats.class, ArenaId.class);
       try {
         observer.applyChanges();
         assertEquals("observer sees the live ship after spawn", 1, observer.size());
@@ -246,7 +255,7 @@ public class ShipSpawnSystemHotReloadTest {
         // And the observed component snapshot reflects the new value
         // (would fail if reproject wrote into a stale view).
         assertEquals(
-            24, changed.iterator().next().get(Thrust.class).getThrust());
+            30, changed.iterator().next().get(ThrustStats.class).max());
       } finally {
         observer.release();
       }
@@ -289,12 +298,24 @@ public class ShipSpawnSystemHotReloadTest {
       f.registry.replace(arenaX, snapshotWith(warbird(/* thrust */ 24, /* speed */ 2500)));
       f.spawnSystem.reprojectAll();
 
+      // Live Thrust is preserved on tuning reload (Energy-pilot
+      // pattern). Check ThrustStats.max for the per-arena hot-reload
+      // observability — that IS rewritten on tuning reload.
       assertEquals(
-          "shipX picks up arena X's new snapshot",
-          24,
+          "shipX picks up arena X's new Stats.max",
+          30,
+          f.ed.getComponent(shipX, ThrustStats.class).max());
+      assertEquals(
+          "shipY's Stats.max matches arena Y's unchanged snapshot — no cross-arena bleed",
+          18,
+          f.ed.getComponent(shipY, ThrustStats.class).max());
+      // Live Thrust preserved for both ships through their tuning reload.
+      assertEquals(
+          "shipX live Thrust preserved",
+          16,
           f.ed.getComponent(shipX, Thrust.class).getThrust());
       assertEquals(
-          "shipY's component value matches arena Y's unchanged snapshot — no cross-arena bleed",
+          "shipY live Thrust preserved",
           12,
           f.ed.getComponent(shipY, Thrust.class).getThrust());
     } finally {
@@ -391,14 +412,20 @@ public class ShipSpawnSystemHotReloadTest {
       f.systems.update();
 
       assertEquals(
-          "Latecomer spawns with snapshot B's values",
+          "Latecomer spawns with snapshot B's Thrust initial (added-branch resets live value)",
           24,
           f.ed.getComponent(latecomer, Thrust.class).getThrust());
-      // And the original ship is still on snapshot B too.
+      // The original ship's live Thrust was preserved through tuning
+      // reload (Energy-pilot pattern). Stats.max picked up snapshot B's
+      // ceiling.
       assertEquals(
-          "Original ship still on snapshot B after latecomer's tick",
-          24,
+          "Original ship's live Thrust preserved through tuning reload",
+          16,
           f.ed.getComponent(firstShip, Thrust.class).getThrust());
+      assertEquals(
+          "Original ship's ThrustStats.max picked up snapshot B's cap",
+          30,
+          f.ed.getComponent(firstShip, ThrustStats.class).max());
       // Live-pool semantics still hold for the latecomer (it's a fresh
       // spawn — added event → respawn projection → Energy seeded).
       assertNotNull(

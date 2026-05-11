@@ -5,34 +5,13 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.RotationUpgrade;
-import infinity.es.ship.actions.CapBump;
-import infinity.es.ship.actions.CapField;
-import infinity.es.ship.actions.Intent;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.RotationChange;
+import infinity.es.ship.RotationStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link CapBump} payload tagged {@link CapField#ROTATION} carrying
- * the ship's per-prize {@link RotationUpgrade} delta (rad/sec —
- * already converted from Subspace integer rotation units at spawn
- * projection); the canonical writer ({@code ShipSpawnSystem}) drains
- * the intent to fold the delta into {@code Rotation} (clamped at
- * {@code RotationMax}).
- *
- * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
- * {@code Rotation} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link CapBump} class Javadoc. Closes the
- * {@code ShipSpawnSystem} / {@code RotationPrizeApplier} multi-writer
- * violation on the {@code Rotation} component (BACKLOG C2a ship-body).
- *
- * <p>Subspace canon: per-ship {@code [Ship] InitialRotation} /
- * {@code MaximumRotation} (raw integer rotation units; see REFERENCE.md
- * per-ship section) seed the cap. Per-prize bump amount is
- * {@code [Ship] UpgradeRotation}. Prize-weight entry: REFERENCE.md
- * {@code ## PrizeWeight} line 238 ({@code Rotation}).
- */
+/** Rotation prize — emits a {@link RotationChange} delta (live cap bump). Drained by {@code RotationSystem}; clamped at {@link RotationStats#max()}. */
 public final class RotationPrizeApplier implements PrizeApplier {
 
   private static final Logger log = LoggerFactory.getLogger(RotationPrizeApplier.class);
@@ -40,18 +19,18 @@ public final class RotationPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final RotationUpgrade up = ed.getComponent(ship, RotationUpgrade.class);
-    if (up == null) {
+    final RotationStats stats = ed.getComponent(ship, RotationStats.class);
+    if (stats == null) {
       return;
     }
-    final double delta = up.getRadSecUpgrade();
+    final double delta = stats.upgrade();
     if (Double.compare(delta, 0.0) == 0) {
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Ship {} rotation upgrade: emitting cap-bump intent delta={}", ship, delta);
+      log.info("Ship {} rotation upgrade: emitting RotationChange delta={}", ship, delta);
     }
-    final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.ROTATION, delta)));
+    final EntityId changeId = ed.createEntity();
+    ed.setComponents(changeId, ChangeTarget.self(ship), new RotationChange(delta));
   }
 }

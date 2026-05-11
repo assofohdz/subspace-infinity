@@ -20,12 +20,12 @@ import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Player;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.Rotation;
-import infinity.es.ship.RotationMax;
+import infinity.es.ship.RotationStats;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.Speed;
-import infinity.es.ship.SpeedMax;
+import infinity.es.ship.SpeedStats;
 import infinity.es.ship.Thrust;
-import infinity.es.ship.ThrustMax;
+import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.es.ship.actions.Brick;
 import infinity.es.ship.actions.BrickMax;
@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  * <ul>
  *   <li>{@code ~checkships} — Pattern-4 spawn-projection coverage per ship
  *       (every ship should have Energy/EnergyStats/Rotation/RotationMax/
- *       Thrust/ThrustMax/Speed/SpeedMax + weapon current/max pairs).
+ *       Thrust/ThrustStats/Speed/SpeedStats + weapon current/max pairs).
  *   <li>{@code ~ship [id]} — deep-dump every projected component on a ship
  *       (default: caller's avatar).
  *   <li>{@code ~checkcaptains} — verifies the captains EntitySet agrees with
@@ -168,9 +168,9 @@ public class ChecksShipsSystem extends AbstractGameSystem {
       // today's separate Energy/EnergyMax/Recharge/RechargeMax components.
       final int missing = appendComponentMatrix(sb, id,
           Energy.class, EnergyStats.class,
-          Rotation.class, RotationMax.class,
-          Thrust.class, ThrustMax.class,
-          Speed.class, SpeedMax.class,
+          Rotation.class, RotationStats.class,
+          Thrust.class, ThrustStats.class,
+          Speed.class, SpeedStats.class,
           BombCurrentLevel.class, BombMaxLevel.class,
           BulletCurrentLevel.class, BulletMaxLevel.class,
           MineCurrentLevel.class, MineMaxLevel.class,
@@ -231,9 +231,9 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     appendEnergyLine(sb, target);
 
     sb.append("  movement:");
-    appendIntPair(sb, target, "thrust", Thrust.class, ThrustMax.class);
-    appendIntPair(sb, target, "speed", Speed.class, SpeedMax.class);
-    appendDoublePair(sb, target, "rotation", Rotation.class, RotationMax.class);
+    appendThrustLine(sb, target);
+    appendSpeedLine(sb, target);
+    appendRotationLine(sb, target);
     sb.append('\n');
 
     sb.append("  feel:");
@@ -316,6 +316,42 @@ public class ChecksShipsSystem extends AbstractGameSystem {
         .append('\n');
   }
 
+  /**
+   * Append {@code thrust=current/max} where {@code max} comes from
+   * the bundled {@link ThrustStats} record (post-ADR-0001 split).
+   */
+  private void appendThrustLine(final StringBuilder sb, final EntityId id) {
+    final Thrust t = ed.getComponent(id, Thrust.class);
+    final ThrustStats stats = ed.getComponent(id, ThrustStats.class);
+    final String curr = t == null ? "?" : Integer.toString(t.getThrust());
+    final String max = stats == null ? "?" : Integer.toString(stats.max());
+    sb.append(" thrust=").append(curr).append('/').append(max);
+  }
+
+  /**
+   * Append {@code speed=current/max} where {@code max} comes from
+   * the bundled {@link SpeedStats} record (post-ADR-0001 split).
+   */
+  private void appendSpeedLine(final StringBuilder sb, final EntityId id) {
+    final Speed s = ed.getComponent(id, Speed.class);
+    final SpeedStats stats = ed.getComponent(id, SpeedStats.class);
+    final String curr = s == null ? "?" : Integer.toString(s.getSpeed());
+    final String max = stats == null ? "?" : Integer.toString(stats.max());
+    sb.append(" speed=").append(curr).append('/').append(max);
+  }
+
+  /**
+   * Append {@code rotation=current/max} where {@code max} comes from
+   * the bundled {@link RotationStats} record (post-ADR-0001 split).
+   */
+  private void appendRotationLine(final StringBuilder sb, final EntityId id) {
+    final Rotation r = ed.getComponent(id, Rotation.class);
+    final RotationStats stats = ed.getComponent(id, RotationStats.class);
+    final String curr = r == null ? "?" : formatDouble(r.getRadSec());
+    final String max = stats == null ? "?" : formatDouble(stats.max());
+    sb.append(" rotation=").append(curr).append('/').append(max);
+  }
+
   private void appendDouble(
       final StringBuilder sb,
       final EntityId id,
@@ -336,30 +372,6 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     } else {
       sb.append('?');
     }
-  }
-
-  private void appendIntPair(
-      final StringBuilder sb,
-      final EntityId id,
-      final String label,
-      final Class<? extends EntityComponent> curr,
-      final Class<? extends EntityComponent> max) {
-    final EntityComponent c = ed.getComponent(id, curr);
-    final EntityComponent m = ed.getComponent(id, max);
-    sb.append(' ').append(label).append('=');
-    sb.append(intValue(c)).append('/').append(intValue(m));
-  }
-
-  private void appendDoublePair(
-      final StringBuilder sb,
-      final EntityId id,
-      final String label,
-      final Class<? extends EntityComponent> curr,
-      final Class<? extends EntityComponent> max) {
-    final EntityComponent c = ed.getComponent(id, curr);
-    final EntityComponent m = ed.getComponent(id, max);
-    sb.append(' ').append(label).append('=');
-    sb.append(doubleValue(c)).append('/').append(doubleValue(m));
   }
 
   private void appendWeapon(
@@ -410,10 +422,13 @@ public class ChecksShipsSystem extends AbstractGameSystem {
   }
 
   /**
-   * Map-dispatch for the {@code label=current/max} formatter. Covers the entire
-   * inventory family ({@code Repel/Burst/Thor/Brick/Decoy/Rocket/Portal} ×
-   * {@code Current+Max}) plus the engine-stat scalars
-   * ({@code Thrust/Speed} × {@code current+max}).
+   * Map-dispatch for the {@code label=current/max} formatter. Covers
+   * the inventory family ({@code Repel/Burst/Thor/Brick/Decoy/Rocket/Portal}
+   * × {@code Current+Max}). The Thrust/Speed/Rotation movement scalars
+   * are formatted via dedicated {@code append*Line} helpers since their
+   * "max" lives on the bundled {@link ThrustStats} / {@link SpeedStats}
+   * / {@link RotationStats} record post-ADR-0001 (different shape from
+   * the inventory pair shape).
    */
   private static final Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> INT_GETTERS = buildIntGetters();
 
@@ -436,11 +451,6 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     m.put(RocketMax.class, c -> ((RocketMax) c).getCount());
     m.put(Portal.class, c -> ((Portal) c).getCount());
     m.put(PortalMax.class, c -> ((PortalMax) c).getCount());
-    // Ship-stat scalars (Thrust/Speed × current+max).
-    m.put(Thrust.class, c -> ((Thrust) c).getThrust());
-    m.put(ThrustMax.class, c -> ((ThrustMax) c).getThrustMax());
-    m.put(Speed.class, c -> ((Speed) c).getSpeed());
-    m.put(SpeedMax.class, c -> ((SpeedMax) c).getSpeedMax());
     return Map.copyOf(m);
   }
 
@@ -449,13 +459,6 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     if (c == null) return "?";
     final ToIntFunction<EntityComponent> fn = INT_GETTERS.get(c.getClass());
     return fn == null ? "?" : Integer.toString(fn.applyAsInt(c));
-  }
-
-  private static String doubleValue(final EntityComponent c) {
-    if (c == null) return "?";
-    if (c instanceof Rotation r) return formatDouble(r.getRadSec());
-    if (c instanceof RotationMax r) return formatDouble(r.getRadSecMax());
-    return "?";
   }
 
   private static String weaponLevel(final EntityComponent c) {

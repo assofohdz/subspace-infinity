@@ -148,6 +148,20 @@ This pattern is mandatory for every canonical writer that supports temporary (De
 
 `GameServer.initialize()` registration order is load-bearing: canonical writers must be registered **before** the central decay reaper so the tick that reaps a Decay-bound Change entity sees the add → apply + cache → reaper destroys → next tick's remove → writer reverses sequence. Reversed order would let the reaper destroy the entity before the writer has cached the (target, delta) tuple. Each aspect's canonical writer registration needs explicit ordering relative to `DecaySystem`.
 
+### 2-level vs 3-level aspects — `*StatsChange` is only needed for 3-level
+
+Per ADR §"Either half may therefore be absent." The prize-bumping layer differs between aspects:
+
+- **3-level aspects** (live pool → live cap → hard cap): Energy. Prize bumps the **middle layer** (the live cap), which the live pool can then refill toward. Implementation: `EnergyStatsChange` + `EnergyStatsSystem` exist because the live cap is a Stats-tier mutation distinct from the live-pool mutation. Energy is the only 3-level aspect today.
+- **2-level aspects** (live value → hard cap): Speed, Thrust, Rotation. Prize bumps the **live value** directly, clamped at the hard cap. The Stats record carries `(max, upgrade)` — `max` is the hard cap (the clamp), `upgrade` is the per-prize delta. **No `*StatsChange` or `*StatsSystem` is needed** — runtime mutation lives entirely on the Continuous half; the Stats record is written only by `ShipSpawnSystem` (spawn + reproject + Groovy hot-reload, all factory tier per ADR exception).
+
+**Rule of thumb when scoping a new aspect:** ask whether anything *runtime* mutates the Stats record (not spawn-time, not Groovy reload — runtime gameplay). If yes (e.g. "raise the cap mid-game via prize"), the aspect is 3-level and gets a `*StatsChange + *StatsSystem` pair. If no, omit the Stats-tier pair. Save 1 record + 1 system + 1 test fixture per aspect.
+
+Future aspects to keep in mind:
+- **Inventory caps** (Brick / Decoy / Portal / Repel / Rocket / Thor) — almost certainly 2-level. The `*PrizeApplier` bumps the live count (with the hard `*Max` cap as the clamp). One writer per aspect.
+- **Status family** (Cloak / Stealth / X-Radar / Antiwarp) — a toggle marker (boolean Continuous) + Stats(statusTier, drainRate). Prize-acquire bumps the Continuous flag; mid-game `*Status` tier changes are rare (Subspace lets `*Status = 2` mean "starts on" — that's spawn-time, not runtime). Default to 2-level (no `*StatsChange`).
+- **Weapon levels** (Bomb / Bullet / Mine / Burst) — `*CurrentLevel` is Continuous, prize bumps it. Stats fields (max, cost, delay) are spawn-time only. 2-level.
+
 ### Aspects in scope (locked from research-agent enumeration)
 
 | Aspect | Continuous | Stats | Notes |
@@ -310,11 +324,11 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 - ⬜ Portal — `PortalCurrentCount` + `PortalStats`, migrate `PortalPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ⬜ Repel — `RepelCurrentCount` + `RepelStats`, migrate `RepelPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ⬜ Rocket — `RocketCurrentCount` + `RocketStats`, migrate `RocketPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
-- ⬜ **Rotation** — `Rotation` + `RotationStats`, migrate `RotationPrizeApplier` off `Intent`/`CapBump`
-- ⬜ **Speed** — `Speed` + `SpeedStats`, migrate `TopSpeedPrizeApplier` off `Intent`/`CapBump`, migrate `RocketBuffIntent` Speed swap to temporary `SpeedChange` with Decay
+- ✅ **Rotation** — `Rotation` + `RotationStats`, migrate `RotationPrizeApplier` off `Intent`/`CapBump`
+- ✅ **Speed** — `Speed` + `SpeedStats`, migrate `TopSpeedPrizeApplier` off `Intent`/`CapBump`, migrate `RocketBuffIntent` Speed swap to temporary `SpeedChange` with Decay
 - ⬜ Stealth — `StealthActive` + `StealthStats`, migrate `StealthPrizeApplier`, resolve `ShipStatusProjector` co-write
 - ⬜ Thor — `ThorStats` (no Continuous), migrate `ThorPrizeApplier` (fix the `ThorFireDelay` fallback divergence), resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
-- ⬜ **Thrust** — `Thrust` + `ThrustStats`, migrate `ThrusterPrizeApplier` off `Intent`/`CapBump`, migrate `RocketBuffIntent` Thrust swap to temporary `ThrustChange` with Decay
+- ✅ **Thrust** — `Thrust` + `ThrustStats`, migrate `ThrusterPrizeApplier` off `Intent`/`CapBump`, migrate `RocketBuffIntent` Thrust swap to temporary `ThrustChange` with Decay
 - ⬜ XRadar — `XRadarActive` + `XRadarStats`, migrate `XRadarPrizeApplier`, resolve `ShipStatusProjector` co-write
 
 ### Fresh-find aspects
@@ -336,7 +350,7 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 
 - ✅ Delete `Buff` (api/src/main/java/infinity/es/Buff.java) — landed in Energy pilot
 - ✅ Delete `HealthChange` (api/src/main/java/infinity/es/HealthChange.java) — landed in Energy pilot
-- ⬜ Delete `Intent`, `CapBump`, `CapField` (api/src/main/java/infinity/es/ship/actions/)
-- ⬜ Delete `RocketBuffIntent` (api/src/main/java/infinity/es/ship/actions/RocketBuffIntent.java) — note: `RocketActive` + `RocketSnapshot` survive as game-logic markers
+- ✅ Delete `Intent`, `CapBump`, `CapField` (api/src/main/java/infinity/es/ship/actions/) — landed in movement slice
+- ✅ Delete `RocketBuffIntent` (api/src/main/java/infinity/es/ship/actions/RocketBuffIntent.java) — landed in movement slice; `RocketActive` + `RocketSnapshot` survive as game-logic markers
 - ⬜ Final pass over `.claude/rules/replacement-as-mutation.md` snapshot — verify zero direct-`setComponent` violations remain
 - ⬜ Architectural test (TBD-3) lands and is green on main

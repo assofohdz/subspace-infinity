@@ -128,6 +128,9 @@ import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.ship.EnergySystem;
 import infinity.systems.ship.EnergyStatsSystem;
+import infinity.systems.ship.RotationSystem;
+import infinity.systems.ship.SpeedSystem;
+import infinity.systems.ship.ThrustSystem;
 import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
@@ -267,6 +270,13 @@ public class GameServer {
     // chance to cache the tuple, breaking reverse-on-expiry.
     systems.register(EnergySystem.class, new EnergySystem());
     systems.register(EnergyStatsSystem.class, new EnergyStatsSystem());
+    // Movement slice (ADR 0001 wave 1) — Rotation/Speed/Thrust live-value writers.
+    // Stats records are spawn-only (ShipSpawnSystem) so no *StatsSystem needed.
+    // Register BEFORE DecaySystem: rocket-buff temporary deltas need apply+cache
+    // on add → reaper destroys → next-tick writer reverses on remove.
+    systems.register(RotationSystem.class, new RotationSystem());
+    systems.register(SpeedSystem.class, new SpeedSystem());
+    systems.register(ThrustSystem.class, new ThrustSystem());
 
     // Add some standard systems
     systems.addSystem(new DecaySystem());
