@@ -24,10 +24,10 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.BlackboardState;
 import infinity.es.input.MovementInput;
-import infinity.net.GameSession;
-import infinity.systems.ship.ConsumableSystem;
-import infinity.systems.AvatarSystem;
 import infinity.es.ship.weapons.WeaponType;
+import infinity.net.ConsumableTypeId;
+import infinity.net.GameSession;
+import infinity.net.ShipTypeId;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -286,29 +286,29 @@ public class AvatarMovementState extends BaseAppState
       return;
     }
     if (func == AvatarMovementFunctions.F_WARP) {
-      session.action(ConsumableSystem.WARP);
+      session.action(ConsumableTypeId.WARP.wireId());
     } else if (func == AvatarMovementFunctions.F_SHIFT) {
       this.shiftPressed = false;
     }
   }
 
-  /** Ship-selection key → {@code AvatarSystem.*} byte. {@link #shipForFunction} returns -1 on miss. */
+  /** Ship-selection key → {@link ShipTypeId} wire byte. {@link #shipForFunction} returns -1 on miss. */
   private static final Map<FunctionId, Byte> SHIP_KEYS = buildShipKeys();
 
   private static Map<FunctionId, Byte> buildShipKeys() {
     final Map<FunctionId, Byte> m = new HashMap<>();
-    m.put(AvatarMovementFunctions.F_WARBIRD, AvatarSystem.WARBIRD);
-    m.put(AvatarMovementFunctions.F_JAVELIN, AvatarSystem.JAVELIN);
-    m.put(AvatarMovementFunctions.F_SPIDER, AvatarSystem.SPIDER);
-    m.put(AvatarMovementFunctions.F_LEVI, AvatarSystem.LEVI);
-    m.put(AvatarMovementFunctions.F_TERRIER, AvatarSystem.TERRIER);
-    m.put(AvatarMovementFunctions.F_WEASEL, AvatarSystem.WEASEL);
-    m.put(AvatarMovementFunctions.F_LANC, AvatarSystem.LANCASTER);
-    m.put(AvatarMovementFunctions.F_SHARK, AvatarSystem.SHARK);
+    m.put(AvatarMovementFunctions.F_WARBIRD, ShipTypeId.WARBIRD.wireId());
+    m.put(AvatarMovementFunctions.F_JAVELIN, ShipTypeId.JAVELIN.wireId());
+    m.put(AvatarMovementFunctions.F_SPIDER, ShipTypeId.SPIDER.wireId());
+    m.put(AvatarMovementFunctions.F_LEVI, ShipTypeId.LEVI.wireId());
+    m.put(AvatarMovementFunctions.F_TERRIER, ShipTypeId.TERRIER.wireId());
+    m.put(AvatarMovementFunctions.F_WEASEL, ShipTypeId.WEASEL.wireId());
+    m.put(AvatarMovementFunctions.F_LANC, ShipTypeId.LANCASTER.wireId());
+    m.put(AvatarMovementFunctions.F_SHARK, ShipTypeId.SHARK.wireId());
     return Map.copyOf(m);
   }
 
-  /** Map a ship-selection function key to its {@code AvatarSystem.*} byte, or {@code -1} if none. */
+  /** Map a ship-selection function key to its {@link ShipTypeId} wire byte, or {@code -1} if none. */
   private static byte shipForFunction(final FunctionId func) {
     final Byte b = SHIP_KEYS.get(func);
     return b == null ? -1 : b;
@@ -373,15 +373,15 @@ public class AvatarMovementState extends BaseAppState
   }
 
   /** Plain func → session.attack/action with no shift modifier. */
-  private void dispatchSimpleWeapon(FunctionId func) {
+  private void dispatchSimpleWeapon(final FunctionId func) {
     if (func == AvatarMovementFunctions.F_GRAVBOMB) {
       session.attack(WeaponType.GRAVBOMB);
     } else if (func == AvatarMovementFunctions.F_THOR) {
-      session.action(ConsumableSystem.FIRETHOR);
+      session.action(ConsumableTypeId.FIRETHOR.wireId());
     } else if (func == AvatarMovementFunctions.F_REPEL) {
-      session.action(ConsumableSystem.REPEL);
+      session.action(ConsumableTypeId.REPEL.wireId());
     } else if (func == AvatarMovementFunctions.F_BURST) {
-      session.action(ConsumableSystem.FIREBURST);
+      session.action(ConsumableTypeId.FIREBURST.wireId());
     }
   }
 }

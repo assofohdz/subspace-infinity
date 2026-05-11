@@ -24,6 +24,7 @@ import infinity.config.PortalConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ThorConfig;
+import infinity.net.ConsumableTypeId;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ContactSystem;
 import infinity.es.Damage;
@@ -52,6 +53,7 @@ import infinity.sim.MapFactory;
 import infinity.sim.ShipFactory;
 import infinity.sim.WeaponFactory;
 import infinity.sim.GameSounds;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,14 +66,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConsumableSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
-  public static final byte PLACEBRICK = 0x0;
-  public static final byte FIREBURST = 0x1;
-  public static final byte PLACEDECOY = 0x2;
-  public static final byte PLACEPORTAL = 0x3;
-  public static final byte REPEL = 0x4;
-  public static final byte FIREROCKET = 0x5;
-  public static final byte FIRETHOR = 0x6;
-  public static final byte WARP = 0x7;
+  // Consumable wire bytes (PLACEBRICK/FIREBURST/PLACEDECOY/PLACEPORTAL/
+  // REPEL/FIREROCKET/FIRETHOR/WARP) live in api/ as
+  // `infinity.net.ConsumableTypeId`. Internal dispatch below uses the enum
+  // directly; the public byte entry-point `sessionAct(byte)` converts via
+  // `ConsumableTypeId.fromWireId(byte)`.
 
   private final Set<Action> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
@@ -170,9 +169,9 @@ public class ConsumableSystem extends BaseInfinitySystem
     while (iterator.hasNext()) {
       final Action a = iterator.next();
 
-      Entity requester = ed.getEntity(a.getOwner());
+      final Entity requester = ed.getEntity(a.getOwner());
 
-      actOut(requester, a.getWeaponType(), time.getTime());
+      actOut(requester, a.getAction(), time.getTime());
 
       iterator.remove();
     }
@@ -182,19 +181,20 @@ public class ConsumableSystem extends BaseInfinitySystem
    * This method is called from the gamesession and acts as a queue entry.
    *
    * @param attacker the attacking entity
-   * @param flag the weapon of choice
+   * @param flag the wire byte for the consumable action (see
+   *     {@link ConsumableTypeId})
    */
   public void sessionAct(final EntityId attacker, final byte flag) {
-    sessionActionCreations.add(new Action(attacker, flag));
+    sessionActionCreations.add(new Action(attacker, ConsumableTypeId.fromWireId(flag)));
   }
 
-  private void actOut(final Entity requester, final byte flag, long time) {
+  private void actOut(final Entity requester, final ConsumableTypeId flag, final long time) {
 
-    boolean canAttack = canAct(requester, flag);
+    final boolean canAttack = canAct(requester, flag);
     if (canAttack) {
-      boolean cooldownSet = setCoolDown(requester, flag);
+      final boolean cooldownSet = setCoolDown(requester, flag);
       if (cooldownSet) {
-        boolean costDeducted = deductCostOfAction(requester, flag);
+        final boolean costDeducted = deductCostOfAction(requester, flag);
         if (costDeducted) {
           final ActionPosition info = getActionPosition(requester, flag);
           act(requester, flag, time, info);
@@ -204,21 +204,32 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
   }
 
-  private void act(Entity requesterEntity, final byte flag, long time, ActionPosition info) {
-    if (flag == FIRETHOR) {
-      createThor(requesterEntity, time, info);
-    } else if (flag == REPEL) {
-      createRepel(requesterEntity, time, info);
-    } else if (flag == FIREROCKET) {
-      createRocketBuff(requesterEntity, time);
-    } else if (flag == PLACEBRICK) {
-      createBrick(requesterEntity, time);
-    } else if (flag == PLACEDECOY) {
-      createDecoy(requesterEntity, time);
-    } else if (flag == PLACEPORTAL) {
-      createPortal(requesterEntity, time);
-    } else {
-      throw new IllegalArgumentException("Unknown flag: " + flag);
+  private void act(
+      final Entity requesterEntity,
+      final ConsumableTypeId flag,
+      final long time,
+      final ActionPosition info) {
+    switch (flag) {
+      case FIRETHOR:
+        createThor(requesterEntity, time, info);
+        break;
+      case REPEL:
+        createRepel(requesterEntity, time, info);
+        break;
+      case FIREROCKET:
+        createRocketBuff(requesterEntity, time);
+        break;
+      case PLACEBRICK:
+        createBrick(requesterEntity, time);
+        break;
+      case PLACEDECOY:
+        createDecoy(requesterEntity, time);
+        break;
+      case PLACEPORTAL:
+        createPortal(requesterEntity, time);
+        break;
+      default:
+        throw new IllegalArgumentException("Unknown action: " + flag);
     }
   }
 
@@ -354,63 +365,57 @@ public class ConsumableSystem extends BaseInfinitySystem
             ship, time, rocketTime.getActiveTimeMs(), originalThrust, originalSpeed));
   }
 
-  private boolean createSound(Entity requesterEntity, byte flag, long time, ActionPosition info) {
-    EntityId requester = requesterEntity.getId();
-    if (flag == FIRETHOR) {
-      GameSounds.createThorSound(ed, time, requester, info.location, physicsSpace);
-      return true;
+  private boolean createSound(
+      final Entity requesterEntity,
+      final ConsumableTypeId flag,
+      final long time,
+      final ActionPosition info) {
+    final EntityId requester = requesterEntity.getId();
+    switch (flag) {
+      case FIRETHOR:
+        GameSounds.createThorSound(ed, time, requester, info.location, physicsSpace);
+        return true;
+      case REPEL:
+        // Repel audio is composed onto the effect entity by WeaponFactory.createRepel
+        // via AudioTypes.repel(ed) — no separate sound entity needed here.
+      case FIREROCKET:
+        // No rocket-fire SFX wired today — Subspace ships had a per-arena
+        // sound but the audio asset isn't in the project yet. Polish-bag item.
+      case PLACEBRICK:
+        // No brick-place SFX wired today — Subspace had a brick sound but
+        // the audio asset isn't in the project yet. Polish-bag item.
+      case PLACEDECOY:
+        // No decoy-place SFX wired today — Subspace had a decoy sound but
+        // the audio asset isn't in the project yet. Polish-bag item.
+      case PLACEPORTAL:
+        // No portal-place SFX wired today — Subspace had a portal sound but
+        // the audio asset isn't in the project yet. Polish-bag item.
+        return true;
+      default:
+        throw new IllegalArgumentException("Unknown action: " + flag);
     }
-    if (flag == REPEL) {
-      // Repel audio is composed onto the effect entity by WeaponFactory.createRepel
-      // via AudioTypes.repel(ed) — no separate sound entity needed here.
-      return true;
-    }
-    if (flag == FIREROCKET) {
-      // No rocket-fire SFX wired today — Subspace ships had a per-arena
-      // sound but the audio asset isn't in the project yet. Polish-bag item.
-      return true;
-    }
-    if (flag == PLACEBRICK) {
-      // No brick-place SFX wired today — Subspace had a brick sound but
-      // the audio asset isn't in the project yet. Polish-bag item.
-      return true;
-    }
-    if (flag == PLACEDECOY) {
-      // No decoy-place SFX wired today — Subspace had a decoy sound but
-      // the audio asset isn't in the project yet. Polish-bag item.
-      return true;
-    }
-    if (flag == PLACEPORTAL) {
-      // No portal-place SFX wired today — Subspace had a portal sound but
-      // the audio asset isn't in the project yet. Polish-bag item.
-      return true;
-    }
-    throw new IllegalArgumentException("Unknown flag: " + flag);
   }
 
-  private boolean deductCostOfAction(final Entity requester, final byte flag) {
+  private boolean deductCostOfAction(final Entity requester, final ConsumableTypeId flag) {
     if (requester == null) {
       return false;
     }
-    if (flag == FIRETHOR) {
-      return deductCostOfActionThor(requester);
+    switch (flag) {
+      case FIRETHOR:
+        return deductCostOfActionThor(requester);
+      case REPEL:
+        return deductCostOfActionRepel(requester);
+      case FIREROCKET:
+        return deductCostOfActionRocket(requester);
+      case PLACEBRICK:
+        return deductCostOfActionBrick(requester);
+      case PLACEDECOY:
+        return deductCostOfActionDecoy(requester);
+      case PLACEPORTAL:
+        return deductCostOfActionPortal(requester);
+      default:
+        return false;
     }
-    if (flag == REPEL) {
-      return deductCostOfActionRepel(requester);
-    }
-    if (flag == FIREROCKET) {
-      return deductCostOfActionRocket(requester);
-    }
-    if (flag == PLACEBRICK) {
-      return deductCostOfActionBrick(requester);
-    }
-    if (flag == PLACEDECOY) {
-      return deductCostOfActionDecoy(requester);
-    }
-    if (flag == PLACEPORTAL) {
-      return deductCostOfActionPortal(requester);
-    }
-    return false;
   }
 
   private boolean deductCostOfActionThor(final Entity requester) {
@@ -455,64 +460,54 @@ public class ConsumableSystem extends BaseInfinitySystem
     return true;
   }
 
-  private boolean canAct(Entity requester, byte actionType) {
+  private boolean canAct(final Entity requester, final ConsumableTypeId actionType) {
     if (requester == null) {
       return false;
     }
-    if (actionType == FIRETHOR) {
-      return ConsumableLogic.canFireThor(ed, thorOwners, requester);
+    switch (actionType) {
+      case FIRETHOR:
+        return ConsumableLogic.canFireThor(ed, thorOwners, requester);
+      case REPEL:
+        return ConsumableLogic.canFireRepel(ed, repelOwners, requester);
+      case FIREROCKET:
+        return ConsumableLogic.canFireRocket(ed, rocketOwners, requester);
+      case PLACEBRICK:
+        return ConsumableLogic.canPlaceBrick(ed, brickOwners, requester);
+      case PLACEDECOY:
+        return ConsumableLogic.canPlaceDecoy(ed, decoyOwners, requester);
+      case PLACEPORTAL:
+        return ConsumableLogic.canPlacePortal(ed, portalOwners, requester);
+      default:
+        return false;
     }
-    if (actionType == REPEL) {
-      return ConsumableLogic.canFireRepel(ed, repelOwners, requester);
-    }
-    if (actionType == FIREROCKET) {
-      return ConsumableLogic.canFireRocket(ed, rocketOwners, requester);
-    }
-    if (actionType == PLACEBRICK) {
-      return ConsumableLogic.canPlaceBrick(ed, brickOwners, requester);
-    }
-    if (actionType == PLACEDECOY) {
-      return ConsumableLogic.canPlaceDecoy(ed, decoyOwners, requester);
-    }
-    if (actionType == PLACEPORTAL) {
-      return ConsumableLogic.canPlacePortal(ed, portalOwners, requester);
-    }
-    return false;
   }
 
-  private boolean setCoolDown(final Entity requester, final byte flag) {
+  private boolean setCoolDown(final Entity requester, final ConsumableTypeId flag) {
 
     if (requester == null) {
       return false;
     }
-    if (flag == FIRETHOR) {
-      return setCoolDownThor(requester);
+    switch (flag) {
+      case FIRETHOR:
+        return setCoolDownThor(requester);
+      case REPEL:
+        // No per-ship fire-delay component for repel today.
+      case FIREROCKET:
+        // No per-ship fire-delay component for rocket today; the buff
+        // entity's Decay is the only timing primitive.
+      case PLACEBRICK:
+        // No per-ship fire-delay component for brick today; the brick
+        // entity's Decay is the only timing primitive.
+      case PLACEDECOY:
+        // No per-ship fire-delay component for decoy today; the decoy
+        // entity's Decay is the only timing primitive.
+      case PLACEPORTAL:
+        // No per-ship fire-delay component for portal today; the portal
+        // entity's Decay is the only timing primitive.
+        return true;
+      default:
+        return false;
     }
-    if (flag == REPEL) {
-      // No per-ship fire-delay component for repel today.
-      return true;
-    }
-    if (flag == FIREROCKET) {
-      // No per-ship fire-delay component for rocket today; the buff
-      // entity's Decay is the only timing primitive.
-      return true;
-    }
-    if (flag == PLACEBRICK) {
-      // No per-ship fire-delay component for brick today; the brick
-      // entity's Decay is the only timing primitive.
-      return true;
-    }
-    if (flag == PLACEDECOY) {
-      // No per-ship fire-delay component for decoy today; the decoy
-      // entity's Decay is the only timing primitive.
-      return true;
-    }
-    if (flag == PLACEPORTAL) {
-      // No per-ship fire-delay component for portal today; the portal
-      // entity's Decay is the only timing primitive.
-      return true;
-    }
-    return false;
   }
 
   private boolean setCoolDownThor(final Entity requester) {
@@ -535,11 +530,17 @@ public class ConsumableSystem extends BaseInfinitySystem
    * PLACEPORTAL are plumbing-only markers whose position info is dropped by
    * the corresponding {@code create*} method).
    */
-  private static final Set<Byte> CENTERED_NO_PROJECTILE =
-      Set.of(REPEL, FIREROCKET, PLACEBRICK, PLACEDECOY, PLACEPORTAL);
+  private static final Set<ConsumableTypeId> CENTERED_NO_PROJECTILE =
+      EnumSet.of(
+          ConsumableTypeId.REPEL,
+          ConsumableTypeId.FIREROCKET,
+          ConsumableTypeId.PLACEBRICK,
+          ConsumableTypeId.PLACEDECOY,
+          ConsumableTypeId.PLACEPORTAL);
 
-  private ActionPosition getActionPosition(final Entity attackerEntity, final byte weaponFlag) {
-    EntityId attacker = attackerEntity.getId();
+  private ActionPosition getActionPosition(
+      final Entity attackerEntity, final ConsumableTypeId weaponFlag) {
+    final EntityId attacker = attackerEntity.getId();
     // Default vector for projectiles (z=forward):
     Vec3d projectileVelocity = new Vec3d(0, 0, 1);
 
@@ -553,10 +554,10 @@ public class ConsumableSystem extends BaseInfinitySystem
 
     // Step 1: Scale the velocity based on weapon type, weapon level and ship type
     // TODO: Look these settings up in SettingsSystem
-    if (weaponFlag == FIRETHOR) {
+    if (weaponFlag == ConsumableTypeId.FIRETHOR) {
       projectileVelocity.addLocal(0, 0, 50);
     } else {
-      throw new AssertionError("Flag :" + weaponFlag + " not recognized");
+      throw new AssertionError("Action :" + weaponFlag + " not recognized");
     }
 
     // Step 2: Rotate the scaled velocity
@@ -572,7 +573,7 @@ public class ConsumableSystem extends BaseInfinitySystem
 
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
     // Offset with the radius of the projectile
-    if (weaponFlag == FIRETHOR) {
+    if (weaponFlag == ConsumableTypeId.FIRETHOR) {
       projectilePosition.addLocal(0, 0, engineConfigSystem.get().thorRadius());
     } else {
       throw new AssertionError();
@@ -633,22 +634,22 @@ public class ConsumableSystem extends BaseInfinitySystem
   }
 
   /** A class that holds the information needed to perform an action. */
-  public class Action {
+  public static final class Action {
 
-    final EntityId owner;
-    final byte flag;
+    private final EntityId owner;
+    private final ConsumableTypeId action;
 
-    public Action(final EntityId owner, final byte flag) {
+    public Action(final EntityId owner, final ConsumableTypeId action) {
       this.owner = owner;
-      this.flag = flag;
+      this.action = action;
     }
 
     public EntityId getOwner() {
       return owner;
     }
 
-    public byte getWeaponType() {
-      return flag;
+    public ConsumableTypeId getAction() {
+      return action;
     }
   }
 }

@@ -61,8 +61,10 @@ import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.Player;
 import infinity.events.MapAction;
+import infinity.net.ConsumableTypeId;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
+import infinity.net.ShipTypeId;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.ShipFactory;
 import infinity.systems.ArenaSystem;
@@ -249,7 +251,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
                   playerEntityId,
                   phys,
                   0,
-                  AvatarSystem.WARBIRD,
+                  ShipTypeId.WARBIRD.wireId(),
                   engineCfg.shipRadius()));
 
       // Resolve initial arena from the spawn coord. Null is tolerated — ship spawns
@@ -416,18 +418,17 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public void action(final byte actionInput) {
-      switch(actionInput){
-        case ConsumableSystem.WARP:
+      final ConsumableTypeId action = ConsumableTypeId.fromWireId(actionInput);
+      switch (action) {
+        case WARP:
           warpSys.warpToCenter(avatarEntityId);
           return;
-        case ConsumableSystem.FIRETHOR:
-          actionSys.sessionAct(avatarEntityId, ConsumableSystem.FIRETHOR);
-          return;
-        case ConsumableSystem.REPEL:
-          actionSys.sessionAct(avatarEntityId, ConsumableSystem.REPEL);
+        case FIRETHOR:
+        case REPEL:
+          actionSys.sessionAct(avatarEntityId, action.wireId());
           return;
         default:
-          throw new IllegalStateException("Unexpected: " + actionInput);
+          throw new IllegalStateException("Unexpected: " + action);
       }
     }
 

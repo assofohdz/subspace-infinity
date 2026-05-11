@@ -35,15 +35,10 @@ import java.util.Map;
  */
 public class AvatarSystem extends BaseInfinitySystem {
 
-  public static final byte SPEC = 0x0;
-  public static final byte WARBIRD = 0x1;
-  public static final byte JAVELIN = 0x2;
-  public static final byte SPIDER = 0x3;
-  public static final byte LEVI = 0x4;
-  public static final byte TERRIER = 0x5;
-  public static final byte LANCASTER = 0x6;
-  public static final byte WEASEL = 0x7;
-  public static final byte SHARK = 0x8;
+  // Ship-type wire bytes (SPEC/WARBIRD/JAVELIN/SPIDER/LEVI/TERRIER/WEASEL/
+  // LANCASTER/SHARK) now live in api/ as `infinity.net.ShipTypeId`. The
+  // method below takes a raw byte off the wire — convert via
+  // `ShipTypeId.fromWireId(byte)` if you need enum-level dispatch.
   private EntityData ed;
   private EngineConfigSystem engineConfigSystem;
   private EntitySet frequencies;

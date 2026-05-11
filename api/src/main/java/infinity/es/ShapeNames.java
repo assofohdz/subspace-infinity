@@ -91,9 +91,9 @@ public class ShapeNames {
       case 0x5:
         return ShapeInfo.create(ShapeNames.SHIP_TERRIER, radius, ed);
       case 0x6:
-        return ShapeInfo.create(ShapeNames.SHIP_LANCASTER, radius, ed);
-      case 0x7:
         return ShapeInfo.create(ShapeNames.SHIP_WEASEL, radius, ed);
+      case 0x7:
+        return ShapeInfo.create(ShapeNames.SHIP_LANCASTER, radius, ed);
       case 0x8:
         return ShapeInfo.create(ShapeNames.SHIP_SHARK, radius, ed);
       default:
