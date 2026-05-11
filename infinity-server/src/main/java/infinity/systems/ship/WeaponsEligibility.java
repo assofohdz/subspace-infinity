@@ -189,7 +189,7 @@ final class WeaponsEligibility {
 
     /**
      * Slice 9c-BombSafety — fire-time gate that rejects bomb fire when an
-     * enemy {@link infinity.es.ship.Health}-bearer sits inside the firing
+     * enemy {@link infinity.es.ship.Energy}-bearer sits inside the firing
      * ship's effective proximity-arm radius. Auto-no-ops when:
      *
      * <ul>

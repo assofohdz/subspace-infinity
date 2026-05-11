@@ -15,7 +15,7 @@ import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.ProximityArmed;
 import infinity.es.ProximityFuse;
-import infinity.es.ship.Health;
+import infinity.es.ship.Energy;
 import infinity.es.ship.actions.Thor;
 import infinity.es.ship.weapons.Bounce;
 import infinity.systems.BaseInfinitySystem;
@@ -103,7 +103,7 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
    * <p>Slice 9a — when the damage-bearing entity carries a
    * {@link infinity.es.SplashDamage} marker (today: bombs), the damage path
    * switches from "single-target point damage at the contact" to "scan all
-   * {@link Health}-bearing bodies inside the splash radius and damage each
+   * {@link Energy}-bearing bodies inside the splash radius and damage each
    * one, gated by the arena's {@code friendlyFire} mode." Direct-hit damage
    * on entities without {@code SplashDamage} (bullets, burst, mines,
    * gravity-bomb fall-through) goes through the same friendly-fire gate but
@@ -118,7 +118,7 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
     final AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
     final EntityId idOne = body1.id;
-    final Entity entity1 = ed.getEntity(idOne, Damage.class, Bounce.class, Thor.class, Health.class);
+    final Entity entity1 = ed.getEntity(idOne, Damage.class, Bounce.class, Thor.class, Energy.class);
 
     if (body2 instanceof RigidBody) {
       handleProjectileVsBody(contact, body1, (RigidBody<EntityId, MBlockShape>) body2, entity1);
@@ -136,16 +136,16 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
       final RigidBody<EntityId, MBlockShape> body2,
       final Entity entity1) {
     final EntityId idTwo = body2.id;
-    final Entity entity2 = ed.getEntity(idTwo, Damage.class, Health.class);
+    final Entity entity2 = ed.getEntity(idTwo, Damage.class, Energy.class);
 
     log.debug("WeaponsImpactSystem contact detected between: {} and {}", body1.id, body2.id);
 
     final Entity damageEntity;
     final Entity energyEntity;
-    if (entity1.get(Damage.class) != null && entity2.get(Health.class) != null) {
+    if (entity1.get(Damage.class) != null && entity2.get(Energy.class) != null) {
       damageEntity = entity1;
       energyEntity = entity2;
-    } else if (entity2.get(Damage.class) != null && entity1.get(Health.class) != null) {
+    } else if (entity2.get(Damage.class) != null && entity1.get(Energy.class) != null) {
       damageEntity = entity2;
       energyEntity = entity1;
     } else {

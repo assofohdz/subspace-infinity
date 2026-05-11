@@ -292,13 +292,13 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 
 ### Core ABI (lands once, before any aspect)
 
-- ⬜ `ChangeTarget(target, source)` component in `api/src/main/java/infinity/es/` + ABI test
-- ⬜ Canonical-writer drain pattern documented in `.claude/rules/replacement-as-mutation.md` (replaces "Canonical intent shape" section)
-- ⬜ Generic writer-drain test fixture in `infinity-server/src/test/java/infinity/systems/ship/`
+- ✅ `ChangeTarget(target, source)` component in `api/src/main/java/infinity/es/` + ABI test
+- ✅ Canonical-writer drain pattern documented in `.claude/rules/replacement-as-mutation.md` (replaces "Canonical intent shape" section)
+- ✅ Generic writer-drain test fixture in `infinity-server/src/test/java/infinity/systems/ship/`
 
 ### Ship-state aspects (pilot first, then alphabetical)
 
-- ⬜ **Energy (pilot)** — rename `Health` → `Energy`, bundle into `EnergyStats`, migrate `Buff + HealthChange` → `EnergyChange + ChangeTarget`, migrate `EnergyPrizeApplier`, `RechargePrizeApplier`, `QuickChargePrizeApplier`, all damage emit sites, audit `Buff.startTime` callers
+- ✅ **Energy (pilot)** — rename `Health` → `Energy`, bundle into `EnergyStats`, migrate `Buff + HealthChange` → `EnergyChange + ChangeTarget`, migrate `EnergyPrizeApplier`, `RechargePrizeApplier`, `QuickChargePrizeApplier`, all damage emit sites, audit `Buff.startTime` callers
 - ⬜ Antiwarp — `AntiwarpActive` + `AntiwarpStats`, migrate `AntiWarpPrizeApplier`, resolve `ShipStatusProjector` co-write
 - ⬜ Bomb — `BombCurrentLevel` + `BombStats`, migrate `BombPrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
 - ⬜ Brick — `BrickCurrentCount` + `BrickStats`, migrate `BrickPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
@@ -334,8 +334,8 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 
 ### Cleanup (final slice)
 
-- ⬜ Delete `Buff` (api/src/main/java/infinity/es/Buff.java)
-- ⬜ Delete `HealthChange` (api/src/main/java/infinity/es/HealthChange.java)
+- ✅ Delete `Buff` (api/src/main/java/infinity/es/Buff.java) — landed in Energy pilot
+- ✅ Delete `HealthChange` (api/src/main/java/infinity/es/HealthChange.java) — landed in Energy pilot
 - ⬜ Delete `Intent`, `CapBump`, `CapField` (api/src/main/java/infinity/es/ship/actions/)
 - ⬜ Delete `RocketBuffIntent` (api/src/main/java/infinity/es/ship/actions/RocketBuffIntent.java) — note: `RocketActive` + `RocketSnapshot` survive as game-logic markers
 - ⬜ Final pass over `.claude/rules/replacement-as-mutation.md` snapshot — verify zero direct-`setComponent` violations remain

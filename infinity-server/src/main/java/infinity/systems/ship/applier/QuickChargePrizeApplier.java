@@ -3,13 +3,30 @@
 
 package infinity.systems.ship.applier;
 
+import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyChange;
+import infinity.es.ship.EnergyStats;
 
 /**
  * <b>INSTANT family.</b> "Full Charge" prize — refills the ship's live
- * {@code Health} pool back up to {@code Energy}. One-shot effect; no
- * persistent component is mutated. Delegates to
- * {@code EnergySystem.refillHealth(ship)} via the context.
+ * {@link Energy} pool back up to its current effective cap
+ * ({@link EnergyStats#max()}). One-shot effect; no persistent stats
+ * mutation.
+ *
+ * <p><b>ADR 0001 migration.</b> Was previously
+ * {@code ctx.energySystem().refillHealth(ship)} which created a
+ * {@code Buff + HealthChange} intent. Now emits the Change-entity
+ * shape directly at the applier site per
+ * {@code .claude/rules/replacement-as-mutation.md} — applier reads
+ * the current {@code Energy} + {@code EnergyStats.max}, computes the
+ * delta, and emits one {@link ChangeTarget#self(EntityId)} +
+ * {@link EnergyChange} holder. No {@code Decay} = one-shot, drained
+ * and destroyed by {@code EnergySystem} next tick. RaM rule #6 skip-
+ * no-op is enforced by the canonical writer; the applier still
+ * early-returns on delta == 0 to skip the holder-entity allocation.
  *
  * <p>Subspace canonical encoding (REFERENCE.md {@code ## PrizeWeight} lines
  * 235-236, VIE↔UI naming inversion): the class name
@@ -25,12 +42,24 @@ import com.simsilica.es.EntityId;
  * {@code .ini}-canonical names.
  *
  * <p>Per-ship cap: {@code [Ship] MaximumEnergy} bounds the refill ceiling
- * (the live {@code Health} pool is refilled up to current {@code Energy}).
+ * (the live {@link Energy} pool is refilled up to current
+ * {@code EnergyStats.max}).
  */
 public final class QuickChargePrizeApplier implements PrizeApplier {
 
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
-    ctx.energySystem().refillHealth(ship);
+    final EntityData ed = ctx.ed();
+    final Energy current = ed.getComponent(ship, Energy.class);
+    final EnergyStats stats = ed.getComponent(ship, EnergyStats.class);
+    if (current == null || stats == null) {
+      return;
+    }
+    final int delta = stats.max() - current.getEnergy();
+    if (delta == 0) {
+      return;
+    }
+    final EntityId changeId = ed.createEntity();
+    ed.setComponents(changeId, ChangeTarget.self(ship), new EnergyChange(delta));
   }
 }

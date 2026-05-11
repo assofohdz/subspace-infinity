@@ -8,51 +8,109 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.es.common.Decay;
 import com.simsilica.sim.SimTime;
-import infinity.es.Buff;
+import infinity.es.ChangeTarget;
 import infinity.es.DamageSource;
 import infinity.es.Dead;
-import infinity.es.HealthChange;
 import infinity.es.ship.Energy;
-import infinity.es.ship.weapons.WeaponType;
-import infinity.es.ship.Health;
+import infinity.es.ship.EnergyChange;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.Player;
-import infinity.es.ship.Recharge;
+import infinity.es.ship.weapons.WeaponType;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.PrizeSystem;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Watches entities with a live {@link Health} pool and applies pending health
- * changes (damage, ability cost, recharge) each tick. The pool tops out at the
- * ship's current effective energy cap {@link Energy} and reaching zero triggers
- * a {@link Dead} component.
+ * Canonical writer for the {@link Energy} component (the live energy
+ * pool). Drains {@link EnergyChange} + {@link ChangeTarget} holder
+ * entities each tick, folds same-tick deltas additively per target,
+ * applies per-tick recharge driven by {@link EnergyStats#rechargePerSecond()},
+ * clamps at {@link EnergyStats#max()}, triggers {@link Dead} on the
+ * zero-energy edge, and spawns the death prize for {@link Player}
+ * ships via {@link PrizeSystem}.
  *
- * <p>This system never reads {@code EnergyMax} — that hard-cap component is
- * consumed only by {@code PrizeSystem} when an ENERGY prize bumps {@link Energy}.
+ * <p><b>ADR 0001 canonical-writer recipe</b>
+ * (see {@code .claude/rules/replacement-as-mutation.md}):
  *
- * @author Paul Speed
+ * <ul>
+ *   <li>One {@link EntitySet} keyed on
+ *       {@code (EnergyChange.class, ChangeTarget.class)} — Zay-ES
+ *       component-type narrowing is the dispatch, no enum / registration
+ *       table.
+ *   <li>Per-tick fold by target — multi-source summing.
+ *   <li>{@link Decay}-presence check at apply time distinguishes
+ *       one-shot (destroy immediately) from temporary (track for
+ *       reversal on the central decay reaper's removal signal).
+ *   <li>Skip-no-op writes — if post-fold equals current, no
+ *       {@code setComponent} call fires (RaM rule #6).
+ *   <li>Recharge tick is encoded as positive per-tick
+ *       {@code EnergyChange} entities emitted by this writer itself —
+ *       so recharge participates in the same fold + clamp + skip-no-op
+ *       pipeline as damage / cost-deductions.
+ * </ul>
+ *
+ * <p><b>Critical: cache (target, delta) at apply-time for Decay-bound
+ * Changes</b> (Phase 0 Task #3 finding). On Decay-driven removal, this
+ * writer must NOT read {@link ChangeTarget} or {@link EnergyChange} off
+ * the removed-entity snapshot. {@code DefaultEntityData.removeEntity}
+ * walks {@code handlers.keySet()} (a {@link java.util.HashMap}, non-
+ * deterministic order); by the time the writer's EntitySet sees the
+ * {@code removedEntities} signal, either component may already be
+ * null. We cache the {@code (target, delta)} tuple at apply-time
+ * keyed by the Change holder's {@link EntityId} and reverse from the
+ * cache on remove. Pattern lifted verbatim from
+ * {@code CanonicalWriterDrainTest.TestStatSystem}.
+ *
+ * <p><b>System registration order:</b> this writer is registered
+ * <em>before</em> the central {@code DecaySystem} in {@code GameServer}
+ * so that on the tick a Decay-bound holder is reaped, the writer
+ * drains the add (applies + caches) first, the reaper destroys the
+ * entity second, and the writer reverses the delta on the next tick's
+ * remove signal.
+ *
+ * <p><b>Supersedes</b> the pre-ADR {@code Buff(target, startTime) +
+ * HealthChange(delta)} pair. Deferred-buff scheduling (the
+ * {@code startTime} field) was audit-confirmed dead (Task #4) and
+ * dropped without successor.
+ *
+ * @author Paul Speed (original), Asser Fahrenholz (ADR 0001 migration)
  */
 public class EnergySystem extends BaseInfinitySystem {
 
   static Logger log = LoggerFactory.getLogger(EnergySystem.class);
-  private final Map<EntityId, Integer> health = new HashMap<>();
+
   private EntityData ed;
   private EntitySet living;
   private EntitySet changes;
-  private EntitySet recharges;
-  private EntitySet capped;
+  private EntitySet rechargers;
+
+  /**
+   * Per-Change-entity record of "what we applied where" — captured at
+   * apply-time so we can reverse on Decay-reaper removal without
+   * depending on the removed-entity component snapshot (see class
+   * Javadoc). Keyed by Change holder {@link EntityId}.
+   */
+  private final Map<EntityId, TrackedApply> trackedApplied = new HashMap<>();
+
   /**
    * Resolved lazily inside the death branch so {@link EnergySystem} stays
    * usable in test fixtures that don't register {@link PrizeSystem}.
-   * Lazily — system order in {@code GameServer} runs PrizeSystem before
-   * EnergySystem, but the lazy lookup is cheap and avoids a hard init
-   * dependency.
    */
   private PrizeSystem prizeSystem;
+
+  /**
+   * Pair captured at apply-time for a temporary Change entity: the
+   * {@link ChangeTarget#target()} the writer mutated and the delta it
+   * added (which must be subtracted on Decay-reaper removal).
+   */
+  private record TrackedApply(EntityId target, int delta) {}
 
   public EnergySystem() {
     // Nothing to do
@@ -60,153 +118,166 @@ public class EnergySystem extends BaseInfinitySystem {
 
   @Override
   protected void initialize() {
-
     ed = requireSystem(EntityData.class);
-    living = ed.getEntities(Health.class);
-    changes = ed.getEntities(Buff.class, HealthChange.class);
-
-    recharges = ed.getEntities(Health.class, Recharge.class);
-
-    capped = ed.getEntities(Health.class, Energy.class);
+    // Watch every entity with a live pool — used for death detection
+    // and as the cap-clamp set (the same entity also carries the
+    // EnergyStats record carrying the cap).
+    living = ed.getEntities(Energy.class, EnergyStats.class);
+    // Canonical drain — Change holder entities.
+    changes = ed.getEntities(EnergyChange.class, ChangeTarget.class);
+    // Recharge pulse source — every ship with an Energy pool + stats
+    // gets a per-tick positive EnergyChange emitted by THIS system so
+    // recharge folds through the same canonical drain as damage.
+    rechargers = ed.getEntities(Energy.class, EnergyStats.class);
   }
 
   @Override
   protected void terminate() {
-    // Release the entity set we grabbed previously
     living.release();
     living = null;
-
     changes.release();
     changes = null;
-
-    recharges.release();
-    recharges = null;
-
-    capped.release();
-    capped = null;
+    rechargers.release();
+    rechargers = null;
   }
 
   @Override
   public void update(final SimTime time) {
-
-    // We accumulate all health adjustments together that are
-    // in effect at this time... and then apply them all at once.
-    // Make sure our entity views are up-to-date as of
-    // now.
     living.applyChanges();
-    capped.applyChanges();
+    rechargers.applyChanges();
     changes.applyChanges();
 
-    collectBuffChanges(time);
-    applyRecharges(time);
-    applyAccumulatedChanges(time);
+    // Phase 1 — emit per-ship recharge Change holders. They will be
+    // picked up by the same drain on this same tick because
+    // applyChanges() is called again below for changes (no, actually,
+    // we don't call again — added entities are not surfaced until the
+    // next applyChanges()). Recharge fold therefore lands one tick
+    // delayed, identical to damage. The old EnergySystem fold also
+    // ran recharge through the same tick-deferred path
+    // (Recharge emitted via damage() → Buff/HealthChange seen next
+    // tick). Preserving that timing.
+    emitRechargeChanges(time);
 
-    // Clear our health book-keeping map.
-    health.clear();
+    // Phase 2 — drain the canonical EnergyChange + ChangeTarget set.
+    drainEnergyChanges();
   }
 
   /**
-   * Drain the {@link #changes} buff queue: for each buff whose start time has
-   * arrived, accumulate its {@link HealthChange#getDelta()} into {@link #health}
-   * (keyed by target) and delete the buff entity.
+   * Emit one positive {@link EnergyChange} per ship whose pool is
+   * below cap. Each ship's recharge rate (energy/sec) is multiplied by
+   * tick {@code tpf} and rounded to int — same arithmetic the legacy
+   * applyRecharges used.
    */
-  private void collectBuffChanges(final SimTime time) {
-    for (final Entity e : changes) {
-      final Buff b = e.get(Buff.class);
-
-      // Does the buff apply yet
-      if (b.getStartTime() > time.getTime()) {
+  private void emitRechargeChanges(final SimTime time) {
+    final double tpf = time.getTpf();
+    if (tpf <= 0.0) {
+      return;
+    }
+    for (final Entity e : rechargers) {
+      final Energy pool = e.get(Energy.class);
+      final EnergyStats stats = e.get(EnergyStats.class);
+      if (pool.getEnergy() >= stats.max()) {
+        // Already at cap — no recharge needed.
         continue;
       }
+      final int charge = Math.toIntExact(Math.round(tpf * stats.rechargePerSecond()));
+      if (charge <= 0) {
+        continue;
+      }
+      final EntityId changeId = ed.createEntity();
+      ed.setComponents(
+          changeId, ChangeTarget.self(e.getId()), new EnergyChange(charge));
+    }
+  }
 
-      final HealthChange change = e.get(HealthChange.class);
-      Integer hp = health.get(b.getTarget());
-      if (hp == null) {
-        hp = Integer.valueOf(change.getDelta());
+  /**
+   * Canonical drain — apply on add (fold + clamp + skip-no-op), track
+   * temporaries, reverse on Decay-reaper removal.
+   */
+  private void drainEnergyChanges() {
+    // Phase 1 — fold added deltas by target; classify holders as
+    // one-shot vs temporary based on Decay-presence.
+    final Map<EntityId, Integer> deltaByTarget = new HashMap<>();
+    final List<EntityId> oneShotHolders = new ArrayList<>();
+    for (final Entity added : changes.getAddedEntities()) {
+      final ChangeTarget ct = added.get(ChangeTarget.class);
+      final int delta = added.get(EnergyChange.class).delta();
+      deltaByTarget.merge(ct.target(), delta, Integer::sum);
+      final Decay decay = ed.getComponent(added.getId(), Decay.class);
+      if (decay == null) {
+        oneShotHolders.add(added.getId());
       } else {
-        hp = Integer.valueOf(hp.intValue() + change.getDelta());
+        // Cache (target, delta) under the holder's id so we can
+        // reverse on Decay-reaper removal without depending on the
+        // removed-entity component snapshot — see TrackedApply Javadoc.
+        trackedApplied.put(added.getId(), new TrackedApply(ct.target(), delta));
       }
-      health.put(b.getTarget(), hp);
-
-      // Delete the buff entity
-      ed.removeEntity(e.getId());
     }
-  }
 
-  /**
-   * For every entity with a {@link Recharge}, queue a positive
-   * {@link #damage(EntityId, int)} delta proportional to {@code tpf} —
-   * skipping entities already at their effective cap.
-   */
-  private void applyRecharges(final SimTime time) {
-    recharges.applyChanges();
-    for (final Entity e : recharges) {
-      if (capped.containsId(e.getId()) && getHealth(e.getId()) >= getCap(e.getId())) {
-        // Already at cap — nothing to recharge.
+    // Phase 2 — apply fold-sum per target, skip-no-op writes, death edge.
+    for (final Map.Entry<EntityId, Integer> e : deltaByTarget.entrySet()) {
+      applyDelta(e.getKey(), e.getValue());
+    }
+
+    // Phase 3 — destroy one-shot holders.
+    for (final EntityId id : oneShotHolders) {
+      ed.removeEntity(id);
+    }
+
+    // Phase 4 — reverse delta on Decay-reaper removals. We do NOT read
+    // the ChangeTarget off the removed Entity — see TrackedApply.
+    for (final Entity removed : changes.getRemovedEntities()) {
+      final TrackedApply applied = trackedApplied.remove(removed.getId());
+      if (applied == null) {
+        // Writer destroyed it itself (one-shot); the remove signal is
+        // the trailing echo. Nothing to do.
         continue;
       }
-      final double tpf = time.getTpf();
-      final Recharge recharge = e.get(Recharge.class);
-      final int charge = Math.toIntExact(Math.round(tpf * recharge.getRechargePerSecond()));
-      damage(e.getId(), charge);
+      applyDelta(applied.target(), -applied.delta());
     }
   }
 
   /**
-   * Apply every accumulated delta in {@link #health} to the matching live
-   * entity, clamping at the cap if one exists, and triggering the death
-   * branch when the post-delta pool reaches zero.
+   * Apply a folded delta to the target's Energy pool: read current,
+   * clamp at the cap (when an {@link EnergyStats} exists on the target),
+   * skip no-op writes, trigger death on the zero edge.
    */
-  private void applyAccumulatedChanges(final SimTime time) {
-    for (final Map.Entry<EntityId, Integer> entry : health.entrySet()) {
-      final Entity target = living.getEntity(entry.getKey());
-
-      if (target == null) {
-        if (log.isWarnEnabled()) {
-          log.warn("No target for id: {}", entry.getKey());
-        }
-        continue;
-      }
-
-      Health hp = target.get(Health.class);
-
-      // If we don't have a cap, just apply the delta as-is.
-      if (!capped.containsId(target.getId())) {
-        hp = hp.newAdjusted(entry.getValue().intValue());
-      } else {
-        // Cap exists — clamp the post-delta pool at the current cap.
-        final Energy cap = capped.getEntity(target.getId()).get(Energy.class);
-        final int next = hp.getHealth() + entry.getValue().intValue();
-        hp = new Health(Math.min(next, cap.getEnergy()));
-      }
-
-      target.set(hp);
-
-      if (hp.getHealth() <= 0) {
-        handleDeath(target, time);
-      }
+  private void applyDelta(final EntityId target, final int delta) {
+    final Entity targetEntity = living.getEntity(target);
+    if (targetEntity == null) {
+      // Target has no Energy/EnergyStats pair — no pool to apply against
+      // (also covers the no-cap path; today every ship has both).
+      return;
+    }
+    final Energy current = targetEntity.get(Energy.class);
+    final EnergyStats stats = targetEntity.get(EnergyStats.class);
+    final int proposed = current.getEnergy() + delta;
+    final int clamped = Math.min(proposed, stats.max());
+    if (clamped == current.getEnergy()) {
+      // RaM rule #6 — skip no-op writes.
+      return;
+    }
+    ed.setComponent(target, new Energy(clamped));
+    if (clamped <= 0) {
+      handleDeath(targetEntity);
     }
   }
 
   /**
-   * Mark {@code target} dead (idempotent — no-op if already {@link Dead}) and
-   * spawn a death prize at the body's last known location for player ships.
-   * Slice 8b: filter for {@link Player} so non-ship dying entities (any future
-   * Health-bearing thing) don't trigger a prize. {@code BodyPosition} is the
-   * current world coord — captured synchronously while it's still valid (the
-   * Decay reaper can sweep the entity later). {@link PrizeSystem} handles the
-   * no-op when the arena's {@code PrizeConfig.deathPrizeTimeMs == 0}
-   * (death-drops disabled).
+   * Mark {@code target} dead (idempotent — no-op if already {@link Dead})
+   * and spawn a death prize at the body's last known location for
+   * player ships. Filters for {@link Player} so non-ship dying entities
+   * (any future Energy-bearing thing) don't trigger a prize.
    */
-  private void handleDeath(final Entity target, final SimTime time) {
+  private void handleDeath(final Entity target) {
+    final long now = System.nanoTime();
     if (log.isInfoEnabled()) {
       log.info("Entity {} died", target.getId());
     }
-    // don't set death if it is already dead.
     if (ed.getComponent(target.getId(), Dead.class) != null) {
       return;
     }
-    target.set(new Dead(time.getTime()));
+    target.set(new Dead(now));
     if (ed.getComponent(target.getId(), Player.class) == null) {
       return;
     }
@@ -218,77 +289,75 @@ public class EnergySystem extends BaseInfinitySystem {
       prizeSystem = getSystem(PrizeSystem.class);
     }
     if (prizeSystem != null) {
-      prizeSystem.spawnDeathPrize(target.getId(), bp.getLastLocation(), time.getTime());
+      prizeSystem.spawnDeathPrize(target.getId(), bp.getLastLocation(), now);
     }
   }
 
   /**
-   * Returns true if the entity has a live {@link Health} pool.
+   * Returns true if the entity has a live {@link Energy} pool.
    *
    * @param entityId the entityid to check
-   * @return true if the entity has health, false if not
+   * @return true if the entity has Energy, false if not
    */
   public boolean hasEnergy(final EntityId entityId) {
     return living.containsId(entityId);
   }
 
   /**
-   * Returns the entity's current live {@link Health} value (the depleting
-   * pool).
+   * Returns the entity's current live {@link Energy} value (the
+   * depleting pool).
    *
    * @param entityId the entityid to check
-   * @return the live health of the entity
+   * @return the live Energy of the entity
    */
   public int getHealth(final EntityId entityId) {
-    return living.getEntity(entityId).get(Health.class).getHealth();
+    return living.getEntity(entityId).get(Energy.class).getEnergy();
   }
 
   /**
-   * Returns the entity's current effective energy cap (the upgradeable
-   * {@link Energy} the live pool tops out at; <i>not</i> the absolute
-   * hard cap {@code EnergyMax}).
+   * Returns the entity's current effective energy cap
+   * ({@link EnergyStats#max()}).
    *
    * @param entityId the entity to check
    * @return the current effective cap
    */
   public int getCap(final EntityId entityId) {
-    return capped.getEntity(entityId).get(Energy.class).getEnergy();
+    return living.getEntity(entityId).get(EnergyStats.class).max();
   }
 
   /**
-   * Creates a health change for the specified entity. The health change will be applied at the next
-   * update.
-   *
-   * <p>Unattributed: no {@link DamageSource} sibling is stamped on the intent.
-   * Reactors that fork on intent type (e.g. hit-feedback) treat absence of
-   * {@link DamageSource} as "regen / unsourced." Use
+   * Unattributed emit — create a Change holder carrying
+   * {@link ChangeTarget#self(EntityId)} + {@link EnergyChange}. No
+   * {@link DamageSource} sibling; reactors that fork on intent type
+   * (e.g. hit-feedback) treat absence of {@link DamageSource} as
+   * "regen / unsourced." Use
    * {@link #damage(EntityId, int, EntityId, byte)} when the originator
-   * (attacker / firing ship / world hazard) is known.
+   * is known.
    *
-   * @param entityId the entity to create a health change for
-   * @param deltaHitPoints the change in hitpoints (can be both positive an negative)
+   * @param entityId the entity to apply a delta to
+   * @param deltaHitPoints the change in pool value (positive = heal,
+   *     negative = damage)
    */
   public void damage(final EntityId entityId, final int deltaHitPoints) {
-    final EntityId healthChange = ed.createEntity();
-    ed.setComponents(healthChange, new Buff(entityId, 0), new HealthChange(deltaHitPoints));
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(entityId), new EnergyChange(deltaHitPoints));
   }
 
   /**
-   * Attributed overload of {@link #damage(EntityId, int)} — emits the same
-   * {@code HealthChange + Buff} intent plus a {@link DamageSource} sibling
-   * carrying the originating entity and weapon family.
+   * Attributed overload — emits a Change holder with a
+   * {@link DamageSource} sibling carrying the originating entity and
+   * weapon family. Used by {@code WeaponsDamageLogic} (direct hits,
+   * splash) and {@code WeaponsEligibility.deductCostOfAttack} (self-
+   * cost shape). The {@code source} field of the
+   * {@link ChangeTarget} also records the attribution; the
+   * {@link DamageSource} sibling additionally carries the
+   * weapon-family discriminator.
    *
-   * <p>Replacement-as-Mutation pilot (see docs/adr/0001-ecs-component-model.md):
-   * the existing intent shape is wire-stable and stays the same; the new
-   * {@link DamageSource} component lets reactors fork on intent type without
-   * losing the legacy contract. Pass {@link EntityId#NULL_ID} +
-   * {@link WeaponType#NONE} for unattributed paths (in which case prefer
-   * {@link #damage(EntityId, int)} — same effect, less ceremony).
-   *
-   * @param entityId the entity whose Health pool should change
+   * @param entityId the entity whose pool should change
    * @param deltaHitPoints the delta (negative = damage, positive = heal)
-   * @param source the originating entity (attacker for enemy hits; firing
-   *     ship for self-cost-deduction; world / null for environmental)
+   * @param source the originating entity (attacker for enemy hits;
+   *     firing ship for self-cost-deduction; {@link EntityId#NULL_ID}
+   *     for world / unattributed)
    * @param weaponFlag one of the {@link WeaponType} byte constants;
    *     {@link WeaponType#NONE} for non-weapon paths
    */
@@ -297,45 +366,11 @@ public class EnergySystem extends BaseInfinitySystem {
       final int deltaHitPoints,
       final EntityId source,
       final byte weaponFlag) {
-    final EntityId healthChange = ed.createEntity();
+    final EntityId holder = ed.createEntity();
     ed.setComponents(
-        healthChange,
-        new Buff(entityId, 0),
-        new HealthChange(deltaHitPoints),
+        holder,
+        new ChangeTarget(entityId, source),
+        new EnergyChange(deltaHitPoints),
         new DamageSource(source, weaponFlag));
-  }
-
-  /**
-   * Refills the entity's live {@link Health} pool to its current effective cap
-   * {@link Energy}. Used by the QUICKCHARGE prize.
-   *
-   * <p>Replacement-as-Mutation (.claude/rules/replacement-as-mutation.md):
-   * routes through the canonical {@link #damage(EntityId, int)} intent path
-   * rather than writing {@link Health} directly. The refill is encoded as a
-   * positive {@code HealthChange} delta of {@code cap - currentHealth}; the
-   * canonical writer ({@link #applyAccumulatedChanges}) drains it and clamps
-   * at the cap on the next tick edge. RaM rule #6 ("skip no-op replacements")
-   * — when the pool is already at cap, no intent is emitted.
-   *
-   * <p>Return value: the projected post-fold pool value (i.e. the current
-   * {@link Energy} cap, which is also the value the pool will reach once the
-   * intent drains). The immediate {@link Health} component is unchanged at
-   * call time; readers that need the authoritative post-refill value should
-   * wait for the next tick boundary. The only existing caller
-   * ({@code QuickChargePrizeApplier}) discards the return value.
-   *
-   * @param entityId the entity to refill (must have both Health and Energy)
-   * @return the projected live health value after the intent resolves
-   *     (equal to the current effective cap)
-   */
-  public int refillHealth(final EntityId entityId) {
-    final Entity e = ed.getEntity(entityId, Health.class, Energy.class);
-    final int capValue = e.get(Energy.class).getEnergy();
-    final int currentHealthValue = e.get(Health.class).getHealth();
-    final int delta = capValue - currentHealthValue;
-    if (delta != 0) {
-      damage(entityId, delta);
-    }
-    return capValue;
   }
 }

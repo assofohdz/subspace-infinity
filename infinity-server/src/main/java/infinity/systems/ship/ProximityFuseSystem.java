@@ -21,7 +21,7 @@ import infinity.es.Frequency;
 import infinity.es.Parent;
 import infinity.es.ProximityArmed;
 import infinity.es.ProximityFuse;
-import infinity.es.ship.Health;
+import infinity.es.ship.Energy;
 import infinity.systems.BaseInfinitySystem;
 
 /**
@@ -33,7 +33,7 @@ import infinity.systems.BaseInfinitySystem;
  * proximity-fuse projectiles:
  * <ol>
  *   <li><b>Arming</b> — for projectiles without {@link ProximityArmed},
- *       distance-scan all {@link Health}-bearing entities. If any enemy
+ *       distance-scan all {@link Energy}-bearing entities. If any enemy
  *       sits inside {@code ProximityFuse.radiusWorldUnits}, stamp
  *       {@link ProximityArmed} with the current sim-time nanos. The
  *       projectile's own owner ({@link Parent}) is excluded so a bomb
@@ -81,7 +81,7 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
 
     fuseProjectiles =
         ed.getEntities(ProximityFuse.class, Damage.class, Parent.class);
-    potentialVictims = ed.getEntities(Health.class);
+    potentialVictims = ed.getEntities(Energy.class);
   }
 
   @Override

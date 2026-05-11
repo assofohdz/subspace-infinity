@@ -5,26 +5,29 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.RechargeUpgrade;
-import infinity.es.ship.actions.CapBump;
-import infinity.es.ship.actions.CapField;
-import infinity.es.ship.actions.Intent;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.EnergyStats;
+import infinity.es.ship.EnergyStatsChange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
- * {@link CapBump} payload tagged {@link CapField#RECHARGE} carrying
- * the ship's per-prize {@link RechargeUpgrade} delta (energy/sec —
- * already converted from Subspace raw units at spawn projection); the
- * canonical writer ({@code ShipSpawnSystem}) drains the intent to fold
- * the delta into {@code Recharge} (clamped at {@code RechargeMax}).
+ * <b>CAPABILITY family.</b> Emits a Change holder entity carrying
+ * {@link ChangeTarget#self(EntityId)} +
+ * {@link EnergyStatsChange#ofRechargePerSecond(double)} carrying the
+ * ship's per-prize {@link EnergyStats#rechargeUpgrade()} delta
+ * (energy/sec — already converted from Subspace per-10-second units
+ * at spawn projection); the canonical writer
+ * ({@code EnergyStatsSystem}) drains the Change to fold the delta into
+ * {@code EnergyStats.rechargePerSecond} (clamped at
+ * {@code EnergyStats.rechargeMax}).
  *
- * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
- * {@code Recharge} directly. Same-tick multi-prize pickup accumulates
- * additively per {@link CapBump} class Javadoc. Closes the
- * {@code ShipSpawnSystem} / {@code RechargePrizeApplier} multi-writer
- * violation on the {@code Recharge} component (BACKLOG C2a ship-body).
+ * <p><b>ADR 0001 migration.</b> Was previously
+ * {@code Intent.of(ship, new CapBump(CapField.RECHARGE, delta))}
+ * drained by {@code ShipSpawnSystem}'s {@code drainCapBumpIntents}.
+ * Now emits the Change-entity shape per
+ * {@code .claude/rules/replacement-as-mutation.md}. Same-tick
+ * multi-prize pickup still accumulates additively.
  *
  * <p>Subspace canonical encoding (REFERENCE.md {@code ## PrizeWeight}
  * lines 235-236, VIE↔UI naming inversion): the class name
@@ -50,18 +53,21 @@ public final class RechargePrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final RechargeUpgrade up = ed.getComponent(ship, RechargeUpgrade.class);
-    if (up == null) {
+    final EnergyStats stats = ed.getComponent(ship, EnergyStats.class);
+    if (stats == null) {
       return;
     }
-    final double delta = up.getRechargePerSecondUpgrade();
+    final double delta = stats.rechargeUpgrade();
     if (Double.compare(delta, 0.0) == 0) {
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Ship {} recharge upgrade: emitting cap-bump intent delta={}", ship, delta);
+      log.info("Ship {} recharge upgrade: emitting EnergyStatsChange delta={}", ship, delta);
     }
-    final EntityId intentId = ed.createEntity();
-    ed.setComponent(intentId, Intent.of(ship, new CapBump(CapField.RECHARGE, delta)));
+    final EntityId changeId = ed.createEntity();
+    ed.setComponents(
+        changeId,
+        ChangeTarget.self(ship),
+        EnergyStatsChange.ofRechargePerSecond(delta));
   }
 }

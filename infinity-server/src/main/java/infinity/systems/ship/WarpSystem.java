@@ -26,7 +26,7 @@ import infinity.systems.MapSystem;
 import infinity.systems.WorldSystem;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
-import infinity.es.ship.Health;
+import infinity.es.ship.Energy;
 import infinity.es.ship.actions.WarpTo;
 import com.simsilica.mworld.World;
 import infinity.InfinityConstants;
@@ -72,7 +72,7 @@ public class WarpSystem extends BaseInfinitySystem
     warpTouchEntities = ed.getEntities(WarpTouch.class);
     warpToEntities = ed.getEntities(BodyPosition.class, WarpTo.class);
 
-    canWarp = ed.getEntities(BodyPosition.class, Health.class);
+    canWarp = ed.getEntities(BodyPosition.class, Energy.class);
 
     // Register consuming methods for patterns
     getSystem(InfinityChatHostedService.class)

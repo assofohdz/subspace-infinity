@@ -79,8 +79,9 @@ import org.slf4j.LoggerFactory;
  *       system writes them).
  *   <li><b>Attributed cost-deduction intent</b> (via
  *       {@link WeaponsEligibility#deductCostOfAttack}): emits
- *       {@code Buff + HealthChange + DamageSource(self, weaponFlag)}
- *       intent entities; drained by the canonical {@link EnergySystem}.
+ *       {@code ChangeTarget + EnergyChange + DamageSource(self, weaponFlag)}
+ *       Change holder entities; drained by the canonical
+ *       {@link EnergySystem}.
  *   <li><b>Bomb recoil intent</b> (via
  *       {@link WeaponsDamageLogic#applyBombRecoil}): emits
  *       {@link com.simsilica.ext.mphys.Impulse} on the firing ship; drained
@@ -163,7 +164,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
         ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
     mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineCost.class);
 
-    energyEntities = ed.getEntities(infinity.es.ship.Health.class);
+    energyEntities = ed.getEntities(infinity.es.ship.Energy.class);
   }
 
   @Override
@@ -219,7 +220,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
   }
 
   /**
-   * Debits the matching Cost from Health via the attributed
+   * Debits the matching Cost from Energy via the attributed
    * {@link EnergySystem#damage(EntityId, int, EntityId, byte)} overload — see
    * {@link WeaponsEligibility#deductCostOfAttack}.
    */

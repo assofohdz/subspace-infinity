@@ -17,14 +17,9 @@ import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.EnergyUpgrade;
-import infinity.es.ship.Health;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ResetLivePool;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.RechargeMax;
-import infinity.es.ship.RechargeUpgrade;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.RotationMax;
 import infinity.es.ship.RotationUpgrade;
@@ -430,8 +425,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     projectThrust(shipId, cfg.thrust());
     projectSpeed(shipId, cfg.speed());
     projectRotation(shipId, cfg.rotation());
-    projectRecharge(shipId, cfg.recharge());
-    projectEnergy(shipId, cfg.energy(), resetLivePool);
+    projectEnergyStats(shipId, cfg.energy(), cfg.recharge(), resetLivePool);
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
     // Weapon / inventory projections — delegated to ShipWeaponsProjector to
@@ -490,23 +484,55 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     ed.setComponent(shipId, new RotationUpgrade(stat.upgrade() * ROTATION_UNITS_TO_RAD_SEC));
   }
 
-  private void projectRecharge(final EntityId shipId, final ShipStat stat) {
-    ed.setComponent(shipId, new Recharge(stat.initial() * RECHARGE_UNITS_TO_PER_SEC));
-    ed.setComponent(shipId, new RechargeMax(stat.max() * RECHARGE_UNITS_TO_PER_SEC));
-    ed.setComponent(shipId, new RechargeUpgrade(stat.upgrade() * RECHARGE_UNITS_TO_PER_SEC));
-  }
-
-  private void projectEnergy(
-      final EntityId shipId, final ShipStat stat, final boolean resetLivePool) {
-    // Pattern 4 split: Health is the live pool (depletes from damage / weapon
-    // costs, regens via Recharge up to Energy); Energy is the upgradeable cap;
-    // EnergyMax is the absolute hard cap on Energy.
+  /**
+   * Pattern 4 + ADR 0001 split: {@link Energy} is the live pool
+   * (depletes from damage / weapon costs, regens via the recharge rate
+   * in {@link EnergyStats} up to {@code EnergyStats.max}). The bundled
+   * {@link EnergyStats} record carries the upgradeable cap
+   * ({@code max}), the absolute hard cap ({@code hardMax}), the per-
+   * pickup increment ({@code upgrade}), and the three-tuple for the
+   * recharge rate (current / max / upgrade in energy/sec — Subspace's
+   * per-10-second integer converted at this projection boundary).
+   *
+   * <p><b>Respawn vs tuning semantics</b> (preserved from pre-ADR
+   * {@code projectEnergy} + {@code projectRecharge}). On respawn
+   * ({@code resetLivePool=true}) every field re-projects from
+   * template and the live {@link Energy} pool resets. On tuning
+   * reload ({@code resetLivePool=false}, fires on Groovy hot-reload
+   * and arena cross), the {@code max} field (current effective cap)
+   * is preserved so a player's accumulated cap upgrades survive the
+   * reload — every other field re-projects from template, mirroring
+   * the pre-ADR behaviour where the {@code Energy} cap component was
+   * guarded by {@code resetLivePool} but the {@code Recharge} family
+   * always re-projected. The live {@link Energy} pool is also
+   * preserved on tuning so a damaged ship doesn't free-heal.
+   */
+  private void projectEnergyStats(
+      final EntityId shipId,
+      final ShipStat energyStat,
+      final ShipStat rechargeStat,
+      final boolean resetLivePool) {
     if (resetLivePool) {
-      ed.setComponent(shipId, new Health(stat.initial()));
-      ed.setComponent(shipId, new Energy(stat.initial()));
+      ed.setComponent(shipId, new Energy(energyStat.initial()));
     }
-    ed.setComponent(shipId, new EnergyMax(stat.max()));
-    ed.setComponent(shipId, new EnergyUpgrade(stat.upgrade()));
+    final int max;
+    if (resetLivePool) {
+      max = energyStat.initial();
+    } else {
+      // Tuning reload — preserve the current effective cap (matches
+      // pre-ADR behaviour where Energy component survived reproject).
+      final EnergyStats existing = ed.getComponent(shipId, EnergyStats.class);
+      max = existing == null ? energyStat.initial() : existing.max();
+    }
+    ed.setComponent(
+        shipId,
+        new EnergyStats(
+            max,
+            energyStat.max(),
+            energyStat.upgrade(),
+            rechargeStat.initial() * RECHARGE_UNITS_TO_PER_SEC,
+            rechargeStat.max() * RECHARGE_UNITS_TO_PER_SEC,
+            rechargeStat.upgrade() * RECHARGE_UNITS_TO_PER_SEC));
   }
 
   private void projectFeel(final EntityId shipId, final ShipConfig cfg) {

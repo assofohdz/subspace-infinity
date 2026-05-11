@@ -14,7 +14,7 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.SplashDamage;
-import infinity.es.ship.Health;
+import infinity.es.ship.Energy;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.sim.WeaponFactory;
 import infinity.systems.ArenaSystem;
@@ -42,8 +42,8 @@ import infinity.systems.BaseInfinitySystem;
  *       through {@link WeaponsDamageLogic#applyDirectHitDamage} /
  *       {@link WeaponsDamageLogic#applySplashDamage}, which call the
  *       attributed {@link EnergySystem#damage(EntityId, int, EntityId, byte)}
- *       overload — the canonical {@link infinity.es.HealthChange} writer
- *       still owns the {@link Health} mutation.
+ *       overload — the canonical {@link infinity.es.ship.EnergyChange}
+ *       writer still owns the {@link Energy} mutation.
  *   <li><b>{@link infinity.es.Jitter} stamp</b> (single writer for the
  *       splash + direct-hit damage paths via
  *       {@link WeaponsDamageLogic#stampJitter}). Mirrors the legacy seam;
@@ -70,9 +70,9 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
   private EnergySystem energySystem;
 
   /**
-   * Health-bearer EntitySet — the splash-damage scan filter. Held by this
+   * Energy-bearer EntitySet — the splash-damage scan filter. Held by this
    * system so {@link WeaponsImpactSystem} doesn't duplicate the same set; the
-   * splash path needs a snapshot of the live {@link Health} bearers to gate
+   * splash path needs a snapshot of the live {@link Energy} bearers to gate
    * out non-ship hits (projectiles, prizes, doors) before damage.
    */
   private EntitySet healthBearers;
@@ -87,7 +87,7 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
     arenaSystem = requireSystem(ArenaSystem.class);
     energySystem = requireSystem(EnergySystem.class);
 
-    healthBearers = ed.getEntities(Health.class);
+    healthBearers = ed.getEntities(Energy.class);
   }
 
   @Override

@@ -127,6 +127,7 @@ import infinity.systems.RegionSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.ship.EnergySystem;
+import infinity.systems.ship.EnergyStatsSystem;
 import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
@@ -256,6 +257,17 @@ public class GameServer {
     systems.addSystem(
         new EntityUpdater(server.getServices().getService(EntityDataHostedService.class), true));
 
+    // ADR 0001 canonical writers MUST register BEFORE DecaySystem. The
+    // Change-entity drain pattern relies on the writer's update running
+    // first so the tick that reaps a Decay-bound Change entity sees:
+    // (a) writer.add → apply + cache (target, delta) THEN (b) reaper
+    // destroys THEN (next tick) writer.remove → reverse from cache.
+    // Registering EnergySystem / EnergyStatsSystem after DecaySystem
+    // would let the reaper destroy the entity before the writer has a
+    // chance to cache the tuple, breaking reverse-on-expiry.
+    systems.register(EnergySystem.class, new EnergySystem());
+    systems.register(EnergyStatsSystem.class, new EnergyStatsSystem());
+
     // Add some standard systems
     systems.addSystem(new DecaySystem());
     // Slice 9c-JitterTime: reap expired Jitter components from bomb-damage
@@ -324,7 +336,8 @@ public class GameServer {
     systems.register(ContactSystem.class, contactSystem);
     mBlockShapeMPhysSystem.getPhysicsSpace().setContactDispatcher(contactSystem);
     // Then add gamesystems:
-    systems.register(EnergySystem.class, new EnergySystem());
+    // EnergySystem / EnergyStatsSystem registered earlier (above
+    // DecaySystem) per ADR 0001 Change-entity drain ordering.
     systems.register(AvatarSystem.class, new AvatarSystem());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());

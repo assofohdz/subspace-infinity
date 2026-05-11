@@ -10,10 +10,6 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
-import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.RechargeMax;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.RotationMax;
 import infinity.es.ship.Speed;
@@ -30,11 +26,9 @@ import org.junit.Test;
 /**
  * Pins the cap-bump intent drain owned by {@link ShipSpawnSystem}
  * (BACKLOG C2a ship-body group — closes the prize-applier multi-writer
- * violations on {@link Energy} / {@link Recharge} / {@link Rotation} /
- * {@link Thrust} / {@link Speed}).
+ * violations on {@link Rotation} / {@link Thrust} / {@link Speed}).
  *
- * <p>Each upgrade-prize applier ({@code EnergyPrizeApplier},
- * {@code RechargePrizeApplier}, {@code RotationPrizeApplier},
+ * <p>Each remaining cap-bump prize applier ({@code RotationPrizeApplier},
  * {@code ThrusterPrizeApplier}, {@code TopSpeedPrizeApplier}) emits
  * {@code Intent.of(ship, new CapBump(CapField.X, delta))} using the
  * universal {@link Intent} wrapper with target on the wrapper and the
@@ -43,6 +37,14 @@ import org.junit.Test;
  * CapBump.class}, folds same-tick deltas additively per
  * {@code (target, CapField)}, and defers per-field read/clamp/skip-no-
  * op/write to {@link CapField#apply}.
+ *
+ * <p><b>ADR 0001 Energy aspect pilot:</b> the {@code CapField.ENERGY}
+ * and {@code CapField.RECHARGE} entries were removed; those cap bumps
+ * now flow through {@code EnergyStatsChange} drained by
+ * {@code EnergyStatsSystem} per the new Change-entity recipe. This
+ * test file lost the {@code Energy} / {@code Recharge} coverage in
+ * the same change and retains only the unmigrated three fields
+ * (Rotation / Thrust / Speed) until their per-aspect pilots land.
  *
  * <p>This test boots a minimal {@link GameSystemManager} with just
  * {@link EntityData}, {@link ConfigRegistrySystem}, and
@@ -56,20 +58,20 @@ public class CapBumpIntentDrainTest {
   // ---- Single bump → cap reaches currentBefore + upgrade ---------------
 
   @Test
-  public void singleEnergyIntent_bumpsCapByDelta() {
+  public void singleThrustIntent_bumpsCapByDelta() {
     final GameSystemManager systems = new GameSystemManager();
     final DefaultEntityData ed = new DefaultEntityData();
     registerSystems(systems, ed);
     try {
       final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Energy(500));
-      ed.setComponent(ship, new EnergyMax(1700));
+      ed.setComponent(ship, new Thrust(16));
+      ed.setComponent(ship, new ThrustMax(19));
 
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
+      emit(ed, ship, new CapBump(CapField.THRUST, 2));
       systems.update();
 
       assertEquals(
-          "Energy bumped by delta", 600, ed.getComponent(ship, Energy.class).getEnergy());
+          "Thrust bumped by delta", 18, ed.getComponent(ship, Thrust.class).getThrust());
     } finally {
       stop(systems);
     }
@@ -78,48 +80,48 @@ public class CapBumpIntentDrainTest {
   // ---- Multi-prize same-tick → deltas accumulate additively ------------
 
   @Test
-  public void multipleEnergyIntents_sameTickAccumulate() {
+  public void multipleThrustIntents_sameTickAccumulate() {
     final GameSystemManager systems = new GameSystemManager();
     final DefaultEntityData ed = new DefaultEntityData();
     registerSystems(systems, ed);
     try {
       final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Energy(500));
-      ed.setComponent(ship, new EnergyMax(1700));
+      ed.setComponent(ship, new Thrust(10));
+      ed.setComponent(ship, new ThrustMax(100));
 
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
+      emit(ed, ship, new CapBump(CapField.THRUST, 5));
+      emit(ed, ship, new CapBump(CapField.THRUST, 5));
+      emit(ed, ship, new CapBump(CapField.THRUST, 5));
       systems.update();
 
       assertEquals(
           "Three same-tick bumps accumulate to 3× delta",
-          800,
-          ed.getComponent(ship, Energy.class).getEnergy());
+          25,
+          ed.getComponent(ship, Thrust.class).getThrust());
     } finally {
       stop(systems);
     }
   }
 
-  // ---- Max-cap clamp: bump clamped at EnergyMax ------------------------
+  // ---- Max-cap clamp: bump clamped at ThrustMax ------------------------
 
   @Test
-  public void energyBumpClampsAtMax() {
+  public void thrustBumpClampsAtMax() {
     final GameSystemManager systems = new GameSystemManager();
     final DefaultEntityData ed = new DefaultEntityData();
     registerSystems(systems, ed);
     try {
       final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Energy(1650));
-      ed.setComponent(ship, new EnergyMax(1700));
+      ed.setComponent(ship, new Thrust(17));
+      ed.setComponent(ship, new ThrustMax(19));
 
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
+      emit(ed, ship, new CapBump(CapField.THRUST, 10));
       systems.update();
 
       assertEquals(
-          "Bump clamped at EnergyMax (1700), not 1750",
-          1700,
-          ed.getComponent(ship, Energy.class).getEnergy());
+          "Bump clamped at ThrustMax (19), not 27",
+          19,
+          ed.getComponent(ship, Thrust.class).getThrust());
     } finally {
       stop(systems);
     }
@@ -128,26 +130,23 @@ public class CapBumpIntentDrainTest {
   // ---- No-op skip: already at cap → intent drained but no value change -
 
   @Test
-  public void energyAlreadyAtMax_noOpSkip() {
+  public void thrustAlreadyAtMax_noOpSkip() {
     final GameSystemManager systems = new GameSystemManager();
     final DefaultEntityData ed = new DefaultEntityData();
     registerSystems(systems, ed);
     try {
       final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Energy(1700));
-      ed.setComponent(ship, new EnergyMax(1700));
+      ed.setComponent(ship, new Thrust(19));
+      ed.setComponent(ship, new ThrustMax(19));
 
-      final EntityId intentId = emit(ed, ship, new CapBump(CapField.ENERGY, 100));
+      final EntityId intentId = emit(ed, ship, new CapBump(CapField.THRUST, 10));
       systems.update();
 
       // RaM rule #6: skip no-op replacements (proposed == current).
-      // We can't directly observe "did the change event fire" from this
-      // test layer, but we can observe that the value stayed at the cap
-      // and the intent entity was still consumed (drain ran).
       assertEquals(
-          "Energy stays at cap when already at max",
-          1700,
-          ed.getComponent(ship, Energy.class).getEnergy());
+          "Thrust stays at cap when already at max",
+          19,
+          ed.getComponent(ship, Thrust.class).getThrust());
       assertNull(
           "Intent entity removed even when fold was a no-op",
           ed.getComponent(intentId, Intent.class));
@@ -156,13 +155,7 @@ public class CapBumpIntentDrainTest {
     }
   }
 
-  // ---- Cross-field independence: Energy + Speed bumps land separately --
-  //
-  // Pins that the single CapBump drain dispatches per CapField — an Energy
-  // bump must not corrupt Speed and vice versa. With the unified payload
-  // there is no per-type FieldFilter narrowing to verify; instead, this
-  // test pins that the (target, CapField) fold key keeps cross-field
-  // bumps independent inside the single drain loop.
+  // ---- Cross-field independence: Speed + Thrust bumps land separately --
 
   @Test
   public void crossFieldIntents_independentlyUpdateBothFields() {
@@ -171,17 +164,17 @@ public class CapBumpIntentDrainTest {
     registerSystems(systems, ed);
     try {
       final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Energy(500));
-      ed.setComponent(ship, new EnergyMax(1700));
+      ed.setComponent(ship, new Thrust(16));
+      ed.setComponent(ship, new ThrustMax(19));
       ed.setComponent(ship, new Speed(2000));
       ed.setComponent(ship, new SpeedMax(3250));
 
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
+      emit(ed, ship, new CapBump(CapField.THRUST, 2));
       emit(ed, ship, new CapBump(CapField.SPEED, 250));
       systems.update();
 
       assertEquals(
-          "Energy bumped independently", 600, ed.getComponent(ship, Energy.class).getEnergy());
+          "Thrust bumped independently", 18, ed.getComponent(ship, Thrust.class).getThrust());
       assertEquals(
           "Speed bumped independently", 2250, ed.getComponent(ship, Speed.class).getSpeed());
     } finally {
@@ -190,12 +183,6 @@ public class CapBumpIntentDrainTest {
   }
 
   // ---- (target, CapField) fold key — per-field accumulation per target -
-  //
-  // Pins the fold key precisely: Energy+100 and Energy+50 against the same
-  // ship accumulate to +150 (folded within the ENERGY field), while a
-  // same-tick Speed+200 against the same ship is folded independently (no
-  // cross-field bleed). The fresh test the redesign asks for; the prior
-  // crossField test only proved "two fields don't collide" at 1 bump each.
 
   @Test
   public void capBumpAccumulation_perFieldPerTarget() {
@@ -204,49 +191,24 @@ public class CapBumpIntentDrainTest {
     registerSystems(systems, ed);
     try {
       final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Energy(500));
-      ed.setComponent(ship, new EnergyMax(1700));
+      ed.setComponent(ship, new Thrust(16));
+      ed.setComponent(ship, new ThrustMax(50));
       ed.setComponent(ship, new Speed(2000));
       ed.setComponent(ship, new SpeedMax(3250));
 
-      emit(ed, ship, new CapBump(CapField.ENERGY, 100));
-      emit(ed, ship, new CapBump(CapField.ENERGY, 50));
+      emit(ed, ship, new CapBump(CapField.THRUST, 2));
+      emit(ed, ship, new CapBump(CapField.THRUST, 4));
       emit(ed, ship, new CapBump(CapField.SPEED, 200));
       systems.update();
 
       assertEquals(
-          "Energy folded across two same-tick same-field bumps (100 + 50 = 150)",
-          650,
-          ed.getComponent(ship, Energy.class).getEnergy());
+          "Thrust folded across two same-tick same-field bumps (2 + 4 = 6)",
+          22,
+          ed.getComponent(ship, Thrust.class).getThrust());
       assertEquals(
-          "Speed folded independently of Energy (200, not 350)",
+          "Speed folded independently of Thrust (200, not 206)",
           2200,
           ed.getComponent(ship, Speed.class).getSpeed());
-    } finally {
-      stop(systems);
-    }
-  }
-
-  // ---- Recharge (double) cross-type smoke -----------------------------
-
-  @Test
-  public void singleRechargeIntent_bumpsCapByDelta() {
-    final GameSystemManager systems = new GameSystemManager();
-    final DefaultEntityData ed = new DefaultEntityData();
-    registerSystems(systems, ed);
-    try {
-      final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Recharge(40.0));
-      ed.setComponent(ship, new RechargeMax(115.0));
-
-      emit(ed, ship, new CapBump(CapField.RECHARGE, 16.6));
-      systems.update();
-
-      assertEquals(
-          "Recharge bumped by delta",
-          56.6,
-          ed.getComponent(ship, Recharge.class).getRechargePerSecond(),
-          1e-9);
     } finally {
       stop(systems);
     }
@@ -277,44 +239,13 @@ public class CapBumpIntentDrainTest {
     }
   }
 
-  // ---- Thrust cross-type smoke -----------------------------------------
-
-  @Test
-  public void singleThrustIntent_bumpsCapByDelta() {
-    final GameSystemManager systems = new GameSystemManager();
-    final DefaultEntityData ed = new DefaultEntityData();
-    registerSystems(systems, ed);
-    try {
-      final EntityId ship = ed.createEntity();
-      ed.setComponent(ship, new Thrust(16));
-      ed.setComponent(ship, new ThrustMax(19));
-
-      emit(ed, ship, new CapBump(CapField.THRUST, 2));
-      systems.update();
-
-      assertEquals(
-          "Thrust bumped by delta", 18, ed.getComponent(ship, Thrust.class).getThrust());
-    } finally {
-      stop(systems);
-    }
-  }
-
   // ---- Rocket buff + cap-bump same-tick: documents preserved limitation -
 
   /**
    * Pin the pre-C2a rocket-buff interaction: when a thruster prize is
-   * picked up during an active rocket buff, the cap-bump intent lands on
-   * the *buffed* {@link Thrust} value (because the cap-bump drain runs
-   * AFTER the rocket-buff drain). On revert, the snapshot restores the
-   * pre-buff value and the prize bump is lost.
-   *
-   * <p>This test pins the drain-order behaviour for one tick: same-tick
-   * activate + thrust-cap-bump → final Thrust is the activate-buffed
-   * value + cap-bump delta. The "lost on revert" half of the limitation
-   * is enforced by {@code RocketBuffSystem} which is not registered
-   * here; the cross-tick race would need a fuller harness to pin (out
-   * of scope — limitation is documented in {@code RocketSnapshot}
-   * Javadoc).
+   * picked up during an active rocket buff, the cap-bump intent lands
+   * on the *buffed* {@link Thrust} value (because the cap-bump drain
+   * runs AFTER the rocket-buff drain).
    */
   @Test
   public void rocketBuffActivate_thenThrustBump_landsOnBuffedValue() {

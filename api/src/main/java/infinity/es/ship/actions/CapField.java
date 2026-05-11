@@ -5,10 +5,6 @@ package infinity.es.ship.actions;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.RechargeMax;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.RotationMax;
 import infinity.es.ship.Speed;
@@ -31,17 +27,25 @@ import infinity.es.ship.ThrustMax;
  * pushes the per-field branching into a typed enum rather than a
  * 5-way switch.
  *
+ * <p><b>ADR 0001 migration status.</b> The {@code ENERGY} and
+ * {@code RECHARGE} entries were removed in the Energy aspect pilot
+ * — those cap bumps now flow through {@code EnergyStatsChange}
+ * drained by {@code EnergyStatsSystem} per the Change-entity recipe
+ * in {@code .claude/rules/replacement-as-mutation.md}. The remaining
+ * three entries ({@link #ROTATION}, {@link #THRUST}, {@link #SPEED})
+ * migrate to their own {@code *StatsChange} types in later aspect
+ * pilots; this enum is deleted once the cleanup slice lands.
+ *
  * <p><b>Delta truncation.</b> {@link CapBump} carries a single
  * {@code double} delta to give every field the same emit shape. For
- * the int-backed capabilities ({@link #ENERGY} / {@link #THRUST} /
- * {@link #SPEED}) the apply routine rounds half-away-from-zero via
- * {@link Math#round(double)} before clamping. For the double-backed
- * capabilities ({@link #RECHARGE} / {@link #ROTATION}) the delta
- * passes through directly. Emitters that integerize at the source
- * (the cap-bump prize appliers, which read int-typed {@code *Upgrade}
- * components) lose nothing to this widening; the truncation is only
- * relevant if a future caller emits a fractional delta against an
- * int-backed field.
+ * the int-backed capabilities ({@link #THRUST} / {@link #SPEED}) the
+ * apply routine rounds half-away-from-zero via {@link Math#round(double)}
+ * before clamping. For the double-backed capability
+ * ({@link #ROTATION}) the delta passes through directly. Emitters that
+ * integerize at the source (the cap-bump prize appliers, which read
+ * int-typed {@code *Upgrade} components) lose nothing to this widening;
+ * the truncation is only relevant if a future caller emits a
+ * fractional delta against an int-backed field.
  *
  * <p><b>No-op skip.</b> Each constant compares the post-clamp value to
  * the pre-bump current value and skips the {@code setComponent} call
@@ -52,42 +56,6 @@ import infinity.es.ship.ThrustMax;
  * @author Asser Fahrenholz
  */
 public enum CapField {
-
-  /** Bumps {@link Energy} (current cap), clamped at {@link EnergyMax}. */
-  ENERGY {
-    @Override
-    public void apply(
-        final EntityData ed, final EntityId target, final double totalDelta) {
-      final Energy current = ed.getComponent(target, Energy.class);
-      final EnergyMax max = ed.getComponent(target, EnergyMax.class);
-      if (current == null || max == null) {
-        return;
-      }
-      final int currentInt = current.getEnergy();
-      final int next = Math.min(currentInt + roundToInt(totalDelta), max.getMaxEnergy());
-      if (next != currentInt) {
-        ed.setComponent(target, new Energy(next));
-      }
-    }
-  },
-
-  /** Bumps {@link Recharge} (current rate, energy/sec), clamped at {@link RechargeMax}. */
-  RECHARGE {
-    @Override
-    public void apply(
-        final EntityData ed, final EntityId target, final double totalDelta) {
-      final Recharge current = ed.getComponent(target, Recharge.class);
-      final RechargeMax max = ed.getComponent(target, RechargeMax.class);
-      if (current == null || max == null) {
-        return;
-      }
-      final double currentDouble = current.getRechargePerSecond();
-      final double next = Math.min(currentDouble + totalDelta, max.getMaxRechargePerSecond());
-      if (Double.compare(next, currentDouble) != 0) {
-        ed.setComponent(target, new Recharge(next));
-      }
-    }
-  },
 
   /** Bumps {@link Rotation} (current rate, rad/sec), clamped at {@link RotationMax}. */
   ROTATION {

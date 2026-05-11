@@ -15,13 +15,10 @@ import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.Health;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Player;
 import infinity.es.ship.RadarRange;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.RechargeMax;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.RotationMax;
 import infinity.es.ship.ShipType;
@@ -72,8 +69,8 @@ import org.slf4j.LoggerFactory;
  *
  * <ul>
  *   <li>{@code ~checkships} — Pattern-4 spawn-projection coverage per ship
- *       (every ship should have Energy/EnergyMax/Recharge/RechargeMax/Rotation/
- *       RotationMax/Thrust/ThrustMax/Speed/SpeedMax + weapon current/max pairs).
+ *       (every ship should have Energy/EnergyStats/Rotation/RotationMax/
+ *       Thrust/ThrustMax/Speed/SpeedMax + weapon current/max pairs).
  *   <li>{@code ~ship [id]} — deep-dump every projected component on a ship
  *       (default: caller's avatar).
  *   <li>{@code ~checkcaptains} — verifies the captains EntitySet agrees with
@@ -166,10 +163,11 @@ public class ChecksShipsSystem extends AbstractGameSystem {
           .append(arenaId == null ? "<none>" : arenaId.getArena())
           .append('\n');
 
-      // Engine stats — Pattern 4 baseline (missing here = projection bug).
+      // Engine stats — Pattern-4 baseline (missing here = projection bug).
+      // Post-ADR 0001 Energy aspect pilot: Energy + EnergyStats replaces
+      // today's separate Energy/EnergyMax/Recharge/RechargeMax components.
       final int missing = appendComponentMatrix(sb, id,
-          Energy.class, EnergyMax.class,
-          Recharge.class, RechargeMax.class,
+          Energy.class, EnergyStats.class,
           Rotation.class, RotationMax.class,
           Thrust.class, ThrustMax.class,
           Speed.class, SpeedMax.class,
@@ -178,7 +176,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
           MineCurrentLevel.class, MineMaxLevel.class,
           BurstMax.class, ThorMaxCount.class);
       missingTotal += missing;
-      sb.append("  ").append(missing == 0 ? "engine OK — all 18 components present" : "engine MISSING " + missing).append('\n');
+      sb.append("  ").append(missing == 0 ? "engine OK — all 16 components present" : "engine MISSING " + missing).append('\n');
 
       // Inventory — absence is allowed (per-ship `*Max 0` = ship not allowed
       // that prize type), so we just report present/absent per pair without
@@ -228,13 +226,9 @@ public class ChecksShipsSystem extends AbstractGameSystem {
         .append(" freq=").append(freq == null ? "-" : freq.getFrequency())
         .append('\n');
 
-    // Engine — capability stat triples (current/max), live pool (Energy/Health),
-    // converted-unit doubles (Recharge/Rotation in per-sec / rad-sec).
-    sb.append("  energy: ");
-    appendIntPair(sb, target, "energy", Energy.class, EnergyMax.class);
-    appendInt(sb, target, "health", Health.class);
-    appendDoublePair(sb, target, "recharge", Recharge.class, RechargeMax.class);
-    sb.append('\n');
+    // Engine — capability stat triples (current/max), live pool (Energy),
+    // bundled EnergyStats (cap + recharge tuple).
+    appendEnergyLine(sb, target);
 
     sb.append("  movement:");
     appendIntPair(sb, target, "thrust", Thrust.class, ThrustMax.class);
@@ -297,22 +291,29 @@ public class ChecksShipsSystem extends AbstractGameSystem {
   // local to this file — adding a new component just means adding one line
   // to checkShip + one helper call.
 
-  private void appendInt(
-      final StringBuilder sb,
-      final EntityId id,
-      final String label,
-      final Class<? extends EntityComponent> c) {
-    final EntityComponent comp = ed.getComponent(id, c);
-    sb.append(' ').append(label).append('=');
-    if (comp == null) {
-      sb.append('-');
-    } else if (comp instanceof Health h) {
-      sb.append(h.getHealth());
-    } else if (comp instanceof Energy e) {
-      sb.append(e.getEnergy());
+  /**
+   * Append the post-ADR-0001 energy line: live pool +
+   * {@link EnergyStats} cap tuple + recharge tuple. Extracted from
+   * {@link #checkShip} so the dispatcher stays under PMD's
+   * cyclomatic / NPath complexity ceilings — the energy block alone
+   * contributes 4 ternaries.
+   */
+  private void appendEnergyLine(final StringBuilder sb, final EntityId target) {
+    final Energy energy = ed.getComponent(target, Energy.class);
+    final EnergyStats stats = ed.getComponent(target, EnergyStats.class);
+    final String pool = energy == null ? "-" : Integer.toString(energy.getEnergy());
+    final String cap = stats == null ? "-" : (stats.max() + "/" + stats.hardMax());
+    final String recharge;
+    if (stats == null) {
+      recharge = "-";
     } else {
-      sb.append('?');
+      recharge = formatDouble(stats.rechargePerSecond())
+          + "/" + formatDouble(stats.rechargeMax());
     }
+    sb.append("  energy: pool=").append(pool)
+        .append(" cap=").append(cap)
+        .append(" recharge=").append(recharge)
+        .append('\n');
   }
 
   private void appendDouble(
@@ -412,8 +413,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
    * Map-dispatch for the {@code label=current/max} formatter. Covers the entire
    * inventory family ({@code Repel/Burst/Thor/Brick/Decoy/Rocket/Portal} ×
    * {@code Current+Max}) plus the engine-stat scalars
-   * ({@code Energy/Thrust/Speed} × {@code current+max}). Replaces a 17-arm
-   * instanceof chain previously split across four sub-helpers.
+   * ({@code Thrust/Speed} × {@code current+max}).
    */
   private static final Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> INT_GETTERS = buildIntGetters();
 
@@ -436,9 +436,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     m.put(RocketMax.class, c -> ((RocketMax) c).getCount());
     m.put(Portal.class, c -> ((Portal) c).getCount());
     m.put(PortalMax.class, c -> ((PortalMax) c).getCount());
-    // Ship-stat scalars (Energy/Thrust/Speed × current+max).
-    m.put(Energy.class, c -> ((Energy) c).getEnergy());
-    m.put(EnergyMax.class, c -> ((EnergyMax) c).getMaxEnergy());
+    // Ship-stat scalars (Thrust/Speed × current+max).
     m.put(Thrust.class, c -> ((Thrust) c).getThrust());
     m.put(ThrustMax.class, c -> ((ThrustMax) c).getThrustMax());
     m.put(Speed.class, c -> ((Speed) c).getSpeed());
@@ -446,7 +444,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     return Map.copyOf(m);
   }
 
-  /** Read getCount() across the whole inventory family + Energy/etc. as a flat int. */
+  /** Read getCount() across the whole inventory family + Thrust/Speed/etc. as a flat int. */
   private static String intValue(final EntityComponent c) {
     if (c == null) return "?";
     final ToIntFunction<EntityComponent> fn = INT_GETTERS.get(c.getClass());
@@ -455,8 +453,6 @@ public class ChecksShipsSystem extends AbstractGameSystem {
 
   private static String doubleValue(final EntityComponent c) {
     if (c == null) return "?";
-    if (c instanceof Recharge r) return formatDouble(r.getRechargePerSecond());
-    if (c instanceof RechargeMax r) return formatDouble(r.getMaxRechargePerSecond());
     if (c instanceof Rotation r) return formatDouble(r.getRadSec());
     if (c instanceof RotationMax r) return formatDouble(r.getRadSecMax());
     return "?";

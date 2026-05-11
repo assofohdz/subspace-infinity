@@ -8,33 +8,36 @@ import com.simsilica.es.EntityId;
 import infinity.es.ship.weapons.WeaponType;
 
 /**
- * Optional metadata sibling on a {@code HealthChange + Buff} intent entity:
- * identifies which entity originated the health-change request and which
- * weapon family triggered it.
+ * Optional metadata sibling on an {@code EnergyChange + ChangeTarget}
+ * Change holder entity: identifies which entity originated the
+ * energy-change request and which weapon family triggered it.
  *
- * <p>Replacement-as-Mutation pilot (see docs/adr/0001-ecs-component-model.md):
- * the existing {@code HealthChange + Buff} intent shape (drained by
- * {@link infinity.systems.ship.EnergySystem EnergySystem}) gains an optional
- * {@code DamageSource} sibling so reactors that fork on intent type — e.g.
- * "play a hit-sound only on damage, not regen" — have a signal to read.
+ * <p>ADR 0001 (see docs/adr/0001-ecs-component-model.md): the
+ * {@code EnergyChange + ChangeTarget} Change holder (drained by
+ * {@link infinity.systems.ship.EnergySystem EnergySystem}) carries
+ * {@code DamageSource} optionally so reactors that fork on Change type
+ * — e.g. "play a hit-sound only on damage, not regen" — have a signal
+ * to read. {@code ChangeTarget#source()} also records the originating
+ * entity; {@code DamageSource} additionally carries the
+ * weapon-family discriminator.
  *
  * <p>Conventions:
  * <ul>
  *   <li>{@code source} is the originating entity. For enemy hits this is the
  *       attacker ship; for self-cost-deduction (firing a weapon debits the
- *       firer's Health) this is the firing ship; for non-weapon paths this is
+ *       firer's Energy) this is the firing ship; for non-weapon paths this is
  *       {@link EntityId#NULL_ID}.
  *   <li>{@code weaponFlag} is one of the {@link WeaponType} byte constants
  *       (BULLET / BOMB / GRAVBOMB / MINE / BURST). Non-weapon paths use
  *       {@link WeaponType#NONE}.
- *   <li>{@code DamageSource} is <strong>optional</strong> on the intent entity:
+ *   <li>{@code DamageSource} is <strong>optional</strong> on the Change holder:
  *       absence means "unattributed" — typically regen / refill. The
- *       canonical Health writer ({@code EnergySystem}) folds intents
+ *       canonical Energy writer ({@code EnergySystem}) folds Changes
  *       regardless of {@code DamageSource} presence.
  * </ul>
  *
  * <p>Server-only — emitted and consumed inside the same tick on a short-lived
- * intent entity that never crosses the wire to clients. No serializer
+ * Change holder that never crosses the wire to clients. No serializer
  * registration in {@code GameServer.registerSerializers}.
  *
  * @author AFahrenholz
@@ -54,8 +57,8 @@ public class DamageSource implements EntityComponent {
   }
 
   /**
-   * The originating entity for this health-change intent. {@link EntityId#NULL_ID}
-   * for unattributed / environmental / regen paths.
+   * The originating entity for this energy-change holder.
+   * {@link EntityId#NULL_ID} for unattributed / environmental / regen paths.
    */
   public EntityId getSource() {
     return source;

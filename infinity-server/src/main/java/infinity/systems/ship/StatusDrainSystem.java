@@ -7,7 +7,7 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
-import infinity.es.ship.Health;
+import infinity.es.ship.Energy;
 import infinity.es.ship.toggles.Antiwarp;
 import infinity.es.ship.toggles.AntiwarpEnergy;
 import infinity.es.ship.toggles.Cloak;
@@ -56,10 +56,10 @@ public class StatusDrainSystem extends BaseInfinitySystem {
   protected void initialize() {
     final EntityData ed = requireSystem(EntityData.class);
     energySystem = requireSystem(EnergySystem.class);
-    cloakDrainers = ed.getEntities(Cloak.class, CloakEnergy.class, Health.class);
-    stealthDrainers = ed.getEntities(Stealth.class, StealthEnergy.class, Health.class);
-    xradarDrainers = ed.getEntities(XRadar.class, XRadarEnergy.class, Health.class);
-    antiwarpDrainers = ed.getEntities(Antiwarp.class, AntiwarpEnergy.class, Health.class);
+    cloakDrainers = ed.getEntities(Cloak.class, CloakEnergy.class, Energy.class);
+    stealthDrainers = ed.getEntities(Stealth.class, StealthEnergy.class, Energy.class);
+    xradarDrainers = ed.getEntities(XRadar.class, XRadarEnergy.class, Energy.class);
+    antiwarpDrainers = ed.getEntities(Antiwarp.class, AntiwarpEnergy.class, Energy.class);
   }
 
   @Override

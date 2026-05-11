@@ -19,10 +19,7 @@ import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.Health;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.RechargeMax;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.Speed;
 import infinity.es.ship.SpeedMax;
@@ -136,9 +133,11 @@ public class ShipSpawnSystemHotReloadTest {
   }
 
   /**
-   * Reproject must preserve current Health/Energy — a damaged ship must
-   * not free-heal on Groovy edit. The {@link ShipSpawnSystem#reprojectAll}
-   * Javadoc promises this; this test pins it.
+   * Reproject must preserve current Energy pool + the upgrade-tracked
+   * {@link EnergyStats#max()} — a damaged ship must not free-heal on
+   * Groovy edit, and a ship with accumulated cap upgrades must not lose
+   * them. The {@link ShipSpawnSystem#reprojectAll} Javadoc promises
+   * this; this test pins it.
    */
   @Test
   public void replaceSnapshot_thenReprojectAll_preservesLivePoolsOnDamagedShip() {
@@ -153,30 +152,43 @@ public class ShipSpawnSystemHotReloadTest {
       f.ed.setComponent(ship, arenaId);
       f.systems.update();
 
-      // Spawn projection seeded Health=1000, Energy=1000 (the initial in the
-      // ShipStat we authored below). Simulate damage / energy spend.
-      f.ed.setComponent(ship, new Health(250));
-      f.ed.setComponent(ship, new Energy(420));
+      // Spawn projection seeded Energy pool = 1000 + EnergyStats.max
+      // = 1000 (the initial in the ShipStat below). Simulate damage +
+      // an accumulated cap upgrade.
+      f.ed.setComponent(ship, new Energy(250));
+      // Imagine a player picked up cap-bump prizes: stats.max was
+      // bumped from 1000 to 1200 by EnergyStatsSystem. Reflect that.
+      final EnergyStats existing = f.ed.getComponent(ship, EnergyStats.class);
+      f.ed.setComponent(ship,
+          new EnergyStats(
+              1200,
+              existing.hardMax(),
+              existing.upgrade(),
+              existing.rechargePerSecond(),
+              existing.rechargeMax(),
+              existing.rechargeUpgrade()));
 
-      // Hot-reload to a snapshot with a *larger* energy cap so any
-      // accidental respawn-projection would visibly overwrite Energy=420
-      // with the new initial=1500. Tuning projection must leave it alone.
+      // Hot-reload to a snapshot with a *larger* hard cap so any
+      // accidental respawn-projection would visibly overwrite
+      // EnergyStats.max=1200 with the new initial=1100. Tuning
+      // projection must leave .max alone but pick up the new
+      // hardMax/upgrade.
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 24, /* speed */ 2500)));
       f.spawnSystem.reprojectAll();
 
       assertEquals(
-          "Health preserved across reproject (tuning, not respawn)",
+          "Energy pool preserved across reproject (tuning, not respawn)",
           250,
-          f.ed.getComponent(ship, Health.class).getHealth());
-      assertEquals(
-          "Energy current preserved across reproject (tuning, not respawn)",
-          420,
           f.ed.getComponent(ship, Energy.class).getEnergy());
-      // The new cap still lands — it's a capability stat, not a live pool.
+      final EnergyStats reprojected = f.ed.getComponent(ship, EnergyStats.class);
       assertEquals(
-          "EnergyMax picks up snapshot B's hard cap",
+          "EnergyStats.max preserved across reproject (player keeps cap upgrades)",
+          1200,
+          reprojected.max());
+      assertEquals(
+          "EnergyStats.hardMax picks up snapshot B's value",
           2400,
-          f.ed.getComponent(ship, EnergyMax.class).getMaxEnergy());
+          reprojected.hardMax());
     } finally {
       f.shutdown();
     }
@@ -314,15 +326,16 @@ public class ShipSpawnSystemHotReloadTest {
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 24, /* speed */ 2500)));
       f.spawnSystem.reprojectAll();
 
+      final EnergyStats stats = f.ed.getComponent(ship, EnergyStats.class);
       assertEquals(
-          "Recharge picks up new initial * unit conversion",
+          "EnergyStats.rechargePerSecond picks up new initial * unit conversion",
           600 * RECHARGE_UNITS_TO_PER_SEC,
-          f.ed.getComponent(ship, Recharge.class).getRechargePerSecond(),
+          stats.rechargePerSecond(),
           EPSILON);
       assertEquals(
-          "RechargeMax picks up new max * unit conversion",
+          "EnergyStats.rechargeMax picks up new max * unit conversion",
           1500 * RECHARGE_UNITS_TO_PER_SEC,
-          f.ed.getComponent(ship, RechargeMax.class).getMaxRechargePerSecond(),
+          stats.rechargeMax(),
           EPSILON);
     } finally {
       f.shutdown();
@@ -387,10 +400,10 @@ public class ShipSpawnSystemHotReloadTest {
           24,
           f.ed.getComponent(firstShip, Thrust.class).getThrust());
       // Live-pool semantics still hold for the latecomer (it's a fresh
-      // spawn — added event → respawn projection → Health seeded).
+      // spawn — added event → respawn projection → Energy seeded).
       assertNotNull(
-          "Latecomer received a Health pool via respawn projection",
-          f.ed.getComponent(latecomer, Health.class));
+          "Latecomer received an Energy pool via respawn projection",
+          f.ed.getComponent(latecomer, Energy.class));
     } finally {
       f.shutdown();
     }

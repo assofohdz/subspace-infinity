@@ -25,12 +25,9 @@ import infinity.systems.ship.ShipSpawnSystem;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
-import infinity.es.ship.Health;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ResetLivePool;
-import infinity.es.ship.Recharge;
-import infinity.es.ship.RechargeMax;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.RotationMax;
 import infinity.es.ship.ShipType;
@@ -153,20 +150,22 @@ public class ShipSpawnSystemTest {
           ed.getComponent(shipId, RotationMax.class).getRadSecMax(),
           EPSILON);
 
-      // Recharge is in energy/sec (Subspace `MaximumRecharge` is energy in 10s).
-      assertEquals(
-          400 * RECHARGE_UNITS_TO_PER_SEC,
-          ed.getComponent(shipId, Recharge.class).getRechargePerSecond(),
-          EPSILON);
-      assertEquals(
-          1150 * RECHARGE_UNITS_TO_PER_SEC,
-          ed.getComponent(shipId, RechargeMax.class).getMaxRechargePerSecond(),
-          EPSILON);
-
-      // Energy live + max + Health (live pool reset on respawn).
+      // Energy live pool (was Health pre-ADR) + EnergyStats bundle.
+      // EnergyStats.max + hardMax: replaces Energy + EnergyMax.
+      // EnergyStats.rechargePerSecond + rechargeMax: replaces Recharge
+      // + RechargeMax (in energy/sec — Subspace MaximumRecharge is
+      // energy in 10s).
       assertEquals(1000, ed.getComponent(shipId, Energy.class).getEnergy());
-      assertEquals(1700, ed.getComponent(shipId, EnergyMax.class).getMaxEnergy());
-      assertEquals(1000, ed.getComponent(shipId, Health.class).getHealth());
+      final EnergyStats stats = ed.getComponent(shipId, EnergyStats.class);
+      assertEquals(1000, stats.max());
+      assertEquals(1700, stats.hardMax());
+      assertEquals(100, stats.upgrade());
+      assertEquals(
+          400 * RECHARGE_UNITS_TO_PER_SEC, stats.rechargePerSecond(), EPSILON);
+      assertEquals(
+          1150 * RECHARGE_UNITS_TO_PER_SEC, stats.rechargeMax(), EPSILON);
+      assertEquals(
+          166 * RECHARGE_UNITS_TO_PER_SEC, stats.rechargeUpgrade(), EPSILON);
 
       // Feel knobs.
       assertEquals(0.99, ed.getComponent(shipId, LinearDamping.class).getDamping(), EPSILON);
