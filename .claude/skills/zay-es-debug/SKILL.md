@@ -10,7 +10,7 @@ Common Entity-Component-System problems and solutions from official Zay-ES patte
 ## Official Rules of Thumb
 From the Zay-ES wiki:
 1. **Components are data only** - no logic in components
-2. **Two systems should not produce the same component type for the same entities**
+2. **One canonical writer per component type.** Multiple systems must not independently write the same component to the same entity. When multiple sources contribute deltas (e.g. damage from different weapons, prize-pickup cap bumps), use the ADR 0001 Change-entity shape: emitters create a short-lived entity carrying `ChangeTarget(target, source)` + a typed `*Change` payload; a single canonical writer drains those entities and applies the fold. Concrete example: `EnergyChange` / `EnergyStatsChange` drained by `EnergySystem` / `EnergyStatsSystem`. See [`.claude/rules/replacement-as-mutation.md`](../../rules/replacement-as-mutation.md) and [`docs/adr/0001-ecs-component-model.md`](../../../docs/adr/0001-ecs-component-model.md).
 3. **Immutable components help threading** - allows systems to run without synchronization
 
 ## EntitySet Not Updating

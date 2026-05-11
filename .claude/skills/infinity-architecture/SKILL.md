@@ -47,6 +47,9 @@ Note: `infinity.sim` is split — interfaces in `api` (including `BaseGameModule
 | Thing | Module / package |
 |---|---|
 | New `EntityComponent` | `api/src/main/java/infinity/es/` (must be immutable, no-arg ctor) |
+| New `*Change` payload (intent delta, e.g. `EnergyChange`) | `api/src/main/java/infinity/es/ship/` — short-lived, paired with `ChangeTarget`, drained by canonical writer. See [ADR 0001](../../../docs/adr/0001-ecs-component-model.md). |
+| New `*Stats` record (bundled per-aspect runtime state, e.g. `EnergyStats`) | `api/src/main/java/infinity/es/ship/` — written by canonical writer system only. |
+| Canonical writer system for a `*Change` / `*Stats` pair | `infinity-server/src/main/java/infinity/systems/ship/` (e.g. `EnergySystem`, `EnergyStatsSystem`) — register before `DecaySystem` per writer-ordering rule. |
 | New event/message type | `api/src/main/java/infinity/events/` |
 | New typed config record (`*Config`) | `api/src/main/java/infinity/config/` |
 | New RMI interface (client ↔ server contract) | `api/src/main/java/infinity/sim/` |

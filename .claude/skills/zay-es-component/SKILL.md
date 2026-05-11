@@ -13,7 +13,7 @@ Components are immutable data containers for the Entity-Component-System.
 ## Official Zay-ES Rules of Thumb
 From the official wiki:
 1. **Components are data only** - no logic in components
-2. **Two systems should not produce the same component type for the same entities**
+2. **One canonical writer per component type.** Multiple systems must not independently write the same component to the same entity. When multiple sources contribute deltas (e.g. damage from different weapons, prize-pickup cap bumps), use the ADR 0001 Change-entity shape: emitters create a short-lived entity carrying `ChangeTarget(target, source)` + a typed `*Change` payload; a single canonical writer system drains those entities and applies the fold. Concrete example: `EnergyChange` / `EnergyStatsChange` records in `api/src/main/java/infinity/es/ship/` are drained by `EnergySystem` / `EnergyStatsSystem` in `infinity-server/src/main/java/infinity/systems/ship/`. See [`.claude/rules/replacement-as-mutation.md`](../../rules/replacement-as-mutation.md) and [`docs/adr/0001-ecs-component-model.md`](../../../docs/adr/0001-ecs-component-model.md).
 3. **Immutability helps threading** - immutable components allow systems to run in different threads without synchronization
 
 ## Requirements
@@ -126,6 +126,5 @@ public class Position implements EntityComponent {
 - `ShapeInfo` - entity visual shape
 - `Frequency` - team assignment
 - `Dead` - marks entity as dead
-- `Buff` - temporary effects
 - `WeaponType` - weapon configuration
 - `Delay` - time-based decay
