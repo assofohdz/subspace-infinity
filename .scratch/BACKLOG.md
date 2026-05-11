@@ -33,17 +33,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### S10 — Afterburner mechanic (`AfterburnerEnergy`)
 **M/M.** Self-contained slice once the input-binding queue catches up. `AfterburnerEnergy` per-ship (already authored) + new client input + temporary `Speed`/`Thrust` boost while held. Sits with the per-ship-input-mechanic queue.
 
-### Layer + module hygiene
-
-#### B1 — `AvatarMovementState` reaches into `infinity.systems.*` for protocol-byte constants
-**M/M. Cross-lens-corroborated** (client #2 + planner #3). Imports `infinity.systems.AvatarSystem.WARBIRD/JAVELIN/...` + `ConsumableSystem.WARP/REPEL/...` as RMI dispatch bytes. `LayerDependencyTest` exemption list excludes `MobDebugState` + `HostState` only — this is a real layer violation that the test currently misses (Java inlines the byte primitives so no bytecode dependency). **Promote to `api/src/main/java/infinity/net/` or `api/src/main/java/infinity/events/` as enums** (mirrors the WeaponType + MapAction precedents).
-
-#### B2 — `modules/` subproject empty but still wired in 5 places with wrong (Lemur/UI) deps
-**S/M.** Post-`backlog-final` *Tester delete, `modules/src/` is zero `.java` files. `modules/build.gradle` still declares Lemur, lemur-proto, lemur-props, sim-ethereal, zay-es-net — wrong even for a server-side modules subproject. Both modules carry `runtimeOnly project(":modules")` + `testImplementation project(":modules")`. **Decision needed:** delete the subproject (drop from `settings.gradle`, remove all 5 references) OR keep with corrected slim deps if `groovy-module-loader/PRD.md` is imminent. [planner #1]
-
-#### B4 — `zone/` shipped three times (server JAR + client JAR + dist root)
-**S/M.** `zone/` ends up inside both module JARs *and* at dist root. `FileLocator` reads dist-root first; in-JAR copies are dead weight + a "did my edit take?" footgun if packaging order ever flips. **Pick one canonical shape:** in-JAR-only (drop dist-root copy + let `FileLocator` resolve through classpath fallback) OR dist-root-only (drop the `srcDirs` additions in `app-with-assets.gradle` + `infinity-server/build.gradle:58-64`). [planner #5]
-
 ### RaM single-writer violations
 
 #### C1 — `Thrust` + `Speed` now have THREE writers post-pilot (RocketBuff race)
@@ -51,22 +40,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 #### C2 — Inventory + status component families have unresolved multi-writer collisions
 **L/L.** ~15 prize appliers (`{Brick,Burst,Decoy,Portal,Rocket,Repel,AntiWarp,Cloak,Stealth,XRadar,MultiFire,Energy,Rotation,Thruster,TopSpeed,Recharge}PrizeApplier.java`) write components that `ShipSpawnSystem`/`ShipWeaponsProjector`/`ShipStatusProjector` also write. Pickup two `RepelPrizeApplier` + fire one repel in same tick → final `Repel` count is ordering-dependent. RaM PRD migration backlog #1 is the canonical fix; ready to land now that pilot proved the shape. [spawn #2 + config-2 #1]
-
-#### C4 — RaM rule-file "live snapshot" stale post-pilot — most components un-ledgered
-**M/M.** `replacement-as-mutation.md` lists only `ShipSpawnSystem`, `EnergySystem`, mphys integrator, decay reaper. Components like `Jitter`, `WarpTo` (already 2 writers!), `Bounce`, `Repellable`, `RocketActive`, `ProximityArmed`, `Dead`, `Captain`, `Frequency`, every inventory component — none documented. Without the ledger, reviewers can't tell legitimate canonical-writer from new-violation. RaM PRD slice 5; could partially automate via `grep setComponent.*new \w+\(`. [spawn #5]
-
-### Settings pipeline gaps
-
-#### D2 — `SpawnConfig.warpRadiusLimit` fully wired but has zero runtime consumer
-**S/M.** Authored ✅ + Loader ✅ + Config ✅ + Subsystem ❌. Operator authoring `warpRadiusLimit 256` sees no behaviour change. **Either land the consumer (`WarpPrizeApplier` randomization within radius via `ArenaSpatialIndex`) or strip the field+parser until it does.** Half-wired knobs are a maintenance trap. [config-2 #3]
-
-### Tests / tooling debt
-
-#### E1 — `LegacyMapProjector` + `WallLightDecorator` extracted "as testable" — zero tests written
-**M/M.** Both classes' Javadoc explicitly says "independently testable strategy" — the *whole rationale* for the extraction. `RadarStateLogic` from the same era got 6 unit tests in `backlog-final`. These got none. Gameplay regressions in tile projection or wall-run light decoration are silent today. **Mirror `BulletFactoryTest` shape: synthetic `World` + fake `EngineConfigProvider`, project a fixture, assert.** [cleanup #1]
-
-#### E2 — Spawn-projection harness slices 2-5 stale; `hot-reload-from-dist` shipped without slice-3 coverage
-**M/M.** Slice 3 ("Hot-reload diff event surface") is *exactly* the seam the conf-fragments hot-reload depends on. The hot-reload-from-dist commit was verified by manual `sed`-and-watch-the-log; nothing automated guards regression. The `EnergySystemIntentTest` fixture from slice 1d makes slice 3 nearly mechanical. [cleanup #2]
 
 ### Naming / convention
 
@@ -79,19 +52,12 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 
 ### Tier 3 — focused slices (S–M / M)
 
-1. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
-2. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
-3. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
-4. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
-5. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
-6. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
-7. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
-8. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
+1. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
 
 ### Tier 4 — bigger refactors (M/L)
 
-9. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
-10. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
+2. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
+3. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster. Audit (C4, landed) surfaced 3 fresh multi-writer violations not in this BACKLOG: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Consider folding into C2's scope.
 
 ### Physics canon gaps (separate pile, see top of section)
 
