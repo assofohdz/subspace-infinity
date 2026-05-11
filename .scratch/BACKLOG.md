@@ -66,7 +66,7 @@ PRD = build plan for one feature / refactor. Lives in `.scratch/<feature>/PRD.md
 
 ### Pending (referenced but not yet drafted)
 
-- **ADR 0001 implementation PRD** — slice plan for migrating `Intent` + `CapBump` + `CapField` to per-component writers + `*Change` + `ChangeTarget(target, source)`. Subsumes the residual C2 sub-slices (status family, weapon levels, inventory, Frequency / ShipType / ThorFireDelay fresh finds). Migration tracker lives inside this PRD per ADR 0001's "Open work" section.
+- **ADR 0001 implementation PRD** — slice plan for the remaining C2 sub-slices (status family, weapon levels, inventory caps, Frequency / ShipType / ThorFireDelay fresh finds) using per-component canonical writers + `*Change` + `ChangeTarget(target, source)`. Energy + Movement aspects already landed (commits 75e3c54a + 25ca2138). Migration tracker lives inside this PRD per ADR 0001's "Open work" section.
 
 ## Architecture refactors
 
@@ -92,14 +92,14 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 ### RaM single-writer violations
 
-#### C2 — Inventory + status + weapon-level + fresh-find multi-writer collisions (cap-bump subset closed)
-**L/L (residual).** Original scope was ~15 prize appliers; **C2a (cap-bump body stats) landed batch-4 R2b** (commit 1fb108d4) via the universal `Intent` wrapper + 5 `*CapBump` payload records — Energy/Recharge/Rotation/Thruster/TopSpeed prize appliers now emit intents drained by `ShipSpawnSystem`. **Remaining sub-slices:**
+#### C2 — Inventory + status + weapon-level + fresh-find multi-writer collisions (Energy + Movement closed)
+**L/L (residual).** Energy aspect landed in 75e3c54a; Movement aspects (Rotation/Speed/Thrust) + RocketBuffIntent migration landed in 25ca2138. **Remaining sub-slices:**
 - **C2b — status family** (4 appliers: `{AntiWarp,Cloak,Stealth,XRadar}PrizeApplier` write status markers also written by `ShipStatusProjector`)
 - **C2c — weapon-level upgrades** (4 appliers: Bomb/Bullet/Mine/Burst prize appliers write `*CurrentLevel` components also written by `ShipWeaponsProjector`)
 - **C2d — inventory caps** (~6 appliers: Brick/Decoy/Portal/Repel/Rocket/Thor prize appliers write inventory components also written by `ShipWeaponsProjector` + ConsumableSystem decrement)
 - **C2e — fresh finds from C4 audit** (not in original C2): `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value)
 
-All four sub-slices will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) — per-component canonical writers + `*Change` + `ChangeTarget(target, source)`, not the now-superseded universal `Intent` wrapper from C2a. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
+All four sub-slices will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) — per-component canonical writers + `*Change` + `ChangeTarget(target, source)`. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
 
 ### Naming / convention
 
@@ -116,7 +116,7 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 
 ### Tier 4 — bigger refactors (M/L)
 
-2. **C2** — Inventory + status family multi-writer migration. ~15 applier sites + new `*Change` components per [ADR 0001](../docs/adr/0001-ecs-component-model.md); the largest live RaM cluster. Audit (C4, landed) surfaced 3 fresh multi-writer violations not in this BACKLOG: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Folded into the pending ADR 0001 implementation PRD.
+2. **C2** — Inventory + status family multi-writer migration (Energy + Movement aspects already landed). ~11 applier sites remaining + new `*Change` components per [ADR 0001](../docs/adr/0001-ecs-component-model.md); the largest live RaM cluster. Fresh multi-writer violations: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Folded into the pending ADR 0001 implementation PRD.
 
 ### Physics canon gaps (separate pile, see top of section)
 

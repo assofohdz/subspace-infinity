@@ -135,20 +135,14 @@ the writer sums on add, reverses on remove, independently per source.
 
 ### Future-migration candidates (pre-ADR intent shapes)
 
-Three pre-ADR intent wrappers remain in the tree and are still
-documented in the live snapshot below. They are pre-ADR shapes being
-migrated to the Change-entity recipe under
+One pre-ADR intent wrapper remains in the tree. It is a pre-ADR shape
+being migrated to the Change-entity recipe under
 [`.scratch/adr-0001-implementation/PRD.md`](../../.scratch/adr-0001-implementation/PRD.md);
-each remains in the snapshot until its aspect migrates, at which
-point its row flips in the same change:
+it remains in the snapshot until its aspect migrates, at which point
+its row flips in the same change:
 
-- The universal `Intent` + `CapBump` + `CapField` wrapper (cap bumps
-  for Energy / Recharge / Rotation / Thrust / Speed; drained by
-  `ShipSpawnSystem`).
 - The bespoke `Buff` + `HealthChange` pair (damage / regen / refill,
   drained by `EnergySystem`).
-- The bespoke `RocketBuffIntent` (rocket-buff Thrust / Speed swap,
-  drained by `ShipSpawnSystem`).
 
 **Do not extend these shapes for new work** — new intents author
 against the Change-entity recipe above.
@@ -181,7 +175,7 @@ phase 3 — reactors
 | Situation | Wrong | Right |
 |---|---|---|
 | Apply 5 damage to a ship | `ed.setComponent(shipId, new Health(hp - 5))` from any system | Call `EnergySystem.damage(shipId, -5)` (which creates a `HealthChange` intent entity); EnergySystem drains it next tick. |
-| Bump Energy cap by upgrade | `ed.setComponent(shipId, new Energy(next))` from `EnergyPrizeApplier` | Emit `Intent.of(shipId, new CapBump(CapField.ENERGY, +100))` (or `CapField.RECHARGE` / `ROTATION` / `THRUST` / `SPEED`); `ShipSpawnSystem` drains via a `FieldFilter`-narrowed view of `Intent.class` on `kind == CapBump.class`, folds same-tick deltas additively per `(target, CapField)`, and clamps at the relevant `*Max` via per-field dispatch on `CapField.apply`. |
+| Bump Speed by upgrade prize | `ed.setComponent(shipId, new Speed(next))` from `TopSpeedPrizeApplier` | Emit a Change entity with `ChangeTarget(shipId, sourceId)` + `SpeedChange(+stats.upgrade())`; `SpeedSystem` drains it next tick, clamps at `SpeedStats.max`. Same pattern for `RotationChange` / `ThrustChange`. |
 | Stamp `Decay` on a new entity | At the spawn site (`ShipFactory`/`WeaponFactory`/`MapFactory` or a spawn system) | OK — spawn-time projection is the single-writer; reactors observe the new entity. |
 | Apply impulse to a body | `body.setLinearVelocity(...)` directly | Emit `Impulse` component; sio2-mphys integrator drains. |
 | Re-project ship stats on Groovy reload | `ShipSpawnSystem.reprojectAll()` only | OK — `ShipSpawnSystem` is the canonical writer for the ~12 ship-stat components. |
@@ -191,30 +185,13 @@ phase 3 — reactors
 These systems are already structured as the sole writer of the listed
 component types. Keep them that way.
 
-- **`ShipSpawnSystem`** — `Thrust`/`ThrustMax`/`ThrustUpgrade`,
-  `Speed`/`SpeedMax`/`SpeedUpgrade`, `Rotation`/…, `Recharge`/…,
-  `Energy`/`EnergyMax`/`EnergyUpgrade`, `Health` (respawn only),
+- **`ShipSpawnSystem`** — `ThrustStats`, `SpeedStats`, `RotationStats`,
+  `Recharge`/…, `Energy`/`EnergyStats`, `Health` (respawn only),
   `LinearDamping`, `TurnResponsiveness`, `BounceRestitution`,
   `RadarRange`, `ShapeInfo` (ship-side), `RadarShapeInfo`, weapon
   level/cost/delay/speed/thrust components, status-family components.
   Drains config templates (`ShipConfig`) — a different shape of
-  intent. Also drains two intent shapes for runtime ship-stat writes:
-  - **`RocketBuffIntent`** (legacy shape, predates the universal
-    wrapper) — rocket-buff `Thrust` / `Speed` swaps on activate +
-    revert (BACKLOG C1 canonical writer).
-  - **Universal `Intent` wrapper carrying a `CapBump` payload**
-    (BACKLOG C2a canonical writer). One `FieldFilter`-narrowed
-    EntitySet on `Intent.kind == CapBump.class` covers all five
-    upgrade-prize cap bumps; per-field dispatch (`CapField.ENERGY`,
-    `RECHARGE`, `ROTATION`, `THRUST`, `SPEED`) is on the payload's
-    `field()` discriminator. The drain runs AFTER `RocketBuffIntent`
-    so cap-bumps accumulate on top of any rocket-buff override
-    active this tick. Folds deltas per `(target, CapField)`
-    additively (same-tick multi-prize accumulation by design), clamps
-    at the relevant `*Max`, and skips no-op writes per rule #6 — all
-    delegated to `CapField.apply(ed, target, foldedDelta)`.
-
-  See [`config-pattern.md`](./config-pattern.md).
+  intent. See [`config-pattern.md`](./config-pattern.md).
 - **`EnergySystem`** — `Health` (steady-state — drains
   `HealthChange + Buff` intent entities; respawn writes are
   `ShipSpawnSystem`'s territory and gated on a `ResetLivePool` marker).
@@ -240,22 +217,33 @@ system writer; the totals below ground the diff.
 
 **Totals at snapshot date** — ~95 substantive component types
 audited; ~70 single-writer (canonical) or spawn-only (factory tier);
-**~19 multi-writer violations** flagged below. BACKLOG C1 (RocketBuff
-race for `Thrust` / `Speed`) is closed — both components route
-through `RocketBuffIntent` drained by `ShipSpawnSystem`. BACKLOG C2a
-(ship-body prize-applier co-writers for `Energy` / `Recharge` /
-`Rotation` / `Thrust` / `Speed`) is closed — all five route through
-the universal `Intent` wrapper with a unified `CapBump` payload
-(per-field dispatch via `CapField` enum) drained by `ShipSpawnSystem`,
-leaving zero ship-body multi-writer violations. Of the 19 remaining, ~15
-align with BACKLOG C2 (status, weapon-level, and inventory prize-
-applier collisions) and 4 (`WarpTo`, `Frequency`, `ShipType`,
-`Impulse`) are fresh finds documented for the first time here.
+**~14 multi-writer violations** flagged below (down from ~19 at C4
+audit: C1 RocketBuff race + C2a cap-bump body-stats + C2-Movement
+Rotation/Speed/Thrust prize collisions all resolved). Of the 14
+remaining, ~11 align with BACKLOG C2 (status, weapon-level, and
+inventory prize-applier collisions) and 3 (`Frequency`, `ShipType`,
+`Impulse`) are fresh finds documented here — `WarpTo` already in
+BACKLOG C4 at audit time.
 `Decay` is the one documented multi-writer exception (see its own
 subsection).
 
 #### Additional single-writer mechanics (canonical)
 
+- **`RotationSystem`** — `Rotation` (Continuous half; drains
+  `RotationChange` + `ChangeTarget` intent entities; Decay-bound
+  holders reversed on remove).
+- **`RotationStatsSystem`** — `RotationStats` (Stats half; drains
+  `RotationStatsChange`; forward-compat writer for future hard-cap
+  raises).
+- **`SpeedSystem`** — `Speed` (Continuous half; drains `SpeedChange`;
+  bypass-clamp flag for Decay-bound rocket-buff overrides so temporary
+  deltas can exceed `SpeedStats.max`).
+- **`SpeedStatsSystem`** — `SpeedStats` (Stats half; drains
+  `SpeedStatsChange`).
+- **`ThrustSystem`** — `Thrust` (Continuous half; drains `ThrustChange`;
+  same bypass-clamp flag as `SpeedSystem` for rocket-buff overrides).
+- **`ThrustStatsSystem`** — `ThrustStats` (Stats half; drains
+  `ThrustStatsChange`).
 - **`ShipWeaponsProjector`** — `BombCost`, `BombFireDelay` (spawn —
   `WeaponsEligibility` re-stamps a fresh delay for the cooldown
   reset; shared writer noted there), `BombMaxLevel`, `BombSpeed`,
@@ -283,10 +271,10 @@ subsection).
   single-writer status; spawn-side stamping not yet wired in tree).
 - **`ProximityFuseSystem`** — `ProximityArmed` (one-shot arm
   timestamp; the only writer).
-- **`RocketBuffSystem`** — `RocketActive` (add at buff start, remove
-  at buff expiry; the only writer of this marker). Also emits
-  `RocketBuffIntent` revert entities on buff expiry; the canonical
-  drain for those intents is `ShipSpawnSystem` (see above).
+- **`RocketBuffSystem`** — `RocketActive` (add at buff start; the only
+  writer of this marker; revert is automatic via Decay-driven
+  `SpeedSystem` / `ThrustSystem` reverse on `SpeedChange` /
+  `ThrustChange` holder removal).
 - **`WeaponsDamageLogic`** — `Jitter` (stamp on jitter-weapon hit;
   the only writer).
 - **`WeaponsFireSystem`** — `Damage`, `SplashDamage`, `ProximityFuse`,
@@ -410,32 +398,19 @@ RaM target — one canonical writer draining `+1` and `-1` intents.
   integrator drains), but worth a Round-2 confirmation pass that no
   other system reads `Impulse` before the drain.
 
-#### Future-migration candidates to the universal `Intent` wrapper
+#### Future-migration candidates to the Change-entity recipe
 
-The intent shapes below predate the universal {@code Intent} wrapper
-introduced in C2a. They are functionally equivalent to the new
-shape — fire-and-forget intent components on short-lived holder
-entities — and not migrated by design (C2a explicitly scoped to the
-five cap-bump payloads to keep the slice mergeable). Listed here so
-future authors of new intents know to use `Intent.of(...)` and so a
-later unification pass has a single ledger to draw from.
+One pre-ADR intent shape remains. Listed here so a later unification
+pass has a single ledger to draw from.
 
-- **`RocketBuffIntent`** — C1 canonical writer is
-  `ShipSpawnSystem`; the intent carries `(target, thrust, speed)` as
-  value-replacement (NOT delta — single override semantics). Can be
-  refactored to `Intent.of(target, new RocketBuffPayload(thrust,
-  speed))` with the C2a drain pattern (target on the wrapper, payload
-  carries only the override values). Low blast radius (server-only,
-  no wire stability concern).
 - **`Buff + HealthChange`** — `EnergySystem`'s damage / regen / heal
   drain. Stamps two components (`Buff(target, time)` + `HealthChange
   (delta)`) on a short-lived holder entity. Wire-stability concern:
   `HealthChange` is the canonical client-visible damage signal via
-  SimEthereal; reactors filter on it. A migration to
-  `Intent.of(target, new HealthChange(...))` would either need to
-  retain the legacy stamp for wire-stability or migrate the client
-  filter. Drive the decision off the client cost, not blanket
-  unification.
+  SimEthereal; reactors filter on it. A migration to the Change-entity
+  recipe (`ChangeTarget` + `HealthChange`) would either need to retain
+  the legacy stamp for wire-stability or migrate the client filter.
+  Drive the decision off the client cost, not blanket unification.
 
 #### Spawn-time-only writers (factory tier — no RaM conflict)
 
