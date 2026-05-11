@@ -5,17 +5,27 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyMax;
 import infinity.es.ship.EnergyUpgrade;
+import infinity.es.ship.actions.EnergyCapBump;
+import infinity.es.ship.actions.Intent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>CAPABILITY family.</b> Bumps {@link Energy} (the energy <em>cap</em>) by
- * {@link EnergyUpgrade}, clamped at {@link EnergyMax}. Does <em>not</em> touch
- * the live pool — that's {@code QuickChargePrizeApplier}'s job (refills
- * {@code Health} to {@code Energy}).
+ * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
+ * {@link EnergyCapBump} payload carrying the ship's per-prize
+ * {@link EnergyUpgrade} delta; the canonical writer
+ * ({@code ShipSpawnSystem}) drains the intent next tick to fold the
+ * delta into {@code Energy} (clamped at {@code EnergyMax}). Does
+ * <em>not</em> touch the live pool — that's
+ * {@code QuickChargePrizeApplier}'s job (refills {@code Health} to
+ * {@code Energy}).
+ *
+ * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
+ * {@code Energy} directly. Same-tick multi-prize pickup accumulates
+ * additively per {@link EnergyCapBump} class Javadoc. Closes the
+ * {@code ShipSpawnSystem} / {@code EnergyPrizeApplier} multi-writer
+ * violation on the {@code Energy} component (BACKLOG C2a ship-body).
  *
  * <p>Subspace canon: per-ship {@code [Ship] InitialEnergy} /
  * {@code MaximumEnergy} bound the cap; per-prize bump amount is
@@ -29,18 +39,18 @@ public final class EnergyPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final Energy current = ed.getComponent(ship, Energy.class);
-    final EnergyMax max = ed.getComponent(ship, EnergyMax.class);
     final EnergyUpgrade up = ed.getComponent(ship, EnergyUpgrade.class);
-    if (current == null || max == null || up == null) {
+    if (up == null) {
       return;
     }
-    final int next = Math.min(current.getEnergy() + up.getEnergyUpgrade(), max.getMaxEnergy());
-    if (next > current.getEnergy()) {
-      if (log.isInfoEnabled()) {
-        log.info("Ship {} energy upgrade: cap {} -> {}", ship, current.getEnergy(), next);
-      }
-      ed.setComponent(ship, new Energy(next));
+    final int delta = up.getEnergyUpgrade();
+    if (delta == 0) {
+      return;
     }
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} energy upgrade: emitting cap-bump intent delta={}", ship, delta);
+    }
+    final EntityId intentId = ed.createEntity();
+    ed.setComponent(intentId, Intent.of(new EnergyCapBump(ship, delta)));
   }
 }

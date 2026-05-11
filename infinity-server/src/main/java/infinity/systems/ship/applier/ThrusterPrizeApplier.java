@@ -5,22 +5,40 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.Thrust;
-import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
+import infinity.es.ship.actions.Intent;
+import infinity.es.ship.actions.ThrustCapBump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>CAPABILITY family.</b> Bumps {@link Thrust} by {@link ThrustUpgrade},
- * clamped at {@link ThrustMax}. No-op when at the cap, when the upgrade
- * increment is zero (per-arena "no upgrades" design), or when any of the
- * three components is missing (spawn projection hasn't run yet).
+ * <b>CAPABILITY family.</b> Emits an {@link Intent}-wrapped
+ * {@link ThrustCapBump} payload carrying the ship's per-prize
+ * {@link ThrustUpgrade} delta; the canonical writer
+ * ({@code ShipSpawnSystem}) drains the intent to fold the delta into
+ * {@code Thrust} (clamped at {@code ThrustMax}). No-op when the upgrade
+ * increment is zero (per-arena "no upgrades" design) or when
+ * {@code ThrustUpgrade} is missing (spawn projection hasn't run yet).
+ *
+ * <p><b>Replacement-as-Mutation</b> — this applier no longer writes
+ * {@code Thrust} directly. Same-tick multi-prize pickup accumulates
+ * additively per {@link ThrustCapBump} class Javadoc. Closes the
+ * {@code ShipSpawnSystem} (spawn + rocket-buff drain) /
+ * {@code ThrusterPrizeApplier} multi-writer violation on the
+ * {@code Thrust} component (BACKLOG C2a ship-body).
+ *
+ * <p><b>Rocket-buff interaction (preserved limitation).</b> The cap-bump
+ * drain runs AFTER the rocket-buff drain in {@code ShipSpawnSystem.update},
+ * so a thruster prize picked up during an active rocket buff bumps the
+ * *buffed* {@code Thrust} value; the buff's revert intent then restores
+ * the cached pre-buff snapshot and the prize bump is lost. Same
+ * behaviour as before C2a. See {@link ThrustCapBump} class Javadoc.
  *
  * <p>Subspace canon: per-ship {@code [Ship] InitialThrust} /
- * {@code MaximumThrust} (REFERENCE.md line 353) plus {@code UpgradeThrust}
- * per-pickup increment; see REFERENCE.md {@code ## PrizeWeight} line 240
- * ({@code Thruster}) for the prize-name registration.
+ * {@code MaximumThrust} (REFERENCE.md line 353) plus
+ * {@code UpgradeThrust} per-pickup increment; see REFERENCE.md
+ * {@code ## PrizeWeight} line 240 ({@code Thruster}) for the prize-name
+ * registration.
  */
 public final class ThrusterPrizeApplier implements PrizeApplier {
 
@@ -29,18 +47,18 @@ public final class ThrusterPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final Thrust current = ed.getComponent(ship, Thrust.class);
-    final ThrustMax max = ed.getComponent(ship, ThrustMax.class);
     final ThrustUpgrade up = ed.getComponent(ship, ThrustUpgrade.class);
-    if (current == null || max == null || up == null) {
+    if (up == null) {
       return;
     }
-    final int next = Math.min(current.getThrust() + up.getThrustUpgrade(), max.getThrustMax());
-    if (next > current.getThrust()) {
-      if (log.isInfoEnabled()) {
-        log.info("Ship {} thruster upgrade: thrust {} -> {}", ship, current.getThrust(), next);
-      }
-      ed.setComponent(ship, new Thrust(next));
+    final int delta = up.getThrustUpgrade();
+    if (delta == 0) {
+      return;
     }
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} thruster upgrade: emitting cap-bump intent delta={}", ship, delta);
+    }
+    final EntityId intentId = ed.createEntity();
+    ed.setComponent(intentId, Intent.of(new ThrustCapBump(ship, delta)));
   }
 }

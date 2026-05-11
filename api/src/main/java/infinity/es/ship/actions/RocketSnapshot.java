@@ -17,6 +17,25 @@ import com.simsilica.es.EntityComponent;
  * {@link com.simsilica.es.common.Parent} (ship link) on the same buff
  * entity.
  *
+ * <p><b>Known limitation — thruster/topspeed prize during an active
+ * buff is lost on revert.</b> The snapshot is captured at activate
+ * time and frozen for the buff's lifetime. If the player picks up a
+ * {@code Thruster} or {@code TopSpeed} prize while the buff is
+ * active, the prize emits an {@link Intent}-wrapped {@link ThrustCapBump}
+ * / {@link SpeedCapBump} that {@code ShipSpawnSystem} drains after the
+ * rocket-buff drain — so the bump lands on the *buffed*
+ * {@code Thrust} / {@code Speed} value, NOT the pre-buff snapshot
+ * stored here. When the buff expires, the revert intent restores the
+ * snapshot and the prize bump silently disappears.
+ *
+ * <p>Pre-existing behaviour from before the C2a prize-applier RaM
+ * migration (the direct-write appliers had the same race). Preserved
+ * deliberately — fixing it requires reading
+ * {@code ActiveBuff} state from the cap-bump drain and updating
+ * either the snapshot or the post-revert target value, which is a
+ * separate design conversation. Documented here so the next
+ * encounter doesn't re-investigate as a fresh bug.
+ *
  * @author Asser Fahrenholz
  */
 public class RocketSnapshot implements EntityComponent {

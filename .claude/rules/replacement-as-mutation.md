@@ -45,6 +45,40 @@ the one system that owns the type."
    order produces nondeterministic component values when intents target
    the same entity from multiple sources in one tick.
 
+## Canonical intent shape — universal `Intent` wrapper
+
+New intents (post-2026-05-11) use the universal {@code Intent}
+wrapper in [`api/src/main/java/infinity/es/ship/actions/Intent.java`](../../api/src/main/java/infinity/es/ship/actions/Intent.java):
+
+```java
+public record Intent(Class<? extends EntityComponent> kind, EntityComponent payload)
+    implements EntityComponent {
+  public Intent() { this(null, null); }  // Zay-ES no-arg ctor
+  public static Intent of(EntityComponent payload) {
+    return new Intent(payload.getClass(), payload);
+  }
+}
+```
+
+- **Emit site** — wrap the payload via `Intent.of(new MyCapBump(...))`.
+  The factory derives `kind` from the payload's runtime class so emit
+  sites can never desync the two.
+- **Drain site** — narrow the `EntitySet` with
+  `FieldFilter.create(Intent.class, "kind", MyCapBump.class)` so the
+  canonical writer only iterates intents whose payload matches the
+  target type. This is the project's canonical narrowing pattern
+  (see `PrizeSystem.initialize` for the original `FieldFilter.create(
+  CollisionCategory.class, "filter", …)` precedent on a non-Intent
+  type).
+- **Payload records** — one small `record Foo(EntityId target, …
+  delta)` per logically-distinct intent flavour. They implement
+  `EntityComponent` and provide a no-arg constructor that delegates
+  to the canonical, per `.claude/rules/components.md`.
+
+New intent types should follow this shape. Existing intents
+(`RocketBuffIntent`, `Buff + HealthChange`) predate the wrapper and
+remain unmigrated — see "Future-migration candidates" below.
+
 ## Phased tick (target shape)
 
 ```
@@ -73,7 +107,7 @@ phase 3 — reactors
 | Situation | Wrong | Right |
 |---|---|---|
 | Apply 5 damage to a ship | `ed.setComponent(shipId, new Health(hp - 5))` from any system | Call `EnergySystem.damage(shipId, -5)` (which creates a `HealthChange` intent entity); EnergySystem drains it next tick. |
-| Bump Energy cap by upgrade | `ed.setComponent(shipId, new Energy(next))` from `EnergyPrizeApplier` | Emit an `EnergyUpgradeIntent(shipId, delta)`; canonical writer (EnergySystem or successor) folds. |
+| Bump Energy cap by upgrade | `ed.setComponent(shipId, new Energy(next))` from `EnergyPrizeApplier` | Emit `Intent.of(new EnergyCapBump(shipId, delta))` (or the matching `RechargeCapBump` / `RotationCapBump` / `ThrustCapBump` / `SpeedCapBump`); `ShipSpawnSystem` drains via a `FieldFilter`-narrowed view of `Intent.class`, folds same-tick deltas additively, and clamps at the relevant `*Max`. |
 | Stamp `Decay` on a new entity | At the spawn site (`ShipFactory`/`WeaponFactory`/`MapFactory` or a spawn system) | OK — spawn-time projection is the single-writer; reactors observe the new entity. |
 | Apply impulse to a body | `body.setLinearVelocity(...)` directly | Emit `Impulse` component; sio2-mphys integrator drains. |
 | Re-project ship stats on Groovy reload | `ShipSpawnSystem.reprojectAll()` only | OK — `ShipSpawnSystem` is the canonical writer for the ~12 ship-stat components. |
@@ -90,9 +124,21 @@ component types. Keep them that way.
   `RadarRange`, `ShapeInfo` (ship-side), `RadarShapeInfo`, weapon
   level/cost/delay/speed/thrust components, status-family components.
   Drains config templates (`ShipConfig`) — a different shape of
-  intent. Also drains `RocketBuffIntent` for runtime `Thrust` /
-  `Speed` swaps on rocket-buff activate + revert (BACKLOG C1
-  canonical writer). See [`config-pattern.md`](./config-pattern.md).
+  intent. Also drains two intent shapes for runtime ship-stat writes:
+  - **`RocketBuffIntent`** (legacy shape, predates the universal
+    wrapper) — rocket-buff `Thrust` / `Speed` swaps on activate +
+    revert (BACKLOG C1 canonical writer).
+  - **Universal `Intent` wrapper** narrowed via `FieldFilter` on
+    `Intent.kind` for the five upgrade-prize cap-bump payloads:
+    `EnergyCapBump` / `RechargeCapBump` / `RotationCapBump` /
+    `ThrustCapBump` / `SpeedCapBump` (BACKLOG C2a canonical writer).
+    Drains run AFTER `RocketBuffIntent` so cap-bumps accumulate on
+    top of any rocket-buff override active this tick. Each cap-bump
+    drain folds deltas per target ship additively (same-tick
+    multi-prize accumulation by design), clamps at the relevant
+    `*Max`, and skips no-op writes per rule #6.
+
+  See [`config-pattern.md`](./config-pattern.md).
 - **`EnergySystem`** — `Health` (steady-state — drains
   `HealthChange + Buff` intent entities; respawn writes are
   `ShipSpawnSystem`'s territory and gated on a `ResetLivePool` marker).
@@ -118,16 +164,18 @@ system writer; the totals below ground the diff.
 
 **Totals at snapshot date** — ~95 substantive component types
 audited; ~70 single-writer (canonical) or spawn-only (factory tier);
-**~24 multi-writer violations** flagged below. BACKLOG C1 (RocketBuff
-race for `Thrust` / `Speed`) is closed — both components now route
-through `RocketBuffIntent` drained by `ShipSpawnSystem`, leaving the
-prize-applier writes (`ThrusterPrizeApplier` / `TopSpeedPrizeApplier`)
-as the remaining co-writers (BACKLOG C2 territory). Of the 24, ~20
-align with BACKLOG C2 (ship-body, status, weapon-level, and inventory
-prize-applier collisions) and a further 4 (`WarpTo`, `Frequency`,
-`ShipType`, `Impulse`) are fresh finds documented for the first time
-here. `Decay` is the one documented multi-writer exception (see its
-own subsection).
+**~19 multi-writer violations** flagged below. BACKLOG C1 (RocketBuff
+race for `Thrust` / `Speed`) is closed — both components route
+through `RocketBuffIntent` drained by `ShipSpawnSystem`. BACKLOG C2a
+(ship-body prize-applier co-writers for `Energy` / `Recharge` /
+`Rotation` / `Thrust` / `Speed`) is closed — all five route through
+the matching `*CapBumpIntent` drained by `ShipSpawnSystem`, leaving
+zero ship-body multi-writer violations. Of the 19 remaining, ~15
+align with BACKLOG C2 (status, weapon-level, and inventory prize-
+applier collisions) and 4 (`WarpTo`, `Frequency`, `ShipType`,
+`Impulse`) are fresh finds documented for the first time here.
+`Decay` is the one documented multi-writer exception (see its own
+subsection).
 
 #### Additional single-writer mechanics (canonical)
 
@@ -223,20 +271,6 @@ inside an unrelated change** — that work is BACKLOG Round 2 (C1 +
 C2). The rows exist so reviewers can distinguish a *new* violation
 from a *known* one.
 
-**Ship body stats — prize-applier collisions (BACKLOG C2):**
-
-- **`Energy`** — `ShipSpawnSystem` (spawn), `EnergyPrizeApplier`
-  (upgrade on pickup). ⚠️
-- **`Recharge`** — `ShipSpawnSystem`, `RechargePrizeApplier`. ⚠️
-- **`Rotation`** — `ShipSpawnSystem`, `RotationPrizeApplier`. ⚠️
-- **`Thrust`** — `ShipSpawnSystem` (spawn + `RocketBuffIntent` drain),
-  `ThrusterPrizeApplier` (upgrade on pickup). ⚠️ BACKLOG C1
-  (RocketBuff race) closed via canonical-writer drain — see
-  `RocketBuffIntent` Javadoc. Remaining race is the prize upgrade
-  during an active buff, which is C2 scope.
-- **`Speed`** — `ShipSpawnSystem` (spawn + `RocketBuffIntent` drain),
-  `TopSpeedPrizeApplier`. ⚠️ same shape as `Thrust` post-C1.
-
 **Status family — prize-applier collisions (BACKLOG C2):**
 
 - **`Antiwarp`** — `ShipStatusProjector`, `AntiWarpPrizeApplier`. ⚠️
@@ -298,6 +332,31 @@ RaM target — one canonical writer draining `+1` and `-1` intents.
   *intent-shaped* (`Impulse` is a fire-and-forget intent that the
   integrator drains), but worth a Round-2 confirmation pass that no
   other system reads `Impulse` before the drain.
+
+#### Future-migration candidates to the universal `Intent` wrapper
+
+The intent shapes below predate the universal {@code Intent} wrapper
+introduced in C2a. They are functionally equivalent to the new
+shape — fire-and-forget intent components on short-lived holder
+entities — and not migrated by design (C2a explicitly scoped to the
+five cap-bump payloads to keep the slice mergeable). Listed here so
+future authors of new intents know to use `Intent.of(...)` and so a
+later unification pass has a single ledger to draw from.
+
+- **`RocketBuffIntent`** — C1 canonical writer is
+  `ShipSpawnSystem`; the intent carries `(target, thrust, speed)` as
+  value-replacement (NOT delta — single override semantics). Can be
+  refactored to `Intent.of(new RocketBuffPayload(target, thrust,
+  speed))` with the C2a drain pattern. Low blast radius (server-only,
+  no wire stability concern).
+- **`Buff + HealthChange`** — `EnergySystem`'s damage / regen / heal
+  drain. Stamps two components (`Buff(target, time)` + `HealthChange
+  (delta)`) on a short-lived holder entity. Wire-stability concern:
+  `HealthChange` is the canonical client-visible damage signal via
+  SimEthereal; reactors filter on it. A migration to `Intent.of(new
+  HealthChange(...))` would either need to retain the legacy stamp
+  for wire-stability or migrate the client filter. Drive the
+  decision off the client cost, not blanket unification.
 
 #### Spawn-time-only writers (factory tier — no RaM conflict)
 
