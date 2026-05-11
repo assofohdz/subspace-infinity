@@ -163,6 +163,4 @@ The ADR records the **decision shape**; the PRD records **how we land it**.
 
 - `.claude/rules/replacement-as-mutation.md` — the existing one-writer rule this ADR generalises.
 - `.claude/rules/config-pattern.md` — template (`*Config`) vs instance (component) tier; `*Stats` is component-tier and distinct from `*Config`.
-- `.scratch/replacement-as-mutation/PRD.md` — prior RaM PRD, partially superseded.
-- `.scratch/universal-flush-system/PRD.md` — universal-wrapper PRD, superseded by this ADR.
-- C2a migration commit `1fb108d4` — the universal `Intent` wrapper this ADR replaces.
+- C2a migration commit `1fb108d4` — the universal `Intent` wrapper this ADR replaces. Prior PRDs (`.scratch/replacement-as-mutation/`, `.scratch/universal-flush-system/`) were removed when this ADR landed; their content is captured in the Context + Alternatives sections above.

@@ -12,7 +12,7 @@ import infinity.es.ship.weapons.WeaponType;
  * identifies which entity originated the health-change request and which
  * weapon family triggered it.
  *
- * <p>Replacement-as-Mutation slice 1 (.scratch/replacement-as-mutation/PRD.md):
+ * <p>Replacement-as-Mutation pilot (see docs/adr/0001-ecs-component-model.md):
  * the existing {@code HealthChange + Buff} intent shape (drained by
  * {@link infinity.systems.ship.EnergySystem EnergySystem}) gains an optional
  * {@code DamageSource} sibling so reactors that fork on intent type — e.g.

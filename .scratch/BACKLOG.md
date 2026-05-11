@@ -12,7 +12,7 @@ When the user asks "what's next?" or starts a new session asking about cleanup /
 
 **Keep this file in sync** — when an item lands, **delete** it from this file in the same commit. Do not strikethrough; crossed-out content is context-window clutter for future sessions.
 
-**Not in this file** — Subspace-settings wiring lives in [`settings-pipeline.md`](settings-pipeline.md) + [`settings-pipeline-slices.md`](settings-pipeline-slices.md); pick from the queue file when settings work is the focus. RaM-pattern follow-ons live in [`replacement-as-mutation/PRD.md`](replacement-as-mutation/PRD.md). Spawn-projection harness expansion lives in [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md).
+**Not in this file** — Subspace-settings wiring lives in [`settings-pipeline.md`](settings-pipeline.md) + [`settings-pipeline-slices.md`](settings-pipeline-slices.md); pick from the queue file when settings work is the focus. Spawn-projection harness expansion lives in [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md). RaM-pattern follow-ons (residual C2 sub-slices) will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) when its implementation PRD lands.
 
 ## ADRs
 
@@ -62,16 +62,11 @@ PRD = build plan for one feature / refactor. Lives in `.scratch/<feature>/PRD.md
 
 ### Live (active or partially landed)
 
-- [`replacement-as-mutation/PRD.md`](replacement-as-mutation/PRD.md) — RaM slice plan. Slice 1 (cap-bump intent family) landed; status-family / weapon-level / inventory / fresh-finds sub-slices open.
 - [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md) — spawn-projection test scaffolding.
-
-### Superseded (kept for context, do not extend)
-
-- [`universal-flush-system/PRD.md`](universal-flush-system/PRD.md) — universal `Intent` wrapper architectural pivot. Superseded by [ADR 0001](../docs/adr/0001-ecs-component-model.md), which chose per-component writers + Change entities over a universal flush. Migration of existing wrapper sites lives in the ADR 0001 PRD (when written).
 
 ### Pending (referenced but not yet drafted)
 
-- **ADR 0001 implementation PRD** — slice plan for migrating `Intent` + `CapBump` + `CapField` to per-component writers + `*Change` + `ChangeTarget(target, source)`. Migration tracker lives inside this PRD per ADR 0001's "Open work" section.
+- **ADR 0001 implementation PRD** — slice plan for migrating `Intent` + `CapBump` + `CapField` to per-component writers + `*Change` + `ChangeTarget(target, source)`. Subsumes the residual C2 sub-slices (status family, weapon levels, inventory, Frequency / ShipType / ThorFireDelay fresh finds). Migration tracker lives inside this PRD per ADR 0001's "Open work" section.
 
 ## Architecture refactors
 
@@ -104,7 +99,7 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 - **C2d — inventory caps** (~6 appliers: Brick/Decoy/Portal/Repel/Rocket/Thor prize appliers write inventory components also written by `ShipWeaponsProjector` + ConsumableSystem decrement)
 - **C2e — fresh finds from C4 audit** (not in original C2): `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value)
 
-All four sub-slices will use the universal `Intent` wrapper pattern established in C2a. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
+All four sub-slices will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) — per-component canonical writers + `*Change` + `ChangeTarget(target, source)`, not the now-superseded universal `Intent` wrapper from C2a. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
 
 ### Naming / convention
 
@@ -121,7 +116,7 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 
 ### Tier 4 — bigger refactors (M/L)
 
-2. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster. Audit (C4, landed) surfaced 3 fresh multi-writer violations not in this BACKLOG: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Consider folding into C2's scope.
+2. **C2** — Inventory + status family multi-writer migration. ~15 applier sites + new `*Change` components per [ADR 0001](../docs/adr/0001-ecs-component-model.md); the largest live RaM cluster. Audit (C4, landed) surfaced 3 fresh multi-writer violations not in this BACKLOG: `Frequency` (4 writers, team-change race), `ShipType` (2 writers, swap+reproject sequencing risk), `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value). All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Folded into the pending ADR 0001 implementation PRD.
 
 ### Physics canon gaps (separate pile, see top of section)
 

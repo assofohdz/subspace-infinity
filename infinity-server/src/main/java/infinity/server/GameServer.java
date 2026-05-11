@@ -333,7 +333,7 @@ public class GameServer {
     // emission), and Impact (ContactListener + Bounce decrement). The reaper
     // must register BEFORE the impact system because Impact.initialize() looks
     // it up via getSystem(...). The fire system has no inter-trio
-    // dependency. See .scratch/replacement-as-mutation/PRD.md slice 1.
+    // dependency. See docs/adr/0001-ecs-component-model.md.
     systems.register(WeaponsFireSystem.class, new WeaponsFireSystem());
     systems.register(WeaponsReaperSystem.class, new WeaponsReaperSystem());
     systems.register(WeaponsImpactSystem.class, new WeaponsImpactSystem());

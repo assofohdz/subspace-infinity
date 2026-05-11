@@ -418,5 +418,6 @@ a system writer, the multi-writer table above already flags it.
   projection (a degenerate-but-valid shape of RaM at spawn time).
 - [`decay-ttl.md`](./decay-ttl.md) — single-writer for `Decay`
   (the canonical example).
-- [`.scratch/replacement-as-mutation/PRD.md`](../../.scratch/replacement-as-mutation/PRD.md)
-  — full mechanics, migration backlog, open questions, slice plan.
+- [`docs/adr/0001-ecs-component-model.md`](../../docs/adr/0001-ecs-component-model.md)
+  — ADR formalising one-writer + Change-entity mutation for ship state;
+  superseded the prior RaM PRD as the source of truth.

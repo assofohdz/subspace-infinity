@@ -278,7 +278,7 @@ public class EnergySystem extends BaseInfinitySystem {
    * {@code HealthChange + Buff} intent plus a {@link DamageSource} sibling
    * carrying the originating entity and weapon family.
    *
-   * <p>Replacement-as-Mutation slice 1 (.scratch/replacement-as-mutation/PRD.md):
+   * <p>Replacement-as-Mutation pilot (see docs/adr/0001-ecs-component-model.md):
    * the existing intent shape is wire-stable and stays the same; the new
    * {@link DamageSource} component lets reactors fork on intent type without
    * losing the legacy contract. Pass {@link EntityId#NULL_ID} +
