@@ -366,7 +366,7 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 
 | C | Prize type | Authored? | Loader | API config | Component | Applier | Subsystem | Test |
 |---|---|---|---|---|---|---|---|---|
-| ✅ | `Recharge` (= "Full Charge") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Energy`/`Health` | `QuickChargePrizeApplier` ✅ | `EnergySystem.refillHealth` | ❌ |
+| ✅ | `Recharge` (= "Full Charge") | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Energy`/`Health` | `QuickChargePrizeApplier` ✅ | `EnergySystem` (via `HealthChange` intent) | ❌ |
 | ✅ | `Energy` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Energy`/`EnergyMax` | `EnergyPrizeApplier` ✅ | `EnergySystem.update` | ❌ |
 | ✅ | `Rotation` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Rotation`/`RotationMax` | `RotationPrizeApplier` ✅ | `PlayerDriver.update` | ❌ |
 | ✅ | `Stealth` | ✅ prize-weights.groovy | `PrizeWeightsAdapter` | — | `Stealth`/`StealthStatus` | `StealthPrizeApplier` ✅ | `StatusDrainSystem` (drain when toggle on) | ❌ |

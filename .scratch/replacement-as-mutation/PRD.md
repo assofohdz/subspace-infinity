@@ -228,7 +228,6 @@ per slice).
 |---|---|---|---|
 | **0** | **Codify the rule** (this PRD + rule file). No code change. | `.claude/rules/replacement-as-mutation.md`, `.scratch/replacement-as-mutation/PRD.md`, `.claude/rules/systems.md` (patch) | Rule + PRD on disk; `systems.md` cites RaM. Build green. |
 | **1** | **Cap-bump intent family.** Introduce `EnergyCapBumpIntent`, `SpeedCapBumpIntent`, `ThrustCapBumpIntent`, `RotationCapBumpIntent`, `RechargeCapBumpIntent`. Migrate `EnergyPrizeApplier`, `TopSpeedPrizeApplier`, `ThrusterPrizeApplier`, `RotationPrizeApplier`, `RechargePrizeApplier`. Canonical writer: extension of `ShipSpawnSystem` or new `CapWriterSystem`. | `infinity/systems/ship/applier/*.java` (5 appliers), new intent classes, canonical writer | Multi-prize same-tick collision: applying 2× Energy prizes accumulates correctly. Tests pin idempotence + ordering. |
-| **2** | **QuickCharge intent.** `QuickChargePrizeApplier` calls `EnergySystem.refillHealth` directly. Convert to `HealthChange(delta = cap - current)` intent emission. | `QuickChargePrizeApplier`, `EnergySystem.refillHealth` (deprecate or keep as helper that emits intent) | QuickCharge applies via the same path as damage; reactor ordering deterministic. |
 | **3** | **Inventory decrement family.** Each weapon/consumable fire decrements its respective `*CurrentCount` component. Convert to `InventoryDecrementIntent(type, delta)`; canonical writer (per-type or unified). | `WeaponsFireSystem`, `ConsumableSystem`, applier classes | Inventory decrements drain through one writer per type; same-tick double-decrement (rare but possible on lag-compensated re-fire) collapses correctly. |
 | **4** | **Status toggle intent (post-DebugState slice).** Once the canonical Continuum LSHIFT+S/C/X/A bindings land, the toggle handlers emit `StatusToggleIntent(type, on/off)`; canonical writer (`StatusSystem`?) drains. | new `StatusToggleIntent`, `StatusSystem`, key-binding consumers | Toggling Cloak fires one Cloak component change per tick regardless of how many input events arrived. |
 | **5** | **Documentation pass — list every canonical writer in the rule file's "live snapshot" section.** Audit-grade. | `.claude/rules/replacement-as-mutation.md` | Every component type with a writer in the codebase listed. PMD-style ratchet on the rule file going forward. |
@@ -253,7 +252,8 @@ per slice).
      EntitySet on `(Buff, *CapBumpIntent)`. Both flows live in the
      same system class; both write the cap component; rule satisfied.
    - Counter: rename `ShipSpawnSystem` → `ShipStatSystem` to reflect
-     the broader scope. Cosmetic; do as part of slice 2.
+     the broader scope. Cosmetic; can be folded into a future cap-
+     bump-family slice.
 
 3. **Does Zay-ES need framework support for phased ticks?**
    `GameSystemManager` runs `update()` on each registered system in

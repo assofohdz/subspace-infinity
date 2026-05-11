@@ -9,7 +9,7 @@ This guide walks you through setting up your development environment to build an
 | Tool    | Minimum  | Recommended / CI | Pinned by                        |
 |---------|----------|------------------|----------------------------------|
 | JDK     | 17       | 21 (Temurin)     | `.github/workflows/main.yml` (`JAVA_VERSION: '21'`) |
-| Gradle  | —        | 8.5              | `gradle/wrapper/gradle-wrapper.properties` (use `./gradlew`) |
+| Gradle  | —        | 8.14.5           | `gradle/wrapper/gradle-wrapper.properties` (use `./gradlew`) |
 | Git     | any recent | —              | —                                |
 
 Update this table whenever the CI workflow or Gradle wrapper is bumped; other docs reference it as the single source of truth.
