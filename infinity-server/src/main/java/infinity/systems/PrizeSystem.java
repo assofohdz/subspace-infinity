@@ -17,7 +17,6 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
@@ -81,7 +80,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class PrizeSystem extends AbstractGameSystem implements ContactListener<EntityId, MBlockShape> {
+public class PrizeSystem extends BaseInfinitySystem implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);
   private final PhysicsSpace<EntityId, MBlockShape> phys;
@@ -136,9 +135,9 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    configRegistry = getSystem(ConfigRegistrySystem.class);
-    engineConfigSystem = getSystem(EngineConfigSystem.class);
+    ed = requireSystem(EntityData.class);
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
+    engineConfigSystem = requireSystem(EngineConfigSystem.class);
 
     ComponentFilter<?> prizeSpawnerFilter =
         FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
@@ -162,8 +161,8 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
 
     // Build the prize-applier registry. Composites for BOMB (bomb+mine)
     // and ALLWEAPONS (bomb+burst+bullet+mine) — Subspace tradition.
-    final EnergySystem energySystem = getSystem(EnergySystem.class);
-    final WarpSystem warpSystem = getSystem(WarpSystem.class);
+    final EnergySystem energySystem = requireSystem(EnergySystem.class);
+    final WarpSystem warpSystem = requireSystem(WarpSystem.class);
     applierContext = new PrizeApplierContext(ed, energySystem, warpSystem);
     final BombPrizeApplier bomb = new BombPrizeApplier();
     final BurstPrizeApplier burst = new BurstPrizeApplier();
@@ -201,7 +200,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     appliers.put(PrizeTypes.WARP, new WarpPrizeApplier());
     appliers.put(PrizeTypes.XRADAR, new XRadarPrizeApplier());
 
-    getSystem(ContactSystem.class).addListener(this);
+    requireSystem(ContactSystem.class).addListener(this);
   }
 
   /**
@@ -341,7 +340,7 @@ public class PrizeSystem extends AbstractGameSystem implements ContactListener<E
     prizeSpawners.release();
     prizeSpawners = null;
 
-    getSystem(ContactSystem.class).removeListener(this);
+    requireSystem(ContactSystem.class).removeListener(this);
   }
 
   @Override

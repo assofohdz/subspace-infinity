@@ -14,7 +14,6 @@ import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.StaticBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.GravityWell;
 
@@ -23,7 +22,7 @@ import infinity.es.GravityWell;
  *
  * @author AFahrenholz
  */
-public class GravitySystem extends AbstractGameSystem implements ContactListener {
+public class GravitySystem extends BaseInfinitySystem implements ContactListener {
 
   private SimTime time;
 
@@ -31,9 +30,9 @@ public class GravitySystem extends AbstractGameSystem implements ContactListener
   private EntitySet gravityWells;
 
   protected void initialize() {
-    this.ed = getSystem(EntityData.class);
+    this.ed = requireSystem(EntityData.class);
 
-    final ContactSystem contactSystem = getSystem(ContactSystem.class);
+    final ContactSystem contactSystem = requireSystem(ContactSystem.class);
 
     contactSystem.addListener(this);
 

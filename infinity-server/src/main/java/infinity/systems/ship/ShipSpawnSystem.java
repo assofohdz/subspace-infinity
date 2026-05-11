@@ -7,7 +7,6 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
@@ -36,6 +35,7 @@ import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.settings.ConfigRegistrySystem;
+import infinity.systems.BaseInfinitySystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +86,7 @@ import org.slf4j.LoggerFactory;
  *       Groovy hot-reload.
  * </ul>
  */
-public class ShipSpawnSystem extends AbstractGameSystem {
+public class ShipSpawnSystem extends BaseInfinitySystem {
 
   private static final Logger log = LoggerFactory.getLogger(ShipSpawnSystem.class);
 
@@ -113,8 +113,8 @@ public class ShipSpawnSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    configRegistry = getSystem(ConfigRegistrySystem.class);
+    ed = requireSystem(EntityData.class);
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
 
     // Watch ships that are currently in some arena. Ships without ArenaId
     // (no-arena void) are intentionally not in the set; they get reprojected

@@ -7,7 +7,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mworld.World;
 import com.simsilica.mworld.db.ColumnDb;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.server.DefaultColumnDb;
 import infinity.server.chat.InfinityChatHostedService;
@@ -16,7 +15,7 @@ import infinity.sim.CommandTriFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class WorldSystem extends AbstractGameSystem {
+public class WorldSystem extends BaseInfinitySystem {
 
   private final Pattern editCell = Pattern.compile("\\~editCell\\s(\\d+)\\s(\\d+)");
   private DefaultColumnDb colDb;
@@ -47,9 +46,9 @@ public class WorldSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    world = getSystem(World.class);
+    world = requireSystem(World.class);
 
-    InfinityChatHostedService chat = getSystem(InfinityChatHostedService.class);
+    InfinityChatHostedService chat = requireSystem(InfinityChatHostedService.class);
 
     chat.registerPatternTriConsumer(
         editCell,

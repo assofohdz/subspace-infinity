@@ -11,7 +11,6 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.Vec3i;
 import com.simsilica.mworld.TileId;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.es.arena.ArenaId;
@@ -34,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * <p>Column labels are spreadsheet-style: 0→A, 25→Z, 26→AA, 31→AF. Row labels are 1-indexed. The
  * center of a fresh arena is {@code P17}.
  */
-public class RegionSystem extends AbstractGameSystem {
+public class RegionSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(RegionSystem.class);
 
@@ -47,10 +46,10 @@ public class RegionSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
+    ed = requireSystem(EntityData.class);
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
 
-    final ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
+    final ChatHostedPoster chat = requireSystem(InfinityChatHostedService.class);
     chat.registerPatternTriConsumer(
         whereCommand,
         "~where reports the arena and grid region you are in (e.g. trench.lvl A5)",

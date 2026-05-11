@@ -8,7 +8,6 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Buff;
 import infinity.es.DamageSource;
@@ -19,6 +18,7 @@ import infinity.es.ship.weapons.WeaponType;
 import infinity.es.ship.Health;
 import infinity.es.ship.Player;
 import infinity.es.ship.Recharge;
+import infinity.systems.BaseInfinitySystem;
 import infinity.systems.PrizeSystem;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class EnergySystem extends AbstractGameSystem {
+public class EnergySystem extends BaseInfinitySystem {
 
   static Logger log = LoggerFactory.getLogger(EnergySystem.class);
   private final Map<EntityId, Integer> health = new HashMap<>();
@@ -61,7 +61,7 @@ public class EnergySystem extends AbstractGameSystem {
   @Override
   protected void initialize() {
 
-    ed = getSystem(EntityData.class);
+    ed = requireSystem(EntityData.class);
     living = ed.getEntities(Health.class);
     changes = ed.getEntities(Buff.class, HealthChange.class);
 

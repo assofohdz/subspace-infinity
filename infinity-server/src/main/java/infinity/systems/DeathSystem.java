@@ -6,7 +6,6 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
 import infinity.es.Dead;
@@ -20,14 +19,14 @@ import infinity.es.Dead;
  *
  * @author Asser
  */
-public class DeathSystem extends AbstractGameSystem {
+public class DeathSystem extends BaseInfinitySystem {
 
     private EntityData ed;
     private EntitySet dead;
 
     @Override
     protected void initialize() {
-        ed = getSystem(EntityData.class);
+        ed = requireSystem(EntityData.class);
 
         dead = ed.getEntities(Dead.class);
     }

@@ -11,7 +11,6 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.ext.mphys.SpawnPosition;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.PrizeType;
 import infinity.es.PrizeWeightsOverride;
@@ -50,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *
  * Read-only — no entity mutation, no side effects on the running session.
  */
-public class ChecksWorldSystem extends AbstractGameSystem {
+public class ChecksWorldSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(ChecksWorldSystem.class);
 
@@ -71,8 +70,8 @@ public class ChecksWorldSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    timeSystem = getSystem(InfinityTimeSystem.class);
+    ed = requireSystem(EntityData.class);
+    timeSystem = requireSystem(InfinityTimeSystem.class);
 
     ships = ed.getEntities(ShipType.class);
     final ComponentFilter<?> prizeSpawnerFilter =
@@ -83,7 +82,7 @@ public class ChecksWorldSystem extends AbstractGameSystem {
     arenas = ed.getEntities(ArenaId.class, ArenaMap.class);
     decayingEntities = ed.getEntities(Decay.class);
 
-    final ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
+    final ChatHostedPoster chat = requireSystem(InfinityChatHostedService.class);
     chat.registerPatternTriConsumer(
         checkPrizesCommand,
         "~checkprizes — audits prize spawners and the Decay component on each live prize",

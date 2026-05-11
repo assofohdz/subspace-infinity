@@ -9,7 +9,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.ArenaConfig;
@@ -55,7 +54,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Asser
  */
-public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
+public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
 
   static final Logger log = LoggerFactory.getLogger(ArenaSystem.class);
 
@@ -177,10 +176,10 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
+    ed = requireSystem(EntityData.class);
     spatialIndex.initialize(ed);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
-    configRegistry = getSystem(ConfigRegistrySystem.class);
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
   }
 
   @Override
@@ -235,7 +234,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
       return;
     }
     configRegistry.load(arenaId, rec.config);
-    final int reprojected = getSystem(ShipSpawnSystem.class).reprojectAll();
+    final int reprojected = requireSystem(ShipSpawnSystem.class).reprojectAll();
     if (log.isInfoEnabled()) {
       log.info(
           "{} changed for arena {}; reprojected {} ship(s)",
@@ -530,7 +529,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
 
   private void doLoad(final ArenaRecord rec) {
     rec.state = ArenaState.LOADING;
-    final MapSystem maps = getSystem(MapSystem.class);
+    final MapSystem maps = requireSystem(MapSystem.class);
     EntityId arena = null;
     try {
       final int allocatedSlot = allocateSlot();
@@ -600,9 +599,9 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
    */
   private void materializePrizeSpawners(final ArenaRecord rec, final EntityId arenaEntity) {
     @SuppressWarnings("rawtypes")
-    final PhysicsSpace phys = getSystem(PhysicsSpace.class, true);
+    final PhysicsSpace phys = requireSystem(PhysicsSpace.class);
     ArenaLogic.materializeSpawners(
-        ed, phys, getSystem(InfinityTimeSystem.class).getTime(),
+        ed, phys, requireSystem(InfinityTimeSystem.class).getTime(),
         new ArenaId(rec.name, arenaEntity),
         ed.getComponent(arenaEntity, ArenaMap.class),
         rec.name, rec.config.spawners(), log);
@@ -621,7 +620,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     rec.state = ArenaState.UNLOADING;
     reloadWatcher.unregisterScriptWatch(rec.name);
     try {
-      getSystem(MapSystem.class).unloadMap(rec.config.mapFile());
+      requireSystem(MapSystem.class).unloadMap(rec.config.mapFile());
       if (rec.entityId != null) {
         ed.removeEntity(rec.entityId);
         rec.entityId = null;
@@ -697,7 +696,7 @@ public class ArenaSystem extends AbstractGameSystem implements ArenaManager {
     }
     final ArenaLogic.SwapMapOutcome outcome = ArenaLogic.swapArenaMap(
         rec.state, rec.config, rec.arenaIndex, arenaName, newMap,
-        () -> getSystem(MapSystem.class).swapMap(rec.config.mapFile(), newMap, rec.arenaIndex));
+        () -> requireSystem(MapSystem.class).swapMap(rec.config.mapFile(), newMap, rec.arenaIndex));
     if (outcome.config != null) {
       rec.config = outcome.config;
     }
