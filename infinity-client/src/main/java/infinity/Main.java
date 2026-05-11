@@ -131,11 +131,25 @@ public class Main extends SimpleApplication {
     if (assetsDir.isDirectory()) {
       getAssetManager().registerLocator(
           assetsDir.getAbsolutePath(), com.jme3.asset.plugins.FileLocator.class);
+      if (log.isInfoEnabled()) {
+        log.info("Registered FileLocator at: {}", assetsDir.getAbsolutePath());
+      }
+    } else if (log.isWarnEnabled()) {
+      log.warn(
+          "Skipped FileLocator registration — directory not found: {}",
+          assetsDir.getAbsolutePath());
     }
     final java.io.File zoneDir = new java.io.File("zone");
     if (zoneDir.isDirectory()) {
       getAssetManager().registerLocator(
           zoneDir.getAbsolutePath(), com.jme3.asset.plugins.FileLocator.class);
+      if (log.isInfoEnabled()) {
+        log.info("Registered FileLocator at: {}", zoneDir.getAbsolutePath());
+      }
+    } else if (log.isWarnEnabled()) {
+      log.warn(
+          "Skipped FileLocator registration — directory not found: {}",
+          zoneDir.getAbsolutePath());
     }
 
     GuiGlobals.initialize(this);

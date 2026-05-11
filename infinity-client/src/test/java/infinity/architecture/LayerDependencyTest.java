@@ -11,6 +11,29 @@ import com.tngtech.archunit.junit.ArchUnitRunner;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.runner.RunWith;
 
+/**
+ * Layer-dependency invariants enforced as tests.
+ *
+ * <p>Post-megasplit (commit 3cf92a86), the project is split into the {@code :api},
+ * {@code :infinity-server}, {@code :infinity-client}, and {@code :modules} Gradle modules.
+ * That split means rules 1 and 2 below are belt-and-suspenders:
+ *
+ * <ul>
+ *   <li><b>Rule 1</b> ({@code api/} has no dep on server/client/modules) — already enforced
+ *       at compile time because {@code :api} declares no dependency on the higher-layer
+ *       modules. ArchUnit catches violations that would be introduced by a new gradle dep
+ *       edge before they ship.
+ *   <li><b>Rule 2</b> (server/modules/ai have no dep on client) — same story: {@code
+ *       :infinity-server} and {@code :modules} have no compile dep on {@code
+ *       :infinity-client}, so this is a guard against a future cross-module dep being added.
+ *   <li><b>Rule 3</b> (client has no dep on server/modules/ai except the documented
+ *       exceptions) earns its keep on its own merits. {@code :infinity-client} <i>does</i>
+ *       compile-depend on {@code :infinity-server} (for {@code HostState} co-hosting), so
+ *       gradle module-level enforcement cannot catch cross-package leaks within that edge.
+ *       This rule is what actually keeps client code from reaching into server internals
+ *       outside the allowed boundary classes.
+ * </ul>
+ */
 @RunWith(ArchUnitRunner.class)
 @AnalyzeClasses(
     packages = "infinity",

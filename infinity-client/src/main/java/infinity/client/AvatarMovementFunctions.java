@@ -53,10 +53,6 @@ public class AvatarMovementFunctions {
   public static final FunctionId F_REPEL = new FunctionId(G_ACTION, ActionTypes.REPEL);
   public static final FunctionId F_WARP = new FunctionId(G_ACTION, ActionTypes.WARP);
   public static final FunctionId F_PORTAL = new FunctionId(G_ACTION, ActionTypes.PORTAL);
-  public static final FunctionId F_DECOY = new FunctionId(G_ACTION, ActionTypes.DECOY);
-  public static final FunctionId F_ROCKET = new FunctionId(G_ACTION, ActionTypes.ROCKET);
-  public static final FunctionId F_BRICK = new FunctionId(G_ACTION, ActionTypes.BRICK);
-  public static final FunctionId F_ATTACH = new FunctionId(G_ACTION, ActionTypes.ATTACH);
   // Toggles
   public static final FunctionId F_MULTI = new FunctionId(G_TOGGLE, ToggleTypes.MULTI);
   public static final FunctionId F_ANTI = new FunctionId(G_TOGGLE, ToggleTypes.ANTI);
@@ -135,27 +131,6 @@ public class AvatarMovementFunctions {
     // is held.
     if (!inputMapper.hasMappings(F_REPEL)) {
       inputMapper.map(F_REPEL, KeyInput.KEY_RSHIFT);
-    }
-
-    // F_DECOY / F_ROCKET / F_BRICK / F_ATTACH currently have no consumer in
-    // AvatarMovementState (no analog or state listener dispatches them).
-    // Default key slots are reserved here so a future consumable lands with a
-    // canonical binding (F_ATTACH = F7 matches Subspace canon); pressing these
-    // today is a no-op until a handler is added.
-    if (!inputMapper.hasMappings(F_DECOY)) {
-      inputMapper.map(F_DECOY, KeyInput.KEY_F5);
-    }
-
-    if (!inputMapper.hasMappings(F_ROCKET)) {
-      inputMapper.map(F_ROCKET, KeyInput.KEY_F3);
-    }
-
-    if (!inputMapper.hasMappings(F_BRICK)) {
-      inputMapper.map(F_BRICK, KeyInput.KEY_F4);
-    }
-
-    if (!inputMapper.hasMappings(F_ATTACH)) {
-      inputMapper.map(F_ATTACH, KeyInput.KEY_F7);
     }
   }
 

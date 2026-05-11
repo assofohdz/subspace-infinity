@@ -33,11 +33,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### S10 — Afterburner mechanic (`AfterburnerEnergy`)
 **M/M.** Self-contained slice once the input-binding queue catches up. `AfterburnerEnergy` per-ship (already authored) + new client input + temporary `Speed`/`Thrust` boost while held. Sits with the per-ship-input-mechanic queue.
 
-### Real bugs (silent / correctness)
-
-#### A3 — `EffectSpatialFactory.ef` field never assigned; `EXPLOSION` shape NPEs at first request
-**S/M.** `private EffectFactory ef;` declared at `:46`, dereferenced at `:91` (`return ef.createExplosion();`), no constructor injection or setter. `ModelViewState:215-222` constructs `EffectSpatialFactory(assets, timer)` — no path to inject `ef`. Documented landmine in the sispatial-split commit; no follow-up tracked it. **Inject via ctor or remove EXPLOSION from the lookup table.** [client #3]
-
 ### Layer + module hygiene
 
 #### B1 — `AvatarMovementState` reaches into `infinity.systems.*` for protocol-byte constants
@@ -49,9 +44,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### B4 — `zone/` shipped three times (server JAR + client JAR + dist root)
 **S/M.** `zone/` ends up inside both module JARs *and* at dist root. `FileLocator` reads dist-root first; in-JAR copies are dead weight + a "did my edit take?" footgun if packaging order ever flips. **Pick one canonical shape:** in-JAR-only (drop dist-root copy + let `FileLocator` resolve through classpath fallback) OR dist-root-only (drop the `srcDirs` additions in `app-with-assets.gradle` + `infinity-server/build.gradle:58-64`). [planner #5]
 
-#### B5 — `LayerDependencyTest`: 2 of 3 rules redundant post-megasplit
-**S/S.** Rules 1 (api ↛ server/client/modules) and 2 (server/modules/ai ↛ client) are now compile-time-enforced by Gradle module deps. Only Rule 3 (client → server *package-level* boundary) earns its keep — `infinity-client` does compile-depend on `:infinity-server` for HostState, so package-level rules still matter. **Add class-level Javadoc explaining the post-megasplit reality.** [cleanup #6]
-
 ### RaM single-writer violations
 
 #### C1 — `Thrust` + `Speed` now have THREE writers post-pilot (RocketBuff race)
@@ -60,16 +52,10 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### C2 — Inventory + status component families have unresolved multi-writer collisions
 **L/L.** ~15 prize appliers (`{Brick,Burst,Decoy,Portal,Rocket,Repel,AntiWarp,Cloak,Stealth,XRadar,MultiFire,Energy,Rotation,Thruster,TopSpeed,Recharge}PrizeApplier.java`) write components that `ShipSpawnSystem`/`ShipWeaponsProjector`/`ShipStatusProjector` also write. Pickup two `RepelPrizeApplier` + fire one repel in same tick → final `Repel` count is ordering-dependent. RaM PRD migration backlog #1 is the canonical fix; ready to land now that pilot proved the shape. [spawn #2 + config-2 #1]
 
-#### C3 — `EnergySystem.refillHealth` bypasses its own canonical intent contract
-**S/M.** `EnergySystem.java:315-321` direct `e.set(refilled)` mutation. EnergySystem is the canonical writer for `Health` and exposes the `damage(target, delta, source, weaponFlag)` intent helper, but `refillHealth` skips the intent layer mid-tick. **Replace with `damage(id, capValue - currentValue)` (positive delta = heal).** RaM PRD slice 2. [spawn #6]
-
 #### C4 — RaM rule-file "live snapshot" stale post-pilot — most components un-ledgered
 **M/M.** `replacement-as-mutation.md` lists only `ShipSpawnSystem`, `EnergySystem`, mphys integrator, decay reaper. Components like `Jitter`, `WarpTo` (already 2 writers!), `Bounce`, `Repellable`, `RocketActive`, `ProximityArmed`, `Dead`, `Captain`, `Frequency`, every inventory component — none documented. Without the ledger, reviewers can't tell legitimate canonical-writer from new-violation. RaM PRD slice 5; could partially automate via `grep setComponent.*new \w+\(`. [spawn #5]
 
 ### Settings pipeline gaps
-
-#### D1 — `ThorConfig` has a `ConfigRegistry` slot but no adapter and no fragment file
-**S/S.** Slot at `ConfigRegistry.SLOTS:82` (`Slot.of(ThorConfig.class, ThorConfig.DEFAULTS)`) advertises "per-arena Thor projectile tuning" but has no `ThorAdapter`, no `thor.groovy`, no operator authoring path. Every arena gets `DEFAULTS` forever. **Either delete the slot until needed, or land a 30-line adapter + fragment.** [config-2 #2]
 
 #### D2 — `SpawnConfig.warpRadiusLimit` fully wired but has zero runtime consumer
 **S/M.** Authored ✅ + Loader ✅ + Config ✅ + Subsystem ❌. Operator authoring `warpRadiusLimit 256` sees no behaviour change. **Either land the consumer (`WarpPrizeApplier` randomization within radius via `ArenaSpatialIndex`) or strip the field+parser until it does.** Half-wired knobs are a maintenance trap. [config-2 #3]
@@ -88,9 +74,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### E4 — `pmdTest` hard-disabled across all modules
 **S/M.** `infinity.java-conventions.gradle:118-120` says "too noisy for early adoption" — stale rationale. Test count has grown to 34 java files with no PMD discipline. **Drop the disable, capture a `max<Project>PmdTestViolations` baseline, let the existing ratchet apply.** [cleanup #4]
 
-#### E5 — Gradle wrapper drift + ben-manes plugin scoped to one module
-**S/S.** Wrapper at 8.5 (Nov 2023, 18 months old) — partial JDK-21 support; 8.10+ fixed several toolchain bugs. `com.github.ben-manes.versions` applied **only** to `infinity-client/build.gradle:3`, so `:dependencyUpdates` misses 3 of 4 modules. **Bump wrapper to latest 8.x; move plugin into `buildSrc/.../infinity.java-conventions.gradle`.** [cleanup #5]
-
 ### Naming / convention
 
 #### F1 — `*Spec` namespace overlap forces `SpawnerCreateSpec` rename
@@ -99,61 +82,31 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### F2 — `requireSystem` retrofit incomplete — canonical writers + hot-path systems still on `getSystem`
 **S/M.** 14 systems extend `BaseInfinitySystem`, but `EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, `WorldSystem`, `ChecksWorldSystem`, `RegionSystem`, `GravitySystem`, `MovementInputSystem` still use raw `getSystem(...)`. The retrofit's value (uniform throw + greppable message) is undermined for the systems most likely to throw at boot. **Mechanical base-class swap + 1-line per `getSystem` site.** [spawn #3]
 
-#### F3 — Two parallel mtime watchers duplicate the same shape
-**S/S.** `ArenaSystem.pollZoneGroovyReload` and `EngineConfigSystem.pollWatch` are structurally identical (~55 LOC duplicated). They diverge in logging detail + caught exceptions — silent inconsistency. **Extract `GroovyFileWatcher(path, Supplier<T> loader, Consumer<T> onLoaded)`.** Pure refactor; behaviour-preserving. [spawn #4]
-
-### Doc / cosmetic
-
-#### G1 — `infinity-architecture` skill stale post-megasplit
-**S/S.** `.claude/skills/infinity-architecture/SKILL.md:14-17,55-57` still describes pre-megasplit reality (`modules — infinity.modules.*` referencing `BaseGameModule`, "Client BaseAppState → infinity-client/src/main/java/infinity/ for loose ones"). Misleads anyone using the skill to seed new code. **Update table + "Where does X go?" rows.** [planner #4]
-
-#### G3 — `F_DECOY` / `F_ROCKET` / `F_BRICK` / `F_ATTACH` keybindings have no consumer
-**S/S.** `AvatarMovementFunctions.java:145-159`. Comment acknowledges "no consumer in `AvatarMovementState`...today is a no-op." Reserved-key bindings without consumers are debt rot — F5 in particular is a popular dev-refresh key. **Either gate behind TODO + flip an issue, or delete and let a future feature commit re-add.** [client #5]
-
-#### G4 — `HostState` carries legacy Simsilica BSD-3 header + non-`final` params
-**S/S.** Violates CLAUDE.md rule #1 (`final` for params) and rule #2 (SPDX-only header). HostState is the canonical cross-module bridge — visible to anyone walking the import graph. **Header sync + final-params pass; could batch with a few similar files in `infinity-client/states/`.** [client #6]
-
-#### G5 — `Main.simpleInitApp` FileLocator registration silently skips on cwd mismatch
-**S/S.** `Main.java:130-139` guards both `FileLocator` registrations with `isDirectory()` checks but logs nothing on miss. Launching from a relocated dist or IDE with non-matching cwd → assets fall back to classpath, hot-reload silently dies, no diagnostic. **Add `log.info` on hit + `log.warn` on miss with the absolute path tried.** [client #4]
-
 ## Recommended next work
 
 Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in the same band are roughly interchangeable.
 
-### Tier 1 — pick first (S/L — same-day fixes, real correctness wins)
-
-1. **A3** — `EffectSpatialFactory.ef` NPE landmine. Inject via ctor or remove EXPLOSION from the lookup table.
-
 ### Tier 2 — small wins (S/S–S/M)
 
-2. **F3** — Extract `GroovyFileWatcher` (collapse `ArenaSystem.pollZoneGroovyReload` + `EngineConfigSystem.pollWatch` ~55 LOC duplication).
-3. **F2** — Complete `requireSystem` retrofit on the 10 holdout systems (`EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, …).
-4. **E5** — Bump Gradle wrapper to latest 8.x; move ben-manes plugin into `buildSrc/`.
-5. **D1** — Resolve `ThorConfig` ghost slot (delete or land 30-line adapter + fragment).
-6. **G3** — Resolve stale F_DECOY/F_ROCKET/F_BRICK/F_ATTACH keybindings.
-7. **G5** — Add `log.info`/`log.warn` to `Main.simpleInitApp` FileLocator registration.
-8. **G4** — `HostState` header + final-params cleanup (batch with sibling client/states/ files).
-9. **B5** — `LayerDependencyTest` Javadoc clarification (note 2 of 3 rules are belt-and-suspenders post-megasplit).
+1. **F2** — Complete `requireSystem` retrofit on the 10 holdout systems (`EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, …).
 
 ### Tier 3 — focused slices (S–M / M)
 
-10. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
-11. **C3** — `EnergySystem.refillHealth` → intent path (RaM PRD slice 2; tiny, completes the heal-as-intent story).
-12. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
-13. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
-14. **E4** — Re-enable `pmdTest` + capture per-module test baselines.
-15. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
-16. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
-17. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
-18. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
-19. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
-20. **D3** — Dead SVS preset directories — delete OR wire as CI fixture.
-21. **G1** — Refresh `infinity-architecture` skill to post-megasplit reality.
+2. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
+3. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
+4. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
+5. **E4** — Re-enable `pmdTest` + capture per-module test baselines.
+6. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
+7. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
+8. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
+9. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
+10. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
+11. **D3** — Dead SVS preset directories — delete OR wire as CI fixture.
 
 ### Tier 4 — bigger refactors (M/L)
 
-22. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
-23. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
+12. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
+13. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
 
 ### Physics canon gaps (separate pile, see top of section)
 

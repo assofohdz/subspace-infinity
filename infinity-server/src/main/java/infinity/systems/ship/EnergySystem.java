@@ -309,14 +309,33 @@ public class EnergySystem extends AbstractGameSystem {
    * Refills the entity's live {@link Health} pool to its current effective cap
    * {@link Energy}. Used by the QUICKCHARGE prize.
    *
+   * <p>Replacement-as-Mutation (.claude/rules/replacement-as-mutation.md):
+   * routes through the canonical {@link #damage(EntityId, int)} intent path
+   * rather than writing {@link Health} directly. The refill is encoded as a
+   * positive {@code HealthChange} delta of {@code cap - currentHealth}; the
+   * canonical writer ({@link #applyAccumulatedChanges}) drains it and clamps
+   * at the cap on the next tick edge. RaM rule #6 ("skip no-op replacements")
+   * — when the pool is already at cap, no intent is emitted.
+   *
+   * <p>Return value: the projected post-fold pool value (i.e. the current
+   * {@link Energy} cap, which is also the value the pool will reach once the
+   * intent drains). The immediate {@link Health} component is unchanged at
+   * call time; readers that need the authoritative post-refill value should
+   * wait for the next tick boundary. The only existing caller
+   * ({@code QuickChargePrizeApplier}) discards the return value.
+   *
    * @param entityId the entity to refill (must have both Health and Energy)
-   * @return the new live health value
+   * @return the projected live health value after the intent resolves
+   *     (equal to the current effective cap)
    */
   public int refillHealth(final EntityId entityId) {
     final Entity e = ed.getEntity(entityId, Health.class, Energy.class);
-    final Energy cap = e.get(Energy.class);
-    final Health refilled = new Health(cap.getEnergy());
-    e.set(refilled);
-    return refilled.getHealth();
+    final int capValue = e.get(Energy.class).getEnergy();
+    final int currentHealthValue = e.get(Health.class).getHealth();
+    final int delta = capValue - currentHealthValue;
+    if (delta != 0) {
+      damage(entityId, delta);
+    }
+    return capValue;
   }
 }

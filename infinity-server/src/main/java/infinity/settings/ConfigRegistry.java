@@ -166,7 +166,8 @@ public final class ConfigRegistry {
   /** Per-arena Portal tuning ({@code WarpPointDelay} portal active time). Never {@code null} (defaults to {@link PortalConfig#DEFAULTS}). */
   public PortalConfig portal() { return get(PortalConfig.class); }
 
-  /** Per-arena Thor projectile tuning. Never {@code null} (defaults to {@link ThorConfig#DEFAULTS}). */
+  /** Per-arena Thor projectile tuning ({@code damage}/{@code decayMs}) — consumed by {@code ConsumableLogic}/{@code ConsumableSystem}.
+   * Operator authoring path (Groovy adapter + fragment) still TBD; every arena resolves to {@link ThorConfig#DEFAULTS}. */
   public ThorConfig thor() { return get(ThorConfig.class); }
 
   /**

@@ -1,9 +1,5 @@
-/*
- * $Id$
- *
- * Copyright (c) 2017, Simsilica, LLC
- * All rights reserved.
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 
 package infinity.client.states;
 
@@ -30,8 +26,6 @@ import infinity.Main;
 
 /**
  *  Manages the game server when hosting a game.
- *
- *  @author    Paul Speed
  */
 public class HostState extends BaseAppState {
 
@@ -46,14 +40,14 @@ public class HostState extends BaseAppState {
     private Container hostWindow;
     private GameSystemManager systems;
 
-    public HostState( int port, String description ) {
+    public HostState(final int port, final String description) {
         try {
             this.port = port;
             this.gameServer = new GameServer(port, description);
             systems = gameServer.getSystems();
             final ConnectionListener connectionListener = new ConnectionObserver();
             gameServer.getServer().addConnectionListener(connectionListener);
-        } catch( IOException e ) {
+        } catch (final IOException e) {
             throw new IllegalStateException("Error creating server", e);
         }
     }
@@ -73,8 +67,8 @@ public class HostState extends BaseAppState {
 
     protected void stopHosting() {
         log.info("stopHosting()");
-        if( gameServer.getServer().isRunning() && !gameServer.getServer().getConnections().isEmpty() ) {
-            String msg = "Really kick all " + gameServer.getServer().getConnections().size() + " connections?";
+        if (gameServer.getServer().isRunning() && !gameServer.getServer().getConnections().isEmpty()) {
+            final String msg = "Really kick all " + gameServer.getServer().getConnections().size() + " connections?";
             getState(OptionPanelState.class).show("Disconnect", msg,
                 new CallMethodAction("Yes", this, "detach"),
                 new EmptyAction("No"),
@@ -90,7 +84,7 @@ public class HostState extends BaseAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize(final Application app) {
         // We'll manage the server itself as part of the app state
         // lifecycle so that we can use enabled state for GUI elements
         // if we want.  Plus, the server will not be reusable once closed
@@ -113,7 +107,7 @@ public class HostState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup(final Application app) {
         gameServer.close("Shutting down.");
         hostingState.setObject("Offline");
 
@@ -127,9 +121,9 @@ public class HostState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        Node gui = ((Main)getApplication()).getGuiNode();
+        final Node gui = ((Main) getApplication()).getGuiNode();
 
-        int height = getApplication().getCamera().getHeight();
+        final int height = getApplication().getCamera().getHeight();
         hostWindow.setLocalTranslation(10, height - 10, 0);
         gui.attachChild(hostWindow);
         GuiGlobals.getInstance().requestFocus(hostWindow);
@@ -160,11 +154,11 @@ public class HostState extends BaseAppState {
 
     private class ConnectionObserver implements ConnectionListener {
 
-        public void connectionAdded( Server server, HostedConnection conn ) {
+        public void connectionAdded(final Server server, final HostedConnection conn) {
             resetConnectionCount();
         }
 
-        public void connectionRemoved( Server server, HostedConnection conn ) {
+        public void connectionRemoved(final Server server, final HostedConnection conn) {
             resetConnectionCount();
         }
     }

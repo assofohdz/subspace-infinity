@@ -11,7 +11,6 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
 import com.jme3.system.Timer;
 import com.jme3.util.BufferUtils;
-import infinity.client.view.EffectFactory;
 import infinity.es.ShapeNames;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.util.InfinityRunTimeException;
@@ -19,14 +18,19 @@ import java.util.Map;
 import java.util.function.DoubleFunction;
 
 /**
- * Builds purely-visual effect spatials — explosions, the over1/over2/over5
- * decorative layers, wormhole/warp/repel/burst rings, and the particle-emitter
- * explosion clone. Extracted from {@link SISpatialFactory} so that file can
- * focus on gameplay-entity spatials (ship/flag/door/bomb/bullet/bounty/arena).
+ * Builds purely-visual effect spatials — the over1/over2/over5 decorative
+ * layers, wormhole/warp/repel/burst rings, and the per-bomb-tier explosion
+ * quads. Extracted from {@link SISpatialFactory} so that file can focus on
+ * gameplay-entity spatials (ship/flag/door/bomb/bullet/bounty/arena).
  *
- * <p>Most factories are timer-animated quads with a per-shape {@code .j3m}
- * material; the explosion entry returns a deep-clone of {@link EffectFactory}'s
- * pre-built {@link com.jme3.scene.Node} of {@link com.jme3.effect.ParticleEmitter}s.
+ * <p>All entries are timer-animated quads with a per-shape {@code .j3m}
+ * material. The {@code ShapeNames.EXPLOSION} particle-emitter entry was
+ * removed when {@code EffectSpatialFactory} was split out: no server system
+ * ever emits {@code ShapeInfo.create(ShapeNames.EXPLOSION, …)} (only the
+ * {@code EXPLODE_0}/{@code EXPLODE_1}/{@code EXPLODE_2} tiers are spawned),
+ * and the {@code EffectFactory} dependency it required was never wired up
+ * by any caller — keeping the entry would have NPE'd on first use. Re-wire
+ * the particle path as its own slice if/when a caller actually needs it.
  *
  * <p>Owned by {@link SISpatialFactory}, which delegates here whenever its own
  * gameplay-entity map doesn't recognise the shape name.
@@ -39,11 +43,6 @@ public class EffectSpatialFactory {
 
   private final AssetManager assets;
   private final Timer timer;
-  // EffectFactory is the project's particle-emitter container (flame, flash,
-  // sparks, smoketrail, debris, shockwave). Currently unwired — no caller
-  // injects an instance, so EXPLOSION shapes will NPE if requested. Preserved
-  // as-is during the split; wiring is a separate slice.
-  private EffectFactory ef;
 
   /**
    * Lookup table mapping {@link ShapeNames} ids to the {@code createX} helper
@@ -52,7 +51,6 @@ public class EffectSpatialFactory {
    */
   private final Map<String, DoubleFunction<Spatial>> effectShapeFactories = Map.ofEntries(
       Map.entry(ShapeNames.BURST, scale -> createBurst()),
-      Map.entry(ShapeNames.EXPLOSION, scale -> createExplosion()),
       Map.entry(ShapeNames.EXPLODE_0, scale -> createExplosion0()),
       Map.entry(ShapeNames.EXPLODE_1, scale -> createExplosion1()),
       Map.entry(ShapeNames.EXPLODE_2, scale -> createExplosion2()),
@@ -85,10 +83,6 @@ public class EffectSpatialFactory {
       throw new InfinityRunTimeException("Unknown shape name: " + shapeName);
     }
     return factory.apply(scale);
-  }
-
-  private Spatial createExplosion() {
-    return ef.createExplosion();
   }
 
   private Spatial createExplosion0() {

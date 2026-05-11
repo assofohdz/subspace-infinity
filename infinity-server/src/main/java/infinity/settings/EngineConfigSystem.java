@@ -6,11 +6,9 @@ package infinity.settings;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.config.EngineConfig;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,11 +93,9 @@ public class EngineConfigSystem extends AbstractGameSystem {
   private final Path watchedPathOverride;
   private volatile EngineConfig config = EngineConfig.DEFAULTS;
 
-  // Watcher state — only set when engine.groovy is reachable on disk.
-  // Stays null in production / classpath-only runs, in which case
-  // update() short-circuits.
-  private Path watchedPath;
-  private FileTime lastModified;
+  // Watcher — null in production / classpath-only runs (engine.groovy not
+  // reachable on disk), in which case update() short-circuits.
+  private GroovyFileWatcher<EngineConfig> watcher;
   private long nextPollNanos;
 
   /** Production constructor — uses the default classpath path. */
@@ -142,7 +138,7 @@ public class EngineConfigSystem extends AbstractGameSystem {
 
   @Override
   public void update(final SimTime time) {
-    if (watchedPath == null) {
+    if (watcher == null) {
       return;
     }
     final long now = time.getTime();
@@ -150,13 +146,12 @@ public class EngineConfigSystem extends AbstractGameSystem {
       return;
     }
     nextPollNanos = now + POLL_INTERVAL_NANOS;
-    pollWatch();
+    watcher.poll();
   }
 
   @Override
   protected void terminate() {
-    watchedPath = null;
-    lastModified = null;
+    watcher = null;
   }
 
   /**
@@ -171,9 +166,13 @@ public class EngineConfigSystem extends AbstractGameSystem {
   }
 
   /**
-   * Stat the on-disk source for {@link #classpathPath} and arm the
-   * watcher. No-op if no on-disk path is reachable (production /
-   * classpath-only deployment) or if the stat fails.
+   * Resolve the on-disk source for {@link #classpathPath} and arm a
+   * {@link GroovyFileWatcher}. No-op if no on-disk path is reachable
+   * (production / classpath-only deployment).
+   *
+   * <p>Reload-success logging stays here in the consumer callback rather
+   * than inside the watcher so the existing "Engine config reloaded from
+   * {path}" message keeps its specific text after the extraction.
    */
   private void registerWatch() {
     final Path onDisk = watchedPathOverride != null ? watchedPathOverride : resolveOnDisk(classpathPath);
@@ -183,49 +182,18 @@ public class EngineConfigSystem extends AbstractGameSystem {
       }
       return;
     }
-    try {
-      lastModified = Files.getLastModifiedTime(onDisk);
-      watchedPath = onDisk;
-      if (log.isInfoEnabled()) {
-        log.info("Watching {} for engine-tier hot-reload", onDisk);
-      }
-    } catch (final IOException e) {
-      if (log.isWarnEnabled()) {
-        log.warn("Could not stat {} to enable engine-tier live reload: {}", onDisk, e.toString());
-      }
-    }
-  }
-
-  /**
-   * Stat the watched file; if mtime changed, reload via
-   * {@link GroovyEngineLoader#load(String)} and atomically replace the
-   * snapshot. Stat failures are skipped; reload exceptions are logged
-   * and contained so the watcher stays armed.
-   */
-  private void pollWatch() {
-    final FileTime current;
-    try {
-      current = Files.getLastModifiedTime(watchedPath);
-    } catch (final IOException e) {
-      if (log.isDebugEnabled()) {
-        log.debug("Stat failed for {}; skipping engine-tier reload tick", watchedPath);
-      }
-      return;
-    }
-    if (current.equals(lastModified)) {
-      return;
-    }
-    lastModified = current;
-    try {
-      final EngineConfig reloaded = loader.load(classpathPath);
-      config = reloaded;
-      if (log.isInfoEnabled()) {
-        log.info("Engine config reloaded from {}", watchedPath);
-      }
-    } catch (final RuntimeException e) {
-      if (log.isWarnEnabled()) {
-        log.warn("Engine-tier reload of {} failed: {}", watchedPath, e.toString());
-      }
+    final GroovyFileWatcher<EngineConfig> w =
+        new GroovyFileWatcher<>(
+            onDisk,
+            () -> loader.load(classpathPath),
+            reloaded -> {
+              config = reloaded;
+              if (log.isInfoEnabled()) {
+                log.info("Engine config reloaded from {}", onDisk);
+              }
+            });
+    if (w.arm()) {
+      watcher = w;
     }
   }
 

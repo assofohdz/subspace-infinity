@@ -5,18 +5,18 @@ description: Explains the api ↔ server ↔ client layering of Subspace Infinit
 
 # Subspace Infinity Architecture
 
-Three Gradle modules, one package namespace (`infinity.*`). Layer = which module owns the package.
+Four Gradle modules, one package namespace (`infinity.*`). Layer = which module owns the package.
 
 ## Modules and packages
 
 | Module | Packages it owns | Role |
 |---|---|---|
-| `api` | `infinity.es.*`, `infinity.events.*`, `infinity.net.*`, `infinity.util.*`, parts of `infinity.sim.*` | Shared contracts: components, events, interfaces |
-| `infinity-server` | `infinity.systems.*`, `infinity.server.*`, `infinity.ai.*`, `infinity.map.*`, parts of `infinity.sim.*`, `infinity.settings.*` | Authoritative game state + systems |
-| `infinity-client` | `infinity.client.*` + `Main.java` + loose `*AppState` files under `infinity.*` | Rendering, input, UI, view |
-| `modules` | `infinity.modules.*` | Pluggable server-side game modules (`BaseGameModule`) |
+| `api` | `infinity.es.*`, `infinity.events.*`, `infinity.net.*`, `infinity.config.*`, `infinity.util.*`, parts of `infinity.sim.*` | Shared contracts: components, events, config records, interfaces |
+| `infinity-server` | `infinity.systems.*`, `infinity.server.*`, `infinity.ai.*`, `infinity.map.*`, `infinity.settings.*`, `infinity.tools.*`, parts of `infinity.sim.*` | Authoritative game state + systems |
+| `infinity-client` | `infinity.client.*` + `Main.java` | Rendering, input, UI, view |
+| `modules` | _(currently empty — no `.java` sources)_ | Reserved for a future Groovy module loader (per BACKLOG B2) |
 
-Note: `infinity.sim` is split — interfaces in `api`, implementations in `infinity-server`.
+Note: `infinity.sim` is split — interfaces in `api` (including `BaseGameModule`), implementations in `infinity-server`.
 
 ## Data flow
 
@@ -49,11 +49,12 @@ Note: `infinity.sim` is split — interfaces in `api`, implementations in `infin
 |---|---|
 | New `EntityComponent` | `api/src/main/java/infinity/es/` (must be immutable, no-arg ctor) |
 | New event/message type | `api/src/main/java/infinity/events/` |
+| New typed config record (`*Config`) | `api/src/main/java/infinity/config/` |
 | New RMI interface (client ↔ server contract) | `api/src/main/java/infinity/sim/` |
 | Server-side logic (`AbstractGameSystem`) | `infinity-server/src/main/java/infinity/systems/` |
 | Server-only helpers (chat, net dispatch) | `infinity-server/src/main/java/infinity/server/` |
-| New game mode (`BaseGameModule`) | `modules/src/main/java/infinity/modules/` |
-| Client `BaseAppState` (UI, input, rendering) | `infinity-client/src/main/java/infinity/client/states/` (preferred) or `infinity-client/src/main/java/infinity/` for loose ones |
+| New `BaseGameModule` impl | _no current home — `modules/` is empty pending the Groovy module loader (BACKLOG B2). Interface stays in `api/src/main/java/infinity/sim/`._ |
+| Client `BaseAppState` (UI, input, rendering) | `infinity-client/src/main/java/infinity/client/states/` |
 | Client view/spatial factory | `infinity-client/src/main/java/infinity/client/view/` |
 | Lemur UI | `infinity-client/src/main/java/infinity/client/` |
 
@@ -61,9 +62,9 @@ Note: `infinity.sim` is split — interfaces in `api`, implementations in `infin
 
 Run `./gradlew :infinity-client:test --tests "infinity.architecture.LayerDependencyTest"` to verify.
 
-- `api` (`infinity.es.*`, `infinity.events.*`) must not depend on server/client/modules/ai.
-- Server packages must not depend on `infinity.client.*`.
-- `infinity.client.*` must not depend on `infinity.systems.*`, `infinity.server.*`, `infinity.modules.*`, `infinity.ai.*`.
+- `api` packages must not depend on server/client/modules. _(Compile-time enforced by Gradle module deps post-megasplit; the test is belt-and-suspenders.)_
+- Server packages must not depend on `infinity.client.*`. _(Same.)_
+- `infinity.client.*` must not depend on `infinity.systems.*`, `infinity.server.*`, `infinity.ai.*` at the package level — `infinity-client` does compile-depend on `:infinity-server` (for `HostState`), so this package-level rule still earns its keep.
 
 See path-scoped rules for detail: [`.claude/rules/api-contracts.md`](../../rules/api-contracts.md), [`.claude/rules/client-read-only.md`](../../rules/client-read-only.md).
 
