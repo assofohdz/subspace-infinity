@@ -90,7 +90,9 @@ component types. Keep them that way.
   `RadarRange`, `ShapeInfo` (ship-side), `RadarShapeInfo`, weapon
   level/cost/delay/speed/thrust components, status-family components.
   Drains config templates (`ShipConfig`) — a different shape of
-  intent. See [`config-pattern.md`](./config-pattern.md).
+  intent. Also drains `RocketBuffIntent` for runtime `Thrust` /
+  `Speed` swaps on rocket-buff activate + revert (BACKLOG C1
+  canonical writer). See [`config-pattern.md`](./config-pattern.md).
 - **`EnergySystem`** — `Health` (steady-state — drains
   `HealthChange + Buff` intent entities; respawn writes are
   `ShipSpawnSystem`'s territory and gated on a `ResetLivePool` marker).
@@ -116,11 +118,16 @@ system writer; the totals below ground the diff.
 
 **Totals at snapshot date** — ~95 substantive component types
 audited; ~70 single-writer (canonical) or spawn-only (factory tier);
-**~24 multi-writer violations** flagged below, of which 19 align with
-BACKLOG C1/C2 (RocketBuff race + prize-applier collisions) and a
-further 4 (`WarpTo`, `Frequency`, `ShipType`, `ThorFireDelay`) are
-fresh finds documented for the first time here. `Decay` is the one
-documented multi-writer exception (see its own subsection).
+**~24 multi-writer violations** flagged below. BACKLOG C1 (RocketBuff
+race for `Thrust` / `Speed`) is closed — both components now route
+through `RocketBuffIntent` drained by `ShipSpawnSystem`, leaving the
+prize-applier writes (`ThrusterPrizeApplier` / `TopSpeedPrizeApplier`)
+as the remaining co-writers (BACKLOG C2 territory). Of the 24, ~20
+align with BACKLOG C2 (ship-body, status, weapon-level, and inventory
+prize-applier collisions) and a further 4 (`WarpTo`, `Frequency`,
+`ShipType`, `Impulse`) are fresh finds documented for the first time
+here. `Decay` is the one documented multi-writer exception (see its
+own subsection).
 
 #### Additional single-writer mechanics (canonical)
 
@@ -152,7 +159,9 @@ documented multi-writer exception (see its own subsection).
 - **`ProximityFuseSystem`** — `ProximityArmed` (one-shot arm
   timestamp; the only writer).
 - **`RocketBuffSystem`** — `RocketActive` (add at buff start, remove
-  at buff expiry; the only writer of this marker).
+  at buff expiry; the only writer of this marker). Also emits
+  `RocketBuffIntent` revert entities on buff expiry; the canonical
+  drain for those intents is `ShipSpawnSystem` (see above).
 - **`WeaponsDamageLogic`** — `Jitter` (stamp on jitter-weapon hit;
   the only writer).
 - **`WeaponsFireSystem`** — `Damage`, `SplashDamage`, `ProximityFuse`,
@@ -214,23 +223,19 @@ inside an unrelated change** — that work is BACKLOG Round 2 (C1 +
 C2). The rows exist so reviewers can distinguish a *new* violation
 from a *known* one.
 
-**Ship body stats — RocketBuff race (BACKLOG C1):**
-
-- **`Thrust`** — `ShipSpawnSystem` (spawn), `RocketBuffSystem`
-  (revert on expiry), `ConsumableSystem` (set on buff activate),
-  `ThrusterPrizeApplier` (upgrade on pickup). ⚠️ four-writer race;
-  a prize pickup during an active rocket buff can lose the upgrade
-  on revert.
-- **`Speed`** — `ShipSpawnSystem`, `RocketBuffSystem`,
-  `ConsumableSystem`, `TopSpeedPrizeApplier`. ⚠️ same race as
-  `Thrust`.
-
 **Ship body stats — prize-applier collisions (BACKLOG C2):**
 
 - **`Energy`** — `ShipSpawnSystem` (spawn), `EnergyPrizeApplier`
   (upgrade on pickup). ⚠️
 - **`Recharge`** — `ShipSpawnSystem`, `RechargePrizeApplier`. ⚠️
 - **`Rotation`** — `ShipSpawnSystem`, `RotationPrizeApplier`. ⚠️
+- **`Thrust`** — `ShipSpawnSystem` (spawn + `RocketBuffIntent` drain),
+  `ThrusterPrizeApplier` (upgrade on pickup). ⚠️ BACKLOG C1
+  (RocketBuff race) closed via canonical-writer drain — see
+  `RocketBuffIntent` Javadoc. Remaining race is the prize upgrade
+  during an active buff, which is C2 scope.
+- **`Speed`** — `ShipSpawnSystem` (spawn + `RocketBuffIntent` drain),
+  `TopSpeedPrizeApplier`. ⚠️ same shape as `Thrust` post-C1.
 
 **Status family — prize-applier collisions (BACKLOG C2):**
 

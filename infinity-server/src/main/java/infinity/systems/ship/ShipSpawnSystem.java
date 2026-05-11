@@ -34,8 +34,11 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustMax;
 import infinity.es.ship.ThrustUpgrade;
 import infinity.es.ship.TurnResponsiveness;
+import infinity.es.ship.actions.RocketBuffIntent;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.systems.BaseInfinitySystem;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,6 +113,14 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
   private ConfigRegistrySystem configRegistry;
 
   private EntitySet ships;
+  /**
+   * Pending {@link RocketBuffIntent} entities — emitted by
+   * {@code ConsumableSystem} (activate) and {@code RocketBuffSystem}
+   * (revert) and drained here. Single-writer entry-point for
+   * rocket-buff-driven {@link Thrust} / {@link Speed} writes; see
+   * {@code .claude/rules/replacement-as-mutation.md} (BACKLOG C1).
+   */
+  private EntitySet rocketIntents;
 
   @Override
   protected void initialize() {
@@ -120,12 +131,15 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     // (no-arena void) are intentionally not in the set; they get reprojected
     // as soon as ArenaMembershipSystem assigns an ArenaId on entry.
     ships = ed.getEntities(ShipType.class, ArenaId.class);
+    rocketIntents = ed.getEntities(RocketBuffIntent.class);
   }
 
   @Override
   protected void terminate() {
     ships.release();
     ships = null;
+    rocketIntents.release();
+    rocketIntents = null;
   }
 
   @Override
@@ -159,6 +173,50 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
       if (reset) {
         ed.removeComponent(id, ResetLivePool.class);
       }
+    }
+
+    // RaM canonical drain for rocket-buff Thrust/Speed writes (BACKLOG C1).
+    // Runs AFTER the template-projection branches so the drain wins on
+    // same-tick reproject + buff race — deterministic outcome:
+    // intent-wins. See .claude/rules/replacement-as-mutation.md.
+    drainRocketBuffIntents();
+  }
+
+  /**
+   * Drain pending {@link RocketBuffIntent} entities — fold per target
+   * ship (last-by-entity-id wins per RaM rule #7), write the resulting
+   * {@link Thrust} / {@link Speed}, and consume each intent entity.
+   *
+   * <p>Zay-ES iterates an {@link EntitySet} in monotonically-increasing
+   * {@link EntityId} order, so inserting into a {@link LinkedHashMap}
+   * keyed by target gives last-wins folding naturally: the
+   * later-emitted intent (higher EntityId) overwrites the earlier one
+   * for the same target. This is the deterministic resolution for the
+   * rare same-tick activate + revert race.
+   */
+  private void drainRocketBuffIntents() {
+    rocketIntents.applyChanges();
+    if (rocketIntents.isEmpty()) {
+      return;
+    }
+    final Map<EntityId, RocketBuffIntent> foldedByTarget = new LinkedHashMap<>();
+    for (final Entity intentEntity : rocketIntents) {
+      final RocketBuffIntent intent = intentEntity.get(RocketBuffIntent.class);
+      if (intent == null || intent.getTarget() == null) {
+        continue;
+      }
+      foldedByTarget.put(intent.getTarget(), intent);
+    }
+    for (final Map.Entry<EntityId, RocketBuffIntent> entry : foldedByTarget.entrySet()) {
+      final EntityId target = entry.getKey();
+      final RocketBuffIntent intent = entry.getValue();
+      ed.setComponent(target, new Thrust(intent.getThrust()));
+      ed.setComponent(target, new Speed(intent.getSpeed()));
+    }
+    // Consume intent entities — fire-and-forget shape mirrors
+    // EnergySystem's HealthChange drain (Buff entity deleted after fold).
+    for (final Entity intentEntity : rocketIntents) {
+      ed.removeEntity(intentEntity.getId());
     }
   }
 

@@ -41,6 +41,7 @@ import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
 import infinity.es.ship.actions.Rocket;
+import infinity.es.ship.actions.RocketBuffIntent;
 import infinity.es.ship.actions.RocketMax;
 import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.Thor;
@@ -289,11 +290,16 @@ public class ConsumableSystem extends BaseInfinitySystem
 
   /**
    * Pattern 4 fire-time projection for the rocket buff: snapshot the
-   * ship's pre-buff {@link Thrust} / {@link Speed}, swap them to the
-   * arena's {@link RocketConfig} override values, and create the
-   * lifecycle-owning buff entity. {@code RocketBuffSystem} reacts to
-   * the buff entity's add/remove to maintain {@code RocketActive} on
-   * the ship and revert the swap when the buff entity expires (via
+   * ship's pre-buff {@link Thrust} / {@link Speed}, emit a
+   * {@link RocketBuffIntent} carrying the arena's {@link RocketConfig}
+   * override values, and create the lifecycle-owning buff entity.
+   *
+   * <p>The intent is drained by {@code ShipSpawnSystem.update} (the
+   * canonical writer for {@link Thrust} / {@link Speed} per
+   * {@code .claude/rules/replacement-as-mutation.md}). {@code
+   * RocketBuffSystem} reacts to the buff entity's add/remove to
+   * maintain {@code RocketActive} on the ship and emit a revert
+   * {@link RocketBuffIntent} when the buff entity expires (via
    * {@link com.simsilica.es.common.Decay}).
    */
   /**
@@ -350,14 +356,21 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
 
     // Snapshot pre-buff Thrust/Speed onto the buff entity for revert.
+    // Read NOW (before emitting the activate intent) so the snapshot
+    // reflects the ship's pre-buff values — the intent drain hasn't
+    // run yet, so the current components still hold the pre-buff state.
     final Thrust currentThrust = ed.getComponent(ship, Thrust.class);
     final Speed currentSpeed = ed.getComponent(ship, Speed.class);
     final int originalThrust = currentThrust != null ? currentThrust.getThrust() : 0;
     final int originalSpeed = currentSpeed != null ? currentSpeed.getSpeed() : 0;
 
-    // Swap ship's effective values to the rocket-active overrides.
-    ed.setComponent(ship, new Thrust(cfg.thrust()));
-    ed.setComponent(ship, new Speed(cfg.speed()));
+    // Emit RocketBuffIntent carrying the rocket-active override values.
+    // ShipSpawnSystem drains the intent and writes Thrust/Speed once per
+    // tick (RaM canonical-writer pattern) — see
+    // .claude/rules/replacement-as-mutation.md and RocketBuffIntent's
+    // class Javadoc for the design rationale.
+    final EntityId intent = ed.createEntity();
+    ed.setComponent(intent, new RocketBuffIntent(ship, cfg.thrust(), cfg.speed()));
 
     ShipFactory.createRocketBuff(
         ed,
