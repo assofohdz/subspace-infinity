@@ -6,8 +6,7 @@ plugins {
 // Fat client — jME rendering + Lemur UI + can co-host a local GameServer via
 // HostState. Carries: client/, Main.java.
 // Depends on: api/ (compile), infinity-server/ (compile — the HostState bridge
-// + constants referenced from client states), modules/ (runtime, transitively
-// from infinity-server).
+// + constants referenced from client states).
 // =============================================================================
 
 mainClassName = "infinity.Main"
@@ -111,12 +110,10 @@ dependencies {
     // Local dependencies — HostState bridges into GameServer (server module)
     implementation project(":api")
     implementation project(":infinity-server")
-    runtimeOnly project(":modules")
 
     // Test-only — architecture boundary enforcement (LayerDependencyTest needs
     // both client and server bytecode on the test classpath)
     testImplementation "com.tngtech.archunit:archunit-junit4:1.4.2"
-    testImplementation project(":modules")
 }
 
 distributions {

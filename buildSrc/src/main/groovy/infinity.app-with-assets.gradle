@@ -3,18 +3,20 @@ plugins {
     id 'application'
 }
 
-// Game data (assets/, zone/) lives at the *project root*. Two consumption
-// shapes are wired:
+// Game data lives at the *project root*. Two distinct consumption shapes:
 //
-// 1. In-JAR via srcDirs — keeps classpath-based loaders (GroovyFragmentLoader,
-//    AssetManager classpath fallback) working. Files end up in build/resources/
-//    main/ and inside the module JAR.
+// 1. assets/ — bundled both ways: in-JAR via srcDirs (keeps AssetManager
+//    classpath fallback working for jME materials/shaders/sounds) AND
+//    copied to dist-zip root via distributions.main.contents. The
+//    consuming module additionally registers a FileLocator at runtime so
+//    AssetManager-routed loads see the external (editable) copy first.
 //
-// 2. External (filesystem) via distributions.main.contents — places assets/
-//    and zone/ at the dist-zip root alongside bin/ and lib/, where players
-//    can find and authors can edit. Each consuming module additionally
-//    registers a FileLocator at runtime so AssetManager-routed loads see
-//    the external (editable) copy first.
+// 2. zone/ — dist-root ONLY (NOT in-JAR). GroovySettingsHost.readSource
+//    resolves Paths.get("zone", relative) against the JVM working dir
+//    filesystem-first, so a single canonical copy on disk avoids
+//    "which copy am I editing?" ambiguity for operator hot-reload of
+//    Groovy presets. Distribution copies zone/ to dist-zip root so the
+//    same filesystem lookup works in production.
 //
 // Run tasks (run/runX11/runMac/test) set workingDir = rootProject.projectDir
 // so dev mode finds the external copies at the same relative path as in
@@ -22,7 +24,7 @@ plugins {
 sourceSets {
     main {
         resources {
-            srcDirs += [rootProject.file('assets'), rootProject.file('zone')]
+            srcDirs += [rootProject.file('assets')]
             excludes += [
                 "**/*.psd",
                 "**/*.glb",

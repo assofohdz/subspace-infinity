@@ -6,7 +6,7 @@ plugins {
 // =============================================================================
 // Headless server module — no jME rendering, no Lemur UI.
 // Carries: ai/, map/, server/, settings/, sim/, systems/, tools/
-// Depends on: api/ (compile), modules/ (runtime — module discovery).
+// Depends on: api/ (compile).
 // Consumed by: infinity-client (which adds the rendering/UI shell on top).
 // =============================================================================
 
@@ -51,20 +51,14 @@ clean {
     delete 'world.db'
 }
 
-// Pull in zone/ as a resource root so server-only runs find arena/preset
-// configs via classpath (GroovyFragmentLoader uses getResourceAsStream
-// directly, doesn't go through AssetManager). Distribution also copies
-// to dist root for editability — see distributions block below.
-sourceSets {
-    main {
-        resources {
-            srcDirs += [rootProject.file('zone')]
-        }
-    }
-}
-
 // Run + test set workingDir = rootProject.projectDir so external assets/
 // and zone/ resolve at the same relative path in dev as in production.
+// zone/ is NOT bundled inside the JAR — GroovySettingsHost.readSource
+// resolves Paths.get("zone", relative) filesystem-first against the
+// working dir (project root in dev, dist root in production), and the
+// distributions block below copies zone/ to the dist-zip root so the
+// same lookup works for packaged installs. Keeping zone/ external
+// makes operator edits hot-reloadable without a rebuild.
 run {
     workingDir = rootProject.projectDir
 }
@@ -118,11 +112,9 @@ dependencies {
 
     // Local dependencies
     implementation project(":api")
-    runtimeOnly project(":modules")
 
     // Test-only — architecture boundary enforcement
     testImplementation "com.tngtech.archunit:archunit-junit4:1.4.2"
-    testImplementation project(":modules")
 }
 
 distributions {
