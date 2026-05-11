@@ -186,10 +186,11 @@ public final class ConfigRegistry {
   public PrizeWeightsConfig prizeWeights() { return get(PrizeWeightsConfig.class); }
 
   /**
-   * Per-arena spawn-point data — list of per-team spawns + reserved
-   * {@code WarpRadiusLimit} slot. Never {@code null}; defaults to
-   * {@link SpawnConfig#DEFAULTS} (empty teams list = consumer falls
-   * back to legacy {@code ArenaConfig.spawnX/spawnZ}). Populated by
+   * Per-arena spawn-point data — list of per-team spawns + legacy
+   * single-spawn disc radius ({@link SpawnConfig#spawnRadius()}).
+   * Never {@code null}; defaults to {@link SpawnConfig#DEFAULTS}
+   * (empty teams list = consumer falls back to legacy
+   * {@code ArenaConfig.spawnX/spawnZ}). Populated by
    * {@link SpawnAdapter} from the typed {@code spawn.groovy} fragment.
    */
   public SpawnConfig spawn() { return get(SpawnConfig.class); }

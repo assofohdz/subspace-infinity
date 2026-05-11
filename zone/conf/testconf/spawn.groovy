@@ -14,6 +14,6 @@
 // freq % teams.size() (REFERENCE.md ## Spawn).
 
 spawn {
-    warpRadiusLimit  1024
+    spawnRadius 0
     team x: 512, y: 512, radius: 0
 }

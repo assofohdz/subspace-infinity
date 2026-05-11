@@ -191,13 +191,15 @@ extended to assert trench's `[Misc] WarpPointDelay` parses as
 `WarpRadiusLimit` here based on a misread of its meaning. REFERENCE.md
 clarifies it's a Spawn-mechanic — "Random spawn distance limit from
 arena center (1024=anywhere)" — so it belongs with Slice 7 (Spawn-point
-selection), not Portal. `WarpRadiusLimit` retained in trench/deva
-`misc.groovy` pending Slice 7 migration.
+selection), not Portal. ✅ Closed by batch 4 round 1 / D2 as
+`spawnRadius` on `SpawnConfig` (Infinity diverges from canon:
+anchors on arena.groovy-declared coord, not arena center).
 
 Follow-up (own slice): "warp to placed portal" — adds the canonical
 Subspace mechanic (ship within radius of its own placed portal can
-teleport to it). That follow-up is also where `WarpRadiusLimit` may
-finally be consumed if Subspace canon ties them together — TBD.
+teleport to it). Independent from `spawnRadius` after the D2 rename:
+warp-to-portal mechanic introduces its own radius knob on
+`PortalConfig`, not `SpawnConfig`.
 
 ## Slice 6 — Status family infrastructure (biggest unlock; split into 6a/6b/6c)
 
@@ -314,16 +316,23 @@ from each arena.groovy. Test:
 `ConfigRegistrySystemLoadTest` extended with spawn-parse +
 freq-wraparound assertions.
 
-`warpRadiusLimit` lives on `SpawnConfig` as an unconsumed slot per
-the agreed scope; consumption deferred to the WarpSystem-randomization
-follow-up.
+`spawnRadius` (formerly `warpRadiusLimit`) now lives on `SpawnConfig`
+**fully wired** end-to-end (D2 / batch 4 round 1). Field renamed +
+semantic redefined: diverges from Subspace canon `[Misc]
+WarpRadiusLimit` (arena-center anchor) — Infinity anchors on the
+arena.groovy-declared spawn coord. Default = 0 (exact-point spawn).
+Consumer: `ArenaLogic.resolveArenaSpawn`'s legacy-fallback path
+samples uniformly inside a disc of `spawnRadius` tiles around
+`(legacySpawnX, legacySpawnZ)` via `SpawnCircleSampler.sample`. Test:
+`SpawnCircleSamplerTest` covers within-radius + uniform-in-disc
+distribution; `ConfigRegistrySystemLoadTest` covers parse.
 
 Follow-ups (own slices):
-- WarpSystem-randomization — wires the unconsumed
-  `SpawnConfig.warpRadiusLimit` slot. The WARP-key + Warp-prize
-  consumers (`WarpSystem.warpToCenter` callers) currently warp to
-  arena centre; canon Subspace warps to a random spot within
-  `WarpRadiusLimit`.
+- WarpSystem-randomization — separate slice for WARP-key + Warp-prize
+  consumers (`WarpSystem.warpToCenter` callers) which currently warp
+  to arena centre. That mechanic can reuse `SpawnCircleSampler` for
+  the disc sample but draws its own per-arena radius knob (no longer
+  conflated with `spawnRadius` after the D2 rename).
 - Migrate `(default)` arena + SVS-family presets to typed
   `spawn.groovy`; once every active preset has typed spawn data, a
   cleanup slice deletes the legacy `ArenaConfig.spawnX/spawnZ` fields

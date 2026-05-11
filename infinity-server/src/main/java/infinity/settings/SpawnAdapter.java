@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * <pre>{@code
  * spawn {
- *     warpRadiusLimit 1024                       // [Misc] WarpRadiusLimit (tiles; 1024 = no cap)
+ *     spawnRadius 0                              // tiles; 0 = exact-point spawn (legacy fallback only)
  *     team x: 512, y: 512, radius: 256           // freq 0 (and 4, 8, …)
  *     team x: 768, y: 256, radius: 128           // freq 1
  *     team x: 256, y: 768, radius: 128           // freq 2
@@ -36,6 +36,10 @@ import java.util.Map;
  * <p>Coordinates are <em>arena-local tiles</em> per REFERENCE.md
  * {@code ## Spawn}; {@code ArenaSystem.getArenaSpawn} translates to
  * world via {@code arenaToWorld}.
+ *
+ * <p>{@code spawnRadius} diverges from Subspace canon
+ * {@code [Misc] WarpRadiusLimit} — see
+ * {@link SpawnConfig#spawnRadius()} for the divergence note.
  */
 public final class SpawnAdapter
     extends SingleClosureAdapter<SpawnConfig, SpawnAdapter.SpawnBuilder> {
@@ -61,18 +65,25 @@ public final class SpawnAdapter
   public static final class SpawnBuilder {
 
     private final List<TeamSpawn> teams = new ArrayList<>();
-    private int warpRadiusLimit = SpawnConfig.WARP_RADIUS_UNLIMITED;
+    private int spawnRadius;
 
     SpawnBuilder() {}
 
     /**
-     * {@code [Misc] WarpRadiusLimit} in tiles; {@code 1024} = no cap
-     * per REFERENCE.md ({@link SpawnConfig#WARP_RADIUS_UNLIMITED}).
-     * Slot reserved on {@link SpawnConfig#warpRadiusLimit()};
-     * consumption deferred to the WarpSystem-randomization slice.
+     * Tile-radius of the disc around the legacy single-spawn coord
+     * ({@code arena.groovy spawn x, z}). {@code 0} = exact-point spawn
+     * (no randomization); positive values sample uniformly inside the
+     * disc. Applies <em>only</em> on the legacy-fallback path — when
+     * {@link SpawnBuilder#team(Map) team(…)} entries are authored, their
+     * per-team {@code radius:} owns the disc instead.
+     *
+     * <p>Diverges from Subspace canon {@code [Misc] WarpRadiusLimit}
+     * (arena-center anchor): Infinity anchors on the
+     * arena.groovy-declared spawn coord. The Subspace "1024 = anywhere"
+     * sentinel does not apply.
      */
-    public void warpRadiusLimit(final int tiles) {
-      this.warpRadiusLimit = tiles;
+    public void spawnRadius(final int tiles) {
+      this.spawnRadius = tiles;
     }
 
     /**
@@ -90,7 +101,7 @@ public final class SpawnAdapter
     }
 
     SpawnConfig build() {
-      return new SpawnConfig(teams, warpRadiusLimit);
+      return new SpawnConfig(teams, spawnRadius);
     }
 
     private static int intArg(final String block, final Map<String, ?> args, final String key) {

@@ -349,13 +349,13 @@ public class ConfigRegistrySystemLoadTest {
           snapshot.prizeWeights().weights().get("Brick"));
 
       // Slice 7: typed spawn.groovy populated the spawn slot.
-      // trench/spawn.groovy: warpRadiusLimit 1024, single team0 at
-      // (1000, 20) radius 0 — migrated 1:1 from arena.groovy's
-      // legacy `spawn 1000, 20`.
+      // trench/spawn.groovy: spawnRadius 0 (exact-point legacy fallback),
+      // single team0 at (1000, 20) radius 0 — migrated 1:1 from
+      // arena.groovy's legacy `spawn 1000, 20`.
       assertEquals(
-          "trench spawn warpRadiusLimit = 1024 (= no cap)",
-          1024,
-          snapshot.spawn().warpRadiusLimit());
+          "trench spawn spawnRadius = 0 (exact-point legacy fallback)",
+          0,
+          snapshot.spawn().spawnRadius());
       assertEquals(
           "trench spawn has 1 team authored",
           1,

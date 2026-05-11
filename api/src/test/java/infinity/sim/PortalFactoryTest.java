@@ -17,8 +17,10 @@ import org.junit.Test;
  * Portal spawn-projection test — Slice 5 closes
  * {@code [Misc] WarpPointDelay} end-to-end (plumbing only). The sibling
  * {@code [Misc] WarpRadiusLimit} is a Spawn-mechanic ("Random spawn
- * distance limit from arena center" per REFERENCE.md) and belongs with
- * Slice 7 (Spawn-point selection), not here.
+ * distance limit from arena center" per REFERENCE.md) and lives in
+ * {@link infinity.config.SpawnConfig#spawnRadius()} (Infinity diverges
+ * from canon by anchoring on the arena.groovy-declared spawn coord
+ * rather than arena center).
  *
  * <p>{@link MapFactory#createPortal} composes a marker entity carrying
  * {@link PortalConfig#activeTimeMs()} as a {@link Decay} deadline. The

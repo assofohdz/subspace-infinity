@@ -57,20 +57,14 @@ public final class ArenaLogic {
   }
 
   /**
-   * Uniform-disc sample around a team's spawn centre. Returns the exact centre
-   * when {@link TeamSpawn#radiusTiles()} is {@code 0} (point spawn) so authors
-   * get deterministic behaviour without needing to seed an RNG.
+   * Uniform-disc sample around a team's spawn centre. Thin delegate over
+   * {@link SpawnCircleSampler#sample(double, double, double)} — the
+   * sampler returns the exact centre when {@link TeamSpawn#radiusTiles()}
+   * is {@code 0} (point spawn) so authors get deterministic behaviour
+   * without needing to seed an RNG.
    */
   public static double[] sampleTeamSpawn(final TeamSpawn team) {
-    final int radius = team.radiusTiles();
-    if (radius <= 0) {
-      return new double[] {team.x(), team.y()};
-    }
-    // sqrt(rand) gives a uniform area distribution over the disc;
-    // omitting the sqrt would cluster samples toward the centre.
-    final double r = radius * Math.sqrt(Math.random());
-    final double theta = Math.random() * 2.0 * Math.PI;
-    return new double[] {team.x() + r * Math.cos(theta), team.y() + r * Math.sin(theta)};
+    return SpawnCircleSampler.sample(team.x(), team.y(), team.radiusTiles());
   }
 
   /** Drop a trailing path separator if present. */
@@ -315,11 +309,25 @@ public final class ArenaLogic {
    * Resolve the world-space spawn coordinate for an arena. Pure helper:
    * caller passes the typed {@link infinity.config.SpawnConfig}, the
    * arena's loaded {@link ArenaMap}, and the legacy fallback (x, z) from
-   * the arena's {@link infinity.config.ArenaConfig}. Returns either a
-   * uniform-disc sample inside the freq's {@link TeamSpawn} when typed
-   * spawn data is present, or the legacy single-spawn-point as world
-   * coords otherwise. Wraps {@link #sampleTeamSpawn} +
-   * {@code arenaToWorld} so the host method is a thin wrapper.
+   * the arena's {@link infinity.config.ArenaConfig}. Two paths:
+   *
+   * <ol>
+   *   <li><b>Typed teams.</b> When {@code spawn.teams()} is non-empty,
+   *       sample uniformly inside the freq's {@link TeamSpawn} disc
+   *       (per-team {@link TeamSpawn#radiusTiles()}).
+   *   <li><b>Legacy single-coord fallback.</b> Otherwise sample
+   *       uniformly inside the disc of radius
+   *       {@code spawn.spawnRadius()} centred on the arena.groovy-declared
+   *       {@code (legacySpawnX, legacySpawnZ)}. {@code spawnRadius == 0}
+   *       returns the exact coord (current behaviour preserved when the
+   *       knob is unset).
+   * </ol>
+   *
+   * <p>The legacy-fallback radius diverges from Subspace canon
+   * {@code [Misc] WarpRadiusLimit}, which anchors on arena <em>center</em>;
+   * Infinity anchors on the arena.groovy-declared coord. See
+   * {@link infinity.config.SpawnConfig#spawnRadius()} for the divergence
+   * note.
    */
   public static Vec3d resolveArenaSpawn(
       final infinity.config.SpawnConfig spawn,
@@ -332,7 +340,9 @@ public final class ArenaLogic {
       final double[] xy = sampleTeamSpawn(team);
       return arenaToWorld(map, xy[0], xy[1]);
     }
-    return arenaToWorld(map, legacySpawnX, legacySpawnZ);
+    final double[] xy =
+        SpawnCircleSampler.sample(legacySpawnX, legacySpawnZ, spawn.spawnRadius());
+    return arenaToWorld(map, xy[0], xy[1]);
   }
 
   /** Local copy of {@code ArenaSystem.arenaToWorld} so this helper class is self-contained. */

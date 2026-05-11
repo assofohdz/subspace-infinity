@@ -20,10 +20,17 @@ import javax.annotation.Nullable;
  *       order. Subspace canon authors 4 teams; Infinity's typed shape
  *       is a list of any length, so operators can author 1, 2, 3, 4,
  *       N team entries.
- *   <li>{@code [Misc] WarpRadiusLimit} → {@link #warpRadiusLimit}
- *       (slot reserved; consumed by the follow-up
- *       WarpSystem-randomization slice — the WARP-key + Warp-prize
- *       canonical-Subspace random-within-radius behaviour).
+ *   <li>{@link #spawnRadius} → radius of the disc around the
+ *       arena's <em>legacy single-spawn coord</em>
+ *       ({@code ArenaConfig.spawnX/spawnZ}) when no typed
+ *       {@link TeamSpawn} entries are authored. Diverges from Subspace
+ *       canon {@code [Misc] WarpRadiusLimit} (REFERENCE.md
+ *       "Random spawn distance limit from arena center"): canon anchors
+ *       on arena <em>center</em>, Infinity anchors on the
+ *       arena.groovy-declared spawn coord. The Subspace "1024 =
+ *       anywhere" sentinel does not apply — Infinity uses {@code 0} =
+ *       exact-point spawn (no randomization), and any positive value is
+ *       the tile-radius of the spawn disc.
  * </ul>
  *
  * <p>Frequency wraparound: Subspace canon says "Freq 4 → Team0,
@@ -40,23 +47,24 @@ import javax.annotation.Nullable;
  * @param teams ordered list of per-team spawn definitions; empty list
  *     means "no typed spawn data — fall back to legacy
  *     {@code ArenaConfig.spawnX/spawnZ}" at the consumer
- * @param warpRadiusLimit Subspace {@code [Misc] WarpRadiusLimit}, in
- *     tiles ({@code 1024} = no cap per REFERENCE.md). Slot reserved;
- *     consumption deferred to the WarpSystem-randomization follow-up
- *     slice
+ * @param spawnRadius tile-radius of the spawn disc around the legacy
+ *     single-spawn coord. {@code 0} = exact-point spawn (no
+ *     randomization). Positive values sample uniformly inside the
+ *     disc. Applies <em>only</em> on the legacy-fallback path —
+ *     authored per-team {@link TeamSpawn#radiusTiles()} owns the
+ *     disc when {@link #teams} is non-empty. Diverges from Subspace
+ *     {@code [Misc] WarpRadiusLimit} (arena-center anchor) by
+ *     anchoring on the arena.groovy-declared coord instead
  */
-public record SpawnConfig(List<TeamSpawn> teams, int warpRadiusLimit) {
-
-  /** Subspace's "no cap" sentinel. */
-  public static final int WARP_RADIUS_UNLIMITED = 1024;
+public record SpawnConfig(List<TeamSpawn> teams, int spawnRadius) {
 
   /**
    * Empty-spawn baseline — empty {@code teams} list signals "no typed
    * spawn data", so the consumer falls back to legacy
-   * {@code ArenaConfig.spawnX/spawnZ}. {@link #warpRadiusLimit}
-   * defaults to the canonical {@code 1024} (no cap).
+   * {@code ArenaConfig.spawnX/spawnZ}. {@link #spawnRadius} defaults
+   * to {@code 0} (exact-point spawn — no randomization).
    */
-  public static final SpawnConfig DEFAULTS = new SpawnConfig(List.of(), WARP_RADIUS_UNLIMITED);
+  public static final SpawnConfig DEFAULTS = new SpawnConfig(List.of(), 0);
 
   public SpawnConfig {
     Objects.requireNonNull(teams, "teams");

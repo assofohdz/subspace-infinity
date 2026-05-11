@@ -303,7 +303,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `BounceFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SafetyLimit` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `TickerDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ⚠️ | `WarpRadiusLimit` | ✅ misc.groovy + spawn.groovy slot | ✅ `SpawnAdapter` (slot reserved on `SpawnConfig.warpRadiusLimit`, unconsumed) | ✅ `SpawnConfig.warpRadiusLimit` | — | ❌ (deferred — WarpSystem warp-key/Warp-prize randomization is the follow-up consumer slice) | ❌ |
+| ✅ | `WarpRadiusLimit` → `spawnRadius` | ✅ spawn.groovy (`spawnRadius <tiles>`); diverges from Subspace canon arena-center anchor — anchors on arena.groovy-declared spawn coord | ✅ `SpawnAdapter.spawnRadius(int)` | ✅ `SpawnConfig.spawnRadius` (default 0 = exact-point) | — | ✅ `ArenaLogic.resolveArenaSpawn` legacy-fallback path samples uniformly inside disc via `SpawnCircleSampler.sample` when `spawnRadius > 0` | ✅ `SpawnCircleSamplerTest` (within-radius + uniform-in-disc) + `ConfigRegistrySystemLoadTest` (parse) |
 | ⚠️ | `ActivateAppShutdownTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `NearDeathLevel` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `VictoryMusic` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |

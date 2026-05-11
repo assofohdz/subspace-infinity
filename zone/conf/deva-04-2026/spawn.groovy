@@ -14,11 +14,13 @@
 // freqs across the map, add team1 / team2 / … entries; lookup wraps via
 // freq % teams.size() (REFERENCE.md ## Spawn).
 //
-// warpRadiusLimit slot is reserved (REFERENCE.md [Misc]
-// WarpRadiusLimit, "1024 = anywhere"); consumption deferred to the
-// WarpSystem-randomization follow-up slice.
+// spawnRadius is the disc radius (tiles) around the legacy single-spawn
+// coord; only applied when no `team` entries are authored. 0 = exact
+// point spawn (current behaviour). Diverges from Subspace canon
+// [Misc] WarpRadiusLimit (arena-center anchor) — Infinity anchors on
+// the arena.groovy-declared coord.
 
 spawn {
-    warpRadiusLimit  1024
+    spawnRadius 0
     team x: 20, y: 20, radius: 0   // freq 0 (and 4, 8, …)
 }
