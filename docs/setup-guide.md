@@ -160,7 +160,7 @@ cd subspace-infinity
 ## Step 3: Run the Game
 
 ```bash
-./gradlew :infinity:run
+./gradlew :infinity-client:run
 ```
 
 ---
@@ -176,7 +176,7 @@ You should see directories for each Moss module.
 
 ### Check All Dependencies
 ```bash
-./gradlew :infinity:dependencies --configuration runtimeClasspath
+./gradlew :infinity-client:dependencies --configuration runtimeClasspath
 ```
 
 ---
@@ -186,9 +186,9 @@ You should see directories for each Moss module.
 | Task | Command |
 |------|---------|
 | Build all modules | `./gradlew build` |
-| Run the game | `./gradlew :infinity:run` |
+| Run the game | `./gradlew :infinity-client:run` |
 | Clean build artifacts | `./gradlew clean` |
-| List dependencies | `./gradlew :infinity:dependencies` |
+| List dependencies | `./gradlew :infinity-client:dependencies` |
 | Check for updates | `./gradlew dependencyUpdates` |
 
 ---
@@ -203,7 +203,7 @@ cd ~/dev/simsilica/moss
 ```
 
 ### Java module access errors at runtime
-These are handled by JVM arguments in the build configuration. If you encounter them, ensure you're running via Gradle (`./gradlew :infinity:run`) rather than directly.
+These are handled by JVM arguments in the build configuration. If you encounter them, ensure you're running via Gradle (`./gradlew :infinity-client:run`) rather than directly.
 
 ### Build fails with Gradle version errors
 Always use the included Gradle wrapper (`./gradlew`) rather than a system-installed `gradle` command. The wrapper pins the project's Gradle version — see [Toolchain Versions](#toolchain-versions).
@@ -229,13 +229,13 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)     # macOS
 2. Navigate to the `subspace-infinity` directory and open it
 3. IntelliJ will detect the Gradle project and import it
 4. Wait for indexing and dependency resolution to complete
-5. To run, use the Gradle tool window or create a Run Configuration for `infinity:run`
+5. To run, use the Gradle tool window or create a Run Configuration for `infinity-client:run`
 
 ### VS Code
 1. Install the **Extension Pack for Java** extension
 2. Open the `subspace-infinity` folder
 3. The Java extension will detect the Gradle project
-4. Use the terminal to run: `./gradlew :infinity:run`
+4. Use the terminal to run: `./gradlew :infinity-client:run`
 
 ---
 
@@ -332,7 +332,7 @@ echo ""
 echo "=== Setup Complete ==="
 echo "To run the game:"
 echo "  cd ${DEV_DIR}/subspace-infinity"
-echo "  ./gradlew :infinity:run"
+echo "  ./gradlew :infinity-client:run"
 ```
 
 Save this as `setup-subspace.sh`, make it executable, and run:
@@ -385,7 +385,7 @@ Update bundled dependencies when:
 3. **Test locally:**
    ```bash
    ./gradlew clean build
-   ./gradlew :infinity:run
+   ./gradlew :infinity-client:run
    ```
 
 4. **Commit and push:**

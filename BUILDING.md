@@ -8,7 +8,7 @@
 ## Quick Start
 
 ```bash
-./gradlew :infinity:run
+./gradlew :infinity-client:run
 ```
 
 ## Full Setup
@@ -22,8 +22,8 @@ For complete setup instructions including all dependencies:
 | Command | Description |
 |---------|-------------|
 | `./gradlew build` | Build the project |
-| `./gradlew :infinity:run` | Run the game (Linux/Windows default) |
-| `./gradlew :infinity:runMac` | Run on macOS (`-XstartOnFirstThread` + headless AWT) |
-| `./gradlew :infinity:runX11` | Run on Linux/Wayland with X11 backend |
+| `./gradlew :infinity-client:run` | Run the game (Linux/Windows default) |
+| `./gradlew :infinity-client:runMac` | Run on macOS (`-XstartOnFirstThread` + headless AWT) |
+| `./gradlew :infinity-client:runX11` | Run on Linux/Wayland with X11 backend |
 | `./gradlew clean` | Clean build artifacts |
 | `./gradlew dependencyUpdates` | Check for dependency updates |

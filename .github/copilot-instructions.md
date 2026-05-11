@@ -105,7 +105,7 @@ public class MyModule extends BaseGameModule {
 
 ## Build Commands
 - `./gradlew build` - Build all modules
-- `./gradlew :infinity:run` - Run the game
+- `./gradlew :infinity-client:run` - Run the game
 - `./gradlew clean` - Clean build outputs
 
 ## Dependencies

@@ -124,9 +124,9 @@ tasks.named('pmdTest').configure {
 // every source file in the module.
 //
 // Usage:
-//   ./gradlew :infinity:pmdPath -PpmdPath=src/main/java/infinity/systems/ship/WeaponsSystem.java
-//   ./gradlew :infinity:pmdPath -PpmdPath=src/main/java/infinity/systems/   # whole package
-//   ./gradlew :infinity:pmdPath -PpmdPath=src/main/java/A.java,src/main/java/B.java   # multiple
+//   ./gradlew :infinity-server:pmdPath -PpmdPath=src/main/java/infinity/systems/ship/WeaponsSystem.java
+//   ./gradlew :infinity-server:pmdPath -PpmdPath=src/main/java/infinity/systems/   # whole package
+//   ./gradlew :infinity-server:pmdPath -PpmdPath=src/main/java/A.java,src/main/java/B.java   # multiple
 //
 // Path is comma-separated, relative to the module root. Uses the project
 // ruleset and the same ignoreFailures + consoleOutput config as pmdMain

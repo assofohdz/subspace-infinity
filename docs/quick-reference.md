@@ -4,7 +4,7 @@
 `/home/assofohdz/github/assofohdz/subspace-infinity`
 
 ## Run Commands
-- **Run game**: `./gradlew :infinity:run`
+- **Run game**: `./gradlew :infinity-client:run`
 - **Build**: `./gradlew build`
 
 ## Dependencies from Source
