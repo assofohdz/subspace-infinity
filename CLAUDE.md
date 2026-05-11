@@ -77,7 +77,7 @@ See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
 **Simsilica (Lemur / SimEthereal / SiO2 / Zay-ES):**
 - `lemur-ui/` - Lemur UI framework: menus, HUD, buttons, labels
 - `sim-ethereal/` - SimEthereal networking & state sync
-- `sio2-system/` - Server-side game systems (`AbstractGameSystem`)
+- `sio2-system/` - Server-side game systems (`BaseInfinitySystem`)
 - `zay-es-component/` - Zay-ES `EntityComponent` classes
 - `zay-es-debug/` - ECS debugging (`EntitySet` leaks, component queries)
 

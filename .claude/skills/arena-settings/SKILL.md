@@ -35,8 +35,6 @@ zone/
     │   ├── ship-warbird.groovy ...   # per-ship overrides
     │   └── misc.groovy, prizeweights.groovy, cost.groovy
     ├── svs-pb/                       # PowerBall approximation
-    ├── svs-tce/                      # Turf Classic East
-    ├── svs-turf/                     # post-VIE Turf Zone
     ├── deva-04-2026/                 # the deva preset (per-arena tuning)
     └── trench-04-2026/               # the trench preset
 ```

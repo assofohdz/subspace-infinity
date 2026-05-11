@@ -1,11 +1,11 @@
 ---
 name: sio2-system
-description: Create server-side game systems using SiO2 AbstractGameSystem. Use when building systems that process entities, handle game logic, or manage server-side state.
+description: Create server-side game systems using SiO2 AbstractGameSystem (via the project's BaseInfinitySystem wrapper). Use when building systems that process entities, handle game logic, or manage server-side state.
 ---
 
 # Creating Game Systems (SiO2)
 
-Server-side systems process entities each frame using the SiO2 framework.
+Server-side systems process entities each frame using the SiO2 framework. The project wraps SiO2's `AbstractGameSystem` with `infinity.systems.BaseInfinitySystem`, which adds a `requireSystem(Class<T>)` helper — a non-null lookup that throws `IllegalStateException` with a greppable message if the dependency isn't registered. Use it for mandatory deps; fall back to raw `getSystem(...)` only for optional deps that legitimately may be absent (test fixtures, minimal harnesses).
 
 ## Location
 `infinity-server/src/main/java/infinity/systems/`
@@ -13,12 +13,12 @@ Server-side systems process entities each frame using the SiO2 framework.
 ## Official Zay-ES Rules of Thumb
 From the wiki:
 1. **Components are data only** - systems contain the logic
-2. **Two systems should not produce the same component type for the same entities**
+2. **Two systems should not produce the same component type for the same entities** (project further restricts via Replacement-as-Mutation — one canonical writer per component type, see `.claude/rules/replacement-as-mutation.md`)
 3. You're not forced into a particular 'system' model - query entities when you want them
 
 ## Requirements
-1. Extend `com.simsilica.sim.AbstractGameSystem`
-2. Get `EntityData` via `getSystem(EntityData.class)` in `initialize()`
+1. Extend `infinity.systems.BaseInfinitySystem` (which extends `com.simsilica.sim.AbstractGameSystem`)
+2. Get `EntityData` via `requireSystem(EntityData.class)` in `initialize()`
 3. Create `EntitySet` queries for needed components
 4. **CRITICAL: Release all EntitySets in terminate()** - memory leak otherwise
 5. Use `applyChanges()` pattern in `update()`
@@ -34,17 +34,17 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
+import infinity.systems.BaseInfinitySystem;
 
-public class MySystem extends AbstractGameSystem {
+public class MySystem extends BaseInfinitySystem {
 
     private EntityData ed;
     private EntitySet entities;
 
     @Override
     protected void initialize() {
-        ed = getSystem(EntityData.class);
+        ed = requireSystem(EntityData.class);
         entities = ed.getEntities(Component1.class, Component2.class);
     }
 
@@ -112,13 +112,13 @@ public class MySystem extends AbstractGameSystem {
 ### Decay System Pattern
 Time-based entity removal:
 ```java
-public class DecaySystem extends AbstractGameSystem {
+public class DecaySystem extends BaseInfinitySystem {
     private EntityData ed;
     private EntitySet decays;
 
     @Override
     protected void initialize() {
-        ed = getSystem(EntityData.class);
+        ed = requireSystem(EntityData.class);
         decays = ed.getEntities(Decay.class);
     }
 
@@ -159,13 +159,13 @@ public void update(SimTime time) {
 
 ### Collision System Pattern
 ```java
-public class CollisionSystem extends AbstractGameSystem {
+public class CollisionSystem extends BaseInfinitySystem {
     private EntitySet attackers;
     private EntitySet defenders;
 
     @Override
     protected void initialize() {
-        ed = getSystem(EntityData.class);
+        ed = requireSystem(EntityData.class);
         attackers = ed.getEntities(Attack.class, CollisionShape.class, Position.class);
         defenders = ed.getEntities(Defense.class, CollisionShape.class, Position.class);
     }
@@ -188,7 +188,15 @@ public class CollisionSystem extends AbstractGameSystem {
 
 ## Getting Other Systems
 ```java
-OtherSystem other = getSystem(OtherSystem.class);
+// Mandatory dependency — throws IllegalStateException with a greppable
+// message if the dep isn't registered (preferred for everything that
+// must be present for the system to function).
+OtherSystem other = requireSystem(OtherSystem.class);
+
+// Optional dependency — returns null when absent. Use only when the
+// system has a legitimate null-handling path (test fixtures, minimal
+// harnesses, lazy lookups guarded by `if (other != null)`).
+OtherSystem maybeOther = getSystem(OtherSystem.class);
 ```
 
 ## Publishing Events

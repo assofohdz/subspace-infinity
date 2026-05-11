@@ -37,8 +37,6 @@ zone/                        # Second asset root for runtime config
   conf/svs/                  # canonical Standard VIE Settings (verbatim from SubspaceServer, 8 ships)
   conf/svs-league/           # SVS league + duel variants
   conf/svs-pb/               # PowerBall approximation
-  conf/svs-tce/              # Turf Classic East
-  conf/svs-turf/             # post-VIE Turf Zone
 modules/src/main/java/       # Extension modules
 ```
 
