@@ -446,7 +446,7 @@ public class MapState extends BaseAppState {
                 if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
                     final GameSession session = requireGameSession();
                     final Vector3f contactPoint = rayCastClickToArena(event, target);
-                    session.map(MapAction.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.y));
+                    session.map(MapAction.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.z));
                     // session.removeTile(contactPoint.x, contactPoint.y);
                 }
             }

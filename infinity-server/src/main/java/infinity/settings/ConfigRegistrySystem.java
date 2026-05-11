@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
  *
  * <p><b>Load orchestration</b> ({@link #load}) is the single entry point for
  * building an arena's snapshot from its {@link ArenaConfig}: ships via the
- * typed {@link GroovyShipLoader}, weapons + prize via the still-INI-routed
- * {@link GroovyWeaponsLoader} compat shim. Same method serves initial load
- * and hot-reload. The compat shim disappears in slice B4 once every
- * fragment section has its own typed adapter (B1–B3).
+ * typed {@link GroovyShipLoader}, then per-section typed adapters driven by
+ * {@link #FRAGMENT_BINDINGS}. Fragments whose basename has no typed binding
+ * fall back to the legacy INI path in {@link SettingsSystem#loadFragments}
+ * (Phase 1). Same method serves initial load and hot-reload.
  */
 public class ConfigRegistrySystem extends AbstractGameSystem {
 
@@ -60,9 +60,9 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
    * {@link ConfigRegistry#SLOTS}).
    *
    * <p>Each B1-X vertical slice ({@code .scratch/settings-pipeline-slices.md})
-   * adds one entry here and deletes the corresponding section's legacy
-   * {@code GroovyWeaponsLoader.load*} call from {@link #load}'s Phase 3
-   * compat shim. When the shim is empty the loader itself disappears (B4).
+   * adds one entry here when a section gains its typed adapter. Fragments
+   * without a binding fall back to the legacy INI path in {@link #load}'s
+   * Phase 1.
    */
   private static final List<FragmentBinding<?>> FRAGMENT_BINDINGS =
       List.of(

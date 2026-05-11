@@ -163,7 +163,7 @@ public final class ConfigRegistry {
   /** Per-arena Decoy tuning ({@code DecoyAliveTime}). Never {@code null} (defaults to {@link DecoyConfig#DEFAULTS}). */
   public DecoyConfig decoy() { return get(DecoyConfig.class); }
 
-  /** Per-arena Portal tuning ({@code WarpPointDelay}/{@code WarpRadiusLimit}). Never {@code null} (defaults to {@link PortalConfig#DEFAULTS}). */
+  /** Per-arena Portal tuning ({@code WarpPointDelay} portal active time). Never {@code null} (defaults to {@link PortalConfig#DEFAULTS}). */
   public PortalConfig portal() { return get(PortalConfig.class); }
 
   /** Per-arena Thor projectile tuning. Never {@code null} (defaults to {@link ThorConfig#DEFAULTS}). */

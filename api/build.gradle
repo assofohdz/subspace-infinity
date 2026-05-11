@@ -9,9 +9,6 @@ dependencies {
 	implementation "com.simsilica:zay-es:$zayEsVersion"
 	implementation "com.simsilica:sio2:$sio2Version"
     implementation "com.simsilica:bpos:$mossVersion"
-	implementation "com.simsilica:lemur:$lemurVersion"
-	implementation "com.simsilica:lemur-proto:$lemurProtoVersion"
-	implementation "com.simsilica:lemur-props:$lemurPropsVersion"
 
 	// Simsilica MOSS — mworld supplies WorldGrids referenced by InfinityConstants.
 	implementation "com.simsilica:mworld:$mossVersion"

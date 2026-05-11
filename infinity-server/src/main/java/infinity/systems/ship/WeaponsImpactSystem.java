@@ -63,7 +63,7 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
 
   private EntityData ed;
   private WeaponsReaperSystem reaper;
-  private long lastTickNanos;
+  private volatile long lastTickNanos;
 
   @Override
   @SuppressWarnings("unchecked")

@@ -35,12 +35,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 ### Real bugs (silent / correctness)
 
-#### A1 — `MapState.java:449` DELETE uses wrong axis (`contactPoint.y` instead of `.z`)
-**S/L.** Right-click delete builds `new Vec3d(contactPoint.x, 0, contactPoint.y)` — `.y` is ≈0 for the XZ-planar arena, so DELETE always targets world Z=0 regardless of cursor. CREATE on the line above correctly uses `.z`. Classic copy-paste regression. **One-character fix.** [client #1]
-
-#### A2 — `WeaponsImpactSystem.lastTickNanos` non-volatile cross-thread
-**S/L.** Field at `:66`, written from sim thread (`update`), read from physics thread (`newContact`). Plain `long` has no JMM visibility guarantee + isn't atomic on 32-bit JVMs. `WeaponsReaperSystem.detonate` stamps it as `Decay(now, 0)` — torn reads = wrong entity-removal deadline. Legacy `WeaponsSystem.time` had the same shape (preserved, not regressed) but the carve was the natural fix moment. **One-keyword change.** [spawn #7]
-
 #### A3 — `EffectSpatialFactory.ef` field never assigned; `EXPLOSION` shape NPEs at first request
 **S/M.** `private EffectFactory ef;` declared at `:46`, dereferenced at `:91` (`return ef.createExplosion();`), no constructor injection or setter. `ModelViewState:215-222` constructs `EffectSpatialFactory(assets, timer)` — no path to inject `ef`. Documented landmine in the sispatial-split commit; no follow-up tracked it. **Inject via ctor or remove EXPLOSION from the lookup table.** [client #3]
 
@@ -51,9 +45,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 #### B2 — `modules/` subproject empty but still wired in 5 places with wrong (Lemur/UI) deps
 **S/M.** Post-`backlog-final` *Tester delete, `modules/src/` is zero `.java` files. `modules/build.gradle` still declares Lemur, lemur-proto, lemur-props, sim-ethereal, zay-es-net — wrong even for a server-side modules subproject. Both modules carry `runtimeOnly project(":modules")` + `testImplementation project(":modules")`. **Decision needed:** delete the subproject (drop from `settings.gradle`, remove all 5 references) OR keep with corrected slim deps if `groovy-module-loader/PRD.md` is imminent. [planner #1]
-
-#### B3 — `api/build.gradle` declares forbidden Lemur deps that are unused
-**S/S.** `api-contracts.md` explicitly forbids UI types in api/. Grep `api/src/` for `com.simsilica.lemur` returns zero hits. Pure dead config that contradicts the rule it's meant to support. **Drop the three Lemur lines.** [planner #2]
 
 #### B4 — `zone/` shipped three times (server JAR + client JAR + dist root)
 **S/M.** `zone/` ends up inside both module JARs *and* at dist root. `FileLocator` reads dist-root first; in-JAR copies are dead weight + a "did my edit take?" footgun if packaging order ever flips. **Pick one canonical shape:** in-JAR-only (drop dist-root copy + let `FileLocator` resolve through classpath fallback) OR dist-root-only (drop the `srcDirs` additions in `app-with-assets.gradle` + `infinity-server/build.gradle:58-64`). [planner #5]
@@ -94,9 +85,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### E2 — Spawn-projection harness slices 2-5 stale; `hot-reload-from-dist` shipped without slice-3 coverage
 **M/M.** Slice 3 ("Hot-reload diff event surface") is *exactly* the seam the conf-fragments hot-reload depends on. The hot-reload-from-dist commit was verified by manual `sed`-and-watch-the-log; nothing automated guards regression. The `EnergySystemIntentTest` fixture from slice 1d makes slice 3 nearly mechanical. [cleanup #2]
 
-#### E3 — `maxInfinity-serverPmdViolations=3` ceiling drifts from "0 violations" claim
-**S/S.** Commit `1320f42e docs(backlog): remove PMD residual-cleanup item — codebase at 0 violations` claims 0; the `=3` ceiling on `infinity-server` lies about the actual baseline. Either ratchet to 0 or annotate as "permanent — see <X>". [cleanup #3]
-
 #### E4 — `pmdTest` hard-disabled across all modules
 **S/M.** `infinity.java-conventions.gradle:118-120` says "too noisy for early adoption" — stale rationale. Test count has grown to 34 java files with no PMD discipline. **Drop the disable, capture a `max<Project>PmdTestViolations` baseline, let the existing ratchet apply.** [cleanup #4]
 
@@ -119,9 +107,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### G1 — `infinity-architecture` skill stale post-megasplit
 **S/S.** `.claude/skills/infinity-architecture/SKILL.md:14-17,55-57` still describes pre-megasplit reality (`modules — infinity.modules.*` referencing `BaseGameModule`, "Client BaseAppState → infinity-client/src/main/java/infinity/ for loose ones"). Misleads anyone using the skill to seed new code. **Update table + "Where does X go?" rows.** [planner #4]
 
-#### G2 — `ConfigRegistry` Javadoc references stale knobs / deleted classes
-**S/S.** `ConfigRegistry.java:166` portal accessor doc says "Per-arena Portal tuning ({@code WarpRadiusLimit})" — `WarpRadiusLimit` lives on `SpawnConfig`. `ConfigRegistrySystem.java:42-46` references "the still-INI-routed `GroovyWeaponsLoader` compat shim" — class no longer exists. **Pure doc edit.** [config-2 #4]
-
 #### G3 — `F_DECOY` / `F_ROCKET` / `F_BRICK` / `F_ATTACH` keybindings have no consumer
 **S/S.** `AvatarMovementFunctions.java:145-159`. Comment acknowledges "no consumer in `AvatarMovementState`...today is a no-op." Reserved-key bindings without consumers are debt rot — F5 in particular is a popular dev-refresh key. **Either gate behind TODO + flip an issue, or delete and let a future feature commit re-add.** [client #5]
 
@@ -137,43 +122,38 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 
 ### Tier 1 — pick first (S/L — same-day fixes, real correctness wins)
 
-1. **A1** — `MapState.java:449` DELETE axis fix. One-character (`y`→`z`). Silent gameplay break is fixing now.
-2. **A2** — `WeaponsImpactSystem.lastTickNanos` → `volatile`. One-keyword change, closes a JMM/atomicity hazard on Decay deadline stamping.
-3. **A3** — `EffectSpatialFactory.ef` NPE landmine. Inject via ctor or remove EXPLOSION from the lookup table.
+1. **A3** — `EffectSpatialFactory.ef` NPE landmine. Inject via ctor or remove EXPLOSION from the lookup table.
 
 ### Tier 2 — small wins (S/S–S/M)
 
-4. **B3** — Drop unused Lemur deps from `api/build.gradle` (3 lines).
-5. **G2** — Fix two stale Javadoc references in `ConfigRegistry` / `ConfigRegistrySystem`.
-6. **F3** — Extract `GroovyFileWatcher` (collapse `ArenaSystem.pollZoneGroovyReload` + `EngineConfigSystem.pollWatch` ~55 LOC duplication).
-7. **F2** — Complete `requireSystem` retrofit on the 10 holdout systems (`EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, …).
-8. **E3** — Reset `infinity-server` PMD ceiling to actual baseline (truth, not drift).
-9. **E5** — Bump Gradle wrapper to latest 8.x; move ben-manes plugin into `buildSrc/`.
-10. **D1** — Resolve `ThorConfig` ghost slot (delete or land 30-line adapter + fragment).
-11. **G3** — Resolve stale F_DECOY/F_ROCKET/F_BRICK/F_ATTACH keybindings.
-12. **G5** — Add `log.info`/`log.warn` to `Main.simpleInitApp` FileLocator registration.
-13. **G4** — `HostState` header + final-params cleanup (batch with sibling client/states/ files).
-14. **B5** — `LayerDependencyTest` Javadoc clarification (note 2 of 3 rules are belt-and-suspenders post-megasplit).
+2. **F3** — Extract `GroovyFileWatcher` (collapse `ArenaSystem.pollZoneGroovyReload` + `EngineConfigSystem.pollWatch` ~55 LOC duplication).
+3. **F2** — Complete `requireSystem` retrofit on the 10 holdout systems (`EnergySystem`, `ShipSpawnSystem`, `PrizeSystem`, `ArenaSystem`, `DeathSystem`, …).
+4. **E5** — Bump Gradle wrapper to latest 8.x; move ben-manes plugin into `buildSrc/`.
+5. **D1** — Resolve `ThorConfig` ghost slot (delete or land 30-line adapter + fragment).
+6. **G3** — Resolve stale F_DECOY/F_ROCKET/F_BRICK/F_ATTACH keybindings.
+7. **G5** — Add `log.info`/`log.warn` to `Main.simpleInitApp` FileLocator registration.
+8. **G4** — `HostState` header + final-params cleanup (batch with sibling client/states/ files).
+9. **B5** — `LayerDependencyTest` Javadoc clarification (note 2 of 3 rules are belt-and-suspenders post-megasplit).
 
 ### Tier 3 — focused slices (S–M / M)
 
-15. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
-16. **C3** — `EnergySystem.refillHealth` → intent path (RaM PRD slice 2; tiny, completes the heal-as-intent story).
-17. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
-18. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
-19. **E4** — Re-enable `pmdTest` + capture per-module test baselines.
-20. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
-21. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
-22. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
-23. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
-24. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
-25. **D3** — Dead SVS preset directories — delete OR wire as CI fixture.
-26. **G1** — Refresh `infinity-architecture` skill to post-megasplit reality.
+10. **B1** — Promote `AvatarMovementState` protocol bytes to api enums (cross-lens-corroborated; closes a real layer leak).
+11. **C3** — `EnergySystem.refillHealth` → intent path (RaM PRD slice 2; tiny, completes the heal-as-intent story).
+12. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
+13. **B4** — `zone/` ship-once cleanup (pick canonical packaging shape).
+14. **E4** — Re-enable `pmdTest` + capture per-module test baselines.
+15. **E1** — Land tests for `LegacyMapProjector` + `WallLightDecorator` (collect the carrot the BACKLOG dangled).
+16. **E2** — Spawn-projection harness slice 3 (hot-reload diff event surface; guards the seam manual-tested in 1f1be383).
+17. **C4** — Audit + populate the RaM rule "live snapshot" (~40 component types one-line each; partially automatable).
+18. **B2** — `modules/` subproject decision (delete, OR land Groovy module loader, OR slim deps with explicit "future loader payload" status).
+19. **D2** — `SpawnConfig.warpRadiusLimit` consumer (or strip until consumer lands).
+20. **D3** — Dead SVS preset directories — delete OR wire as CI fixture.
+21. **G1** — Refresh `infinity-architecture` skill to post-megasplit reality.
 
 ### Tier 4 — bigger refactors (M/L)
 
-27. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
-28. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
+22. **C1** — RocketBuff `Thrust`/`Speed` canonical writer migration. Closes a real RaM violation post-pilot; pairs naturally with the next item.
+23. **C2** — Inventory + status family multi-writer migration (RaM PRD slice 1). ~15 applier sites + new intent components; the largest live RaM cluster.
 
 ### Physics canon gaps (separate pile, see top of section)
 
