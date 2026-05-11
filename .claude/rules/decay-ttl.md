@@ -3,7 +3,6 @@ paths:
   - "api/src/main/java/infinity/es/**/*.java"
   - "api/src/main/java/infinity/sim/**/*.java"
   - "infinity-server/src/main/java/infinity/systems/**/*.java"
-  - "modules/src/main/java/**/*.java"
 ---
 # Entity TTL — `Decay` is canonical
 

@@ -37,7 +37,6 @@ zone/                        # Second asset root for runtime config
   conf/svs/                  # canonical Standard VIE Settings (verbatim from SubspaceServer, 8 ships)
   conf/svs-league/           # SVS league + duel variants
   conf/svs-pb/               # PowerBall approximation
-modules/src/main/java/       # Extension modules
 ```
 
 Arena identity is by **folder name** under `arenas/`, not by map filename. An arena's `.lvl` is declared by the `map` directive in its `arena.groovy`. See [arena-settings](../arena-settings/SKILL.md) for the full model.

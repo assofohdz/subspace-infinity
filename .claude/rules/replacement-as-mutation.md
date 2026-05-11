@@ -2,7 +2,6 @@
 paths:
   - "infinity-server/src/main/java/infinity/**/*.java"
   - "infinity-client/src/main/java/infinity/**/*.java"
-  - "modules/src/main/java/**/*.java"
   - "api/src/main/java/infinity/sim/**/*.java"
 ---
 # Replacement-as-Mutation (RaM) — single writer per component

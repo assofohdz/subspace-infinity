@@ -1,85 +1,34 @@
 ---
 name: create-module
-description: Create game modules extending BaseGameModule for server extensions. Use when building pluggable server functionality or game mode extensions.
+description: BaseGameModule interface (api/) — server-extension contract. The implementation home (`modules/` subproject) was deleted in v1.0.17. A future guardrailed Groovy module loader will resurrect the deployment path; until then, do not author new BaseGameModule classes — fold the logic into a regular `BaseInfinitySystem` instead.
 ---
 
 # Creating Game Modules
 
-Modules are pluggable extensions that add server functionality.
+**Status: deferred.** The `modules/` Gradle subproject was deleted in v1.0.17 (commit 26fea69c, BACKLOG B2). The `BaseGameModule` interface still lives in `api/src/main/java/infinity/sim/` because deleting it would force an api break — but there is **no current implementation home** for new modules.
 
-## Location
-`modules/src/main/java/infinity/modules/`
+## What to do today
 
-## Requirements
-1. Extend `infinity.sim.BaseGameModule`
-2. BaseGameModule itself extends AbstractGameSystem
-3. Follow same patterns as game systems
-4. Include SPDX-only `BSD-3-Clause` license header
+If you find yourself reaching for `BaseGameModule`, stop. Instead:
 
-## Template
-```java
-// SPDX-License-Identifier: BSD-3-Clause
-// Copyright (c) 2018-2026 Asser Fahrenholz
-package infinity.modules;
+1. Build the feature as a regular **server-side system** following `sio2-system` (extends `BaseInfinitySystem`, lives in `infinity-server/src/main/java/infinity/systems/`).
+2. If the feature is genuinely pluggable / author-provided (a game mode, a custom scoring rule, a per-zone behaviour the operator should configure), file the use case as a comment on the future `groovy-module-loader/PRD.md` — the loader's design needs real motivating examples.
 
-import com.simsilica.es.Entity;
-import com.simsilica.es.EntityData;
-import com.simsilica.es.EntitySet;
-import com.simsilica.sim.SimTime;
-import infinity.sim.BaseGameModule;
+## Future state — what's planned
 
-public class MyModule extends BaseGameModule {
+The user's intent (per the B2 deletion conversation): authors will write **guardrailed Groovy** at zone start that can declare new `*System`s, client-side `*AppState`s, and ECS components. The loader's responsibilities:
 
-    private EntityData ed;
-    private EntitySet entities;
+- Hot-reload at zone start without sim restart
+- Security guardrails (sandbox the Groovy environment)
+- RMI-side registration so client `*AppState`s defined in author Groovy can talk to server `*System`s defined in author Groovy
+- ECS component class registration through Zay-ES's `FieldSerializer`
 
-    @Override
-    protected void initialize() {
-        ed = getSystem(EntityData.class);
-        entities = ed.getEntities(/* components */);
-        
-        // Register event listeners
-        // Initialize module state
-    }
+When that loader lands, this skill will document its concrete shape — directory layout, registration API, hot-reload semantics. **Don't try to anticipate it.** Hold the line on "fold it into a server-side system" until the loader exists.
 
-    @Override
-    protected void terminate() {
-        entities.release();
-        entities = null;
-    }
+## Module Philosophy (for the eventual loader)
 
-    @Override
-    public void update(final SimTime time) {
-        if (entities.applyChanges()) {
-            for (final Entity e : entities.getAddedEntities()) {
-                // Handle new
-            }
-            for (final Entity e : entities.getChangedEntities()) {
-                // Handle changed
-            }
-            for (final Entity e : entities.getRemovedEntities()) {
-                // Handle removed
-            }
-        }
-    }
+From the developer guide — kept here as design context for the future loader, not as authoring guidance today:
 
-    @Override
-    public void start() {
-        // Game started
-    }
-
-    @Override
-    public void stop() {
-        // Game stopped
-    }
-}
-```
-
-## Module Philosophy
-From the developer guide:
 - Modules are the building blocks for extending server functionality
 - Similar to ASSS modules but data-oriented instead of object-oriented
 - Networking is abstracted by SimEthereal
-
-## Registering Modules
-Modules must be registered with the game manager during server setup.

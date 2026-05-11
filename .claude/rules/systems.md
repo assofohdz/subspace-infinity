@@ -1,7 +1,6 @@
 ---
 paths:
   - "infinity-server/src/main/java/infinity/systems/**/*.java"
-  - "modules/src/main/java/**/*.java"
 ---
 # System Rules
 
