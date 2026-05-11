@@ -13,7 +13,8 @@ A **Zone** (server) contains many **Arenas**. An Arena = one **Map** (`.lvl`) + 
 zone/
 ├── zone.groovy                       # zone-wide config (autoLoad, enterSpawn) — see GroovyZoneLoader
 ├── arenas/
-│   ├── (default)/arena.groovy        # thin: includeFragment list + map
+│   ├── (default)/arena.groovy        # fallback when arena loaded by unknown name — mirrors testarena content
+│   ├── testarena/arena.groovy        # canonical "everything live" showcase + zone.groovy enterSpawn target
 │   ├── trench/arena.groovy
 │   └── deva/arena.groovy
 └── conf/
