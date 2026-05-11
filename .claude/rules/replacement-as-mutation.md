@@ -23,9 +23,11 @@ the one system that owns the type."
 1. **One canonical writer per component type.** No exceptions; if two
    systems both `setComponent(id, new T(...))` for the same `T`, one of
    them is wrong.
-2. **Other systems emit intents, never replacements.** Intents are
-   ECS components (e.g. `DamageIntent { target, delta, source }`) on a
-   short-lived holder entity, drained each tick.
+2. **Other systems emit intents, never replacements.** An intent is a
+   transient **Change entity** carrying `ChangeTarget(target, source)`
+   + a typed `*Change` payload (e.g. `EnergyChange(delta)`), drained
+   each tick by the canonical writer. See
+   [`docs/adr/0001-ecs-component-model.md`](../../docs/adr/0001-ecs-component-model.md).
 3. **Writers fold previous-tick value + intents into one new value.**
    Pure function: `(currentT, intents[]) → newT`. Read once, fold all,
    emit one replacement per affected entity.
@@ -45,48 +47,111 @@ the one system that owns the type."
    order produces nondeterministic component values when intents target
    the same entity from multiple sources in one tick.
 
-## Canonical intent shape — universal `Intent` wrapper
+## Canonical intent shape — Change entity + `ChangeTarget`
 
-New intents (post-2026-05-11) use the universal {@code Intent}
-wrapper in [`api/src/main/java/infinity/es/ship/actions/Intent.java`](../../api/src/main/java/infinity/es/ship/actions/Intent.java):
+Per [`docs/adr/0001-ecs-component-model.md`](../../docs/adr/0001-ecs-component-model.md)
+(accepted 2026-05-11), every post-creation mutation flows through a
+transient **Change entity** carrying `ChangeTarget(target, source)` +
+a typed `*Change` payload (or `*StatsChange` for slowly-changing
+rules). The framework's grain — Zay-ES `EntitySet` narrowing by
+component type — is the dispatch. No discriminator field, no enum, no
+registration table.
+
+### Recipe
+
+**Emit site** — any system creates a one-shot holder entity with two
+components:
 
 ```java
-public record Intent(
-    EntityId target, Class<? extends EntityComponent> kind, EntityComponent payload)
-    implements EntityComponent {
-  public Intent() { this(null, null, null); }  // Zay-ES no-arg ctor
-  public static Intent of(EntityId target, EntityComponent payload) {
-    return new Intent(target, payload.getClass(), payload);
-  }
-}
+final EntityId h = ed.createEntity();
+ed.setComponents(h,
+    new ChangeTarget(shipId, sourceShipId),
+    new EnergyChange(-30));
 ```
 
-- **Emit site** — wrap the payload via
-  `Intent.of(targetId, new MyPayload(...))`. The factory derives
-  `kind` from the payload's runtime class so emit sites can never
-  desync the two. Target lives on the wrapper, NOT on the payload.
-- **Drain site** — narrow the `EntitySet` with
-  `FieldFilter.create(Intent.class, "kind", MyPayload.class)` so the
-  canonical writer only iterates intents whose payload matches the
-  target type. Read `target` off the wrapper. `FieldFilter` on
-  `target` (e.g. `FieldFilter.create(Intent.class, "target", shipId)`)
-  is also available — enables per-entity intent inspection (future
-  FlushSystem foundation). This is the project's canonical narrowing
-  pattern (see `PrizeSystem.initialize` for the original
-  `FieldFilter.create(CollisionCategory.class, "filter", …)`
-  precedent on a non-Intent type).
-- **Payload records** — one small `record Foo(... field/delta/etc.)`
-  per logically-distinct intent flavour, or one record + a
-  discriminator enum that unifies a family of related flavours (see
-  `CapBump + CapField` for the canonical example — five capability
-  cap bumps collapsed into one payload). They implement
-  `EntityComponent` and provide a no-arg constructor that delegates
-  to the canonical, per `.claude/rules/components.md`. Do NOT carry
-  `target` on the payload — it lives on the wrapper.
+`source == target` is valid for self-changes. Multiple systems may
+emit Change entities against the same target in the same tick — the
+canonical writer folds them additively.
 
-New intent types should follow this shape. Existing intents
-(`RocketBuffIntent`, `Buff + HealthChange`) predate the wrapper and
-remain unmigrated — see "Future-migration candidates" below.
+**Drain site** — the one canonical writer for that component type
+opens an `EntitySet` keyed on the payload class:
+
+```java
+this.energyChanges = ed.getEntities(EnergyChange.class, ChangeTarget.class);
+```
+
+No `FieldFilter` narrowing needed — `EnergyChange.class` is itself the
+narrowing key. `SpeedChange` and `EnergyChange` are different types,
+land in different `EntitySet`s, and wake different writers.
+
+**Lifetime** — distinguished by `Decay`-presence (per
+[`decay-ttl.md`](./decay-ttl.md)):
+
+- **One-shot** (no `Decay`): apply on `addedEntities` → writer
+  destroys the Change entity itself. Damage hits, prize-acquired cap
+  bumps, one-shot warps.
+- **Temporary** (with `Decay`): apply on `addedEntities` → leave
+  alive → central `Decay` reaper destroys when deadline passes →
+  writer reverses delta on `removedEntities`. Timed buffs, debuffs,
+  shields, slows.
+
+### Four-line state machine
+
+```
+on *Change added (entity has ChangeTarget):
+    target.<field> += change.delta
+    if change.entity has no Decay:
+        ed.removeEntity(change.entity)
+
+on *Change removed:
+    if removed.entity had Decay:
+        target.<field> -= change.delta
+    # else: writer destroyed it itself, nothing to do
+```
+
+The target component (Continuous half) always reflects the current
+effective value. No baseline storage, no buff stack, no parallel TTL
+machinery — the existing [`Decay`](./decay-ttl.md) reaper handles
+expiry uniformly. Multiple sources stacking the same buff is the
+trivial case: each emits its own Change entity with its own `Decay`;
+the writer sums on add, reverses on remove, independently per source.
+
+### `*Change` / `*StatsChange` shape rules
+
+- One record per Continuous component type and one per Stats record —
+  see ADR 0001 for the Continuous + Stats split. Cold-only aspects
+  (e.g. `ThorStats`) have only a `*StatsChange`; tick-rate-touched
+  aspects (e.g. `Energy`) have both.
+- Each `*Change` / `*StatsChange` implements `EntityComponent` and
+  provides a no-arg constructor (per [`components.md`](./components.md)).
+- Delta vs replacement semantics are per-type — additive deltas for
+  energy / cap bumps; value-replacement for `WarpToChange`,
+  `FrequencyChange`, `ShipTypeChange`. Decision lives in each type's
+  Javadoc.
+- Change entities are **server-only by design** — clients observe the
+  post-tick target component via Zay-ES sync; no
+  `Serializer.registerClass` needed for the `*Change` types
+  themselves.
+
+### Future-migration candidates (pre-ADR intent shapes)
+
+Three pre-ADR intent wrappers remain in the tree and are still
+documented in the live snapshot below. They are pre-ADR shapes being
+migrated to the Change-entity recipe under
+[`.scratch/adr-0001-implementation/PRD.md`](../../.scratch/adr-0001-implementation/PRD.md);
+each remains in the snapshot until its aspect migrates, at which
+point its row flips in the same change:
+
+- The universal `Intent` + `CapBump` + `CapField` wrapper (cap bumps
+  for Energy / Recharge / Rotation / Thrust / Speed; drained by
+  `ShipSpawnSystem`).
+- The bespoke `Buff` + `HealthChange` pair (damage / regen / refill,
+  drained by `EnergySystem`).
+- The bespoke `RocketBuffIntent` (rocket-buff Thrust / Speed swap,
+  drained by `ShipSpawnSystem`).
+
+**Do not extend these shapes for new work** — new intents author
+against the Change-entity recipe above.
 
 ## Phased tick (target shape)
 
