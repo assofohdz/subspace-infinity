@@ -14,6 +14,65 @@ When the user asks "what's next?" or starts a new session asking about cleanup /
 
 **Not in this file** — Subspace-settings wiring lives in [`settings-pipeline.md`](settings-pipeline.md) + [`settings-pipeline-slices.md`](settings-pipeline-slices.md); pick from the queue file when settings work is the focus. RaM-pattern follow-ons live in [`replacement-as-mutation/PRD.md`](replacement-as-mutation/PRD.md). Spawn-projection harness expansion lives in [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md).
 
+## ADRs
+
+ADR = one architectural decision, captured shape + alternatives + consequences. Lives in [`docs/adr/`](../docs/adr/). PRDs (see next section) consume ADRs and add slice plans, todo trackers, migration gates. Rules in [`.claude/rules/`](../.claude/rules/) are the **enforcement** of decisions ADRs **record**.
+
+When an ADR lands, the matching rule should reference it; the rule remains the path-scoped contract for tools that auto-load on file match.
+
+### Filed
+
+- [`0001-ecs-component-model.md`](../docs/adr/0001-ecs-component-model.md) — Continuous + Stats with Change-entity mutation. **Accepted** 2026-05-11. Supersedes universal `Intent` wrapper as the foundation.
+
+### Candidates (not yet written, ordered by foundational weight)
+
+Most candidates are "promote existing rule" — the decision is enforced in code or a rule, but the rationale, alternatives, and consequences were never recorded as a standalone ADR. A few are "capture decision" where the decision is implicit in code only.
+
+1. **API / server / client layering** *(promote rule)*. What `api/` is for, why the wall exists, what `infinity.sim.*` ABI is and isn't. Rule: [`api-contracts.md`](../.claude/rules/api-contracts.md). Enforced by [`LayerDependencyTest`](../infinity-client/src/test/java/infinity/architecture/LayerDependencyTest.java).
+
+2. **Component discipline: immutability + no-arg ctor + serializer registration** *(promote rule)*. Why components are records, why the no-arg ctor exists, registration policy for wire-crossing types, failure mode. Rule: [`components.md`](../.claude/rules/components.md).
+
+3. **Decay as the only TTL mechanism** *(promote rule)*. Duration on templates, deadlines on components, single reaper, no parallel `*Decay` / `*Ttl` markers. Rule: [`decay-ttl.md`](../.claude/rules/decay-ttl.md).
+
+4. **Config tier: template (`*Config` records) vs instance (components); spawn projection at the boundary** *(promote rule)*. Pattern 4 formalised — who reads what, why both exist, what doesn't belong in this pattern. Rule: [`config-pattern.md`](../.claude/rules/config-pattern.md).
+
+5. **Settings pipeline: Groovy → adapter → `*Config` → consumer (+ spawn projection)** *(promote rule + capture decision)*. Five-gate model, why operator-facing Groovy uses Subspace-canonical keys, where unit conversion happens, REFERENCE.md as source of truth. Rules: [`settings-pipeline.md`](../.claude/rules/settings-pipeline.md), [`prize-applier.md`](../.claude/rules/prize-applier.md).
+
+6. **Server-authoritative client; commands via RMI; observation via `BodyPosition` + Zay-ES sync** *(promote rule)*. Why client never writes ECS components, why RMI for commands and not state mutation, why polling is forbidden. Rule: [`client-read-only.md`](../.claude/rules/client-read-only.md).
+
+7. **World coordinates: `TileId` API and `GRID_CELL_SIZE` source of truth** *(promote rule)*. Why pixel maths goes through `TileId`, why magic `* 1024` is banned, what the single constant guards against. Rule: [`world-coordinates.md`](../.claude/rules/world-coordinates.md).
+
+8. **Module-facing entity-construction ABI: factories in `api/sim/`** *(promote rule)*. What constitutes the module ABI, why factories are an exception to "data + interfaces only," signature stability contract. Rule: [`api-contracts.md`](../.claude/rules/api-contracts.md) (sub-section).
+
+9. **Phased tick model** *(capture decision)*. When systems run within a tick, what's visible to whom, ordering guarantees, where the Change-entity drain phase sits (depends on ADR 0001). No existing rule — decision is implicit in `update()` call order and ad-hoc system-graph documentation.
+
+10. **EntitySet lifecycle: declare in `initialize()`, release in `terminate()`** *(promote rule)*. Leak failure mode, why EntitySets are stateful, what the audit subagent looks for. Rule: [`entity-sets.md`](../.claude/rules/entity-sets.md).
+
+11. **Wire compatibility / component-shape migration policy** *(capture decision)*. When component shapes can change without coordination, when they need staged rollout, how serializer registration interacts with hot-reload. No existing rule — currently negotiated per change.
+
+### How to work through this
+
+Pick a candidate when "what's next?" surfaces and the slot is bigger than a slice but smaller than a feature. Typical ADR = 30–90 minutes: a draft, one grill loop with the user on alternatives, commit. Then either pair the ADR with a tiny rule-update PR (ADR + rule cross-reference) or leave the rule unchanged and let the ADR be the rationale anchor it points to.
+
+Candidates 1–4 are the highest-value formalizations — they show up daily in agent briefs and PR reviews; making the decisions citable rather than oral-tradition pays off the fastest.
+
+## PRDs
+
+PRD = build plan for one feature / refactor. Lives in `.scratch/<feature>/PRD.md`. Each PRD has its own todo tracker, slice list, migration gates. ADRs are referenced by PRDs ("this PRD implements ADR 0001") but live separately.
+
+### Live (active or partially landed)
+
+- [`replacement-as-mutation/PRD.md`](replacement-as-mutation/PRD.md) — RaM slice plan. Slice 1 (cap-bump intent family) landed; status-family / weapon-level / inventory / fresh-finds sub-slices open.
+- [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md) — spawn-projection test scaffolding.
+
+### Superseded (kept for context, do not extend)
+
+- [`universal-flush-system/PRD.md`](universal-flush-system/PRD.md) — universal `Intent` wrapper architectural pivot. Superseded by [ADR 0001](../docs/adr/0001-ecs-component-model.md), which chose per-component writers + Change entities over a universal flush. Migration of existing wrapper sites lives in the ADR 0001 PRD (when written).
+
+### Pending (referenced but not yet drafted)
+
+- **ADR 0001 implementation PRD** — slice plan for migrating `Intent` + `CapBump` + `CapField` to per-component writers + `*Change` + `ChangeTarget(target, source)`. Migration tracker lives inside this PRD per ADR 0001's "Open work" section.
+
 ## Architecture refactors
 
 Two sources:
