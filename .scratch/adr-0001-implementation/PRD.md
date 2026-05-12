@@ -340,11 +340,11 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 
 ### Non-ship audit (Yes/No/Defer per aspect)
 
-- ⬜ Bombs/projectiles — audit + record decision
-- ⬜ Prizes — audit + record decision
-- ⬜ Doors — audit + verify `DoorSystem` is sole writer, record decision
-- ⬜ Asteroids — audit + record decision
-- ⬜ Arena entities — record `ArenaLogic` as sole writer in snapshot
+- ✅ **Bombs/projectiles** — No migration. Spawn-only factory projection (`WeaponFactory.create*`) + Decay-driven removal. Weapon-level collisions are pre-existing ship-side, owned by weapon-levels slice. Audit 2026-05-12.
+- ✅ **Prizes** — No migration. Spawn-only (`MapFactory.createPrize`) + Decay-driven removal. Pickup mutation flows through `PrizeSystem` → prize appliers (ship-side, already migrated for Energy/Movement/Status/etc.). Audit 2026-05-12.
+- ✅ **Doors** — No migration. `DoorSystem` is already sole post-spawn writer (verified by audit; entry exists in `replacement-as-mutation.md` snapshot line 322). `MapFactory` does the spawn-time stamp. Audit 2026-05-12.
+- ✅ **Asteroids** — No migration. Visual decoration, spawn-only. Audit 2026-05-12.
+- ✅ **Arena entities** — No migration. `ArenaLogic` is sole writer (verified; entry exists in `replacement-as-mutation.md` snapshot line 309). Arena bootstrap on load only. Audit 2026-05-12.
 
 ### Cleanup (final slice)
 
