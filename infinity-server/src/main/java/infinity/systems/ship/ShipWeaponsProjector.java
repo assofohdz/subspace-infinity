@@ -35,7 +35,9 @@ import javax.annotation.Nullable;
 
 /**
  * Pattern-4 spawn-projection helpers for the weapon / inventory families.
- * Called only by {@code ShipSpawnSystem.project}; projects each
+ * Called only by {@code ShipSpawnSystem.project}; see {@link ShipSpawnSystem}
+ * class Javadoc for the projector-split map (which projector owns which aspect
+ * family). Projects each
  * {@code *Config}-tier template (e.g. {@link infinity.config.BombStats}) into
  * the component-tier {@code *Stats} record (e.g. {@link BombStats}) plus the
  * matching live-pool component (e.g. {@link BombCurrentLevel}). Live pools

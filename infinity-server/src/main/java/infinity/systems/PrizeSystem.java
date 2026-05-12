@@ -219,8 +219,10 @@ public class PrizeSystem extends BaseInfinitySystem implements ContactListener<E
 
   /**
    * Looks up the prize applier by case-insensitive name match against {@link PrizeTypes}
-   * keys and applies it to the issuing player's avatar. Returns a result string for the
-   * chat reply.
+   * keys and routes through {@link #applyPrizeByName} — same dispatch path as the real
+   * collision-driven pickup in {@link #handlePrizeAcquisition}. Skipped pre-applier steps:
+   * the prize sound + prize-entity removal (no physical prize entity exists for the admin
+   * command). Returns a result string for the chat reply.
    */
   public String commandGrantPrize(final EntityId entityId, final EntityId avatarId, final Matcher matcher) {
     final String requested = matcher.group(1);
@@ -231,7 +233,7 @@ public class PrizeSystem extends BaseInfinitySystem implements ContactListener<E
     if (matched == null) {
       return "Unknown prize: " + requested + ". Known: " + appliers.keySet();
     }
-    appliers.get(matched).apply(avatarId, applierContext);
+    applyPrizeByName(matched, avatarId);
     return "Granted prize: " + matched + " to avatar " + avatarId;
   }
 
@@ -742,7 +744,17 @@ public class PrizeSystem extends BaseInfinitySystem implements ContactListener<E
   }
 
   private void handlePrizeAcquisition(final PrizeType pt, final EntityId ship) {
-    final String name = pt.getTypeName(ed);
+    applyPrizeByName(pt.getTypeName(ed), ship);
+  }
+
+  /**
+   * Single applier-dispatch path shared by the collision-driven pickup
+   * ({@link #handlePrizeAcquisition}) and the {@code ~prize} admin command
+   * ({@link #commandGrantPrize}). Centralizes logging, null-applier handling,
+   * and stub-applier {@link UnsupportedOperationException} catch so both
+   * entry points stay in sync without code duplication.
+   */
+  private void applyPrizeByName(final String name, final EntityId ship) {
     log.info("Ship {} picked up prize: {}", ship, name);
     final PrizeApplier applier = appliers.get(name);
     if (applier == null) {

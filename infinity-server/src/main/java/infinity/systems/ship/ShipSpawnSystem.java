@@ -83,6 +83,27 @@ import org.slf4j.LoggerFactory;
  * canonical writer ({@code EnergySystem}, {@code RotationSystem},
  * {@code SpeedSystem}, {@code ThrustSystem}); this spawn system writes
  * Continuous + Stats at projection time only.
+ *
+ * <p><b>Spawn-tier projector split — where to add a new aspect.</b> Pattern 4
+ * projection is split across three factory-tier classes; pick the one that
+ * matches the aspect family. All three are allowlisted by
+ * {@code CanonicalWriterTest} (spawn-tier exempt from the one-writer rule).
+ *
+ * <ul>
+ *   <li><b>{@link ShipSpawnSystem}</b> (this class) — base movement + survival
+ *       stats: Thrust, Speed, Rotation, Recharge, Energy, plus the "feel"
+ *       knobs (LinearDamping, TurnResponsiveness, BounceRestitution),
+ *       RadarRange, and the Repellable marker. Also orchestrates the
+ *       delegation to the two sibling projectors below.
+ *   <li><b>{@link ShipStatusProjector}</b> — the four status-family aspects
+ *       (Cloak / Stealth / XRadar / Antiwarp). Per-aspect: {@code *Active}
+ *       boolean + {@code *Stats(statusTier, energyDrainPerSecond)}.
+ *   <li><b>{@link ShipWeaponsProjector}</b> — weapon-level aspects (Bomb /
+ *       Bullet / Mine / Burst) and inventory aspects (Brick / Decoy /
+ *       Portal / Repel / Rocket / Thor). Per-aspect: live count or level
+ *       + {@code *Stats} bundle + cooldown timer ({@code *FireDelay} for
+ *       weapon-levels, owned at runtime by {@code WeaponsEligibility}).
+ * </ul>
  */
 public class ShipSpawnSystem extends BaseInfinitySystem {
 

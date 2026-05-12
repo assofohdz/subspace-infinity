@@ -18,7 +18,9 @@ import javax.annotation.Nullable;
 
 /**
  * Pattern 4 spawn-projection helpers for the Status-family aspects (Cloak / Stealth / XRadar /
- * AntiWarp) per ADR 0001. Called only from {@code ShipSpawnSystem.project}.
+ * AntiWarp) per ADR 0001. Called only from {@code ShipSpawnSystem.project}. See
+ * {@link ShipSpawnSystem} class Javadoc for the projector-split map (which projector owns which
+ * aspect family).
  *
  * <p>For each aspect this projects two ECS components from the {@link StatusStats} template:
  *

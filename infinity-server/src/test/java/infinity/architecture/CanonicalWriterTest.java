@@ -3,7 +3,6 @@
 package infinity.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -60,6 +59,13 @@ public class CanonicalWriterTest {
     put("infinity.es.ship.actions.Repel", "infinity.systems.ship.RepelCountSystem");
     put("infinity.es.ship.actions.Rocket", "infinity.systems.ship.RocketSystem");
     put("infinity.es.ship.actions.ThorCurrentCount", "infinity.systems.ship.ThorSystem");
+    // weapon cooldown timers — hybrid per-instance Continuous; not the standard Change recipe
+    // (cooldown reset is value-replacement, not additive delta), but still one canonical post-
+    // spawn writer. WeaponsEligibility re-stamps on each fire; ShipWeaponsProjector seeds at
+    // spawn (spawn-tier exempt).
+    put("infinity.es.ship.weapons.BombFireDelay", "infinity.systems.ship.WeaponsEligibility");
+    put("infinity.es.ship.weapons.BulletFireDelay", "infinity.systems.ship.WeaponsEligibility");
+    put("infinity.es.ship.weapons.MineFireDelay", "infinity.systems.ship.WeaponsEligibility");
     // WarpToChange deliberately omitted: side-effect intent (physics teleport via BodyPosition),
     // not a target-component write. WarpSystem is the sole drainer by inspection; code review
     // is the safety net for this shape since the constructor-call check doesn't apply.
@@ -85,7 +91,7 @@ public class CanonicalWriterTest {
 
   @Test
   public void each_target_component_has_exactly_one_canonical_writer_in_systems_package() {
-    final JavaClasses classes =
+    final Iterable<JavaClass> classes =
         new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages("infinity");
@@ -106,7 +112,7 @@ public class CanonicalWriterTest {
   }
 
   private static void appendIfViolating(
-      final JavaClasses classes,
+      final Iterable<JavaClass> classes,
       final String target,
       final String expectedWriter,
       final StringBuilder problems) {
@@ -133,7 +139,7 @@ public class CanonicalWriterTest {
         .append('\n');
   }
 
-  private static Set<String> findWritersOf(final JavaClasses classes, final String target) {
+  private static Set<String> findWritersOf(final Iterable<JavaClass> classes, final String target) {
     final Set<String> writers = new TreeSet<>();
     for (final JavaClass cls : classes) {
       final String fqn = cls.getFullName();

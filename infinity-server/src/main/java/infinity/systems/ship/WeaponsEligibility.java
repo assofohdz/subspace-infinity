@@ -37,6 +37,15 @@ import infinity.settings.ConfigRegistrySystem;
  * decision logic that reads entity state + arena config and returns
  * {@code boolean}, with no side-effect mutation.
  *
+ * <p><b>Canonical writer (post-spawn) for {@code BombFireDelay} /
+ * {@code BulletFireDelay} / {@code MineFireDelay}.</b> The {@code setCoolDown*}
+ * methods re-stamp these per-instance cooldown timers on each fire from
+ * {@code *Stats.fireDelayMillis()}. FireDelay is a hybrid Continuous timer
+ * (value-replacement, not additive delta) — outside the standard Change-entity
+ * recipe but still single-writer post-spawn. Enforced by
+ * {@code CanonicalWriterTest}; spawn-tier seed lives in
+ * {@code ShipWeaponsProjector} (spawn-tier exempt).
+ *
  * <p>The {@code canAttackX} family answers "is this ship currently
  * permitted to fire weapon X?" — which combines four independent gates:
  *
