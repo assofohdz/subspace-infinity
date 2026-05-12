@@ -302,6 +302,8 @@ Per-aspect rows that flip ✅ when the canonical writer + all emit sites + tests
 
 ## Migration tracker
 
+**Milestone — 2026-05-12:** Aspect body complete. All 18 ship-state aspects, 4 fresh-find aspects, and 5 non-ship entity classes audited. Zero multi-writer violations remain. Only TBD-3 (architectural CI test) is outstanding.
+
 Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snapshot update).
 
 ### Core ABI (lands once, before any aspect)
@@ -352,5 +354,5 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 - ✅ Delete `HealthChange` (api/src/main/java/infinity/es/HealthChange.java) — landed in Energy pilot
 - ✅ Delete `Intent`, `CapBump`, `CapField` (api/src/main/java/infinity/es/ship/actions/) — landed in movement slice
 - ✅ Delete `RocketBuffIntent` (api/src/main/java/infinity/es/ship/actions/RocketBuffIntent.java) — landed in movement slice; `RocketActive` + `RocketSnapshot` survive as game-logic markers
-- ⬜ Final pass over `.claude/rules/replacement-as-mutation.md` snapshot — verify zero direct-`setComponent` violations remain
+- ✅ Final pass over `.claude/rules/replacement-as-mutation.md` snapshot — zero direct-`setComponent` violations remain; "Future-migration candidates" subsection removed (all pre-ADR shapes deleted)
 - ⬜ Architectural test (TBD-3) lands and is green on main

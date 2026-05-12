@@ -63,10 +63,7 @@ PRD = build plan for one feature / refactor. Lives in `.scratch/<feature>/PRD.md
 ### Live (active or partially landed)
 
 - [`spawn-projection-test-harness/PRD.md`](spawn-projection-test-harness/PRD.md) — spawn-projection test scaffolding.
-
-### Pending (referenced but not yet drafted)
-
-- **ADR 0001 implementation PRD** — slice plan for the remaining C2 sub-slices (status family, weapon levels, inventory caps, Frequency / ShipType / ThorFireDelay fresh finds) using per-component canonical writers + `*Change` + `ChangeTarget(target, source)`. Energy + Movement aspects already landed (commits 75e3c54a + 25ca2138). Migration tracker lives inside this PRD per ADR 0001's "Open work" section.
+- [`adr-0001-implementation/PRD.md`](adr-0001-implementation/PRD.md) — ADR 0001 migration: aspect body complete (all 18 ship-state + 4 fresh-find + 5 non-ship rows ✅). One item remains: TBD-3 architectural test.
 
 ## Architecture refactors
 
@@ -90,14 +87,6 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 #### S10 — Afterburner mechanic (`AfterburnerEnergy`)
 **M/M.** Self-contained slice once the input-binding queue catches up. `AfterburnerEnergy` per-ship (already authored) + new client input + temporary `Speed`/`Thrust` boost while held. Sits with the per-ship-input-mechanic queue.
 
-### RaM single-writer violations
-
-#### C2 — Inventory multi-writer collisions (Energy + Movement + Status family + weapon-level + fresh-find aspects closed)
-**L/L (residual).** Energy aspect landed in 75e3c54a; Movement aspects (Rotation/Speed/Thrust) + RocketBuffIntent migration landed in 25ca2138; Status family (Antiwarp/Cloak/Stealth/XRadar) + fresh-find aspects (WarpTo/Frequency/ShipType + Impulse confirmation) folded into the ADR 0001 implementation slice; weapon-level aspects (Bomb/Bullet/Mine/Burst) landed in ee21cd7b. **Remaining sub-slice:**
-- **C2d — inventory caps** (~6 appliers: Brick/Decoy/Portal/Repel/Rocket/Thor prize appliers write inventory components also written by `ShipWeaponsProjector` + ConsumableSystem decrement; `ThorFireDelay` 3-writer race included here)
-
-This sub-slice will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) — per-component canonical writers + `*Change` + `ChangeTarget(target, source)`. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
-
 ### Naming / convention
 
 #### F1 — `*Spec` namespace overlap forces `SpawnerCreateSpec` rename
@@ -110,10 +99,6 @@ Ranked by impact ÷ effort given the post-arch-review-2 finding set. Items in th
 ### Tier 3 — focused slices (S–M / M)
 
 1. **F1** — `*Spec` → `*Args` rename (mechanical now, expensive later as the 18 records calcify).
-
-### Tier 4 — bigger refactors (M/L)
-
-2. **C2** — Inventory + weapon-level multi-writer migration (Energy + Movement + Status-family + fresh-find aspects already landed). ~11 applier sites remaining + new `*Change` components per [ADR 0001](../docs/adr/0001-ecs-component-model.md); the largest live RaM cluster. `ThorFireDelay` (3 writers, applier fallback overwrites spawn-projected value) is included in C2d. All documented in `.claude/rules/replacement-as-mutation.md` live snapshot. Folded into the pending ADR 0001 implementation PRD.
 
 ### Physics canon gaps (separate pile, see top of section)
 

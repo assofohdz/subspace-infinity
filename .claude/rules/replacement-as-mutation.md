@@ -133,19 +133,6 @@ the writer sums on add, reverses on remove, independently per source.
   `Serializer.registerClass` needed for the `*Change` types
   themselves.
 
-### Future-migration candidates (pre-ADR intent shapes)
-
-One pre-ADR intent wrapper remains in the tree. It is a pre-ADR shape
-being migrated to the Change-entity recipe under
-[`.scratch/adr-0001-implementation/PRD.md`](../../.scratch/adr-0001-implementation/PRD.md);
-it remains in the snapshot until its aspect migrates, at which point
-its row flips in the same change:
-
-- The bespoke `Buff` + `HealthChange` pair (damage / regen / refill,
-  drained by `EnergySystem`).
-
-**Do not extend these shapes for new work** — new intents author
-against the Change-entity recipe above.
 
 ## Phased tick (target shape)
 
