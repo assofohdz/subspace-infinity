@@ -5,33 +5,30 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.actions.ThorChange;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
-import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.actions.ThorStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>INVENTORY family.</b> Increments {@link ThorCurrentCount} by 1 if under
- * {@link ThorMaxCount}. Allowed iff {@code ThorMaxCount > 0 && current < max}.
+ * <b>INVENTORY family.</b> Emits a one-shot {@link ThorChange}({@code +1})
+ * Change holder; {@code ThorSystem} drains and clamps at
+ * {@link ThorStats#max}. Subspace canon: per-ship {@code [Ship] InitialThor}
+ * / {@code ThorMax}; REFERENCE.md {@code ## PrizeWeight} ({@code Thor}).
  *
- * <p>Subspace canon: per-ship {@code [Ship] InitialThor} / {@code ThorMax}
- * inventory caps (REFERENCE.md "Inventory caps and starts" line 372/374).
- * REFERENCE.md has no dedicated {@code ## Thor} section — fire-time behaviour
- * inherits Subspace's bomb-like trajectory model from {@code [Bomb]}.
- * See {@code ## PrizeWeight} line 242.
+ * <p>Wave 4b fix — when seeding {@link ThorFireDelay} on first-time
+ * acquisition (case: ship spawned without a thor, picks up the prize, no
+ * spawn-projected cooldown timer exists), uses {@link ThorStats#fireDelayMillis}
+ * sourced from per-ship {@code ShipConfig.thors.fireDelayCs}. Pre-Wave-4b
+ * the applier hardcoded {@code new ThorFireDelay(1000)} which clobbered the
+ * spawn-projected per-ship value — a divergence from Subspace canon now
+ * removed. If {@link ThorStats} is absent (defensive — should not happen
+ * given the guard above), the seed is skipped.
  *
- * <p>First-time acquisition seeds count=1 and a fallback
- * {@code ThorFireDelay(1000)} — note the hardcoded delay is a pre-existing
- * carryover from {@code handleAcquireThor}; properly it should come from
- * {@code ShipConfig.thors.fireDelayCs} (which {@code ShipSpawnSystem} already
- * projects), but the original code overwrites it on first acquisition.
- * Preserved bit-for-bit.
- *
- * <p>Note: divergence — Subspace canon does not stamp a fallback
- * {@code ThorFireDelay} on prize acquisition; the per-ship value projected
- * at spawn is authoritative. Infinity's hardcoded {@code 1000} cs is a
- * legacy artifact and a candidate for cleanup.
+ * @see infinity.systems.ship.ThorSystem
  */
 public final class ThorPrizeApplier implements PrizeApplier {
 
@@ -40,22 +37,24 @@ public final class ThorPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final ThorCurrentCount thorCurrentCount = ed.getComponent(ship, ThorCurrentCount.class);
-    final ThorMaxCount thorMaxCount = ed.getComponent(ship, ThorMaxCount.class);
-    if (thorMaxCount == null || thorMaxCount.getCount() <= 0) {
+    final ThorStats stats = ed.getComponent(ship, ThorStats.class);
+    if (stats == null || stats.max() <= 0) {
       return; // ship not allowed thors
     }
-    if (thorCurrentCount != null && thorCurrentCount.getCount() < thorMaxCount.getCount()) {
-      final ThorCurrentCount thorNextCount = thorCurrentCount.add(1);
-      if (log.isInfoEnabled()) {
-        log.info(
-            "Ship {} picked up thor prize and now has {} thor", ship, thorNextCount.getCount());
-      }
-      ed.setComponent(ship, thorNextCount);
-    } else if (thorCurrentCount == null) {
-      log.info("Ship {} picked up thor prize", ship);
-      ed.setComponent(ship, new ThorCurrentCount(1));
-      ed.setComponent(ship, new ThorFireDelay(1000));
+    final ThorCurrentCount curr = ed.getComponent(ship, ThorCurrentCount.class);
+    if (curr != null && curr.getCount() >= stats.max()) {
+      return; // already at cap
     }
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up thor prize", ship);
+    }
+    // First-time acquire (no current count, no spawn-projected cooldown
+    // timer): seed ThorFireDelay from per-ship Stats so the consume path
+    // can immediately re-stamp via stats.fireDelayMillis().
+    if (curr == null && ed.getComponent(ship, ThorFireDelay.class) == null) {
+      ed.setComponent(ship, new ThorFireDelay(stats.fireDelayMillis()));
+    }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new ThorChange(1));
   }
 }

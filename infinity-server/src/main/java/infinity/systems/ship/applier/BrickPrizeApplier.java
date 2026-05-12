@@ -5,27 +5,23 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
 import infinity.es.ship.actions.Brick;
-import infinity.es.ship.actions.BrickMax;
+import infinity.es.ship.actions.BrickChange;
+import infinity.es.ship.actions.BrickStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>INVENTORY family.</b> Bumps {@link Brick} inventory by one toward
- * {@link BrickMax}. No-op when the ship lacks {@link BrickMax} (= disallowed)
- * or is at the cap.
+ * <b>INVENTORY family.</b> Emits a one-shot {@link BrickChange}({@code +1})
+ * Change holder; {@code BrickSystem} drains and clamps at
+ * {@link BrickStats#max}. No-op when ship not equipped for bricks.
+ * Subspace canon: per-ship {@code [Ship] InitialBrick} / {@code BrickMax};
+ * REFERENCE.md {@code ## PrizeWeight} ({@code Brick}). The {@code [Brick]}
+ * tunables ({@code BrickTime}, {@code BrickSpan}) are consumed at
+ * fire-time by {@code ConsumableSystem}, not here.
  *
- * <p>Subspace canonical knobs (REFERENCE.md {@code ## Brick} line 41):
- * <ul>
- *   <li>{@code BrickTime} — how long bricks last (centiseconds)
- *   <li>{@code BrickSpan} — how many tiles bricks span
- * </ul>
- * Per-ship inventory caps: {@code [Ship] InitialBrick} / {@code BrickMax}
- * (REFERENCE.md "Inventory caps and starts" line 372/374).
- * See {@code ## PrizeWeight} line 242.
- *
- * <p>Inventory bump only — the {@code [Brick]} knobs above are consumed
- * at fire-time by {@code ConsumableSystem}, not here.
+ * @see infinity.systems.ship.BrickSystem
  */
 public final class BrickPrizeApplier implements PrizeApplier {
 
@@ -34,21 +30,18 @@ public final class BrickPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final BrickMax max = ed.getComponent(ship, BrickMax.class);
-    if (max == null) {
-      return;
+    final BrickStats stats = ed.getComponent(ship, BrickStats.class);
+    if (stats == null || stats.max() <= 0) {
+      return; // ship not allowed bricks
     }
     final Brick curr = ed.getComponent(ship, Brick.class);
-    if (curr == null) {
-      log.warn(
-          "Ship {} has BrickMax but no Brick — spawn projection invariant broken; skipping brick prize",
-          ship);
-      return;
+    if (curr != null && curr.getCount() >= stats.max()) {
+      return; // already at cap
     }
-    if (curr.getCount() < max.getCount()) {
-      final int next = curr.getCount() + 1;
-      log.info("Ship {} picked up brick prize and now has {} bricks", ship, next);
-      ed.setComponent(ship, new Brick(next));
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up brick prize", ship);
     }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new BrickChange(1));
   }
 }

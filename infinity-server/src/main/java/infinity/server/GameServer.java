@@ -302,6 +302,19 @@ public class GameServer {
     systems.register(BulletSystem.class, new BulletSystem());
     systems.register(MineSystem.class, new MineSystem());
     systems.register(BurstSystem.class, new BurstSystem());
+    // Inventory slice (ADR 0001 wave 4b) — Brick/Decoy/Portal/Repel/Rocket/Thor
+    // Continuous-half writers. Stats records are spawn-only (ShipWeaponsProjector
+    // via ShipSpawnSystem) so no *StatsSystem needed (2-level aspect — PRD
+    // §"2-level vs 3-level aspects"). Register BEFORE DecaySystem for the same
+    // reason as Status family. RepelCountSystem is a sibling of RepelSystem
+    // (impulse mechanic, registered later with the physics stack); see its
+    // class Javadoc for the option-(b) split rationale.
+    systems.register(infinity.systems.ship.BrickSystem.class, new infinity.systems.ship.BrickSystem());
+    systems.register(infinity.systems.ship.DecoySystem.class, new infinity.systems.ship.DecoySystem());
+    systems.register(infinity.systems.ship.PortalSystem.class, new infinity.systems.ship.PortalSystem());
+    systems.register(infinity.systems.ship.RepelCountSystem.class, new infinity.systems.ship.RepelCountSystem());
+    systems.register(infinity.systems.ship.RocketSystem.class, new infinity.systems.ship.RocketSystem());
+    systems.register(infinity.systems.ship.ThorSystem.class, new infinity.systems.ship.ThorSystem());
 
     // Add some standard systems
     systems.addSystem(new DecaySystem());

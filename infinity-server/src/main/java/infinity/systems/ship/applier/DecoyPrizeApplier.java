@@ -5,21 +5,23 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
 import infinity.es.ship.actions.Decoy;
-import infinity.es.ship.actions.DecoyMax;
+import infinity.es.ship.actions.DecoyChange;
+import infinity.es.ship.actions.DecoyStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>INVENTORY family.</b> Bumps {@link Decoy} inventory by one toward
- * {@link DecoyMax}.
+ * <b>INVENTORY family.</b> Emits a one-shot {@link DecoyChange}({@code +1})
+ * Change holder; {@code DecoySystem} drains and clamps at
+ * {@link DecoyStats#max}. Subspace canon: per-ship {@code [Ship]
+ * InitialDecoy} / {@code DecoyMax}; REFERENCE.md {@code ## PrizeWeight}
+ * ({@code Decoy}). {@code [Misc] DecoyAliveTime} drives the dropped
+ * decoy's {@code Decay} lifetime and is consumed at fire-time by
+ * {@code ConsumableSystem}, not here.
  *
- * <p>Subspace canon: per-ship {@code [Ship] InitialDecoy} / {@code DecoyMax}
- * inventory caps (REFERENCE.md "Inventory caps and starts" line 372/374).
- * {@code [Misc] DecoyAliveTime} drives the dropped decoy's {@code Decay}
- * lifetime (REFERENCE.md {@code ## Misc} line 164) and is consumed at
- * fire-time by {@code ConsumableSystem}, not here.
- * See {@code ## PrizeWeight} line 242.
+ * @see infinity.systems.ship.DecoySystem
  */
 public final class DecoyPrizeApplier implements PrizeApplier {
 
@@ -28,21 +30,18 @@ public final class DecoyPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final DecoyMax max = ed.getComponent(ship, DecoyMax.class);
-    if (max == null) {
-      return;
+    final DecoyStats stats = ed.getComponent(ship, DecoyStats.class);
+    if (stats == null || stats.max() <= 0) {
+      return; // ship not allowed decoys
     }
     final Decoy curr = ed.getComponent(ship, Decoy.class);
-    if (curr == null) {
-      log.warn(
-          "Ship {} has DecoyMax but no Decoy — spawn projection invariant broken; skipping decoy prize",
-          ship);
-      return;
+    if (curr != null && curr.getCount() >= stats.max()) {
+      return; // already at cap
     }
-    if (curr.getCount() < max.getCount()) {
-      final int next = curr.getCount() + 1;
-      log.info("Ship {} picked up decoy prize and now has {} decoys", ship, next);
-      ed.setComponent(ship, new Decoy(next));
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up decoy prize", ship);
     }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new DecoyChange(1));
   }
 }

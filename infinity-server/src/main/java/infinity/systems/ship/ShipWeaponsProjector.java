@@ -7,23 +7,21 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
-import infinity.config.RocketStats;
 import infinity.es.ship.actions.Brick;
-import infinity.es.ship.actions.BrickMax;
+import infinity.es.ship.actions.BrickStats;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstStats;
 import infinity.es.ship.actions.Decoy;
-import infinity.es.ship.actions.DecoyMax;
+import infinity.es.ship.actions.DecoyStats;
 import infinity.es.ship.actions.Portal;
-import infinity.es.ship.actions.PortalMax;
+import infinity.es.ship.actions.PortalStats;
 import infinity.es.ship.actions.Repel;
-import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.RepelStats;
 import infinity.es.ship.actions.Rocket;
-import infinity.es.ship.actions.RocketMax;
-import infinity.es.ship.actions.RocketTime;
+import infinity.es.ship.actions.RocketStats;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
-import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.actions.ThorStats;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombStats;
@@ -52,7 +50,8 @@ import javax.annotation.Nullable;
  * <p>See ADR 0001 §"Continuous + Stats split"; the older scattered
  * {@code *MaxLevel} / {@code *Cost} / {@code *Speed} / {@code *Thrust}
  * components were bundled into the per-aspect {@code *Stats} record in
- * Wave 4a.
+ * Wave 4a, with the inventory aspects (Brick/Decoy/Portal/Repel/Rocket/Thor)
+ * following the same pattern in Wave 4b.
  */
 final class ShipWeaponsProjector {
 
@@ -139,8 +138,9 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new ThorCurrentCount(thors.start()));
     }
-    ed.setComponent(shipId, new ThorMaxCount(thors.max()));
-    ed.setComponent(shipId, new ThorFireDelay(thors.fireDelayCs()));
+    final long fireDelayMillis = thors.fireDelayCs() * 10L;
+    ed.setComponent(shipId, new ThorStats(thors.max(), fireDelayMillis));
+    ed.setComponent(shipId, new ThorFireDelay(fireDelayMillis));
   }
 
   static void projectRepels(
@@ -154,7 +154,7 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Repel(repels.start()));
     }
-    ed.setComponent(shipId, new RepelMax(repels.max()));
+    ed.setComponent(shipId, new RepelStats(repels.max()));
   }
 
   static void projectDecoys(
@@ -168,7 +168,7 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Decoy(decoys.start()));
     }
-    ed.setComponent(shipId, new DecoyMax(decoys.max()));
+    ed.setComponent(shipId, new DecoyStats(decoys.max()));
   }
 
   static void projectBricks(
@@ -182,13 +182,13 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Brick(bricks.start()));
     }
-    ed.setComponent(shipId, new BrickMax(bricks.max()));
+    ed.setComponent(shipId, new BrickStats(bricks.max()));
   }
 
   static void projectRockets(
       final EntityData ed,
       final EntityId shipId,
-      @Nullable final RocketStats rockets,
+      @Nullable final infinity.config.RocketStats rockets,
       final boolean resetLivePool) {
     if (rockets == null) {
       return;
@@ -196,9 +196,9 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Rocket(rockets.start()));
     }
-    ed.setComponent(shipId, new RocketMax(rockets.max()));
     // Per-ship buff lifetime (Subspace [Ship] RocketTime, centiseconds → ms).
-    ed.setComponent(shipId, new RocketTime(rockets.activeTimeCs() * 10L));
+    final long buffDurationMillis = rockets.activeTimeCs() * 10L;
+    ed.setComponent(shipId, new RocketStats(rockets.max(), buffDurationMillis));
   }
 
   static void projectPortals(
@@ -212,6 +212,6 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Portal(portals.start()));
     }
-    ed.setComponent(shipId, new PortalMax(portals.max()));
+    ed.setComponent(shipId, new PortalStats(portals.max()));
   }
 }

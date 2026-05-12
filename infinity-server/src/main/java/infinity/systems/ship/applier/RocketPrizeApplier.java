@@ -5,31 +5,22 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
 import infinity.es.ship.actions.Rocket;
-import infinity.es.ship.actions.RocketMax;
+import infinity.es.ship.actions.RocketChange;
+import infinity.es.ship.actions.RocketStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>INVENTORY family.</b> Bumps {@link Rocket} inventory by one toward
- * {@link RocketMax}. No-op when the ship lacks {@link RocketMax} (=
- * disallowed) or is at the cap.
+ * <b>INVENTORY family.</b> Emits a one-shot {@link RocketChange}({@code +1})
+ * Change holder; {@code RocketSystem} drains and clamps at
+ * {@link RocketStats#max}. Subspace canon: per-ship {@code [Ship]
+ * InitialRocket} / {@code RocketMax}; REFERENCE.md {@code ## PrizeWeight}
+ * ({@code Rocket}). The {@code [Rocket]} tunables drive the active-rocket
+ * buff at fire-time in {@code ConsumableSystem}, not here.
  *
- * <p>Subspace canonical knobs (REFERENCE.md {@code ## Rocket} line 256):
- * <ul>
- *   <li>{@code RocketThrust} — thrust override while rocket buff active
- *   <li>{@code RocketSpeed} — speed override while rocket buff active
- *   <li>{@code RocketTime} — buff lifetime (centiseconds, per-ship at
- *       REFERENCE.md "Turret / misc" line 418)
- * </ul>
- * Per-ship inventory caps: {@code [Ship] InitialRocket} / {@code RocketMax}
- * (REFERENCE.md "Inventory caps and starts" line 372/374).
- * See {@code ## PrizeWeight} line 242. Typed configs:
- * {@link infinity.config.RocketStats} (per-ship) and
- * {@link infinity.config.RocketConfig} (per-arena).
- *
- * <p>Inventory bump only — the canon knobs drive the active-rocket buff
- * at fire-time and live in {@code ConsumableSystem}, not here.
+ * @see infinity.systems.ship.RocketSystem
  */
 public final class RocketPrizeApplier implements PrizeApplier {
 
@@ -38,21 +29,18 @@ public final class RocketPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final RocketMax max = ed.getComponent(ship, RocketMax.class);
-    if (max == null) {
-      return;
+    final RocketStats stats = ed.getComponent(ship, RocketStats.class);
+    if (stats == null || stats.max() <= 0) {
+      return; // ship not allowed rockets
     }
     final Rocket curr = ed.getComponent(ship, Rocket.class);
-    if (curr == null) {
-      log.warn(
-          "Ship {} has RocketMax but no Rocket — spawn projection invariant broken; skipping rocket prize",
-          ship);
-      return;
+    if (curr != null && curr.getCount() >= stats.max()) {
+      return; // already at cap
     }
-    if (curr.getCount() < max.getCount()) {
-      final int next = curr.getCount() + 1;
-      log.info("Ship {} picked up rocket prize and now has {} rockets", ship, next);
-      ed.setComponent(ship, new Rocket(next));
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up rocket prize", ship);
     }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new RocketChange(1));
   }
 }

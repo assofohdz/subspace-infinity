@@ -38,9 +38,9 @@ import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.Repel;
-import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.RepelStats;
 import infinity.es.ship.actions.ThorCurrentCount;
-import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.actions.ThorStats;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.MineCurrentLevel;
@@ -203,9 +203,15 @@ public class ShipSpawnSystemTest {
       assertNotNull("BurstStats must be projected on respawn", burstStats);
       assertEquals(5, burstStats.max());
       assertEquals(2, ed.getComponent(shipId, ThorCurrentCount.class).getCount());
-      assertEquals(2, ed.getComponent(shipId, ThorMaxCount.class).getCount());
+      final ThorStats thorStats = ed.getComponent(shipId, ThorStats.class);
+      assertNotNull("ThorStats must be projected on respawn", thorStats);
+      assertEquals(2, thorStats.max());
+      // ThorStats.fireDelayMillis = ShipConfig.thors.fireDelayCs (1000) × 10.
+      assertEquals(10_000L, thorStats.fireDelayMillis());
       assertEquals(10, ed.getComponent(shipId, Repel.class).getCount());
-      assertEquals(20, ed.getComponent(shipId, RepelMax.class).getCount());
+      final RepelStats repelStats = ed.getComponent(shipId, RepelStats.class);
+      assertNotNull("RepelStats must be projected on respawn", repelStats);
+      assertEquals(20, repelStats.max());
 
       // Slice 10 — projectile speeds bundled into the per-aspect *Stats record.
       // Stored raw (Subspace velocity units); WeaponsFireSystem applies

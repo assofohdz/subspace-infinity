@@ -28,19 +28,19 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.es.ship.actions.Brick;
-import infinity.es.ship.actions.BrickMax;
+import infinity.es.ship.actions.BrickStats;
 import infinity.es.ship.actions.Burst;
 import infinity.es.ship.actions.BurstStats;
 import infinity.es.ship.actions.Decoy;
-import infinity.es.ship.actions.DecoyMax;
+import infinity.es.ship.actions.DecoyStats;
 import infinity.es.ship.actions.Portal;
-import infinity.es.ship.actions.PortalMax;
+import infinity.es.ship.actions.PortalStats;
 import infinity.es.ship.actions.Repel;
-import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.RepelStats;
 import infinity.es.ship.actions.Rocket;
-import infinity.es.ship.actions.RocketMax;
+import infinity.es.ship.actions.RocketStats;
 import infinity.es.ship.actions.ThorCurrentCount;
-import infinity.es.ship.actions.ThorMaxCount;
+import infinity.es.ship.actions.ThorStats;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
@@ -171,21 +171,21 @@ public class ChecksShipsSystem extends AbstractGameSystem {
           BombCurrentLevel.class, BombStats.class,
           BulletCurrentLevel.class, BulletStats.class,
           MineCurrentLevel.class, MineStats.class,
-          BurstStats.class, ThorMaxCount.class);
+          BurstStats.class, ThorStats.class);
       missingTotal += missing;
       sb.append("  ").append(missing == 0 ? "engine OK — all 16 components present" : "engine MISSING " + missing).append('\n');
 
-      // Inventory — absence is allowed (per-ship `*Max 0` = ship not allowed
+      // Inventory — absence is allowed (per-ship `*Stats.max 0` = ship not allowed
       // that prize type), so we just report present/absent per pair without
       // contributing to the failure tally.
       sb.append("  inventory:");
-      appendInventory(sb, id, "repel", Repel.class, RepelMax.class);
+      appendInventory(sb, id, "repel", Repel.class, RepelStats.class);
       appendInventory(sb, id, "burst", Burst.class, BurstStats.class);
-      appendInventory(sb, id, "thor", ThorCurrentCount.class, ThorMaxCount.class);
-      appendInventory(sb, id, "brick", Brick.class, BrickMax.class);
-      appendInventory(sb, id, "decoy", Decoy.class, DecoyMax.class);
-      appendInventory(sb, id, "rocket", Rocket.class, RocketMax.class);
-      appendInventory(sb, id, "portal", Portal.class, PortalMax.class);
+      appendInventory(sb, id, "thor", ThorCurrentCount.class, ThorStats.class);
+      appendInventory(sb, id, "brick", Brick.class, BrickStats.class);
+      appendInventory(sb, id, "decoy", Decoy.class, DecoyStats.class);
+      appendInventory(sb, id, "rocket", Rocket.class, RocketStats.class);
+      appendInventory(sb, id, "portal", Portal.class, PortalStats.class);
       sb.append('\n');
     }
     sb.append(missingTotal == 0 ? "PASS" : "FAIL (" + missingTotal + " missing across all ships)");
@@ -247,13 +247,13 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     sb.append('\n');
 
     sb.append("  inventory:");
-    appendInventoryWithCounts(sb, target, "repel", Repel.class, RepelMax.class);
+    appendInventoryWithCounts(sb, target, "repel", Repel.class, RepelStats.class);
     appendBurstInventory(sb, target);
-    appendInventoryWithCounts(sb, target, "thor", ThorCurrentCount.class, ThorMaxCount.class);
-    appendInventoryWithCounts(sb, target, "brick", Brick.class, BrickMax.class);
-    appendInventoryWithCounts(sb, target, "decoy", Decoy.class, DecoyMax.class);
-    appendInventoryWithCounts(sb, target, "rocket", Rocket.class, RocketMax.class);
-    appendInventoryWithCounts(sb, target, "portal", Portal.class, PortalMax.class);
+    appendInventoryWithCounts(sb, target, "thor", ThorCurrentCount.class, ThorStats.class);
+    appendInventoryWithCounts(sb, target, "brick", Brick.class, BrickStats.class);
+    appendInventoryWithCounts(sb, target, "decoy", Decoy.class, DecoyStats.class);
+    appendInventoryWithCounts(sb, target, "rocket", Rocket.class, RocketStats.class);
+    appendInventoryWithCounts(sb, target, "portal", Portal.class, PortalStats.class);
     sb.append('\n');
 
     return sb.toString();
@@ -468,23 +468,23 @@ public class ChecksShipsSystem extends AbstractGameSystem {
 
   private static Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> buildIntGetters() {
     final Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> m = new HashMap<>();
-    // Active-use inventory: Repel / Thor (current + max each). Burst now uses the
-    // bundled BurstStats record (handled by appendBurstInventory directly).
+    // Active-use inventory: Repel / Thor (current + *Stats.max each). Burst uses
+    // the bundled BurstStats record (handled by appendBurstInventory directly).
     m.put(Repel.class, c -> ((Repel) c).getCount());
-    m.put(RepelMax.class, c -> ((RepelMax) c).getCount());
+    m.put(RepelStats.class, c -> ((RepelStats) c).max());
     m.put(Burst.class, c -> ((Burst) c).getCount());
     m.put(ThorCurrentCount.class, c -> ((ThorCurrentCount) c).getCount());
-    m.put(ThorMaxCount.class, c -> ((ThorMaxCount) c).getCount());
-    // Buildable inventory: Brick / Decoy (current + max each).
+    m.put(ThorStats.class, c -> ((ThorStats) c).max());
+    // Buildable inventory: Brick / Decoy (current + *Stats.max each).
     m.put(Brick.class, c -> ((Brick) c).getCount());
-    m.put(BrickMax.class, c -> ((BrickMax) c).getCount());
+    m.put(BrickStats.class, c -> ((BrickStats) c).max());
     m.put(Decoy.class, c -> ((Decoy) c).getCount());
-    m.put(DecoyMax.class, c -> ((DecoyMax) c).getCount());
-    // Mobility inventory: Rocket / Portal (current + max each).
+    m.put(DecoyStats.class, c -> ((DecoyStats) c).max());
+    // Mobility inventory: Rocket / Portal (current + *Stats.max each).
     m.put(Rocket.class, c -> ((Rocket) c).getCount());
-    m.put(RocketMax.class, c -> ((RocketMax) c).getCount());
+    m.put(RocketStats.class, c -> ((RocketStats) c).max());
     m.put(Portal.class, c -> ((Portal) c).getCount());
-    m.put(PortalMax.class, c -> ((PortalMax) c).getCount());
+    m.put(PortalStats.class, c -> ((PortalStats) c).max());
     return Map.copyOf(m);
   }
 

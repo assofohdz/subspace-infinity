@@ -5,23 +5,23 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
 import infinity.es.ship.actions.Portal;
-import infinity.es.ship.actions.PortalMax;
+import infinity.es.ship.actions.PortalChange;
+import infinity.es.ship.actions.PortalStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>INVENTORY family.</b> Bumps {@link Portal} inventory by one toward
- * {@link PortalMax}.
+ * <b>INVENTORY family.</b> Emits a one-shot {@link PortalChange}({@code +1})
+ * Change holder; {@code PortalSystem} drains and clamps at
+ * {@link PortalStats#max}. Subspace canon: per-ship {@code [Ship]
+ * InitialPortal} / {@code PortalMax}; REFERENCE.md {@code ## PrizeWeight}
+ * ({@code WarpPoint}). {@code [Misc] WarpPointDelay} is the dropped
+ * portal's active duration and is consumed by {@code ConsumableSystem}
+ * when the portal is dropped, not here.
  *
- * <p>Subspace canon: per-ship {@code [Ship] InitialPortal} /
- * {@code PortalMax} inventory caps (REFERENCE.md "Inventory caps and
- * starts" line 372/374). {@code [Misc] WarpPointDelay} is the dropped
- * portal's active duration (REFERENCE.md {@code ## Misc} line 163 — the
- * "WarpPoint" name is the legacy alias for portal; see
- * {@code .claude/rules/settings-pipeline.md}). Consumed by
- * {@code ConsumableSystem} when the portal is dropped, not here.
- * See {@code ## PrizeWeight} line 242.
+ * @see infinity.systems.ship.PortalSystem
  */
 public final class PortalPrizeApplier implements PrizeApplier {
 
@@ -30,21 +30,18 @@ public final class PortalPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final PortalMax max = ed.getComponent(ship, PortalMax.class);
-    if (max == null) {
-      return;
+    final PortalStats stats = ed.getComponent(ship, PortalStats.class);
+    if (stats == null || stats.max() <= 0) {
+      return; // ship not allowed portals
     }
     final Portal curr = ed.getComponent(ship, Portal.class);
-    if (curr == null) {
-      log.warn(
-          "Ship {} has PortalMax but no Portal — spawn projection invariant broken; skipping portal prize",
-          ship);
-      return;
+    if (curr != null && curr.getCount() >= stats.max()) {
+      return; // already at cap
     }
-    if (curr.getCount() < max.getCount()) {
-      final int next = curr.getCount() + 1;
-      log.info("Ship {} picked up portal prize and now has {} portals", ship, next);
-      ed.setComponent(ship, new Portal(next));
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up portal prize", ship);
     }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new PortalChange(1));
   }
 }

@@ -36,22 +36,28 @@ import infinity.es.ship.SpeedChange;
 import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustChange;
 import infinity.es.ship.actions.Brick;
-import infinity.es.ship.actions.BrickMax;
+import infinity.es.ship.actions.BrickChange;
+import infinity.es.ship.actions.BrickStats;
 import infinity.es.ship.actions.Decoy;
-import infinity.es.ship.actions.DecoyMax;
+import infinity.es.ship.actions.DecoyChange;
+import infinity.es.ship.actions.DecoyStats;
 import infinity.es.ship.actions.Portal;
-import infinity.es.ship.actions.PortalMax;
+import infinity.es.ship.actions.PortalChange;
+import infinity.es.ship.actions.PortalStats;
 import infinity.es.ship.actions.Repel;
+import infinity.es.ship.actions.RepelChange;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
 import infinity.es.ship.actions.Rocket;
-import infinity.es.ship.actions.RocketMax;
-import infinity.es.ship.actions.RocketTime;
+import infinity.es.ship.actions.RocketChange;
+import infinity.es.ship.actions.RocketStats;
 import infinity.es.ship.actions.Thor;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
+import infinity.es.ship.actions.ThorChange;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
+import infinity.es.ship.actions.ThorStats;
 import infinity.sim.CoreViewConstants;
 import infinity.sim.MapFactory;
 import infinity.sim.ShipFactory;
@@ -108,18 +114,18 @@ public class ConsumableSystem extends BaseInfinitySystem
     // Ships allowed to fire repels (Repel inventory component projected
     // from per-ship `InitialRepel` at spawn).
     repelOwners = ed.getEntities(Repel.class);
-    // Ships allowed to fire rockets (Rocket inventory + RocketMax + per-ship
-    // RocketTime all projected from `RocketStats` at spawn).
-    rocketOwners = ed.getEntities(Rocket.class, RocketMax.class, RocketTime.class);
-    // Ships allowed to place bricks (Brick inventory + BrickMax projected from
+    // Ships allowed to fire rockets (Rocket inventory + per-ship RocketStats
+    // with buff lifetime projected from `RocketStats` at spawn).
+    rocketOwners = ed.getEntities(Rocket.class, RocketStats.class);
+    // Ships allowed to place bricks (Brick inventory + BrickStats projected from
     // `CountStats` at spawn). Brick lifetime is arena-global, not per-ship.
-    brickOwners = ed.getEntities(Brick.class, BrickMax.class);
-    // Ships allowed to place decoys (Decoy inventory + DecoyMax projected from
+    brickOwners = ed.getEntities(Brick.class, BrickStats.class);
+    // Ships allowed to place decoys (Decoy inventory + DecoyStats projected from
     // `CountStats` at spawn). Decoy lifetime is arena-global, not per-ship.
-    decoyOwners = ed.getEntities(Decoy.class, DecoyMax.class);
-    // Ships allowed to place portals (Portal inventory + PortalMax projected
+    decoyOwners = ed.getEntities(Decoy.class, DecoyStats.class);
+    // Ships allowed to place portals (Portal inventory + PortalStats projected
     // from `CountStats` at spawn). Portal lifetime is arena-global, not per-ship.
-    portalOwners = ed.getEntities(Portal.class, PortalMax.class);
+    portalOwners = ed.getEntities(Portal.class, PortalStats.class);
 
     getSystem(ContactSystem.class).addListener(this);
   }
@@ -339,9 +345,9 @@ public class ConsumableSystem extends BaseInfinitySystem
   private void createRocketBuff(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final RocketConfig cfg = ConsumableLogic.rocketConfigFor(ed, configRegistry, ship);
-    final RocketTime rocketTime = ed.getComponent(ship, RocketTime.class);
-    if (rocketTime == null) {
-      // canAct already gates on rocketOwners (requires RocketTime); belt-and-suspenders for ship-swap races.
+    final RocketStats rocketStats = ed.getComponent(ship, RocketStats.class);
+    if (rocketStats == null) {
+      // canAct already gates on rocketOwners (requires RocketStats); belt-and-suspenders for ship-swap races.
       return;
     }
 
@@ -352,8 +358,9 @@ public class ConsumableSystem extends BaseInfinitySystem
 
     final int deltaThrust = cfg.thrust() - originalThrust;
     final int deltaSpeed = cfg.speed() - originalSpeed;
+    final long buffDurationMs = rocketStats.buffDurationMillis();
     final long activeNs =
-        TimeUnit.NANOSECONDS.convert(rocketTime.getActiveTimeMs(), TimeUnit.MILLISECONDS);
+        TimeUnit.NANOSECONDS.convert(buffDurationMs, TimeUnit.MILLISECONDS);
 
     if (deltaThrust != 0) {
       final EntityId thrustHolder = ed.createEntity();
@@ -376,7 +383,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     ShipFactory.createRocketBuff(
         ed,
         new infinity.sim.specs.RocketBuffSpec(
-            ship, time, rocketTime.getActiveTimeMs(), originalThrust, originalSpeed));
+            ship, time, buffDurationMs, originalThrust, originalSpeed));
   }
 
   private boolean createSound(
@@ -433,45 +440,46 @@ public class ConsumableSystem extends BaseInfinitySystem
   }
 
   private boolean deductCostOfActionThor(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    ThorCurrentCount tcc = ed.getComponent(requesterId, ThorCurrentCount.class);
-    ed.setComponent(requesterId, tcc.subtract(1));
+    emitInventoryDecrement(requester.getId(), new ThorChange(-1));
     return true;
   }
 
   private boolean deductCostOfActionRepel(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    final Repel curr = ed.getComponent(requesterId, Repel.class);
-    ed.setComponent(requesterId, curr.decrement(1));
+    emitInventoryDecrement(requester.getId(), new RepelChange(-1));
     return true;
   }
 
   private boolean deductCostOfActionRocket(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    final Rocket curr = ed.getComponent(requesterId, Rocket.class);
-    ed.setComponent(requesterId, curr.decrement(1));
+    emitInventoryDecrement(requester.getId(), new RocketChange(-1));
     return true;
   }
 
   private boolean deductCostOfActionBrick(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    final Brick curr = ed.getComponent(requesterId, Brick.class);
-    ed.setComponent(requesterId, curr.decrement(1));
+    emitInventoryDecrement(requester.getId(), new BrickChange(-1));
     return true;
   }
 
   private boolean deductCostOfActionDecoy(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    final Decoy curr = ed.getComponent(requesterId, Decoy.class);
-    ed.setComponent(requesterId, curr.decrement(1));
+    emitInventoryDecrement(requester.getId(), new DecoyChange(-1));
     return true;
   }
 
   private boolean deductCostOfActionPortal(final Entity requester) {
-    final EntityId requesterId = requester.getId();
-    final Portal curr = ed.getComponent(requesterId, Portal.class);
-    ed.setComponent(requesterId, curr.decrement(1));
+    emitInventoryDecrement(requester.getId(), new PortalChange(-1));
     return true;
+  }
+
+  /**
+   * Emit a one-shot Change-entity holder for an inventory decrement. The
+   * canonical writer ({@code BrickSystem}/{@code DecoySystem}/{@code
+   * PortalSystem}/{@code RepelCountSystem}/{@code RocketSystem}/{@code
+   * ThorSystem}) drains it next tick and clamps at {@code 0} below +
+   * {@code *Stats.max} above. Per ADR 0001 + RaM.
+   */
+  private void emitInventoryDecrement(
+      final EntityId ship, final com.simsilica.es.EntityComponent change) {
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), change);
   }
 
   private boolean canAct(final Entity requester, final ConsumableTypeId actionType) {
@@ -525,9 +533,16 @@ public class ConsumableSystem extends BaseInfinitySystem
   }
 
   private boolean setCoolDownThor(final Entity requester) {
-    EntityId requesterId = requester.getId();
-    final ThorFireDelay gfd = ed.getComponent(requesterId, ThorFireDelay.class);
-    ed.setComponent(requesterId, gfd.copy());
+    final EntityId requesterId = requester.getId();
+    final ThorStats stats = ed.getComponent(requesterId, ThorStats.class);
+    if (stats == null) {
+      // Defensive — canAct already gates on ThorStats via thorOwners.
+      return true;
+    }
+    // Wave 4b: re-stamp from per-ship ThorStats.fireDelayMillis (authoritative).
+    // Pre-Wave-4b used gfd.copy() which carried whatever was last stamped on
+    // the live ThorFireDelay (and ThorPrizeApplier overrode it with 1000).
+    ed.setComponent(requesterId, new ThorFireDelay(stats.fireDelayMillis()));
     return true;
   }
 

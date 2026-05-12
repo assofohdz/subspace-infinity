@@ -5,33 +5,23 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
 import infinity.es.ship.actions.Repel;
-import infinity.es.ship.actions.RepelMax;
+import infinity.es.ship.actions.RepelChange;
+import infinity.es.ship.actions.RepelStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>INVENTORY family.</b> Bumps the ship's {@link Repel} count by one toward
- * {@link RepelMax}. No-op when the ship has no {@link RepelMax} component
- * (= ship not allowed repels) or is already at the cap.
+ * <b>INVENTORY family.</b> Emits a one-shot {@link RepelChange}({@code +1})
+ * Change holder; {@code RepelCountSystem} drains and clamps at
+ * {@link RepelStats#max}. Subspace canon: per-ship {@code [Ship]
+ * InitialRepel} / {@code RepelMax}; REFERENCE.md {@code ## PrizeWeight}
+ * ({@code Repel}). The {@code [Repel]} tunables ({@code RepelSpeed},
+ * {@code RepelTime}, {@code RepelDistance}) drive the spawned effect
+ * entity at fire-time in {@code ConsumableSystem}, not here.
  *
- * <p>Subspace canonical knobs (REFERENCE.md {@code ## Repel} line 250):
- * <ul>
- *   <li>{@code RepelSpeed} — repulsion speed (Subspace velocity units)
- *   <li>{@code RepelTime} — affected duration (centiseconds)
- *   <li>{@code RepelDistance} — affected radius. Subspace canon authors
- *       in pixels at 16 px/tile; Infinity stores in tiles / world units
- *       on the typed {@code RepelConfig} (operators porting from SVS
- *       divide by 16).
- * </ul>
- * Per-ship inventory caps: {@code [Ship] InitialRepel} / {@code RepelMax}
- * (REFERENCE.md "Inventory caps and starts" line 372/374).
- * See {@code ## PrizeWeight} line 242.
- *
- * <p>Pure component read/write — no {@link infinity.config.ShipConfig}
- * access on the hot path. Applier only adjusts inventory; the canon knobs
- * above describe what happens when the repel is fired and belong to
- * {@code ConsumableSystem}, not here.
+ * @see infinity.systems.ship.RepelCountSystem
  */
 public final class RepelPrizeApplier implements PrizeApplier {
 
@@ -40,21 +30,18 @@ public final class RepelPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final RepelMax max = ed.getComponent(ship, RepelMax.class);
-    if (max == null) {
+    final RepelStats stats = ed.getComponent(ship, RepelStats.class);
+    if (stats == null || stats.max() <= 0) {
       return; // ship not allowed repels
     }
     final Repel curr = ed.getComponent(ship, Repel.class);
-    if (curr == null) {
-      log.warn(
-          "Ship {} has RepelMax but no Repel — spawn projection invariant broken; skipping repel prize",
-          ship);
-      return;
+    if (curr != null && curr.getCount() >= stats.max()) {
+      return; // already at cap
     }
-    if (curr.getCount() < max.getCount()) {
-      final int next = curr.getCount() + 1;
-      log.info("Ship {} picked up repel prize and now has {} repels", ship, next);
-      ed.setComponent(ship, new Repel(next));
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up repel prize", ship);
     }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new RepelChange(1));
   }
 }

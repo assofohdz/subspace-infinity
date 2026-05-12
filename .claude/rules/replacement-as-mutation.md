@@ -225,15 +225,16 @@ a second pass. Re-run + diff this section when adding or removing a
 system writer; the totals below ground the diff.
 
 **Totals at snapshot date** — ~95 substantive component types
-audited; ~75 single-writer (canonical) or spawn-only (factory tier);
-**~7 multi-writer violations** flagged below (down from ~19 at C4
-audit: C1 RocketBuff race + C2a cap-bump body-stats + C2-Movement
-Rotation/Speed/Thrust prize collisions + the four status-family
-toggles + the four C4 fresh-find aspects (`WarpTo`, `Frequency`,
-`ShipType`, `Impulse`) + the four Wave 4a weapon-level rows
-(Bomb/Bullet/Mine/Burst) all resolved). The remaining 7 all align
-with BACKLOG C2 (inventory prize-applier collisions). `Decay` is
-the one documented multi-writer exception (see its own subsection).
+audited; ~82 single-writer (canonical) or spawn-only (factory tier);
+**0 remaining multi-writer violations** (down from ~19 at C4 audit:
+C1 RocketBuff race + C2a cap-bump body-stats + C2-Movement Rotation/
+Speed/Thrust prize collisions + the four status-family toggles +
+the four C4 fresh-find aspects (`WarpTo`, `Frequency`, `ShipType`,
+`Impulse`) + the four Wave 4a weapon-level rows (Bomb/Bullet/Mine/
+Burst) + the six Wave 4b inventory rows (Brick/Decoy/Portal/Repel/
+Rocket/Thor) all resolved). `Decay` is the one documented multi-
+writer exception (see its own subsection). Only the architectural
+test (TBD-3 in the PRD) remains.
 
 #### Additional single-writer mechanics (canonical)
 
@@ -257,14 +258,16 @@ the one documented multi-writer exception (see its own subsection).
   duration from `BombStats.fireDelayMillis()` — Wave 4a shared-writer
   pattern), `BulletStats`, `BulletFireDelay` (same shape as Bomb),
   `MineStats`, `MineFireDelay` (same shape), `BurstStats`,
-  `BrickMax`, `DecoyMax`, `PortalMax`, `RepelMax`, `RocketMax`,
-  `RocketTime`, `ThorMaxCount`. Per-arena weapon-stat spawn
-  projection — the weapon-side counterpart of `ShipSpawnSystem`'s
+  `BrickStats`, `DecoyStats`, `PortalStats`, `RepelStats`,
+  `RocketStats`, `ThorStats`, `ThorFireDelay` (spawn; `ConsumableSystem`
+  re-stamps on cooldown reading duration from `ThorStats.fireDelayMillis()`
+  — Wave 4b shared-writer pattern matching Bomb). Per-arena weapon-stat
+  spawn projection — the weapon-side counterpart of `ShipSpawnSystem`'s
   ship-stat projection. (Also writes `BombCurrentLevel`,
   `BulletCurrentLevel`, `MineCurrentLevel`, `Burst`, `Brick`, `Decoy`,
-  `Portal`, `Repel`, `Rocket`, `ThorCurrentCount`, `ThorFireDelay` at
-  spawn — weapon-level rows resolved Wave 4a by canonical-writer
-  systems below; inventory rows flagged below.)
+  `Portal`, `Repel`, `Rocket`, `ThorCurrentCount` at spawn — both
+  weapon-level (Wave 4a) and inventory (Wave 4b) Continuous rows now
+  resolved by canonical-writer systems below.)
 - **`BombSystem`** — `BombCurrentLevel` (Continuous-half; drains
   `BombChange` + `ChangeTarget`; clamp at `BombStats.max`).
 - **`BulletSystem`** — `BulletCurrentLevel` (same shape; clamp at
@@ -273,6 +276,19 @@ the one documented multi-writer exception (see its own subsection).
   `MineStats.max`).
 - **`BurstSystem`** — `Burst` count (same shape; clamp at
   `BurstStats.max`; ship not allowed bursts when `BurstStats.max == 0`).
+- **`BrickSystem`** — `Brick` count (Continuous-half; drains
+  `BrickChange` + `ChangeTarget`; clamp at `BrickStats.max` above and
+  `0` below — negative deltas from `ConsumableSystem.deductCostOfActionBrick`
+  cannot go below empty).
+- **`DecoySystem`** — `Decoy` count (same shape as `BrickSystem`).
+- **`PortalSystem`** — `Portal` count (same shape).
+- **`RepelCountSystem`** — `Repel` count (same shape; sibling to the
+  impulse-applying `RepelSystem`; split for ordering reasons documented
+  in the count-system's class Javadoc).
+- **`RocketSystem`** — `Rocket` count (same shape; clamp at
+  `RocketStats.max` above and `0` below).
+- **`ThorSystem`** — `ThorCurrentCount` (same shape; clamp at
+  `ThorStats.max` above and `0` below).
 - **`ShipStatusProjector`** — `CloakStats`, `StealthStats`,
   `XRadarStats`, `AntiwarpStats`. Spawn projection of the status-family
   per-ship knobs (tri-state tier + energy-per-second drain rate). Also
@@ -347,52 +363,19 @@ consumer.
 - The central reaper itself is **read-only** — removes the entity
   when the deadline expires; never writes `Decay`.
 
-#### ⚠️ Known multi-writer violations (Round 2 targets — do not "fix" here)
+#### Known multi-writer violations
 
-Each row below is a component type with multiple system writers
-that race in a real gameplay scenario. **Do not add new writers; do
-not migrate any of these to a single-writer-plus-intents shape
-inside an unrelated change** — that work is BACKLOG Round 2 (C1 +
-C2). The rows exist so reviewers can distinguish a *new* violation
-from a *known* one.
-
-**Inventory caps — prize-applier + decrement collisions (BACKLOG C2):**
-
-These types stack three writers: a spawn-projection at ship spawn,
-an additive applier on prize pickup, and a decrement on use. Classic
-RaM target — one canonical writer draining `+1` and `-1` intents.
-
-- **`Brick`** — `ShipWeaponsProjector` (spawn), `BrickPrizeApplier`
-  (add on pickup), `ConsumableSystem` (decrement on place). ⚠️
-- **`Decoy`** — `ShipWeaponsProjector`, `DecoyPrizeApplier`,
-  `ConsumableSystem`. ⚠️
-- **`Portal`** — `ShipWeaponsProjector`, `PortalPrizeApplier`,
-  `ConsumableSystem`. ⚠️
-- **`Repel`** — `ShipWeaponsProjector`, `RepelPrizeApplier`,
-  `ConsumableSystem`. ⚠️
-- **`Rocket`** — `ShipWeaponsProjector`, `RocketPrizeApplier`,
-  `ConsumableSystem`. ⚠️
-- **`ThorCurrentCount`** — `ShipWeaponsProjector`,
-  `ThorPrizeApplier` (add on pickup), `ConsumableSystem`
-  (`tcc.subtract(1)` on fire). ⚠️
-- **`ThorFireDelay`** — `ShipWeaponsProjector` (spawn),
-  `ThorPrizeApplier` (fallback `new ThorFireDelay(1000)` on
-  first-time pickup — documented divergence from Subspace canon),
-  `ConsumableSystem` (`gfd.copy()` on cooldown reset). ⚠️ fresh
-  find — first-time-acquire fallback overwrites the projected
-  per-ship value; flagged in `ThorPrizeApplier`'s class Javadoc.
-
-**Other multi-writers (fresh finds — not yet in BACKLOG):**
-
-(`WarpTo`, `Frequency`, `ShipType`, `Impulse` were the four
-fresh-find rows at the C4 audit. All four are now resolved:
-`WarpTo` → `WarpToChange` (`WarpSystem` canonical drain),
-`Frequency` → `FrequencyChange` (`FrequencySystem` canonical drain),
-`ShipType` → `ShipTypeChange` (`AvatarSystem` canonical drain;
-spawn writes in `ShipFactory.createShip` and `AIEntities.createMobShip`
-remain spawn-time exempt per the spawn-tier rule below), `Impulse`
-moved to the canonical-writers section above as the documented
-"one drainer, many intent-shaped emitters" shape.)
+None remaining at snapshot date. The full Wave-1-through-4b
+migration cycle (C1 RocketBuff race, C2a cap-bump body-stats,
+C2-Movement Rotation/Speed/Thrust prize collisions, the four
+status-family toggles, the four C4 fresh-find aspects `WarpTo` /
+`Frequency` / `ShipType` / `Impulse`, the four Wave 4a weapon-level
+rows Bomb/Bullet/Mine/Burst, and the six Wave 4b inventory rows
+Brick/Decoy/Portal/Repel/Rocket/Thor) is now landed. `Decay` is the
+one documented multi-writer exception (per its own subsection above).
+Only the architectural test (TBD-3 in
+[`.scratch/adr-0001-implementation/PRD.md`](../../.scratch/adr-0001-implementation/PRD.md))
+remains as a guard against future single-writer regressions.
 
 #### Future-migration candidates to the Change-entity recipe
 
