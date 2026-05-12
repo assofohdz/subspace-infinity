@@ -92,12 +92,11 @@ Items grouped by category, not lens. Effort/impact tags are S/M/L. See "Recommen
 
 ### RaM single-writer violations
 
-#### C2 — Inventory + weapon-level multi-writer collisions (Energy + Movement + Status family + fresh-find aspects closed)
-**L/L (residual).** Energy aspect landed in 75e3c54a; Movement aspects (Rotation/Speed/Thrust) + RocketBuffIntent migration landed in 25ca2138; Status family (Antiwarp/Cloak/Stealth/XRadar) + fresh-find aspects (WarpTo/Frequency/ShipType + Impulse confirmation) folded into the ADR 0001 implementation slice. **Remaining sub-slices:**
-- **C2c — weapon-level upgrades** (4 appliers: Bomb/Bullet/Mine/Burst prize appliers write `*CurrentLevel` components also written by `ShipWeaponsProjector`)
+#### C2 — Inventory multi-writer collisions (Energy + Movement + Status family + weapon-level + fresh-find aspects closed)
+**L/L (residual).** Energy aspect landed in 75e3c54a; Movement aspects (Rotation/Speed/Thrust) + RocketBuffIntent migration landed in 25ca2138; Status family (Antiwarp/Cloak/Stealth/XRadar) + fresh-find aspects (WarpTo/Frequency/ShipType + Impulse confirmation) folded into the ADR 0001 implementation slice; weapon-level aspects (Bomb/Bullet/Mine/Burst) landed in ee21cd7b. **Remaining sub-slice:**
 - **C2d — inventory caps** (~6 appliers: Brick/Decoy/Portal/Repel/Rocket/Thor prize appliers write inventory components also written by `ShipWeaponsProjector` + ConsumableSystem decrement; `ThorFireDelay` 3-writer race included here)
 
-Both sub-slices will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) — per-component canonical writers + `*Change` + `ChangeTarget(target, source)`. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
+This sub-slice will be replanned under [ADR 0001](../docs/adr/0001-ecs-component-model.md) — per-component canonical writers + `*Change` + `ChangeTarget(target, source)`. RaM live snapshot in `.claude/rules/replacement-as-mutation.md` documents per-component state. [spawn #2 + config-2 #1]
 
 ### Naming / convention
 
