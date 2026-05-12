@@ -2,14 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity;
 
-/**
- * Bomb level identity (1-4) — wire-protocol enum used by {@code BombStats},
- * {@code BombCurrentLevel} / {@code BombMaxLevel}, etc. Sprite-sheet offsets
- * and other render data live in {@code infinity.client.view.BombVisuals},
- * kept out of the api layer per {@code api-contracts.md}.
- *
- * @author Asser
- */
+/** Bomb level identity (1-4); wire-protocol enum used by {@code BombStats}, {@code BombCurrentLevel}, etc. */
 public enum BombLevel {
   BOMB_1(1),
   BOMB_2(2),

@@ -8,20 +8,7 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/**
- * Parameter record for {@code WeaponFactory.createExplosion}. Explosions
- * are visual ghosts (no mass / collision filter) that the central decay
- * reaper deletes when {@code decayMillis} elapses.
- *
- * @param owner parent entity (typically the projectile that exploded; not
- *     stamped as {@code Parent} today but kept for symmetry with other
- *     create methods + future linking)
- * @param phys physics space the spawn position is relative to
- * @param createdTime ns spawn time matching {@code SimTime#getTime}
- * @param position spawn position in world coords
- * @param decayMillis explosion lifetime in ms
- * @param shapeInfo pre-built shape carrying the explosion key + size
- */
+/** Parameter record for {@code WeaponFactory.createExplosion}; visual ghost (no mass/filter). */
 public record ExplosionSpec(
     EntityId owner,
     PhysicsSpace<?, ?> phys,

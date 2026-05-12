@@ -5,22 +5,7 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * Marks a {@link ProximityFuse}-bearing projectile as armed — an enemy has
- * entered the projectile's proximity radius and the fuse is now counting
- * down. {@code ProximityFuseSystem} consults {@link #getArmedAtNanos()} +
- * {@code ProximityFuse.getFuseMs()} to decide when to detonate.
- *
- * <p>Server-only — stamped and consumed by
- * {@code infinity.systems.ProximityFuseSystem}; never read by client
- * code, so no {@code Serializer.registerClass} entry is required (per
- * {@code .claude/rules/components.md}).
- *
- * <p>The timestamp is captured from {@code SimTime.getTime()} (simulation
- * nanos) at arm time, matching the clock {@code Decay} uses, so fuse
- * deadline arithmetic stays in the same time domain as the rest of the
- * projectile lifecycle.
- */
+/** Arm-time stamp on a {@link ProximityFuse}-bearing projectile; consumed by {@code ProximityFuseSystem} against {@link ProximityFuse#getFuseMs()}. */
 public final class ProximityArmed implements EntityComponent {
 
   private final long armedAtSimNanos;

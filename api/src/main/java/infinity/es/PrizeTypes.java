@@ -4,12 +4,7 @@ package infinity.es;
 
 import com.simsilica.es.EntityData;
 
-/**
- * Factory methods for the prize types. Because we run the string names through
- * the EntityData's string index we can't just have normal constants.
- *
- * @author Paul Speed
- */
+/** Factory methods for prize types — names are routed through {@code EntityData}'s string index. */
 public class PrizeTypes {
 
     public static final String ALLWEAPONS = "AllWeapons";

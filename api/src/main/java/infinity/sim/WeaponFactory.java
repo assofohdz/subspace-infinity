@@ -27,21 +27,7 @@ import infinity.sim.specs.RepelSpec;
 import infinity.sim.specs.ThorSpec;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Factory methods for projectile weapons (bombs, bullets, mines, bursts,
- * thors, repels) and weapon-adjacent visual fallout (explosions). Carved
- * out of the legacy {@code GameEntities} grab-bag (arch-review tier 3
- * finding #9).
- *
- * <p>Tuning numbers (decay millis, weapon shape names, radii) flow in via
- * spec records — typically threaded by {@code WeaponsFireSystem} from the
- * per-arena ship/weapon {@code *Config} per Pattern 4. This factory
- * composes structural pieces only (ShapeInfo, SpawnPosition, Mass, Decay,
- * WeaponTypes, Impulse, CollisionCategory, Parent, Meta).
- *
- * @see ShipFactory
- * @see MapFactory
- */
+/** Factory methods for projectile weapons + explosion ghosts; structural composition only — tuning flows via spec records. @see ShipFactory @see MapFactory */
 public final class WeaponFactory {
 
   private WeaponFactory() {}

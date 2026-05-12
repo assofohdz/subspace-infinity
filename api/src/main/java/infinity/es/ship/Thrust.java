@@ -4,16 +4,7 @@ package infinity.es.ship;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * The ship's <b>current effective thrust rate</b> (acceleration units/sec).
- * This is the value PlayerDriver reads each tick to compute force.
- *
- * <p>Maps to Subspace {@code [Ship] InitialThrust + n*UpgradeThrust}, clamped
- * at {@link ThrustMax}. Mutated by upgrade-prize pickups, NOT by physics —
- * the live force the body feels is on the {@code RigidBody}, not here.
- *
- * @author Asser Fahrenholz
- */
+/** Current effective thrust rate (acceleration units/sec); clamped at {@link ThrustStats#max()}. */
 public class Thrust implements EntityComponent {
 
     private final int thrust;

@@ -38,43 +38,16 @@ import infinity.sim.specs.WarpEffectSpec;
 import infinity.sim.specs.WormholeSpec;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Factory methods for map decoration (doors, wormholes, asteroids, flags,
- * lights, warp effects), prize/spawner entities, and ship-deployed map
- * structures (bricks, decoys, portals — placed by ships but living on
- * the map). Carved out of the legacy {@code GameEntities} grab-bag
- * (arch-review tier 3 finding #9).
- *
- * <p>Per-call inputs flow through parameter records under
- * {@code infinity.sim.specs.*Spec} (BACKLOG #2). Production server code
- * threads {@code engineConfigSystem.get().*Radius()} into the spec;
- * module / test callers can use {@code EngineConfig.DEFAULTS.*Radius()}.
- *
- * @see ShipFactory
- * @see WeaponFactory
- */
+/** Factory methods for map decoration, prizes/spawners, and ship-deployed map structures (bricks, decoys, portals). @see ShipFactory @see WeaponFactory */
 public final class MapFactory {
 
-  /**
-   * Default lifetime for prizes when a spawner doesn't specify its own.
-   * Per-spawner {@code prizeDecayMillis} on {@link infinity.es.Spawner}
-   * overrides this. Pattern 4 candidate — promote to per-arena typed
-   * config when a real per-arena requirement materializes.
-   */
+  /** Default prize lifetime when a spawner doesn't specify its own. */
   public static final long PRIZE_DEFAULT_DECAY_MS = 20000;
 
-  /**
-   * Default {@code maxCount} for the no-cap {@link
-   * #createSpawner(EntityData, SpawnerCreateSpec)} convenience builders —
-   * the simultaneous-prize cap when callers don't supply an explicit value.
-   */
+  /** Default simultaneous-prize cap for no-cap spawner builders. */
   public static final int PRIZE_DEFAULT_MAX_COUNT = 10;
 
-  /**
-   * Bounty granted on each kill, stamped onto the slain ship's
-   * {@link infinity.es.Bounty} component when the prize entity is created.
-   * Pattern 4 candidate.
-   */
+  /** Bounty granted on each kill. */
   public static final int BOUNTY_VALUE = 10;
 
   private MapFactory() {}
@@ -124,11 +97,7 @@ public final class MapFactory {
     return lastDoor;
   }
 
-  /**
-   * OVER5 visual overlay entity at a position. Distinct from {@link #createWormhole} —
-   * no gravity, no warp behavior, just a sized animation overlay. Pairs with
-   * {@code SISpatialFactory.createOver5} on the client side.
-   */
+  /** OVER5 visual overlay entity; no gravity, no warp — just a sized animation overlay. */
   public static EntityId createOver5(final EntityData ed, final Over5Spec spec) {
     final EntityId lastOver5 = ed.createEntity();
 
@@ -190,10 +159,7 @@ public final class MapFactory {
     return lastWarpTo;
   }
 
-  /**
-   * Creates a flag that is stationary and can be picked up by a player. This is used for the
-   * initial flag placement. To start off with, the flag does not have a frequency.
-   */
+  /** Creates a stationary, frequency-less flag for initial flag placement. */
   public static EntityId createTurfStationaryFlag(
       final EntityData ed, final TurfStationaryFlagSpec spec) {
     final EntityId lastFlag = ed.createEntity();
@@ -214,13 +180,7 @@ public final class MapFactory {
     return lastFlag;
   }
 
-  /**
-   * @deprecated World lighting is now baked via MOSS cell lightData / the
-   *     {@code LIGHT_EMITTER_BLOCK_TYPE} block type. This method still creates a
-   *     point-light ECS entity with {@link PointLightComponent} + {@link SpawnPosition}
-   *     for callers that want dynamic jME-side lights (e.g. dev tooling), but the
-   *     world tile shader no longer reads jME lights.
-   */
+  /** @deprecated World lighting is now baked via MOSS cell lightData; only dev tooling should use this dynamic jME-side light. */
   @Deprecated
   public static EntityId createLight(
       final EntityData ed,
@@ -237,20 +197,7 @@ public final class MapFactory {
     return lastLight;
   }
 
-  /**
-   * Create a prize entity at the spec's position. Called by {@code PrizeSystem}
-   * from {@code spawnBounty} and the death-drop path; prize-type weighting and
-   * per-spawner TTL selection happen there.
-   *
-   * <p>Non-positive {@code decayMillis} on the spec are clamped up to the
-   * global default {@link #PRIZE_DEFAULT_DECAY_MS} so a misconfigured Groovy
-   * spec can't accidentally produce zero-decay prizes that vanish on the
-   * next tick. The spec carries the {@code hidden} flag (set {@code false}
-   * for visible prizes); when {@code true} the spawned prize gets an
-   * {@link infinity.es.Hidden} marker so the client filters it out of
-   * rendering — server-side state (collision, pickup, applier dispatch,
-   * decay) is unaffected.
-   */
+  /** Create a prize entity; non-positive {@code decayMillis} on the spec clamps up to {@link #PRIZE_DEFAULT_DECAY_MS}. */
   public static EntityId createPrize(final EntityData ed, final PrizeSpec spec) {
     final EntityId result = ed.createEntity();
 
@@ -278,16 +225,7 @@ public final class MapFactory {
     return result;
   }
 
-  /**
-   * Create a prize-spawner entity from {@link SpawnerCreateSpec}. Used by
-   * {@code ArenaSystem} when materializing the per-arena {@code spawners}
-   * block declared in {@code arena.groovy}, and by dev/debug entry points
-   * (e.g. {@code BasicEnvironment}) that build a no-cap, defaulted spawner.
-   *
-   * <p>Effective per-tick cap is {@code spec.maxCount() + countPerPlayer ×
-   * playersInArena}; see {@link SpawnerCreateSpec} for the full field
-   * documentation including Slice-8d scaling/visibility knobs.
-   */
+  /** Create a prize-spawner entity from {@link SpawnerCreateSpec}; effective cap is {@code maxCount + countPerPlayer × N}. */
   public static EntityId createSpawner(final EntityData ed, final SpawnerCreateSpec spec) {
     final EntityId result = ed.createEntity();
 
@@ -314,23 +252,7 @@ public final class MapFactory {
     return result;
   }
 
-  /**
-   * Compose the marker entity for a placed brick. Lifecycle is owned by
-   * {@link Decay}: when the deadline passes, the canonical decay reaper
-   * deletes the entity.
-   *
-   * <p>Slice 3 ships plumbing only — the marker carries the span +
-   * decay deadline but no shape, no contact handler, no client visual.
-   * The follow-up "make bricks solid" slice consumes {@link BrickSpan}
-   * to spawn the per-tile wall geometry, registers a brick collision
-   * filter, and adds the client visual. This factory is the seam
-   * those consumers will read from.
-   *
-   * @param ship parent ship that placed the brick
-   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
-   * @param spanTiles wall length in tiles (from {@code BrickConfig.spanTiles})
-   * @param timeMs brick lifetime in ms (from {@code BrickConfig.timeMs})
-   */
+  /** Marker entity for a placed brick; {@link Decay} owns lifetime, {@link BrickSpan} carries wall length. */
   public static EntityId createBrick(
       final EntityData ed,
       final EntityId ship,
@@ -349,21 +271,7 @@ public final class MapFactory {
     return brick;
   }
 
-  /**
-   * Compose the marker entity for a placed decoy. Lifecycle is owned by
-   * {@link Decay}: when the deadline passes, the canonical decay reaper
-   * deletes the entity.
-   *
-   * <p>Slice 4 ships plumbing only — the marker carries the decay
-   * deadline + parent linkage but no shape, no radar visibility, no
-   * fake-ship behaviour. The follow-up "decoy as radar fake" slice will
-   * extend this factory with the canonical Subspace mechanic (a phantom
-   * ship on enemy radar that mimics the placer's heading).
-   *
-   * @param ship parent ship that placed the decoy
-   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
-   * @param aliveTimeMs decoy lifetime in ms (from {@code DecoyConfig.aliveTimeMs})
-   */
+  /** Marker entity for a placed decoy; {@link Decay} owns lifetime. */
   public static EntityId createDecoy(
       final EntityData ed, final EntityId ship, final long createdTime, final long aliveTimeMs) {
     final EntityId decoy = ed.createEntity();
@@ -377,22 +285,7 @@ public final class MapFactory {
     return decoy;
   }
 
-  /**
-   * Compose the marker entity for a placed portal. Lifecycle is owned by
-   * {@link Decay}: when the deadline passes, the canonical decay reaper
-   * deletes the entity.
-   *
-   * <p>Slice 5 ships plumbing only — the marker carries the decay
-   * deadline + parent linkage but no shape, no contact handler, no
-   * client visual, no warp-to-portal action. The follow-up "warp to
-   * placed portal" slice consumes this marker entity to drive the
-   * canonical Subspace mechanic (ship within {@code WarpRadiusLimit} of
-   * its own portal can teleport to it).
-   *
-   * @param ship parent ship that placed the portal
-   * @param createdTime spawn time in ns (matches {@link com.simsilica.sim.SimTime#getTime})
-   * @param activeTimeMs portal lifetime in ms (from {@code PortalConfig.activeTimeMs})
-   */
+  /** Marker entity for a placed portal; {@link Decay} owns lifetime. */
   public static EntityId createPortal(
       final EntityData ed, final EntityId ship, final long createdTime, final long activeTimeMs) {
     final EntityId portal = ed.createEntity();

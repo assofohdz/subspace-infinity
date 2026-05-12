@@ -4,19 +4,7 @@ package infinity.es.ship;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * The ship's <b>current effective rotation-rate capability</b>, in radians
- * per second. PlayerDriver multiplies the player's rotation input by this
- * value — it is NOT the live angular velocity (that lives on the
- * {@code RigidBody} and is read via {@code body.getAngularVelocity()}).
- *
- * <p>Maps to Subspace {@code [Ship] InitialRotation + n*UpgradeRotation},
- * clamped at {@link RotationMax}. Mutated by upgrade-prize pickups. The
- * Subspace integer convention (400 units = 1 full rotation/sec) is
- * converted to rad/sec at projection time by ShipSpawnSystem.
- *
- * @author Asser Fahrenholz
- */
+/** Current effective rotation-rate capability (rad/sec); clamped at {@link RotationStats#max()}. */
 public class Rotation implements EntityComponent {
 
     private final double radSec;

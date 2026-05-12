@@ -2,14 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity;
 
-/**
- * Bullet level identity (1-4) — wire-protocol enum used by {@code BulletStats},
- * {@code BulletCurrentLevel} / {@code BulletMaxLevel}. Sprite-sheet offsets live
- * in {@code infinity.client.view.BulletVisuals}, kept out of the api layer per
- * {@code api-contracts.md}.
- *
- * @author Asser
- */
+/** Bullet level identity (1-4); wire-protocol enum used by {@code BulletStats}, {@code BulletCurrentLevel}, etc. */
 public enum BulletLevel {
   LEVEL_1(1),
   LEVEL_2(2),

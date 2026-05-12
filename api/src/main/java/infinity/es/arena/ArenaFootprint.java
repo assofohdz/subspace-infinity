@@ -6,32 +6,7 @@ package infinity.es.arena;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.mathd.Vec3d;
 
-/**
- * Presentation marker that tells the client's radar an entity has a closed
- * polygon footprint — vs the per-entity-point blip pattern carried by
- * {@link RadarShapeInfo} (which names a blip shape: "dot", "square",
- * "diamond" etc).
- *
- * <p>Server publishes the geometry; the client decides the styling — fill
- * tint, outline color, line thickness all come from {@code RadarTheme}, not
- * from this component. Per the api-contracts.md / client-read-only.md split:
- * server owns truth (where the polygon is), client owns presentation (how it
- * looks).
- *
- * <p>Vertices form a closed polygon — last vertex connects implicitly back to
- * the first. For convex polygons (e.g., arena bounds rectangles) the radar
- * fan-triangulates from {@code vertices[0]} for the interior fill and renders
- * a {@code Mesh.Mode.Lines} loop for the outline.
- *
- * <p>Today only arenas carry this component (see {@code ArenaSystem}). The
- * shape is generic so future entity types — wormholes, safe zones, capture
- * footprints, eLVL regions (Subspace's per-arena sub-areas, see
- * {@code infinity.map.Region}) — can stamp themselves with an
- * {@code ArenaFootprint} and inherit the same render path. (If non-arena
- * entities ever stamp this component, the {@code Arena} prefix on the class
- * name becomes a misnomer — rename to a generic {@code RadarPolygon}-style
- * name at that point. Today every caller is an arena.)
- */
+/** Closed-polygon footprint for the client's radar; vertices form a closed loop (last connects to first). Stamped by {@code ArenaSystem}. */
 public class ArenaFootprint implements EntityComponent {
 
   private final Vec3d[] vertices;
@@ -49,11 +24,7 @@ public class ArenaFootprint implements EntityComponent {
     return vertices;
   }
 
-  /**
-   * Convenience factory for the rectangle case — the dominant shape today
-   * (arena bounds). Returns a 4-vertex polygon traversed clockwise from the
-   * NW corner: NW → NE → SE → SW.
-   */
+  /** Rectangle convenience factory; clockwise from NW: NW → NE → SE → SW. */
   public static ArenaFootprint rectangle(final Vec3d min, final Vec3d max) {
     final Vec3d[] verts = new Vec3d[] {
         new Vec3d(min.x, min.y, min.z),

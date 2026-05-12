@@ -7,17 +7,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/**
- * Parameter record for {@code MapFactory.createTurfStationaryFlag}.
- * The factory offsets the spawn by {@code (0.5, 0, 0.5)} to center the
- * flag on its tile.
- *
- * @param parent optional parent entity ({@code null} for free-standing flags)
- * @param phys physics space the spawn position is relative to
- * @param createdTime ns spawn time matching {@code SimTime#getTime}
- * @param position pre-offset flag position in world coords
- * @param radius collision radius
- */
+/** Parameter record for {@code MapFactory.createTurfStationaryFlag}; factory offsets by {@code (0.5,0,0.5)} to tile-center. */
 public record TurfStationaryFlagSpec(
     EntityId parent,
     PhysicsSpace<?, ?> phys,

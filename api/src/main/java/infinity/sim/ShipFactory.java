@@ -31,30 +31,7 @@ import infinity.sim.specs.RocketBuffSpec;
 import infinity.sim.specs.ShipSpec;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Factory methods for ship and ship-buff entities. Carved out of the legacy
- * {@code GameEntities} grab-bag (arch-review tier 3 finding #9) so module
- * authors and server systems can find ship-construction helpers under a
- * domain-named class instead of scrolling 35 mixed factory methods.
- *
- * <p>This factory composes structural pieces only (Parent, ShipType,
- * ShapeNames, SpawnPosition, Mass, Gravity, Gold, CollisionCategory,
- * CollidesWithLargeStatics, Meta). All tunable per-ship stats
- * (Energy/Health/Recharge/Thrust/Speed/Rotation movement triples,
- * drag/turn/bounce feel, radar range, weapon + inventory groups) are
- * projected by {@code ShipSpawnSystem} from the per-arena
- * {@code ShipConfig} per Pattern 4 (see
- * {@code .claude/rules/config-pattern.md}).
- *
- * <p>Per-call inputs flow through {@link ShipSpec} / {@link RocketBuffSpec}
- * parameter records (BACKLOG #2 — too many positional args). Production
- * server code threads {@code engineConfigSystem.get().shipRadius()} into
- * the spec; module / test callers can use {@code
- * EngineConfig.DEFAULTS.shipRadius()}.
- *
- * @see WeaponFactory
- * @see MapFactory
- */
+/** Factory methods for ship + ship-buff entities; structural composition only — tunable per-ship stats projected by {@code ShipSpawnSystem}. @see WeaponFactory @see MapFactory */
 public final class ShipFactory {
 
   private ShipFactory() {}
@@ -79,16 +56,7 @@ public final class ShipFactory {
 
     ed.setComponent(result, new Gold(0));
 
-    // All tunable per-ship stats (Energy/Health/Recharge/Thrust/Speed/Rotation
-    // movement triples, drag/turn/bounce feel, radar range, and the
-    // bomb/bullet/mine/burst/thor/repel weapon + inventory groups) are projected
-    // by ShipSpawnSystem from the per-arena ShipConfig — see Pattern 4 in
-    // .claude/rules/config-pattern.md and CONTEXT.md. createShip composes the
-    // structural pieces only (Parent, ShipType, ShapeNames, SpawnPosition,
-    // Mass, Gravity, Gold, CollisionCategory, CollidesWithLargeStatics, Meta);
-    // the spawn system writes the tunable components on the next tick when
-    // the ship enters its arena.
-
+    // Tunable per-ship stats are projected by ShipSpawnSystem from ShipConfig.
     ed.setComponent(
         result, new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PLAYERS));
 
@@ -124,13 +92,7 @@ public final class ShipFactory {
     return result;
   }
 
-  /**
-   * Compose the buff entity that drives a rocket activation. Lifecycle is
-   * owned by {@link Decay}: when the deadline passes, the canonical decay
-   * reaper deletes this entity, and {@code RocketBuffSystem} reacts to
-   * the removal by reverting the parent ship's {@code Thrust} / {@code Speed}
-   * from the {@link RocketSnapshot} carried here.
-   */
+  /** Buff entity driving a rocket activation; {@link Decay} owns lifetime, {@code RocketBuffSystem} reverts on removal via {@link RocketSnapshot}. */
   public static EntityId createRocketBuff(final EntityData ed, final RocketBuffSpec spec) {
     final EntityId buff = ed.createEntity();
     ed.setComponents(

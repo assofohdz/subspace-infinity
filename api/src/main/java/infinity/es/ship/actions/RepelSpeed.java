@@ -4,16 +4,7 @@ package infinity.es.ship.actions;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * Repulsion speed of a Repel effect entity. Stamped at fire-time by
- * {@code ConsumableSystem} from per-arena {@link infinity.config.RepelConfig}.
- * Carries the Subspace {@code [Repel] RepelSpeed} value (raw integer in
- * Subspace velocity units) per the Pattern 4 template → spawn-projection →
- * component flow; future repel-impulse system reads this on the spawned
- * entity rather than the {@code RepelConfig} template.
- *
- * @author Asser
- */
+/** Repulsion speed on a Repel effect entity ({@code [Repel] RepelSpeed}); stamped at fire-time from {@link infinity.config.RepelConfig}. */
 public class RepelSpeed implements EntityComponent {
 
   private final int speed;

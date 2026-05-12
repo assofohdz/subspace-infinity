@@ -5,17 +5,7 @@ package infinity;
 
 import infinity.sim.util.InfinityRunTimeException;
 
-/**
- * Wire-protocol identity for the eight playable ships. Order is warbird,
- * javelin, spider, leviathan, terrier, weasel, lancaster, shark — the byte
- * id is what flows through {@code ShipType} on the network.
- *
- * <p>Sprite-sheet offsets and other client-side render data live in
- * {@code infinity.client.view.ShipVisuals}, kept out of the api layer per
- * {@code api-contracts.md}.
- *
- * @author asser
- */
+/** Wire-protocol identity for the eight playable ships; byte id flows through {@code ShipType}. */
 public enum Ship {
   WARBIRD(1, "ship_warbird"),
   JAVELIN(2, "ship_javelin"),

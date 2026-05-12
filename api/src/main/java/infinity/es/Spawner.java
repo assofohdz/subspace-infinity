@@ -5,16 +5,7 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * Configuration for an entity that periodically spawns other entities. Read by
- * the spawn-loop systems (today: {@code PrizeSystem} for {@link
- * SpawnType#Prizes}).
- *
- * <p>Slice 8d (C2) added four scaling/visibility fields. The math is
- * additive — see the field-level Javadoc for the formula.
- *
- * @author Asser
- */
+/** Configuration for an entity that periodically spawns other entities; read by spawn-loop systems (today {@code PrizeSystem}). */
 public class Spawner implements EntityComponent {
 
   private final boolean weighted;
@@ -24,12 +15,7 @@ public class Spawner implements EntityComponent {
   private final double spawnInterval;
   // add option to spawn on the radius or in the circle
   private final boolean spawnOnRing;
-  // Per-spawner TTL imprinted on each spawned entity at creation time. The
-  // spawned entity gets a {@link com.simsilica.es.common.Decay} component
-  // sized from this; {@code 0} means "use the global default for the entity
-  // type the spawner produces" (e.g. {@code MapFactory.PRIZE_DEFAULT_DECAY_MS}
-  // for a prize spawner). Stored here rather than on the spawned entity
-  // because it's a per-spawner configuration knob, not per-instance state.
+  // Per-spawner TTL imprinted on spawned entities; 0 = type-specific global default.
   private final long spawnedDecayMillis;
   private final int countPerPlayer;
   private final double radiusPerPlayer;
@@ -83,55 +69,22 @@ public class Spawner implements EntityComponent {
     return type;
   }
 
-  /**
-   * Per-spawned-entity TTL in milliseconds imprinted by this spawner. Read at
-   * spawn time by {@code PrizeSystem} (and any future spawn system) and used
-   * to size the {@link com.simsilica.es.common.Decay} component on the
-   * spawned entity. {@code 0} means "fall back to the type-specific global"
-   * (e.g. {@code MapFactory.PRIZE_DEFAULT_DECAY_MS}).
-   */
   public long getSpawnedDecayMillis() {
     return spawnedDecayMillis;
   }
 
-  /**
-   * Additive count scaling per active player in the spawner's arena.
-   * Effective max = {@link #getMaxCount} + {@code countPerPlayer × players}.
-   * {@code 0} (default) disables scaling — a flat {@link #getMaxCount} cap.
-   * See {@code .claude/rules/player-scaling.md}.
-   */
   public int getCountPerPlayer() {
     return countPerPlayer;
   }
 
-  /**
-   * Additive radius scaling per active player in the spawner's arena.
-   * Effective radius = base + {@code radiusPerPlayer × players}, where base
-   * comes from the spawner entity's {@code SphereShape}. {@code 0.0}
-   * (default) disables scaling. See {@code .claude/rules/player-scaling.md}.
-   */
   public double getRadiusPerPlayer() {
     return radiusPerPlayer;
   }
 
-  /**
-   * Number of entities to spawn per {@link #getSpawnInterval} tick once the
-   * effective max count isn't yet met. {@code 1} (default) preserves the
-   * pre-Slice-8d "spawn one at a time" cadence; higher values let an arena
-   * burst-regenerate prize stocks (canonical Subspace
-   * {@code [Prize] PrizeHideCount}). The spawn loop never exceeds the
-   * effective max — partial batches happen at the cap boundary.
-   */
   public int getRegenBatch() {
     return regenBatch;
   }
 
-  /**
-   * When {@code true}, spawned entities receive an {@link Hidden} marker so
-   * the client filters them out of rendering. Server-side state (collision,
-   * pickup, applier dispatch, decay) is unaffected — the prize still exists
-   * and ships still bump into it. Defaults to {@code false}.
-   */
   public boolean isHidden() {
     return hidden;
   }

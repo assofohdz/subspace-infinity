@@ -5,16 +5,7 @@ package infinity.es.ship.actions;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * Marker on the buff entity itself (parent = ship). Lifecycle is owned
- * by the buff entity's {@link com.simsilica.es.common.Decay}; the
- * canonical decay reaper deletes the entity at the deadline, which
- * triggers {@code RocketBuffSystem.onRemoved} to revert the ship.
- *
- * <p>Pairs with {@link RocketSnapshot} (revert data) and
- * {@link com.simsilica.es.common.Parent} (link to the ship being
- * buffed) on the same buff entity.
- */
+/** Marker on the rocket-buff entity (parented to ship); pairs with {@link RocketSnapshot}. {@code Decay} owns lifetime; {@code RocketBuffSystem} reverts on removal. */
 public class RocketBuff implements EntityComponent {
 
   public RocketBuff() {}

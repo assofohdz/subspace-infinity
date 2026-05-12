@@ -44,11 +44,7 @@ import com.simsilica.mathd.bits.QuatBits;
 import com.simsilica.mathd.bits.Vec3Bits;
 import com.simsilica.mworld.WorldGrids;
 
-/**
- * Game setup constants for things like game name, version, etc.
- *
- * @author Paul Speed
- */
+/** Game setup constants (name, version, network protocol parameters, world grid sizes). */
 public class InfinityConstants {
 
   private InfinityConstants() {
@@ -165,12 +161,7 @@ public class InfinityConstants {
    */
   public static final Vec3i LARGE_BIN_RADIUS = new Vec3i(0, 0, 0);
 
-  /**
-   * World-space Y coordinate on which all gameplay entities (ships, mobs, tiles, projectiles)
-   * live. The game is logically 2D on the X/Z plane; this constant is the single source of truth
-   * for the gameplay plane. {@link PlayerDriver} and similar drivers clamp body positions here
-   * each tick to prevent collision resolution from drifting entities off the plane.
-   */
+  /** World-space Y for the gameplay plane (game is 2D on X/Z); drivers clamp bodies here each tick. */
   public static final double GAMEPLAY_Y = 1.0;
 
   /**
@@ -194,16 +185,7 @@ public class InfinityConstants {
    * 1) means the player can see a total of 27 zones including the zone they are in.
    */
   public static final Vec3i ZONE_RADIUS = new Vec3i(2, 0, 2);
-  // To allow players to see farther in space, we'll use a larger grid
-  // size for the zone manager. We could have also used a wider zone radius
-  // and we might use both. The gridSize used in a real game is mostly a
-  // balance between how likely it is that an object will fall into more than
-  // one zone at a time, with how many objects are likely to be in a zone.
-  // Also, while the zone radius can be increased to include more surrounding
-  // zones in a player's view, there is considerably more management involved
-  // with each new zone, more network messages, etc.. Finding the sweet spot
-  // will depend largely on the game.
-  /** The 3D zone grid definition that defines how space is broken up into network zones. */
+  /** 3D zone grid; larger grid favors fewer multi-zone objects at the cost of more objects per zone. */
   public static final ZoneGrid ZONE_GRID = new ZoneGrid(WorldGrids.LEAF_SIZE, 0, WorldGrids.LEAF_SIZE);
   /**
    * Defines how many network message bits to encode the elements of position fields. This will be a
@@ -214,26 +196,7 @@ public class InfinityConstants {
    */
   public static final Vec3Bits POSITION_BITS =
       new Vec3Bits(-MAX_OBJECT_RADIUS, WorldGrids.LEAF_SIZE + MAX_OBJECT_RADIUS, POSITION_BIT_COUNT);
-  /**
-   * Defines the overall object protocol parameters for how many bits ar used to encode the various
-   * parts of an object update message.
-   *
-   * <p>The first parameter defines how many bits are used to encode zone IDs. Zones are always
-   * defined relative to the player so this will be a function of the zone radius. For example, a
-   * radius of (1, 1, 1) means a 3D grid that's 3x3x3 or 27 different zones. At least 5 bits would
-   * be necessary to encode those IDs. I use 8 here arbitrarily to give some space for zone radius
-   * experimentation. 8 bits should support a zone radius up to (3, 3, 2).
-   *
-   * <p>The second parameter is how many bits are associated with the real object IDs. These IDs are
-   * not sent with every message so it's important that the value properly encompass all potential
-   * IDs. For example, using a long ID from an ES you would need 64 bits. If game sessions are short
-   * lived and your object IDs are only ever 'int' then 32 bits is the proper value. This should
-   * usually be 64 bits and I'm keeping it as such... even though this example could get away with
-   * 32 bits. Since these values are not sent with every message and people might cut/paste these
-   * settings, I'm going with the safer choice.
-   *
-   * <p>The last two parameters are the Vec3 and Quat bit sizes defined above.
-   */
+  /** Object update protocol: 8-bit zone IDs (supports zone-radius up to (3,3,2)), 64-bit object IDs, {@link #POSITION_BITS}, {@link #ROTATION_BITS}. */
   public static final ObjectStateProtocol OBJECT_PROTOCOL =
       new ObjectStateProtocol(8, 64, POSITION_BITS, ROTATION_BITS);
 }

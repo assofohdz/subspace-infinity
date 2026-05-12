@@ -4,17 +4,7 @@ package infinity.es.ship;
 
 import com.simsilica.es.EntityComponent;
 
-/**
- * The ship's <b>current effective velocity cap</b>. PlayerDriver reads this
- * each tick to clamp how fast the ship can fly — it is NOT the ship's live
- * velocity (that lives on the {@code RigidBody} and is read via
- * {@code body.getLinearVelocity()}).
- *
- * <p>Maps to Subspace {@code [Ship] InitialSpeed + n*UpgradeSpeed}, clamped
- * at {@link SpeedMax}. Mutated by upgrade-prize pickups.
- *
- * @author Asser Fahrenholz
- */
+/** Current effective velocity cap; clamped at {@link SpeedStats#max()}. */
 public class Speed implements EntityComponent {
 
     private final int speed;

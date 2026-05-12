@@ -7,17 +7,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/**
- * Parameter record for the explicit-radius {@code MapFactory.createOver5}.
- * OVER5 is a sized animation overlay (no gravity, no warp behavior).
- *
- * @param owner currently unused by the factory; preserved for future
- *     parent-linkage symmetry
- * @param phys physics space the spawn position is relative to
- * @param createdTime ns spawn time matching {@code SimTime#getTime}
- * @param position overlay position in world coords
- * @param radius collision radius
- */
+/** Parameter record for {@code MapFactory.createOver5}; sized animation overlay (no gravity, no warp). */
 public record Over5Spec(
     EntityId owner,
     PhysicsSpace<?, ?> phys,

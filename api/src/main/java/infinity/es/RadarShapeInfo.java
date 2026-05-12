@@ -5,22 +5,7 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 
-/**
- * Names the radar blip shape used to represent this entity on the client-side
- * radar viewport. The string is keyed into {@link EntityData#getStrings()} so
- * the wire-form is a small int — same convention as {@code ShapeInfo.shapeName}
- * for the main scene view.
- *
- * <p>Server-authored only (added by spawn systems). Clients resolve the name
- * via a registry at attach time to produce a flat 2D blip Geometry. Color is
- * NOT carried here — it's resolved client-side from the blip's
- * {@link Frequency} vs. the local player's frequency, which keeps re-skinning
- * (color-blind palettes, themes) a client-only concern.
- *
- * <p>Entities without this component are simply not drawn on the radar; this
- * is how projectiles, particles, and other "invisible to radar" things opt
- * out without an extra suppression flag.
- */
+/** Radar blip shape name (string-indexed via {@code EntityData}); entities without the component are not drawn on the radar. */
 public class RadarShapeInfo implements EntityComponent {
 
     private final int shapeName;
