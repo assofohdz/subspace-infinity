@@ -20,6 +20,70 @@ inline comments and over-document.
   `infinity.sim.*`): the WHAT may need a second sentence if the
   contract has invariants. Keep both sentences short.
 
+## The three-category test (load-bearing for a strict sweep)
+
+Before deleting any javadoc paragraph or `//` comment, sort it into
+one of three buckets:
+
+1. **DELETE — pattern restatement.** Describes a recipe, rule, or
+   convention that is already documented in a `.claude/rules/*.md`
+   file, an ADR, or the rule's live snapshot. Restating it here
+   means two copies that will drift. Cross-link with `@see` /
+   `{@link}` instead.
+
+2. **DELETE — WHAT-describing-the-code.** Paraphrases what
+   well-named identifiers already say. "Returns the entity's energy
+   pool" on a method named `getEnergyPool()` is paraphrase. Delete.
+
+3. **KEEP — domain fact.** A specific, load-bearing piece of
+   knowledge that is NOT in any rule file and CANNOT be derived by
+   reading the code in isolation. Examples below.
+
+When in doubt, **KEEP**. A future agent (or human) who has to
+re-derive a domain fact by grepping commit messages or reading
+external Subspace docs will pay the cost; the rule is "less
+docstring" not "no docstring".
+
+## Domain facts that MUST be preserved (with examples)
+
+- **Subspace canon translations** — *"`MaximumRotation=400` means
+  one full rotation per second; divide by 400 to convert to
+  rad/sec"*. The `400` is a magic number until this comment names
+  it. KEEP as a one-line `//` above the constant.
+- **Unit conversions at boundaries** — *"Stats stores
+  `fireDelayMillis` (ms); Subspace canon is `BombFireDelay`
+  centiseconds. Conversion happens here."* KEEP at the conversion
+  site.
+- **Race-condition mitigations** — *"DefaultEntityData.removeEntity
+  iterates handlers in non-deterministic order — cache
+  (target, delta) at apply-time."* KEEP in the affected writer's
+  Javadoc or at the TrackedApply field.
+- **Ordering / lifecycle constraints** — *"Register before
+  DecaySystem per ADR 0001 writer-ordering rule."* KEEP at the
+  registration site or in the system's class Javadoc.
+- **Attribution semantics** — *"`source` field carries the
+  wormhole entity ID for wormhole-driven warps; the chat command
+  variant passes the player's avatar ID."* KEEP at the emit site
+  or in the wrapper type's Javadoc.
+- **Architectural maps / "where things live" tables** — when a
+  class is the orchestrator for a split (e.g. `ShipSpawnSystem`
+  dispatching to `ShipStatusProjector` + `ShipWeaponsProjector`),
+  a one-paragraph map of "which projector owns which aspect" is a
+  navigation aid for future contributors. KEEP it in the
+  orchestrator's class Javadoc.
+- **REFERENCE.md cites for prize appliers** — per
+  [`prize-applier.md`](./prize-applier.md), every applier class
+  Javadoc must cite the relevant Subspace section. KEEP the cite.
+- **Documented divergences from Subspace canon** — *"Infinity
+  simplifies X; Subspace canonical behaviour is Y, see
+  REFERENCE.md `## Section`."* KEEP at the divergence site.
+
+If a comment is structurally one of the above but written
+verbosely, **trim the prose, keep the fact**. "MaximumRotation=400
+means one full rotation per second per the SubspaceServer source
+at ClientSettingsConfig.cs:388, verified by Asser in 2024-..." →
+"`MaximumRotation=400` = one rotation/sec (Subspace canon)."
+
 ## What does NOT belong in javadoc
 
 - **Restated recipes** — if the four-line state machine, the
